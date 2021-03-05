@@ -42,7 +42,15 @@
     "node": ">=10"
   },
   "dependencies": {
-    "@bitauth/libauth": "^1.17.1"
+    "@bitauth/libauth": "^1.17.1",
+    "libp2p": "^0.30.9",
+    "libp2p-gossipsub": "^0.8.0",
+    "libp2p-mplex": "^0.10.2",
+    "libp2p-noise": "^2.0.5",
+    "libp2p-secio": "^0.13.1",
+    "libp2p-tcp": "^0.15.3",
+    "multiaddr": "^8.1.2",
+    "yarg": "^1.0.8"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
