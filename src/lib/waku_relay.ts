@@ -1,7 +1,8 @@
-import { TextEncoder } from 'util';
-
-import Libp2p from 'libp2p';
 import Gossipsub from 'libp2p-gossipsub';
+import { Libp2p } from 'libp2p-gossipsub/src/interfaces';
+import Pubsub from 'libp2p-interfaces/src/pubsub';
+
+import { Message } from './waku_message';
 
 export const CODEC = '/vac/waku/relay/2.0.0-beta2';
 
@@ -23,15 +24,15 @@ export class WakuRelayPubsub extends Gossipsub {
 
 // This class provides an interface to execute the waku relay protocol
 export class WakuRelay {
-  constructor(private pubsub: WakuRelayPubsub) {}
+  constructor(private pubsub: Pubsub) {}
 
   // At this stage we are always using the same topic so we do not pass it as a parameter
   async subscribe() {
     await this.pubsub.subscribe(TOPIC);
   }
 
-  async publish(message: string) {
-    const msg = new TextEncoder().encode(message);
+  async publish(message: Message) {
+    const msg = message.toBinary();
     await this.pubsub.publish(TOPIC, msg);
   }
 }
