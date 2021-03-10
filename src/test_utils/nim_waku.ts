@@ -1,4 +1,6 @@
 import { ChildProcess, spawn } from 'child_process';
+import * as fs from 'fs';
+import { promisify } from 'util';
 
 import axios from 'axios';
 import Multiaddr from 'multiaddr';
@@ -7,6 +9,8 @@ import PeerId from 'peer-id';
 
 import { delay } from './delay';
 
+const openAsync = promisify(fs.open);
+
 const NIM_WAKU_BIN = '/home/froyer/src/status-im/nim-waku/build/wakunode2';
 const NIM_WAKU_RPC_URL = 'http://localhost:8545/';
 const NIM_WAKU_PEER_ID = PeerId.createFromB58String(
@@ -14,32 +18,43 @@ const NIM_WAKU_PEER_ID = PeerId.createFromB58String(
 );
 const NIM_WAKKU_LISTEN_ADDR = multiaddr('/ip4/127.0.0.1/tcp/60000/');
 
+export interface Args {
+  staticnode?: string;
+  nat?: 'none';
+  listenAddress?: string;
+  relay?: boolean;
+  rpc?: boolean;
+  rpcAdmin?: boolean;
+  nodekey?: string;
+}
+
 export class NimWaku {
   private process?: ChildProcess;
 
-  async start() {
+  async start(args: Args) {
     // Start a local only node with the right RPC commands
     // The fixed nodekey ensures the node has a fixed Peerid: 16Uiu2HAkyzsXzENw5XBDYEQQAeQTCYjBJpMLgBmEXuwbtcrgxBJ4
 
-    this.process = spawn(
-      NIM_WAKU_BIN,
-      [
-        '--nat=none',
-        '--listen-address=127.0.0.1',
-        '--relay=true',
-        '--rpc=true',
-        '--rpc-admin=true',
-        '--nodekey=B2C4E3DB22EA6EB6850689F7B3DF3DDA73F59C87EFFD902BEDCEE90A3A2341A6',
+    const logFile = await openAsync('./nim-waku.log', 'w');
+
+    const mergedArgs = argsToArray(mergeArguments(args));
+    console.log(mergedArgs);
+    this.process = spawn(NIM_WAKU_BIN, mergedArgs, {
+      cwd: '/home/froyer/src/status-im/nim-waku/',
+      stdio: [
+        'ignore', // stdin
+        logFile, // stdout
+        logFile, // stderr
       ],
-      { cwd: '/home/froyer/src/status-im/nim-waku/' }
-    );
+    });
 
     this.process.on('exit', (signal) => {
-      console.log(`nim-waku stopped: ${signal}`);
+      console.log(`ERROR: nim-waku node stopped: ${signal}`);
     });
 
     // TODO: Wait for line "RPC Server started "
-    await delay(2000);
+    await delay(5000);
+    console.log(await this.info());
     console.log('Nim waku is hopefully started');
   }
 
@@ -93,4 +108,39 @@ export class NimWaku {
       throw "Nim Waku isn't started";
     }
   }
+}
+
+export function argsToArray(args: Args): Array<string> {
+  const array = [];
+
+  for (const [key, value] of Object.entries(args)) {
+    // Change the key from camelCase to kebab-case
+    const kebabKey = key.replace(/([A-Z])/, (_, capital) => {
+      return '-' + capital.toLowerCase();
+    });
+
+    const arg = `--${kebabKey}=${value}`;
+    array.push(arg);
+  }
+
+  return array;
+}
+
+function defaultArgs(): Args {
+  return {
+    nat: 'none',
+    listenAddress: '127.0.0.1',
+    relay: true,
+    rpc: true,
+    rpcAdmin: true,
+    nodekey: 'B2C4E3DB22EA6EB6850689F7B3DF3DDA73F59C87EFFD902BEDCEE90A3A2341A6',
+  };
+}
+
+export function mergeArguments(args: Args): Args {
+  const res = defaultArgs();
+
+  Object.assign(res, args);
+
+  return res;
 }

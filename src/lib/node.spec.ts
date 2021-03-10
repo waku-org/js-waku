@@ -50,15 +50,18 @@ test('Does not register any sub protocol', async (t) => {
   t.truthy(protocols.findIndex((value) => value.match(/sub/)));
 });
 
-test('Nim-waku: connects', async (t) => {
-  const nimWaku = new NimWaku();
-  await nimWaku.start();
-
+test('Nim-waku: nim-waku node connects to js node', async (t) => {
   const node = await createNode();
-  console.log(node.peerId.toB58String());
 
-  node.peerStore.addressBook.set(nimWaku.peerId, [nimWaku.multiaddr]);
-  await node.dial(nimWaku.peerId);
+  const peerId = node.peerId.toB58String();
+
+  const localMultiaddr = node.multiaddrs.find((addr) =>
+    addr.toString().match(/127\.0\.0\.1/)
+  );
+  const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
+
+  const nimWaku = new NimWaku();
+  await nimWaku.start({ staticnode: multiAddrWithId });
 
   const peers = await nimWaku.peers();
 
