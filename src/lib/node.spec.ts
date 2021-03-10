@@ -44,6 +44,13 @@ test('Register waku relay protocol', async (t) => {
   t.truthy(protocols.findIndex((value) => value == CODEC));
 });
 
+test('Does not register any sub protocol', async (t) => {
+  const node = await createNode();
+
+  const protocols = Array.from(node.upgrader.protocols.keys());
+  t.truthy(protocols.findIndex((value) => value.match(/sub/)));
+});
+
 function waitForNextData(pubsub: Pubsub): Promise<Message> {
   return new Promise((resolve) => {
     pubsub.once(TOPIC, resolve);
