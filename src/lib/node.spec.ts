@@ -1,13 +1,12 @@
 import test from 'ava';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
+import { delay } from '../test_utils/delay';
+import { NimWaku } from '../test_utils/nim_waku';
+
 import { createNode } from './node';
 import { Message } from './waku_message';
 import { CODEC, TOPIC, WakuRelay } from './waku_relay';
-
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 test('Can publish message', async (t) => {
   const message = Message.fromString('Bird bird bird, bird is the word!');
@@ -49,6 +48,22 @@ test('Does not register any sub protocol', async (t) => {
 
   const protocols = Array.from(node.upgrader.protocols.keys());
   t.truthy(protocols.findIndex((value) => value.match(/sub/)));
+});
+
+test('Nim-waku: connects', async (t) => {
+  const nimWaku = new NimWaku();
+  await nimWaku.start();
+
+  const node = await createNode();
+  console.log(node.peerId.toB58String());
+
+  node.peerStore.addressBook.set(nimWaku.peerId, [nimWaku.multiaddr]);
+  await node.dial(nimWaku.peerId);
+
+  const peers = await nimWaku.peers();
+
+  console.log(peers);
+  t.is(peers.length, 1);
 });
 
 function waitForNextData(pubsub: Pubsub): Promise<Message> {

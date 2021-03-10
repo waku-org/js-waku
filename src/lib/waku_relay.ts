@@ -22,6 +22,7 @@ export class WakuRelayPubsub extends Gossipsub {
   }
 }
 
+// TODO: Implement dial for an address with format '/ip4/127.0.0.1/tcp/60000/p2p/16Uiu2HAkyzsXzENw5XBDYEQQAeQTCYjBJpMLgBmEXuwbtcrgxBJ4'
 // This class provides an interface to execute the waku relay protocol
 export class WakuRelay {
   constructor(private pubsub: Pubsub) {}
