@@ -17,6 +17,16 @@ export async function createNode() {
       // @ts-ignore: Type needs update
       pubsub: Gossipsub,
     },
+    config: {
+      pubsub: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        enabled: true,
+        emitSelf: true,
+        signMessages: false,
+        strictSigning: false,
+      },
+    },
   });
 
   await node.start();
