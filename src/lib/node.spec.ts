@@ -23,9 +23,7 @@ test('Can publish message', async (t) => {
 
   // Setup the promise before publishing to ensure the event is not missed
   // TODO: Is it possible to import `Message` type?
-  const promise = waitForNextData(node1.pubsub, topic).then((msg: any) => {
-    return new TextDecoder().decode(msg.data);
-  });
+  const promise = waitForNextData(node1.pubsub, topic);
 
   await delay(500);
 
@@ -39,5 +37,7 @@ test('Can publish message', async (t) => {
 function waitForNextData(pubsub: Pubsub, topic: string) {
   return new Promise((resolve) => {
     pubsub.once(topic, resolve);
+  }).then((msg: any) => {
+    return new TextDecoder().decode(msg.data);
   });
 }
