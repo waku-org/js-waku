@@ -1,34 +1,36 @@
-import { TextDecoder, TextEncoder } from 'util';
+import { TextDecoder } from 'util';
 
 import test from 'ava';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
 import { createNode } from './node';
-import { CODEC } from './waku_relay';
+import { CODEC, TOPIC, WakuRelay, WakuRelayPubsub } from './waku_relay';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 test('Can publish message', async (t) => {
-  const topic = 'news';
   const message = 'Bird bird bird, bird is the word!';
 
   const [node1, node2] = await Promise.all([createNode(), createNode()]);
+  const wakuRelayNode1 = new WakuRelay(node1.pubsub as WakuRelayPubsub);
+  const wakuRelayNode2 = new WakuRelay(node2.pubsub as WakuRelayPubsub);
 
   // Add node's 2 data to the PeerStore
   node1.peerStore.addressBook.set(node2.peerId, node2.multiaddrs);
   await node1.dial(node2.peerId);
-  await node1.pubsub.subscribe(topic);
-  await node2.pubsub.subscribe(topic);
+
+  await wakuRelayNode1.subscribe();
+  await wakuRelayNode2.subscribe();
 
   // Setup the promise before publishing to ensure the event is not missed
   // TODO: Is it possible to import `Message` type?
-  const promise = waitForNextData(node1.pubsub, topic);
+  const promise = waitForNextData(node1.pubsub);
 
   await delay(500);
 
-  await node2.pubsub.publish(topic, new TextEncoder().encode(message));
+  await wakuRelayNode2.publish(message);
 
   const node1Received = await promise;
 
@@ -43,9 +45,9 @@ test('Register waku relay protocol', async (t) => {
   t.truthy(protocols.findIndex((value) => value == CODEC));
 });
 
-function waitForNextData(pubsub: Pubsub, topic: string) {
+function waitForNextData(pubsub: Pubsub) {
   return new Promise((resolve) => {
-    pubsub.once(topic, resolve);
+    pubsub.once(TOPIC, resolve);
   }).then((msg: any) => {
     return new TextDecoder().decode(msg.data);
   });
