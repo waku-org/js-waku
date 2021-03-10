@@ -4,6 +4,7 @@ import test from 'ava';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
 import { createNode } from './node';
+import { CODEC } from './waku_relay';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -32,6 +33,14 @@ test('Can publish message', async (t) => {
   const node1Received = await promise;
 
   t.deepEqual(node1Received, message);
+});
+
+test('Register waku relay protocol', async (t) => {
+  const node = await createNode();
+
+  const protocols = Array.from(node.upgrader.protocols.keys());
+
+  t.truthy(protocols.findIndex((value) => value == CODEC));
 });
 
 function waitForNextData(pubsub: Pubsub, topic: string) {

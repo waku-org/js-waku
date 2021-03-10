@@ -1,8 +1,9 @@
 import Libp2p from 'libp2p';
-import Gossipsub from 'libp2p-gossipsub';
 import Mplex from 'libp2p-mplex';
 import { NOISE } from 'libp2p-noise';
 import TCP from 'libp2p-tcp';
+
+import { WakuRelay } from './waku_relay';
 
 export async function createNode() {
   const node = await Libp2p.create({
@@ -15,7 +16,7 @@ export async function createNode() {
       connEncryption: [NOISE],
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore: Type needs update
-      pubsub: Gossipsub,
+      pubsub: WakuRelay,
     },
     config: {
       pubsub: {
