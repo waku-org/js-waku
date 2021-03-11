@@ -23,7 +23,6 @@ test('Can publish message', async (t) => {
   await wakuRelayNode2.subscribe();
 
   // Setup the promise before publishing to ensure the event is not missed
-  // TODO: Is it possible to import `Message` type?
   const promise = waitForNextData(node1.pubsub);
 
   await delay(500);
@@ -63,10 +62,21 @@ test('Nim-waku: nim-waku node connects to js node', async (t) => {
   const nimWaku = new NimWaku();
   await nimWaku.start({ staticnode: multiAddrWithId });
 
-  const peers = await nimWaku.peers();
+  const nimPeers = await nimWaku.peers();
 
-  console.log(peers);
-  t.is(peers.length, 1);
+  t.deepEqual(nimPeers, [
+    {
+      multiaddr: multiAddrWithId,
+      protocol: CODEC,
+      connected: true,
+    },
+  ]);
+
+  const nimAddress = await nimWaku.info().then((info) => info.listenStr);
+  const nimPeerId = nimAddress.match(/[\d\w]+$/)[0];
+  const jsPeers = node.peerStore.peers;
+
+  t.true(jsPeers.has(nimPeerId));
 });
 
 function waitForNextData(pubsub: Pubsub): Promise<Message> {

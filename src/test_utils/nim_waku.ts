@@ -40,7 +40,6 @@ export class NimWaku {
     const logFile = await openAsync(logPath, 'w');
 
     const mergedArgs = argsToArray(mergeArguments(args));
-    console.log(mergedArgs);
     this.process = spawn(NIM_WAKU_BIN, mergedArgs, {
       cwd: '/home/froyer/src/status-im/nim-waku/',
       stdio: [
@@ -56,14 +55,13 @@ export class NimWaku {
 
     await waitForLine(logPath, 'RPC Server started');
     console.log('Nim waku RPC is started');
-    console.log(await this.info());
   }
 
   /** Calls nim-waku2 JSON-RPC API `get_waku_v2_admin_v1_peers` to check
    * for known peers
    * @throws if nim-waku2 isn't started.
    */
-  async peers(): Promise<string[]> {
+  async peers() {
     this.checkProcess();
 
     const res = await this.rpcCall('get_waku_v2_admin_v1_peers', []);
