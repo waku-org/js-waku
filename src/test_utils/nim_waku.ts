@@ -178,14 +178,13 @@ export function mergeArguments(args: Args): Args {
   return res;
 }
 
-// TODO: Test this
-function strToHex(str: string): string {
+export function strToHex(str: string): string {
   let hex: string;
   try {
     hex = unescape(encodeURIComponent(str))
       .split('')
       .map(function (v) {
-        return v.charCodeAt(0).toString(16).toUpperCase();
+        return v.charCodeAt(0).toString(16);
       })
       .join('');
   } catch (e) {
@@ -195,9 +194,11 @@ function strToHex(str: string): string {
   return '0x' + hex;
 }
 
-// TODO: Test this
-function bufToHex(buffer: Uint8Array) {
-  return Array.prototype.map
-    .call(buffer, (x) => ('00' + x.toString(16)).slice(-2))
-    .join('');
+export function bufToHex(buffer: Uint8Array) {
+  return (
+    '0x' +
+    Array.prototype.map
+      .call(buffer, (x) => ('00' + x.toString(16)).slice(-2))
+      .join('')
+  );
 }
