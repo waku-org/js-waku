@@ -84,8 +84,6 @@ test('Nim-interop: js node subscribes to default waku topic (only checking js si
 
   const peerId = node.peerId.toB58String();
 
-  console.log(`js peer id: ${peerId}`);
-
   const localMultiaddr = node.multiaddrs.find((addr) =>
     addr.toString().match(/127\.0\.0\.1/)
   );
@@ -102,6 +100,40 @@ test('Nim-interop: js node subscribes to default waku topic (only checking js si
   const subscribers = node.pubsub.getSubscribers(TOPIC);
 
   t.true(subscribers.includes(nimPeerId));
+});
+
+test('Nim-interop: nim node sends message', async (t) => {
+  const node = await createNode();
+
+  const peerId = node.peerId.toB58String();
+
+  console.log(`js peer id: ${peerId}`);
+
+  const localMultiaddr = node.multiaddrs.find((addr) =>
+    addr.toString().match(/127\.0\.0\.1/)
+  );
+  const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
+
+  const nimWaku = new NimWaku();
+  await nimWaku.start({ staticnode: multiAddrWithId });
+
+  const wakuRelayNode = new WakuRelay(node.pubsub);
+  await wakuRelayNode.subscribe();
+
+  // Setup the promise before publishing to ensure the event is not missed
+  const promise = waitForNextData(node.pubsub);
+
+  const message = Message.fromString('This is a message.');
+
+  await delay(500);
+
+  await nimWaku.sendMessage(message);
+
+  await delay(1000);
+
+  const received = await promise;
+
+  t.true(received.isEqualTo(message));
 });
 
 function waitForNextData(pubsub: Pubsub): Promise<Message> {

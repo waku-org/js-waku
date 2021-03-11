@@ -7,7 +7,7 @@ export class Message {
   public contentTopic: number;
   public version: number;
 
-  private constructor(private protobuf: WakuMessage) {
+  private constructor(public protobuf: WakuMessage) {
     this.protobuf = protobuf;
 
     const msg = protobuf.toObject();
@@ -27,7 +27,7 @@ export class Message {
     // This is the content topic commonly used at this time
     wakuMsg.setContentTopic(1);
 
-    wakuMsg.setPayload(Buffer.from(message));
+    wakuMsg.setPayload(message);
 
     return new Message(wakuMsg);
   }

@@ -7,6 +7,9 @@ import Multiaddr from 'multiaddr';
 import multiaddr from 'multiaddr';
 import PeerId from 'peer-id';
 
+import { Message } from '../lib/waku_message';
+import { TOPIC } from '../lib/waku_relay';
+
 import waitForLine from './log_file';
 
 const openAsync = promisify(fs.open);
@@ -77,6 +80,37 @@ export class NimWaku {
     return res.result;
   }
 
+  async sendMessage(message: Message) {
+    this.checkProcess();
+
+    let payload;
+    if (typeof message.payload === 'string') {
+      payload = strToHex(message.payload);
+    } else {
+      payload = bufToHex(message.payload);
+    }
+
+    const rpcMessage = {
+      payload,
+      contentTopic: message.contentTopic,
+    };
+
+    const res = await this.rpcCall('post_waku_v2_relay_v1_message', [
+      TOPIC,
+      rpcMessage,
+    ]);
+
+    return res.result;
+  }
+
+  async messages() {
+    this.checkProcess();
+
+    const res = await this.rpcCall('get_waku_v2_relay_v1_messages', [TOPIC]);
+
+    return res.result;
+  }
+
   get peerId(): PeerId {
     return NIM_WAKU_PEER_ID;
   }
@@ -142,4 +176,28 @@ export function mergeArguments(args: Args): Args {
   Object.assign(res, args);
 
   return res;
+}
+
+// TODO: Test this
+function strToHex(str: string): string {
+  let hex: string;
+  try {
+    hex = unescape(encodeURIComponent(str))
+      .split('')
+      .map(function (v) {
+        return v.charCodeAt(0).toString(16).toUpperCase();
+      })
+      .join('');
+  } catch (e) {
+    hex = str;
+    console.log('invalid text input: ' + str);
+  }
+  return '0x' + hex;
+}
+
+// TODO: Test this
+function bufToHex(buffer: Uint8Array) {
+  return Array.prototype.map
+    .call(buffer, (x) => ('00' + x.toString(16)).slice(-2))
+    .join('');
 }
