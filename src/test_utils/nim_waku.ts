@@ -7,7 +7,7 @@ import Multiaddr from 'multiaddr';
 import multiaddr from 'multiaddr';
 import PeerId from 'peer-id';
 
-import { delay } from './delay';
+import waitForLine from './log_file';
 
 const openAsync = promisify(fs.open);
 
@@ -35,7 +35,9 @@ export class NimWaku {
     // Start a local only node with the right RPC commands
     // The fixed nodekey ensures the node has a fixed Peerid: 16Uiu2HAkyzsXzENw5XBDYEQQAeQTCYjBJpMLgBmEXuwbtcrgxBJ4
 
-    const logFile = await openAsync('./nim-waku.log', 'w');
+    const logPath = './nim-waku.log';
+
+    const logFile = await openAsync(logPath, 'w');
 
     const mergedArgs = argsToArray(mergeArguments(args));
     console.log(mergedArgs);
@@ -52,10 +54,9 @@ export class NimWaku {
       console.log(`ERROR: nim-waku node stopped: ${signal}`);
     });
 
-    // TODO: Wait for line "RPC Server started "
-    await delay(5000);
+    await waitForLine(logPath, 'RPC Server started');
+    console.log('Nim waku RPC is started');
     console.log(await this.info());
-    console.log('Nim waku is hopefully started');
   }
 
   /** Calls nim-waku2 JSON-RPC API `get_waku_v2_admin_v1_peers` to check
