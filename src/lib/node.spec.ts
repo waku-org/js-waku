@@ -8,7 +8,7 @@ import { createNode } from './node';
 import { Message } from './waku_message';
 import { CODEC, TOPIC, WakuRelay } from './waku_relay';
 
-test('Can publish message', async (t) => {
+test('Publishes message', async (t) => {
   const message = Message.fromString('Bird bird bird, bird is the word!');
 
   const [node1, node2] = await Promise.all([createNode(), createNode()]);
@@ -34,7 +34,7 @@ test('Can publish message', async (t) => {
   t.true(node1Received.isEqualTo(message));
 });
 
-test('Register waku relay protocol', async (t) => {
+test('Registers waku relay protocol', async (t) => {
   const node = await createNode();
 
   const protocols = Array.from(node.upgrader.protocols.keys());
@@ -49,7 +49,7 @@ test('Does not register any sub protocol', async (t) => {
   t.truthy(protocols.findIndex((value) => value.match(/sub/)));
 });
 
-test('Nim-waku: nim-waku node connects to js node', async (t) => {
+test('Nim-interop: nim-waku node connects to js node', async (t) => {
   const node = await createNode();
 
   const peerId = node.peerId.toB58String();
@@ -77,6 +77,31 @@ test('Nim-waku: nim-waku node connects to js node', async (t) => {
   const jsPeers = node.peerStore.peers;
 
   t.true(jsPeers.has(nimPeerId));
+});
+
+test('Nim-interop: js node subscribes to default waku topic (only checking js side)', async (t) => {
+  const node = await createNode();
+
+  const peerId = node.peerId.toB58String();
+
+  console.log(`js peer id: ${peerId}`);
+
+  const localMultiaddr = node.multiaddrs.find((addr) =>
+    addr.toString().match(/127\.0\.0\.1/)
+  );
+  const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
+
+  const nimWaku = new NimWaku();
+  await nimWaku.start({ staticnode: multiAddrWithId });
+
+  const wakuRelayNode = new WakuRelay(node.pubsub);
+  await wakuRelayNode.subscribe();
+
+  const nimAddress = await nimWaku.info().then((info) => info.listenStr);
+  const nimPeerId = nimAddress.match(/[\d\w]+$/)[0];
+  const subscribers = node.pubsub.getSubscribers(TOPIC);
+
+  t.true(subscribers.includes(nimPeerId));
 });
 
 function waitForNextData(pubsub: Pubsub): Promise<Message> {
