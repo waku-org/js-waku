@@ -3,7 +3,7 @@ import { WakuMessage } from '../gen/proto/waku/v2/waku_pb';
 // Ensure that this class matches the proto interface while
 // Protecting the user from protobuf oddities
 export class Message {
-  public payload: Uint8Array | string;
+  public payload: Uint8Array;
   public contentTopic: number;
   public version: number;
 
@@ -12,12 +12,24 @@ export class Message {
 
     const msg = protobuf.toObject();
 
-    this.payload = msg.payload;
+    // Let's make is easier to avoid mistakes and only store in Uint8Array format
+    let payload;
+    if (typeof msg.payload === 'string') {
+      payload = Buffer.from(msg.payload, 'base64');
+    } else {
+      payload = msg.payload;
+    }
+    this.payload = payload;
     this.contentTopic = msg.contentTopic;
     this.version = msg.version;
   }
 
-  static fromString(message: string): Message {
+  /**
+   * Create Message from utf-8 string
+   * @param message
+   * @returns {Message}
+   */
+  static fromUtf8String(message: string): Message {
     const wakuMsg = new WakuMessage();
 
     // Only Version 0 is implemented in Waku 2.
@@ -27,7 +39,10 @@ export class Message {
     // This is the content topic commonly used at this time
     wakuMsg.setContentTopic(1);
 
-    wakuMsg.setPayload(message);
+    const buf = Buffer.from(message, 'utf-8');
+
+    // Only accepts Uint8Array or base64 string
+    wakuMsg.setPayload(buf);
 
     return new Message(wakuMsg);
   }
@@ -42,10 +57,11 @@ export class Message {
   }
 
   // Purely for tests purposes.
-  // We do not care about protobuf field when checking equality
+  // We do consider protobuf field when checking equality
+  // As the content is held by the other fields.
   isEqualTo(other: Message) {
     return (
-      this.payload === other.payload &&
+      Buffer.compare(this.payload, other.payload) === 0 &&
       this.contentTopic === other.contentTopic &&
       this.version === other.version
     );

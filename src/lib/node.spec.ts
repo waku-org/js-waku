@@ -9,7 +9,7 @@ import { Message } from './waku_message';
 import { CODEC, TOPIC, WakuRelay } from './waku_relay';
 
 test('Publishes message', async (t) => {
-  const message = Message.fromString('Bird bird bird, bird is the word!');
+  const message = Message.fromUtf8String('Bird bird bird, bird is the word!');
 
   const [node1, node2] = await Promise.all([createNode(), createNode()]);
   const wakuRelayNode1 = new WakuRelay(node1.pubsub);
@@ -123,7 +123,7 @@ test('Nim-interop: nim node sends message', async (t) => {
   // Setup the promise before publishing to ensure the event is not missed
   const promise = waitForNextData(node.pubsub);
 
-  const message = Message.fromString('This is a message.');
+  const message = Message.fromUtf8String('This is a message.');
 
   await delay(500);
 
