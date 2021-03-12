@@ -1,5 +1,6 @@
 import test from 'ava';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
+import multiaddr from 'multiaddr';
 
 import { delay } from '../test_utils/delay';
 import { NimWaku } from '../test_utils/nim_waku';
@@ -96,7 +97,7 @@ test('Nim-interop: js node subscribes to default waku topic (only checking js si
   await wakuRelayNode.subscribe();
 
   const nimAddress = await nimWaku.info().then((info) => info.listenStr);
-  const nimPeerId = nimAddress.match(/[\d\w]+$/)[0];
+  const nimPeerId = multiaddr(nimAddress).getPeerId();
   const subscribers = node.pubsub.getSubscribers(TOPIC);
 
   t.true(subscribers.includes(nimPeerId));
