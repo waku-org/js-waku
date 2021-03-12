@@ -1,6 +1,5 @@
 import test from 'ava';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
-import multiaddr from 'multiaddr';
 
 import { delay } from '../test_utils/delay';
 import { NimWaku } from '../test_utils/nim_waku';
@@ -61,7 +60,7 @@ test('Nim-interop: nim-waku node connects to js node', async (t) => {
   const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
   const nimWaku = new NimWaku();
-  await nimWaku.start({ staticnode: multiAddrWithId });
+  await nimWaku.start(t.title, { staticnode: multiAddrWithId });
 
   const nimPeers = await nimWaku.peers();
 
@@ -73,11 +72,10 @@ test('Nim-interop: nim-waku node connects to js node', async (t) => {
     },
   ]);
 
-  const nimAddress = await nimWaku.info().then((info) => info.listenStr);
-  const nimPeerId = nimAddress.match(/[\d\w]+$/)[0];
+  const nimPeerId = await nimWaku.getPeerId();
   const jsPeers = node.peerStore.peers;
 
-  t.true(jsPeers.has(nimPeerId));
+  t.true(jsPeers.has(nimPeerId.toB58String()));
 });
 
 test('Nim-interop: js node subscribes to default waku topic (only checking js side)', async (t) => {
@@ -91,16 +89,15 @@ test('Nim-interop: js node subscribes to default waku topic (only checking js si
   const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
   const nimWaku = new NimWaku();
-  await nimWaku.start({ staticnode: multiAddrWithId });
+  await nimWaku.start(t.title, { staticnode: multiAddrWithId });
 
   const wakuRelayNode = new WakuRelay(node.pubsub);
   await wakuRelayNode.subscribe();
 
-  const nimAddress = await nimWaku.info().then((info) => info.listenStr);
-  const nimPeerId = multiaddr(nimAddress).getPeerId();
+  const nimPeerId = await nimWaku.getPeerId();
   const subscribers = node.pubsub.getSubscribers(TOPIC);
 
-  t.true(subscribers.includes(nimPeerId));
+  t.true(subscribers.includes(nimPeerId.toB58String()));
 });
 
 test('Nim-interop: nim node sends message', async (t) => {
@@ -108,15 +105,13 @@ test('Nim-interop: nim node sends message', async (t) => {
 
   const peerId = node.peerId.toB58String();
 
-  console.log(`js peer id: ${peerId}`);
-
   const localMultiaddr = node.multiaddrs.find((addr) =>
     addr.toString().match(/127\.0\.0\.1/)
   );
   const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
   const nimWaku = new NimWaku();
-  await nimWaku.start({ staticnode: multiAddrWithId });
+  await nimWaku.start(t.title, { staticnode: multiAddrWithId });
 
   const wakuRelayNode = new WakuRelay(node.pubsub);
   await wakuRelayNode.subscribe();

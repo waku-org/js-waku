@@ -1,4 +1,5 @@
 import { ChildProcess, spawn } from 'child_process';
+import { randomInt } from 'crypto';
 import * as fs from 'fs';
 import { promisify } from 'util';
 
@@ -14,12 +15,9 @@ import waitForLine from './log_file';
 
 const openAsync = promisify(fs.open);
 
+const NIM_WAKU_DEFAULT_P2P_PORT = 60000;
+const NIM_WAKU_DEFAULT_RPC_PORT = 8545;
 const NIM_WAKU_BIN = '/home/froyer/src/status-im/nim-waku/build/wakunode2';
-const NIM_WAKU_RPC_URL = 'http://localhost:8545/';
-const NIM_WAKU_PEER_ID = PeerId.createFromB58String(
-  '16Uiu2HAkyzsXzENw5XBDYEQQAeQTCYjBJpMLgBmEXuwbtcrgxBJ4'
-);
-const NIM_WAKKU_LISTEN_ADDR = multiaddr('/ip4/127.0.0.1/tcp/60000/');
 
 export interface Args {
   staticnode?: string;
@@ -29,21 +27,32 @@ export interface Args {
   rpc?: boolean;
   rpcAdmin?: boolean;
   nodekey?: string;
+  portsShift?: number;
 }
 
 export class NimWaku {
   private process?: ChildProcess;
+  private portsShift: number;
+  private peerId?: PeerId;
 
-  async start(args: Args) {
-    // Start a local only node with the right RPC commands
-    // The fixed nodekey ensures the node has a fixed Peerid: 16Uiu2HAkyzsXzENw5XBDYEQQAeQTCYjBJpMLgBmEXuwbtcrgxBJ4
+  constructor() {
+    this.portsShift = randomInt(0, 5000);
+  }
 
-    const logPath = './nim-waku.log';
+  async start(testName: string, args: Args) {
+    const logFilePrefix = testName.replace(/ /g, '_').replace(/[':()]/g, '');
+
+    const logPath = `./${logFilePrefix}-nim-waku.log`;
 
     const logFile = await openAsync(logPath, 'w');
 
-    const mergedArgs = argsToArray(mergeArguments(args));
-    this.process = spawn(NIM_WAKU_BIN, mergedArgs, {
+    const mergedArgs = defaultArgs();
+
+    // Object.assign overrides the properties with the source (if there are conflicts)
+    Object.assign(mergedArgs, { portsShift: this.portsShift }, args);
+
+    const argsArray = argsToArray(mergedArgs);
+    this.process = spawn(NIM_WAKU_BIN, argsArray, {
       cwd: '/home/froyer/src/status-im/nim-waku/',
       stdio: [
         'ignore', // stdin
@@ -57,7 +66,6 @@ export class NimWaku {
     });
 
     await waitForLine(logPath, 'RPC Server started');
-    console.log('Nim waku RPC is started');
   }
 
   /** Calls nim-waku2 JSON-RPC API `get_waku_v2_admin_v1_peers` to check
@@ -72,7 +80,7 @@ export class NimWaku {
     return res.result;
   }
 
-  async info() {
+  async info(): Promise<RpcInfoResponse> {
     this.checkProcess();
 
     const res = await this.rpcCall('get_waku_v2_debug_v1_info', []);
@@ -111,17 +119,30 @@ export class NimWaku {
     return res.result;
   }
 
-  get peerId(): PeerId {
-    return NIM_WAKU_PEER_ID;
+  async getPeerId(): Promise<PeerId> {
+    if (this.peerId) {
+      return this.peerId;
+    }
+
+    const res = await this.info();
+    const strPeerId = multiaddr(res.listenStr).getPeerId();
+
+    return PeerId.createFromB58String(strPeerId);
   }
 
   get multiaddr(): Multiaddr {
-    return NIM_WAKKU_LISTEN_ADDR;
+    const port = NIM_WAKU_DEFAULT_P2P_PORT + this.portsShift;
+    return multiaddr(`/ip4/127.0.0.1/tcp/${port}/`);
+  }
+
+  get rpcUrl(): string {
+    const port = NIM_WAKU_DEFAULT_RPC_PORT + this.portsShift;
+    return `http://localhost:${port}/`;
   }
 
   private async rpcCall(method: string, params: any[]) {
     const res = await axios.post(
-      NIM_WAKU_RPC_URL,
+      this.rpcUrl,
       {
         jsonrpc: '2.0',
         id: 1,
@@ -159,23 +180,14 @@ export function argsToArray(args: Args): Array<string> {
   return array;
 }
 
-function defaultArgs(): Args {
+export function defaultArgs(): Args {
   return {
     nat: 'none',
     listenAddress: '127.0.0.1',
     relay: true,
     rpc: true,
     rpcAdmin: true,
-    nodekey: 'B2C4E3DB22EA6EB6850689F7B3DF3DDA73F59C87EFFD902BEDCEE90A3A2341A6',
   };
-}
-
-export function mergeArguments(args: Args): Args {
-  const res = defaultArgs();
-
-  Object.assign(res, args);
-
-  return res;
 }
 
 export function strToHex(str: string): string {
@@ -201,4 +213,9 @@ export function bufToHex(buffer: Uint8Array) {
       .call(buffer, (x) => ('00' + x.toString(16)).slice(-2))
       .join('')
   );
+}
+
+interface RpcInfoResponse {
+  // multiaddr including id.
+  listenStr: string;
 }
