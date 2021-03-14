@@ -78,7 +78,7 @@ test('Nim-interop: nim-waku node connects to js node', async (t) => {
   t.true(jsPeers.has(nimPeerId.toB58String()));
 });
 
-test('Nim-interop: js node subscribes to default waku topic (only checking js side)', async (t) => {
+test('Nim-interop: js node receives default subscription from nim node', async (t) => {
   const node = await createNode();
 
   const peerId = node.peerId.toB58String();
@@ -90,9 +90,6 @@ test('Nim-interop: js node subscribes to default waku topic (only checking js si
 
   const nimWaku = new NimWaku();
   await nimWaku.start(t.title, { staticnode: multiAddrWithId });
-
-  const wakuRelayNode = new WakuRelay(node.pubsub);
-  await wakuRelayNode.subscribe();
 
   const nimPeerId = await nimWaku.getPeerId();
   const subscribers = node.pubsub.getSubscribers(TOPIC);
