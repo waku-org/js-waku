@@ -19,8 +19,8 @@ jobs:
         with:
           node-version: '14'
 
-      - name: install
-        run: npm install
+      - name: install using npm ci
+        uses: bahmutov/npm-install@v1
 
       - name: build
         run: npm build
