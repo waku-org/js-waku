@@ -15,13 +15,25 @@
     "execa",
     "exponentiate",
     "globby",
+    "gossipsub",
     "libauth",
+    "libp",
     "mkdir",
+    "multiaddr",
+    "multiaddrs",
+    "multicodecs",
+    "mplex",
+    "muxer",
+    "nodekey",
     "prettierignore",
+    "protobuf",
     "sandboxed",
+    "secio",
+    "staticnode",
     "transpiled",
     "typedoc",
     "untracked",
+    "upgrader",
     "waku"
   ],
   "flagWords": [],
@@ -30,6 +42,8 @@
     "package-lock.json",
     "yarn.lock",
     "tsconfig.json",
-    "node_modules/**"
+    "node_modules/**",
+    "build",
+    "gen"
   ]
 }

@@ -33,7 +33,7 @@ export class Message {
     const wakuMsg = new WakuMessage();
 
     // Only Version 0 is implemented in Waku 2.
-    // 0: payload SHOULD be either unencrypted or that encryption is done at a separate layer outside of Waku.
+    // 0: payload SHOULD be either plain or that encryption is done at a separate layer outside of Waku.
     wakuMsg.setVersion(0);
 
     // This is the content topic commonly used at this time
