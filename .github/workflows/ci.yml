@@ -15,12 +15,16 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Init submodules
+        # This is done as part of pretest but as we are caching the nim binary
+        # which is inside the submodule, better initialising them before
+        # recovering the binary.
         run: git submodule update --init --recursive
 
       - name: Cache nim-waku binary
         uses: actions/cache@v2
         with:
           path: ./nim-waku/build/wakunode2
+          # The nim-waku version is set by the .gitmodules file as it is a submodule
           key: nim-waku-build-v1-${{ hashFiles('.gitmodules') }}
 
       - name: Install bufbuild
