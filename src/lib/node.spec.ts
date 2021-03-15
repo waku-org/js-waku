@@ -20,7 +20,6 @@ test('Publishes message', async (t) => {
   await node1.dial(node2.peerId);
 
   await wakuRelayNode1.subscribe();
-  await wakuRelayNode2.subscribe();
 
   // Setup the promise before publishing to ensure the event is not missed
   const promise = waitForNextData(node1.pubsub);
