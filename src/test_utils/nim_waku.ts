@@ -108,15 +108,8 @@ export class NimWaku {
   async sendMessage(message: Message) {
     this.checkProcess();
 
-    let payload;
-    if (typeof message.payload === 'string') {
-      payload = strToHex(message.payload);
-    } else {
-      payload = bufToHex(message.payload);
-    }
-
     const rpcMessage = {
-      payload,
+      payload: bufToHex(message.payload),
       contentTopic: message.contentTopic,
     };
 
