@@ -15,7 +15,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install bufbuild
-        uses: wizhi/setup-buf@v1
+        uses: mu-io/setup-buf@v1beta
+        with:
+          buf-version: '0.39.1'
 
       - name: Install NodeJS
         uses: actions/setup-node@v2
