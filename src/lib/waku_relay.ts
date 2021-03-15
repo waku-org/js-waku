@@ -16,7 +16,8 @@ export class WakuRelayPubsub extends Gossipsub {
 
     const multicodecs = [CODEC];
 
-    // This is the downside of using `libp2p-gossipsub` instead of `libp2p-interfaces/src/pubsub`
+    // This is the downside of using `libp2p-gossipsub` instead of
+    // implementing WakuRelay from scratch.C
     Object.assign(this, { multicodecs });
   }
 }
