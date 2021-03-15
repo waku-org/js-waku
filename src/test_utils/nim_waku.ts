@@ -34,17 +34,18 @@ export class NimWaku {
   private process?: ChildProcess;
   private portsShift: number;
   private peerId?: PeerId;
+  private logPath: string;
 
-  constructor() {
+  constructor(testName: string) {
     this.portsShift = randomInt(0, 5000);
-  }
 
-  async start(testName: string, args: Args) {
     const logFilePrefix = testName.replace(/ /g, '_').replace(/[':()]/g, '');
 
-    const logPath = `./${logFilePrefix}-nim-waku.log`;
+    this.logPath = `./${logFilePrefix}-nim-waku.log`;
+  }
 
-    const logFile = await openAsync(logPath, 'w');
+  async start(args: Args) {
+    const logFile = await openAsync(this.logPath, 'w');
 
     const mergedArgs = defaultArgs();
 
@@ -65,7 +66,11 @@ export class NimWaku {
       console.log(`ERROR: nim-waku node stopped: ${signal}`);
     });
 
-    await waitForLine(logPath, 'RPC Server started');
+    await this.waitForLog('RPC Server started');
+  }
+
+  async waitForLog(msg: string) {
+    return waitForLine(this.logPath, msg);
   }
 
   /** Calls nim-waku2 JSON-RPC API `get_waku_v2_admin_v1_peers` to check

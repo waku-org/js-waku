@@ -59,8 +59,8 @@ test('Nim-interop: nim-waku node connects to js node', async (t) => {
   );
   const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-  const nimWaku = new NimWaku();
-  await nimWaku.start(t.title, { staticnode: multiAddrWithId });
+  const nimWaku = new NimWaku(t.title);
+  await nimWaku.start({ staticnode: multiAddrWithId });
 
   const nimPeers = await nimWaku.peers();
 
@@ -88,8 +88,8 @@ test('Nim-interop: js node receives default subscription from nim node', async (
   );
   const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-  const nimWaku = new NimWaku();
-  await nimWaku.start(t.title, { staticnode: multiAddrWithId });
+  const nimWaku = new NimWaku(t.title);
+  await nimWaku.start({ staticnode: multiAddrWithId });
 
   const nimPeerId = await nimWaku.getPeerId();
   const subscribers = node.pubsub.getSubscribers(TOPIC);
