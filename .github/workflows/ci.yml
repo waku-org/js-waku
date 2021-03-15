@@ -33,7 +33,7 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: build
-        run: npm build
+        run: npm run build
 
       - name: test
-        run: npm test
+        run: npm run test
