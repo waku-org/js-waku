@@ -1,7 +1,5 @@
 import { ChildProcess, spawn } from 'child_process';
 import { randomInt } from 'crypto';
-import * as fs from 'fs';
-import { promisify } from 'util';
 
 import axios from 'axios';
 import Multiaddr from 'multiaddr';
@@ -11,13 +9,14 @@ import PeerId from 'peer-id';
 import { Message } from '../lib/waku_message';
 import { TOPIC } from '../lib/waku_relay';
 
+import { existsAsync, mkdirAsync, openAsync } from './async_fs';
 import waitForLine from './log_file';
-
-const openAsync = promisify(fs.open);
 
 const NIM_WAKU_DEFAULT_P2P_PORT = 60000;
 const NIM_WAKU_DEFAULT_RPC_PORT = 8545;
 const NIM_WAKU_BIN = '/home/froyer/src/status-im/nim-waku/build/wakunode2';
+
+const LOG_DIR = './log';
 
 export interface Args {
   staticnode?: string;
@@ -41,10 +40,21 @@ export class NimWaku {
 
     const logFilePrefix = testName.replace(/ /g, '_').replace(/[':()]/g, '');
 
-    this.logPath = `./${logFilePrefix}-nim-waku.log`;
+    this.logPath = `${LOG_DIR}/${logFilePrefix}-nim-waku.log`;
   }
 
   async start(args: Args) {
+    try {
+      await existsAsync(LOG_DIR);
+    } catch (e) {
+      try {
+        await mkdirAsync(LOG_DIR);
+      } catch (e) {
+        // Looks like 2 tests tried to create the director at the same time,
+        // it can be ignored
+      }
+    }
+
     const logFile = await openAsync(this.logPath, 'w');
 
     const mergedArgs = defaultArgs();

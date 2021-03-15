@@ -1,24 +1,7 @@
-import fs, { promises as asyncFs } from 'fs';
-
 import pTimeout from 'p-timeout';
 import { Tail } from 'tail';
 
-import { delay } from './delay';
-
-const existsAsync = (filepath: string) =>
-  asyncFs.access(filepath, fs.constants.F_OK);
-
-async function waitForFile(path: string) {
-  let found = false;
-  do {
-    try {
-      await existsAsync(path);
-      found = true;
-    } catch (e) {
-      await delay(500);
-    }
-  } while (!found);
-}
+import { waitForFile } from './async_fs';
 
 export default async function waitForLine(filepath: string, logLine: string) {
   await pTimeout(waitForFile(filepath), 2000);
