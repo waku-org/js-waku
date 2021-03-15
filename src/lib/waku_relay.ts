@@ -6,8 +6,7 @@ import { Message } from './waku_message';
 
 export const CODEC = '/vac/waku/relay/2.0.0-beta2';
 
-// // As per waku specs, the topic is fixed
-// // TODO: Double check the topic is correct (taken from nim-waku logs)
+// As per waku specs, the topic is fixed, value taken from nim-waku
 export const TOPIC = '/waku/2/default-waku/proto';
 
 // This is the class to pass to libp2p as pubsub protocol
