@@ -5,6 +5,7 @@
   "words": [
     "bitjson",
     "bitauth",
+    "bufbuild",
     "cimg",
     "circleci",
     "codecov",
@@ -27,14 +28,18 @@
     "nodekey",
     "prettierignore",
     "protobuf",
+    "protoc",
     "sandboxed",
     "secio",
     "staticnode",
+    "submodule",
+    "submodules",
     "transpiled",
     "typedoc",
     "untracked",
     "upgrader",
-    "waku"
+    "waku",
+    "wakunode"
   ],
   "flagWords": [],
   "ignorePaths": [
