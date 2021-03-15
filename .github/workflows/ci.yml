@@ -19,6 +19,11 @@ jobs:
         with:
           buf-version: '0.39.1'
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+
       - name: Install NodeJS
         uses: actions/setup-node@v2
         with:
