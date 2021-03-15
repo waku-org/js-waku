@@ -1,4 +1,5 @@
 import test from 'ava';
+import Libp2p from 'libp2p';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
 import { NimWaku } from '../test_utils/nim_waku';
@@ -110,10 +111,7 @@ test('Nim-interop: js node sends message to nim node', async (t) => {
   const nimWaku = new NimWaku(t.title);
   await nimWaku.start({ staticnode: multiAddrWithId });
 
-  // TODO: Remove this hack, tracked with https://github.com/status-im/nim-waku/issues/419
-  node.identifyService!.peerStore.protoBook.set(await nimWaku.getPeerId(), [
-    CODEC,
-  ]);
+  await patchPeerStore(nimWaku, node);
 
   await wakuRelayNode.publish(message);
 
@@ -134,4 +132,20 @@ function waitForNextData(pubsub: Pubsub): Promise<Message> {
   }).then((msg: any) => {
     return Message.fromBinary(msg.data);
   });
+}
+
+// TODO: Remove this hack, tracked with https://github.com/status-im/nim-waku/issues/419
+async function patchPeerStore(nimWaku: NimWaku, node: Libp2p) {
+  const nimPeerId = await nimWaku.getPeerId();
+  node.identifyService!.peerStore.protoBook.set(nimPeerId, [CODEC]);
+  const peer = node.peerStore.peers.get(nimPeerId.toB58String());
+  if (!peer) {
+    throw 'Did not find nim-waku node in peers';
+  }
+  peer.protocols = [CODEC];
+  node.peerStore.peers.set(nimPeerId.toB58String(), peer);
+
+  await new Promise((resolve) =>
+    node.pubsub.once('gossipsub:heartbeat', resolve)
+  );
 }
