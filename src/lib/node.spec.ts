@@ -110,6 +110,11 @@ test('Nim-interop: js node sends message to nim node', async (t) => {
   const nimWaku = new NimWaku(t.title);
   await nimWaku.start({ staticnode: multiAddrWithId });
 
+  // TODO: Remove this hack, tracked with https://github.com/status-im/nim-waku/issues/419
+  node.identifyService!.peerStore.protoBook.set(await nimWaku.getPeerId(), [
+    CODEC,
+  ]);
+
   await wakuRelayNode.publish(message);
 
   await nimWaku.waitForLog('WakuMessage received');
