@@ -1,6 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
 import { randomInt } from 'crypto';
 
+import appRoot from 'app-root-path';
 import axios from 'axios';
 import Multiaddr from 'multiaddr';
 import multiaddr from 'multiaddr';
@@ -14,7 +15,8 @@ import waitForLine from './log_file';
 
 const NIM_WAKU_DEFAULT_P2P_PORT = 60000;
 const NIM_WAKU_DEFAULT_RPC_PORT = 8545;
-const NIM_WAKU_BIN = '/home/froyer/src/status-im/nim-waku/build/wakunode2';
+const NIM_WAKU_DIR = appRoot + '/nim-waku';
+const NIM_WAKU_BIN = NIM_WAKU_DIR + '/build/wakunode2';
 
 const LOG_DIR = './log';
 
@@ -64,7 +66,7 @@ export class NimWaku {
 
     const argsArray = argsToArray(mergedArgs);
     this.process = spawn(NIM_WAKU_BIN, argsArray, {
-      cwd: '/home/froyer/src/status-im/nim-waku/',
+      cwd: NIM_WAKU_DIR,
       stdio: [
         'ignore', // stdin
         logFile, // stdout
