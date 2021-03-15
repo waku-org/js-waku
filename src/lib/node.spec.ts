@@ -1,7 +1,6 @@
 import test from 'ava';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
-import { delay } from '../test_utils/delay';
 import { NimWaku } from '../test_utils/nim_waku';
 
 import { createNode } from './node';
@@ -97,36 +96,31 @@ test('Nim-interop: js node receives default subscription from nim node', async (
   t.true(subscribers.includes(nimPeerId.toB58String()));
 });
 
-test('Nim-interop: nim node sends message', async (t) => {
+test('Nim-interop: js node sends message to nim node', async (t) => {
+  const message = Message.fromUtf8String('This is a message');
   const node = await createNode();
+  const wakuRelayNode = new WakuRelay(node.pubsub);
 
   const peerId = node.peerId.toB58String();
-
   const localMultiaddr = node.multiaddrs.find((addr) =>
     addr.toString().match(/127\.0\.0\.1/)
   );
   const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-  const nimWaku = new NimWaku();
-  await nimWaku.start(t.title, { staticnode: multiAddrWithId });
+  const nimWaku = new NimWaku(t.title);
+  await nimWaku.start({ staticnode: multiAddrWithId });
 
-  const wakuRelayNode = new WakuRelay(node.pubsub);
-  await wakuRelayNode.subscribe();
+  await wakuRelayNode.publish(message);
 
-  // Setup the promise before publishing to ensure the event is not missed
-  const promise = waitForNextData(node.pubsub);
+  await nimWaku.waitForLog('WakuMessage received');
 
-  const message = Message.fromUtf8String('This is a message.');
+  const msgs = await nimWaku.messages();
 
-  await delay(500);
+  t.is(msgs[0].contentTopic, message.contentTopic);
+  t.is(msgs[0].version, message.version);
 
-  await nimWaku.sendMessage(message);
-
-  await delay(1000);
-
-  const received = await promise;
-
-  t.true(received.isEqualTo(message));
+  const payload = Buffer.from(msgs[0].payload);
+  t.is(Buffer.compare(payload, message.payload), 0);
 });
 
 function waitForNextData(pubsub: Pubsub): Promise<Message> {
