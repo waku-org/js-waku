@@ -17,7 +17,7 @@
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
     "pretest": "run-s pretest:*",
-    "pretest:1-init-git-submodules": "git submodule update --init --recursive",
+    "pretest:1-init-git-submodules": "[ -f './nim-waku/build/wakunode2' ] || git submodule update --init --recursive",
     "pretest:2-build-nim-waku": "cd nim-waku; [ -f './build/wakunode2' ] || make -j$(nproc --all 2>/dev/null || echo 2) wakunode2",
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts",
