@@ -2,6 +2,7 @@ import test from 'ava';
 import Libp2p from 'libp2p';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
+import { delay } from '../test_utils/delay';
 import { NimWaku } from '../test_utils/nim_waku';
 
 import { createNode } from './node';
@@ -123,6 +124,41 @@ test('Nim-interop: js node sends message to nim node', async (t) => {
   t.is(msgs[0].version, message.version);
 
   const payload = Buffer.from(msgs[0].payload);
+  t.is(Buffer.compare(payload, message.payload), 0);
+});
+
+test('Nim-interop: nim node sends message to js node', async (t) => {
+  const message = Message.fromUtf8String('Here is another message.');
+  const node = await createNode();
+  const wakuRelayNode = new WakuRelay(node.pubsub);
+
+  const peerId = node.peerId.toB58String();
+  const localMultiaddr = node.multiaddrs.find((addr) =>
+    addr.toString().match(/127\.0\.0\.1/)
+  );
+  const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
+
+  const nimWaku = new NimWaku(t.title);
+  await nimWaku.start({ staticnode: multiAddrWithId });
+
+  await patchPeerStore(nimWaku, node);
+
+  await wakuRelayNode.subscribe();
+
+  await delay(3000);
+
+  const receivedPromise = waitForNextData(node.pubsub);
+
+  await nimWaku.sendMessage(message);
+
+  await delay(3000);
+
+  const receivedMsg = await receivedPromise;
+
+  t.is(receivedMsg.contentTopic, message.contentTopic);
+  t.is(receivedMsg.version, message.version);
+
+  const payload = Buffer.from(receivedMsg.payload);
   t.is(Buffer.compare(payload, message.payload), 0);
 });
 

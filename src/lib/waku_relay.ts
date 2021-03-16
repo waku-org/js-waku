@@ -11,8 +11,13 @@ export const TOPIC = '/waku/2/default-waku/proto';
 
 // This is the class to pass to libp2p as pubsub protocol
 export class WakuRelayPubsub extends Gossipsub {
-  constructor(libp2p: Libp2p) {
-    super(libp2p);
+  /**
+   *
+   * @param libp2p: Libp2p
+   * @param options: Partial<GossipInputOptions>
+   */
+  constructor(libp2p: Libp2p, options?: any) {
+    super(libp2p, options);
 
     const multicodecs = [CODEC];
 

@@ -26,6 +26,8 @@ export async function createNode() {
         emitSelf: true,
         signMessages: false,
         strictSigning: false,
+        // Ensure that no signature is expected in the messages.
+        globalSignaturePolicy: 'StrictNoSign',
       },
     },
   });
