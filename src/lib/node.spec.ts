@@ -2,7 +2,6 @@ import test from 'ava';
 import Libp2p from 'libp2p';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
-import { delay } from '../test_utils/delay';
 import { NimWaku } from '../test_utils/nim_waku';
 
 import { createNode } from './node';
@@ -145,13 +144,13 @@ test('Nim-interop: nim node sends message to js node', async (t) => {
 
   await wakuRelayNode.subscribe();
 
-  await delay(3000);
+  await new Promise((resolve) =>
+    node.pubsub.once('gossipsub:heartbeat', resolve)
+  );
 
   const receivedPromise = waitForNextData(node.pubsub);
 
   await nimWaku.sendMessage(message);
-
-  await delay(3000);
 
   const receivedMsg = await receivedPromise;
 
