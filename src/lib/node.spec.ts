@@ -102,6 +102,11 @@ test('Nim-interop: js node sends message to nim node', async (t) => {
   const node = await createNode();
   const wakuRelayNode = new WakuRelay(node.pubsub);
 
+  // TODO: nim-waku does follow the `StrictNoSign` policy hence we need to change
+  // it for nim-waku to process our messages. Can be removed once
+  // https://github.com/status-im/nim-waku/issues/422 is fixed
+  node.pubsub.globalSignaturePolicy = 'StrictSign';
+
   const peerId = node.peerId.toB58String();
   const localMultiaddr = node.multiaddrs.find((addr) =>
     addr.toString().match(/127\.0\.0\.1/)
