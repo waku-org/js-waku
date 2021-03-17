@@ -59,6 +59,7 @@ export class Message {
   // Purely for tests purposes.
   // We do consider protobuf field when checking equality
   // As the content is held by the other fields.
+  // TODO: Consider using WakuMessage.equals
   isEqualTo(other: Message) {
     return (
       Buffer.compare(this.payload, other.payload) === 0 &&

@@ -1,8 +1,6 @@
-import test from 'ava';
-
 import { argsToArray, bufToHex, defaultArgs, strToHex } from './nim_waku';
 
-test('Correctly serialized arguments', (t) => {
+test('Correctly serialized arguments', () => {
   const args = defaultArgs();
   Object.assign(args, { portsShift: 42 });
 
@@ -17,18 +15,18 @@ test('Correctly serialized arguments', (t) => {
     '--ports-shift=42',
   ];
 
-  t.deepEqual(actual, expected);
+  expect(actual).toEqual(expected);
 });
 
-test('Convert utf-8 string to hex', (t) => {
+test('Convert utf-8 string to hex', () => {
   const str = 'This is an utf-8 string.';
   const expected = '0x5468697320697320616e207574662d3820737472696e672e';
 
   const actual = strToHex(str);
-  t.deepEqual(actual, expected);
+  expect(actual).toEqual(expected);
 });
 
-test('Convert buffer to hex', (t) => {
+test('Convert buffer to hex', () => {
   const buf = Uint8Array.from([
     0x54,
     0x68,
@@ -58,5 +56,5 @@ test('Convert buffer to hex', (t) => {
   const expected = '0x5468697320697320616e207574662d3820737472696e672e';
 
   const actual = bufToHex(buf);
-  t.deepEqual(actual, expected);
+  expect(actual).toEqual(expected);
 });

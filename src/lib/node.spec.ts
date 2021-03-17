@@ -1,4 +1,4 @@
-import test from 'ava';
+import 'jest';
 import Libp2p from 'libp2p';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
@@ -8,7 +8,7 @@ import { createNode } from './node';
 import { Message } from './waku_message';
 import { CODEC, TOPIC, WakuRelay } from './waku_relay';
 
-test('Publishes message', async (t) => {
+test('Publishes message', async () => {
   const message = Message.fromUtf8String('Bird bird bird, bird is the word!');
 
   const [node1, node2] = await Promise.all([createNode(), createNode()]);
@@ -31,25 +31,25 @@ test('Publishes message', async (t) => {
 
   const node1Received = await promise;
 
-  t.true(node1Received.isEqualTo(message));
+  expect(node1Received.isEqualTo(message)).toBeTruthy();
 });
 
-test('Registers waku relay protocol', async (t) => {
+test('Registers waku relay protocol', async () => {
   const node = await createNode();
 
   const protocols = Array.from(node.upgrader.protocols.keys());
 
-  t.truthy(protocols.findIndex((value) => value == CODEC));
+  expect(protocols.findIndex((value) => value == CODEC)).toBeTruthy();
 });
 
-test('Does not register any sub protocol', async (t) => {
+test('Does not register any sub protocol', async () => {
   const node = await createNode();
 
   const protocols = Array.from(node.upgrader.protocols.keys());
-  t.truthy(protocols.findIndex((value) => value.match(/sub/)));
+  expect(protocols.findIndex((value) => value.match(/sub/))).toBeTruthy();
 });
 
-test('Nim-interop: nim-waku node connects to js node', async (t) => {
+test('Nim-interop: nim-waku node connects to js node', async () => {
   const node = await createNode();
 
   const peerId = node.peerId.toB58String();
@@ -59,12 +59,12 @@ test('Nim-interop: nim-waku node connects to js node', async (t) => {
   );
   const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-  const nimWaku = new NimWaku(t.title);
+  const nimWaku = new NimWaku(expect.getState().currentTestName);
   await nimWaku.start({ staticnode: multiAddrWithId });
 
   const nimPeers = await nimWaku.peers();
 
-  t.deepEqual(nimPeers, [
+  expect(nimPeers).toEqual([
     {
       multiaddr: multiAddrWithId,
       protocol: CODEC,
@@ -75,10 +75,10 @@ test('Nim-interop: nim-waku node connects to js node', async (t) => {
   const nimPeerId = await nimWaku.getPeerId();
   const jsPeers = node.peerStore.peers;
 
-  t.true(jsPeers.has(nimPeerId.toB58String()));
+  expect(jsPeers.has(nimPeerId.toB58String())).toBeTruthy();
 });
 
-test('Nim-interop: js node receives default subscription from nim node', async (t) => {
+test('Nim-interop: js node receives default subscription from nim node', async () => {
   const node = await createNode();
 
   const peerId = node.peerId.toB58String();
@@ -88,16 +88,16 @@ test('Nim-interop: js node receives default subscription from nim node', async (
   );
   const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-  const nimWaku = new NimWaku(t.title);
+  const nimWaku = new NimWaku(expect.getState().currentTestName);
   await nimWaku.start({ staticnode: multiAddrWithId });
 
   const nimPeerId = await nimWaku.getPeerId();
   const subscribers = node.pubsub.getSubscribers(TOPIC);
 
-  t.true(subscribers.includes(nimPeerId.toB58String()));
+  expect(subscribers).toContain(nimPeerId.toB58String());
 });
 
-test('Nim-interop: js node sends message to nim node', async (t) => {
+test('Nim-interop: js node sends message to nim node', async () => {
   const message = Message.fromUtf8String('This is a message');
   const node = await createNode();
   const wakuRelayNode = new WakuRelay(node.pubsub);
@@ -113,7 +113,7 @@ test('Nim-interop: js node sends message to nim node', async (t) => {
   );
   const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-  const nimWaku = new NimWaku(t.title);
+  const nimWaku = new NimWaku(expect.getState().currentTestName);
   await nimWaku.start({ staticnode: multiAddrWithId });
 
   await patchPeerStore(nimWaku, node);
@@ -124,14 +124,14 @@ test('Nim-interop: js node sends message to nim node', async (t) => {
 
   const msgs = await nimWaku.messages();
 
-  t.is(msgs[0].contentTopic, message.contentTopic);
-  t.is(msgs[0].version, message.version);
+  expect(msgs[0].contentTopic).toEqual(message.contentTopic);
+  expect(msgs[0].version).toEqual(message.version);
 
   const payload = Buffer.from(msgs[0].payload);
-  t.is(Buffer.compare(payload, message.payload), 0);
+  expect(Buffer.compare(payload, message.payload)).toBe(0);
 });
 
-test('Nim-interop: nim node sends message to js node', async (t) => {
+test('Nim-interop: nim node sends message to js node', async () => {
   const message = Message.fromUtf8String('Here is another message.');
   const node = await createNode();
   const wakuRelayNode = new WakuRelay(node.pubsub);
@@ -142,7 +142,7 @@ test('Nim-interop: nim node sends message to js node', async (t) => {
   );
   const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-  const nimWaku = new NimWaku(t.title);
+  const nimWaku = new NimWaku(expect.getState().currentTestName);
   await nimWaku.start({ staticnode: multiAddrWithId });
 
   await patchPeerStore(nimWaku, node);
@@ -159,11 +159,11 @@ test('Nim-interop: nim node sends message to js node', async (t) => {
 
   const receivedMsg = await receivedPromise;
 
-  t.is(receivedMsg.contentTopic, message.contentTopic);
-  t.is(receivedMsg.version, message.version);
+  expect(receivedMsg.contentTopic).toBe(message.contentTopic);
+  expect(receivedMsg.version).toBe(message.version);
 
   const payload = Buffer.from(receivedMsg.payload);
-  t.is(Buffer.compare(payload, message.payload), 0);
+  expect(Buffer.compare(payload, message.payload)).toBe(0);
 });
 
 function waitForNextData(pubsub: Pubsub): Promise<Message> {
