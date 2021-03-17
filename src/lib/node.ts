@@ -18,18 +18,6 @@ export async function createNode() {
       // @ts-ignore: Type needs update
       pubsub: WakuRelayPubsub,
     },
-    config: {
-      pubsub: {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        enabled: true,
-        emitSelf: true,
-        signMessages: false,
-        strictSigning: false,
-        // Ensure that no signature is expected in the messages.
-        globalSignaturePolicy: 'StrictNoSign',
-      },
-    },
   });
 
   await node.start();

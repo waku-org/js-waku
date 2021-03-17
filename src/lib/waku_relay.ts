@@ -1,6 +1,7 @@
 import Gossipsub from 'libp2p-gossipsub';
 import { Libp2p } from 'libp2p-gossipsub/src/interfaces';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
+import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 
 import { Message } from './waku_message';
 
@@ -16,13 +17,17 @@ export class WakuRelayPubsub extends Gossipsub {
    * @param libp2p: Libp2p
    * @param options: Partial<GossipInputOptions>
    */
-  constructor(libp2p: Libp2p, options?: any) {
-    super(libp2p, options);
+  constructor(libp2p: Libp2p) {
+    super(libp2p, {
+      emitSelf: true,
+      // Ensure that no signature is expected in the messages.
+      globalSignaturePolicy: SignaturePolicy.StrictNoSign,
+    });
 
     const multicodecs = [CODEC];
 
     // This is the downside of using `libp2p-gossipsub` instead of
-    // implementing WakuRelay from scratch.C
+    // implementing WakuRelay from scratch.
     Object.assign(this, { multicodecs });
   }
 }
