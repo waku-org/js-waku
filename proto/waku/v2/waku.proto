@@ -4,6 +4,6 @@ package waku.v2;
 
 message WakuMessage {
   optional bytes payload = 1;
-  optional uint32 content_topic = 2; // Follow nim-waku implementation and not the spec
+  optional uint32 content_topic = 2;
   optional uint32 version = 3;
 }
