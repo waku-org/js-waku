@@ -14,14 +14,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Get nim-waku HEAD
+        id: nim-waku-head
+        shell: bash
+        run: echo "::set-output name=ref::$(git rev-parse HEAD)"
+
       - name: Cache nim-waku binary
         uses: actions/cache@v2
         with:
           path: |
             ./nim-waku/build/wakunode2
             ./nim-waku/vendor/rln/target/debug
-          # The nim-waku version is set by the .gitmodules file as it is a submodule
-          key: nim-waku-build-v2-${{ hashFiles('.gitmodules') }}
+          key: nim-waku-build-v2-${{ steps.nim-waku-head.outputs.ref }}
 
       - name: Install bufbuild
         uses: mu-io/setup-buf@v1beta
