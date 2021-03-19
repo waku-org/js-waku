@@ -13,11 +13,13 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
 
       - name: Get nim-waku HEAD
         id: nim-waku-head
         shell: bash
-        run: echo "::set-output name=ref::$(git rev-parse HEAD)"
+        run: cd nim-waku && echo "::set-output name=ref::$(git rev-parse HEAD)"
 
       - name: Cache nim-waku binary
         uses: actions/cache@v2
