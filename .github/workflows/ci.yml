@@ -22,12 +22,20 @@ jobs:
         run: cd nim-waku && echo "::set-output name=ref::$(git rev-parse HEAD)"
 
       - name: Cache nim-waku binary
+        id: cache-nim-waku
         uses: actions/cache@v2
         with:
           path: |
             ./nim-waku/build/wakunode2
             ./nim-waku/vendor/rln/target/debug
           key: nim-waku-build-v2-${{ steps.nim-waku-head.outputs.ref }}
+
+        # This would have been done part of npm pretest but it gives better
+        # visibility in the CI if done as a separate step
+      - name: Build wakunode2
+        if: steps.cache-nim-waku.outputs.cache-hit != 'true'
+        shell: bash
+        run: cd nim-waku && make wakunode2
 
       - name: Install bufbuild
         uses: mu-io/setup-buf@v1beta
