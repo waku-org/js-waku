@@ -37,6 +37,8 @@ describe('Waku Relay', () => {
     const node1Received = await promise;
 
     expect(node1Received.isEqualTo(message)).toBeTruthy();
+
+    await Promise.all([waku1.stop(), waku2.stop()]);
   });
 
   test('Registers waku relay protocol', async () => {
@@ -45,6 +47,8 @@ describe('Waku Relay', () => {
     const protocols = Array.from(waku.libp2p.upgrader.protocols.keys());
 
     expect(protocols.findIndex((value) => value == CODEC)).toBeTruthy();
+
+    await waku.stop();
   });
 
   test('Does not register any sub protocol', async () => {
@@ -52,22 +56,33 @@ describe('Waku Relay', () => {
 
     const protocols = Array.from(waku.libp2p.upgrader.protocols.keys());
     expect(protocols.findIndex((value) => value.match(/sub/))).toBeTruthy();
+
+    await waku.stop();
   });
 
   describe('Interop: Nim', () => {
-    test('nim subscribes to js', async () => {
-      const waku = await Waku.create();
+    let waku: Waku;
+    let nimWaku: NimWaku;
+
+    beforeEach(async () => {
+      waku = await Waku.create();
 
       const peerId = waku.libp2p.peerId.toB58String();
-
       const localMultiaddr = waku.libp2p.multiaddrs.find((addr) =>
         addr.toString().match(/127\.0\.0\.1/)
       );
       const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-      const nimWaku = new NimWaku(expect.getState().currentTestName);
+      nimWaku = new NimWaku(expect.getState().currentTestName);
       await nimWaku.start({ staticnode: multiAddrWithId });
+    });
 
+    afterEach(async () => {
+      nimWaku ? nimWaku.stop() : null;
+      waku ? await waku.stop() : null;
+    });
+
+    test('nim subscribes to js', async () => {
       const nimPeerId = await nimWaku.getPeerId();
       const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
 
@@ -76,21 +91,10 @@ describe('Waku Relay', () => {
 
     test('Js publishes to nim', async () => {
       const message = Message.fromUtf8String('This is a message');
-      const waku = await Waku.create();
-
       // TODO: nim-waku does follow the `StrictNoSign` policy hence we need to change
       // it for nim-waku to process our messages. Can be removed once
       // https://github.com/status-im/nim-waku/issues/422 is fixed
       waku.libp2p.pubsub.globalSignaturePolicy = 'StrictSign';
-
-      const peerId = waku.libp2p.peerId.toB58String();
-      const localMultiaddr = waku.libp2p.multiaddrs.find((addr) =>
-        addr.toString().match(/127\.0\.0\.1/)
-      );
-      const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
-
-      const nimWaku = new NimWaku(expect.getState().currentTestName);
-      await nimWaku.start({ staticnode: multiAddrWithId });
 
       await patchPeerStore(nimWaku, waku.libp2p);
 
@@ -109,16 +113,6 @@ describe('Waku Relay', () => {
 
     test('Nim publishes to js', async () => {
       const message = Message.fromUtf8String('Here is another message.');
-      const waku = await Waku.create();
-
-      const peerId = waku.libp2p.peerId.toB58String();
-      const localMultiaddr = waku.libp2p.multiaddrs.find((addr) =>
-        addr.toString().match(/127\.0\.0\.1/)
-      );
-      const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
-
-      const nimWaku = new NimWaku(expect.getState().currentTestName);
-      await nimWaku.start({ staticnode: multiAddrWithId });
 
       await patchPeerStore(nimWaku, waku.libp2p);
 

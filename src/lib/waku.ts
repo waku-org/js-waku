@@ -27,4 +27,8 @@ export default class Waku {
 
     return new Waku(libp2p, new WakuRelay(libp2p.pubsub));
   }
+
+  async stop() {
+    await this.libp2p.stop();
+  }
 }

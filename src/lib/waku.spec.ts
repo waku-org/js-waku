@@ -32,6 +32,9 @@ describe('Waku', () => {
       const jsPeers = waku.libp2p.peerStore.peers;
 
       expect(jsPeers.has(nimPeerId.toB58String())).toBeTruthy();
+
+      nimWaku.stop();
+      await waku.stop();
     });
   });
 });

@@ -74,11 +74,11 @@ export class NimWaku {
       ],
     });
 
-    this.process.on('exit', (signal) => {
-      console.log(`ERROR: nim-waku node stopped: ${signal}`);
-    });
-
     await this.waitForLog('RPC Server started');
+  }
+
+  public stop() {
+    this.process ? this.process.kill('SIGINT') : null;
   }
 
   async waitForLog(msg: string) {
