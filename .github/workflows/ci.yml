@@ -44,6 +44,12 @@ jobs:
         with:
           node-version: '14'
 
+      - name: Cache npm cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: node-v1-${{ hashFiles('**/package-lock.json') }}
+
       - name: install using npm ci
         uses: bahmutov/npm-install@v1
 
