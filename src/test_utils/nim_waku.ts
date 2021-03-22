@@ -74,11 +74,12 @@ export class NimWaku {
       ],
     });
 
-    this.process.on('exit', (signal) => {
-      console.log(`ERROR: nim-waku node stopped: ${signal}`);
-    });
-
     await this.waitForLog('RPC Server started');
+  }
+
+  public stop() {
+    this.process ? this.process.kill('SIGINT') : null;
+    this.process = undefined;
   }
 
   async waitForLog(msg: string) {
@@ -107,6 +108,10 @@ export class NimWaku {
 
   async sendMessage(message: Message) {
     this.checkProcess();
+
+    if (!message.payload) {
+      throw 'Attempting to send empty message';
+    }
 
     const rpcMessage = {
       payload: bufToHex(message.payload),
