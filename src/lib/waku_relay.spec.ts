@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
+import { NOISE_KEY_1, NOISE_KEY_2 } from '../test_utils/constants';
 import { NimWaku } from '../test_utils/nim_waku';
 
 import Waku from './waku';
@@ -12,7 +13,10 @@ describe('Waku Relay', () => {
   it.skip('Publish', async () => {
     const message = Message.fromUtf8String('Bird bird bird, bird is the word!');
 
-    const [waku1, waku2] = await Promise.all([Waku.create(), Waku.create()]);
+    const [waku1, waku2] = await Promise.all([
+      Waku.create(NOISE_KEY_1),
+      Waku.create(NOISE_KEY_2),
+    ]);
 
     // Add node's 2 data to the PeerStore
     waku1.libp2p.peerStore.addressBook.set(
@@ -41,7 +45,7 @@ describe('Waku Relay', () => {
   });
 
   it('Registers waku relay protocol', async function () {
-    const waku = await Waku.create();
+    const waku = await Waku.create(NOISE_KEY_1);
 
     const protocols = Array.from(waku.libp2p.upgrader.protocols.keys());
 
@@ -51,7 +55,7 @@ describe('Waku Relay', () => {
   });
 
   it('Does not register any sub protocol', async function () {
-    const waku = await Waku.create();
+    const waku = await Waku.create(NOISE_KEY_1);
 
     const protocols = Array.from(waku.libp2p.upgrader.protocols.keys());
     expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
@@ -65,7 +69,7 @@ describe('Waku Relay', () => {
 
     beforeEach(async function () {
       this.timeout(10_000);
-      waku = await Waku.create();
+      waku = await Waku.create(NOISE_KEY_1);
 
       const peerId = waku.libp2p.peerId.toB58String();
       const localMultiaddr = waku.libp2p.multiaddrs.find((addr) =>

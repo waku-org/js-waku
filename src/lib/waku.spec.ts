@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 
+import { NOISE_KEY_1 } from '../test_utils/constants';
 import { NimWaku } from '../test_utils/nim_waku';
 
 import Waku from './waku';
@@ -9,7 +10,7 @@ describe('Waku', function () {
   describe('Interop: Nim', function () {
     it('nim connects to js', async function () {
       this.timeout(10_000);
-      const waku = await Waku.create();
+      const waku = await Waku.create(NOISE_KEY_1);
 
       const peerId = waku.libp2p.peerId.toB58String();
 
