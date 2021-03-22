@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import Libp2p from 'libp2p';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
 import { NimWaku } from '../test_utils/nim_waku';
@@ -99,8 +98,6 @@ describe('Waku Relay', () => {
       // https://github.com/status-im/nim-waku/issues/422 is fixed
       waku.libp2p.pubsub.globalSignaturePolicy = 'StrictSign';
 
-      await patchPeerStore(nimWaku, waku.libp2p);
-
       await waku.relay.publish(message);
 
       await nimWaku.waitForLog('WakuMessage received');
@@ -117,8 +114,6 @@ describe('Waku Relay', () => {
     it('Nim publishes to js', async function () {
       this.timeout(5000);
       const message = Message.fromUtf8String('Here is another message.');
-
-      await patchPeerStore(nimWaku, waku.libp2p);
 
       await waku.relay.subscribe();
 
@@ -147,20 +142,4 @@ function waitForNextData(pubsub: Pubsub): Promise<Message> {
   }).then((msg: any) => {
     return Message.fromBinary(msg.data);
   });
-}
-
-// TODO: Remove this hack, tracked with https://github.com/status-im/nim-waku/issues/419
-async function patchPeerStore(nimWaku: NimWaku, node: Libp2p) {
-  const nimPeerId = await nimWaku.getPeerId();
-  node.identifyService!.peerStore.protoBook.set(nimPeerId, [CODEC]);
-  const peer = node.peerStore.peers.get(nimPeerId.toB58String());
-  if (!peer) {
-    throw 'Did not find nim-waku node in peers';
-  }
-  peer.protocols = [CODEC];
-  node.peerStore.peers.set(nimPeerId.toB58String(), peer);
-
-  await new Promise((resolve) =>
-    node.pubsub.once('gossipsub:heartbeat', resolve)
-  );
 }
