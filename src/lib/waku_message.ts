@@ -1,29 +1,18 @@
-/// <reference types="../gen/proto/waku/v2/waku_pb" />
-import { WakuMessage } from '../gen/proto/waku/v2/waku_pb';
-
 // Ensure that this class matches the proto interface while
+import { Reader } from 'protobufjs/minimal';
+
 // Protecting the user from protobuf oddities
+import { WakuMessage } from '../proto/waku/v2/waku';
+
+const DEFAULT_CONTENT_TOPIC = 1;
+const DEFAULT_VERSION = 0;
+
 export class Message {
-  public payload: Uint8Array;
-  public contentTopic: number;
-  public version: number;
-
-  private constructor(public protobuf: WakuMessage) {
-    this.protobuf = protobuf;
-
-    const msg = protobuf.toObject();
-
-    // Let's make is easier to avoid mistakes and only store in Uint8Array format
-    let payload;
-    if (typeof msg.payload === 'string') {
-      payload = Buffer.from(msg.payload, 'base64');
-    } else {
-      payload = msg.payload;
-    }
-    this.payload = payload;
-    this.contentTopic = msg.contentTopic;
-    this.version = msg.version;
-  }
+  private constructor(
+    public payload?: Uint8Array,
+    public contentTopic?: number,
+    public version?: number
+  ) {}
 
   /**
    * Create Message from utf-8 string
@@ -31,39 +20,33 @@ export class Message {
    * @returns {Message}
    */
   static fromUtf8String(message: string): Message {
-    const wakuMsg = new WakuMessage();
-
-    // Only Version 0 is implemented in Waku 2.
-    // 0: payload SHOULD be either plain or that encryption is done at a separate layer outside of Waku.
-    wakuMsg.setVersion(0);
-
-    // This is the content topic commonly used at this time
-    wakuMsg.setContentTopic(1);
-
-    const buf = Buffer.from(message, 'utf-8');
-
-    // Only accepts Uint8Array or base64 string
-    wakuMsg.setPayload(buf);
-
-    return new Message(wakuMsg);
+    const payload = Buffer.from(message, 'utf-8');
+    return new Message(payload, DEFAULT_CONTENT_TOPIC, DEFAULT_VERSION);
   }
 
-  static fromBinary(message: Uint8Array): Message {
-    const wakuMsg = WakuMessage.deserializeBinary(message);
-    return new Message(wakuMsg);
+  static fromBinary(bytes: Uint8Array): Message {
+    const wakuMsg = WakuMessage.decode(Reader.create(bytes));
+    return new Message(wakuMsg.payload, wakuMsg.contentTopic, wakuMsg.version);
   }
 
   toBinary(): Uint8Array {
-    return this.protobuf.serializeBinary();
+    return WakuMessage.encode({
+      payload: this.payload,
+      version: this.version,
+      contentTopic: this.contentTopic,
+    }).finish();
   }
 
   // Purely for tests purposes.
   // We do consider protobuf field when checking equality
   // As the content is held by the other fields.
-  // TODO: Consider using WakuMessage.equals
   isEqualTo(other: Message) {
+    const payloadsAreEqual =
+      this.payload && other.payload
+        ? Buffer.compare(this.payload, other.payload) === 0
+        : !(this.payload || other.payload);
     return (
-      Buffer.compare(this.payload, other.payload) === 0 &&
+      payloadsAreEqual &&
       this.contentTopic === other.contentTopic &&
       this.version === other.version
     );

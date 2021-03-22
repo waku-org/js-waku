@@ -1,11 +1,6 @@
 version: v1beta1
 
 plugins:
-  - name: ts
-    out: src/gen/proto
+  - name: ts_proto
+    out: ./src/proto
     opt: grpc_js
-
-  # protoc 3.13 our above is needed as the schema is v3 with optional fields
-  - name: js
-    out: build/main/gen/proto
-    opt: import_style=commonjs,binary

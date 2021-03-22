@@ -108,6 +108,10 @@ export class NimWaku {
   async sendMessage(message: Message) {
     this.checkProcess();
 
+    if (!message.payload) {
+      throw 'Attempting to send empty message';
+    }
+
     const rpcMessage = {
       payload: bufToHex(message.payload),
       contentTopic: message.contentTopic,

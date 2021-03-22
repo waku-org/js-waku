@@ -109,7 +109,7 @@ describe('Waku Relay', () => {
       expect(msgs[0].version).to.equal(message.version);
 
       const payload = Buffer.from(msgs[0].payload);
-      expect(Buffer.compare(payload, message.payload)).to.equal(0);
+      expect(Buffer.compare(payload, message.payload!)).to.equal(0);
     });
 
     it('Nim publishes to js', async () => {
@@ -132,8 +132,8 @@ describe('Waku Relay', () => {
       expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
       expect(receivedMsg.version).to.eq(message.version);
 
-      const payload = Buffer.from(receivedMsg.payload);
-      expect(Buffer.compare(payload, message.payload)).to.eq(0);
+      const payload = Buffer.from(receivedMsg.payload!);
+      expect(Buffer.compare(payload, message.payload!)).to.eq(0);
     });
   });
 });

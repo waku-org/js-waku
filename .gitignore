@@ -8,3 +8,4 @@ src/gen
 coverage
 *.log
 yarn.lock
+src/proto/**/*.ts
