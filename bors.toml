@@ -1,0 +1,3 @@
+status = ["build_and_test"]
+block_labels = ["work-in-progress"]
+delete_merged_branches = true
