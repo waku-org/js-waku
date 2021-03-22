@@ -91,6 +91,8 @@ describe('Waku Relay', () => {
     });
 
     it('Js publishes to nim', async function () {
+      this.timeout(5000);
+
       const message = Message.fromUtf8String('This is a message');
       // TODO: nim-waku does follow the `StrictNoSign` policy hence we need to change
       // it for nim-waku to process our messages. Can be removed once

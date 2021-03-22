@@ -79,6 +79,7 @@ export class NimWaku {
 
   public stop() {
     this.process ? this.process.kill('SIGINT') : null;
+    this.process = undefined;
   }
 
   async waitForLog(msg: string) {
