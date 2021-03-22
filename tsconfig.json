@@ -42,9 +42,9 @@
 
     "lib": ["es2017"],
     "types": ["node", "mocha"],
-    "typeRoots": ["node_modules/@types", "src/types", "src/gen/proto"]
+    "typeRoots": ["node_modules/@types", "src/types"]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules/**"],
   "compileOnSave": false,
   "ts-node": {
