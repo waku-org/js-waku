@@ -1,11 +1,14 @@
+import { expect } from 'chai';
+
 import { NimWaku } from '../test_utils/nim_waku';
 
 import Waku from './waku';
 import { CODEC } from './waku_relay';
 
-describe('Waku', () => {
-  describe('Interop: Nim', () => {
-    test('nim connects to js', async () => {
+describe('Waku', function () {
+  describe('Interop: Nim', function () {
+    it('nim connects to js', async function () {
+      this.timeout(10_000);
       const waku = await Waku.create();
 
       const peerId = waku.libp2p.peerId.toB58String();
@@ -15,12 +18,12 @@ describe('Waku', () => {
       );
       const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-      const nimWaku = new NimWaku(expect.getState().currentTestName);
+      const nimWaku = new NimWaku(this.test!.title);
       await nimWaku.start({ staticnode: multiAddrWithId });
 
       const nimPeers = await nimWaku.peers();
 
-      expect(nimPeers).toEqual([
+      expect(nimPeers).to.deep.equal([
         {
           multiaddr: multiAddrWithId,
           protocol: CODEC,
@@ -31,7 +34,7 @@ describe('Waku', () => {
       const nimPeerId = await nimWaku.getPeerId();
       const jsPeers = waku.libp2p.peerStore.peers;
 
-      expect(jsPeers.has(nimPeerId.toB58String())).toBeTruthy();
+      expect(jsPeers.has(nimPeerId.toB58String())).to.be.true;
 
       nimWaku.stop();
       await waku.stop();

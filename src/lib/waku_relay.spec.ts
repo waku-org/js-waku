@@ -41,30 +41,31 @@ describe('Waku Relay', () => {
     await Promise.all([waku1.stop(), waku2.stop()]);
   });
 
-  it('Registers waku relay protocol', async () => {
+  it('Registers waku relay protocol', async function () {
     const waku = await Waku.create();
 
     const protocols = Array.from(waku.libp2p.upgrader.protocols.keys());
 
-    expect(protocols.findIndex((value) => value == CODEC)).to.be.true;
+    expect(protocols).to.contain(CODEC);
 
     await waku.stop();
   });
 
-  it('Does not register any sub protocol', async () => {
+  it('Does not register any sub protocol', async function () {
     const waku = await Waku.create();
 
     const protocols = Array.from(waku.libp2p.upgrader.protocols.keys());
-    expect(protocols.findIndex((value) => value.match(/sub/))).to.be.true;
+    expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
 
     await waku.stop();
   });
 
-  describe('Interop: Nim', () => {
+  describe('Interop: Nim', function () {
     let waku: Waku;
     let nimWaku: NimWaku;
 
-    beforeEach(async () => {
+    beforeEach(async function () {
+      this.timeout(10_000);
       waku = await Waku.create();
 
       const peerId = waku.libp2p.peerId.toB58String();
@@ -73,24 +74,23 @@ describe('Waku Relay', () => {
       );
       const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-      console.log(this);
-      nimWaku = new NimWaku('foo');
+      nimWaku = new NimWaku(this.test!.title);
       await nimWaku.start({ staticnode: multiAddrWithId });
     });
 
-    afterEach(async () => {
+    afterEach(async function () {
       nimWaku ? nimWaku.stop() : null;
       waku ? await waku.stop() : null;
     });
 
-    it('nim subscribes to js', async () => {
+    it('nim subscribes to js', async function () {
       const nimPeerId = await nimWaku.getPeerId();
       const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
 
       expect(subscribers).to.contain(nimPeerId.toB58String());
     });
 
-    it('Js publishes to nim', async () => {
+    it('Js publishes to nim', async function () {
       const message = Message.fromUtf8String('This is a message');
       // TODO: nim-waku does follow the `StrictNoSign` policy hence we need to change
       // it for nim-waku to process our messages. Can be removed once
@@ -112,7 +112,8 @@ describe('Waku Relay', () => {
       expect(Buffer.compare(payload, message.payload!)).to.equal(0);
     });
 
-    it('Nim publishes to js', async () => {
+    it('Nim publishes to js', async function () {
+      this.timeout(5000);
       const message = Message.fromUtf8String('Here is another message.');
 
       await patchPeerStore(nimWaku, waku.libp2p);
