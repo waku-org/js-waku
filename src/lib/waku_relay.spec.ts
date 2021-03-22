@@ -1,4 +1,4 @@
-import 'jest';
+import { expect } from 'chai';
 import Libp2p from 'libp2p';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
@@ -10,7 +10,7 @@ import { CODEC, TOPIC } from './waku_relay';
 
 describe('Waku Relay', () => {
   // TODO: Fix this, see https://github.com/ChainSafe/js-libp2p-gossipsub/issues/151
-  test.skip('Publish', async () => {
+  it.skip('Publish', async () => {
     const message = Message.fromUtf8String('Bird bird bird, bird is the word!');
 
     const [waku1, waku2] = await Promise.all([Waku.create(), Waku.create()]);
@@ -36,26 +36,26 @@ describe('Waku Relay', () => {
 
     const node1Received = await promise;
 
-    expect(node1Received.isEqualTo(message)).toBeTruthy();
+    expect(node1Received.isEqualTo(message)).to.be.true;
 
     await Promise.all([waku1.stop(), waku2.stop()]);
   });
 
-  test('Registers waku relay protocol', async () => {
+  it('Registers waku relay protocol', async () => {
     const waku = await Waku.create();
 
     const protocols = Array.from(waku.libp2p.upgrader.protocols.keys());
 
-    expect(protocols.findIndex((value) => value == CODEC)).toBeTruthy();
+    expect(protocols.findIndex((value) => value == CODEC)).to.be.true;
 
     await waku.stop();
   });
 
-  test('Does not register any sub protocol', async () => {
+  it('Does not register any sub protocol', async () => {
     const waku = await Waku.create();
 
     const protocols = Array.from(waku.libp2p.upgrader.protocols.keys());
-    expect(protocols.findIndex((value) => value.match(/sub/))).toBeTruthy();
+    expect(protocols.findIndex((value) => value.match(/sub/))).to.be.true;
 
     await waku.stop();
   });
@@ -73,7 +73,8 @@ describe('Waku Relay', () => {
       );
       const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-      nimWaku = new NimWaku(expect.getState().currentTestName);
+      console.log(this);
+      nimWaku = new NimWaku('foo');
       await nimWaku.start({ staticnode: multiAddrWithId });
     });
 
@@ -82,14 +83,14 @@ describe('Waku Relay', () => {
       waku ? await waku.stop() : null;
     });
 
-    test('nim subscribes to js', async () => {
+    it('nim subscribes to js', async () => {
       const nimPeerId = await nimWaku.getPeerId();
       const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
 
-      expect(subscribers).toContain(nimPeerId.toB58String());
+      expect(subscribers).to.contain(nimPeerId.toB58String());
     });
 
-    test('Js publishes to nim', async () => {
+    it('Js publishes to nim', async () => {
       const message = Message.fromUtf8String('This is a message');
       // TODO: nim-waku does follow the `StrictNoSign` policy hence we need to change
       // it for nim-waku to process our messages. Can be removed once
@@ -104,14 +105,14 @@ describe('Waku Relay', () => {
 
       const msgs = await nimWaku.messages();
 
-      expect(msgs[0].contentTopic).toEqual(message.contentTopic);
-      expect(msgs[0].version).toEqual(message.version);
+      expect(msgs[0].contentTopic).to.equal(message.contentTopic);
+      expect(msgs[0].version).to.equal(message.version);
 
       const payload = Buffer.from(msgs[0].payload);
-      expect(Buffer.compare(payload, message.payload)).toBe(0);
+      expect(Buffer.compare(payload, message.payload)).to.equal(0);
     });
 
-    test('Nim publishes to js', async () => {
+    it('Nim publishes to js', async () => {
       const message = Message.fromUtf8String('Here is another message.');
 
       await patchPeerStore(nimWaku, waku.libp2p);
@@ -128,11 +129,11 @@ describe('Waku Relay', () => {
 
       const receivedMsg = await receivedPromise;
 
-      expect(receivedMsg.contentTopic).toBe(message.contentTopic);
-      expect(receivedMsg.version).toBe(message.version);
+      expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
+      expect(receivedMsg.version).to.eq(message.version);
 
       const payload = Buffer.from(receivedMsg.payload);
-      expect(Buffer.compare(payload, message.payload)).toBe(0);
+      expect(Buffer.compare(payload, message.payload)).to.eq(0);
     });
   });
 });

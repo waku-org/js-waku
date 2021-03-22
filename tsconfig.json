@@ -41,10 +41,13 @@
     // "emitDecoratorMetadata": true /* Enables experimental support for emitting type metadata for decorators. */,
 
     "lib": ["es2017"],
-    "types": ["node", "jest"],
-    "typeRoots": ["node_modules/@types", "src/types"]
+    "types": ["node", "mocha"],
+    "typeRoots": ["node_modules/@types", "src/types", "src/gen/proto"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "exclude": ["node_modules/**"],
-  "compileOnSave": false
+  "compileOnSave": false,
+  "ts-node": {
+    "files": true
+  }
 }

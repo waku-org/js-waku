@@ -1,3 +1,4 @@
+/// <reference types="../gen/proto/waku/v2/waku_pb" />
 import { WakuMessage } from '../gen/proto/waku/v2/waku_pb';
 
 // Ensure that this class matches the proto interface while
