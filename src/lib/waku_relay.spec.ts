@@ -77,7 +77,7 @@ describe('Waku Relay', () => {
       );
       const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-      nimWaku = new NimWaku(this.test!.title);
+      nimWaku = new NimWaku(this.test!.ctx!.currentTest!.title);
       await nimWaku.start({ staticnode: multiAddrWithId });
     });
 
