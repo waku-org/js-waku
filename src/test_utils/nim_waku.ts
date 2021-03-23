@@ -36,6 +36,7 @@ export class NimWaku {
   private pid?: number;
   private portsShift: number;
   private peerId?: PeerId;
+  private multiaddrWithId?: Multiaddr;
   private logPath: string;
 
   constructor(logName: string) {
@@ -160,14 +161,25 @@ export class NimWaku {
   }
 
   async getPeerId(): Promise<PeerId> {
-    if (this.peerId) {
-      return this.peerId;
+    return await this.setPeerId().then((res) => res.peerId);
+  }
+
+  async getMultiaddrWithId(): Promise<Multiaddr> {
+    return await this.setPeerId().then((res) => res.multiaddrWithId);
+  }
+
+  private async setPeerId(): Promise<{
+    peerId: PeerId;
+    multiaddrWithId: Multiaddr;
+  }> {
+    if (this.peerId && this.multiaddrWithId) {
+      return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
     }
-
     const res = await this.info();
-    const strPeerId = multiaddr(res.listenStr).getPeerId();
-
-    return PeerId.createFromB58String(strPeerId);
+    this.multiaddrWithId = multiaddr(res.listenStr);
+    const peerIdStr = this.multiaddrWithId.getPeerId();
+    this.peerId = PeerId.createFromB58String(peerIdStr);
+    return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
   }
 
   get multiaddr(): Multiaddr {

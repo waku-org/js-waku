@@ -37,6 +37,14 @@ export default class Waku {
     return new Waku(libp2p, new WakuRelay(libp2p.pubsub));
   }
 
+  /**
+   * Dials to the provided peer. If successful, the known metadata of the peer will be added to the nodes peerStore, and the Connection will be returned
+   * @param peer The peer to dial
+   */
+  async dial(peer: PeerId | Multiaddr | string) {
+    return this.libp2p.dialProtocol(peer, CODEC);
+  }
+
   async dialWithMultiAddr(peerId: PeerId, multiaddr: Multiaddr[]) {
     this.libp2p.peerStore.addressBook.set(peerId, multiaddr);
     await this.libp2p.dialProtocol(peerId, CODEC);

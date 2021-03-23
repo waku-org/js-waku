@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
 import { NOISE_KEY_1, NOISE_KEY_2 } from '../test_utils/constants';
+import { delay } from '../test_utils/delay';
 import { makeLogFileName } from '../test_utils/log_file';
 import { NimWaku } from '../test_utils/nim_waku';
 
@@ -187,12 +188,84 @@ describe('Waku Relay', () => {
         this.timeout(10_000);
         waku = await Waku.create(NOISE_KEY_1);
 
+        nimWaku = new NimWaku(this.test!.ctx!.currentTest!.title);
+        await nimWaku.start();
+
+        await waku.dial(await nimWaku.getMultiaddrWithId());
+
+        await delay(100);
+        await new Promise((resolve) =>
+          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+        );
+      });
+
+      afterEach(async function () {
+        nimWaku ? nimWaku.stop() : null;
+        waku ? await waku.stop() : null;
+      });
+
+      it('nim subscribes to js', async function () {
+        const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
+
+        const nimPeerId = await nimWaku.getPeerId();
+        expect(subscribers).to.contain(nimPeerId.toB58String());
+      });
+
+      it('Js publishes to nim', async function () {
+        const message = Message.fromUtf8String('This is a message');
+        // TODO: nim-waku does not really follow the `StrictNoSign` policy hence we need to change
+        // it for nim-waku to process our messages. Can be removed once
+        // https://github.com/status-im/nim-waku/issues/422 is fixed
+        waku.libp2p.pubsub.globalSignaturePolicy = 'StrictSign';
+
+        await waku.relay.publish(message);
+
+        await nimWaku.waitForLog('WakuMessage received');
+
+        const msgs = await nimWaku.messages();
+
+        expect(msgs[0].contentTopic).to.equal(message.contentTopic);
+        expect(msgs[0].version).to.equal(message.version);
+
+        const payload = Buffer.from(msgs[0].payload);
+        expect(Buffer.compare(payload, message.payload!)).to.equal(0);
+      });
+
+      it('Nim publishes to js', async function () {
+        const message = Message.fromUtf8String('Here is another message.');
+
+        await waku.relay.subscribe();
+
+        await new Promise((resolve) =>
+          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+        );
+
+        const receivedPromise = waitForNextData(waku.libp2p.pubsub);
+
+        await nimWaku.sendMessage(message);
+
+        const receivedMsg = await receivedPromise;
+
+        expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
+        expect(receivedMsg.version).to.eq(message.version);
+
+        const payload = Buffer.from(receivedMsg.payload!);
+        expect(Buffer.compare(payload, message.payload!)).to.eq(0);
+      });
+    });
+
+    describe('Js connects to nim', function () {
+      let waku: Waku;
+      let nimWaku: NimWaku;
+
+      beforeEach(async function () {
+        this.timeout(10_000);
+        waku = await Waku.create(NOISE_KEY_1);
+
         nimWaku = new NimWaku(makeLogFileName(this));
         await nimWaku.start();
 
-        const nimPeerId = await nimWaku.getPeerId();
-
-        await waku.dialWithMultiAddr(nimPeerId, [nimWaku.multiaddr]);
+        await waku.dial(await nimWaku.getMultiaddrWithId());
 
         await new Promise((resolve) =>
           waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
