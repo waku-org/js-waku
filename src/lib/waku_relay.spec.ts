@@ -10,58 +10,60 @@ import { Message } from './waku_message';
 import { CODEC, TOPIC } from './waku_relay';
 
 describe('Waku Relay', () => {
-  // TODO: Fix this, see https://github.com/ChainSafe/js-libp2p-gossipsub/issues/151
-  it.skip('Publish', async () => {
-    const message = Message.fromUtf8String('Bird bird bird, bird is the word!');
-
-    const [waku1, waku2] = await Promise.all([
+  let waku1: Waku;
+  let waku2: Waku;
+  beforeEach(async function () {
+    [waku1, waku2] = await Promise.all([
       Waku.create(NOISE_KEY_1),
       Waku.create(NOISE_KEY_2),
     ]);
 
-    // Add node's 2 data to the PeerStore
-    waku1.libp2p.peerStore.addressBook.set(
-      waku2.libp2p.peerId,
-      waku2.libp2p.multiaddrs
-    );
-    await waku1.libp2p.dial(waku2.libp2p.peerId);
+    await waku1.dialWithMultiAddr(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
 
+    await Promise.all([
+      new Promise((resolve) =>
+        waku1.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+      ),
+      new Promise((resolve) =>
+        waku2.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+      ),
+    ]);
+
+    await waku1.relay.subscribe();
     await waku2.relay.subscribe();
-    await new Promise((resolve) =>
-      waku2.libp2p.pubsub.once('pubsub:subscription-change', (...args) =>
-        resolve(args)
-      )
-    );
 
-    // Setup the promise before publishing to ensure the event is not missed
-    const promise = waitForNextData(waku1.libp2p.pubsub);
-
-    await waku2.relay.publish(message);
-
-    const node1Received = await promise;
-
-    expect(node1Received.isEqualTo(message)).to.be.true;
-
-    await Promise.all([waku1.stop(), waku2.stop()]);
+    await Promise.all([
+      new Promise((resolve) =>
+        waku1.libp2p.pubsub.once('pubsub:subscription-change', (...args) =>
+          resolve(args)
+        )
+      ),
+      new Promise((resolve) =>
+        waku2.libp2p.pubsub.once('pubsub:subscription-change', (...args) =>
+          resolve(args)
+        )
+      ),
+    ]);
   });
 
-  it('Registers waku relay protocol', async function () {
-    const waku = await Waku.create(NOISE_KEY_1);
+  afterEach(async function () {
+    await waku1.stop();
+    await waku2.stop();
+  });
 
-    const protocols = Array.from(waku.libp2p.upgrader.protocols.keys());
+  it('Subscribe', async function () {
+    const subscribers1 = waku1.libp2p.pubsub.getSubscribers(TOPIC);
+    const subscribers2 = waku2.libp2p.pubsub.getSubscribers(TOPIC);
+
+    expect(subscribers1).to.contain(waku2.libp2p.peerId.toB58String());
+    expect(subscribers2).to.contain(waku1.libp2p.peerId.toB58String());
+  });
+
+  it('Register correct protocols', async function () {
+    const protocols = Array.from(waku1.libp2p.upgrader.protocols.keys());
 
     expect(protocols).to.contain(CODEC);
-
-    await waku.stop();
-  });
-
-  it('Does not register any sub protocol', async function () {
-    const waku = await Waku.create(NOISE_KEY_1);
-
-    const protocols = Array.from(waku.libp2p.upgrader.protocols.keys());
     expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
-
-    await waku.stop();
   });
 
   describe('Interop: Nim', function () {
