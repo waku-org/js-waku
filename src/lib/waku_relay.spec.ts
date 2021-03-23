@@ -65,79 +65,148 @@ describe('Waku Relay', () => {
   });
 
   describe('Interop: Nim', function () {
-    let waku: Waku;
-    let nimWaku: NimWaku;
+    describe('Nim connects to js', function () {
+      let waku: Waku;
+      let nimWaku: NimWaku;
 
-    beforeEach(async function () {
-      this.timeout(10_000);
-      waku = await Waku.create(NOISE_KEY_1);
+      beforeEach(async function () {
+        this.timeout(10_000);
+        waku = await Waku.create(NOISE_KEY_1);
 
-      const peerId = waku.libp2p.peerId.toB58String();
-      const localMultiaddr = waku.libp2p.multiaddrs.find((addr) =>
-        addr.toString().match(/127\.0\.0\.1/)
-      );
-      const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
+        const peerId = waku.libp2p.peerId.toB58String();
+        const localMultiaddr = waku.libp2p.multiaddrs.find((addr) =>
+          addr.toString().match(/127\.0\.0\.1/)
+        );
+        const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-      nimWaku = new NimWaku(makeLogFileName(this));
-      await nimWaku.start({ staticnode: multiAddrWithId });
+        nimWaku = new NimWaku(makeLogFileName(this));
+        await nimWaku.start({ staticnode: multiAddrWithId });
 
-      await waku.relay.subscribe();
-      await new Promise((resolve) =>
-        waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-      );
+        await waku.relay.subscribe();
+        await new Promise((resolve) =>
+          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+        );
+      });
+
+      afterEach(async function () {
+        nimWaku ? nimWaku.stop() : null;
+        waku ? await waku.stop() : null;
+      });
+
+      it('nim subscribes to js', async function () {
+        const nimPeerId = await nimWaku.getPeerId();
+        const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
+
+        expect(subscribers).to.contain(nimPeerId.toB58String());
+      });
+
+      it('Js publishes to nim', async function () {
+        this.timeout(5000);
+
+        const message = Message.fromUtf8String('This is a message');
+
+        await waku.relay.publish(message);
+
+        await nimWaku.waitForLog('WakuMessage received');
+
+        const msgs = await nimWaku.messages();
+
+        expect(msgs[0].contentTopic).to.equal(message.contentTopic);
+        expect(msgs[0].version).to.equal(message.version);
+
+        const payload = Buffer.from(msgs[0].payload);
+        expect(Buffer.compare(payload, message.payload!)).to.equal(0);
+      });
+
+      it('Nim publishes to js', async function () {
+        this.timeout(5000);
+        const message = Message.fromUtf8String('Here is another message.');
+
+        await waku.relay.subscribe();
+
+        await new Promise((resolve) =>
+          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+        );
+
+        const receivedPromise = waitForNextData(waku.libp2p.pubsub);
+
+        await nimWaku.sendMessage(message);
+
+        const receivedMsg = await receivedPromise;
+
+        expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
+        expect(receivedMsg.version).to.eq(message.version);
+
+        const payload = Buffer.from(receivedMsg.payload!);
+        expect(Buffer.compare(payload, message.payload!)).to.eq(0);
+      });
     });
 
-    afterEach(async function () {
-      nimWaku ? nimWaku.stop() : null;
-      waku ? await waku.stop() : null;
-    });
+    describe('Js connects to nim', function () {
+      let waku: Waku;
+      let nimWaku: NimWaku;
 
-    it('nim subscribes to js', async function () {
-      const nimPeerId = await nimWaku.getPeerId();
-      const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
+      beforeEach(async function () {
+        this.timeout(10_000);
+        waku = await Waku.create(NOISE_KEY_1);
 
-      expect(subscribers).to.contain(nimPeerId.toB58String());
-    });
+        nimWaku = new NimWaku(makeLogFileName(this));
+        await nimWaku.start();
 
-    it('Js publishes to nim', async function () {
-      this.timeout(5000);
+        const nimPeerId = await nimWaku.getPeerId();
 
-      const message = Message.fromUtf8String('This is a message');
+        await waku.dialWithMultiAddr(nimPeerId, [nimWaku.multiaddr]);
 
-      await waku.relay.publish(message);
+        await waku.relay.subscribe();
 
-      await nimWaku.waitForLog('WakuMessage received');
+        await new Promise((resolve) =>
+          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+        );
+      });
 
-      const msgs = await nimWaku.messages();
+      afterEach(async function () {
+        nimWaku ? nimWaku.stop() : null;
+        waku ? await waku.stop() : null;
+      });
 
-      expect(msgs[0].contentTopic).to.equal(message.contentTopic);
-      expect(msgs[0].version).to.equal(message.version);
+      it('nim subscribes to js', async function () {
+        const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
 
-      const payload = Buffer.from(msgs[0].payload);
-      expect(Buffer.compare(payload, message.payload!)).to.equal(0);
-    });
+        const nimPeerId = await nimWaku.getPeerId();
+        expect(subscribers).to.contain(nimPeerId.toB58String());
+      });
 
-    it('Nim publishes to js', async function () {
-      this.timeout(5000);
-      const message = Message.fromUtf8String('Here is another message.');
+      it('Js publishes to nim', async function () {
+        const message = Message.fromUtf8String('This is a message');
 
-      await waku.relay.subscribe();
+        await waku.relay.publish(message);
 
-      await new Promise((resolve) =>
-        waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-      );
+        await nimWaku.waitForLog('WakuMessage received');
 
-      const receivedPromise = waitForNextData(waku.libp2p.pubsub);
+        const msgs = await nimWaku.messages();
 
-      await nimWaku.sendMessage(message);
+        expect(msgs[0].contentTopic).to.equal(message.contentTopic);
+        expect(msgs[0].version).to.equal(message.version);
 
-      const receivedMsg = await receivedPromise;
+        const payload = Buffer.from(msgs[0].payload);
+        expect(Buffer.compare(payload, message.payload!)).to.equal(0);
+      });
 
-      expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
-      expect(receivedMsg.version).to.eq(message.version);
+      it('Nim publishes to js', async function () {
+        const message = Message.fromUtf8String('Here is another message.');
 
-      const payload = Buffer.from(receivedMsg.payload!);
-      expect(Buffer.compare(payload, message.payload!)).to.eq(0);
+        const receivedPromise = waitForNextData(waku.libp2p.pubsub);
+
+        await nimWaku.sendMessage(message);
+
+        const receivedMsg = await receivedPromise;
+
+        expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
+        expect(receivedMsg.version).to.eq(message.version);
+
+        const payload = Buffer.from(receivedMsg.payload!);
+        expect(Buffer.compare(payload, message.payload!)).to.eq(0);
+      });
     });
   });
 });

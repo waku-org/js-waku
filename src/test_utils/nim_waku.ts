@@ -42,7 +42,7 @@ export class NimWaku {
     this.logPath = `${LOG_DIR}/nim-waku_${logName}.log`;
   }
 
-  async start(args: Args) {
+  async start(args?: Args) {
     try {
       await existsAsync(LOG_DIR);
     } catch (e) {

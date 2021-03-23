@@ -3,8 +3,10 @@ import Mplex from 'libp2p-mplex';
 import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
 import TCP from 'libp2p-tcp';
+import Multiaddr from 'multiaddr';
+import PeerId from 'peer-id';
 
-import { WakuRelay, WakuRelayPubsub } from './waku_relay';
+import { CODEC, WakuRelay, WakuRelayPubsub } from './waku_relay';
 
 export default class Waku {
   private constructor(public libp2p: Libp2p, public relay: WakuRelay) {}
@@ -33,6 +35,11 @@ export default class Waku {
     await libp2p.start();
 
     return new Waku(libp2p, new WakuRelay(libp2p.pubsub));
+  }
+
+  async dialWithMultiAddr(peerId: PeerId, multiaddr: Multiaddr[]) {
+    this.libp2p.peerStore.addressBook.set(peerId, multiaddr);
+    return this.libp2p.dialProtocol(peerId, CODEC);
   }
 
   async stop() {
