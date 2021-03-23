@@ -66,6 +66,35 @@ describe('Waku Relay', () => {
     expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
   });
 
+  // TODO: Fix this
+  it.skip('Publish', async function () {
+    this.timeout(10000);
+
+    const message = Message.fromUtf8String('JS to JS communication works');
+    // waku.libp2p.pubsub.globalSignaturePolicy = 'StrictSign';
+
+    const receivedPromise = waitForNextData(waku2.libp2p.pubsub);
+
+    await Promise.all([
+      new Promise((resolve) =>
+        waku1.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+      ),
+      new Promise((resolve) =>
+        waku2.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+      ),
+    ]);
+
+    await waku1.relay.publish(message);
+
+    const receivedMsg = await receivedPromise;
+
+    expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
+    expect(receivedMsg.version).to.eq(message.version);
+
+    const payload = Buffer.from(receivedMsg.payload!);
+    expect(Buffer.compare(payload, message.payload!)).to.eq(0);
+  });
+
   describe('Interop: Nim', function () {
     describe('Nim connects to js', function () {
       let waku: Waku;
