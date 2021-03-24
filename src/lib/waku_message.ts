@@ -37,6 +37,18 @@ export class Message {
     }).finish();
   }
 
+  utf8Payload(): string {
+    if (!this.payload) {
+      return '';
+    }
+
+    return Array.from(this.payload)
+      .map((char) => {
+        return String.fromCharCode(char);
+      })
+      .join('');
+  }
+
   // Purely for tests purposes.
   // We do consider protobuf field when checking equality
   // As the content is held by the other fields.
