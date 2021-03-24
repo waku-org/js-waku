@@ -20,7 +20,7 @@ export class WakuRelayPubsub extends Gossipsub {
    */
   constructor(libp2p: Libp2p) {
     super(libp2p, {
-      emitSelf: true,
+      emitSelf: false,
       // Ensure that no signature is expected in the messages.
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
     });
