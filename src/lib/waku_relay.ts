@@ -3,6 +3,7 @@ import { Libp2p } from 'libp2p-gossipsub/src/interfaces';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 
+import { getWakuPeers } from './get_waku_peers';
 import { Message } from './waku_message';
 
 export const CODEC = '/vac/waku/relay/2.0.0-beta2';
@@ -29,6 +30,63 @@ export class WakuRelayPubsub extends Gossipsub {
     // This is the downside of using `libp2p-gossipsub` instead of
     // implementing WakuRelay from scratch.
     Object.assign(this, { multicodecs });
+  }
+
+  /**
+   * Join topic
+   * @param {string} topic
+   * @returns {void}
+   * @override
+   */
+  join(topic: string): void {
+    if (!this.started) {
+      throw new Error('WakuRelayPubsub has not started');
+    }
+
+    const fanoutPeers = this.fanout.get(topic);
+    if (fanoutPeers) {
+      // these peers have a score above the publish threshold, which may be negative
+      // so drop the ones with a negative score
+      fanoutPeers.forEach((id) => {
+        if (this.score.score(id) < 0) {
+          fanoutPeers.delete(id);
+        }
+      });
+      if (fanoutPeers.size < this._options.D) {
+        // we need more peers; eager, as this would get fixed in the next heartbeat
+        getWakuPeers(
+          this,
+          topic,
+          this._options.D - fanoutPeers.size,
+          (id: string): boolean => {
+            // filter our current peers, direct peers, and peers with negative scores
+            return (
+              !fanoutPeers.has(id) &&
+              !this.direct.has(id) &&
+              this.score.score(id) >= 0
+            );
+          }
+        ).forEach((id) => fanoutPeers.add(id));
+      }
+      this.mesh.set(topic, fanoutPeers);
+      this.fanout.delete(topic);
+      this.lastpub.delete(topic);
+    } else {
+      const peers = getWakuPeers(
+        this,
+        topic,
+        this._options.D,
+        (id: string): boolean => {
+          // filter direct peers and peers with negative score
+          return !this.direct.has(id) && this.score.score(id) >= 0;
+        }
+      );
+      this.mesh.set(topic, peers);
+    }
+    this.mesh.get(topic)!.forEach((id) => {
+      this.log('JOIN: Add mesh link to %s in %s', id, topic);
+      this._sendGraft(id, topic);
+    });
   }
 }
 
