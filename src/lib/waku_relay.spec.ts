@@ -160,12 +160,6 @@ describe('Waku Relay', () => {
         this.timeout(5000);
         const message = Message.fromUtf8String('Here is another message.');
 
-        await waku.relay.subscribe();
-
-        await new Promise((resolve) =>
-          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-        );
-
         const receivedPromise = waitForNextData(waku.libp2p.pubsub);
 
         await nimWaku.sendMessage(message);
@@ -197,6 +191,12 @@ describe('Waku Relay', () => {
         await new Promise((resolve) =>
           waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
         );
+
+        await waku.relay.subscribe();
+
+        await new Promise((resolve) =>
+          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+        );
       });
 
       afterEach(async function () {
@@ -213,10 +213,6 @@ describe('Waku Relay', () => {
 
       it('Js publishes to nim', async function () {
         const message = Message.fromUtf8String('This is a message');
-        // TODO: nim-waku does not really follow the `StrictNoSign` policy hence we need to change
-        // it for nim-waku to process our messages. Can be removed once
-        // https://github.com/status-im/nim-waku/issues/422 is fixed
-        waku.libp2p.pubsub.globalSignaturePolicy = 'StrictSign';
 
         await waku.relay.publish(message);
 
@@ -233,12 +229,6 @@ describe('Waku Relay', () => {
 
       it('Nim publishes to js', async function () {
         const message = Message.fromUtf8String('Here is another message.');
-
-        await waku.relay.subscribe();
-
-        await new Promise((resolve) =>
-          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-        );
 
         const receivedPromise = waitForNextData(waku.libp2p.pubsub);
 
