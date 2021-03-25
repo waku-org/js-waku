@@ -71,6 +71,16 @@ export class NimWaku {
       ],
     });
 
+    this.process.on('exit', (signal) => {
+      if (signal != 0) {
+        console.log(`nim-waku process exited with ${signal}`);
+      }
+    });
+
+    this.process.on('error', (err) => {
+      console.log(`nim-waku process encountered an error: ${err}`);
+    });
+
     await this.waitForLog('RPC Server started');
   }
 
