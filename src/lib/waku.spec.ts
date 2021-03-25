@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 
 import { NOISE_KEY_1 } from '../test_utils/constants';
+import { makeLogFileName } from '../test_utils/log_file';
 import { NimWaku } from '../test_utils/nim_waku';
 
 import Waku from './waku';
@@ -19,7 +20,7 @@ describe('Waku', function () {
       );
       const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
 
-      const nimWaku = new NimWaku(this.test!.title);
+      const nimWaku = new NimWaku(makeLogFileName(this));
       await nimWaku.start({ staticnode: multiAddrWithId });
 
       const nimPeers = await nimWaku.peers();

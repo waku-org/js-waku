@@ -37,12 +37,9 @@ export class NimWaku {
   private peerId?: PeerId;
   private logPath: string;
 
-  constructor(testName: string) {
+  constructor(logName: string) {
     this.portsShift = randomInt(0, 5000);
-
-    const logFilePrefix = testName.replace(/ /g, '_').replace(/[':()]/g, '');
-
-    this.logPath = `${LOG_DIR}/${logFilePrefix}-nim-waku.log`;
+    this.logPath = `${LOG_DIR}/nim-waku_${logName}.log`;
   }
 
   async start(args: Args) {
@@ -72,6 +69,16 @@ export class NimWaku {
         logFile, // stdout
         logFile, // stderr
       ],
+    });
+
+    this.process.on('exit', (signal) => {
+      if (signal != 0) {
+        console.log(`nim-waku process exited with ${signal}`);
+      }
+    });
+
+    this.process.on('error', (err) => {
+      console.log(`nim-waku process encountered an error: ${err}`);
     });
 
     await this.waitForLog('RPC Server started');
