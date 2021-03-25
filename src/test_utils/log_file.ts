@@ -1,3 +1,4 @@
+import { Context } from 'mocha';
 import pTimeout from 'p-timeout';
 import { Tail } from 'tail';
 
@@ -33,4 +34,20 @@ async function find(tail: Tail, line: string) {
       reject(err);
     });
   });
+}
+
+function clean(str: string): string {
+  return str.replace(/ /g, '_').replace(/[':()]/g, '');
+}
+
+export function makeLogFileName(ctx: Context): string {
+  const unitTest = ctx!.currentTest ? ctx!.currentTest : ctx.test;
+  let name = clean(unitTest!.title);
+  let suite = unitTest!.parent;
+
+  while (suite && suite.title) {
+    name = clean(suite.title) + '_' + name;
+    suite = suite.parent;
+  }
+  return name;
 }

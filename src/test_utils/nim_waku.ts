@@ -37,12 +37,9 @@ export class NimWaku {
   private peerId?: PeerId;
   private logPath: string;
 
-  constructor(testName: string) {
+  constructor(logName: string) {
     this.portsShift = randomInt(0, 5000);
-
-    const logFilePrefix = testName.replace(/ /g, '_').replace(/[':()]/g, '');
-
-    this.logPath = `${LOG_DIR}/${logFilePrefix}-nim-waku.log`;
+    this.logPath = `${LOG_DIR}/nim-waku_${logName}.log`;
   }
 
   async start(args: Args) {
