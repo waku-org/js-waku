@@ -33,6 +33,7 @@ export interface Args {
 
 export class NimWaku {
   private process?: ChildProcess;
+  private pid?: number;
   private portsShift: number;
   private peerId?: PeerId;
   private logPath: string;
@@ -42,7 +43,7 @@ export class NimWaku {
     this.logPath = `${LOG_DIR}/nim-waku_${logName}.log`;
   }
 
-  async start(args: Args) {
+  async start(args?: Args) {
     try {
       await existsAsync(LOG_DIR);
     } catch (e) {
@@ -70,21 +71,38 @@ export class NimWaku {
         logFile, // stderr
       ],
     });
+    this.pid = this.process.pid;
+    console.log(
+      `nim-waku ${
+        this.process.pid
+      } started at ${new Date().toLocaleTimeString()}`
+    );
 
     this.process.on('exit', (signal) => {
-      if (signal != 0) {
-        console.log(`nim-waku process exited with ${signal}`);
-      }
+      console.log(
+        `nim-waku ${
+          this.process ? this.process.pid : this.pid
+        } process exited with ${signal} at ${new Date().toLocaleTimeString()}`
+      );
     });
 
     this.process.on('error', (err) => {
-      console.log(`nim-waku process encountered an error: ${err}`);
+      console.log(
+        `nim-waku ${
+          this.process ? this.process.pid : this.pid
+        } process encountered an error: ${err} at ${new Date().toLocaleTimeString()}`
+      );
     });
 
     await this.waitForLog('RPC Server started');
   }
 
   public stop() {
+    console.log(
+      `nim-waku ${
+        this.process ? this.process.pid : this.pid
+      } getting SIGINT at ${new Date().toLocaleTimeString()}`
+    );
     this.process ? this.process.kill('SIGINT') : null;
     this.process = undefined;
   }
