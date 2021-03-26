@@ -10,6 +10,12 @@ import { Message } from './waku_message';
 import { CODEC, TOPIC } from './waku_relay';
 
 describe('Waku Relay', () => {
+  afterEach(function () {
+    if (this.currentTest!.state === 'failed') {
+      console.log(`Test failed, log file name is ${makeLogFileName(this)}`);
+    }
+  });
+
   let waku1: Waku;
   let waku2: Waku;
   beforeEach(async function () {
