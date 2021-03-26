@@ -39,6 +39,10 @@ jobs:
         shell: bash
         run: cd nim-waku && make wakunode2
 
+      - name: Ensure wakunode2 is ready
+        shell: bash
+        run: cd nim-waku && ./build/wakunode2 --help
+
       - name: Install bufbuild
         uses: mu-io/setup-buf@v1beta
         with:
