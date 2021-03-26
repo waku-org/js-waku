@@ -68,3 +68,10 @@ jobs:
 
       - name: test
         run: npm run test
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: nim-waku-logs
+          path: log/
