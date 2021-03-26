@@ -188,6 +188,10 @@ describe('Waku Relay', () => {
 
         await waku.dialWithMultiAddr(nimPeerId, [nimWaku.multiaddr]);
 
+        await new Promise((resolve) =>
+          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+        );
+
         await waku.relay.subscribe();
 
         await new Promise((resolve) =>
