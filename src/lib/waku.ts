@@ -20,7 +20,7 @@ export default class Waku {
   static async create(staticNoiseKey?: bytes): Promise<Waku> {
     const libp2p = await Libp2p.create({
       addresses: {
-        listen: ['/ip4/0.0.0.0/tcp/0'],
+        listen: ['/ip4/0.0.0.0/tcp/55123'],
       },
       modules: {
         transport: [TCP],
