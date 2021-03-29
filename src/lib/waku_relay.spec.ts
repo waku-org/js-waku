@@ -21,8 +21,8 @@ describe('Waku Relay', () => {
   let waku2: Waku;
   beforeEach(async function () {
     [waku1, waku2] = await Promise.all([
-      Waku.create(NOISE_KEY_1),
-      Waku.create(NOISE_KEY_2),
+      Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
+      Waku.create({ staticNoiseKey: NOISE_KEY_2 }),
     ]);
 
     await waku1.dialWithMultiAddr(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
@@ -109,7 +109,7 @@ describe('Waku Relay', () => {
 
       beforeEach(async function () {
         this.timeout(10_000);
-        waku = await Waku.create(NOISE_KEY_1);
+        waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
 
         const peerId = waku.libp2p.peerId.toB58String();
         const localMultiaddr = waku.libp2p.multiaddrs.find((addr) =>
@@ -180,7 +180,7 @@ describe('Waku Relay', () => {
 
       beforeEach(async function () {
         this.timeout(10_000);
-        waku = await Waku.create(NOISE_KEY_1);
+        waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
 
         nimWaku = new NimWaku(this.test!.ctx!.currentTest!.title);
         await nimWaku.start();
@@ -250,7 +250,7 @@ describe('Waku Relay', () => {
 
       beforeEach(async function () {
         this.timeout(10_000);
-        waku = await Waku.create(NOISE_KEY_1);
+        waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
 
         nimWaku = new NimWaku(makeLogFileName(this));
         await nimWaku.start();
@@ -321,8 +321,8 @@ describe('Waku Relay', () => {
       beforeEach(async function () {
         this.timeout(10_000);
         [waku1, waku2] = await Promise.all([
-          Waku.create(NOISE_KEY_1),
-          Waku.create(NOISE_KEY_2),
+          Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
+          Waku.create({ staticNoiseKey: NOISE_KEY_2 }),
         ]);
 
         nimWaku = new NimWaku(this.test!.ctx!.currentTest!.title);

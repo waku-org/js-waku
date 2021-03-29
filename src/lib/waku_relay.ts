@@ -16,7 +16,6 @@ export class WakuRelayPubsub extends Gossipsub {
   /**
    *
    * @param libp2p: Libp2p
-   * @param options: Partial<GossipInputOptions>
    */
   constructor(libp2p: Libp2p) {
     super(libp2p, {

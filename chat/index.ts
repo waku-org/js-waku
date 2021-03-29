@@ -7,7 +7,7 @@ import { delay } from '../build/main/test_utils/delay';
 
 ;(async function() {
 
-  const waku = await Waku.create();
+  const waku = await Waku.create({listenAddresses: ['/ip4/0.0.0.0/tcp/55123']});
 
   // TODO: Bubble event to waku, infere topic, decode msg
   waku.libp2p.pubsub.on(TOPIC, event => {
