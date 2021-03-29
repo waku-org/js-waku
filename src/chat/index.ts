@@ -1,17 +1,17 @@
-import Waku from '../build/main/lib/waku';
-import { TOPIC } from '../build/main/lib/waku_relay';
-import { Message } from '../build/main/lib/waku_message';
-
 import readline from 'readline';
-import { delay } from '../build/main/test_utils/delay';
 
-;(async function() {
+import Waku from '../lib/waku';
+import { Message } from '../lib/waku_message';
+import { TOPIC } from '../lib/waku_relay';
+import { delay } from '../test_utils/delay';
+
+(async function () {
   const opts = processArguments();
 
   const waku = await Waku.create({ listenAddresses: [opts.listenAddr] });
 
-  // TODO: Bubble event to waku, infere topic, decode msg
-  waku.libp2p.pubsub.on(TOPIC, event => {
+  // TODO: Bubble event to waku, infer topic, decode msg
+  waku.libp2p.pubsub.on(TOPIC, (event) => {
     const msg = Message.fromBinary(event.data);
     console.log(msg.utf8Payload());
   });
@@ -40,7 +40,7 @@ import { delay } from '../build/main/test_utils/delay';
 
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
   console.log('Ready to chat!');
@@ -50,7 +50,6 @@ import { delay } from '../build/main/test_utils/delay';
     const msg = Message.fromUtf8String('(js-chat) ' + line);
     await waku.relay.publish(msg);
   });
-
 })();
 
 interface Options {
@@ -59,9 +58,9 @@ interface Options {
 }
 
 function processArguments(): Options {
-  let passedArgs = process.argv.slice(2);
+  const passedArgs = process.argv.slice(2);
 
-  let opts: Options = {listenAddr: '/ip4/0.0.0.0/tcp/0'};
+  let opts: Options = { listenAddr: '/ip4/0.0.0.0/tcp/0' };
 
   while (passedArgs.length) {
     const arg = passedArgs.shift();
@@ -74,7 +73,7 @@ function processArguments(): Options {
         break;
       default:
         console.log(`Unsupported argument: ${arg}`);
-        process.exit(1)
+        process.exit(1);
     }
   }
 
