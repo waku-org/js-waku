@@ -22,7 +22,7 @@ it('Correctly serialized arguments', function () {
 
 it('Convert utf-8 string to hex', function () {
   const str = 'This is an utf-8 string.';
-  const expected = '0x5468697320697320616e207574662d3820737472696e672e';
+  const expected = '5468697320697320616e207574662d3820737472696e672e';
 
   const actual = strToHex(str);
   expect(actual).deep.equal(expected);
@@ -55,7 +55,7 @@ it('Convert buffer to hex', function () {
     0x67,
     0x2e,
   ]);
-  const expected = '0x5468697320697320616e207574662d3820737472696e672e';
+  const expected = '5468697320697320616e207574662d3820737472696e672e';
 
   const actual = bufToHex(buf);
   expect(actual).to.deep.equal(expected);
