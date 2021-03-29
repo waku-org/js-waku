@@ -243,16 +243,13 @@ export function strToHex(str: string): string {
     hex = str;
     console.log('invalid text input: ' + str);
   }
-  return '0x' + hex;
+  return hex;
 }
 
 export function bufToHex(buffer: Uint8Array) {
-  return (
-    '0x' +
-    Array.prototype.map
-      .call(buffer, (x) => ('00' + x.toString(16)).slice(-2))
-      .join('')
-  );
+  return Array.prototype.map
+    .call(buffer, (x) => ('00' + x.toString(16)).slice(-2))
+    .join('');
 }
 
 interface RpcInfoResponse {
