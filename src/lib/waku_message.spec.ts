@@ -8,7 +8,7 @@ describe('Waku Message', function () {
       fc.property(fc.string(), (s) => {
         const msg = Message.fromUtf8String(s);
         const binary = msg.toBinary();
-        const actual = Message.fromBinary(binary);
+        const actual = Message.decode(binary);
 
         return actual.isEqualTo(msg);
       })

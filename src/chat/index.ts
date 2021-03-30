@@ -5,6 +5,8 @@ import { Message } from '../lib/waku_message';
 import { TOPIC } from '../lib/waku_relay';
 import { delay } from '../test_utils/delay';
 
+import { ChatMessage } from './chat_message';
+
 (async function () {
   const opts = processArguments();
 
@@ -12,8 +14,18 @@ import { delay } from '../test_utils/delay';
 
   // TODO: Bubble event to waku, infer topic, decode msg
   waku.libp2p.pubsub.on(TOPIC, (event) => {
-    const msg = Message.fromBinary(event.data);
-    console.log(msg.utf8Payload());
+    const wakuMsg = Message.decode(event.data);
+    if (wakuMsg.payload) {
+      const chatMsg = ChatMessage.decode(wakuMsg.payload);
+      const timestamp = chatMsg.timestamp.toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: false,
+      });
+      console.log(`<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`);
+    }
   });
 
   console.log('Waku started');
@@ -47,7 +59,9 @@ import { delay } from '../test_utils/delay';
   rl.prompt();
   rl.on('line', async (line) => {
     rl.prompt();
-    const msg = Message.fromUtf8String('(js-chat) ' + line);
+    const chatMessage = new ChatMessage(new Date(), 'js-chat', line);
+
+    const msg = Message.fromBytes(chatMessage.encode());
     await waku.relay.publish(msg);
   });
 })();

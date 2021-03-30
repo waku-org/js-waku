@@ -392,6 +392,6 @@ function waitForNextData(pubsub: Pubsub): Promise<Message> {
   return new Promise((resolve) => {
     pubsub.once(TOPIC, resolve);
   }).then((msg: any) => {
-    return Message.fromBinary(msg.data);
+    return Message.decode(msg.data);
   });
 }

@@ -15,16 +15,25 @@ export class Message {
   ) {}
 
   /**
-   * Create Message from utf-8 string
-   * @param message
+   * Create Message with a utf-8 string as payload
+   * @param payload
    * @returns {Message}
    */
-  static fromUtf8String(message: string): Message {
-    const payload = Buffer.from(message, 'utf-8');
+  static fromUtf8String(payload: string): Message {
+    const buf = Buffer.from(payload, 'utf-8');
+    return new Message(buf, DEFAULT_CONTENT_TOPIC, DEFAULT_VERSION);
+  }
+
+  /**
+   * Create Message with a byte array as payload
+   * @param payload
+   * @returns {Message}
+   */
+  static fromBytes(payload: Uint8Array): Message {
     return new Message(payload, DEFAULT_CONTENT_TOPIC, DEFAULT_VERSION);
   }
 
-  static fromBinary(bytes: Uint8Array): Message {
+  static decode(bytes: Uint8Array): Message {
     const wakuMsg = WakuMessage.decode(Reader.create(bytes));
     return new Message(wakuMsg.payload, wakuMsg.contentTopic, wakuMsg.version);
   }
