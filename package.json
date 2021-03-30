@@ -1,5 +1,5 @@
 {
-  "name": "waku-js-chat",
+  "name": "js-waku",
   "version": "1.0.0",
   "description": "A chat application running on node and waku",
   "main": "build/main/index.js",
