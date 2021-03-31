@@ -1,4 +1,5 @@
 import readline from 'readline';
+import util from 'util';
 
 import Waku from '../lib/waku';
 import { Message } from '../lib/waku_message';
@@ -9,6 +10,20 @@ import { ChatMessage } from './chat_message';
 
 (async function () {
   const opts = processArguments();
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const question = util.promisify(rl.question).bind(rl);
+
+  // Looks like wrong type definition of promisify is picked.
+  // May be related to https://github.com/DefinitelyTyped/DefinitelyTyped/issues/20497
+  const nick = ((await question(
+    'Please choose a nickname: '
+  )) as unknown) as string;
+  console.log(`Hi ${nick}!`);
 
   const waku = await Waku.create({ listenAddresses: [opts.listenAddr] });
 
@@ -50,20 +65,15 @@ import { ChatMessage } from './chat_message';
     waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
   );
 
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
   console.log('Ready to chat!');
   rl.prompt();
-  rl.on('line', async (line) => {
+  for await (const line of rl) {
     rl.prompt();
-    const chatMessage = new ChatMessage(new Date(), 'js-chat', line);
+    const chatMessage = new ChatMessage(new Date(), nick, line);
 
     const msg = Message.fromBytes(chatMessage.encode());
     await waku.relay.publish(msg);
-  });
+  }
 })();
 
 interface Options {
