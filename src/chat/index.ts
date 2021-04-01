@@ -28,6 +28,7 @@ import { ChatMessage } from './chat_message';
   const waku = await Waku.create({ listenAddresses: [opts.listenAddr] });
 
   // TODO: Bubble event to waku, infer topic, decode msg
+  // Tracked with https://github.com/status-im/js-waku/issues/19
   waku.libp2p.pubsub.on(TOPIC, (event) => {
     const wakuMsg = Message.decode(event.data);
     if (wakuMsg.payload) {
@@ -55,9 +56,11 @@ import { ChatMessage } from './chat_message';
   );
 
   // TODO: identify if it is possible to listen to an event to confirm dial
-  // finished instead of an arbitrary delay.
+  // finished instead of an arbitrary delay. Tracked with
+  // https://github.com/status-im/js-waku/issues/18
   await delay(2000);
-  // TODO: Automatically subscribe
+  // TODO: Automatically subscribe, tracked with
+  // https://github.com/status-im/js-waku/issues/17
   await waku.relay.subscribe();
   console.log('Subscribed to waku relay');
 
