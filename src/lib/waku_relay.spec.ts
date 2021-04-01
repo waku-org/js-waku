@@ -73,23 +73,12 @@ describe('Waku Relay', () => {
     expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
   });
 
-  // TODO: Fix this
-  it.skip('Publish', async function () {
+  it('Publish', async function () {
     this.timeout(10000);
 
     const message = WakuMessage.fromUtf8String('JS to JS communication works');
-    // waku.libp2p.pubsub.globalSignaturePolicy = 'StrictSign';
 
     const receivedPromise = waitForNextData(waku2.libp2p.pubsub);
-
-    await Promise.all([
-      new Promise((resolve) =>
-        waku1.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-      ),
-      new Promise((resolve) =>
-        waku2.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-      ),
-    ]);
 
     await waku1.relay.publish(message);
 
