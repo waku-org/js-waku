@@ -6,16 +6,12 @@ import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 
 import { WakuMessage } from '../waku_message';
 
+import { RelayCodec, RelayDefaultTopic } from './constants';
 import { getWakuPeers } from './get_waku_peers';
 import { RelayHeartbeat } from './relay_heartbeat';
 
 export * from './constants';
 export * from './relay_heartbeat';
-
-export const CODEC = '/vac/waku/relay/2.0.0-beta2';
-
-// As per waku specs, the topic is fixed, value taken from nim-waku
-export const TOPIC = '/waku/2/default-waku/proto';
 
 // This is the class to pass to libp2p as pubsub protocol
 export class WakuRelayPubsub extends Gossipsub {
@@ -34,7 +30,7 @@ export class WakuRelayPubsub extends Gossipsub {
 
     this.heartbeat = new RelayHeartbeat(this);
 
-    const multicodecs = [CODEC];
+    const multicodecs = [RelayCodec];
 
     // This is the downside of using `libp2p-gossipsub` instead of
     // implementing WakuRelay from scratch.
@@ -175,11 +171,11 @@ export class WakuRelay {
 
   // At this stage we are always using the same topic so we do not pass it as a parameter
   async subscribe() {
-    await this.pubsub.subscribe(TOPIC);
+    await this.pubsub.subscribe(RelayDefaultTopic);
   }
 
   async publish(message: WakuMessage) {
     const msg = message.toBinary();
-    await this.pubsub.publish(TOPIC, msg);
+    await this.pubsub.publish(RelayDefaultTopic, msg);
   }
 }

@@ -1,6 +1,6 @@
 import { shuffle } from 'libp2p-gossipsub/src/utils';
 
-import { CODEC, WakuRelayPubsub } from './index';
+import { RelayCodec, WakuRelayPubsub } from './index';
 
 /**
  * Given a topic, returns up to count peers subscribed to that topic
@@ -32,7 +32,7 @@ export function getWakuPeers(
     if (!peerStreams) {
       return;
     }
-    if (peerStreams.protocol == CODEC && filter(id)) {
+    if (peerStreams.protocol == RelayCodec && filter(id)) {
       peers.push(id);
     }
   });

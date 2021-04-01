@@ -3,7 +3,7 @@ import util from 'util';
 
 import Waku from '../lib/waku';
 import { WakuMessage } from '../lib/waku_message';
-import { TOPIC } from '../lib/waku_relay';
+import { RelayDefaultTopic } from '../lib/waku_relay';
 import { delay } from '../test_utils/delay';
 
 import { ChatMessage } from './chat_message';
@@ -29,7 +29,7 @@ import { ChatMessage } from './chat_message';
 
   // TODO: Bubble event to waku, infer topic, decode msg
   // Tracked with https://github.com/status-im/js-waku/issues/19
-  waku.libp2p.pubsub.on(TOPIC, (event) => {
+  waku.libp2p.pubsub.on(RelayDefaultTopic, (event) => {
     const wakuMsg = WakuMessage.decode(event.data);
     if (wakuMsg.payload) {
       const chatMsg = ChatMessage.decode(wakuMsg.payload);

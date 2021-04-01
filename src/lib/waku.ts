@@ -6,7 +6,7 @@ import TCP from 'libp2p-tcp';
 import Multiaddr from 'multiaddr';
 import PeerId from 'peer-id';
 
-import { CODEC, WakuRelay, WakuRelayPubsub } from './waku_relay';
+import { RelayCodec, WakuRelay, WakuRelayPubsub } from './waku_relay';
 
 export interface CreateOptions {
   listenAddresses: string[];
@@ -56,12 +56,12 @@ export default class Waku {
    * @param peer The peer to dial
    */
   async dial(peer: PeerId | Multiaddr | string) {
-    return this.libp2p.dialProtocol(peer, CODEC);
+    return this.libp2p.dialProtocol(peer, RelayCodec);
   }
 
   async dialWithMultiAddr(peerId: PeerId, multiaddr: Multiaddr[]) {
     this.libp2p.peerStore.addressBook.set(peerId, multiaddr);
-    await this.libp2p.dialProtocol(peerId, CODEC);
+    await this.libp2p.dialProtocol(peerId, RelayCodec);
   }
 
   async stop() {

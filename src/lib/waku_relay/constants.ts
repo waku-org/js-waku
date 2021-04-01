@@ -2,6 +2,16 @@ export const second = 1000;
 export const minute = 60 * second;
 
 /**
+ * RelayCodec is the libp2p identifier for the waku relay protocol
+ */
+export const RelayCodec = '/vac/waku/relay/2.0.0-beta2';
+
+/**
+ * RelayDefaultTopic is the default gossipsub topic to use for waku relay
+ */
+export const RelayDefaultTopic = '/waku/2/default-waku/proto';
+
+/**
  * GossipsubHeartbeatInitialDelay is the short delay before the heartbeat timer begins
  * after the router is initialized.
  */
