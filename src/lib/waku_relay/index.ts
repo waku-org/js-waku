@@ -1,12 +1,25 @@
 import Gossipsub from 'libp2p-gossipsub';
 import { Libp2p } from 'libp2p-gossipsub/src/interfaces';
-import { createGossipRpc, messageIdToString } from 'libp2p-gossipsub/src/utils';
+import { ControlPrune, PeerInfo } from 'libp2p-gossipsub/src/message';
+import {
+  createGossipRpc,
+  messageIdToString,
+  shuffle,
+} from 'libp2p-gossipsub/src/utils';
 import Pubsub, { InMessage } from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
+import PeerId from 'peer-id';
 
 import { WakuMessage } from '../waku_message';
 
-import { RelayCodec, RelayDefaultTopic } from './constants';
+import {
+  RelayCodec,
+  RelayDefaultTopic,
+  RelayGossipFactor,
+  RelayMaxIHaveLength,
+  RelayPruneBackoff,
+  RelayPrunePeers,
+} from './constants';
 import { getRelayPeers } from './get_relay_peers';
 import { RelayHeartbeat } from './relay_heartbeat';
 
@@ -162,6 +175,127 @@ export class WakuRelayPubsub extends Gossipsub {
       }
       this._sendRpc(id, rpc);
     });
+  }
+
+  /**
+   * Emits gossip to peers in a particular topic
+   * @param {string} topic
+   * @param {Set<string>} exclude peers to exclude
+   * @returns {void}
+   */
+  _emitGossip(topic: string, exclude: Set<string>): void {
+    const messageIDs = this.messageCache.getGossipIDs(topic);
+    if (!messageIDs.length) {
+      return;
+    }
+
+    // shuffle to emit in random order
+    shuffle(messageIDs);
+
+    // if we are emitting more than GossipsubMaxIHaveLength ids, truncate the list
+    if (messageIDs.length > RelayMaxIHaveLength) {
+      // we do the truncation (with shuffling) per peer below
+      this.log(
+        'too many messages for gossip; will truncate IHAVE list (%d messages)',
+        messageIDs.length
+      );
+    }
+
+    // Send gossip to GossipFactor peers above threshold with a minimum of D_lazy
+    // First we collect the peers above gossipThreshold that are not in the exclude set
+    // and then randomly select from that set
+    // We also exclude direct peers, as there is no reason to emit gossip to them
+    const peersToGossip: string[] = [];
+    const topicPeers = this.topics.get(topic);
+    if (!topicPeers) {
+      // no topic peers, no gossip
+      return;
+    }
+    topicPeers.forEach((id) => {
+      const peerStreams = this.peers.get(id);
+      if (!peerStreams) {
+        return;
+      }
+      if (
+        !exclude.has(id) &&
+        !this.direct.has(id) &&
+        peerStreams.protocol == RelayCodec &&
+        this.score.score(id) >= this._options.scoreThresholds.gossipThreshold
+      ) {
+        peersToGossip.push(id);
+      }
+    });
+
+    let target = this._options.Dlazy;
+    const factor = RelayGossipFactor * peersToGossip.length;
+    if (factor > target) {
+      target = factor;
+    }
+    if (target > peersToGossip.length) {
+      target = peersToGossip.length;
+    } else {
+      shuffle(peersToGossip);
+    }
+    // Emit the IHAVE gossip to the selected peers up to the target
+    peersToGossip.slice(0, target).forEach((id) => {
+      let peerMessageIDs = messageIDs;
+      if (messageIDs.length > RelayMaxIHaveLength) {
+        // shuffle and slice message IDs per peer so that we emit a different set for each peer
+        // we have enough redundancy in the system that this will significantly increase the message
+        // coverage when we do truncate
+        peerMessageIDs = shuffle(peerMessageIDs.slice()).slice(
+          0,
+          RelayMaxIHaveLength
+        );
+      }
+      this._pushGossip(id, {
+        topicID: topic,
+        messageIDs: peerMessageIDs,
+      });
+    });
+  }
+
+  /**
+   * Make a PRUNE control message for a peer in a topic
+   * @param {string} id
+   * @param {string} topic
+   * @param {boolean} doPX
+   * @returns {ControlPrune}
+   */
+  _makePrune(id: string, topic: string, doPX: boolean): ControlPrune {
+    // backoff is measured in seconds
+    // RelayPruneBackoff is measured in milliseconds
+    const backoff = RelayPruneBackoff / 1000;
+    const px: PeerInfo[] = [];
+    if (doPX) {
+      // select peers for Peer eXchange
+      const peers = getRelayPeers(
+        this,
+        topic,
+        RelayPrunePeers,
+        (xid: string): boolean => {
+          return xid !== id && this.score.score(xid) >= 0;
+        }
+      );
+      peers.forEach((p) => {
+        // see if we have a signed record to send back; if we don't, just send
+        // the peer ID and let the pruned peer find them in the DHT -- we can't trust
+        // unsigned address records through PX anyways
+        // Finding signed records in the DHT is not supported at the time of writing in js-libp2p
+        const peerId = PeerId.createFromB58String(p);
+        px.push({
+          peerID: peerId.toBytes(),
+          signedPeerRecord: this._libp2p.peerStore.addressBook.getRawEnvelope(
+            peerId
+          ),
+        });
+      });
+    }
+    return {
+      topicID: topic,
+      peers: px,
+      backoff: backoff,
+    };
   }
 }
 
