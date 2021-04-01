@@ -1,14 +1,14 @@
 import { expect } from 'chai';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
-import { NOISE_KEY_1, NOISE_KEY_2 } from '../test_utils/constants';
-import { delay } from '../test_utils/delay';
-import { makeLogFileName } from '../test_utils/log_file';
-import { NimWaku } from '../test_utils/nim_waku';
+import { NOISE_KEY_1, NOISE_KEY_2 } from '../../test_utils/constants';
+import { delay } from '../../test_utils/delay';
+import { makeLogFileName } from '../../test_utils/log_file';
+import { NimWaku } from '../../test_utils/nim_waku';
+import Waku from '../waku';
+import { WakuMessage } from '../waku_message';
 
-import Waku from './waku';
-import { WakuMessage } from './waku_message';
-import { CODEC, TOPIC } from './waku_relay';
+import { CODEC, TOPIC } from './index';
 
 describe('Waku Relay', () => {
   afterEach(function () {
@@ -41,13 +41,15 @@ describe('Waku Relay', () => {
 
     await Promise.all([
       new Promise((resolve) =>
-        waku1.libp2p.pubsub.once('pubsub:subscription-change', (...args) =>
-          resolve(args)
+        waku1.libp2p.pubsub.once(
+          'pubsub:subscription-change',
+          (...args: any[]) => resolve(args)
         )
       ),
       new Promise((resolve) =>
-        waku2.libp2p.pubsub.once('pubsub:subscription-change', (...args) =>
-          resolve(args)
+        waku2.libp2p.pubsub.once(
+          'pubsub:subscription-change',
+          (...args: any[]) => resolve(args)
         )
       ),
     ]);

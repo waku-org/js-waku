@@ -2,9 +2,8 @@ import Gossipsub from 'libp2p-gossipsub';
 import { Heartbeat } from 'libp2p-gossipsub/src/heartbeat';
 import { shuffle } from 'libp2p-gossipsub/src/utils';
 
-import { getWakuPeers } from '../get_waku_peers';
-
 import * as constants from './constants';
+import { getWakuPeers } from './get_waku_peers';
 
 export class RelayHeartbeat extends Heartbeat {
   /**
@@ -153,15 +152,20 @@ export class RelayHeartbeat extends Heartbeat {
       if (peers.size < Dlo) {
         const backoff = this.gossipsub.backoff.get(topic);
         const ineed = D - peers.size;
-        const peersSet = getWakuPeers(this.gossipsub, topic, ineed, (id) => {
-          // filter out mesh peers, direct peers, peers we are backing off, peers with negative score
-          return (
-            !peers.has(id) &&
-            !this.gossipsub.direct.has(id) &&
-            (!backoff || !backoff.has(id)) &&
-            getScore(id) >= 0
-          );
-        });
+        const peersSet = getWakuPeers(
+          this.gossipsub,
+          topic,
+          ineed,
+          (id: string) => {
+            // filter out mesh peers, direct peers, peers we are backing off, peers with negative score
+            return (
+              !peers.has(id) &&
+              !this.gossipsub.direct.has(id) &&
+              (!backoff || !backoff.has(id)) &&
+              getScore(id) >= 0
+            );
+          }
+        );
 
         peersSet.forEach(graftPeer);
       }
@@ -288,7 +292,7 @@ export class RelayHeartbeat extends Heartbeat {
               );
             }
           );
-          peersToGraft.forEach((id) => {
+          peersToGraft.forEach((id: string) => {
             this.gossipsub.log(
               'HEARTBEAT: Opportunistically graft peer %s on topic %s',
               id,
@@ -344,7 +348,7 @@ export class RelayHeartbeat extends Heartbeat {
             );
           }
         );
-        peersSet.forEach((id) => {
+        peersSet.forEach((id: string) => {
           fanoutPeers.add(id);
         });
       }
