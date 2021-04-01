@@ -6,6 +6,7 @@ import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 
 import { getWakuPeers } from './get_waku_peers';
 import { WakuMessage } from './waku_message';
+import { RelayHeartbeat } from './waku_relay/relay_heartbeat';
 
 export const CODEC = '/vac/waku/relay/2.0.0-beta2';
 
@@ -14,6 +15,8 @@ export const TOPIC = '/waku/2/default-waku/proto';
 
 // This is the class to pass to libp2p as pubsub protocol
 export class WakuRelayPubsub extends Gossipsub {
+  heartbeat: RelayHeartbeat;
+
   /**
    *
    * @param libp2p: Libp2p
@@ -24,6 +27,8 @@ export class WakuRelayPubsub extends Gossipsub {
       // Ensure that no signature is expected in the messages.
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
     });
+
+    this.heartbeat = new RelayHeartbeat(this);
 
     const multicodecs = [CODEC];
 
