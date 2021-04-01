@@ -8,24 +8,38 @@ import PeerId from 'peer-id';
 
 import { CODEC, WakuRelay, WakuRelayPubsub } from './waku_relay';
 
+export interface CreateOptions {
+  listenAddresses: string[];
+  staticNoiseKey: bytes | undefined;
+}
+
 export default class Waku {
   private constructor(public libp2p: Libp2p, public relay: WakuRelay) {}
 
   /**
    * Create new waku node
+   * @param listenAddresses: Array of Multiaddrs on which the node should listen. If not present, defaults to ['/ip4/0.0.0.0/tcp/0'].
    * @param staticNoiseKey: A static key to use for noise,
    * mainly used for test to reduce entropy usage.
    * @returns {Promise<Waku>}
    */
-  static async create(staticNoiseKey?: bytes): Promise<Waku> {
+  static async create(options: Partial<CreateOptions>): Promise<Waku> {
+    const opts = Object.assign(
+      {
+        listenAddresses: ['/ip4/0.0.0.0/tcp/0'],
+        staticNoiseKey: undefined,
+      },
+      options
+    );
+
     const libp2p = await Libp2p.create({
       addresses: {
-        listen: ['/ip4/0.0.0.0/tcp/0'],
+        listen: opts.listenAddresses,
       },
       modules: {
         transport: [TCP],
         streamMuxer: [Mplex],
-        connEncryption: [new Noise(staticNoiseKey)],
+        connEncryption: [new Noise(opts.staticNoiseKey)],
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore: Type needs update
         pubsub: WakuRelayPubsub,
@@ -35,6 +49,14 @@ export default class Waku {
     await libp2p.start();
 
     return new Waku(libp2p, new WakuRelay(libp2p.pubsub));
+  }
+
+  /**
+   * Dials to the provided peer. If successful, the known metadata of the peer will be added to the nodes peerStore, and the Connection will be returned
+   * @param peer The peer to dial
+   */
+  async dial(peer: PeerId | Multiaddr | string) {
+    return this.libp2p.dialProtocol(peer, CODEC);
   }
 
   async dialWithMultiAddr(peerId: PeerId, multiaddr: Multiaddr[]) {

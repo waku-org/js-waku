@@ -1,5 +1,5 @@
 {
-  "name": "waku-js-chat",
+  "name": "js-waku",
   "version": "1.0.0",
   "description": "A chat application running on node and waku",
   "main": "build/main/index.js",
@@ -19,6 +19,7 @@
     "pretest": "run-s pretest:*",
     "pretest:1-init-git-submodules": "[ -f './nim-waku/build/wakunode2' ] || git submodule update --init --recursive",
     "pretest:2-build-nim-waku": "cd nim-waku; [ -f './build/wakunode2' ] || make -j$(nproc --all 2>/dev/null || echo 2) wakunode2",
+    "chat:start": "ts-node src/chat/index.ts",
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" --list-different",

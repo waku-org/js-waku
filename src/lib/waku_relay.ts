@@ -4,7 +4,7 @@ import Pubsub from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 
 import { getWakuPeers } from './get_waku_peers';
-import { Message } from './waku_message';
+import { WakuMessage } from './waku_message';
 
 export const CODEC = '/vac/waku/relay/2.0.0-beta2';
 
@@ -16,11 +16,10 @@ export class WakuRelayPubsub extends Gossipsub {
   /**
    *
    * @param libp2p: Libp2p
-   * @param options: Partial<GossipInputOptions>
    */
   constructor(libp2p: Libp2p) {
     super(libp2p, {
-      emitSelf: true,
+      emitSelf: false,
       // Ensure that no signature is expected in the messages.
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
     });
@@ -100,7 +99,7 @@ export class WakuRelay {
     await this.pubsub.subscribe(TOPIC);
   }
 
-  async publish(message: Message) {
+  async publish(message: WakuMessage) {
     const msg = message.toBinary();
     await this.pubsub.publish(TOPIC, msg);
   }

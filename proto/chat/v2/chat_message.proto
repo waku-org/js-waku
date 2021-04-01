@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package chat.v2;
+
+message ChatMessageProto {
+  uint64 timestamp = 1;
+  string nick = 2;
+  bytes payload = 3;
+}

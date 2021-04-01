@@ -2,11 +2,12 @@ import { expect } from 'chai';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
 import { NOISE_KEY_1, NOISE_KEY_2 } from '../test_utils/constants';
+import { delay } from '../test_utils/delay';
 import { makeLogFileName } from '../test_utils/log_file';
 import { NimWaku } from '../test_utils/nim_waku';
 
 import Waku from './waku';
-import { Message } from './waku_message';
+import { WakuMessage } from './waku_message';
 import { CODEC, TOPIC } from './waku_relay';
 
 describe('Waku Relay', () => {
@@ -20,8 +21,8 @@ describe('Waku Relay', () => {
   let waku2: Waku;
   beforeEach(async function () {
     [waku1, waku2] = await Promise.all([
-      Waku.create(NOISE_KEY_1),
-      Waku.create(NOISE_KEY_2),
+      Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
+      Waku.create({ staticNoiseKey: NOISE_KEY_2 }),
     ]);
 
     await waku1.dialWithMultiAddr(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
@@ -76,7 +77,7 @@ describe('Waku Relay', () => {
   it.skip('Publish', async function () {
     this.timeout(10000);
 
-    const message = Message.fromUtf8String('JS to JS communication works');
+    const message = WakuMessage.fromUtf8String('JS to JS communication works');
     // waku.libp2p.pubsub.globalSignaturePolicy = 'StrictSign';
 
     const receivedPromise = waitForNextData(waku2.libp2p.pubsub);
@@ -108,7 +109,7 @@ describe('Waku Relay', () => {
 
       beforeEach(async function () {
         this.timeout(10_000);
-        waku = await Waku.create(NOISE_KEY_1);
+        waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
 
         const peerId = waku.libp2p.peerId.toB58String();
         const localMultiaddr = waku.libp2p.multiaddrs.find((addr) =>
@@ -140,7 +141,7 @@ describe('Waku Relay', () => {
       it('Js publishes to nim', async function () {
         this.timeout(5000);
 
-        const message = Message.fromUtf8String('This is a message');
+        const message = WakuMessage.fromUtf8String('This is a message');
 
         await waku.relay.publish(message);
 
@@ -157,13 +158,7 @@ describe('Waku Relay', () => {
 
       it('Nim publishes to js', async function () {
         this.timeout(5000);
-        const message = Message.fromUtf8String('Here is another message.');
-
-        await waku.relay.subscribe();
-
-        await new Promise((resolve) =>
-          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-        );
+        const message = WakuMessage.fromUtf8String('Here is another message.');
 
         const receivedPromise = waitForNextData(waku.libp2p.pubsub);
 
@@ -185,14 +180,82 @@ describe('Waku Relay', () => {
 
       beforeEach(async function () {
         this.timeout(10_000);
-        waku = await Waku.create(NOISE_KEY_1);
+        waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
+
+        nimWaku = new NimWaku(this.test!.ctx!.currentTest!.title);
+        await nimWaku.start();
+
+        await waku.dial(await nimWaku.getMultiaddrWithId());
+
+        await delay(100);
+        await new Promise((resolve) =>
+          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+        );
+
+        await waku.relay.subscribe();
+
+        await new Promise((resolve) =>
+          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+        );
+      });
+
+      afterEach(async function () {
+        nimWaku ? nimWaku.stop() : null;
+        waku ? await waku.stop() : null;
+      });
+
+      it('nim subscribes to js', async function () {
+        const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
+
+        const nimPeerId = await nimWaku.getPeerId();
+        expect(subscribers).to.contain(nimPeerId.toB58String());
+      });
+
+      it('Js publishes to nim', async function () {
+        const message = WakuMessage.fromUtf8String('This is a message');
+
+        await waku.relay.publish(message);
+
+        await nimWaku.waitForLog('WakuMessage received');
+
+        const msgs = await nimWaku.messages();
+
+        expect(msgs[0].contentTopic).to.equal(message.contentTopic);
+        expect(msgs[0].version).to.equal(message.version);
+
+        const payload = Buffer.from(msgs[0].payload);
+        expect(Buffer.compare(payload, message.payload!)).to.equal(0);
+      });
+
+      it('Nim publishes to js', async function () {
+        const message = WakuMessage.fromUtf8String('Here is another message.');
+
+        const receivedPromise = waitForNextData(waku.libp2p.pubsub);
+
+        await nimWaku.sendMessage(message);
+
+        const receivedMsg = await receivedPromise;
+
+        expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
+        expect(receivedMsg.version).to.eq(message.version);
+
+        const payload = Buffer.from(receivedMsg.payload!);
+        expect(Buffer.compare(payload, message.payload!)).to.eq(0);
+      });
+    });
+
+    describe('Js connects to nim', function () {
+      let waku: Waku;
+      let nimWaku: NimWaku;
+
+      beforeEach(async function () {
+        this.timeout(10_000);
+        waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
 
         nimWaku = new NimWaku(makeLogFileName(this));
         await nimWaku.start();
 
-        const nimPeerId = await nimWaku.getPeerId();
-
-        await waku.dialWithMultiAddr(nimPeerId, [nimWaku.multiaddr]);
+        await waku.dial(await nimWaku.getMultiaddrWithId());
 
         await new Promise((resolve) =>
           waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
@@ -218,7 +281,7 @@ describe('Waku Relay', () => {
       });
 
       it('Js publishes to nim', async function () {
-        const message = Message.fromUtf8String('This is a message');
+        const message = WakuMessage.fromUtf8String('This is a message');
 
         await waku.relay.publish(message);
 
@@ -234,7 +297,7 @@ describe('Waku Relay', () => {
       });
 
       it('Nim publishes to js', async function () {
-        const message = Message.fromUtf8String('Here is another message.');
+        const message = WakuMessage.fromUtf8String('Here is another message.');
 
         const receivedPromise = waitForNextData(waku.libp2p.pubsub);
 
@@ -249,13 +312,86 @@ describe('Waku Relay', () => {
         expect(Buffer.compare(payload, message.payload!)).to.eq(0);
       });
     });
+
+    describe('js to nim to js', function () {
+      let waku1: Waku;
+      let waku2: Waku;
+      let nimWaku: NimWaku;
+
+      beforeEach(async function () {
+        this.timeout(10_000);
+        [waku1, waku2] = await Promise.all([
+          Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
+          Waku.create({ staticNoiseKey: NOISE_KEY_2 }),
+        ]);
+
+        nimWaku = new NimWaku(this.test!.ctx!.currentTest!.title);
+        await nimWaku.start();
+
+        const nimWakuMultiaddr = await nimWaku.getMultiaddrWithId();
+        await Promise.all([
+          waku1.dial(nimWakuMultiaddr),
+          waku2.dial(nimWakuMultiaddr),
+        ]);
+
+        await delay(100);
+        await Promise.all([
+          new Promise((resolve) =>
+            waku1.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+          ),
+          new Promise((resolve) =>
+            waku2.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+          ),
+        ]);
+
+        await Promise.all([waku1.relay.subscribe(), waku2.relay.subscribe()]);
+
+        await Promise.all([
+          new Promise((resolve) =>
+            waku1.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+          ),
+          new Promise((resolve) =>
+            waku2.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
+          ),
+        ]);
+      });
+
+      afterEach(async function () {
+        nimWaku ? nimWaku.stop() : null;
+        await Promise.all([
+          waku1 ? await waku1.stop() : null,
+          waku2 ? await waku2.stop() : null,
+        ]);
+      });
+
+      it('Js publishes, other Js receives', async function () {
+        // Check that the two JS peers are NOT directly connected
+        expect(
+          waku1.libp2p.peerStore.peers.has(waku2.libp2p.peerId.toB58String())
+        ).to.be.false;
+        expect(
+          waku2.libp2p.peerStore.peers.has(waku1.libp2p.peerId.toB58String())
+        ).to.be.false;
+
+        const msgStr = 'Hello there!';
+        const message = WakuMessage.fromUtf8String(msgStr);
+
+        const waku2ReceivedPromise = waitForNextData(waku2.libp2p.pubsub);
+
+        await waku1.relay.publish(message);
+
+        const waku2ReceivedMsg = await waku2ReceivedPromise;
+
+        expect(waku2ReceivedMsg.utf8Payload()).to.eq(msgStr);
+      });
+    });
   });
 });
 
-function waitForNextData(pubsub: Pubsub): Promise<Message> {
+function waitForNextData(pubsub: Pubsub): Promise<WakuMessage> {
   return new Promise((resolve) => {
     pubsub.once(TOPIC, resolve);
   }).then((msg: any) => {
-    return Message.fromBinary(msg.data);
+    return WakuMessage.decode(msg.data);
   });
 }

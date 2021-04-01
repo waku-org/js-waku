@@ -2,7 +2,24 @@
 
 A JavaScript implementation of the [Waku v2 protocol](https://specs.vac.dev/specs/waku/v2/waku-v2).
 
-**This repo is a Work In Progress**
+## This is a Work In Progress
+
+You can track progress on the [project board](https://github.com/status-im/js-waku/projects/1).
+
+## Examples
+
+## Chat app
+
+A node chat app is provided as a working example of the library.
+It is interoperable with the [nim-waku chat app example](https://github.com/status-im/nim-waku/blob/master/examples/v2/chat2.nim).
+To run the chat app:
+
+```shell
+npm install
+npm run chat:app -- --staticNode /ip4/134.209.139.210/tcp/30303/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ --listenAddr /ip4/0.0.0.0/tcp/55123
+```
+
+The `--listenAddr` parameter is optional, however [NAT passthrough](https://github.com/status-im/js-waku/issues/12) is not yet supported, so you'll need the listening port to be open to receive messages from the fleet. 
 
 ## Contributing
 

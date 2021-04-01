@@ -11,7 +11,7 @@ describe('Waku', function () {
   describe('Interop: Nim', function () {
     it('nim connects to js', async function () {
       this.timeout(10_000);
-      const waku = await Waku.create(NOISE_KEY_1);
+      const waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
 
       const peerId = waku.libp2p.peerId.toB58String();
 

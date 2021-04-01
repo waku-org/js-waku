@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package waku.v2;
 
-message WakuMessage {
+message WakuMessageProto {
   optional bytes payload = 1;
   optional uint32 content_topic = 2;
   optional uint32 version = 3;
