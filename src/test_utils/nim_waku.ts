@@ -8,7 +8,7 @@ import multiaddr from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { WakuMessage } from '../lib/waku_message';
-import { TOPIC } from '../lib/waku_relay';
+import { RelayDefaultTopic } from '../lib/waku_relay';
 
 import { existsAsync, mkdirAsync, openAsync } from './async_fs';
 import waitForLine from './log_file';
@@ -145,7 +145,7 @@ export class NimWaku {
     };
 
     const res = await this.rpcCall('post_waku_v2_relay_v1_message', [
-      TOPIC,
+      RelayDefaultTopic,
       rpcMessage,
     ]);
 
@@ -155,7 +155,9 @@ export class NimWaku {
   async messages() {
     this.checkProcess();
 
-    const res = await this.rpcCall('get_waku_v2_relay_v1_messages', [TOPIC]);
+    const res = await this.rpcCall('get_waku_v2_relay_v1_messages', [
+      RelayDefaultTopic,
+    ]);
 
     return res.result;
   }

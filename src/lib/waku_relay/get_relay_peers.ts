@@ -1,6 +1,6 @@
 import { shuffle } from 'libp2p-gossipsub/src/utils';
 
-import { CODEC, WakuRelayPubsub } from './waku_relay';
+import { RelayCodec, WakuRelayPubsub } from './index';
 
 /**
  * Given a topic, returns up to count peers subscribed to that topic
@@ -13,7 +13,7 @@ import { CODEC, WakuRelayPubsub } from './waku_relay';
  * @returns {Set<string>}
  *
  */
-export function getWakuPeers(
+export function getRelayPeers(
   router: WakuRelayPubsub,
   topic: string,
   count: number,
@@ -27,12 +27,12 @@ export function getWakuPeers(
   // Adds all peers using our protocol
   // that also pass the filter function
   let peers: string[] = [];
-  peersInTopic.forEach((id) => {
+  peersInTopic.forEach((id: string) => {
     const peerStreams = router.peers.get(id);
     if (!peerStreams) {
       return;
     }
-    if (peerStreams.protocol == CODEC && filter(id)) {
+    if (peerStreams.protocol == RelayCodec && filter(id)) {
       peers.push(id);
     }
   });

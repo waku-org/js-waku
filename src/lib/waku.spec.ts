@@ -1,11 +1,9 @@
 import { expect } from 'chai';
 
-import { NOISE_KEY_1 } from '../test_utils/constants';
-import { makeLogFileName } from '../test_utils/log_file';
-import { NimWaku } from '../test_utils/nim_waku';
+import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../test_utils/';
 
 import Waku from './waku';
-import { CODEC } from './waku_relay';
+import { RelayCodec } from './waku_relay';
 
 describe('Waku', function () {
   describe('Interop: Nim', function () {
@@ -28,7 +26,7 @@ describe('Waku', function () {
       expect(nimPeers).to.deep.equal([
         {
           multiaddr: multiAddrWithId,
-          protocol: CODEC,
+          protocol: RelayCodec,
           connected: true,
         },
       ]);

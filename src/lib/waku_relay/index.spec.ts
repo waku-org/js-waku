@@ -1,14 +1,14 @@
 import { expect } from 'chai';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
-import { NOISE_KEY_1, NOISE_KEY_2 } from '../test_utils/constants';
-import { delay } from '../test_utils/delay';
-import { makeLogFileName } from '../test_utils/log_file';
-import { NimWaku } from '../test_utils/nim_waku';
+import { NOISE_KEY_1, NOISE_KEY_2 } from '../../test_utils/constants';
+import { delay } from '../../test_utils/delay';
+import { makeLogFileName } from '../../test_utils/log_file';
+import { NimWaku } from '../../test_utils/nim_waku';
+import Waku from '../waku';
+import { WakuMessage } from '../waku_message';
 
-import Waku from './waku';
-import { WakuMessage } from './waku_message';
-import { CODEC, TOPIC } from './waku_relay';
+import { RelayCodec, RelayDefaultTopic } from './index';
 
 describe('Waku Relay', () => {
   afterEach(function () {
@@ -41,13 +41,15 @@ describe('Waku Relay', () => {
 
     await Promise.all([
       new Promise((resolve) =>
-        waku1.libp2p.pubsub.once('pubsub:subscription-change', (...args) =>
-          resolve(args)
+        waku1.libp2p.pubsub.once(
+          'pubsub:subscription-change',
+          (...args: any[]) => resolve(args)
         )
       ),
       new Promise((resolve) =>
-        waku2.libp2p.pubsub.once('pubsub:subscription-change', (...args) =>
-          resolve(args)
+        waku2.libp2p.pubsub.once(
+          'pubsub:subscription-change',
+          (...args: any[]) => resolve(args)
         )
       ),
     ]);
@@ -59,8 +61,8 @@ describe('Waku Relay', () => {
   });
 
   it('Subscribe', async function () {
-    const subscribers1 = waku1.libp2p.pubsub.getSubscribers(TOPIC);
-    const subscribers2 = waku2.libp2p.pubsub.getSubscribers(TOPIC);
+    const subscribers1 = waku1.libp2p.pubsub.getSubscribers(RelayDefaultTopic);
+    const subscribers2 = waku2.libp2p.pubsub.getSubscribers(RelayDefaultTopic);
 
     expect(subscribers1).to.contain(waku2.libp2p.peerId.toB58String());
     expect(subscribers2).to.contain(waku1.libp2p.peerId.toB58String());
@@ -69,27 +71,16 @@ describe('Waku Relay', () => {
   it('Register correct protocols', async function () {
     const protocols = Array.from(waku1.libp2p.upgrader.protocols.keys());
 
-    expect(protocols).to.contain(CODEC);
+    expect(protocols).to.contain(RelayCodec);
     expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
   });
 
-  // TODO: Fix this
-  it.skip('Publish', async function () {
+  it('Publish', async function () {
     this.timeout(10000);
 
     const message = WakuMessage.fromUtf8String('JS to JS communication works');
-    // waku.libp2p.pubsub.globalSignaturePolicy = 'StrictSign';
 
     const receivedPromise = waitForNextData(waku2.libp2p.pubsub);
-
-    await Promise.all([
-      new Promise((resolve) =>
-        waku1.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-      ),
-      new Promise((resolve) =>
-        waku2.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-      ),
-    ]);
 
     await waku1.relay.publish(message);
 
@@ -133,7 +124,9 @@ describe('Waku Relay', () => {
 
       it('nim subscribes to js', async function () {
         const nimPeerId = await nimWaku.getPeerId();
-        const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
+        const subscribers = waku.libp2p.pubsub.getSubscribers(
+          RelayDefaultTopic
+        );
 
         expect(subscribers).to.contain(nimPeerId.toB58String());
       });
@@ -205,7 +198,9 @@ describe('Waku Relay', () => {
       });
 
       it('nim subscribes to js', async function () {
-        const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
+        const subscribers = waku.libp2p.pubsub.getSubscribers(
+          RelayDefaultTopic
+        );
 
         const nimPeerId = await nimWaku.getPeerId();
         expect(subscribers).to.contain(nimPeerId.toB58String());
@@ -274,7 +269,9 @@ describe('Waku Relay', () => {
       });
 
       it('nim subscribes to js', async function () {
-        const subscribers = waku.libp2p.pubsub.getSubscribers(TOPIC);
+        const subscribers = waku.libp2p.pubsub.getSubscribers(
+          RelayDefaultTopic
+        );
 
         const nimPeerId = await nimWaku.getPeerId();
         expect(subscribers).to.contain(nimPeerId.toB58String());
@@ -390,7 +387,7 @@ describe('Waku Relay', () => {
 
 function waitForNextData(pubsub: Pubsub): Promise<WakuMessage> {
   return new Promise((resolve) => {
-    pubsub.once(TOPIC, resolve);
+    pubsub.once(RelayDefaultTopic, resolve);
   }).then((msg: any) => {
     return WakuMessage.decode(msg.data);
   });

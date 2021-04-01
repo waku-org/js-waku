@@ -16,10 +16,12 @@ To run the chat app:
 
 ```shell
 npm install
-npm run chat:app -- --staticNode /ip4/134.209.139.210/tcp/30303/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ --listenAddr /ip4/0.0.0.0/tcp/55123
+npm run chat:app -- --staticNode /ip4/134.209.139.210/tcp/30303/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ
 ```
 
-The `--listenAddr` parameter is optional, however [NAT passthrough](https://github.com/status-im/js-waku/issues/12) is not yet supported, so you'll need the listening port to be open to receive messages from the fleet. 
+You can also specify an optional `listenAddr` parameter (.e.g `--listenAddr /ip4/0.0.0.0/tcp/55123`).
+This is only useful if you want a remote node to dial to your chat app, 
+it is not necessary in normal usage when you just connect to the fleet.
 
 ## Contributing
 
