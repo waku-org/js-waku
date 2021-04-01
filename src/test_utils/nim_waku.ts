@@ -7,7 +7,7 @@ import Multiaddr from 'multiaddr';
 import multiaddr from 'multiaddr';
 import PeerId from 'peer-id';
 
-import { Message } from '../lib/waku_message';
+import { WakuMessage } from '../lib/waku_message';
 import { TOPIC } from '../lib/waku_relay';
 
 import { existsAsync, mkdirAsync, openAsync } from './async_fs';
@@ -132,7 +132,7 @@ export class NimWaku {
     return res.result;
   }
 
-  async sendMessage(message: Message) {
+  async sendMessage(message: WakuMessage) {
     this.checkProcess();
 
     if (!message.payload) {

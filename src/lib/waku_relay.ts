@@ -4,7 +4,7 @@ import Pubsub from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 
 import { getWakuPeers } from './get_waku_peers';
-import { Message } from './waku_message';
+import { WakuMessage } from './waku_message';
 
 export const CODEC = '/vac/waku/relay/2.0.0-beta2';
 
@@ -99,7 +99,7 @@ export class WakuRelay {
     await this.pubsub.subscribe(TOPIC);
   }
 
-  async publish(message: Message) {
+  async publish(message: WakuMessage) {
     const msg = message.toBinary();
     await this.pubsub.publish(TOPIC, msg);
   }

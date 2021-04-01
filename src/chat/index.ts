@@ -2,7 +2,7 @@ import readline from 'readline';
 import util from 'util';
 
 import Waku from '../lib/waku';
-import { Message } from '../lib/waku_message';
+import { WakuMessage } from '../lib/waku_message';
 import { TOPIC } from '../lib/waku_relay';
 import { delay } from '../test_utils/delay';
 
@@ -30,7 +30,7 @@ import { ChatMessage } from './chat_message';
   // TODO: Bubble event to waku, infer topic, decode msg
   // Tracked with https://github.com/status-im/js-waku/issues/19
   waku.libp2p.pubsub.on(TOPIC, (event) => {
-    const wakuMsg = Message.decode(event.data);
+    const wakuMsg = WakuMessage.decode(event.data);
     if (wakuMsg.payload) {
       const chatMsg = ChatMessage.decode(wakuMsg.payload);
       const timestamp = chatMsg.timestamp.toLocaleString([], {
@@ -74,7 +74,7 @@ import { ChatMessage } from './chat_message';
     rl.prompt();
     const chatMessage = new ChatMessage(new Date(), nick, line);
 
-    const msg = Message.fromBytes(chatMessage.encode());
+    const msg = WakuMessage.fromBytes(chatMessage.encode());
     await waku.relay.publish(msg);
   }
 })();

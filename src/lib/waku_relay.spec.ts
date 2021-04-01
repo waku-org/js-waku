@@ -7,7 +7,7 @@ import { makeLogFileName } from '../test_utils/log_file';
 import { NimWaku } from '../test_utils/nim_waku';
 
 import Waku from './waku';
-import { Message } from './waku_message';
+import { WakuMessage } from './waku_message';
 import { CODEC, TOPIC } from './waku_relay';
 
 describe('Waku Relay', () => {
@@ -77,7 +77,7 @@ describe('Waku Relay', () => {
   it.skip('Publish', async function () {
     this.timeout(10000);
 
-    const message = Message.fromUtf8String('JS to JS communication works');
+    const message = WakuMessage.fromUtf8String('JS to JS communication works');
     // waku.libp2p.pubsub.globalSignaturePolicy = 'StrictSign';
 
     const receivedPromise = waitForNextData(waku2.libp2p.pubsub);
@@ -141,7 +141,7 @@ describe('Waku Relay', () => {
       it('Js publishes to nim', async function () {
         this.timeout(5000);
 
-        const message = Message.fromUtf8String('This is a message');
+        const message = WakuMessage.fromUtf8String('This is a message');
 
         await waku.relay.publish(message);
 
@@ -158,7 +158,7 @@ describe('Waku Relay', () => {
 
       it('Nim publishes to js', async function () {
         this.timeout(5000);
-        const message = Message.fromUtf8String('Here is another message.');
+        const message = WakuMessage.fromUtf8String('Here is another message.');
 
         const receivedPromise = waitForNextData(waku.libp2p.pubsub);
 
@@ -212,7 +212,7 @@ describe('Waku Relay', () => {
       });
 
       it('Js publishes to nim', async function () {
-        const message = Message.fromUtf8String('This is a message');
+        const message = WakuMessage.fromUtf8String('This is a message');
 
         await waku.relay.publish(message);
 
@@ -228,7 +228,7 @@ describe('Waku Relay', () => {
       });
 
       it('Nim publishes to js', async function () {
-        const message = Message.fromUtf8String('Here is another message.');
+        const message = WakuMessage.fromUtf8String('Here is another message.');
 
         const receivedPromise = waitForNextData(waku.libp2p.pubsub);
 
@@ -281,7 +281,7 @@ describe('Waku Relay', () => {
       });
 
       it('Js publishes to nim', async function () {
-        const message = Message.fromUtf8String('This is a message');
+        const message = WakuMessage.fromUtf8String('This is a message');
 
         await waku.relay.publish(message);
 
@@ -297,7 +297,7 @@ describe('Waku Relay', () => {
       });
 
       it('Nim publishes to js', async function () {
-        const message = Message.fromUtf8String('Here is another message.');
+        const message = WakuMessage.fromUtf8String('Here is another message.');
 
         const receivedPromise = waitForNextData(waku.libp2p.pubsub);
 
@@ -374,7 +374,7 @@ describe('Waku Relay', () => {
         ).to.be.false;
 
         const msgStr = 'Hello there!';
-        const message = Message.fromUtf8String(msgStr);
+        const message = WakuMessage.fromUtf8String(msgStr);
 
         const waku2ReceivedPromise = waitForNextData(waku2.libp2p.pubsub);
 
@@ -388,10 +388,10 @@ describe('Waku Relay', () => {
   });
 });
 
-function waitForNextData(pubsub: Pubsub): Promise<Message> {
+function waitForNextData(pubsub: Pubsub): Promise<WakuMessage> {
   return new Promise((resolve) => {
     pubsub.once(TOPIC, resolve);
   }).then((msg: any) => {
-    return Message.decode(msg.data);
+    return WakuMessage.decode(msg.data);
   });
 }
