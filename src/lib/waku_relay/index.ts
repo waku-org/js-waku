@@ -12,14 +12,7 @@ import PeerId from 'peer-id';
 
 import { WakuMessage } from '../waku_message';
 
-import {
-  RelayCodec,
-  RelayDefaultTopic,
-  RelayGossipFactor,
-  RelayMaxIHaveLength,
-  RelayPruneBackoff,
-  RelayPrunePeers,
-} from './constants';
+import * as constants from './constants';
 import { getRelayPeers } from './get_relay_peers';
 import { RelayHeartbeat } from './relay_heartbeat';
 
@@ -43,7 +36,7 @@ export class WakuRelayPubsub extends Gossipsub {
 
     this.heartbeat = new RelayHeartbeat(this);
 
-    const multicodecs = [RelayCodec];
+    const multicodecs = [constants.RelayCodec];
 
     // This is the downside of using `libp2p-gossipsub` instead of
     // implementing WakuRelay from scratch.
@@ -193,7 +186,7 @@ export class WakuRelayPubsub extends Gossipsub {
     shuffle(messageIDs);
 
     // if we are emitting more than GossipsubMaxIHaveLength ids, truncate the list
-    if (messageIDs.length > RelayMaxIHaveLength) {
+    if (messageIDs.length > constants.RelayMaxIHaveLength) {
       // we do the truncation (with shuffling) per peer below
       this.log(
         'too many messages for gossip; will truncate IHAVE list (%d messages)',
@@ -219,7 +212,7 @@ export class WakuRelayPubsub extends Gossipsub {
       if (
         !exclude.has(id) &&
         !this.direct.has(id) &&
-        peerStreams.protocol == RelayCodec &&
+        peerStreams.protocol == constants.RelayCodec &&
         this.score.score(id) >= this._options.scoreThresholds.gossipThreshold
       ) {
         peersToGossip.push(id);
@@ -227,7 +220,7 @@ export class WakuRelayPubsub extends Gossipsub {
     });
 
     let target = this._options.Dlazy;
-    const factor = RelayGossipFactor * peersToGossip.length;
+    const factor = constants.RelayGossipFactor * peersToGossip.length;
     if (factor > target) {
       target = factor;
     }
@@ -239,13 +232,13 @@ export class WakuRelayPubsub extends Gossipsub {
     // Emit the IHAVE gossip to the selected peers up to the target
     peersToGossip.slice(0, target).forEach((id) => {
       let peerMessageIDs = messageIDs;
-      if (messageIDs.length > RelayMaxIHaveLength) {
+      if (messageIDs.length > constants.RelayMaxIHaveLength) {
         // shuffle and slice message IDs per peer so that we emit a different set for each peer
         // we have enough redundancy in the system that this will significantly increase the message
         // coverage when we do truncate
         peerMessageIDs = shuffle(peerMessageIDs.slice()).slice(
           0,
-          RelayMaxIHaveLength
+          constants.RelayMaxIHaveLength
         );
       }
       this._pushGossip(id, {
@@ -265,14 +258,14 @@ export class WakuRelayPubsub extends Gossipsub {
   _makePrune(id: string, topic: string, doPX: boolean): ControlPrune {
     // backoff is measured in seconds
     // RelayPruneBackoff is measured in milliseconds
-    const backoff = RelayPruneBackoff / 1000;
+    const backoff = constants.RelayPruneBackoff / 1000;
     const px: PeerInfo[] = [];
     if (doPX) {
       // select peers for Peer eXchange
       const peers = getRelayPeers(
         this,
         topic,
-        RelayPrunePeers,
+        constants.RelayPrunePeers,
         (xid: string): boolean => {
           return xid !== id && this.score.score(xid) >= 0;
         }
@@ -305,11 +298,11 @@ export class WakuRelay {
 
   // At this stage we are always using the same topic so we do not pass it as a parameter
   async subscribe() {
-    await this.pubsub.subscribe(RelayDefaultTopic);
+    await this.pubsub.subscribe(constants.RelayDefaultTopic);
   }
 
   async publish(message: WakuMessage) {
     const msg = message.toBinary();
-    await this.pubsub.publish(RelayDefaultTopic, msg);
+    await this.pubsub.publish(constants.RelayDefaultTopic, msg);
   }
 }

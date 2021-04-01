@@ -4,7 +4,7 @@ import util from 'util';
 import Waku from '../lib/waku';
 import { WakuMessage } from '../lib/waku_message';
 import { RelayDefaultTopic } from '../lib/waku_relay';
-import { delay } from '../test_utils/delay';
+import { delay } from '../test_utils/';
 
 import { ChatMessage } from './chat_message';
 
