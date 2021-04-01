@@ -7,7 +7,7 @@ import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 import { WakuMessage } from '../waku_message';
 
 import { RelayCodec, RelayDefaultTopic } from './constants';
-import { getWakuPeers } from './get_waku_peers';
+import { getRelayPeers } from './get_relay_peers';
 import { RelayHeartbeat } from './relay_heartbeat';
 
 export * from './constants';
@@ -59,7 +59,7 @@ export class WakuRelayPubsub extends Gossipsub {
       });
       if (fanoutPeers.size < this._options.D) {
         // we need more peers; eager, as this would get fixed in the next heartbeat
-        getWakuPeers(
+        getRelayPeers(
           this,
           topic,
           this._options.D - fanoutPeers.size,
@@ -77,7 +77,7 @@ export class WakuRelayPubsub extends Gossipsub {
       this.fanout.delete(topic);
       this.lastpub.delete(topic);
     } else {
-      const peers = getWakuPeers(
+      const peers = getRelayPeers(
         this,
         topic,
         this._options.D,
@@ -132,7 +132,7 @@ export class WakuRelayPubsub extends Gossipsub {
         meshPeers = this.fanout.get(topic);
         if (!meshPeers) {
           // If we are not in the fanout, then pick peers in topic above the publishThreshold
-          const peers = getWakuPeers(this, topic, this._options.D, (id) => {
+          const peers = getRelayPeers(this, topic, this._options.D, (id) => {
             return (
               this.score.score(id) >=
               this._options.scoreThresholds.publishThreshold

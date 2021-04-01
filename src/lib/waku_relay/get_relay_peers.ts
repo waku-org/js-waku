@@ -13,7 +13,7 @@ import { RelayCodec, WakuRelayPubsub } from './index';
  * @returns {Set<string>}
  *
  */
-export function getWakuPeers(
+export function getRelayPeers(
   router: WakuRelayPubsub,
   topic: string,
   count: number,

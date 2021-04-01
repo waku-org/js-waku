@@ -3,7 +3,7 @@ import { Heartbeat } from 'libp2p-gossipsub/src/heartbeat';
 import { shuffle } from 'libp2p-gossipsub/src/utils';
 
 import * as constants from './constants';
-import { getWakuPeers } from './get_waku_peers';
+import { getRelayPeers } from './get_relay_peers';
 
 export class RelayHeartbeat extends Heartbeat {
   /**
@@ -152,7 +152,7 @@ export class RelayHeartbeat extends Heartbeat {
       if (peers.size < Dlo) {
         const backoff = this.gossipsub.backoff.get(topic);
         const ineed = D - peers.size;
-        const peersSet = getWakuPeers(
+        const peersSet = getRelayPeers(
           this.gossipsub,
           topic,
           ineed,
@@ -239,7 +239,7 @@ export class RelayHeartbeat extends Heartbeat {
         if (outbound < Dout) {
           const ineed = Dout - outbound;
           const backoff = this.gossipsub.backoff.get(topic);
-          getWakuPeers(this.gossipsub, topic, ineed, (id: string): boolean => {
+          getRelayPeers(this.gossipsub, topic, ineed, (id: string): boolean => {
             // filter our current mesh peers, direct peers, peers we are backing off, peers with negative score
             return (
               !peers.has(id) &&
@@ -278,7 +278,7 @@ export class RelayHeartbeat extends Heartbeat {
           this.gossipsub._options.scoreThresholds.opportunisticGraftThreshold
         ) {
           const backoff = this.gossipsub.backoff.get(topic);
-          const peersToGraft = getWakuPeers(
+          const peersToGraft = getRelayPeers(
             this.gossipsub,
             topic,
             constants.RelayOpportunisticGraftPeers,
@@ -334,7 +334,7 @@ export class RelayHeartbeat extends Heartbeat {
       // do we need more peers?
       if (fanoutPeers.size < D) {
         const ineed = D - fanoutPeers.size;
-        const peersSet = getWakuPeers(
+        const peersSet = getRelayPeers(
           this.gossipsub,
           topic,
           ineed,
