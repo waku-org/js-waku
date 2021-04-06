@@ -3,6 +3,7 @@ import { randomInt } from 'crypto';
 
 import appRoot from 'app-root-path';
 import axios from 'axios';
+import debug from 'debug';
 import Multiaddr from 'multiaddr';
 import multiaddr from 'multiaddr';
 import PeerId from 'peer-id';
@@ -12,6 +13,8 @@ import { RelayDefaultTopic } from '../lib/waku_relay';
 
 import { existsAsync, mkdirAsync, openAsync } from './async_fs';
 import waitForLine from './log_file';
+
+const dbg = debug('nim-waku');
 
 const NIM_WAKU_DEFAULT_P2P_PORT = 60000;
 const NIM_WAKU_DEFAULT_RPC_PORT = 8545;
@@ -88,14 +91,14 @@ export class NimWaku {
       ],
     });
     this.pid = this.process.pid;
-    console.log(
+    dbg(
       `nim-waku ${
         this.process.pid
       } started at ${new Date().toLocaleTimeString()}`
     );
 
     this.process.on('exit', (signal) => {
-      console.log(
+      dbg(
         `nim-waku ${
           this.process ? this.process.pid : this.pid
         } process exited with ${signal} at ${new Date().toLocaleTimeString()}`
@@ -114,7 +117,7 @@ export class NimWaku {
   }
 
   public stop() {
-    console.log(
+    debug(
       `nim-waku ${
         this.process ? this.process.pid : this.pid
       } getting SIGINT at ${new Date().toLocaleTimeString()}`
