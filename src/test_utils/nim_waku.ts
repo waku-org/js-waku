@@ -117,7 +117,7 @@ export class NimWaku {
   }
 
   public stop() {
-    debug(
+    dbg(
       `nim-waku ${
         this.process ? this.process.pid : this.pid
       } getting SIGINT at ${new Date().toLocaleTimeString()}`

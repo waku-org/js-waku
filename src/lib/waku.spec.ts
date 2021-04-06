@@ -11,12 +11,7 @@ describe('Waku', function () {
       this.timeout(10_000);
       const waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
 
-      const peerId = waku.libp2p.peerId.toB58String();
-
-      const localMultiaddr = waku.libp2p.multiaddrs.find((addr) =>
-        addr.toString().match(/127\.0\.0\.1/)
-      );
-      const multiAddrWithId = localMultiaddr + '/p2p/' + peerId;
+      const multiAddrWithId = waku.getLocalMultiaddrWithID();
 
       const nimWaku = new NimWaku(makeLogFileName(this));
       await nimWaku.start({ staticnode: multiAddrWithId });
