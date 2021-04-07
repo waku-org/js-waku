@@ -7,6 +7,7 @@ import Multiaddr from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { RelayCodec, WakuRelay, WakuRelayPubsub } from './waku_relay';
+import { StoreCodec, WakuStore } from './waku_store';
 
 export interface CreateOptions {
   listenAddresses: string[];
@@ -14,7 +15,11 @@ export interface CreateOptions {
 }
 
 export default class Waku {
-  private constructor(public libp2p: Libp2p, public relay: WakuRelay) {}
+  private constructor(
+    public libp2p: Libp2p,
+    public relay: WakuRelay,
+    public store: WakuStore
+  ) {}
 
   /**
    * Create new waku node
@@ -46,17 +51,19 @@ export default class Waku {
       },
     });
 
+    const wakuStore = new WakuStore(libp2p);
+
     await libp2p.start();
 
-    return new Waku(libp2p, new WakuRelay(libp2p.pubsub));
+    return new Waku(libp2p, new WakuRelay(libp2p.pubsub), wakuStore);
   }
 
   /**
-   * Dials to the provided peer. If successful, the known metadata of the peer will be added to the nodes peerStore, and the Connection will be returned
+   * Dials to the provided peer.
    * @param peer The peer to dial
    */
   async dial(peer: PeerId | Multiaddr | string) {
-    return this.libp2p.dialProtocol(peer, RelayCodec);
+    return this.libp2p.dialProtocol(peer, [RelayCodec, StoreCodec]);
   }
 
   async dialWithMultiAddr(peerId: PeerId, multiaddr: Multiaddr[]) {

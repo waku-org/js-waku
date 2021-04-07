@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package waku.v2;
+
+import "waku/v2/message.proto";
+
+message Index {
+  bytes digest = 1;
+  double received_time = 2;
+}
+
+message PagingInfoQuery {
+  uint32 page_size = 1; // TODO: See https://github.com/vacp2p/rfc/issues/326
+  Index cursor = 2;
+  Direction direction = 3;
+}
+
+enum Direction {
+  DIRECTION_BACKWARD_UNSPECIFIED = 0;
+  DIRECTION_FORWARD = 1;
+}
+
+message PagingInfoResponse {
+  uint64 page_size = 1; // TODO: See https://github.com/vacp2p/rfc/issues/326
+  Index cursor = 2;
+  Direction direction = 3;
+}
+
+message HistoryQuery {
+  repeated string topics = 1;
+  optional PagingInfoQuery paging_info = 2;
+  optional double start_time = 3;
+  optional double end_time = 4;
+}
+
+message HistoryResponse {
+  repeated WakuMessageProto messages = 1;
+  PagingInfoResponse paging_info = 2;
+}
+
+message HistoryRPC {
+  string request_id = 1;
+  HistoryQuery query = 2;
+  HistoryResponse response = 3;
+}
