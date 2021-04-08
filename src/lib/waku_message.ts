@@ -4,13 +4,13 @@ import { Reader } from 'protobufjs/minimal';
 // Protecting the user from protobuf oddities
 import { WakuMessageProto } from '../proto/waku/v2/waku';
 
-const DEFAULT_CONTENT_TOPIC = 1;
+const DEFAULT_CONTENT_TOPIC = '/waku/2/default-content/proto';
 const DEFAULT_VERSION = 0;
 
 export class WakuMessage {
   private constructor(
     public payload?: Uint8Array,
-    public contentTopic?: number,
+    public contentTopic?: string,
     public version?: number
   ) {}
 
