@@ -42,6 +42,7 @@
     "prettierignore",
     "protobuf",
     "protoc",
+    "rlnrelay",
     "sandboxed",
     "secio",
     "staticnode",

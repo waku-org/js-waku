@@ -2,6 +2,28 @@
 
 A JavaScript implementation of the [Waku v2 protocol](https://specs.vac.dev/specs/waku/v2/waku-v2).
 
+## Waku Protocol Support
+
+- ✔: Supported
+- 🚧: Implementation in progress
+- ⛔: Support is not planned
+
+| Spec | Implementation Status |
+| ---- | -------------- |
+|[6/WAKU1](https://rfc.vac.dev/spec/6)|⛔|
+|[7/WAKU-DATA](https://rfc.vac.dev/spec/7)|⛔|
+|[8/WAKU-MAIL](https://rfc.vac.dev/spec/8)|⛔|
+|[9/WAKU-RPC](https://rfc.vac.dev/spec/9)|⛔|
+|[10/WAKU2](https://rfc.vac.dev/spec/10)|🚧|
+|[11/WAKU2-RELAY](https://rfc.vac.dev/spec/11)|✔|
+|[12/WAKU2-FILTER](https://rfc.vac.dev/spec/12)||
+|[13/WAKU2-STORE](https://rfc.vac.dev/spec/13)|🚧|
+|[14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14)|✔|
+|[15/WAKU2-BRIDGE](https://rfc.vac.dev/spec/15)||
+|[16/WAKU2-RPC](https://rfc.vac.dev/spec/16)|⛔|
+|[17/WAKU2-RLNRELAY](https://rfc.vac.dev/spec/17)||
+|[18/WAKU2-SWAP](https://rfc.vac.dev/spec/18)||
+
 ## This is a Work In Progress
 
 You can track progress on the [project board](https://github.com/status-im/js-waku/projects/1).
