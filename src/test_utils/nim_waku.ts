@@ -29,6 +29,17 @@ export interface Args {
   rpcAdmin?: boolean;
   nodekey?: string;
   portsShift?: number;
+  logLevel?: LogLevel;
+}
+
+export enum LogLevel {
+  Error = 'error',
+  Info = 'info',
+  Warn = 'warn',
+  Debug = 'debug',
+  Trace = 'trace',
+  Notice = 'notice',
+  Fatal = 'fatal',
 }
 
 export class NimWaku {
@@ -61,7 +72,11 @@ export class NimWaku {
     const mergedArgs = defaultArgs();
 
     // Object.assign overrides the properties with the source (if there are conflicts)
-    Object.assign(mergedArgs, { portsShift: this.portsShift }, args);
+    Object.assign(
+      mergedArgs,
+      { portsShift: this.portsShift, logLevel: LogLevel.Trace },
+      args
+    );
 
     const argsArray = argsToArray(mergedArgs);
     this.process = spawn(NIM_WAKU_BIN, argsArray, {
