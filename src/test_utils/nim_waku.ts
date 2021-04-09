@@ -33,6 +33,7 @@ export interface Args {
   nodekey?: string;
   portsShift?: number;
   logLevel?: LogLevel;
+  store?: boolean;
 }
 
 export enum LogLevel {

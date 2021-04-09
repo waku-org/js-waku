@@ -1,12 +1,17 @@
 import readline from 'readline';
 import util from 'util';
 
+import Multiaddr from 'multiaddr';
+import PeerId from 'peer-id';
+
 import Waku from '../lib/waku';
 import { WakuMessage } from '../lib/waku_message';
 import { RelayDefaultTopic } from '../lib/waku_relay';
 import { delay } from '../test_utils/';
 
 import { ChatMessage } from './chat_message';
+
+const ChatContentTopic = 'dingpu';
 
 (async function () {
   const opts = processArguments();
@@ -33,14 +38,7 @@ import { ChatMessage } from './chat_message';
     const wakuMsg = WakuMessage.decode(event.data);
     if (wakuMsg.payload) {
       const chatMsg = ChatMessage.decode(wakuMsg.payload);
-      const timestamp = chatMsg.timestamp.toLocaleString([], {
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: false,
-      });
-      console.log(`<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`);
+      printMessage(chatMsg);
     }
   });
 
@@ -68,19 +66,35 @@ import { ChatMessage } from './chat_message';
     waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
   );
 
+  const staticNodeId = opts.staticNode?.getPeerId();
+  if (staticNodeId) {
+    const storePeerId = PeerId.createFromB58String(staticNodeId);
+    console.log(
+      `Retrieving archived messages from ${storePeerId.toB58String()}`
+    );
+    const msg = await waku.store.queryHistory(storePeerId, [ChatContentTopic]);
+    msg?.messages.map((msg) => {
+      const wakuMsg = WakuMessage.fromProto(msg);
+      if (wakuMsg.payload) {
+        const chatMsg = ChatMessage.decode(wakuMsg.payload);
+        printMessage(chatMsg);
+      }
+    });
+  }
+
   console.log('Ready to chat!');
   rl.prompt();
   for await (const line of rl) {
     rl.prompt();
     const chatMessage = new ChatMessage(new Date(), nick, line);
 
-    const msg = WakuMessage.fromBytes(chatMessage.encode());
+    const msg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
     await waku.relay.publish(msg);
   }
 })();
 
 interface Options {
-  staticNode?: string;
+  staticNode?: Multiaddr;
   listenAddr: string;
 }
 
@@ -93,7 +107,9 @@ function processArguments(): Options {
     const arg = passedArgs.shift();
     switch (arg) {
       case '--staticNode':
-        opts = Object.assign(opts, { staticNode: passedArgs.shift() });
+        opts = Object.assign(opts, {
+          staticNode: new Multiaddr(passedArgs.shift()),
+        });
         break;
       case '--listenAddr':
         opts = Object.assign(opts, { listenAddr: passedArgs.shift() });
@@ -105,4 +121,15 @@ function processArguments(): Options {
   }
 
   return opts;
+}
+
+function printMessage(chatMsg: ChatMessage) {
+  const timestamp = chatMsg.timestamp.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false,
+  });
+  console.log(`<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`);
 }

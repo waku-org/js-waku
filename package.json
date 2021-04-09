@@ -50,6 +50,8 @@
   "dependencies": {
     "@bitauth/libauth": "^1.17.1",
     "debug": "^4.3.1",
+    "it-concat": "^1.0.3",
+    "it-length-prefixed": "^3.1.0",
     "libp2p": "^0.30.0",
     "libp2p-gossipsub": "^0.7.0",
     "libp2p-mplex": "^0.10.2",
@@ -59,6 +61,7 @@
     "multiaddr": "^8.1.2",
     "prompt-sync": "^4.2.0",
     "ts-proto": "^1.74.0",
+    "uuid": "^3.4.0",
     "yarg": "^1.0.8"
   },
   "devDependencies": {
@@ -70,6 +73,7 @@
     "@types/mocha": "^8.2.2",
     "@types/node": "^14.14.31",
     "@types/tail": "^2.0.0",
+    "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "app-root-path": "^3.0.0",

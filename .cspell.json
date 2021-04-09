@@ -13,6 +13,7 @@
     "codecov",
     "commitlint",
     "dependabot",
+    "dingpu",
     "Dlazy",
     "Dout",
     "Dscore",
@@ -36,6 +37,7 @@
     "multiaddrs",
     "multicodecs",
     "mplex",
+    "muxed",
     "muxer",
     "nodekey",
     "peerhave",
@@ -64,6 +66,7 @@
     "tsconfig.json",
     "node_modules/**",
     "build",
-    "gen"
+    "gen",
+    "proto"
   ]
 }
