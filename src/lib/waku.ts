@@ -67,4 +67,20 @@ export default class Waku {
   async stop() {
     await this.libp2p.stop();
   }
+
+  /**
+   * Return the local multiaddr with peer id on which libp2p is listening.
+   * @throws if libp2p is not listening on localhost
+   */
+  getLocalMultiaddrWithID(): string {
+    const localMultiaddr = this.libp2p.multiaddrs.find((addr) =>
+      addr.toString().match(/127\.0\.0\.1/)
+    );
+    if (!localMultiaddr || localMultiaddr.toString() === '') {
+      throw 'Not listening on localhost';
+    }
+    const multiAddrWithId =
+      localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
+    return multiAddrWithId;
+  }
 }
