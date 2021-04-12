@@ -133,9 +133,12 @@ describe('Waku Relay', () => {
 
         await waku.relay.publish(message);
 
-        await nimWaku.waitForLog('WakuMessage received');
+        let msgs = [];
 
-        const msgs = await nimWaku.messages();
+        while (msgs.length === 0) {
+          await delay(200);
+          msgs = await nimWaku.messages();
+        }
 
         expect(msgs[0].contentTopic).to.equal(message.contentTopic);
         expect(msgs[0].version).to.equal(message.version);
@@ -206,9 +209,12 @@ describe('Waku Relay', () => {
 
         await waku.relay.publish(message);
 
-        await nimWaku.waitForLog('WakuMessage received');
+        let msgs = [];
 
-        const msgs = await nimWaku.messages();
+        while (msgs.length === 0) {
+          await delay(200);
+          msgs = await nimWaku.messages();
+        }
 
         expect(msgs[0].contentTopic).to.equal(message.contentTopic);
         expect(msgs[0].version).to.equal(message.version);
