@@ -2,9 +2,9 @@ import { expect } from 'chai';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
 import { NOISE_KEY_1, NOISE_KEY_2 } from '../../test_utils/constants';
-import { delay } from '../../test_utils/delay';
 import { makeLogFileName } from '../../test_utils/log_file';
 import { NimWaku } from '../../test_utils/nim_waku';
+import { delay } from '../delay';
 import Waku from '../waku';
 import { WakuMessage } from '../waku_message';
 
@@ -26,15 +26,6 @@ describe('Waku Relay', () => {
     ]);
 
     await waku1.dialWithMultiAddr(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
-
-    await Promise.all([
-      new Promise((resolve) =>
-        waku1.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-      ),
-      new Promise((resolve) =>
-        waku2.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-      ),
-    ]);
 
     await waku1.relay.subscribe();
     await waku2.relay.subscribe();
@@ -176,16 +167,7 @@ describe('Waku Relay', () => {
 
         await waku.dial(await nimWaku.getMultiaddrWithId());
 
-        await delay(100);
-        await new Promise((resolve) =>
-          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-        );
-
         await waku.relay.subscribe();
-
-        await new Promise((resolve) =>
-          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-        );
       });
 
       afterEach(async function () {
@@ -222,6 +204,8 @@ describe('Waku Relay', () => {
       });
 
       it('Nim publishes to js', async function () {
+        await delay(200);
+
         const message = WakuMessage.fromUtf8String('Here is another message.');
 
         const receivedPromise = waitForNextData(waku.libp2p.pubsub);
@@ -257,16 +241,6 @@ describe('Waku Relay', () => {
         await Promise.all([
           waku1.dial(nimWakuMultiaddr),
           waku2.dial(nimWakuMultiaddr),
-        ]);
-
-        await delay(100);
-        await Promise.all([
-          new Promise((resolve) =>
-            waku1.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-          ),
-          new Promise((resolve) =>
-            waku2.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-          ),
         ]);
 
         await Promise.all([waku1.relay.subscribe(), waku2.relay.subscribe()]);
