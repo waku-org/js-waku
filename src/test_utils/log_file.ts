@@ -41,9 +41,9 @@ function clean(str: string): string {
 }
 
 export function makeLogFileName(ctx: Context): string {
-  const unitTest = ctx!.currentTest ? ctx!.currentTest : ctx.test;
+  const unitTest = ctx?.currentTest ? ctx!.currentTest : ctx.test;
   let name = clean(unitTest!.title);
-  let suite = unitTest!.parent;
+  let suite = unitTest?.parent;
 
   while (suite && suite.title) {
     name = clean(suite.title) + '_' + name;

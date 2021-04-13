@@ -94,7 +94,7 @@ export class WakuRelayPubsub extends Gossipsub {
       );
       this.mesh.set(topic, peers);
     }
-    this.mesh.get(topic)!.forEach((id) => {
+    this.mesh.get(topic)?.forEach((id) => {
       this.log('JOIN: Add mesh link to %s in %s', id, topic);
       this._sendGraft(id, topic);
     });
@@ -156,7 +156,7 @@ export class WakuRelayPubsub extends Gossipsub {
         this.lastpub.set(topic, this._now());
       }
 
-      meshPeers!.forEach((peer) => {
+      meshPeers?.forEach((peer) => {
         toSend.add(peer);
       });
     });

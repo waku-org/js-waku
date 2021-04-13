@@ -23,7 +23,7 @@ export class RelayHeartbeat extends Heartbeat {
 
     const timeout = setTimeout(() => {
       heartbeat();
-      this._heartbeatTimer!.runPeriodically(
+      this._heartbeatTimer?.runPeriodically(
         heartbeat,
         constants.RelayHeartbeatInterval
       );
@@ -36,7 +36,7 @@ export class RelayHeartbeat extends Heartbeat {
       },
       cancel: () => {
         clearTimeout(timeout);
-        clearInterval(this._heartbeatTimer!._intervalId as NodeJS.Timeout);
+        clearInterval(this._heartbeatTimer?._intervalId as NodeJS.Timeout);
       },
     };
   }
@@ -323,7 +323,7 @@ export class RelayHeartbeat extends Heartbeat {
       const topicPeers = this.gossipsub.topics.get(topic);
       fanoutPeers.forEach((id) => {
         if (
-          !topicPeers!.has(id) ||
+          !topicPeers?.has(id) ||
           getScore(id) <
             this.gossipsub._options.scoreThresholds.publishThreshold
         ) {

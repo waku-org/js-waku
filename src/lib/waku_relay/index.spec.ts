@@ -12,7 +12,7 @@ import { RelayCodec, RelayDefaultTopic } from './index';
 
 describe('Waku Relay', () => {
   afterEach(function () {
-    if (this.currentTest!.state === 'failed') {
+    if (this.currentTest?.state === 'failed') {
       console.log(`Test failed, log file name is ${makeLogFileName(this)}`);
     }
   });
@@ -41,15 +41,13 @@ describe('Waku Relay', () => {
 
     await Promise.all([
       new Promise((resolve) =>
-        waku1.libp2p.pubsub.once(
-          'pubsub:subscription-change',
-          (...args: any[]) => resolve(args)
+        waku1.libp2p.pubsub.once('pubsub:subscription-change', () =>
+          resolve(null)
         )
       ),
       new Promise((resolve) =>
-        waku2.libp2p.pubsub.once(
-          'pubsub:subscription-change',
-          (...args: any[]) => resolve(args)
+        waku2.libp2p.pubsub.once('pubsub:subscription-change', () =>
+          resolve(null)
         )
       ),
     ]);
@@ -173,7 +171,7 @@ describe('Waku Relay', () => {
         this.timeout(10_000);
         waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
 
-        nimWaku = new NimWaku(this.test!.ctx!.currentTest!.title);
+        nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
         await nimWaku.start();
 
         await waku.dial(await nimWaku.getMultiaddrWithId());
@@ -252,7 +250,7 @@ describe('Waku Relay', () => {
           Waku.create({ staticNoiseKey: NOISE_KEY_2 }),
         ]);
 
-        nimWaku = new NimWaku(this.test!.ctx!.currentTest!.title);
+        nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
         await nimWaku.start();
 
         const nimWakuMultiaddr = await nimWaku.getMultiaddrWithId();
@@ -315,10 +313,9 @@ describe('Waku Relay', () => {
   });
 });
 
-function waitForNextData(pubsub: Pubsub): Promise<WakuMessage> {
-  return new Promise((resolve) => {
+async function waitForNextData(pubsub: Pubsub): Promise<WakuMessage> {
+  const msg = (await new Promise((resolve) => {
     pubsub.once(RelayDefaultTopic, resolve);
-  }).then((msg: any) => {
-    return WakuMessage.decode(msg.data);
-  });
+  })) as Pubsub.InMessage;
+  return WakuMessage.decode(msg.data);
 }
