@@ -213,7 +213,10 @@ export class NimWaku {
     return `http://localhost:${port}/`;
   }
 
-  private async rpcCall(method: string, params: any[]) {
+  private async rpcCall(
+    method: string,
+    params: Array<string | number | unknown>
+  ) {
     const res = await axios.post(
       this.rpcUrl,
       {
