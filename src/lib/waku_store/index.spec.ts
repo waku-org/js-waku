@@ -59,8 +59,7 @@ describe('Waku Store', () => {
     const response = await waku.store.queryHistory(nimPeerId);
     const messages = response?.messages;
 
-    // TODO: Should be fixed with https://github.com/status-im/nim-waku/issues/471
-    // expect(messages?.length).eq(2);
+    expect(messages?.length).eq(2);
     const result = messages
       ?.map((protoMsg) => {
         return WakuMessage.fromProto(protoMsg);
