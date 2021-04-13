@@ -4,6 +4,8 @@ import pipe from 'it-pipe';
 import Libp2p from 'libp2p';
 import PeerId from 'peer-id';
 
+import { WakuMessage } from '../waku_message';
+
 import { HistoryRPC } from './history_rpc';
 
 export const StoreCodec = '/vac/waku/store/2.0.0-beta1';
@@ -17,7 +19,10 @@ export class WakuStore {
    * @param topics
    * @throws if not able to reach peer
    */
-  async queryHistory(peerId: PeerId, topics?: string[]) {
+  async queryHistory(
+    peerId: PeerId,
+    topics?: string[]
+  ): Promise<WakuMessage[] | null> {
     const peer = this.libp2p.peerStore.get(peerId);
     if (!peer) throw 'Peer is unknown';
     if (!peer.protocols.includes(StoreCodec))
@@ -40,7 +45,15 @@ export class WakuStore {
         const buf = res.slice();
         try {
           const reply = HistoryRPC.decode(buf);
-          return reply.response;
+
+          if (!reply.response) {
+            console.log('No response in HistoryRPC');
+            return null;
+          }
+
+          return reply.response.messages.map((protoMsg) => {
+            return WakuMessage.fromProto(protoMsg);
+          });
         } catch (err) {
           console.log('Failed to decode store reply', err);
         }

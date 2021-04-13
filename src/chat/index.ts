@@ -72,11 +72,12 @@ const ChatContentTopic = 'dingpu';
     console.log(
       `Retrieving archived messages from ${storePeerId.toB58String()}`
     );
-    const msg = await waku.store.queryHistory(storePeerId, [ChatContentTopic]);
-    msg?.messages.map((msg) => {
-      const wakuMsg = WakuMessage.fromProto(msg);
-      if (wakuMsg.payload) {
-        const chatMsg = ChatMessage.decode(wakuMsg.payload);
+    const messages = await waku.store.queryHistory(storePeerId, [
+      ChatContentTopic,
+    ]);
+    messages?.map((msg) => {
+      if (msg.payload) {
+        const chatMsg = ChatMessage.decode(msg.payload);
         printMessage(chatMsg);
       }
     });

@@ -54,17 +54,12 @@ describe('Waku Store', () => {
 
     const nimPeerId = await nimWaku.getPeerId();
 
-    const response = await waku.store.queryHistory(nimPeerId);
-    const messages = response?.messages;
+    const messages = await waku.store.queryHistory(nimPeerId);
 
     expect(messages?.length).eq(2);
-    const result = messages
-      ?.map((protoMsg) => {
-        return WakuMessage.fromProto(protoMsg);
-      })
-      .findIndex((msg) => {
-        return msg.utf8Payload() === 'Message 0';
-      });
+    const result = messages?.findIndex((msg) => {
+      return msg.utf8Payload() === 'Message 0';
+    });
     expect(result).to.not.eq(-1);
   });
 
@@ -82,27 +77,18 @@ describe('Waku Store', () => {
 
     const nimPeerId = await nimWaku.getPeerId();
 
-    const response = await waku.store.queryHistory(nimPeerId);
-    const messages = response?.messages;
+    const messages = await waku.store.queryHistory(nimPeerId);
 
     expect(messages?.length).eq(20);
     expect(
-      messages
-        ?.map((protoMsg) => {
-          return WakuMessage.fromProto(protoMsg);
-        })
-        .findIndex((msg) => {
-          return msg.utf8Payload() === 'Message 0';
-        })
+      messages?.findIndex((msg) => {
+        return msg.utf8Payload() === 'Message 0';
+      })
     ).to.not.eq(-1);
     expect(
-      messages
-        ?.map((protoMsg) => {
-          return WakuMessage.fromProto(protoMsg);
-        })
-        .findIndex((msg) => {
-          return msg.utf8Payload() === 'Message 19';
-        })
+      messages?.findIndex((msg) => {
+        return msg.utf8Payload() === 'Message 19';
+      })
     ).to.not.eq(-1);
   });
 });
