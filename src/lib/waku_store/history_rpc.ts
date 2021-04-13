@@ -14,7 +14,7 @@ export class HistoryRPC {
     const pagingInfo = {
       pageSize: 10,
       cursor,
-      direction: proto.Direction.DIRECTION_BACKWARD_UNSPECIFIED,
+      direction: proto.Direction.DIRECTION_FORWARD,
     };
     return new HistoryRPC({
       requestId: uuid(),

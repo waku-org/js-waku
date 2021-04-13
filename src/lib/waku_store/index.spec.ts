@@ -63,7 +63,7 @@ describe('Waku Store', () => {
     expect(result).to.not.eq(-1);
   });
 
-  it('Retrieves all history element through paging', async function () {
+  it('Retrieves all historical elements in chronological order through paging', async function () {
     this.timeout(5_000);
 
     for (let i = 0; i < 15; i++) {
@@ -80,15 +80,12 @@ describe('Waku Store', () => {
     const messages = await waku.store.queryHistory(nimPeerId);
 
     expect(messages?.length).eq(15);
-    expect(
-      messages?.findIndex((msg) => {
-        return msg.utf8Payload() === 'Message 0';
-      })
-    ).to.not.eq(-1);
-    expect(
-      messages?.findIndex((msg) => {
-        return msg.utf8Payload() === 'Message 14';
-      })
-    ).to.not.eq(-1);
+    for (let index = 0; index < 2; index++) {
+      expect(
+        messages?.findIndex((msg) => {
+          return msg.utf8Payload() === `Message ${index}`;
+        })
+      ).to.eq(index);
+    }
   });
 });
