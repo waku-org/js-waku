@@ -4,6 +4,8 @@ A JavaScript implementation of the [Waku v2 protocol](https://specs.vac.dev/spec
 
 ## Waku Protocol Support
 
+You can track progress on the [project board](https://github.com/status-im/js-waku/projects/1).
+
 - ✔: Supported
 - 🚧: Implementation in progress
 - ⛔: Support is not planned
@@ -24,9 +26,11 @@ A JavaScript implementation of the [Waku v2 protocol](https://specs.vac.dev/spec
 |[17/WAKU2-RLNRELAY](https://rfc.vac.dev/spec/17)||
 |[18/WAKU2-SWAP](https://rfc.vac.dev/spec/18)||
 
-## This is a Work In Progress
+## Bugs, Questions & Features
 
-You can track progress on the [project board](https://github.com/status-im/js-waku/projects/1).
+If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/status-im/js-waku/issues/new/).
+
+For support, questions & more general topics, please join the discussion on the [Vac forum](https://forum.vac.dev/tag/js-waku) (use _\#js-waku_ tag).
 
 ## Examples
 
@@ -37,8 +41,9 @@ It is interoperable with the [nim-waku chat app example](https://github.com/stat
 To run the chat app:
 
 ```shell
+git clone https://github.com/status-im/js-waku/ ; cd js-waku
 npm install
-npm run chat:app -- --staticNode /ip4/134.209.139.210/tcp/30303/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ
+npm run chat -- --staticNode /ip4/134.209.139.210/tcp/30303/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ
 ```
 
 You can also specify an optional `listenAddr` parameter (.e.g `--listenAddr /ip4/0.0.0.0/tcp/55123`).
@@ -46,6 +51,8 @@ This is only useful if you want a remote node to dial to your chat app,
 it is not necessary in normal usage when you just connect to the fleet.
 
 ## Contributing
+
+### Build & Test
 
 To build and test this repository, you need:
   
@@ -59,3 +66,8 @@ At this stage, it is not possible to exclude nim-waku tests, hence `git submodul
 
 To build nim-waku, you also need [Rust](https://www.rust-lang.org/tools/install).
 
+### Guidelines
+
+- Please follow [Chris Beam's commit message guide](https://chris.beams.io/posts/git-commit/),
+- Usually best to test new code,
+- [CI](https://github.com/status-im/js-waku/blob/main/.github/workflows/ci.yml) must pass.
