@@ -7,7 +7,6 @@ import PeerId from 'peer-id';
 import Waku from '../lib/waku';
 import { WakuMessage } from '../lib/waku_message';
 import { RelayDefaultTopic } from '../lib/waku_relay';
-import { delay } from '../test_utils/';
 
 import { ChatMessage } from './chat_message';
 
@@ -49,22 +48,10 @@ const ChatContentTopic = 'dingpu';
     await waku.dial(opts.staticNode);
   }
 
-  await new Promise((resolve) =>
-    waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-  );
-
-  // TODO: identify if it is possible to listen to an event to confirm dial
-  // finished instead of an arbitrary delay. Tracked with
-  // https://github.com/status-im/js-waku/issues/18
-  await delay(2000);
   // TODO: Automatically subscribe, tracked with
   // https://github.com/status-im/js-waku/issues/17
   await waku.relay.subscribe();
   console.log('Subscribed to waku relay');
-
-  await new Promise((resolve) =>
-    waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-  );
 
   const staticNodeId = opts.staticNode?.getPeerId();
   if (staticNodeId) {

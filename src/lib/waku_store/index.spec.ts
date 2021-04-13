@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 
 import {
-  delay,
   makeLogFileName,
   NimWaku,
   NOISE_KEY_1,
@@ -22,11 +21,6 @@ describe('Waku Store', () => {
 
     const waku0 = await Waku.create({ staticNoiseKey: NOISE_KEY_2 });
     await waku0.dial(await nimWaku.getMultiaddrWithId());
-
-    await delay(100);
-    await new Promise((resolve) =>
-      waku0.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-    );
 
     await waku0.relay.subscribe();
 
@@ -50,8 +44,6 @@ describe('Waku Store', () => {
     waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
     await waku.dial(await nimWaku.getMultiaddrWithId());
 
-    await delay(500);
-
     const nimPeerId = await nimWaku.getPeerId();
 
     const messages = await waku.store.queryHistory(nimPeerId);
@@ -72,8 +64,6 @@ describe('Waku Store', () => {
 
     waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-
-    await delay(500);
 
     const nimPeerId = await nimWaku.getPeerId();
 
