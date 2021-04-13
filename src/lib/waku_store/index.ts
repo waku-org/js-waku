@@ -32,7 +32,7 @@ export class WakuStore {
 
     const messages: WakuMessage[] = [];
     let cursor = undefined;
-    do {
+    while (true) {
       try {
         const { stream } = await connection.newStream(StoreCodec);
         try {
@@ -92,7 +92,6 @@ export class WakuStore {
           err
         );
       }
-      // eslint-disable-next-line no-constant-condition
-    } while (true);
+    }
   }
 }
