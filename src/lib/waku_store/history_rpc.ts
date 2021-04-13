@@ -7,10 +7,13 @@ import { DEFAULT_CONTENT_TOPIC } from '../waku_message';
 export class HistoryRPC {
   public constructor(public proto: proto.HistoryRPC) {}
 
-  static query(topics: string[] = [DEFAULT_CONTENT_TOPIC]): HistoryRPC {
+  static createQuery(
+    topics: string[] = [DEFAULT_CONTENT_TOPIC],
+    cursor?: proto.Index
+  ): HistoryRPC {
     const pagingInfo = {
       pageSize: 10,
-      cursor: undefined,
+      cursor,
       direction: proto.Direction.DIRECTION_BACKWARD_UNSPECIFIED,
     };
     return new HistoryRPC({
@@ -27,6 +30,10 @@ export class HistoryRPC {
 
   encode(): Uint8Array {
     return proto.HistoryRPC.encode(this.proto).finish();
+  }
+
+  get query(): proto.HistoryQuery | undefined {
+    return this.proto.query;
   }
 
   get response(): proto.HistoryResponse | undefined {
