@@ -33,19 +33,6 @@ describe('Waku Store', () => {
     await new Promise((resolve) =>
       waku0.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
     );
-
-    await waku0.relay.publish(
-      WakuMessage.fromUtf8String('A message from relay.')
-    );
-
-    await nimWaku.sendMessage(
-      WakuMessage.fromUtf8String('Another message from json rpc.')
-    );
-
-    waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
-    await waku.dial(await nimWaku.getMultiaddrWithId());
-
-    await delay(500);
   });
 
   afterEach(async function () {
@@ -54,19 +41,51 @@ describe('Waku Store', () => {
   });
 
   it('Retrieves history', async function () {
+    this.timeout(5_000);
+
+    for (let i = 0; i < 2; i++) {
+      await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`));
+    }
+
+    waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
+    await waku.dial(await nimWaku.getMultiaddrWithId());
+
+    await delay(500);
+
     const nimPeerId = await nimWaku.getPeerId();
 
-    const response = await waku.store.queryHistory(nimPeerId);
-    const messages = response?.messages;
+    const messages = await waku.store.queryHistory(nimPeerId);
 
     expect(messages?.length).eq(2);
-    const result = messages
-      ?.map((protoMsg) => {
-        return WakuMessage.fromProto(protoMsg);
-      })
-      .findIndex((msg) => {
-        return msg.utf8Payload() === 'A message from relay.';
-      });
+    const result = messages?.findIndex((msg) => {
+      return msg.utf8Payload() === 'Message 0';
+    });
     expect(result).to.not.eq(-1);
+  });
+
+  it('Retrieves all historical elements in chronological order through paging', async function () {
+    this.timeout(5_000);
+
+    for (let i = 0; i < 15; i++) {
+      await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`));
+    }
+
+    waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
+    await waku.dial(await nimWaku.getMultiaddrWithId());
+
+    await delay(500);
+
+    const nimPeerId = await nimWaku.getPeerId();
+
+    const messages = await waku.store.queryHistory(nimPeerId);
+
+    expect(messages?.length).eq(15);
+    for (let index = 0; index < 2; index++) {
+      expect(
+        messages?.findIndex((msg) => {
+          return msg.utf8Payload() === `Message ${index}`;
+        })
+      ).to.eq(index);
+    }
   });
 });

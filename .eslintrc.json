@@ -25,6 +25,7 @@
       "error",
       { "newlines-between": "always", "alphabetize": { "order": "asc" } }
     ],
+    "no-constant-condition": ["error", { "checkLoops": false }],
     "sort-imports": [
       "error",
       { "ignoreDeclarationSort": true, "ignoreCase": true }
