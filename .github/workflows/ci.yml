@@ -32,11 +32,16 @@ jobs:
             ./nim-waku/vendor/rln/target/debug
           key: nim-waku-build-v3-${{ steps.nim-waku-head.outputs.ref }}
 
+      - name: Install NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
         # This would have been done part of npm pretest but it gives better
         # visibility in the CI if done as a separate step
       - name: Build wakunode2
         shell: bash
-        run: cd nim-waku && ./build/wakunode2 --help || make wakunode2
+        run: (cd nim-waku && ./build/wakunode2 --help) || npm run nim-waku:build
 
       - name: Ensure wakunode2 is ready
         shell: bash
@@ -51,11 +56,6 @@ jobs:
         uses: arduino/setup-protoc@v1
         with:
           version: '3.x'
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
 
       - name: Cache npm cache
         uses: actions/cache@v2
