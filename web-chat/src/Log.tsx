@@ -1,40 +1,31 @@
 import React from 'react';
 
 interface Props {
+  lines: string[]
 }
 
 interface State {
-  lines: string[];
 }
 
 export default class Log extends React.Component<Props, State> {
-  state: State = {
-    lines: [
-      'here',
-      'is',
-      'a',
-      'line'
-    ]
-  };
-
   render() {
     return (
       <div className='log'>
-        {this.renderLines()}
+        {this.renderLines(this.props.lines)}
       </div>
     );
   }
 
-  renderLines() {
+  renderLines(lines: string[]) {
 
-    const lines = [];
-    for (const line of this.state.lines) {
-      lines.push(<div className='log-row'>{line}</div>);
+    const renderedLines = [];
+    for (const line of lines) {
+      renderedLines.push(<div className='log-row'>{line}</div>);
     }
 
     return (
       <div>
-        {lines}
+        {renderedLines}
       </div>
     );
   }
