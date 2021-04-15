@@ -1,6 +1,7 @@
 import readline from 'readline';
 import util from 'util';
 
+import TCP from 'libp2p-tcp';
 import Multiaddr from 'multiaddr';
 import PeerId from 'peer-id';
 
@@ -15,15 +16,23 @@ const ChatContentTopic = 'dingpu';
 (async function () {
   const opts = processArguments();
 
-  const waku = await Waku.create({ listenAddresses: [opts.listenAddr] });
-  console.log('Waku started');
+  const waku = await Waku.create({
+    listenAddresses: [opts.listenAddr],
+    modules: { transport: [TCP] },
+  });
+  console.log('PeerId: ', waku.libp2p.peerId);
+  console.log('Listening on ');
+  waku.libp2p.multiaddrs.forEach((address) => {
+    console.log(`\t- ${address}`);
+  });
+
   // TODO: Automatically subscribe, tracked with
   // https://github.com/status-im/js-waku/issues/17
   await waku.relay.subscribe();
   console.log('Subscribed to waku relay');
 
   if (opts.staticNode) {
-    console.log(`dialing ${opts.staticNode}`);
+    console.log(`Dialing ${opts.staticNode}`);
     await waku.dial(opts.staticNode);
   }
 

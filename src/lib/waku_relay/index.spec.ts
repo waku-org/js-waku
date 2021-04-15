@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
+import TCP from 'libp2p-tcp';
 
 import {
   makeLogFileName,
@@ -25,7 +26,10 @@ describe('Waku Relay', () => {
   beforeEach(async function () {
     [waku1, waku2] = await Promise.all([
       Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
-      Waku.create({ staticNoiseKey: NOISE_KEY_2 }),
+      Waku.create({
+        staticNoiseKey: NOISE_KEY_2,
+        listenAddresses: ['/ip4/0.0.0.0/tcp/0/wss'],
+      }),
     ]);
 
     await waku1.dialWithMultiAddr(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
@@ -93,7 +97,11 @@ describe('Waku Relay', () => {
 
       beforeEach(async function () {
         this.timeout(12_000);
-        waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
+        waku = await Waku.create({
+          staticNoiseKey: NOISE_KEY_1,
+          listenAddresses: ['/ip4/0.0.0.0/tcp/0'],
+          modules: { transport: [TCP] },
+        });
 
         const multiAddrWithId = waku.getLocalMultiaddrWithID();
         nimWaku = new NimWaku(makeLogFileName(this));
@@ -164,7 +172,10 @@ describe('Waku Relay', () => {
 
       beforeEach(async function () {
         this.timeout(10_000);
-        waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
+        waku = await Waku.create({
+          staticNoiseKey: NOISE_KEY_1,
+          modules: { transport: [TCP] },
+        });
 
         nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
         await nimWaku.start();
@@ -189,7 +200,8 @@ describe('Waku Relay', () => {
       });
 
       it('Js publishes to nim', async function () {
-        this.timeout(3000);
+        this.timeout(5000);
+
         const message = WakuMessage.fromUtf8String('This is a message');
 
         await waku.relay.publish(message);
@@ -235,8 +247,14 @@ describe('Waku Relay', () => {
       beforeEach(async function () {
         this.timeout(10_000);
         [waku1, waku2] = await Promise.all([
-          Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
-          Waku.create({ staticNoiseKey: NOISE_KEY_2 }),
+          Waku.create({
+            staticNoiseKey: NOISE_KEY_1,
+            modules: { transport: [TCP] },
+          }),
+          Waku.create({
+            staticNoiseKey: NOISE_KEY_2,
+            modules: { transport: [TCP] },
+          }),
         ]);
 
         nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
