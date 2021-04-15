@@ -15,21 +15,31 @@ const ChatContentTopic = 'dingpu';
 (async function () {
   const opts = processArguments();
 
+  const waku = await Waku.create({ listenAddresses: [opts.listenAddr] });
+  console.log('Waku started');
+  // TODO: Automatically subscribe, tracked with
+  // https://github.com/status-im/js-waku/issues/17
+  await waku.relay.subscribe();
+  console.log('Subscribed to waku relay');
+
+  if (opts.staticNode) {
+    console.log(`dialing ${opts.staticNode}`);
+    await waku.dial(opts.staticNode);
+  }
+
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
   const question = util.promisify(rl.question).bind(rl);
-
   // Looks like wrong type definition of promisify is picked.
   // May be related to https://github.com/DefinitelyTyped/DefinitelyTyped/issues/20497
   const nick = ((await question(
     'Please choose a nickname: '
   )) as unknown) as string;
-  console.log(`Hi ${nick}!`);
 
-  const waku = await Waku.create({ listenAddresses: [opts.listenAddr] });
+  console.log(`Hi, ${nick}!`);
 
   // TODO: Bubble event to waku, infer topic, decode msg
   // Tracked with https://github.com/status-im/js-waku/issues/19
@@ -40,18 +50,6 @@ const ChatContentTopic = 'dingpu';
       printMessage(chatMsg);
     }
   });
-
-  console.log('Waku started');
-
-  if (opts.staticNode) {
-    console.log(`dialing ${opts.staticNode}`);
-    await waku.dial(opts.staticNode);
-  }
-
-  // TODO: Automatically subscribe, tracked with
-  // https://github.com/status-im/js-waku/issues/17
-  await waku.relay.subscribe();
-  console.log('Subscribed to waku relay');
 
   const staticNodeId = opts.staticNode?.getPeerId();
   if (staticNodeId) {
