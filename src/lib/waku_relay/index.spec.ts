@@ -1,9 +1,12 @@
 import { expect } from 'chai';
 import Pubsub from 'libp2p-interfaces/src/pubsub';
 
-import { NOISE_KEY_1, NOISE_KEY_2 } from '../../test_utils/constants';
-import { makeLogFileName } from '../../test_utils/log_file';
-import { NimWaku } from '../../test_utils/nim_waku';
+import {
+  makeLogFileName,
+  NimWaku,
+  NOISE_KEY_1,
+  NOISE_KEY_2,
+} from '../../test_utils';
 import { delay } from '../delay';
 import Waku from '../waku';
 import { WakuMessage } from '../waku_message';
