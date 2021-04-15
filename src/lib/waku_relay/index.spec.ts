@@ -289,6 +289,8 @@ describe('Waku Relay', () => {
       });
 
       it('Js publishes, other Js receives', async function () {
+        this.timeout(3000);
+
         // Check that the two JS peers are NOT directly connected
         expect(
           waku1.libp2p.peerStore.peers.has(waku2.libp2p.peerId.toB58String())
