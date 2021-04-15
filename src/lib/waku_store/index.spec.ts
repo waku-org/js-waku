@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import TCP from 'libp2p-tcp';
 
 import {
   makeLogFileName,
@@ -19,7 +20,10 @@ describe('Waku Store', () => {
     nimWaku = new NimWaku(makeLogFileName(this));
     await nimWaku.start({ store: true });
 
-    const waku0 = await Waku.create({ staticNoiseKey: NOISE_KEY_2 });
+    const waku0 = await Waku.create({
+      staticNoiseKey: NOISE_KEY_2,
+      modules: { transport: [TCP] },
+    });
     await waku0.dial(await nimWaku.getMultiaddrWithId());
 
     await waku0.relay.subscribe();
@@ -41,7 +45,10 @@ describe('Waku Store', () => {
       await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`));
     }
 
-    waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+      modules: { transport: [TCP] },
+    });
     await waku.dial(await nimWaku.getMultiaddrWithId());
 
     const nimPeerId = await nimWaku.getPeerId();
@@ -62,7 +69,10 @@ describe('Waku Store', () => {
       await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`));
     }
 
-    waku = await Waku.create({ staticNoiseKey: NOISE_KEY_1 });
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+      modules: { transport: [TCP] },
+    });
     await waku.dial(await nimWaku.getMultiaddrWithId());
 
     const nimPeerId = await nimWaku.getPeerId();

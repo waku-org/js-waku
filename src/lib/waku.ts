@@ -2,7 +2,7 @@ import Libp2p from 'libp2p';
 import Mplex from 'libp2p-mplex';
 import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
-import TCP from 'libp2p-tcp';
+import Websockets from 'libp2p-websockets';
 import Multiaddr from 'multiaddr';
 import pTimeout from 'p-timeout';
 import PeerId from 'peer-id';
@@ -17,6 +17,12 @@ const WaitForIdentityTimeoutMs = 2_000;
 export interface CreateOptions {
   listenAddresses: string[];
   staticNoiseKey: bytes | undefined;
+  modules: {
+    transport: import('libp2p-interfaces/src/transport/types').TransportFactory<
+      any,
+      any
+    >[];
+  };
 }
 
 export default class Waku {
@@ -28,26 +34,37 @@ export default class Waku {
 
   /**
    * Create new waku node
-   * @param listenAddresses: Array of Multiaddrs on which the node should listen. If not present, defaults to ['/ip4/0.0.0.0/tcp/0'].
+   * @param listenAddresses: Array of Multiaddrs on which the node should listen.
+   * If not present, the node is dial only.
    * @param staticNoiseKey: A static key to use for noise,
    * mainly used for test to reduce entropy usage.
+   * @throws If
    * @returns {Promise<Waku>}
    */
   static async create(options: Partial<CreateOptions>): Promise<Waku> {
     const opts = Object.assign(
       {
-        listenAddresses: ['/ip4/0.0.0.0/tcp/0'],
+        listenAddresses: [],
         staticNoiseKey: undefined,
       },
       options
     );
 
+    let transport = [Websockets];
+    if (opts.modules?.transport) {
+      transport = transport.concat(opts.modules?.transport);
+    }
+
+    // FIXME: By controlling the creation of libp2p we have to think about what
+    // needs to be exposed and what does not. Ideally, we should be able to let
+    // the user create the WakuStore, WakuRelay instances and pass them when
+    // creating the libp2p instance.
     const libp2p = await Libp2p.create({
       addresses: {
         listen: opts.listenAddresses,
       },
       modules: {
-        transport: [TCP],
+        transport,
         streamMuxer: [Mplex],
         connEncryption: [new Noise(opts.staticNoiseKey)],
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

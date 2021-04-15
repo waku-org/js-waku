@@ -56,7 +56,8 @@
     "untracked",
     "upgrader",
     "waku",
-    "wakunode"
+    "wakunode",
+    "websockets"
   ],
   "flagWords": [],
   "ignorePaths": [

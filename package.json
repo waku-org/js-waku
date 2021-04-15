@@ -59,6 +59,7 @@
     "libp2p-noise": "^2.0.5",
     "libp2p-secio": "^0.13.1",
     "libp2p-tcp": "^0.15.3",
+    "libp2p-websockets": "^0.15.5",
     "multiaddr": "^8.1.2",
     "prompt-sync": "^4.2.0",
     "ts-proto": "^1.74.0",

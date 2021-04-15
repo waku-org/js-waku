@@ -13,3 +13,4 @@ declare module 'libp2p-secio' {
   const Secio: any;
   export = Secio;
 }
+declare module 'libp2p-websockets';
