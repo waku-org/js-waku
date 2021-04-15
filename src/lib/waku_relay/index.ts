@@ -294,11 +294,8 @@ export class WakuRelayPubsub extends Gossipsub {
 
 // This class provides an interface to execute the waku relay protocol
 export class WakuRelay {
-  constructor(private pubsub: Pubsub) {}
-
-  // At this stage we are always using the same topic so we do not pass it as a parameter
-  async subscribe() {
-    await this.pubsub.subscribe(constants.RelayDefaultTopic);
+  constructor(private pubsub: Pubsub) {
+    this.pubsub.subscribe(constants.RelayDefaultTopic);
   }
 
   async publish(message: WakuMessage) {

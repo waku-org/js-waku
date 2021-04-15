@@ -34,9 +34,6 @@ describe('Waku Relay', () => {
 
     await waku1.dialWithMultiAddr(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
 
-    await waku1.relay.subscribe();
-    await waku2.relay.subscribe();
-
     await Promise.all([
       new Promise((resolve) =>
         waku1.libp2p.pubsub.once('pubsub:subscription-change', () =>
@@ -107,7 +104,6 @@ describe('Waku Relay', () => {
         nimWaku = new NimWaku(makeLogFileName(this));
         await nimWaku.start({ staticnode: multiAddrWithId });
 
-        await waku.relay.subscribe();
         await new Promise((resolve) =>
           waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
         );
@@ -179,8 +175,6 @@ describe('Waku Relay', () => {
 
         nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
         await nimWaku.start();
-
-        await waku.relay.subscribe();
 
         await waku.dial(await nimWaku.getMultiaddrWithId());
 
@@ -275,8 +269,6 @@ describe('Waku Relay', () => {
           waku1.dial(nimWakuMultiaddr),
           waku2.dial(nimWakuMultiaddr),
         ]);
-
-        await Promise.all([waku1.relay.subscribe(), waku2.relay.subscribe()]);
 
         await Promise.all([
           new Promise((resolve) =>

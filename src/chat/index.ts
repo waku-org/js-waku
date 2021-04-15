@@ -26,11 +26,6 @@ const ChatContentTopic = 'dingpu';
     console.log(`\t- ${address}`);
   });
 
-  // TODO: Automatically subscribe, tracked with
-  // https://github.com/status-im/js-waku/issues/17
-  await waku.relay.subscribe();
-  console.log('Subscribed to waku relay');
-
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
