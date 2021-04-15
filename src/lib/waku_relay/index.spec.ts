@@ -45,6 +45,7 @@ describe('Waku Relay', () => {
   });
 
   afterEach(async function () {
+    this.timeout(5000);
     await waku1.stop();
     await waku2.stop();
   });
@@ -185,6 +186,7 @@ describe('Waku Relay', () => {
       });
 
       it('Js publishes to nim', async function () {
+        this.timeout(3000);
         const message = WakuMessage.fromUtf8String('This is a message');
 
         await waku.relay.publish(message);
