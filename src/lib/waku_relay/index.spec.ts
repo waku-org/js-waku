@@ -180,9 +180,19 @@ describe('Waku Relay', () => {
         nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
         await nimWaku.start();
 
+        await waku.relay.subscribe();
+
         await waku.dial(await nimWaku.getMultiaddrWithId());
 
-        await waku.relay.subscribe();
+        // Wait for identify protocol to finish
+        await new Promise((resolve) => {
+          waku.libp2p.peerStore.once('change:protocols', resolve);
+        });
+
+        // Wait for one heartbeat to ensure mesh is updated
+        await new Promise((resolve) => {
+          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve);
+        });
       });
 
       afterEach(async function () {
