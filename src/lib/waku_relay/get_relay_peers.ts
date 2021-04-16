@@ -1,6 +1,7 @@
+import Gossipsub from 'libp2p-gossipsub';
 import { shuffle } from 'libp2p-gossipsub/src/utils';
 
-import { RelayCodec, WakuRelayPubsub } from './index';
+import { RelayCodec } from './index';
 
 /**
  * Given a topic, returns up to count peers subscribed to that topic
@@ -14,7 +15,7 @@ import { RelayCodec, WakuRelayPubsub } from './index';
  *
  */
 export function getRelayPeers(
-  router: WakuRelayPubsub,
+  router: Gossipsub,
   topic: string,
   count: number,
   filter: (id: string) => boolean = () => true

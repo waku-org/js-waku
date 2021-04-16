@@ -76,7 +76,7 @@ describe('Waku Relay', () => {
 
     const receivedPromise = waitForNextData(waku2.libp2p.pubsub);
 
-    await waku1.relay.publish(message);
+    await waku1.relay.send(message);
 
     const receivedMsg = await receivedPromise;
 
@@ -128,7 +128,7 @@ describe('Waku Relay', () => {
 
         const message = WakuMessage.fromUtf8String('This is a message');
 
-        await waku.relay.publish(message);
+        await waku.relay.send(message);
 
         let msgs = [];
 
@@ -208,7 +208,7 @@ describe('Waku Relay', () => {
 
         const message = WakuMessage.fromUtf8String('This is a message');
 
-        await waku.relay.publish(message);
+        await waku.relay.send(message);
 
         let msgs = [];
 
@@ -304,7 +304,7 @@ describe('Waku Relay', () => {
 
         const waku2ReceivedPromise = waitForNextData(waku2.libp2p.pubsub);
 
-        await waku1.relay.publish(message);
+        await waku1.relay.send(message);
 
         const waku2ReceivedMsg = await waku2ReceivedPromise;
 

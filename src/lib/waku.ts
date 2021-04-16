@@ -6,7 +6,7 @@ import Websockets from 'libp2p-websockets';
 import Multiaddr from 'multiaddr';
 import PeerId from 'peer-id';
 
-import { RelayCodec, WakuRelay, WakuRelayPubsub } from './waku_relay';
+import { RelayCodec, WakuRelay } from './waku_relay';
 import { StoreCodec, WakuStore } from './waku_store';
 
 export interface CreateOptions {
@@ -21,11 +21,15 @@ export interface CreateOptions {
 }
 
 export default class Waku {
-  private constructor(
-    public libp2p: Libp2p,
-    public relay: WakuRelay,
-    public store: WakuStore
-  ) {}
+  public libp2p: Libp2p;
+  public relay: WakuRelay;
+  public store: WakuStore;
+
+  private constructor(libp2p: Libp2p, store: WakuStore) {
+    this.libp2p = libp2p;
+    this.relay = (libp2p.pubsub as unknown) as WakuRelay;
+    this.store = store;
+  }
 
   /**
    * Create new waku node
@@ -64,7 +68,7 @@ export default class Waku {
         connEncryption: [new Noise(opts.staticNoiseKey)],
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore: Type needs update
-        pubsub: WakuRelayPubsub,
+        pubsub: WakuRelay,
       },
     });
 
@@ -72,7 +76,7 @@ export default class Waku {
 
     await libp2p.start();
 
-    return new Waku(libp2p, new WakuRelay(libp2p.pubsub), wakuStore);
+    return new Waku(libp2p, wakuStore);
   }
 
   /**

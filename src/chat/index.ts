@@ -85,7 +85,7 @@ const ChatContentTopic = 'dingpu';
     const chatMessage = new ChatMessage(new Date(), nick, line);
 
     const msg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
-    await waku.relay.publish(msg);
+    await waku.relay.send(msg);
   }
 })();
 

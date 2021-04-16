@@ -6,7 +6,7 @@ import {
   messageIdToString,
   shuffle,
 } from 'libp2p-gossipsub/src/utils';
-import Pubsub, { InMessage } from 'libp2p-interfaces/src/pubsub';
+import { InMessage } from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 import PeerId from 'peer-id';
 
@@ -19,8 +19,7 @@ import { RelayHeartbeat } from './relay_heartbeat';
 export * from './constants';
 export * from './relay_heartbeat';
 
-// This is the class to pass to libp2p as pubsub protocol
-export class WakuRelayPubsub extends Gossipsub {
+export class WakuRelay extends Gossipsub {
   heartbeat: RelayHeartbeat;
 
   /**
@@ -41,6 +40,28 @@ export class WakuRelayPubsub extends Gossipsub {
     // This is the downside of using `libp2p-gossipsub` instead of
     // implementing WakuRelay from scratch.
     Object.assign(this, { multicodecs });
+  }
+
+  /**
+   * Mounts the gossipsub protocol onto the libp2p node
+   * and subscribes to the default topic
+   * @override
+   * @returns {void}
+   */
+  start() {
+    super.start();
+    super.subscribe(constants.RelayDefaultTopic);
+  }
+
+  /**
+   * Send Waku messages under default topic
+   * @override
+   * @param {WakuMessage} message
+   * @returns {Promise<void>}
+   */
+  async send(message: WakuMessage) {
+    const msg = message.toBinary();
+    await super.publish(constants.RelayDefaultTopic, Buffer.from(msg));
   }
 
   /**
@@ -289,17 +310,5 @@ export class WakuRelayPubsub extends Gossipsub {
       peers: px,
       backoff: backoff,
     };
-  }
-}
-
-// This class provides an interface to execute the waku relay protocol
-export class WakuRelay {
-  constructor(private pubsub: Pubsub) {
-    this.pubsub.subscribe(constants.RelayDefaultTopic);
-  }
-
-  async publish(message: WakuMessage) {
-    const msg = message.toBinary();
-    await this.pubsub.publish(constants.RelayDefaultTopic, msg);
   }
 }
