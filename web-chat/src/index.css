@@ -12,12 +12,12 @@ code {
     monospace;
 }
 
-.log-row {
+.room-row {
   text-align: left;
   margin-left: 20px;
 }
 
-.log-row:after {
+.room-row:after {
   clear: both;
   content: "";
   display: table;

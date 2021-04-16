@@ -7,10 +7,10 @@ interface Props {
 interface State {
 }
 
-export default class Log extends React.Component<Props, State> {
+export default class Room extends React.Component<Props, State> {
   render() {
     return (
-      <div className='log'>
+      <div className='room'>
         {this.renderLines(this.props.lines)}
       </div>
     );
@@ -20,7 +20,7 @@ export default class Log extends React.Component<Props, State> {
 
     const renderedLines = [];
     for (const line of lines) {
-      renderedLines.push(<div className='log-row'>{line}</div>);
+      renderedLines.push(<div className='room-row'>{line}</div>);
     }
 
     return (
