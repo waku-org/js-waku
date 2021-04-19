@@ -1,4 +1,5 @@
 import React from 'react';
+import Send from './Send';
 
 interface Props {
   lines: string[]
@@ -7,11 +8,15 @@ interface Props {
 interface State {
 }
 
+
 export default class Room extends React.Component<Props, State> {
   render() {
     return (
-      <div className='room'>
-        {this.renderLines(this.props.lines)}
+      <div>
+        <Send />
+        <div className='room'>
+          {this.renderLines(this.props.lines)}
+        </div>
       </div>
     );
   }
