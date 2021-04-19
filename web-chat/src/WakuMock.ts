@@ -35,7 +35,7 @@ export default class WakuMock extends EventEmitter<Message> {
   }
 
   public static async create(): Promise<WakuMock> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const wakuMock = new WakuMock();
     wakuMock.startInterval();

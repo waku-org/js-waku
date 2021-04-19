@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 import Room from './Room';
+import WakuMock from './WakuMock';
 
 interface Props {
 }
@@ -14,8 +15,16 @@ class App extends React.Component<Props, State> {
     super(props);
 
     this.state = {
-      messages: ['Here is a line', 'Here is another line']
+      messages: []
     };
+
+     WakuMock.create().then((wakuMock) => {
+       wakuMock.on('message',(message)=>{
+         const messages = this.state.messages.slice();
+         messages.push(message.message);
+         this.setState({messages});
+       })
+     });
   }
 
   render() {
