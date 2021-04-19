@@ -35,7 +35,7 @@ export default class Room extends React.Component<Props, State> {
       <Grid container spacing={2}>
 
         <Grid item xs={12}>
-          <Box height={1080} maxHeight={1080}
+          <Box height={800} maxHeight={800}
                style={{ flex: 1, maxHeight: '100%', overflow: 'scroll' }}>
             <Lines messages={this.props.lines} />
           </Box>
