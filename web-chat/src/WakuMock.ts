@@ -13,11 +13,10 @@ class EventEmitter<T> {
   emit(event: string, data: T) {
     let cbs = this.callbacks[event];
     if (cbs) {
-      cbs.forEach(cb => cb(data));
+      cbs.forEach((cb) => cb(data));
     }
   }
 }
-
 
 export interface Message {
   timestamp: Date;
@@ -48,7 +47,7 @@ export default class WakuMock extends EventEmitter<Message> {
     this.emit('message', {
       timestamp,
       handle,
-      message
+      message,
     });
   }
 
@@ -64,8 +63,7 @@ export default class WakuMock extends EventEmitter<Message> {
     this.emit('message', {
       timestamp,
       handle,
-      message: `This is message #${this.index++}.`
+      message: `This is message #${this.index++}.`,
     });
   }
 }
-
