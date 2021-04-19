@@ -204,7 +204,7 @@ describe('Waku Relay', () => {
       });
 
       it('Js publishes to nim', async function () {
-        this.timeout(5000);
+        this.timeout(10000);
 
         const message = WakuMessage.fromUtf8String('This is a message');
 
@@ -289,7 +289,7 @@ describe('Waku Relay', () => {
       });
 
       it('Js publishes, other Js receives', async function () {
-        this.timeout(3000);
+        this.timeout(10000);
 
         // Check that the two JS peers are NOT directly connected
         expect(
