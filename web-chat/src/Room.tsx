@@ -1,9 +1,9 @@
 import {
-  Container,
+  Box,
   Grid,
   List,
   ListItem,
-  ListItemText
+  ListItemText, Paper
 } from '@material-ui/core';
 import React from 'react';
 import MessageInput from './MessageInput';
@@ -32,27 +32,34 @@ export default class Room extends React.Component<Props, State> {
 
   render() {
     return (
-      <div>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Container maxWidth='xl'>
-              {this.renderLines()}
-            </Container>
-          </Grid>
-          <Grid item xs={10}>
-            <MessageInput messageHandler={this.messageHandler} />
-          </Grid>
-          <Grid item xs={2}>
-            <Send message={this.state.messageToSend} />
+      <Grid container spacing={2}>
+
+        <Grid item xs={12}>
+          <Box height={1080} maxHeight={1080}
+               style={{ flex: 1, maxHeight: '100%', overflow: 'scroll' }}>
+            {this.renderLines()}
+          </Box>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Grid container spacing={2} direction="row" alignItems="center">
+            <Grid item xs={11}>
+              <MessageInput messageHandler={this.messageHandler.bind(this)} />
+            </Grid>
+            <Grid item xs={1}>
+              <Send message={this.state.messageToSend} />
+            </Grid>
           </Grid>
         </Grid>
-      </div>
+
+      </Grid>
     );
   }
 
   // TODO: Make it own component
   renderLines() {
     const renderedLines = [];
+
     for (const line of this.props.lines) {
       renderedLines.push(<ListItem>
         <ListItemText

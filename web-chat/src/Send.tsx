@@ -14,7 +14,7 @@ const Send = (props: Props) => {
   };
 
   return (
-    <Button variant="contained" color="primary" onClick={handleClick}>
+    <Button variant="contained" color="primary" size="large" onClick={handleClick}>
       Send
     </Button>
   );

@@ -25,8 +25,14 @@ export default class MessageInput extends React.Component<Props, State> {
   render() {
     return (
       <TextField variant='outlined'
-                 label='Send a message...'
-                 onChange={this.messageHandler}
+                 label='Send a message'
+                 fullWidth
+                 style={{ margin: 8 }}
+                 margin="normal"
+                 InputLabelProps={{
+                   shrink: true,
+                 }}
+                 onChange={this.messageHandler.bind(this)}
       />
     );
   }

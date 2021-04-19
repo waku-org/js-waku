@@ -22,3 +22,7 @@ code {
   content: "";
   display: table;
 }
+
+.chat-room{
+  margin: 2px;
+}

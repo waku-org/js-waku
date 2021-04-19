@@ -1,3 +1,4 @@
+import { Paper } from '@material-ui/core';
 import React from 'react';
 import './App.css';
 import Room from './Room';
@@ -39,7 +40,9 @@ class App extends React.Component<Props, State> {
       <div className='App'>
         <div className='chat-room'>
           <WakuContext.Provider value={{ waku: this.state.waku }}>
-            <Room lines={this.state.messages} />
+            <Paper >
+              <Room lines={this.state.messages} />
+            </Paper>
           </WakuContext.Provider>
         </div>
       </div>
