@@ -3,7 +3,7 @@ import {
   Grid,
   List,
   ListItem,
-  ListItemText, Paper
+  ListItemText
 } from '@material-ui/core';
 import React from 'react';
 import MessageInput from './MessageInput';
@@ -37,12 +37,12 @@ export default class Room extends React.Component<Props, State> {
         <Grid item xs={12}>
           <Box height={1080} maxHeight={1080}
                style={{ flex: 1, maxHeight: '100%', overflow: 'scroll' }}>
-            {this.renderLines()}
+            <Lines messages={this.props.lines} />
           </Box>
         </Grid>
 
         <Grid item xs={12}>
-          <Grid container spacing={2} direction="row" alignItems="center">
+          <Grid container spacing={2} direction='row' alignItems='center'>
             <Grid item xs={11}>
               <MessageInput messageHandler={this.messageHandler.bind(this)} />
             </Grid>
@@ -55,23 +55,26 @@ export default class Room extends React.Component<Props, State> {
       </Grid>
     );
   }
-
-  // TODO: Make it own component
-  renderLines() {
-    const renderedLines = [];
-
-    for (const line of this.props.lines) {
-      renderedLines.push(<ListItem>
-        <ListItemText
-          primary={line}
-        />
-      </ListItem>);
-    }
-
-    return (
-      <List dense={true}>
-        {renderedLines}
-      </List>
-    );
-  }
 }
+
+interface LinesProps {
+  messages: string[]
+}
+
+const Lines = (props: LinesProps) => {
+  const renderedLines = [];
+
+  for (const line of props.messages) {
+    renderedLines.push(<ListItem>
+      <ListItemText
+        primary={line}
+      />
+    </ListItem>);
+  }
+
+  return (
+    <List dense={true}>
+      {renderedLines}
+    </List>
+  );
+};
