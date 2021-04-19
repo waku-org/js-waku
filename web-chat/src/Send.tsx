@@ -1,5 +1,6 @@
 import React from 'react';
 import { useWaku } from './WakuContext';
+import { Button } from '@material-ui/core';
 
 interface Props {
   message: string
@@ -8,11 +9,14 @@ interface Props {
 const Send = (props: Props) => {
   const { waku } = useWaku();
 
+  const handleClick = async () => {
+    await waku!.send(props.message);
+  };
+
   return (
-    <button className='sendButton' onClick={async () => {
-      await waku!.send(props.message);
-    }}>
-    </button>
+    <Button variant="contained" color="primary" onClick={handleClick}>
+      Send
+    </Button>
   );
 };
 

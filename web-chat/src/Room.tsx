@@ -1,5 +1,12 @@
+import {
+  Container,
+  Grid,
+  List,
+  ListItem,
+  ListItemText
+} from '@material-ui/core';
 import React from 'react';
-import Input from './Input';
+import MessageInput from './MessageInput';
 import Send from './Send';
 
 interface Props {
@@ -18,32 +25,46 @@ export default class Room extends React.Component<Props, State> {
     this.state = { messageToSend: '' };
   }
 
+  messageHandler(msg: string) {
+    this.setState({ messageToSend: msg });
+  }
+
+
   render() {
     return (
       <div>
-        <Input messageHandler={(msg: string) => {
-          this.setState({ messageToSend: msg });
-        }
-        } />
-        <Send message={this.state.messageToSend} />
-        <div className='room'>
-          {this.renderLines(this.props.lines)}
-        </div>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Container maxWidth='xl'>
+              {this.renderLines()}
+            </Container>
+          </Grid>
+          <Grid item xs={10}>
+            <MessageInput messageHandler={this.messageHandler} />
+          </Grid>
+          <Grid item xs={2}>
+            <Send message={this.state.messageToSend} />
+          </Grid>
+        </Grid>
       </div>
     );
   }
 
-  renderLines(lines: string[]) {
-
+  // TODO: Make it own component
+  renderLines() {
     const renderedLines = [];
-    for (const line of lines) {
-      renderedLines.push(<div className='room-row'>{line}</div>);
+    for (const line of this.props.lines) {
+      renderedLines.push(<ListItem>
+        <ListItemText
+          primary={line}
+        />
+      </ListItem>);
     }
 
     return (
-      <div>
+      <List dense={true}>
         {renderedLines}
-      </div>
+      </List>
     );
   }
 }
