@@ -30,9 +30,10 @@ export const ChatMessageProto = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ChatMessageProto {
-    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseChatMessageProto } as ChatMessageProto;
+    message.payload = new Uint8Array();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -55,6 +56,7 @@ export const ChatMessageProto = {
 
   fromJSON(object: any): ChatMessageProto {
     const message = { ...baseChatMessageProto } as ChatMessageProto;
+    message.payload = new Uint8Array();
     if (object.timestamp !== undefined && object.timestamp !== null) {
       message.timestamp = Number(object.timestamp);
     } else {
