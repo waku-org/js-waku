@@ -3,11 +3,11 @@ import util from 'util';
 
 import TCP from 'libp2p-tcp';
 import Multiaddr from 'multiaddr';
-import PeerId from 'peer-id';
 
 import Waku from '../lib/waku';
 import { WakuMessage } from '../lib/waku_message';
 import { RelayDefaultTopic } from '../lib/waku_relay';
+import { StoreCodec } from '../lib/waku_store';
 
 import { ChatMessage } from './chat_message';
 
@@ -20,21 +20,11 @@ const ChatContentTopic = 'dingpu';
     listenAddresses: [opts.listenAddr],
     modules: { transport: [TCP] },
   });
-  console.log('PeerId: ', waku.libp2p.peerId);
+  console.log('PeerId: ', waku.libp2p.peerId.toB58String());
   console.log('Listening on ');
   waku.libp2p.multiaddrs.forEach((address) => {
     console.log(`\t- ${address}`);
   });
-
-  // TODO: Automatically subscribe, tracked with
-  // https://github.com/status-im/js-waku/issues/17
-  await waku.relay.subscribe();
-  console.log('Subscribed to waku relay');
-
-  if (opts.staticNode) {
-    console.log(`Dialing ${opts.staticNode}`);
-    await waku.dial(opts.staticNode);
-  }
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -60,22 +50,33 @@ const ChatContentTopic = 'dingpu';
     }
   });
 
-  const staticNodeId = opts.staticNode?.getPeerId();
-  if (staticNodeId) {
-    const storePeerId = PeerId.createFromB58String(staticNodeId);
-    console.log(
-      `Retrieving archived messages from ${storePeerId.toB58String()}`
-    );
-    const messages = await waku.store.queryHistory(storePeerId, [
-      ChatContentTopic,
-    ]);
-    messages?.map((msg) => {
-      if (msg.payload) {
-        const chatMsg = ChatMessage.decode(msg.payload);
-        printMessage(chatMsg);
-      }
-    });
+  if (opts.staticNode) {
+    console.log(`Dialing ${opts.staticNode}`);
+    await waku.dial(opts.staticNode);
   }
+
+  // If we connect to a peer with WakuStore, we run the protocol
+  // TODO: Instead of doing it `once` it should always be done but
+  // only new messages should be printed
+  waku.libp2p.peerStore.once(
+    'change:protocols',
+    async ({ peerId, protocols }) => {
+      if (protocols.includes(StoreCodec)) {
+        console.log(
+          `Retrieving archived messages from ${peerId.toB58String()}`
+        );
+        const messages = await waku.store.queryHistory(peerId, [
+          ChatContentTopic,
+        ]);
+        messages?.map((msg) => {
+          if (msg.payload) {
+            const chatMsg = ChatMessage.decode(msg.payload);
+            printMessage(chatMsg);
+          }
+        });
+      }
+    }
+  );
 
   console.log('Ready to chat!');
   rl.prompt();
@@ -84,7 +85,7 @@ const ChatContentTopic = 'dingpu';
     const chatMessage = new ChatMessage(new Date(), nick, line);
 
     const msg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
-    await waku.relay.publish(msg);
+    await waku.relay.send(msg);
   }
 })();
 

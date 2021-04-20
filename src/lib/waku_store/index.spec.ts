@@ -1,37 +1,13 @@
 import { expect } from 'chai';
 import TCP from 'libp2p-tcp';
 
-import {
-  makeLogFileName,
-  NimWaku,
-  NOISE_KEY_1,
-  NOISE_KEY_2,
-} from '../../test_utils';
+import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../../test_utils';
 import Waku from '../waku';
 import { WakuMessage } from '../waku_message';
 
 describe('Waku Store', () => {
   let waku: Waku;
   let nimWaku: NimWaku;
-
-  beforeEach(async function () {
-    this.timeout(5_000);
-
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ store: true });
-
-    const waku0 = await Waku.create({
-      staticNoiseKey: NOISE_KEY_2,
-      modules: { transport: [TCP] },
-    });
-    await waku0.dial(await nimWaku.getMultiaddrWithId());
-
-    await waku0.relay.subscribe();
-
-    await new Promise((resolve) =>
-      waku0.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-    );
-  });
 
   afterEach(async function () {
     nimWaku ? nimWaku.stop() : null;
@@ -40,6 +16,9 @@ describe('Waku Store', () => {
 
   it('Retrieves history', async function () {
     this.timeout(5_000);
+
+    nimWaku = new NimWaku(makeLogFileName(this));
+    await nimWaku.start({ store: true });
 
     for (let i = 0; i < 2; i++) {
       await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`));
@@ -50,6 +29,11 @@ describe('Waku Store', () => {
       modules: { transport: [TCP] },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
+
+    // Wait for identify protocol to finish
+    await new Promise((resolve) => {
+      waku.libp2p.peerStore.once('change:protocols', resolve);
+    });
 
     const nimPeerId = await nimWaku.getPeerId();
 
@@ -65,6 +49,9 @@ describe('Waku Store', () => {
   it('Retrieves all historical elements in chronological order through paging', async function () {
     this.timeout(5_000);
 
+    nimWaku = new NimWaku(makeLogFileName(this));
+    await nimWaku.start({ store: true });
+
     for (let i = 0; i < 15; i++) {
       await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`));
     }
@@ -74,6 +61,11 @@ describe('Waku Store', () => {
       modules: { transport: [TCP] },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
+
+    // Wait for identify protocol to finish
+    await new Promise((resolve) => {
+      waku.libp2p.peerStore.once('change:protocols', resolve);
+    });
 
     const nimPeerId = await nimWaku.getPeerId();
 

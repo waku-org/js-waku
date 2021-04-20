@@ -4,15 +4,10 @@ import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
 import Websockets from 'libp2p-websockets';
 import Multiaddr from 'multiaddr';
-import pTimeout from 'p-timeout';
 import PeerId from 'peer-id';
 
-import { delay } from './delay';
-import { RelayCodec, WakuRelay, WakuRelayPubsub } from './waku_relay';
+import { RelayCodec, WakuRelay } from './waku_relay';
 import { StoreCodec, WakuStore } from './waku_store';
-
-const WaitForIdentityFreqMs = 50;
-const WaitForIdentityTimeoutMs = 2_000;
 
 export interface CreateOptions {
   listenAddresses: string[];
@@ -26,11 +21,15 @@ export interface CreateOptions {
 }
 
 export default class Waku {
-  private constructor(
-    public libp2p: Libp2p,
-    public relay: WakuRelay,
-    public store: WakuStore
-  ) {}
+  public libp2p: Libp2p;
+  public relay: WakuRelay;
+  public store: WakuStore;
+
+  private constructor(libp2p: Libp2p, store: WakuStore) {
+    this.libp2p = libp2p;
+    this.relay = (libp2p.pubsub as unknown) as WakuRelay;
+    this.store = store;
+  }
 
   /**
    * Create new waku node
@@ -69,7 +68,7 @@ export default class Waku {
         connEncryption: [new Noise(opts.staticNoiseKey)],
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore: Type needs update
-        pubsub: WakuRelayPubsub,
+        pubsub: WakuRelay,
       },
     });
 
@@ -77,7 +76,7 @@ export default class Waku {
 
     await libp2p.start();
 
-    return new Waku(libp2p, new WakuRelay(libp2p.pubsub), wakuStore);
+    return new Waku(libp2p, wakuStore);
   }
 
   /**
@@ -86,56 +85,10 @@ export default class Waku {
    */
   async dial(peer: PeerId | Multiaddr | string) {
     await this.libp2p.dialProtocol(peer, [RelayCodec, StoreCodec]);
-    const peerId = toPeerId(peer);
-    await this.waitForIdentify(
-      peerId,
-      WaitForIdentityFreqMs,
-      WaitForIdentityTimeoutMs
-    );
   }
 
   async dialWithMultiAddr(peerId: PeerId, multiaddr: Multiaddr[]) {
     this.libp2p.peerStore.addressBook.set(peerId, multiaddr);
-    await this.libp2p.dialProtocol(peerId, RelayCodec);
-    await this.waitForIdentify(
-      peerId,
-      WaitForIdentityFreqMs,
-      WaitForIdentityTimeoutMs
-    );
-  }
-
-  /**
-   * Wait for the identify protocol to be finished. This helps ensure
-   * we know what protocols the peer implements
-   * @param peerId
-   * @param frequencyMilliseconds
-   * @param maxTimeoutMilliseconds
-   * @throws If there is no known connection with this peer.
-   */
-  async waitForIdentify(
-    peerId: PeerId,
-    frequencyMilliseconds: number,
-    maxTimeoutMilliseconds: number
-  ): Promise<void> {
-    const checkProtocols = this._waitForIdentify.bind(
-      this,
-      peerId,
-      frequencyMilliseconds
-    )();
-
-    await pTimeout(checkProtocols, maxTimeoutMilliseconds);
-  }
-
-  async _waitForIdentify(peerId: PeerId, frequencyMilliseconds: number) {
-    while (true) {
-      const peer = this.libp2p.peerStore.get(peerId);
-      if (!peer) throw 'No connection to peer';
-      if (peer.protocols.length > 0) {
-        return;
-      } else {
-        await delay(frequencyMilliseconds);
-      }
-    }
   }
 
   async stop() {
@@ -157,19 +110,4 @@ export default class Waku {
       localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
     return multiAddrWithId;
   }
-}
-
-function toPeerId(peer: PeerId | Multiaddr | string): PeerId {
-  if (typeof peer === 'string') {
-    peer = new Multiaddr(peer);
-  }
-
-  if (Multiaddr.isMultiaddr(peer)) {
-    try {
-      peer = PeerId.createFromB58String(peer.getPeerId());
-    } catch (err) {
-      throw `${peer} is not a valid peer type`;
-    }
-  }
-  return peer;
 }
