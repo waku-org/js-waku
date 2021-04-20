@@ -9,19 +9,22 @@ message Index {
   double received_time = 2;
 }
 
-enum Direction {
-  DIRECTION_BACKWARD_UNSPECIFIED = 0;
-  DIRECTION_FORWARD = 1;
-}
-
 message PagingInfo {
   uint64 page_size = 1;
   Index cursor = 2;
+  enum Direction {
+    DIRECTION_BACKWARD_UNSPECIFIED = 0;
+    DIRECTION_FORWARD = 1;
+  }
   Direction direction = 3;
 }
 
+message ContentFilter {
+  string content_topic = 1;
+}
+
 message HistoryQuery {
-  repeated string topics = 2;
+  repeated ContentFilter content_filters = 2;
   optional PagingInfo paging_info = 3;
   optional double start_time = 4;
   optional double end_time = 5;
