@@ -270,6 +270,16 @@ describe('Waku Relay', () => {
           waku2.dial(nimWakuMultiaddr),
         ]);
 
+        // Wait for identify protocol to finish
+        await Promise.all([
+          new Promise((resolve) =>
+            waku1.libp2p.peerStore.once('change:protocols', resolve)
+          ),
+          new Promise((resolve) =>
+            waku2.libp2p.peerStore.once('change:protocols', resolve)
+          ),
+        ]);
+
         await Promise.all([
           new Promise((resolve) =>
             waku1.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
