@@ -244,7 +244,7 @@ describe('Waku Relay', () => {
       });
     });
 
-    describe('js to nim to js', function () {
+    describe.skip('js to nim to js', function () {
       let waku1: Waku;
       let waku2: Waku;
       let nimWaku: NimWaku;
