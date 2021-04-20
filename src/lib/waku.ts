@@ -3,7 +3,7 @@ import Mplex from 'libp2p-mplex';
 import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
 import Websockets from 'libp2p-websockets';
-import Multiaddr from 'multiaddr';
+import { Multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { RelayCodec, WakuRelay } from './waku_relay';
