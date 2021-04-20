@@ -19,7 +19,7 @@ You can track progress on the [project board](https://github.com/status-im/js-wa
 |[10/WAKU2](https://rfc.vac.dev/spec/10)|🚧|
 |[11/WAKU2-RELAY](https://rfc.vac.dev/spec/11)|✔|
 |[12/WAKU2-FILTER](https://rfc.vac.dev/spec/12)||
-|[13/WAKU2-STORE](https://rfc.vac.dev/spec/13)|🚧|
+|[13/WAKU2-STORE](https://rfc.vac.dev/spec/13)|✔ (querying node only)|
 |[14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14)|✔|
 |[15/WAKU2-BRIDGE](https://rfc.vac.dev/spec/15)||
 |[16/WAKU2-RPC](https://rfc.vac.dev/spec/16)|⛔|

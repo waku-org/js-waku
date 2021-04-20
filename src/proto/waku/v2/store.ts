@@ -5,38 +5,6 @@ import _m0 from 'protobufjs/minimal';
 
 export const protobufPackage = 'waku.v2';
 
-export enum Direction {
-  DIRECTION_BACKWARD_UNSPECIFIED = 0,
-  DIRECTION_FORWARD = 1,
-  UNRECOGNIZED = -1,
-}
-
-export function directionFromJSON(object: any): Direction {
-  switch (object) {
-    case 0:
-    case 'DIRECTION_BACKWARD_UNSPECIFIED':
-      return Direction.DIRECTION_BACKWARD_UNSPECIFIED;
-    case 1:
-    case 'DIRECTION_FORWARD':
-      return Direction.DIRECTION_FORWARD;
-    case -1:
-    case 'UNRECOGNIZED':
-    default:
-      return Direction.UNRECOGNIZED;
-  }
-}
-
-export function directionToJSON(object: Direction): string {
-  switch (object) {
-    case Direction.DIRECTION_BACKWARD_UNSPECIFIED:
-      return 'DIRECTION_BACKWARD_UNSPECIFIED';
-    case Direction.DIRECTION_FORWARD:
-      return 'DIRECTION_FORWARD';
-    default:
-      return 'UNKNOWN';
-  }
-}
-
 export interface Index {
   digest: Uint8Array;
   receivedTime: number;
@@ -45,11 +13,51 @@ export interface Index {
 export interface PagingInfo {
   pageSize: number;
   cursor: Index | undefined;
-  direction: Direction;
+  direction: PagingInfo_Direction;
+}
+
+export enum PagingInfo_Direction {
+  DIRECTION_BACKWARD_UNSPECIFIED = 0,
+  DIRECTION_FORWARD = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function pagingInfo_DirectionFromJSON(
+  object: any
+): PagingInfo_Direction {
+  switch (object) {
+    case 0:
+    case 'DIRECTION_BACKWARD_UNSPECIFIED':
+      return PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+    case 1:
+    case 'DIRECTION_FORWARD':
+      return PagingInfo_Direction.DIRECTION_FORWARD;
+    case -1:
+    case 'UNRECOGNIZED':
+    default:
+      return PagingInfo_Direction.UNRECOGNIZED;
+  }
+}
+
+export function pagingInfo_DirectionToJSON(
+  object: PagingInfo_Direction
+): string {
+  switch (object) {
+    case PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED:
+      return 'DIRECTION_BACKWARD_UNSPECIFIED';
+    case PagingInfo_Direction.DIRECTION_FORWARD:
+      return 'DIRECTION_FORWARD';
+    default:
+      return 'UNKNOWN';
+  }
+}
+
+export interface ContentFilter {
+  contentTopic: string;
 }
 
 export interface HistoryQuery {
-  topics: string[];
+  contentFilters: ContentFilter[];
   pagingInfo?: PagingInfo | undefined;
   startTime?: number | undefined;
   endTime?: number | undefined;
@@ -196,7 +204,7 @@ export const PagingInfo = {
       message.cursor = undefined;
     }
     if (object.direction !== undefined && object.direction !== null) {
-      message.direction = directionFromJSON(object.direction);
+      message.direction = pagingInfo_DirectionFromJSON(object.direction);
     } else {
       message.direction = 0;
     }
@@ -209,7 +217,7 @@ export const PagingInfo = {
     message.cursor !== undefined &&
       (obj.cursor = message.cursor ? Index.toJSON(message.cursor) : undefined);
     message.direction !== undefined &&
-      (obj.direction = directionToJSON(message.direction));
+      (obj.direction = pagingInfo_DirectionToJSON(message.direction));
     return obj;
   },
 
@@ -234,15 +242,74 @@ export const PagingInfo = {
   },
 };
 
-const baseHistoryQuery: object = { topics: '' };
+const baseContentFilter: object = { contentTopic: '' };
+
+export const ContentFilter = {
+  encode(
+    message: ContentFilter,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.contentTopic !== '') {
+      writer.uint32(10).string(message.contentTopic);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ContentFilter {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseContentFilter } as ContentFilter;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.contentTopic = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ContentFilter {
+    const message = { ...baseContentFilter } as ContentFilter;
+    if (object.contentTopic !== undefined && object.contentTopic !== null) {
+      message.contentTopic = String(object.contentTopic);
+    } else {
+      message.contentTopic = '';
+    }
+    return message;
+  },
+
+  toJSON(message: ContentFilter): unknown {
+    const obj: any = {};
+    message.contentTopic !== undefined &&
+      (obj.contentTopic = message.contentTopic);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<ContentFilter>): ContentFilter {
+    const message = { ...baseContentFilter } as ContentFilter;
+    if (object.contentTopic !== undefined && object.contentTopic !== null) {
+      message.contentTopic = object.contentTopic;
+    } else {
+      message.contentTopic = '';
+    }
+    return message;
+  },
+};
+
+const baseHistoryQuery: object = {};
 
 export const HistoryQuery = {
   encode(
     message: HistoryQuery,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    for (const v of message.topics) {
-      writer.uint32(18).string(v!);
+    for (const v of message.contentFilters) {
+      ContentFilter.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     if (message.pagingInfo !== undefined) {
       PagingInfo.encode(message.pagingInfo, writer.uint32(26).fork()).ldelim();
@@ -260,12 +327,14 @@ export const HistoryQuery = {
     const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseHistoryQuery } as HistoryQuery;
-    message.topics = [];
+    message.contentFilters = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 2:
-          message.topics.push(reader.string());
+          message.contentFilters.push(
+            ContentFilter.decode(reader, reader.uint32())
+          );
           break;
         case 3:
           message.pagingInfo = PagingInfo.decode(reader, reader.uint32());
@@ -286,10 +355,10 @@ export const HistoryQuery = {
 
   fromJSON(object: any): HistoryQuery {
     const message = { ...baseHistoryQuery } as HistoryQuery;
-    message.topics = [];
-    if (object.topics !== undefined && object.topics !== null) {
-      for (const e of object.topics) {
-        message.topics.push(String(e));
+    message.contentFilters = [];
+    if (object.contentFilters !== undefined && object.contentFilters !== null) {
+      for (const e of object.contentFilters) {
+        message.contentFilters.push(ContentFilter.fromJSON(e));
       }
     }
     if (object.pagingInfo !== undefined && object.pagingInfo !== null) {
@@ -312,10 +381,12 @@ export const HistoryQuery = {
 
   toJSON(message: HistoryQuery): unknown {
     const obj: any = {};
-    if (message.topics) {
-      obj.topics = message.topics.map((e) => e);
+    if (message.contentFilters) {
+      obj.contentFilters = message.contentFilters.map((e) =>
+        e ? ContentFilter.toJSON(e) : undefined
+      );
     } else {
-      obj.topics = [];
+      obj.contentFilters = [];
     }
     message.pagingInfo !== undefined &&
       (obj.pagingInfo = message.pagingInfo
@@ -328,10 +399,10 @@ export const HistoryQuery = {
 
   fromPartial(object: DeepPartial<HistoryQuery>): HistoryQuery {
     const message = { ...baseHistoryQuery } as HistoryQuery;
-    message.topics = [];
-    if (object.topics !== undefined && object.topics !== null) {
-      for (const e of object.topics) {
-        message.topics.push(e);
+    message.contentFilters = [];
+    if (object.contentFilters !== undefined && object.contentFilters !== null) {
+      for (const e of object.contentFilters) {
+        message.contentFilters.push(ContentFilter.fromPartial(e));
       }
     }
     if (object.pagingInfo !== undefined && object.pagingInfo !== null) {
