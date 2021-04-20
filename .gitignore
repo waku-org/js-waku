@@ -4,8 +4,6 @@ build
 node_modules
 test
 src/**.js
-src/gen
 coverage
 *.log
 yarn.lock
-src/proto/**/*.ts

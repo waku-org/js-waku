@@ -57,8 +57,8 @@ it is not necessary in normal usage when you just connect to the fleet.
 To build and test this repository, you need:
   
   - [Node.js & npm](https://nodejs.org/en/)
-  - [bufbuild](https://github.com/bufbuild/buf)
-  - [protoc](https://grpc.io/docs/protoc-installation/) 
+  - [bufbuild](https://github.com/bufbuild/buf) (only if changing protobuf files)
+  - [protoc](https://grpc.io/docs/protoc-installation/) (only if changing protobuf files)
 
 To ensure interoperability with [nim-waku](https://github.com/status-im/nim-waku/), some tests are run against a nim-waku node.
 This is why `nim-waku` is present as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules), which itself contain several submodules.

@@ -66,6 +66,14 @@ jobs:
       - name: install using npm ci
         uses: bahmutov/npm-install@v1
 
+      - name: Generate protobuf code
+        run: npm run proto
+
+      - name: Check all protobuf code was committed
+        shell: bash
+        run: |
+          [ $(git status --short --ignore-submodules|wc -l) -eq 0 ]
+
       - name: build
         run: npm run build
 
