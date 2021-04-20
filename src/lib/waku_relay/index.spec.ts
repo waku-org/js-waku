@@ -204,15 +204,16 @@ describe('Waku Relay', () => {
       });
 
       it('Js publishes to nim', async function () {
-        this.timeout(10000);
+        this.timeout(30000);
 
         const message = WakuMessage.fromUtf8String('This is a message');
-
+        await delay(1000);
         await waku.relay.send(message);
 
         let msgs = [];
 
         while (msgs.length === 0) {
+          console.log('Waiting for messages');
           await delay(200);
           msgs = await nimWaku.messages();
         }
@@ -248,8 +249,16 @@ describe('Waku Relay', () => {
       let waku2: Waku;
       let nimWaku: NimWaku;
 
-      beforeEach(async function () {
-        this.timeout(10_000);
+      afterEach(async function () {
+        nimWaku ? nimWaku.stop() : null;
+        await Promise.all([
+          waku1 ? await waku1.stop() : null,
+          waku2 ? await waku2.stop() : null,
+        ]);
+      });
+
+      it('Js publishes, other Js receives', async function () {
+        this.timeout(60_000);
         [waku1, waku2] = await Promise.all([
           Waku.create({
             staticNoiseKey: NOISE_KEY_1,
@@ -261,7 +270,7 @@ describe('Waku Relay', () => {
           }),
         ]);
 
-        nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
+        nimWaku = new NimWaku(makeLogFileName(this));
         await nimWaku.start();
 
         const nimWakuMultiaddr = await nimWaku.getMultiaddrWithId();
@@ -288,19 +297,8 @@ describe('Waku Relay', () => {
             waku2.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
           ),
         ]);
-      });
 
-      afterEach(async function () {
-        nimWaku ? nimWaku.stop() : null;
-        await Promise.all([
-          waku1 ? await waku1.stop() : null,
-          waku2 ? await waku2.stop() : null,
-        ]);
-      });
-
-      it('Js publishes, other Js receives', async function () {
-        this.timeout(30000);
-
+        await delay(2000);
         // Check that the two JS peers are NOT directly connected
         expect(
           waku1.libp2p.peerStore.peers.has(waku2.libp2p.peerId.toB58String())
@@ -315,7 +313,7 @@ describe('Waku Relay', () => {
         const waku2ReceivedPromise = waitForNextData(waku2.libp2p.pubsub);
 
         await waku1.relay.send(message);
-
+        console.log('Waiting for message');
         const waku2ReceivedMsg = await waku2ReceivedPromise;
 
         expect(waku2ReceivedMsg.utf8Payload()).to.eq(msgStr);
