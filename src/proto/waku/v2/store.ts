@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from 'long';
-import { WakuMessageProto } from '../../waku/v2/message';
 import _m0 from 'protobufjs/minimal';
+import { WakuMessageProto } from '../../waku/v2/message';
 
 export const protobufPackage = 'waku.v2';
 
@@ -88,9 +88,10 @@ export const Index = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Index {
-    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseIndex } as Index;
+    message.digest = new Uint8Array();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -110,6 +111,7 @@ export const Index = {
 
   fromJSON(object: any): Index {
     const message = { ...baseIndex } as Index;
+    message.digest = new Uint8Array();
     if (object.digest !== undefined && object.digest !== null) {
       message.digest = bytesFromBase64(object.digest);
     }
@@ -168,7 +170,7 @@ export const PagingInfo = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): PagingInfo {
-    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...basePagingInfo } as PagingInfo;
     while (reader.pos < end) {
@@ -256,7 +258,7 @@ export const ContentFilter = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ContentFilter {
-    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseContentFilter } as ContentFilter;
     while (reader.pos < end) {
@@ -324,7 +326,7 @@ export const HistoryQuery = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): HistoryQuery {
-    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseHistoryQuery } as HistoryQuery;
     message.contentFilters = [];
@@ -441,7 +443,7 @@ export const HistoryResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): HistoryResponse {
-    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseHistoryResponse } as HistoryResponse;
     message.messages = [];
@@ -536,7 +538,7 @@ export const HistoryRPC = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): HistoryRPC {
-    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseHistoryRPC } as HistoryRPC;
     while (reader.pos < end) {
