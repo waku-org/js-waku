@@ -31,12 +31,17 @@ const ChatContentTopic = 'dingpu';
     output: process.stdout,
   });
 
-  const question = util.promisify(rl.question).bind(rl);
-  // Looks like wrong type definition of promisify is picked.
-  // May be related to https://github.com/DefinitelyTyped/DefinitelyTyped/issues/20497
-  const nick = ((await question(
-    'Please choose a nickname: '
-  )) as unknown) as string;
+  let nick = 'js-waku';
+  try {
+    const question = util.promisify(rl.question).bind(rl);
+    // Looks like wrong type definition of promisify is picked.
+    // May be related to https://github.com/DefinitelyTyped/DefinitelyTyped/issues/20497
+    nick = ((await question(
+      'Please choose a nickname: '
+    )) as unknown) as string;
+  } catch (e) {
+    console.log('Using default nick.');
+  }
 
   console.log(`Hi, ${nick}!`);
 
