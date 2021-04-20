@@ -289,7 +289,7 @@ describe('Waku Relay', () => {
       });
 
       it('Js publishes, other Js receives', async function () {
-        this.timeout(10000);
+        this.timeout(30000);
 
         // Check that the two JS peers are NOT directly connected
         expect(
