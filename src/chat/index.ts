@@ -40,7 +40,7 @@ const ChatContentTopic = 'dingpu';
       'Please choose a nickname: '
     )) as unknown) as string;
   } catch (e) {
-    console.log('Using default nick.');
+    console.log('Using default nick. Due to ', e);
   }
 
   console.log(`Hi, ${nick}!`);
