@@ -1,4 +1,7 @@
 import React from 'react';
+import { ChatMessage } from 'waku-chat/chat_message';
+import { WakuMessage } from 'waku/waku_message';
+import { ChatContentTopic } from './App';
 import { useWaku } from './WakuContext';
 import { Button } from '@material-ui/core';
 
@@ -10,7 +13,10 @@ const Send = (props: Props) => {
   const { waku } = useWaku();
 
   const handleClick = async () => {
-    await waku!.send(props.message);
+    const chatMessage = new ChatMessage(new Date(), 'web-chat', props.message);
+
+    const wakuMsg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
+    await waku!.relay.send(wakuMsg);
   };
 
   return (

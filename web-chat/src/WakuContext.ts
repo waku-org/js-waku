@@ -1,9 +1,8 @@
 import { createContext, useContext } from 'react';
-import WakuMock from './WakuMock';
+import Waku from 'waku/waku';
 
 export type WakuContextType = {
-  waku?: WakuMock;
-  // setWaku: (waku: WakuMock) => void;
+  waku?: Waku;
 };
 
 export const WakuContext = createContext<WakuContextType>({ waku: undefined });
