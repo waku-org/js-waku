@@ -1,7 +1,7 @@
 import { Paper } from '@material-ui/core';
 import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import { ChatMessage } from 'waku-chat/chat_message';
 import { WakuMessage } from 'waku/waku_message';
@@ -20,65 +20,62 @@ interface State {
   waku?: Waku
 }
 
-class App extends React.Component<Props, State> {
-  waku?: Waku;
+export default function App () {
+  let [state, setState] = useState<State>({ messages: [] });
 
-  constructor(props: Props) {
-    super(props);
 
-    this.state = {
-      messages: []
-    };
+  useEffect(() => {
+    async function initWaku() {
+      try {
+        const waku = await Waku.create({});
+        setState(({ messages }) => (
+          { waku, messages }
+        ));
 
-    Waku.create({}).then((waku) => {
-      this.state = { waku: waku, messages: this.state.messages };
+        waku.libp2p.pubsub.on(RelayDefaultTopic, (event) => {
+          const wakuMsg = WakuMessage.decode(event.data);
+          if (wakuMsg.payload) {
+            const chatMsg = ChatMessage.decode(wakuMsg.payload);
+            const msgStr = printMessage(chatMsg);
 
-      waku.libp2p.peerStore.addressBook
-        .add(PeerId.createFromB58String('QmUJKveCpfwA4cY1zRybMEt5z64FRtMHLFFQwndWrSfMmf'),
-          [multiaddr('/ip4/127.0.0.1/tcp/7777/ws')]);
+            const messages = state.messages.slice();
+            messages.push(msgStr);
+            setState({ messages, waku });
+          }
+        });
 
-      waku.libp2p.pubsub.on(RelayDefaultTopic, (event) => {
-        const wakuMsg = WakuMessage.decode(event.data);
-        if (wakuMsg.payload) {
-          const chatMsg = ChatMessage.decode(wakuMsg.payload);
-          const msgStr = printMessage(chatMsg);
-
-          const messages = this.state.messages.slice();
-          messages.push(msgStr);
-          this.setState({ messages });
+        try {
+          await waku.dial('/ip4/127.0.0.1/tcp/7777/ws/p2p/QmUJKveCpfwA4cY1zRybMEt5z64FRtMHLFFQwndWrSfMmf');
+          console.log('Remote node dialed');
+        } catch (e) {
+          console.log('Error when dialing peer ', e);
         }
+      } catch (e) {
+        console.log('Issue starting waku ', e);
+      }
 
-      });
+    }
 
-      // Fire and forget
-      // waku.dial('/ip4/127.0.0.1/tcp/7777/ws/p2p/QmUJKveCpfwA4cY1zRybMEt5z64FRtMHLFFQwndWrSfMmf').then(() => {
-      //   console.log('Remote node dialed');
-      // }).catch((e) => {
-      //   console.log('Error when dialing peer ', e);
-      // });
-    }).catch((e) => {
-      console.log('Error starting waku ', e);
-    }).then(()=> {
-      console.log("Waku is started");
-    });
-  }
+    if (!state.waku) {
+      initWaku()
+        .then(() => console.log('Waku init done'))
+        .catch((e) => console.log('Waku init failed ', e));
+    }
+  }, [state.waku]);
 
-  render() {
-    return (
-      <div className='App'>
-        <div className='chat-room'>
-          <WakuContext.Provider value={{ waku: this.state.waku }}>
-            <Paper>
-              <Room lines={this.state.messages} />
-            </Paper>
-          </WakuContext.Provider>
-        </div>
+
+  return (
+    <div className='App'>
+      <div className='chat-room'>
+        <WakuContext.Provider value={{ waku: state.waku }}>
+          <Paper>
+            <Room lines={state.messages} />
+          </Paper>
+        </WakuContext.Provider>
       </div>
-    );
-  }
+    </div>
+  );
 }
-
-export default App;
 
 // TODO: Make it a proper component
 function printMessage(chatMsg: ChatMessage) {
