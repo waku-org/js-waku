@@ -12,9 +12,12 @@ jobs:
   build_and_test:
     env:
       BUF_VERSION: '0.41.0'
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [14]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v2
         with:
@@ -32,12 +35,12 @@ jobs:
           path: |
             ./nim-waku/build/wakunode2
             ./nim-waku/vendor/rln/target/debug
-          key: nim-waku-build-v3-${{ steps.nim-waku-head.outputs.ref }}
+          key: nim-waku-build-${{ matrix.os }}-v3-${{ steps.nim-waku-head.outputs.ref }}
 
       - name: Install NodeJS
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: ${{ matrix.node }}
 
         # This would have been done part of npm pretest but it gives better
         # visibility in the CI if done as a separate step
@@ -70,7 +73,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: node-v1-${{ hashFiles('**/package-lock.json') }}
+          key: node-${{ matrix.os }}-${{ matrix.node }}-v1-${{ hashFiles('**/package-lock.json') }}
 
       - name: install using npm ci
         uses: bahmutov/npm-install@v1
