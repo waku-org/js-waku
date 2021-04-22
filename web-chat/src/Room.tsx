@@ -10,7 +10,6 @@ import { ChatMessage } from 'waku-chat/chat_message';
 import { WakuMessage } from 'waku/waku_message';
 import { ChatContentTopic } from './App';
 import MessageInput from './MessageInput';
-import Send from './Send';
 import { useWaku } from './WakuContext';
 
 interface Props {
@@ -47,14 +46,7 @@ export default function  Room (props :Props)  {
         </Grid>
 
         <Grid item xs={12}>
-          <Grid container spacing={2} direction='row' alignItems='center'>
-            <Grid item xs={11}>
-              <MessageInput messageHandler={messageHandler} sendMessage={sendMessage} />
-            </Grid>
-            <Grid item xs={1}>
-              <Send sendMessage={sendMessage} />
-            </Grid>
-          </Grid>
+          <MessageInput messageHandler={messageHandler} sendMessage={sendMessage} />
         </Grid>
 
       </Grid>
