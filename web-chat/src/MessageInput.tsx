@@ -7,45 +7,46 @@ interface Props {
 }
 
 export default function MessageInput(props: Props) {
-    const [inputText, setInputText] = useState<string>('')
+  const [inputText, setInputText] = useState<string>('');
 
   const sendMessage = () => {
-    props.sendMessage()
-    setInputText('')
-  }
+    props.sendMessage();
+    setInputText('');
+  };
 
   const messageHandler = (event: ChangeEvent<HTMLInputElement>) => {
-    setInputText(event.target.value)
+    setInputText(event.target.value);
     props.messageHandler(event.target.value);
   };
 
   const keyPressHandler = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      sendMessage()
+      sendMessage();
     }
-  }
+  };
 
-    return (
-      <Grid container spacing={2} direction='row' alignItems='center'>
-        <Grid item xs={11}>
-          <TextField variant='outlined'
-                     label='Send a message'
-                     value={inputText}
-                     fullWidth
-                     style={{ margin: 8 }}
-                     margin="normal"
-                     InputLabelProps={{
-                       shrink: true,
-                     }}
-                     onChange={messageHandler}
-                     onKeyPress={keyPressHandler}
-          />
-        </Grid>
-        <Grid item xs={1}>
-          <Button variant="contained" color="primary" size="large" onClick={sendMessage}>
-            Send
-          </Button>
-        </Grid>
+  return (
+    <Grid container spacing={2} direction='row' alignItems='center'>
+      <Grid item xs={11}>
+        <TextField variant='outlined'
+                   label='Send a message'
+                   value={inputText}
+                   fullWidth
+                   style={{ margin: 8 }}
+                   margin='normal'
+                   InputLabelProps={{
+                     shrink: true
+                   }}
+                   onChange={messageHandler}
+                   onKeyPress={keyPressHandler}
+        />
       </Grid>
-    );
+      <Grid item xs={1}>
+        <Button variant='contained' color='primary' size='large'
+                onClick={sendMessage}>
+          Send
+        </Button>
+      </Grid>
+    </Grid>
+  );
 }
