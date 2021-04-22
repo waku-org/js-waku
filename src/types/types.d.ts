@@ -14,3 +14,4 @@ declare module 'libp2p-secio' {
   export = Secio;
 }
 declare module 'libp2p-websockets';
+declare module 'libp2p-websockets/src/filters';

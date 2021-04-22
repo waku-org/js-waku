@@ -3,11 +3,14 @@ import Mplex from 'libp2p-mplex';
 import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
 import Websockets from 'libp2p-websockets';
+import filters from 'libp2p-websockets/src/filters';
 import { Multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { RelayCodec, WakuRelay } from './waku_relay';
 import { StoreCodec, WakuStore } from './waku_store';
+
+const transportKey = Websockets.prototype[Symbol.toStringTag];
 
 export interface CreateOptions {
   listenAddresses: string[];
@@ -69,6 +72,13 @@ export default class Waku {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore: Type needs update
         pubsub: WakuRelay,
+      },
+      config: {
+        transport: {
+          [transportKey]: {
+            filter: filters.all,
+          },
+        },
       },
     });
 

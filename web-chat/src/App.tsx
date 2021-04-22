@@ -12,15 +12,12 @@ import { WakuContext } from './WakuContext';
 
 export const ChatContentTopic = 'dingpu';
 
-interface Props {
-}
-
 interface State {
   messages: string[],
   waku?: Waku
 }
 
-export default function App () {
+export default function App() {
   let [state, setState] = useState<State>({ messages: [] });
 
 
@@ -44,12 +41,9 @@ export default function App () {
           }
         });
 
-        try {
-          await waku.dial('/ip4/127.0.0.1/tcp/7777/ws/p2p/QmUJKveCpfwA4cY1zRybMEt5z64FRtMHLFFQwndWrSfMmf');
-          console.log('Remote node dialed');
-        } catch (e) {
-          console.log('Error when dialing peer ', e);
-        }
+        waku.libp2p.peerStore.addressBook.add(
+          PeerId.createFromB58String('QmbEnEniueE2Cetej6UkYAtvHuXuare4fSEeyvm43kdmfq'),
+          [multiaddr('/ip4/127.0.0.1/tcp/7777/ws')]);
       } catch (e) {
         console.log('Issue starting waku ', e);
       }
@@ -61,7 +55,7 @@ export default function App () {
         .then(() => console.log('Waku init done'))
         .catch((e) => console.log('Waku init failed ', e));
     }
-  }, [state.waku]);
+  });
 
 
   return (
