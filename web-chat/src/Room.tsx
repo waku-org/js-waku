@@ -17,21 +17,16 @@ interface Props {
   lines: ChatMessage[],
 }
 
-interface State {
-  messageToSend: string
-}
-
-
 export default function  Room (props :Props)  {
-  let [state, setState] = useState<State>({ messageToSend: '' });
+  let [messageToSend, setMessageToSend] = useState<string>('');
   const { waku } = useWaku();
 
   const messageHandler = (msg: string) => {
-    setState({ messageToSend: msg });
+    setMessageToSend(msg);
   }
 
   const sendMessage = async () => {
-    const chatMessage = new ChatMessage(new Date(), 'web-chat', state.messageToSend);
+    const chatMessage = new ChatMessage(new Date(), 'web-chat', messageToSend);
     const wakuMsg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
     await waku!.relay.send(wakuMsg);
   }
