@@ -24,7 +24,14 @@ export default function App() {
   useEffect(() => {
     async function initWaku() {
       try {
-        const waku = await Waku.create({ config: { pubsub: { enabled: true, emitSelf: true } } });
+        const waku = await Waku.create({
+          config: {
+            pubsub: {
+              enabled: true,
+              emitSelf: true
+            }
+          }
+        });
 
         setState(({ messages }) => {
           return { waku, messages };
@@ -67,28 +74,74 @@ export default function App() {
     }
   });
 
-  const commandHandler = (cmd: string) => {
-    let commandResponse = 'internal error';
-    switch (cmd) {
-      case '/help':
-        commandResponse = '/help Display this help';
-        break;
-      default:
-        commandResponse = 'Unknown Command'
-    }
+  const commandHandler = (input: string) => {
+    let commandResponses: string[] = [];
+    const args = input.split(' ');
+    const cmd = args.shift()!;
+    const waku = state.waku;
+    if (!waku) {
+      commandResponses.push('Waku is not yet initialized');
+    } else {
+      switch (cmd) {
+        case '/help':
+          commandResponses.push('/connect <Multiaddr>: connect to the given peer');
+          commandResponses.push('/help: Display this help');
+          break;
+        case '/connect':
+          const peer = args.shift();
+          if (!peer) {
+            commandResponses.push('No peer provided');
+          } else {
+            try {
+              const peerMultiaddr = multiaddr(peer);
+              const peerId = peerMultiaddr.getPeerId();
+              if (!peerId) {
+                commandResponses.push('Peer Id needed to dial');
+              } else {
+                waku.libp2p.peerStore.addressBook.add(
+                  PeerId.createFromB58String(peerId),
+                  [peerMultiaddr]);
+              }
+            } catch (e) {
+              commandResponses.push('Invalid multaddr: ' + e);
+            }
+          }
+          break;
+        case '/peers':
+          waku.libp2p.peerStore.peers.forEach((peer, peerId) => {
+            commandResponses.push(peerId + ":")
+            let addresses = "  addresses: ["
+            peer.addresses.forEach(({multiaddr}) => {
+              addresses += " " + multiaddr.toString() + ",";
+            })
+            addresses = addresses.replace(/,$/,"");
+            addresses += "]";
+            commandResponses.push(addresses);
+            let protos = "  protos: [";
+            protos += peer.protocols;
+            protos+= "]"
+            commandResponses.push(protos)
+          })
+          break;
+        default:
+          commandResponses.push('Unknown Command');
+      }
 
-    setState(({waku, messages}) => {
-      messages.push(new ChatMessage(new Date(), 'Command Response', commandResponse));
-      return {waku, messages};
-    })
-  }
+    }
+    setState(({ waku, messages }) => {
+      commandResponses.forEach((res) => {
+        messages.push(new ChatMessage(new Date(), cmd, res));
+      });
+      return { waku, messages };
+    });
+  };
 
   return (
     <div className='App'>
       <div className='chat-room'>
         <WakuContext.Provider value={{ waku: state.waku }}>
           <Paper>
-            <Room lines={state.messages} commandHandler={commandHandler}/>
+            <Room lines={state.messages} commandHandler={commandHandler} />
           </Paper>
         </WakuContext.Provider>
       </div>
