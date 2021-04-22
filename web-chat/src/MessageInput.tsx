@@ -1,5 +1,6 @@
 import React, { ChangeEvent, KeyboardEvent, useState } from 'react';
 import { Button, Grid, TextField } from '@material-ui/core';
+import { useWaku } from './WakuContext';
 
 interface Props {
   messageHandler: (msg: string) => void;
@@ -8,6 +9,7 @@ interface Props {
 
 export default function MessageInput(props: Props) {
   const [inputText, setInputText] = useState<string>('');
+  const { waku } = useWaku();
 
   const sendMessage = () => {
     props.sendMessage();
@@ -40,6 +42,7 @@ export default function MessageInput(props: Props) {
           }}
           onChange={messageHandler}
           onKeyPress={keyPressHandler}
+          disabled={!waku}
         />
       </Grid>
       <Grid item xs={1}>
@@ -48,6 +51,7 @@ export default function MessageInput(props: Props) {
           color="primary"
           size="large"
           onClick={sendMessage}
+          disabled={!waku}
         >
           Send
         </Button>
