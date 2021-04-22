@@ -5,10 +5,13 @@ import {
   ListItem,
   ListItemText
 } from '@material-ui/core';
-import React from 'react';
+import React, { useState } from 'react';
 import { ChatMessage } from 'waku-chat/chat_message';
+import { WakuMessage } from 'waku/waku_message';
+import { ChatContentTopic } from './App';
 import MessageInput from './MessageInput';
 import Send from './Send';
+import { useWaku } from './WakuContext';
 
 interface Props {
   lines: ChatMessage[],
@@ -19,43 +22,43 @@ interface State {
 }
 
 
-export default class Room extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
+export default function  Room (props :Props)  {
+  let [state, setState] = useState<State>({ messageToSend: '' });
+  const { waku } = useWaku();
 
-    this.state = { messageToSend: '' };
+  const messageHandler = (msg: string) => {
+    setState({ messageToSend: msg });
   }
 
-  messageHandler(msg: string) {
-    this.setState({ messageToSend: msg });
+  const sendMessage = async () => {
+    const chatMessage = new ChatMessage(new Date(), 'web-chat', state.messageToSend);
+    const wakuMsg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
+    await waku!.relay.send(wakuMsg);
   }
 
-
-  render() {
     return (
       <Grid container spacing={2}>
 
         <Grid item xs={12}>
           <Box height={800} maxHeight={800}
                style={{ flex: 1, maxHeight: '100%', overflow: 'scroll' }}>
-            <Lines messages={this.props.lines} />
+            <Lines messages={props.lines} />
           </Box>
         </Grid>
 
         <Grid item xs={12}>
           <Grid container spacing={2} direction='row' alignItems='center'>
             <Grid item xs={11}>
-              <MessageInput messageHandler={this.messageHandler.bind(this)} />
+              <MessageInput messageHandler={messageHandler} />
             </Grid>
             <Grid item xs={1}>
-              <Send message={this.state.messageToSend} />
+              <Send sendMessage={sendMessage} />
             </Grid>
           </Grid>
         </Grid>
 
       </Grid>
     );
-  }
 }
 
 interface LinesProps {
