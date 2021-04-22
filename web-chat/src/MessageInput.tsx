@@ -26,24 +26,29 @@ export default function MessageInput(props: Props) {
   };
 
   return (
-    <Grid container spacing={2} direction='row' alignItems='center'>
+    <Grid container spacing={2} direction="row" alignItems="center">
       <Grid item xs={11}>
-        <TextField variant='outlined'
-                   label='Send a message'
-                   value={inputText}
-                   fullWidth
-                   style={{ margin: 8 }}
-                   margin='normal'
-                   InputLabelProps={{
-                     shrink: true
-                   }}
-                   onChange={messageHandler}
-                   onKeyPress={keyPressHandler}
+        <TextField
+          variant="outlined"
+          label="Send a message"
+          value={inputText}
+          fullWidth
+          style={{ margin: 8 }}
+          margin="normal"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          onChange={messageHandler}
+          onKeyPress={keyPressHandler}
         />
       </Grid>
       <Grid item xs={1}>
-        <Button variant='contained' color='primary' size='large'
-                onClick={sendMessage}>
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={sendMessage}
+        >
           Send
         </Button>
       </Grid>

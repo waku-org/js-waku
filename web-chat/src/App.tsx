@@ -13,13 +13,12 @@ import { WakuContext } from './WakuContext';
 export const ChatContentTopic = 'dingpu';
 
 interface State {
-  messages: ChatMessage[],
-  waku?: Waku
+  messages: ChatMessage[];
+  waku?: Waku;
 }
 
 export default function App() {
   let [state, setState] = useState<State>({ messages: [] });
-
 
   useEffect(() => {
     async function initWaku() {
@@ -28,9 +27,9 @@ export default function App() {
           config: {
             pubsub: {
               enabled: true,
-              emitSelf: true
-            }
-          }
+              emitSelf: true,
+            },
+          },
         });
 
         setState(({ messages }) => {
@@ -40,12 +39,14 @@ export default function App() {
         // FIXME: Connect to a go-waku instance by default, temporary hack until
         //  we have a go-waku instance in the fleet
         waku.libp2p.peerStore.addressBook.add(
-          PeerId.createFromB58String('16Uiu2HAmVVi6Q4j7MAKVibquW8aA27UNrA4Q8Wkz9EetGViu8ZF1'),
-          [multiaddr('/ip4/134.209.113.86/tcp/9001/ws')]);
+          PeerId.createFromB58String(
+            '16Uiu2HAmVVi6Q4j7MAKVibquW8aA27UNrA4Q8Wkz9EetGViu8ZF1'
+          ),
+          [multiaddr('/ip4/134.209.113.86/tcp/9001/ws')]
+        );
       } catch (e) {
         console.log('Issue starting waku ', e);
       }
-
     }
 
     const handleNewMessages = (event: { data: Uint8Array }) => {
@@ -57,7 +58,6 @@ export default function App() {
         console.log('setState on ', messages);
         setState({ messages, waku: state.waku });
       }
-
     };
 
     if (!state.waku) {
@@ -69,7 +69,10 @@ export default function App() {
 
       // To clean up listener when component unmounts
       return () => {
-        state.waku?.libp2p.pubsub.removeListener(RelayDefaultTopic, handleNewMessages);
+        state.waku?.libp2p.pubsub.removeListener(
+          RelayDefaultTopic,
+          handleNewMessages
+        );
       };
     }
   });
@@ -84,7 +87,9 @@ export default function App() {
     } else {
       switch (cmd) {
         case '/help':
-          commandResponses.push('/connect <Multiaddr>: connect to the given peer');
+          commandResponses.push(
+            '/connect <Multiaddr>: connect to the given peer'
+          );
           commandResponses.push('/help: Display this help');
           break;
         case '/connect':
@@ -100,7 +105,8 @@ export default function App() {
               } else {
                 waku.libp2p.peerStore.addressBook.add(
                   PeerId.createFromB58String(peerId),
-                  [peerMultiaddr]);
+                  [peerMultiaddr]
+                );
               }
             } catch (e) {
               commandResponses.push('Invalid multaddr: ' + e);
@@ -109,24 +115,23 @@ export default function App() {
           break;
         case '/peers':
           waku.libp2p.peerStore.peers.forEach((peer, peerId) => {
-            commandResponses.push(peerId + ":")
-            let addresses = "  addresses: ["
-            peer.addresses.forEach(({multiaddr}) => {
-              addresses += " " + multiaddr.toString() + ",";
-            })
-            addresses = addresses.replace(/,$/,"");
-            addresses += "]";
+            commandResponses.push(peerId + ':');
+            let addresses = '  addresses: [';
+            peer.addresses.forEach(({ multiaddr }) => {
+              addresses += ' ' + multiaddr.toString() + ',';
+            });
+            addresses = addresses.replace(/,$/, '');
+            addresses += ']';
             commandResponses.push(addresses);
-            let protos = "  protos: [";
+            let protos = '  protos: [';
             protos += peer.protocols;
-            protos+= "]"
-            commandResponses.push(protos)
-          })
+            protos += ']';
+            commandResponses.push(protos);
+          });
           break;
         default:
           commandResponses.push('Unknown Command');
       }
-
     }
     setState(({ waku, messages }) => {
       commandResponses.forEach((res) => {
@@ -137,8 +142,8 @@ export default function App() {
   };
 
   return (
-    <div className='App'>
-      <div className='chat-room'>
+    <div className="App">
+      <div className="chat-room">
         <WakuContext.Provider value={{ waku: state.waku }}>
           <Paper>
             <Room lines={state.messages} commandHandler={commandHandler} />

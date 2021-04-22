@@ -27,11 +27,11 @@
     "eject": "react-scripts eject",
     "fix": "run-s fix:*",
     "test": "run-s build test:*",
-    "test:lint": "eslint src --ext .ts",
-    "test:prettier": "prettier \"src/**/*.ts\" --list-different",
+    "test:lint": "eslint src --ext .ts --ext .tsx",
+    "test:prettier": "prettier \"src/**/*.{ts,tsx}\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
-    "fix:prettier": "prettier \"src/**/*.ts\" --write",
-    "fix:lint": "eslint src --ext .ts --fix"
+    "fix:prettier": "prettier \"src/**/*.{ts,tsx}\" --write",
+    "fix:lint": "eslint src --ext .ts --ext .tsx --fix"
   },
   "eslintConfig": {
     "extends": [
