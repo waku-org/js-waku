@@ -67,12 +67,28 @@ export default function App() {
     }
   });
 
+  const commandHandler = (cmd: string) => {
+    let commandResponse = 'internal error';
+    switch (cmd) {
+      case '/help':
+        commandResponse = '/help Display this help';
+        break;
+      default:
+        commandResponse = 'Unknown Command'
+    }
+
+    setState(({waku, messages}) => {
+      messages.push(new ChatMessage(new Date(), 'Command Response', commandResponse));
+      return {waku, messages};
+    })
+  }
+
   return (
     <div className='App'>
       <div className='chat-room'>
         <WakuContext.Provider value={{ waku: state.waku }}>
           <Paper>
-            <Room lines={state.messages} />
+            <Room lines={state.messages} commandHandler={commandHandler}/>
           </Paper>
         </WakuContext.Provider>
       </div>

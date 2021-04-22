@@ -15,6 +15,7 @@ import { useWaku } from './WakuContext';
 
 interface Props {
   lines: ChatMessage[],
+  commandHandler: (cmd: string) => void;
 }
 
 export default function  Room (props :Props)  {
@@ -26,9 +27,13 @@ export default function  Room (props :Props)  {
   }
 
   const sendMessage = async () => {
-    const chatMessage = new ChatMessage(new Date(), 'web-chat', messageToSend);
-    const wakuMsg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
-    await waku!.relay.send(wakuMsg);
+    if (messageToSend.startsWith('/')) {
+      props.commandHandler(messageToSend)
+    } else {
+      const chatMessage = new ChatMessage(new Date(), 'web-chat', messageToSend);
+      const wakuMsg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
+      await waku!.relay.send(wakuMsg);
+    }
   }
 
     return (
