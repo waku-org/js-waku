@@ -1,4 +1,4 @@
-import Libp2p from 'libp2p';
+import Libp2p, { Libp2pConfig, Libp2pModules, Libp2pOptions } from 'libp2p';
 import Mplex from 'libp2p-mplex';
 import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
@@ -12,16 +12,14 @@ import { StoreCodec, WakuStore } from './waku_store';
 
 const transportKey = Websockets.prototype[Symbol.toStringTag];
 
-export interface CreateOptions {
-  listenAddresses: string[];
-  staticNoiseKey: bytes | undefined;
-  modules: {
-    transport: import('libp2p-interfaces/src/transport/types').TransportFactory<
-      any,
-      any
-    >[];
-  };
-}
+export type CreateOptions =
+  | {
+      listenAddresses: string[] | undefined;
+      staticNoiseKey: bytes | undefined;
+      modules: Partial<Libp2pModules>;
+      config: Partial<Libp2pConfig>;
+    }
+  | (Libp2pOptions & import('libp2p').CreateOptions);
 
 export default class Waku {
   public libp2p: Libp2p;
@@ -52,6 +50,19 @@ export default class Waku {
       options
     );
 
+    opts.config = Object.assign(
+      {
+        transport: {
+          [transportKey]: {
+            filter: filters.all,
+          },
+        },
+      },
+      options.config
+    );
+
+    opts.modules = Object.assign({}, options.modules);
+
     let transport = [Websockets];
     if (opts.modules?.transport) {
       transport = transport.concat(opts.modules?.transport);
@@ -73,13 +84,7 @@ export default class Waku {
         // @ts-ignore: Type needs update
         pubsub: WakuRelay,
       },
-      config: {
-        transport: {
-          [transportKey]: {
-            filter: filters.all,
-          },
-        },
-      },
+      config: opts.config,
     });
 
     const wakuStore = new WakuStore(libp2p);

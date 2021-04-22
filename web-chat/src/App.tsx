@@ -24,7 +24,7 @@ export default function App() {
   useEffect(() => {
     async function initWaku() {
       try {
-        const waku = await Waku.create({});
+        const waku = await Waku.create({ config: { pubsub: { enabled: true, emitSelf: true } } });
 
         setState(({ messages }) => {
           return { waku, messages };

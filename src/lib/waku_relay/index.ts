@@ -1,6 +1,15 @@
 import Gossipsub from 'libp2p-gossipsub';
-import { Libp2p } from 'libp2p-gossipsub/src/interfaces';
+import {
+  AddrInfo,
+  Libp2p,
+  MessageIdFunction,
+} from 'libp2p-gossipsub/src/interfaces';
 import { ControlPrune, PeerInfo } from 'libp2p-gossipsub/src/message';
+import { MessageCache } from 'libp2p-gossipsub/src/message-cache';
+import {
+  PeerScoreParams,
+  PeerScoreThresholds,
+} from 'libp2p-gossipsub/src/score';
 import {
   createGossipRpc,
   messageIdToString,
@@ -19,26 +28,50 @@ import { RelayHeartbeat } from './relay_heartbeat';
 export * from './constants';
 export * from './relay_heartbeat';
 
+/**
+ * See GossipOptions from libp2p-gossipsub
+ */
+interface GossipOptions {
+  emitSelf: boolean;
+  gossipIncoming: boolean;
+  fallbackToFloodsub: boolean;
+  floodPublish: boolean;
+  doPX: boolean;
+  msgIdFn: MessageIdFunction;
+  messageCache: MessageCache;
+  globalSignaturePolicy: string;
+  scoreParams: Partial<PeerScoreParams>;
+  scoreThresholds: Partial<PeerScoreThresholds>;
+  directPeers: AddrInfo[];
+  D: number;
+  Dlo: number;
+  Dhi: number;
+  Dscore: number;
+  Dout: number;
+  Dlazy: number;
+}
+
 export class WakuRelay extends Gossipsub {
   heartbeat: RelayHeartbeat;
 
   /**
    *
-   * @param libp2p: Libp2p
+   * @param {Libp2p} libp2p
+   * @param {Partial<GossipOptions>} [options]
    */
-  constructor(libp2p: Libp2p) {
-    super(libp2p, {
-      emitSelf: false,
-      // Ensure that no signature is expected in the messages.
-      globalSignaturePolicy: SignaturePolicy.StrictNoSign,
-    });
+  constructor(libp2p: Libp2p, options?: Partial<GossipOptions>) {
+    super(
+      libp2p,
+      Object.assign(options, {
+        // Ensure that no signature is included nor expected in the messages.
+        globalSignaturePolicy: SignaturePolicy.StrictNoSign,
+      })
+    );
 
     this.heartbeat = new RelayHeartbeat(this);
 
     const multicodecs = [constants.RelayCodec];
 
-    // This is the downside of using `libp2p-gossipsub` instead of
-    // implementing WakuRelay from scratch.
     Object.assign(this, { multicodecs });
   }
 
