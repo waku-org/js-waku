@@ -49,7 +49,7 @@ export default function  Room (props :Props)  {
         <Grid item xs={12}>
           <Grid container spacing={2} direction='row' alignItems='center'>
             <Grid item xs={11}>
-              <MessageInput messageHandler={messageHandler} />
+              <MessageInput messageHandler={messageHandler} sendMessage={sendMessage} />
             </Grid>
             <Grid item xs={1}>
               <Send sendMessage={sendMessage} />
