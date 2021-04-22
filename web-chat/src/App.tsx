@@ -13,7 +13,7 @@ import { WakuContext } from './WakuContext';
 export const ChatContentTopic = 'dingpu';
 
 interface State {
-  messages: string[],
+  messages: ChatMessage[],
   waku?: Waku
 }
 
@@ -25,20 +25,9 @@ export default function App() {
     async function initWaku() {
       try {
         const waku = await Waku.create({});
-        setState(({ messages }) => (
-          { waku, messages }
-        ));
 
-        waku.libp2p.pubsub.on(RelayDefaultTopic, (event) => {
-          const wakuMsg = WakuMessage.decode(event.data);
-          if (wakuMsg.payload) {
-            const chatMsg = ChatMessage.decode(wakuMsg.payload);
-            const msgStr = printMessage(chatMsg);
-
-            const messages = state.messages.slice();
-            messages.push(msgStr);
-            setState({ messages, waku });
-          }
+        setState(({ messages }) => {
+          return {waku, messages};
         });
 
         waku.libp2p.peerStore.addressBook.add(
@@ -54,9 +43,19 @@ export default function App() {
       initWaku()
         .then(() => console.log('Waku init done'))
         .catch((e) => console.log('Waku init failed ', e));
+    } else {
+      state.waku.libp2p.pubsub.on(RelayDefaultTopic, (event) => {
+        const wakuMsg = WakuMessage.decode(event.data);
+        if (wakuMsg.payload) {
+          const chatMsg = ChatMessage.decode(wakuMsg.payload);
+          const messages = state.messages.slice();
+          messages.push(chatMsg);
+          console.log("setState on ", messages);
+          setState({ messages, waku:  state.waku });
+        }
+      });
     }
   });
-
 
   return (
     <div className='App'>
@@ -69,16 +68,4 @@ export default function App() {
       </div>
     </div>
   );
-}
-
-// TODO: Make it a proper component
-function printMessage(chatMsg: ChatMessage) {
-  const timestamp = chatMsg.timestamp.toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: false
-  });
-  return `<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`;
 }
