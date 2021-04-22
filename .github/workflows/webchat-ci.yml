@@ -9,7 +9,7 @@ on:
   pull_request:
 
 jobs:
-  build_and_test:
+  web_chat_build_and_test:
     runs-on: ubuntu-latest
     steps:
 

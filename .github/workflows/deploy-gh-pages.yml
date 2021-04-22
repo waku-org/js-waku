@@ -6,7 +6,7 @@ on:
       - 'main'
 
 jobs:
-  build_and_test:
+  deploy_gh_pages:
     runs-on: ubuntu-latest
     steps:
 
