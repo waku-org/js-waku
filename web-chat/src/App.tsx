@@ -30,9 +30,11 @@ export default function App() {
           return { waku, messages };
         });
 
+        // FIXME: Connect to a go-waku instance by default, temporary hack until
+        //  we have a go-waku instance in the fleet
         waku.libp2p.peerStore.addressBook.add(
-          PeerId.createFromB58String('QmbEnEniueE2Cetej6UkYAtvHuXuare4fSEeyvm43kdmfq'),
-          [multiaddr('/ip4/127.0.0.1/tcp/7777/ws')]);
+          PeerId.createFromB58String('16Uiu2HAmVVi6Q4j7MAKVibquW8aA27UNrA4Q8Wkz9EetGViu8ZF1'),
+          [multiaddr('/ip4/134.209.113.86/tcp/9001/ws')]);
       } catch (e) {
         console.log('Issue starting waku ', e);
       }
