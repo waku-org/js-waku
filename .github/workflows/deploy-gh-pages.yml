@@ -1,0 +1,29 @@
+name: Webchat Deploy GH Pages
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Cache npm cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: node-v1-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Deploy web chat app on gh pages
+        run: npm run deploy
+        working-directory: web-chat
