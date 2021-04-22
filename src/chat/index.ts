@@ -2,7 +2,7 @@ import readline from 'readline';
 import util from 'util';
 
 import TCP from 'libp2p-tcp';
-import Multiaddr from 'multiaddr';
+import { multiaddr, Multiaddr } from 'multiaddr';
 
 import Waku from '../lib/waku';
 import { WakuMessage } from '../lib/waku_message';
@@ -109,7 +109,7 @@ function processArguments(): Options {
     switch (arg) {
       case '--staticNode':
         opts = Object.assign(opts, {
-          staticNode: new Multiaddr(passedArgs.shift()),
+          staticNode: multiaddr(passedArgs.shift()!),
         });
         break;
       case '--listenAddr':

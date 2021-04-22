@@ -4,8 +4,7 @@ import { randomInt } from 'crypto';
 import appRoot from 'app-root-path';
 import axios from 'axios';
 import debug from 'debug';
-import Multiaddr from 'multiaddr';
-import multiaddr from 'multiaddr';
+import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { WakuMessage } from '../lib/waku_message';
@@ -199,6 +198,7 @@ export class NimWaku {
     const res = await this.info();
     this.multiaddrWithId = multiaddr(res.listenStr);
     const peerIdStr = this.multiaddrWithId.getPeerId();
+    if (!peerIdStr) throw 'Nim-waku multiaddr does not contain peerId';
     this.peerId = PeerId.createFromB58String(peerIdStr);
     return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
   }

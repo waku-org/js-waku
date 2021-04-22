@@ -22,6 +22,7 @@
     "execa",
     "exponentiate",
     "fanout",
+    "floodsub",
     "globby",
     "gossipsub",
     "iasked",

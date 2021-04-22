@@ -33,10 +33,9 @@ jobs:
       - name: "[js-waku] build"
         run: npm run build
 
-      - name: install using npm ci
-        uses: bahmutov/npm-install@v1
-        with:
-          working-directory: web-chat
+      - name: install using npm i
+        run: npm install
+        working-directory: web-chat
 
       - name: test
         run: npm run test

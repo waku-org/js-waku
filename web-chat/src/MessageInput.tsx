@@ -1,39 +1,61 @@
-import React, { ChangeEvent } from 'react';
-import { TextField } from '@material-ui/core';
+import React, { ChangeEvent, KeyboardEvent, useState } from 'react';
+import { Button, Grid, TextField } from '@material-ui/core';
+import { useWaku } from './WakuContext';
 
 interface Props {
   messageHandler: (msg: string) => void;
+  sendMessage: () => void;
 }
 
-interface State {
-  inputText: string;
-}
+export default function MessageInput(props: Props) {
+  const [inputText, setInputText] = useState<string>('');
+  const { waku } = useWaku();
 
-export default class MessageInput extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
+  const sendMessage = () => {
+    props.sendMessage();
+    setInputText('');
+  };
 
-    this.state = {
-      inputText: ''
-    };
-  }
+  const messageHandler = (event: ChangeEvent<HTMLInputElement>) => {
+    setInputText(event.target.value);
+    props.messageHandler(event.target.value);
+  };
 
-  messageHandler(event: ChangeEvent<HTMLInputElement>) {
-    this.props.messageHandler(event.target.value);
-  }
+  const keyPressHandler = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      sendMessage();
+    }
+  };
 
-  render() {
-    return (
-      <TextField variant='outlined'
-                 label='Send a message'
-                 fullWidth
-                 style={{ margin: 8 }}
-                 margin="normal"
-                 InputLabelProps={{
-                   shrink: true,
-                 }}
-                 onChange={this.messageHandler.bind(this)}
-      />
-    );
-  }
+  return (
+    <Grid container spacing={2} direction="row" alignItems="center">
+      <Grid item xs={11}>
+        <TextField
+          variant="outlined"
+          label="Send a message"
+          value={inputText}
+          fullWidth
+          style={{ margin: 8 }}
+          margin="normal"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          onChange={messageHandler}
+          onKeyPress={keyPressHandler}
+          disabled={!waku}
+        />
+      </Grid>
+      <Grid item xs={1}>
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={sendMessage}
+          disabled={!waku}
+        >
+          Send
+        </Button>
+      </Grid>
+    </Grid>
+  );
 }
