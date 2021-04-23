@@ -38,7 +38,13 @@ For support, questions & more general topics, please join the discussion on the 
 
 A node chat app is provided as a working example of the library.
 It is interoperable with the [nim-waku chat app example](https://github.com/status-im/nim-waku/blob/master/examples/v2/chat2.nim).
-To run the chat app:
+To run the chat app, first ensure you have [Node.js](https://nodejs.org/en/) v14 or above:
+
+```shell
+node --version
+```
+
+Then, install and run:
 
 ```shell
 git clone https://github.com/status-im/js-waku/ ; cd js-waku
@@ -46,7 +52,7 @@ npm install
 npm run chat -- --staticNode /ip4/134.209.139.210/tcp/30303/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ
 ```
 
-You can also specify an optional `listenAddr` parameter (.e.g `--listenAddr /ip4/0.0.0.0/tcp/55123`).
+You can also specify an optional `listenAddr` parameter (.e.g `--listenAddr /ip4/0.0.0.0/tcp/7777/ws`).
 This is only useful if you want a remote node to dial to your chat app, 
 it is not necessary in normal usage when you just connect to the fleet.
 
