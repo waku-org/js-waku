@@ -13,6 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set git author identity
+        run: |
+          git config user.name "GitHub Action On js-waku Repo"
+          git config user.email "franck+ghpages@status.im"
+
       - name: Install NodeJS
         uses: actions/setup-node@v2
         with:
