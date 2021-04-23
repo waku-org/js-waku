@@ -15,6 +15,7 @@ export const ChatContentTopic = 'dingpu';
 export default function App() {
   let [stateMessages, setMessages] = useState<ChatMessage[]>([]);
   let [stateWaku, setWaku] = useState<Waku | undefined>(undefined);
+  let [nick, setNick] = useState<string>('web-chat');
 
   useEffect(() => {
     async function initWaku() {
@@ -80,10 +81,20 @@ export default function App() {
     } else {
       switch (cmd) {
         case '/help':
+          commandResponses.push('/nick <nickname>: set a new nickname');
           commandResponses.push(
             '/connect <Multiaddr>: connect to the given peer'
           );
           commandResponses.push('/help: Display this help');
+          break;
+        case '/nick':
+          const arg = args.shift();
+          if (!arg) {
+            commandResponses.push('No nick provided');
+          } else {
+            setNick(arg);
+            commandResponses.push(`New nick: ${arg}`);
+          }
           break;
         case '/connect':
           const peer = args.shift();
@@ -138,7 +149,11 @@ export default function App() {
       <div className="chat-room">
         <WakuContext.Provider value={{ waku: stateWaku }}>
           <Paper>
-            <Room lines={stateMessages} commandHandler={commandHandler} />
+            <Room
+              nick={nick}
+              lines={stateMessages}
+              commandHandler={commandHandler}
+            />
           </Paper>
         </WakuContext.Provider>
       </div>
