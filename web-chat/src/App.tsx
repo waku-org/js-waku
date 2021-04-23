@@ -123,7 +123,7 @@ export default function App() {
                 );
               }
             } catch (e) {
-              commandResponses.push('Invalid multaddr: ' + e);
+              commandResponses.push('Invalid multiaddr: ' + e);
             }
           }
           break;
@@ -137,10 +137,10 @@ export default function App() {
             addresses = addresses.replace(/,$/, '');
             addresses += ']';
             commandResponses.push(addresses);
-            let protos = '  protos: [';
-            protos += peer.protocols;
-            protos += ']';
-            commandResponses.push(protos);
+            let protocols = '  protocols: [';
+            protocols += peer.protocols;
+            protocols += ']';
+            commandResponses.push(protocols);
           });
           break;
         default:
