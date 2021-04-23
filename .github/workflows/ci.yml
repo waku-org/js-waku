@@ -10,6 +10,8 @@ on:
 
 jobs:
   build_and_test:
+    env:
+      BUF_VERSION: '0.39.1'
     runs-on: ubuntu-latest
     steps:
 
@@ -47,10 +49,18 @@ jobs:
         shell: bash
         run: cd nim-waku && ./build/wakunode2 --help
 
+      - name: Cache buf binary
+        id: cache-buf-bin
+        uses: actions/cache@v2
+        with:
+          path: /opt/hostedtoolcache/buf/
+          key: buf-bin-v${{ BUF_VERSION }}-ubuntu-latest-v1
+
       - name: Install bufbuild
+        if: steps.cache-buf-bin.outputs.cache-hit != 'true'
         uses: mu-io/setup-buf@v1beta
         with:
-          buf-version: '0.39.1'
+          buf-version: ${{ env.BUF_VERSION }}
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
