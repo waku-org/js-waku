@@ -82,6 +82,7 @@ export default function App() {
       switch (cmd) {
         case '/help':
           commandResponses.push('/nick <nickname>: set a new nickname');
+          commandResponses.push('/info: some information about the node');
           commandResponses.push(
             '/connect <Multiaddr>: connect to the given peer'
           );
@@ -94,6 +95,15 @@ export default function App() {
           } else {
             setNick(arg);
             commandResponses.push(`New nick: ${arg}`);
+          }
+          break;
+        case '/info':
+          if (!stateWaku) {
+            commandResponses.push(`Waku node is starting`);
+          } else {
+            commandResponses.push(
+              `PeerId: ${stateWaku.libp2p.peerId.toB58String()}`
+            );
           }
           break;
         case '/connect':
