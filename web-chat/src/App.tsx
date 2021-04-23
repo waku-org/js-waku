@@ -12,13 +12,10 @@ import { WakuContext } from './WakuContext';
 
 export const ChatContentTopic = 'dingpu';
 
-interface State {
-  messages: ChatMessage[];
-  waku?: Waku;
-}
-
 export default function App() {
-  let [state, setState] = useState<State>({ messages: [] });
+  let [stateMessages, setMessages] = useState<ChatMessage[]>([]);
+  let [stateWaku, setWaku] = useState<Waku | undefined>(undefined);
+  let [nick, setNick] = useState<string>('web-chat');
 
   useEffect(() => {
     async function initWaku() {
@@ -32,9 +29,7 @@ export default function App() {
           },
         });
 
-        setState(({ messages }) => {
-          return { waku, messages };
-        });
+        setWaku(waku);
 
         // FIXME: Connect to a go-waku instance by default, temporary hack until
         //  we have a go-waku instance in the fleet
@@ -53,23 +48,23 @@ export default function App() {
       const wakuMsg = WakuMessage.decode(event.data);
       if (wakuMsg.payload) {
         const chatMsg = ChatMessage.decode(wakuMsg.payload);
-        const messages = state.messages.slice();
+        const messages = stateMessages.slice();
         messages.push(chatMsg);
         console.log('setState on ', messages);
-        setState({ messages, waku: state.waku });
+        setMessages(messages);
       }
     };
 
-    if (!state.waku) {
+    if (!stateWaku) {
       initWaku()
         .then(() => console.log('Waku init done'))
         .catch((e) => console.log('Waku init failed ', e));
     } else {
-      state.waku.libp2p.pubsub.on(RelayDefaultTopic, handleNewMessages);
+      stateWaku.libp2p.pubsub.on(RelayDefaultTopic, handleNewMessages);
 
       // To clean up listener when component unmounts
       return () => {
-        state.waku?.libp2p.pubsub.removeListener(
+        stateWaku?.libp2p.pubsub.removeListener(
           RelayDefaultTopic,
           handleNewMessages
         );
@@ -81,16 +76,35 @@ export default function App() {
     let commandResponses: string[] = [];
     const args = input.split(' ');
     const cmd = args.shift()!;
-    const waku = state.waku;
-    if (!waku) {
+    if (!stateWaku) {
       commandResponses.push('Waku is not yet initialized');
     } else {
       switch (cmd) {
         case '/help':
+          commandResponses.push('/nick <nickname>: set a new nickname');
+          commandResponses.push('/info: some information about the node');
           commandResponses.push(
             '/connect <Multiaddr>: connect to the given peer'
           );
           commandResponses.push('/help: Display this help');
+          break;
+        case '/nick':
+          const arg = args.shift();
+          if (!arg) {
+            commandResponses.push('No nick provided');
+          } else {
+            setNick(arg);
+            commandResponses.push(`New nick: ${arg}`);
+          }
+          break;
+        case '/info':
+          if (!stateWaku) {
+            commandResponses.push(`Waku node is starting`);
+          } else {
+            commandResponses.push(
+              `PeerId: ${stateWaku.libp2p.peerId.toB58String()}`
+            );
+          }
           break;
         case '/connect':
           const peer = args.shift();
@@ -103,18 +117,18 @@ export default function App() {
               if (!peerId) {
                 commandResponses.push('Peer Id needed to dial');
               } else {
-                waku.libp2p.peerStore.addressBook.add(
+                stateWaku.libp2p.peerStore.addressBook.add(
                   PeerId.createFromB58String(peerId),
                   [peerMultiaddr]
                 );
               }
             } catch (e) {
-              commandResponses.push('Invalid multaddr: ' + e);
+              commandResponses.push('Invalid multiaddr: ' + e);
             }
           }
           break;
         case '/peers':
-          waku.libp2p.peerStore.peers.forEach((peer, peerId) => {
+          stateWaku.libp2p.peerStore.peers.forEach((peer, peerId) => {
             commandResponses.push(peerId + ':');
             let addresses = '  addresses: [';
             peer.addresses.forEach(({ multiaddr }) => {
@@ -123,30 +137,33 @@ export default function App() {
             addresses = addresses.replace(/,$/, '');
             addresses += ']';
             commandResponses.push(addresses);
-            let protos = '  protos: [';
-            protos += peer.protocols;
-            protos += ']';
-            commandResponses.push(protos);
+            let protocols = '  protocols: [';
+            protocols += peer.protocols;
+            protocols += ']';
+            commandResponses.push(protocols);
           });
           break;
         default:
           commandResponses.push('Unknown Command');
       }
     }
-    setState(({ waku, messages }) => {
-      commandResponses.forEach((res) => {
-        messages.push(new ChatMessage(new Date(), cmd, res));
-      });
-      return { waku, messages };
+    const messages = stateMessages.slice();
+    commandResponses.forEach((res) => {
+      messages.push(new ChatMessage(new Date(), cmd, res));
     });
+    setMessages(messages);
   };
 
   return (
     <div className="App">
       <div className="chat-room">
-        <WakuContext.Provider value={{ waku: state.waku }}>
+        <WakuContext.Provider value={{ waku: stateWaku }}>
           <Paper>
-            <Room lines={state.messages} commandHandler={commandHandler} />
+            <Room
+              nick={nick}
+              lines={stateMessages}
+              commandHandler={commandHandler}
+            />
           </Paper>
         </WakuContext.Provider>
       </div>

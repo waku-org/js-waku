@@ -30,7 +30,7 @@
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts --ext .tsx",
     "test:prettier": "prettier \"src/**/*.{ts,tsx}\" --list-different",
-    "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
+    "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.{ts,tsx},public/**/*.html}\"",
     "fix:prettier": "prettier \"src/**/*.{ts,tsx}\" --write",
     "fix:lint": "eslint src --ext .ts --ext .tsx --fix",
     "js-waku:install": "cd ../; npm install",

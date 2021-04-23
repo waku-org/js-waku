@@ -9,6 +9,7 @@ import { useWaku } from './WakuContext';
 interface Props {
   lines: ChatMessage[];
   commandHandler: (cmd: string) => void;
+  nick: string;
 }
 
 export default function Room(props: Props) {
@@ -25,7 +26,7 @@ export default function Room(props: Props) {
     } else {
       const chatMessage = new ChatMessage(
         new Date(),
-        'web-chat',
+        props.nick,
         messageToSend
       );
       const wakuMsg = WakuMessage.fromBytes(
