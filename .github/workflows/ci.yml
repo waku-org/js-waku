@@ -54,7 +54,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/buf/
-          key: buf-bin-v${{ BUF_VERSION }}-ubuntu-latest-v1
+          key: buf-bin-v${{ env.BUF_VERSION }}-ubuntu-latest-v1
 
       - name: Install bufbuild
         if: steps.cache-buf-bin.outputs.cache-hit != 'true'
