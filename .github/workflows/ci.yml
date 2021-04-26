@@ -11,7 +11,7 @@ on:
 jobs:
   build_and_test:
     env:
-      BUF_VERSION: '0.39.1'
+      BUF_VERSION: '0.41.0'
     runs-on: ubuntu-latest
     steps:
 
