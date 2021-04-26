@@ -1,4 +1,3 @@
-import { Paper } from '@material-ui/core';
 import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 import React, { useEffect, useState } from 'react';
@@ -155,18 +154,14 @@ export default function App() {
   };
 
   return (
-    <div className="App">
-      <div className="chat-room">
-        <WakuContext.Provider value={{ waku: stateWaku }}>
-          <Paper>
-            <Room
-              nick={nick}
-              lines={stateMessages}
-              commandHandler={commandHandler}
-            />
-          </Paper>
-        </WakuContext.Provider>
-      </div>
+    <div className="chat-app">
+      <WakuContext.Provider value={{ waku: stateWaku }}>
+        <Room
+          nick={nick}
+          lines={stateMessages}
+          commandHandler={commandHandler}
+        />
+      </WakuContext.Provider>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Box, Grid, List, ListItem, ListItemText } from '@material-ui/core';
+import { List, ListItem, ListItemText } from '@material-ui/core';
 import React, { useState } from 'react';
 import { ChatMessage } from 'waku-chat/chat_message';
 import { WakuMessage } from 'waku/waku_message';
@@ -38,24 +38,20 @@ export default function Room(props: Props) {
   };
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <Box
-          height={800}
-          maxHeight={800}
-          style={{ flex: 1, maxHeight: '100%', overflow: 'scroll' }}
-        >
-          <Lines messages={props.lines} />
-        </Box>
-      </Grid>
-
-      <Grid item xs={12}>
+    <div
+      className="chat-container"
+      style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}
+    >
+      <div className="chat-list" style={{ flexGrow: 1, overflow: 'scroll' }}>
+        <Lines messages={props.lines} />
+      </div>
+      <div className="chat-input" style={{ flexGrow: 0, height: '120px' }}>
         <MessageInput
           messageHandler={messageHandler}
           sendMessage={sendMessage}
         />
-      </Grid>
-    </Grid>
+      </div>
+    </div>
   );
 }
 
