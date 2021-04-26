@@ -57,7 +57,6 @@ jobs:
           key: buf-bin-v${{ env.BUF_VERSION }}-ubuntu-latest-v1
 
       - name: Install bufbuild
-        if: steps.cache-buf-bin.outputs.cache-hit != 'true'
         uses: mu-io/setup-buf@v1beta
         with:
           buf-version: ${{ env.BUF_VERSION }}
