@@ -1,4 +1,11 @@
-import { List, ListItem, ListItemText } from '@material-ui/core';
+import {
+  Card,
+  CardContent,
+  List,
+  ListItem,
+  ListItemText,
+  Typography,
+} from '@material-ui/core';
 import React from 'react';
 import { ChatMessage } from '../../build/main/chat/chat_message';
 
@@ -31,9 +38,30 @@ function Message(props: MessageProps) {
     minute: '2-digit',
     hour12: false,
   });
+
+  // {`<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`}
   return (
-    <div className="chat-message">
-      {`<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`}
-    </div>
+    <Card className="chat-message" variant="outlined">
+      <CardContent>
+        <Typography className="chat-nick" variant="subtitle2">
+          {chatMsg.nick}
+          <Typography
+            className="chat-timestamp"
+            color="textSecondary"
+            variant="caption"
+            style={{ marginLeft: 3 }}
+          >
+            {timestamp}
+          </Typography>
+        </Typography>
+        <Typography
+          className="chat-message-content"
+          variant="body1"
+          component="p"
+        >
+          {chatMsg.message}
+        </Typography>
+      </CardContent>
+    </Card>
   );
 }
