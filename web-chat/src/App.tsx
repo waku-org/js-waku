@@ -18,32 +18,6 @@ export default function App() {
   let [nick, setNick] = useState<string>('web-chat');
 
   useEffect(() => {
-    async function initWaku() {
-      try {
-        const waku = await Waku.create({
-          config: {
-            pubsub: {
-              enabled: true,
-              emitSelf: true,
-            },
-          },
-        });
-
-        setWaku(waku);
-
-        // FIXME: Connect to a go-waku instance by default, temporary hack until
-        //  we have a go-waku instance in the fleet
-        waku.libp2p.peerStore.addressBook.add(
-          PeerId.createFromB58String(
-            '16Uiu2HAmVVi6Q4j7MAKVibquW8aA27UNrA4Q8Wkz9EetGViu8ZF1'
-          ),
-          [multiaddr('/ip4/134.209.113.86/tcp/9001/ws')]
-        );
-      } catch (e) {
-        console.log('Issue starting waku ', e);
-      }
-    }
-
     const handleNewMessages = (event: { data: Uint8Array }) => {
       const chatMsg = decodeWakuMessage(event.data);
       if (chatMsg) {
@@ -52,7 +26,7 @@ export default function App() {
     };
 
     if (!stateWaku) {
-      initWaku()
+      initWaku(setWaku)
         .then(() => console.log('Waku init done'))
         .catch((e) => console.log('Waku init failed ', e));
     } else {
@@ -66,7 +40,7 @@ export default function App() {
         );
       };
     }
-  });
+  }, [stateWaku, stateMessages]);
 
   return (
     <div className="chat-app">
@@ -89,6 +63,32 @@ export default function App() {
       </WakuContext.Provider>
     </div>
   );
+}
+
+async function initWaku(setter: (waku: Waku) => void) {
+  try {
+    const waku = await Waku.create({
+      config: {
+        pubsub: {
+          enabled: true,
+          emitSelf: true,
+        },
+      },
+    });
+
+    setter(waku);
+
+    // FIXME: Connect to a go-waku instance by default, temporary hack until
+    //  we have a go-waku instance in the fleet
+    waku.libp2p.peerStore.addressBook.add(
+      PeerId.createFromB58String(
+        '16Uiu2HAmVVi6Q4j7MAKVibquW8aA27UNrA4Q8Wkz9EetGViu8ZF1'
+      ),
+      [multiaddr('/ip4/134.209.113.86/tcp/9001/ws')]
+    );
+  } catch (e) {
+    console.log('Issue starting waku ', e);
+  }
 }
 
 function decodeWakuMessage(data: Uint8Array): null | ChatMessage {
