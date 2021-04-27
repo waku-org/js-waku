@@ -1,3 +1,6 @@
-status = ["build_and_test", "web_chat_build_and_test"]
+status = [
+  "build_and_test (14, ubuntu-latest)",
+  "web_chat_build_and_test"
+]
 block_labels = ["work-in-progress"]
 delete_merged_branches = true
