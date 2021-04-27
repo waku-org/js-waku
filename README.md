@@ -34,7 +34,29 @@ For support, questions & more general topics, please join the discussion on the 
 
 ## Examples
 
-## Chat app
+## Web Chat App (ReactJS)
+
+A ReactJS web app is provided as an a show case of the library used in the browser.
+
+A deployed version is available at https://status-im.github.io/js-waku/
+Do note that due to some technical restrictions, it does not currently work out-of-the-box.
+If you wish to try it out, follow the instructions on the [Vac forum](status-im.github.io/js-waku/).
+It is currently unstable and likely to break.
+
+To run a development version locally, do:
+
+```shell
+git clone https://github.com/status-im/js-waku/ ; cd js-waku
+npm install
+npm run build
+cd web-chat
+npm install
+npm run start
+```
+
+Then, you can use `/help` to change your nick and connect to a server.
+
+## CLI Chat App (NodeJS)
 
 A node chat app is provided as a working example of the library.
 It is interoperable with the [nim-waku chat app example](https://github.com/status-im/nim-waku/blob/master/examples/v2/chat2.nim).
