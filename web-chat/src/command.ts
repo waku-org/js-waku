@@ -84,7 +84,7 @@ export default function handleCommand(
   setNick: (nick: string) => void
 ): { command: string; response: string[] } {
   let response: string[] = [];
-  const args = input.split(' ');
+  const args = parseInput(input);
   const command = args.shift()!;
   switch (command) {
     case '/help':
@@ -106,4 +106,9 @@ export default function handleCommand(
       response.push(`Unknown Command '${command}'`);
   }
   return { command, response };
+}
+
+export function parseInput(input: string): string[] {
+  const clean = input.trim().replaceAll(/\s\s+/g, ' ');
+  return clean.split(' ');
 }
