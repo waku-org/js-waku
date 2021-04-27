@@ -1,8 +1,8 @@
-import { List, ListItem, ListItemText } from '@material-ui/core';
 import React, { useState } from 'react';
 import { ChatMessage } from 'waku-chat/chat_message';
 import { WakuMessage } from 'waku/waku_message';
 import { ChatContentTopic } from './App';
+import ChatList from './ChatList';
 import MessageInput from './MessageInput';
 import { useWaku } from './WakuContext';
 
@@ -61,40 +61,4 @@ async function handleMessage(
     );
     return messageSender(wakuMsg);
   }
-}
-
-interface ChatListProps {
-  messages: ChatMessage[];
-}
-
-function ChatList(props: ChatListProps) {
-  const messages = props.messages;
-
-  const listItems = messages.map((message) => (
-    <ListItem key={message.timestamp.toString()}>
-      <ListItemText primary={<Message message={message} />} />
-    </ListItem>
-  ));
-
-  return <List dense={true}>{listItems}</List>;
-}
-
-interface MessageProps {
-  message: ChatMessage;
-}
-
-function Message(props: MessageProps) {
-  const chatMsg = props.message;
-  const timestamp = chatMsg.timestamp.toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: false,
-  });
-  return (
-    <div className="chat-message">
-      {`<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`}
-    </div>
-  );
 }
