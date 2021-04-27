@@ -4,16 +4,18 @@ import { useWaku } from './WakuContext';
 
 interface Props {
   messageHandler: (msg: string) => void;
-  sendMessage: () => void;
+  sendMessage: (() => Promise<void>) | undefined;
 }
 
 export default function MessageInput(props: Props) {
   const [inputText, setInputText] = useState<string>('');
   const { waku } = useWaku();
 
-  const sendMessage = () => {
-    props.sendMessage();
-    setInputText('');
+  const sendMessage = async () => {
+    if (props.sendMessage) {
+      await props.sendMessage();
+      setInputText('');
+    }
   };
 
   const messageHandler = (event: ChangeEvent<HTMLInputElement>) => {
@@ -21,9 +23,9 @@ export default function MessageInput(props: Props) {
     props.messageHandler(event.target.value);
   };
 
-  const keyPressHandler = (event: KeyboardEvent<HTMLInputElement>) => {
+  const keyPressHandler = async (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      sendMessage();
+      await sendMessage();
     }
   };
 

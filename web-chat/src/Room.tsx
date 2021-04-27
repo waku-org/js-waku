@@ -16,27 +16,6 @@ export default function Room(props: Props) {
   let [messageToSend, setMessageToSend] = useState<string>('');
   const { waku } = useWaku();
 
-  const messageHandler = (msg: string) => {
-    setMessageToSend(msg);
-  };
-
-  const sendMessage = async () => {
-    if (messageToSend.startsWith('/')) {
-      props.commandHandler(messageToSend);
-    } else {
-      const chatMessage = new ChatMessage(
-        new Date(),
-        props.nick,
-        messageToSend
-      );
-      const wakuMsg = WakuMessage.fromBytes(
-        chatMessage.encode(),
-        ChatContentTopic
-      );
-      await waku!.relay.send(wakuMsg);
-    }
-  };
-
   return (
     <div
       className="chat-container"
@@ -47,12 +26,41 @@ export default function Room(props: Props) {
       </div>
       <div className="chat-input" style={{ flexGrow: 0, height: '120px' }}>
         <MessageInput
-          messageHandler={messageHandler}
-          sendMessage={sendMessage}
+          messageHandler={setMessageToSend}
+          sendMessage={
+            waku
+              ? async () => {
+                  return handleMessage(
+                    messageToSend,
+                    props.nick,
+                    props.commandHandler,
+                    waku.relay.send.bind(waku.relay)
+                  );
+                }
+              : undefined
+          }
         />
       </div>
     </div>
   );
+}
+
+async function handleMessage(
+  message: string,
+  nick: string,
+  commandHandler: (cmd: string) => void,
+  messageSender: (msg: WakuMessage) => Promise<void>
+) {
+  if (message.startsWith('/')) {
+    commandHandler(message);
+  } else {
+    const chatMessage = new ChatMessage(new Date(), nick, message);
+    const wakuMsg = WakuMessage.fromBytes(
+      chatMessage.encode(),
+      ChatContentTopic
+    );
+    return messageSender(wakuMsg);
+  }
 }
 
 interface LinesProps {
