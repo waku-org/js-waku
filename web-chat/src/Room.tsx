@@ -22,7 +22,7 @@ export default function Room(props: Props) {
       style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}
     >
       <div className="chat-list" style={{ flexGrow: 1, overflow: 'scroll' }}>
-        <Lines messages={props.lines} />
+        <ChatList messages={props.lines} />
       </div>
       <div className="chat-input" style={{ flexGrow: 0, height: '120px' }}>
         <MessageInput
@@ -63,29 +63,28 @@ async function handleMessage(
   }
 }
 
-interface LinesProps {
+interface ChatListProps {
   messages: ChatMessage[];
 }
 
-const Lines = (props: LinesProps) => {
-  const renderedLines = [];
+function ChatList(props: ChatListProps) {
+  const messages = props.messages;
 
-  for (const i in props.messages) {
-    renderedLines.push(
-      <ListItem>
-        <ListItemText
-          key={'chat-message-' + i}
-          primary={printMessage(props.messages[i])}
-        />
-      </ListItem>
-    );
-  }
+  const listItems = messages.map((message) => (
+    <ListItem key={message.timestamp.toString()}>
+      <ListItemText primary={<Message message={message} />} />
+    </ListItem>
+  ));
 
-  return <List dense={true}>{renderedLines}</List>;
-};
+  return <List dense={true}>{listItems}</List>;
+}
 
-// TODO: Make it a proper component
-function printMessage(chatMsg: ChatMessage) {
+interface MessageProps {
+  message: ChatMessage;
+}
+
+function Message(props: MessageProps) {
+  const chatMsg = props.message;
   const timestamp = chatMsg.timestamp.toLocaleString([], {
     month: 'short',
     day: 'numeric',
@@ -93,5 +92,9 @@ function printMessage(chatMsg: ChatMessage) {
     minute: '2-digit',
     hour12: false,
   });
-  return `<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`;
+  return (
+    <div className="chat-message">
+      {`<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`}
+    </div>
+  );
 }
