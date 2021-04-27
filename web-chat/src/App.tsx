@@ -45,13 +45,9 @@ export default function App() {
     }
 
     const handleNewMessages = (event: { data: Uint8Array }) => {
-      const wakuMsg = WakuMessage.decode(event.data);
-      if (wakuMsg.payload) {
-        const chatMsg = ChatMessage.decode(wakuMsg.payload);
-        const messages = stateMessages.slice();
-        messages.push(chatMsg);
-        console.log('setState on ', messages);
-        setMessages(messages);
+      const chatMsg = decodeWakuMessage(event.data);
+      if (chatMsg) {
+        copyAndReplace([chatMsg], stateMessages, setMessages);
       }
     };
 
@@ -84,14 +80,30 @@ export default function App() {
               stateWaku,
               setNick
             );
-            const messages = stateMessages.slice();
-            response.forEach((msg) => {
-              messages.push(new ChatMessage(new Date(), command, msg));
+            const commandMessages = response.map((msg) => {
+              return new ChatMessage(new Date(), command, msg);
             });
-            setMessages(messages);
+            copyAndReplace(commandMessages, stateMessages, setMessages);
           }}
         />
       </WakuContext.Provider>
     </div>
   );
+}
+
+function decodeWakuMessage(data: Uint8Array): null | ChatMessage {
+  const wakuMsg = WakuMessage.decode(data);
+  if (!wakuMsg.payload) {
+    return null;
+  }
+  return ChatMessage.decode(wakuMsg.payload);
+}
+
+function copyAndReplace<T>(
+  newValues: Array<T>,
+  currentValues: Array<T>,
+  setter: (val: Array<T>) => void
+) {
+  const copy = currentValues.slice();
+  setter(copy.concat(newValues));
 }
