@@ -6,7 +6,7 @@ import {
   ListItemText,
   Typography,
 } from '@material-ui/core';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ChatMessage } from '../../build/main/chat/chat_message';
 
 interface Props {
@@ -22,7 +22,12 @@ export default function ChatList(props: Props) {
     </ListItem>
   ));
 
-  return <List dense={true}>{listItems}</List>;
+  return (
+    <List dense={true}>
+      {listItems}
+      <AlwaysScrollToBottom messages={messages} />
+    </List>
+  );
 }
 
 interface MessageProps {
@@ -65,3 +70,15 @@ function Message(props: MessageProps) {
     </Card>
   );
 }
+
+const AlwaysScrollToBottom = (props: Props) => {
+  const elementRef = useRef<HTMLDivElement>();
+
+  useEffect(() => {
+    // @ts-ignore
+    elementRef.current.scrollIntoView();
+  }, [props.messages]);
+
+  // @ts-ignore
+  return <div ref={elementRef} />;
+};
