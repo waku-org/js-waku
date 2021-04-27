@@ -43,7 +43,10 @@ export default function App() {
   }, [stateWaku, stateMessages]);
 
   return (
-    <div className="chat-app">
+    <div
+      className="chat-app"
+      style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}
+    >
       <WakuContext.Provider value={{ waku: stateWaku }}>
         <Room
           nick={nick}
