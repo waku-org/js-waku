@@ -19,12 +19,15 @@ export default function Room(props: Props) {
   return (
     <div
       className="chat-container"
-      style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}
+      style={{ height: '98vh', display: 'flex', flexDirection: 'column' }}
     >
-      <div className="chat-list" style={{ flexGrow: 1, overflow: 'scroll' }}>
+      <div
+        className="chat-list"
+        style={{ display: 'flex', flexGrow: 1, overflowY: 'scroll' }}
+      >
         <ChatList messages={props.lines} />
       </div>
-      <div className="chat-input" style={{ flexGrow: 0, height: '120px' }}>
+      <div className="chat-input" style={{ display: 'flex', padding: 20 }}>
         <MessageInput
           messageHandler={setMessageToSend}
           sendMessage={

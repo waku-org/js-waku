@@ -30,15 +30,13 @@ export default function MessageInput(props: Props) {
   };
 
   return (
-    <Grid container spacing={2} direction="row" alignItems="center">
+    <Grid container direction="row" alignItems="center">
       <Grid item xs={11}>
         <TextField
           variant="outlined"
           label="Send a message"
           value={inputText}
-          fullWidth
-          style={{ margin: 8 }}
-          margin="normal"
+          fullWidth={true}
           InputLabelProps={{
             shrink: true,
           }}
