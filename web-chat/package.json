@@ -33,9 +33,8 @@
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.{ts,tsx},public/**/*.html}\"",
     "fix:prettier": "prettier \"src/**/*.{ts,tsx}\" --write",
     "fix:lint": "eslint src --ext .ts --ext .tsx --fix",
-    "js-waku:install": "cd ../; npm install",
     "js-waku:build": "cd ../; npm run build",
-    "predeploy": "run-s js-waku:* build",
+    "predeploy": "run-s js-waku:build build",
     "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
