@@ -1,16 +1,15 @@
-on:
-  issues:
-    types: opened
+name: Add new issues to js-waku project board
+
+on: [issues]
 
 jobs:
-  assign_issue_to_project:
+  add-issue:
     runs-on: ubuntu-latest
-    name: Assign new issue to project
     steps:
-    - name: Create new project card with issue
-      id: list
-      uses: qmacro/action-add-issue-to-project-column@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        project: 'js-waku'
-        column: 'New'
+      - name: Move new issues into New
+        if: github.event_name == 'issues' && github.event.action == 'opened'
+        uses: alex-page/automate-project-columns@master
+        with:
+          project: js-waku
+          column: New
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
