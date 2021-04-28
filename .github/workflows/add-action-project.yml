@@ -1,14 +1,14 @@
 name: Add new issues to js-waku project board
 
-on: [issues]
+on:
+  issues:
+    types: [opened]
 
 jobs:
-  add-issue:
+  add-new-issue-to-new-column:
     runs-on: ubuntu-latest
     steps:
-      - name: Move new issues into New
-        if: github.event_name == 'issues' && github.event.action == 'opened'
-        uses: alex-page/automate-project-columns@master
+      - uses: alex-page/github-project-automation-plus@v0.6.0
         with:
           project: js-waku
           column: New
