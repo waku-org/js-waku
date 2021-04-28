@@ -40,7 +40,7 @@ A ReactJS web app is provided as an a show case of the library used in the brows
 
 A deployed version is available at https://status-im.github.io/js-waku/
 Do note that due to some technical restrictions, it does not currently work out-of-the-box.
-If you wish to try it out, follow the instructions on the [Vac forum](status-im.github.io/js-waku/).
+If you wish to try it out, follow the instructions on the [Vac forum](https://forum.vac.dev/tag/js-waku).
 It is currently unstable and likely to break.
 
 To run a development version locally, do:
