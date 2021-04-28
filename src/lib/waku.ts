@@ -18,6 +18,7 @@ export type CreateOptions =
       staticNoiseKey: bytes | undefined;
       modules: Partial<Libp2pModules>;
       config: Partial<Libp2pConfig>;
+      listenerOptions: { server: any } | undefined;
     }
   | (Libp2pOptions & import('libp2p').CreateOptions);
 
@@ -41,7 +42,10 @@ export default class Waku {
    * @throws If
    * @returns {Promise<Waku>}
    */
-  static async create(options: Partial<CreateOptions>): Promise<Waku> {
+  static async create(
+    options: Partial<CreateOptions>,
+    server?: any
+  ): Promise<Waku> {
     const opts = Object.assign(
       {
         listenAddresses: [],
@@ -55,6 +59,7 @@ export default class Waku {
         transport: {
           [transportKey]: {
             filter: filters.all,
+            listenerOptions: { server: server },
           },
         },
       },

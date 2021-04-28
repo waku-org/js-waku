@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as https from 'https';
+
 import { expect } from 'chai';
 import TCP from 'libp2p-tcp';
 import { multiaddr } from 'multiaddr';
@@ -104,15 +107,24 @@ describe('Waku Dial', function () {
 
     it('wss', async function () {
       this.timeout(10_000);
+
+      const httpServer = https.createServer({
+        cert: fs.readFileSync('./test_certs/cert.pem'),
+        key: fs.readFileSync('./test_certs/key.pem'),
+      });
+
       const [waku1, waku2] = await Promise.all([
-        Waku.create({
-          staticNoiseKey: NOISE_KEY_1,
-          listenAddresses: ['/ip4/0.0.0.0/tcp/0/wss'],
-        }),
+        Waku.create(
+          {
+            staticNoiseKey: NOISE_KEY_1,
+            listenAddresses: ['/ip4/0.0.0.0/tcp/0/wss'],
+          },
+          httpServer
+        ),
         Waku.create({ staticNoiseKey: NOISE_KEY_2 }),
       ]);
       const waku1MultiAddrWithId = waku1.getLocalMultiaddrWithID();
-
+      console.log(waku1MultiAddrWithId);
       await waku2.dial(waku1MultiAddrWithId);
 
       const waku2PeerId = waku2.libp2p.peerId;
