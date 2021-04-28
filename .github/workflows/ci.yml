@@ -60,9 +60,10 @@ jobs:
           key: buf-bin-v${{ env.BUF_VERSION }}-ubuntu-latest-v1
 
       - name: Install bufbuild
-        uses: mu-io/setup-buf@v1beta
+        uses: mu-io/setup-buf@v2beta
         with:
           buf-version: ${{ env.BUF_VERSION }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
