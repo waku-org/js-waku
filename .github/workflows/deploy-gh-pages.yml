@@ -40,5 +40,7 @@ jobs:
         working-directory: web-chat
 
       - name: Deploy web chat app on gh pages
-        run: npm run deploy
-        working-directory: web-chat
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web-chat/build
