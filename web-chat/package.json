@@ -2,7 +2,7 @@
   "name": "web-chat",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://status-im.github.io/js-waku",
+  "homepage": "/js-waku",
   "dependencies": {
     "@material-ui/core": "^4.11.3",
     "@testing-library/jest-dom": "^5.11.10",
@@ -33,9 +33,8 @@
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.{ts,tsx},public/**/*.html}\"",
     "fix:prettier": "prettier \"src/**/*.{ts,tsx}\" --write",
     "fix:lint": "eslint src --ext .ts --ext .tsx --fix",
-    "js-waku:install": "cd ../; npm install",
     "js-waku:build": "cd ../; npm run build",
-    "predeploy": "run-s js-waku:* build",
+    "predeploy": "run-s js-waku:build build",
     "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
