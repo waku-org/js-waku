@@ -14,8 +14,8 @@ jobs:
       BUF_VERSION: '0.41.0'
     strategy:
       matrix:
-        node: [14]
-        os: [ubuntu-latest]
+        node: [14, 16]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
