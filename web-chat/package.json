@@ -2,7 +2,7 @@
   "name": "web-chat",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://status-im.github.io/js-waku",
+  "homepage": "/js-waku",
   "dependencies": {
     "@material-ui/core": "^4.11.3",
     "@testing-library/jest-dom": "^5.11.10",
