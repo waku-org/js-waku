@@ -1,8 +1,8 @@
-import { Box, Grid, List, ListItem, ListItemText } from '@material-ui/core';
 import React, { useState } from 'react';
 import { ChatMessage } from 'waku-chat/chat_message';
 import { WakuMessage } from 'waku/waku_message';
 import { ChatContentTopic } from './App';
+import ChatList from './ChatList';
 import MessageInput from './MessageInput';
 import { useWaku } from './WakuContext';
 
@@ -16,78 +16,52 @@ export default function Room(props: Props) {
   let [messageToSend, setMessageToSend] = useState<string>('');
   const { waku } = useWaku();
 
-  const messageHandler = (msg: string) => {
-    setMessageToSend(msg);
-  };
-
-  const sendMessage = async () => {
-    if (messageToSend.startsWith('/')) {
-      props.commandHandler(messageToSend);
-    } else {
-      const chatMessage = new ChatMessage(
-        new Date(),
-        props.nick,
-        messageToSend
-      );
-      const wakuMsg = WakuMessage.fromBytes(
-        chatMessage.encode(),
-        ChatContentTopic
-      );
-      await waku!.relay.send(wakuMsg);
-    }
-  };
-
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <Box
-          height={800}
-          maxHeight={800}
-          style={{ flex: 1, maxHeight: '100%', overflow: 'scroll' }}
-        >
-          <Lines messages={props.lines} />
-        </Box>
-      </Grid>
-
-      <Grid item xs={12}>
+    <div
+      className="chat-container"
+      style={{ height: '98vh', display: 'flex', flexDirection: 'column' }}
+    >
+      <div
+        className="chat-list"
+        style={{ display: 'flex', flexGrow: 1, overflowY: 'scroll' }}
+      >
+        <ChatList messages={props.lines} />
+      </div>
+      <div className="chat-input" style={{ display: 'flex', padding: 20 }}>
         <MessageInput
-          messageHandler={messageHandler}
-          sendMessage={sendMessage}
+          messageHandler={setMessageToSend}
+          sendMessage={
+            waku
+              ? async () => {
+                  return handleMessage(
+                    messageToSend,
+                    props.nick,
+                    props.commandHandler,
+                    waku.relay.send.bind(waku.relay)
+                  );
+                }
+              : undefined
+          }
         />
-      </Grid>
-    </Grid>
+      </div>
+    </div>
   );
 }
 
-interface LinesProps {
-  messages: ChatMessage[];
-}
-
-const Lines = (props: LinesProps) => {
-  const renderedLines = [];
-
-  for (const i in props.messages) {
-    renderedLines.push(
-      <ListItem>
-        <ListItemText
-          key={'chat-message-' + i}
-          primary={printMessage(props.messages[i])}
-        />
-      </ListItem>
+async function handleMessage(
+  message: string,
+  nick: string,
+  commandHandler: (cmd: string) => void,
+  messageSender: (msg: WakuMessage) => Promise<void>
+) {
+  if (message.startsWith('/')) {
+    commandHandler(message);
+  } else {
+    const chatMessage = new ChatMessage(new Date(), nick, message);
+    const wakuMsg = WakuMessage.fromBytes(
+      chatMessage.encode(),
+      ChatContentTopic
     );
+    return messageSender(wakuMsg);
   }
-
-  return <List dense={true}>{renderedLines}</List>;
-};
-
-// TODO: Make it a proper component
-function printMessage(chatMsg: ChatMessage) {
-  const timestamp = chatMsg.timestamp.toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: false,
-  });
-  return `<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`;
 }

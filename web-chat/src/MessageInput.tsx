@@ -4,16 +4,18 @@ import { useWaku } from './WakuContext';
 
 interface Props {
   messageHandler: (msg: string) => void;
-  sendMessage: () => void;
+  sendMessage: (() => Promise<void>) | undefined;
 }
 
 export default function MessageInput(props: Props) {
   const [inputText, setInputText] = useState<string>('');
   const { waku } = useWaku();
 
-  const sendMessage = () => {
-    props.sendMessage();
-    setInputText('');
+  const sendMessage = async () => {
+    if (props.sendMessage) {
+      await props.sendMessage();
+      setInputText('');
+    }
   };
 
   const messageHandler = (event: ChangeEvent<HTMLInputElement>) => {
@@ -21,22 +23,20 @@ export default function MessageInput(props: Props) {
     props.messageHandler(event.target.value);
   };
 
-  const keyPressHandler = (event: KeyboardEvent<HTMLInputElement>) => {
+  const keyPressHandler = async (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      sendMessage();
+      await sendMessage();
     }
   };
 
   return (
-    <Grid container spacing={2} direction="row" alignItems="center">
+    <Grid container direction="row" alignItems="center">
       <Grid item xs={11}>
         <TextField
           variant="outlined"
           label="Send a message"
           value={inputText}
-          fullWidth
-          style={{ margin: 8 }}
-          margin="normal"
+          fullWidth={true}
           InputLabelProps={{
             shrink: true,
           }}
