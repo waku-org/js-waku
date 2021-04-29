@@ -1,11 +1,8 @@
+import Libp2p from 'libp2p';
 import Gossipsub from 'libp2p-gossipsub';
-import {
-  AddrInfo,
-  Libp2p,
-  MessageIdFunction,
-} from 'libp2p-gossipsub/src/interfaces';
-import { ControlPrune, PeerInfo } from 'libp2p-gossipsub/src/message';
+import { AddrInfo, MessageIdFunction } from 'libp2p-gossipsub/src/interfaces';
 import { MessageCache } from 'libp2p-gossipsub/src/message-cache';
+import { RPC } from 'libp2p-gossipsub/src/message/rpc';
 import {
   PeerScoreParams,
   PeerScoreThresholds,
@@ -307,13 +304,13 @@ export class WakuRelay extends Gossipsub {
    * @param {string} id
    * @param {string} topic
    * @param {boolean} doPX
-   * @returns {ControlPrune}
+   * @returns {RPC.IControlPrune}
    */
-  _makePrune(id: string, topic: string, doPX: boolean): ControlPrune {
+  _makePrune(id: string, topic: string, doPX: boolean): RPC.IControlPrune {
     // backoff is measured in seconds
     // RelayPruneBackoff is measured in milliseconds
     const backoff = constants.RelayPruneBackoff / 1000;
-    const px: PeerInfo[] = [];
+    const px: RPC.IPeerInfo[] = [];
     if (doPX) {
       // select peers for Peer eXchange
       const peers = getRelayPeers(
