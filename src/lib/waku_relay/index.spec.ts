@@ -195,9 +195,12 @@ describe('Waku Relay', () => {
       });
 
       it('nim subscribes to js', async function () {
-        const subscribers = waku.libp2p.pubsub.getSubscribers(
-          RelayDefaultTopic
-        );
+        let subscribers: string[] = [];
+
+        while (subscribers.length === 0) {
+          await delay(200);
+          subscribers = waku.libp2p.pubsub.getSubscribers(RelayDefaultTopic);
+        }
 
         const nimPeerId = await nimWaku.getPeerId();
         expect(subscribers).to.contain(nimPeerId.toB58String());
