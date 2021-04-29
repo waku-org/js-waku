@@ -93,7 +93,7 @@ describe('Waku Relay', () => {
       let nimWaku: NimWaku;
 
       beforeEach(async function () {
-        this.timeout(12_000);
+        this.timeout(30_000);
         waku = await Waku.create({
           staticNoiseKey: NOISE_KEY_1,
           listenAddresses: ['/ip4/0.0.0.0/tcp/0'],
@@ -167,7 +167,7 @@ describe('Waku Relay', () => {
       let nimWaku: NimWaku;
 
       beforeEach(async function () {
-        this.timeout(10_000);
+        this.timeout(30_000);
         waku = await Waku.create({
           staticNoiseKey: NOISE_KEY_1,
           modules: { transport: [TCP] },
