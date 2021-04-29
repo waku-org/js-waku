@@ -82,13 +82,11 @@ async function initWaku(setter: (waku: Waku) => void) {
 
     setter(waku);
 
-    // FIXME: Connect to a go-waku instance by default, temporary hack until
-    //  we have a go-waku instance in the fleet
     waku.libp2p.peerStore.addressBook.add(
       PeerId.createFromB58String(
-        '16Uiu2HAmVVi6Q4j7MAKVibquW8aA27UNrA4Q8Wkz9EetGViu8ZF1'
+        '16Uiu2HAm7gwDpb2SQkWv69V7YND1v9tzs12eu1YyqNYmtEZwvC8D'
       ),
-      [multiaddr('/ip4/134.209.113.86/tcp/9001/ws')]
+      [multiaddr('/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/443/wss')]
     );
   } catch (e) {
     console.log('Issue starting waku ', e);
