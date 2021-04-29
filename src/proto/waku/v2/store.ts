@@ -57,6 +57,7 @@ export interface ContentFilter {
 }
 
 export interface HistoryQuery {
+  pubsubTopic?: string | undefined;
   contentFilters: ContentFilter[];
   pagingInfo?: PagingInfo | undefined;
   startTime?: number | undefined;
@@ -310,17 +311,20 @@ export const HistoryQuery = {
     message: HistoryQuery,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
+    if (message.pubsubTopic !== undefined) {
+      writer.uint32(18).string(message.pubsubTopic);
+    }
     for (const v of message.contentFilters) {
-      ContentFilter.encode(v!, writer.uint32(18).fork()).ldelim();
+      ContentFilter.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     if (message.pagingInfo !== undefined) {
-      PagingInfo.encode(message.pagingInfo, writer.uint32(26).fork()).ldelim();
+      PagingInfo.encode(message.pagingInfo, writer.uint32(34).fork()).ldelim();
     }
     if (message.startTime !== undefined) {
-      writer.uint32(33).double(message.startTime);
+      writer.uint32(41).double(message.startTime);
     }
     if (message.endTime !== undefined) {
-      writer.uint32(41).double(message.endTime);
+      writer.uint32(49).double(message.endTime);
     }
     return writer;
   },
@@ -334,17 +338,20 @@ export const HistoryQuery = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 2:
+          message.pubsubTopic = reader.string();
+          break;
+        case 3:
           message.contentFilters.push(
             ContentFilter.decode(reader, reader.uint32())
           );
           break;
-        case 3:
+        case 4:
           message.pagingInfo = PagingInfo.decode(reader, reader.uint32());
           break;
-        case 4:
+        case 5:
           message.startTime = reader.double();
           break;
-        case 5:
+        case 6:
           message.endTime = reader.double();
           break;
         default:
@@ -358,6 +365,11 @@ export const HistoryQuery = {
   fromJSON(object: any): HistoryQuery {
     const message = { ...baseHistoryQuery } as HistoryQuery;
     message.contentFilters = [];
+    if (object.pubsubTopic !== undefined && object.pubsubTopic !== null) {
+      message.pubsubTopic = String(object.pubsubTopic);
+    } else {
+      message.pubsubTopic = undefined;
+    }
     if (object.contentFilters !== undefined && object.contentFilters !== null) {
       for (const e of object.contentFilters) {
         message.contentFilters.push(ContentFilter.fromJSON(e));
@@ -383,6 +395,8 @@ export const HistoryQuery = {
 
   toJSON(message: HistoryQuery): unknown {
     const obj: any = {};
+    message.pubsubTopic !== undefined &&
+      (obj.pubsubTopic = message.pubsubTopic);
     if (message.contentFilters) {
       obj.contentFilters = message.contentFilters.map((e) =>
         e ? ContentFilter.toJSON(e) : undefined
@@ -402,6 +416,11 @@ export const HistoryQuery = {
   fromPartial(object: DeepPartial<HistoryQuery>): HistoryQuery {
     const message = { ...baseHistoryQuery } as HistoryQuery;
     message.contentFilters = [];
+    if (object.pubsubTopic !== undefined && object.pubsubTopic !== null) {
+      message.pubsubTopic = object.pubsubTopic;
+    } else {
+      message.pubsubTopic = undefined;
+    }
     if (object.contentFilters !== undefined && object.contentFilters !== null) {
       for (const e of object.contentFilters) {
         message.contentFilters.push(ContentFilter.fromPartial(e));

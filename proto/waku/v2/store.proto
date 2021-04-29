@@ -24,10 +24,11 @@ message ContentFilter {
 }
 
 message HistoryQuery {
-  repeated ContentFilter content_filters = 2;
-  optional PagingInfo paging_info = 3;
-  optional double start_time = 4;
-  optional double end_time = 5;
+  optional string pubsub_topic = 2;
+  repeated ContentFilter content_filters = 3;
+  optional PagingInfo paging_info = 4;
+  optional double start_time = 5;
+  optional double end_time = 6;
 }
 
 message HistoryResponse {

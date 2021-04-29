@@ -8,7 +8,7 @@ import { WakuMessage } from '../waku_message';
 
 import { HistoryRPC } from './history_rpc';
 
-export const StoreCodec = '/vac/waku/store/2.0.0-beta1';
+export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
 
 export class WakuStore {
   constructor(public libp2p: Libp2p) {}
@@ -16,12 +16,14 @@ export class WakuStore {
   /**
    * Retrieve history from given peer
    * @param peerId
-   * @param topics
+   * @param contentTopics
+   * @param pubsubTopic
    * @throws if not able to reach peer
    */
   async queryHistory(
     peerId: PeerId,
-    topics?: string[]
+    contentTopics?: string[],
+    pubsubTopic?: string
   ): Promise<WakuMessage[] | null> {
     const peer = this.libp2p.peerStore.get(peerId);
     if (!peer) throw 'Peer is unknown';
@@ -36,7 +38,11 @@ export class WakuStore {
       try {
         const { stream } = await connection.newStream(StoreCodec);
         try {
-          const historyRpcQuery = HistoryRPC.createQuery(topics, cursor);
+          const historyRpcQuery = HistoryRPC.createQuery(
+            contentTopics,
+            cursor,
+            pubsubTopic
+          );
           const res = await pipe(
             [historyRpcQuery.encode()],
             lp.encode(),
