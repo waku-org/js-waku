@@ -9,6 +9,7 @@ import handleCommand from './command';
 import Room from './Room';
 import Waku from 'waku/waku';
 import { WakuContext } from './WakuContext';
+import { ThemeProvider } from '@livechat/ui-kit';
 import { generate } from 'server-name-generator';
 
 export const ChatContentTopic = 'dingpu';
@@ -49,21 +50,23 @@ export default function App() {
       style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}
     >
       <WakuContext.Provider value={{ waku: stateWaku }}>
-        <Room
-          nick={nick}
-          lines={stateMessages}
-          commandHandler={(input: string) => {
-            const { command, response } = handleCommand(
-              input,
-              stateWaku,
-              setNick
-            );
-            const commandMessages = response.map((msg) => {
-              return new ChatMessage(new Date(), command, msg);
-            });
-            copyAndReplace(commandMessages, stateMessages, setMessages);
-          }}
-        />
+        <ThemeProvider>
+          <Room
+            nick={nick}
+            lines={stateMessages}
+            commandHandler={(input: string) => {
+              const { command, response } = handleCommand(
+                input,
+                stateWaku,
+                setNick
+              );
+              const commandMessages = response.map((msg) => {
+                return new ChatMessage(new Date(), command, msg);
+              });
+              copyAndReplace(commandMessages, stateMessages, setMessages);
+            }}
+          />
+        </ThemeProvider>
       </WakuContext.Provider>
     </div>
   );
