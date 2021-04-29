@@ -4,10 +4,10 @@
   "private": true,
   "homepage": "/js-waku",
   "dependencies": {
-    "@material-ui/core": "^4.11.3",
+    "@livechat/ui-kit": "*",
     "peer-id": "^0.14.8",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
     "server-name-generator": "^1.0.5",
     "waku": "file:../build/main/lib",
     "waku-chat": "file:../build/main/chat",

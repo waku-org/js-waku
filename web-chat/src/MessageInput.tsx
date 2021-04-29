@@ -1,6 +1,13 @@
-import React, { ChangeEvent, KeyboardEvent, useState } from 'react';
-import { Button, Grid, TextField } from '@material-ui/core';
+import { ChangeEvent, KeyboardEvent, useState } from 'react';
 import { useWaku } from './WakuContext';
+import {
+  TextInput,
+  TextComposer,
+  Row,
+  Fill,
+  Fit,
+  SendButton,
+} from '@livechat/ui-kit';
 
 interface Props {
   messageHandler: (msg: string) => void;
@@ -30,32 +37,20 @@ export default function MessageInput(props: Props) {
   };
 
   return (
-    <Grid container direction="row" alignItems="center">
-      <Grid item xs={11}>
-        <TextField
-          variant="outlined"
-          label="Send a message"
-          value={inputText}
-          fullWidth={true}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          onChange={messageHandler}
-          onKeyPress={keyPressHandler}
-          disabled={!waku}
-        />
-      </Grid>
-      <Grid item xs={1}>
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
-          onClick={sendMessage}
-          disabled={!waku}
-        >
-          Send
-        </Button>
-      </Grid>
-    </Grid>
+    <TextComposer
+      onKeyDown={keyPressHandler}
+      onChange={messageHandler}
+      active={waku}
+      onButtonClick={sendMessage}
+    >
+      <Row align="center">
+        <Fill>
+          <TextInput value={inputText} />
+        </Fill>
+        <Fit>
+          <SendButton />
+        </Fit>
+      </Row>
+    </TextComposer>
   );
 }

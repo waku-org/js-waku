@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChatMessage } from 'waku-chat/chat_message';
 import { WakuMessage } from 'waku/waku_message';
 import { ChatContentTopic } from './App';
 import ChatList from './ChatList';
 import MessageInput from './MessageInput';
 import { useWaku } from './WakuContext';
+import { TitleBar, MessageList } from '@livechat/ui-kit';
 
 interface Props {
   lines: ChatMessage[];
@@ -21,29 +22,25 @@ export default function Room(props: Props) {
       className="chat-container"
       style={{ height: '98vh', display: 'flex', flexDirection: 'column' }}
     >
-      <div
-        className="chat-list"
-        style={{ display: 'flex', flexGrow: 1, overflowY: 'scroll' }}
-      >
+      <TitleBar title="Waku v2 chat app" />
+      <MessageList active containScrollInSubtree>
         <ChatList messages={props.lines} />
-      </div>
-      <div className="chat-input" style={{ display: 'flex', padding: 20 }}>
-        <MessageInput
-          messageHandler={setMessageToSend}
-          sendMessage={
-            waku
-              ? async () => {
-                  return handleMessage(
-                    messageToSend,
-                    props.nick,
-                    props.commandHandler,
-                    waku.relay.send.bind(waku.relay)
-                  );
-                }
-              : undefined
-          }
-        />
-      </div>
+      </MessageList>
+      <MessageInput
+        messageHandler={setMessageToSend}
+        sendMessage={
+          waku
+            ? async () => {
+                return handleMessage(
+                  messageToSend,
+                  props.nick,
+                  props.commandHandler,
+                  waku.relay.send.bind(waku.relay)
+                );
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }
