@@ -14,8 +14,8 @@ jobs:
       BUF_VERSION: '0.41.0'
     strategy:
       matrix:
-        node: [14]
-        os: [ubuntu-latest]
+        node: [14, 16]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -60,9 +60,10 @@ jobs:
           key: buf-bin-v${{ env.BUF_VERSION }}-ubuntu-latest-v1
 
       - name: Install bufbuild
-        uses: mu-io/setup-buf@v1beta
+        uses: mu-io/setup-buf@v2beta
         with:
           buf-version: ${{ env.BUF_VERSION }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
