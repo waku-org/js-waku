@@ -9,13 +9,14 @@ import handleCommand from './command';
 import Room from './Room';
 import Waku from 'waku/waku';
 import { WakuContext } from './WakuContext';
+import { generate } from 'server-name-generator';
 
 export const ChatContentTopic = 'dingpu';
 
 export default function App() {
   let [stateMessages, setMessages] = useState<ChatMessage[]>([]);
   let [stateWaku, setWaku] = useState<Waku | undefined>(undefined);
-  let [nick, setNick] = useState<string>('web-chat');
+  let [nick, setNick] = useState<string>(generate());
 
   useEffect(() => {
     const handleNewMessages = (event: { data: Uint8Array }) => {
