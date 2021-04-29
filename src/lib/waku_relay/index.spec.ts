@@ -93,7 +93,7 @@ describe('Waku Relay', () => {
       let nimWaku: NimWaku;
 
       beforeEach(async function () {
-        this.timeout(12_000);
+        this.timeout(30_000);
         waku = await Waku.create({
           staticNoiseKey: NOISE_KEY_1,
           listenAddresses: ['/ip4/0.0.0.0/tcp/0'],
@@ -167,7 +167,7 @@ describe('Waku Relay', () => {
       let nimWaku: NimWaku;
 
       beforeEach(async function () {
-        this.timeout(10_000);
+        this.timeout(30_000);
         waku = await Waku.create({
           staticNoiseKey: NOISE_KEY_1,
           modules: { transport: [TCP] },
@@ -195,9 +195,12 @@ describe('Waku Relay', () => {
       });
 
       it('nim subscribes to js', async function () {
-        const subscribers = waku.libp2p.pubsub.getSubscribers(
-          RelayDefaultTopic
-        );
+        let subscribers: string[] = [];
+
+        while (subscribers.length === 0) {
+          await delay(200);
+          subscribers = waku.libp2p.pubsub.getSubscribers(RelayDefaultTopic);
+        }
 
         const nimPeerId = await nimWaku.getPeerId();
         expect(subscribers).to.contain(nimPeerId.toB58String());

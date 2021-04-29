@@ -1,8 +1,6 @@
 status = [
   "build_and_test (14, ubuntu-latest)",
-  "build_and_test (16, ubuntu-latest)",
   "build_and_test (14, macos-latest)",
-  "build_and_test (16, macos-latest)",
   "web_chat_build_and_test"
 ]
 block_labels = ["work-in-progress"]
