@@ -40,7 +40,7 @@ export default function MessageInput(props: Props) {
     <TextComposer
       onKeyDown={keyPressHandler}
       onChange={messageHandler}
-      active={waku}
+      active={!!waku}
       onButtonClick={sendMessage}
     >
       <Row align="center">
