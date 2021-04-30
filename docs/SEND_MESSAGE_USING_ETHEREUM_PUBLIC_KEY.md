@@ -44,6 +44,8 @@ Public parent key (`B`) to public child key (`Bw`) derivation is only possible w
 However, this can lead to privacy concerns if we consider (ii).
 At a later stage, we may consider using hardened derivation path and multiple keys.
 
+TODO: Investigate commonly used derivation path to decide on one.
+
 ### Reply
 
 To ascertain the fact that Alice receives Bob's reply, she could include connection details such as her peer id and multiaddress in the message.
