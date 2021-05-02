@@ -87,7 +87,7 @@ async function initWaku(setter: (waku: Waku) => void) {
 
     waku.libp2p.peerStore.addressBook.add(
       PeerId.createFromB58String(
-        '16Uiu2HAm7gwDpb2SQkWv69V7YND1v9tzs12eu1YyqNYmtEZwvC8D'
+        '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ'
       ),
       [multiaddr('/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/443/wss')]
     );
