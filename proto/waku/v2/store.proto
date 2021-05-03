@@ -32,7 +32,7 @@ message HistoryQuery {
 }
 
 message HistoryResponse {
-  repeated WakuMessageProto messages = 1;
+  repeated WakuMessage messages = 1;
   PagingInfo paging_info = 2;
 }
 

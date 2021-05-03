@@ -4,18 +4,18 @@ import _m0 from 'protobufjs/minimal';
 
 export const protobufPackage = 'waku.v2';
 
-export interface WakuMessageProto {
+export interface WakuMessage {
   payload?: Uint8Array | undefined;
   contentTopic?: string | undefined;
   version?: number | undefined;
   timestamp?: number | undefined;
 }
 
-const baseWakuMessageProto: object = {};
+const baseWakuMessage: object = {};
 
-export const WakuMessageProto = {
+export const WakuMessage = {
   encode(
-    message: WakuMessageProto,
+    message: WakuMessage,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.payload !== undefined) {
@@ -33,10 +33,10 @@ export const WakuMessageProto = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): WakuMessageProto {
+  decode(input: _m0.Reader | Uint8Array, length?: number): WakuMessage {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseWakuMessageProto } as WakuMessageProto;
+    const message = { ...baseWakuMessage } as WakuMessage;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -60,8 +60,8 @@ export const WakuMessageProto = {
     return message;
   },
 
-  fromJSON(object: any): WakuMessageProto {
-    const message = { ...baseWakuMessageProto } as WakuMessageProto;
+  fromJSON(object: any): WakuMessage {
+    const message = { ...baseWakuMessage } as WakuMessage;
     if (object.payload !== undefined && object.payload !== null) {
       message.payload = bytesFromBase64(object.payload);
     }
@@ -83,7 +83,7 @@ export const WakuMessageProto = {
     return message;
   },
 
-  toJSON(message: WakuMessageProto): unknown {
+  toJSON(message: WakuMessage): unknown {
     const obj: any = {};
     message.payload !== undefined &&
       (obj.payload =
@@ -97,8 +97,8 @@ export const WakuMessageProto = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<WakuMessageProto>): WakuMessageProto {
-    const message = { ...baseWakuMessageProto } as WakuMessageProto;
+  fromPartial(object: DeepPartial<WakuMessage>): WakuMessage {
+    const message = { ...baseWakuMessage } as WakuMessage;
     if (object.payload !== undefined && object.payload !== null) {
       message.payload = object.payload;
     } else {

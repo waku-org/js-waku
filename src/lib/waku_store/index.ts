@@ -65,7 +65,7 @@ export class WakuStore {
             }
 
             response.messages.map((protoMsg) => {
-              messages.push(WakuMessage.fromProto(protoMsg));
+              messages.push(new WakuMessage(protoMsg));
             });
 
             const responsePageSize = response.pagingInfo?.pageSize;

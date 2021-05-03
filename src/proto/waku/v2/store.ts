@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from 'long';
 import _m0 from 'protobufjs/minimal';
-import { WakuMessageProto } from '../../waku/v2/message';
+import { WakuMessage } from '../../waku/v2/message';
 
 export const protobufPackage = 'waku.v2';
 
@@ -65,7 +65,7 @@ export interface HistoryQuery {
 }
 
 export interface HistoryResponse {
-  messages: WakuMessageProto[];
+  messages: WakuMessage[];
   pagingInfo: PagingInfo | undefined;
 }
 
@@ -453,7 +453,7 @@ export const HistoryResponse = {
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     for (const v of message.messages) {
-      WakuMessageProto.encode(v!, writer.uint32(10).fork()).ldelim();
+      WakuMessage.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     if (message.pagingInfo !== undefined) {
       PagingInfo.encode(message.pagingInfo, writer.uint32(18).fork()).ldelim();
@@ -470,9 +470,7 @@ export const HistoryResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.messages.push(
-            WakuMessageProto.decode(reader, reader.uint32())
-          );
+          message.messages.push(WakuMessage.decode(reader, reader.uint32()));
           break;
         case 2:
           message.pagingInfo = PagingInfo.decode(reader, reader.uint32());
@@ -490,7 +488,7 @@ export const HistoryResponse = {
     message.messages = [];
     if (object.messages !== undefined && object.messages !== null) {
       for (const e of object.messages) {
-        message.messages.push(WakuMessageProto.fromJSON(e));
+        message.messages.push(WakuMessage.fromJSON(e));
       }
     }
     if (object.pagingInfo !== undefined && object.pagingInfo !== null) {
@@ -505,7 +503,7 @@ export const HistoryResponse = {
     const obj: any = {};
     if (message.messages) {
       obj.messages = message.messages.map((e) =>
-        e ? WakuMessageProto.toJSON(e) : undefined
+        e ? WakuMessage.toJSON(e) : undefined
       );
     } else {
       obj.messages = [];
@@ -522,7 +520,7 @@ export const HistoryResponse = {
     message.messages = [];
     if (object.messages !== undefined && object.messages !== null) {
       for (const e of object.messages) {
-        message.messages.push(WakuMessageProto.fromPartial(e));
+        message.messages.push(WakuMessage.fromPartial(e));
       }
     }
     if (object.pagingInfo !== undefined && object.pagingInfo !== null) {

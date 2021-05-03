@@ -319,7 +319,7 @@ describe('Waku Relay', () => {
         console.log('Waiting for message');
         const waku2ReceivedMsg = await waku2ReceivedPromise;
 
-        expect(waku2ReceivedMsg.utf8Payload()).to.eq(msgStr);
+        expect(waku2ReceivedMsg.payloadAsUtf8).to.eq(msgStr);
       });
     });
   });
