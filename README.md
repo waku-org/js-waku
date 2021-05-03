@@ -39,22 +39,19 @@ For support, questions & more general topics, please join the discussion on the 
 A ReactJS web app is provided as an a show case of the library used in the browser.
 
 A deployed version is available at https://status-im.github.io/js-waku/
-Do note that due to some technical restrictions, it does not currently work out-of-the-box.
-If you wish to try it out, follow the instructions on the [Vac forum](https://forum.vac.dev/t/waku-web-app-using-js-waku/78).
-It is currently unstable and likely to break.
 
 To run a development version locally, do:
 
 ```shell
 git clone https://github.com/status-im/js-waku/ ; cd js-waku
-npm install
-npm run build
-cd web-chat
-npm install
-npm run start
+npm install   # Install dependencies for js-waku
+npm run build # Build js-waku
+cd web-chat   
+npm install   # Install dependencies for the web app
+npm run start # Start development server to serve the web app on http://localhost:3000/js-waku
 ```
 
-Then, you can use `/help` to change your nick and connect to a server.
+Use `/help` to see the available commands.
 
 ## CLI Chat App (NodeJS)
 
