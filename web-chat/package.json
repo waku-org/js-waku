@@ -5,7 +5,6 @@
   "homepage": "/js-waku",
   "dependencies": {
     "@livechat/ui-kit": "*",
-    "peer-id": "^0.14.8",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "server-name-generator": "^1.0.5",

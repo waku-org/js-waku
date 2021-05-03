@@ -11,7 +11,8 @@ export default function ChatList(props: Props) {
 
   const listItems = messages.map((currentMessage) => (
     <Message
-      key={currentMessage.timestamp.toString()}
+      // We assume that the same user is not sending two messages in the same second
+      key={currentMessage.timestamp.toString() + currentMessage.nick}
       authorName={currentMessage.nick}
       date={formatDisplayDate(currentMessage)}
     >
