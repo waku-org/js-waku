@@ -31,5 +31,13 @@
       "error",
       { "ignoreDeclarationSort": true, "ignoreCase": true }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.spec.ts", "**/test_utils/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-non-null-assertion": "off"
+      }
+    }
+  ]
 }
