@@ -137,20 +137,13 @@ export class NimWaku {
   async peers(): Promise<string[]> {
     this.checkProcess();
 
-    const res = await this.rpcCall<string[]>('get_waku_v2_admin_v1_peers', []);
-
-    return res.result;
+    return this.rpcCall<string[]>('get_waku_v2_admin_v1_peers', []);
   }
 
   async info(): Promise<RpcInfoResponse> {
     this.checkProcess();
 
-    const res = await this.rpcCall<RpcInfoResponse>(
-      'get_waku_v2_debug_v1_info',
-      []
-    );
-
-    return res.result;
+    return this.rpcCall<RpcInfoResponse>('get_waku_v2_debug_v1_info', []);
   }
 
   async sendMessage(message: WakuMessage): Promise<boolean> {
@@ -165,23 +158,18 @@ export class NimWaku {
       contentTopic: message.contentTopic,
     };
 
-    const res = await this.rpcCall<boolean>('post_waku_v2_relay_v1_message', [
+    return this.rpcCall<boolean>('post_waku_v2_relay_v1_message', [
       RelayDefaultTopic,
       rpcMessage,
     ]);
-
-    return res.result;
   }
 
   async messages(): Promise<WakuMessage[]> {
     this.checkProcess();
 
-    const res = await this.rpcCall<WakuMessage[]>(
-      'get_waku_v2_relay_v1_messages',
-      [RelayDefaultTopic]
-    );
-
-    return res.result;
+    return this.rpcCall<WakuMessage[]>('get_waku_v2_relay_v1_messages', [
+      RelayDefaultTopic,
+    ]);
   }
 
   async getPeerId(): Promise<PeerId> {
@@ -220,7 +208,7 @@ export class NimWaku {
   private async rpcCall<T>(
     method: string,
     params: Array<string | number | unknown>
-  ): Promise<{ result: T }> {
+  ): Promise<T> {
     const res = await axios.post(
       this.rpcUrl,
       {
@@ -234,7 +222,7 @@ export class NimWaku {
       }
     );
 
-    return res.data;
+    return res.data.result;
   }
 
   private checkProcess(): void {
