@@ -18,7 +18,7 @@ export function getRelayPeers(
   router: Gossipsub,
   topic: string,
   count: number,
-  filter: (id: string) => boolean = () => true
+  filter: (id: string) => boolean = (): boolean => true
 ): Set<string> {
   const peersInTopic = router.topics.get(topic);
   if (!peersInTopic) {

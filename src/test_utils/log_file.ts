@@ -4,7 +4,10 @@ import { Tail } from 'tail';
 
 import { waitForFile } from './async_fs';
 
-export default async function waitForLine(filepath: string, logLine: string) {
+export default async function waitForLine(
+  filepath: string,
+  logLine: string
+): Promise<void> {
   await pTimeout(waitForFile(filepath), 2000);
 
   const options = {
@@ -22,7 +25,7 @@ export default async function waitForLine(filepath: string, logLine: string) {
   tail.unwatch();
 }
 
-async function find(tail: Tail, line: string) {
+async function find(tail: Tail, line: string): Promise<string> {
   return new Promise((resolve, reject) => {
     tail.on('line', (data: string) => {
       if (data.includes(line)) {

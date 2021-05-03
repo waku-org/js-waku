@@ -31,10 +31,10 @@ export class RelayHeartbeat extends Heartbeat {
 
     this._heartbeatTimer = {
       _intervalId: undefined,
-      runPeriodically: (fn, period) => {
+      runPeriodically: (fn, period): void => {
         this._heartbeatTimer!._intervalId = setInterval(fn, period);
       },
-      cancel: () => {
+      cancel: (): void => {
         clearTimeout(timeout);
         clearInterval(this._heartbeatTimer?._intervalId as NodeJS.Timeout);
       },
