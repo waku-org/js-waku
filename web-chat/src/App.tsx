@@ -13,6 +13,35 @@ import { WakuContext } from './WakuContext';
 import { ThemeProvider } from '@livechat/ui-kit';
 import { generate } from 'server-name-generator';
 
+const themes = {
+  AuthorName: {
+    css: {
+      fontSize: '1.1em',
+    },
+  },
+  Message: {
+    css: {
+      margin: '0em',
+      padding: '0em',
+      fontSize: '0.83em',
+    },
+  },
+  MessageText: {
+    css: {
+      margin: '0em',
+      padding: '0.1em',
+      paddingLeft: '1em',
+      fontSize: '1.1em',
+    },
+  },
+  MessageGroup: {
+    css: {
+      margin: '0em',
+      padding: '0.2em',
+    },
+  },
+};
+
 export const ChatContentTopic = 'dingpu';
 
 export default function App() {
@@ -82,7 +111,7 @@ export default function App() {
       style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}
     >
       <WakuContext.Provider value={{ waku: stateWaku }}>
-        <ThemeProvider>
+        <ThemeProvider theme={themes}>
           <Room
             nick={nick}
             lines={stateMessages}

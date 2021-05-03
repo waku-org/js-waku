@@ -5,7 +5,7 @@ import { ChatContentTopic } from './App';
 import ChatList from './ChatList';
 import MessageInput from './MessageInput';
 import { useWaku } from './WakuContext';
-import { TitleBar, MessageList } from '@livechat/ui-kit';
+import { TitleBar } from '@livechat/ui-kit';
 
 interface Props {
   lines: ChatMessage[];
@@ -23,9 +23,7 @@ export default function Room(props: Props) {
       style={{ height: '98vh', display: 'flex', flexDirection: 'column' }}
     >
       <TitleBar title="Waku v2 chat app" />
-      <MessageList active containScrollInSubtree>
-        <ChatList messages={props.lines} />
-      </MessageList>
+      <ChatList messages={props.lines} />
       <MessageInput
         messageHandler={setMessageToSend}
         sendMessage={
