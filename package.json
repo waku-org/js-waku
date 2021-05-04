@@ -1,13 +1,13 @@
 {
   "name": "js-waku",
   "version": "1.0.0",
-  "description": "A chat application running on node and waku",
+  "description": "TypeScript implementation of the Waku v2 protocol",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
-  "repository": "https://github.com/D4nte/waku-js-chat",
-  "license": "MIT",
-  "keywords": [],
+  "repository": "https://github.com/status-im/js-waku",
+  "license": "MIT OR Apache-2.0",
+  "keywords": ["waku", "decentralised", "communication"],
   "scripts": {
     "build": "run-s build:*",
     "build:main": "tsc -p tsconfig.json",
@@ -47,7 +47,7 @@
     "prepare-release": "run-s reset-hard test cov:check doc:html version doc:publish"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=14"
   },
   "dependencies": {
     "@bitauth/libauth": "^1.17.1",
