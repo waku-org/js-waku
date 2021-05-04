@@ -58,7 +58,7 @@ export class NimWaku {
     this.logPath = `${LOG_DIR}/nim-waku_${logName}.log`;
   }
 
-  async start(args?: Args) {
+  async start(args?: Args): Promise<void> {
     try {
       await existsAsync(LOG_DIR);
     } catch (e) {
@@ -116,7 +116,7 @@ export class NimWaku {
     await this.waitForLog('RPC Server started');
   }
 
-  public stop() {
+  public stop(): void {
     dbg(
       `nim-waku ${
         this.process ? this.process.pid : this.pid
@@ -126,7 +126,7 @@ export class NimWaku {
     this.process = undefined;
   }
 
-  async waitForLog(msg: string) {
+  async waitForLog(msg: string): Promise<void> {
     return waitForLine(this.logPath, msg);
   }
 
@@ -134,23 +134,19 @@ export class NimWaku {
    * for known peers
    * @throws if nim-waku2 isn't started.
    */
-  async peers() {
+  async peers(): Promise<string[]> {
     this.checkProcess();
 
-    const res = await this.rpcCall('get_waku_v2_admin_v1_peers', []);
-
-    return res.result;
+    return this.rpcCall<string[]>('get_waku_v2_admin_v1_peers', []);
   }
 
   async info(): Promise<RpcInfoResponse> {
     this.checkProcess();
 
-    const res = await this.rpcCall('get_waku_v2_debug_v1_info', []);
-
-    return res.result;
+    return this.rpcCall<RpcInfoResponse>('get_waku_v2_debug_v1_info', []);
   }
 
-  async sendMessage(message: WakuMessage) {
+  async sendMessage(message: WakuMessage): Promise<boolean> {
     this.checkProcess();
 
     if (!message.payload) {
@@ -162,22 +158,18 @@ export class NimWaku {
       contentTopic: message.contentTopic,
     };
 
-    const res = await this.rpcCall('post_waku_v2_relay_v1_message', [
+    return this.rpcCall<boolean>('post_waku_v2_relay_v1_message', [
       RelayDefaultTopic,
       rpcMessage,
     ]);
-
-    return res.result;
   }
 
-  async messages() {
+  async messages(): Promise<WakuMessage[]> {
     this.checkProcess();
 
-    const res = await this.rpcCall('get_waku_v2_relay_v1_messages', [
+    return this.rpcCall<WakuMessage[]>('get_waku_v2_relay_v1_messages', [
       RelayDefaultTopic,
     ]);
-
-    return res.result;
   }
 
   async getPeerId(): Promise<PeerId> {
@@ -213,10 +205,10 @@ export class NimWaku {
     return `http://localhost:${port}/`;
   }
 
-  private async rpcCall(
+  private async rpcCall<T>(
     method: string,
     params: Array<string | number | unknown>
-  ) {
+  ): Promise<T> {
     const res = await axios.post(
       this.rpcUrl,
       {
@@ -230,10 +222,10 @@ export class NimWaku {
       }
     );
 
-    return res.data;
+    return res.data.result;
   }
 
-  private checkProcess() {
+  private checkProcess(): void {
     if (!this.process) {
       throw "Nim Waku isn't started";
     }
@@ -282,7 +274,7 @@ export function strToHex(str: string): string {
   return hex;
 }
 
-export function bufToHex(buffer: Uint8Array) {
+export function bufToHex(buffer: Uint8Array): string {
   return Array.prototype.map
     .call(buffer, (x) => ('00' + x.toString(16)).slice(-2))
     .join('');

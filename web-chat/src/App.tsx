@@ -1,6 +1,6 @@
 import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import { ChatMessage } from 'waku-chat/chat_message';
 import { WakuMessage } from 'waku/waku_message';

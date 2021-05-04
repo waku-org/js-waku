@@ -98,16 +98,21 @@ export default class Waku {
    * Dials to the provided peer.
    * @param peer The peer to dial
    */
-  async dial(peer: PeerId | Multiaddr | string) {
-    await this.libp2p.dialProtocol(peer, [RelayCodec, StoreCodec]);
+  async dial(
+    peer: PeerId | Multiaddr | string
+  ): Promise<{
+    stream: import('libp2p-interfaces/src/stream-muxer/types').MuxedStream;
+    protocol: string;
+  }> {
+    return this.libp2p.dialProtocol(peer, [RelayCodec, StoreCodec]);
   }
 
-  addPeerToAddressBook(peerId: PeerId, multiaddr: Multiaddr[]) {
+  addPeerToAddressBook(peerId: PeerId, multiaddr: Multiaddr[]): void {
     this.libp2p.peerStore.addressBook.set(peerId, multiaddr);
   }
 
-  async stop() {
-    await this.libp2p.stop();
+  async stop(): Promise<void> {
+    return this.libp2p.stop();
   }
 
   /**

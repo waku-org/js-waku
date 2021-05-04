@@ -13,7 +13,7 @@ import { ChatMessage } from './chat_message';
 
 const ChatContentTopic = 'dingpu';
 
-(async function () {
+(async function (): Promise<void> {
   const opts = processArguments();
 
   const waku = await Waku.create({
@@ -124,7 +124,7 @@ function processArguments(): Options {
   return opts;
 }
 
-function printMessage(chatMsg: ChatMessage) {
+function printMessage(chatMsg: ChatMessage): void {
   const timestamp = chatMsg.timestamp.toLocaleString([], {
     month: 'short',
     day: 'numeric',

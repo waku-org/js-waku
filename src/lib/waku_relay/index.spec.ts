@@ -32,10 +32,7 @@ describe('Waku Relay', () => {
       }),
     ]);
 
-    await waku1.addPeerToAddressBook(
-      waku2.libp2p.peerId,
-      waku2.libp2p.multiaddrs
-    );
+    waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
 
     await Promise.all([
       new Promise((resolve) =>
@@ -133,7 +130,7 @@ describe('Waku Relay', () => {
 
         await waku.relay.send(message);
 
-        let msgs = [];
+        let msgs: WakuMessage[] = [];
 
         while (msgs.length === 0) {
           await delay(200);
@@ -143,7 +140,7 @@ describe('Waku Relay', () => {
         expect(msgs[0].contentTopic).to.equal(message.contentTopic);
         expect(msgs[0].version).to.equal(message.version);
 
-        const payload = Buffer.from(msgs[0].payload);
+        const payload = Buffer.from(msgs[0].payload!);
         expect(Buffer.compare(payload, message.payload!)).to.equal(0);
       });
 
@@ -216,7 +213,7 @@ describe('Waku Relay', () => {
         await delay(1000);
         await waku.relay.send(message);
 
-        let msgs = [];
+        let msgs: WakuMessage[] = [];
 
         while (msgs.length === 0) {
           console.log('Waiting for messages');
@@ -227,7 +224,7 @@ describe('Waku Relay', () => {
         expect(msgs[0].contentTopic).to.equal(message.contentTopic);
         expect(msgs[0].version).to.equal(message.version);
 
-        const payload = Buffer.from(msgs[0].payload);
+        const payload = Buffer.from(msgs[0].payload!);
         expect(Buffer.compare(payload, message.payload!)).to.equal(0);
       });
 

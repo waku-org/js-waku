@@ -78,7 +78,7 @@ export class WakuRelay extends Gossipsub {
    * @override
    * @returns {void}
    */
-  start() {
+  start(): void {
     super.start();
     super.subscribe(constants.RelayDefaultTopic);
   }
@@ -89,7 +89,7 @@ export class WakuRelay extends Gossipsub {
    * @param {WakuMessage} message
    * @returns {Promise<void>}
    */
-  async send(message: WakuMessage) {
+  async send(message: WakuMessage): Promise<void> {
     const msg = message.encode();
     await super.publish(constants.RelayDefaultTopic, Buffer.from(msg));
   }
