@@ -24,7 +24,7 @@
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" \"./*.json\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
-    "test:unit": "nyc --silent mocha --exit # TODO: Remove `--exit` and fix hanging processes",
+    "test:unit": "nyc --silent mocha",
     "proto": "run-s proto:*",
     "proto:lint": "buf lint",
     "proto:build": "buf generate",
