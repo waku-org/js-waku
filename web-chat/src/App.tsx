@@ -2,7 +2,8 @@ import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 import { useEffect, useState } from 'react';
 import './App.css';
-import { ChatMessage } from 'waku/chat_message';
+import { ChatMessage } from './ChatMessage';
+import { ChatMessage as WakuChatMessage } from 'waku/chat_message';
 import { WakuMessage } from 'waku/waku_message';
 import { RelayDefaultTopic } from 'waku/waku_relay';
 import { StoreCodec } from 'waku/waku_store';
@@ -73,7 +74,10 @@ export default function App() {
           const messages = response
             .map((wakuMsg) => wakuMsg.payload)
             .filter((payload) => !!payload)
-            .map((payload) => ChatMessage.decode(payload as Uint8Array));
+            .map((payload) => WakuChatMessage.decode(payload as Uint8Array))
+            .map((wakuChatMessage) =>
+              ChatMessage.fromWakuChatMessage(wakuChatMessage)
+            );
           copyMergeUniqueReplace(messages, stateMessages, setMessages);
         }
       }
@@ -122,7 +126,7 @@ export default function App() {
                 setNick
               );
               const commandMessages = response.map((msg) => {
-                return new ChatMessage(new Date(), command, msg);
+                return new ChatMessage(new Date(), new Date(), command, msg);
               });
               copyAppendReplace(commandMessages, stateMessages, setMessages);
             }}
@@ -162,7 +166,9 @@ function decodeWakuMessage(data: Uint8Array): null | ChatMessage {
   if (!wakuMsg.payload) {
     return null;
   }
-  return ChatMessage.decode(wakuMsg.payload);
+  return ChatMessage.fromWakuChatMessage(
+    WakuChatMessage.decode(wakuMsg.payload)
+  );
 }
 
 function copyAppendReplace<T>(
@@ -185,7 +191,7 @@ function copyMergeUniqueReplace(
       copy.push(msg);
     }
   });
-  copy.sort((a, b) => a.timestamp.valueOf() - b.timestamp.valueOf());
+  copy.sort((a, b) => a.sentTimestamp.valueOf() - b.sentTimestamp.valueOf());
   setter(copy);
 }
 
@@ -193,6 +199,6 @@ function isEqual(lhs: ChatMessage, rhs: ChatMessage): boolean {
   return (
     lhs.nick === rhs.nick &&
     lhs.message === rhs.message &&
-    lhs.timestamp.toString() === rhs.timestamp.toString()
+    lhs.sentTimestamp.toString() === rhs.sentTimestamp.toString()
   );
 }

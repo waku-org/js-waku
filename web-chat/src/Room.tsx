@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ChatMessage } from 'waku/chat_message';
+import { ChatMessage } from './ChatMessage';
+import { ChatMessage as WakuChatMessage } from 'waku/chat_message';
 import { WakuMessage } from 'waku/waku_message';
 import { ChatContentTopic } from './App';
 import ChatList from './ChatList';
@@ -52,7 +53,7 @@ async function handleMessage(
   if (message.startsWith('/')) {
     commandHandler(message);
   } else {
-    const chatMessage = new ChatMessage(new Date(), nick, message);
+    const chatMessage = new WakuChatMessage(new Date(), nick, message);
     const wakuMsg = WakuMessage.fromBytes(
       chatMessage.encode(),
       ChatContentTopic

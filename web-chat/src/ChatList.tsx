@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ChatMessage } from 'waku/chat_message';
+import { ChatMessage } from './ChatMessage';
 import {
   Message,
   MessageText,
@@ -20,7 +20,11 @@ export default function ChatList(props: Props) {
         {currentMessageGroup.map((currentMessage) => (
           <Message
             // We assume that the same user is not sending two messages in the same second
-            key={currentMessage.timestamp.toString() + currentMessage.nick}
+            key={
+              currentMessage.receivedTimestampMs.valueOf() +
+              currentMessage.nick +
+              currentMessage.message
+            }
             authorName={currentMessage.nick}
             date={formatDisplayDate(currentMessage)}
           >
@@ -58,7 +62,7 @@ function groupMessagesBySender(messageArray: ChatMessage[]): ChatMessage[][] {
 }
 
 function formatDisplayDate(message: ChatMessage): string {
-  return message.timestamp.toLocaleString([], {
+  return message.sentTimestamp.toLocaleString([], {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
