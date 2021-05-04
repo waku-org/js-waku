@@ -92,6 +92,7 @@ function connections(waku: Waku | undefined): string[] {
       let strConnections = '  connections: [';
       connections.forEach((connection) => {
         strConnections += JSON.stringify(connection.stat);
+        strConnections += "; " + JSON.stringify(connection.streams);
       });
       strConnections += ']';
       response.push(strConnections);
