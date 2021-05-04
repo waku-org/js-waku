@@ -42,7 +42,7 @@ function connect(peer: string | undefined, waku: Waku | undefined): string[] {
     if (!peerId) {
       return ['Peer Id needed to dial'];
     }
-    waku.libp2p.peerStore.addressBook.add(PeerId.createFromB58String(peerId), [
+    waku.addPeerToAddressBook(PeerId.createFromB58String(peerId), [
       peerMultiaddr,
     ]);
     return [

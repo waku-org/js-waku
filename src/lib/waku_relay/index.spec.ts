@@ -32,7 +32,10 @@ describe('Waku Relay', () => {
       }),
     ]);
 
-    await waku1.dialWithMultiAddr(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+    await waku1.addPeerToAddressBook(
+      waku2.libp2p.peerId,
+      waku2.libp2p.multiaddrs
+    );
 
     await Promise.all([
       new Promise((resolve) =>
@@ -319,7 +322,7 @@ describe('Waku Relay', () => {
         console.log('Waiting for message');
         const waku2ReceivedMsg = await waku2ReceivedPromise;
 
-        expect(waku2ReceivedMsg.utf8Payload()).to.eq(msgStr);
+        expect(waku2ReceivedMsg.payloadAsUtf8).to.eq(msgStr);
       });
     });
   });

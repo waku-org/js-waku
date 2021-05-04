@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import fc from 'fast-check';
 
 import { WakuMessage } from './waku_message';
@@ -7,10 +8,10 @@ describe('Waku Message', function () {
     fc.assert(
       fc.property(fc.string(), (s) => {
         const msg = WakuMessage.fromUtf8String(s);
-        const binary = msg.toBinary();
+        const binary = msg.encode();
         const actual = WakuMessage.decode(binary);
 
-        return actual.isEqualTo(msg);
+        expect(actual).to.deep.equal(msg);
       })
     );
   });
@@ -19,7 +20,7 @@ describe('Waku Message', function () {
     fc.assert(
       fc.property(fc.string(), (s) => {
         const msg = WakuMessage.fromUtf8String(s);
-        const utf8 = msg.utf8Payload();
+        const utf8 = msg.payloadAsUtf8;
 
         return utf8 === s;
       })

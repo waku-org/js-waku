@@ -41,7 +41,7 @@ describe('Waku Store', () => {
 
     expect(messages?.length).eq(2);
     const result = messages?.findIndex((msg) => {
-      return msg.utf8Payload() === 'Message 0';
+      return msg.payloadAsUtf8 === 'Message 0';
     });
     expect(result).to.not.eq(-1);
   });
@@ -75,7 +75,7 @@ describe('Waku Store', () => {
     for (let index = 0; index < 2; index++) {
       expect(
         messages?.findIndex((msg) => {
-          return msg.utf8Payload() === `Message ${index}`;
+          return msg.payloadAsUtf8 === `Message ${index}`;
         })
       ).to.eq(index);
     }

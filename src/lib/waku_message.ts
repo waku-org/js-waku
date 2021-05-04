@@ -2,31 +2,30 @@
 import { Reader } from 'protobufjs/minimal';
 
 // Protecting the user from protobuf oddities
-import { WakuMessageProto } from '../proto/waku/v2/message';
+import * as proto from '../proto/waku/v2/message';
 
 export const DEFAULT_CONTENT_TOPIC = '/waku/2/default-content/proto';
 const DEFAULT_VERSION = 0;
 
 export class WakuMessage {
-  // TODO: Adopt similar design to HistoryRPC
-  private constructor(
-    public payload?: Uint8Array,
-    public contentTopic?: string,
-    public version?: number
-  ) {}
-
-  static fromProto(proto: WakuMessageProto) {
-    return new WakuMessage(proto.payload, proto.contentTopic, proto.version);
-  }
+  public constructor(public proto: proto.WakuMessage) {}
 
   /**
    * Create Message with a utf-8 string as payload
-   * @param payload
+   * @param utf8
+   * @param contentTopic
    * @returns {WakuMessage}
    */
-  static fromUtf8String(payload: string): WakuMessage {
-    const buf = Buffer.from(payload, 'utf-8');
-    return new WakuMessage(buf, DEFAULT_CONTENT_TOPIC, DEFAULT_VERSION);
+  static fromUtf8String(
+    utf8: string,
+    contentTopic: string = DEFAULT_CONTENT_TOPIC
+  ): WakuMessage {
+    const payload = Buffer.from(utf8, 'utf-8');
+    return new WakuMessage({
+      payload,
+      version: DEFAULT_VERSION,
+      contentTopic,
+    });
   }
 
   /**
@@ -39,50 +38,43 @@ export class WakuMessage {
     payload: Uint8Array,
     contentTopic: string = DEFAULT_CONTENT_TOPIC
   ): WakuMessage {
-    return new WakuMessage(payload, contentTopic, DEFAULT_VERSION);
+    return new WakuMessage({
+      payload,
+      version: DEFAULT_VERSION,
+      contentTopic,
+    });
   }
 
   static decode(bytes: Uint8Array): WakuMessage {
-    const wakuMsg = WakuMessageProto.decode(Reader.create(bytes));
-    return new WakuMessage(
-      wakuMsg.payload,
-      wakuMsg.contentTopic,
-      wakuMsg.version
-    );
+    const wakuMsg = proto.WakuMessage.decode(Reader.create(bytes));
+    return new WakuMessage(wakuMsg);
   }
 
-  toBinary(): Uint8Array {
-    return WakuMessageProto.encode({
-      payload: this.payload,
-      version: this.version,
-      contentTopic: this.contentTopic,
-    }).finish();
+  encode(): Uint8Array {
+    return proto.WakuMessage.encode(this.proto).finish();
   }
 
-  utf8Payload(): string {
-    if (!this.payload) {
+  get payloadAsUtf8(): string {
+    if (!this.proto.payload) {
       return '';
     }
 
-    return Array.from(this.payload)
+    return Array.from(this.proto.payload)
       .map((char) => {
         return String.fromCharCode(char);
       })
       .join('');
   }
 
-  // Purely for tests purposes.
-  // We do consider protobuf field when checking equality
-  // As the content is held by the other fields.
-  isEqualTo(other: WakuMessage) {
-    const payloadsAreEqual =
-      this.payload && other.payload
-        ? Buffer.compare(this.payload, other.payload) === 0
-        : !(this.payload || other.payload);
-    return (
-      payloadsAreEqual &&
-      this.contentTopic === other.contentTopic &&
-      this.version === other.version
-    );
+  get payload(): Uint8Array | undefined {
+    return this.proto.payload;
+  }
+
+  get contentTopic(): string | undefined {
+    return this.proto.contentTopic;
+  }
+
+  get version(): number | undefined {
+    return this.proto.version;
   }
 }

@@ -86,7 +86,7 @@ export default function App() {
     } else {
       stateWaku.libp2p.pubsub.on(RelayDefaultTopic, handleNewMessages);
 
-      stateWaku.libp2p.peerStore.once(
+      stateWaku.libp2p.peerStore.on(
         'change:protocols',
         handleProtocolChange.bind({}, stateWaku)
       );

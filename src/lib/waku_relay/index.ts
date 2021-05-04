@@ -90,7 +90,7 @@ export class WakuRelay extends Gossipsub {
    * @returns {Promise<void>}
    */
   async send(message: WakuMessage) {
-    const msg = message.toBinary();
+    const msg = message.encode();
     await super.publish(constants.RelayDefaultTopic, Buffer.from(msg));
   }
 
