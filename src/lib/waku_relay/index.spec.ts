@@ -32,7 +32,10 @@ describe('Waku Relay', () => {
       }),
     ]);
 
-    await waku1.dialWithMultiAddr(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+    await waku1.addPeerToAddressBook(
+      waku2.libp2p.peerId,
+      waku2.libp2p.multiaddrs
+    );
 
     await Promise.all([
       new Promise((resolve) =>

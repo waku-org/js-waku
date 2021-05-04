@@ -102,7 +102,7 @@ export default class Waku {
     await this.libp2p.dialProtocol(peer, [RelayCodec, StoreCodec]);
   }
 
-  async dialWithMultiAddr(peerId: PeerId, multiaddr: Multiaddr[]) {
+  addPeerToAddressBook(peerId: PeerId, multiaddr: Multiaddr[]) {
     this.libp2p.peerStore.addressBook.set(peerId, multiaddr);
   }
 
