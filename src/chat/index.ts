@@ -4,12 +4,11 @@ import util from 'util';
 import TCP from 'libp2p-tcp';
 import { multiaddr, Multiaddr } from 'multiaddr';
 
+import { ChatMessage } from '../lib/chat_message';
 import Waku from '../lib/waku';
 import { WakuMessage } from '../lib/waku_message';
 import { RelayDefaultTopic } from '../lib/waku_relay';
 import { StoreCodec } from '../lib/waku_store';
-
-import { ChatMessage } from './chat_message';
 
 const ChatContentTopic = 'dingpu';
 
