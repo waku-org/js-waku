@@ -1,0 +1,45 @@
+name: Examples CI
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'staging'
+      - 'trying'
+  pull_request:
+
+jobs:
+  examples_build_and_test:
+    strategy:
+      matrix:
+        example: [ cli-chat ]
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Cache npm cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: examples-node-v1-${{ hashFiles('**/package-lock.json') }}
+
+      - name: "[js-waku] install using npm ci"
+        uses: bahmutov/npm-install@v1
+
+      - name: "[js-waku] build"
+        run: npm run build
+
+      - name: ${{ matrix.example }} install using npm i
+        run: npm install
+        working-directory: examples/${{ matrix.example }}
+
+      - name: ${{ matrix.example }} test
+        run: npm run test
+        working-directory: examples/${{ matrix.example }}

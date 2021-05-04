@@ -3,16 +3,15 @@ import util from 'util';
 
 import TCP from 'libp2p-tcp';
 import { multiaddr, Multiaddr } from 'multiaddr';
-
-import { ChatMessage } from '../lib/chat_message';
-import Waku from '../lib/waku';
-import { WakuMessage } from '../lib/waku_message';
-import { RelayDefaultTopic } from '../lib/waku_relay';
-import { StoreCodec } from '../lib/waku_store';
+import { ChatMessage } from 'waku/chat_message';
+import Waku from 'waku/waku';
+import { WakuMessage } from 'waku/waku_message';
+import { RelayDefaultTopic } from 'waku/waku_relay';
+import { StoreCodec } from 'waku/waku_store';
 
 const ChatContentTopic = 'dingpu';
 
-(async function (): Promise<void> {
+export default async function startChat(): Promise<void> {
   const opts = processArguments();
 
   const waku = await Waku.create({
@@ -50,7 +49,7 @@ const ChatContentTopic = 'dingpu';
     const wakuMsg = WakuMessage.decode(event.data);
     if (wakuMsg.payload) {
       const chatMsg = ChatMessage.decode(wakuMsg.payload);
-      printMessage(chatMsg);
+      console.log(formatMessage(chatMsg));
     }
   });
 
@@ -75,7 +74,7 @@ const ChatContentTopic = 'dingpu';
         messages?.map((msg) => {
           if (msg.payload) {
             const chatMsg = ChatMessage.decode(msg.payload);
-            printMessage(chatMsg);
+            console.log(formatMessage(chatMsg));
           }
         });
       }
@@ -91,7 +90,7 @@ const ChatContentTopic = 'dingpu';
     const msg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
     await waku.relay.send(msg);
   }
-})();
+}
 
 interface Options {
   staticNode?: Multiaddr;
@@ -123,7 +122,7 @@ function processArguments(): Options {
   return opts;
 }
 
-function printMessage(chatMsg: ChatMessage): void {
+export function formatMessage(chatMsg: ChatMessage): string {
   const timestamp = chatMsg.timestamp.toLocaleString([], {
     month: 'short',
     day: 'numeric',
@@ -131,5 +130,5 @@ function printMessage(chatMsg: ChatMessage): void {
     minute: '2-digit',
     hour12: false,
   });
-  console.log(`<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`);
+  return `<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`;
 }

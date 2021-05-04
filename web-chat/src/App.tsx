@@ -2,7 +2,7 @@ import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 import { useEffect, useState } from 'react';
 import './App.css';
-import { ChatMessage } from 'waku-chat/chat_message';
+import { ChatMessage } from 'waku/chat_message';
 import { WakuMessage } from 'waku/waku_message';
 import { RelayDefaultTopic } from 'waku/waku_relay';
 import { StoreCodec } from 'waku/waku_store';

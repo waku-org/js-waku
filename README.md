@@ -67,8 +67,11 @@ Then, install and run:
 
 ```shell
 git clone https://github.com/status-im/js-waku/ ; cd js-waku
-npm install
-npm run chat -- --staticNode /ip4/134.209.139.210/tcp/30303/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ
+npm install   # Install dependencies for js-waku
+npm run build # Build js-waku
+cd examples/cli-chat
+npm install # Install dependencies for the cli app
+npm run start -- --staticNode /ip4/134.209.139.210/tcp/30303/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ
 ```
 
 You can also specify an optional `listenAddr` parameter (.e.g `--listenAddr /ip4/0.0.0.0/tcp/7777/ws`).
