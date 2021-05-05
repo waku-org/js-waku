@@ -37,14 +37,14 @@ jobs:
 
       - name: install using npm i
         run: npm install
-        working-directory: web-chat
+        working-directory: examples/web-chat
 
       - name: build web app
         run: npm run build
-        working-directory: web-chat
+        working-directory: examples/web-chat
 
       - name: Deploy web chat app on gh pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./web-chat/build
+          publish_dir: ./examples/web-chat/build
