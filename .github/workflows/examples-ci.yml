@@ -12,7 +12,7 @@ jobs:
   examples_build_and_test:
     strategy:
       matrix:
-        example: [ cli-chat ]
+        example: [ cli-chat, web-chat ]
     runs-on: ubuntu-latest
     steps:
 

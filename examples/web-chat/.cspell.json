@@ -46,6 +46,7 @@
     "prettierignore",
     "protobuf",
     "protoc",
+    "reactjs",
     "rlnrelay",
     "sandboxed",
     "secio",
