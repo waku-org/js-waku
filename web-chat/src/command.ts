@@ -78,6 +78,32 @@ function peers(waku: Waku | undefined): string[] {
   return response;
 }
 
+function connections(waku: Waku | undefined): string[] {
+  if (!waku) {
+    return ['Waku node is starting'];
+  }
+  let response: string[] = [];
+  waku.libp2p.connections.forEach(
+    (
+      connections: import('libp2p-interfaces/src/connection/connection')[],
+      peerId
+    ) => {
+      response.push(peerId + ':');
+      let strConnections = '  connections: [';
+      connections.forEach((connection) => {
+        strConnections += JSON.stringify(connection.stat);
+        strConnections += '; ' + JSON.stringify(connection.streams);
+      });
+      strConnections += ']';
+      response.push(strConnections);
+    }
+  );
+  if (response.length === 0) {
+    response.push('Not connected to any peer.');
+  }
+  return response;
+}
+
 export default function handleCommand(
   input: string,
   waku: Waku | undefined,
@@ -101,6 +127,9 @@ export default function handleCommand(
       break;
     case '/peers':
       peers(waku).map((str) => response.push(str));
+      break;
+    case '/connections':
+      connections(waku).map((str) => response.push(str));
       break;
     default:
       response.push(`Unknown Command '${command}'`);

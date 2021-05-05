@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChatMessage } from 'waku/chat_message';
+import { ChatMessage } from './ChatMessage';
+import { ChatMessage as WakuChatMessage } from 'waku/chat_message';
 import { WakuMessage } from 'waku/waku_message';
 import { ChatContentTopic } from './App';
 import ChatList from './ChatList';
@@ -8,13 +8,13 @@ import { useWaku } from './WakuContext';
 import { TitleBar } from '@livechat/ui-kit';
 
 interface Props {
-  lines: ChatMessage[];
+  newMessages: ChatMessage[];
+  archivedMessages: ChatMessage[];
   commandHandler: (cmd: string) => void;
   nick: string;
 }
 
 export default function Room(props: Props) {
-  let [messageToSend, setMessageToSend] = useState<string>('');
   const { waku } = useWaku();
 
   return (
@@ -23,12 +23,14 @@ export default function Room(props: Props) {
       style={{ height: '98vh', display: 'flex', flexDirection: 'column' }}
     >
       <TitleBar title="Waku v2 chat app" />
-      <ChatList messages={props.lines} />
+      <ChatList
+        newMessages={props.newMessages}
+        archivedMessages={props.archivedMessages}
+      />
       <MessageInput
-        messageHandler={setMessageToSend}
         sendMessage={
           waku
-            ? async () => {
+            ? async (messageToSend) => {
                 return handleMessage(
                   messageToSend,
                   props.nick,
@@ -52,7 +54,7 @@ async function handleMessage(
   if (message.startsWith('/')) {
     commandHandler(message);
   } else {
-    const chatMessage = new ChatMessage(new Date(), nick, message);
+    const chatMessage = new WakuChatMessage(new Date(), nick, message);
     const wakuMsg = WakuMessage.fromBytes(
       chatMessage.encode(),
       ChatContentTopic
