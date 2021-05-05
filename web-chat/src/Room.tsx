@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChatMessage } from 'waku-chat/chat_message';
+import { ChatMessage } from 'waku/chat_message';
 import { WakuMessage } from 'waku/waku_message';
 import { ChatContentTopic } from './App';
 import ChatList from './ChatList';

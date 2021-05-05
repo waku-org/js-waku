@@ -1,13 +1,17 @@
 {
   "name": "js-waku",
   "version": "1.0.0",
-  "description": "A chat application running on node and waku",
+  "description": "TypeScript implementation of the Waku v2 protocol",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
-  "repository": "https://github.com/D4nte/waku-js-chat",
-  "license": "MIT",
-  "keywords": [],
+  "repository": "https://github.com/status-im/js-waku",
+  "license": "MIT OR Apache-2.0",
+  "keywords": [
+    "waku",
+    "decentralised",
+    "communication"
+  ],
   "scripts": {
     "build": "run-s build:*",
     "build:main": "tsc -p tsconfig.json",
@@ -19,12 +23,11 @@
     "pretest:1-init-git-submodules": "[ -f './nim-waku/build/wakunode2' ] || git submodule update --init --recursive",
     "pretest:2-build-nim-waku": "[ -f './nim-waku/build/wakunode2' ] || run-s nim-waku:build",
     "nim-waku:build": "(cd nim-waku; NIMFLAGS=\"-d:chronicles_colors=off -d:chronicles_sinks=textlines -d:chronicles_log_level=TRACE\" make -j$(nproc --all 2>/dev/null || echo 2) wakunode2)",
-    "chat": "ts-node src/chat/index.ts",
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" \"./*.json\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
-    "test:unit": "nyc --silent mocha --exit # TODO: Remove `--exit` and fix hanging processes",
+    "test:unit": "nyc --silent mocha",
     "proto": "run-s proto:*",
     "proto:lint": "buf lint",
     "proto:build": "buf generate",
@@ -47,7 +50,7 @@
     "prepare-release": "run-s reset-hard test cov:check doc:html version doc:publish"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=14"
   },
   "dependencies": {
     "@bitauth/libauth": "^1.17.1",

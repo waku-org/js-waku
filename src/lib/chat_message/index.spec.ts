@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import fc from 'fast-check';
 
-import { ChatMessage } from './chat_message';
+import { ChatMessage } from './index';
 
 describe('Chat Message', function () {
   it('Chat message round trip binary serialization', function () {
