@@ -35,7 +35,7 @@
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts --ext .tsx",
     "test:prettier": "prettier \"src/**/*.{ts,tsx}\" \"./*.json\" --list-different",
-    "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.{ts,tsx},public/**/*.html}\"",
+    "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.{ts,tsx},public/**/*.html}\" -c ../../.cspell.json",
     "fix:prettier": "prettier \"src/**/*.{ts,tsx}\" \"./*.json\" --write",
     "fix:lint": "eslint src --ext .ts --ext .tsx --fix",
     "js-waku:build": "cd ../; npm run build",
