@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { ChatMessage as WakuChatMessage } from 'waku/chat_message';
 import { WakuMessage } from 'waku/waku_message';
@@ -9,13 +8,13 @@ import { useWaku } from './WakuContext';
 import { TitleBar } from '@livechat/ui-kit';
 
 interface Props {
-  lines: ChatMessage[];
+  newMessages: ChatMessage[];
+  archivedMessages: ChatMessage[];
   commandHandler: (cmd: string) => void;
   nick: string;
 }
 
 export default function Room(props: Props) {
-  let [messageToSend, setMessageToSend] = useState<string>('');
   const { waku } = useWaku();
 
   return (
@@ -24,12 +23,14 @@ export default function Room(props: Props) {
       style={{ height: '98vh', display: 'flex', flexDirection: 'column' }}
     >
       <TitleBar title="Waku v2 chat app" />
-      <ChatList messages={props.lines} />
+      <ChatList
+        newMessages={props.newMessages}
+        archivedMessages={props.archivedMessages}
+      />
       <MessageInput
-        messageHandler={setMessageToSend}
         sendMessage={
           waku
-            ? async () => {
+            ? async (messageToSend) => {
                 return handleMessage(
                   messageToSend,
                   props.nick,

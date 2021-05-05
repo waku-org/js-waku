@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChatMessage } from './ChatMessage';
 import {
   Message,
@@ -8,18 +8,40 @@ import {
 } from '@livechat/ui-kit';
 
 interface Props {
-  messages: ChatMessage[];
+  archivedMessages: ChatMessage[];
+  newMessages: ChatMessage[];
 }
 
 export default function ChatList(props: Props) {
-  const messages = props.messages;
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  let updatedMessages;
 
-  const messagesGroupedBySender = groupMessagesBySender(props.messages).map(
+  if (IsThereNewMessages(props.newMessages, messages)) {
+    updatedMessages = messages.slice().concat(props.newMessages);
+    if (IsThereNewMessages(props.archivedMessages, updatedMessages)) {
+      updatedMessages = copyMergeUniqueReplace(
+        props.archivedMessages,
+        updatedMessages
+      );
+    }
+  } else {
+    if (IsThereNewMessages(props.archivedMessages, messages)) {
+      updatedMessages = copyMergeUniqueReplace(
+        props.archivedMessages,
+        messages
+      );
+    }
+  }
+
+  if (updatedMessages) {
+    setMessages(updatedMessages);
+  }
+
+  const messagesGroupedBySender = groupMessagesBySender(messages).map(
     (currentMessageGroup) => (
       <MessageGroup onlyFirstWithMeta>
         {currentMessageGroup.map((currentMessage) => (
           <Message
-            // We assume that the same user is not sending two messages in the same second
             key={
               currentMessage.receivedTimestampMs.valueOf() +
               currentMessage.nick +
@@ -38,7 +60,7 @@ export default function ChatList(props: Props) {
   return (
     <MessageList active containScrollInSubtree>
       {messagesGroupedBySender}
-      <AlwaysScrollToBottom messages={messages} />
+      <AlwaysScrollToBottom newMessages={props.newMessages} />
     </MessageList>
   );
 }
@@ -71,14 +93,48 @@ function formatDisplayDate(message: ChatMessage): string {
   });
 }
 
-const AlwaysScrollToBottom = (props: Props) => {
+const AlwaysScrollToBottom = (props: { newMessages: ChatMessage[] }) => {
   const elementRef = useRef<HTMLDivElement>();
 
   useEffect(() => {
     // @ts-ignore
     elementRef.current.scrollIntoView();
-  }, [props.messages]);
+  }, [props.newMessages]);
 
   // @ts-ignore
   return <div ref={elementRef} />;
 };
+
+function IsThereNewMessages(
+  newValues: ChatMessage[],
+  currentValues: ChatMessage[]
+): boolean {
+  if (newValues.length === 0) return false;
+  if (currentValues.length === 0) return true;
+
+  return !newValues.find((newMsg) =>
+    currentValues.find(isEqual.bind({}, newMsg))
+  );
+}
+
+function copyMergeUniqueReplace(
+  newValues: ChatMessage[],
+  currentValues: ChatMessage[]
+) {
+  const copy = currentValues.slice();
+  newValues.forEach((msg) => {
+    if (!copy.find(isEqual.bind({}, msg))) {
+      copy.push(msg);
+    }
+  });
+  copy.sort((a, b) => a.sentTimestamp.valueOf() - b.sentTimestamp.valueOf());
+  return copy;
+}
+
+function isEqual(lhs: ChatMessage, rhs: ChatMessage): boolean {
+  return (
+    lhs.nick === rhs.nick &&
+    lhs.message === rhs.message &&
+    lhs.sentTimestamp.toString() === rhs.sentTimestamp.toString()
+  );
+}

@@ -10,8 +10,7 @@ import {
 } from '@livechat/ui-kit';
 
 interface Props {
-  messageHandler: (msg: string) => void;
-  sendMessage: (() => Promise<void>) | undefined;
+  sendMessage: ((msg: string) => Promise<void>) | undefined;
 }
 
 export default function MessageInput(props: Props) {
@@ -20,14 +19,13 @@ export default function MessageInput(props: Props) {
 
   const sendMessage = async () => {
     if (props.sendMessage) {
-      await props.sendMessage();
+      await props.sendMessage(inputText);
       setInputText('');
     }
   };
 
   const messageHandler = (event: ChangeEvent<HTMLInputElement>) => {
     setInputText(event.target.value);
-    props.messageHandler(event.target.value);
   };
 
   const keyPressHandler = async (event: KeyboardEvent<HTMLInputElement>) => {
