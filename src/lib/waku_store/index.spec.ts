@@ -21,7 +21,9 @@ describe('Waku Store', () => {
     await nimWaku.start({ store: true });
 
     for (let i = 0; i < 2; i++) {
-      await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`));
+      expect(
+        await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`))
+      ).to.be.true;
     }
 
     waku = await Waku.create({
@@ -53,7 +55,9 @@ describe('Waku Store', () => {
     await nimWaku.start({ store: true });
 
     for (let i = 0; i < 15; i++) {
-      await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`));
+      expect(
+        await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`))
+      ).to.be.true;
     }
 
     waku = await Waku.create({
