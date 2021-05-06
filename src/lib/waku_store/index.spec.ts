@@ -18,7 +18,7 @@ describe('Waku Store', () => {
     this.timeout(5_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ store: true });
+    await nimWaku.start({ persistMessages: true });
 
     for (let i = 0; i < 2; i++) {
       expect(
@@ -52,7 +52,7 @@ describe('Waku Store', () => {
     this.timeout(5_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ store: true });
+    await nimWaku.start({ persistMessages: true });
 
     for (let i = 0; i < 15; i++) {
       expect(
