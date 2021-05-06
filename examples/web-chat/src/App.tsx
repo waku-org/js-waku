@@ -156,7 +156,7 @@ async function initWaku(setter: (waku: Waku) => void) {
       PeerId.createFromB58String(
         '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ'
       ),
-      [multiaddr('/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/443/wss')]
+      [multiaddr('/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7010/wss')]
     );
   } catch (e) {
     console.log('Issue starting waku ', e);
