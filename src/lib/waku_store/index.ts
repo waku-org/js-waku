@@ -5,10 +5,17 @@ import Libp2p from 'libp2p';
 import PeerId from 'peer-id';
 
 import { WakuMessage } from '../waku_message';
+import { DefaultPubsubTopic } from '../waku_relay';
 
 import { HistoryRPC } from './history_rpc';
 
 export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
+
+export interface Options {
+  peerId: PeerId;
+  contentTopics: string[];
+  pubsubTopic?: string;
+}
 
 /**
  * Implements the [Waku v2 Store protocol](https://rfc.vac.dev/spec/13/).
@@ -19,19 +26,23 @@ export class WakuStore {
   /**
    * Query given peer using Waku Store.
    *
-   * @param peerId The peer to query.
-   * @param contentTopics The content topics to retrieve, leave empty to
+   * @param options
+   * @param options.peerId The peer to query.
+   * @param options.contentTopics The content topics to retrieve, leave empty to
    * retrieve all messages.
-   * @param pubsubTopic The pubsub topic to retrieve. Currently, all waku nodes
+   * @param options.pubsubTopic The pubsub topic to retrieve. Currently, all waku nodes
    * use the same pubsub topic. This is reserved for future applications.
    * @throws If not able to reach the peer to query.
    */
-  async queryHistory(
-    peerId: PeerId,
-    contentTopics?: string[],
-    pubsubTopic?: string
-  ): Promise<WakuMessage[] | null> {
-    const peer = this.libp2p.peerStore.get(peerId);
+  async queryHistory(options: Options): Promise<WakuMessage[] | null> {
+    const opts = Object.assign(
+      {
+        pubsubTopic: DefaultPubsubTopic,
+      },
+      options
+    );
+
+    const peer = this.libp2p.peerStore.get(opts.peerId);
     if (!peer) throw 'Peer is unknown';
     if (!peer.protocols.includes(StoreCodec))
       throw 'Peer does not register waku store protocol';
@@ -44,11 +55,11 @@ export class WakuStore {
       try {
         const { stream } = await connection.newStream(StoreCodec);
         try {
-          const historyRpcQuery = HistoryRPC.createQuery(
-            contentTopics,
+          const historyRpcQuery = HistoryRPC.createQuery({
+            contentTopics: opts.contentTopics,
             cursor,
-            pubsubTopic
-          );
+            pubsubTopic: opts.pubsubTopic,
+          });
           const res = await pipe(
             [historyRpcQuery.encode()],
             lp.encode(),

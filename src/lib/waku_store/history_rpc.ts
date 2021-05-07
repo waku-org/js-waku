@@ -2,31 +2,34 @@ import { Reader } from 'protobufjs/minimal';
 import { v4 as uuid } from 'uuid';
 
 import * as proto from '../../proto/waku/v2/store';
-import { DefaultContentTopic } from '../waku_message';
-import { DefaultPubsubTopic } from '../waku_relay';
+
+export interface Options {
+  contentTopics: string[];
+  cursor?: proto.Index;
+  pubsubTopic: string;
+}
 
 export class HistoryRPC {
   public constructor(public proto: proto.HistoryRPC) {}
 
-  static createQuery(
-    contentTopics: string[] = [DefaultContentTopic],
-    cursor?: proto.Index,
-    pubsubTopic: string = DefaultPubsubTopic
-  ): HistoryRPC {
+  /**
+   * Create History Query.
+   */
+  static createQuery(options: Options): HistoryRPC {
     const pagingInfo = {
       pageSize: 10,
-      cursor,
+      cursor: options.cursor,
       direction: proto.PagingInfo_Direction.DIRECTION_FORWARD,
     };
 
-    const contentFilters = contentTopics.map((contentTopic) => {
+    const contentFilters = options.contentTopics.map((contentTopic) => {
       return { contentTopic };
     });
 
     return new HistoryRPC({
       requestId: uuid(),
       query: {
-        pubsubTopic,
+        pubsubTopic: options.pubsubTopic,
         contentFilters,
         pagingInfo,
         startTime: undefined,

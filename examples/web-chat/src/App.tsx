@@ -68,9 +68,10 @@ export default function App() {
       if (protocols.includes(StoreCodec)) {
         console.log(`${peerId.toB58String()}: retrieving archived messages}`);
         try {
-          const response = await waku.store.queryHistory(peerId, [
-            ChatContentTopic,
-          ]);
+          const response = await waku.store.queryHistory({
+            peerId,
+            contentTopics: [ChatContentTopic],
+          });
           console.log(`${peerId.toB58String()}: messages retrieved:`, response);
           if (response) {
             const messages = response
