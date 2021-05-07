@@ -163,6 +163,12 @@ async function initWaku(setter: (waku: Waku) => void) {
       ),
       [multiaddr('/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7010/wss')]
     );
+    waku.libp2p.peerStore.addressBook.add(
+      PeerId.createFromB58String(
+        '16Uiu2HAmSyrYVycqBCWcHyNVQS6zYQcdQbwyov1CDijboVRsQS37'
+      ),
+      [multiaddr('/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7009/wss')]
+    );
   } catch (e) {
     console.log('Issue starting waku ', e);
   }
