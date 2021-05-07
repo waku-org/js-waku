@@ -64,22 +64,27 @@ export default function App() {
       { peerId, protocols }: { peerId: PeerId; protocols: string[] }
     ) => {
       if (protocols.includes(StoreCodec)) {
-        console.log(
-          `Retrieving archived messages from ${peerId.toB58String()}`
-        );
-        const response = await waku.store.queryHistory(peerId, [
-          ChatContentTopic,
-        ]);
-
-        if (response) {
-          const messages = response
-            .map((wakuMsg) => wakuMsg.payload)
-            .filter((payload) => !!payload)
-            .map((payload) => WakuChatMessage.decode(payload as Uint8Array))
-            .map((wakuChatMessage) =>
-              ChatMessage.fromWakuChatMessage(wakuChatMessage)
-            );
-          setArchivedMessages(messages);
+        console.log(`${peerId.toB58String()}: retrieving archived messages}`);
+        try {
+          const response = await waku.store.queryHistory(peerId, [
+            ChatContentTopic,
+          ]);
+          console.log(`${peerId.toB58String()}: messages retrieved:`, response);
+          if (response) {
+            const messages = response
+              .map((wakuMsg) => wakuMsg.payload)
+              .filter((payload) => !!payload)
+              .map((payload) => WakuChatMessage.decode(payload as Uint8Array))
+              .map((wakuChatMessage) =>
+                ChatMessage.fromWakuChatMessage(wakuChatMessage)
+              );
+            setArchivedMessages(messages);
+          }
+        } catch (e) {
+          console.log(
+            `${peerId.toB58String()}: error encountered when retrieving archived messages`,
+            e
+          );
         }
       }
     };

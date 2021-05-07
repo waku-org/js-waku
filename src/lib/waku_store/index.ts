@@ -61,6 +61,7 @@ export class WakuStore {
 
             if (!response.messages || !response.messages.length) {
               // No messages left (or stored)
+              console.log('No messages present in HistoryRPC response');
               return messages;
             }
 
