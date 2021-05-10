@@ -2,8 +2,7 @@ import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 import { useEffect, useState } from 'react';
 import './App.css';
-import { ChatMessage } from './ChatMessage';
-import { ChatMessage as WakuChatMessage } from 'waku/chat_message';
+import { ChatMessage } from 'waku/chat_message';
 import { WakuMessage } from 'waku/waku_message';
 import { StoreCodec } from 'waku/waku_store';
 import handleCommand from './command';
@@ -53,9 +52,7 @@ export default function App() {
   useEffect(() => {
     const handleRelayMessage = (wakuMsg: WakuMessage) => {
       if (wakuMsg.payload) {
-        const chatMsg = ChatMessage.fromWakuChatMessage(
-          WakuChatMessage.decode(wakuMsg.payload)
-        );
+        const chatMsg = ChatMessage.decode(wakuMsg.payload);
         if (chatMsg) {
           setNewMessages([chatMsg]);
         }
@@ -77,10 +74,7 @@ export default function App() {
             const messages = response
               .map((wakuMsg) => wakuMsg.payload)
               .filter((payload) => !!payload)
-              .map((payload) => WakuChatMessage.decode(payload as Uint8Array))
-              .map((wakuChatMessage) =>
-                ChatMessage.fromWakuChatMessage(wakuChatMessage)
-              );
+              .map((payload) => ChatMessage.decode(payload as Uint8Array));
             setArchivedMessages(messages);
           }
         } catch (e) {
@@ -132,7 +126,7 @@ export default function App() {
                 setNick
               );
               const commandMessages = response.map((msg) => {
-                return new ChatMessage(new Date(), new Date(), command, msg);
+                return ChatMessage.fromUtf8String(new Date(), command, msg);
               });
               setNewMessages(commandMessages);
             }}
