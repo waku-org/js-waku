@@ -4,8 +4,8 @@ import { Reader } from 'protobufjs/minimal';
 // Protecting the user from protobuf oddities
 import * as proto from '../proto/waku/v2/message';
 
-export const DEFAULT_CONTENT_TOPIC = '/waku/2/default-content/proto';
-const DEFAULT_VERSION = 0;
+export const DefaultContentTopic = '/waku/2/default-content/proto';
+const DefaultVersion = 0;
 
 export class WakuMessage {
   public constructor(public proto: proto.WakuMessage) {}
@@ -18,12 +18,12 @@ export class WakuMessage {
    */
   static fromUtf8String(
     utf8: string,
-    contentTopic: string = DEFAULT_CONTENT_TOPIC
+    contentTopic: string = DefaultContentTopic
   ): WakuMessage {
     const payload = Buffer.from(utf8, 'utf-8');
     return new WakuMessage({
       payload,
-      version: DEFAULT_VERSION,
+      version: DefaultVersion,
       contentTopic,
     });
   }
@@ -36,11 +36,11 @@ export class WakuMessage {
    */
   static fromBytes(
     payload: Uint8Array,
-    contentTopic: string = DEFAULT_CONTENT_TOPIC
+    contentTopic: string = DefaultContentTopic
   ): WakuMessage {
     return new WakuMessage({
       payload,
-      version: DEFAULT_VERSION,
+      version: DefaultVersion,
       contentTopic,
     });
   }

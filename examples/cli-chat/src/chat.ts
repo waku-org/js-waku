@@ -6,7 +6,6 @@ import { multiaddr, Multiaddr } from 'multiaddr';
 import { ChatMessage } from 'waku/chat_message';
 import Waku from 'waku/waku';
 import { WakuMessage } from 'waku/waku_message';
-import { RelayDefaultTopic } from 'waku/waku_relay';
 import { StoreCodec } from 'waku/waku_store';
 
 const ChatContentTopic = 'dingpu';
@@ -43,15 +42,15 @@ export default async function startChat(): Promise<void> {
 
   console.log(`Hi, ${nick}!`);
 
-  // TODO: Bubble event to waku, infer topic, decode msg
-  // Tracked with https://github.com/status-im/js-waku/issues/19
-  waku.libp2p.pubsub.on(RelayDefaultTopic, (event) => {
-    const wakuMsg = WakuMessage.decode(event.data);
-    if (wakuMsg.payload) {
-      const chatMsg = ChatMessage.decode(wakuMsg.payload);
-      console.log(formatMessage(chatMsg));
-    }
-  });
+  waku.relay.addObserver(
+    (message) => {
+      if (message.payload) {
+        const chatMsg = ChatMessage.decode(message.payload);
+        console.log(formatMessage(chatMsg));
+      }
+    },
+    [ChatContentTopic]
+  );
 
   if (opts.staticNode) {
     console.log(`Dialing ${opts.staticNode}`);

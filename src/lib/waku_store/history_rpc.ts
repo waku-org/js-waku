@@ -2,14 +2,14 @@ import { Reader } from 'protobufjs/minimal';
 import { v4 as uuid } from 'uuid';
 
 import * as proto from '../../proto/waku/v2/store';
-import { DEFAULT_CONTENT_TOPIC } from '../waku_message';
+import { DefaultContentTopic } from '../waku_message';
 import { RelayDefaultTopic } from '../waku_relay';
 
 export class HistoryRPC {
   public constructor(public proto: proto.HistoryRPC) {}
 
   static createQuery(
-    contentTopics: string[] = [DEFAULT_CONTENT_TOPIC],
+    contentTopics: string[] = [DefaultContentTopic],
     cursor?: proto.Index,
     pubsubTopic: string = RelayDefaultTopic
   ): HistoryRPC {
