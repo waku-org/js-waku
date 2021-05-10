@@ -11,14 +11,14 @@ describe('Chat Message', function () {
         fc.string(),
         fc.string(),
         (timestamp, nick, message) => {
-          const msg = new ChatMessage(timestamp, nick, message);
+          const msg = ChatMessage.fromUtf8String(timestamp, nick, message);
           const buf = msg.encode();
           const actual = ChatMessage.decode(buf);
 
           // Date.toString does not include ms, as we loose this precision by design
           expect(actual.timestamp.toString()).to.eq(timestamp.toString());
           expect(actual.nick).to.eq(nick);
-          expect(actual.message).to.eq(message);
+          expect(actual.payloadAsUtf8).to.eq(message);
         }
       )
     );

@@ -33,7 +33,7 @@
   "dependencies": {
     "libp2p-tcp": "^0.15.4",
     "prompt-sync": "^4.2.0",
-    "waku": "../../build/main/lib"
+    "waku": "../../build/main"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",

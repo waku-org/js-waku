@@ -1,6 +1,6 @@
 import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
-import Waku from 'waku/waku';
+import { Waku } from 'waku';
 
 function help(): string[] {
   return [

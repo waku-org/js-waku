@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChatMessage } from './ChatMessage';
+import { ChatMessage } from 'waku';
 import {
   Message,
   MessageText,
@@ -43,14 +43,14 @@ export default function ChatList(props: Props) {
         {currentMessageGroup.map((currentMessage) => (
           <Message
             key={
-              currentMessage.receivedTimestampMs.valueOf() +
+              currentMessage.timestamp.valueOf() +
               currentMessage.nick +
-              currentMessage.message
+              currentMessage.payloadAsUtf8
             }
             authorName={currentMessage.nick}
             date={formatDisplayDate(currentMessage)}
           >
-            <MessageText>{currentMessage.message}</MessageText>
+            <MessageText>{currentMessage.payloadAsUtf8}</MessageText>
           </Message>
         ))}
       </MessageGroup>
@@ -84,7 +84,7 @@ function groupMessagesBySender(messageArray: ChatMessage[]): ChatMessage[][] {
 }
 
 function formatDisplayDate(message: ChatMessage): string {
-  return message.sentTimestamp.toLocaleString([], {
+  return message.timestamp.toLocaleString([], {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
@@ -127,14 +127,14 @@ function copyMergeUniqueReplace(
       copy.push(msg);
     }
   });
-  copy.sort((a, b) => a.sentTimestamp.valueOf() - b.sentTimestamp.valueOf());
+  copy.sort((a, b) => a.timestamp.valueOf() - b.timestamp.valueOf());
   return copy;
 }
 
 function isEqual(lhs: ChatMessage, rhs: ChatMessage): boolean {
   return (
     lhs.nick === rhs.nick &&
-    lhs.message === rhs.message &&
-    lhs.sentTimestamp.toString() === rhs.sentTimestamp.toString()
+    lhs.payloadAsUtf8 === rhs.payloadAsUtf8 &&
+    lhs.timestamp.toString() === rhs.timestamp.toString()
   );
 }

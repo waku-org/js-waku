@@ -3,10 +3,7 @@ import util from 'util';
 
 import TCP from 'libp2p-tcp';
 import { multiaddr, Multiaddr } from 'multiaddr';
-import { ChatMessage } from 'waku/chat_message';
-import Waku from 'waku/waku';
-import { WakuMessage } from 'waku/waku_message';
-import { StoreCodec } from 'waku/waku_store';
+import { ChatMessage, StoreCodec, Waku, WakuMessage } from 'waku';
 
 const ChatContentTopic = 'dingpu';
 
@@ -84,7 +81,7 @@ export default async function startChat(): Promise<void> {
   rl.prompt();
   for await (const line of rl) {
     rl.prompt();
-    const chatMessage = new ChatMessage(new Date(), nick, line);
+    const chatMessage = ChatMessage.fromUtf8String(new Date(), nick, line);
 
     const msg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
     await waku.relay.send(msg);
@@ -129,5 +126,5 @@ export function formatMessage(chatMsg: ChatMessage): string {
     minute: '2-digit',
     hour12: false,
   });
-  return `<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`;
+  return `<${timestamp}> ${chatMsg.nick}: ${chatMsg.payloadAsUtf8}`;
 }

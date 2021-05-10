@@ -19,11 +19,11 @@ import PeerId from 'peer-id';
 import { WakuMessage } from '../waku_message';
 
 import * as constants from './constants';
+import { RelayCodec, RelayDefaultTopic } from './constants';
 import { getRelayPeers } from './get_relay_peers';
 import { RelayHeartbeat } from './relay_heartbeat';
 
-export * from './constants';
-export * from './relay_heartbeat';
+export { RelayCodec, RelayDefaultTopic };
 
 /**
  * See {GossipOptions} from libp2p-gossipsub

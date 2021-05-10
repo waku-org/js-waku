@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import TCP from 'libp2p-tcp';
 
 import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../../test_utils';
-import Waku from '../waku';
+import { Waku } from '../waku';
 import { WakuMessage } from '../waku_message';
 
 describe('Waku Store', () => {
