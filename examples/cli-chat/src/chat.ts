@@ -84,7 +84,7 @@ export default async function startChat(): Promise<void> {
   rl.prompt();
   for await (const line of rl) {
     rl.prompt();
-    const chatMessage = new ChatMessage(new Date(), nick, line);
+    const chatMessage = ChatMessage.fromUtf8String(new Date(), nick, line);
 
     const msg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
     await waku.relay.send(msg);
@@ -129,5 +129,5 @@ export function formatMessage(chatMsg: ChatMessage): string {
     minute: '2-digit',
     hour12: false,
   });
-  return `<${timestamp}> ${chatMsg.nick}: ${chatMsg.message}`;
+  return `<${timestamp}> ${chatMsg.nick}: ${chatMsg.payloadAsUtf8}`;
 }

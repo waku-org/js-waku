@@ -4,33 +4,52 @@ import * as proto from '../../proto/chat/v2/chat_message';
 
 // TODO: Move to waku library?
 export class ChatMessage {
-  public constructor(
-    public timestamp: Date,
-    public nick: string,
-    public message: string
-  ) {}
+  public constructor(public proto: proto.ChatMessage) {}
+
+  /**
+   * Create Chat Message with a utf-8 string as payload.
+   */
+  static fromUtf8String(
+    timestamp: Date,
+    nick: string,
+    text: string
+  ): ChatMessage {
+    const timestampNumber = Math.floor(timestamp.valueOf() / 1000);
+    const payload = Buffer.from(text, 'utf-8');
+
+    return new ChatMessage({
+      timestamp: timestampNumber,
+      nick,
+      payload,
+    });
+  }
 
   static decode(bytes: Uint8Array): ChatMessage {
     const protoMsg = proto.ChatMessage.decode(Reader.create(bytes));
-    const timestamp = new Date(protoMsg.timestamp * 1000);
-    const message = protoMsg.payload
-      ? Array.from(protoMsg.payload)
-          .map((char) => {
-            return String.fromCharCode(char);
-          })
-          .join('')
-      : '';
-    return new ChatMessage(timestamp, protoMsg.nick, message);
+    return new ChatMessage(protoMsg);
   }
 
   encode(): Uint8Array {
-    const timestamp = Math.floor(this.timestamp.valueOf() / 1000);
-    const payload = Buffer.from(this.message, 'utf-8');
+    return proto.ChatMessage.encode(this.proto).finish();
+  }
 
-    return proto.ChatMessage.encode({
-      timestamp,
-      nick: this.nick,
-      payload,
-    }).finish();
+  get timestamp(): Date {
+    return new Date(this.proto.timestamp * 1000);
+  }
+
+  get nick(): string {
+    return this.proto.nick;
+  }
+
+  get payloadAsUtf8(): string {
+    if (!this.proto.payload) {
+      return '';
+    }
+
+    return Array.from(this.proto.payload)
+      .map((char) => {
+        return String.fromCharCode(char);
+      })
+      .join('');
   }
 }
