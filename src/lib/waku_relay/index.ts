@@ -12,7 +12,7 @@ import {
   messageIdToString,
   shuffle,
 } from 'libp2p-gossipsub/src/utils';
-import { InMessage } from 'libp2p-interfaces/src/pubsub';
+import Pubsub, { InMessage } from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 import PeerId from 'peer-id';
 
@@ -26,7 +26,7 @@ export * from './constants';
 export * from './relay_heartbeat';
 
 /**
- * See GossipOptions from libp2p-gossipsub
+ * See {GossipOptions} from libp2p-gossipsub
  */
 interface GossipOptions {
   emitSelf: boolean;
@@ -48,7 +48,13 @@ interface GossipOptions {
   Dlazy: number;
 }
 
-export class WakuRelay extends Gossipsub {
+/**
+ * Implements the [Waku v2 Relay protocol]{@link https://rfc.vac.dev/spec/11/}.
+ * Must be passed as a `pubsub` module to a {Libp2p} instance.
+ *
+ * @implements {Pubsub}
+ */
+export class WakuRelay extends Gossipsub implements Pubsub {
   heartbeat: RelayHeartbeat;
 
   /**
@@ -74,28 +80,33 @@ export class WakuRelay extends Gossipsub {
 
   /**
    * Mounts the gossipsub protocol onto the libp2p node
-   * and subscribes to the default topic
+   * and subscribes to the default topic.
+   *
    * @override
    * @returns {void}
    */
-  start(): void {
+  public start(): void {
     super.start();
     super.subscribe(constants.RelayDefaultTopic);
   }
 
   /**
-   * Send Waku messages under default topic
-   * @override
+   * Send Waku message.
+   *
    * @param {WakuMessage} message
    * @returns {Promise<void>}
    */
-  async send(message: WakuMessage): Promise<void> {
+  public async send(message: WakuMessage): Promise<void> {
     const msg = message.encode();
     await super.publish(constants.RelayDefaultTopic, Buffer.from(msg));
   }
 
   /**
-   * Join topic
+   * Join pubsub topic.
+   * This is present to override the behavior of Gossipsub and should not
+   * be used by API Consumers
+   *
+   * @ignore
    * @param {string} topic
    * @returns {void}
    * @override
@@ -152,8 +163,11 @@ export class WakuRelay extends Gossipsub {
   }
 
   /**
-   * Publish messages
+   * Publish messages.
+   * This is present to override the behavior of Gossipsub and should not
+   * be used by API Consumers
    *
+   * @ignore
    * @override
    * @param {InMessage} msg
    * @returns {void}
@@ -222,7 +236,13 @@ export class WakuRelay extends Gossipsub {
   }
 
   /**
-   * Emits gossip to peers in a particular topic
+   * Emits gossip to peers in a particular topic.
+   *
+   * This is present to override the behavior of Gossipsub and should not
+   * be used by API Consumers
+   *
+   * @ignore
+   * @override
    * @param {string} topic
    * @param {Set<string>} exclude peers to exclude
    * @returns {void}
@@ -300,7 +320,12 @@ export class WakuRelay extends Gossipsub {
   }
 
   /**
-   * Make a PRUNE control message for a peer in a topic
+   * Make a PRUNE control message for a peer in a topic.
+   * This is present to override the behavior of Gossipsub and should not
+   * be used by API Consumers
+   *
+   * @ignore
+   * @override
    * @param {string} id
    * @param {string} topic
    * @param {boolean} doPX
