@@ -5,7 +5,6 @@ import './App.css';
 import { ChatMessage } from './ChatMessage';
 import { ChatMessage as WakuChatMessage } from 'waku/chat_message';
 import { WakuMessage } from 'waku/waku_message';
-import { RelayDefaultTopic } from 'waku/waku_relay';
 import { StoreCodec } from 'waku/waku_store';
 import handleCommand from './command';
 import Room from './Room';
@@ -52,10 +51,14 @@ export default function App() {
   let [nick, setNick] = useState<string>(generate());
 
   useEffect(() => {
-    const handleRelayMessage = (event: { data: Uint8Array }) => {
-      const chatMsg = decodeWakuMessage(event.data);
-      if (chatMsg) {
-        setNewMessages([chatMsg]);
+    const handleRelayMessage = (wakuMsg: WakuMessage) => {
+      if (wakuMsg.payload) {
+        const chatMsg = ChatMessage.fromWakuChatMessage(
+          WakuChatMessage.decode(wakuMsg.payload)
+        );
+        if (chatMsg) {
+          setNewMessages([chatMsg]);
+        }
       }
     };
 
@@ -94,7 +97,7 @@ export default function App() {
         .then(() => console.log('Waku init done'))
         .catch((e) => console.log('Waku init failed ', e));
     } else {
-      stateWaku.libp2p.pubsub.on(RelayDefaultTopic, handleRelayMessage);
+      stateWaku.relay.addObserver(handleRelayMessage);
 
       stateWaku.libp2p.peerStore.on(
         'change:protocols',
@@ -103,10 +106,6 @@ export default function App() {
 
       // To clean up listener when component unmounts
       return () => {
-        stateWaku?.libp2p.pubsub.removeListener(
-          RelayDefaultTopic,
-          handleRelayMessage
-        );
         stateWaku?.libp2p.peerStore.removeListener(
           'change:protocols',
           handleProtocolChange.bind({}, stateWaku)
@@ -172,14 +171,4 @@ async function initWaku(setter: (waku: Waku) => void) {
   } catch (e) {
     console.log('Issue starting waku ', e);
   }
-}
-
-function decodeWakuMessage(data: Uint8Array): null | ChatMessage {
-  const wakuMsg = WakuMessage.decode(data);
-  if (!wakuMsg.payload) {
-    return null;
-  }
-  return ChatMessage.fromWakuChatMessage(
-    WakuChatMessage.decode(wakuMsg.payload)
-  );
 }
