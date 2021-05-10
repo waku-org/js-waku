@@ -48,3 +48,14 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./examples/web-chat/build
+
+      - name: Generate docs
+        run: npm run doc:html
+
+      - name: Deploy documentation on gh pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          keep_files: true # Do not delete web chat app
+          publish_dir: ./build/docs
+          destination_dir: docs
