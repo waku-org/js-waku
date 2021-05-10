@@ -1,6 +1,6 @@
 import { Reader } from 'protobufjs/minimal';
 
-import { ChatMessageProto } from '../../proto/chat/v2/chat_message';
+import * as proto from '../../proto/chat/v2/chat_message';
 
 // TODO: Move to waku library?
 export class ChatMessage {
@@ -11,7 +11,7 @@ export class ChatMessage {
   ) {}
 
   static decode(bytes: Uint8Array): ChatMessage {
-    const protoMsg = ChatMessageProto.decode(Reader.create(bytes));
+    const protoMsg = proto.ChatMessage.decode(Reader.create(bytes));
     const timestamp = new Date(protoMsg.timestamp * 1000);
     const message = protoMsg.payload
       ? Array.from(protoMsg.payload)
@@ -27,7 +27,7 @@ export class ChatMessage {
     const timestamp = Math.floor(this.timestamp.valueOf() / 1000);
     const payload = Buffer.from(this.message, 'utf-8');
 
-    return ChatMessageProto.encode({
+    return proto.ChatMessage.encode({
       timestamp,
       nick: this.nick,
       payload,

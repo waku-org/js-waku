@@ -4,17 +4,17 @@ import _m0 from 'protobufjs/minimal';
 
 export const protobufPackage = 'chat.v2';
 
-export interface ChatMessageProto {
+export interface ChatMessage {
   timestamp: number;
   nick: string;
   payload: Uint8Array;
 }
 
-const baseChatMessageProto: object = { timestamp: 0, nick: '' };
+const baseChatMessage: object = { timestamp: 0, nick: '' };
 
-export const ChatMessageProto = {
+export const ChatMessage = {
   encode(
-    message: ChatMessageProto,
+    message: ChatMessage,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.timestamp !== 0) {
@@ -29,10 +29,10 @@ export const ChatMessageProto = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): ChatMessageProto {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ChatMessage {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseChatMessageProto } as ChatMessageProto;
+    const message = { ...baseChatMessage } as ChatMessage;
     message.payload = new Uint8Array();
     while (reader.pos < end) {
       const tag = reader.uint32();
@@ -54,8 +54,8 @@ export const ChatMessageProto = {
     return message;
   },
 
-  fromJSON(object: any): ChatMessageProto {
-    const message = { ...baseChatMessageProto } as ChatMessageProto;
+  fromJSON(object: any): ChatMessage {
+    const message = { ...baseChatMessage } as ChatMessage;
     message.payload = new Uint8Array();
     if (object.timestamp !== undefined && object.timestamp !== null) {
       message.timestamp = Number(object.timestamp);
@@ -73,7 +73,7 @@ export const ChatMessageProto = {
     return message;
   },
 
-  toJSON(message: ChatMessageProto): unknown {
+  toJSON(message: ChatMessage): unknown {
     const obj: any = {};
     message.timestamp !== undefined && (obj.timestamp = message.timestamp);
     message.nick !== undefined && (obj.nick = message.nick);
@@ -84,8 +84,8 @@ export const ChatMessageProto = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ChatMessageProto>): ChatMessageProto {
-    const message = { ...baseChatMessageProto } as ChatMessageProto;
+  fromPartial(object: DeepPartial<ChatMessage>): ChatMessage {
+    const message = { ...baseChatMessage } as ChatMessage;
     if (object.timestamp !== undefined && object.timestamp !== null) {
       message.timestamp = object.timestamp;
     } else {
