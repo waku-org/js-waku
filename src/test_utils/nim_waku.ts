@@ -14,7 +14,7 @@ import * as proto from '../proto/waku/v2/message';
 import { existsAsync, mkdirAsync, openAsync } from './async_fs';
 import waitForLine from './log_file';
 
-const dbg = debug('nim-waku');
+const dbg = debug('waku:nim-waku');
 
 const NIM_WAKU_DEFAULT_P2P_PORT = 60000;
 const NIM_WAKU_DEFAULT_RPC_PORT = 8545;
@@ -114,7 +114,9 @@ export class NimWaku {
       );
     });
 
+    dbg("Waiting to see 'RPC Server started' in nim-waku logs");
     await this.waitForLog('RPC Server started');
+    dbg('nim-waku node has been started');
   }
 
   public stop(): void {
