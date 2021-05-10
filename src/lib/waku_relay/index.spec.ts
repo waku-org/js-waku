@@ -8,7 +8,7 @@ import {
   NOISE_KEY_2,
 } from '../../test_utils';
 import { delay } from '../delay';
-import Waku from '../waku';
+import { Waku } from '../waku';
 import { WakuMessage } from '../waku_message';
 
 import { RelayCodec, RelayDefaultTopic } from './index';

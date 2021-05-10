@@ -2,7 +2,6 @@ import { Reader } from 'protobufjs/minimal';
 
 import * as proto from '../../proto/chat/v2/chat_message';
 
-// TODO: Move to waku library?
 export class ChatMessage {
   public constructor(public proto: proto.ChatMessage) {}
 

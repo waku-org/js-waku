@@ -8,7 +8,7 @@
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "server-name-generator": "^1.0.5",
-    "waku": "../../build/main/lib",
+    "waku": "../../build/main",
     "web-vitals": "^1.1.1"
   },
   "devDependencies": {

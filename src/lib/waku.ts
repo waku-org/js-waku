@@ -21,7 +21,7 @@ export type CreateOptions =
     }
   | (Libp2pOptions & import('libp2p').CreateOptions);
 
-export default class Waku {
+export class Waku {
   public libp2p: Libp2p;
   public relay: WakuRelay;
   public store: WakuStore;

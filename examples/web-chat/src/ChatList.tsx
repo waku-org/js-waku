@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChatMessage } from 'waku/chat_message';
+import { ChatMessage } from 'waku';
 import {
   Message,
   MessageText,

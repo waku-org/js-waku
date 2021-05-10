@@ -1,5 +1,4 @@
-import { ChatMessage } from 'waku/chat_message';
-import { WakuMessage } from 'waku/waku_message';
+import { ChatMessage, WakuMessage } from 'waku';
 import { ChatContentTopic } from './App';
 import ChatList from './ChatList';
 import MessageInput from './MessageInput';

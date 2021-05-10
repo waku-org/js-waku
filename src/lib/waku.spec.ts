@@ -8,7 +8,7 @@ import {
   NOISE_KEY_2,
 } from '../test_utils/';
 
-import Waku from './waku';
+import { Waku } from './waku';
 import { RelayCodec } from './waku_relay';
 
 describe('Waku Dial', function () {
