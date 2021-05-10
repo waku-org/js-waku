@@ -97,6 +97,8 @@ jobs:
           [ $(git status --short --ignore-submodules|wc -l) -eq 0 ]
 
       - name: test
+        env:
+          DEBUG: "waku:nim-waku*,waku:test*"
         run: npm run test
 
       - name: Upload logs on failure

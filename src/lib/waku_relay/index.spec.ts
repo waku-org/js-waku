@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import debug from 'debug';
 import TCP from 'libp2p-tcp';
 
 import {
@@ -12,6 +13,8 @@ import { Waku } from '../waku';
 import { WakuMessage } from '../waku_message';
 
 import { RelayCodec, RelayDefaultTopic } from './index';
+
+const log = debug('waku:test');
 
 describe('Waku Relay', () => {
   afterEach(function () {
@@ -130,6 +133,8 @@ describe('Waku Relay', () => {
 
       beforeEach(async function () {
         this.timeout(30_000);
+
+        log('Create waku node');
         waku = await Waku.create({
           staticNoiseKey: NOISE_KEY_1,
           listenAddresses: ['/ip4/0.0.0.0/tcp/0'],
@@ -138,8 +143,10 @@ describe('Waku Relay', () => {
 
         const multiAddrWithId = waku.getLocalMultiaddrWithID();
         nimWaku = new NimWaku(makeLogFileName(this));
+        log('Starting nim-waku');
         await nimWaku.start({ staticnode: multiAddrWithId });
 
+        log('Waiting for heartbeat');
         await new Promise((resolve) =>
           waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
         );
