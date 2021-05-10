@@ -71,7 +71,8 @@ describe('Waku Relay', () => {
   it('Publish', async function () {
     this.timeout(10000);
 
-    const message = WakuMessage.fromUtf8String('JS to JS communication works');
+    const messageText = 'JS to JS communication works';
+    const message = WakuMessage.fromUtf8String(messageText);
 
     const receivedMsgPromise: Promise<WakuMessage> = new Promise((resolve) => {
       waku2.relay.addObserver(resolve);
@@ -83,9 +84,7 @@ describe('Waku Relay', () => {
 
     expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
     expect(receivedMsg.version).to.eq(message.version);
-
-    const payload = Buffer.from(receivedMsg.payload!);
-    expect(Buffer.compare(payload, message.payload!)).to.eq(0);
+    expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
   });
 
   describe('Interop: Nim', function () {
@@ -127,7 +126,8 @@ describe('Waku Relay', () => {
       it('Js publishes to nim', async function () {
         this.timeout(5000);
 
-        const message = WakuMessage.fromUtf8String('This is a message');
+        const messageText = 'This is a message';
+        const message = WakuMessage.fromUtf8String(messageText);
 
         await waku.relay.send(message);
 
@@ -140,14 +140,13 @@ describe('Waku Relay', () => {
 
         expect(msgs[0].contentTopic).to.equal(message.contentTopic);
         expect(msgs[0].version).to.equal(message.version);
-
-        const payload = Buffer.from(msgs[0].payload!);
-        expect(Buffer.compare(payload, message.payload!)).to.equal(0);
+        expect(msgs[0].payloadAsUtf8).to.equal(messageText);
       });
 
       it('Nim publishes to js', async function () {
         this.timeout(5000);
-        const message = WakuMessage.fromUtf8String('Here is another message.');
+        const messageText = 'Here is another message.';
+        const message = WakuMessage.fromUtf8String(messageText);
 
         const receivedMsgPromise: Promise<WakuMessage> = new Promise(
           (resolve) => {
@@ -161,9 +160,7 @@ describe('Waku Relay', () => {
 
         expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
         expect(receivedMsg.version).to.eq(message.version);
-
-        const payload = Buffer.from(receivedMsg.payload!);
-        expect(Buffer.compare(payload, message.payload!)).to.eq(0);
+        expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
       });
     });
 
@@ -214,7 +211,8 @@ describe('Waku Relay', () => {
       it('Js publishes to nim', async function () {
         this.timeout(30000);
 
-        const message = WakuMessage.fromUtf8String('This is a message');
+        const messageText = 'This is a message';
+        const message = WakuMessage.fromUtf8String(messageText);
         await delay(1000);
         await waku.relay.send(message);
 
@@ -228,15 +226,14 @@ describe('Waku Relay', () => {
 
         expect(msgs[0].contentTopic).to.equal(message.contentTopic);
         expect(msgs[0].version).to.equal(message.version);
-
-        const payload = Buffer.from(msgs[0].payload!);
-        expect(Buffer.compare(payload, message.payload!)).to.equal(0);
+        expect(msgs[0].payloadAsUtf8).to.equal(messageText);
       });
 
       it('Nim publishes to js', async function () {
         await delay(200);
 
-        const message = WakuMessage.fromUtf8String('Here is another message.');
+        const messageText = 'Here is another message.';
+        const message = WakuMessage.fromUtf8String(messageText);
 
         const receivedMsgPromise: Promise<WakuMessage> = new Promise(
           (resolve) => {
@@ -250,9 +247,7 @@ describe('Waku Relay', () => {
 
         expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
         expect(receivedMsg.version).to.eq(message.version);
-
-        const payload = Buffer.from(receivedMsg.payload!);
-        expect(Buffer.compare(payload, message.payload!)).to.eq(0);
+        expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
       });
     });
 
