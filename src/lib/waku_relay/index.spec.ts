@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import Pubsub from 'libp2p-interfaces/src/pubsub';
 import TCP from 'libp2p-tcp';
 
 import {
@@ -74,11 +73,13 @@ describe('Waku Relay', () => {
 
     const message = WakuMessage.fromUtf8String('JS to JS communication works');
 
-    const receivedPromise = waitForNextData(waku2.libp2p.pubsub);
+    const receivedMsgPromise: Promise<WakuMessage> = new Promise((resolve) => {
+      waku2.relay.addObserver(resolve);
+    });
 
     await waku1.relay.send(message);
 
-    const receivedMsg = await receivedPromise;
+    const receivedMsg = await receivedMsgPromise;
 
     expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
     expect(receivedMsg.version).to.eq(message.version);
@@ -148,11 +149,15 @@ describe('Waku Relay', () => {
         this.timeout(5000);
         const message = WakuMessage.fromUtf8String('Here is another message.');
 
-        const receivedPromise = waitForNextData(waku.libp2p.pubsub);
+        const receivedMsgPromise: Promise<WakuMessage> = new Promise(
+          (resolve) => {
+            waku.relay.addObserver(resolve);
+          }
+        );
 
         await nimWaku.sendMessage(message);
 
-        const receivedMsg = await receivedPromise;
+        const receivedMsg = await receivedMsgPromise;
 
         expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
         expect(receivedMsg.version).to.eq(message.version);
@@ -233,11 +238,15 @@ describe('Waku Relay', () => {
 
         const message = WakuMessage.fromUtf8String('Here is another message.');
 
-        const receivedPromise = waitForNextData(waku.libp2p.pubsub);
+        const receivedMsgPromise: Promise<WakuMessage> = new Promise(
+          (resolve) => {
+            waku.relay.addObserver(resolve);
+          }
+        );
 
         await nimWaku.sendMessage(message);
 
-        const receivedMsg = await receivedPromise;
+        const receivedMsg = await receivedMsgPromise;
 
         expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
         expect(receivedMsg.version).to.eq(message.version);
@@ -313,21 +322,18 @@ describe('Waku Relay', () => {
         const msgStr = 'Hello there!';
         const message = WakuMessage.fromUtf8String(msgStr);
 
-        const waku2ReceivedPromise = waitForNextData(waku2.libp2p.pubsub);
+        const waku2ReceivedMsgPromise: Promise<WakuMessage> = new Promise(
+          (resolve) => {
+            waku2.relay.addObserver(resolve);
+          }
+        );
 
         await waku1.relay.send(message);
         console.log('Waiting for message');
-        const waku2ReceivedMsg = await waku2ReceivedPromise;
+        const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
 
         expect(waku2ReceivedMsg.payloadAsUtf8).to.eq(msgStr);
       });
     });
   });
 });
-
-async function waitForNextData(pubsub: Pubsub): Promise<WakuMessage> {
-  const msg = (await new Promise((resolve) => {
-    pubsub.once(RelayDefaultTopic, resolve);
-  })) as Pubsub.InMessage;
-  return WakuMessage.decode(msg.data);
-}

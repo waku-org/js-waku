@@ -56,6 +56,7 @@ interface GossipOptions {
  */
 export class WakuRelay extends Gossipsub implements Pubsub {
   heartbeat: RelayHeartbeat;
+  public observers: Array<(message: WakuMessage) => void>;
 
   /**
    *
@@ -72,6 +73,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
     );
 
     this.heartbeat = new RelayHeartbeat(this);
+    this.observers = [];
 
     const multicodecs = [constants.RelayCodec];
 
@@ -86,6 +88,13 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    * @returns {void}
    */
   public start(): void {
+    this.on(constants.RelayDefaultTopic, (event) => {
+      const wakuMsg = WakuMessage.decode(event.data);
+      this.observers.forEach((callbackFn) => {
+        callbackFn(wakuMsg);
+      });
+    });
+
     super.start();
     super.subscribe(constants.RelayDefaultTopic);
   }
@@ -99,6 +108,16 @@ export class WakuRelay extends Gossipsub implements Pubsub {
   public async send(message: WakuMessage): Promise<void> {
     const msg = message.encode();
     await super.publish(constants.RelayDefaultTopic, Buffer.from(msg));
+  }
+
+  /**
+   * Register an observer of new messages received via waku relay
+   *
+   * @param callback called when a new message is received via waku relay
+   * @returns {void}
+   */
+  addObserver(callback: (message: WakuMessage) => void): void {
+    this.observers.push(callback);
   }
 
   /**
