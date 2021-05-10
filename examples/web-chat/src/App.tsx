@@ -97,7 +97,7 @@ export default function App() {
         .then(() => console.log('Waku init done'))
         .catch((e) => console.log('Waku init failed ', e));
     } else {
-      stateWaku.relay.addObserver(handleRelayMessage);
+      stateWaku.relay.addObserver(handleRelayMessage, [ChatContentTopic]);
 
       stateWaku.libp2p.peerStore.on(
         'change:protocols',

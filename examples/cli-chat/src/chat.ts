@@ -42,12 +42,15 @@ export default async function startChat(): Promise<void> {
 
   console.log(`Hi, ${nick}!`);
 
-  waku.relay.addObserver((message) => {
-    if (message.payload) {
-      const chatMsg = ChatMessage.decode(message.payload);
-      console.log(formatMessage(chatMsg));
-    }
-  });
+  waku.relay.addObserver(
+    (message) => {
+      if (message.payload) {
+        const chatMsg = ChatMessage.decode(message.payload);
+        console.log(formatMessage(chatMsg));
+      }
+    },
+    [ChatContentTopic]
+  );
 
   if (opts.staticNode) {
     console.log(`Dialing ${opts.staticNode}`);

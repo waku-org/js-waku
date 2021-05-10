@@ -56,7 +56,13 @@ interface GossipOptions {
  */
 export class WakuRelay extends Gossipsub implements Pubsub {
   heartbeat: RelayHeartbeat;
-  public observers: Array<(message: WakuMessage) => void>;
+  /**
+   * observers called when receiving new message.
+   * Observers under key "" are always called.
+   */
+  public observers: {
+    [contentTopic: string]: Array<(message: WakuMessage) => void>;
+  };
 
   /**
    *
@@ -73,7 +79,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
     );
 
     this.heartbeat = new RelayHeartbeat(this);
-    this.observers = [];
+    this.observers = {};
 
     const multicodecs = [constants.RelayCodec];
 
@@ -90,9 +96,18 @@ export class WakuRelay extends Gossipsub implements Pubsub {
   public start(): void {
     this.on(constants.RelayDefaultTopic, (event) => {
       const wakuMsg = WakuMessage.decode(event.data);
-      this.observers.forEach((callbackFn) => {
-        callbackFn(wakuMsg);
-      });
+      if (this.observers['']) {
+        this.observers[''].forEach((callbackFn) => {
+          callbackFn(wakuMsg);
+        });
+      }
+      if (wakuMsg.contentTopic) {
+        if (this.observers[wakuMsg.contentTopic]) {
+          this.observers[wakuMsg.contentTopic].forEach((callbackFn) => {
+            callbackFn(wakuMsg);
+          });
+        }
+      }
     });
 
     super.start();
@@ -114,10 +129,27 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    * Register an observer of new messages received via waku relay
    *
    * @param callback called when a new message is received via waku relay
+   * @param contentTopics Content Topics for which the callback with be called,
+   * all of them if undefined, [] or ["",..] is passed.
    * @returns {void}
    */
-  addObserver(callback: (message: WakuMessage) => void): void {
-    this.observers.push(callback);
+  addObserver(
+    callback: (message: WakuMessage) => void,
+    contentTopics: string[] = []
+  ): void {
+    if (contentTopics.length === 0) {
+      if (!this.observers['']) {
+        this.observers[''] = [];
+      }
+      this.observers[''].push(callback);
+    } else {
+      contentTopics.forEach((contentTopic) => {
+        if (!this.observers[contentTopic]) {
+          this.observers[contentTopic] = [];
+        }
+        this.observers[contentTopic].push(callback);
+      });
+    }
   }
 
   /**
