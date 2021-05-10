@@ -1,3 +1,10 @@
+/**
+ * Utilities to make it help check nim-waku logs.
+ *
+ * @hidden
+ * @module
+ */
+
 import { Context } from 'mocha';
 import pTimeout from 'p-timeout';
 import { Tail } from 'tail';

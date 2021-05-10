@@ -1,3 +1,8 @@
+/**
+ * @hidden
+ * @module
+ */
+
 import { ChildProcess, spawn } from 'child_process';
 import { randomInt } from 'crypto';
 

@@ -10,15 +10,21 @@ import { HistoryRPC } from './history_rpc';
 
 export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
 
+/**
+ * Implements the [Waku v2 Store protocol](https://rfc.vac.dev/spec/13/).
+ */
 export class WakuStore {
   constructor(public libp2p: Libp2p) {}
 
   /**
-   * Retrieve history from given peer
-   * @param peerId
-   * @param contentTopics
-   * @param pubsubTopic
-   * @throws if not able to reach peer
+   * Query given peer using Waku Store.
+   *
+   * @param peerId The peer to query.
+   * @param contentTopics The content topics to retrieve, leave empty to
+   * retrieve all messages.
+   * @param pubsubTopic The pubsub topic to retrieve. Currently, all waku nodes
+   * use the same pubsub topic. This is reserved for future applications.
+   * @throws If not able to reach the peer to query.
    */
   async queryHistory(
     peerId: PeerId,

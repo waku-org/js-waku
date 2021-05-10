@@ -2,6 +2,13 @@ import { Reader } from 'protobufjs/minimal';
 
 import * as proto from '../../proto/chat/v2/chat_message';
 
+/**
+ * ChatMessage is used by the various show case waku apps that demonstrates
+ * waku used as the network layer for chat group applications.
+ *
+ * This is included to help building PoC and MVPs. Apps that aim to be
+ * production ready should use a more appropriate data structure.
+ */
 export class ChatMessage {
   public constructor(public proto: proto.ChatMessage) {}
 
@@ -23,11 +30,19 @@ export class ChatMessage {
     });
   }
 
+  /**
+   * Decode a protobuf payload to a ChatMessage.
+   * @param bytes The payload to decode.
+   */
   static decode(bytes: Uint8Array): ChatMessage {
     const protoMsg = proto.ChatMessage.decode(Reader.create(bytes));
     return new ChatMessage(protoMsg);
   }
 
+  /**
+   * Encode this ChatMessage to a byte array, to be used as a protobuf payload.
+   * @returns The encoded payload.
+   */
   encode(): Uint8Array {
     return proto.ChatMessage.encode(this.proto).finish();
   }
