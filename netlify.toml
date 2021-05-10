@@ -1,0 +1,21 @@
+[build]
+publish = "build/html/"
+
+# Default build command.
+command = '''
+npm install
+npm run build
+npm run doc:html
+cd examples/web-chat
+npm install
+npm run build
+cd ../../
+mkdir -p ./build/html
+mv -v examples/web-chat/build ./build/html/js-waku
+mv -v build/docs ./build/html/
+'''
+
+[[redirects]]
+from = "/"
+to = "/js-waku"
+status = 200
