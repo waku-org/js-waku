@@ -1,3 +1,8 @@
+/**
+ * @hidden
+ * @module
+ */
+
 import Gossipsub from 'libp2p-gossipsub';
 import { Heartbeat } from 'libp2p-gossipsub/src/heartbeat';
 import { shuffle } from 'libp2p-gossipsub/src/utils';

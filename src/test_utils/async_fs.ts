@@ -1,3 +1,10 @@
+/**
+ * Various promisify of fs utilities.
+ *
+ * @hidden
+ * @module
+ */
+
 import fs, { promises as asyncFs } from 'fs';
 import { promisify } from 'util';
 

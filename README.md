@@ -2,6 +2,17 @@
 
 A JavaScript implementation of the [Waku v2 protocol](https://specs.vac.dev/specs/waku/v2/waku-v2).
 
+## Documentation
+
+Latest `main` branch documentation can be found at [https://status-im.github.io/js-waku/docs/](https://status-im.github.io/js-waku/docs/).
+
+Docs can also be generated locally using:
+
+```shell
+npm install
+npm run doc
+```
+
 ## Waku Protocol Support
 
 You can track progress on the [project board](https://github.com/status-im/js-waku/projects/1).
