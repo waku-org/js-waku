@@ -16,7 +16,7 @@ export const RelayDefaultTopic = '/waku/2/default-waku/proto';
  * We will send gossip to RelayGossipFactor * (total number of non-mesh peers), or
  * RelayDlazy, whichever is greater.
  */
-export declare const RelayGossipFactor = 0.25;
+export const RelayGossipFactor = 0.25;
 
 /**
  * GossipsubHeartbeatInitialDelay is the short delay before the heartbeat timer begins
@@ -74,4 +74,4 @@ export const RelayOpportunisticGraftPeers = 2;
  * default if your system is pushing more than 5000 messages in GossipsubHistoryGossip heartbeats;
  * with the defaults this is 1666 messages/s.
  */
-export declare const RelayMaxIHaveLength = 5000;
+export const RelayMaxIHaveLength = 5000;
