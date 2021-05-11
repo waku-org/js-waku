@@ -8,8 +8,8 @@
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "server-name-generator": "^1.0.5",
-    "waku": "../../build/main",
-    "web-vitals": "^1.1.1"
+    "web-vitals": "^1.1.1",
+    "web3-waku": "../../build/main"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.11.10",
