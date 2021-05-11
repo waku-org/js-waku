@@ -1,5 +1,5 @@
 {
-  "name": "js-waku",
+  "name": "web3-waku",
   "version": "1.0.0",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "main": "build/main/index.js",
