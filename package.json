@@ -1,5 +1,5 @@
 {
-  "name": "js-waku",
+  "name": "web3-waku",
   "version": "1.0.0",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "main": "build/main/index.js",
@@ -16,6 +16,7 @@
     "build": "run-s build:*",
     "build:main": "tsc -p tsconfig.json",
     "build:module": "tsc -p tsconfig.module.json",
+    "build:dev": "tsc -p tsconfig.dev.json",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" --write",
     "fix:lint": "eslint src --ext .ts --fix",

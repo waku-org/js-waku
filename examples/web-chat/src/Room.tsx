@@ -1,4 +1,4 @@
-import { ChatMessage, WakuMessage } from 'waku';
+import { ChatMessage, WakuMessage } from 'web3-waku';
 import { ChatContentTopic } from './App';
 import ChatList from './ChatList';
 import MessageInput from './MessageInput';

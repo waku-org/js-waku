@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ChatMessage } from 'waku';
+import { ChatMessage } from 'web3-waku';
 
 import { formatMessage } from './chat';
 
