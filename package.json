@@ -129,6 +129,7 @@
     "extends": "@istanbuljs/nyc-config-typescript",
     "exclude": [
       "**/*.spec.js",
+      "**/*.spec.ts",
       "src/proto/*"
     ]
   }
