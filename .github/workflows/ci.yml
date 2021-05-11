@@ -101,6 +101,10 @@ jobs:
           DEBUG: "waku:nim-waku*,waku:test*"
         run: npm run test
 
+      - name: Send coverage
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run cov:send
+
       - name: Upload logs on failure
         uses: actions/upload-artifact@v2
         if: failure()
