@@ -46,6 +46,7 @@
     "nodekey",
     "peerhave",
     "prettierignore",
+    "proto",
     "protobuf",
     "protoc",
     "reactjs",
