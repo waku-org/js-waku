@@ -1,10 +1,82 @@
-# js-waku
+# WakuJS
 
-A JavaScript implementation of the [Waku v2 protocol](https://specs.vac.dev/specs/waku/v2/waku-v2).
+A JavaScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/10/).
 
-## Documentation
+## Usage
 
-Latest `main` branch documentation can be found at [https://status-im.github.io/js-waku/docs/](https://status-im.github.io/js-waku/docs/).
+Install `web3-waku` package:
+
+```shell
+npm install web3-waku
+```
+
+Start a waku node:
+
+```javascript
+import { Waku } from 'web3-waku';
+
+const waku = await Waku.create();
+```
+
+Connect to a new peer:
+
+```javascript
+import { multiaddr } from 'multiaddr';
+import PeerId from 'peer-id';
+
+waku.libp2p.peerStore.addressBook.add(
+  PeerId.createFromB58String(
+    '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ'
+  ),
+  [multiaddr('/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7010/wss')]
+);
+```
+
+The `contentTopic` is a metadata `string` that allows categorization of messages on the waku network.
+Depending on your use case, you can either create a new `contentTopic` or look at the [RFCs](https://rfc.vac.dev/) and use an existing `contentTopic`.
+See the [Waku v2 Message spec](https://rfc.vac.dev/spec/14/) for more details.
+
+Listen to new messages received via [Waku v2 Relay](https://rfc.vac.dev/spec/11/), filtering the `contentTopic` to `waku/2/my-cool-app/proto`:
+
+```javascript
+waku.relay.addObserver((msg) => {
+  console.log("Message received:", msg.payloadAsUtf8)
+}, ["waku/2/my-cool-app/proto"]);
+```
+
+Send a message on the waku relay network:
+
+```javascript
+import { WakuMessage } from 'web3-waku';
+
+const msg = WakuMessage.fromUtf8String("Here is a message!", "waku/2/my-cool-app/proto")
+await waku.relay.send(msg);
+```
+
+The [Waku v2 Store protocol](https://rfc.vac.dev/spec/13/) enables full nodes to store messages received via relay
+and clients to retrieve them (e.g. after resuming connectivity).
+The protocol implements pagination meaning that it may take several queries to retrieve all messages.
+
+Query a waku store peer to check historical messages:
+
+```javascript
+// Process messages once they are all retrieved:
+const messages = await waku.store.queryHistory(storePeerId, ["waku/2/my-cool-app/proto"]);
+messages.forEach((msg) => {
+  console.log("Message retrieved:", msg.payloadAsUtf8)
+})
+
+// Or, pass a callback function to be executed as pages are received:
+waku.store.queryHistory(storePeerId, ["waku/2/my-cool-app/proto"],
+  (messages) => {
+    messages.forEach((msg) => {
+      console.log("Message retrieved:", msg.payloadAsUtf8)
+    })
+  });
+```
+
+Find more [examples](#examples) below
+or checkout the latest `main` branch documentation at [https://status-im.github.io/js-waku/docs/](https://status-im.github.io/js-waku/docs/).
 
 Docs can also be generated locally using:
 
@@ -47,9 +119,10 @@ For support, questions & more general topics, please join the discussion on the 
 
 ## Web Chat App (ReactJS)
 
-A ReactJS web app is provided as an a show case of the library used in the browser.
-
+A ReactJS chat app is provided as a showcase of the library used in the browser.
 A deployed version is available at https://status-im.github.io/js-waku/
+
+Find the code in the [examples folder](https://github.com/status-im/js-waku/tree/main/examples/web-chat).
 
 To run a development version locally, do:
 
@@ -68,6 +141,9 @@ Use `/help` to see the available commands.
 
 A node chat app is provided as a working example of the library.
 It is interoperable with the [nim-waku chat app example](https://github.com/status-im/nim-waku/blob/master/examples/v2/chat2.nim).
+
+Find the code in the [examples folder](https://github.com/status-im/js-waku/tree/main/examples/cli-chat).
+
 To run the chat app, first ensure you have [Node.js](https://nodejs.org/en/) v14 or above:
 
 ```shell
