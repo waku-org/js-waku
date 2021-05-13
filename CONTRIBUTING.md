@@ -2,10 +2,10 @@
 
 Contributors are welcomed!
 
-We try to keep a number of [`good first issue`](https://github.com/status-im/js-waku/labels/good%20first%20issue) for new contributors.
-If you feel confident, you can also check out the [`help wanted`](https://github.com/status-im/js-waku/labels/help%20wanted) issues.
+We try to keep a number of [`good first issue`](https://github.com/status-im/waku-js/labels/good%20first%20issue) for new contributors.
+If you feel confident, you can also check out the [`help wanted`](https://github.com/status-im/waku-js/labels/help%20wanted) issues.
 
-To have an idea of the work in the pipeline, feel free to view the [js-waku project board](https://github.com/status-im/js-waku/projects/1).
+To have an idea of the work in the pipeline, feel free to view the [waku-js project board](https://github.com/status-im/waku-js/projects/1).
 This project board is to prioritize the work of core contributors so do not be deterred by issues in the `Icebox` or bottom of the `Backlog`.
 
 Do note that we have a [CI](./.github/workflows/ci.yml) powered by GitHub Action.
@@ -25,7 +25,7 @@ To build and test this repository, you need:
 
 To ensure interoperability with [nim-waku](https://github.com/status-im/nim-waku/), some tests are run against a nim-waku node.
 This is why `nim-waku` is present as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules), which itself contain several submodules.
-At this stage, it is not possible to exclude nim-waku tests, hence `git submodule update --init --recursive` is run before testing (see [`pretest` script](https://github.com/status-im/js-waku/blob/main/package.json)).
+At this stage, it is not possible to exclude nim-waku tests, hence `git submodule update --init --recursive` is run before testing (see [`pretest` script](https://github.com/status-im/waku-js/blob/main/package.json)).
 
 To build nim-waku, you also need [Rust](https://www.rust-lang.org/tools/install).
 

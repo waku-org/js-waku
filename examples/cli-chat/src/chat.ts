@@ -25,7 +25,7 @@ export default async function startChat(): Promise<void> {
     output: process.stdout,
   });
 
-  let nick = 'js-waku';
+  let nick = 'waku-js';
   try {
     const question = util.promisify(rl.question).bind(rl);
     // Looks like wrong type definition of promisify is picked.
