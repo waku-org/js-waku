@@ -1,8 +1,0 @@
-status = [
-  "build_and_test (14, ubuntu-latest)",
-  "build_and_test (14, macos-latest)",
-  "examples_build_and_test (web-chat)",
-  "examples_build_and_test (cli-chat)"
-]
-block_labels = ["work-in-progress"]
-delete_merged_branches = true
