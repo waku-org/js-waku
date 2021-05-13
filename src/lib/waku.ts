@@ -4,7 +4,7 @@ import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
 import Websockets from 'libp2p-websockets';
 import filters from 'libp2p-websockets/src/filters';
-import { Multiaddr } from 'multiaddr';
+import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { RelayCodec, WakuRelay } from './waku_relay';
@@ -34,12 +34,8 @@ export class Waku {
 
   /**
    * Create new waku node
-   * @param listenAddresses: Array of Multiaddrs on which the node should listen.
-   * If not present, the node is dial only.
-   * @param staticNoiseKey: A static key to use for noise,
-   * mainly used for test to reduce entropy usage.
-   * @throws If
-   * @returns {Promise<Waku>}
+   *
+   * @param options Takes the same options than `Libp2p`.
    */
   static async create(options: Partial<CreateOptions>): Promise<Waku> {
     const opts = Object.assign(
@@ -96,6 +92,7 @@ export class Waku {
 
   /**
    * Dials to the provided peer.
+   *
    * @param peer The peer to dial
    */
   async dial(
@@ -107,8 +104,27 @@ export class Waku {
     return this.libp2p.dialProtocol(peer, [RelayCodec, StoreCodec]);
   }
 
-  addPeerToAddressBook(peerId: PeerId, multiaddr: Multiaddr[]): void {
-    this.libp2p.peerStore.addressBook.set(peerId, multiaddr);
+  /**
+   * Add peer to address book, it will be auto-dialed in the background.
+   */
+  addPeerToAddressBook(
+    peerId: PeerId | string,
+    multiaddrs: Multiaddr[] | string[]
+  ): void {
+    let peer;
+    if (typeof peerId === 'string') {
+      peer = PeerId.createFromB58String(peerId);
+    } else {
+      peer = peerId;
+    }
+    const addresses = multiaddrs.map((addr: Multiaddr | string) => {
+      if (typeof addr === 'string') {
+        return multiaddr(addr);
+      } else {
+        return addr;
+      }
+    });
+    this.libp2p.peerStore.addressBook.set(peer, addresses);
   }
 
   async stop(): Promise<void> {
@@ -126,8 +142,6 @@ export class Waku {
     if (!localMultiaddr || localMultiaddr.toString() === '') {
       throw 'Not listening on localhost';
     }
-    const multiAddrWithId =
-      localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
-    return multiAddrWithId;
+    return localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
   }
 }
