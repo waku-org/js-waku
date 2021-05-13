@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { Waku } from 'waku-js';
+import { Waku } from 'js-waku';
 
 export type WakuContextType = {
   waku?: Waku;

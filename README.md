@@ -1,19 +1,19 @@
-# WakuJS
+# js-waku
 
 A JavaScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/10/).
 
 ## Usage
 
-Install `waku-js` package:
+Install `js-waku` package:
 
 ```shell
-npm install waku-js
+npm install js-waku
 ```
 
 Start a waku node:
 
 ```javascript
-import { Waku } from 'waku-js';
+import { Waku } from 'js-waku';
 
 const waku = await Waku.create();
 ```
@@ -49,7 +49,7 @@ waku.relay.addObserver((msg) => {
 Send a message on the waku relay network:
 
 ```javascript
-import { WakuMessage } from 'waku-js';
+import { WakuMessage } from 'js-waku';
 
 const msg = WakuMessage.fromUtf8String("Here is a message!", "waku/2/my-cool-app/proto")
 await waku.relay.send(msg);
@@ -78,7 +78,7 @@ waku.store.queryHistory(storePeerId, ["waku/2/my-cool-app/proto"],
 ```
 
 Find more [examples](#examples) below
-or checkout the latest `main` branch documentation at [https://status-im.github.io/waku-js/docs/](https://status-im.github.io/waku-js/docs/).
+or checkout the latest `main` branch documentation at [https://status-im.github.io/js-waku/docs/](https://status-im.github.io/js-waku/docs/).
 
 Docs can also be generated locally using:
 
@@ -89,7 +89,7 @@ npm run doc
 
 ## Waku Protocol Support
 
-You can track progress on the [project board](https://github.com/status-im/waku-js/projects/1).
+You can track progress on the [project board](https://github.com/status-im/js-waku/projects/1).
 
 - ✔: Supported
 - 🚧: Implementation in progress
@@ -113,28 +113,28 @@ You can track progress on the [project board](https://github.com/status-im/waku-
 
 ## Bugs, Questions & Features
 
-If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/status-im/waku-js/issues/new/).
+If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/status-im/js-waku/issues/new/).
 
-For support, questions & more general topics, please join the discussion on the [Vac forum](https://forum.vac.dev/tag/waku-js) (use _\#js-waku_ tag).
+For support, questions & more general topics, please join the discussion on the [Vac forum](https://forum.vac.dev/tag/js-waku) (use _\#js-waku_ tag).
 
 ## Examples
 
 ## Web Chat App (ReactJS)
 
 A ReactJS chat app is provided as a showcase of the library used in the browser.
-A deployed version is available at https://status-im.github.io/waku-js/
+A deployed version is available at https://status-im.github.io/js-waku/
 
-Find the code in the [examples folder](https://github.com/status-im/waku-js/tree/main/examples/web-chat).
+Find the code in the [examples folder](https://github.com/status-im/js-waku/tree/main/examples/web-chat).
 
 To run a development version locally, do:
 
 ```shell
-git clone https://github.com/status-im/waku-js/ ; cd waku-js
-npm install   # Install dependencies for waku-js
-npm run build # Build waku-js
+git clone https://github.com/status-im/js-waku/ ; cd js-waku
+npm install   # Install dependencies for js-waku
+npm run build # Build js-waku
 cd examples/web-chat   
 npm install   # Install dependencies for the web app
-npm run start # Start development server to serve the web app on http://localhost:3000/waku-js
+npm run start # Start development server to serve the web app on http://localhost:3000/js-waku
 ```
 
 Use `/help` to see the available commands.
@@ -144,7 +144,7 @@ Use `/help` to see the available commands.
 A node chat app is provided as a working example of the library.
 It is interoperable with the [nim-waku chat app example](https://github.com/status-im/nim-waku/blob/master/examples/v2/chat2.nim).
 
-Find the code in the [examples folder](https://github.com/status-im/waku-js/tree/main/examples/cli-chat).
+Find the code in the [examples folder](https://github.com/status-im/js-waku/tree/main/examples/cli-chat).
 
 To run the chat app, first ensure you have [Node.js](https://nodejs.org/en/) v14 or above:
 
@@ -155,9 +155,9 @@ node --version
 Then, install and run:
 
 ```shell
-git clone https://github.com/status-im/waku-js/ ; cd waku-js
-npm install   # Install dependencies for waku-js
-npm run build # Build waku-js
+git clone https://github.com/status-im/js-waku/ ; cd js-waku
+npm install   # Install dependencies for js-waku
+npm run build # Build js-waku
 cd examples/cli-chat
 npm install # Install dependencies for the cli app
 npm run start -- --staticNode /ip4/134.209.139.210/tcp/30303/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ

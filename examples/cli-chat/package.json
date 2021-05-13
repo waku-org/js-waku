@@ -1,9 +1,9 @@
 {
-  "name": "waku-js-cli-chat",
+  "name": "js-waku-cli-chat",
   "version": "0.1.0",
-  "description": "A NodeJS CLI Chat App powered by waku-js",
+  "description": "A NodeJS CLI Chat App powered by js-waku",
   "main": "./index.ts",
-  "repository": "https://github.com/status-im/waku-js",
+  "repository": "https://github.com/status-im/js-waku",
   "license": "MIT OR Apache-2.0",
   "keywords": [
     "waku",
@@ -31,9 +31,9 @@
     "node": ">=14"
   },
   "dependencies": {
+    "js-waku": "../../build/main",
     "libp2p-tcp": "^0.15.4",
-    "prompt-sync": "^4.2.0",
-    "waku-js": "../../build/main"
+    "prompt-sync": "^4.2.0"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",

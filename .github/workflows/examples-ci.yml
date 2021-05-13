@@ -30,10 +30,10 @@ jobs:
           path: ~/.npm
           key: examples-node-v1-${{ hashFiles('**/package-lock.json') }}
 
-      - name: "[waku-js] install using npm ci"
+      - name: "[js-waku] install using npm ci"
         uses: bahmutov/npm-install@v1
 
-      - name: "[waku-js] build"
+      - name: "[js-waku] build"
         run: npm run build
 
       - name: ${{ matrix.example }} install using npm i

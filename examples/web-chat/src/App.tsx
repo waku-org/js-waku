@@ -1,7 +1,7 @@
 import PeerId from 'peer-id';
 import { useEffect, useState } from 'react';
 import './App.css';
-import { ChatMessage, WakuMessage, StoreCodec, Waku } from 'waku-js';
+import { ChatMessage, WakuMessage, StoreCodec, Waku } from 'js-waku';
 import handleCommand from './command';
 import Room from './Room';
 import { WakuContext } from './WakuContext';

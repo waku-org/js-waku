@@ -1,4 +1,4 @@
-name: Add new issues to waku-js project board
+name: Add new issues to js-waku project board
 
 on:
   issues:
@@ -10,6 +10,6 @@ jobs:
     steps:
       - uses: alex-page/github-project-automation-plus@v0.6.0
         with:
-          project: waku-js
+          project: js-waku
           column: New
           repo-token: ${{ secrets.GH_ACTION_PROJECT_MGMT }}

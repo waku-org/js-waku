@@ -1,4 +1,4 @@
-import { ChatMessage, WakuMessage } from 'waku-js';
+import { ChatMessage, WakuMessage } from 'js-waku';
 import { ChatContentTopic } from './App';
 import ChatList from './ChatList';
 import MessageInput from './MessageInput';
