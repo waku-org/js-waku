@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `WakuRelay.getPeers` method.
+- Use `WakuRelay.getPeers` in web chat app example to disable send button.
+
 ### Changed
 - Enable passing `string`s to `addPeerToAddressBook`.
 - Use `addPeerToAddressBook` in examples and usage doc.
 - Settle on `js-waku` name across the board.
+- **Breaking**: `RelayDefaultTopic` renamed to `DefaultPubsubTopic`.
 
 ## [0.1.0] - 2021-05-12
 

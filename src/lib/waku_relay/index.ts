@@ -19,11 +19,11 @@ import PeerId from 'peer-id';
 import { WakuMessage } from '../waku_message';
 
 import * as constants from './constants';
-import { RelayCodec, RelayDefaultTopic } from './constants';
+import { DefaultPubsubTopic, RelayCodec } from './constants';
 import { getRelayPeers } from './get_relay_peers';
 import { RelayHeartbeat } from './relay_heartbeat';
 
-export { RelayCodec, RelayDefaultTopic };
+export { RelayCodec, DefaultPubsubTopic };
 
 /**
  * See {GossipOptions} from libp2p-gossipsub
@@ -94,7 +94,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    * @returns {void}
    */
   public start(): void {
-    this.on(constants.RelayDefaultTopic, (event) => {
+    this.on(constants.DefaultPubsubTopic, (event) => {
       const wakuMsg = WakuMessage.decode(event.data);
       if (this.observers['']) {
         this.observers[''].forEach((callbackFn) => {
@@ -111,7 +111,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
     });
 
     super.start();
-    super.subscribe(constants.RelayDefaultTopic);
+    super.subscribe(constants.DefaultPubsubTopic);
   }
 
   /**
@@ -122,7 +122,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    */
   public async send(message: WakuMessage): Promise<void> {
     const msg = message.encode();
-    await super.publish(constants.RelayDefaultTopic, Buffer.from(msg));
+    await super.publish(constants.DefaultPubsubTopic, Buffer.from(msg));
   }
 
   /**
@@ -150,6 +150,18 @@ export class WakuRelay extends Gossipsub implements Pubsub {
         this.observers[contentTopic].push(callback);
       });
     }
+  }
+
+  /**
+   * Return the relay peers we are connected to and we would publish a message to
+   */
+  getPeers(): Set<string> {
+    return getRelayPeers(this, DefaultPubsubTopic, this._options.D, (id) => {
+      // Filter peers we would not publish to
+      return (
+        this.score.score(id) >= this._options.scoreThresholds.publishThreshold
+      );
+    });
   }
 
   /**

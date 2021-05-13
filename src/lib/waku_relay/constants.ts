@@ -9,7 +9,7 @@ export const RelayCodec = '/vac/waku/relay/2.0.0-beta2';
 /**
  * RelayDefaultTopic is the default gossipsub topic to use for waku relay
  */
-export const RelayDefaultTopic = '/waku/2/default-waku/proto';
+export const DefaultPubsubTopic = '/waku/2/default-waku/proto';
 
 /**
  * RelayGossipFactor affects how many peers we will emit gossip to at each heartbeat.

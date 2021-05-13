@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 
 import * as proto from '../../proto/waku/v2/store';
 import { DefaultContentTopic } from '../waku_message';
-import { RelayDefaultTopic } from '../waku_relay';
+import { DefaultPubsubTopic } from '../waku_relay';
 
 export class HistoryRPC {
   public constructor(public proto: proto.HistoryRPC) {}
@@ -11,7 +11,7 @@ export class HistoryRPC {
   static createQuery(
     contentTopics: string[] = [DefaultContentTopic],
     cursor?: proto.Index,
-    pubsubTopic: string = RelayDefaultTopic
+    pubsubTopic: string = DefaultPubsubTopic
   ): HistoryRPC {
     const pagingInfo = {
       pageSize: 10,

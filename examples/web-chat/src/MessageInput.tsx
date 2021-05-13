@@ -34,11 +34,15 @@ export default function MessageInput(props: Props) {
     }
   };
 
+  // Enable the button if there are relay peers available or the user is sending a command
+  const activeButton =
+    (waku && waku.relay.getPeers().size !== 0) || inputText.startsWith('/');
+
   return (
     <TextComposer
       onKeyDown={keyPressHandler}
       onChange={messageHandler}
-      active={!!waku}
+      active={activeButton}
       onButtonClick={sendMessage}
     >
       <Row align="center">
