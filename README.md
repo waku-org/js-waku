@@ -24,11 +24,9 @@ Connect to a new peer:
 import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
-waku.libp2p.peerStore.addressBook.add(
-  PeerId.createFromB58String(
-    '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ'
-  ),
-  [multiaddr('/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7010/wss')]
+waku.addPeerToAddressBook(
+  '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ',
+  ['/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7010/wss']
 );
 ```
 

@@ -1,4 +1,3 @@
-import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 import { useEffect, useState } from 'react';
 import './App.css';
@@ -147,17 +146,13 @@ async function initWaku(setter: (waku: Waku) => void) {
 
     setter(waku);
 
-    waku.libp2p.peerStore.addressBook.add(
-      PeerId.createFromB58String(
-        '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ'
-      ),
-      [multiaddr('/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7010/wss')]
+    waku.addPeerToAddressBook(
+      '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ',
+      ['/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7010/wss']
     );
-    waku.libp2p.peerStore.addressBook.add(
-      PeerId.createFromB58String(
-        '16Uiu2HAmSyrYVycqBCWcHyNVQS6zYQcdQbwyov1CDijboVRsQS37'
-      ),
-      [multiaddr('/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7009/wss')]
+    waku.addPeerToAddressBook(
+      '16Uiu2HAmSyrYVycqBCWcHyNVQS6zYQcdQbwyov1CDijboVRsQS37',
+      ['/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7009/wss']
     );
   } catch (e) {
     console.log('Issue starting waku ', e);
