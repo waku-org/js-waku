@@ -1,5 +1,5 @@
 /**
- * A collection of tools to test the WakuJS library.
+ * A collection of tools to test the js-waku library.
  *
  * @hidden
  * @module

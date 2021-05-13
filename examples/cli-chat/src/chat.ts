@@ -1,9 +1,9 @@
 import readline from 'readline';
 import util from 'util';
 
+import { ChatMessage, StoreCodec, Waku, WakuMessage } from 'js-waku';
 import TCP from 'libp2p-tcp';
 import { multiaddr, Multiaddr } from 'multiaddr';
-import { ChatMessage, StoreCodec, Waku, WakuMessage } from 'waku-js';
 
 const ChatContentTopic = 'dingpu';
 
@@ -25,7 +25,7 @@ export default async function startChat(): Promise<void> {
     output: process.stdout,
   });
 
-  let nick = 'waku-js';
+  let nick = 'js-waku';
   try {
     const question = util.promisify(rl.question).bind(rl);
     // Looks like wrong type definition of promisify is picked.
