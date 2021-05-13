@@ -12,7 +12,7 @@ import { delay } from '../delay';
 import { Waku } from '../waku';
 import { WakuMessage } from '../waku_message';
 
-import { RelayCodec, RelayDefaultTopic } from './index';
+import { DefaultPubsubTopic, RelayCodec } from './index';
 
 const log = debug('waku:test');
 
@@ -57,8 +57,8 @@ describe('Waku Relay', () => {
   });
 
   it('Subscribe', async function () {
-    const subscribers1 = waku1.libp2p.pubsub.getSubscribers(RelayDefaultTopic);
-    const subscribers2 = waku2.libp2p.pubsub.getSubscribers(RelayDefaultTopic);
+    const subscribers1 = waku1.libp2p.pubsub.getSubscribers(DefaultPubsubTopic);
+    const subscribers2 = waku2.libp2p.pubsub.getSubscribers(DefaultPubsubTopic);
 
     expect(subscribers1).to.contain(waku2.libp2p.peerId.toB58String());
     expect(subscribers2).to.contain(waku1.libp2p.peerId.toB58String());
@@ -160,7 +160,7 @@ describe('Waku Relay', () => {
       it('nim subscribes to js', async function () {
         const nimPeerId = await nimWaku.getPeerId();
         const subscribers = waku.libp2p.pubsub.getSubscribers(
-          RelayDefaultTopic
+          DefaultPubsubTopic
         );
 
         expect(subscribers).to.contain(nimPeerId.toB58String());
@@ -244,7 +244,7 @@ describe('Waku Relay', () => {
 
         while (subscribers.length === 0) {
           await delay(200);
-          subscribers = waku.libp2p.pubsub.getSubscribers(RelayDefaultTopic);
+          subscribers = waku.libp2p.pubsub.getSubscribers(DefaultPubsubTopic);
         }
 
         const nimPeerId = await nimWaku.getPeerId();

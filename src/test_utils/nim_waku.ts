@@ -13,7 +13,7 @@ import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { WakuMessage } from '../lib/waku_message';
-import { RelayDefaultTopic } from '../lib/waku_relay';
+import { DefaultPubsubTopic } from '../lib/waku_relay';
 import * as proto from '../proto/waku/v2/message';
 
 import { existsAsync, mkdirAsync, openAsync } from './async_fs';
@@ -167,7 +167,7 @@ export class NimWaku {
     };
 
     return this.rpcCall<boolean>('post_waku_v2_relay_v1_message', [
-      RelayDefaultTopic,
+      DefaultPubsubTopic,
       rpcMessage,
     ]);
   }
@@ -176,7 +176,7 @@ export class NimWaku {
     this.checkProcess();
 
     return this.rpcCall<proto.WakuMessage[]>('get_waku_v2_relay_v1_messages', [
-      RelayDefaultTopic,
+      DefaultPubsubTopic,
     ]).then((msgs) => msgs.map((protoMsg) => new WakuMessage(protoMsg)));
   }
 
