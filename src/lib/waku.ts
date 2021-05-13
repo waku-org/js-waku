@@ -122,8 +122,6 @@ export class Waku {
     if (!localMultiaddr || localMultiaddr.toString() === '') {
       throw 'Not listening on localhost';
     }
-    const multiAddrWithId =
-      localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
-    return multiAddrWithId;
+    return localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
   }
 }
