@@ -153,6 +153,18 @@ export class WakuRelay extends Gossipsub implements Pubsub {
   }
 
   /**
+   * Return the relay peers we are connected to and we would publish a message to
+   */
+  getPeers(): Set<string> {
+    return getRelayPeers(this, DefaultPubsubTopic, this._options.D, (id) => {
+      // Filter peers we would not publish to
+      return (
+        this.score.score(id) >= this._options.scoreThresholds.publishThreshold
+      );
+    });
+  }
+
+  /**
    * Join pubsub topic.
    * This is present to override the behavior of Gossipsub and should not
    * be used by API Consumers
