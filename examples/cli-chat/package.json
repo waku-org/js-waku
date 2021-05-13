@@ -1,6 +1,6 @@
 {
   "name": "js-waku-cli-chat",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A NodeJS CLI Chat App powered by js-waku",
   "main": "./index.ts",
   "repository": "https://github.com/status-im/js-waku",
