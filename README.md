@@ -4,16 +4,16 @@ A JavaScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/1
 
 ## Usage
 
-Install `web3-waku` package:
+Install `waku-js` package:
 
 ```shell
-npm install web3-waku
+npm install waku-js
 ```
 
 Start a waku node:
 
 ```javascript
-import { Waku } from 'web3-waku';
+import { Waku } from 'waku-js';
 
 const waku = await Waku.create();
 ```
@@ -47,7 +47,7 @@ waku.relay.addObserver((msg) => {
 Send a message on the waku relay network:
 
 ```javascript
-import { WakuMessage } from 'web3-waku';
+import { WakuMessage } from 'waku-js';
 
 const msg = WakuMessage.fromUtf8String("Here is a message!", "waku/2/my-cool-app/proto")
 await waku.relay.send(msg);

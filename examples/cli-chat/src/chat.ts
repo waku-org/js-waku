@@ -3,7 +3,7 @@ import util from 'util';
 
 import TCP from 'libp2p-tcp';
 import { multiaddr, Multiaddr } from 'multiaddr';
-import { ChatMessage, StoreCodec, Waku, WakuMessage } from 'web3-waku';
+import { ChatMessage, StoreCodec, Waku, WakuMessage } from 'waku-js';
 
 const ChatContentTopic = 'dingpu';
 

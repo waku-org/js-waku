@@ -2,7 +2,7 @@ import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 import { useEffect, useState } from 'react';
 import './App.css';
-import { ChatMessage, WakuMessage, StoreCodec, Waku } from 'web3-waku';
+import { ChatMessage, WakuMessage, StoreCodec, Waku } from 'waku-js';
 import handleCommand from './command';
 import Room from './Room';
 import { WakuContext } from './WakuContext';
