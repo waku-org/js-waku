@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `WakuRelay.getPeers` method.
+- Use `WakuRelay.getPeers` in web chat app example to disable send button.
 
 ### Changed
 - Enable passing `string`s to `addPeerToAddressBook`.
