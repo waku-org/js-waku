@@ -15,7 +15,7 @@ jobs:
 
       - name: Set git author identity
         run: |
-          git config user.name "GitHub Action On js-waku Repo"
+          git config user.name "GitHub Action On waku-js Repo"
           git config user.email "franck+ghpages@status.im"
 
       - name: Install NodeJS
@@ -29,10 +29,10 @@ jobs:
           path: ~/.npm
           key: node-v1-${{ hashFiles('**/package-lock.json') }}
 
-      - name: "[js-waku] install using npm ci"
+      - name: "[waku-js] install using npm ci"
         uses: bahmutov/npm-install@v1
 
-      - name: "[js-waku] build"
+      - name: "[waku-js] build"
         run: npm run build
 
       - name: install using npm i

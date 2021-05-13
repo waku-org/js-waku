@@ -1,3 +1,3 @@
-# A NodeJS CLI Chat App powered by js-waku
+# A NodeJS CLI Chat App powered by waku-js
 
-See js-waku [README](../../README.md#cli-chat-app-nodejs) for details.
+See waku-js [README](../../README.md#cli-chat-app-nodejs) for details.

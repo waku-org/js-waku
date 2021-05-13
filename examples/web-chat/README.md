@@ -1,3 +1,3 @@
-# A React Web Chat App powered by js-waku
+# A React Web Chat App powered by waku-js
 
-See js-waku [README](../../README.md#web-chat-app-reactjs) for details.
+See waku-js [README](../../README.md#web-chat-app-reactjs) for details.
