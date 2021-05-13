@@ -34,12 +34,8 @@ export class Waku {
 
   /**
    * Create new waku node
-   * @param listenAddresses: Array of Multiaddrs on which the node should listen.
-   * If not present, the node is dial only.
-   * @param staticNoiseKey: A static key to use for noise,
-   * mainly used for test to reduce entropy usage.
-   * @throws If
-   * @returns {Promise<Waku>}
+   *
+   * @param options Takes the same options than `Libp2p`.
    */
   static async create(options: Partial<CreateOptions>): Promise<Waku> {
     const opts = Object.assign(
