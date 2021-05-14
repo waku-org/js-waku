@@ -49,10 +49,12 @@ export default async function startChat(): Promise<void> {
     [ChatContentTopic]
   );
 
-  if (opts.staticNode) {
-    console.log(`Dialing ${opts.staticNode}`);
-    await waku.dial(opts.staticNode);
-  }
+  await Promise.all(
+    opts.staticNodes.map((addr) => {
+      console.log(`Dialing ${addr}`);
+      return waku.dial(addr);
+    })
+  );
 
   // If we connect to a peer with WakuStore, we run the protocol
   // TODO: Instead of doing it `once` it should always be done but
@@ -89,22 +91,20 @@ export default async function startChat(): Promise<void> {
 }
 
 interface Options {
-  staticNode?: Multiaddr;
+  staticNodes: Multiaddr[];
   listenAddr: string;
 }
 
 function processArguments(): Options {
   const passedArgs = process.argv.slice(2);
 
-  let opts: Options = { listenAddr: '/ip4/0.0.0.0/tcp/0' };
+  let opts: Options = { listenAddr: '/ip4/0.0.0.0/tcp/0', staticNodes: [] };
 
   while (passedArgs.length) {
     const arg = passedArgs.shift();
     switch (arg) {
       case '--staticNode':
-        opts = Object.assign(opts, {
-          staticNode: multiaddr(passedArgs.shift()!),
-        });
+        opts.staticNodes.push(multiaddr(passedArgs.shift()!));
         break;
       case '--listenAddr':
         opts = Object.assign(opts, { listenAddr: passedArgs.shift() });
