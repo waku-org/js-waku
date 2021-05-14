@@ -56,6 +56,7 @@
   },
   "dependencies": {
     "@bitauth/libauth": "^1.17.1",
+    "axios": "^0.21.1",
     "debug": "^4.3.1",
     "it-concat": "^2.0.0",
     "it-length-prefixed": "^5.0.2",
@@ -84,7 +85,6 @@
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "app-root-path": "^3.0.0",
-    "axios": "^0.21.1",
     "chai": "^4.3.4",
     "codecov": "^3.5.0",
     "cspell": "^4.1.0",
