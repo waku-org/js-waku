@@ -148,11 +148,11 @@ async function initWaku(setter: (waku: Waku) => void) {
 
     waku.addPeerToAddressBook(
       '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ',
-      ['/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7010/wss']
+      ['/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss']
     );
     waku.addPeerToAddressBook(
       '16Uiu2HAmSyrYVycqBCWcHyNVQS6zYQcdQbwyov1CDijboVRsQS37',
-      ['/dns4/node-01.do-ams3.jdev.misc.statusim.net/tcp/7009/wss']
+      ['/dns4/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss']
     );
   } catch (e) {
     console.log('Issue starting waku ', e);
