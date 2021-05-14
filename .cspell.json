@@ -62,6 +62,7 @@
     "unmounts",
     "untracked",
     "upgrader",
+    "vacp",
     "waku",
     "wakuv",
     "wakunode",
