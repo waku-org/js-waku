@@ -119,7 +119,9 @@ You can track progress on the [project board](https://github.com/status-im/js-wa
 
 If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/status-im/js-waku/issues/new/).
 
-For support, questions & more general topics, please join the discussion on the [Vac forum](https://forum.vac.dev/tag/js-waku) (use _\#js-waku_ tag).
+For support, questions & more general topics,
+please join the discussion on the [Vac forum](https://forum.vac.dev/tag/js-waku) (use _\#js-waku_ tag)
+or [\#waku-support on Status Discord](https://discord.gg/VChNsDdj).
 
 ## Examples
 
