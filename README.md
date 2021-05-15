@@ -34,6 +34,19 @@ waku.addPeerToAddressBook(
 );
 ```
 
+You can also use `getStatusFleetNodes` to connect to nodes run by Status:
+
+```javascript
+import { getStatusFleetNodes } from 'js-waku';
+
+const nodes = await getStatusFleetNodes();
+await Promise.all(
+  nodes.map((addr) => {
+    return waku.dial(addr);
+  })
+);
+```
+
 The `contentTopic` is a metadata `string` that allows categorization of messages on the waku network.
 Depending on your use case, you can either create one (or several) new `contentTopic`(s) or look at the [RFCs](https://rfc.vac.dev/) and use an existing `contentTopic`.
 See the [Waku v2 Message spec](https://rfc.vac.dev/spec/14/) for more details.
