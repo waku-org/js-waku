@@ -1,14 +1,24 @@
 import readline from 'readline';
 import util from 'util';
 
-import { ChatMessage, StoreCodec, Waku, WakuMessage } from 'js-waku';
+import {
+  ChatMessage,
+  getStatusFleetNodes,
+  StoreCodec,
+  Waku,
+  WakuMessage,
+} from 'js-waku';
 import TCP from 'libp2p-tcp';
 import { multiaddr, Multiaddr } from 'multiaddr';
 
 const ChatContentTopic = 'dingpu';
 
 export default async function startChat(): Promise<void> {
-  const opts = processArguments();
+  let opts = processArguments();
+
+  if (opts.autoDial) {
+    opts = await addFleetNodes(opts);
+  }
 
   const waku = await Waku.create({
     listenAddresses: [opts.listenAddr],
@@ -49,10 +59,12 @@ export default async function startChat(): Promise<void> {
     [ChatContentTopic]
   );
 
-  if (opts.staticNode) {
-    console.log(`Dialing ${opts.staticNode}`);
-    await waku.dial(opts.staticNode);
-  }
+  await Promise.all(
+    opts.staticNodes.map((addr) => {
+      console.log(`Dialing ${addr}`);
+      return waku.dial(addr);
+    })
+  );
 
   // If we connect to a peer with WakuStore, we run the protocol
   // TODO: Instead of doing it `once` it should always be done but
@@ -89,25 +101,31 @@ export default async function startChat(): Promise<void> {
 }
 
 interface Options {
-  staticNode?: Multiaddr;
+  staticNodes: Multiaddr[];
   listenAddr: string;
+  autoDial: boolean;
 }
 
 function processArguments(): Options {
   const passedArgs = process.argv.slice(2);
 
-  let opts: Options = { listenAddr: '/ip4/0.0.0.0/tcp/0' };
+  let opts: Options = {
+    listenAddr: '/ip4/0.0.0.0/tcp/0',
+    staticNodes: [],
+    autoDial: false,
+  };
 
   while (passedArgs.length) {
     const arg = passedArgs.shift();
     switch (arg) {
       case '--staticNode':
-        opts = Object.assign(opts, {
-          staticNode: multiaddr(passedArgs.shift()!),
-        });
+        opts.staticNodes.push(multiaddr(passedArgs.shift()!));
         break;
       case '--listenAddr':
         opts = Object.assign(opts, { listenAddr: passedArgs.shift() });
+        break;
+      case '--autoDial':
+        opts.autoDial = true;
         break;
       default:
         console.log(`Unsupported argument: ${arg}`);
@@ -127,4 +145,13 @@ export function formatMessage(chatMsg: ChatMessage): string {
     hour12: false,
   });
   return `<${timestamp}> ${chatMsg.nick}: ${chatMsg.payloadAsUtf8}`;
+}
+
+async function addFleetNodes(opts: Options): Promise<Options> {
+  await getStatusFleetNodes().then((nodes) =>
+    nodes.map((addr) => {
+      opts.staticNodes.push(multiaddr(addr));
+    })
+  );
+  return opts;
 }

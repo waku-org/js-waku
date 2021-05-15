@@ -1,7 +1,13 @@
 import PeerId from 'peer-id';
 import { useEffect, useState } from 'react';
 import './App.css';
-import { ChatMessage, WakuMessage, StoreCodec, Waku } from 'js-waku';
+import {
+  ChatMessage,
+  WakuMessage,
+  StoreCodec,
+  Waku,
+  getStatusFleetNodes,
+} from 'js-waku';
 import handleCommand from './command';
 import Room from './Room';
 import { WakuContext } from './WakuContext';
@@ -146,13 +152,11 @@ async function initWaku(setter: (waku: Waku) => void) {
 
     setter(waku);
 
-    waku.addPeerToAddressBook(
-      '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ',
-      ['/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss']
-    );
-    waku.addPeerToAddressBook(
-      '16Uiu2HAmSyrYVycqBCWcHyNVQS6zYQcdQbwyov1CDijboVRsQS37',
-      ['/dns4/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss']
+    const nodes = await getStatusFleetNodes();
+    await Promise.all(
+      nodes.map((addr) => {
+        return waku.dial(addr);
+      })
     );
   } catch (e) {
     console.log('Issue starting waku ', e);
