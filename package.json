@@ -24,7 +24,7 @@
     "pretest:1-init-git-submodules": "[ -f './nim-waku/build/wakunode2' ] || git submodule update --init --recursive",
     "pretest:2-build-nim-waku": "[ -f './nim-waku/build/wakunode2' ] || run-s nim-waku:build",
     "nim-waku:build": "(cd nim-waku; NIMFLAGS=\"-d:chronicles_colors=off -d:chronicles_sinks=textlines -d:chronicles_log_level=TRACE\" make -j$(nproc --all 2>/dev/null || echo 2) wakunode2)",
-    "nim-waku:upgrade": "(cd nim-waku && git pull origin master && rm -rf ./build/ ./vendor && make -j$(nproc --all 2>/dev/null || echo 2) update) && run-s nim-waku:build",
+    "nim-waku:force-build": "(cd nim-waku && rm -rf ./build/ ./vendor && make -j$(nproc --all 2>/dev/null || echo 2) update) && run-s nim-waku:build",
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" \"./*.json\" --list-different",
