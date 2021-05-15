@@ -104,6 +104,10 @@ npm install
 npm run doc
 ```
 
+## Changelog
+
+Release changelog can be found [here](https://github.com/status-im/js-waku/blob/main/CHANGELOG.md).
+
 ## Waku Protocol Support
 
 You can track progress on the [project board](https://github.com/status-im/js-waku/projects/1).
