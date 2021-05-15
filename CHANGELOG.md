@@ -41,6 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Typedoc Documentation](https://status-im.github.io/js-waku/docs).
 
 [Unreleased]: https://github.com/status-im/js-waku/compare/v0.3.0...HEAD
-[0.2.0]: https://github.com/status-im/js-waku/compare/v0.2.0...v0.3.0
+[0.3.0]: https://github.com/status-im/js-waku/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/status-im/js-waku/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/status-im/js-waku/compare/f46ce77f57c08866873b5c80acd052e0ddba8bc9...v0.1.0
