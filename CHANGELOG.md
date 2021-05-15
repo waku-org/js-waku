@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Clarify content topic format in README.md.
 
+## Removed
+- Unused dependencies.
+
 ## [0.2.0] - 2021-05-14
 
 ### Added

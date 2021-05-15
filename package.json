@@ -55,7 +55,6 @@
     "node": ">=14"
   },
   "dependencies": {
-    "@bitauth/libauth": "^1.17.1",
     "axios": "^0.21.1",
     "debug": "^4.3.1",
     "it-concat": "^2.0.0",
@@ -67,10 +66,8 @@
     "libp2p-tcp": "^0.15.4",
     "libp2p-websockets": "^0.15.6",
     "multiaddr": "^9.0.1",
-    "prompt-sync": "^4.2.0",
     "ts-proto": "^1.79.7",
-    "uuid": "^8.3.2",
-    "yarg": "^1.0.8"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
