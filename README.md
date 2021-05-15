@@ -35,23 +35,27 @@ waku.addPeerToAddressBook(
 ```
 
 The `contentTopic` is a metadata `string` that allows categorization of messages on the waku network.
-Depending on your use case, you can either create a new `contentTopic` or look at the [RFCs](https://rfc.vac.dev/) and use an existing `contentTopic`.
+Depending on your use case, you can either create one (or several) new `contentTopic`(s) or look at the [RFCs](https://rfc.vac.dev/) and use an existing `contentTopic`.
 See the [Waku v2 Message spec](https://rfc.vac.dev/spec/14/) for more details.
 
-Listen to new messages received via [Waku v2 Relay](https://rfc.vac.dev/spec/11/), filtering the `contentTopic` to `waku/2/my-cool-app/proto`:
+For example, if you were to use a new `contentTopic` such as `"my-cool-app"`,
+here is how to listen to new messages received via [Waku v2 Relay](https://rfc.vac.dev/spec/11/):
 
 ```javascript
 waku.relay.addObserver((msg) => {
   console.log("Message received:", msg.payloadAsUtf8)
-}, ["waku/2/my-cool-app/proto"]);
+}, ["my-cool-app"]);
 ```
+
+Note that the guidelines regarding content topic format are yet to be defined, see [vacp2p/rfc#364](https://github.com/vacp2p/rfc/issues/364).
+The examples chat apps currently use content topic `"dingpu"`.
 
 Send a message on the waku relay network:
 
 ```javascript
 import { WakuMessage } from 'js-waku';
 
-const msg = WakuMessage.fromUtf8String("Here is a message!", "waku/2/my-cool-app/proto")
+const msg = WakuMessage.fromUtf8String("Here is a message!", "my-cool-app")
 await waku.relay.send(msg);
 ```
 
@@ -63,13 +67,13 @@ Query a waku store peer to check historical messages:
 
 ```javascript
 // Process messages once they are all retrieved:
-const messages = await waku.store.queryHistory(storePeerId, ["waku/2/my-cool-app/proto"]);
+const messages = await waku.store.queryHistory(storePeerId, ["my-cool-app"]);
 messages.forEach((msg) => {
   console.log("Message retrieved:", msg.payloadAsUtf8)
 })
 
 // Or, pass a callback function to be executed as pages are received:
-waku.store.queryHistory(storePeerId, ["waku/2/my-cool-app/proto"],
+waku.store.queryHistory(storePeerId, ["my-cool-app"],
   (messages) => {
     messages.forEach((msg) => {
       console.log("Message retrieved:", msg.payloadAsUtf8)
