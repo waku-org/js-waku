@@ -5,6 +5,8 @@ import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../../test_utils';
 import { Waku } from '../waku';
 import { DefaultContentTopic, WakuMessage } from '../waku_message';
 
+import { Direction } from './history_rpc';
+
 describe('Waku Store', () => {
   let waku: Waku;
   let nimWaku: NimWaku;
@@ -79,6 +81,7 @@ describe('Waku Store', () => {
     const messages = await waku.store.queryHistory({
       peerId: nimPeerId,
       contentTopics: [DefaultContentTopic],
+      direction: Direction.FORWARD,
     });
 
     expect(messages?.length).eq(15);

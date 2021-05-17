@@ -7,7 +7,7 @@ import PeerId from 'peer-id';
 import { WakuMessage } from '../waku_message';
 import { DefaultPubsubTopic } from '../waku_relay';
 
-import { HistoryRPC } from './history_rpc';
+import { Direction, HistoryRPC } from './history_rpc';
 
 export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
 
@@ -15,6 +15,9 @@ export interface Options {
   peerId: PeerId;
   contentTopics: string[];
   pubsubTopic?: string;
+  direction?: Direction;
+  pageSize?: number;
+  callback?: (messages: WakuMessage[]) => void;
 }
 
 /**
@@ -32,12 +35,15 @@ export class WakuStore {
    * retrieve all messages.
    * @param options.pubsubTopic The pubsub topic to retrieve. Currently, all waku nodes
    * use the same pubsub topic. This is reserved for future applications.
+   * @param options.callback Callback called on page of stored messages as they are retrieved
    * @throws If not able to reach the peer to query.
    */
   async queryHistory(options: Options): Promise<WakuMessage[] | null> {
     const opts = Object.assign(
       {
         pubsubTopic: DefaultPubsubTopic,
+        direction: Direction.BACKWARD,
+        pageSize: 10,
       },
       options
     );
@@ -55,11 +61,8 @@ export class WakuStore {
       try {
         const { stream } = await connection.newStream(StoreCodec);
         try {
-          const historyRpcQuery = HistoryRPC.createQuery({
-            contentTopics: opts.contentTopics,
-            cursor,
-            pubsubTopic: opts.pubsubTopic,
-          });
+          const queryOpts = Object.assign(opts, { cursor });
+          const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
           const res = await pipe(
             [historyRpcQuery.encode()],
             lp.encode(),
@@ -82,8 +85,17 @@ export class WakuStore {
               return messages;
             }
 
-            response.messages.map((protoMsg) => {
-              messages.push(new WakuMessage(protoMsg));
+            const pageMessages = response.messages.map((protoMsg) => {
+              return new WakuMessage(protoMsg);
+            });
+
+            if (opts.callback) {
+              // TODO: Test the callback feature
+              opts.callback(pageMessages);
+            }
+
+            pageMessages.forEach((wakuMessage) => {
+              messages.push(wakuMessage);
             });
 
             const responsePageSize = response.pagingInfo?.pageSize;
