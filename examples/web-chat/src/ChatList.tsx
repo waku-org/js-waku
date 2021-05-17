@@ -14,10 +14,11 @@ interface Props {
 
 export default function ChatList(props: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [groupedMessages, setGroupedMessages] = useState<ChatMessage[][]>([]);
   let updatedMessages;
 
   if (IsThereNewMessages(props.newMessages, messages)) {
-    updatedMessages = messages.slice().concat(props.newMessages);
+    updatedMessages = messages.concat(props.newMessages);
     if (IsThereNewMessages(props.archivedMessages, updatedMessages)) {
       updatedMessages = copyMergeUniqueReplace(
         props.archivedMessages,
@@ -34,32 +35,31 @@ export default function ChatList(props: Props) {
   }
 
   if (updatedMessages) {
+    setGroupedMessages(groupMessagesBySender(updatedMessages));
     setMessages(updatedMessages);
   }
 
-  const messagesGroupedBySender = groupMessagesBySender(messages).map(
-    (currentMessageGroup) => (
-      <MessageGroup onlyFirstWithMeta>
-        {currentMessageGroup.map((currentMessage) => (
-          <Message
-            key={
-              currentMessage.timestamp.valueOf() +
-              currentMessage.nick +
-              currentMessage.payloadAsUtf8
-            }
-            authorName={currentMessage.nick}
-            date={formatDisplayDate(currentMessage)}
-          >
-            <MessageText>{currentMessage.payloadAsUtf8}</MessageText>
-          </Message>
-        ))}
-      </MessageGroup>
-    )
-  );
+  const renderedGroupedMessages = groupedMessages.map((currentMessageGroup) => (
+    <MessageGroup onlyFirstWithMeta>
+      {currentMessageGroup.map((currentMessage) => (
+        <Message
+          key={
+            currentMessage.timestamp.valueOf() +
+            currentMessage.nick +
+            currentMessage.payloadAsUtf8
+          }
+          authorName={currentMessage.nick}
+          date={formatDisplayDate(currentMessage)}
+        >
+          <MessageText>{currentMessage.payloadAsUtf8}</MessageText>
+        </Message>
+      ))}
+    </MessageGroup>
+  ));
 
   return (
     <MessageList active containScrollInSubtree>
-      {messagesGroupedBySender}
+      {renderedGroupedMessages}
       <AlwaysScrollToBottom newMessages={props.newMessages} />
     </MessageList>
   );
