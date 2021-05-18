@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Modify `WakuStore.queryHistory()` to accept one `Object` instead of multiple individual arguments.
 - `getStatusFleetNodes` return prod nodes by default, instead of test nodes.
 
+### Fixed
+- Expose `Enviroment` and `Protocol` enums to pass to `getStatusFleetNodes`.
+
 ## [0.3.0] - 2021-05-15
 
 ### Added
