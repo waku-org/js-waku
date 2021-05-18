@@ -1,4 +1,4 @@
-export { getStatusFleetNodes } from './lib/discover';
+export { getStatusFleetNodes, Environment, Protocol } from './lib/discover';
 
 export { Waku } from './lib/waku';
 export { WakuMessage } from './lib/waku_message';

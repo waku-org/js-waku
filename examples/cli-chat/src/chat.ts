@@ -3,6 +3,7 @@ import util from 'util';
 
 import {
   ChatMessage,
+  Environment,
   getStatusFleetNodes,
   StoreCodec,
   Waku,
@@ -105,6 +106,7 @@ interface Options {
   staticNodes: Multiaddr[];
   listenAddr: string;
   autoDial: boolean;
+  prod: boolean;
 }
 
 function processArguments(): Options {
@@ -114,6 +116,7 @@ function processArguments(): Options {
     listenAddr: '/ip4/0.0.0.0/tcp/0',
     staticNodes: [],
     autoDial: false,
+    prod: false,
   };
 
   while (passedArgs.length) {
@@ -127,6 +130,9 @@ function processArguments(): Options {
         break;
       case '--autoDial':
         opts.autoDial = true;
+        break;
+      case '--prod':
+        opts.prod = true;
         break;
       default:
         console.log(`Unsupported argument: ${arg}`);
@@ -149,7 +155,9 @@ export function formatMessage(chatMsg: ChatMessage): string {
 }
 
 async function addFleetNodes(opts: Options): Promise<Options> {
-  await getStatusFleetNodes().then((nodes) =>
+  await getStatusFleetNodes(
+    opts.prod ? Environment.Prod : Environment.Test
+  ).then((nodes) =>
     nodes.map((addr) => {
       opts.staticNodes.push(multiaddr(addr));
     })
