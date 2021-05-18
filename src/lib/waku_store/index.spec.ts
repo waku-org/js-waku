@@ -3,7 +3,9 @@ import TCP from 'libp2p-tcp';
 
 import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../../test_utils';
 import { Waku } from '../waku';
-import { WakuMessage } from '../waku_message';
+import { DefaultContentTopic, WakuMessage } from '../waku_message';
+
+import { Direction } from './history_rpc';
 
 describe('Waku Store', () => {
   let waku: Waku;
@@ -39,7 +41,10 @@ describe('Waku Store', () => {
 
     const nimPeerId = await nimWaku.getPeerId();
 
-    const messages = await waku.store.queryHistory(nimPeerId);
+    const messages = await waku.store.queryHistory({
+      peerId: nimPeerId,
+      contentTopics: [],
+    });
 
     expect(messages?.length).eq(2);
     const result = messages?.findIndex((msg) => {
@@ -73,7 +78,11 @@ describe('Waku Store', () => {
 
     const nimPeerId = await nimWaku.getPeerId();
 
-    const messages = await waku.store.queryHistory(nimPeerId);
+    const messages = await waku.store.queryHistory({
+      peerId: nimPeerId,
+      contentTopics: [DefaultContentTopic],
+      direction: Direction.FORWARD,
+    });
 
     expect(messages?.length).eq(15);
     for (let index = 0; index < 2; index++) {

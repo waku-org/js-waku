@@ -76,9 +76,10 @@ export default async function startChat(): Promise<void> {
         console.log(
           `Retrieving archived messages from ${peerId.toB58String()}`
         );
-        const messages = await waku.store.queryHistory(peerId, [
-          ChatContentTopic,
-        ]);
+        const messages = await waku.store.queryHistory({
+          peerId,
+          contentTopics: [ChatContentTopic],
+        });
         messages?.map((msg) => {
           if (msg.payload) {
             const chatMsg = ChatMessage.decode(msg.payload);

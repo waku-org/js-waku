@@ -5,10 +5,20 @@ import Libp2p from 'libp2p';
 import PeerId from 'peer-id';
 
 import { WakuMessage } from '../waku_message';
+import { DefaultPubsubTopic } from '../waku_relay';
 
-import { HistoryRPC } from './history_rpc';
+import { Direction, HistoryRPC } from './history_rpc';
 
 export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
+
+export interface Options {
+  peerId: PeerId;
+  contentTopics: string[];
+  pubsubTopic?: string;
+  direction?: Direction;
+  pageSize?: number;
+  callback?: (messages: WakuMessage[]) => void;
+}
 
 /**
  * Implements the [Waku v2 Store protocol](https://rfc.vac.dev/spec/13/).
@@ -19,19 +29,26 @@ export class WakuStore {
   /**
    * Query given peer using Waku Store.
    *
-   * @param peerId The peer to query.
-   * @param contentTopics The content topics to retrieve, leave empty to
+   * @param options
+   * @param options.peerId The peer to query.
+   * @param options.contentTopics The content topics to retrieve, leave empty to
    * retrieve all messages.
-   * @param pubsubTopic The pubsub topic to retrieve. Currently, all waku nodes
+   * @param options.pubsubTopic The pubsub topic to retrieve. Currently, all waku nodes
    * use the same pubsub topic. This is reserved for future applications.
+   * @param options.callback Callback called on page of stored messages as they are retrieved
    * @throws If not able to reach the peer to query.
    */
-  async queryHistory(
-    peerId: PeerId,
-    contentTopics?: string[],
-    pubsubTopic?: string
-  ): Promise<WakuMessage[] | null> {
-    const peer = this.libp2p.peerStore.get(peerId);
+  async queryHistory(options: Options): Promise<WakuMessage[] | null> {
+    const opts = Object.assign(
+      {
+        pubsubTopic: DefaultPubsubTopic,
+        direction: Direction.BACKWARD,
+        pageSize: 10,
+      },
+      options
+    );
+
+    const peer = this.libp2p.peerStore.get(opts.peerId);
     if (!peer) throw 'Peer is unknown';
     if (!peer.protocols.includes(StoreCodec))
       throw 'Peer does not register waku store protocol';
@@ -44,11 +61,8 @@ export class WakuStore {
       try {
         const { stream } = await connection.newStream(StoreCodec);
         try {
-          const historyRpcQuery = HistoryRPC.createQuery(
-            contentTopics,
-            cursor,
-            pubsubTopic
-          );
+          const queryOpts = Object.assign(opts, { cursor });
+          const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
           const res = await pipe(
             [historyRpcQuery.encode()],
             lp.encode(),
@@ -71,8 +85,17 @@ export class WakuStore {
               return messages;
             }
 
-            response.messages.map((protoMsg) => {
-              messages.push(new WakuMessage(protoMsg));
+            const pageMessages = response.messages.map((protoMsg) => {
+              return new WakuMessage(protoMsg);
+            });
+
+            if (opts.callback) {
+              // TODO: Test the callback feature
+              opts.callback(pageMessages);
+            }
+
+            pageMessages.forEach((wakuMessage) => {
+              messages.push(wakuMessage);
             });
 
             const responsePageSize = response.pagingInfo?.pageSize;

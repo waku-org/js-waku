@@ -45,6 +45,29 @@ const themes = {
 
 export const ChatContentTopic = 'dingpu';
 
+async function retrieveStoreMessages(
+  waku: Waku,
+  peerId: PeerId,
+  setArchivedMessages: (value: ChatMessage[]) => void
+): Promise<number> {
+  const callback = (wakuMessages: WakuMessage[]): void => {
+    const messages = wakuMessages
+      .map((wakuMsg) => wakuMsg.payload)
+      .filter((payload) => !!payload)
+      .map((payload) => ChatMessage.decode(payload as Uint8Array));
+    setArchivedMessages(messages);
+  };
+
+  const res = await waku.store.queryHistory({
+    peerId,
+    contentTopics: [ChatContentTopic],
+    pageSize: 5,
+    callback,
+  });
+
+  return res ? res.length : 0;
+}
+
 export default function App() {
   let [newMessages, setNewMessages] = useState<ChatMessage[]>([]);
   let [archivedMessages, setArchivedMessages] = useState<ChatMessage[]>([]);
@@ -61,6 +84,7 @@ export default function App() {
       }
     };
 
+    // TODO: Split this
     const handleProtocolChange = async (
       waku: Waku,
       { peerId, protocols }: { peerId: PeerId; protocols: string[] }
@@ -68,17 +92,12 @@ export default function App() {
       if (protocols.includes(StoreCodec)) {
         console.log(`${peerId.toB58String()}: retrieving archived messages}`);
         try {
-          const response = await waku.store.queryHistory(peerId, [
-            ChatContentTopic,
-          ]);
-          console.log(`${peerId.toB58String()}: messages retrieved:`, response);
-          if (response) {
-            const messages = response
-              .map((wakuMsg) => wakuMsg.payload)
-              .filter((payload) => !!payload)
-              .map((payload) => ChatMessage.decode(payload as Uint8Array));
-            setArchivedMessages(messages);
-          }
+          const length = await retrieveStoreMessages(
+            waku,
+            peerId,
+            setArchivedMessages
+          );
+          console.log(`${peerId.toB58String()}: messages retrieved:`, length);
         } catch (e) {
           console.log(
             `${peerId.toB58String()}: error encountered when retrieving archived messages`,

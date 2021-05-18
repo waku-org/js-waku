@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `callback` argument to `WakuStore.queryHistory()`, called as messages are retrieved
+  ; Messages are retrieved using pagination, and it may take some time to retrieve all messages,
+  with the `callback` function, messages are processed as soon as they are received. 
+
 ### Changed
 - Testing: Upgrade nim-waku node to v0.3.
+- **Breaking**: Modify `WakuStore.queryHistory()` to accept one `Object` instead of multiple individual arguments.
 
 ## [0.3.0] - 2021-05-15
 
