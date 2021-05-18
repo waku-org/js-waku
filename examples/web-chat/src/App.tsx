@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import {
   ChatMessage,
-  WakuMessage,
+  getStatusFleetNodes,
+  Environment,
   StoreCodec,
   Waku,
-  getStatusFleetNodes,
+  WakuMessage,
 } from 'js-waku';
 import handleCommand from './command';
 import Room from './Room';
@@ -171,7 +172,7 @@ async function initWaku(setter: (waku: Waku) => void) {
 
     setter(waku);
 
-    const nodes = await getStatusFleetNodes();
+    const nodes = await getNodes();
     await Promise.all(
       nodes.map((addr) => {
         return waku.dial(addr);
@@ -179,5 +180,14 @@ async function initWaku(setter: (waku: Waku) => void) {
     );
   } catch (e) {
     console.log('Issue starting waku ', e);
+  }
+}
+
+function getNodes() {
+  // Works with react-scripts
+  if (process?.env?.NODE_ENV === 'development') {
+    return getStatusFleetNodes(Environment.Test);
+  } else {
+    return getStatusFleetNodes(Environment.Prod);
   }
 }
