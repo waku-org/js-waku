@@ -15,7 +15,7 @@ export enum Environment {
 }
 
 export async function getStatusFleetNodes(
-  env: Environment = Environment.Test,
+  env: Environment = Environment.Prod,
   protocol: Protocol = Protocol.websocket
 ): Promise<string[]> {
   const res = await axios.get('https://fleets.status.im/', {
