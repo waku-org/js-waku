@@ -13,6 +13,6 @@ export {
 
 export { WakuRelay, RelayCodec } from './lib/waku_relay';
 
-export { WakuStore, StoreCodec } from './lib/waku_store';
+export { Direction, WakuStore, StoreCodec } from './lib/waku_store';
 
 export * as proto from './proto';

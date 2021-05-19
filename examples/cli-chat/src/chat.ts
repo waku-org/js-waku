@@ -3,6 +3,7 @@ import util from 'util';
 
 import {
   ChatMessage,
+  Direction,
   Environment,
   getStatusFleetNodes,
   StoreCodec,
@@ -80,6 +81,7 @@ export default async function startChat(): Promise<void> {
         const messages = await waku.store.queryHistory({
           peerId,
           contentTopics: [ChatContentTopic],
+          direction: Direction.FORWARD,
         });
         messages?.map((msg) => {
           if (msg.payload) {

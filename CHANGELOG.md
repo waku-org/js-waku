@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Implement [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
+- Expose `Direction` enum from js-waku root (it was only accessible via the proto module).
 
 ## [0.4.0] - 2021-05-18
 

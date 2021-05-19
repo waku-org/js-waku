@@ -11,6 +11,8 @@ import { Direction, HistoryRPC } from './history_rpc';
 
 export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
 
+export { Direction };
+
 export interface Options {
   peerId: PeerId;
   contentTopics: string[];
