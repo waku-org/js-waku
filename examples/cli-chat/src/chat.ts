@@ -6,12 +6,14 @@ import {
   Direction,
   Environment,
   getStatusFleetNodes,
+  LightPushCodec,
   StoreCodec,
   Waku,
   WakuMessage,
 } from 'js-waku';
 import TCP from 'libp2p-tcp';
 import { multiaddr, Multiaddr } from 'multiaddr';
+import PeerId from 'peer-id';
 
 const ChatContentTopic = 'dingpu';
 
@@ -93,6 +95,20 @@ export default async function startChat(): Promise<void> {
     }
   );
 
+  let lightPushNode: PeerId | undefined = undefined;
+  // Select a node for light pushing (any node).
+  if (opts.lightPush) {
+    waku.libp2p.peerStore.on(
+      'change:protocols',
+      async ({ peerId, protocols }) => {
+        if (!lightPushNode && protocols.includes(LightPushCodec)) {
+          console.log(`Using ${peerId.toB58String()} to light push messages`);
+          lightPushNode = peerId;
+        }
+      }
+    );
+  }
+
   console.log('Ready to chat!');
   rl.prompt();
   for await (const line of rl) {
@@ -100,7 +116,11 @@ export default async function startChat(): Promise<void> {
     const chatMessage = ChatMessage.fromUtf8String(new Date(), nick, line);
 
     const msg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
-    await waku.relay.send(msg);
+    if (lightPushNode && opts.lightPush) {
+      await waku.lightPush.push(lightPushNode, msg);
+    } else {
+      await waku.relay.send(msg);
+    }
   }
 }
 
@@ -109,6 +129,7 @@ interface Options {
   listenAddr: string;
   autoDial: boolean;
   prod: boolean;
+  lightPush: boolean;
 }
 
 function processArguments(): Options {
@@ -119,6 +140,7 @@ function processArguments(): Options {
     staticNodes: [],
     autoDial: false,
     prod: false,
+    lightPush: false,
   };
 
   while (passedArgs.length) {
@@ -135,6 +157,9 @@ function processArguments(): Options {
         break;
       case '--prod':
         opts.prod = true;
+        break;
+      case '--lightPush':
+        opts.lightPush = true;
         break;
       default:
         console.log(`Unsupported argument: ${arg}`);
