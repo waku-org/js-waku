@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
 - Expose `Direction` enum from js-waku root (it was only accessible via the proto module).
 - Examples (cli chat): Use light push to send messages if `--lightPush` is passed.
+- Examples (cli chat): Print usage if `--help` is passed.
 
 ## [0.4.0] - 2021-05-18
 

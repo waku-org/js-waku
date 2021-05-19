@@ -20,6 +20,8 @@ const ChatContentTopic = 'dingpu';
 export default async function startChat(): Promise<void> {
   let opts = processArguments();
 
+  if (!opts) return;
+
   if (opts.autoDial) {
     opts = await addFleetNodes(opts);
   }
@@ -132,7 +134,7 @@ interface Options {
   lightPush: boolean;
 }
 
-function processArguments(): Options {
+function processArguments(): Options | null {
   const passedArgs = process.argv.slice(2);
 
   let opts: Options = {
@@ -146,6 +148,21 @@ function processArguments(): Options {
   while (passedArgs.length) {
     const arg = passedArgs.shift();
     switch (arg) {
+      case `--help`:
+        console.log('Usage:');
+        console.log('  --help This help message');
+        console.log(
+          '  --staticNode {multiaddr} Connect to this static node, can be set multiple time'
+        );
+        console.log('  --listenAddr {addr} Listen on this address');
+        console.log('  --autoDial Automatically dial Status fleet nodes');
+        console.log(
+          '  --prod With `autoDial`, connect ot Status prod fleet (test fleet is dialed if not set)'
+        );
+        console.log(
+          '  --lightPush Use Waku v2 Light Push protocol to send messages, instead of Waku v2 relay'
+        );
+        return null;
       case '--staticNode':
         opts.staticNodes.push(multiaddr(passedArgs.shift()!));
         break;
