@@ -131,6 +131,7 @@ You can track progress on the [project board](https://github.com/status-im/js-wa
 |[16/WAKU2-RPC](https://rfc.vac.dev/spec/16)|⛔|
 |[17/WAKU2-RLNRELAY](https://rfc.vac.dev/spec/17)||
 |[18/WAKU2-SWAP](https://rfc.vac.dev/spec/18)||
+|[19/WAKU2-LIGHTPUSH](https://rfc.vac.dev/spec/19/)|✔|
 
 ## Bugs, Questions & Features
 

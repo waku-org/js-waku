@@ -85,7 +85,6 @@ export default function App() {
       }
     };
 
-    // TODO: Split this
     const handleProtocolChange = async (
       waku: Waku,
       { peerId, protocols }: { peerId: PeerId; protocols: string[] }

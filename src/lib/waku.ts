@@ -7,6 +7,7 @@ import filters from 'libp2p-websockets/src/filters';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
+import { WakuLightPush } from './waku_light_push';
 import { RelayCodec, WakuRelay } from './waku_relay';
 import { StoreCodec, WakuStore } from './waku_store';
 
@@ -25,11 +26,17 @@ export class Waku {
   public libp2p: Libp2p;
   public relay: WakuRelay;
   public store: WakuStore;
+  public lightPush: WakuLightPush;
 
-  private constructor(libp2p: Libp2p, store: WakuStore) {
+  private constructor(
+    libp2p: Libp2p,
+    store: WakuStore,
+    lightPush: WakuLightPush
+  ) {
     this.libp2p = libp2p;
     this.relay = (libp2p.pubsub as unknown) as WakuRelay;
     this.store = store;
+    this.lightPush = lightPush;
   }
 
   /**
@@ -84,10 +91,11 @@ export class Waku {
     });
 
     const wakuStore = new WakuStore(libp2p);
+    const wakuLightPush = new WakuLightPush(libp2p);
 
     await libp2p.start();
 
-    return new Waku(libp2p, wakuStore);
+    return new Waku(libp2p, wakuStore, wakuLightPush);
   }
 
   /**
