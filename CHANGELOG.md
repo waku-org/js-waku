@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Implement [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
+
 ## [0.4.0] - 2021-05-18
 
 ### Added

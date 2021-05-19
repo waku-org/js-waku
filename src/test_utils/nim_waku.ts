@@ -39,6 +39,7 @@ export interface Args {
   portsShift?: number;
   logLevel?: LogLevel;
   persistMessages?: boolean;
+  lightpush?: boolean;
 }
 
 export enum LogLevel {
