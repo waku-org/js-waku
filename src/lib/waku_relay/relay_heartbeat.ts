@@ -37,6 +37,8 @@ export class RelayHeartbeat extends Heartbeat {
     this._heartbeatTimer = {
       _intervalId: undefined,
       runPeriodically: (fn, period): void => {
+        // this._heartbeatTimer cannot be null, it is being assigned.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this._heartbeatTimer!._intervalId = setInterval(fn, period);
       },
       cancel: (): void => {
