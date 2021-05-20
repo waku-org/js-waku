@@ -26,9 +26,10 @@ import { RelayHeartbeat } from './relay_heartbeat';
 export { RelayCodec, DefaultPubsubTopic };
 
 /**
- * See {GossipOptions} from libp2p-gossipsub
+ * See [options](https://github.com/ChainSafe/js-libp2p-gossipsub#create-a-gossipsub-implementation) from js-libp2p-gossipsub.
+ * Relay specific options are prefixed with _relay_.
  */
-interface GossipOptions {
+export interface GossipOptions {
   emitSelf: boolean;
   gossipIncoming: boolean;
   fallbackToFloodsub: boolean;
@@ -95,24 +96,8 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    * @returns {void}
    */
   public start(): void {
-    this.on(constants.DefaultPubsubTopic, (event) => {
-      const wakuMsg = WakuMessage.decode(event.data);
-      if (this.observers['']) {
-        this.observers[''].forEach((callbackFn) => {
-          callbackFn(wakuMsg);
-        });
-      }
-      if (wakuMsg.contentTopic) {
-        if (this.observers[wakuMsg.contentTopic]) {
-          this.observers[wakuMsg.contentTopic].forEach((callbackFn) => {
-            callbackFn(wakuMsg);
-          });
-        }
-      }
-    });
-
     super.start();
-    super.subscribe(constants.DefaultPubsubTopic);
+    this.subscribe(constants.DefaultPubsubTopic);
   }
 
   /**
@@ -154,7 +139,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
   }
 
   /**
-   * Return the relay peers we are connected to and we would publish a message to
+   * Return the relay peers we are connected to and we would publish a message to.
    */
   getPeers(): Set<string> {
     return getRelayPeers(this, DefaultPubsubTopic, this._options.D, (id) => {
@@ -166,11 +151,36 @@ export class WakuRelay extends Gossipsub implements Pubsub {
   }
 
   /**
+   * Subscribe to a pubsub topic and start emitting waku messages to observers.
+   *
+   * @override
+   */
+  subscribe(topic: string): void {
+    this.on(topic, (event) => {
+      const wakuMsg = WakuMessage.decode(event.data);
+      if (this.observers['']) {
+        this.observers[''].forEach((callbackFn) => {
+          callbackFn(wakuMsg);
+        });
+      }
+      if (wakuMsg.contentTopic) {
+        if (this.observers[wakuMsg.contentTopic]) {
+          this.observers[wakuMsg.contentTopic].forEach((callbackFn) => {
+            callbackFn(wakuMsg);
+          });
+        }
+      }
+    });
+
+    super.subscribe(topic);
+  }
+
+  /**
    * Join pubsub topic.
    * This is present to override the behavior of Gossipsub and should not
    * be used by API Consumers
    *
-   * @ignore
+   * @internal
    * @param {string} topic
    * @returns {void}
    * @override
