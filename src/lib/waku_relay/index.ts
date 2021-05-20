@@ -50,7 +50,7 @@ interface GossipOptions {
 
 /**
  * Implements the [Waku v2 Relay protocol]{@link https://rfc.vac.dev/spec/11/}.
- * Must be passed as a `pubsub` module to a {Libp2p} instance.
+ * Must be passed as a `pubsub` module to a [Libp2p](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md) instance.
  *
  * @implements {Pubsub}
  * @noInheritDoc
@@ -67,8 +67,8 @@ export class WakuRelay extends Gossipsub implements Pubsub {
 
   /**
    *
-   * @param {Libp2p} libp2p
-   * @param {Partial<GossipOptions>} [options]
+   * @param options Any Gossipsub option can be passed, relay specific options
+   * are documented on {@link GossipOptions}.
    */
   constructor(libp2p: Libp2p, options?: Partial<GossipOptions>) {
     super(
