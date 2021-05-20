@@ -167,6 +167,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    * @internal
    */
   subscribe(topic: string): void {
+    console.log(`Subscribing to ${topic}`);
     this.on(topic, (event) => {
       const wakuMsg = WakuMessage.decode(event.data);
       if (this.observers['']) {
