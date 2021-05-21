@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2021-05-21
+
 ### Added
 - Implement [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
 - Expose `Direction` enum from js-waku root (it was only accessible via the proto module).
@@ -63,7 +65,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://status-im.github.io/js-waku/docs).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/status-im/js-waku/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/status-im/js-waku/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/status-im/js-waku/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/status-im/js-waku/compare/v0.1.0...v0.2.0
