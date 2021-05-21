@@ -17,113 +17,121 @@ import { DefaultPubsubTopic, RelayCodec } from './index';
 const log = debug('waku:test');
 
 describe('Waku Relay', () => {
-  afterEach(function () {
-    if (this.currentTest?.state === 'failed') {
-      console.log(`Test failed, log file name is ${makeLogFileName(this)}`);
-    }
-  });
-
-  let waku1: Waku;
-  let waku2: Waku;
-  beforeEach(async function () {
-    [waku1, waku2] = await Promise.all([
-      Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
-      Waku.create({
-        staticNoiseKey: NOISE_KEY_2,
-        listenAddresses: ['/ip4/0.0.0.0/tcp/0/wss'],
-      }),
-    ]);
-
-    waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
-
-    await Promise.all([
-      new Promise((resolve) =>
-        waku1.libp2p.pubsub.once('pubsub:subscription-change', () =>
-          resolve(null)
-        )
-      ),
-      new Promise((resolve) =>
-        waku2.libp2p.pubsub.once('pubsub:subscription-change', () =>
-          resolve(null)
-        )
-      ),
-    ]);
-  });
-
-  afterEach(async function () {
-    this.timeout(5000);
-    await waku1.stop();
-    await waku2.stop();
-  });
-
-  it('Subscribe', async function () {
-    const subscribers1 = waku1.libp2p.pubsub.getSubscribers(DefaultPubsubTopic);
-    const subscribers2 = waku2.libp2p.pubsub.getSubscribers(DefaultPubsubTopic);
-
-    expect(subscribers1).to.contain(waku2.libp2p.peerId.toB58String());
-    expect(subscribers2).to.contain(waku1.libp2p.peerId.toB58String());
-  });
-
-  it('Register correct protocols', async function () {
-    const protocols = Array.from(waku1.libp2p.upgrader.protocols.keys());
-
-    expect(protocols).to.contain(RelayCodec);
-    expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
-  });
-
-  it('Publish', async function () {
-    this.timeout(10000);
-
-    const messageText = 'JS to JS communication works';
-    const message = WakuMessage.fromUtf8String(messageText);
-
-    const receivedMsgPromise: Promise<WakuMessage> = new Promise((resolve) => {
-      waku2.relay.addObserver(resolve);
-    });
-
-    await waku1.relay.send(message);
-
-    const receivedMsg = await receivedMsgPromise;
-
-    expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
-    expect(receivedMsg.version).to.eq(message.version);
-    expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
-  });
-
-  it('Filter on content topics', async function () {
-    this.timeout(10000);
-
-    const fooMessageText = 'Published on content topic foo';
-    const barMessageText = 'Published on content topic bar';
-    const fooMessage = WakuMessage.fromUtf8String(fooMessageText, 'foo');
-    const barMessage = WakuMessage.fromUtf8String(barMessageText, 'bar');
-
-    const receivedBarMsgPromise: Promise<WakuMessage> = new Promise(
-      (resolve) => {
-        waku2.relay.addObserver(resolve, ['bar']);
+  describe('js only', () => {
+    afterEach(function () {
+      if (this.currentTest?.state === 'failed') {
+        console.log(`Test failed, log file name is ${makeLogFileName(this)}`);
       }
-    );
-
-    const allMessages: WakuMessage[] = [];
-    waku2.relay.addObserver((wakuMsg) => {
-      allMessages.push(wakuMsg);
     });
 
-    await waku1.relay.send(fooMessage);
-    await waku1.relay.send(barMessage);
+    let waku1: Waku;
+    let waku2: Waku;
+    beforeEach(async function () {
+      [waku1, waku2] = await Promise.all([
+        Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
+        Waku.create({
+          staticNoiseKey: NOISE_KEY_2,
+          listenAddresses: ['/ip4/0.0.0.0/tcp/0/wss'],
+        }),
+      ]);
 
-    const receivedBarMsg = await receivedBarMsgPromise;
+      waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
 
-    expect(receivedBarMsg.contentTopic).to.eq(barMessage.contentTopic);
-    expect(receivedBarMsg.version).to.eq(barMessage.version);
-    expect(receivedBarMsg.payloadAsUtf8).to.eq(barMessageText);
-    expect(allMessages.length).to.eq(2);
-    expect(allMessages[0].contentTopic).to.eq(fooMessage.contentTopic);
-    expect(allMessages[0].version).to.eq(fooMessage.version);
-    expect(allMessages[0].payloadAsUtf8).to.eq(fooMessageText);
-    expect(allMessages[1].contentTopic).to.eq(barMessage.contentTopic);
-    expect(allMessages[1].version).to.eq(barMessage.version);
-    expect(allMessages[1].payloadAsUtf8).to.eq(barMessageText);
+      await Promise.all([
+        new Promise((resolve) =>
+          waku1.libp2p.pubsub.once('pubsub:subscription-change', () =>
+            resolve(null)
+          )
+        ),
+        new Promise((resolve) =>
+          waku2.libp2p.pubsub.once('pubsub:subscription-change', () =>
+            resolve(null)
+          )
+        ),
+      ]);
+    });
+
+    afterEach(async function () {
+      this.timeout(5000);
+      await waku1.stop();
+      await waku2.stop();
+    });
+
+    it('Subscribe', async function () {
+      const subscribers1 = waku1.libp2p.pubsub.getSubscribers(
+        DefaultPubsubTopic
+      );
+      const subscribers2 = waku2.libp2p.pubsub.getSubscribers(
+        DefaultPubsubTopic
+      );
+
+      expect(subscribers1).to.contain(waku2.libp2p.peerId.toB58String());
+      expect(subscribers2).to.contain(waku1.libp2p.peerId.toB58String());
+    });
+
+    it('Register correct protocols', async function () {
+      const protocols = Array.from(waku1.libp2p.upgrader.protocols.keys());
+
+      expect(protocols).to.contain(RelayCodec);
+      expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
+    });
+
+    it('Publish', async function () {
+      this.timeout(10000);
+
+      const messageText = 'JS to JS communication works';
+      const message = WakuMessage.fromUtf8String(messageText);
+
+      const receivedMsgPromise: Promise<WakuMessage> = new Promise(
+        (resolve) => {
+          waku2.relay.addObserver(resolve);
+        }
+      );
+
+      await waku1.relay.send(message);
+
+      const receivedMsg = await receivedMsgPromise;
+
+      expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
+      expect(receivedMsg.version).to.eq(message.version);
+      expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
+    });
+
+    it('Filter on content topics', async function () {
+      this.timeout(10000);
+
+      const fooMessageText = 'Published on content topic foo';
+      const barMessageText = 'Published on content topic bar';
+      const fooMessage = WakuMessage.fromUtf8String(fooMessageText, 'foo');
+      const barMessage = WakuMessage.fromUtf8String(barMessageText, 'bar');
+
+      const receivedBarMsgPromise: Promise<WakuMessage> = new Promise(
+        (resolve) => {
+          waku2.relay.addObserver(resolve, ['bar']);
+        }
+      );
+
+      const allMessages: WakuMessage[] = [];
+      waku2.relay.addObserver((wakuMsg) => {
+        allMessages.push(wakuMsg);
+      });
+
+      await waku1.relay.send(fooMessage);
+      await waku1.relay.send(barMessage);
+
+      const receivedBarMsg = await receivedBarMsgPromise;
+
+      expect(receivedBarMsg.contentTopic).to.eq(barMessage.contentTopic);
+      expect(receivedBarMsg.version).to.eq(barMessage.version);
+      expect(receivedBarMsg.payloadAsUtf8).to.eq(barMessageText);
+      expect(allMessages.length).to.eq(2);
+      expect(allMessages[0].contentTopic).to.eq(fooMessage.contentTopic);
+      expect(allMessages[0].version).to.eq(fooMessage.version);
+      expect(allMessages[0].payloadAsUtf8).to.eq(fooMessageText);
+      expect(allMessages[1].contentTopic).to.eq(barMessage.contentTopic);
+      expect(allMessages[1].version).to.eq(barMessage.version);
+      expect(allMessages[1].payloadAsUtf8).to.eq(barMessageText);
+    });
   });
 
   describe('Interop: Nim', function () {
