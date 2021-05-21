@@ -53,6 +53,7 @@ interface GossipOptions {
  * Must be passed as a `pubsub` module to a {Libp2p} instance.
  *
  * @implements {Pubsub}
+ * @noInheritDoc
  */
 export class WakuRelay extends Gossipsub implements Pubsub {
   heartbeat: RelayHeartbeat;
