@@ -44,7 +44,7 @@ const themes = {
   },
 };
 
-export const ChatContentTopic = 'dingpu';
+export const ChatContentTopic = '/waku/2/huilong/proto';
 
 async function retrieveStoreMessages(
   waku: Waku,
