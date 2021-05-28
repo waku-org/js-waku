@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Enable access to `WakuMessage.timestamp`.
+
 ## [0.5.0] - 2021-05-21
 
 ### Added

@@ -11,35 +11,33 @@ export class WakuMessage {
   public constructor(public proto: proto.WakuMessage) {}
 
   /**
-   * Create Message with a utf-8 string as payload
-   * @param utf8
-   * @param contentTopic
-   * @returns {WakuMessage}
+   * Create Message with a utf-8 string as payload.
    */
   static fromUtf8String(
     utf8: string,
-    contentTopic: string = DefaultContentTopic
+    contentTopic: string = DefaultContentTopic,
+    timestamp: Date = new Date()
   ): WakuMessage {
     const payload = Buffer.from(utf8, 'utf-8');
     return new WakuMessage({
       payload,
       version: DefaultVersion,
       contentTopic,
+      timestamp: timestamp.valueOf() / 1000,
     });
   }
 
   /**
-   * Create Message with a byte array as payload
-   * @param payload
-   * @param contentTopic
-   * @returns {WakuMessage}
+   * Create Message with a byte array as payload.
    */
   static fromBytes(
     payload: Uint8Array,
-    contentTopic: string = DefaultContentTopic
+    contentTopic: string = DefaultContentTopic,
+    timestamp: Date = new Date()
   ): WakuMessage {
     return new WakuMessage({
       payload,
+      timestamp: timestamp.valueOf() / 1000,
       version: DefaultVersion,
       contentTopic,
     });
@@ -76,5 +74,12 @@ export class WakuMessage {
 
   get version(): number | undefined {
     return this.proto.version;
+  }
+
+  get timestamp(): Date | undefined {
+    if (this.proto.timestamp) {
+      return new Date(this.proto.timestamp * 1000);
+    }
+    return;
   }
 }
