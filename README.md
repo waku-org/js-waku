@@ -61,7 +61,7 @@ waku.relay.addObserver((msg) => {
 ```
 
 Note that the guidelines regarding content topic format are yet to be defined, see [vacp2p/rfc#364](https://github.com/vacp2p/rfc/issues/364).
-The examples chat apps currently use content topic `"dingpu"`.
+The examples chat apps currently use content topic `"/waku/2/huilong/proto"`.
 
 Send a message on the waku relay network:
 

@@ -15,7 +15,7 @@ import TCP from 'libp2p-tcp';
 import { multiaddr, Multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
-const ChatContentTopic = 'dingpu';
+const ChatContentTopic = '/waku/2/huilong/proto';
 
 export default async function startChat(): Promise<void> {
   let opts = processArguments();
