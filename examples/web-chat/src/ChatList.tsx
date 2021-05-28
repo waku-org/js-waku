@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChatMessage } from 'js-waku';
 import {
-  Message,
+  Message as LiveMessage,
   MessageText,
   MessageGroup,
   MessageList,
 } from '@livechat/ui-kit';
+import { Message } from './Message';
 
 interface Props {
-  archivedMessages: ChatMessage[];
-  newMessages: ChatMessage[];
+  archivedMessages: Message[];
+  newMessages: Message[];
 }
 
 export default function ChatList(props: Props) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [groupedMessages, setGroupedMessages] = useState<ChatMessage[][]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [groupedMessages, setGroupedMessages] = useState<Message[][]>([]);
   let updatedMessages;
 
   if (IsThereNewMessages(props.newMessages, messages)) {
@@ -42,17 +42,20 @@ export default function ChatList(props: Props) {
   const renderedGroupedMessages = groupedMessages.map((currentMessageGroup) => (
     <MessageGroup onlyFirstWithMeta>
       {currentMessageGroup.map((currentMessage) => (
-        <Message
+        <LiveMessage
           key={
-            currentMessage.timestamp.valueOf() +
-            currentMessage.nick +
-            currentMessage.payloadAsUtf8
+            currentMessage.sentTimestamp
+              ? currentMessage.sentTimestamp.valueOf()
+              : '' +
+                currentMessage.timestamp.valueOf() +
+                currentMessage.nick +
+                currentMessage.payloadAsUtf8
           }
           authorName={currentMessage.nick}
           date={formatDisplayDate(currentMessage)}
         >
           <MessageText>{currentMessage.payloadAsUtf8}</MessageText>
-        </Message>
+        </LiveMessage>
       ))}
     </MessageGroup>
   ));
@@ -65,10 +68,10 @@ export default function ChatList(props: Props) {
   );
 }
 
-function groupMessagesBySender(messageArray: ChatMessage[]): ChatMessage[][] {
+function groupMessagesBySender(messageArray: Message[]): Message[][] {
   let currentSender = -1;
   let lastNick = '';
-  let messagesBySender: ChatMessage[][] = [];
+  let messagesBySender: Message[][] = [];
   let currentSenderMessage = 0;
 
   for (let currentMessage of messageArray) {
@@ -83,7 +86,7 @@ function groupMessagesBySender(messageArray: ChatMessage[]): ChatMessage[][] {
   return messagesBySender;
 }
 
-function formatDisplayDate(message: ChatMessage): string {
+function formatDisplayDate(message: Message): string {
   return message.timestamp.toLocaleString([], {
     month: 'short',
     day: 'numeric',
@@ -93,7 +96,7 @@ function formatDisplayDate(message: ChatMessage): string {
   });
 }
 
-const AlwaysScrollToBottom = (props: { newMessages: ChatMessage[] }) => {
+const AlwaysScrollToBottom = (props: { newMessages: Message[] }) => {
   const elementRef = useRef<HTMLDivElement>();
 
   useEffect(() => {
@@ -106,8 +109,8 @@ const AlwaysScrollToBottom = (props: { newMessages: ChatMessage[] }) => {
 };
 
 function IsThereNewMessages(
-  newValues: ChatMessage[],
-  currentValues: ChatMessage[]
+  newValues: Message[],
+  currentValues: Message[]
 ): boolean {
   if (newValues.length === 0) return false;
   if (currentValues.length === 0) return true;
@@ -118,8 +121,8 @@ function IsThereNewMessages(
 }
 
 function copyMergeUniqueReplace(
-  newValues: ChatMessage[],
-  currentValues: ChatMessage[]
+  newValues: Message[],
+  currentValues: Message[]
 ) {
   const copy = currentValues.slice();
   newValues.forEach((msg) => {
@@ -131,10 +134,11 @@ function copyMergeUniqueReplace(
   return copy;
 }
 
-function isEqual(lhs: ChatMessage, rhs: ChatMessage): boolean {
+function isEqual(lhs: Message, rhs: Message): boolean {
   return (
     lhs.nick === rhs.nick &&
     lhs.payloadAsUtf8 === rhs.payloadAsUtf8 &&
-    lhs.timestamp.toString() === rhs.timestamp.toString()
+    lhs.timestamp.valueOf() === rhs.timestamp.valueOf() &&
+    lhs.sentTimestamp?.valueOf() === rhs.sentTimestamp?.valueOf()
   );
 }

@@ -2,7 +2,6 @@ import PeerId from 'peer-id';
 import { useEffect, useState } from 'react';
 import './App.css';
 import {
-  ChatMessage,
   getStatusFleetNodes,
   Environment,
   StoreCodec,
@@ -14,6 +13,7 @@ import Room from './Room';
 import { WakuContext } from './WakuContext';
 import { ThemeProvider } from '@livechat/ui-kit';
 import { generate } from 'server-name-generator';
+import { Message } from './Message';
 
 const themes = {
   AuthorName: {
@@ -49,13 +49,17 @@ export const ChatContentTopic = '/waku/2/huilong/proto';
 async function retrieveStoreMessages(
   waku: Waku,
   peerId: PeerId,
-  setArchivedMessages: (value: ChatMessage[]) => void
+  setArchivedMessages: (value: Message[]) => void
 ): Promise<number> {
   const callback = (wakuMessages: WakuMessage[]): void => {
-    const messages = wakuMessages
-      .map((wakuMsg) => wakuMsg.payload)
-      .filter((payload) => !!payload)
-      .map((payload) => ChatMessage.decode(payload as Uint8Array));
+    const messages: Message[] = [];
+    wakuMessages
+      .map((wakuMsg) => Message.fromWakuMessage(wakuMsg))
+      .forEach((message) => {
+        if (message) {
+          messages.push(message);
+        }
+      });
     setArchivedMessages(messages);
   };
 
@@ -70,18 +74,17 @@ async function retrieveStoreMessages(
 }
 
 export default function App() {
-  let [newMessages, setNewMessages] = useState<ChatMessage[]>([]);
-  let [archivedMessages, setArchivedMessages] = useState<ChatMessage[]>([]);
+  let [newMessages, setNewMessages] = useState<Message[]>([]);
+  let [archivedMessages, setArchivedMessages] = useState<Message[]>([]);
   let [stateWaku, setWaku] = useState<Waku | undefined>(undefined);
   let [nick, setNick] = useState<string>(generate());
 
   useEffect(() => {
     const handleRelayMessage = (wakuMsg: WakuMessage) => {
-      if (wakuMsg.payload) {
-        const chatMsg = ChatMessage.decode(wakuMsg.payload);
-        if (chatMsg) {
-          setNewMessages([chatMsg]);
-        }
+      console.log('Message received: ', wakuMsg);
+      const msg = Message.fromWakuMessage(wakuMsg);
+      if (msg) {
+        setNewMessages([msg]);
       }
     };
 
@@ -147,7 +150,7 @@ export default function App() {
                 setNick
               );
               const commandMessages = response.map((msg) => {
-                return ChatMessage.fromUtf8String(new Date(), command, msg);
+                return Message.fromUtf8String(command, msg);
               });
               setNewMessages(commandMessages);
             }}
