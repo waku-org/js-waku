@@ -15,7 +15,7 @@ export class PushRPC {
     return new PushRPC({
       requestId: uuid(),
       request: {
-        message,
+        message: message.proto,
         pubsubTopic,
       },
       response: undefined,

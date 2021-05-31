@@ -4,10 +4,11 @@ import ChatList from './ChatList';
 import MessageInput from './MessageInput';
 import { useWaku } from './WakuContext';
 import { TitleBar } from '@livechat/ui-kit';
+import { Message } from './Message';
 
 interface Props {
-  newMessages: ChatMessage[];
-  archivedMessages: ChatMessage[];
+  newMessages: Message[];
+  archivedMessages: Message[];
   commandHandler: (cmd: string) => void;
   nick: string;
 }
@@ -52,10 +53,12 @@ async function handleMessage(
   if (message.startsWith('/')) {
     commandHandler(message);
   } else {
-    const chatMessage = ChatMessage.fromUtf8String(new Date(), nick, message);
+    const timestamp = new Date();
+    const chatMessage = ChatMessage.fromUtf8String(timestamp, nick, message);
     const wakuMsg = WakuMessage.fromBytes(
       chatMessage.encode(),
-      ChatContentTopic
+      ChatContentTopic,
+      timestamp
     );
     return messageSender(wakuMsg);
   }

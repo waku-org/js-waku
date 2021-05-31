@@ -80,7 +80,12 @@ describe('Waku Relay', () => {
       this.timeout(10000);
 
       const messageText = 'JS to JS communication works';
-      const message = WakuMessage.fromUtf8String(messageText);
+      const messageTimestamp = new Date('1995-12-17T03:24:00');
+      const message = WakuMessage.fromUtf8String(
+        messageText,
+        undefined,
+        messageTimestamp
+      );
 
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
@@ -95,6 +100,9 @@ describe('Waku Relay', () => {
       expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
       expect(receivedMsg.version).to.eq(message.version);
       expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
+      expect(receivedMsg.timestamp?.valueOf()).to.eq(
+        messageTimestamp.valueOf()
+      );
     });
 
     it('Filter on content topics', async function () {
