@@ -145,7 +145,8 @@ or [\#waku-support on Status Discord](https://discord.gg/VChNsDdj).
 ## Web Chat App (ReactJS)
 
 A ReactJS chat app is provided as a showcase of the library used in the browser.
-A deployed version is available at https://status-im.github.io/js-waku/
+It implements [Waku v2 Toy Chat](https://rfc.vac.dev/spec/22/) protocol.
+A deployed version is available at https://status-im.github.io/js-waku/.
 
 Find the code in the [examples folder](https://github.com/status-im/js-waku/tree/main/examples/web-chat).
 
@@ -165,7 +166,7 @@ Use `/help` to see the available commands.
 ## CLI Chat App (NodeJS)
 
 A node chat app is provided as a working example of the library.
-It is interoperable with the [nim-waku chat app example](https://github.com/status-im/nim-waku/blob/master/examples/v2/chat2.nim).
+It implements [Waku v2 Toy Chat](https://rfc.vac.dev/spec/22/) protocol.
 
 Find the code in the [examples folder](https://github.com/status-im/js-waku/tree/main/examples/cli-chat).
 
