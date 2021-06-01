@@ -25,7 +25,7 @@ Feel free to itemize requirements. E.g.:
 - Function `foo` must return information about `bar`.
 - Function `blah` must allow me to pass argument `boo`.
 
-Or describe current vs wanted behaviour.
+Or describe current vs wanted behavior.
 
 If this is a bug report and you know how to fix the problem, feel free to include a proposal or open a PR.
 Or feel free to omit this section.
@@ -40,3 +40,4 @@ Add any miscellaneous note that are relevant to issue, including but not limited
 - Environment (browser software and version, system software and version)
 - Nodes connected to too (e.g. Status test fleet)
 - etc
+-->

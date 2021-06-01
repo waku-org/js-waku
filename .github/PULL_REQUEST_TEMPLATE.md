@@ -1,7 +1,21 @@
-- **What kind of change does this PR introduce?** (Bug fix, feature, docs update, ...)
+## Problem
 
-- **What is the current behavior?** (You can also link to an open issue here)
+<!--
+Describe in details the problem or scenario that this PR is fixing.
 
-- **What is the new behavior (if this is a feature change)?**
+If this is a feature addition or change, then focus on the WHY you are making the change.
+E.g.: As a user of my dApp, I want to know that X happened when I do Y.
 
-- **Other information**:
+If this is a bug fix, please describe why the old behavior was problematic.
+-->
+
+## Solution
+
+<!-- describe the new behavior --> 
+
+## Notes
+
+<!-- Remove items that are not relevant -->
+
+- Resolves <issue number>
+- Related to <link to specs>
