@@ -44,7 +44,7 @@ const themes = {
   },
 };
 
-export const ChatContentTopic = '/waku/2/huilong/proto';
+export const ChatContentTopic = '/toy-chat/2/huilong/proto';
 
 async function retrieveStoreMessages(
   waku: Waku,

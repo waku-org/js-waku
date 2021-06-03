@@ -60,7 +60,7 @@ waku.relay.addObserver((msg) => {
 }, ["/my-cool-app/1/my-use-case/proto"]);
 ```
 
-The examples chat apps currently use content topic `"/waku/2/huilong/proto"`.
+The examples chat apps currently use content topic `"/toy-chat/2/huilong/proto"`.
 
 Send a message on the waku relay network:
 
