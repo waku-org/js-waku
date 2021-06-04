@@ -86,8 +86,17 @@ export default function App() {
     localStorage.setItem('nick', nick);
   }, [nick]);
 
-  // Waku: Start, process messages, send messages
   useEffect(() => {
+    if (stateWaku) return;
+
+    initWaku(setWaku)
+      .then(() => console.log('Waku init done'))
+      .catch((e) => console.log('Waku init failed ', e));
+  }, [stateWaku]);
+
+  useEffect(() => {
+    if (!stateWaku) return;
+
     const handleRelayMessage = (wakuMsg: WakuMessage) => {
       console.log('Message received: ', wakuMsg);
       const msg = Message.fromWakuMessage(wakuMsg);
@@ -95,6 +104,14 @@ export default function App() {
         setNewMessages([msg]);
       }
     };
+
+    stateWaku.relay.addObserver(handleRelayMessage, [ChatContentTopic]);
+
+    return;
+  }, [stateWaku]);
+
+  useEffect(() => {
+    if (!stateWaku) return;
 
     const handleProtocolChange = async (
       waku: Waku,
@@ -118,26 +135,18 @@ export default function App() {
       }
     };
 
-    if (!stateWaku) {
-      initWaku(setWaku)
-        .then(() => console.log('Waku init done'))
-        .catch((e) => console.log('Waku init failed ', e));
-    } else {
-      stateWaku.relay.addObserver(handleRelayMessage, [ChatContentTopic]);
+    stateWaku.libp2p.peerStore.on(
+      'change:protocols',
+      handleProtocolChange.bind({}, stateWaku)
+    );
 
-      stateWaku.libp2p.peerStore.on(
+    // To clean up listener when component unmounts
+    return () => {
+      stateWaku?.libp2p.peerStore.removeListener(
         'change:protocols',
         handleProtocolChange.bind({}, stateWaku)
       );
-
-      // To clean up listener when component unmounts
-      return () => {
-        stateWaku?.libp2p.peerStore.removeListener(
-          'change:protocols',
-          handleProtocolChange.bind({}, stateWaku)
-        );
-      };
-    }
+    };
   }, [stateWaku]);
 
   return (
