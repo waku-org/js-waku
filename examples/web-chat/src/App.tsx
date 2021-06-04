@@ -77,8 +77,16 @@ export default function App() {
   let [newMessages, setNewMessages] = useState<Message[]>([]);
   let [archivedMessages, setArchivedMessages] = useState<Message[]>([]);
   let [stateWaku, setWaku] = useState<Waku | undefined>(undefined);
-  let [nick, setNick] = useState<string>(generate());
+  let [nick, setNick] = useState<string>(() => {
+    const persistedNick = window.localStorage.getItem('nick');
+    return persistedNick !== null ? persistedNick : generate();
+  });
 
+  useEffect(() => {
+    localStorage.setItem('nick', nick);
+  }, [nick]);
+
+  // Waku: Start, process messages, send messages
   useEffect(() => {
     const handleRelayMessage = (wakuMsg: WakuMessage) => {
       console.log('Message received: ', wakuMsg);
