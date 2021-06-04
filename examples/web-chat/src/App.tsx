@@ -79,6 +79,7 @@ export default function App() {
   let [stateWaku, setWaku] = useState<Waku | undefined>(undefined);
   let [nick, setNick] = useState<string>(generate());
 
+  // Waku: Start, process messages, send messages
   useEffect(() => {
     const handleRelayMessage = (wakuMsg: WakuMessage) => {
       console.log('Message received: ', wakuMsg);
