@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Examples (web chat): Use `WakuMessage.timestamp` as unique key for list items.
 - Doc: Link to new [topic guidelines](https://rfc.vac.dev/spec/23/) in README.
 - Doc: Link to [Waku v2 Toy Chat specs](https://rfc.vac.dev/spec/22/) in README.
+- Examples (web chat): Persist nick.
 
 ## [0.5.0] - 2021-05-21
 
