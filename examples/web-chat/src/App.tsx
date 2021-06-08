@@ -181,10 +181,12 @@ export default function App() {
 async function initWaku(setter: (waku: Waku) => void) {
   try {
     const waku = await Waku.create({
-      config: {
-        pubsub: {
-          enabled: true,
-          emitSelf: true,
+      libp2p: {
+        config: {
+          pubsub: {
+            enabled: true,
+            emitSelf: true,
+          },
         },
       },
     });

@@ -31,7 +31,7 @@ describe('Waku Relay', () => {
         Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
         Waku.create({
           staticNoiseKey: NOISE_KEY_2,
-          listenAddresses: ['/ip4/0.0.0.0/tcp/0/wss'],
+          libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/wss'] } },
         }),
       ]);
 
@@ -153,8 +153,10 @@ describe('Waku Relay', () => {
         log('Create waku node');
         waku = await Waku.create({
           staticNoiseKey: NOISE_KEY_1,
-          listenAddresses: ['/ip4/0.0.0.0/tcp/0'],
-          modules: { transport: [TCP] },
+          libp2p: {
+            addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
+            modules: { transport: [TCP] },
+          },
         });
 
         const multiAddrWithId = waku.getLocalMultiaddrWithID();
@@ -231,7 +233,7 @@ describe('Waku Relay', () => {
         this.timeout(30_000);
         waku = await Waku.create({
           staticNoiseKey: NOISE_KEY_1,
-          modules: { transport: [TCP] },
+          libp2p: { modules: { transport: [TCP] } },
         });
 
         nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
@@ -328,11 +330,11 @@ describe('Waku Relay', () => {
         [waku1, waku2] = await Promise.all([
           Waku.create({
             staticNoiseKey: NOISE_KEY_1,
-            modules: { transport: [TCP] },
+            libp2p: { modules: { transport: [TCP] } },
           }),
           Waku.create({
             staticNoiseKey: NOISE_KEY_2,
-            modules: { transport: [TCP] },
+            libp2p: { modules: { transport: [TCP] } },
           }),
         ]);
 
