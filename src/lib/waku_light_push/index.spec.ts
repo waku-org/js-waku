@@ -23,7 +23,7 @@ describe('Waku Light Push', () => {
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
-      modules: { transport: [TCP] },
+      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
 

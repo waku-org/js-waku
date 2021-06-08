@@ -30,7 +30,7 @@ describe('Waku Store', () => {
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
-      modules: { transport: [TCP] },
+      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
 
@@ -67,7 +67,7 @@ describe('Waku Store', () => {
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
-      modules: { transport: [TCP] },
+      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
 
