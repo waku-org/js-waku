@@ -36,7 +36,8 @@ interface GossipOptions {
   doPX: boolean;
   msgIdFn: MessageIdFunction;
   messageCache: MessageCache;
-  globalSignaturePolicy: string;
+  // This option is always overridden
+  // globalSignaturePolicy: string;
   scoreParams: Partial<PeerScoreParams>;
   scoreThresholds: Partial<PeerScoreThresholds>;
   directPeers: AddrInfo[];
@@ -47,6 +48,8 @@ interface GossipOptions {
   Dout: number;
   Dlazy: number;
 }
+
+export type WakuRelayOptions = GossipOptions;
 
 /**
  * Implements the [Waku v2 Relay protocol]{@link https://rfc.vac.dev/spec/11/}.
@@ -70,7 +73,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    * @param {Libp2p} libp2p
    * @param {Partial<GossipOptions>} [options]
    */
-  constructor(libp2p: Libp2p, options?: Partial<GossipOptions>) {
+  constructor(libp2p: Libp2p, options?: Partial<WakuRelayOptions>) {
     super(
       libp2p,
       Object.assign(options, {
