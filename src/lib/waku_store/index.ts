@@ -13,7 +13,7 @@ export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
 
 export { Direction };
 
-export interface Options {
+export interface QueryOptions {
   peerId: PeerId;
   contentTopics: string[];
   pubsubTopic?: string;
@@ -40,7 +40,7 @@ export class WakuStore {
    * @param options.callback Callback called on page of stored messages as they are retrieved
    * @throws If not able to reach the peer to query.
    */
-  async queryHistory(options: Options): Promise<WakuMessage[] | null> {
+  async queryHistory(options: QueryOptions): Promise<WakuMessage[] | null> {
     const opts = Object.assign(
       {
         pubsubTopic: DefaultPubsubTopic,
