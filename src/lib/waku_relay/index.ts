@@ -98,24 +98,8 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    * @returns {void}
    */
   public start(): void {
-    this.on(constants.DefaultPubsubTopic, (event) => {
-      const wakuMsg = WakuMessage.decode(event.data);
-      if (this.observers['']) {
-        this.observers[''].forEach((callbackFn) => {
-          callbackFn(wakuMsg);
-        });
-      }
-      if (wakuMsg.contentTopic) {
-        if (this.observers[wakuMsg.contentTopic]) {
-          this.observers[wakuMsg.contentTopic].forEach((callbackFn) => {
-            callbackFn(wakuMsg);
-          });
-        }
-      }
-    });
-
     super.start();
-    super.subscribe(constants.DefaultPubsubTopic);
+    this.subscribe(constants.DefaultPubsubTopic);
   }
 
   /**
@@ -169,11 +153,36 @@ export class WakuRelay extends Gossipsub implements Pubsub {
   }
 
   /**
+   * Subscribe to a pubsub topic and start emitting Waku messages to observers.
+   *
+   * @override
+   */
+  subscribe(pubsubTopic: string): void {
+    this.on(pubsubTopic, (event) => {
+      const wakuMsg = WakuMessage.decode(event.data);
+      if (this.observers['']) {
+        this.observers[''].forEach((callbackFn) => {
+          callbackFn(wakuMsg);
+        });
+      }
+      if (wakuMsg.contentTopic) {
+        if (this.observers[wakuMsg.contentTopic]) {
+          this.observers[wakuMsg.contentTopic].forEach((callbackFn) => {
+            callbackFn(wakuMsg);
+          });
+        }
+      }
+    });
+
+    super.subscribe(pubsubTopic);
+  }
+
+  /**
    * Join pubsub topic.
    * This is present to override the behavior of Gossipsub and should not
    * be used by API Consumers
    *
-   * @ignore
+   * @internal
    * @param {string} topic
    * @returns {void}
    * @override
