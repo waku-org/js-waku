@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Breaking**: Websocket protocol is not automatically added anymore if the user specifies a protocol in `libp2p.modules`
+  when using `Waku.create`.
 - **Breaking**: Options passed to `Waku.create` used to be passed to `Libp2p.create`;
   Now, only the `libp2p` property is passed to `Libp2p.create`, allowing for a cleaner interface.
 - Examples (cli chat): Use tcp protocol instead of websocket.  
