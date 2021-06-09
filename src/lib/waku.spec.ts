@@ -17,7 +17,7 @@ describe('Waku Dial', function () {
     const [waku1, waku2] = await Promise.all([
       Waku.create({
         staticNoiseKey: NOISE_KEY_1,
-        listenAddresses: ['/ip4/0.0.0.0/tcp/0/wss'],
+        libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/wss'] } },
       }),
       Waku.create({ staticNoiseKey: NOISE_KEY_2 }),
     ]);
@@ -39,8 +39,10 @@ describe('Waku Dial', function () {
       this.timeout(10_000);
       const waku = await Waku.create({
         staticNoiseKey: NOISE_KEY_1,
-        listenAddresses: ['/ip4/0.0.0.0/tcp/0'],
-        modules: { transport: [TCP] },
+        libp2p: {
+          addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
+          modules: { transport: [TCP] },
+        },
       });
 
       const multiAddrWithId = waku.getLocalMultiaddrWithID();

@@ -1,4 +1,4 @@
-import Libp2p, { Libp2pConfig, Libp2pModules, Libp2pOptions } from 'libp2p';
+import Libp2p, { Libp2pModules, Libp2pOptions } from 'libp2p';
 import Mplex from 'libp2p-mplex';
 import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
@@ -11,16 +11,40 @@ import { WakuLightPush } from './waku_light_push';
 import { RelayCodec, WakuRelay } from './waku_relay';
 import { StoreCodec, WakuStore } from './waku_store';
 
-const transportKey = Websockets.prototype[Symbol.toStringTag];
+const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 
-export type CreateOptions =
-  | {
-      listenAddresses: string[] | undefined;
-      staticNoiseKey: bytes | undefined;
-      modules: Partial<Libp2pModules>;
-      config: Partial<Libp2pConfig>;
-    }
-  | (Libp2pOptions & import('libp2p').CreateOptions);
+export interface CreateOptions {
+  /**
+   * The PubSub Topic to use. Defaults to {@link DefaultPubsubTopic}.
+   *
+   * One and only one pubsub topic is used by Waku. This is used by:
+   * - WakuRelay to receive, route and send messages,
+   * - WakuLightPush to send messages,
+   * - WakuStore to retrieve messages.
+   *
+   * The usage of the default pubsub topic is recommended.
+   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
+   *
+   * @default {@link DefaultPubsubTopic}
+   */
+  pubsubTopic?: string;
+  /**
+   * You can pass options to the `Libp2p` instance used by {@link Waku} using the {@link CreateOptions.libp2p} property.
+   * This property is the same type than the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
+   * apart that we made the `modules` property optional and partial,
+   * allowing its omission and letting Waku set good defaults.
+   * Notes that some values are overridden by {@link Waku} to ensure it implements the Waku protocol.
+   */
+  libp2p?: Omit<Libp2pOptions & import('libp2p').CreateOptions, 'modules'> & {
+    modules?: Partial<Libp2pModules>;
+  };
+  /**
+   * Byte array used as key for the noise protocol used for connection encryption
+   * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
+   * This is only used for test purposes to not run out of entropy during CI runs.
+   */
+  staticNoiseKey?: bytes;
+}
 
 export class Waku {
   public libp2p: Libp2p;
@@ -44,53 +68,56 @@ export class Waku {
    *
    * @param options Takes the same options than `Libp2p`.
    */
-  static async create(options: Partial<CreateOptions>): Promise<Waku> {
-    const opts = Object.assign(
-      {
-        listenAddresses: [],
-        staticNoiseKey: undefined,
-      },
-      options
-    );
+  static async create(options?: CreateOptions): Promise<Waku> {
+    // Get an object in case options or libp2p are undefined
+    const libp2pOpts = Object.assign({}, options?.libp2p);
 
-    opts.config = Object.assign(
+    // Default for Websocket filter is `all`:
+    // Returns all TCP and DNS based addresses, both with ws or wss.
+    libp2pOpts.config = Object.assign(
       {
         transport: {
-          [transportKey]: {
+          [websocketsTransportKey]: {
             filter: filters.all,
           },
         },
       },
-      options.config
+      options?.libp2p?.config
     );
 
-    opts.modules = Object.assign({}, options.modules);
-
-    let transport = [Websockets];
-    if (opts.modules?.transport) {
-      transport = transport.concat(opts.modules?.transport);
+    // Pass pubsub topic to relay
+    if (options?.pubsubTopic) {
+      libp2pOpts.config.pubsub = Object.assign(
+        { pubsubTopic: options.pubsubTopic },
+        libp2pOpts.config.pubsub
+      );
     }
 
-    // FIXME: By controlling the creation of libp2p we have to think about what
-    // needs to be exposed and what does not. Ideally, we should be able to let
-    // the user create the WakuStore, WakuRelay instances and pass them when
-    // creating the libp2p instance.
-    const libp2p = await Libp2p.create({
-      addresses: {
-        listen: opts.listenAddresses,
+    libp2pOpts.modules = Object.assign({}, options?.libp2p?.modules);
+
+    // Default transport for libp2p is Websockets
+    libp2pOpts.modules = Object.assign(
+      {
+        transport: [Websockets],
       },
-      modules: {
-        transport,
-        streamMuxer: [Mplex],
-        connEncryption: [new Noise(opts.staticNoiseKey)],
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore: Type needs update
-        pubsub: WakuRelay,
-      },
-      config: opts.config,
+      options?.libp2p?.modules
+    );
+
+    // streamMuxer, connection encryption and pubsub are overridden
+    // as those are the only ones currently supported by Waku nodes.
+    libp2pOpts.modules = Object.assign(libp2pOpts.modules, {
+      streamMuxer: [Mplex],
+      connEncryption: [new Noise(options?.staticNoiseKey)],
+      pubsub: WakuRelay,
     });
 
-    const wakuStore = new WakuStore(libp2p);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore: modules property is correctly set thanks to voodoo
+    const libp2p = await Libp2p.create(libp2pOpts);
+
+    const wakuStore = new WakuStore(libp2p, {
+      pubsubTopic: options?.pubsubTopic,
+    });
     const wakuLightPush = new WakuLightPush(libp2p);
 
     await libp2p.start();

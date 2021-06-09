@@ -31,7 +31,7 @@ describe('Waku Relay', () => {
         Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
         Waku.create({
           staticNoiseKey: NOISE_KEY_2,
-          listenAddresses: ['/ip4/0.0.0.0/tcp/0/wss'],
+          libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/wss'] } },
         }),
       ]);
 
@@ -142,6 +142,72 @@ describe('Waku Relay', () => {
     });
   });
 
+  describe('Custom pubsub topic', () => {
+    it('Publish', async function () {
+      this.timeout(10000);
+
+      const pubsubTopic = '/some/pubsub/topic';
+
+      // 1 and 2 uses a custom pubsub
+      const [waku1, waku2, waku3] = await Promise.all([
+        Waku.create({
+          pubsubTopic,
+          staticNoiseKey: NOISE_KEY_1,
+        }),
+        Waku.create({
+          pubsubTopic,
+          staticNoiseKey: NOISE_KEY_2,
+          libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/wss'] } },
+        }),
+        Waku.create({
+          staticNoiseKey: NOISE_KEY_2,
+        }),
+      ]);
+
+      waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+      waku3.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+
+      await Promise.all([
+        new Promise((resolve) =>
+          waku1.libp2p.pubsub.once('pubsub:subscription-change', () =>
+            resolve(null)
+          )
+        ),
+        new Promise((resolve) =>
+          waku2.libp2p.pubsub.once('pubsub:subscription-change', () =>
+            resolve(null)
+          )
+        ),
+        // No subscription change expected for Waku 3
+      ]);
+
+      const messageText = 'Communicating using a custom pubsub topic';
+      const message = WakuMessage.fromUtf8String(messageText);
+
+      const waku2ReceivedMsgPromise: Promise<WakuMessage> = new Promise(
+        (resolve) => {
+          waku2.relay.addObserver(resolve);
+        }
+      );
+
+      // The promise **fails** if we receive a message on the default
+      // pubsub topic.
+      const waku3NoMsgPromise: Promise<WakuMessage> = new Promise(
+        (resolve, reject) => {
+          waku3.relay.addObserver(reject);
+          setTimeout(resolve, 1000);
+        }
+      );
+
+      await waku1.relay.send(message);
+
+      const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
+      await waku3NoMsgPromise;
+
+      expect(waku2ReceivedMsg.payloadAsUtf8).to.eq(messageText);
+    });
+  });
+
   describe('Interop: Nim', function () {
     describe('Nim connects to js', function () {
       let waku: Waku;
@@ -153,8 +219,10 @@ describe('Waku Relay', () => {
         log('Create waku node');
         waku = await Waku.create({
           staticNoiseKey: NOISE_KEY_1,
-          listenAddresses: ['/ip4/0.0.0.0/tcp/0'],
-          modules: { transport: [TCP] },
+          libp2p: {
+            addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
+            modules: { transport: [TCP] },
+          },
         });
 
         const multiAddrWithId = waku.getLocalMultiaddrWithID();
@@ -231,7 +299,7 @@ describe('Waku Relay', () => {
         this.timeout(30_000);
         waku = await Waku.create({
           staticNoiseKey: NOISE_KEY_1,
-          modules: { transport: [TCP] },
+          libp2p: { modules: { transport: [TCP] } },
         });
 
         nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
@@ -328,11 +396,11 @@ describe('Waku Relay', () => {
         [waku1, waku2] = await Promise.all([
           Waku.create({
             staticNoiseKey: NOISE_KEY_1,
-            modules: { transport: [TCP] },
+            libp2p: { modules: { transport: [TCP] } },
           }),
           Waku.create({
             staticNoiseKey: NOISE_KEY_2,
-            modules: { transport: [TCP] },
+            libp2p: { modules: { transport: [TCP] } },
           }),
         ]);
 

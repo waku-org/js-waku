@@ -27,8 +27,10 @@ export default async function startChat(): Promise<void> {
   }
 
   const waku = await Waku.create({
-    listenAddresses: [opts.listenAddr],
-    modules: { transport: [TCP] },
+    libp2p: {
+      addresses: { listen: [opts.listenAddr] },
+      modules: { transport: [TCP] },
+    },
   });
   console.log('PeerId: ', waku.libp2p.peerId.toB58String());
   console.log('Listening on ');

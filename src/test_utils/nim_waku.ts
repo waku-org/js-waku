@@ -40,6 +40,7 @@ export interface Args {
   logLevel?: LogLevel;
   persistMessages?: boolean;
   lightpush?: boolean;
+  topics?: string;
 }
 
 export enum LogLevel {
@@ -155,7 +156,10 @@ export class NimWaku {
     return this.rpcCall<RpcInfoResponse>('get_waku_v2_debug_v1_info', []);
   }
 
-  async sendMessage(message: WakuMessage): Promise<boolean> {
+  async sendMessage(
+    message: WakuMessage,
+    pubsubTopic?: string
+  ): Promise<boolean> {
     this.checkProcess();
 
     if (!message.payload) {
@@ -168,7 +172,7 @@ export class NimWaku {
     };
 
     return this.rpcCall<boolean>('post_waku_v2_relay_v1_message', [
-      DefaultPubsubTopic,
+      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
       rpcMessage,
     ]);
   }
