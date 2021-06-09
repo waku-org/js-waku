@@ -7,6 +7,7 @@ import {
   Environment,
   getStatusFleetNodes,
   LightPushCodec,
+  Protocol,
   StoreCodec,
   Waku,
   WakuMessage,
@@ -202,7 +203,8 @@ export function formatMessage(chatMsg: ChatMessage): string {
 
 async function addFleetNodes(opts: Options): Promise<Options> {
   await getStatusFleetNodes(
-    opts.prod ? Environment.Prod : Environment.Test
+    opts.prod ? Environment.Prod : Environment.Test,
+    Protocol.tcp
   ).then((nodes) =>
     nodes.map((addr) => {
       opts.staticNodes.push(multiaddr(addr));
