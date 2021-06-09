@@ -13,16 +13,36 @@ import { PushRPC } from './push_rpc';
 export const LightPushCodec = '/vac/waku/lightpush/2.0.0-alpha1';
 export { PushResponse };
 
+export interface CreateOptions {
+  /**
+   * The PubSub Topic to use. Defaults to {@link DefaultPubsubTopic}.
+   *
+   * The usage of the default pubsub topic is recommended.
+   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
+   *
+   * @default {@link DefaultPubsubTopic}
+   */
+  pubsubTopic?: string;
+}
+
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 export class WakuLightPush {
-  constructor(public libp2p: Libp2p) {}
+  pubsubTopic: string;
+
+  constructor(public libp2p: Libp2p, options?: CreateOptions) {
+    if (options?.pubsubTopic) {
+      this.pubsubTopic = options.pubsubTopic;
+    } else {
+      this.pubsubTopic = DefaultPubsubTopic;
+    }
+  }
 
   async push(
     peerId: PeerId,
     message: WakuMessage,
-    pubsubTopic: string = DefaultPubsubTopic
+    pubsubTopic: string = this.pubsubTopic
   ): Promise<PushResponse | null> {
     const peer = this.libp2p.peerStore.get(peerId);
     if (!peer) throw 'Peer is unknown';

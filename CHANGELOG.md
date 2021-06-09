@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Doc: Link to new [topic guidelines](https://rfc.vac.dev/spec/23/) in README.
 - Doc: Link to [Waku v2 Toy Chat specs](https://rfc.vac.dev/spec/22/) in README.
 - Examples (web chat): Persist nick.
+- Support for custom PubSub Topics to `Waku`, `WakuRelay`, `WakuStore` and `WakuLightPush`;
+  Passing a PubSub Topic is optional and still defaults to `/waku/2/default-waku/proto`;
+  JS-Waku currently supports one, and only, PubSub topic per instance.  
 
 ## [0.5.0] - 2021-05-21
 

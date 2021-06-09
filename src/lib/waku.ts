@@ -15,6 +15,20 @@ const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 
 export interface CreateOptions {
   /**
+   * The PubSub Topic to use. Defaults to {@link DefaultPubsubTopic}.
+   *
+   * One and only one pubsub topic is used by Waku. This is used by:
+   * - WakuRelay to receive, route and send messages,
+   * - WakuLightPush to send messages,
+   * - WakuStore to retrieve messages.
+   *
+   * The usage of the default pubsub topic is recommended.
+   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
+   *
+   * @default {@link DefaultPubsubTopic}
+   */
+  pubsubTopic?: string;
+  /**
    * You can pass options to the `Libp2p` instance used by {@link Waku} using the {@link CreateOptions.libp2p} property.
    * This property is the same type than the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * apart that we made the `modules` property optional and partial,
@@ -71,6 +85,14 @@ export class Waku {
       options?.libp2p?.config
     );
 
+    // Pass pubsub topic to relay
+    if (options?.pubsubTopic) {
+      libp2pOpts.config.pubsub = Object.assign(
+        { pubsubTopic: options.pubsubTopic },
+        libp2pOpts.config.pubsub
+      );
+    }
+
     libp2pOpts.modules = Object.assign({}, options?.libp2p?.modules);
 
     // Default transport for libp2p is Websockets
@@ -93,7 +115,9 @@ export class Waku {
     // @ts-ignore: modules property is correctly set thanks to voodoo
     const libp2p = await Libp2p.create(libp2pOpts);
 
-    const wakuStore = new WakuStore(libp2p);
+    const wakuStore = new WakuStore(libp2p, {
+      pubsubTopic: options?.pubsubTopic,
+    });
     const wakuLightPush = new WakuLightPush(libp2p);
 
     await libp2p.start();

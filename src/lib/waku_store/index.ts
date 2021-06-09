@@ -13,6 +13,18 @@ export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
 
 export { Direction };
 
+export interface CreateOptions {
+  /**
+   * The PubSub Topic to use. Defaults to {@link DefaultPubsubTopic}.
+   *
+   * The usage of the default pubsub topic is recommended.
+   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
+   *
+   * @default {@link DefaultPubsubTopic}
+   */
+  pubsubTopic?: string;
+}
+
 export interface QueryOptions {
   peerId: PeerId;
   contentTopics: string[];
@@ -26,24 +38,32 @@ export interface QueryOptions {
  * Implements the [Waku v2 Store protocol](https://rfc.vac.dev/spec/13/).
  */
 export class WakuStore {
-  constructor(public libp2p: Libp2p) {}
+  pubsubTopic: string;
+
+  constructor(public libp2p: Libp2p, options?: CreateOptions) {
+    if (options?.pubsubTopic) {
+      this.pubsubTopic = options.pubsubTopic;
+    } else {
+      this.pubsubTopic = DefaultPubsubTopic;
+    }
+  }
 
   /**
    * Query given peer using Waku Store.
    *
    * @param options
-   * @param options.peerId The peer to query.
-   * @param options.contentTopics The content topics to retrieve, leave empty to
+   * @param options.peerId The peer to query.Options
+   * @param options.contentTopics The content topics to pass to the query, leave empty to
    * retrieve all messages.
-   * @param options.pubsubTopic The pubsub topic to retrieve. Currently, all waku nodes
-   * use the same pubsub topic. This is reserved for future applications.
+   * @param options.pubsubTopic The pubsub topic to pass to the query. Defaults
+   * to the value set at creation. See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/).
    * @param options.callback Callback called on page of stored messages as they are retrieved
    * @throws If not able to reach the peer to query.
    */
   async queryHistory(options: QueryOptions): Promise<WakuMessage[] | null> {
     const opts = Object.assign(
       {
-        pubsubTopic: DefaultPubsubTopic,
+        pubsubTopic: this.pubsubTopic,
         direction: Direction.BACKWARD,
         pageSize: 10,
       },

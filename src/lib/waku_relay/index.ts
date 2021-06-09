@@ -16,6 +16,7 @@ import Pubsub, { InMessage } from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 import PeerId from 'peer-id';
 
+import { CreateOptions } from '../waku';
 import { WakuMessage } from '../waku_message';
 
 import * as constants from './constants';
@@ -26,9 +27,9 @@ import { RelayHeartbeat } from './relay_heartbeat';
 export { RelayCodec, DefaultPubsubTopic };
 
 /**
- * See {GossipOptions} from libp2p-gossipsub
+ * See constructor libp2p-gossipsub [API](https://github.com/ChainSafe/js-libp2p-gossipsub#api).
  */
-interface GossipOptions {
+export interface GossipOptions {
   emitSelf: boolean;
   gossipIncoming: boolean;
   fallbackToFloodsub: boolean;
@@ -49,8 +50,6 @@ interface GossipOptions {
   Dlazy: number;
 }
 
-export type WakuRelayOptions = GossipOptions;
-
 /**
  * Implements the [Waku v2 Relay protocol]{@link https://rfc.vac.dev/spec/11/}.
  * Must be passed as a `pubsub` module to a {Libp2p} instance.
@@ -60,6 +59,7 @@ export type WakuRelayOptions = GossipOptions;
  */
 export class WakuRelay extends Gossipsub implements Pubsub {
   heartbeat: RelayHeartbeat;
+  pubsubTopic: string;
   /**
    * observers called when receiving new message.
    * Observers under key "" are always called.
@@ -68,12 +68,10 @@ export class WakuRelay extends Gossipsub implements Pubsub {
     [contentTopic: string]: Array<(message: WakuMessage) => void>;
   };
 
-  /**
-   *
-   * @param {Libp2p} libp2p
-   * @param {Partial<GossipOptions>} [options]
-   */
-  constructor(libp2p: Libp2p, options?: Partial<WakuRelayOptions>) {
+  constructor(
+    libp2p: Libp2p,
+    options?: Partial<CreateOptions & GossipOptions>
+  ) {
     super(
       libp2p,
       Object.assign(options, {
@@ -88,6 +86,12 @@ export class WakuRelay extends Gossipsub implements Pubsub {
     const multicodecs = [constants.RelayCodec];
 
     Object.assign(this, { multicodecs });
+
+    if (options?.pubsubTopic) {
+      this.pubsubTopic = options.pubsubTopic;
+    } else {
+      this.pubsubTopic = constants.DefaultPubsubTopic;
+    }
   }
 
   /**
@@ -99,7 +103,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    */
   public start(): void {
     super.start();
-    this.subscribe(constants.DefaultPubsubTopic);
+    this.subscribe(this.pubsubTopic);
   }
 
   /**
@@ -110,7 +114,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    */
   public async send(message: WakuMessage): Promise<void> {
     const msg = message.encode();
-    await super.publish(constants.DefaultPubsubTopic, Buffer.from(msg));
+    await super.publish(this.pubsubTopic, Buffer.from(msg));
   }
 
   /**
@@ -144,7 +148,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    * Return the relay peers we are connected to and we would publish a message to
    */
   getPeers(): Set<string> {
-    return getRelayPeers(this, DefaultPubsubTopic, this._options.D, (id) => {
+    return getRelayPeers(this, this.pubsubTopic, this._options.D, (id) => {
       // Filter peers we would not publish to
       return (
         this.score.score(id) >= this._options.scoreThresholds.publishThreshold

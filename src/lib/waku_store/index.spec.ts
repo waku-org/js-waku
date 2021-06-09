@@ -93,4 +93,46 @@ describe('Waku Store', () => {
       ).to.eq(index);
     }
   });
+
+  it('Retrieves history using custom pubsub topic', async function () {
+    this.timeout(5_000);
+
+    const customPubSubTopic = '/waku/2/custom-dapp/proto';
+    nimWaku = new NimWaku(makeLogFileName(this));
+    await nimWaku.start({ persistMessages: true, topics: customPubSubTopic });
+
+    for (let i = 0; i < 2; i++) {
+      expect(
+        await nimWaku.sendMessage(
+          WakuMessage.fromUtf8String(`Message ${i}`),
+          customPubSubTopic
+        )
+      ).to.be.true;
+    }
+
+    waku = await Waku.create({
+      pubsubTopic: customPubSubTopic,
+      staticNoiseKey: NOISE_KEY_1,
+      libp2p: { modules: { transport: [TCP] } },
+    });
+    await waku.dial(await nimWaku.getMultiaddrWithId());
+
+    // Wait for identify protocol to finish
+    await new Promise((resolve) => {
+      waku.libp2p.peerStore.once('change:protocols', resolve);
+    });
+
+    const nimPeerId = await nimWaku.getPeerId();
+
+    const messages = await waku.store.queryHistory({
+      peerId: nimPeerId,
+      contentTopics: [],
+    });
+
+    expect(messages?.length).eq(2);
+    const result = messages?.findIndex((msg) => {
+      return msg.payloadAsUtf8 === 'Message 0';
+    });
+    expect(result).to.not.eq(-1);
+  });
 });
