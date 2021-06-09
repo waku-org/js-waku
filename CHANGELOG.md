@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Breaking**: Options passed to `Waku.create` used to be passed to `Libp2p.create`;
-  Now, only the `libp2p` property is passed to `Libp2p.create`, allowing for a cleaner interface.  
+  Now, only the `libp2p` property is passed to `Libp2p.create`, allowing for a cleaner interface.
+- Examples (cli chat): Use tcp protocol instead of websocket.  
 
 ### Added
 - Enable access to `WakuMessage.timestamp`.
