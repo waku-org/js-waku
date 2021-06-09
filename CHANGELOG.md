@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2021-06-09
+
 ### Changed
 - **Breaking**: Websocket protocol is not automatically added anymore if the user specifies a protocol in `libp2p.modules`
   when using `Waku.create`.
@@ -82,7 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://status-im.github.io/js-waku/docs).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/status-im/js-waku/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/status-im/js-waku/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/status-im/js-waku/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/status-im/js-waku/compare/v0.2.0...v0.3.0
