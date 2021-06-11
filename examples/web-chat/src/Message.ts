@@ -12,9 +12,17 @@ export class Message {
 
   static fromWakuMessage(wakuMsg: WakuMessage): Message | undefined {
     if (wakuMsg.payload) {
-      const chatMsg = ChatMessage.decode(wakuMsg.payload);
-      if (chatMsg) {
-        return new Message(chatMsg, wakuMsg.timestamp);
+      try {
+        const chatMsg = ChatMessage.decode(wakuMsg.payload);
+        if (chatMsg) {
+          return new Message(chatMsg, wakuMsg.timestamp);
+        }
+      } catch (e) {
+        console.error(
+          'Failed to decode chat message',
+          wakuMsg.payloadAsUtf8,
+          e
+        );
       }
     }
     return;

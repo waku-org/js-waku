@@ -29,7 +29,12 @@ export default function MessageInput(props: Props) {
   };
 
   const keyPressHandler = async (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
+    if (
+      event.key === 'Enter' &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.shiftKey
+    ) {
       await sendMessage();
     }
   };
