@@ -56,9 +56,9 @@ export async function createPublicKeyMessage(
 }
 
 /**
- * Verifies that the EthDm Public Key was signed by the holder of the given Ethereum address.
+ * Validate that the EthDm Public Key was signed by the holder of the given Ethereum address.
  */
-export function verifyEthDmPublicKey(msg: PublicKeyMessage): boolean {
+export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
   try {
     const sigAddress = ethers.utils.verifyMessage(
       formatPublicKeyForSignature(msg.ethDmPublicKey),

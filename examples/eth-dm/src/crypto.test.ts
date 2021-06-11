@@ -7,7 +7,7 @@ import { ethers } from 'ethers';
 import {
   createPublicKeyMessage,
   generateEthDmKeyPair,
-  verifyEthDmPublicKey,
+  validatePublicKeyMessage,
 } from './crypto';
 import { MockProvider } from 'ethereum-waffle';
 import { waffleJest } from '@ethereum-waffle/jest';
@@ -24,7 +24,7 @@ test('Signature of Eth-DM key is verifiable', async () => {
   const ethDmMsg = await createPublicKeyMessage(wallet, ethDmKeys.publicKey);
 
   console.log('Verify EthDm message');
-  const res = verifyEthDmPublicKey(ethDmMsg);
+  const res = validatePublicKeyMessage(ethDmMsg);
 
   expect(res).toBe(true);
 });

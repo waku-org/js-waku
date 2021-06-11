@@ -12,9 +12,10 @@ import {
   PublicKeyMessage,
   generateEthDmKeyPair,
   KeyPair,
+  validatePublicKeyMessage,
 } from './crypto';
 
-const ContentTopic = '/eth-dm/1/public-key/json';
+const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
 
 declare let window: any;
 
@@ -22,17 +23,23 @@ function App() {
   const [waku, setWaku] = useState<Waku>();
   const [provider, setProvider] = useState<Web3Provider>();
   const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair>();
+  const [publicKeyMsg, setPublicKeyMsg] = useState<PublicKeyMessage>();
 
   useEffect(() => {
     if (provider) return;
-    const _provider = new ethers.providers.Web3Provider(window.ethereum);
-    setProvider(_provider);
+    try {
+      const _provider = new ethers.providers.Web3Provider(window.ethereum);
+      setProvider(_provider);
+    } catch (e) {
+      console.error('No web3 provider available');
+    }
   }, [provider]);
 
   useEffect(() => {
     if (waku) return;
     initWaku()
       .then((wakuNode) => {
+        console.log('waku: ready');
         setWaku(wakuNode);
       })
       .catch((e) => {
@@ -40,7 +47,7 @@ function App() {
       });
   }, [waku]);
 
-  useEffect(() => {
+  const generateKeyPair = () => {
     if (ethDmKeyPair) return;
     if (!provider) return;
 
@@ -51,29 +58,45 @@ function App() {
       .catch((e) => {
         console.error('Failed to generate Key Pair', e);
       });
-  }, [ethDmKeyPair, provider]);
+  };
 
-  const onClick = () => {
+  useEffect(() => {
+    if (!waku) return;
+    waku.relay.addObserver(handlePublicKeyMessage, [PublicKeyContentTopic]);
+  });
+
+  const broadcastPublicKey = () => {
     if (!ethDmKeyPair) return;
     if (!provider) return;
     if (!waku) return;
 
-    createPublicKeyMessage(provider.getSigner(), ethDmKeyPair.publicKey)
-      .then((msg) => {
-        const wakuMsg = createWakuMessage(msg);
-        waku.relay.send(wakuMsg).catch((e) => {
-          console.error('Failed to send Public Key Message');
-        });
-      })
-      .catch((e) => {
-        console.error('Failed to creat Eth-Dm Publication message', e);
+    if (publicKeyMsg) {
+      const wakuMsg = createWakuMessage(publicKeyMsg);
+      waku.relay.send(wakuMsg).catch((e) => {
+        console.error('Failed to send Public Key Message');
       });
+    } else {
+      createPublicKeyMessage(provider.getSigner(), ethDmKeyPair.publicKey)
+        .then((msg) => {
+          setPublicKeyMsg(msg);
+          const wakuMsg = createWakuMessage(msg);
+          waku.relay.send(wakuMsg).catch((e) => {
+            console.error('Failed to send Public Key Message');
+          });
+        })
+        .catch((e) => {
+          console.error('Failed to creat Eth-Dm Publication message', e);
+        });
+    }
   };
 
   return (
     <div className="App">
       <header className="App-header">
-        <button onClick={onClick} disabled={!ethDmKeyPair || !waku}>
+        <button onClick={generateKeyPair} disabled={!provider}>
+          Generate Eth-DM Key Pair
+        </button>
+        <button onClick={broadcastPublicKey} disabled={!ethDmKeyPair || !waku}>
           Broadcast Eth-DM Public Key
         </button>
       </header>
@@ -106,6 +129,26 @@ function getNodes() {
 }
 
 function createWakuMessage(ethDmMsg: PublicKeyMessage): WakuMessage {
-  const payload = Buffer.from(JSON.stringify(ethDmMsg));
-  return WakuMessage.fromBytes(payload, ContentTopic);
+  const payload = encode(ethDmMsg);
+  return WakuMessage.fromBytes(payload, PublicKeyContentTopic);
+}
+
+function handlePublicKeyMessage(msg: WakuMessage) {
+  if (msg.payload) {
+    const publicKeyMsg = decode(msg.payload);
+    console.log('publicKeyMsg', publicKeyMsg);
+    const res = validatePublicKeyMessage(publicKeyMsg);
+    console.log(`Public Key Message Received, valid: ${res}`, publicKeyMsg);
+  }
+}
+
+function encode(msg: PublicKeyMessage): Buffer {
+  const jsonStr = JSON.stringify(msg);
+  return Buffer.from(jsonStr, 'utf-8');
+}
+
+function decode(bytes: Uint8Array): PublicKeyMessage {
+  const buf = Buffer.from(bytes);
+  const str = buf.toString('utf-8');
+  return JSON.parse(str);
 }
