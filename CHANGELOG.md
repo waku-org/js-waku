@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Test: Upgrade nim-waku node to v0.4.
+- Waku Light Push upgraded to `2.0.0-beta1`.
 
 ## [0.6.0] - 2021-06-09
 

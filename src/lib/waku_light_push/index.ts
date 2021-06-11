@@ -10,7 +10,7 @@ import { DefaultPubsubTopic } from '../waku_relay';
 
 import { PushRPC } from './push_rpc';
 
-export const LightPushCodec = '/vac/waku/lightpush/2.0.0-alpha1';
+export const LightPushCodec = '/vac/waku/lightpush/2.0.0-beta1';
 export { PushResponse };
 
 export interface CreateOptions {
