@@ -54,6 +54,8 @@
   },
   "devDependencies": {
     "@ethereum-waffle/jest": "^3.2.2",
-    "ethereum-waffle": "^3.3.0"
+    "@ethersproject/shims": "^5.3.0",
+    "ethereum-waffle": "^3.3.0",
+    "react-native-get-random-values": "^1.7.0"
   }
 }

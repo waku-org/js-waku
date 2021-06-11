@@ -1,17 +1,30 @@
+import 'react-native-get-random-values';
+
+import '@ethersproject/shims';
+
 import * as EthCrypto from 'eth-crypto';
 import { toUtf8Bytes } from '@ethersproject/strings';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
 
-const Salt = EthCrypto.hash.keccak256("Salt for Eth-Dm, do not share a signature of this message or other could decrypt your messages");
+const Salt =
+  'Salt for Eth-Dm, do not share a signature of this message or others could decrypt your messages';
+
+export interface KeyPair {
+  privateKey: string;
+  publicKey: string;
+  address: string;
+}
 
 /**
- * Use the signature of the Salt (keccak256 hash of the sentence "Salt for eth-dm..." as
+ * Use the signature of the Salt ("Salt for eth-dm...") as
  * the entropy for the EthCrypto keypair. Note that the entropy is hashed with keccak256
  * to make the private key.
  */
-export async function generateEthDmKeyPair(web3Signer: Signer) {
-  const signature = await web3Signer.signMessage(Salt)
+export async function generateEthDmKeyPair(
+  web3Signer: Signer
+): Promise<KeyPair> {
+  const signature = await web3Signer.signMessage(Salt);
   const entropy = Buffer.from(toUtf8Bytes(signature));
   const keys = EthCrypto.createIdentity(entropy);
   return keys;
@@ -20,7 +33,7 @@ export async function generateEthDmKeyPair(web3Signer: Signer) {
 /**
  * Message used to communicate the Eth-Dm public key linked to a given Ethereum account
  */
-export interface EthDmPublicationMessage {
+export interface PublicKeyMessage {
   ethDmPublicKey: string;
   ethAddress: string;
   sig: string;
@@ -31,21 +44,28 @@ export interface EthDmPublicationMessage {
  * users know to use this Eth-DM public key to encrypt messages destinated to the
  * Web3 account holder (ie, Ethereum Address holder).
  */
-export async function createEthDmPublicationMessage(web3Signer: Signer, ethDmPublicKey: string): Promise<EthDmPublicationMessage> {
+export async function createPublicKeyMessage(
+  web3Signer: Signer,
+  ethDmPublicKey: string
+): Promise<PublicKeyMessage> {
   const ethAddress = await web3Signer.getAddress();
-  const sig = await web3Signer.signMessage(formatEthDmPublicKeyForSig(ethDmPublicKey))
+  const sig = await web3Signer.signMessage(
+    formatPublicKeyForSignature(ethDmPublicKey)
+  );
   return { ethDmPublicKey, ethAddress, sig };
 }
 
 /**
  * Verifies that the EthDm Public Key was signed by the holder of the given Ethereum address.
  */
-export function verifyEthDmPublicKey(msg: EthDmPublicationMessage): boolean {
+export function verifyEthDmPublicKey(msg: PublicKeyMessage): boolean {
   try {
-    const sigAddress = ethers.utils.verifyMessage(formatEthDmPublicKeyForSig(msg.ethDmPublicKey), msg.sig);
-    return sigAddress == msg.ethAddress;
-  }
-  catch (e) {
+    const sigAddress = ethers.utils.verifyMessage(
+      formatPublicKeyForSignature(msg.ethDmPublicKey),
+      msg.sig
+    );
+    return sigAddress === msg.ethAddress;
+  } catch (e) {
     return false;
   }
 }
@@ -57,8 +77,9 @@ export function verifyEthDmPublicKey(msg: EthDmPublicationMessage): boolean {
  * The usage of the object helps ensure the signature is only used in an Eth-DM
  * context.
  */
-function formatEthDmPublicKeyForSig(ethDmPublicKey: string): string {
-  return EthCrypto.hash.keccak256(JSON.stringify({
-    ethDmPublicKey
-  }))
+function formatPublicKeyForSignature(ethDmPublicKey: string): string {
+  const txt = JSON.stringify({
+    ethDmPublicKey,
+  });
+  return txt;
 }

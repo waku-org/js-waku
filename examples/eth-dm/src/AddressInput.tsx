@@ -1,20 +1,19 @@
 import { useState } from 'react';
 
-
 export interface Props {
   sendMessage: (message: string) => void;
 }
 function MessageInput(props: Props) {
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState('');
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputText(event.target.value);
   };
 
-  const onKeyDown = (event: { key: string; }) => {
-    if (event.key === "Enter") {
+  const onKeyDown = (event: { key: string }) => {
+    if (event.key === 'Enter') {
       props.sendMessage(inputText);
-      setInputText("");
+      setInputText('');
     }
   };
 
