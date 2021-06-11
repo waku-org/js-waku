@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test: Upgrade nim-waku node to v0.4.
 - Waku Light Push upgraded to `2.0.0-beta1`.
 - Examples (web chat): Catch error if chat message decoding fails.
+- Examples (web chat): Do not send message if shift/alt/ctrl is pressed, enabling multiline messages.
 
 ## [0.6.0] - 2021-06-09
 
