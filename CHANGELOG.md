@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2021-06-15
+
 ### Changed
 - Test: Upgrade nim-waku node to v0.4.
 - Waku Light Push upgraded to `2.0.0-beta1`.
@@ -90,7 +92,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://status-im.github.io/js-waku/docs).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/status-im/js-waku/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/status-im/js-waku/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/status-im/js-waku/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/status-im/js-waku/compare/v0.3.0...v0.4.0
