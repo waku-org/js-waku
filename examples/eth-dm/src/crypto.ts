@@ -6,6 +6,7 @@ import * as EthCrypto from 'eth-crypto';
 import { toUtf8Bytes } from '@ethersproject/strings';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
+import { PublicKeyMessage } from './messages';
 
 const Salt =
   'Salt for Eth-Dm, do not share a signature of this message or others could decrypt your messages';
@@ -28,15 +29,6 @@ export async function generateEthDmKeyPair(
   const entropy = Buffer.from(toUtf8Bytes(signature));
   const keys = EthCrypto.createIdentity(entropy);
   return keys;
-}
-
-/**
- * Message used to communicate the Eth-Dm public key linked to a given Ethereum account
- */
-export interface PublicKeyMessage {
-  ethDmPublicKey: string;
-  ethAddress: string;
-  sig: string;
 }
 
 /**
