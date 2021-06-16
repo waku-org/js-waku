@@ -6,7 +6,6 @@ import {
   Direction,
   Environment,
   getStatusFleetNodes,
-  LightPushCodec,
   Protocol,
   StoreCodec,
   Waku,
@@ -14,7 +13,6 @@ import {
 } from 'js-waku';
 import TCP from 'libp2p-tcp';
 import { multiaddr, Multiaddr } from 'multiaddr';
-import PeerId from 'peer-id';
 
 const ChatContentTopic = '/toy-chat/2/huilong/proto';
 
@@ -100,20 +98,6 @@ export default async function startChat(): Promise<void> {
     }
   );
 
-  let lightPushNode: PeerId | undefined = undefined;
-  // Select a node for light pushing (any node).
-  if (opts.lightPush) {
-    waku.libp2p.peerStore.on(
-      'change:protocols',
-      async ({ peerId, protocols }) => {
-        if (!lightPushNode && protocols.includes(LightPushCodec)) {
-          console.log(`Using ${peerId.toB58String()} to light push messages`);
-          lightPushNode = peerId;
-        }
-      }
-    );
-  }
-
   console.log('Ready to chat!');
   rl.prompt();
   for await (const line of rl) {
@@ -121,8 +105,8 @@ export default async function startChat(): Promise<void> {
     const chatMessage = ChatMessage.fromUtf8String(new Date(), nick, line);
 
     const msg = WakuMessage.fromBytes(chatMessage.encode(), ChatContentTopic);
-    if (lightPushNode && opts.lightPush) {
-      await waku.lightPush.push(lightPushNode, msg);
+    if (opts.lightPush) {
+      await waku.lightPush.push(msg);
     } else {
       await waku.relay.send(msg);
     }

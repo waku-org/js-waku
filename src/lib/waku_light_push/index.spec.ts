@@ -32,12 +32,10 @@ describe('Waku Light Push', () => {
       waku.libp2p.peerStore.once('change:protocols', resolve);
     });
 
-    const nimPeerId = await nimWaku.getPeerId();
-
     const messageText = 'Light Push works!';
     const message = WakuMessage.fromUtf8String(messageText);
 
-    const pushResponse = await waku.lightPush.push(nimPeerId, message);
+    const pushResponse = await waku.lightPush.push(message);
     expect(pushResponse?.isSuccess).to.be.true;
 
     let msgs: WakuMessage[] = [];
@@ -77,7 +75,9 @@ describe('Waku Light Push', () => {
     const messageText = 'Light Push works!';
     const message = WakuMessage.fromUtf8String(messageText);
 
-    const pushResponse = await waku.lightPush.push(nimPeerId, message);
+    const pushResponse = await waku.lightPush.push(message, {
+      peerId: nimPeerId,
+    });
     expect(pushResponse?.isSuccess).to.be.true;
 
     let msgs: WakuMessage[] = [];

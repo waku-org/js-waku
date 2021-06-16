@@ -4,6 +4,7 @@ import pipe from 'it-pipe';
 import Libp2p from 'libp2p';
 import PeerId from 'peer-id';
 
+import { selectRandomPeer } from '../select_peer';
 import { WakuMessage } from '../waku_message';
 import { DefaultPubsubTopic } from '../waku_relay';
 
@@ -26,7 +27,7 @@ export interface CreateOptions {
 }
 
 export interface QueryOptions {
-  peerId: PeerId;
+  peerId?: PeerId;
   contentTopics: string[];
   pubsubTopic?: string;
   direction?: Direction;
@@ -70,8 +71,14 @@ export class WakuStore {
       options
     );
 
-    const peer = this.libp2p.peerStore.get(opts.peerId);
-    if (!peer) throw 'Peer is unknown';
+    let peer;
+    if (opts.peerId) {
+      peer = this.libp2p.peerStore.get(opts.peerId);
+      if (!peer) throw 'Peer is unknown';
+    } else {
+      peer = selectRandomPeer(this.libp2p, StoreCodec);
+    }
+    if (!peer) throw 'No peer available';
     if (!peer.protocols.includes(StoreCodec))
       throw 'Peer does not register waku store protocol';
     const connection = this.libp2p.connectionManager.get(peer.id);
