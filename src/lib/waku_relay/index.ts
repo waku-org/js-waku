@@ -65,7 +65,7 @@ export class WakuRelay extends Gossipsub implements Pubsub {
    * Observers under key "" are always called.
    */
   public observers: {
-    [contentTopic: string]: Array<(message: WakuMessage) => void>;
+    [contentTopic: string]: Set<(message: WakuMessage) => void>;
   };
 
   constructor(
@@ -131,15 +131,15 @@ export class WakuRelay extends Gossipsub implements Pubsub {
   ): void {
     if (contentTopics.length === 0) {
       if (!this.observers['']) {
-        this.observers[''] = [];
+        this.observers[''] = new Set();
       }
-      this.observers[''].push(callback);
+      this.observers[''].add(callback);
     } else {
       contentTopics.forEach((contentTopic) => {
         if (!this.observers[contentTopic]) {
-          this.observers[contentTopic] = [];
+          this.observers[contentTopic] = new Set();
         }
-        this.observers[contentTopic].push(callback);
+        this.observers[contentTopic].add(callback);
       });
     }
   }
