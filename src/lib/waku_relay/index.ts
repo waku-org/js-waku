@@ -145,6 +145,28 @@ export class WakuRelay extends Gossipsub implements Pubsub {
   }
 
   /**
+   * Remove an observer of new messages received via waku relay.
+   * Useful to ensure the same observer is not registered several time
+   * (e.g when loading React components)
+   */
+  deleteObserver(
+    callback: (message: WakuMessage) => void,
+    contentTopics: string[] = []
+  ): void {
+    if (contentTopics.length === 0) {
+      if (this.observers['']) {
+        this.observers[''].delete(callback);
+      }
+    } else {
+      contentTopics.forEach((contentTopic) => {
+        if (this.observers[contentTopic]) {
+          this.observers[contentTopic].delete(callback);
+        }
+      });
+    }
+  }
+
+  /**
    * Return the relay peers we are connected to and we would publish a message to
    */
   getPeers(): Set<string> {

@@ -140,6 +140,30 @@ describe('Waku Relay', () => {
       expect(allMessages[1].version).to.eq(barMessage.version);
       expect(allMessages[1].payloadAsUtf8).to.eq(barMessageText);
     });
+
+    it('Delete observer', async function () {
+      this.timeout(10000);
+
+      const messageText =
+        'Published on content topic with added then deleted observer';
+      const message = WakuMessage.fromUtf8String(
+        messageText,
+        'added-then-deleted-observer'
+      );
+
+      // The promise **fails** if we receive a message on this observer.
+      const receivedMsgPromise: Promise<WakuMessage> = new Promise(
+        (resolve, reject) => {
+          waku2.relay.addObserver(reject, ['added-then-deleted-observer']);
+          waku2.relay.deleteObserver(reject, ['added-then-deleted-observer']);
+          setTimeout(resolve, 500);
+        }
+      );
+      await waku1.relay.send(message);
+
+      await receivedMsgPromise;
+      // If it does not throw then we are good.
+    });
   });
 
   describe('Custom pubsub topic', () => {
