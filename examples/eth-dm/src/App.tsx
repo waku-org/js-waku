@@ -27,6 +27,7 @@ function App() {
   const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair>();
   const [publicKeyMsg, setPublicKeyMsg] = useState<PublicKeyMessage>();
   const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
+  const [messages, setMessages] = useState<string[]>([]);
 
   useEffect(() => {
     if (provider) return;
@@ -68,9 +69,20 @@ function App() {
     setPublicKeys
   );
 
+  const observerDirectMessage = handleDirectMessage.bind({}, setMessages);
+
   useEffect(() => {
     if (!waku) return;
     waku.relay.addObserver(observerPublicKeyMessage, [PublicKeyContentTopic]);
+  });
+
+  useEffect(() => {
+    if (!waku) return;
+    if (!ethDmKeyPair) return;
+    waku.relay.addObserver(
+      observerDirectMessage.bind({}, ethDmKeyPair.privateKey),
+      [DirectMessageContentTopic]
+    );
   });
 
   const broadcastPublicKey = () => {
@@ -99,6 +111,7 @@ function App() {
   };
 
   const sendDummyMessage = () => {
+    console.log(`Sending messages to ${publicKeys.size} peers`);
     publicKeys.forEach(async (publicKey, address) => {
       const msg = await encodeEncryptedWakuMessage(
         'Here is a secret message',
@@ -122,8 +135,9 @@ function App() {
           onClick={sendDummyMessage}
           disabled={!waku || publicKeys.size === 0}
         >
-          Public Direct Message
+          Publish Direct Message
         </button>
+        {messages}
       </header>
     </div>
   );
@@ -186,6 +200,27 @@ function handlePublicKeyMessage(
   setter((prevPks: Map<string, string>) => {
     prevPks.set(publicKeyMsg.ethAddress, publicKeyMsg.ethDmPublicKey);
     return new Map(prevPks);
+  });
+}
+
+async function handleDirectMessage(
+  setter: Dispatch<SetStateAction<string[]>>,
+  privateKey: string,
+  wakuMsg: WakuMessage
+) {
+  console.log('Waku Message received:', wakuMsg);
+  if (!wakuMsg.payload) return;
+  const directMessage: DirectMessage = decode(wakuMsg.payload);
+  const msg = await EthCrypto.decryptWithPrivateKey(
+    privateKey,
+    directMessage.encMessage
+  );
+
+  console.log('Message decrypted:', msg);
+  setter((prevMsgs: string[]) => {
+    const copy = prevMsgs.slice();
+    copy.push(msg);
+    return copy;
   });
 }
 
