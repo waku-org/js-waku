@@ -12,7 +12,7 @@
     "@types/react-dom": "^17.0.0",
     "eth-crypto": "^1.9.0",
     "ethers": "^5.2.0",
-    "js-waku": "^0.5.0",
+    "js-waku": "../../build/main",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
@@ -56,7 +56,6 @@
     "@ethereum-waffle/jest": "^3.2.2",
     "@ethersproject/shims": "^5.3.0",
     "ethereum-waffle": "^3.3.0",
-    "npm-run-all": "^4.1.5",
-    "react-native-get-random-values": "^1.7.0"
+    "npm-run-all": "^4.1.5"
   }
 }

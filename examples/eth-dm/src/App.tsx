@@ -1,5 +1,3 @@
-import 'react-native-get-random-values';
-
 import '@ethersproject/shims';
 
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
