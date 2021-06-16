@@ -72,6 +72,11 @@ function App() {
   useEffect(() => {
     if (!waku) return;
     waku.relay.addObserver(observerPublicKeyMessage, [PublicKeyContentTopic]);
+
+    return function cleanUp() {
+      if (!waku) return;
+      waku.relay.deleteObserver(observerPublicKeyMessage, [PublicKeyContentTopic]);
+    }
   });
 
   useEffect(() => {
@@ -81,6 +86,16 @@ function App() {
       observerDirectMessage.bind({}, ethDmKeyPair.privateKey),
       [DirectMessageContentTopic]
     );
+
+    return function cleanUp() {
+      if (!waku) return;
+      if (!ethDmKeyPair) return;
+      waku.relay.deleteObserver(
+        observerDirectMessage.bind({}, ethDmKeyPair.privateKey),
+        [DirectMessageContentTopic]
+      );
+
+    }
   });
 
   const broadcastPublicKey = () => {
@@ -109,6 +124,8 @@ function App() {
   };
 
   const sendDummyMessage = () => {
+    if (!waku) return;
+
     console.log(`Sending messages to ${publicKeys.size} peers`);
     publicKeys.forEach(async (publicKey, address) => {
       const msg = await encodeEncryptedWakuMessage(
