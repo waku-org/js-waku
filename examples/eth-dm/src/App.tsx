@@ -137,9 +137,12 @@ function App() {
     });
   };
 
+  const wakuReady = !!waku ? 'Waku is ready' : 'Waku is loading';
+
   return (
     <div className="App">
       <header className="App-header">
+        {wakuReady}
         <button onClick={generateKeyPair} disabled={!provider}>
           Generate Eth-DM Key Pair
         </button>
@@ -150,7 +153,7 @@ function App() {
           onClick={sendDummyMessage}
           disabled={!waku || publicKeys.size === 0}
         >
-          Publish Direct Message
+          Send Direct Message
         </button>
         {messages}
       </header>
