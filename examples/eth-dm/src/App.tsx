@@ -30,6 +30,7 @@ function App() {
   useEffect(() => {
     if (provider) return;
     try {
+      window.ethereum.enable();
       const _provider = new ethers.providers.Web3Provider(window.ethereum);
       setProvider(_provider);
     } catch (e) {
