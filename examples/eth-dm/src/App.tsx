@@ -133,7 +133,7 @@ function App() {
         publicKey,
         address
       );
-      await waku?.relay.send(msg);
+      await waku?.lightPush.push(msg);
     });
   };
 
