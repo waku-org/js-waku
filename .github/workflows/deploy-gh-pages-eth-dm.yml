@@ -1,0 +1,51 @@
+name: Eth DM Deploy GH Pages
+
+on:
+  push:
+    branches:
+      - '72-eth-dm'
+
+jobs:
+  deploy_gh_pages:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set git author identity
+        run: |
+          git config user.name "GitHub Action On js-waku Repo"
+          git config user.email "franck+ghpages@status.im"
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Cache npm cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: node-v1-${{ hashFiles('**/package-lock.json') }}
+
+      - name: "[js-waku] install using npm ci"
+        uses: bahmutov/npm-install@v1
+
+      - name: "[js-waku] build"
+        run: npm run build
+
+      - name: install eth dm using npm i
+        run: npm install
+        working-directory: examples/eth-dm
+
+      - name: build eth dm
+        run: npm run build
+        working-directory: examples/eth-dm
+
+      - name: Deploy eth dm app on gh pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./examples/eth-dm/build
+          destination_dir: eth-dm
