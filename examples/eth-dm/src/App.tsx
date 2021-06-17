@@ -68,7 +68,9 @@ function App() {
     setPublicKeys
   );
 
-  const observerDirectMessage = handleDirectMessage.bind({}, setMessages);
+  const observerDirectMessage = ethDmKeyPair
+    ? handleDirectMessage.bind({}, setMessages, ethDmKeyPair.privateKey)
+    : undefined;
 
   useEffect(() => {
     if (!waku) return;
@@ -76,27 +78,24 @@ function App() {
 
     return function cleanUp() {
       if (!waku) return;
-      waku.relay.deleteObserver(observerPublicKeyMessage, [PublicKeyContentTopic]);
-    }
+      waku.relay.deleteObserver(observerPublicKeyMessage, [
+        PublicKeyContentTopic,
+      ]);
+    };
   });
 
   useEffect(() => {
     if (!waku) return;
-    if (!ethDmKeyPair) return;
-    waku.relay.addObserver(
-      observerDirectMessage.bind({}, ethDmKeyPair.privateKey),
-      [DirectMessageContentTopic]
-    );
+    if (!observerDirectMessage) return;
+    waku.relay.addObserver(observerDirectMessage, [DirectMessageContentTopic]);
 
     return function cleanUp() {
       if (!waku) return;
-      if (!ethDmKeyPair) return;
-      waku.relay.deleteObserver(
-        observerDirectMessage.bind({}, ethDmKeyPair.privateKey),
-        [DirectMessageContentTopic]
-      );
-
-    }
+      if (!observerDirectMessage) return;
+      waku.relay.deleteObserver(observerDirectMessage, [
+        DirectMessageContentTopic,
+      ]);
+    };
   });
 
   const broadcastPublicKey = () => {
