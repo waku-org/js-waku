@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `WakuRelay.deleteObserver` to allow removal of observers, useful when a React component add observers when mounting and needs to delete it when unmounting. 
+
+### Changed
+- **Breaking**: Auto select peer if none provided for store and light push protocols.
+
 ## [0.7.0] - 2021-06-15
 
 ### Changed

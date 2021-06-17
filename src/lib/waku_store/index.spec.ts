@@ -39,10 +39,7 @@ describe('Waku Store', () => {
       waku.libp2p.peerStore.once('change:protocols', resolve);
     });
 
-    const nimPeerId = await nimWaku.getPeerId();
-
     const messages = await waku.store.queryHistory({
-      peerId: nimPeerId,
       contentTopics: [],
     });
 
@@ -76,10 +73,7 @@ describe('Waku Store', () => {
       waku.libp2p.peerStore.once('change:protocols', resolve);
     });
 
-    const nimPeerId = await nimWaku.getPeerId();
-
     const messages = await waku.store.queryHistory({
-      peerId: nimPeerId,
       contentTopics: [DefaultContentTopic],
       direction: Direction.FORWARD,
     });

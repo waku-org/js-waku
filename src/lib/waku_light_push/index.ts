@@ -5,6 +5,7 @@ import Libp2p from 'libp2p';
 import PeerId from 'peer-id';
 
 import { PushResponse } from '../../proto/waku/v2/light_push';
+import { selectRandomPeer } from '../select_peer';
 import { WakuMessage } from '../waku_message';
 import { DefaultPubsubTopic } from '../waku_relay';
 
@@ -25,6 +26,11 @@ export interface CreateOptions {
   pubsubTopic?: string;
 }
 
+export interface PushOptions {
+  peerId?: PeerId;
+  pubsubTopic?: string;
+}
+
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
@@ -40,12 +46,17 @@ export class WakuLightPush {
   }
 
   async push(
-    peerId: PeerId,
     message: WakuMessage,
-    pubsubTopic: string = this.pubsubTopic
+    opts?: PushOptions
   ): Promise<PushResponse | null> {
-    const peer = this.libp2p.peerStore.get(peerId);
-    if (!peer) throw 'Peer is unknown';
+    let peer;
+    if (opts?.peerId) {
+      peer = this.libp2p.peerStore.get(opts.peerId);
+      if (!peer) throw 'Peer is unknown';
+    } else {
+      peer = selectRandomPeer(this.libp2p, LightPushCodec);
+    }
+    if (!peer) throw 'No peer available';
     if (!peer.protocols.includes(LightPushCodec))
       throw 'Peer does not register waku light push protocol';
 
@@ -54,6 +65,9 @@ export class WakuLightPush {
 
     const { stream } = await connection.newStream(LightPushCodec);
     try {
+      const pubsubTopic = opts?.pubsubTopic
+        ? opts.pubsubTopic
+        : this.pubsubTopic;
       const query = PushRPC.createRequest(message, pubsubTopic);
       const res = await pipe(
         [query.encode()],
