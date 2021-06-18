@@ -46,7 +46,11 @@ export function SendMessage(props: Props) {
   };
 
   const items = Array.from(props.recipients.keys()).map((recipient) => {
-    return <MenuItem value={recipient}>{recipient}</MenuItem>;
+    return (
+      <MenuItem key={recipient} value={recipient}>
+        {recipient}
+      </MenuItem>
+    );
   });
 
   const keyDownHandler = async (event: KeyboardEvent<HTMLInputElement>) => {
