@@ -1,9 +1,10 @@
-import Libp2p, { Libp2pModules, Libp2pOptions } from 'libp2p';
+import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from 'libp2p';
 import Mplex from 'libp2p-mplex';
 import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
 import Websockets from 'libp2p-websockets';
 import filters from 'libp2p-websockets/src/filters';
+import Ping from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
@@ -29,6 +30,13 @@ export interface CreateOptions {
    */
   pubsubTopic?: string;
   /**
+   * Set keep alive frequency in seconds: Waku will send a ping request to each peer
+   * after the set number of seconds. Set to 0 to disable the keep alive feature
+   *
+   * @default 10
+   */
+  keepAlive?: number;
+  /**
    * You can pass options to the `Libp2p` instance used by {@link Waku} using the {@link CreateOptions.libp2p} property.
    * This property is the same type than the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * apart that we made the `modules` property optional and partial,
@@ -52,7 +60,12 @@ export class Waku {
   public store: WakuStore;
   public lightPush: WakuLightPush;
 
+  private keepAliveTimers: {
+    [peer: string]: ReturnType<typeof setInterval>;
+  };
+
   private constructor(
+    options: CreateOptions,
     libp2p: Libp2p,
     store: WakuStore,
     lightPush: WakuLightPush
@@ -61,6 +74,17 @@ export class Waku {
     this.relay = (libp2p.pubsub as unknown) as WakuRelay;
     this.store = store;
     this.lightPush = lightPush;
+    this.keepAliveTimers = {};
+
+    const keepAlive = options.keepAlive ? options.keepAlive : 10;
+
+    libp2p.connectionManager.on('peer:connect', (connection: Connection) => {
+      this.startKeepAlive(connection.remotePeer, keepAlive);
+    });
+
+    libp2p.connectionManager.on('peer:disconnect', (connection: Connection) => {
+      this.stopKeepAlive(connection.remotePeer);
+    });
   }
 
   /**
@@ -122,7 +146,7 @@ export class Waku {
 
     await libp2p.start();
 
-    return new Waku(libp2p, wakuStore, wakuLightPush);
+    return new Waku(options ? options : {}, libp2p, wakuStore, wakuLightPush);
   }
 
   /**
@@ -178,5 +202,23 @@ export class Waku {
       throw 'Not listening on localhost';
     }
     return localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
+  }
+
+  private startKeepAlive(peerId: PeerId, periodSecs: number): void {
+    // Just in case a timer already exist
+    this.stopKeepAlive(peerId);
+
+    const peerIdStr = peerId.toB58String();
+    this.keepAliveTimers[peerIdStr] = setInterval(() => {
+      Ping(this.libp2p, peerId);
+    }, periodSecs * 1000);
+  }
+
+  private stopKeepAlive(peerId: PeerId): void {
+    const peerIdStr = peerId.toB58String();
+    if (this.keepAliveTimers[peerIdStr]) {
+      clearInterval(this.keepAliveTimers[peerIdStr]);
+      delete this.keepAliveTimers[peerIdStr];
+    }
   }
 }
