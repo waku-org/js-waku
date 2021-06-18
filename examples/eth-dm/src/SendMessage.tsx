@@ -1,0 +1,146 @@
+import {
+  FormControl,
+  InputLabel,
+  makeStyles,
+  MenuItem,
+  Select,
+  TextField,
+} from '@material-ui/core';
+import React, { ChangeEvent, useState, KeyboardEvent } from 'react';
+import { Waku, WakuMessage } from 'js-waku';
+import * as EthCrypto from 'eth-crypto';
+import { DirectMessage, encode } from './messages';
+import { DirectMessageContentTopic } from './App';
+
+const useStyles = makeStyles((theme) => ({
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
+  },
+  selectEmpty: {
+    marginTop: theme.spacing(2),
+  },
+}));
+
+export interface Props {
+  waku: Waku | undefined;
+  // address, public key
+  recipients: Map<string, string>;
+}
+
+export function SendMessage(props: Props) {
+  const classes = useStyles();
+  const [recipient, setRecipient] = useState<string>('');
+  const [message, setMessage] = useState<string>();
+
+  const waku = props.waku;
+
+  const handleRecipientChange = (
+    event: ChangeEvent<{ name?: string; value: unknown }>
+  ) => {
+    setRecipient(event.target.value as string);
+  };
+
+  const handleMessageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setMessage(event.target.value);
+  };
+
+  const items = Array.from(props.recipients.keys()).map((recipient) => {
+    return <MenuItem value={recipient}>{recipient}</MenuItem>;
+  });
+
+  const keyDownHandler = async (event: KeyboardEvent<HTMLInputElement>) => {
+    if (
+      event.key === 'Enter' &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.shiftKey
+    ) {
+      if (!waku) return;
+      if (!recipient) return;
+      if (!message) return;
+      const publicKey = props.recipients.get(recipient);
+      if (!publicKey) return;
+
+      sendMessage(waku, recipient, publicKey, message, (res) => {
+        if (res) {
+          console.log('callback called with', res);
+          setMessage('');
+        }
+      });
+    }
+  };
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+      }}
+    >
+      <FormControl className={classes.formControl}>
+        <InputLabel id="select-recipient-label">Recipient</InputLabel>
+        <Select
+          labelId="select-recipient"
+          id="select-recipient"
+          value={recipient}
+          onChange={handleRecipientChange}
+        >
+          {items}
+        </Select>
+      </FormControl>
+      <TextField
+        id="message-input"
+        label="Message"
+        variant="filled"
+        onChange={handleMessageChange}
+        onKeyDown={keyDownHandler}
+        value={message}
+      />
+    </div>
+  );
+}
+
+async function encodeEncryptedWakuMessage(
+  message: string,
+  publicKey: string,
+  address: string
+): Promise<WakuMessage> {
+  const encryptedMsg = await EthCrypto.encryptWithPublicKey(publicKey, message);
+
+  const directMsg: DirectMessage = {
+    toAddress: address,
+    encMessage: encryptedMsg,
+  };
+
+  const payload = encode(directMsg);
+  return WakuMessage.fromBytes(payload, DirectMessageContentTopic);
+}
+
+function sendMessage(
+  waku: Waku,
+  recipientAddress: string,
+  recipientPublicKey: string,
+  message: string,
+  callback: (res: boolean) => void
+) {
+  encodeEncryptedWakuMessage(message, recipientPublicKey, recipientAddress)
+    .then((msg) => {
+      console.log('pushing');
+      waku.lightPush
+        .push(msg)
+        .then((res) => {
+          console.log('Message sent', res);
+          callback(res ? res.isSuccess : false);
+        })
+        .catch((e) => {
+          console.error('Failed to send message', e);
+          callback(false);
+        });
+    })
+    .catch((e) => {
+      console.error('Cannot encode & encrypt message', e);
+      callback(false);
+    });
+}

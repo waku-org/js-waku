@@ -12,13 +12,14 @@ import {
   validatePublicKeyMessage,
 } from './crypto';
 import * as EthCrypto from 'eth-crypto';
-import { DirectMessage, PublicKeyMessage } from './messages';
+import { decode, DirectMessage, encode, PublicKeyMessage } from './messages';
 import { Message, Messages } from './Messages';
 import 'fontsource-roboto';
 import { Button } from '@material-ui/core';
+import { SendMessage } from './SendMessage';
 
-const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
-const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
+export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
+export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
 
 declare let window: any;
 
@@ -126,54 +127,38 @@ function App() {
     }
   };
 
-  const sendDummyMessage = () => {
-    if (!waku) return;
-
-    console.log(`Sending messages to ${publicKeys.size} peers`);
-    publicKeys.forEach(async (publicKey, address) => {
-      const msg = await encodeEncryptedWakuMessage(
-        'Here is a secret message',
-        publicKey,
-        address
-      );
-      await waku?.lightPush.push(msg);
-    });
-  };
-
   const wakuReady = !!waku ? 'Waku is ready' : 'Waku is loading';
 
   return (
     <div className="App">
       <header className="App-header">
         {wakuReady}
-
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={generateKeyPair}
-          disabled={!provider}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
         >
-          Generate Eth-DM Key Pair
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={broadcastPublicKey}
-          disabled={!ethDmKeyPair || !waku}
-        >
-          Broadcast Eth-DM Public Key
-        </Button>
-        <div>
           <Button
             variant="contained"
             color="primary"
-            onClick={sendDummyMessage}
-            disabled={!waku || publicKeys.size === 0}
+            onClick={generateKeyPair}
+            disabled={!provider}
           >
-            Send Direct Message
+            Generate Eth-DM Key Pair
           </Button>
-          <Messages messages={messages} />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={broadcastPublicKey}
+            disabled={!ethDmKeyPair || !waku}
+          >
+            Broadcast Eth-DM Public Key
+          </Button>
         </div>
+        <SendMessage recipients={publicKeys} waku={waku} />
+        <Messages messages={messages} />
       </header>
     </div>
   );
@@ -206,22 +191,6 @@ function getNodes() {
 function encodePublicKeyWakuMessage(ethDmMsg: PublicKeyMessage): WakuMessage {
   const payload = encode(ethDmMsg);
   return WakuMessage.fromBytes(payload, PublicKeyContentTopic);
-}
-
-async function encodeEncryptedWakuMessage(
-  message: string,
-  publicKey: string,
-  address: string
-): Promise<WakuMessage> {
-  const encryptedMsg = await EthCrypto.encryptWithPublicKey(publicKey, message);
-
-  const directMsg: DirectMessage = {
-    toAddress: address,
-    encMessage: encryptedMsg,
-  };
-
-  const payload = encode(directMsg);
-  return WakuMessage.fromBytes(payload, DirectMessageContentTopic);
 }
 
 function handlePublicKeyMessage(
@@ -263,15 +232,4 @@ async function handleDirectMessage(
     });
     return copy;
   });
-}
-
-function encode<T>(msg: T): Buffer {
-  const jsonStr = JSON.stringify(msg);
-  return Buffer.from(jsonStr, 'utf-8');
-}
-
-function decode<T>(bytes: Uint8Array): T {
-  const buf = Buffer.from(bytes);
-  const str = buf.toString('utf-8');
-  return JSON.parse(str);
 }

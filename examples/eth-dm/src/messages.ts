@@ -16,3 +16,14 @@ export interface DirectMessage {
   toAddress: string;
   encMessage: EthCrypto.Encrypted;
 }
+
+export function encode<T>(msg: T): Buffer {
+  const jsonStr = JSON.stringify(msg);
+  return Buffer.from(jsonStr, 'utf-8');
+}
+
+export function decode<T>(bytes: Uint8Array): T {
+  const buf = Buffer.from(bytes);
+  const str = buf.toString('utf-8');
+  return JSON.parse(str);
+}
