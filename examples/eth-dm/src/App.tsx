@@ -13,6 +13,7 @@ import {
 } from './crypto';
 import * as EthCrypto from 'eth-crypto';
 import { DirectMessage, PublicKeyMessage } from './messages';
+import { Message, Messages } from './Messages';
 
 const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
 const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
@@ -25,7 +26,7 @@ function App() {
   const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair>();
   const [publicKeyMsg, setPublicKeyMsg] = useState<PublicKeyMessage>();
   const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     if (provider) return;
@@ -155,7 +156,7 @@ function App() {
         >
           Send Direct Message
         </button>
-        {messages}
+        <Messages messages={messages} />
       </header>
     </div>
   );
@@ -222,22 +223,27 @@ function handlePublicKeyMessage(
 }
 
 async function handleDirectMessage(
-  setter: Dispatch<SetStateAction<string[]>>,
+  setter: Dispatch<SetStateAction<Message[]>>,
   privateKey: string,
   wakuMsg: WakuMessage
 ) {
   console.log('Waku Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
   const directMessage: DirectMessage = decode(wakuMsg.payload);
-  const msg = await EthCrypto.decryptWithPrivateKey(
+  const text = await EthCrypto.decryptWithPrivateKey(
     privateKey,
     directMessage.encMessage
   );
 
-  console.log('Message decrypted:', msg);
-  setter((prevMsgs: string[]) => {
+  const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
+
+  console.log('Message decrypted:', text);
+  setter((prevMsgs: Message[]) => {
     const copy = prevMsgs.slice();
-    copy.push(msg);
+    copy.push({
+      text: text,
+      timestamp: timestamp,
+    });
     return copy;
   });
 }
