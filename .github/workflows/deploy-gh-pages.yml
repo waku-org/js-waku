@@ -35,19 +35,34 @@ jobs:
       - name: "[js-waku] build"
         run: npm run build
 
-      - name: install using npm i
+      - name: "[web-chat] install using npm i"
         run: npm install
         working-directory: examples/web-chat
 
-      - name: build web app
+      - name: "[web-chat] build"
         run: npm run build
         working-directory: examples/web-chat
 
-      - name: Deploy web chat app on gh pages
+      - name: "[web-chat] Deploy on gh pages to /"
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./examples/web-chat/build
+
+      - name: "[eth-dm] install using npm i"
+        run: npm install
+        working-directory: examples/eth-dm
+
+      - name: "[eth-dm] build"
+        run: npm run build
+        working-directory: examples/eth-dm
+
+      - name: "[eth-dm] Deploy on gh pages to /eth-dm"
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./examples/eth-dm/build
+          destination_dir: eth-dm
 
       - name: Generate docs
         run: npm run doc:html
