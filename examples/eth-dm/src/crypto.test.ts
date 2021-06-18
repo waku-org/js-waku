@@ -1,7 +1,5 @@
 import '@ethersproject/shims';
 
-import { ethers } from 'ethers';
-
 import {
   createPublicKeyMessage,
   generateEthDmKeyPair,
