@@ -4,6 +4,7 @@
   "private": true,
   "homepage": "/js-waku/eth-dm",
   "dependencies": {
+    "@material-ui/core": "^4.11.4",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
@@ -13,6 +14,7 @@
     "@types/react-dom": "^17.0.0",
     "eth-crypto": "^1.9.0",
     "ethers": "^5.2.0",
+    "fontsource-roboto": "^4.0.0",
     "js-waku": "../../build/main",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

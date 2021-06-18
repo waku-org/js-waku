@@ -14,6 +14,8 @@ import {
 import * as EthCrypto from 'eth-crypto';
 import { DirectMessage, PublicKeyMessage } from './messages';
 import { Message, Messages } from './Messages';
+import 'fontsource-roboto';
+import { Button } from '@material-ui/core';
 
 const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
 const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
@@ -144,19 +146,34 @@ function App() {
     <div className="App">
       <header className="App-header">
         {wakuReady}
-        <button onClick={generateKeyPair} disabled={!provider}>
-          Generate Eth-DM Key Pair
-        </button>
-        <button onClick={broadcastPublicKey} disabled={!ethDmKeyPair || !waku}>
-          Broadcast Eth-DM Public Key
-        </button>
-        <button
-          onClick={sendDummyMessage}
-          disabled={!waku || publicKeys.size === 0}
+
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={generateKeyPair}
+          disabled={!provider}
         >
-          Send Direct Message
-        </button>
-        <Messages messages={messages} />
+          Generate Eth-DM Key Pair
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={broadcastPublicKey}
+          disabled={!ethDmKeyPair || !waku}
+        >
+          Broadcast Eth-DM Public Key
+        </Button>
+        <div>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={sendDummyMessage}
+            disabled={!waku || publicKeys.size === 0}
+          >
+            Send Direct Message
+          </Button>
+          <Messages messages={messages} />
+        </div>
       </header>
     </div>
   );
