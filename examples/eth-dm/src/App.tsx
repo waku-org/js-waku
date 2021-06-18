@@ -108,7 +108,7 @@ function App() {
 
     if (publicKeyMsg) {
       const wakuMsg = encodePublicKeyWakuMessage(publicKeyMsg);
-      waku.relay.send(wakuMsg).catch((e) => {
+      waku.lightPush.push(wakuMsg).catch((e) => {
         console.error('Failed to send Public Key Message');
       });
     } else {
@@ -116,7 +116,7 @@ function App() {
         .then((msg) => {
           setPublicKeyMsg(msg);
           const wakuMsg = encodePublicKeyWakuMessage(msg);
-          waku.relay.send(wakuMsg).catch((e) => {
+          waku.lightPush.push(wakuMsg).catch((e) => {
             console.error('Failed to send Public Key Message');
           });
         })
