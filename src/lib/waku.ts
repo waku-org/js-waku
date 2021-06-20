@@ -205,7 +205,7 @@ export class Waku {
   }
 
   private startKeepAlive(peerId: PeerId, periodSecs: number): void {
-    // Just in case a timer already exist
+    // Just in case a timer already exist for this peer
     this.stopKeepAlive(peerId);
 
     const peerIdStr = peerId.toB58String();
