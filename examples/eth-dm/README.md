@@ -1,3 +1,3 @@
 # Ethereum Direct Message Web App
 
-A showcase app of [20/ETH-DM](https://rfc.vac.dev/spec/20/).
+See js-waku [README](../../README.md#ethereum-direct-message) for details.
