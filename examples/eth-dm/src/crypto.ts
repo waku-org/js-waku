@@ -24,7 +24,7 @@ export async function generateEthDmKeyPair(
   web3Signer: Signer
 ): Promise<KeyPair> {
   const signature = await web3Signer.signMessage(Salt);
-  const entropy = Buffer.from(toUtf8Bytes(signature));
+  const entropy = Buffer.from(signature, 'hex');
   const keys = EthCrypto.createIdentity(entropy);
   return keys;
 }
