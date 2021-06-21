@@ -1,7 +1,6 @@
 import '@ethersproject/shims';
 
 import * as EthCrypto from 'eth-crypto';
-import { toUtf8Bytes } from '@ethersproject/strings';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
 import { PublicKeyMessage } from './messages';
@@ -24,7 +23,9 @@ export async function generateEthDmKeyPair(
   web3Signer: Signer
 ): Promise<KeyPair> {
   const signature = await web3Signer.signMessage(Salt);
-  const entropy = Buffer.from(signature, 'hex');
+  // Need to remove '0x' prefix to allow buffer to decode the hex string.
+  const sigBuf = Buffer.from(signature.slice(2), 'hex');
+  const entropy = Buffer.concat([sigBuf, sigBuf]);
   const keys = EthCrypto.createIdentity(entropy);
   return keys;
 }
