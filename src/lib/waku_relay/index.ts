@@ -456,9 +456,8 @@ export class WakuRelay extends Gossipsub {
         const peerId = PeerId.createFromB58String(p);
         px.push({
           peerID: peerId.toBytes(),
-          signedPeerRecord: this._libp2p.peerStore.addressBook.getRawEnvelope(
-            peerId
-          ),
+          signedPeerRecord:
+            this._libp2p.peerStore.addressBook.getRawEnvelope(peerId),
         });
       });
     }
