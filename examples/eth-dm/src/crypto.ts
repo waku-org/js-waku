@@ -32,8 +32,8 @@ export async function generateEthDmKeyPair(
 
 /**
  * Sign the Eth-DM public key with Web3. This can then be published to let other
- * users know to use this Eth-DM public key to encrypt messages destinated to the
- * Web3 account holder (ie, Ethereum Address holder).
+ * users know to use this Eth-DM public key to encrypt messages for the
+ * Ethereum Address holder.
  */
 export async function createPublicKeyMessage(
   web3Signer: Signer,
