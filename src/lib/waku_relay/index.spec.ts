@@ -31,7 +31,7 @@ describe('Waku Relay', () => {
         Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
         Waku.create({
           staticNoiseKey: NOISE_KEY_2,
-          libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/wss'] } },
+          libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/ws'] } },
         }),
       ]);
 
@@ -179,7 +179,7 @@ describe('Waku Relay', () => {
         Waku.create({
           pubsubTopic,
           staticNoiseKey: NOISE_KEY_2,
-          libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/wss'] } },
+          libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/ws'] } },
         }),
         Waku.create({
           staticNoiseKey: NOISE_KEY_2,

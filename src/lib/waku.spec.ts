@@ -17,7 +17,7 @@ describe('Waku Dial', function () {
     const [waku1, waku2] = await Promise.all([
       Waku.create({
         staticNoiseKey: NOISE_KEY_1,
-        libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/wss'] } },
+        libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/ws'] } },
       }),
       Waku.create({ staticNoiseKey: NOISE_KEY_2 }),
     ]);
