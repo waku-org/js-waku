@@ -26,7 +26,6 @@
     "start": "react-scripts start",
     "build": "run-s build:*",
     "build:react": "react-scripts build",
-    "test:unit": "react-scripts test",
     "eject": "react-scripts eject",
     "fix": "run-s fix:*",
     "test": "run-s build test:*",
