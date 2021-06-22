@@ -12,7 +12,7 @@ import {
   messageIdToString,
   shuffle,
 } from 'libp2p-gossipsub/src/utils';
-import Pubsub, { InMessage } from 'libp2p-interfaces/src/pubsub';
+import { InMessage } from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 import PeerId from 'peer-id';
 
@@ -57,7 +57,7 @@ export interface GossipOptions {
  * @implements {Pubsub}
  * @noInheritDoc
  */
-export class WakuRelay extends Gossipsub implements Pubsub {
+export class WakuRelay extends Gossipsub {
   heartbeat: RelayHeartbeat;
   pubsubTopic: string;
   /**
