@@ -71,7 +71,7 @@ export class Waku {
     lightPush: WakuLightPush
   ) {
     this.libp2p = libp2p;
-    this.relay = (libp2p.pubsub as unknown) as WakuRelay;
+    this.relay = libp2p.pubsub as unknown as WakuRelay;
     this.store = store;
     this.lightPush = lightPush;
     this.keepAliveTimers = {};
@@ -154,9 +154,7 @@ export class Waku {
    *
    * @param peer The peer to dial
    */
-  async dial(
-    peer: PeerId | Multiaddr | string
-  ): Promise<{
+  async dial(peer: PeerId | Multiaddr | string): Promise<{
     stream: import('libp2p-interfaces/src/stream-muxer/types').MuxedStream;
     protocol: string;
   }> {
