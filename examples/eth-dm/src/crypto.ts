@@ -5,9 +5,6 @@ import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
 import { PublicKeyMessage } from './messages';
 
-const Salt =
-  'Salt for Eth-Dm, do not share a signature of this message or others could decrypt your messages';
-
 export interface KeyPair {
   privateKey: string;
   publicKey: string;
@@ -19,15 +16,8 @@ export interface KeyPair {
  * the entropy for the EthCrypto keypair. Note that the entropy is hashed with keccak256
  * to make the private key.
  */
-export async function generateEthDmKeyPair(
-  web3Signer: Signer
-): Promise<KeyPair> {
-  const signature = await web3Signer.signMessage(Salt);
-  // Need to remove '0x' prefix to allow buffer to decode the hex string.
-  const sigBuf = Buffer.from(signature.slice(2), 'hex');
-  const entropy = Buffer.concat([sigBuf, sigBuf]);
-  const keys = EthCrypto.createIdentity(entropy);
-  return keys;
+export async function generateEthDmKeyPair(): Promise<KeyPair> {
+  return EthCrypto.createIdentity();
 }
 
 /**

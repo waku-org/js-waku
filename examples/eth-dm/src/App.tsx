@@ -67,7 +67,7 @@ function App() {
     if (ethDmKeyPair) return;
     if (!provider) return;
 
-    generateEthDmKeyPair(provider.getSigner())
+    generateEthDmKeyPair()
       .then((keyPair) => {
         setEthDmKeyPair(keyPair);
       })
