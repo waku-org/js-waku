@@ -21,15 +21,24 @@ import { SendMessage } from './SendMessage';
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
 
+const EthDmKeyStorageKey = 'ethDmKey';
+
 declare let window: any;
 
 function App() {
   const [waku, setWaku] = useState<Waku>();
   const [provider, setProvider] = useState<Web3Provider>();
-  const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair>();
+  const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair | undefined>(
+    retrieveKeysFromStorage
+  );
   const [publicKeyMsg, setPublicKeyMsg] = useState<PublicKeyMessage>();
   const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
   const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    if (!ethDmKeyPair) return;
+    saveKeysToStorage(ethDmKeyPair);
+  }, [ethDmKeyPair]);
 
   useEffect(() => {
     if (provider) return;
@@ -232,4 +241,23 @@ async function handleDirectMessage(
     });
     return copy;
   });
+}
+
+function saveKeysToStorage(ethDmKeyPair: KeyPair) {
+  // /!\ Bad idea to store keys in clear. At least put a password on it.
+  localStorage.setItem(EthDmKeyStorageKey, ethDmKeyPair.privateKey);
+}
+
+function retrieveKeysFromStorage() {
+  const privateKey = window.localStorage.getItem(EthDmKeyStorageKey);
+  if (privateKey) {
+    const publicKey = EthCrypto.publicKeyByPrivateKey(privateKey);
+    const address = EthCrypto.publicKey.toAddress(publicKey);
+    return {
+      privateKey,
+      publicKey,
+      address,
+    };
+  }
+  return;
 }
