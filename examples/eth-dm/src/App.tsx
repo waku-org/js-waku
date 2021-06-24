@@ -153,7 +153,7 @@ function App() {
             variant="contained"
             color="primary"
             onClick={generateKeyPair}
-            disabled={!provider}
+            disabled={!provider || !!ethDmKeyPair}
           >
             Generate Eth-DM Key Pair
           </Button>
