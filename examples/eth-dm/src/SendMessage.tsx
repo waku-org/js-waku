@@ -8,9 +8,9 @@ import {
 } from '@material-ui/core';
 import React, { ChangeEvent, useState, KeyboardEvent } from 'react';
 import { Waku, WakuMessage } from 'js-waku';
-import * as EthCrypto from 'eth-crypto';
 import { DirectMessage, encode } from './messages';
 import { DirectMessageContentTopic } from './App';
+import { encryptMessage } from './crypto';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -111,7 +111,7 @@ async function encodeEncryptedWakuMessage(
   publicKey: string,
   address: string
 ): Promise<WakuMessage> {
-  const encryptedMsg = await EthCrypto.encryptWithPublicKey(publicKey, message);
+  const encryptedMsg = await encryptMessage(publicKey, message);
 
   const directMsg: DirectMessage = {
     toAddress: address,

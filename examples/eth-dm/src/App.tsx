@@ -7,11 +7,12 @@ import { ethers } from 'ethers';
 import { Web3Provider } from '@ethersproject/providers';
 import {
   createPublicKeyMessage,
+  decryptMessage,
   generateEthDmKeyPair,
   KeyPair,
+  recoverKeysFromPrivateKey,
   validatePublicKeyMessage,
 } from './crypto';
-import * as EthCrypto from 'eth-crypto';
 import { decode, DirectMessage, encode, PublicKeyMessage } from './messages';
 import { Message, Messages } from './Messages';
 import 'fontsource-roboto';
@@ -225,10 +226,7 @@ async function handleDirectMessage(
   console.log('Waku Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
   const directMessage: DirectMessage = decode(wakuMsg.payload);
-  const text = await EthCrypto.decryptWithPrivateKey(
-    privateKey,
-    directMessage.encMessage
-  );
+  const text = await decryptMessage(privateKey, directMessage);
 
   const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
 
@@ -251,13 +249,7 @@ function saveKeysToStorage(ethDmKeyPair: KeyPair) {
 function retrieveKeysFromStorage() {
   const privateKey = window.localStorage.getItem(EthDmKeyStorageKey);
   if (privateKey) {
-    const publicKey = EthCrypto.publicKeyByPrivateKey(privateKey);
-    const address = EthCrypto.publicKey.toAddress(publicKey);
-    return {
-      privateKey,
-      publicKey,
-      address,
-    };
+    return recoverKeysFromPrivateKey(privateKey);
   }
   return;
 }

@@ -3,7 +3,7 @@ import '@ethersproject/shims';
 import * as EthCrypto from 'eth-crypto';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
-import { PublicKeyMessage } from './messages';
+import { DirectMessage, PublicKeyMessage } from './messages';
 
 export interface KeyPair {
   privateKey: string;
@@ -59,8 +59,37 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
  * context.
  */
 function formatPublicKeyForSignature(ethDmPublicKey: string): string {
-  const txt = JSON.stringify({
+  return JSON.stringify({
     ethDmPublicKey,
   });
-  return txt;
+}
+
+/**
+ * Decrypt a Direct Message using the private key.
+ */
+export function decryptMessage(
+  privateKey: string,
+  directMessage: DirectMessage
+) {
+  return EthCrypto.decryptWithPrivateKey(privateKey, directMessage.encMessage);
+}
+
+/**
+ * Recover Public Key and address from Private Key
+ */
+export function recoverKeysFromPrivateKey(privateKey: string) {
+  const publicKey = EthCrypto.publicKeyByPrivateKey(privateKey);
+  const address = EthCrypto.publicKey.toAddress(publicKey);
+  return {
+    privateKey,
+    publicKey,
+    address,
+  };
+}
+
+/**
+ * Encrypt message with given Public Key
+ */
+export async function encryptMessage(publicKey: string, message: string) {
+  return await EthCrypto.encryptWithPublicKey(publicKey, message);
 }
