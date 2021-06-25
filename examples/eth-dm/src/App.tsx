@@ -79,6 +79,7 @@ function App() {
 
   const observerPublicKeyMessage = handlePublicKeyMessage.bind(
     {},
+    ethDmKeyPair?.publicKey,
     setPublicKeys
   );
 
@@ -204,11 +205,13 @@ function encodePublicKeyWakuMessage(ethDmMsg: PublicKeyMessage): WakuMessage {
 }
 
 function handlePublicKeyMessage(
+  myPublicKey: string | undefined,
   setter: Dispatch<SetStateAction<Map<string, string>>>,
   msg: WakuMessage
 ) {
   if (!msg.payload) return;
   const publicKeyMsg: PublicKeyMessage = decode(msg.payload);
+  if (publicKeyMsg.ethDmPublicKey === myPublicKey) return;
   const res = validatePublicKeyMessage(publicKeyMsg);
   console.log(`Public Key Message Received, valid: ${res}`, publicKeyMsg);
 
