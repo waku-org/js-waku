@@ -10,7 +10,6 @@ import {
   decryptMessage,
   generateEthDmKeyPair,
   KeyPair,
-  recoverKeysFromPrivateKey,
   validatePublicKeyMessage,
 } from './crypto';
 import { decode, DirectMessage, encode, PublicKeyMessage } from './messages';
@@ -18,28 +17,21 @@ import { Message, Messages } from './Messages';
 import 'fontsource-roboto';
 import { Button } from '@material-ui/core';
 import { SendMessage } from './SendMessage';
+import { SaveKeyToStorage } from './SaveKeyToStorage';
+import { LoadKeyFromStorage } from './LoadKeyFromStorage';
 
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
-
-const EthDmKeyStorageKey = 'ethDmKey';
 
 declare let window: any;
 
 function App() {
   const [waku, setWaku] = useState<Waku>();
   const [provider, setProvider] = useState<Web3Provider>();
-  const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair | undefined>(
-    retrieveKeysFromStorage
-  );
+  const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair | undefined>();
   const [publicKeyMsg, setPublicKeyMsg] = useState<PublicKeyMessage>();
   const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
   const [messages, setMessages] = useState<Message[]>([]);
-
-  useEffect(() => {
-    if (!ethDmKeyPair) return;
-    saveKeysToStorage(ethDmKeyPair);
-  }, [ethDmKeyPair]);
 
   useEffect(() => {
     if (provider) return;
@@ -66,7 +58,6 @@ function App() {
 
   const generateKeyPair = () => {
     if (ethDmKeyPair) return;
-    if (!provider) return;
 
     generateEthDmKeyPair()
       .then((keyPair) => {
@@ -121,7 +112,7 @@ function App() {
     if (publicKeyMsg) {
       const wakuMsg = encodePublicKeyWakuMessage(publicKeyMsg);
       waku.lightPush.push(wakuMsg).catch((e) => {
-        console.error('Failed to send Public Key Message');
+        console.error('Failed to send Public Key Message', e);
       });
     } else {
       createPublicKeyMessage(provider.getSigner(), ethDmKeyPair.publicKey)
@@ -129,7 +120,7 @@ function App() {
           setPublicKeyMsg(msg);
           const wakuMsg = encodePublicKeyWakuMessage(msg);
           waku.lightPush.push(wakuMsg).catch((e) => {
-            console.error('Failed to send Public Key Message');
+            console.error('Failed to send Public Key Message', e);
           });
         })
         .catch((e) => {
@@ -155,10 +146,33 @@ function App() {
             variant="contained"
             color="primary"
             onClick={generateKeyPair}
-            disabled={!provider || !!ethDmKeyPair}
+            disabled={!!ethDmKeyPair}
           >
             Generate Eth-DM Key Pair
           </Button>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <LoadKeyFromStorage
+            setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
+            disabled={!!ethDmKeyPair}
+          />
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <SaveKeyToStorage ethDmKeyPair={ethDmKeyPair} />
+        </div>
+        <div>
           <Button
             variant="contained"
             color="primary"
@@ -242,17 +256,4 @@ async function handleDirectMessage(
     });
     return copy;
   });
-}
-
-function saveKeysToStorage(ethDmKeyPair: KeyPair) {
-  // /!\ Bad idea to store keys in clear. At least put a password on it.
-  localStorage.setItem(EthDmKeyStorageKey, ethDmKeyPair.privateKey);
-}
-
-function retrieveKeysFromStorage() {
-  const privateKey = window.localStorage.getItem(EthDmKeyStorageKey);
-  if (privateKey) {
-    return recoverKeysFromPrivateKey(privateKey);
-  }
-  return;
 }

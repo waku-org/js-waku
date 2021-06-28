@@ -75,19 +75,6 @@ export function decryptMessage(
 }
 
 /**
- * Recover Public Key and address from Private Key
- */
-export function recoverKeysFromPrivateKey(privateKey: string) {
-  const publicKey = EthCrypto.publicKeyByPrivateKey(privateKey);
-  const address = EthCrypto.publicKey.toAddress(publicKey);
-  return {
-    privateKey,
-    publicKey,
-    address,
-  };
-}
-
-/**
  * Encrypt message with given Public Key
  */
 export async function encryptMessage(publicKey: string, message: string) {
