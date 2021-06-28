@@ -44,7 +44,7 @@ function App() {
   useEffect(() => {
     if (provider) return;
     try {
-      window.ethereum.enable();
+      window.ethereum.request({ method: 'eth_requestAccounts' });
       const _provider = new ethers.providers.Web3Provider(window.ethereum);
       setProvider(_provider);
     } catch (e) {
