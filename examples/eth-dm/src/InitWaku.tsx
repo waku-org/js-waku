@@ -17,7 +17,7 @@ interface Props {
 }
 
 /**
- * Does all the waku initialisation
+ * Does all the waku initialization
  */
 export default function InitWaku({
   waku,

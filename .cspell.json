@@ -72,7 +72,8 @@
     "wakuv",
     "wakunode",
     "webfonts",
-    "websockets"
+    "websockets",
+    "wifi"
   ],
   "flagWords": [],
   "ignorePaths": [
