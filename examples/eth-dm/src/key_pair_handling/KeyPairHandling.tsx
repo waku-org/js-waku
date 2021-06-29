@@ -9,7 +9,10 @@ export interface Props {
   setEthDmKeyPair: (keyPair: KeyPair) => void;
 }
 
-export function KeyPairHandling({ ethDmKeyPair, setEthDmKeyPair }: Props) {
+export default function KeyPairHandling({
+  ethDmKeyPair,
+  setEthDmKeyPair,
+}: Props) {
   const generateKeyPair = () => {
     if (ethDmKeyPair) return;
 

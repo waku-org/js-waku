@@ -28,7 +28,7 @@ export interface Props {
   recipients: Map<string, string>;
 }
 
-export function SendMessage({ waku, recipients }: Props) {
+export default function SendMessage({ waku, recipients }: Props) {
   const classes = useStyles();
   const [recipient, setRecipient] = useState<string>('');
   const [message, setMessage] = useState<string>();

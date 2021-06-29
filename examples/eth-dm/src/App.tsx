@@ -1,22 +1,18 @@
 import '@ethersproject/shims';
 
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
-import { Environment, getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
+import { Waku, WakuMessage } from 'js-waku';
 import { ethers } from 'ethers';
 import { Web3Provider } from '@ethersproject/providers';
-import {
-  createPublicKeyMessage,
-  decryptMessage,
-  KeyPair,
-  validatePublicKeyMessage,
-} from './crypto';
-import { decode, DirectMessage, encode, PublicKeyMessage } from './messages';
-import { Message, Messages } from './Messages';
+import { createPublicKeyMessage, KeyPair } from './crypto';
+import { encode, PublicKeyMessage } from './messages';
+import Messages, { Message } from './Messages';
 import 'fontsource-roboto';
 import { Button } from '@material-ui/core';
-import { SendMessage } from './SendMessage';
-import { KeyPairHandling } from './key_pair_handling/KeyPairHandling';
+import SendMessage from './SendMessage';
+import KeyPairHandling from './key_pair_handling/KeyPairHandling';
+import InitWaku from './InitWaku';
 
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
@@ -41,54 +37,6 @@ function App() {
       console.error('No web3 provider available');
     }
   }, [provider]);
-
-  useEffect(() => {
-    if (waku) return;
-    initWaku()
-      .then((wakuNode) => {
-        console.log('waku: ready');
-        setWaku(wakuNode);
-      })
-      .catch((e) => {
-        console.error('Failed to initiate Waku', e);
-      });
-  }, [waku]);
-
-  const observerPublicKeyMessage = handlePublicKeyMessage.bind(
-    {},
-    ethDmKeyPair?.publicKey,
-    setPublicKeys
-  );
-
-  const observerDirectMessage = ethDmKeyPair
-    ? handleDirectMessage.bind({}, setMessages, ethDmKeyPair.privateKey)
-    : undefined;
-
-  useEffect(() => {
-    if (!waku) return;
-    waku.relay.addObserver(observerPublicKeyMessage, [PublicKeyContentTopic]);
-
-    return function cleanUp() {
-      if (!waku) return;
-      waku.relay.deleteObserver(observerPublicKeyMessage, [
-        PublicKeyContentTopic,
-      ]);
-    };
-  });
-
-  useEffect(() => {
-    if (!waku) return;
-    if (!observerDirectMessage) return;
-    waku.relay.addObserver(observerDirectMessage, [DirectMessageContentTopic]);
-
-    return function cleanUp() {
-      if (!waku) return;
-      if (!observerDirectMessage) return;
-      waku.relay.deleteObserver(observerDirectMessage, [
-        DirectMessageContentTopic,
-      ]);
-    };
-  });
 
   const broadcastPublicKey = () => {
     if (!ethDmKeyPair) return;
@@ -115,12 +63,16 @@ function App() {
     }
   };
 
-  const wakuReady = !!waku ? 'Waku is ready' : 'Waku is loading';
-
   return (
     <div className="App">
       <header className="App-header">
-        {wakuReady}
+        <InitWaku
+          ethDmKeyPair={ethDmKeyPair}
+          setMessages={setMessages}
+          setPublicKeys={setPublicKeys}
+          setWaku={setWaku}
+          waku={waku}
+        />
         <KeyPairHandling
           ethDmKeyPair={ethDmKeyPair}
           setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
@@ -144,69 +96,7 @@ function App() {
 
 export default App;
 
-async function initWaku(): Promise<Waku> {
-  const waku = await Waku.create({});
-
-  const nodes = await getNodes();
-  await Promise.all(
-    nodes.map((addr) => {
-      return waku.dial(addr);
-    })
-  );
-
-  return waku;
-}
-
-function getNodes() {
-  // Works with react-scripts
-  if (process?.env?.NODE_ENV === 'development') {
-    return getStatusFleetNodes(Environment.Test);
-  } else {
-    return getStatusFleetNodes(Environment.Prod);
-  }
-}
-
 function encodePublicKeyWakuMessage(ethDmMsg: PublicKeyMessage): WakuMessage {
   const payload = encode(ethDmMsg);
   return WakuMessage.fromBytes(payload, PublicKeyContentTopic);
-}
-
-function handlePublicKeyMessage(
-  myPublicKey: string | undefined,
-  setter: Dispatch<SetStateAction<Map<string, string>>>,
-  msg: WakuMessage
-) {
-  if (!msg.payload) return;
-  const publicKeyMsg: PublicKeyMessage = decode(msg.payload);
-  if (publicKeyMsg.ethDmPublicKey === myPublicKey) return;
-  const res = validatePublicKeyMessage(publicKeyMsg);
-  console.log(`Public Key Message Received, valid: ${res}`, publicKeyMsg);
-
-  setter((prevPks: Map<string, string>) => {
-    prevPks.set(publicKeyMsg.ethAddress, publicKeyMsg.ethDmPublicKey);
-    return new Map(prevPks);
-  });
-}
-
-async function handleDirectMessage(
-  setter: Dispatch<SetStateAction<Message[]>>,
-  privateKey: string,
-  wakuMsg: WakuMessage
-) {
-  console.log('Waku Message received:', wakuMsg);
-  if (!wakuMsg.payload) return;
-  const directMessage: DirectMessage = decode(wakuMsg.payload);
-  const text = await decryptMessage(privateKey, directMessage);
-
-  const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
-
-  console.log('Message decrypted:', text);
-  setter((prevMsgs: Message[]) => {
-    const copy = prevMsgs.slice();
-    copy.push({
-      text: text,
-      timestamp: timestamp,
-    });
-    return copy;
-  });
 }

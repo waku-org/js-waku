@@ -7,7 +7,7 @@ export interface Props {
   messages: Message[];
 }
 
-export function Messages(props: Props) {
+export default function Messages(props: Props) {
   const messages = props.messages.map((msg) => {
     return (
       <li>
