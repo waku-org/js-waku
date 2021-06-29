@@ -6,15 +6,9 @@ import { Waku } from 'js-waku';
 import { ethers } from 'ethers';
 import { Web3Provider } from '@ethersproject/providers';
 import { KeyPair } from './crypto';
-import Messages, { Message } from './messaging/Messages';
+import { Message } from './messaging/Messages';
 import 'fontsource-roboto';
-import {
-  AppBar,
-  IconButton,
-  Toolbar,
-  Typography,
-} from '@material-ui/core';
-import SendMessage from './messaging/SendMessage';
+import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
 import KeyPairHandling from './key_pair_handling/KeyPairHandling';
 import InitWaku from './InitWaku';
 import {
@@ -25,6 +19,7 @@ import {
 import { teal, purple, green } from '@material-ui/core/colors';
 import WifiIcon from '@material-ui/icons/Wifi';
 import BroadcastPublicKey from './BroadcastPublicKey';
+import Messaging from './messaging/Messaging';
 
 declare let window: any;
 
@@ -131,8 +126,11 @@ function App() {
             </fieldset>
             <fieldset>
               <legend>Messaging</legend>
-              <SendMessage recipients={publicKeys} waku={waku} />
-              <Messages messages={messages} />
+              <Messaging
+                recipients={publicKeys}
+                waku={waku}
+                messages={messages}
+              />
             </fieldset>
           </main>
         </div>
