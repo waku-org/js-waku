@@ -39,7 +39,7 @@ export default function BroadcastPublicKey({
           });
         })
         .catch((e) => {
-          console.error('Failed to creat Eth-Dm Publication message', e);
+          console.error('Failed to create public key message', e);
         });
     }
   };
