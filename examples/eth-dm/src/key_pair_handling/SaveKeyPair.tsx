@@ -1,13 +1,13 @@
 import { Button, TextField } from '@material-ui/core';
 import React, { ChangeEvent, useState } from 'react';
 import { KeyPair } from '../crypto';
-import { saveKeyPairToStorage } from './key_storage';
+import { saveKeyPairToStorage } from './key_pair_storage';
 
 export interface Props {
   ethDmKeyPair: KeyPair | undefined;
 }
 
-export function SaveKeyToStorage(props: Props) {
+export function SaveKeyPair(props: Props) {
   const [password, setPassword] = useState<string>();
 
   const ethDmKeyPair = props.ethDmKeyPair;

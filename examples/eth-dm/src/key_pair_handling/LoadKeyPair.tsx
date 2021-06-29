@@ -1,6 +1,6 @@
 import { Button, TextField } from '@material-ui/core';
 import React, { ChangeEvent, useState } from 'react';
-import { loadKeyPairFromStorage } from './key_storage';
+import { loadKeyPairFromStorage } from './key_pair_storage';
 import { KeyPair } from '../crypto';
 
 export interface Props {
@@ -8,7 +8,7 @@ export interface Props {
   disabled: boolean;
 }
 
-export function LoadKeyFromStorage(props: Props) {
+export function LoadKeyPair(props: Props) {
   const [password, setPassword] = useState<string>();
 
   const disabled = props.disabled;

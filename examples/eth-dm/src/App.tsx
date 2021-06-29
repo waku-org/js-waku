@@ -17,8 +17,8 @@ import { Message, Messages } from './Messages';
 import 'fontsource-roboto';
 import { Button } from '@material-ui/core';
 import { SendMessage } from './SendMessage';
-import { SaveKeyToStorage } from './key_handling/SaveKeyToStorage';
-import { LoadKeyFromStorage } from './key_handling/LoadKeyFromStorage';
+import { SaveKeyPair } from './key_pair_handling/SaveKeyPair';
+import { LoadKeyPair } from './key_pair_handling/LoadKeyPair';
 
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
@@ -158,7 +158,7 @@ function App() {
             flexWrap: 'wrap',
           }}
         >
-          <LoadKeyFromStorage
+          <LoadKeyPair
             setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
             disabled={!!ethDmKeyPair}
           />
@@ -170,7 +170,7 @@ function App() {
             flexWrap: 'wrap',
           }}
         >
-          <SaveKeyToStorage ethDmKeyPair={ethDmKeyPair} />
+          <SaveKeyPair ethDmKeyPair={ethDmKeyPair} />
         </div>
         <div>
           <Button
