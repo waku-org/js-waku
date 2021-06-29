@@ -28,12 +28,10 @@ export interface Props {
   recipients: Map<string, string>;
 }
 
-export function SendMessage(props: Props) {
+export function SendMessage({ waku, recipients }: Props) {
   const classes = useStyles();
   const [recipient, setRecipient] = useState<string>('');
   const [message, setMessage] = useState<string>();
-
-  const waku = props.waku;
 
   const handleRecipientChange = (
     event: ChangeEvent<{ name?: string; value: unknown }>
@@ -45,7 +43,7 @@ export function SendMessage(props: Props) {
     setMessage(event.target.value);
   };
 
-  const items = Array.from(props.recipients.keys()).map((recipient) => {
+  const items = Array.from(recipients.keys()).map((recipient) => {
     return (
       <MenuItem key={recipient} value={recipient}>
         {recipient}
@@ -63,7 +61,7 @@ export function SendMessage(props: Props) {
       if (!waku) return;
       if (!recipient) return;
       if (!message) return;
-      const publicKey = props.recipients.get(recipient);
+      const publicKey = recipients.get(recipient);
       if (!publicKey) return;
 
       sendMessage(waku, recipient, publicKey, message, (res) => {

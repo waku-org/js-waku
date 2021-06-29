@@ -8,10 +8,8 @@ export interface Props {
   disabled: boolean;
 }
 
-export function LoadKeyPair(props: Props) {
+export function LoadKeyPair({ disabled, setEthDmKeyPair }: Props) {
   const [password, setPassword] = useState<string>();
-
-  const disabled = props.disabled;
 
   const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
     setPassword(event.target.value);
@@ -23,7 +21,7 @@ export function LoadKeyPair(props: Props) {
     loadKeyPairFromStorage(password).then((keyPair: KeyPair | undefined) => {
       if (!keyPair) return;
       console.log('EthDm KeyPair loaded from storage');
-      props.setEthDmKeyPair(keyPair);
+      setEthDmKeyPair(keyPair);
     });
   };
 

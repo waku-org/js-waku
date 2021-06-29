@@ -7,10 +7,8 @@ export interface Props {
   ethDmKeyPair: KeyPair | undefined;
 }
 
-export function SaveKeyPair(props: Props) {
+export function SaveKeyPair({ ethDmKeyPair }: Props) {
   const [password, setPassword] = useState<string>();
-
-  const ethDmKeyPair = props.ethDmKeyPair;
 
   const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
     setPassword(event.target.value);
