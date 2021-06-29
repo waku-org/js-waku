@@ -8,7 +8,6 @@ import { Web3Provider } from '@ethersproject/providers';
 import {
   createPublicKeyMessage,
   decryptMessage,
-  generateEthDmKeyPair,
   KeyPair,
   validatePublicKeyMessage,
 } from './crypto';
@@ -17,8 +16,7 @@ import { Message, Messages } from './Messages';
 import 'fontsource-roboto';
 import { Button } from '@material-ui/core';
 import { SendMessage } from './SendMessage';
-import { SaveKeyPair } from './key_pair_handling/SaveKeyPair';
-import { LoadKeyPair } from './key_pair_handling/LoadKeyPair';
+import { KeyPairHandling } from './key_pair_handling/KeyPairHandling';
 
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
@@ -55,18 +53,6 @@ function App() {
         console.error('Failed to initiate Waku', e);
       });
   }, [waku]);
-
-  const generateKeyPair = () => {
-    if (ethDmKeyPair) return;
-
-    generateEthDmKeyPair()
-      .then((keyPair) => {
-        setEthDmKeyPair(keyPair);
-      })
-      .catch((e) => {
-        console.error('Failed to generate Key Pair', e);
-      });
-  };
 
   const observerPublicKeyMessage = handlePublicKeyMessage.bind(
     {},
@@ -135,43 +121,10 @@ function App() {
     <div className="App">
       <header className="App-header">
         {wakuReady}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={generateKeyPair}
-            disabled={!!ethDmKeyPair}
-          >
-            Generate Eth-DM Key Pair
-          </Button>
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <LoadKeyPair
-            setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
-            disabled={!!ethDmKeyPair}
-          />
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <SaveKeyPair ethDmKeyPair={ethDmKeyPair} />
-        </div>
+        <KeyPairHandling
+          ethDmKeyPair={ethDmKeyPair}
+          setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
+        />
         <div>
           <Button
             variant="contained"
