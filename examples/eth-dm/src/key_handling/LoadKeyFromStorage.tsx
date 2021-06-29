@@ -1,7 +1,7 @@
 import { Button, TextField } from '@material-ui/core';
 import React, { ChangeEvent, useState } from 'react';
-import { loadKeyPairFromStorage } from './keyStorage';
-import { KeyPair } from './crypto';
+import { loadKeyPairFromStorage } from './key_storage';
+import { KeyPair } from '../crypto';
 
 export interface Props {
   setEthDmKeyPair: (keyPair: KeyPair) => void;

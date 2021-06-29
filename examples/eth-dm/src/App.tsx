@@ -17,8 +17,8 @@ import { Message, Messages } from './Messages';
 import 'fontsource-roboto';
 import { Button } from '@material-ui/core';
 import { SendMessage } from './SendMessage';
-import { SaveKeyToStorage } from './SaveKeyToStorage';
-import { LoadKeyFromStorage } from './LoadKeyFromStorage';
+import { SaveKeyToStorage } from './key_handling/SaveKeyToStorage';
+import { LoadKeyFromStorage } from './key_handling/LoadKeyFromStorage';
 
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';

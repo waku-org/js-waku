@@ -1,4 +1,4 @@
-import { KeyPair } from './crypto';
+import { KeyPair } from '../crypto';
 
 /**
  * Save keypair to storage, encrypted with password
