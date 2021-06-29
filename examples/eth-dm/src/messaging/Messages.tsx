@@ -1,3 +1,6 @@
+import React from 'react';
+import { List, ListItem, ListItemText } from '@material-ui/core';
+
 /**
  * Clear text message
  */
@@ -10,16 +13,20 @@ export interface Props {
   messages: Message[];
 }
 
-export default function Messages(props: Props) {
-  const messages = props.messages.map((msg) => {
+export default function Messages({ messages }: Props) {
+  return <List dense={true}>{generate(messages)}</List>;
+}
+
+function generate(messages: Message[]) {
+  return messages.map((msg) => {
+    const text = `<${formatDisplayDate(msg.timestamp)}> ${msg.text}`;
+
     return (
-      <li>
-        {formatDisplayDate(msg.timestamp)} {msg.text}
-      </li>
+      <ListItem>
+        <ListItemText key={formatDisplayDate(msg.timestamp)} primary={text} />
+      </ListItem>
     );
   });
-
-  return <ul>{messages}</ul>;
 }
 
 function formatDisplayDate(timestamp: Date): string {
