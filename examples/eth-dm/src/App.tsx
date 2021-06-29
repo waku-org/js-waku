@@ -26,6 +26,7 @@ function App() {
   const [publicKeyMsg, setPublicKeyMsg] = useState<PublicKeyMessage>();
   const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
   const [messages, setMessages] = useState<Message[]>([]);
+  const [address, setAddress] = useState<string>();
 
   useEffect(() => {
     if (provider) return;
@@ -37,6 +38,13 @@ function App() {
       console.error('No web3 provider available');
     }
   }, [provider]);
+
+  useEffect(() => {
+    provider
+      ?.getSigner()
+      .getAddress()
+      .then((address) => setAddress(address));
+  });
 
   const broadcastPublicKey = () => {
     if (!ethDmKeyPair) return;
@@ -72,6 +80,7 @@ function App() {
           setPublicKeys={setPublicKeys}
           setWaku={setWaku}
           waku={waku}
+          address={address}
         />
         <KeyPairHandling
           ethDmKeyPair={ethDmKeyPair}

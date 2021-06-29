@@ -11,6 +11,7 @@ interface Props {
   ethDmKeyPair: KeyPair | undefined;
   setPublicKeys: Dispatch<SetStateAction<Map<string, string>>>;
   setMessages: Dispatch<SetStateAction<Message[]>>;
+  address: string | undefined;
 }
 
 /**
@@ -22,6 +23,7 @@ export default function InitWaku({
   ethDmKeyPair,
   setPublicKeys,
   setMessages,
+  address,
 }: Props) {
   useEffect(() => {
     if (waku) return;
@@ -41,9 +43,15 @@ export default function InitWaku({
     setPublicKeys
   );
 
-  const observerDirectMessage = ethDmKeyPair
-    ? handleDirectMessage.bind({}, setMessages, ethDmKeyPair.privateKey)
-    : undefined;
+  const observerDirectMessage =
+    ethDmKeyPair && address
+      ? handleDirectMessage.bind(
+          {},
+          setMessages,
+          ethDmKeyPair.privateKey,
+          address
+        )
+      : undefined;
 
   useEffect(() => {
     if (!waku) return;
@@ -116,11 +124,14 @@ function handlePublicKeyMessage(
 async function handleDirectMessage(
   setter: Dispatch<SetStateAction<Message[]>>,
   privateKey: string,
+  address: string,
   wakuMsg: WakuMessage
 ) {
   console.log('Waku Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
   const directMessage: DirectMessage = decode(wakuMsg.payload);
+  if (directMessage.toAddress !== address) return;
+
   const text = await decryptMessage(privateKey, directMessage);
 
   const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();

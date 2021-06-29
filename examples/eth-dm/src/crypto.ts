@@ -8,7 +8,6 @@ import { DirectMessage, PublicKeyMessage } from './messages';
 export interface KeyPair {
   privateKey: string;
   publicKey: string;
-  address: string;
 }
 
 /**
