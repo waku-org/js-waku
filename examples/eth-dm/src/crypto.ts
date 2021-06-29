@@ -3,7 +3,7 @@ import '@ethersproject/shims';
 import * as EthCrypto from 'eth-crypto';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
-import { DirectMessage, PublicKeyMessage } from './messages';
+import { DirectMessage, PublicKeyMessage } from './messaging/wire';
 
 export interface KeyPair {
   privateKey: string;

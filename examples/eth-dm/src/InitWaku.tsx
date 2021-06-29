@@ -1,9 +1,11 @@
 import { Dispatch, SetStateAction, useEffect } from 'react';
 import { Environment, getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
-import { decode, DirectMessage, PublicKeyMessage } from './messages';
+import { decode, DirectMessage, PublicKeyMessage } from './messaging/wire';
 import { decryptMessage, KeyPair, validatePublicKeyMessage } from './crypto';
-import { Message } from './Messages';
-import { DirectMessageContentTopic, PublicKeyContentTopic } from './App';
+import { Message } from './messaging/Messages';
+
+export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
+export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
 
 interface Props {
   waku: Waku | undefined;

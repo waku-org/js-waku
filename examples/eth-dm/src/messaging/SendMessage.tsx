@@ -8,9 +8,9 @@ import {
 } from '@material-ui/core';
 import React, { ChangeEvent, useState, KeyboardEvent } from 'react';
 import { Waku, WakuMessage } from 'js-waku';
-import { DirectMessage, encode } from './messages';
-import { DirectMessageContentTopic } from './App';
-import { encryptMessage } from './crypto';
+import { DirectMessage, encode } from './wire';
+import { encryptMessage } from '../crypto';
+import { DirectMessageContentTopic } from '../InitWaku';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
