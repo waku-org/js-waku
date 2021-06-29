@@ -1,19 +1,14 @@
-import { Button, TextField } from '@material-ui/core';
-import React, { ChangeEvent, useState } from 'react';
+import { Button } from '@material-ui/core';
+import React from 'react';
 import { KeyPair } from '../crypto';
 import { saveKeyPairToStorage } from './key_pair_storage';
 
 export interface Props {
   ethDmKeyPair: KeyPair | undefined;
+  password: string | undefined;
 }
 
-export function SaveKeyPair({ ethDmKeyPair }: Props) {
-  const [password, setPassword] = useState<string>();
-
-  const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setPassword(event.target.value);
-  };
-
+export function SaveKeyPair({ password, ethDmKeyPair }: Props) {
   const saveKeyPair = () => {
     if (!ethDmKeyPair) return;
     if (!password) return;
@@ -23,29 +18,13 @@ export function SaveKeyPair({ ethDmKeyPair }: Props) {
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-      }}
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={saveKeyPair}
+      disabled={!password || !ethDmKeyPair}
     >
-      <TextField
-        id="password-input"
-        label="Password"
-        variant="filled"
-        type="password"
-        onChange={handlePasswordChange}
-        value={password}
-      />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={saveKeyPair}
-        disabled={!password || !ethDmKeyPair}
-      >
-        Save Eth-DM Key Pair to storage
-      </Button>
-    </div>
+      Save Eth-DM Key Pair to storage
+    </Button>
   );
 }

@@ -1,20 +1,15 @@
-import { Button, TextField } from '@material-ui/core';
-import React, { ChangeEvent, useState } from 'react';
+import { Button } from '@material-ui/core';
+import React from 'react';
 import { loadKeyPairFromStorage } from './key_pair_storage';
 import { KeyPair } from '../crypto';
 
 export interface Props {
   setEthDmKeyPair: (keyPair: KeyPair) => void;
   disabled: boolean;
+  password: string | undefined;
 }
 
-export function LoadKeyPair({ disabled, setEthDmKeyPair }: Props) {
-  const [password, setPassword] = useState<string>();
-
-  const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setPassword(event.target.value);
-  };
-
+export function LoadKeyPair({ password, disabled, setEthDmKeyPair }: Props) {
   const loadKeyPair = () => {
     if (disabled) return;
     if (!password) return;
@@ -26,29 +21,13 @@ export function LoadKeyPair({ disabled, setEthDmKeyPair }: Props) {
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-      }}
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={loadKeyPair}
+      disabled={!password || disabled}
     >
-      <TextField
-        id="password-input"
-        label="Password"
-        variant="filled"
-        type="password"
-        onChange={handlePasswordChange}
-        value={password}
-      />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={loadKeyPair}
-        disabled={!password || disabled}
-      >
-        Load Eth-DM Key Pair from storage
-      </Button>
-    </div>
+      Load Eth-DM Key Pair from storage
+    </Button>
   );
 }

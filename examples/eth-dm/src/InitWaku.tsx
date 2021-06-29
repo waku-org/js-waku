@@ -79,7 +79,7 @@ export default function InitWaku({
     };
   });
 
-  return <p>{!!waku ? 'Waku is ready' : 'Waku is loading'}</p>;
+  return <div />;
 }
 
 async function initWaku(): Promise<Waku> {

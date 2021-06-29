@@ -9,15 +9,60 @@ import { createPublicKeyMessage, KeyPair } from './crypto';
 import { encode, PublicKeyMessage } from './messages';
 import Messages, { Message } from './Messages';
 import 'fontsource-roboto';
-import { Button } from '@material-ui/core';
+import {
+  AppBar,
+  Button,
+  IconButton,
+  Toolbar,
+  Typography,
+} from '@material-ui/core';
 import SendMessage from './SendMessage';
 import KeyPairHandling from './key_pair_handling/KeyPairHandling';
 import InitWaku from './InitWaku';
+import {
+  createMuiTheme,
+  ThemeProvider,
+  makeStyles,
+} from '@material-ui/core/styles';
+import { teal, purple, green } from '@material-ui/core/colors';
+import WifiIcon from '@material-ui/icons/Wifi';
 
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
 
 declare let window: any;
+
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      main: purple[500],
+    },
+    secondary: {
+      main: teal[600],
+    },
+  },
+});
+
+const useStyles = makeStyles({
+  root: {
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100vh',
+  },
+  appBar: {
+    // height: '200p',
+  },
+  container: {
+    display: 'flex',
+    flex: 1,
+  },
+  main: {
+    flex: 1,
+    margin: '10px',
+  },
+  wakuStatus: {},
+});
 
 function App() {
   const [waku, setWaku] = useState<Waku>();
@@ -27,6 +72,8 @@ function App() {
   const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
   const [messages, setMessages] = useState<Message[]>([]);
   const [address, setAddress] = useState<string>();
+
+  const classes = useStyles();
 
   useEffect(() => {
     if (provider) return;
@@ -72,34 +119,58 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <InitWaku
-          ethDmKeyPair={ethDmKeyPair}
-          setMessages={setMessages}
-          setPublicKeys={setPublicKeys}
-          setWaku={setWaku}
-          waku={waku}
-          address={address}
-        />
-        <KeyPairHandling
-          ethDmKeyPair={ethDmKeyPair}
-          setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
-        />
-        <div>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={broadcastPublicKey}
-            disabled={!ethDmKeyPair || !waku}
-          >
-            Broadcast Eth-DM Public Key
-          </Button>
+    <ThemeProvider theme={theme}>
+      <div className={classes.root}>
+        <AppBar className={classes.appBar} position="static">
+          <Toolbar>
+            <Typography>Ethereum Direct Message</Typography>
+            <IconButton
+              edge="end"
+              className={classes.wakuStatus}
+              aria-label="waku-status"
+            >
+              <WifiIcon
+                color={waku ? undefined : 'disabled'}
+                style={waku ? { color: green[500] } : {}}
+              />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+
+        <div className={classes.container}>
+          <main className={classes.main}>
+            <InitWaku
+              ethDmKeyPair={ethDmKeyPair}
+              setMessages={setMessages}
+              setPublicKeys={setPublicKeys}
+              setWaku={setWaku}
+              waku={waku}
+              address={address}
+            />
+            <fieldset>
+              <legend>Eth-DM Key Pair</legend>
+              <KeyPairHandling
+                ethDmKeyPair={ethDmKeyPair}
+                setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={broadcastPublicKey}
+                disabled={!ethDmKeyPair || !waku}
+              >
+                Broadcast Eth-DM Public Key
+              </Button>
+            </fieldset>
+            <fieldset>
+              <legend>Messaging</legend>
+              <SendMessage recipients={publicKeys} waku={waku} />
+              <Messages messages={messages} />
+            </fieldset>
+          </main>
         </div>
-        <SendMessage recipients={publicKeys} waku={waku} />
-        <Messages messages={messages} />
-      </header>
-    </div>
+      </div>
+    </ThemeProvider>
   );
 }
 
