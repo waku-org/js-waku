@@ -81,7 +81,10 @@ export default function InitWaku({
     };
   });
 
-  return <div />;
+  // Returns an empty fragment.
+  // Taking advantages of React's state management and useEffect()
+  // Not sure it is best practice but it works.
+  return <></>;
 }
 
 async function initWaku(): Promise<Waku> {
