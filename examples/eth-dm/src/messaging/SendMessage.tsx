@@ -8,9 +8,9 @@ import {
 } from '@material-ui/core';
 import React, { ChangeEvent, useState, KeyboardEvent } from 'react';
 import { Waku, WakuMessage } from 'js-waku';
-import * as EthCrypto from 'eth-crypto';
-import { DirectMessage, encode } from './messages';
-import { DirectMessageContentTopic } from './App';
+import { DirectMessage, encode } from './wire';
+import { encryptMessage } from '../crypto';
+import { DirectMessageContentTopic } from '../InitWaku';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -28,12 +28,10 @@ export interface Props {
   recipients: Map<string, string>;
 }
 
-export function SendMessage(props: Props) {
+export default function SendMessage({ waku, recipients }: Props) {
   const classes = useStyles();
   const [recipient, setRecipient] = useState<string>('');
   const [message, setMessage] = useState<string>();
-
-  const waku = props.waku;
 
   const handleRecipientChange = (
     event: ChangeEvent<{ name?: string; value: unknown }>
@@ -45,7 +43,7 @@ export function SendMessage(props: Props) {
     setMessage(event.target.value);
   };
 
-  const items = Array.from(props.recipients.keys()).map((recipient) => {
+  const items = Array.from(recipients.keys()).map((recipient) => {
     return (
       <MenuItem key={recipient} value={recipient}>
         {recipient}
@@ -63,7 +61,7 @@ export function SendMessage(props: Props) {
       if (!waku) return;
       if (!recipient) return;
       if (!message) return;
-      const publicKey = props.recipients.get(recipient);
+      const publicKey = recipients.get(recipient);
       if (!publicKey) return;
 
       sendMessage(waku, recipient, publicKey, message, (res) => {
@@ -111,7 +109,7 @@ async function encodeEncryptedWakuMessage(
   publicKey: string,
   address: string
 ): Promise<WakuMessage> {
-  const encryptedMsg = await EthCrypto.encryptWithPublicKey(publicKey, message);
+  const encryptedMsg = await encryptMessage(publicKey, message);
 
   const directMsg: DirectMessage = {
     toAddress: address,

@@ -1,40 +1,74 @@
 import '@ethersproject/shims';
 
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
-import { Environment, getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
+import { Waku } from 'js-waku';
 import { ethers } from 'ethers';
 import { Web3Provider } from '@ethersproject/providers';
-import {
-  createPublicKeyMessage,
-  generateEthDmKeyPair,
-  KeyPair,
-  validatePublicKeyMessage,
-} from './crypto';
-import * as EthCrypto from 'eth-crypto';
-import { decode, DirectMessage, encode, PublicKeyMessage } from './messages';
-import { Message, Messages } from './Messages';
+import { KeyPair } from './crypto';
+import { Message } from './messaging/Messages';
 import 'fontsource-roboto';
-import { Button } from '@material-ui/core';
-import { SendMessage } from './SendMessage';
-
-export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
-export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
+import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
+import KeyPairHandling from './key_pair_handling/KeyPairHandling';
+import InitWaku from './InitWaku';
+import {
+  createMuiTheme,
+  ThemeProvider,
+  makeStyles,
+} from '@material-ui/core/styles';
+import { teal, purple, green } from '@material-ui/core/colors';
+import WifiIcon from '@material-ui/icons/Wifi';
+import BroadcastPublicKey from './BroadcastPublicKey';
+import Messaging from './messaging/Messaging';
 
 declare let window: any;
+
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      main: purple[500],
+    },
+    secondary: {
+      main: teal[600],
+    },
+  },
+});
+
+const useStyles = makeStyles({
+  root: {
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100vh',
+  },
+  appBar: {
+    // height: '200p',
+  },
+  container: {
+    display: 'flex',
+    flex: 1,
+  },
+  main: {
+    flex: 1,
+    margin: '10px',
+  },
+  wakuStatus: {},
+});
 
 function App() {
   const [waku, setWaku] = useState<Waku>();
   const [provider, setProvider] = useState<Web3Provider>();
-  const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair>();
-  const [publicKeyMsg, setPublicKeyMsg] = useState<PublicKeyMessage>();
+  const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair | undefined>();
   const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
   const [messages, setMessages] = useState<Message[]>([]);
+  const [address, setAddress] = useState<string>();
+
+  const classes = useStyles();
 
   useEffect(() => {
     if (provider) return;
     try {
-      window.ethereum.enable();
+      window.ethereum.request({ method: 'eth_requestAccounts' });
       const _provider = new ethers.providers.Web3Provider(window.ethereum);
       setProvider(_provider);
     } catch (e) {
@@ -43,193 +77,66 @@ function App() {
   }, [provider]);
 
   useEffect(() => {
-    if (waku) return;
-    initWaku()
-      .then((wakuNode) => {
-        console.log('waku: ready');
-        setWaku(wakuNode);
-      })
-      .catch((e) => {
-        console.error('Failed to initiate Waku', e);
-      });
-  }, [waku]);
-
-  const generateKeyPair = () => {
-    if (ethDmKeyPair) return;
-    if (!provider) return;
-
-    generateEthDmKeyPair(provider.getSigner())
-      .then((keyPair) => {
-        setEthDmKeyPair(keyPair);
-      })
-      .catch((e) => {
-        console.error('Failed to generate Key Pair', e);
-      });
-  };
-
-  const observerPublicKeyMessage = handlePublicKeyMessage.bind(
-    {},
-    setPublicKeys
-  );
-
-  const observerDirectMessage = ethDmKeyPair
-    ? handleDirectMessage.bind({}, setMessages, ethDmKeyPair.privateKey)
-    : undefined;
-
-  useEffect(() => {
-    if (!waku) return;
-    waku.relay.addObserver(observerPublicKeyMessage, [PublicKeyContentTopic]);
-
-    return function cleanUp() {
-      if (!waku) return;
-      waku.relay.deleteObserver(observerPublicKeyMessage, [
-        PublicKeyContentTopic,
-      ]);
-    };
+    provider
+      ?.getSigner()
+      .getAddress()
+      .then((address) => setAddress(address));
   });
-
-  useEffect(() => {
-    if (!waku) return;
-    if (!observerDirectMessage) return;
-    waku.relay.addObserver(observerDirectMessage, [DirectMessageContentTopic]);
-
-    return function cleanUp() {
-      if (!waku) return;
-      if (!observerDirectMessage) return;
-      waku.relay.deleteObserver(observerDirectMessage, [
-        DirectMessageContentTopic,
-      ]);
-    };
-  });
-
-  const broadcastPublicKey = () => {
-    if (!ethDmKeyPair) return;
-    if (!provider) return;
-    if (!waku) return;
-
-    if (publicKeyMsg) {
-      const wakuMsg = encodePublicKeyWakuMessage(publicKeyMsg);
-      waku.lightPush.push(wakuMsg).catch((e) => {
-        console.error('Failed to send Public Key Message');
-      });
-    } else {
-      createPublicKeyMessage(provider.getSigner(), ethDmKeyPair.publicKey)
-        .then((msg) => {
-          setPublicKeyMsg(msg);
-          const wakuMsg = encodePublicKeyWakuMessage(msg);
-          waku.lightPush.push(wakuMsg).catch((e) => {
-            console.error('Failed to send Public Key Message');
-          });
-        })
-        .catch((e) => {
-          console.error('Failed to creat Eth-Dm Publication message', e);
-        });
-    }
-  };
-
-  const wakuReady = !!waku ? 'Waku is ready' : 'Waku is loading';
 
   return (
-    <div className="App">
-      <header className="App-header">
-        {wakuReady}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={generateKeyPair}
-            disabled={!provider}
-          >
-            Generate Eth-DM Key Pair
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={broadcastPublicKey}
-            disabled={!ethDmKeyPair || !waku}
-          >
-            Broadcast Eth-DM Public Key
-          </Button>
+    <ThemeProvider theme={theme}>
+      <div className={classes.root}>
+        <AppBar className={classes.appBar} position="static">
+          <Toolbar>
+            <Typography>Ethereum Direct Message</Typography>
+            <IconButton
+              edge="end"
+              className={classes.wakuStatus}
+              aria-label="waku-status"
+            >
+              <WifiIcon
+                color={waku ? undefined : 'disabled'}
+                style={waku ? { color: green[500] } : {}}
+              />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+
+        <div className={classes.container}>
+          <main className={classes.main}>
+            <InitWaku
+              ethDmKeyPair={ethDmKeyPair}
+              setMessages={setMessages}
+              setPublicKeys={setPublicKeys}
+              setWaku={setWaku}
+              waku={waku}
+              address={address}
+            />
+            <fieldset>
+              <legend>Eth-DM Key Pair</legend>
+              <KeyPairHandling
+                ethDmKeyPair={ethDmKeyPair}
+                setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
+              />
+              <BroadcastPublicKey
+                signer={provider?.getSigner()}
+                ethDmKeyPair={ethDmKeyPair}
+                waku={waku}
+              />
+            </fieldset>
+            <fieldset>
+              <legend>Messaging</legend>
+              <Messaging
+                recipients={publicKeys}
+                waku={waku}
+                messages={messages}
+              />
+            </fieldset>
+          </main>
         </div>
-        <SendMessage recipients={publicKeys} waku={waku} />
-        <Messages messages={messages} />
-      </header>
-    </div>
+      </div>
+    </ThemeProvider>
   );
 }
 
 export default App;
-
-async function initWaku(): Promise<Waku> {
-  const waku = await Waku.create({});
-
-  const nodes = await getNodes();
-  await Promise.all(
-    nodes.map((addr) => {
-      return waku.dial(addr);
-    })
-  );
-
-  return waku;
-}
-
-function getNodes() {
-  // Works with react-scripts
-  if (process?.env?.NODE_ENV === 'development') {
-    return getStatusFleetNodes(Environment.Test);
-  } else {
-    return getStatusFleetNodes(Environment.Prod);
-  }
-}
-
-function encodePublicKeyWakuMessage(ethDmMsg: PublicKeyMessage): WakuMessage {
-  const payload = encode(ethDmMsg);
-  return WakuMessage.fromBytes(payload, PublicKeyContentTopic);
-}
-
-function handlePublicKeyMessage(
-  setter: Dispatch<SetStateAction<Map<string, string>>>,
-  msg: WakuMessage
-) {
-  if (!msg.payload) return;
-  const publicKeyMsg: PublicKeyMessage = decode(msg.payload);
-  const res = validatePublicKeyMessage(publicKeyMsg);
-  console.log(`Public Key Message Received, valid: ${res}`, publicKeyMsg);
-
-  setter((prevPks: Map<string, string>) => {
-    prevPks.set(publicKeyMsg.ethAddress, publicKeyMsg.ethDmPublicKey);
-    return new Map(prevPks);
-  });
-}
-
-async function handleDirectMessage(
-  setter: Dispatch<SetStateAction<Message[]>>,
-  privateKey: string,
-  wakuMsg: WakuMessage
-) {
-  console.log('Waku Message received:', wakuMsg);
-  if (!wakuMsg.payload) return;
-  const directMessage: DirectMessage = decode(wakuMsg.payload);
-  const text = await EthCrypto.decryptWithPrivateKey(
-    privateKey,
-    directMessage.encMessage
-  );
-
-  const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
-
-  console.log('Message decrypted:', text);
-  setter((prevMsgs: Message[]) => {
-    const copy = prevMsgs.slice();
-    copy.push({
-      text: text,
-      timestamp: timestamp,
-    });
-    return copy;
-  });
-}
