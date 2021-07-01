@@ -1,7 +1,7 @@
 import { Button } from '@material-ui/core';
 import React, { useState } from 'react';
 import { createPublicKeyMessage, KeyPair } from './crypto';
-import { encode, PublicKeyMessage } from './messaging/wire';
+import { PublicKeyMessage } from './messaging/wire';
 import { WakuMessage, Waku } from 'js-waku';
 import { Signer } from '@ethersproject/abstract-signer';
 import { PublicKeyContentTopic } from './InitWaku';
@@ -56,7 +56,9 @@ export default function BroadcastPublicKey({
   );
 }
 
-function encodePublicKeyWakuMessage(ethDmMsg: PublicKeyMessage): WakuMessage {
-  const payload = encode(ethDmMsg);
+function encodePublicKeyWakuMessage(
+  publicKeyMessage: PublicKeyMessage
+): WakuMessage {
+  const payload = publicKeyMessage.encode();
   return WakuMessage.fromBytes(payload, PublicKeyContentTopic);
 }

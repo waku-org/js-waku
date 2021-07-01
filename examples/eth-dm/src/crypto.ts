@@ -3,7 +3,11 @@ import '@ethersproject/shims';
 import * as EthCrypto from 'eth-crypto';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
-import { DirectMessage, PublicKeyMessage } from './messaging/wire';
+import {
+  bytesToHexStr,
+  DirectMessage,
+  PublicKeyMessage,
+} from './messaging/wire';
 
 export interface KeyPair {
   privateKey: string;
@@ -29,10 +33,19 @@ export async function createPublicKeyMessage(
   ethDmPublicKey: string
 ): Promise<PublicKeyMessage> {
   const ethAddress = await web3Signer.getAddress();
-  const sig = await web3Signer.signMessage(
+  const signature = await web3Signer.signMessage(
     formatPublicKeyForSignature(ethDmPublicKey)
   );
-  return { ethDmPublicKey, ethAddress, sig };
+
+  const bytesEthDmPublicKey = Buffer.from(ethDmPublicKey, 'hex');
+  const bytesEthAddress = Buffer.from(ethAddress.replace(/0x/, ''), 'hex');
+  const bytesSignature = Buffer.from(signature.replace(/0x/, ''), 'hex');
+
+  return new PublicKeyMessage({
+    ethDmPublicKey: bytesEthDmPublicKey,
+    ethAddress: bytesEthAddress,
+    signature: bytesSignature,
+  });
 }
 
 /**
@@ -41,10 +54,10 @@ export async function createPublicKeyMessage(
 export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
   try {
     const sigAddress = ethers.utils.verifyMessage(
-      formatPublicKeyForSignature(msg.ethDmPublicKey),
-      msg.sig
+      formatPublicKeyForSignature(bytesToHexStr(msg.ethDmPublicKey)),
+      msg.signature
     );
-    return sigAddress === msg.ethAddress;
+    return sigAddress === bytesToHexStr(msg.ethAddress);
   } catch (e) {
     return false;
   }

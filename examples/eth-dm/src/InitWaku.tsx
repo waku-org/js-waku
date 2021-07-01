@@ -1,10 +1,15 @@
 import { Dispatch, SetStateAction, useEffect } from 'react';
 import { Environment, getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
-import { decode, DirectMessage, PublicKeyMessage } from './messaging/wire';
+import {
+  bytesToHexStr,
+  decode,
+  DirectMessage,
+  PublicKeyMessage,
+} from './messaging/wire';
 import { decryptMessage, KeyPair, validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
 
-export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
+export const PublicKeyContentTopic = '/eth-dm/1/public-key/proto';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
 
 interface Props {
@@ -115,13 +120,15 @@ function handlePublicKeyMessage(
   msg: WakuMessage
 ) {
   if (!msg.payload) return;
-  const publicKeyMsg: PublicKeyMessage = decode(msg.payload);
-  if (publicKeyMsg.ethDmPublicKey === myPublicKey) return;
+  const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
+  const ethDmPublicKey = bytesToHexStr(publicKeyMsg.ethDmPublicKey);
+  if (ethDmPublicKey === myPublicKey) return;
+
   const res = validatePublicKeyMessage(publicKeyMsg);
   console.log(`Public Key Message Received, valid: ${res}`, publicKeyMsg);
 
   setter((prevPks: Map<string, string>) => {
-    prevPks.set(publicKeyMsg.ethAddress, publicKeyMsg.ethDmPublicKey);
+    prevPks.set(bytesToHexStr(publicKeyMsg.ethAddress), ethDmPublicKey);
     return new Map(prevPks);
   });
 }
