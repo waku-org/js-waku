@@ -1,0 +1,78 @@
+name: Deploy GH Pages for PRs
+
+on:
+  pull_request:
+
+jobs:
+  deploy_gh_pages_pr:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set git author identity
+        run: |
+          git config user.name "GitHub Action On js-waku Repo"
+          git config user.email "franck+ghpages@status.im"
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Cache npm cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: node-v1-${{ hashFiles('**/package-lock.json') }}
+
+      - name: "[js-waku] install using npm ci"
+        uses: bahmutov/npm-install@v1
+
+      - name: "[js-waku] build"
+        run: npm run build
+
+      - name: "[web-chat] install using npm i"
+        run: npm install
+        working-directory: examples/web-chat
+
+      - name: "[web-chat] build"
+        run: npm run build
+        working-directory: examples/web-chat
+
+      - name: "[web-chat] Deploy on gh pages to /"
+        if: ${{ github.event.number }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./examples/web-chat/build
+          destination_dir: ${{ github.event.number }}
+
+      - name: "[eth-dm] install using npm i"
+        run: npm install
+        working-directory: examples/eth-dm
+
+      - name: "[eth-dm] build"
+        run: npm run build
+        working-directory: examples/eth-dm
+
+      - name: "[eth-dm] Deploy on gh pages to /eth-dm"
+        if: ${{ github.event.number }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./examples/eth-dm/build
+          destination_dir: ${{ github.event.number }}/eth-dm
+
+      - name: Generate docs
+        run: npm run doc:html
+
+      - name: Deploy documentation on gh pages
+        if: ${{ github.event.number }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          keep_files: true # Do not delete web chat app
+          publish_dir: ./build/docs
+          destination_dir: ${{ github.event.number }}/docs
