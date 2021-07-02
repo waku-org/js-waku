@@ -114,7 +114,7 @@ export class WakuRelay extends Gossipsub {
    */
   public async send(message: WakuMessage): Promise<void> {
     const msg = message.encode();
-    await super.publish(this.pubsubTopic, Buffer.from(msg));
+    await super.publish(this.pubsubTopic, new Buffer(msg));
   }
 
   /**
