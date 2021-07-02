@@ -121,6 +121,7 @@ function handlePublicKeyMessage(
 ) {
   if (!msg.payload) return;
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
+  if (!publicKeyMsg) return;
   const ethDmPublicKey = bytesToHexStr(publicKeyMsg.ethDmPublicKey);
   if (ethDmPublicKey === myPublicKey) return;
 

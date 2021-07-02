@@ -30,10 +30,16 @@ export class PublicKeyMessage {
     return PublicKeyMessage.Type.encode(message).finish();
   }
 
-  public static decode(bytes: Uint8Array | Buffer): PublicKeyMessage {
+  public static decode(
+    bytes: Uint8Array | Buffer
+  ): PublicKeyMessage | undefined {
     const payload = PublicKeyMessage.Type.decode(
       bytes
     ) as unknown as PublicKeyMessagePayload;
+    if (!payload.signature || !payload.ethDmPublicKey || !payload.ethAddress) {
+      console.log('Field missing on decoded Public Key Message', payload);
+      return;
+    }
     return new PublicKeyMessage(payload);
   }
 
