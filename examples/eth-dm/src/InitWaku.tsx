@@ -1,10 +1,15 @@
 import { Dispatch, SetStateAction, useEffect } from 'react';
 import { Environment, getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
-import { decode, DirectMessage, PublicKeyMessage } from './messaging/wire';
+import {
+  bytesToHexStr,
+  decode,
+  DirectMessage,
+  PublicKeyMessage,
+} from './messaging/wire';
 import { decryptMessage, KeyPair, validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
 
-export const PublicKeyContentTopic = '/eth-dm/1/public-key/json';
+export const PublicKeyContentTopic = '/eth-dm/1/public-key/proto';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
 
 interface Props {
@@ -114,16 +119,22 @@ function handlePublicKeyMessage(
   setter: Dispatch<SetStateAction<Map<string, string>>>,
   msg: WakuMessage
 ) {
+  console.log('Public Key Message received:', msg);
   if (!msg.payload) return;
-  const publicKeyMsg: PublicKeyMessage = decode(msg.payload);
-  if (publicKeyMsg.ethDmPublicKey === myPublicKey) return;
-  const res = validatePublicKeyMessage(publicKeyMsg);
-  console.log(`Public Key Message Received, valid: ${res}`, publicKeyMsg);
+  const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
+  if (!publicKeyMsg) return;
+  const ethDmPublicKey = bytesToHexStr(publicKeyMsg.ethDmPublicKey);
+  if (ethDmPublicKey === myPublicKey) return;
 
-  setter((prevPks: Map<string, string>) => {
-    prevPks.set(publicKeyMsg.ethAddress, publicKeyMsg.ethDmPublicKey);
-    return new Map(prevPks);
-  });
+  const res = validatePublicKeyMessage(publicKeyMsg);
+  console.log('Is Public Key Message valid?', res);
+
+  if (res) {
+    setter((prevPks: Map<string, string>) => {
+      prevPks.set(bytesToHexStr(publicKeyMsg.ethAddress), ethDmPublicKey);
+      return new Map(prevPks);
+    });
+  }
 }
 
 async function handleDirectMessage(
@@ -132,10 +143,11 @@ async function handleDirectMessage(
   address: string,
   wakuMsg: WakuMessage
 ) {
-  console.log('Waku Message received:', wakuMsg);
+  console.log('Direct Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
   const directMessage: DirectMessage = decode(wakuMsg.payload);
-  if (directMessage.toAddress !== address) return;
+  // Do not return our own messages
+  if (directMessage.toAddress === address) return;
 
   const text = await decryptMessage(privateKey, directMessage);
 

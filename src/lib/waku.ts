@@ -76,15 +76,20 @@ export class Waku {
     this.lightPush = lightPush;
     this.keepAliveTimers = {};
 
-    const keepAlive = options.keepAlive ? options.keepAlive : 10;
+    const keepAlive = options.keepAlive !== undefined ? options.keepAlive : 10;
 
-    libp2p.connectionManager.on('peer:connect', (connection: Connection) => {
-      this.startKeepAlive(connection.remotePeer, keepAlive);
-    });
+    if (keepAlive !== 0) {
+      libp2p.connectionManager.on('peer:connect', (connection: Connection) => {
+        this.startKeepAlive(connection.remotePeer, keepAlive);
+      });
 
-    libp2p.connectionManager.on('peer:disconnect', (connection: Connection) => {
-      this.stopKeepAlive(connection.remotePeer);
-    });
+      libp2p.connectionManager.on(
+        'peer:disconnect',
+        (connection: Connection) => {
+          this.stopKeepAlive(connection.remotePeer);
+        }
+      );
+    }
   }
 
   /**

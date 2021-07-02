@@ -83,6 +83,11 @@ function App() {
       .then((address) => setAddress(address));
   });
 
+  let peers;
+  if (waku) {
+    peers = waku.libp2p.connectionManager.connections.size;
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.root}>
@@ -99,6 +104,7 @@ function App() {
                 style={waku ? { color: green[500] } : {}}
               />
             </IconButton>
+            <Typography>{peers}</Typography>
           </Toolbar>
         </AppBar>
 

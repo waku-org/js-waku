@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Auto select peer if none provided for store and light push protocols.
 - Upgrade to `libp2p@0.31.7` and `libp2p-gossipsub@0.10.0` to avoid `TextEncoder` errors in ReactJS tests.
 
+### Fixed
+- Disable `keepAlive` if set to `0`.
+
 ## [0.7.0] - 2021-06-15
 
 ### Changed

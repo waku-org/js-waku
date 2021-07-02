@@ -3,7 +3,11 @@ import '@ethersproject/shims';
 import * as EthCrypto from 'eth-crypto';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
-import { DirectMessage, PublicKeyMessage } from './messaging/wire';
+import {
+  bytesToHexStr,
+  DirectMessage,
+  PublicKeyMessage,
+} from './messaging/wire';
 
 export interface KeyPair {
   privateKey: string;
@@ -29,23 +33,46 @@ export async function createPublicKeyMessage(
   ethDmPublicKey: string
 ): Promise<PublicKeyMessage> {
   const ethAddress = await web3Signer.getAddress();
-  const sig = await web3Signer.signMessage(
-    formatPublicKeyForSignature(ethDmPublicKey)
+  const bytesEthDmPublicKey = Buffer.from(
+    ethDmPublicKey.replace(/0x/, ''),
+    'hex'
   );
-  return { ethDmPublicKey, ethAddress, sig };
+  const signature = await web3Signer.signMessage(
+    formatPublicKeyForSignature(bytesEthDmPublicKey)
+  );
+
+  const bytesEthAddress = Buffer.from(ethAddress.replace(/0x/, ''), 'hex');
+  const bytesSignature = Buffer.from(signature.replace(/0x/, ''), 'hex');
+
+  return new PublicKeyMessage({
+    ethDmPublicKey: bytesEthDmPublicKey,
+    ethAddress: bytesEthAddress,
+    signature: bytesSignature,
+  });
 }
 
 /**
  * Validate that the EthDm Public Key was signed by the holder of the given Ethereum address.
  */
 export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
+  const formattedMsg = formatPublicKeyForSignature(msg.ethDmPublicKey);
   try {
-    const sigAddress = ethers.utils.verifyMessage(
-      formatPublicKeyForSignature(msg.ethDmPublicKey),
-      msg.sig
+    const sigAddress = ethers.utils.verifyMessage(formattedMsg, msg.signature);
+    const sigAddressBytes = Buffer.from(sigAddress.replace(/0x/, ''), 'hex');
+    // Compare the actual byte arrays instead of strings that may differ in casing or prefixing.
+    const cmp = sigAddressBytes.compare(new Buffer(msg.ethAddress));
+    console.log(
+      `Buffer comparison result: ${cmp} for (signature address, message address)`,
+      sigAddressBytes,
+      msg.ethAddress
     );
-    return sigAddress === msg.ethAddress;
+    return cmp === 0;
   } catch (e) {
+    console.log(
+      'Failed to verify signature for Public Key Message',
+      formattedMsg,
+      msg
+    );
     return false;
   }
 }
@@ -57,9 +84,9 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
  * The usage of the object helps ensure the signature is only used in an Eth-DM
  * context.
  */
-function formatPublicKeyForSignature(ethDmPublicKey: string): string {
+function formatPublicKeyForSignature(ethDmPublicKey: Uint8Array): string {
   return JSON.stringify({
-    ethDmPublicKey,
+    ethDmPublicKey: bytesToHexStr(ethDmPublicKey),
   });
 }
 
