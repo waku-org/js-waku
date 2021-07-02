@@ -144,7 +144,8 @@ async function handleDirectMessage(
   console.log('Direct Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
   const directMessage: DirectMessage = decode(wakuMsg.payload);
-  if (directMessage.toAddress !== address) return;
+  // Do not return our own messages
+  if (directMessage.toAddress === address) return;
 
   const text = await decryptMessage(privateKey, directMessage);
 
