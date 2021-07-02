@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Waku } from 'js-waku';
 import { ethers } from 'ethers';
-import { Web3Provider } from '@ethersproject/providers';
+import { Signer } from '@ethersproject/abstract-signer';
 import { KeyPair } from './crypto';
 import { Message } from './messaging/Messages';
 import 'fontsource-roboto';
@@ -57,7 +57,7 @@ const useStyles = makeStyles({
 
 function App() {
   const [waku, setWaku] = useState<Waku>();
-  const [provider, setProvider] = useState<Web3Provider>();
+  const [signer, setSigner] = useState<Signer>();
   const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair | undefined>();
   const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
   const [messages, setMessages] = useState<Message[]>([]);
@@ -66,22 +66,18 @@ function App() {
   const classes = useStyles();
 
   useEffect(() => {
-    if (provider) return;
     try {
-      window.ethereum.request({ method: 'eth_requestAccounts' });
-      const _provider = new ethers.providers.Web3Provider(window.ethereum);
-      setProvider(_provider);
+      window.ethereum
+        .request({ method: 'eth_requestAccounts' })
+        .then((accounts: string[]) => {
+          const _provider = new ethers.providers.Web3Provider(window.ethereum);
+          setAddress(accounts[0]);
+          setSigner(_provider.getSigner());
+        });
     } catch (e) {
       console.error('No web3 provider available');
     }
-  }, [provider]);
-
-  useEffect(() => {
-    provider
-      ?.getSigner()
-      .getAddress()
-      .then((address) => setAddress(address));
-  });
+  }, [address, signer]);
 
   let peers;
   if (waku) {
@@ -125,7 +121,7 @@ function App() {
                 setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
               />
               <BroadcastPublicKey
-                signer={provider?.getSigner()}
+                signer={signer}
                 ethDmKeyPair={ethDmKeyPair}
                 waku={waku}
               />
