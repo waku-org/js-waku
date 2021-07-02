@@ -55,9 +55,9 @@ export async function createPublicKeyMessage(
  * Validate that the EthDm Public Key was signed by the holder of the given Ethereum address.
  */
 export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
-  const formatedMsg = formatPublicKeyForSignature(msg.ethDmPublicKey);
+  const formattedMsg = formatPublicKeyForSignature(msg.ethDmPublicKey);
   try {
-    const sigAddress = ethers.utils.verifyMessage(formatedMsg, msg.signature);
+    const sigAddress = ethers.utils.verifyMessage(formattedMsg, msg.signature);
     const sigAddressBytes = Buffer.from(sigAddress.replace(/0x/, ''), 'hex');
     // Compare the actual byte arrays instead of strings that may differ in casing or prefixing.
     const cmp = sigAddressBytes.compare(new Buffer(msg.ethAddress));
@@ -70,7 +70,7 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
   } catch (e) {
     console.log(
       'Failed to verify signature for Public Key Message',
-      formatedMsg,
+      formattedMsg,
       msg
     );
     return false;
