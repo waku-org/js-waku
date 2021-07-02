@@ -119,6 +119,7 @@ function handlePublicKeyMessage(
   setter: Dispatch<SetStateAction<Map<string, string>>>,
   msg: WakuMessage
 ) {
+  console.log('Public Key Message received:', msg);
   if (!msg.payload) return;
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
   if (!publicKeyMsg) return;
@@ -140,7 +141,7 @@ async function handleDirectMessage(
   address: string,
   wakuMsg: WakuMessage
 ) {
-  console.log('Waku Message received:', wakuMsg);
+  console.log('Direct Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
   const directMessage: DirectMessage = decode(wakuMsg.payload);
   if (directMessage.toAddress !== address) return;
