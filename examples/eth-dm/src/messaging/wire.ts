@@ -16,7 +16,7 @@ const Root = protobuf.Root,
  */
 export class PublicKeyMessage {
   private static Type = new Type('PublicKeyMessage')
-    .add(new Field('PublicKeyMessage', 1, 'bytes'))
+    .add(new Field('ethDmPublicKey', 1, 'bytes'))
     .add(new Field('ethAddress', 2, 'bytes'))
     .add(new Field('signature', 3, 'bytes'));
   private static Root = new Root()
