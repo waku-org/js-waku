@@ -102,12 +102,7 @@ async function initWaku(): Promise<Waku> {
 }
 
 function getNodes() {
-  // Works with react-scripts
-  if (process?.env?.NODE_ENV === 'development') {
-    return getStatusFleetNodes(Environment.Test);
-  } else {
-    return getStatusFleetNodes(Environment.Prod);
-  }
+  return getStatusFleetNodes(Environment.Prod);
 }
 
 function handlePublicKeyMessage(
