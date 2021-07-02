@@ -52,7 +52,13 @@ const useStyles = makeStyles({
     flex: 1,
     margin: '10px',
   },
-  wakuStatus: {},
+  wakuStatus: {
+    marginRight: theme.spacing(2),
+  },
+  title: {
+    flexGrow: 1,
+  },
+  peers: {},
 });
 
 function App() {
@@ -79,9 +85,15 @@ function App() {
     }
   }, [address, signer]);
 
-  let peers;
+  let peers = 0;
   if (waku) {
     peers = waku.libp2p.connectionManager.connections.size;
+  }
+
+  let addressDisplay = '';
+  if (address) {
+    addressDisplay =
+      address.substr(0, 6) + '...' + address.substr(address.length - 4, 4);
   }
 
   return (
@@ -89,9 +101,8 @@ function App() {
       <div className={classes.root}>
         <AppBar className={classes.appBar} position="static">
           <Toolbar>
-            <Typography>Ethereum Direct Message</Typography>
             <IconButton
-              edge="end"
+              edge="start"
               className={classes.wakuStatus}
               aria-label="waku-status"
             >
@@ -100,7 +111,13 @@ function App() {
                 style={waku ? { color: green[500] } : {}}
               />
             </IconButton>
-            <Typography>{peers}</Typography>
+            <Typography className={classes.peers} aria-label="connected-peers">
+              {peers} peer{peers && peers > 1 ? 's' : ''}
+            </Typography>
+            <Typography variant="h6" className={classes.title}>
+              Ethereum Direct Message
+            </Typography>
+            <Typography>{addressDisplay}</Typography>
           </Toolbar>
         </AppBar>
 
