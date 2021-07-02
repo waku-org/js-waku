@@ -33,11 +33,14 @@ export async function createPublicKeyMessage(
   ethDmPublicKey: string
 ): Promise<PublicKeyMessage> {
   const ethAddress = await web3Signer.getAddress();
+  const bytesEthDmPublicKey = Buffer.from(
+    ethDmPublicKey.replace(/0x/, ''),
+    'hex'
+  );
   const signature = await web3Signer.signMessage(
-    formatPublicKeyForSignature(ethDmPublicKey)
+    formatPublicKeyForSignature(bytesEthDmPublicKey)
   );
 
-  const bytesEthDmPublicKey = Buffer.from(ethDmPublicKey, 'hex');
   const bytesEthAddress = Buffer.from(ethAddress.replace(/0x/, ''), 'hex');
   const bytesSignature = Buffer.from(signature.replace(/0x/, ''), 'hex');
 
@@ -52,13 +55,24 @@ export async function createPublicKeyMessage(
  * Validate that the EthDm Public Key was signed by the holder of the given Ethereum address.
  */
 export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
+  const formatedMsg = formatPublicKeyForSignature(msg.ethDmPublicKey);
   try {
-    const sigAddress = ethers.utils.verifyMessage(
-      formatPublicKeyForSignature(bytesToHexStr(msg.ethDmPublicKey)),
-      msg.signature
+    const sigAddress = ethers.utils.verifyMessage(formatedMsg, msg.signature);
+    const sigAddressBytes = Buffer.from(sigAddress.replace(/0x/, ''), 'hex');
+    // Compare the actual byte arrays instead of strings that may differ in casing or prefixing.
+    const cmp = sigAddressBytes.compare(new Buffer(msg.ethAddress));
+    console.log(
+      `Buffer comparison result: ${cmp} for (signature address, message address)`,
+      sigAddressBytes,
+      msg.ethAddress
     );
-    return sigAddress === bytesToHexStr(msg.ethAddress);
+    return cmp === 0;
   } catch (e) {
+    console.log(
+      'Failed to verify signature for Public Key Message',
+      formatedMsg,
+      msg
+    );
     return false;
   }
 }
@@ -70,9 +84,9 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
  * The usage of the object helps ensure the signature is only used in an Eth-DM
  * context.
  */
-function formatPublicKeyForSignature(ethDmPublicKey: string): string {
+function formatPublicKeyForSignature(ethDmPublicKey: Uint8Array): string {
   return JSON.stringify({
-    ethDmPublicKey,
+    ethDmPublicKey: bytesToHexStr(ethDmPublicKey),
   });
 }
 

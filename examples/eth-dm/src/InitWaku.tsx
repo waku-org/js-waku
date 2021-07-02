@@ -127,12 +127,14 @@ function handlePublicKeyMessage(
   if (ethDmPublicKey === myPublicKey) return;
 
   const res = validatePublicKeyMessage(publicKeyMsg);
-  console.log(`Public Key Message Received, valid: ${res}`, publicKeyMsg);
+  console.log('Is Public Key Message valid?', res);
 
-  setter((prevPks: Map<string, string>) => {
-    prevPks.set(bytesToHexStr(publicKeyMsg.ethAddress), ethDmPublicKey);
-    return new Map(prevPks);
-  });
+  if (res) {
+    setter((prevPks: Map<string, string>) => {
+      prevPks.set(bytesToHexStr(publicKeyMsg.ethAddress), ethDmPublicKey);
+      return new Map(prevPks);
+    });
+  }
 }
 
 async function handleDirectMessage(
