@@ -3,11 +3,8 @@ import '@ethersproject/shims';
 import * as EthCrypto from 'eth-crypto';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
-import {
-  bytesToHexStr,
-  DirectMessage,
-  PublicKeyMessage,
-} from './messaging/wire';
+import { DirectMessage, PublicKeyMessage } from './messaging/wire';
+import { byteArrayToHex, hexToBuf } from './utils';
 
 export interface KeyPair {
   privateKey: string;
@@ -33,21 +30,15 @@ export async function createPublicKeyMessage(
   ethDmPublicKey: string
 ): Promise<PublicKeyMessage> {
   const ethAddress = await web3Signer.getAddress();
-  const bytesEthDmPublicKey = Buffer.from(
-    ethDmPublicKey.replace(/0x/, ''),
-    'hex'
-  );
+  const bytesEthDmPublicKey = hexToBuf(ethDmPublicKey);
   const signature = await web3Signer.signMessage(
     formatPublicKeyForSignature(bytesEthDmPublicKey)
   );
 
-  const bytesEthAddress = Buffer.from(ethAddress.replace(/0x/, ''), 'hex');
-  const bytesSignature = Buffer.from(signature.replace(/0x/, ''), 'hex');
-
   return new PublicKeyMessage({
     ethDmPublicKey: bytesEthDmPublicKey,
-    ethAddress: bytesEthAddress,
-    signature: bytesSignature,
+    ethAddress: hexToBuf(ethAddress),
+    signature: hexToBuf(signature),
   });
 }
 
@@ -58,7 +49,7 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
   const formattedMsg = formatPublicKeyForSignature(msg.ethDmPublicKey);
   try {
     const sigAddress = ethers.utils.verifyMessage(formattedMsg, msg.signature);
-    const sigAddressBytes = Buffer.from(sigAddress.replace(/0x/, ''), 'hex');
+    const sigAddressBytes = hexToBuf(sigAddress);
     // Compare the actual byte arrays instead of strings that may differ in casing or prefixing.
     const cmp = sigAddressBytes.compare(new Buffer(msg.ethAddress));
     console.log(
@@ -86,7 +77,7 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
  */
 function formatPublicKeyForSignature(ethDmPublicKey: Uint8Array): string {
   return JSON.stringify({
-    ethDmPublicKey: bytesToHexStr(ethDmPublicKey),
+    ethDmPublicKey: byteArrayToHex(ethDmPublicKey),
   });
 }
 

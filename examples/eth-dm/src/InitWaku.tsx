@@ -1,13 +1,9 @@
 import { Dispatch, SetStateAction, useEffect } from 'react';
 import { Environment, getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
-import {
-  bytesToHexStr,
-  decode,
-  DirectMessage,
-  PublicKeyMessage,
-} from './messaging/wire';
+import { decode, DirectMessage, PublicKeyMessage } from './messaging/wire';
 import { decryptMessage, KeyPair, validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
+import { byteArrayToHex } from './utils';
 
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/proto';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
@@ -123,7 +119,7 @@ function handlePublicKeyMessage(
   if (!msg.payload) return;
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
   if (!publicKeyMsg) return;
-  const ethDmPublicKey = bytesToHexStr(publicKeyMsg.ethDmPublicKey);
+  const ethDmPublicKey = byteArrayToHex(publicKeyMsg.ethDmPublicKey);
   if (ethDmPublicKey === myPublicKey) return;
 
   const res = validatePublicKeyMessage(publicKeyMsg);
@@ -131,7 +127,7 @@ function handlePublicKeyMessage(
 
   if (res) {
     setter((prevPks: Map<string, string>) => {
-      prevPks.set(bytesToHexStr(publicKeyMsg.ethAddress), ethDmPublicKey);
+      prevPks.set(byteArrayToHex(publicKeyMsg.ethAddress), ethDmPublicKey);
       return new Map(prevPks);
     });
   }
