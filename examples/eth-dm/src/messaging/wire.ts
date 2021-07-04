@@ -56,11 +56,6 @@ export class PublicKeyMessage {
   }
 }
 
-export function bytesToHexStr(bytes: Uint8Array): string {
-  const buf = new Buffer(bytes);
-  return buf.toString('hex');
-}
-
 /**
  * Direct Encrypted Message used for private communication over the Waku network.
  */

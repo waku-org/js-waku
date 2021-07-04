@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Waku } from 'js-waku';
 import { ethers } from 'ethers';
-import { Web3Provider } from '@ethersproject/providers';
+import { Signer } from '@ethersproject/abstract-signer';
 import { KeyPair } from './crypto';
 import { Message } from './messaging/Messages';
 import 'fontsource-roboto';
@@ -52,12 +52,18 @@ const useStyles = makeStyles({
     flex: 1,
     margin: '10px',
   },
-  wakuStatus: {},
+  wakuStatus: {
+    marginRight: theme.spacing(2),
+  },
+  title: {
+    flexGrow: 1,
+  },
+  peers: {},
 });
 
 function App() {
   const [waku, setWaku] = useState<Waku>();
-  const [provider, setProvider] = useState<Web3Provider>();
+  const [signer, setSigner] = useState<Signer>();
   const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair | undefined>();
   const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
   const [messages, setMessages] = useState<Message[]>([]);
@@ -66,26 +72,28 @@ function App() {
   const classes = useStyles();
 
   useEffect(() => {
-    if (provider) return;
     try {
-      window.ethereum.request({ method: 'eth_requestAccounts' });
-      const _provider = new ethers.providers.Web3Provider(window.ethereum);
-      setProvider(_provider);
+      window.ethereum
+        .request({ method: 'eth_requestAccounts' })
+        .then((accounts: string[]) => {
+          const _provider = new ethers.providers.Web3Provider(window.ethereum);
+          setAddress(accounts[0]);
+          setSigner(_provider.getSigner());
+        });
     } catch (e) {
       console.error('No web3 provider available');
     }
-  }, [provider]);
+  }, [address, signer]);
 
-  useEffect(() => {
-    provider
-      ?.getSigner()
-      .getAddress()
-      .then((address) => setAddress(address));
-  });
-
-  let peers;
+  let peers = 0;
   if (waku) {
     peers = waku.libp2p.connectionManager.connections.size;
+  }
+
+  let addressDisplay = '';
+  if (address) {
+    addressDisplay =
+      address.substr(0, 6) + '...' + address.substr(address.length - 4, 4);
   }
 
   return (
@@ -93,9 +101,8 @@ function App() {
       <div className={classes.root}>
         <AppBar className={classes.appBar} position="static">
           <Toolbar>
-            <Typography>Ethereum Direct Message</Typography>
             <IconButton
-              edge="end"
+              edge="start"
               className={classes.wakuStatus}
               aria-label="waku-status"
             >
@@ -104,7 +111,13 @@ function App() {
                 style={waku ? { color: green[500] } : {}}
               />
             </IconButton>
-            <Typography>{peers}</Typography>
+            <Typography className={classes.peers} aria-label="connected-peers">
+              {peers} peer{peers && peers > 1 ? 's' : ''}
+            </Typography>
+            <Typography variant="h6" className={classes.title}>
+              Ethereum Direct Message
+            </Typography>
+            <Typography>{addressDisplay}</Typography>
           </Toolbar>
         </AppBar>
 
@@ -125,7 +138,7 @@ function App() {
                 setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
               />
               <BroadcastPublicKey
-                signer={provider?.getSigner()}
+                signer={signer}
                 ethDmKeyPair={ethDmKeyPair}
                 waku={waku}
               />
