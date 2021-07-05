@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import fc from 'fast-check';
 
-import { WakuMessage } from './waku_message';
+import { WakuMessage } from './index';
 
 describe('Waku Message', function () {
   it('Waku message round trip binary serialization', function () {

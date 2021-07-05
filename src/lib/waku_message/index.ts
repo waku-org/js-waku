@@ -2,7 +2,7 @@
 import { Reader } from 'protobufjs/minimal';
 
 // Protecting the user from protobuf oddities
-import * as proto from '../proto/waku/v2/message';
+import * as proto from '../../proto/waku/v2/message';
 
 export const DefaultContentTopic = '/waku/2/default-content/proto';
 const DefaultVersion = 0;
