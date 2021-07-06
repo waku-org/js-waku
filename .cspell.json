@@ -17,6 +17,7 @@
     "Dlazy",
     "Dout",
     "Dscore",
+    "ecies",
     "editorconfig",
     "esnext",
     "ethersproject",

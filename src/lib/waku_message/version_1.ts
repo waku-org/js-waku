@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer';
 import { randomBytes } from 'crypto';
 
+import ecies from 'ecies-parity';
 import { keccak256 } from 'js-sha3';
 import * as secp256k1 from 'secp256k1';
 
@@ -13,13 +14,15 @@ const PaddingTarget = 256;
 const SignatureLength = 65;
 
 /**
- *  Encode a Waku Message Payload using version 1. Payload get encrypted and
- *  a signature may be included
+ * Encode the payload pre-encryption.
+ *
+ * @internal
  * @param messagePayload: The payload to include in the message
  * @param sigPrivKey: If set, a signature using this private key is added.
+ * @returns The encoded payload, ready for encryption using {@link encryptAsymmetric}
+ * or {@link encryptSymmetric}.
  */
-
-export function encode(
+export function clearEncode(
   messagePayload: Uint8Array,
   sigPrivKey?: Uint8Array
 ): Uint8Array {
@@ -65,9 +68,15 @@ export type DecodeResult = {
   };
 };
 
-export function decode(message: Uint8Array | Buffer): DecodeResult | undefined {
+/**
+ * Decode a decrypted payload.
+ *
+ * @internal
+ */
+export function clearDecode(
+  message: Uint8Array | Buffer
+): DecodeResult | undefined {
   const buf = Buffer.from(message);
-
   let start = 1;
   let sig;
 
@@ -88,6 +97,34 @@ export function decode(message: Uint8Array | Buffer): DecodeResult | undefined {
   }
 
   return { payload, sig };
+}
+
+/**
+ * Proceed with Asymmetric encryption of the data as per [26/WAKU-PAYLOAD](rfc.vac.dev/spec/26/).
+ * The data MUST be flags | payload-length | payload | [signature].
+ * The returned result can be set to `WakuMessage.payload`.
+ *
+ * @internal
+ */
+export async function encryptAsymmetric(
+  data: Uint8Array | Buffer,
+  publicKey: Uint8Array | Buffer
+): Promise<Uint8Array> {
+  return ecies.encrypt(Buffer.from(publicKey), Buffer.from(data));
+}
+
+export async function decryptAsymmetric(
+  payload: Uint8Array | Buffer,
+  privKey: Uint8Array | Buffer
+): Promise<Uint8Array> {
+  return ecies.decrypt(Buffer.from(privKey), Buffer.from(payload));
+}
+
+/**
+ * Return the public key for the given private key
+ */
+export function getPublicKey(privateKey: Uint8Array | Buffer): Uint8Array {
+  return ecies.getPublic(Buffer.from(privateKey));
 }
 
 /**
