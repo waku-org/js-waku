@@ -19,12 +19,7 @@ export class WakuMessage {
     timestamp: Date = new Date()
   ): WakuMessage {
     const payload = Buffer.from(utf8, 'utf-8');
-    return new WakuMessage({
-      payload,
-      version: DefaultVersion,
-      contentTopic,
-      timestamp: timestamp.valueOf() / 1000,
-    });
+    return WakuMessage.fromBytes(payload, contentTopic, timestamp);
   }
 
   /**
