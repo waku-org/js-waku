@@ -55,11 +55,10 @@ async function handleMessage(
   } else {
     const timestamp = new Date();
     const chatMessage = ChatMessage.fromUtf8String(timestamp, nick, message);
-    const wakuMsg = WakuMessage.fromBytes(
-      chatMessage.encode(),
-      ChatContentTopic,
-      timestamp
-    );
+    const wakuMsg = WakuMessage.fromBytes(chatMessage.encode(), {
+      contentTopic: ChatContentTopic,
+      timestamp,
+    });
     return messageSender(wakuMsg);
   }
 }

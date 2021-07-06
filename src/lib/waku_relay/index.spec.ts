@@ -79,11 +79,9 @@ describe('Waku Relay', () => {
 
       const messageText = 'JS to JS communication works';
       const messageTimestamp = new Date('1995-12-17T03:24:00');
-      const message = WakuMessage.fromUtf8String(
-        messageText,
-        undefined,
-        messageTimestamp
-      );
+      const message = WakuMessage.fromUtf8String(messageText, {
+        timestamp: messageTimestamp,
+      });
 
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
@@ -108,8 +106,12 @@ describe('Waku Relay', () => {
 
       const fooMessageText = 'Published on content topic foo';
       const barMessageText = 'Published on content topic bar';
-      const fooMessage = WakuMessage.fromUtf8String(fooMessageText, 'foo');
-      const barMessage = WakuMessage.fromUtf8String(barMessageText, 'bar');
+      const fooMessage = WakuMessage.fromUtf8String(fooMessageText, {
+        contentTopic: 'foo',
+      });
+      const barMessage = WakuMessage.fromUtf8String(barMessageText, {
+        contentTopic: 'bar',
+      });
 
       const receivedBarMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
@@ -144,10 +146,9 @@ describe('Waku Relay', () => {
 
       const messageText =
         'Published on content topic with added then deleted observer';
-      const message = WakuMessage.fromUtf8String(
-        messageText,
-        'added-then-deleted-observer'
-      );
+      const message = WakuMessage.fromUtf8String(messageText, {
+        contentTopic: 'added-then-deleted-observer',
+      });
 
       // The promise **fails** if we receive a message on this observer.
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Auto select peer if none provided for store and light push protocols.
 - Upgrade to `libp2p@0.31.7` and `libp2p-gossipsub@0.10.0` to avoid `TextEncoder` errors in ReactJS tests.
 - Disable keep alive by default as latest nim-waku release does not support ping protocol.
+- **Breaking**: Optional parameters for `WakuMessage.fromBytes` and `WakuMessage.fromUtf8String` are now passed in a single `Options` object.
 
 ### Fixed
 - Disable `keepAlive` if set to `0`.

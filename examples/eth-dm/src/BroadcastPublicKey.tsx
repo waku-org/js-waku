@@ -60,5 +60,7 @@ function encodePublicKeyWakuMessage(
   publicKeyMessage: PublicKeyMessage
 ): WakuMessage {
   const payload = publicKeyMessage.encode();
-  return WakuMessage.fromBytes(payload, PublicKeyContentTopic);
+  return WakuMessage.fromBytes(payload, {
+    contentTopic: PublicKeyContentTopic,
+  });
 }

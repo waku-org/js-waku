@@ -117,7 +117,9 @@ async function encodeEncryptedWakuMessage(
   };
 
   const payload = encode(directMsg);
-  return WakuMessage.fromBytes(payload, DirectMessageContentTopic);
+  return WakuMessage.fromBytes(payload, {
+    contentTopic: DirectMessageContentTopic,
+  });
 }
 
 function sendMessage(

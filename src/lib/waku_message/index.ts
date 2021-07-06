@@ -7,29 +7,30 @@ import * as proto from '../../proto/waku/v2/message';
 export const DefaultContentTopic = '/waku/2/default-content/proto';
 const DefaultVersion = 0;
 
+export interface Options {
+  contentTopic?: string;
+  timestamp?: Date;
+}
+
 export class WakuMessage {
   public constructor(public proto: proto.WakuMessage) {}
 
   /**
    * Create Message with a utf-8 string as payload.
    */
-  static fromUtf8String(
-    utf8: string,
-    contentTopic: string = DefaultContentTopic,
-    timestamp: Date = new Date()
-  ): WakuMessage {
+  static fromUtf8String(utf8: string, opts?: Options): WakuMessage {
     const payload = Buffer.from(utf8, 'utf-8');
-    return WakuMessage.fromBytes(payload, contentTopic, timestamp);
+    return WakuMessage.fromBytes(payload, opts);
   }
 
   /**
    * Create Message with a byte array as payload.
    */
-  static fromBytes(
-    payload: Uint8Array,
-    contentTopic: string = DefaultContentTopic,
-    timestamp: Date = new Date()
-  ): WakuMessage {
+  static fromBytes(payload: Uint8Array, opts?: Options): WakuMessage {
+    const { timestamp, contentTopic } = Object.assign(
+      { timestamp: new Date(), contentTopic: DefaultContentTopic },
+      opts ? opts : {}
+    );
     return new WakuMessage({
       payload,
       timestamp: timestamp.valueOf() / 1000,
