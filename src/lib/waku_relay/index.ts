@@ -185,19 +185,22 @@ export class WakuRelay extends Gossipsub {
    */
   subscribe(pubsubTopic: string): void {
     this.on(pubsubTopic, (event) => {
-      const wakuMsg = WakuMessage.decode(event.data);
-      if (this.observers['']) {
-        this.observers[''].forEach((callbackFn) => {
-          callbackFn(wakuMsg);
-        });
-      }
-      if (wakuMsg.contentTopic) {
-        if (this.observers[wakuMsg.contentTopic]) {
-          this.observers[wakuMsg.contentTopic].forEach((callbackFn) => {
+      WakuMessage.decode(event.data).then((wakuMsg) => {
+        if (!wakuMsg) return;
+
+        if (this.observers['']) {
+          this.observers[''].forEach((callbackFn) => {
             callbackFn(wakuMsg);
           });
         }
-      }
+        if (wakuMsg.contentTopic) {
+          if (this.observers[wakuMsg.contentTopic]) {
+            this.observers[wakuMsg.contentTopic].forEach((callbackFn) => {
+              callbackFn(wakuMsg);
+            });
+          }
+        }
+      });
     });
 
     super.subscribe(pubsubTopic);

@@ -17,12 +17,22 @@ describe('Waku Message Version 1', function () {
         fc.uint8Array({ minLength: 32, maxLength: 32 }),
         (message, privKey) => {
           const enc = clearEncode(message, privKey);
-          const res = clearDecode(enc);
+          const res = clearDecode(enc.payload);
 
           const pubKey = getPublicKey(privKey);
 
-          expect(res?.payload).deep.equal(message);
-          expect(res?.sig?.publicKey).deep.equal(pubKey);
+          expect(res?.payload).deep.equal(
+            message,
+            'Payload was not encrypted then decrypted correctly'
+          );
+          expect(res?.sig?.publicKey).deep.equal(
+            pubKey,
+            'signature Public key was not recovered from encrypted then decrypted signature'
+          );
+          expect(enc?.sig?.publicKey).deep.equal(
+            pubKey,
+            'Incorrect signature public key was returned when signing the payload'
+          );
         }
       )
     );
@@ -31,7 +41,7 @@ describe('Waku Message Version 1', function () {
   it('Asymmetric encrypt & Decrypt', async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.uint8Array({ minLength: 2 }),
+        fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ minLength: 32, maxLength: 32 }),
         async (message, privKey) => {
           const publicKey = getPublicKey(privKey);

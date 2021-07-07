@@ -24,7 +24,9 @@ describe('Waku Store', () => {
 
     for (let i = 0; i < 2; i++) {
       expect(
-        await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`))
+        await nimWaku.sendMessage(
+          await WakuMessage.fromUtf8String(`Message ${i}`)
+        )
       ).to.be.true;
     }
 
@@ -58,7 +60,9 @@ describe('Waku Store', () => {
 
     for (let i = 0; i < 15; i++) {
       expect(
-        await nimWaku.sendMessage(WakuMessage.fromUtf8String(`Message ${i}`))
+        await nimWaku.sendMessage(
+          await WakuMessage.fromUtf8String(`Message ${i}`)
+        )
       ).to.be.true;
     }
 
@@ -98,7 +102,7 @@ describe('Waku Store', () => {
     for (let i = 0; i < 2; i++) {
       expect(
         await nimWaku.sendMessage(
-          WakuMessage.fromUtf8String(`Message ${i}`),
+          await WakuMessage.fromUtf8String(`Message ${i}`),
           customPubSubTopic
         )
       ).to.be.true;

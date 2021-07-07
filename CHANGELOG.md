@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade to `libp2p@0.31.7` and `libp2p-gossipsub@0.10.0` to avoid `TextEncoder` errors in ReactJS tests.
 - Disable keep alive by default as latest nim-waku release does not support ping protocol.
 - **Breaking**: Optional parameters for `WakuMessage.fromBytes` and `WakuMessage.fromUtf8String` are now passed in a single `Options` object.
+- **Breaking**: `WakuMessage` static functions are now async to allow for encryption and decryption.
+- **Breaking**: `WakuMessage` constructor is now private, `from*` and `decode*` function should be used.
+- `WakuMessage` version 1 is partially supported, enabling asymmetrical encryption and signature of messages;
+  this can be done by passing keys to `WakuMessage.from*` and `WakuMessage.decode*` methods.
+  Note: this is not yet compatible with nim-waku.
 
 ### Fixed
 - Disable `keepAlive` if set to `0`.

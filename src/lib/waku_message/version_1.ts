@@ -25,7 +25,7 @@ const SignatureLength = 65;
 export function clearEncode(
   messagePayload: Uint8Array,
   sigPrivKey?: Uint8Array
-): Uint8Array {
+): { payload: Uint8Array; sig?: Signature } {
   let envelope = Buffer.from([0]); // No flags
   envelope = addPayloadSizeField(envelope, messagePayload);
   envelope = Buffer.concat([envelope, messagePayload]);
@@ -50,22 +50,24 @@ export function clearEncode(
 
   envelope = Buffer.concat([envelope, pad]);
 
+  let sig;
   if (sigPrivKey) {
     envelope[0] |= IsSignedMask;
     const hash = keccak256(envelope);
     const s = secp256k1.ecdsaSign(hexToBuf(hash), sigPrivKey);
     envelope = Buffer.concat([envelope, s.signature, Buffer.from([s.recid])]);
+    sig = {
+      signature: Buffer.from(s.signature),
+      publicKey: secp256k1.publicKeyCreate(sigPrivKey, false),
+    };
   }
 
-  return envelope;
+  return { payload: envelope, sig };
 }
 
-export type DecodeResult = {
-  payload: Uint8Array;
-  sig?: {
-    signature: Uint8Array;
-    publicKey: Uint8Array;
-  };
+export type Signature = {
+  signature: Uint8Array;
+  publicKey: Uint8Array;
 };
 
 /**
@@ -75,7 +77,7 @@ export type DecodeResult = {
  */
 export function clearDecode(
   message: Uint8Array | Buffer
-): DecodeResult | undefined {
+): { payload: Uint8Array; sig?: Signature } | undefined {
   const buf = Buffer.from(message);
   let start = 1;
   let sig;

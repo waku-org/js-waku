@@ -180,9 +180,20 @@ export class NimWaku {
   async messages(): Promise<WakuMessage[]> {
     this.checkProcess();
 
-    return this.rpcCall<proto.WakuMessage[]>('get_waku_v2_relay_v1_messages', [
-      DefaultPubsubTopic,
-    ]).then((msgs) => msgs.map((protoMsg) => new WakuMessage(protoMsg)));
+    const isDefined = (msg: WakuMessage | undefined): msg is WakuMessage => {
+      return !!msg;
+    };
+
+    const protoMsgs = await this.rpcCall<proto.WakuMessage[]>(
+      'get_waku_v2_relay_v1_messages',
+      [DefaultPubsubTopic]
+    );
+
+    const msgs = await Promise.all(
+      protoMsgs.map(async (protoMsg) => await WakuMessage.decodeProto(protoMsg))
+    );
+
+    return msgs.filter(isDefined);
   }
 
   async getPeerId(): Promise<PeerId> {
