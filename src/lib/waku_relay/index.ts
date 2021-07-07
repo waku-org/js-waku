@@ -87,11 +87,7 @@ export class WakuRelay extends Gossipsub {
 
     Object.assign(this, { multicodecs });
 
-    if (options?.pubsubTopic) {
-      this.pubsubTopic = options.pubsubTopic;
-    } else {
-      this.pubsubTopic = constants.DefaultPubsubTopic;
-    }
+    this.pubsubTopic = options?.pubsubTopic || constants.DefaultPubsubTopic;
   }
 
   /**
