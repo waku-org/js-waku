@@ -1,9 +1,9 @@
-import { Dispatch, SetStateAction, useEffect } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { Environment, getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
 import { decode, DirectMessage, PublicKeyMessage } from './messaging/wire';
-import { decryptMessage, KeyPair, validatePublicKeyMessage } from './crypto';
+import { decryptMessage, validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
-import { byteArrayToHex } from './utils';
+import { byteArrayToHex, equalByteArrays } from './utils';
 
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/proto';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
@@ -26,7 +26,7 @@ function getNodes() {
 }
 
 export function handlePublicKeyMessage(
-  myPublicKey: string | undefined,
+  myAddress: string,
   setter: Dispatch<SetStateAction<Map<string, string>>>,
   msg: WakuMessage
 ) {
@@ -35,7 +35,8 @@ export function handlePublicKeyMessage(
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
   if (!publicKeyMsg) return;
   const ethDmPublicKey = byteArrayToHex(publicKeyMsg.ethDmPublicKey);
-  if (ethDmPublicKey === myPublicKey) return;
+  console.log(ethDmPublicKey, myAddress);
+  if (myAddress && equalByteArrays(publicKeyMsg.ethAddress, myAddress)) return;
 
   const res = validatePublicKeyMessage(publicKeyMsg);
   console.log('Is Public Key Message valid?', res);

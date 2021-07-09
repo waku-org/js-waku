@@ -77,61 +77,6 @@ function App() {
 
   const classes = useStyles();
 
-  // Waku initialization
-  useEffect(() => {
-    if (waku) return;
-    initWaku()
-      .then((_waku) => {
-        console.log('waku: ready');
-        setWaku(_waku);
-      })
-      .catch((e) => {
-        console.error('Failed to initiate Waku', e);
-      });
-  }, [waku]);
-
-  const observerPublicKeyMessage = handlePublicKeyMessage.bind(
-    {},
-    ethDmKeyPair?.publicKey,
-    setPublicKeys
-  );
-
-  const observerDirectMessage =
-    ethDmKeyPair && address
-      ? handleDirectMessage.bind(
-          {},
-          setMessages,
-          ethDmKeyPair.privateKey,
-          address
-        )
-      : undefined;
-
-  useEffect(() => {
-    if (!waku) return;
-    waku.relay.addObserver(observerPublicKeyMessage, [PublicKeyContentTopic]);
-
-    return function cleanUp() {
-      if (!waku) return;
-      waku.relay.deleteObserver(observerPublicKeyMessage, [
-        PublicKeyContentTopic,
-      ]);
-    };
-  }, [waku]);
-
-  useEffect(() => {
-    if (!waku) return;
-    if (!observerDirectMessage) return;
-    waku.relay.addObserver(observerDirectMessage, [DirectMessageContentTopic]);
-
-    return function cleanUp() {
-      if (!waku) return;
-      if (!observerDirectMessage) return;
-      waku.relay.deleteObserver(observerDirectMessage, [
-        DirectMessageContentTopic,
-      ]);
-    };
-  }, [waku]);
-
   useEffect(() => {
     try {
       window.ethereum
@@ -145,6 +90,62 @@ function App() {
       console.error('No web3 provider available');
     }
   }, [address, signer]);
+
+  // Waku initialization
+  useEffect(() => {
+    if (waku) return;
+    initWaku()
+      .then((_waku) => {
+        console.log('waku: ready');
+        setWaku(_waku);
+      })
+      .catch((e) => {
+        console.error('Failed to initiate Waku', e);
+      });
+  }, [waku]);
+
+  useEffect(() => {
+    if (!waku) return;
+    if (!address) return;
+
+    const observerPublicKeyMessage = handlePublicKeyMessage.bind(
+      {},
+      address,
+      setPublicKeys
+    );
+
+    waku.relay.addObserver(observerPublicKeyMessage, [PublicKeyContentTopic]);
+
+    return function cleanUp() {
+      if (!waku) return;
+      waku.relay.deleteObserver(observerPublicKeyMessage, [
+        PublicKeyContentTopic,
+      ]);
+    };
+  }, [waku, address]);
+
+  useEffect(() => {
+    if (!waku) return;
+    if (!ethDmKeyPair) return;
+    if (!address) return;
+
+    const observerDirectMessage = handleDirectMessage.bind(
+      {},
+      setMessages,
+      ethDmKeyPair.privateKey,
+      address
+    );
+
+    waku.relay.addObserver(observerDirectMessage, [DirectMessageContentTopic]);
+
+    return function cleanUp() {
+      if (!waku) return;
+      if (!observerDirectMessage) return;
+      waku.relay.deleteObserver(observerDirectMessage, [
+        DirectMessageContentTopic,
+      ]);
+    };
+  }, [waku, address, ethDmKeyPair]);
 
   let peers = 0;
   if (waku) {
