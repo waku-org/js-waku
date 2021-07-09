@@ -58,20 +58,24 @@ export async function handleDirectMessage(
   console.log('Direct Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
   const directMessage: DirectMessage = decode(wakuMsg.payload);
-  // Do not return our own messages
-  if (directMessage.toAddress === address) return;
+  // Only decrypt messages for us
+  if (!equalByteArrays(directMessage.toAddress, address)) return;
 
-  const text = await decryptMessage(privateKey, directMessage);
+  try {
+    const text = await decryptMessage(privateKey, directMessage);
 
-  const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
+    const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
 
-  console.log('Message decrypted:', text);
-  setter((prevMsgs: Message[]) => {
-    const copy = prevMsgs.slice();
-    copy.push({
-      text: text,
-      timestamp: timestamp,
+    console.log('Message decrypted:', text);
+    setter((prevMsgs: Message[]) => {
+      const copy = prevMsgs.slice();
+      copy.push({
+        text: text,
+        timestamp: timestamp,
+      });
+      return copy;
     });
-    return copy;
-  });
+  } catch (e) {
+    console.log(' Failed to decrypt message', e);
+  }
 }
