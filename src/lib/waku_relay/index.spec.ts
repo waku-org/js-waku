@@ -79,11 +79,9 @@ describe('Waku Relay', () => {
 
       const messageText = 'JS to JS communication works';
       const messageTimestamp = new Date('1995-12-17T03:24:00');
-      const message = WakuMessage.fromUtf8String(
-        messageText,
-        undefined,
-        messageTimestamp
-      );
+      const message = await WakuMessage.fromUtf8String(messageText, {
+        timestamp: messageTimestamp,
+      });
 
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
@@ -108,8 +106,12 @@ describe('Waku Relay', () => {
 
       const fooMessageText = 'Published on content topic foo';
       const barMessageText = 'Published on content topic bar';
-      const fooMessage = WakuMessage.fromUtf8String(fooMessageText, 'foo');
-      const barMessage = WakuMessage.fromUtf8String(barMessageText, 'bar');
+      const fooMessage = await WakuMessage.fromUtf8String(fooMessageText, {
+        contentTopic: 'foo',
+      });
+      const barMessage = await WakuMessage.fromUtf8String(barMessageText, {
+        contentTopic: 'bar',
+      });
 
       const receivedBarMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
@@ -144,10 +146,9 @@ describe('Waku Relay', () => {
 
       const messageText =
         'Published on content topic with added then deleted observer';
-      const message = WakuMessage.fromUtf8String(
-        messageText,
-        'added-then-deleted-observer'
-      );
+      const message = await WakuMessage.fromUtf8String(messageText, {
+        contentTopic: 'added-then-deleted-observer',
+      });
 
       // The promise **fails** if we receive a message on this observer.
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
@@ -204,7 +205,7 @@ describe('Waku Relay', () => {
       ]);
 
       const messageText = 'Communicating using a custom pubsub topic';
-      const message = WakuMessage.fromUtf8String(messageText);
+      const message = await WakuMessage.fromUtf8String(messageText);
 
       const waku2ReceivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
@@ -275,7 +276,7 @@ describe('Waku Relay', () => {
         this.timeout(5000);
 
         const messageText = 'This is a message';
-        const message = WakuMessage.fromUtf8String(messageText);
+        const message = await WakuMessage.fromUtf8String(messageText);
 
         await waku.relay.send(message);
 
@@ -294,7 +295,7 @@ describe('Waku Relay', () => {
       it('Nim publishes to js', async function () {
         this.timeout(5000);
         const messageText = 'Here is another message.';
-        const message = WakuMessage.fromUtf8String(messageText);
+        const message = await WakuMessage.fromUtf8String(messageText);
 
         const receivedMsgPromise: Promise<WakuMessage> = new Promise(
           (resolve) => {
@@ -360,7 +361,7 @@ describe('Waku Relay', () => {
         this.timeout(30000);
 
         const messageText = 'This is a message';
-        const message = WakuMessage.fromUtf8String(messageText);
+        const message = await WakuMessage.fromUtf8String(messageText);
         await delay(1000);
         await waku.relay.send(message);
 
@@ -381,7 +382,7 @@ describe('Waku Relay', () => {
         await delay(200);
 
         const messageText = 'Here is another message.';
-        const message = WakuMessage.fromUtf8String(messageText);
+        const message = await WakuMessage.fromUtf8String(messageText);
 
         const receivedMsgPromise: Promise<WakuMessage> = new Promise(
           (resolve) => {
@@ -463,7 +464,7 @@ describe('Waku Relay', () => {
         ).to.be.false;
 
         const msgStr = 'Hello there!';
-        const message = WakuMessage.fromUtf8String(msgStr);
+        const message = await WakuMessage.fromUtf8String(msgStr);
 
         const waku2ReceivedMsgPromise: Promise<WakuMessage> = new Promise(
           (resolve) => {

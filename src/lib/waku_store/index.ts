@@ -114,18 +114,23 @@ export class WakuStore {
               return messages;
             }
 
-            const pageMessages = response.messages.map((protoMsg) => {
-              return new WakuMessage(protoMsg);
-            });
+            const pageMessages: WakuMessage[] = [];
+            await Promise.all(
+              response.messages.map(async (protoMsg) => {
+                const msg = await WakuMessage.decodeProto(protoMsg);
+
+                if (msg) {
+                  messages.push(msg);
+                  pageMessages.push(msg);
+                }
+              })
+            );
 
             if (opts.callback) {
               // TODO: Test the callback feature
+              // TODO: Change callback to take individual messages
               opts.callback(pageMessages);
             }
-
-            pageMessages.forEach((wakuMessage) => {
-              messages.push(wakuMessage);
-            });
 
             const responsePageSize = response.pagingInfo?.pageSize;
             const queryPageSize = historyRpcQuery.query?.pagingInfo?.pageSize;

@@ -41,6 +41,7 @@ export interface Args {
   persistMessages?: boolean;
   lightpush?: boolean;
   topics?: string;
+  rpcPrivate?: boolean;
 }
 
 export enum LogLevel {
@@ -51,6 +52,16 @@ export enum LogLevel {
   Trace = 'trace',
   Notice = 'notice',
   Fatal = 'fatal',
+}
+
+export interface KeyPair {
+  privateKey: string;
+  publicKey: string;
+}
+
+export interface WakuRelayMessage {
+  payload: string;
+  contentTopic?: string;
 }
 
 export class NimWaku {
@@ -180,9 +191,64 @@ export class NimWaku {
   async messages(): Promise<WakuMessage[]> {
     this.checkProcess();
 
-    return this.rpcCall<proto.WakuMessage[]>('get_waku_v2_relay_v1_messages', [
-      DefaultPubsubTopic,
-    ]).then((msgs) => msgs.map((protoMsg) => new WakuMessage(protoMsg)));
+    const isDefined = (msg: WakuMessage | undefined): msg is WakuMessage => {
+      return !!msg;
+    };
+
+    const protoMsgs = await this.rpcCall<proto.WakuMessage[]>(
+      'get_waku_v2_relay_v1_messages',
+      [DefaultPubsubTopic]
+    );
+
+    const msgs = await Promise.all(
+      protoMsgs.map(async (protoMsg) => await WakuMessage.decodeProto(protoMsg))
+    );
+
+    return msgs.filter(isDefined);
+  }
+
+  async getAsymmetricKeyPair(): Promise<KeyPair> {
+    this.checkProcess();
+
+    const { seckey, pubkey } = await this.rpcCall<{
+      seckey: string;
+      pubkey: string;
+    }>('get_waku_v2_private_v1_asymmetric_keypair', []);
+
+    return { privateKey: seckey, publicKey: pubkey };
+  }
+
+  async postAsymmetricMessage(
+    message: WakuRelayMessage,
+    publicKey: Uint8Array,
+    pubsubTopic?: string
+  ): Promise<boolean> {
+    this.checkProcess();
+
+    if (!message.payload) {
+      throw 'Attempting to send empty message';
+    }
+
+    return this.rpcCall<boolean>('post_waku_v2_private_v1_asymmetric_message', [
+      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
+      message,
+      '0x' + bufToHex(publicKey),
+    ]);
+  }
+
+  async getAsymmetricMessages(
+    privateKey: Uint8Array,
+    pubsubTopic?: string
+  ): Promise<WakuRelayMessage[]> {
+    this.checkProcess();
+
+    return await this.rpcCall<WakuRelayMessage[]>(
+      'get_waku_v2_private_v1_asymmetric_messages',
+      [
+        pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
+        '0x' + bufToHex(privateKey),
+      ]
+    );
   }
 
   async getPeerId(): Promise<PeerId> {

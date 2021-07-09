@@ -4,7 +4,7 @@ import * as EthCrypto from 'eth-crypto';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
 import { DirectMessage, PublicKeyMessage } from './messaging/wire';
-import { byteArrayToHex, hexToBuf } from './utils';
+import { hexToBuf, equalByteArrays, bufToHex } from 'js-waku/lib/utils';
 
 export interface KeyPair {
   privateKey: string;
@@ -49,15 +49,7 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
   const formattedMsg = formatPublicKeyForSignature(msg.ethDmPublicKey);
   try {
     const sigAddress = ethers.utils.verifyMessage(formattedMsg, msg.signature);
-    const sigAddressBytes = hexToBuf(sigAddress);
-    // Compare the actual byte arrays instead of strings that may differ in casing or prefixing.
-    const cmp = sigAddressBytes.compare(new Buffer(msg.ethAddress));
-    console.log(
-      `Buffer comparison result: ${cmp} for (signature address, message address)`,
-      sigAddressBytes,
-      msg.ethAddress
-    );
-    return cmp === 0;
+    return equalByteArrays(sigAddress, msg.ethAddress);
   } catch (e) {
     console.log(
       'Failed to verify signature for Public Key Message',
@@ -77,7 +69,7 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
  */
 function formatPublicKeyForSignature(ethDmPublicKey: Uint8Array): string {
   return JSON.stringify({
-    ethDmPublicKey: byteArrayToHex(ethDmPublicKey),
+    ethDmPublicKey: bufToHex(ethDmPublicKey),
   });
 }
 

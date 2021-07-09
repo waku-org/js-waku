@@ -76,7 +76,7 @@ export class Waku {
     this.lightPush = lightPush;
     this.keepAliveTimers = {};
 
-    const keepAlive = options.keepAlive !== undefined ? options.keepAlive : 0;
+    const keepAlive = options.keepAlive || 0;
 
     if (keepAlive !== 0) {
       libp2p.connectionManager.on('peer:connect', (connection: Connection) => {

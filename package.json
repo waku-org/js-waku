@@ -57,8 +57,10 @@
   "dependencies": {
     "axios": "^0.21.1",
     "debug": "^4.3.1",
+    "ecies-parity": "^0.1.1",
     "it-concat": "^2.0.0",
     "it-length-prefixed": "^5.0.2",
+    "js-sha3": "^0.8.0",
     "libp2p": "^0.31.7",
     "libp2p-gossipsub": "^0.10.0",
     "libp2p-mplex": "^0.10.3",
@@ -66,6 +68,7 @@
     "libp2p-tcp": "^0.15.4",
     "libp2p-websockets": "^0.15.6",
     "multiaddr": "^9.0.1",
+    "secp256k1": "^4.0.2",
     "ts-proto": "^1.79.7",
     "uuid": "^8.3.2"
   },
@@ -77,6 +80,7 @@
     "@types/google-protobuf": "^3.7.4",
     "@types/mocha": "^8.2.2",
     "@types/node": "^14.14.31",
+    "@types/secp256k1": "^4.0.2",
     "@types/tail": "^2.0.0",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.0.1",

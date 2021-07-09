@@ -33,7 +33,7 @@ describe('Waku Light Push', () => {
     });
 
     const messageText = 'Light Push works!';
-    const message = WakuMessage.fromUtf8String(messageText);
+    const message = await WakuMessage.fromUtf8String(messageText);
 
     const pushResponse = await waku.lightPush.push(message);
     expect(pushResponse?.isSuccess).to.be.true;
@@ -73,7 +73,7 @@ describe('Waku Light Push', () => {
     const nimPeerId = await nimWaku.getPeerId();
 
     const messageText = 'Light Push works!';
-    const message = WakuMessage.fromUtf8String(messageText);
+    const message = await WakuMessage.fromUtf8String(messageText);
 
     const pushResponse = await waku.lightPush.push(message, {
       peerId: nimPeerId,

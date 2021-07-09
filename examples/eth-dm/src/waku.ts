@@ -3,7 +3,7 @@ import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
 import { decode, DirectMessage, PublicKeyMessage } from './messaging/wire';
 import { decryptMessage, validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
-import { byteArrayToHex, equalByteArrays } from './utils';
+import { bufToHex, equalByteArrays } from 'js-waku/lib/utils';
 
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/proto';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
@@ -41,7 +41,7 @@ export function handlePublicKeyMessage(
   if (!msg.payload) return;
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
   if (!publicKeyMsg) return;
-  const ethDmPublicKey = byteArrayToHex(publicKeyMsg.ethDmPublicKey);
+  const ethDmPublicKey = bufToHex(publicKeyMsg.ethDmPublicKey);
   console.log(ethDmPublicKey, myAddress);
   if (myAddress && equalByteArrays(publicKeyMsg.ethAddress, myAddress)) return;
 
@@ -50,7 +50,7 @@ export function handlePublicKeyMessage(
 
   if (res) {
     setter((prevPks: Map<string, string>) => {
-      prevPks.set(byteArrayToHex(publicKeyMsg.ethAddress), ethDmPublicKey);
+      prevPks.set(bufToHex(publicKeyMsg.ethAddress), ethDmPublicKey);
       return new Map(prevPks);
     });
   }
