@@ -59,7 +59,7 @@ export function clearEncode(
     envelope = Buffer.concat([envelope, s.signature, Buffer.from([s.recid])]);
     sig = {
       signature: Buffer.from(s.signature),
-      publicKey: secp256k1.publicKeyCreate(sigPrivKey, false),
+      publicKey: getPublicKey(sigPrivKey),
     };
   }
 
@@ -134,7 +134,7 @@ export function generatePrivateKey(): Uint8Array {
  * Return the public key for the given private key
  */
 export function getPublicKey(privateKey: Uint8Array | Buffer): Uint8Array {
-  return ecies.getPublic(Buffer.from(privateKey));
+  return secp256k1.publicKeyCreate(privateKey, false);
 }
 
 /**
