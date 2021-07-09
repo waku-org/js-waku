@@ -90,7 +90,7 @@ describe('Waku Message', function () {
   });
 });
 
-describe('Interop: Nim', function () {
+describe.skip('Interop: Nim', function () {
   let waku: Waku;
   let nimWaku: NimWaku;
 
