@@ -148,4 +148,29 @@ describe('Interop: Nim', function () {
     expect(receivedMsg.version).to.eq(1);
     expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
   });
+
+  it('Js encrypts message for nim [asymmetric, no signature]', async function () {
+    this.timeout(5000);
+
+    const keyPair = await nimWaku.getAsymmetricKeyPair();
+    const privateKey = hexToBuf(keyPair.privateKey);
+    const publicKey = hexToBuf(keyPair.publicKey);
+
+    const messageText = 'This is a message I am going to encrypt';
+    const message = await WakuMessage.fromUtf8String(messageText, {
+      encPublicKey: publicKey,
+    });
+
+    await waku.relay.send(message);
+
+    let msgs: WakuRelayMessage[] = [];
+
+    while (msgs.length === 0) {
+      await delay(200);
+      msgs = await nimWaku.getAsymmetricMessages(privateKey);
+    }
+
+    expect(msgs[0].contentTopic).to.equal(message.contentTopic);
+    expect(hexToBuf(msgs[0].payload).toString('utf-8')).to.equal(messageText);
+  });
 });

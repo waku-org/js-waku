@@ -236,6 +236,21 @@ export class NimWaku {
     ]);
   }
 
+  async getAsymmetricMessages(
+    privateKey: Uint8Array,
+    pubsubTopic?: string
+  ): Promise<WakuRelayMessage[]> {
+    this.checkProcess();
+
+    return await this.rpcCall<WakuRelayMessage[]>(
+      'get_waku_v2_private_v1_asymmetric_messages',
+      [
+        pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
+        '0x' + bufToHex(privateKey),
+      ]
+    );
+  }
+
   async getPeerId(): Promise<PeerId> {
     return await this.setPeerId().then((res) => res.peerId);
   }
