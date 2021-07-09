@@ -55,7 +55,7 @@ async function handleMessage(
   } else {
     const timestamp = new Date();
     const chatMessage = ChatMessage.fromUtf8String(timestamp, nick, message);
-    const wakuMsg = WakuMessage.fromBytes(chatMessage.encode(), {
+    const wakuMsg = await WakuMessage.fromBytes(chatMessage.encode(), {
       contentTopic: ChatContentTopic,
       timestamp,
     });

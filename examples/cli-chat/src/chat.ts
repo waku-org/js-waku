@@ -104,8 +104,9 @@ export default async function startChat(): Promise<void> {
     rl.prompt();
     const chatMessage = ChatMessage.fromUtf8String(new Date(), nick, line);
 
-    const msg = WakuMessage.fromBytes(chatMessage.encode(), {
+    const msg = await WakuMessage.fromBytes(chatMessage.encode(), {
       contentTopic: ChatContentTopic,
+      timestamp: new Date(),
     });
     if (opts.lightPush) {
       await waku.lightPush.push(msg);

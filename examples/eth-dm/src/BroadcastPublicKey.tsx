@@ -25,18 +25,30 @@ export default function BroadcastPublicKey({
     if (!waku) return;
 
     if (publicKeyMsg) {
-      const wakuMsg = encodePublicKeyWakuMessage(publicKeyMsg);
-      waku.lightPush.push(wakuMsg).catch((e) => {
-        console.error('Failed to send Public Key Message', e);
-      });
+      encodePublicKeyWakuMessage(publicKeyMsg)
+        .then((wakuMsg) => {
+          waku.lightPush.push(wakuMsg).catch((e) => {
+            console.error('Failed to send Public Key Message', e);
+          });
+        })
+        .catch((e) => {
+          console.log('Failed to encode Public Key Message in Waku Message');
+        });
     } else {
       createPublicKeyMessage(signer, ethDmKeyPair.publicKey)
         .then((msg) => {
           setPublicKeyMsg(msg);
-          const wakuMsg = encodePublicKeyWakuMessage(msg);
-          waku.lightPush.push(wakuMsg).catch((e) => {
-            console.error('Failed to send Public Key Message', e);
-          });
+          encodePublicKeyWakuMessage(msg)
+            .then((wakuMsg) => {
+              waku.lightPush.push(wakuMsg).catch((e) => {
+                console.error('Failed to send Public Key Message', e);
+              });
+            })
+            .catch((e) => {
+              console.log(
+                'Failed to encode Public Key Message in Waku Message'
+              );
+            });
         })
         .catch((e) => {
           console.error('Failed to create public key message', e);
@@ -56,11 +68,11 @@ export default function BroadcastPublicKey({
   );
 }
 
-function encodePublicKeyWakuMessage(
+async function encodePublicKeyWakuMessage(
   publicKeyMessage: PublicKeyMessage
-): WakuMessage {
+): Promise<WakuMessage> {
   const payload = publicKeyMessage.encode();
-  return WakuMessage.fromBytes(payload, {
+  return await WakuMessage.fromBytes(payload, {
     contentTopic: PublicKeyContentTopic,
   });
 }
