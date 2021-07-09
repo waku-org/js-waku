@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
-import { Environment, getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
+import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
 import { decode, DirectMessage, PublicKeyMessage } from './messaging/wire';
 import { decryptMessage, validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
@@ -11,18 +11,25 @@ export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
 export async function initWaku(): Promise<Waku> {
   const waku = await Waku.create({});
 
-  const nodes = await getNodes();
-  await Promise.all(
-    nodes.map((addr) => {
-      return waku.dial(addr);
-    })
-  );
+  // Dial all nodes it can find
+  getStatusFleetNodes().then((nodes) => {
+    nodes.forEach((addr) => {
+      waku.dial(addr);
+    });
+  });
+
+  // Wait to be connected to at least one peer
+  await new Promise((resolve, reject) => {
+    // If we are not connected to any peer within 10sec let's just reject
+    // As we are not implementing connection management in this example
+
+    setTimeout(reject, 10000);
+    waku.libp2p.connectionManager.on('peer:connect', () => {
+      resolve(null);
+    });
+  });
 
   return waku;
-}
-
-function getNodes() {
-  return getStatusFleetNodes(Environment.Prod);
 }
 
 export function handlePublicKeyMessage(
