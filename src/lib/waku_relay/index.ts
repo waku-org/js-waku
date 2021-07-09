@@ -1,3 +1,4 @@
+import debug from 'debug';
 import Libp2p from 'libp2p';
 import Gossipsub from 'libp2p-gossipsub';
 import { AddrInfo, MessageIdFunction } from 'libp2p-gossipsub/src/interfaces';
@@ -23,6 +24,8 @@ import * as constants from './constants';
 import { DefaultPubsubTopic, RelayCodec } from './constants';
 import { getRelayPeers } from './get_relay_peers';
 import { RelayHeartbeat } from './relay_heartbeat';
+
+const dbg = debug('waku:relay');
 
 export { RelayCodec, DefaultPubsubTopic };
 
@@ -60,9 +63,15 @@ export interface GossipOptions {
 export class WakuRelay extends Gossipsub {
   heartbeat: RelayHeartbeat;
   pubsubTopic: string;
+
+  /**
+   * Decryption private keys to use to attempt decryption of incoming messages.
+   */
+  public decPrivateKeys: Set<Uint8Array>;
+
   /**
    * observers called when receiving new message.
-   * Observers under key "" are always called.
+   * Observers under key `""` are always called.
    */
   public observers: {
     [contentTopic: string]: Set<(message: WakuMessage) => void>;
@@ -82,6 +91,7 @@ export class WakuRelay extends Gossipsub {
 
     this.heartbeat = new RelayHeartbeat(this);
     this.observers = {};
+    this.decPrivateKeys = new Set();
 
     const multicodecs = [constants.RelayCodec];
 
@@ -114,11 +124,28 @@ export class WakuRelay extends Gossipsub {
   }
 
   /**
+   * Register a decryption private key to attempt decryption of messages of
+   * the given content topic.
+   */
+  addDecryptionPrivateKey(privateKey: Uint8Array): void {
+    this.decPrivateKeys.add(privateKey);
+  }
+
+  /**
+   * Delete a decryption private key to attempt decryption of messages of
+   * the given content topic.
+   */
+  deleteDecryptionPrivateKey(privateKey: Uint8Array): void {
+    this.decPrivateKeys.delete(privateKey);
+  }
+
+  /**
    * Register an observer of new messages received via waku relay
    *
    * @param callback called when a new message is received via waku relay
    * @param contentTopics Content Topics for which the callback with be called,
    * all of them if undefined, [] or ["",..] is passed.
+   * @param decPrivateKeys Private keys used to decrypt incoming Waku Messages.
    * @returns {void}
    */
   addObserver(
@@ -181,22 +208,30 @@ export class WakuRelay extends Gossipsub {
    */
   subscribe(pubsubTopic: string): void {
     this.on(pubsubTopic, (event) => {
-      WakuMessage.decode(event.data).then((wakuMsg) => {
-        if (!wakuMsg) return;
+      dbg(`Message received on ${pubsubTopic}`);
+      WakuMessage.decode(event.data, Array.from(this.decPrivateKeys))
+        .then((wakuMsg) => {
+          if (!wakuMsg) {
+            dbg('Failed to decode Waku Message');
+            return;
+          }
 
-        if (this.observers['']) {
-          this.observers[''].forEach((callbackFn) => {
-            callbackFn(wakuMsg);
-          });
-        }
-        if (wakuMsg.contentTopic) {
-          if (this.observers[wakuMsg.contentTopic]) {
-            this.observers[wakuMsg.contentTopic].forEach((callbackFn) => {
+          if (this.observers['']) {
+            this.observers[''].forEach((callbackFn) => {
               callbackFn(wakuMsg);
             });
           }
-        }
-      });
+          if (wakuMsg.contentTopic) {
+            if (this.observers[wakuMsg.contentTopic]) {
+              this.observers[wakuMsg.contentTopic].forEach((callbackFn) => {
+                callbackFn(wakuMsg);
+              });
+            }
+          }
+        })
+        .catch((e) => {
+          dbg('Failed to decode Waku Message', e);
+        });
     });
 
     super.subscribe(pubsubTopic);

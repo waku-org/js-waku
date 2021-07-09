@@ -62,6 +62,7 @@
     "rlnrelay",
     "sandboxed",
     "secio",
+    "seckey",
     "secp",
     "staticnode",
     "statusim",

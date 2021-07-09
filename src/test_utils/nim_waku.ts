@@ -41,6 +41,7 @@ export interface Args {
   persistMessages?: boolean;
   lightpush?: boolean;
   topics?: string;
+  rpcPrivate?: boolean;
 }
 
 export enum LogLevel {
@@ -51,6 +52,16 @@ export enum LogLevel {
   Trace = 'trace',
   Notice = 'notice',
   Fatal = 'fatal',
+}
+
+export interface KeyPair {
+  privateKey: string;
+  publicKey: string;
+}
+
+export interface WakuRelayMessage {
+  payload: string;
+  contentTopic?: string;
 }
 
 export class NimWaku {
@@ -194,6 +205,35 @@ export class NimWaku {
     );
 
     return msgs.filter(isDefined);
+  }
+
+  async getAsymmetricKeyPair(): Promise<KeyPair> {
+    this.checkProcess();
+
+    const { seckey, pubkey } = await this.rpcCall<{
+      seckey: string;
+      pubkey: string;
+    }>('get_waku_v2_private_v1_asymmetric_keypair', []);
+
+    return { privateKey: seckey, publicKey: pubkey };
+  }
+
+  async postAsymmetricMessage(
+    message: WakuRelayMessage,
+    publicKey: Uint8Array,
+    pubsubTopic?: string
+  ): Promise<boolean> {
+    this.checkProcess();
+
+    if (!message.payload) {
+      throw 'Attempting to send empty message';
+    }
+
+    return this.rpcCall<boolean>('post_waku_v2_private_v1_asymmetric_message', [
+      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
+      message,
+      '0x' + bufToHex(publicKey),
+    ]);
   }
 
   async getPeerId(): Promise<PeerId> {

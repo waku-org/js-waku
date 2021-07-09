@@ -1,6 +1,7 @@
 // Ensure that this class matches the proto interface while
 import { Buffer } from 'buffer';
 
+import debug from 'debug';
 import { Reader } from 'protobufjs/minimal';
 
 // Protecting the user from protobuf oddities
@@ -10,6 +11,7 @@ import * as version_1 from './version_1';
 
 export const DefaultContentTopic = '/waku/2/default-content/proto';
 const DefaultVersion = 0;
+const dbg = debug('waku:message');
 
 export interface Options {
   contentTopic?: string;
@@ -84,11 +86,11 @@ export class WakuMessage {
    */
   static async decode(
     bytes: Uint8Array,
-    decPrivateKey?: Uint8Array
+    decPrivateKeys?: Uint8Array[]
   ): Promise<WakuMessage | undefined> {
     const protoBuf = proto.WakuMessage.decode(Reader.create(bytes));
 
-    return WakuMessage.decodeProto(protoBuf, decPrivateKey);
+    return WakuMessage.decodeProto(protoBuf, decPrivateKeys);
   }
 
   /**
@@ -98,19 +100,52 @@ export class WakuMessage {
    */
   static async decodeProto(
     protoBuf: proto.WakuMessage,
-    decPrivateKey?: Uint8Array
+    decPrivateKeys?: Uint8Array[]
   ): Promise<WakuMessage | undefined> {
+    if (protoBuf.payload === undefined) {
+      dbg('Payload is undefined');
+      return;
+    }
+    const payload = protoBuf.payload;
+
     let signaturePublicKey;
     let signature;
     if (protoBuf.version === 1 && protoBuf.payload) {
-      if (!decPrivateKey) return;
+      if (decPrivateKeys === undefined) {
+        dbg('Payload is encrypted but no private keys have been provided.');
 
-      const dec = await version_1.decryptAsymmetric(
-        protoBuf.payload,
-        decPrivateKey
+        return;
+      }
+
+      // Returns a bunch of `undefined` and hopefully one decrypted result
+      const allResults = await Promise.all(
+        decPrivateKeys.map(async (privateKey) => {
+          try {
+            return await version_1.decryptAsymmetric(payload, privateKey);
+          } catch (e) {
+            dbg('Failed to decrypt asymmetric message', e);
+            return;
+          }
+        })
       );
+
+      const isDefined = (dec: Uint8Array | undefined): dec is Uint8Array => {
+        return !!dec;
+      };
+
+      const decodedResults = allResults.filter(isDefined);
+
+      if (decodedResults.length === 0) {
+        dbg('Failed to decrypt payload.');
+        return;
+      }
+      const dec = decodedResults[0];
+
       const res = await version_1.clearDecode(dec);
-      if (!res) return;
+      if (!res) {
+        dbg('Failed to decode payload.');
+        return;
+      }
       Object.assign(protoBuf, { payload: res.payload });
       signaturePublicKey = res.sig?.publicKey;
       signature = res.sig?.signature;
