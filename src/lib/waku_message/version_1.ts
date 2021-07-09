@@ -1,5 +1,6 @@
 import { Buffer } from 'buffer';
 import { randomBytes } from 'crypto';
+import * as crypto from 'crypto';
 
 import ecies from 'ecies-parity';
 import { keccak256 } from 'js-sha3';
@@ -120,6 +121,13 @@ export async function decryptAsymmetric(
   privKey: Uint8Array | Buffer
 ): Promise<Uint8Array> {
   return ecies.decrypt(Buffer.from(privKey), Buffer.from(payload));
+}
+
+/**
+ * Generate a new private key
+ */
+export function generatePrivateKey(): Uint8Array {
+  return crypto.randomBytes(32);
 }
 
 /**

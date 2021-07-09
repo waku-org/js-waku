@@ -13,7 +13,7 @@ import { delay } from '../delay';
 import { hexToBuf } from '../utils';
 import { Waku } from '../waku';
 
-import { getPublicKey } from './version_1';
+import { generatePrivateKey, getPublicKey } from './version_1';
 
 import { DefaultContentTopic, WakuMessage } from './index';
 
@@ -129,9 +129,7 @@ describe('Interop: Nim', function () {
       payload: Buffer.from(messageText, 'utf-8').toString('hex'),
     };
 
-    const keyPair = await nimWaku.getAsymmetricKeyPair();
-    const privateKey = hexToBuf(keyPair.privateKey);
-    const publicKey = hexToBuf(keyPair.publicKey);
+    const privateKey = generatePrivateKey();
 
     waku.relay.addDecryptionPrivateKey(privateKey);
 
@@ -139,6 +137,7 @@ describe('Interop: Nim', function () {
       waku.relay.addObserver(resolve);
     });
 
+    const publicKey = getPublicKey(privateKey);
     dbg('Post message');
     await nimWaku.postAsymmetricMessage(message, publicKey);
 

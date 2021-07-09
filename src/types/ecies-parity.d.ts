@@ -1,9 +1,6 @@
 // TypeScript Version: 2.1
 /// <reference types="node" />
 declare module 'ecies-parity' {
-  // Generate a new valid private key. Will use crypto.randomBytes as source.
-  export function generatePrivate(): Buffer;
-
   // Compute the public key for a given private key.
   export function getPublic(privateKey: Buffer): Buffer;
 
