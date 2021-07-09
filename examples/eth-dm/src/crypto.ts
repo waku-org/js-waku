@@ -4,7 +4,7 @@ import * as EthCrypto from 'eth-crypto';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
 import { DirectMessage, PublicKeyMessage } from './messaging/wire';
-import { byteArrayToHex, equalByteArrays, hexToBuf } from './utils';
+import { hexToBuf, equalByteArrays, bufToHex } from 'js-waku/lib/utils';
 
 export interface KeyPair {
   privateKey: string;
@@ -69,7 +69,7 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
  */
 function formatPublicKeyForSignature(ethDmPublicKey: Uint8Array): string {
   return JSON.stringify({
-    ethDmPublicKey: byteArrayToHex(ethDmPublicKey),
+    ethDmPublicKey: bufToHex(ethDmPublicKey),
   });
 }
 

@@ -1,5 +1,7 @@
 export { getStatusFleetNodes, Environment, Protocol } from './lib/discover';
 
+export * as utils from './lib/utils';
+
 export { Waku } from './lib/waku';
 export { WakuMessage } from './lib/waku_message';
 

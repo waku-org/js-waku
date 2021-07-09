@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `WakuRelay.deleteObserver` to allow removal of observers, useful when a React component add observers when mounting and needs to delete it when unmounting. 
 - Keep alive feature that pings host regularly, reducing the chance of connections being dropped due to idle.
-  Can be disabled or default frequency (10s) can be changed when calling `Waku.create`. 
+  Can be disabled or default frequency (10s) can be changed when calling `Waku.create`.
+- New `lib/utils` module for easy, dependency-less hex/bytes conversions.
 
 ### Changed
 - **Breaking**: Auto select peer if none provided for store and light push protocols.
