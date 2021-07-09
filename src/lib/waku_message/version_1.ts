@@ -1,5 +1,4 @@
 import { Buffer } from 'buffer';
-import { randomBytes } from 'crypto';
 import * as crypto from 'crypto';
 
 import ecies from 'ecies-parity';
@@ -127,7 +126,7 @@ export async function decryptAsymmetric(
  * Generate a new private key
  */
 export function generatePrivateKey(): Uint8Array {
-  return crypto.randomBytes(32);
+  return randomBytes(32);
 }
 
 /**
@@ -161,12 +160,18 @@ function getSizeOfPayloadSizeField(payload: Uint8Array): number {
   return s;
 }
 
-function validateDataIntegrity(value: Buffer, expectedSize: number): boolean {
+function validateDataIntegrity(
+  value: Uint8Array,
+  expectedSize: number
+): boolean {
   if (value.length !== expectedSize) {
     return false;
   }
 
-  if (expectedSize > 3 && value.equals(Buffer.alloc(value.length))) {
+  if (
+    expectedSize > 3 &&
+    Buffer.from(value).equals(Buffer.alloc(value.length))
+  ) {
     return false;
   }
 
@@ -192,4 +197,14 @@ function ecRecoverPubKey(messageHash: string, signature: Buffer): Uint8Array {
     hexToBuf(messageHash),
     false
   );
+}
+
+function randomBytes(length: number): Uint8Array {
+  if (typeof window !== 'undefined' && window && window.crypto) {
+    const array = new Uint8Array(length);
+    window.crypto.getRandomValues(array);
+    return array;
+  } else {
+    return crypto.randomBytes(length);
+  }
 }
