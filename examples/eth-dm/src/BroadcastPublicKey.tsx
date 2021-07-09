@@ -4,7 +4,7 @@ import { createPublicKeyMessage, KeyPair } from './crypto';
 import { PublicKeyMessage } from './messaging/wire';
 import { WakuMessage, Waku } from 'js-waku';
 import { Signer } from '@ethersproject/abstract-signer';
-import { PublicKeyContentTopic } from './InitWaku';
+import { PublicKeyContentTopic } from './waku';
 
 interface Props {
   ethDmKeyPair: KeyPair | undefined;

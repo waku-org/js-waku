@@ -10,7 +10,6 @@ import { Message } from './messaging/Messages';
 import 'fontsource-roboto';
 import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
 import KeyPairHandling from './key_pair_handling/KeyPairHandling';
-import InitWaku from './InitWaku';
 import {
   createMuiTheme,
   ThemeProvider,
@@ -20,6 +19,13 @@ import { teal, purple, green } from '@material-ui/core/colors';
 import WifiIcon from '@material-ui/icons/Wifi';
 import BroadcastPublicKey from './BroadcastPublicKey';
 import Messaging from './messaging/Messaging';
+import {
+  DirectMessageContentTopic,
+  handleDirectMessage,
+  handlePublicKeyMessage,
+  initWaku,
+  PublicKeyContentTopic,
+} from './waku';
 
 declare let window: any;
 
@@ -70,6 +76,61 @@ function App() {
   const [address, setAddress] = useState<string>();
 
   const classes = useStyles();
+
+  // Waku initialization
+  useEffect(() => {
+    if (waku) return;
+    initWaku()
+      .then((_waku) => {
+        console.log('waku: ready');
+        setWaku(_waku);
+      })
+      .catch((e) => {
+        console.error('Failed to initiate Waku', e);
+      });
+  }, [waku]);
+
+  const observerPublicKeyMessage = handlePublicKeyMessage.bind(
+    {},
+    ethDmKeyPair?.publicKey,
+    setPublicKeys
+  );
+
+  const observerDirectMessage =
+    ethDmKeyPair && address
+      ? handleDirectMessage.bind(
+          {},
+          setMessages,
+          ethDmKeyPair.privateKey,
+          address
+        )
+      : undefined;
+
+  useEffect(() => {
+    if (!waku) return;
+    waku.relay.addObserver(observerPublicKeyMessage, [PublicKeyContentTopic]);
+
+    return function cleanUp() {
+      if (!waku) return;
+      waku.relay.deleteObserver(observerPublicKeyMessage, [
+        PublicKeyContentTopic,
+      ]);
+    };
+  }, [waku]);
+
+  useEffect(() => {
+    if (!waku) return;
+    if (!observerDirectMessage) return;
+    waku.relay.addObserver(observerDirectMessage, [DirectMessageContentTopic]);
+
+    return function cleanUp() {
+      if (!waku) return;
+      if (!observerDirectMessage) return;
+      waku.relay.deleteObserver(observerDirectMessage, [
+        DirectMessageContentTopic,
+      ]);
+    };
+  }, [waku]);
 
   useEffect(() => {
     try {
@@ -123,14 +184,6 @@ function App() {
 
         <div className={classes.container}>
           <main className={classes.main}>
-            <InitWaku
-              ethDmKeyPair={ethDmKeyPair}
-              setMessages={setMessages}
-              setPublicKeys={setPublicKeys}
-              setWaku={setWaku}
-              waku={waku}
-              address={address}
-            />
             <fieldset>
               <legend>Eth-DM Key Pair</legend>
               <KeyPairHandling

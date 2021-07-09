@@ -10,7 +10,7 @@ import React, { ChangeEvent, useState, KeyboardEvent } from 'react';
 import { Waku, WakuMessage } from 'js-waku';
 import { DirectMessage, encode } from './wire';
 import { encryptMessage } from '../crypto';
-import { DirectMessageContentTopic } from '../InitWaku';
+import { DirectMessageContentTopic } from '../waku';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
