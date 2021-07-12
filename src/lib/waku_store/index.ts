@@ -1,3 +1,4 @@
+import debug from 'debug';
 import concat from 'it-concat';
 import lp from 'it-length-prefixed';
 import pipe from 'it-pipe';
@@ -10,6 +11,8 @@ import { WakuMessage } from '../waku_message';
 import { DefaultPubsubTopic } from '../waku_relay';
 
 import { Direction, HistoryRPC } from './history_rpc';
+
+const dbg = debug('waku:store');
 
 export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
 
@@ -34,6 +37,7 @@ export interface QueryOptions {
   direction?: Direction;
   pageSize?: number;
   callback?: (messages: WakuMessage[]) => void;
+  decryptionPrivateKeys?: Uint8Array[];
 }
 
 /**
@@ -71,6 +75,7 @@ export class WakuStore {
       },
       options
     );
+    dbg('Querying history with the following options', options);
 
     let peer;
     if (opts.peerId) {
@@ -115,10 +120,17 @@ export class WakuStore {
               return messages;
             }
 
+            dbg(
+              `${response.messages.length} messages retrieved for pubsub topic ${opts.pubsubTopic}`
+            );
+
             const pageMessages: WakuMessage[] = [];
             await Promise.all(
               response.messages.map(async (protoMsg) => {
-                const msg = await WakuMessage.decodeProto(protoMsg);
+                const msg = await WakuMessage.decodeProto(
+                  protoMsg,
+                  opts.decryptionPrivateKeys
+                );
 
                 if (msg) {
                   messages.push(msg);

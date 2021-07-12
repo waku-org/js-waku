@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `lib/utils` module for easy, dependency-less hex/bytes conversions.
 - New `peers` and `randomPeer` methods on `WakuStore` and `WakuLightPush` to have a better idea of available peers;
   Note that it does not check whether Waku node is currently connected to said peers.
+- Enable passing decryption private keys to `WakuStore.queryHistory`.
 
 ### Changed
 - **Breaking**: Auto select peer if none provided for store and light push protocols.
