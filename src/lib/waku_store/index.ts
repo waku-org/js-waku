@@ -2,9 +2,10 @@ import concat from 'it-concat';
 import lp from 'it-length-prefixed';
 import pipe from 'it-pipe';
 import Libp2p from 'libp2p';
+import { Peer } from 'libp2p/src/peer-store';
 import PeerId from 'peer-id';
 
-import { selectRandomPeer } from '../select_peer';
+import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
 import { WakuMessage } from '../waku_message';
 import { DefaultPubsubTopic } from '../waku_relay';
 
@@ -76,7 +77,7 @@ export class WakuStore {
       peer = this.libp2p.peerStore.get(opts.peerId);
       if (!peer) throw 'Peer is unknown';
     } else {
-      peer = selectRandomPeer(this.libp2p, StoreCodec);
+      peer = this.randomPeer;
     }
     if (!peer) throw 'No peer available';
     if (!peer.protocols.includes(StoreCodec))
@@ -163,5 +164,22 @@ export class WakuStore {
         );
       }
     }
+  }
+
+  /**
+   * Returns known peers from the address book (`libp2p.peerStore`) that support
+   * store protocol. Waku may or  may not be currently connected to these peers.
+   */
+  get peers(): Peer[] {
+    return getPeersForProtocol(this.libp2p, StoreCodec);
+  }
+
+  /**
+   * Returns a random peer that supports store protocol from the address
+   * book (`libp2p.peerStore`). Waku may or  may not be currently connected to
+   * this peer.
+   */
+  get randomPeer(): Peer | undefined {
+    return selectRandomPeer(this.peers);
   }
 }
