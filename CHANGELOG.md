@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: `WakuMessage` constructor is now private, `from*` and `decode*` function should be used.
 - `WakuMessage` version 1 is partially supported, enabling asymmetrical encryption and signature of messages;
   this can be done by passing keys to `WakuMessage.from*` and `WakuMessage.decode*` methods.
-- Examples (eth-dm): Use Waku Message version 1 encryption scheme instead of `eth-crypto`.  
+- Examples (eth-dm): Use Waku Message version 1 encryption scheme instead of `eth-crypto`.
+- Examples (eth-dm): Use Protobuf for direct messages instead of JSON ([#214](https://github.com/status-im/js-waku/issues/214)).
 
 ### Fixed
 - Disable `keepAlive` if set to `0`.
