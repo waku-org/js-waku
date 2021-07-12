@@ -57,7 +57,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "debug": "^4.3.1",
-    "ecies-parity": "^0.1.1",
+    "ecies-geth": "^1.5.2",
     "it-concat": "^2.0.0",
     "it-length-prefixed": "^5.0.2",
     "js-sha3": "^0.8.0",
