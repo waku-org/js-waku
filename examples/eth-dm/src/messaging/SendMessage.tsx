@@ -8,7 +8,8 @@ import {
 } from '@material-ui/core';
 import React, { ChangeEvent, useState, KeyboardEvent } from 'react';
 import { Waku, WakuMessage } from 'js-waku';
-import { DirectMessage, encode } from './wire';
+import { hexToBuf } from 'js-waku/lib/utils';
+import { DirectMessage } from './wire';
 import { DirectMessageContentTopic } from '../waku';
 
 const useStyles = makeStyles((theme) => ({
@@ -108,12 +109,12 @@ async function encodeEncryptedWakuMessage(
   publicKey: string,
   address: string
 ): Promise<WakuMessage> {
-  const directMsg: DirectMessage = {
-    toAddress: address,
+  const directMsg = new DirectMessage({
+    toAddress: hexToBuf(address),
     message: message,
-  };
+  });
 
-  const payload = encode(directMsg);
+  const payload = directMsg.encode();
   return WakuMessage.fromBytes(payload, {
     contentTopic: DirectMessageContentTopic,
     encPublicKey: publicKey,

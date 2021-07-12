@@ -28,7 +28,7 @@ export function clearEncode(
 ): { payload: Uint8Array; sig?: Signature } {
   let envelope = Buffer.from([0]); // No flags
   envelope = addPayloadSizeField(envelope, messagePayload);
-  envelope = Buffer.concat([envelope, messagePayload]);
+  envelope = Buffer.concat([envelope, Buffer.from(messagePayload)]);
 
   // Calculate padding:
   let rawSize =

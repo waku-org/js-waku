@@ -1,12 +1,12 @@
 import { Dispatch, SetStateAction } from 'react';
 import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
-import { decode, DirectMessage, PublicKeyMessage } from './messaging/wire';
+import { DirectMessage, PublicKeyMessage } from './messaging/wire';
 import { validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
 import { bufToHex, equalByteArrays } from 'js-waku/lib/utils';
 
 export const PublicKeyContentTopic = '/eth-dm/1/public-key/proto';
-export const DirectMessageContentTopic = '/eth-dm/1/direct-message/json';
+export const DirectMessageContentTopic = '/eth-dm/1/direct-message/proto';
 
 export async function initWaku(): Promise<Waku> {
   const waku = await Waku.create({});
@@ -64,8 +64,11 @@ export async function handleDirectMessage(
 ) {
   console.log('Direct Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
-  const directMessage: DirectMessage = decode(wakuMsg.payload);
-
+  const directMessage = DirectMessage.decode(wakuMsg.payload);
+  if (!directMessage) {
+    console.log('Failed to decode Direct Message');
+    return;
+  }
   if (!equalByteArrays(directMessage.toAddress, address)) return;
 
   const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
