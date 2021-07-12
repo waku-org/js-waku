@@ -16,7 +16,7 @@ const dbg = debug('waku:message');
 export interface Options {
   contentTopic?: string;
   timestamp?: Date;
-  encPublicKey?: Uint8Array;
+  encPublicKey?: Uint8Array | string;
   sigPrivKey?: Uint8Array;
 }
 

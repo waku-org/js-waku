@@ -1,5 +1,9 @@
-export function hexToBuf(str: string): Buffer {
-  return Buffer.from(str.replace(/^0x/i, ''), 'hex');
+export function hexToBuf(hex: string | Buffer | Uint8Array): Buffer {
+  if (typeof hex === 'string') {
+    return Buffer.from(hex.replace(/^0x/i, ''), 'hex');
+  } else {
+    return Buffer.from(hex);
+  }
 }
 
 export function bufToHex(buf: Uint8Array | Buffer | ArrayBuffer): string {

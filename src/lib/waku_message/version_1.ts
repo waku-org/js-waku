@@ -42,7 +42,7 @@ export function clearEncode(
 
   const remainder = rawSize % PaddingTarget;
   const paddingSize = PaddingTarget - remainder;
-  const pad = randomBytes(paddingSize);
+  const pad = Buffer.from(randomBytes(paddingSize));
 
   if (!validateDataIntegrity(pad, paddingSize)) {
     throw new Error('failed to generate random padding of size ' + paddingSize);
@@ -110,9 +110,9 @@ export function clearDecode(
  */
 export async function encryptAsymmetric(
   data: Uint8Array | Buffer,
-  publicKey: Uint8Array | Buffer
+  publicKey: Uint8Array | Buffer | string
 ): Promise<Uint8Array> {
-  return ecies.encrypt(Buffer.from(publicKey), Buffer.from(data));
+  return ecies.encrypt(hexToBuf(publicKey), Buffer.from(data));
 }
 
 export async function decryptAsymmetric(

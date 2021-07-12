@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
 import { decode, DirectMessage, PublicKeyMessage } from './messaging/wire';
-import { decryptMessage, validatePublicKeyMessage } from './crypto';
+import { validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
 import { bufToHex, equalByteArrays } from 'js-waku/lib/utils';
 
@@ -58,31 +58,25 @@ export function handlePublicKeyMessage(
 
 export async function handleDirectMessage(
   setter: Dispatch<SetStateAction<Message[]>>,
-  privateKey: string,
+  privateKey: Uint8Array,
   address: string,
   wakuMsg: WakuMessage
 ) {
   console.log('Direct Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
   const directMessage: DirectMessage = decode(wakuMsg.payload);
-  // Only decrypt messages for us
+
   if (!equalByteArrays(directMessage.toAddress, address)) return;
 
-  try {
-    const text = await decryptMessage(privateKey, directMessage);
+  const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
 
-    const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
-
-    console.log('Message decrypted:', text);
-    setter((prevMsgs: Message[]) => {
-      const copy = prevMsgs.slice();
-      copy.push({
-        text: text,
-        timestamp: timestamp,
-      });
-      return copy;
+  console.log('Message decrypted:', directMessage.message);
+  setter((prevMsgs: Message[]) => {
+    const copy = prevMsgs.slice();
+    copy.push({
+      text: directMessage.message,
+      timestamp: timestamp,
     });
-  } catch (e) {
-    console.log(' Failed to decrypt message', e);
-  }
+    return copy;
+  });
 }

@@ -127,6 +127,20 @@ function App() {
   useEffect(() => {
     if (!waku) return;
     if (!ethDmKeyPair) return;
+
+    waku.relay.addDecryptionPrivateKey(ethDmKeyPair.privateKey);
+
+    return function cleanUp() {
+      if (!waku) return;
+      if (!ethDmKeyPair) return;
+
+      waku.relay.deleteDecryptionPrivateKey(ethDmKeyPair.privateKey);
+    };
+  }, [waku, ethDmKeyPair]);
+
+  useEffect(() => {
+    if (!waku) return;
+    if (!ethDmKeyPair) return;
     if (!address) return;
 
     const observerDirectMessage = handleDirectMessage.bind(

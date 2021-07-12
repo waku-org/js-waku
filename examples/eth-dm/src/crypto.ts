@@ -1,14 +1,17 @@
 import '@ethersproject/shims';
 
-import * as EthCrypto from 'eth-crypto';
 import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
-import { DirectMessage, PublicKeyMessage } from './messaging/wire';
+import { PublicKeyMessage } from './messaging/wire';
 import { hexToBuf, equalByteArrays, bufToHex } from 'js-waku/lib/utils';
+import {
+  generatePrivateKey,
+  getPublicKey,
+} from 'js-waku/lib/waku_message/version_1';
 
 export interface KeyPair {
-  privateKey: string;
-  publicKey: string;
+  privateKey: Uint8Array;
+  publicKey: Uint8Array;
 }
 
 /**
@@ -17,7 +20,9 @@ export interface KeyPair {
  * to make the private key.
  */
 export async function generateEthDmKeyPair(): Promise<KeyPair> {
-  return EthCrypto.createIdentity();
+  const privateKey = generatePrivateKey();
+  const publicKey = getPublicKey(privateKey);
+  return { privateKey, publicKey };
 }
 
 /**
@@ -27,16 +32,15 @@ export async function generateEthDmKeyPair(): Promise<KeyPair> {
  */
 export async function createPublicKeyMessage(
   web3Signer: Signer,
-  ethDmPublicKey: string
+  ethDmPublicKey: Uint8Array
 ): Promise<PublicKeyMessage> {
   const ethAddress = await web3Signer.getAddress();
-  const bytesEthDmPublicKey = hexToBuf(ethDmPublicKey);
   const signature = await web3Signer.signMessage(
-    formatPublicKeyForSignature(bytesEthDmPublicKey)
+    formatPublicKeyForSignature(ethDmPublicKey)
   );
 
   return new PublicKeyMessage({
-    ethDmPublicKey: bytesEthDmPublicKey,
+    ethDmPublicKey: ethDmPublicKey,
     ethAddress: hexToBuf(ethAddress),
     signature: hexToBuf(signature),
   });
@@ -71,21 +75,4 @@ function formatPublicKeyForSignature(ethDmPublicKey: Uint8Array): string {
   return JSON.stringify({
     ethDmPublicKey: bufToHex(ethDmPublicKey),
   });
-}
-
-/**
- * Decrypt a Direct Message using the private key.
- */
-export function decryptMessage(
-  privateKey: string,
-  directMessage: DirectMessage
-) {
-  return EthCrypto.decryptWithPrivateKey(privateKey, directMessage.encMessage);
-}
-
-/**
- * Encrypt message with given Public Key
- */
-export async function encryptMessage(publicKey: string, message: string) {
-  return await EthCrypto.encryptWithPublicKey(publicKey, message);
 }

@@ -9,7 +9,6 @@ import {
 import React, { ChangeEvent, useState, KeyboardEvent } from 'react';
 import { Waku, WakuMessage } from 'js-waku';
 import { DirectMessage, encode } from './wire';
-import { encryptMessage } from '../crypto';
 import { DirectMessageContentTopic } from '../waku';
 
 const useStyles = makeStyles((theme) => ({
@@ -109,16 +108,15 @@ async function encodeEncryptedWakuMessage(
   publicKey: string,
   address: string
 ): Promise<WakuMessage> {
-  const encryptedMsg = await encryptMessage(publicKey, message);
-
   const directMsg: DirectMessage = {
     toAddress: address,
-    encMessage: encryptedMsg,
+    message: message,
   };
 
   const payload = encode(directMsg);
   return WakuMessage.fromBytes(payload, {
     contentTopic: DirectMessageContentTopic,
+    encPublicKey: publicKey,
   });
 }
 
