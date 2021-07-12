@@ -40,9 +40,12 @@ export default function BroadcastPublicKey({
           setPublicKeyMsg(msg);
           encodePublicKeyWakuMessage(msg)
             .then((wakuMsg) => {
-              waku.lightPush.push(wakuMsg).catch((e) => {
-                console.error('Failed to send Public Key Message', e);
-              });
+              waku.lightPush
+                .push(wakuMsg)
+                .then((res) => console.log('Public Key Message pushed', res))
+                .catch((e) => {
+                  console.error('Failed to send Public Key Message', e);
+                });
             })
             .catch((e) => {
               console.log(
