@@ -1,4 +1,3 @@
-import * as EthCrypto from 'eth-crypto';
 import * as protobuf from 'protobufjs/light';
 
 export interface PublicKeyMessagePayload {
@@ -61,7 +60,7 @@ export class PublicKeyMessage {
  */
 export interface DirectMessage {
   toAddress: string;
-  encMessage: EthCrypto.Encrypted;
+  message: string;
 }
 
 export function encode<T>(msg: T): Buffer {
