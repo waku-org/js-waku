@@ -5,14 +5,18 @@ import { Peer } from 'libp2p/src/peer-store';
  * Returns a pseudo-random peer that supports the given protocol.
  * Useful for protocols such as store and light push
  */
-export function selectRandomPeer(
-  libp2p: Libp2p,
-  protocol: string
-): Peer | undefined {
-  const allPeers = Array.from(libp2p.peerStore.peers.values());
-  const size = allPeers.length;
-  const peers = allPeers.filter((peer) => peer.protocols.includes(protocol));
+export function selectRandomPeer(peers: Peer[]): Peer | undefined {
   if (peers.length === 0) return;
-  const index = Math.round(Math.random() * (size - 1));
-  return allPeers[index];
+
+  const index = Math.round(Math.random() * (peers.length - 1));
+  return peers[index];
+}
+
+/**
+ * Returns the list of peers that supports the given protocol.
+ */
+export function getPeersForProtocol(libp2p: Libp2p, protocol: string): Peer[] {
+  return Array.from(libp2p.peerStore.peers.values()).filter((peer) =>
+    peer.protocols.includes(protocol)
+  );
 }

@@ -1,14 +1,18 @@
+import debug from 'debug';
 import concat from 'it-concat';
 import lp from 'it-length-prefixed';
 import pipe from 'it-pipe';
 import Libp2p from 'libp2p';
+import { Peer } from 'libp2p/src/peer-store';
 import PeerId from 'peer-id';
 
-import { selectRandomPeer } from '../select_peer';
+import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
 import { WakuMessage } from '../waku_message';
 import { DefaultPubsubTopic } from '../waku_relay';
 
 import { Direction, HistoryRPC } from './history_rpc';
+
+const dbg = debug('waku:store');
 
 export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
 
@@ -33,6 +37,7 @@ export interface QueryOptions {
   direction?: Direction;
   pageSize?: number;
   callback?: (messages: WakuMessage[]) => void;
+  decryptionPrivateKeys?: Uint8Array[];
 }
 
 /**
@@ -70,13 +75,14 @@ export class WakuStore {
       },
       options
     );
+    dbg('Querying history with the following options', options);
 
     let peer;
     if (opts.peerId) {
       peer = this.libp2p.peerStore.get(opts.peerId);
       if (!peer) throw 'Peer is unknown';
     } else {
-      peer = selectRandomPeer(this.libp2p, StoreCodec);
+      peer = this.randomPeer;
     }
     if (!peer) throw 'No peer available';
     if (!peer.protocols.includes(StoreCodec))
@@ -114,10 +120,17 @@ export class WakuStore {
               return messages;
             }
 
+            dbg(
+              `${response.messages.length} messages retrieved for pubsub topic ${opts.pubsubTopic}`
+            );
+
             const pageMessages: WakuMessage[] = [];
             await Promise.all(
               response.messages.map(async (protoMsg) => {
-                const msg = await WakuMessage.decodeProto(protoMsg);
+                const msg = await WakuMessage.decodeProto(
+                  protoMsg,
+                  opts.decryptionPrivateKeys
+                );
 
                 if (msg) {
                   messages.push(msg);
@@ -163,5 +176,22 @@ export class WakuStore {
         );
       }
     }
+  }
+
+  /**
+   * Returns known peers from the address book (`libp2p.peerStore`) that support
+   * store protocol. Waku may or  may not be currently connected to these peers.
+   */
+  get peers(): Peer[] {
+    return getPeersForProtocol(this.libp2p, StoreCodec);
+  }
+
+  /**
+   * Returns a random peer that supports store protocol from the address
+   * book (`libp2p.peerStore`). Waku may or  may not be currently connected to
+   * this peer.
+   */
+  get randomPeer(): Peer | undefined {
+    return selectRandomPeer(this.peers);
   }
 }
