@@ -161,9 +161,11 @@ function App() {
     };
   }, [waku, address, ethDmKeyPair]);
 
-  let peers = 0;
+  let relayPeers = 0;
+  let lightPushPeers = 0;
   if (waku) {
-    peers = waku.libp2p.connectionManager.connections.size;
+    relayPeers = waku.relay.getPeers().size;
+    lightPushPeers = waku.lightPush.peers.length;
   }
 
   let addressDisplay = '';
@@ -188,7 +190,7 @@ function App() {
               />
             </IconButton>
             <Typography className={classes.peers} aria-label="connected-peers">
-              {peers} peer{peers && peers > 1 ? 's' : ''}
+              Peers: {relayPeers} relay, {lightPushPeers} light push
             </Typography>
             <Typography variant="h6" className={classes.title}>
               Ethereum Direct Message
