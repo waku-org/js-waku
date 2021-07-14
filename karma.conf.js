@@ -18,7 +18,7 @@ module.exports = function (config) {
     ],
     logLevel: config.LOG_DEBUG,
     reporters: ['progress', 'karma-typescript'],
-    browsers: ['Chrome'],
+    browsers: ['ChromeHeadless'],
     singleRun: true,
     karmaTypescriptConfig: {
       bundlerOptions: {
