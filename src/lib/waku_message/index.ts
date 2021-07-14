@@ -14,9 +14,23 @@ const DefaultVersion = 0;
 const dbg = debug('waku:message');
 
 export interface Options {
+  /**
+   * Content topic to set on the message, defaults to {@link DefaultContentTopic}
+   * if not passed.
+   */
   contentTopic?: string;
+  /**
+   * Timestamp to set on the message, defaults to now if not passed.
+   */
   timestamp?: Date;
+  /**
+   * Public Key to use to encrypt the messages using ECIES (Asymmetric Encryption).
+   */
   encPublicKey?: Uint8Array | string;
+  /**
+   * Private key to use to sign the message, `encPublicKey` must be provided as only
+   * encrypted messages are signed.
+   */
   sigPrivKey?: Uint8Array;
 }
 
