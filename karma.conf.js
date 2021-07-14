@@ -16,7 +16,6 @@ module.exports = function (config) {
       require('karma-typescript'),
       require('karma-chrome-launcher'),
     ],
-    logLevel: config.LOG_DEBUG,
     reporters: ['progress', 'karma-typescript'],
     browsers: ['ChromeHeadless'],
     singleRun: true,
