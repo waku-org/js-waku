@@ -1,4 +1,5 @@
 import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from 'libp2p';
+import { MuxedStream } from 'libp2p-interfaces/dist/src/stream-muxer/types';
 import Mplex from 'libp2p-mplex';
 import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
@@ -160,7 +161,7 @@ export class Waku {
    * @param peer The peer to dial
    */
   async dial(peer: PeerId | Multiaddr | string): Promise<{
-    stream: import('libp2p-interfaces/src/stream-muxer/types').MuxedStream;
+    stream: MuxedStream;
     protocol: string;
   }> {
     return this.libp2p.dialProtocol(peer, [RelayCodec, StoreCodec]);
