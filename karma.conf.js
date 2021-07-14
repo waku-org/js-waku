@@ -1,3 +1,5 @@
+process.env.CHROME_BIN = require('puppeteer').executablePath();
+
 module.exports = function (config) {
   config.set({
     frameworks: ['mocha', 'karma-typescript'],
@@ -16,7 +18,7 @@ module.exports = function (config) {
     ],
     logLevel: config.LOG_DEBUG,
     reporters: ['progress', 'karma-typescript'],
-    browsers: ['Chromium'],
+    browsers: ['Chrome'],
     singleRun: true,
     karmaTypescriptConfig: {
       bundlerOptions: {
