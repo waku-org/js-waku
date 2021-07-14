@@ -1,7 +1,11 @@
 module.exports = function (config) {
   config.set({
     frameworks: ['mocha', 'karma-typescript'],
-    files: [{ pattern: 'src/**/*browser.spec.ts' }],
+    files: [
+      'src/lib/**/*.ts',
+      'src/proto/**/*.ts',
+      'src/tests/browser/*.spec.ts',
+    ],
     preprocessors: {
       '**/*.ts': ['karma-typescript'],
     },
@@ -15,6 +19,9 @@ module.exports = function (config) {
     browsers: ['Chromium'],
     singleRun: true,
     karmaTypescriptConfig: {
+      bundlerOptions: {
+        entrypoints: /src\/tests\/browser\/.*\.spec\.ts$/,
+      },
       tsconfig: './tsconfig.karma.json',
       coverageOptions: {
         instrumentation: false,
