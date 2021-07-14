@@ -15,7 +15,7 @@ module.exports = function (config) {
     browsers: ['Chromium'],
     singleRun: true,
     karmaTypescriptConfig: {
-      tsconfig: './tsconfig.dev.json',
+      tsconfig: './tsconfig.karma.json',
       coverageOptions: {
         instrumentation: false,
       },
