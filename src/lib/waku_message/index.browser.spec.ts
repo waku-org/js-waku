@@ -1,12 +1,6 @@
 import { expect } from 'chai';
 import fc from 'fast-check';
 
-fc.configureGlobal({
-  interruptAfterTimeLimit: 1500,
-  markInterruptAsFailure: true,
-  numRuns: 10, // Firefox is too slow for 100 (fc default) runs in 2s (mocha default)
-});
-
 import { WakuMessage } from '../../lib/waku_message';
 import { getPublicKey } from '../../lib/waku_message/version_1';
 
