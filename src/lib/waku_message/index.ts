@@ -25,10 +25,18 @@ export interface Options {
   timestamp?: Date;
   /**
    * Public Key to use to encrypt the messages using ECIES (Asymmetric Encryption).
+   *
+   * @throws if both `encPublicKey` and `symKey` are passed
    */
   encPublicKey?: Uint8Array | string;
   /**
-   * Private key to use to sign the message, `encPublicKey` must be provided as only
+   * Key to use to encrypt the messages using AES (Symmetric Encryption).
+   *
+   * @throws if both `encPublicKey` and `symKey` are passed
+   */
+  symKey?: Uint8Array | string;
+  /**
+   * Private key to use to sign the message, either `encPublicKey` or `symKey` must be provided as only
    * encrypted messages are signed.
    */
   sigPrivKey?: Uint8Array;
@@ -61,22 +69,35 @@ export class WakuMessage {
    *
    * If `opts.sigPrivKey` is passed and version 1 is used, the payload is signed
    * before encryption.
+   *
+   * @throws if both `opts.encPublicKey` and `opt.symKey` are passed
    */
   static async fromBytes(
     payload: Uint8Array,
     opts?: Options
   ): Promise<WakuMessage> {
-    const { timestamp, contentTopic, encPublicKey, sigPrivKey } = Object.assign(
-      { timestamp: new Date(), contentTopic: DefaultContentTopic },
-      opts ? opts : {}
-    );
+    const { timestamp, contentTopic, encPublicKey, symKey, sigPrivKey } =
+      Object.assign(
+        { timestamp: new Date(), contentTopic: DefaultContentTopic },
+        opts ? opts : {}
+      );
 
     let _payload = payload;
     let version = DefaultVersion;
     let sig;
+
+    if (encPublicKey && symKey) {
+      throw 'Pass either `encPublicKey` or `symKey`, not both.';
+    }
+
     if (encPublicKey) {
       const enc = version_1.clearEncode(_payload, sigPrivKey);
       _payload = await version_1.encryptAsymmetric(enc.payload, encPublicKey);
+      sig = enc.sig;
+      version = 1;
+    } else if (symKey) {
+      const enc = version_1.clearEncode(_payload, sigPrivKey);
+      _payload = await version_1.encryptSymmetric(enc.payload, symKey);
       sig = enc.sig;
       version = 1;
     }
@@ -127,7 +148,6 @@ export class WakuMessage {
     if (protoBuf.version === 1 && protoBuf.payload) {
       if (decPrivateKeys === undefined) {
         dbg('Payload is encrypted but no private keys have been provided.');
-
         return;
       }
 
@@ -135,10 +155,15 @@ export class WakuMessage {
       const allResults = await Promise.all(
         decPrivateKeys.map(async (privateKey) => {
           try {
-            return await version_1.decryptAsymmetric(payload, privateKey);
+            return await version_1.decryptSymmetric(payload, privateKey);
           } catch (e) {
-            dbg('Failed to decrypt asymmetric message', e);
-            return;
+            dbg('Failed to decrypt message using symmetric encryption', e);
+            try {
+              return await version_1.decryptAsymmetric(payload, privateKey);
+            } catch (e) {
+              dbg('Failed to decrypt message using asymmetric encryption', e);
+              return;
+            }
           }
         })
       );
