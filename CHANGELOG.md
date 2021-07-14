@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Note that it does not check whether Waku node is currently connected to said peers.
 - Enable passing decryption private keys to `WakuStore.queryHistory`.
 - Test: Introduce testing in browser environment (Chrome) using Karma.
+- Add support for Waku Message version 1: Asymmetric encryption, symmetric encryption, and signature of the data.
 
 ### Changed
 - **Breaking**: Auto select peer if none provided for store and light push protocols.
