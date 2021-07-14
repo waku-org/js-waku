@@ -1,9 +1,15 @@
 import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from 'libp2p';
 import { MuxedStream } from 'libp2p-interfaces/dist/src/stream-muxer/types';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: No types available
 import Mplex from 'libp2p-mplex';
 import { bytes } from 'libp2p-noise/dist/src/@types/basic';
 import { Noise } from 'libp2p-noise/dist/src/noise';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: No types available
 import Websockets from 'libp2p-websockets';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: No types available
 import filters from 'libp2p-websockets/src/filters';
 import Ping from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
