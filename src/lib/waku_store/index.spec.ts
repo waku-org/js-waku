@@ -1,5 +1,7 @@
 import { expect } from 'chai';
 import debug from 'debug';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: No types available
 import TCP from 'libp2p-tcp';
 
 import {

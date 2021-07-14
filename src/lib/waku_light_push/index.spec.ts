@@ -1,4 +1,6 @@
 import { expect } from 'chai';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: No types available
 import TCP from 'libp2p-tcp';
 
 import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../../test_utils';

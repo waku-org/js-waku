@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "noEmit": false
+  },
+  "include": [
+    "src/lib/**/*.ts",
+    "src/proto/**/*.ts",
+    "src/tests/browser/**/*.ts"
+  ],
+  "exclude": ["node_modules/**"]
+}
