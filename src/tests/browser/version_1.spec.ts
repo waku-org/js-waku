@@ -5,7 +5,9 @@ import {
   clearDecode,
   clearEncode,
   decryptAsymmetric,
+  decryptSymmetric,
   encryptAsymmetric,
+  encryptSymmetric,
   getPublicKey,
 } from '../../lib/waku_message/version_1';
 
@@ -48,6 +50,21 @@ describe('Waku Message Version 1', function () {
 
           const enc = await encryptAsymmetric(message, publicKey);
           const res = await decryptAsymmetric(enc, privKey);
+
+          expect(res).deep.equal(message);
+        }
+      )
+    );
+  });
+
+  it('Symmetric encrypt & Decrypt', async function () {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.uint8Array(),
+        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        async (message, key) => {
+          const enc = await encryptSymmetric(message, key);
+          const res = await decryptSymmetric(enc, key);
 
           expect(res).deep.equal(message);
         }

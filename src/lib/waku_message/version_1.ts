@@ -7,7 +7,7 @@ import * as secp256k1 from 'secp256k1';
 
 import { hexToBuf } from '../utils';
 
-import { IvSize, symmetric, TagSize } from './symmetric';
+import { IvSize, symmetric } from './symmetric';
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011
@@ -146,7 +146,7 @@ export async function encryptSymmetric(
   const iv = symmetric.generateIv();
 
   // Returns `cipher | tag`
-  const cipher = symmetric.encrypt(iv, hexToBuf(key), Buffer.from(data));
+  const cipher = await symmetric.encrypt(iv, hexToBuf(key), Buffer.from(data));
   return Buffer.concat([cipher, iv]);
 }
 
@@ -164,13 +164,11 @@ export async function decryptSymmetric(
   key: Uint8Array | Buffer | string
 ): Promise<Uint8Array> {
   const data = Buffer.from(payload);
-  const ivStart = payload.length - IvSize;
-  const tagStart = ivStart - TagSize;
-  const cipher = data.slice(0, tagStart);
-  const tag = data.slice(tagStart, ivStart);
+  const ivStart = data.length - IvSize;
+  const cipher = data.slice(0, ivStart);
   const iv = data.slice(ivStart);
 
-  return symmetric.decrypt(iv, tag, hexToBuf(key), cipher);
+  return symmetric.decrypt(iv, hexToBuf(key), cipher);
 }
 
 /**

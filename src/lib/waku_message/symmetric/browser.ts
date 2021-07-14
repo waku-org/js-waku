@@ -18,11 +18,8 @@ if (subtle === undefined) {
   throw new Error('Failed to load Subtle CryptoAPI');
 }
 
-/**
- * Proceed with symmetric encryption of `clearText` value.
- */
-async function encrypt(
-  iv: Buffer,
+export async function encrypt(
+  iv: Buffer | Uint8Array,
   key: Buffer,
   clearText: Buffer
 ): Promise<Buffer> {
@@ -34,10 +31,7 @@ async function encrypt(
     .then(Buffer.from);
 }
 
-/**
- * Proceed with symmetric decryption of `cipherText` value.
- */
-async function decrypt(
+export async function decrypt(
   iv: Buffer,
   key: Buffer,
   cipherText: Buffer
@@ -45,21 +39,17 @@ async function decrypt(
   return subtle
     .importKey('raw', key, Algorithm, false, ['decrypt'])
     .then((cryptoKey) =>
-      subtle.encrypt({ iv, ...Algorithm }, cryptoKey, cipherText)
+      subtle.decrypt({ iv, ...Algorithm }, cryptoKey, cipherText)
     )
     .then(Buffer.from);
 }
 
-/**
- * Generate a new private key for Symmetric encryption purposes.
- */
-function generateKeyForSymmetricEnc(): Buffer {
+export function generateKeyForSymmetricEnc(): Buffer {
   return crypto.getRandomValues(Buffer.alloc(SymmetricKeySize));
 }
 
-/**
- * Generate an Initialisation Vector (iv) for for Symmetric encryption purposes.
- */
-function generateIv(): Buffer {
-  return crypto.getRandomValues(Buffer.alloc(IvSize));
+export function generateIv(): Uint8Array {
+  const iv = new Uint8Array(IvSize);
+  crypto.getRandomValues(iv);
+  return iv;
 }

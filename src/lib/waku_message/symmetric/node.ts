@@ -1,13 +1,14 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
-import { IvSize, SymmetricKeySize } from './index';
+import { IvSize, SymmetricKeySize, TagSize } from './index';
 
 const Algorithm = 'aes-256-gcm';
 
-/**
- * Proceed with symmetric encryption of `clearText` value.
- */
-export function encrypt(iv: Buffer, key: Buffer, clearText: Buffer): Buffer {
+export async function encrypt(
+  iv: Buffer | Uint8Array,
+  key: Buffer,
+  clearText: Buffer
+): Promise<Buffer> {
   const cipher = createCipheriv(Algorithm, key, iv);
   const a = cipher.update(clearText);
   const b = cipher.final();
@@ -15,15 +16,14 @@ export function encrypt(iv: Buffer, key: Buffer, clearText: Buffer): Buffer {
   return Buffer.concat([a, b, tag]);
 }
 
-/**
- * Proceed with symmetric decryption of `cipherText` value.
- */
-export function decrypt(
+export async function decrypt(
   iv: Buffer,
-  tag: Buffer,
   key: Buffer,
-  cipherText: Buffer
-): Buffer {
+  data: Buffer
+): Promise<Buffer> {
+  const tagStart = data.length - TagSize;
+  const cipherText = data.slice(0, tagStart);
+  const tag = data.slice(tagStart);
   const decipher = createDecipheriv(Algorithm, key, iv);
   decipher.setAuthTag(tag);
   const a = decipher.update(cipherText);
@@ -31,16 +31,10 @@ export function decrypt(
   return Buffer.concat([a, b]);
 }
 
-/**
- * Generate a new private key for Symmetric encryption purposes.
- */
 export function generateKeyForSymmetricEnc(): Buffer {
   return randomBytes(SymmetricKeySize);
 }
 
-/**
- * Generate an Initialisation Vector (iv) for for Symmetric encryption purposes.
- */
 export function generateIv(): Buffer {
   return randomBytes(IvSize);
 }
