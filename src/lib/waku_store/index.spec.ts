@@ -146,32 +146,42 @@ describe('Waku Store', () => {
     expect(result).to.not.eq(-1);
   });
 
-  it('Retrieves history with asymmetric encrypted messages', async function () {
+  it('Retrieves history with asymmetric & symmetric encrypted messages', async function () {
     this.timeout(10_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
     await nimWaku.start({ persistMessages: true, lightpush: true });
 
-    const encryptedMessageText = 'This message is encrypted for me';
+    const encryptedAsymmetricMessageText =
+      'This message is encrypted for me using asymmetric';
+    const encryptedSymmetricMessageText =
+      'This message is encrypted for me using symmetric encryption';
     const clearMessageText =
       'This is a clear text message for everyone to read';
     const otherEncMessageText =
       'This message is not for and I must not be able to read it';
 
     const privateKey = generatePrivateKey();
+    const symKey = generatePrivateKey();
     const publicKey = getPublicKey(privateKey);
 
-    const [encryptedMessage, clearMessage, otherEncMessage] = await Promise.all(
-      [
-        WakuMessage.fromUtf8String(encryptedMessageText, {
-          encPublicKey: publicKey,
-        }),
-        WakuMessage.fromUtf8String(clearMessageText),
-        WakuMessage.fromUtf8String(otherEncMessageText, {
-          encPublicKey: getPublicKey(generatePrivateKey()),
-        }),
-      ]
-    );
+    const [
+      encryptedAsymmetricMessage,
+      encryptedSymmetricMessage,
+      clearMessage,
+      otherEncMessage,
+    ] = await Promise.all([
+      WakuMessage.fromUtf8String(encryptedAsymmetricMessageText, {
+        encPublicKey: publicKey,
+      }),
+      WakuMessage.fromUtf8String(encryptedSymmetricMessageText, {
+        symKey: symKey,
+      }),
+      WakuMessage.fromUtf8String(clearMessageText),
+      WakuMessage.fromUtf8String(otherEncMessageText, {
+        encPublicKey: getPublicKey(generatePrivateKey()),
+      }),
+    ]);
 
     dbg('Messages have been encrypted');
 
@@ -204,7 +214,8 @@ describe('Waku Store', () => {
 
     dbg('Sending messages using light push');
     await Promise.all([
-      await waku1.lightPush.push(encryptedMessage),
+      waku1.lightPush.push(encryptedAsymmetricMessage),
+      waku1.lightPush.push(encryptedSymmetricMessage),
       waku1.lightPush.push(otherEncMessage),
       waku1.lightPush.push(clearMessage),
     ]);
@@ -218,13 +229,14 @@ describe('Waku Store', () => {
     dbg('Retrieve messages from store');
     const messages = await waku2.store.queryHistory({
       contentTopics: [],
-      decryptionPrivateKeys: [privateKey],
+      decryptionKeys: [privateKey, symKey],
     });
 
-    expect(messages?.length).eq(2);
+    expect(messages?.length).eq(3);
     if (!messages) throw 'Length was tested';
     expect(messages[0].payloadAsUtf8).to.eq(clearMessageText);
-    expect(messages[1].payloadAsUtf8).to.eq(encryptedMessageText);
+    expect(messages[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
+    expect(messages[2].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
 
     await Promise.all([waku1.stop(), waku2.stop()]);
   });
