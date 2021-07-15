@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2021-07-15
+
 ### Added
 - `WakuRelay.deleteObserver` to allow removal of observers, useful when a React component add observers when mounting and needs to delete it when unmounting. 
 - Keep alive feature that pings host regularly, reducing the chance of connections being dropped due to idle.
@@ -118,7 +120,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://status-im.github.io/js-waku/docs).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/status-im/js-waku/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/status-im/js-waku/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/status-im/js-waku/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/status-im/js-waku/compare/v0.4.0...v0.5.0
