@@ -81,6 +81,7 @@ export default function App() {
     const persistedNick = window.localStorage.getItem('nick');
     return persistedNick !== null ? persistedNick : generate();
   });
+  const [fleetEnv] = useState<Environment>(defaultFleetEnv);
 
   useEffect(() => {
     localStorage.setItem('nick', nick);
@@ -89,10 +90,10 @@ export default function App() {
   useEffect(() => {
     if (waku) return;
 
-    initWaku(setWaku)
+    initWaku(fleetEnv, setWaku)
       .then(() => console.log('Waku init done'))
       .catch((e) => console.log('Waku init failed ', e));
-  }, [waku]);
+  }, [fleetEnv, waku]);
 
   useEffect(() => {
     if (!waku) return;
@@ -175,7 +176,7 @@ export default function App() {
   );
 }
 
-async function initWaku(setter: (waku: Waku) => void) {
+async function initWaku(fleetEnv: Environment, setter: (waku: Waku) => void) {
   try {
     const waku = await Waku.create({
       libp2p: {
@@ -190,7 +191,7 @@ async function initWaku(setter: (waku: Waku) => void) {
 
     setter(waku);
 
-    const nodes = await getNodes();
+    const nodes = await getStatusFleetNodes(fleetEnv);
     await Promise.all(
       nodes.map((addr) => {
         return waku.dial(addr);
@@ -201,11 +202,11 @@ async function initWaku(setter: (waku: Waku) => void) {
   }
 }
 
-function getNodes() {
+function defaultFleetEnv() {
   // Works with react-scripts
   if (process?.env?.NODE_ENV === 'development') {
-    return getStatusFleetNodes(Environment.Test);
+    return Environment.Test;
   } else {
-    return getStatusFleetNodes(Environment.Prod);
+    return Environment.Prod;
   }
 }
