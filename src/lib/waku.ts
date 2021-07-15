@@ -40,7 +40,7 @@ export interface CreateOptions {
    * Set keep alive frequency in seconds: Waku will send a ping request to each peer
    * after the set number of seconds. Set to 0 to disable the keep alive feature
    *
-   * @default 10
+   * @default 0
    */
   keepAlive?: number;
   /**
