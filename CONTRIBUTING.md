@@ -22,7 +22,7 @@ To build and test this repository, you need:
   - [Node.js & npm](https://nodejs.org/en/).
   - [bufbuild](https://github.com/bufbuild/buf) (only if changing protobuf files).
   - [protoc](https://grpc.io/docs/protoc-installation/) (only if changing protobuf files).
-  - Firefox & Chrome (for browser testing).
+  - Chrome (for browser testing).
 
 To ensure interoperability with [nim-waku](https://github.com/status-im/nim-waku/), some tests are run against a nim-waku node.
 This is why `nim-waku` is present as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules), which itself contain several submodules.
@@ -37,7 +37,10 @@ Files named `*.browser.spec.ts` are run in both NodeJS and browser environment.
 ## Guidelines
 
 - Please follow [Chris Beam's commit message guide](https://chris.beams.io/posts/git-commit/) for commit patches,
-- Please test new code, we use [mocha](https://mochajs.org/), [chai](https://www.chaijs.com/) and [karma](https://karma-runner.github.io/).
+- Please test new code, we use [mocha](https://mochajs.org/),
+  [chai](https://www.chaijs.com/),
+  [fast-check](https://github.com/dubzzz/fast-check)
+  and [karma](https://karma-runner.github.io/).
 
 ### Committing Patches
 
