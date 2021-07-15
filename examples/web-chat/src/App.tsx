@@ -76,7 +76,7 @@ async function retrieveStoreMessages(
 export default function App() {
   let [newMessages, setNewMessages] = useState<Message[]>([]);
   let [archivedMessages, setArchivedMessages] = useState<Message[]>([]);
-  let [stateWaku, setWaku] = useState<Waku | undefined>(undefined);
+  let [waku, setWaku] = useState<Waku | undefined>(undefined);
   let [nick, setNick] = useState<string>(() => {
     const persistedNick = window.localStorage.getItem('nick');
     return persistedNick !== null ? persistedNick : generate();
@@ -87,15 +87,15 @@ export default function App() {
   }, [nick]);
 
   useEffect(() => {
-    if (stateWaku) return;
+    if (waku) return;
 
     initWaku(setWaku)
       .then(() => console.log('Waku init done'))
       .catch((e) => console.log('Waku init failed ', e));
-  }, [stateWaku]);
+  }, [waku]);
 
   useEffect(() => {
-    if (!stateWaku) return;
+    if (!waku) return;
 
     const handleRelayMessage = (wakuMsg: WakuMessage) => {
       console.log('Message received: ', wakuMsg);
@@ -105,23 +105,23 @@ export default function App() {
       }
     };
 
-    stateWaku.relay.addObserver(handleRelayMessage, [ChatContentTopic]);
+    waku.relay.addObserver(handleRelayMessage, [ChatContentTopic]);
 
     return;
-  }, [stateWaku]);
+  }, [waku]);
 
   useEffect(() => {
-    if (!stateWaku) return;
+    if (!waku) return;
 
     const handleProtocolChange = async (
-      waku: Waku,
+      _waku: Waku,
       { peerId, protocols }: { peerId: PeerId; protocols: string[] }
     ) => {
       if (protocols.includes(StoreCodec)) {
         console.log(`${peerId.toB58String()}: retrieving archived messages}`);
         try {
           const length = await retrieveStoreMessages(
-            waku,
+            _waku,
             peerId,
             setArchivedMessages
           );
@@ -135,37 +135,33 @@ export default function App() {
       }
     };
 
-    stateWaku.libp2p.peerStore.on(
+    waku.libp2p.peerStore.on(
       'change:protocols',
-      handleProtocolChange.bind({}, stateWaku)
+      handleProtocolChange.bind({}, waku)
     );
 
     // To clean up listener when component unmounts
     return () => {
-      stateWaku?.libp2p.peerStore.removeListener(
+      waku?.libp2p.peerStore.removeListener(
         'change:protocols',
-        handleProtocolChange.bind({}, stateWaku)
+        handleProtocolChange.bind({}, waku)
       );
     };
-  }, [stateWaku]);
+  }, [waku]);
 
   return (
     <div
       className="chat-app"
       style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}
     >
-      <WakuContext.Provider value={{ waku: stateWaku }}>
+      <WakuContext.Provider value={{ waku: waku }}>
         <ThemeProvider theme={themes}>
           <Room
             nick={nick}
             newMessages={newMessages}
             archivedMessages={archivedMessages}
             commandHandler={(input: string) => {
-              const { command, response } = handleCommand(
-                input,
-                stateWaku,
-                setNick
-              );
+              const { command, response } = handleCommand(input, waku, setNick);
               const commandMessages = response.map((msg) => {
                 return Message.fromUtf8String(command, msg);
               });
