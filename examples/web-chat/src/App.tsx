@@ -107,7 +107,9 @@ export default function App() {
 
     waku.relay.addObserver(handleRelayMessage, [ChatContentTopic]);
 
-    return;
+    return function cleanUp() {
+      waku?.relay.deleteObserver(handleRelayMessage, [ChatContentTopic]);
+    };
   }, [waku]);
 
   useEffect(() => {
@@ -140,8 +142,7 @@ export default function App() {
       handleProtocolChange.bind({}, waku)
     );
 
-    // To clean up listener when component unmounts
-    return () => {
+    return function cleanUp() {
       waku?.libp2p.peerStore.removeListener(
         'change:protocols',
         handleProtocolChange.bind({}, waku)
