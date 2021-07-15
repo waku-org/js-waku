@@ -172,14 +172,19 @@ export async function decryptSymmetric(
 }
 
 /**
- * Generate a new private key
+ * Generate a new key. Can be used as a private key for Asymmetric encryption
+ * or a key for symmetric encryption.
+ *
+ * If using Asymmetric encryption, use {@link getPublicKey} to get the
+ * corresponding Public Key.
  */
 export function generatePrivateKey(): Uint8Array {
   return randomBytes(32);
 }
 
 /**
- * Return the public key for the given private key
+ * Return the public key for the given private key, to be used for asymmetric
+ * encryption.
  */
 export function getPublicKey(privateKey: Uint8Array | Buffer): Uint8Array {
   return secp256k1.publicKeyCreate(privateKey, false);

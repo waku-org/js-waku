@@ -12,6 +12,7 @@ import debug from 'debug';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
+import { hexToBuf } from '../lib/utils';
 import { WakuMessage } from '../lib/waku_message';
 import { DefaultPubsubTopic } from '../lib/waku_relay';
 import * as proto from '../proto/waku/v2/message';
@@ -248,6 +249,45 @@ export class NimWaku {
         pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
         '0x' + bufToHex(privateKey),
       ]
+    );
+  }
+
+  async getSymmetricKey(): Promise<Buffer> {
+    this.checkProcess();
+
+    return this.rpcCall<string>(
+      'get_waku_v2_private_v1_symmetric_key',
+      []
+    ).then(hexToBuf);
+  }
+
+  async postSymmetricMessage(
+    message: WakuRelayMessage,
+    symKey: Uint8Array,
+    pubsubTopic?: string
+  ): Promise<boolean> {
+    this.checkProcess();
+
+    if (!message.payload) {
+      throw 'Attempting to send empty message';
+    }
+
+    return this.rpcCall<boolean>('post_waku_v2_private_v1_symmetric_message', [
+      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
+      message,
+      '0x' + bufToHex(symKey),
+    ]);
+  }
+
+  async getSymmetricMessages(
+    symKey: Uint8Array,
+    pubsubTopic?: string
+  ): Promise<WakuRelayMessage[]> {
+    this.checkProcess();
+
+    return await this.rpcCall<WakuRelayMessage[]>(
+      'get_waku_v2_private_v1_symmetric_messages',
+      [pubsubTopic ? pubsubTopic : DefaultPubsubTopic, '0x' + bufToHex(symKey)]
     );
   }
 

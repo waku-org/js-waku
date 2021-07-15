@@ -125,7 +125,9 @@ export class WakuRelay extends Gossipsub {
 
   /**
    * Register a decryption private key to attempt decryption of messages of
-   * the given content topic.
+   * the given content topic. This can either be a private key for asymmetric
+   * encryption or a symmetric key. Waku relay will attempt to decrypt messages
+   * using both methods.
    */
   addDecryptionPrivateKey(privateKey: Uint8Array): void {
     this.decPrivateKeys.add(privateKey);
