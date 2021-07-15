@@ -37,7 +37,7 @@ export interface QueryOptions {
   direction?: Direction;
   pageSize?: number;
   callback?: (messages: WakuMessage[]) => void;
-  decryptionPrivateKeys?: Uint8Array[];
+  decryptionKeys?: Uint8Array[];
 }
 
 /**
@@ -64,6 +64,9 @@ export class WakuStore {
    * @param options.pubsubTopic The pubsub topic to pass to the query. Defaults
    * to the value set at creation. See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/).
    * @param options.callback Callback called on page of stored messages as they are retrieved
+   * @param options.decryptionKeys Keys that will be used to decrypt messages.
+   * It can be Asymmetric Private Keys and Symmetric Keys in the same array, all keys will be tried with both
+   * methods.
    * @throws If not able to reach the peer to query.
    */
   async queryHistory(options: QueryOptions): Promise<WakuMessage[] | null> {
@@ -129,7 +132,7 @@ export class WakuStore {
               response.messages.map(async (protoMsg) => {
                 const msg = await WakuMessage.decodeProto(
                   protoMsg,
-                  opts.decryptionPrivateKeys
+                  opts.decryptionKeys
                 );
 
                 if (msg) {

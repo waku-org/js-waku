@@ -19,9 +19,20 @@ module.exports = function (config) {
       bundlerOptions: {
         entrypoints: /.*\.browser\.spec\.ts$/,
       },
-      tsconfig: './tsconfig.karma.json',
       coverageOptions: {
         instrumentation: false,
+      },
+      tsconfig: './tsconfig.json',
+      compilerOptions: {
+        noEmit: false,
+      },
+      include: {
+        mode: 'replace',
+        values: ['src/lib/**/*.ts', 'src/proto/**/*.ts'],
+      },
+      exclude: {
+        mode: 'replace',
+        values: ['node_modules/**'],
       },
     },
   });
