@@ -160,6 +160,7 @@ export default function App() {
             nick={nick}
             newMessages={newMessages}
             archivedMessages={archivedMessages}
+            fleetEnv={fleetEnv}
             commandHandler={(input: string) => {
               const { command, response } = handleCommand(
                 input,
