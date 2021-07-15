@@ -74,10 +74,10 @@ async function retrieveStoreMessages(
 }
 
 export default function App() {
-  let [newMessages, setNewMessages] = useState<Message[]>([]);
-  let [archivedMessages, setArchivedMessages] = useState<Message[]>([]);
-  let [waku, setWaku] = useState<Waku | undefined>(undefined);
-  let [nick, setNick] = useState<string>(() => {
+  const [newMessages, setNewMessages] = useState<Message[]>([]);
+  const [archivedMessages, setArchivedMessages] = useState<Message[]>([]);
+  const [waku, setWaku] = useState<Waku | undefined>(undefined);
+  const [nick, setNick] = useState<string>(() => {
     const persistedNick = window.localStorage.getItem('nick');
     return persistedNick !== null ? persistedNick : generate();
   });
