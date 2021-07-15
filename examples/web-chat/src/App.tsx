@@ -81,19 +81,17 @@ export default function App() {
     const persistedNick = window.localStorage.getItem('nick');
     return persistedNick !== null ? persistedNick : generate();
   });
-  const [fleetEnv] = useState<Environment>(defaultFleetEnv);
+  const [fleetEnv, setFleetEnv] = useState<Environment>(defaultFleetEnv);
 
   useEffect(() => {
     localStorage.setItem('nick', nick);
   }, [nick]);
 
   useEffect(() => {
-    if (waku) return;
-
     initWaku(fleetEnv, setWaku)
       .then(() => console.log('Waku init done'))
       .catch((e) => console.log('Waku init failed ', e));
-  }, [fleetEnv, waku]);
+  }, [fleetEnv]);
 
   useEffect(() => {
     if (!waku) return;
@@ -163,7 +161,13 @@ export default function App() {
             newMessages={newMessages}
             archivedMessages={archivedMessages}
             commandHandler={(input: string) => {
-              const { command, response } = handleCommand(input, waku, setNick);
+              const { command, response } = handleCommand(
+                input,
+                waku,
+                setNick,
+                fleetEnv,
+                setFleetEnv
+              );
               const commandMessages = response.map((msg) => {
                 return Message.fromUtf8String(command, msg);
               });
