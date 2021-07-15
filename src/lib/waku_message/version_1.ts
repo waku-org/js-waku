@@ -7,6 +7,8 @@ import * as secp256k1 from 'secp256k1';
 
 import { hexToBuf } from '../utils';
 
+import { IvSize, symmetric } from './symmetric';
+
 const FlagsLength = 1;
 const FlagMask = 3; // 0011
 const IsSignedMask = 4; // 0100
@@ -102,7 +104,7 @@ export function clearDecode(
 }
 
 /**
- * Proceed with Asymmetric encryption of the data as per [26/WAKU-PAYLOAD](rfc.vac.dev/spec/26/).
+ * Proceed with Asymmetric encryption of the data as per [26/WAKU-PAYLOAD](https://rfc.vac.dev/spec/26/).
  * The data MUST be flags | payload-length | payload | [signature].
  * The returned result can be set to `WakuMessage.payload`.
  *
@@ -115,11 +117,58 @@ export async function encryptAsymmetric(
   return ecies.encrypt(hexToBuf(publicKey), Buffer.from(data));
 }
 
+/**
+ * Proceed with Asymmetric decryption of the data as per [26/WAKU-PAYLOAD](https://rfc.vac.dev/spec/26/).
+ * The return data is expect to be flags | payload-length | payload | [signature].
+ *
+ * @internal
+ */
 export async function decryptAsymmetric(
   payload: Uint8Array | Buffer,
   privKey: Uint8Array | Buffer
 ): Promise<Uint8Array> {
   return ecies.decrypt(Buffer.from(privKey), Buffer.from(payload));
+}
+
+/**
+ * Proceed with Symmetric encryption of the data as per [26/WAKU-PAYLOAD](https://rfc.vac.dev/spec/26/).
+ *
+ * @param data The data to encrypt, expected to be `flags | payload-length | payload | [signature]`.
+ * @param key The key to use for encryption.
+ * @returns The decrypted data, `cipherText | tag | iv` and can be set to `WakuMessage.payload`.
+ *
+ * @internal
+ */
+export async function encryptSymmetric(
+  data: Uint8Array | Buffer,
+  key: Uint8Array | Buffer | string
+): Promise<Uint8Array> {
+  const iv = symmetric.generateIv();
+
+  // Returns `cipher | tag`
+  const cipher = await symmetric.encrypt(iv, hexToBuf(key), Buffer.from(data));
+  return Buffer.concat([cipher, iv]);
+}
+
+/**
+ * Proceed with Symmetric decryption of the data as per [26/WAKU-PAYLOAD](https://rfc.vac.dev/spec/26/).
+ *
+ * @param payload The cipher data, it is expected to be `cipherText | tag | iv`.
+ * @param key The key to use for decryption.
+ * @returns The decrypted data, expected to be `flags | payload-length | payload | [signature]`.
+ *
+ * @internal
+ */
+export async function decryptSymmetric(
+  payload: Uint8Array | Buffer,
+  key: Uint8Array | Buffer | string
+): Promise<Uint8Array> {
+  const data = Buffer.from(payload);
+  const ivStart = data.length - IvSize;
+  const cipher = data.slice(0, ivStart);
+  const iv = data.slice(ivStart);
+
+  return symmetric.decrypt(iv, hexToBuf(key), cipher);
 }
 
 /**
@@ -137,7 +186,7 @@ export function getPublicKey(privateKey: Uint8Array | Buffer): Uint8Array {
 }
 
 /**
- * Computes the flags & auxiliary-field as per [26/WAKU-PAYLOAD](rfc.vac.dev/spec/26/).
+ * Computes the flags & auxiliary-field as per [26/WAKU-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 function addPayloadSizeField(msg: Buffer, payload: Uint8Array): Buffer {
   const fieldSize = getSizeOfPayloadSizeField(payload);
