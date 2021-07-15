@@ -67,7 +67,7 @@ Send a message on the waku relay network:
 ```javascript
 import { WakuMessage } from 'js-waku';
 
-const msg = WakuMessage.fromUtf8String("Here is a message!", "/my-cool-app/1/my-use-case/proto")
+const msg = await WakuMessage.fromUtf8String("Here is a message!", { contentTopic: "/my-cool-app/1/my-use-case/proto" })
 await waku.relay.send(msg);
 ```
 
@@ -79,17 +79,19 @@ Query a waku store peer to check historical messages:
 
 ```javascript
 // Process messages once they are all retrieved:
-const messages = await waku.store.queryHistory(storePeerId, ["my-cool-app"]);
+const messages = await waku.store.queryHistory({ contentTopics: ["my-cool-app"] });
 messages.forEach((msg) => {
   console.log("Message retrieved:", msg.payloadAsUtf8)
 })
 
 // Or, pass a callback function to be executed as pages are received:
-waku.store.queryHistory(storePeerId, ["my-cool-app"],
-  (messages) => {
-    messages.forEach((msg) => {
-      console.log("Message retrieved:", msg.payloadAsUtf8)
-    })
+waku.store.queryHistory({
+    contentTopics: ["my-cool-app"],
+    callback: (messages) => {
+      messages.forEach((msg) => {
+        console.log("Message retrieved:", msg.payloadAsUtf8);
+      });
+    }
   });
 ```
 
