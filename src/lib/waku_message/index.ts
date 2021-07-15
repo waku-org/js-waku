@@ -117,25 +117,33 @@ export class WakuMessage {
   /**
    * Decode a byte array into Waku Message.
    *
-   * If the payload is encrypted, then `decPrivateKey` is used for decryption.
+   * @params bytes The message encoded using protobuf as defined in [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/).
+   * @params decryptionKeys If the payload is encrypted (version = 1), then the
+   * keys are used to attempt decryption of the message. The passed key can either
+   * be asymmetric private keys or symmetric keys, both method are tried for each
+   * key until the message is decrypted or combinations are ran out.
    */
   static async decode(
     bytes: Uint8Array,
-    decPrivateKeys?: Uint8Array[]
+    decryptionKeys?: Uint8Array[]
   ): Promise<WakuMessage | undefined> {
     const protoBuf = proto.WakuMessage.decode(Reader.create(bytes));
 
-    return WakuMessage.decodeProto(protoBuf, decPrivateKeys);
+    return WakuMessage.decodeProto(protoBuf, decryptionKeys);
   }
 
   /**
-   * Decode a Waku Message Protobuf Object into Waku Message.
+   * Decode and decrypt Waku Message Protobuf Object into Waku Message.
    *
-   * If the payload is encrypted, then `decPrivateKey` is used for decryption.
+   * @params protoBuf The message to decode and decrypt.
+   * @params decryptionKeys If the payload is encrypted (version = 1), then the
+   * keys are used to attempt decryption of the message. The passed key can either
+   * be asymmetric private keys or symmetric keys, both method are tried for each
+   * key until the message is decrypted or combinations are ran out.
    */
   static async decodeProto(
     protoBuf: proto.WakuMessage,
-    decPrivateKeys?: Uint8Array[]
+    decryptionKeys?: Uint8Array[]
   ): Promise<WakuMessage | undefined> {
     if (protoBuf.payload === undefined) {
       dbg('Payload is undefined');
@@ -146,14 +154,14 @@ export class WakuMessage {
     let signaturePublicKey;
     let signature;
     if (protoBuf.version === 1 && protoBuf.payload) {
-      if (decPrivateKeys === undefined) {
+      if (decryptionKeys === undefined) {
         dbg('Payload is encrypted but no private keys have been provided.');
         return;
       }
 
       // Returns a bunch of `undefined` and hopefully one decrypted result
       const allResults = await Promise.all(
-        decPrivateKeys.map(async (privateKey) => {
+        decryptionKeys.map(async (privateKey) => {
           try {
             return await version_1.decryptSymmetric(payload, privateKey);
           } catch (e) {
