@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Examples (web-chat): New `/fleet` command to switch connection between Status prod and test fleets.
 - Export `generatePrivateKey` and `getPublicKey` directly from the root.
 
+### Fix
+- Align `WakuMessage` readme example with actual code behaviour. 
+
 ## [0.8.0] - 2021-07-15
 
 ### Added
