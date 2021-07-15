@@ -222,14 +222,9 @@ function validateDataIntegrity(
     return false;
   }
 
-  if (
-    expectedSize > 3 &&
-    Buffer.from(value).equals(Buffer.alloc(value.length))
-  ) {
-    return false;
-  }
-
-  return true;
+  return !(
+    expectedSize > 3 && Buffer.from(value).equals(Buffer.alloc(value.length))
+  );
 }
 
 function getSignature(message: Buffer): Buffer {
