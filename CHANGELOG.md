@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Export `generatePrivateKey` and `getPublicKey` directly from the root.
+
 ## [0.8.0] - 2021-07-15
 
 ### Added
