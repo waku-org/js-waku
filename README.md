@@ -10,20 +10,17 @@ Install `js-waku` package:
 npm install js-waku
 ```
 
-Start a waku node:
+### Start a waku node
 
-```javascript
+```ts
 import { Waku } from 'js-waku';
 
 const waku = await Waku.create();
 ```
 
-Connect to a new peer:
+### Connect to a new peer
 
-```javascript
-import { multiaddr } from 'multiaddr';
-import PeerId from 'peer-id';
-
+```ts
 // Directly dial a new peer
 await waku.dial('/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ');
 
@@ -36,16 +33,17 @@ waku.addPeerToAddressBook(
 
 You can also use `getStatusFleetNodes` to connect to nodes run by Status:
 
-```javascript
+```ts
 import { getStatusFleetNodes } from 'js-waku';
 
-const nodes = await getStatusFleetNodes();
-await Promise.all(
-  nodes.map((addr) => {
-    return waku.dial(addr);
-  })
-);
+getStatusFleetNodes().then((nodes) => {
+  nodes.forEach((addr) => {
+    waku.dial(addr);
+  });
+});
 ```
+
+### Listen for messages
 
 The `contentTopic` is a metadata `string` that allows categorization of messages on the waku network.
 Depending on your use case, you can either create one (or several) new `contentTopic`(s) or look at the [RFCs](https://rfc.vac.dev/) and use an existing `contentTopic`.
@@ -54,7 +52,7 @@ See the [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for 
 For example, if you were to use a new `contentTopic` such as `/my-cool-app/1/my-use-case/proto`,
 here is how to listen to new messages received via [Waku v2 Relay](https://rfc.vac.dev/spec/11/):
 
-```javascript
+```ts
 waku.relay.addObserver((msg) => {
   console.log("Message received:", msg.payloadAsUtf8)
 }, ["/my-cool-app/1/my-use-case/proto"]);
@@ -62,31 +60,55 @@ waku.relay.addObserver((msg) => {
 
 The examples chat apps currently use content topic `"/toy-chat/2/huilong/proto"`.
 
-Send a message on the waku relay network:
+### Send messages
 
-```javascript
+There are two ways to send messages:
+
+#### Waku Relay
+
+[Waku Relay](https://rfc.vac.dev/spec/11/) is the most decentralised option,
+peer receiving your messages are unlikely to know whether you are the originator or simply forwarding them.
+However, it does not give you any delivery information.
+
+```ts
 import { WakuMessage } from 'js-waku';
 
 const msg = await WakuMessage.fromUtf8String("Here is a message!", { contentTopic: "/my-cool-app/1/my-use-case/proto" })
 await waku.relay.send(msg);
 ```
 
-The [Waku v2 Store protocol](https://rfc.vac.dev/spec/13/) enables full nodes to store messages received via relay
-and clients to retrieve them (e.g. after resuming connectivity).
+#### Waku Light Push
+
+[Waku Light Push](https://rfc.vac.dev/spec/19/) gives you confirmation that the light push server node has
+received your message.
+However, it means that said node knows you are the originator of the message.
+It cannot guarantee that the node will forward the message.
+
+```ts
+const ack = await waku.lightPush.push(message);
+if (!ack?.isSuccess) {
+  // Message was not sent
+}
+```
+
+### Retrieve archived messages
+
+The [Waku v2 Store protocol](https://rfc.vac.dev/spec/13/) enables more permanent nodes to store messages received via relay
+and ephemeral clients to retrieve them (e.g. mobile phone resuming connectivity).
 The protocol implements pagination meaning that it may take several queries to retrieve all messages.
 
 Query a waku store peer to check historical messages:
 
-```javascript
-// Process messages once they are all retrieved:
-const messages = await waku.store.queryHistory({ contentTopics: ["my-cool-app"] });
+```ts
+// Process messages once they are all retrieved
+const messages = await waku.store.queryHistory({ contentTopics: ["/my-cool-app/1/my-use-case/proto"] });
 messages.forEach((msg) => {
   console.log("Message retrieved:", msg.payloadAsUtf8)
 })
 
 // Or, pass a callback function to be executed as pages are received:
 waku.store.queryHistory({
-    contentTopics: ["my-cool-app"],
+    contentTopics: ["/my-cool-app/1/my-use-case/proto"],
     callback: (messages) => {
       messages.forEach((msg) => {
         console.log("Message retrieved:", msg.payloadAsUtf8);
@@ -94,6 +116,8 @@ waku.store.queryHistory({
     }
   });
 ```
+
+## More documentation
 
 Find more [examples](#examples) below
 or checkout the latest `main` branch documentation at [https://status-im.github.io/js-waku/docs/](https://status-im.github.io/js-waku/docs/).
