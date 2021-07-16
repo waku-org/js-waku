@@ -66,7 +66,7 @@ There are two ways to send messages:
 
 #### Waku Relay
 
-[Waku Relay](https://rfc.vac.dev/spec/11/) is the most decentralised option,
+[Waku Relay](https://rfc.vac.dev/spec/11/) is the most decentralized option,
 peer receiving your messages are unlikely to know whether you are the originator or simply forwarding them.
 However, it does not give you any delivery information.
 
@@ -178,7 +178,7 @@ const message = await WakuMessage.fromBytes(payload, {
 
 If you expect to receive encrypted messages then simply add private decryption key(s) to `WakuRelay`.
 Waku Relay will attempt to decrypt incoming messages with each keys, both for symmetric and asymmetric encryption.
-Messages that are successfully decrypted (or received in clear) will be passed to the observers, other messages will be ommitted.
+Messages that are successfully decrypted (or received in clear) will be passed to the observers, other messages will be omitted.
 
 ```ts
 // Asymmetric
