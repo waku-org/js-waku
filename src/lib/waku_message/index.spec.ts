@@ -62,7 +62,7 @@ describe('Waku Message: Node only', function () {
 
       const privateKey = generatePrivateKey();
 
-      waku.relay.addDecryptionPrivateKey(privateKey);
+      waku.relay.addDecryptionKey(privateKey);
 
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
@@ -118,7 +118,7 @@ describe('Waku Message: Node only', function () {
 
       const symKey = generatePrivateKey();
 
-      waku.relay.addDecryptionPrivateKey(symKey);
+      waku.relay.addDecryptionKey(symKey);
 
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {

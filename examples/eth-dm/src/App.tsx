@@ -128,13 +128,13 @@ function App() {
     if (!waku) return;
     if (!ethDmKeyPair) return;
 
-    waku.relay.addDecryptionPrivateKey(ethDmKeyPair.privateKey);
+    waku.relay.addDecryptionKey(ethDmKeyPair.privateKey);
 
     return function cleanUp() {
       if (!waku) return;
       if (!ethDmKeyPair) return;
 
-      waku.relay.deleteDecryptionPrivateKey(ethDmKeyPair.privateKey);
+      waku.relay.deleteDecryptionKey(ethDmKeyPair.privateKey);
     };
   }, [waku, ethDmKeyPair]);
 
