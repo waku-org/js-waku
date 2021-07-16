@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2021-07-16
+
 ### Added
 - Examples (web-chat): New `/fleet` command to switch connection between Status prod and test fleets.
 - Export `generatePrivateKey` and `getPublicKey` directly from the root.
@@ -131,7 +133,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://status-im.github.io/js-waku/docs).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/status-im/js-waku/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/status-im/js-waku/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/status-im/js-waku/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/status-im/js-waku/compare/v0.5.0...v0.6.0
