@@ -4,10 +4,7 @@ import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
 import { PublicKeyMessage } from './messaging/wire';
 import { hexToBuf, equalByteArrays, bufToHex } from 'js-waku/lib/utils';
-import {
-  generatePrivateKey,
-  getPublicKey,
-} from 'js-waku/lib/waku_message/version_1';
+import { generatePrivateKey, getPublicKey } from 'js-waku';
 
 export interface KeyPair {
   privateKey: Uint8Array;

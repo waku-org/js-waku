@@ -74,28 +74,27 @@ async function retrieveStoreMessages(
 }
 
 export default function App() {
-  let [newMessages, setNewMessages] = useState<Message[]>([]);
-  let [archivedMessages, setArchivedMessages] = useState<Message[]>([]);
-  let [stateWaku, setWaku] = useState<Waku | undefined>(undefined);
-  let [nick, setNick] = useState<string>(() => {
+  const [newMessages, setNewMessages] = useState<Message[]>([]);
+  const [archivedMessages, setArchivedMessages] = useState<Message[]>([]);
+  const [waku, setWaku] = useState<Waku | undefined>(undefined);
+  const [nick, setNick] = useState<string>(() => {
     const persistedNick = window.localStorage.getItem('nick');
     return persistedNick !== null ? persistedNick : generate();
   });
+  const [fleetEnv, setFleetEnv] = useState<Environment>(defaultFleetEnv);
 
   useEffect(() => {
     localStorage.setItem('nick', nick);
   }, [nick]);
 
   useEffect(() => {
-    if (stateWaku) return;
-
-    initWaku(setWaku)
+    initWaku(fleetEnv, setWaku)
       .then(() => console.log('Waku init done'))
       .catch((e) => console.log('Waku init failed ', e));
-  }, [stateWaku]);
+  }, [fleetEnv]);
 
   useEffect(() => {
-    if (!stateWaku) return;
+    if (!waku) return;
 
     const handleRelayMessage = (wakuMsg: WakuMessage) => {
       console.log('Message received: ', wakuMsg);
@@ -105,23 +104,25 @@ export default function App() {
       }
     };
 
-    stateWaku.relay.addObserver(handleRelayMessage, [ChatContentTopic]);
+    waku.relay.addObserver(handleRelayMessage, [ChatContentTopic]);
 
-    return;
-  }, [stateWaku]);
+    return function cleanUp() {
+      waku?.relay.deleteObserver(handleRelayMessage, [ChatContentTopic]);
+    };
+  }, [waku]);
 
   useEffect(() => {
-    if (!stateWaku) return;
+    if (!waku) return;
 
     const handleProtocolChange = async (
-      waku: Waku,
+      _waku: Waku,
       { peerId, protocols }: { peerId: PeerId; protocols: string[] }
     ) => {
       if (protocols.includes(StoreCodec)) {
         console.log(`${peerId.toB58String()}: retrieving archived messages}`);
         try {
           const length = await retrieveStoreMessages(
-            waku,
+            _waku,
             peerId,
             setArchivedMessages
           );
@@ -135,36 +136,38 @@ export default function App() {
       }
     };
 
-    stateWaku.libp2p.peerStore.on(
+    waku.libp2p.peerStore.on(
       'change:protocols',
-      handleProtocolChange.bind({}, stateWaku)
+      handleProtocolChange.bind({}, waku)
     );
 
-    // To clean up listener when component unmounts
-    return () => {
-      stateWaku?.libp2p.peerStore.removeListener(
+    return function cleanUp() {
+      waku?.libp2p.peerStore.removeListener(
         'change:protocols',
-        handleProtocolChange.bind({}, stateWaku)
+        handleProtocolChange.bind({}, waku)
       );
     };
-  }, [stateWaku]);
+  }, [waku]);
 
   return (
     <div
       className="chat-app"
       style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}
     >
-      <WakuContext.Provider value={{ waku: stateWaku }}>
+      <WakuContext.Provider value={{ waku: waku }}>
         <ThemeProvider theme={themes}>
           <Room
             nick={nick}
             newMessages={newMessages}
             archivedMessages={archivedMessages}
+            fleetEnv={fleetEnv}
             commandHandler={(input: string) => {
               const { command, response } = handleCommand(
                 input,
-                stateWaku,
-                setNick
+                waku,
+                setNick,
+                fleetEnv,
+                setFleetEnv
               );
               const commandMessages = response.map((msg) => {
                 return Message.fromUtf8String(command, msg);
@@ -178,7 +181,7 @@ export default function App() {
   );
 }
 
-async function initWaku(setter: (waku: Waku) => void) {
+async function initWaku(fleetEnv: Environment, setter: (waku: Waku) => void) {
   try {
     const waku = await Waku.create({
       libp2p: {
@@ -193,7 +196,7 @@ async function initWaku(setter: (waku: Waku) => void) {
 
     setter(waku);
 
-    const nodes = await getNodes();
+    const nodes = await getStatusFleetNodes(fleetEnv);
     await Promise.all(
       nodes.map((addr) => {
         return waku.dial(addr);
@@ -204,11 +207,11 @@ async function initWaku(setter: (waku: Waku) => void) {
   }
 }
 
-function getNodes() {
+function defaultFleetEnv() {
   // Works with react-scripts
   if (process?.env?.NODE_ENV === 'development') {
-    return getStatusFleetNodes(Environment.Test);
+    return Environment.Test;
   } else {
-    return getStatusFleetNodes(Environment.Prod);
+    return Environment.Prod;
   }
 }

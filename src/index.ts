@@ -3,7 +3,10 @@ export { getStatusFleetNodes, Environment, Protocol } from './lib/discover';
 export * as utils from './lib/utils';
 
 export { Waku } from './lib/waku';
+
 export { WakuMessage } from './lib/waku_message';
+
+export { generatePrivateKey, getPublicKey } from './lib/waku_message/version_1';
 
 export { ChatMessage } from './lib/chat_message';
 
