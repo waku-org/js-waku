@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Examples (web-chat): New `/fleet` command to switch connection between Status prod and test fleets.
 - Export `generatePrivateKey` and `getPublicKey` directly from the root.
+- Usage of the encryption and signature APIs to the readme.
 
 ### Changed
 - **Breaking**: Renamed `WakuRelay.(add|delete)PrivateDecryptionKey` to `WakuRelay.(add|delete)DecryptionKey` to make it clearer that it accepts both symmetric keys and asymmetric private keys.
