@@ -63,6 +63,7 @@ export interface KeyPair {
 export interface WakuRelayMessage {
   payload: string;
   contentTopic?: string;
+  timestamp?: number; // Float in seconds
 }
 
 export class NimWaku {
@@ -177,10 +178,15 @@ export class NimWaku {
     if (!message.payload) {
       throw 'Attempting to send empty message';
     }
+    let timestamp;
+    if (message.timestamp) {
+      timestamp = message.timestamp.valueOf() / 1000;
+    }
 
     const rpcMessage = {
       payload: bufToHex(message.payload),
       contentTopic: message.contentTopic,
+      timestamp,
     };
 
     return this.rpcCall<boolean>('post_waku_v2_relay_v1_message', [
