@@ -117,7 +117,7 @@ waku.store.queryHistory({
   });
 ```
 
-## Encryption & Signature
+### Encryption & Signature
 
 With js-waku, you can:
 
@@ -125,7 +125,7 @@ With js-waku, you can:
 - Encrypt messages over the wire using a unique key to both encrypt and decrypt (symmetric encryption),
 - Sign and verify your waku messages (must use encryption, compatible with both symmetric and asymmetric).
 
-### Cryptographic Libraries
+#### Cryptographic Libraries
 
 A quick note on the cryptographic libraries used as it is a not a straightforward affair:
 - Asymmetric encryption:
@@ -152,7 +152,7 @@ const publicKey = getPublicKey(privateKey);
 const symKey = generatePrivateKey();
 ```
 
-### Encrypt Waku Messages
+#### Encrypt Waku Messages
 
 To encrypt your waku messages, simply pass the encryption key when creating it:
 
@@ -172,9 +172,9 @@ const message = await WakuMessage.fromBytes(payload, {
   });
 ```
 
-### Decrypt Waku Messages
+#### Decrypt Waku Messages
 
-#### Waku Relay
+##### Waku Relay
 
 If you expect to receive encrypted messages then simply add private decryption key(s) to `WakuRelay`.
 Waku Relay will attempt to decrypt incoming messages with each keys, both for symmetric and asymmetric encryption.
@@ -193,7 +193,7 @@ waku.relay.addObserver(callback, [contentTopic]);
 
 Keys can be removed using `WakuMessage.deleteDecryptionKey`.
 
-#### Waku Store
+##### Waku Store
 
 ```ts
 const messages = await waku.store.queryHistory({
@@ -204,7 +204,7 @@ const messages = await waku.store.queryHistory({
 
 Similarly to relay, only decrypted or clear messages will be returned.
 
-### Sign Waku Messages
+#### Sign Waku Messages
 
 As per version 1`s [specs](https://rfc.vac.dev/spec/26/), signatures are only included in encrypted messages.
 In the case where your app does not need encryption then you could use symmetric encryption with a trivial key, I intend to dig [more on the subject](https://github.com/status-im/js-waku/issues/74#issuecomment-880440186) and come back with recommendation and examples.
@@ -231,7 +231,7 @@ const message = await WakuMessage.fromBytes(payload, {
   });
 ```
 
-### Verify Waku Message signatures
+#### Verify Waku Message signatures
 
 Two fields are available on `WakuMessage` regarding signatures:
 
