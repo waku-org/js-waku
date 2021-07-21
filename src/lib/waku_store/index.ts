@@ -168,15 +168,18 @@ export class WakuStore {
             }
           } catch (err) {
             console.log('Failed to decode store reply', err);
+            return null;
           }
         } catch (err) {
           console.log('Failed to send waku store query', err);
+          return null;
         }
       } catch (err) {
         console.log(
           'Failed to negotiate waku store protocol stream with peer',
           err
         );
+        return null;
       }
     }
   }

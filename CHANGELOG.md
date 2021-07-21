@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Breaking**: Renamed `WakuRelay.(add|delete)PrivateDecryptionKey` to `WakuRelay.(add|delete)DecryptionKey` to make it clearer that it accepts both symmetric keys and asymmetric private keys.
 
-### Fix
+### Fixed
 - Align `WakuMessage` readme example with actual code behaviour.
 - Remove infinite loop when an error with Waku Store is encountered.
 
