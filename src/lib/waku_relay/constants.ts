@@ -7,7 +7,7 @@ export const minute = 60 * second;
 export const RelayCodec = '/vac/waku/relay/2.0.0-beta2';
 
 /**
- * RelayDefaultTopic is the default gossipsub topic to use for waku relay
+ * DefaultPubsubTopic is the default gossipsub topic to use for Waku.
  */
 export const DefaultPubsubTopic = '/waku/2/default-waku/proto';
 
