@@ -14,7 +14,7 @@ import { delay } from '../delay';
 import { Waku } from '../waku';
 import { WakuMessage } from '../waku_message';
 
-import { DefaultPubsubTopic, RelayCodec } from './index';
+import { DefaultPubsubTopic } from './index';
 
 const log = debug('waku:test');
 
@@ -72,7 +72,7 @@ describe('Waku Relay', () => {
     it('Register correct protocols', async function () {
       const protocols = Array.from(waku1.libp2p.upgrader.protocols.keys());
 
-      expect(protocols).to.contain(RelayCodec);
+      expect(protocols).to.contain('/vac/waku/relay/2.0.0-beta2');
       expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
     });
 

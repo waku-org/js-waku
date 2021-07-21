@@ -16,7 +16,7 @@ import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { WakuLightPush } from './waku_light_push';
-import { RelayCodec, WakuRelay } from './waku_relay';
+import { RelayCodecs, WakuRelay } from './waku_relay';
 import { StoreCodec, WakuStore } from './waku_store';
 
 const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
@@ -170,7 +170,7 @@ export class Waku {
     stream: MuxedStream;
     protocol: string;
   }> {
-    return this.libp2p.dialProtocol(peer, [RelayCodec, StoreCodec]);
+    return this.libp2p.dialProtocol(peer, [StoreCodec].concat(RelayCodecs));
   }
 
   /**

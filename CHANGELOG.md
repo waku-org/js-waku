@@ -13,12 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Examples (web-chat): New `/fleet` command to switch connection between Status prod and test fleets.
 - Export `generatePrivateKey` and `getPublicKey` directly from the root.
 - Usage of the encryption and signature APIs to the readme.
+- Support multiple protocol ids for Waku Relay, allowing interoperability with nim-waku v0.4 and latest master
+  ([#238](https://github.com/status-im/js-waku/issues/238)).
 
 ### Changed
 - **Breaking**: Renamed `WakuRelay.(add|delete)PrivateDecryptionKey` to `WakuRelay.(add|delete)DecryptionKey` to make it clearer that it accepts both symmetric keys and asymmetric private keys.
 
 ### Fix
 - Align `WakuMessage` readme example with actual code behaviour.
+- Remove infinite loop when an error with Waku Store is encountered.
 
 ## [0.8.0] - 2021-07-15
 

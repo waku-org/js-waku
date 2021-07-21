@@ -16,7 +16,7 @@ export {
   PushResponse,
 } from './lib/waku_light_push';
 
-export { WakuRelay, RelayCodec } from './lib/waku_relay';
+export { WakuRelay, RelayCodecs } from './lib/waku_relay';
 
 export { Direction, WakuStore, StoreCodec } from './lib/waku_store';
 

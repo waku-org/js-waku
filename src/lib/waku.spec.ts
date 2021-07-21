@@ -6,7 +6,6 @@ import TCP from 'libp2p-tcp';
 import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../test_utils/';
 
 import { Waku } from './waku';
-import { RelayCodec } from './waku_relay';
 
 describe('Waku Dial', function () {
   describe('Interop: Nim', function () {
@@ -30,7 +29,7 @@ describe('Waku Dial', function () {
       expect(nimPeers).to.deep.equal([
         {
           multiaddr: multiAddrWithId,
-          protocol: RelayCodec,
+          protocol: '/vac/waku/relay/2.0.0-beta2',
           connected: true,
         },
       ]);
