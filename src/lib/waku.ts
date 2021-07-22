@@ -37,12 +37,12 @@ export interface CreateOptions {
    */
   pubsubTopic?: string;
   /**
-   * Set keep alive frequency in seconds: Waku will send a ping request to each peer
-   * after the set number of seconds. Set to 0 to disable the keep alive feature
+   * Set keep alive frequency in seconds: Waku will send a `/ipfs/ping/1.0.0`
+   * request to each peer after the set number of seconds. Set to 0 to disable.
    *
    * @default 0
    */
-  keepAlive?: number;
+  pingKeepAlive?: number;
   /**
    * You can pass options to the `Libp2p` instance used by {@link Waku} using the {@link CreateOptions.libp2p} property.
    * This property is the same type than the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
@@ -67,7 +67,7 @@ export class Waku {
   public store: WakuStore;
   public lightPush: WakuLightPush;
 
-  private keepAliveTimers: {
+  private pingKeepAliveTimers: {
     [peer: string]: ReturnType<typeof setInterval>;
   };
 
@@ -81,19 +81,19 @@ export class Waku {
     this.relay = libp2p.pubsub as unknown as WakuRelay;
     this.store = store;
     this.lightPush = lightPush;
-    this.keepAliveTimers = {};
+    this.pingKeepAliveTimers = {};
 
-    const keepAlive = options.keepAlive || 0;
+    const pingKeepAlive = options.pingKeepAlive || 0;
 
-    if (keepAlive !== 0) {
+    if (pingKeepAlive !== 0) {
       libp2p.connectionManager.on('peer:connect', (connection: Connection) => {
-        this.startKeepAlive(connection.remotePeer, keepAlive);
+        this.startPingKeepAlive(connection.remotePeer, pingKeepAlive);
       });
 
       libp2p.connectionManager.on(
         'peer:disconnect',
         (connection: Connection) => {
-          this.stopKeepAlive(connection.remotePeer);
+          this.stopPingKeepAlive(connection.remotePeer);
         }
       );
     }
@@ -214,21 +214,21 @@ export class Waku {
     return localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
   }
 
-  private startKeepAlive(peerId: PeerId, periodSecs: number): void {
+  private startPingKeepAlive(peerId: PeerId, periodSecs: number): void {
     // Just in case a timer already exist for this peer
-    this.stopKeepAlive(peerId);
+    this.stopPingKeepAlive(peerId);
 
     const peerIdStr = peerId.toB58String();
-    this.keepAliveTimers[peerIdStr] = setInterval(() => {
+    this.pingKeepAliveTimers[peerIdStr] = setInterval(() => {
       Ping(this.libp2p, peerId);
     }, periodSecs * 1000);
   }
 
-  private stopKeepAlive(peerId: PeerId): void {
+  private stopPingKeepAlive(peerId: PeerId): void {
     const peerIdStr = peerId.toB58String();
-    if (this.keepAliveTimers[peerIdStr]) {
-      clearInterval(this.keepAliveTimers[peerIdStr]);
-      delete this.keepAliveTimers[peerIdStr];
+    if (this.pingKeepAliveTimers[peerIdStr]) {
+      clearInterval(this.pingKeepAliveTimers[peerIdStr]);
+      delete this.pingKeepAliveTimers[peerIdStr];
     }
   }
 }
