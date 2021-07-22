@@ -1,7 +1,7 @@
 import Gossipsub from 'libp2p-gossipsub';
 import { shuffle } from 'libp2p-gossipsub/src/utils';
 
-import { RelayCodec } from './index';
+import { RelayCodecs } from './index';
 
 /**
  * Given a topic, returns up to count peers subscribed to that topic
@@ -33,7 +33,7 @@ export function getRelayPeers(
     if (!peerStreams) {
       return;
     }
-    if (peerStreams.protocol == RelayCodec && filter(id)) {
+    if (RelayCodecs.includes(peerStreams.protocol) && filter(id)) {
       peers.push(id);
     }
   });

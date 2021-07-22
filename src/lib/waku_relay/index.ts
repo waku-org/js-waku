@@ -21,13 +21,13 @@ import { CreateOptions } from '../waku';
 import { WakuMessage } from '../waku_message';
 
 import * as constants from './constants';
-import { DefaultPubsubTopic, RelayCodec } from './constants';
+import { DefaultPubsubTopic, RelayCodecs } from './constants';
 import { getRelayPeers } from './get_relay_peers';
 import { RelayHeartbeat } from './relay_heartbeat';
 
 const dbg = debug('waku:relay');
 
-export { RelayCodec, DefaultPubsubTopic };
+export { RelayCodecs, DefaultPubsubTopic };
 
 /**
  * See constructor libp2p-gossipsub [API](https://github.com/ChainSafe/js-libp2p-gossipsub#api).
@@ -93,7 +93,7 @@ export class WakuRelay extends Gossipsub {
     this.observers = {};
     this.decryptionKeys = new Set();
 
-    const multicodecs = [constants.RelayCodec];
+    const multicodecs = constants.RelayCodecs;
 
     Object.assign(this, { multicodecs });
 
@@ -420,7 +420,7 @@ export class WakuRelay extends Gossipsub {
       if (
         !exclude.has(id) &&
         !this.direct.has(id) &&
-        peerStreams.protocol == constants.RelayCodec &&
+        constants.RelayCodecs.includes(peerStreams.protocol) &&
         this.score.score(id) >= this._options.scoreThresholds.gossipThreshold
       ) {
         peersToGossip.push(id);
