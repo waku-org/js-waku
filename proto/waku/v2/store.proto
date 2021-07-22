@@ -7,6 +7,7 @@ import "waku/v2/message.proto";
 message Index {
   bytes digest = 1;
   double received_time = 2;
+  double sender_time = 3;
 }
 
 message PagingInfo {
@@ -32,8 +33,13 @@ message HistoryQuery {
 }
 
 message HistoryResponse {
-  repeated WakuMessage messages = 1;
-  PagingInfo paging_info = 2;
+  repeated WakuMessage messages = 2;
+  PagingInfo paging_info = 3;
+  enum Error {
+    ERROR_NONE_UNSPECIFIED = 0;
+    ERROR_INVALID_CURSOR = 1;
+  }
+  Error error = 4;
 }
 
 message HistoryRPC {
