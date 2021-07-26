@@ -8,6 +8,7 @@ export const protobufPackage = 'waku.v2';
 export interface Index {
   digest: Uint8Array;
   receivedTime: number;
+  senderTime: number;
 }
 
 export interface PagingInfo {
@@ -67,6 +68,43 @@ export interface HistoryQuery {
 export interface HistoryResponse {
   messages: WakuMessage[];
   pagingInfo: PagingInfo | undefined;
+  error: HistoryResponse_Error;
+}
+
+export enum HistoryResponse_Error {
+  ERROR_NONE_UNSPECIFIED = 0,
+  ERROR_INVALID_CURSOR = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function historyResponse_ErrorFromJSON(
+  object: any
+): HistoryResponse_Error {
+  switch (object) {
+    case 0:
+    case 'ERROR_NONE_UNSPECIFIED':
+      return HistoryResponse_Error.ERROR_NONE_UNSPECIFIED;
+    case 1:
+    case 'ERROR_INVALID_CURSOR':
+      return HistoryResponse_Error.ERROR_INVALID_CURSOR;
+    case -1:
+    case 'UNRECOGNIZED':
+    default:
+      return HistoryResponse_Error.UNRECOGNIZED;
+  }
+}
+
+export function historyResponse_ErrorToJSON(
+  object: HistoryResponse_Error
+): string {
+  switch (object) {
+    case HistoryResponse_Error.ERROR_NONE_UNSPECIFIED:
+      return 'ERROR_NONE_UNSPECIFIED';
+    case HistoryResponse_Error.ERROR_INVALID_CURSOR:
+      return 'ERROR_INVALID_CURSOR';
+    default:
+      return 'UNKNOWN';
+  }
 }
 
 export interface HistoryRPC {
@@ -75,7 +113,7 @@ export interface HistoryRPC {
   response: HistoryResponse | undefined;
 }
 
-const baseIndex: object = { receivedTime: 0 };
+const baseIndex: object = { receivedTime: 0, senderTime: 0 };
 
 export const Index = {
   encode(message: Index, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
@@ -84,6 +122,9 @@ export const Index = {
     }
     if (message.receivedTime !== 0) {
       writer.uint32(17).double(message.receivedTime);
+    }
+    if (message.senderTime !== 0) {
+      writer.uint32(25).double(message.senderTime);
     }
     return writer;
   },
@@ -101,6 +142,9 @@ export const Index = {
           break;
         case 2:
           message.receivedTime = reader.double();
+          break;
+        case 3:
+          message.senderTime = reader.double();
           break;
         default:
           reader.skipType(tag & 7);
@@ -121,6 +165,11 @@ export const Index = {
     } else {
       message.receivedTime = 0;
     }
+    if (object.senderTime !== undefined && object.senderTime !== null) {
+      message.senderTime = Number(object.senderTime);
+    } else {
+      message.senderTime = 0;
+    }
     return message;
   },
 
@@ -132,6 +181,7 @@ export const Index = {
       ));
     message.receivedTime !== undefined &&
       (obj.receivedTime = message.receivedTime);
+    message.senderTime !== undefined && (obj.senderTime = message.senderTime);
     return obj;
   },
 
@@ -146,6 +196,11 @@ export const Index = {
       message.receivedTime = object.receivedTime;
     } else {
       message.receivedTime = 0;
+    }
+    if (object.senderTime !== undefined && object.senderTime !== null) {
+      message.senderTime = object.senderTime;
+    } else {
+      message.senderTime = 0;
     }
     return message;
   },
@@ -445,7 +500,7 @@ export const HistoryQuery = {
   },
 };
 
-const baseHistoryResponse: object = {};
+const baseHistoryResponse: object = { error: 0 };
 
 export const HistoryResponse = {
   encode(
@@ -453,10 +508,13 @@ export const HistoryResponse = {
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     for (const v of message.messages) {
-      WakuMessage.encode(v!, writer.uint32(10).fork()).ldelim();
+      WakuMessage.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     if (message.pagingInfo !== undefined) {
-      PagingInfo.encode(message.pagingInfo, writer.uint32(18).fork()).ldelim();
+      PagingInfo.encode(message.pagingInfo, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.error !== 0) {
+      writer.uint32(32).int32(message.error);
     }
     return writer;
   },
@@ -469,11 +527,14 @@ export const HistoryResponse = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
+        case 2:
           message.messages.push(WakuMessage.decode(reader, reader.uint32()));
           break;
-        case 2:
+        case 3:
           message.pagingInfo = PagingInfo.decode(reader, reader.uint32());
+          break;
+        case 4:
+          message.error = reader.int32() as any;
           break;
         default:
           reader.skipType(tag & 7);
@@ -496,6 +557,11 @@ export const HistoryResponse = {
     } else {
       message.pagingInfo = undefined;
     }
+    if (object.error !== undefined && object.error !== null) {
+      message.error = historyResponse_ErrorFromJSON(object.error);
+    } else {
+      message.error = 0;
+    }
     return message;
   },
 
@@ -512,6 +578,8 @@ export const HistoryResponse = {
       (obj.pagingInfo = message.pagingInfo
         ? PagingInfo.toJSON(message.pagingInfo)
         : undefined);
+    message.error !== undefined &&
+      (obj.error = historyResponse_ErrorToJSON(message.error));
     return obj;
   },
 
@@ -527,6 +595,11 @@ export const HistoryResponse = {
       message.pagingInfo = PagingInfo.fromPartial(object.pagingInfo);
     } else {
       message.pagingInfo = undefined;
+    }
+    if (object.error !== undefined && object.error !== null) {
+      message.error = object.error;
+    } else {
+      message.error = 0;
     }
     return message;
   },

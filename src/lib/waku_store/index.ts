@@ -6,6 +6,7 @@ import Libp2p from 'libp2p';
 import { Peer } from 'libp2p/src/peer-store';
 import PeerId from 'peer-id';
 
+import { HistoryResponse_Error } from '../../proto/waku/v2/store';
 import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
 import { WakuMessage } from '../waku_message';
 import { DefaultPubsubTopic } from '../waku_relay';
@@ -114,6 +115,14 @@ export class WakuStore {
             const response = reply.response;
             if (!response) {
               console.log('No response in HistoryRPC');
+              return null;
+            }
+
+            if (
+              response.error &&
+              response.error === HistoryResponse_Error.ERROR_INVALID_CURSOR
+            ) {
+              console.log('Error in response: INVALID CURSOR');
               return null;
             }
 

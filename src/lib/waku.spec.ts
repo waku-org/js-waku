@@ -29,7 +29,7 @@ describe('Waku Dial', function () {
       expect(nimPeers).to.deep.equal([
         {
           multiaddr: multiAddrWithId,
-          protocol: '/vac/waku/relay/2.0.0-beta2',
+          protocol: '/vac/waku/relay/2.0.0',
           connected: true,
         },
       ]);

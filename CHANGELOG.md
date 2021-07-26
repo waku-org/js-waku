@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Breaking**: Store Response Protobuf change to align with nim-waku v0.5
+  ([nim-waku#676](https://github.com/status-im/nim-waku/pull/676)).
+
 ## [0.8.1] - 2021-07-16
 
 ### Added
