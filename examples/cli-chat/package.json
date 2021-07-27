@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "js-waku": "../../build/main",
-    "libp2p-tcp": "^0.15.4",
+    "libp2p-tcp": "^0.17.0",
     "prompt-sync": "^4.2.0"
   },
   "devDependencies": {
