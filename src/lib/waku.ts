@@ -16,10 +16,15 @@ import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { WakuLightPush } from './waku_light_push';
+import { WakuMessage } from './waku_message';
 import { RelayCodecs, WakuRelay } from './waku_relay';
+import { RelayPingContentTopic } from './waku_relay/constants';
 import { StoreCodec, WakuStore } from './waku_store';
 
 const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
+
+const DefaultPingKeepAliveValueSecs = 0;
+const DefaultRelayKeepAliveValueSecs = 5 * 60;
 
 export interface CreateOptions {
   /**
@@ -40,9 +45,16 @@ export interface CreateOptions {
    * Set keep alive frequency in seconds: Waku will send a `/ipfs/ping/1.0.0`
    * request to each peer after the set number of seconds. Set to 0 to disable.
    *
-   * @default 0
+   * @default {@link DefaultPingKeepAliveValueSecs}
    */
   pingKeepAlive?: number;
+  /**
+   * Set keep alive frequency in seconds: Waku will send a ping message over
+   * relay to each peer after the set number of seconds. Set to 0 to disable.
+   *
+   * @default {@link DefaultRelayKeepAliveValueSecs}
+   */
+  relayKeepAlive?: number;
   /**
    * You can pass options to the `Libp2p` instance used by {@link Waku} using the {@link CreateOptions.libp2p} property.
    * This property is the same type than the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
@@ -70,6 +82,9 @@ export class Waku {
   private pingKeepAliveTimers: {
     [peer: string]: ReturnType<typeof setInterval>;
   };
+  private relayKeepAliveTimers: {
+    [peer: string]: ReturnType<typeof setInterval>;
+  };
 
   private constructor(
     options: CreateOptions,
@@ -82,21 +97,20 @@ export class Waku {
     this.store = store;
     this.lightPush = lightPush;
     this.pingKeepAliveTimers = {};
+    this.relayKeepAliveTimers = {};
 
-    const pingKeepAlive = options.pingKeepAlive || 0;
+    const pingKeepAlive =
+      options.pingKeepAlive || DefaultPingKeepAliveValueSecs;
+    const relayKeepAlive =
+      options.relayKeepAlive || DefaultRelayKeepAliveValueSecs;
 
-    if (pingKeepAlive !== 0) {
-      libp2p.connectionManager.on('peer:connect', (connection: Connection) => {
-        this.startPingKeepAlive(connection.remotePeer, pingKeepAlive);
-      });
+    libp2p.connectionManager.on('peer:connect', (connection: Connection) => {
+      this.startKeepAlive(connection.remotePeer, pingKeepAlive, relayKeepAlive);
+    });
 
-      libp2p.connectionManager.on(
-        'peer:disconnect',
-        (connection: Connection) => {
-          this.stopPingKeepAlive(connection.remotePeer);
-        }
-      );
-    }
+    libp2p.connectionManager.on('peer:disconnect', (connection: Connection) => {
+      this.stopKeepAlive(connection.remotePeer);
+    });
   }
 
   /**
@@ -214,21 +228,42 @@ export class Waku {
     return localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
   }
 
-  private startPingKeepAlive(peerId: PeerId, periodSecs: number): void {
+  private startKeepAlive(
+    peerId: PeerId,
+    pingPeriodSecs: number,
+    relayPeriodSecs: number
+  ): void {
     // Just in case a timer already exist for this peer
-    this.stopPingKeepAlive(peerId);
+    this.stopKeepAlive(peerId);
 
     const peerIdStr = peerId.toB58String();
-    this.pingKeepAliveTimers[peerIdStr] = setInterval(() => {
-      Ping(this.libp2p, peerId);
-    }, periodSecs * 1000);
+
+    if (pingPeriodSecs !== 0) {
+      this.pingKeepAliveTimers[peerIdStr] = setInterval(() => {
+        Ping(this.libp2p, peerId);
+      }, pingPeriodSecs * 1000);
+    }
+
+    if (relayPeriodSecs !== 0) {
+      this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
+        WakuMessage.fromBytes(new Uint8Array(), {
+          contentTopic: RelayPingContentTopic,
+        }).then((wakuMsg) => this.relay.send(wakuMsg));
+      }, relayPeriodSecs * 1000);
+    }
   }
 
-  private stopPingKeepAlive(peerId: PeerId): void {
+  private stopKeepAlive(peerId: PeerId): void {
     const peerIdStr = peerId.toB58String();
+
     if (this.pingKeepAliveTimers[peerIdStr]) {
       clearInterval(this.pingKeepAliveTimers[peerIdStr]);
       delete this.pingKeepAliveTimers[peerIdStr];
+    }
+
+    if (this.relayKeepAliveTimers[peerIdStr]) {
+      clearInterval(this.relayKeepAliveTimers[peerIdStr]);
+      delete this.relayKeepAliveTimers[peerIdStr];
     }
   }
 }
