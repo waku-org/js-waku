@@ -14,6 +14,8 @@ export const RelayCodecs = [
  */
 export const DefaultPubsubTopic = '/waku/2/default-waku/proto';
 
+export const RelayPingContentTopic = '/relay-ping/1/ping/null';
+
 /**
  * RelayGossipFactor affects how many peers we will emit gossip to at each heartbeat.
  * We will send gossip to RelayGossipFactor * (total number of non-mesh peers), or

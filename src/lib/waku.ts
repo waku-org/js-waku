@@ -16,10 +16,15 @@ import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { WakuLightPush } from './waku_light_push';
+import { WakuMessage } from './waku_message';
 import { RelayCodecs, WakuRelay } from './waku_relay';
+import { RelayPingContentTopic } from './waku_relay/constants';
 import { StoreCodec, WakuStore } from './waku_store';
 
 const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
+
+const DefaultPingKeepAliveValueSecs = 0;
+const DefaultRelayKeepAliveValueSecs = 5 * 60;
 
 export interface CreateOptions {
   /**
@@ -37,12 +42,19 @@ export interface CreateOptions {
    */
   pubsubTopic?: string;
   /**
-   * Set keep alive frequency in seconds: Waku will send a ping request to each peer
-   * after the set number of seconds. Set to 0 to disable the keep alive feature
+   * Set keep alive frequency in seconds: Waku will send a `/ipfs/ping/1.0.0`
+   * request to each peer after the set number of seconds. Set to 0 to disable.
    *
-   * @default 0
+   * @default {@link DefaultPingKeepAliveValueSecs}
    */
-  keepAlive?: number;
+  pingKeepAlive?: number;
+  /**
+   * Set keep alive frequency in seconds: Waku will send a ping message over
+   * relay to each peer after the set number of seconds. Set to 0 to disable.
+   *
+   * @default {@link DefaultRelayKeepAliveValueSecs}
+   */
+  relayKeepAlive?: number;
   /**
    * You can pass options to the `Libp2p` instance used by {@link Waku} using the {@link CreateOptions.libp2p} property.
    * This property is the same type than the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
@@ -67,7 +79,10 @@ export class Waku {
   public store: WakuStore;
   public lightPush: WakuLightPush;
 
-  private keepAliveTimers: {
+  private pingKeepAliveTimers: {
+    [peer: string]: ReturnType<typeof setInterval>;
+  };
+  private relayKeepAliveTimers: {
     [peer: string]: ReturnType<typeof setInterval>;
   };
 
@@ -81,22 +96,21 @@ export class Waku {
     this.relay = libp2p.pubsub as unknown as WakuRelay;
     this.store = store;
     this.lightPush = lightPush;
-    this.keepAliveTimers = {};
+    this.pingKeepAliveTimers = {};
+    this.relayKeepAliveTimers = {};
 
-    const keepAlive = options.keepAlive || 0;
+    const pingKeepAlive =
+      options.pingKeepAlive || DefaultPingKeepAliveValueSecs;
+    const relayKeepAlive =
+      options.relayKeepAlive || DefaultRelayKeepAliveValueSecs;
 
-    if (keepAlive !== 0) {
-      libp2p.connectionManager.on('peer:connect', (connection: Connection) => {
-        this.startKeepAlive(connection.remotePeer, keepAlive);
-      });
+    libp2p.connectionManager.on('peer:connect', (connection: Connection) => {
+      this.startKeepAlive(connection.remotePeer, pingKeepAlive, relayKeepAlive);
+    });
 
-      libp2p.connectionManager.on(
-        'peer:disconnect',
-        (connection: Connection) => {
-          this.stopKeepAlive(connection.remotePeer);
-        }
-      );
-    }
+    libp2p.connectionManager.on('peer:disconnect', (connection: Connection) => {
+      this.stopKeepAlive(connection.remotePeer);
+    });
   }
 
   /**
@@ -214,21 +228,42 @@ export class Waku {
     return localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
   }
 
-  private startKeepAlive(peerId: PeerId, periodSecs: number): void {
+  private startKeepAlive(
+    peerId: PeerId,
+    pingPeriodSecs: number,
+    relayPeriodSecs: number
+  ): void {
     // Just in case a timer already exist for this peer
     this.stopKeepAlive(peerId);
 
     const peerIdStr = peerId.toB58String();
-    this.keepAliveTimers[peerIdStr] = setInterval(() => {
-      Ping(this.libp2p, peerId);
-    }, periodSecs * 1000);
+
+    if (pingPeriodSecs !== 0) {
+      this.pingKeepAliveTimers[peerIdStr] = setInterval(() => {
+        Ping(this.libp2p, peerId);
+      }, pingPeriodSecs * 1000);
+    }
+
+    if (relayPeriodSecs !== 0) {
+      this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
+        WakuMessage.fromBytes(new Uint8Array(), {
+          contentTopic: RelayPingContentTopic,
+        }).then((wakuMsg) => this.relay.send(wakuMsg));
+      }, relayPeriodSecs * 1000);
+    }
   }
 
   private stopKeepAlive(peerId: PeerId): void {
     const peerIdStr = peerId.toB58String();
-    if (this.keepAliveTimers[peerIdStr]) {
-      clearInterval(this.keepAliveTimers[peerIdStr]);
-      delete this.keepAliveTimers[peerIdStr];
+
+    if (this.pingKeepAliveTimers[peerIdStr]) {
+      clearInterval(this.pingKeepAliveTimers[peerIdStr]);
+      delete this.pingKeepAliveTimers[peerIdStr];
+    }
+
+    if (this.relayKeepAliveTimers[peerIdStr]) {
+      clearInterval(this.relayKeepAliveTimers[peerIdStr]);
+      delete this.relayKeepAliveTimers[peerIdStr];
     }
   }
 }

@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Breaking**: Renamed `WakuRelay.(add|delete)PrivateDecryptionKey` to `WakuRelay.(add|delete)DecryptionKey` to make it clearer that it accepts both symmetric keys and asymmetric private keys.
 - Upgrade libp2p to 0.32.0.
+- **Breaking**: Rename `keepAlive` option to `pingKeepAlive`.
+- Introduced new `relayKeepAlive` option on `Waku` with a default to 59s to send ping messages over relay to ensure the relay stream stays open.
+  This is a workaround until [js-libp2p#744](https://github.com/libp2p/js-libp2p/issues/744) is done as there are issues when TCP(?) timeouts and the stream gets closed
+  ([#185](https://github.com/status-im/js-waku/issues/185), [js-libp2p#939](https://github.com/libp2p/js-libp2p/issues/939))
 
 ### Fixed
 - Align `WakuMessage` readme example with actual code behaviour.
