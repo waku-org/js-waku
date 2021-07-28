@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- Examples (web-chat): Remove broken `/fleet` command.
+
 ## [0.9.0] - 2021-07-26
 
 ### Changed

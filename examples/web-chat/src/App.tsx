@@ -2,8 +2,8 @@ import PeerId from 'peer-id';
 import { useEffect, useState } from 'react';
 import './App.css';
 import {
-  getStatusFleetNodes,
   Environment,
+  getStatusFleetNodes,
   StoreCodec,
   Waku,
   WakuMessage,
@@ -81,17 +81,16 @@ export default function App() {
     const persistedNick = window.localStorage.getItem('nick');
     return persistedNick !== null ? persistedNick : generate();
   });
-  const [fleetEnv, setFleetEnv] = useState<Environment>(defaultFleetEnv);
 
   useEffect(() => {
     localStorage.setItem('nick', nick);
   }, [nick]);
 
   useEffect(() => {
-    initWaku(fleetEnv, setWaku)
+    initWaku(setWaku)
       .then(() => console.log('Waku init done'))
       .catch((e) => console.log('Waku init failed ', e));
-  }, [fleetEnv]);
+  }, []);
 
   useEffect(() => {
     if (!waku) return;
@@ -160,15 +159,8 @@ export default function App() {
             nick={nick}
             newMessages={newMessages}
             archivedMessages={archivedMessages}
-            fleetEnv={fleetEnv}
             commandHandler={(input: string) => {
-              const { command, response } = handleCommand(
-                input,
-                waku,
-                setNick,
-                fleetEnv,
-                setFleetEnv
-              );
+              const { command, response } = handleCommand(input, waku, setNick);
               const commandMessages = response.map((msg) => {
                 return Message.fromUtf8String(command, msg);
               });
@@ -181,7 +173,7 @@ export default function App() {
   );
 }
 
-async function initWaku(fleetEnv: Environment, setter: (waku: Waku) => void) {
+async function initWaku(setter: (waku: Waku) => void) {
   try {
     const waku = await Waku.create({
       libp2p: {
@@ -196,7 +188,7 @@ async function initWaku(fleetEnv: Environment, setter: (waku: Waku) => void) {
 
     setter(waku);
 
-    const nodes = await getStatusFleetNodes(fleetEnv);
+    const nodes = await getStatusFleetNodes(selectFleetEnv());
     await Promise.all(
       nodes.map((addr) => {
         return waku.dial(addr);
@@ -207,7 +199,7 @@ async function initWaku(fleetEnv: Environment, setter: (waku: Waku) => void) {
   }
 }
 
-function defaultFleetEnv() {
+function selectFleetEnv() {
   // Works with react-scripts
   if (process?.env?.NODE_ENV === 'development') {
     return Environment.Test;
