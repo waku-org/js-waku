@@ -1,15 +1,6 @@
 # Receive and Send messages using Waku Relay
 
-Waku
-Relay
-is
-a
-gossip
-protocol
-that
-enables
-you
-to send and receive messages.
+Waku Relay is a gossip protocol that enables you to send and receive messages.
 You can find Waku Relay's specifications on [Vac RFC](https://rfc.vac.dev/spec/11/).
 
 Before starting, you need to choose a _Content Topic_ for your dApp.
