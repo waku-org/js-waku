@@ -73,7 +73,7 @@ However, it does not give you any delivery information.
 ```ts
 import { WakuMessage } from 'js-waku';
 
-const msg = await WakuMessage.fromUtf8String("Here is a message!", { contentTopic: "/my-cool-app/1/my-use-case/proto" })
+const msg = await WakuMessage.fromUtf8String("Here is a message!", "/my-cool-app/1/my-use-case/proto")
 await waku.relay.send(msg);
 ```
 
@@ -157,19 +157,18 @@ const symKey = generatePrivateKey();
 To encrypt your waku messages, simply pass the encryption key when creating it:
 
 ```ts
-import { WakuMessage } from 'js-waku';
+import { WakuMessage } from "js-waku";
 
 // Asymmetric
-const message = await WakuMessage.fromBytes(payload, {
-    contentTopic: myAppContentTopic,
-    encPublicKey: publicKey,
-  });
+const message1 = await WakuMessage.fromBytes(payload, myAppContentTopic, {
+  encPublicKey: publicKey,
+});
 
 // Symmetric
-const message = await WakuMessage.fromBytes(payload, {
-    contentTopic: myAppContentTopic,
-    symKey: symKey,
-  });
+const message2 = await WakuMessage.fromBytes(payload, myAppContentTopic, {
+  symKey: symKey,
+});
+
 ```
 
 #### Decrypt Waku Messages
@@ -212,23 +211,22 @@ In the case where your app does not need encryption then you could use symmetric
 Signature keys can be generated the same way asymmetric keys for encryption are:
 
 ```ts
-import { generatePrivateKey, getPublicKey, WakuMessage } from 'js-waku';
+import { generatePrivateKey, getPublicKey, WakuMessage } from "js-waku";
 
 const signPrivateKey = generatePrivateKey();
 
 // Asymmetric Encryption
-const message = await WakuMessage.fromBytes(payload, {
-    contentTopic: myAppContentTopic,
-    encPublicKey: recipientPublicKey,
-    sigPrivKey: signPrivateKey
-  });
+const message1 = await WakuMessage.fromBytes(payload, myAppContentTopic, {
+  encPublicKey: recipientPublicKey,
+  sigPrivKey: signPrivateKey,
+});
 
 // Symmetric Encryption
-const message = await WakuMessage.fromBytes(payload, {
-    contentTopic: myAppContentTopic,
-    encPublicKey: symKey,
-    sigPrivKey: signPrivateKey
-  });
+const message2 = await WakuMessage.fromBytes(payload, myAppContentTopic, {
+  encPublicKey: symKey,
+  sigPrivKey: signPrivateKey,
+});
+
 ```
 
 #### Verify Waku Message signatures

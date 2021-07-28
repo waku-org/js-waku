@@ -1,13 +1,12 @@
 import { multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
-import { Environment, Waku } from 'js-waku';
+import { Waku } from 'js-waku';
 
 function help(): string[] {
   return [
     '/nick <nickname>: set a new nickname',
     '/info: some information about the node',
     '/connect <Multiaddr>: connect to the given peer',
-    '/fleet <prod|test>: connect to this fleet; beware it restarts waku node.',
     '/help: Display this help',
   ];
 }
@@ -23,14 +22,11 @@ function nick(
   return [`New nick: ${nick}`];
 }
 
-function info(waku: Waku | undefined, fleetEnv: Environment): string[] {
+function info(waku: Waku | undefined): string[] {
   if (!waku) {
     return ['Waku node is starting'];
   }
-  return [
-    `PeerId: ${waku.libp2p.peerId.toB58String()}`,
-    `Fleet environment: ${fleetEnv}`,
-  ];
+  return [`PeerId: ${waku.libp2p.peerId.toB58String()}`];
 }
 
 function connect(peer: string | undefined, waku: Waku | undefined): string[] {
@@ -82,28 +78,6 @@ function peers(waku: Waku | undefined): string[] {
   return response;
 }
 
-function fleet(
-  newFleetEnv: string | undefined,
-  currFleetEnv: Environment,
-  setFleetEnv: (fleetEnv: Environment) => void
-): string[] {
-  switch (newFleetEnv) {
-    case Environment.Test:
-      setFleetEnv(newFleetEnv);
-      break;
-    case Environment.Prod:
-      setFleetEnv(newFleetEnv);
-      break;
-    default:
-      return [
-        `Incorrect values, acceptable values are ${Environment.Test}, ${Environment.Prod}`,
-        `Current fleet environment is ${currFleetEnv}`,
-      ];
-  }
-
-  return [`New fleet Environment: ${newFleetEnv}`];
-}
-
 function connections(waku: Waku | undefined): string[] {
   if (!waku) {
     return ['Waku node is starting'];
@@ -133,9 +107,7 @@ function connections(waku: Waku | undefined): string[] {
 export default function handleCommand(
   input: string,
   waku: Waku | undefined,
-  setNick: (nick: string) => void,
-  currFleetEnv: Environment,
-  setFleetEnv: (fleetEnv: Environment) => void
+  setNick: (nick: string) => void
 ): { command: string; response: string[] } {
   let response: string[] = [];
   const args = parseInput(input);
@@ -148,7 +120,7 @@ export default function handleCommand(
       nick(args.shift(), setNick).map((str) => response.push(str));
       break;
     case '/info':
-      info(waku, currFleetEnv).map((str) => response.push(str));
+      info(waku).map((str) => response.push(str));
       break;
     case '/connect':
       connect(args.shift(), waku).map((str) => response.push(str));
@@ -158,11 +130,6 @@ export default function handleCommand(
       break;
     case '/connections':
       connections(waku).map((str) => response.push(str));
-      break;
-    case '/fleet':
-      fleet(args.shift(), currFleetEnv, setFleetEnv).map((str) =>
-        response.push(str)
-      );
       break;
     default:
       response.push(`Unknown Command '${command}'`);

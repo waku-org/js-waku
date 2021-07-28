@@ -115,8 +115,7 @@ async function encodeEncryptedWakuMessage(
   });
 
   const payload = directMsg.encode();
-  return WakuMessage.fromBytes(payload, {
-    contentTopic: DirectMessageContentTopic,
+  return WakuMessage.fromBytes(payload, DirectMessageContentTopic, {
     encPublicKey: publicKey,
   });
 }

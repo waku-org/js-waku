@@ -16,9 +16,11 @@ import { Waku } from '../waku';
 
 import { generatePrivateKey, getPublicKey } from './version_1';
 
-import { DefaultContentTopic, WakuMessage } from './index';
+import { WakuMessage } from './index';
 
 const dbg = debug('waku:test:message');
+
+const TestContentTopic = '/test/1/waku-message/utf8';
 
 describe('Waku Message: Node only', function () {
   describe('Interop: Nim', function () {
@@ -56,7 +58,7 @@ describe('Waku Message: Node only', function () {
 
       const messageText = 'Here is an encrypted message.';
       const message: WakuRelayMessage = {
-        contentTopic: DefaultContentTopic,
+        contentTopic: TestContentTopic,
         payload: Buffer.from(messageText, 'utf-8').toString('hex'),
       };
 
@@ -89,9 +91,13 @@ describe('Waku Message: Node only', function () {
       const publicKey = hexToBuf(keyPair.publicKey);
 
       const messageText = 'This is a message I am going to encrypt';
-      const message = await WakuMessage.fromUtf8String(messageText, {
-        encPublicKey: publicKey,
-      });
+      const message = await WakuMessage.fromUtf8String(
+        messageText,
+        TestContentTopic,
+        {
+          encPublicKey: publicKey,
+        }
+      );
 
       await waku.relay.send(message);
 
@@ -112,7 +118,7 @@ describe('Waku Message: Node only', function () {
 
       const messageText = 'Here is a message encrypted in a symmetric manner.';
       const message: WakuRelayMessage = {
-        contentTopic: DefaultContentTopic,
+        contentTopic: TestContentTopic,
         payload: Buffer.from(messageText, 'utf-8').toString('hex'),
       };
 
@@ -143,9 +149,13 @@ describe('Waku Message: Node only', function () {
 
       const messageText =
         'This is a message I am going to encrypt with a symmetric key';
-      const message = await WakuMessage.fromUtf8String(messageText, {
-        symKey: symKey,
-      });
+      const message = await WakuMessage.fromUtf8String(
+        messageText,
+        TestContentTopic,
+        {
+          symKey: symKey,
+        }
+      );
 
       await waku.relay.send(message);
 

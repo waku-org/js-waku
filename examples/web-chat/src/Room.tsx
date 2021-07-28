@@ -1,4 +1,4 @@
-import { ChatMessage, Environment, WakuMessage } from 'js-waku';
+import { ChatMessage, WakuMessage } from 'js-waku';
 import { ChatContentTopic } from './App';
 import ChatList from './ChatList';
 import MessageInput from './MessageInput';
@@ -11,7 +11,6 @@ interface Props {
   archivedMessages: Message[];
   commandHandler: (cmd: string) => void;
   nick: string;
-  fleetEnv: Environment;
 }
 
 export default function Room(props: Props) {
@@ -30,7 +29,7 @@ export default function Room(props: Props) {
       style={{ height: '98vh', display: 'flex', flexDirection: 'column' }}
     >
       <TitleBar
-        leftIcons={`Peers: ${relayPeers} relay, ${storePeers} store. Fleet: ${props.fleetEnv}`}
+        leftIcons={`Peers: ${relayPeers} relay, ${storePeers} store.`}
         title="Waku v2 chat app"
       />
       <ChatList
@@ -66,10 +65,11 @@ async function handleMessage(
   } else {
     const timestamp = new Date();
     const chatMessage = ChatMessage.fromUtf8String(timestamp, nick, message);
-    const wakuMsg = await WakuMessage.fromBytes(chatMessage.encode(), {
-      contentTopic: ChatContentTopic,
-      timestamp,
-    });
+    const wakuMsg = await WakuMessage.fromBytes(
+      chatMessage.encode(),
+      ChatContentTopic,
+      { timestamp }
+    );
     return messageSender(wakuMsg);
   }
 }

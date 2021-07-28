@@ -246,9 +246,9 @@ export class Waku {
 
     if (relayPeriodSecs !== 0) {
       this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
-        WakuMessage.fromBytes(new Uint8Array(), {
-          contentTopic: RelayPingContentTopic,
-        }).then((wakuMsg) => this.relay.send(wakuMsg));
+        WakuMessage.fromBytes(new Uint8Array(), RelayPingContentTopic).then(
+          (wakuMsg) => this.relay.send(wakuMsg)
+        );
       }, relayPeriodSecs * 1000);
     }
   }
