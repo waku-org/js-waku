@@ -12,12 +12,14 @@ import {
 } from '../../test_utils';
 import { delay } from '../delay';
 import { Waku } from '../waku';
-import { DefaultContentTopic, WakuMessage } from '../waku_message';
+import { WakuMessage } from '../waku_message';
 import { generatePrivateKey, getPublicKey } from '../waku_message/version_1';
 
 import { Direction } from './history_rpc';
 
 const dbg = debug('waku:test:store');
+
+const TestContentTopic = '/test/1/waku-store/utf8';
 
 describe('Waku Store', () => {
   let waku: Waku;
@@ -37,7 +39,7 @@ describe('Waku Store', () => {
     for (let i = 0; i < 2; i++) {
       expect(
         await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`)
+          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
         )
       ).to.be.true;
     }
@@ -73,7 +75,7 @@ describe('Waku Store', () => {
     for (let i = 0; i < 15; i++) {
       expect(
         await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`)
+          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
         )
       ).to.be.true;
     }
@@ -90,7 +92,7 @@ describe('Waku Store', () => {
     });
 
     const messages = await waku.store.queryHistory({
-      contentTopics: [DefaultContentTopic],
+      contentTopics: [],
       direction: Direction.FORWARD,
     });
 
@@ -114,7 +116,7 @@ describe('Waku Store', () => {
     for (let i = 0; i < 2; i++) {
       expect(
         await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`),
+          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic),
           customPubSubTopic
         )
       ).to.be.true;
@@ -171,14 +173,22 @@ describe('Waku Store', () => {
       clearMessage,
       otherEncMessage,
     ] = await Promise.all([
-      WakuMessage.fromUtf8String(encryptedAsymmetricMessageText, {
-        encPublicKey: publicKey,
-      }),
-      WakuMessage.fromUtf8String(encryptedSymmetricMessageText, {
-        symKey: symKey,
-      }),
-      WakuMessage.fromUtf8String(clearMessageText),
-      WakuMessage.fromUtf8String(otherEncMessageText, {
+      WakuMessage.fromUtf8String(
+        encryptedAsymmetricMessageText,
+        TestContentTopic,
+        {
+          encPublicKey: publicKey,
+        }
+      ),
+      WakuMessage.fromUtf8String(
+        encryptedSymmetricMessageText,
+        TestContentTopic,
+        {
+          symKey: symKey,
+        }
+      ),
+      WakuMessage.fromUtf8String(clearMessageText, TestContentTopic),
+      WakuMessage.fromUtf8String(otherEncMessageText, TestContentTopic, {
         encPublicKey: getPublicKey(generatePrivateKey()),
       }),
     ]);

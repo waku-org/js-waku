@@ -5,11 +5,13 @@ import { getPublicKey } from './version_1';
 
 import { WakuMessage } from './index';
 
+const TestContentTopic = '/test/1/waku-message/utf8';
+
 describe('Waku Message: Browser & Node', function () {
   it('Waku message round trip binary serialization [clear]', async function () {
     await fc.assert(
       fc.asyncProperty(fc.string(), async (s) => {
-        const msg = await WakuMessage.fromUtf8String(s);
+        const msg = await WakuMessage.fromUtf8String(s, TestContentTopic);
         const binary = msg.encode();
         const actual = await WakuMessage.decode(binary);
 
@@ -21,7 +23,7 @@ describe('Waku Message: Browser & Node', function () {
   it('Payload to utf-8', async function () {
     await fc.assert(
       fc.asyncProperty(fc.string(), async (s) => {
-        const msg = await WakuMessage.fromUtf8String(s);
+        const msg = await WakuMessage.fromUtf8String(s, TestContentTopic);
         const utf8 = msg.payloadAsUtf8;
 
         return utf8 === s;
@@ -37,7 +39,7 @@ describe('Waku Message: Browser & Node', function () {
         async (payload, privKey) => {
           const publicKey = getPublicKey(privKey);
 
-          const msg = await WakuMessage.fromBytes(payload, {
+          const msg = await WakuMessage.fromBytes(payload, TestContentTopic, {
             encPublicKey: publicKey,
           });
 
@@ -60,7 +62,7 @@ describe('Waku Message: Browser & Node', function () {
           const sigPubKey = getPublicKey(sigPrivKey);
           const encPubKey = getPublicKey(encPrivKey);
 
-          const msg = await WakuMessage.fromBytes(payload, {
+          const msg = await WakuMessage.fromBytes(payload, TestContentTopic, {
             encPublicKey: encPubKey,
             sigPrivKey: sigPrivKey,
           });
@@ -81,7 +83,7 @@ describe('Waku Message: Browser & Node', function () {
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ minLength: 32, maxLength: 32 }),
         async (payload, key) => {
-          const msg = await WakuMessage.fromBytes(payload, {
+          const msg = await WakuMessage.fromBytes(payload, TestContentTopic, {
             symKey: key,
           });
 
@@ -103,7 +105,7 @@ describe('Waku Message: Browser & Node', function () {
         async (payload, sigPrivKey, symKey) => {
           const sigPubKey = getPublicKey(sigPrivKey);
 
-          const msg = await WakuMessage.fromBytes(payload, {
+          const msg = await WakuMessage.fromBytes(payload, TestContentTopic, {
             symKey: symKey,
             sigPrivKey: sigPrivKey,
           });

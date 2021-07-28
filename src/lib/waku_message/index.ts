@@ -9,16 +9,10 @@ import * as proto from '../../proto/waku/v2/message';
 
 import * as version_1 from './version_1';
 
-export const DefaultContentTopic = '/waku/2/default-content/proto';
 const DefaultVersion = 0;
 const dbg = debug('waku:message');
 
 export interface Options {
-  /**
-   * Content topic to set on the message, defaults to {@link DefaultContentTopic}
-   * if not passed.
-   */
-  contentTopic?: string;
   /**
    * Timestamp to set on the message, defaults to now if not passed.
    */
@@ -54,10 +48,11 @@ export class WakuMessage {
    */
   static async fromUtf8String(
     utf8: string,
+    contentTopic: string,
     opts?: Options
   ): Promise<WakuMessage> {
     const payload = Buffer.from(utf8, 'utf-8');
-    return WakuMessage.fromBytes(payload, opts);
+    return WakuMessage.fromBytes(payload, contentTopic, opts);
   }
 
   /**
@@ -74,13 +69,13 @@ export class WakuMessage {
    */
   static async fromBytes(
     payload: Uint8Array,
+    contentTopic: string,
     opts?: Options
   ): Promise<WakuMessage> {
-    const { timestamp, contentTopic, encPublicKey, symKey, sigPrivKey } =
-      Object.assign(
-        { timestamp: new Date(), contentTopic: DefaultContentTopic },
-        opts ? opts : {}
-      );
+    const { timestamp, encPublicKey, symKey, sigPrivKey } = Object.assign(
+      { timestamp: new Date() },
+      opts ? opts : {}
+    );
 
     let _payload = payload;
     let version = DefaultVersion;

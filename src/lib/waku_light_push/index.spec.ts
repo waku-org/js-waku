@@ -8,6 +8,8 @@ import { delay } from '../delay';
 import { Waku } from '../waku';
 import { WakuMessage } from '../waku_message';
 
+const TestContentTopic = '/test/1/waku-light-push/utf8';
+
 describe('Waku Light Push', () => {
   let waku: Waku;
   let nimWaku: NimWaku;
@@ -35,7 +37,10 @@ describe('Waku Light Push', () => {
     });
 
     const messageText = 'Light Push works!';
-    const message = await WakuMessage.fromUtf8String(messageText);
+    const message = await WakuMessage.fromUtf8String(
+      messageText,
+      TestContentTopic
+    );
 
     const pushResponse = await waku.lightPush.push(message);
     expect(pushResponse?.isSuccess).to.be.true;
@@ -75,7 +80,10 @@ describe('Waku Light Push', () => {
     const nimPeerId = await nimWaku.getPeerId();
 
     const messageText = 'Light Push works!';
-    const message = await WakuMessage.fromUtf8String(messageText);
+    const message = await WakuMessage.fromUtf8String(
+      messageText,
+      TestContentTopic
+    );
 
     const pushResponse = await waku.lightPush.push(message, {
       peerId: nimPeerId,
