@@ -39,3 +39,46 @@ import { getStatusFleetNodes } from 'js-waku';
 const nodes = await getStatusFleetNodes();
 await Promise.all(nodes.map((addr) => waku.dial(addr))); 
 ```
+
+# Send messages
+
+We are now ready to send message.
+Let's start by sending simple strings as messages.
+
+To send a message, we need to wrap the message in a `WakuMessage`.
+When using a basic string payload, we can just use the `WakuMessage.fromUtf8String` helper:
+
+```js
+import { WakuMessage } from 'js-waku';
+
+const wakuMessage = await WakuMessage.fromUtf8String(message, `/relay-guide/1/chat/proto`);
+```
+
+Then, we use the `relay` module to send the message to our peers,
+the message will then be relayed to the rest of the network thanks to Waku Relay:
+
+```js
+import { WakuMessage } from 'js-waku';
+
+const wakuMessage = await WakuMessage.fromUtf8String(message, `/relay-guide/1/chat/proto`);
+
+await waku.relay.send(wakuMessage)
+```
+
+So far, we have:
+
+```js
+import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
+
+const wakuNode = await Waku.create();
+
+import { getStatusFleetNodes } from 'js-waku';
+
+const nodes = await getStatusFleetNodes();
+await Promise.all(nodes.map((addr) => waku.dial(addr)));
+
+const wakuMessage = await WakuMessage.fromUtf8String(message, `/relay-guide/1/chat/proto`);
+
+await waku.relay.send(wakuMessage)
+```
+

@@ -1,6 +1,8 @@
 import './App.css';
-import { getStatusFleetNodes, Waku } from 'js-waku';
+import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
 import * as React from 'react';
+
+const ContentTopic = `/relay-guide/1/chat/proto`;
 
 function App() {
   const [waku, setWaku] = React.useState(undefined);
@@ -21,10 +23,21 @@ function App() {
     });
   }, [waku, wakuStatus]);
 
+  const sendMessageOnClick = () => {
+    if (wakuStatus !== 'Ready') return;
+
+    sendMessage('Here is a message', waku).then(() =>
+      console.log('Message sent')
+    );
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <p>{wakuStatus}</p>
+        <button onClick={sendMessageOnClick} disabled={wakuStatus !== 'Ready'}>
+          Send Message
+        </button>
       </header>
     </div>
   );
@@ -35,4 +48,9 @@ export default App;
 async function bootstrapWaku(waku) {
   const nodes = await getStatusFleetNodes();
   await Promise.all(nodes.map((addr) => waku.dial(addr)));
+}
+
+async function sendMessage(message, waku) {
+  const wakuMessage = await WakuMessage.fromUtf8String(message, ContentTopic);
+  await waku.relay.send(wakuMessage);
 }
