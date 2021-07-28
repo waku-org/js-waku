@@ -1,22 +1,29 @@
-import logo from './logo.svg';
 import './App.css';
+import { Waku } from 'js-waku';
+import * as React from 'react';
 
 function App() {
+  const [waku, setWaku] = React.useState(undefined);
+  const [wakuStarting, setWakuStarting] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!!waku) return;
+    if (wakuStarting) return;
+
+    setWakuStarting(true);
+
+    Waku.create().then((waku) => {
+      setWaku(waku);
+      setWakuStarting(false);
+    });
+  }, [waku, wakuStarting]);
+
+  const wakuStatus = !!waku ? 'Started' : wakuStarting ? 'Loading' : 'Error';
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <p>{wakuStatus}</p>
       </header>
     </div>
   );
