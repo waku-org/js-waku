@@ -1,8 +1,9 @@
 import { expect } from 'chai';
 import fc from 'fast-check';
 
-import { WakuMessage } from '../../lib/waku_message';
-import { getPublicKey } from '../../lib/waku_message/version_1';
+import { getPublicKey } from './version_1';
+
+import { WakuMessage } from './index';
 
 describe('Waku Message: Browser & Node', function () {
   it('Waku message round trip binary serialization [clear]', async function () {
