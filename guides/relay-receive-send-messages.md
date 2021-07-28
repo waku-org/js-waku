@@ -6,7 +6,7 @@ You can find Waku Relay's specifications on [Vac RFC](https://rfc.vac.dev/spec/1
 Before starting, you need to choose a _Content Topic_ for your dApp.
 Check out the [choose a content topic guide](choose-content-topic.md) to learn more about content topics.
 
-For the purpose of this guide, we are using a unique content topic: `/relay-guide/1/chat/proto`.
+For this guide, we are using a unique content topic: `/relay-guide/1/chat/proto`.
 
 # Installation
 
@@ -35,14 +35,13 @@ For now, the easiest way is to connect to Status' Waku fleet:
 
 ```js
 import { getStatusFleetNodes } from 'js-waku';
-
 const nodes = await getStatusFleetNodes();
 await Promise.all(nodes.map((addr) => waku.dial(addr))); 
 ```
 
 # Receive messages
 
-To monitor messages for your app, you need to register an observer on relay for your app's content topic:
+To watch messages for your app, you need to register an observer on relay for your app's content topic:
 
 ```js
 const processIncomingMessage = (wakuMessage) => {
@@ -51,9 +50,6 @@ const processIncomingMessage = (wakuMessage) => {
 
 waku.relay.addObserver(processIncomingMessage, ['/relay-guide/1/chat/proto']);
 ```
-
-`WakuMessage.payloadAsUtf8` is a nice helper to show UTF-8 encoding messages.
-However, you will probably need more structure messages, this is covered in [use protobuf section](#use-protobuf).
 
 # Send messages
 
@@ -80,7 +76,7 @@ await waku.relay.send(wakuMessage);
 
 Sending strings as messages in unlikely to cover your dApps needs.
 To include structured objects in Waku Messages,
-it is recommended to use [protobuf](https://developers.google.com/protocol-buffers/).
+We recommend you use [protobuf](https://developers.google.com/protocol-buffers/).
 
 First, let's define an object.
 For this guide, we will use a simple chat message that contains a timestamp and text:
@@ -92,7 +88,7 @@ For this guide, we will use a simple chat message that contains a timestamp and 
 }
 ```
 
-To encode and decode protobuf, you can use the [protons](https://www.npmjs.com/package/protons) package.
+To encode and decode protobuf payloads, you can use the [protons](https://www.npmjs.com/package/protons) package.
 
 ## Install protobuf library
 
@@ -122,10 +118,10 @@ You can learn about protobuf definitions here:
 
 ## Encode messages
 
-Instead of wrapping a string in a Waku Message, you need to encode the message in protobuf.
-The result is a byte array that can then be wrapped in a Waku Message.
+Instead of wrapping an utf-8 string in a Waku Message,
+you are going to wrap a protobuf payload.
 
-First, encode the message:
+First, encode the object:
 
 ```js
 const payload = proto.SimpleChatMessage.encode({
@@ -164,7 +160,7 @@ const processIncomingMessage = (wakuMessage) => {
 };
 ```
 
-Same than before, you can pass add this function as an observer to Waku Relay to process incoming messages:
+Like before, add this callback as an observer to Waku Relay:
 
 ```js
 waku.relay.addObserver(processIncomingMessage, ['/relay-guide/1/chat/proto']);
