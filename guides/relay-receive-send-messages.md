@@ -25,3 +25,17 @@ import { Waku } from 'js-waku';
 
 const wakuNode = await Waku.create();
 ```
+
+# Connect to other peers
+
+The Waku instance needs to connect to other peers to communicate with the network.
+You are free to choose any method to bootstrap and DappConnect will ship with new methods in the future.
+
+For now, the easiest way is to connect to Status' Waku fleet:
+
+```js
+import { getStatusFleetNodes } from 'js-waku';
+
+const nodes = await getStatusFleetNodes();
+await Promise.all(nodes.map((addr) => waku.dial(addr))); 
+```
