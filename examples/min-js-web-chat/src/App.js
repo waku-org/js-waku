@@ -23,6 +23,21 @@ function App() {
     });
   }, [waku, wakuStatus]);
 
+  // Need to keep the same reference around to add and delete from relay observer
+  const processIncomingMessage = React.useCallback((wakuMessage) => {
+    console.log('Message Received', wakuMessage);
+  }, []);
+
+  React.useEffect(() => {
+    if (!waku) return;
+
+    waku.relay.addObserver(processIncomingMessage, [ContentTopic]);
+
+    return function cleanUp() {
+      waku.relay.deleteObserver(processIncomingMessage, [ContentTopic]);
+    };
+  }, [waku, wakuStatus, processIncomingMessage]);
+
   const sendMessageOnClick = () => {
     if (wakuStatus !== 'Ready') return;
 
