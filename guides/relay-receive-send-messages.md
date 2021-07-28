@@ -4,7 +4,12 @@ Waku
 Relay
 is
 a
-gossip protocol that enables you to send and receive messages.
+gossip
+protocol
+that
+enables
+you
+to send and receive messages.
 You can find Waku Relay's specifications on [Vac RFC](https://rfc.vac.dev/spec/11/).
 
 Before starting, you need to choose a _Content Topic_ for your dApp.
@@ -50,11 +55,14 @@ To monitor messages for your app, you need to register an observer on relay for 
 
 ```js
 const processIncomingMessage = (wakuMessage) => {
-  console.log("Message Received", wakuMessage);
+  console.log(`Message Received: ${wakuMessage.payloadAsUtf8}`);
 };
 
-waku.relay.addObserver(processIncomingMessage, ["/relay-guide/1/chat/proto"]);
+waku.relay.addObserver(processIncomingMessage, ['/relay-guide/1/chat/proto']);
 ```
+
+`WakuMessage.payloadAsUtf8` is a nice helper to show UTF-8 encoding messages.
+However, you will probably need more structure messages, this is covered in [use protobuf section](#use-protobuf).
 
 # Send messages
 
@@ -67,18 +75,108 @@ When using a basic string payload, you can use the `WakuMessage.fromUtf8String` 
 ```js
 import { WakuMessage } from 'js-waku';
 
-const wakuMessage = await WakuMessage.fromUtf8String(message, `/relay-guide/1/chat/proto`);
+const wakuMessage = await WakuMessage.fromUtf8String('Here is a message', `/relay-guide/1/chat/proto`);
 ```
 
 Then, use the `relay` module to send the message to our peers,
 the message will then be relayed to the rest of the network thanks to Waku Relay:
 
 ```js
-import { WakuMessage } from 'js-waku';
-
-const wakuMessage = await WakuMessage.fromUtf8String(message, `/relay-guide/1/chat/proto`);
-
 await waku.relay.send(wakuMessage);
+```
+
+# Use protobuf
+
+Sending strings as messages in unlikely to cover your dApps needs.
+To include structured objects in Waku Messages,
+it is recommended to use [protobuf](https://developers.google.com/protocol-buffers/).
+
+First, let's define an object.
+For this guide, we will use a simple chat message that contains a timestamp and text:
+
+```js
+{
+  timestamp: Date;
+  text: string;
+}
+```
+
+To encode and decode protobuf, you can use the [protons](https://www.npmjs.com/package/protons) package.
+
+## Install protobuf library
+
+First, install it:
+
+```shell
+npm install protons
+```
+
+## Protobuf Definition
+
+Then define the simple chat message:
+
+```js
+import protons from 'protons';
+
+const proto = protons(`
+message SimpleChatMessage {
+  float timestamp = 1;
+  string text = 2;
+}
+`);
+```
+
+You can learn about protobuf definitions here:
+[Protocol Buffers Language Guide](https://developers.google.com/protocol-buffers/docs/proto).
+
+## Encode messages
+
+Instead of wrapping a string in a Waku Message, you need to encode the message in protobuf.
+The result is a byte array that can then be wrapped in a Waku Message.
+
+First, encode the message:
+
+```js
+const payload = proto.SimpleChatMessage.encode({
+  timestamp: Date.now(),
+  text: 'Here is a message'
+});
+```
+
+Then, wrap it in a Waku Message:
+
+```js
+const wakuMessage = await WakuMessage.fromBytes(payload, ContentTopic);
+```
+
+Now, you can send the message over Waku Relay the same way than before:
+
+```js
+await waku.relay.send(wakuMessage);
+```
+
+## Decode messages
+
+To decode the messages received over Waku Relay,
+you need to extract the protobuf payload and decode it using `protons`.
+
+```js
+const processIncomingMessage = (wakuMessage) => {
+  // No need to attempt to decode a message if the payload is absent
+  if (!wakuMessage.payload) return;
+
+  const { timestamp, text } = proto.SimpleChatMessage.decode(
+    wakuMessage.payload
+  );
+
+  console.log(`Message Received: ${text}, sent at ${timestamp.toString()}`);
+};
+```
+
+Same than before, you can pass add this function as an observer to Waku Relay to process incoming messages:
+
+```js
+waku.relay.addObserver(processIncomingMessage, ['/relay-guide/1/chat/proto']);
 ```
 
 # Conclusion
@@ -91,6 +189,14 @@ Here is the final code:
 
 ```js
 import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
+import protons from 'protons';
+
+const proto = protons(`
+message SimpleChatMessage {
+  float timestamp = 1;
+  string text = 2;
+}
+`);
 
 const wakuNode = await Waku.create();
 
@@ -98,11 +204,22 @@ const nodes = await getStatusFleetNodes();
 await Promise.all(nodes.map((addr) => waku.dial(addr)));
 
 const processIncomingMessage = (wakuMessage) => {
-  console.log(`Message Received: ${wakuMessage.payloadAsUtf8}`);
+  // No need to attempt to decode a message if the payload is absent
+  if (!wakuMessage.payload) return;
+
+  const { timestamp, text } = proto.SimpleChatMessage.decode(
+    wakuMessage.payload
+  );
+
+  console.log(`Message Received: ${text}, sent at ${timestamp.toString()}`);
 };
 
 waku.relay.addObserver(processIncomingMessage, ['/relay-guide/1/chat/proto']);
 
-const wakuMessage = await WakuMessage.fromUtf8String(message, `/relay-guide/1/chat/proto`);
+const payload = proto.SimpleChatMessage.encode({
+  timestamp: Date.now(),
+  text: 'Here is a message'
+});
+const wakuMessage = await WakuMessage.fromBytes(payload, ContentTopic);
 await waku.relay.send(wakuMessage);
 ```

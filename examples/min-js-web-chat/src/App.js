@@ -1,12 +1,20 @@
 import './App.css';
 import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
 import * as React from 'react';
+import protons from 'protons';
 
 const ContentTopic = `/relay-guide/1/chat/proto`;
 
 const initialMessageState = {
   messages: [],
 };
+
+const proto = protons(`
+message SimpleChatMessage {
+  float timestamp = 1;
+  string text = 2;
+}
+`);
 
 function App() {
   const [waku, setWaku] = React.useState(undefined);
@@ -33,7 +41,19 @@ function App() {
 
   // Need to keep the same reference around to add and delete from relay observer
   const processIncomingMessage = React.useCallback((wakuMessage) => {
-    dispatchMessages({ type: 'Add', message: wakuMessage.payloadAsUtf8 });
+    if (!wakuMessage.payload) return;
+
+    const { timestamp, text } = proto.SimpleChatMessage.decode(
+      wakuMessage.payload
+    );
+
+    dispatchMessages({
+      type: 'Add',
+      message: {
+        timestamp: new Date(timestamp),
+        text,
+      },
+    });
   }, []);
 
   React.useEffect(() => {
@@ -63,7 +83,13 @@ function App() {
         </button>
         <ul>
           {messagesState.messages.map((msg) => {
-            return <li>{msg}</li>;
+            return (
+              <li>
+                <p>
+                  {msg.timestamp.toString()}: {msg.text}
+                </p>
+              </li>
+            );
           })}
         </ul>
       </header>
@@ -79,7 +105,12 @@ async function bootstrapWaku(waku) {
 }
 
 async function sendMessage(message, waku) {
-  const wakuMessage = await WakuMessage.fromUtf8String(message, ContentTopic);
+  const payload = proto.SimpleChatMessage.encode({
+    timestamp: Date.now(),
+    text: message,
+  });
+
+  const wakuMessage = await WakuMessage.fromBytes(payload, ContentTopic);
   await waku.relay.send(wakuMessage);
 }
 
