@@ -98,7 +98,7 @@ const nodes = await getStatusFleetNodes();
 await Promise.all(nodes.map((addr) => waku.dial(addr)));
 
 const processIncomingMessage = (wakuMessage) => {
-  console.log('Message Received', wakuMessage);
+  console.log(`Message Received: ${wakuMessage.payloadAsUtf8}`);
 };
 
 waku.relay.addObserver(processIncomingMessage, ['/relay-guide/1/chat/proto']);
