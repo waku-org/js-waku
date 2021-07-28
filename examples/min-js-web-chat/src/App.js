@@ -4,9 +4,17 @@ import * as React from 'react';
 
 const ContentTopic = `/relay-guide/1/chat/proto`;
 
+const initialMessageState = {
+  messages: [],
+};
+
 function App() {
   const [waku, setWaku] = React.useState(undefined);
   const [wakuStatus, setWakuStatus] = React.useState('NotStarted');
+  const [messagesState, dispatchMessages] = React.useReducer(
+    reduceMessages,
+    initialMessageState
+  );
 
   React.useEffect(() => {
     if (!!waku) return;
@@ -25,7 +33,7 @@ function App() {
 
   // Need to keep the same reference around to add and delete from relay observer
   const processIncomingMessage = React.useCallback((wakuMessage) => {
-    console.log('Message Received', wakuMessage);
+    dispatchMessages({ type: 'Add', message: wakuMessage.payloadAsUtf8 });
   }, []);
 
   React.useEffect(() => {
@@ -53,6 +61,11 @@ function App() {
         <button onClick={sendMessageOnClick} disabled={wakuStatus !== 'Ready'}>
           Send Message
         </button>
+        <ul>
+          {messagesState.messages.map((msg) => {
+            return <li>{msg}</li>;
+          })}
+        </ul>
       </header>
     </div>
   );
@@ -68,4 +81,15 @@ async function bootstrapWaku(waku) {
 async function sendMessage(message, waku) {
   const wakuMessage = await WakuMessage.fromUtf8String(message, ContentTopic);
   await waku.relay.send(wakuMessage);
+}
+
+function reduceMessages(state, action) {
+  switch (action.type) {
+    case 'Add':
+      const messages = state.messages.slice();
+      messages.push(action.message);
+      return { ...state, messages };
+    default:
+      return state;
+  }
 }
