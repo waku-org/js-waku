@@ -7,8 +7,7 @@ import { TitleBar } from '@livechat/ui-kit';
 import { Message } from './Message';
 
 interface Props {
-  newMessages: Message[];
-  archivedMessages: Message[];
+  messages: Message[];
   commandHandler: (cmd: string) => void;
   nick: string;
 }
@@ -32,10 +31,7 @@ export default function Room(props: Props) {
         leftIcons={`Peers: ${relayPeers} relay, ${storePeers} store.`}
         title="Waku v2 chat app"
       />
-      <ChatList
-        newMessages={props.newMessages}
-        archivedMessages={props.archivedMessages}
-      />
+      <ChatList messages={props.messages} />
       <MessageInput
         sendMessage={
           waku

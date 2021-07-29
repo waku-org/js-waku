@@ -1,7 +1,7 @@
-import PeerId from 'peer-id';
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import './App.css';
 import {
+  Direction,
   Environment,
   getStatusFleetNodes,
   StoreCodec,
@@ -48,7 +48,6 @@ export const ChatContentTopic = '/toy-chat/2/huilong/proto';
 
 async function retrieveStoreMessages(
   waku: Waku,
-  peerId: PeerId,
   setArchivedMessages: (value: Message[]) => void
 ): Promise<number> {
   const callback = (wakuMessages: WakuMessage[]): void => {
@@ -64,9 +63,9 @@ async function retrieveStoreMessages(
   };
 
   const res = await waku.store.queryHistory({
-    peerId,
     contentTopics: [ChatContentTopic],
     pageSize: 5,
+    direction: Direction.FORWARD,
     callback,
   });
 
@@ -74,13 +73,16 @@ async function retrieveStoreMessages(
 }
 
 export default function App() {
-  const [newMessages, setNewMessages] = useState<Message[]>([]);
-  const [archivedMessages, setArchivedMessages] = useState<Message[]>([]);
+  const [messages, dispatchMessages] = useReducer(reduceMessages, []);
   const [waku, setWaku] = useState<Waku | undefined>(undefined);
   const [nick, setNick] = useState<string>(() => {
     const persistedNick = window.localStorage.getItem('nick');
     return persistedNick !== null ? persistedNick : generate();
   });
+  const [
+    historicalMessagesRetrieved,
+    setHistoricalMessagesRetrieved,
+  ] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('nick', nick);
@@ -94,12 +96,14 @@ export default function App() {
 
   useEffect(() => {
     if (!waku) return;
+    // Let's retrieve previous messages before listening to new messages
+    if (!historicalMessagesRetrieved) return;
 
     const handleRelayMessage = (wakuMsg: WakuMessage) => {
       console.log('Message received: ', wakuMsg);
       const msg = Message.fromWakuMessage(wakuMsg);
       if (msg) {
-        setNewMessages([msg]);
+        dispatchMessages([msg]);
       }
     };
 
@@ -108,45 +112,36 @@ export default function App() {
     return function cleanUp() {
       waku?.relay.deleteObserver(handleRelayMessage, [ChatContentTopic]);
     };
-  }, [waku]);
+  }, [waku, historicalMessagesRetrieved]);
 
   useEffect(() => {
     if (!waku) return;
+    if (historicalMessagesRetrieved) return;
 
-    const handleProtocolChange = async (
-      _waku: Waku,
-      { peerId, protocols }: { peerId: PeerId; protocols: string[] }
-    ) => {
-      if (protocols.includes(StoreCodec)) {
-        console.log(`${peerId.toB58String()}: retrieving archived messages}`);
-        try {
-          const length = await retrieveStoreMessages(
-            _waku,
-            peerId,
-            setArchivedMessages
-          );
-          console.log(`${peerId.toB58String()}: messages retrieved:`, length);
-        } catch (e) {
-          console.log(
-            `${peerId.toB58String()}: error encountered when retrieving archived messages`,
-            e
-          );
+    const connectedToStorePeer = new Promise((resolve) =>
+      waku.libp2p.peerStore.once(
+        'change:protocols',
+        ({ peerId, protocols }) => {
+          if (protocols.includes(StoreCodec)) {
+            resolve(peerId);
+          }
         }
-      }
-    };
-
-    waku.libp2p.peerStore.on(
-      'change:protocols',
-      handleProtocolChange.bind({}, waku)
+      )
     );
 
-    return function cleanUp() {
-      waku?.libp2p.peerStore.removeListener(
-        'change:protocols',
-        handleProtocolChange.bind({}, waku)
-      );
-    };
-  }, [waku]);
+    connectedToStorePeer.then(() => {
+      console.log(`Retrieving archived messages}`);
+      setHistoricalMessagesRetrieved(true);
+
+      try {
+        retrieveStoreMessages(waku, dispatchMessages).then((length) =>
+          console.log(`Messages retrieved:`, length)
+        );
+      } catch (e) {
+        console.log(`Error encountered when retrieving archived messages`, e);
+      }
+    });
+  }, [waku, historicalMessagesRetrieved]);
 
   return (
     <div
@@ -157,14 +152,13 @@ export default function App() {
         <ThemeProvider theme={themes}>
           <Room
             nick={nick}
-            newMessages={newMessages}
-            archivedMessages={archivedMessages}
+            messages={messages}
             commandHandler={(input: string) => {
               const { command, response } = handleCommand(input, waku, setNick);
               const commandMessages = response.map((msg) => {
                 return Message.fromUtf8String(command, msg);
               });
-              setNewMessages(commandMessages);
+              dispatchMessages(commandMessages);
             }}
           />
         </ThemeProvider>
@@ -206,4 +200,8 @@ function selectFleetEnv() {
   } else {
     return Environment.Prod;
   }
+}
+
+function reduceMessages(state: Message[], newMessages: Message[]) {
+  return state.concat(newMessages);
 }
