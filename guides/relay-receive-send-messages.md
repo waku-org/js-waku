@@ -170,7 +170,7 @@ waku.relay.addObserver(processIncomingMessage, ['/relay-guide/1/chat/proto']);
 
 That is it! Now, you know how to send and receive messages over Waku using the Waku Relay protocol.
 
-Feel free to check out other [guides](menu.md) or [examples](../examples).
+Feel free to check out other [guides](menu.md) or [examples](/examples/examples.md).
 
 Here is the final code:
 
