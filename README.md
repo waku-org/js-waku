@@ -265,6 +265,19 @@ npm run doc
 
 Release changelog can be found [here](https://github.com/status-im/js-waku/blob/main/CHANGELOG.md).
 
+## Bugs, Questions & Features
+
+If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/status-im/js-waku/issues/new/).
+
+To get help, join #dappconnect-support on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or [Telegram](https://t.me/dappconnectsupport).
+
+For more general discussion and latest news, join #dappconnect on [Vac Discord](https://discord.gg/9DgykdmpZ6) or [Telegram](https://t.me/dappconnect).
+
+## Examples
+
+We have a number of code examples available,
+you can find them in the [examples](https://github.com/status-im/js-waku/blob/main/examples/examples.md) directory.
+
 ## Waku Protocol Support
 
 You can track progress on the [project board](https://github.com/status-im/js-waku/projects/1).
@@ -289,19 +302,6 @@ You can track progress on the [project board](https://github.com/status-im/js-wa
 |[17/WAKU2-RLNRELAY](https://rfc.vac.dev/spec/17)||
 |[18/WAKU2-SWAP](https://rfc.vac.dev/spec/18)||
 |[19/WAKU2-LIGHTPUSH](https://rfc.vac.dev/spec/19/)|✔|
-
-## Bugs, Questions & Features
-
-If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/status-im/js-waku/issues/new/).
-
-To get help, join #dappconnect-support on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or [Telegram](https://t.me/dappconnectsupport).
-
-For more general discussion and latest news, join #dappconnect on [Vac Discord](https://discord.gg/9DgykdmpZ6) or [Telegram](https://t.me/dappconnect).
-
-## Examples
-
-We have a number of code examples available,
-you can find them in the [examples](https://github.com/status-im/js-waku/blob/main/examples/examples.md) directory.
 
 ## Contributing
 
