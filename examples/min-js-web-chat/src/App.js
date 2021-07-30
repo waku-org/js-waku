@@ -15,9 +15,8 @@ message SimpleChatMessage {
 function App() {
   const [waku, setWaku] = React.useState(undefined);
   const [wakuStatus, setWakuStatus] = React.useState('None');
-  const [messages, setMessages] = React.useState([]);
-  const [currentTime, setCurrentTime] = React.useState(new Date());
   const [sendCounter, setSendCounter] = React.useState(0);
+  const [messages, setMessages] = React.useState([]);
 
   React.useEffect(() => {
     if (!!waku) return;
@@ -61,19 +60,10 @@ function App() {
     };
   }, [waku, wakuStatus, processIncomingMessage]);
 
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => {
-      clearInterval(timer);
-    };
-  }, [currentTime]);
-
   const sendMessageOnClick = () => {
     if (wakuStatus !== 'Ready') return;
 
-    sendMessage(`Here is message #${sendCounter}`, waku, currentTime).then(() =>
+    sendMessage(`Here is message #${sendCounter}`, waku, new Date()).then(() =>
       console.log('Message sent')
     );
 
