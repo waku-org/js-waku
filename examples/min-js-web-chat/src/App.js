@@ -3,30 +3,25 @@ import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
 import * as React from 'react';
 import protons from 'protons';
 
-const ContentTopic = `/relay-guide/1/chat/proto`;
-
-const initialMessageState = {
-  messages: [],
-};
+const ContentTopic = `/min-js-web-chat/1/chat/proto`;
 
 const proto = protons(`
 message SimpleChatMessage {
-  float timestamp = 1;
+  uint64 timestamp = 1;
   string text = 2;
 }
 `);
 
 function App() {
   const [waku, setWaku] = React.useState(undefined);
-  const [wakuStatus, setWakuStatus] = React.useState('NotStarted');
-  const [messagesState, dispatchMessages] = React.useReducer(
-    reduceMessages,
-    initialMessageState
-  );
+  const [wakuStatus, setWakuStatus] = React.useState('None');
+  const [messages, setMessages] = React.useState([]);
+  const [currentTime, setCurrentTime] = React.useState(new Date());
+  const [sendCounter, setSendCounter] = React.useState(0);
 
   React.useEffect(() => {
     if (!!waku) return;
-    if (wakuStatus !== 'NotStarted') return;
+    if (wakuStatus !== 'None') return;
 
     setWakuStatus('Starting');
 
@@ -43,16 +38,16 @@ function App() {
   const processIncomingMessage = React.useCallback((wakuMessage) => {
     if (!wakuMessage.payload) return;
 
-    const { timestamp, text } = proto.SimpleChatMessage.decode(
+    const { text, timestamp } = proto.SimpleChatMessage.decode(
       wakuMessage.payload
     );
 
-    dispatchMessages({
-      type: 'Add',
-      message: {
-        timestamp: new Date(timestamp),
-        text,
-      },
+    const time = new Date();
+    time.setTime(timestamp);
+    const message = { text, timestamp: time };
+
+    setMessages((currMessages) => {
+      return [message].concat(currMessages);
     });
   }, []);
 
@@ -66,12 +61,23 @@ function App() {
     };
   }, [waku, wakuStatus, processIncomingMessage]);
 
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [currentTime]);
+
   const sendMessageOnClick = () => {
     if (wakuStatus !== 'Ready') return;
 
-    sendMessage('Here is a message', waku).then(() =>
+    sendMessage(`Here is message #${sendCounter}`, waku, currentTime).then(() =>
       console.log('Message sent')
     );
+
+    setSendCounter(sendCounter + 1);
   };
 
   return (
@@ -82,7 +88,7 @@ function App() {
           Send Message
         </button>
         <ul>
-          {messagesState.messages.map((msg) => {
+          {messages.map((msg) => {
             return (
               <li>
                 <p>
@@ -104,23 +110,14 @@ async function bootstrapWaku(waku) {
   await Promise.all(nodes.map((addr) => waku.dial(addr)));
 }
 
-async function sendMessage(message, waku) {
+async function sendMessage(message, waku, timestamp) {
+  const time = timestamp.getTime();
+
   const payload = proto.SimpleChatMessage.encode({
-    timestamp: Date.now(),
+    timestamp: time,
     text: message,
   });
 
   const wakuMessage = await WakuMessage.fromBytes(payload, ContentTopic);
   await waku.relay.send(wakuMessage);
-}
-
-function reduceMessages(state, action) {
-  switch (action.type) {
-    case 'Add':
-      const messages = state.messages.slice();
-      messages.push(action.message);
-      return { ...state, messages };
-    default:
-      return state;
-  }
 }
