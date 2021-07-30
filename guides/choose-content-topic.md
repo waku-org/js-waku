@@ -1,4 +1,4 @@
-# How to choose a content topic
+# How to Choose a Content Topic
 
 A content topic is used for content based filtering.
 

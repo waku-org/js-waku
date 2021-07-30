@@ -1,10 +1,10 @@
-# Receive and Send messages using Waku Relay
+# Receive and Send Messages Using Waku Relay
 
 Waku Relay is a gossip protocol that enables you to send and receive messages.
 You can find Waku Relay's specifications on [Vac RFC](https://rfc.vac.dev/spec/11/).
 
 Before starting, you need to choose a _Content Topic_ for your dApp.
-Check out the [choose a content topic guide](choose-content-topic.md) to learn more about content topics.
+Check out the [how to choose a content topic guide](choose-content-topic.md) to learn more about content topics.
 
 For this guide, we are using a unique content topic: `/relay-guide/1/chat/proto`.
 
@@ -16,7 +16,7 @@ You can install [js-waku](https://npmjs.com/package/js-waku) using your favorite
 npm install js-waku
 ```
 
-# Create Waku instance
+# Create Waku Instance
 
 In order to interact with the Waku network, you first need a Waku instance:
 
@@ -26,7 +26,7 @@ import { Waku } from 'js-waku';
 const wakuNode = await Waku.create();
 ```
 
-# Connect to other peers
+# Connect to Other Peers
 
 The Waku instance needs to connect to other peers to communicate with the network.
 You are free to choose any method to bootstrap and DappConnect will ship with new methods in the future.
@@ -51,7 +51,7 @@ const processIncomingMessage = (wakuMessage) => {
 waku.relay.addObserver(processIncomingMessage, ['/relay-guide/1/chat/proto']);
 ```
 
-# Send messages
+# Send Messages
 
 You are now ready to send messages.
 Let's start by sending simple strings as messages.
@@ -72,7 +72,7 @@ the message will then be relayed to the rest of the network thanks to Waku Relay
 await waku.relay.send(wakuMessage);
 ```
 
-# Use protobuf
+# Use Protobuf
 
 Sending strings as messages in unlikely to cover your dApps needs.
 To include structured objects in Waku Messages,
@@ -90,7 +90,7 @@ For this guide, we will use a simple chat message that contains a timestamp and 
 
 To encode and decode protobuf payloads, you can use the [protons](https://www.npmjs.com/package/protons) package.
 
-## Install protobuf library
+## Install Protobuf Library
 
 First, install it:
 
@@ -116,7 +116,7 @@ message SimpleChatMessage {
 You can learn about protobuf definitions here:
 [Protocol Buffers Language Guide](https://developers.google.com/protocol-buffers/docs/proto).
 
-## Encode messages
+## Encode Messages
 
 Instead of wrapping an utf-8 string in a Waku Message,
 you are going to wrap a protobuf payload.
@@ -142,7 +142,7 @@ Now, you can send the message over Waku Relay the same way than before:
 await waku.relay.send(wakuMessage);
 ```
 
-## Decode messages
+## Decode Messages
 
 To decode the messages received over Waku Relay,
 you need to extract the protobuf payload and decode it using `protons`.
