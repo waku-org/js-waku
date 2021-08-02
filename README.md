@@ -265,6 +265,19 @@ npm run doc
 
 Release changelog can be found [here](https://github.com/status-im/js-waku/blob/main/CHANGELOG.md).
 
+## Bugs, Questions & Features
+
+If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/status-im/js-waku/issues/new/).
+
+To get help, join #dappconnect-support on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or [Telegram](https://t.me/dappconnectsupport).
+
+For more general discussion and latest news, join #dappconnect on [Vac Discord](https://discord.gg/9DgykdmpZ6) or [Telegram](https://t.me/dappconnect).
+
+## Examples
+
+We have a number of code examples available,
+you can find them in the [examples](https://github.com/status-im/js-waku/blob/main/examples/examples.md) directory.
+
 ## Waku Protocol Support
 
 You can track progress on the [project board](https://github.com/status-im/js-waku/projects/1).
@@ -289,88 +302,6 @@ You can track progress on the [project board](https://github.com/status-im/js-wa
 |[17/WAKU2-RLNRELAY](https://rfc.vac.dev/spec/17)||
 |[18/WAKU2-SWAP](https://rfc.vac.dev/spec/18)||
 |[19/WAKU2-LIGHTPUSH](https://rfc.vac.dev/spec/19/)|✔|
-
-## Bugs, Questions & Features
-
-If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/status-im/js-waku/issues/new/).
-
-To get help, join #dappconnect-support on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or [Telegram](https://t.me/dappconnectsupport).
-
-For more general discussion and latest news, join #dappconnect on [Vac Discord](https://discord.gg/9DgykdmpZ6) or [Telegram](https://t.me/dappconnect).
-
-## Examples
-
-## Web Chat App (ReactJS)
-
-A ReactJS chat app is provided as a showcase of the library used in the browser.
-It implements [Waku v2 Toy Chat](https://rfc.vac.dev/spec/22/) protocol.
-A deployed version is available at https://status-im.github.io/js-waku/.
-
-Find the code in the [examples folder](https://github.com/status-im/js-waku/tree/main/examples/web-chat).
-
-To run a development version locally, do:
-
-```shell
-git clone https://github.com/status-im/js-waku/ ; cd js-waku
-npm install   # Install dependencies for js-waku
-npm run build # Build js-waku
-cd examples/web-chat   
-npm install   # Install dependencies for the web app
-npm run start # Start development server to serve the web app on http://localhost:3000/js-waku
-```
-
-Use `/help` to see the available commands.
-
-## CLI Chat App (NodeJS)
-
-A node chat app is provided as a working example of the library.
-It implements [Waku v2 Toy Chat](https://rfc.vac.dev/spec/22/) protocol.
-
-Find the code in the [examples folder](https://github.com/status-im/js-waku/tree/main/examples/cli-chat).
-
-To run the chat app, first ensure you have [Node.js](https://nodejs.org/en/) v14 or above:
-
-```shell
-node --version
-```
-
-Then, install and run:
-
-```shell
-git clone https://github.com/status-im/js-waku/ ; cd js-waku
-npm install   # Install dependencies for js-waku
-npm run build # Build js-waku
-cd examples/cli-chat
-npm install # Install dependencies for the cli app
-npm run start -- --autoDial
-```
-
-You can also specify an optional `listenAddr` parameter (.e.g `--listenAddr /ip4/0.0.0.0/tcp/7777/ws`).
-This is only useful if you want a remote node to dial to your chat app, 
-it is not necessary in normal usage when you just connect to the fleet.
-
-## Ethereum Direct Message
-
-A PoC implementation of [20/ETH-DM](https://rfc.vac.dev/spec/20/).
-
-Ethereum Direct Message, or Eth-DM, is a protocol that allows sending encrypted message to a recipient,
-only knowing their Ethereum Address.
-
-This is protocol has been created to demonstrated how encryption and signature could be added to messages
-sent over the Waku v2 network.
-
-The `main` branch's HEAD is deployed on GitHub Pages at https://status-im.github.io/js-waku/eth-dm/.
-
-To run a development version locally, do:
-
-```shell
-git clone https://github.com/status-im/js-waku/ ; cd js-waku
-npm install   # Install dependencies for js-waku
-npm run build # Build js-waku
-cd examples/eth-dm   
-npm install   # Install dependencies for the web app
-npm run start # Start development server to serve the web app on http://localhost:3000/js-waku/eth-dm
-```
 
 ## Contributing
 
