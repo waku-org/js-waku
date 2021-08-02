@@ -5,7 +5,7 @@ In this guide, we will demonstrate how your ReactJS dApp can use Waku Relay to s
 
 Before starting, you need to choose a _Content Topic_ for your dApp.
 Check out the [how to choose a content topic guide](choose-content-topic.md) to learn more about content topics.
-For this guide, we are using a unique content topic: `/min-js-web-chat/1/chat/proto`.
+For this guide, we are using a single content topic: `/min-js-web-chat/1/chat/proto`.
 
 # Setup
 

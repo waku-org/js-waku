@@ -6,7 +6,7 @@ You can find Waku Relay's specifications on [Vac RFC](https://rfc.vac.dev/spec/1
 Before starting, you need to choose a _Content Topic_ for your dApp.
 Check out the [how to choose a content topic guide](choose-content-topic.md) to learn more about content topics.
 
-For this guide, we are using a unique content topic: `/relay-guide/1/chat/proto`.
+For this guide, we are using a single content topic: `/relay-guide/1/chat/proto`.
 
 # Installation
 
