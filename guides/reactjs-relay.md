@@ -164,7 +164,7 @@ async function sendMessage(message, timestamp, waku) {
 }
 ```
 
-Then, add a button to send messages to the `App` function:
+Then, add a button to the `App` function:
 
 ```js
 function App() {
@@ -178,12 +178,14 @@ function App() {
   }, [waku, wakuStatus]);
 
   const sendMessageOnClick = () => {
+    // Check Waku is started and connected first.
     if (wakuStatus !== 'Ready') return;
 
     sendMessage(`Here is message #${sendCounter}`, waku, new Date()).then(() =>
       console.log('Message sent')
     );
 
+    // For demonstration purposes.
     setSendCounter(sendCounter + 1);
   };
 
@@ -191,7 +193,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <p>{wakuStatus}</p>
-        <button onClick={sendMessageOnClick} disabled={wakuStatus !== 'Ready'}>
+        <button onClick={sendMessageOnClick} disabled={wakuStatus !== 'Ready'}> // Grey the button is Waku is not yet ready.
           Send Message
         </button>
       </header>
@@ -203,9 +205,11 @@ function App() {
 # Receive Messages
 
 To process incoming messages, you need to register an observer on Waku Relay.
-First, you need to define the function that acts as observer.
+First, you need to define the observer function.
 
-As you are passing the function to Waku Relay, it is best to use `React.useCallback` so that the reference to the function remains the same:
+You will need to remove the observer when the component unmount.
+Hence, you need the reference to the function to remain the same.
+For that, use `React.useCallback`:
 
 ```js
 const processIncomingMessage = React.useCallback((wakuMessage) => {
@@ -224,7 +228,7 @@ const processIncomingMessage = React.useCallback((wakuMessage) => {
 }, []);
 ```
 
-Then, add this function as an observer to Waku Relay.
+Then, add this observer to Waku Relay.
 Do not forget to delete the observer is the component is being unmounted:
 
 ```js
@@ -247,7 +251,7 @@ The Waku work is now done.
 Your dApp is able to send and receive messages using Waku.
 For the sake of completeness, let's display received messages on the page.
 
-First, modify the `App()` function to store incoming messages:
+First, add incoming messages to the state of the `App` component:
 
 ```js
 function App() {
@@ -274,7 +278,7 @@ function App() {
   // ...
 }
 ```
-Then, add the messages to the rendering :
+Then, render the messages:
 
 ```js
 function App() {
@@ -304,6 +308,7 @@ function App() {
 }
 ```
 
-And Voilà! You should now be able to send and receive messages from two different browsers.
+And Voilà! You should now be able to send and receive messages.
+Try out by opening the app from different browsers.
 
 You can see the complete code in the [Minimal JS Web Chat App](/examples/min-js-web-chat).
