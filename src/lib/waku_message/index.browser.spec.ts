@@ -119,4 +119,16 @@ describe('Waku Message: Browser & Node', function () {
       )
     );
   });
+
+  it('Waku message round trip utf-8 including emojis', async function () {
+    const messageText = '😁🤣🥧🤦👩‍🎓';
+    const wakuMessage = await WakuMessage.fromUtf8String(
+      messageText,
+      TestContentTopic
+    );
+
+    const decodedText = wakuMessage.payloadAsUtf8;
+
+    expect(decodedText).to.eq(messageText);
+  });
 });

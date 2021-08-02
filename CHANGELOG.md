@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Removed `DefaultContentTopic` as developers must choose a content topic for their app;
   recommendations for content topic can be found at https://rfc.vac.dev/spec/23/.
 
+### Fixed
+- `WakuMessage.payloadAsUtf8` returning garbage on utf-8 non-ascii characters.
+- `ChatMessage.payloadAsUtf8` returning garbage on utf-8 non-ascii characters.
+
 ## [0.9.0] - 2021-07-26
 
 ### Changed
