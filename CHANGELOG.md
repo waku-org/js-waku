@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - `WakuMessage.payloadAsUtf8` returning garbage on utf-8 non-ascii characters.
+- `ChatMessage.payloadAsUtf8` returning garbage on utf-8 non-ascii characters.
 
 ## [0.9.0] - 2021-07-26
 

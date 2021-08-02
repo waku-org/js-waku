@@ -60,10 +60,6 @@ export class ChatMessage {
       return '';
     }
 
-    return Array.from(this.proto.payload)
-      .map((char) => {
-        return String.fromCharCode(char);
-      })
-      .join('');
+    return Buffer.from(this.proto.payload).toString('utf-8');
   }
 }
