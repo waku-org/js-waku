@@ -16,7 +16,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --env=./test/custom-test-env.js",
+    "test": "react-scripts build",
+    "react-test": "react-scripts test --env=./test/custom-test-env.js",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
