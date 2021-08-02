@@ -28,7 +28,7 @@
     "build:react": "react-scripts build",
     "eject": "react-scripts eject",
     "fix": "run-s fix:*",
-    "test": "run-s build test:*",
+    "test": "npm-run-all build --parallel test:*",
     "test:lint": "eslint src --ext .ts --ext .tsx",
     "test:prettier": "prettier \"src/**/*.{ts,tsx}\" \"./*.json\" --list-different",
     "test:spelling": "cspell \"{README.md,src/**/*.{ts,tsx},public/**/*.html}\" -c ../../.cspell.json",
