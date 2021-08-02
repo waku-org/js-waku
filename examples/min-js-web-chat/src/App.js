@@ -63,7 +63,7 @@ function App() {
   const sendMessageOnClick = () => {
     if (wakuStatus !== 'Ready') return;
 
-    sendMessage(`Here is message #${sendCounter}`, waku, new Date()).then(() =>
+    sendMessage(`Here is message #${sendCounter}`, new Date(), waku).then(() =>
       console.log('Message sent')
     );
 
@@ -100,7 +100,7 @@ async function bootstrapWaku(waku) {
   await Promise.all(nodes.map((addr) => waku.dial(addr)));
 }
 
-async function sendMessage(message, waku, timestamp) {
+async function sendMessage(message, timestamp, waku) {
   const time = timestamp.getTime();
 
   const payload = proto.SimpleChatMessage.encode({

@@ -54,7 +54,7 @@ function App() {
   React.useEffect(() => {
     // If Waku is already assigned, the job is done
     if (!!waku) return;
-    // If Waku status not None, it means we already started Waku 
+    // If Waku status not None, it means we are already starting Waku 
     if (wakuStatus !== 'None') return;
 
     setWakuStatus('Starting');
@@ -147,7 +147,7 @@ import { WakuMessage } from 'js-waku';
 
 const ContentTopic = `/min-js-web-chat/1/chat/proto`;
 
-async function sendMessage(message, waku, timestamp) {
+async function sendMessage(message, timestamp, waku) {
   const time = timestamp.getTime();
 
   // Encode to protobuf
