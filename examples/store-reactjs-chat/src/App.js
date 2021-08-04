@@ -1,5 +1,5 @@
 import './App.css';
-import { getStatusFleetNodes, Waku } from 'js-waku';
+import { getStatusFleetNodes, StoreCodec, Waku } from 'js-waku';
 import * as React from 'react';
 import protons from 'protons';
 
@@ -17,6 +17,9 @@ function App() {
   const [waku, setWaku] = React.useState(undefined);
   const [wakuStatus, setWakuStatus] = React.useState('None');
   const [messages, setMessages] = React.useState([]);
+  // This is true if Waku connected to one store node
+  // it does not reflect whether we then disconnected for said node.
+  const [connectedToStore, setConnectedToStore] = React.useState(false);
 
   React.useEffect(() => {
     if (!!waku) return;
@@ -35,6 +38,9 @@ function App() {
 
   React.useEffect(() => {
     if (!waku) return;
+    // This is superfluous as the try/catch block would catch the failure if
+    // we are indeed not connected to any store node.
+    if (!connectedToStore) return;
 
     const interval = setInterval(() => {
       waku.store
@@ -51,7 +57,27 @@ function App() {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [waku]);
+  }, [waku, connectedToStore]);
+
+  React.useEffect(() => {
+    if (!waku) return;
+
+    // We do not handle disconnection/re-connection in this example
+    if (connectedToStore) return;
+
+    // This demonstrates one way to wait to be connected to a store node.
+    //
+    // This is only for demonstration purposes as it is not needed in this
+    // example app as we query the store node every 10s and catch if it fails.
+    // Meaning if we are not connected to a store node, then it just fails and
+    // we try again 10s later.
+    waku.libp2p.peerStore.once('change:protocols', ({ protocols }) => {
+      if (protocols.includes(StoreCodec)) {
+        // We are now connected to a store node
+        setConnectedToStore(true);
+      }
+    });
+  }, [waku, connectedToStore]);
 
   return (
     <div className="App">
