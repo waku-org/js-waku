@@ -32,7 +32,7 @@
     "test:unit": "react-scripts test",
     "eject": "react-scripts eject",
     "fix": "run-s fix:*",
-    "test": "npm-run-all build --parallel test:*",
+    "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts --ext .tsx",
     "test:prettier": "prettier \"src/**/*.{ts,tsx}\" \"./*.json\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.{ts,tsx},public/**/*.html}\" -c ../../.cspell.json",
