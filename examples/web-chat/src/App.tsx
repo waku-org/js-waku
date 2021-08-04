@@ -62,8 +62,7 @@ async function retrieveStoreMessages(
     setArchivedMessages(messages);
   };
 
-  const res = await waku.store.queryHistory({
-    contentTopics: [ChatContentTopic],
+  const res = await waku.store.queryHistory([ChatContentTopic], {
     pageSize: 5,
     direction: Direction.FORWARD,
     callback,

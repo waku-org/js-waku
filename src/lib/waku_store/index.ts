@@ -33,7 +33,6 @@ export interface CreateOptions {
 
 export interface QueryOptions {
   peerId?: PeerId;
-  contentTopics: string[];
   pubsubTopic?: string;
   direction?: Direction;
   pageSize?: number;
@@ -58,10 +57,10 @@ export class WakuStore {
   /**
    * Query given peer using Waku Store.
    *
+   * @param contentTopics The content topics to pass to the query, leave empty to
+   * retrieve all messages.
    * @param options
    * @param options.peerId The peer to query.Options
-   * @param options.contentTopics The content topics to pass to the query, leave empty to
-   * retrieve all messages.
    * @param options.pubsubTopic The pubsub topic to pass to the query. Defaults
    * to the value set at creation. See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/).
    * @param options.callback Callback called on page of stored messages as they are retrieved
@@ -70,14 +69,18 @@ export class WakuStore {
    * methods.
    * @throws If not able to reach the peer to query.
    */
-  async queryHistory(options: QueryOptions): Promise<WakuMessage[] | null> {
+  async queryHistory(
+    contentTopics: string[],
+    options?: QueryOptions
+  ): Promise<WakuMessage[] | null> {
     const opts = Object.assign(
       {
         pubsubTopic: this.pubsubTopic,
         direction: Direction.BACKWARD,
         pageSize: 10,
       },
-      options
+      options,
+      { contentTopics }
     );
     dbg('Querying history with the following options', options);
 

@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Breaking**: The `WakuMessage` APIs have been changed to move `contentTopic` out of the optional parameters.
+- **Breaking**: Move `contentTopics` out the `WakuStore.queryHistory`'s optional parameters.
 
 ### Removed
 - Examples (web-chat): Remove broken `/fleet` command.

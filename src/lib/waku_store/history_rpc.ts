@@ -8,7 +8,7 @@ export enum Direction {
   FORWARD = 'forward',
 }
 
-export interface Options {
+export interface Params {
   contentTopics: string[];
   cursor?: proto.Index;
   pubsubTopic: string;
@@ -22,22 +22,22 @@ export class HistoryRPC {
   /**
    * Create History Query.
    */
-  static createQuery(options: Options): HistoryRPC {
-    const direction = directionToProto(options.direction);
+  static createQuery(params: Params): HistoryRPC {
+    const direction = directionToProto(params.direction);
     const pagingInfo = {
-      pageSize: options.pageSize,
-      cursor: options.cursor,
+      pageSize: params.pageSize,
+      cursor: params.cursor,
       direction,
     };
 
-    const contentFilters = options.contentTopics.map((contentTopic) => {
+    const contentFilters = params.contentTopics.map((contentTopic) => {
       return { contentTopic };
     });
 
     return new HistoryRPC({
       requestId: uuid(),
       query: {
-        pubsubTopic: options.pubsubTopic,
+        pubsubTopic: params.pubsubTopic,
         contentFilters,
         pagingInfo,
         startTime: undefined,

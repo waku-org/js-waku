@@ -118,20 +118,19 @@ Query a waku store peer to check historical messages:
 
 ```ts
 // Process messages once they are all retrieved
-const messages = await waku.store.queryHistory({ contentTopics: ["/my-cool-app/1/my-use-case/proto"] });
+const messages = await waku.store.queryHistory(['/my-cool-app/1/my-use-case/proto']);
 messages.forEach((msg) => {
-  console.log("Message retrieved:", msg.payloadAsUtf8)
-})
+  console.log('Message retrieved:', msg.payloadAsUtf8);
+});
 
 // Or, pass a callback function to be executed as pages are received:
-waku.store.queryHistory({
-    contentTopics: ["/my-cool-app/1/my-use-case/proto"],
-    callback: (messages) => {
-      messages.forEach((msg) => {
-        console.log("Message retrieved:", msg.payloadAsUtf8);
-      });
-    }
-  });
+waku.store.queryHistory(['/my-cool-app/1/my-use-case/proto'], {
+  callback: (messages) => {
+    messages.forEach((msg) => {
+      console.log('Message retrieved:', msg.payloadAsUtf8);
+    });
+  }
+});
 ```
 
 ### Encryption & Signature
@@ -212,9 +211,8 @@ Keys can be removed using `WakuMessage.deleteDecryptionKey`.
 ##### Waku Store
 
 ```ts
-const messages = await waku.store.queryHistory({
-  contentTopics: [],
-  decryptionKeys: [privateKey, symKey],
+const messages = await waku.store.queryHistory([], {
+  decryptionKeys: [privateKey, symKey]
 });
 ```
 
@@ -228,20 +226,20 @@ In the case where your app does not need encryption then you could use symmetric
 Signature keys can be generated the same way asymmetric keys for encryption are:
 
 ```ts
-import { generatePrivateKey, getPublicKey, WakuMessage } from "js-waku";
+import { generatePrivateKey, getPublicKey, WakuMessage } from 'js-waku';
 
 const signPrivateKey = generatePrivateKey();
 
 // Asymmetric Encryption
 const message1 = await WakuMessage.fromBytes(payload, myAppContentTopic, {
   encPublicKey: recipientPublicKey,
-  sigPrivKey: signPrivateKey,
+  sigPrivKey: signPrivateKey
 });
 
 // Symmetric Encryption
 const message2 = await WakuMessage.fromBytes(payload, myAppContentTopic, {
   encPublicKey: symKey,
-  sigPrivKey: signPrivateKey,
+  sigPrivKey: signPrivateKey
 });
 
 ```
