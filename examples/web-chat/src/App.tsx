@@ -62,13 +62,18 @@ async function retrieveStoreMessages(
     setArchivedMessages(messages);
   };
 
-  const res = await waku.store.queryHistory([ChatContentTopic], {
-    pageSize: 5,
-    direction: Direction.FORWARD,
-    callback,
-  });
+  try {
+    const res = await waku.store.queryHistory([ChatContentTopic], {
+      pageSize: 5,
+      direction: Direction.FORWARD,
+      callback,
+    });
 
-  return res ? res.length : 0;
+    return res.length;
+  } catch {
+    console.log('Failed to retrieve messages');
+    return 0;
+  }
 }
 
 export default function App() {
