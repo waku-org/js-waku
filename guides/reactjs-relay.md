@@ -5,15 +5,15 @@ In this guide, we will demonstrate how your ReactJS dApp can use Waku Relay to s
 
 Before starting, you need to choose a _Content Topic_ for your dApp.
 Check out the [how to choose a content topic guide](choose-content-topic.md) to learn more about content topics.
-For this guide, we are using a single content topic: `/min-js-web-chat/1/chat/proto`.
+For this guide, we are using a single content topic: `/min-react-js-chat/1/chat/proto`.
 
 # Setup
 
 Create a new react app:
 
 ```shell
-npx create-react-app min-js-web-chat
-cd min-js-web-chat
+npx create-react-app min-react-js-chat
+cd min-react-js-chat
 ```
 
 Then, install [js-waku](https://npmjs.com/package/js-waku):
@@ -145,7 +145,7 @@ Create a function that takes the Waku instance and a message to send:
 ```js
 import { WakuMessage } from 'js-waku';
 
-const ContentTopic = `/min-js-web-chat/1/chat/proto`;
+const ContentTopic = `/min-react-js-chat/1/chat/proto`;
 
 async function sendMessage(message, timestamp, waku) {
   const time = timestamp.getTime();
@@ -311,4 +311,4 @@ function App() {
 And Voilà! You should now be able to send and receive messages.
 Try out by opening the app from different browsers.
 
-You can see the complete code in the [Minimal JS Web Chat App](/examples/min-js-web-chat).
+You can see the complete code in the [Minimal ReactJS Chat App](/examples/min-react-js-chat).

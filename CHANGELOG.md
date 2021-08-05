@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Relay and ReactJS guides and examples
+  ([#56](https://github.com/status-im/js-waku/issues/56)).
+
 ### Changed
 - **Breaking**: The `WakuMessage` APIs have been changed to move `contentTopic` out of the optional parameters.
 

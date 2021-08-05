@@ -2,6 +2,23 @@
 
 A JavaScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/10/).
 
+## Documentation
+
+In the [section below](#usage) you can find explanations for the main API.
+
+We also have [guides](https://github.com/status-im/js-waku/blob/main/guides/menu.md) available
+and [code examples](https://github.com/status-im/js-waku/blob/main/examples/examples.md).
+
+You can read the latest `main` branch documentation at [https://status-im.github.io/js-waku/docs/](https://status-im.github.io/js-waku/docs/).
+
+Docs can also be generated locally using:
+
+```shell
+npm install
+npm run doc
+```
+
+
 ## Usage
 
 Install `js-waku` package:
@@ -249,18 +266,6 @@ const sigPubKey = wakuMessage.signaturePublicKey;
 const isSignedByAlice = sigPubKey && equalByteArrays(sigPubKey, alicePublicKey);
 ```
 
-## More documentation
-
-Find more [examples](#examples) below
-or checkout the latest `main` branch documentation at [https://status-im.github.io/js-waku/docs/](https://status-im.github.io/js-waku/docs/).
-
-Docs can also be generated locally using:
-
-```shell
-npm install
-npm run doc
-```
-
 ## Changelog
 
 Release changelog can be found [here](https://github.com/status-im/js-waku/blob/main/CHANGELOG.md).
@@ -272,11 +277,6 @@ If you encounter any bug or would like to propose new features, feel free to [op
 To get help, join #dappconnect-support on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or [Telegram](https://t.me/dappconnectsupport).
 
 For more general discussion and latest news, join #dappconnect on [Vac Discord](https://discord.gg/9DgykdmpZ6) or [Telegram](https://t.me/dappconnect).
-
-## Examples
-
-We have a number of code examples available,
-you can find them in the [examples](https://github.com/status-im/js-waku/blob/main/examples/examples.md) directory.
 
 ## Waku Protocol Support
 

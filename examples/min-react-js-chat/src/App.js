@@ -3,7 +3,7 @@ import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
 import * as React from 'react';
 import protons from 'protons';
 
-const ContentTopic = `/min-js-web-chat/1/chat/proto`;
+const ContentTopic = `/min-react-js-chat/1/chat/proto`;
 
 const proto = protons(`
 message SimpleChatMessage {
