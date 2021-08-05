@@ -65,18 +65,24 @@ function App() {
     // We do not handle disconnection/re-connection in this example
     if (connectedToStore) return;
 
+    const isStoreNode = ({ protocols }) => {
+      if (protocols.includes(StoreCodec)) {
+        // We are now connected to a store node
+        setConnectedToStore(true);
+      }
+    };
+
     // This demonstrates one way to wait to be connected to a store node.
     //
     // This is only for demonstration purposes as it is not needed in this
     // example app as we query the store node every 10s and catch if it fails.
     // Meaning if we are not connected to a store node, then it just fails and
     // we try again 10s later.
-    waku.libp2p.peerStore.once('change:protocols', ({ protocols }) => {
-      if (protocols.includes(StoreCodec)) {
-        // We are now connected to a store node
-        setConnectedToStore(true);
-      }
-    });
+    waku.libp2p.peerStore.on('change:protocols', isStoreNode);
+
+    return () => {
+      waku.libp2p.peerStore.removeListener('change:protocols', isStoreNode);
+    };
   }, [waku, connectedToStore]);
 
   return (
