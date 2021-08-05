@@ -74,7 +74,7 @@ function App() {
 
     // This demonstrates how to wait for a connection to a store node.
     //
-    // This is only for demonstration purposes as it is not needed in this
+    // This is only for demonstration purposes. It is not really needed in this
     // example app as we query the store node every 10s and catch if it fails.
     // Meaning if we are not connected to a store node, then it just fails and
     // we try again 10s later.
