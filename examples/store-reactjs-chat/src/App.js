@@ -17,8 +17,8 @@ function App() {
   const [waku, setWaku] = React.useState(undefined);
   const [wakuStatus, setWakuStatus] = React.useState('None');
   const [messages, setMessages] = React.useState([]);
-  // This is true if Waku connected to one store node
-  // it does not reflect whether we then disconnected for said node.
+  // Set to true when Waku connects to a store node
+  // it does not reflect whether we then disconnected from said node.
   const [connectedToStore, setConnectedToStore] = React.useState(false);
 
   React.useEffect(() => {
