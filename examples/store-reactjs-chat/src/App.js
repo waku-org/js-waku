@@ -112,8 +112,7 @@ function decodeMessage(wakuMessage) {
     wakuMessage.payload
   );
 
-  if (!timestamp) return;
-  if (!text) return;
+  if (!timestamp || !text || !nick) return;
 
   const time = new Date();
   time.setTime(timestamp);
