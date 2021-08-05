@@ -181,6 +181,11 @@ export class NimWaku {
     let timestamp;
     if (message.timestamp) {
       timestamp = message.timestamp.valueOf() / 1000;
+      if (Number.isInteger(timestamp)) {
+        // Add a millisecond to ensure it's not an integer
+        // Until https://github.com/status-im/nim-waku/issues/691 is done
+        timestamp += 0.001;
+      }
     }
 
     const rpcMessage = {
