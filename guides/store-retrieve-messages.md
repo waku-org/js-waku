@@ -141,7 +141,7 @@ waku.store
 ```
 
 Note that `WakuStore.queryHistory` select an available store node for you.
-However, it can only query connected node, which is why the bootstraping is necessary.
+However, it can only query connected node, which is why the bootstrapping is necessary.
 
 The call can throw an error if no store node is available.
 
