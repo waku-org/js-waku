@@ -107,7 +107,7 @@ import protons from 'protons';
 
 const proto = protons(`
 message SimpleChatMessage {
-  float timestamp = 1;
+  uint64 timestamp = 1;
   string text = 2;
 }
 `);
@@ -180,7 +180,7 @@ import protons from 'protons';
 
 const proto = protons(`
 message SimpleChatMessage {
-  float timestamp = 1;
+  uint64 timestamp = 1;
   string text = 2;
 }
 `);
