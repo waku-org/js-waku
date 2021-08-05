@@ -8,7 +8,7 @@ As a user, it means that your peers forward you messages they just received.
 If you cannot be reached by your peers, then messages are not relayed;
 relay peers do **not** save messages for later.
 However, [store](https://rfc.vac.dev/spec/13/) peers do save messages they relay,
-allowing you to retrieve messages at any time.
+allowing you to retrieve them at any time.
 
 In this guide, we'll review how you can use Waku Store to retrieve messages.
 
@@ -38,7 +38,7 @@ const wakuNode = await Waku.create();
 # Connect to Other Peers
 
 The Waku instance needs to connect to other peers to communicate with the network.
-You are free to choose any method to bootstrap and DappConnect will ship with new methods in the future.
+You are free to choose other methods to bootstrap and DappConnect will ship with new bootstrap mechanisms in the future.
 
 For now, the easiest way is to connect to Status' Waku fleet:
 
@@ -141,28 +141,19 @@ waku.store
 ```
 
 Note that `WakuStore.queryHistory` select an available store node for you.
-However, it can only query connected node, which is why the bootstrapping is necessary.
-
-The call can throw an error if no store node is available.
+However, it can only select a connected node, which is why the bootstrapping is necessary.
+It will throw an error if no store node is available.
 
 ## Wait to be connected
 
 Depending on your dApp design, you may want to wait for a store node to be available first.
-In this case, you can listen for the [PeerStore's change protocol event](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#known-protocols-for-a-peer-change).
-To know whether any of your connected peers is a store peer:
+In this case, you can listen for the [PeerStore's change protocol event](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#known-protocols-for-a-peer-change)
+to know whether any of your connected peers is a store peer:
 
 ```js
-// Using await and a promise
-const storePeerId = await new Promise((resolve) => {
-  waku.libp2p.peerStore.on('change:protocols', ({ peerId, protocols }) => {
-    if (protocols.includes(StoreCodec)) {
-      resolve(peerId);
-    }
-  });
-});
+import { StoreCodec } from 'js-waku';
 
 // Or using a callback
-
 waku.libp2p.peerStore.on('change:protocols', ({ peerId, protocols }) => {
   if (protocols.includes(StoreCodec)) {
     // A Store node is available!
