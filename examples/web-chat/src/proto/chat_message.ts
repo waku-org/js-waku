@@ -2,7 +2,7 @@
 import Long from 'long';
 import _m0 from 'protobufjs/minimal';
 
-export const protobufPackage = 'chat.v2';
+export const protobufPackage = '';
 
 export interface ChatMessage {
   timestamp: number;

@@ -1,6 +1,6 @@
 import { Reader } from 'protobufjs/minimal';
 
-import * as proto from '../../proto/chat/v2/chat_message';
+import * as proto from './proto/chat_message';
 
 /**
  * ChatMessage is used by the various show case waku apps that demonstrates

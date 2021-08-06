@@ -1,5 +1,3 @@
-export { ChatMessage } from './chat/v2/chat_message';
-
 export { WakuMessage } from './waku/v2/message';
 
 export {
