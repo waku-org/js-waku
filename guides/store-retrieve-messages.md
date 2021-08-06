@@ -1,16 +1,22 @@
 # Retrieve Messages Using Waku Store
 
-When running a web dApp or a mobile phone application,
-internet can be unreliable and disconnect.
+DApps running on a phone or in a browser are often offline:
+The browser could be closed or mobile app in the background.
 
 [Waku Relay](https://rfc.vac.dev/spec/18/) is a gossip protocol.
 As a user, it means that your peers forward you messages they just received.
 If you cannot be reached by your peers, then messages are not relayed;
 relay peers do **not** save messages for later.
-However, [store](https://rfc.vac.dev/spec/13/) peers do save messages they relay,
-allowing you to retrieve them at any time.
+
+However, [Waku Store](https://rfc.vac.dev/spec/13/) peers do save messages they relay,
+allowing you to retrieve them at a later time.
+The Waku Store protocol is best-effort and does not guarantee data availability.
+Waku Relay should still be preferred when online;
+Waku Store can be used after resuming connectivity:
+when the dApp starts for example.
 
 In this guide, we'll review how you can use Waku Store to retrieve messages.
+
 
 Before starting, you need to choose a _Content Topic_ for your dApp.
 Check out the [how to choose a content topic guide](choose-content-topic.md) to learn more about content topics.
