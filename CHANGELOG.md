@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- Examples (cli-chat): The focus of this library is Web environment;
+  Several examples now cover usage of Waku Relay and Waku Store making cli-chat example obsolete;
+  web-chat POC should be preferred to use the [TOY-CHAT](https://rfc.vac.dev/spec/22/) protocol.
+
 ## [0.10.0] - 2021-08-06
 
 ### Added
