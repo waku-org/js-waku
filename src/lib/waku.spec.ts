@@ -8,10 +8,21 @@ import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../test_utils/';
 import { Waku } from './waku';
 
 describe('Waku Dial', function () {
+  let waku: Waku;
+  let nimWaku: NimWaku;
+
+  afterEach(async function () {
+    this.timeout(10_000);
+
+    nimWaku ? nimWaku.stop() : null;
+    waku ? await waku.stop() : null;
+  });
+
   describe('Interop: Nim', function () {
     it('nim connects to js', async function () {
       this.timeout(10_000);
-      const waku = await Waku.create({
+
+      waku = await Waku.create({
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
           addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
@@ -21,7 +32,7 @@ describe('Waku Dial', function () {
 
       const multiAddrWithId = waku.getLocalMultiaddrWithID();
 
-      const nimWaku = new NimWaku(makeLogFileName(this));
+      nimWaku = new NimWaku(makeLogFileName(this));
       await nimWaku.start({ staticnode: multiAddrWithId });
 
       const nimPeers = await nimWaku.peers();
@@ -38,9 +49,6 @@ describe('Waku Dial', function () {
       const jsPeers = waku.libp2p.peerStore.peers;
 
       expect(jsPeers.has(nimPeerId.toB58String())).to.be.true;
-
-      nimWaku.stop();
-      await waku.stop();
     });
   });
 });
