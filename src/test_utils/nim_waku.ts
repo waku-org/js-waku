@@ -134,8 +134,8 @@ export class NimWaku {
       );
     });
 
-    dbg("Waiting to see 'RPC Server started' in nim-waku logs");
-    await this.waitForLog('RPC Server started', 10000);
+    dbg("Waiting to see 'Node setup complete' in nim-waku logs");
+    await this.waitForLog('Node setup complete', 9000);
     dbg('nim-waku node has been started');
   }
 
