@@ -29,7 +29,7 @@
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.conf.js\" --list-different",
-    "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
+    "test:spelling": "cspell \"{README.md,.github/*.md,guides/*.md,src/**/*.ts}\"",
     "test:unit": "nyc --silent mocha",
     "test:karma": "karma start",
     "examples:test": "run-s examples:pretest; for d in examples/*; do (cd $d; npm test;); done",

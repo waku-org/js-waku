@@ -270,11 +270,11 @@ function App() {
     time.setTime(timestamp);
     const message = { text, timestamp: time };
 
-    setMessages((currMessages) => {
-      return [message].concat(currMessages);
+    setMessages((messages) => {
+      return [message].concat(messages);
     });
   }, []);
-  
+
   // ...
 }
 ```

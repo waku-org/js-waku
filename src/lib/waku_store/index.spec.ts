@@ -55,9 +55,7 @@ describe('Waku Store', () => {
       waku.libp2p.peerStore.once('change:protocols', resolve);
     });
 
-    const messages = await waku.store.queryHistory({
-      contentTopics: [],
-    });
+    const messages = await waku.store.queryHistory([]);
 
     expect(messages?.length).eq(2);
     const result = messages?.findIndex((msg) => {
@@ -91,8 +89,7 @@ describe('Waku Store', () => {
       waku.libp2p.peerStore.once('change:protocols', resolve);
     });
 
-    const messages = await waku.store.queryHistory({
-      contentTopics: [],
+    const messages = await waku.store.queryHistory([], {
       direction: Direction.FORWARD,
     });
 
@@ -136,9 +133,8 @@ describe('Waku Store', () => {
 
     const nimPeerId = await nimWaku.getPeerId();
 
-    const messages = await waku.store.queryHistory({
+    const messages = await waku.store.queryHistory([], {
       peerId: nimPeerId,
-      contentTopics: [],
     });
 
     expect(messages?.length).eq(2);
@@ -237,8 +233,7 @@ describe('Waku Store', () => {
     }
 
     dbg('Retrieve messages from store');
-    const messages = await waku2.store.queryHistory({
-      contentTopics: [],
+    const messages = await waku2.store.queryHistory([], {
       decryptionKeys: [privateKey, symKey],
     });
 

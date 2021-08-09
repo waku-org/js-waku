@@ -62,14 +62,18 @@ async function retrieveStoreMessages(
     setArchivedMessages(messages);
   };
 
-  const res = await waku.store.queryHistory({
-    contentTopics: [ChatContentTopic],
-    pageSize: 5,
-    direction: Direction.FORWARD,
-    callback,
-  });
+  try {
+    const res = await waku.store.queryHistory([ChatContentTopic], {
+      pageSize: 5,
+      direction: Direction.FORWARD,
+      callback,
+    });
 
-  return res ? res.length : 0;
+    return res.length;
+  } catch {
+    console.log('Failed to retrieve messages');
+    return 0;
+  }
 }
 
 export default function App() {
@@ -118,29 +122,29 @@ export default function App() {
     if (!waku) return;
     if (historicalMessagesRetrieved) return;
 
-    const connectedToStorePeer = new Promise((resolve) =>
-      waku.libp2p.peerStore.once(
-        'change:protocols',
-        ({ peerId, protocols }) => {
-          if (protocols.includes(StoreCodec)) {
-            resolve(peerId);
-          }
+    const checkAndRetrieve = ({ protocols }: { protocols: string[] }) => {
+      if (protocols.includes(StoreCodec)) {
+        console.log(`Retrieving archived messages}`);
+        setHistoricalMessagesRetrieved(true);
+
+        try {
+          retrieveStoreMessages(waku, dispatchMessages).then((length) =>
+            console.log(`Messages retrieved:`, length)
+          );
+        } catch (e) {
+          console.log(`Error encountered when retrieving archived messages`, e);
         }
-      )
-    );
-
-    connectedToStorePeer.then(() => {
-      console.log(`Retrieving archived messages}`);
-      setHistoricalMessagesRetrieved(true);
-
-      try {
-        retrieveStoreMessages(waku, dispatchMessages).then((length) =>
-          console.log(`Messages retrieved:`, length)
-        );
-      } catch (e) {
-        console.log(`Error encountered when retrieving archived messages`, e);
       }
-    });
+    };
+
+    waku.libp2p.peerStore.on('change:protocols', checkAndRetrieve);
+
+    return () => {
+      waku.libp2p.peerStore.removeListener(
+        'change:protocols',
+        checkAndRetrieve
+      );
+    };
   }, [waku, historicalMessagesRetrieved]);
 
   return (

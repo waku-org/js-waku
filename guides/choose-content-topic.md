@@ -14,7 +14,7 @@ The format for content topics is as follows:
 - `content-topic-name`: The actual content topic name to use for filtering.
   If your dApp uses DappConnect for several features,
   you should use a content topic per feature.
-- `encoding`: The encoding format of the message, we recommend using Protobuf: `proto`.
+- `encoding`: The encoding format of the message, Protobuf is most often used: `proto`.
 
 For example: Your dApp's name is SuperCrypto,
 it enables users to receive notifications and send private messages.

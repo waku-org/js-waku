@@ -33,7 +33,6 @@ export interface CreateOptions {
 
 export interface QueryOptions {
   peerId?: PeerId;
-  contentTopics: string[];
   pubsubTopic?: string;
   direction?: Direction;
   pageSize?: number;
@@ -58,26 +57,30 @@ export class WakuStore {
   /**
    * Query given peer using Waku Store.
    *
+   * @param contentTopics The content topics to pass to the query, leave empty to
+   * retrieve all messages.
    * @param options
    * @param options.peerId The peer to query.Options
-   * @param options.contentTopics The content topics to pass to the query, leave empty to
-   * retrieve all messages.
    * @param options.pubsubTopic The pubsub topic to pass to the query. Defaults
    * to the value set at creation. See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/).
    * @param options.callback Callback called on page of stored messages as they are retrieved
    * @param options.decryptionKeys Keys that will be used to decrypt messages.
    * It can be Asymmetric Private Keys and Symmetric Keys in the same array, all keys will be tried with both
    * methods.
-   * @throws If not able to reach the peer to query.
+   * @throws If not able to reach the peer to query or error when processing the reply.
    */
-  async queryHistory(options: QueryOptions): Promise<WakuMessage[] | null> {
+  async queryHistory(
+    contentTopics: string[],
+    options?: QueryOptions
+  ): Promise<WakuMessage[]> {
     const opts = Object.assign(
       {
         pubsubTopic: this.pubsubTopic,
         direction: Direction.BACKWARD,
         pageSize: 10,
       },
-      options
+      options,
+      { contentTopics }
     );
     dbg('Querying history with the following options', options);
 
@@ -97,98 +100,78 @@ export class WakuStore {
     const messages: WakuMessage[] = [];
     let cursor = undefined;
     while (true) {
-      try {
-        const { stream } = await connection.newStream(StoreCodec);
-        try {
-          const queryOpts = Object.assign(opts, { cursor });
-          const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
-          const res = await pipe(
-            [historyRpcQuery.encode()],
-            lp.encode(),
-            stream,
-            lp.decode(),
-            concat
+      const { stream } = await connection.newStream(StoreCodec);
+      const queryOpts = Object.assign(opts, { cursor });
+      const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
+      const res = await pipe(
+        [historyRpcQuery.encode()],
+        lp.encode(),
+        stream,
+        lp.decode(),
+        concat
+      );
+      const reply = HistoryRPC.decode(res.slice());
+
+      const response = reply.response;
+      if (!response) {
+        throw 'History response misses response field';
+      }
+
+      if (
+        response.error &&
+        response.error === HistoryResponse_Error.ERROR_INVALID_CURSOR
+      ) {
+        throw 'History response contains an Error: INVALID CURSOR';
+      }
+
+      if (!response.messages || !response.messages.length) {
+        // No messages left (or stored)
+        console.log('No messages present in HistoryRPC response');
+        return messages;
+      }
+
+      dbg(
+        `${response.messages.length} messages retrieved for pubsub topic ${opts.pubsubTopic}`
+      );
+
+      const pageMessages: WakuMessage[] = [];
+      await Promise.all(
+        response.messages.map(async (protoMsg) => {
+          const msg = await WakuMessage.decodeProto(
+            protoMsg,
+            opts.decryptionKeys
           );
-          try {
-            const reply = HistoryRPC.decode(res.slice());
 
-            const response = reply.response;
-            if (!response) {
-              console.log('No response in HistoryRPC');
-              return null;
-            }
-
-            if (
-              response.error &&
-              response.error === HistoryResponse_Error.ERROR_INVALID_CURSOR
-            ) {
-              console.log('Error in response: INVALID CURSOR');
-              return null;
-            }
-
-            if (!response.messages || !response.messages.length) {
-              // No messages left (or stored)
-              console.log('No messages present in HistoryRPC response');
-              return messages;
-            }
-
-            dbg(
-              `${response.messages.length} messages retrieved for pubsub topic ${opts.pubsubTopic}`
-            );
-
-            const pageMessages: WakuMessage[] = [];
-            await Promise.all(
-              response.messages.map(async (protoMsg) => {
-                const msg = await WakuMessage.decodeProto(
-                  protoMsg,
-                  opts.decryptionKeys
-                );
-
-                if (msg) {
-                  messages.push(msg);
-                  pageMessages.push(msg);
-                }
-              })
-            );
-
-            if (opts.callback) {
-              // TODO: Test the callback feature
-              // TODO: Change callback to take individual messages
-              opts.callback(pageMessages);
-            }
-
-            const responsePageSize = response.pagingInfo?.pageSize;
-            const queryPageSize = historyRpcQuery.query?.pagingInfo?.pageSize;
-            if (
-              responsePageSize &&
-              queryPageSize &&
-              responsePageSize < queryPageSize
-            ) {
-              // Response page size smaller than query, meaning this is the last page
-              return messages;
-            }
-
-            cursor = response.pagingInfo?.cursor;
-            if (cursor === undefined) {
-              // If the server does not return cursor then there is an issue,
-              // Need to abort or we end up in an infinite loop
-              console.log('No cursor returned by peer.');
-              return messages;
-            }
-          } catch (err) {
-            console.log('Failed to decode store reply', err);
-            return null;
+          if (msg) {
+            messages.push(msg);
+            pageMessages.push(msg);
           }
-        } catch (err) {
-          console.log('Failed to send waku store query', err);
-          return null;
-        }
-      } catch (err) {
-        console.log(
-          'Failed to negotiate waku store protocol stream with peer',
-          err
-        );
-        return null;
+        })
+      );
+
+      if (opts.callback) {
+        // TODO: Test the callback feature
+        // TODO: Change callback to take individual messages
+        opts.callback(pageMessages);
+      }
+
+      const responsePageSize = response.pagingInfo?.pageSize;
+      const queryPageSize = historyRpcQuery.query?.pagingInfo?.pageSize;
+      if (
+        responsePageSize &&
+        queryPageSize &&
+        responsePageSize < queryPageSize
+      ) {
+        // Response page size smaller than query, meaning this is the last page
+        return messages;
+      }
+
+      cursor = response.pagingInfo?.cursor;
+      if (cursor === undefined) {
+        // If the server does not return cursor then there is an issue,
+        // Need to abort or we end up in an infinite loop
+        console.log('No cursor returned by peer.');
+        return messages;
       }
     }
   }
