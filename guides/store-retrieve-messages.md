@@ -13,7 +13,7 @@ allowing you to retrieve them at a later time.
 The Waku Store protocol is best-effort and does not guarantee data availability.
 Waku Relay should still be preferred when online;
 Waku Store can be used after resuming connectivity:
-when the dApp starts for example.
+For example, when the dApp starts.
 
 In this guide, we'll review how you can use Waku Store to retrieve messages.
 
@@ -56,9 +56,11 @@ await Promise.all(nodes.map((addr) => waku.dial(addr)));
 
 # Use Protobuf
 
-We recommend you use [protobuf](https://developers.google.com/protocol-buffers/) for messages.
+Waku v2 protocols use [protobuf](https://developers.google.com/protocol-buffers/) [by default](https://rfc.vac.dev/spec/10/).
 
-First, let's define a data structure.
+Let's review how you can use protobuf to send structured data.
+
+First, define a data structure.
 For this guide, we will use a simple news article that contains a date of publication, title and body:
 
 ```js

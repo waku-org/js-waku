@@ -75,10 +75,12 @@ await waku.relay.send(wakuMessage);
 # Use Protobuf
 
 Sending strings as messages in unlikely to cover your dApps needs.
-To include structured objects in Waku Messages,
-we recommend you use [protobuf](https://developers.google.com/protocol-buffers/).
 
-First, let's define a data structure.
+Waku v2 protocols use [protobuf](https://developers.google.com/protocol-buffers/) [by default](https://rfc.vac.dev/spec/10/).
+
+Let's review how you can use protobuf to include structured objects in Waku Messages.
+
+First, define a data structure.
 For this guide, we will use a simple chat message that contains a timestamp and text:
 
 ```js
