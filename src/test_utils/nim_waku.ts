@@ -135,7 +135,7 @@ export class NimWaku {
     });
 
     dbg("Waiting to see 'RPC Server started' in nim-waku logs");
-    await this.waitForLog('RPC Server started');
+    await this.waitForLog('RPC Server started', 10000);
     dbg('nim-waku node has been started');
   }
 
@@ -149,8 +149,8 @@ export class NimWaku {
     this.process = undefined;
   }
 
-  async waitForLog(msg: string): Promise<void> {
-    return waitForLine(this.logPath, msg);
+  async waitForLog(msg: string, timeout: number): Promise<void> {
+    return waitForLine(this.logPath, msg, timeout);
   }
 
   /** Calls nim-waku2 JSON-RPC API `get_waku_v2_admin_v1_peers` to check
