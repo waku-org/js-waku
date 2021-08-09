@@ -274,6 +274,7 @@ describe('Waku Relay', () => {
       });
 
       afterEach(async function () {
+        this.timeout(5000);
         nimWaku ? nimWaku.stop() : null;
         waku ? await waku.stop() : null;
       });
