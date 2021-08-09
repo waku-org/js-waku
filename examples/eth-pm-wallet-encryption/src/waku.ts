@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
-import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
+import { getBootstrapNodes, Waku, WakuMessage } from 'js-waku';
 import { DirectMessage, PublicKeyMessage } from './messaging/wire';
 import { validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
@@ -14,7 +14,7 @@ export async function initWaku(): Promise<Waku> {
   const waku = await Waku.create({});
 
   // Dial all nodes it can find
-  getStatusFleetNodes().then((nodes) => {
+  getBootstrapNodes().then((nodes) => {
     nodes.forEach((addr) => {
       waku.dial(addr);
     });

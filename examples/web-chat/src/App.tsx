@@ -2,8 +2,7 @@ import { useEffect, useReducer, useState } from 'react';
 import './App.css';
 import {
   Direction,
-  Environment,
-  getStatusFleetNodes,
+  getBootstrapNodes,
   StoreCodec,
   Waku,
   WakuMessage,
@@ -83,10 +82,8 @@ export default function App() {
     const persistedNick = window.localStorage.getItem('nick');
     return persistedNick !== null ? persistedNick : generate();
   });
-  const [
-    historicalMessagesRetrieved,
-    setHistoricalMessagesRetrieved,
-  ] = useState(false);
+  const [historicalMessagesRetrieved, setHistoricalMessagesRetrieved] =
+    useState(false);
 
   useEffect(() => {
     localStorage.setItem('nick', nick);
@@ -186,7 +183,7 @@ async function initWaku(setter: (waku: Waku) => void) {
 
     setter(waku);
 
-    const nodes = await getStatusFleetNodes(selectFleetEnv());
+    const nodes = await getBootstrapNodes(selectFleetEnv());
     await Promise.all(
       nodes.map((addr) => {
         return waku.dial(addr);
@@ -200,9 +197,9 @@ async function initWaku(setter: (waku: Waku) => void) {
 function selectFleetEnv() {
   // Works with react-scripts
   if (process?.env?.NODE_ENV === 'development') {
-    return Environment.Test;
+    return ['fleets', 'wakuv2.test', 'waku-websocket'];
   } else {
-    return Environment.Prod;
+    return ['fleets', 'wakuv2.prod', 'waku-websocket'];
   }
 }
 

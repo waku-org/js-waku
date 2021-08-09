@@ -48,12 +48,12 @@ waku.addPeerToAddressBook(
 );
 ```
 
-You can also use `getStatusFleetNodes` to connect to nodes run by Status:
+You can also use `getBootstrapNodes` to connect to Waku bootstrap nodes:
 
 ```ts
-import { getStatusFleetNodes } from 'js-waku';
+import { getBootstrapNodes } from 'js-waku';
 
-getStatusFleetNodes().then((nodes) => {
+getBootstrapNodes().then((nodes) => {
   nodes.forEach((addr) => {
     waku.dial(addr);
   });

@@ -46,12 +46,17 @@ const wakuNode = await Waku.create();
 The Waku instance needs to connect to other peers to communicate with the network.
 You are free to choose other methods to bootstrap and DappConnect will ship with new bootstrap mechanisms in the future.
 
-For now, the easiest way is to connect to Status' Waku fleet:
+For now, the easiest way is to connect to Waku bootstrap nodes:
 
 ```js
-import { getStatusFleetNodes } from 'js-waku';
-const nodes = await getStatusFleetNodes();
-await Promise.all(nodes.map((addr) => waku.dial(addr))); 
+import { getBootstrapNodes } from 'js-waku';
+
+try {
+  const nodes = await getBootstrapNodes();
+  await Promise.all(nodes.map((addr) => waku.dial(addr)));
+} catch (e) {
+  console.error('Failed to bootstrap to Waku network');
+} 
 ```
 
 # Use Protobuf

@@ -34,9 +34,10 @@ You are free to choose any method to bootstrap and DappConnect will ship with ne
 For now, the easiest way is to connect to Status' Waku fleet:
 
 ```js
-import { getStatusFleetNodes } from 'js-waku';
-const nodes = await getStatusFleetNodes();
-await Promise.all(nodes.map((addr) => waku.dial(addr))); 
+import { getBootstrapNodes } from 'js-waku';
+
+const nodes = await getBootstrapNodes();
+await Promise.all(nodes.map((addr) => waku.dial(addr)));
 ```
 
 # Receive messages
@@ -177,7 +178,7 @@ Feel free to check out other [guides](menu.md) or [examples](/examples/examples.
 Here is the final code:
 
 ```js
-import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
+import { getBootstrapNodes, Waku, WakuMessage } from 'js-waku';
 import protons from 'protons';
 
 const proto = protons(`
@@ -189,7 +190,7 @@ message SimpleChatMessage {
 
 const wakuNode = await Waku.create();
 
-const nodes = await getStatusFleetNodes();
+const nodes = await getBootstrapNodes();
 await Promise.all(nodes.map((addr) => waku.dial(addr)));
 
 const processIncomingMessage = (wakuMessage) => {
