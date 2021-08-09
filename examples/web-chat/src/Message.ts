@@ -1,4 +1,5 @@
-import { ChatMessage, WakuMessage } from 'js-waku';
+import { WakuMessage } from 'js-waku';
+import { ChatMessage } from './chat_message';
 
 export class Message {
   public chatMessage: ChatMessage;

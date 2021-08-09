@@ -13,9 +13,10 @@ import { waitForFile } from './async_fs';
 
 export default async function waitForLine(
   filepath: string,
-  logLine: string
+  logLine: string,
+  timeout: number
 ): Promise<void> {
-  await pTimeout(waitForFile(filepath), 2000);
+  await pTimeout(waitForFile(filepath), timeout);
 
   const options = {
     fromBeginning: true,

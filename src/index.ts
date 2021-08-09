@@ -8,8 +8,6 @@ export { WakuMessage } from './lib/waku_message';
 
 export { generatePrivateKey, getPublicKey } from './lib/waku_message/version_1';
 
-export { ChatMessage } from './lib/chat_message';
-
 export {
   WakuLightPush,
   LightPushCodec,

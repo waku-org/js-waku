@@ -1,0 +1,6 @@
+version: v1beta1
+
+plugins:
+  - name: ts_proto
+    out: ./src/proto
+    opt: grpc_js,esModuleInterop=true

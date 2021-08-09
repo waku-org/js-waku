@@ -1,10 +1,11 @@
-import { ChatMessage, WakuMessage } from 'js-waku';
+import { WakuMessage } from 'js-waku';
 import { ChatContentTopic } from './App';
 import ChatList from './ChatList';
 import MessageInput from './MessageInput';
 import { useWaku } from './WakuContext';
 import { TitleBar } from '@livechat/ui-kit';
 import { Message } from './Message';
+import { ChatMessage } from './chat_message';
 
 interface Props {
   messages: Message[];
