@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
-import { getBootstrapNodes, Waku, WakuMessage } from 'js-waku';
+import { Waku, WakuMessage } from 'js-waku';
 import { DirectMessage, PublicKeyMessage } from './messaging/wire';
 import { validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
@@ -9,14 +9,7 @@ export const PublicKeyContentTopic = '/eth-dm/1/public-key/proto';
 export const DirectMessageContentTopic = '/eth-dm/1/direct-message/proto';
 
 export async function initWaku(): Promise<Waku> {
-  const waku = await Waku.create({});
-
-  // Dial all nodes it can find
-  getBootstrapNodes().then((nodes) => {
-    nodes.forEach((addr) => {
-      waku.dial(addr);
-    });
-  });
+  const waku = await Waku.create({ bootstrap: true });
 
   // Wait to be connected to at least one peer
   await new Promise((resolve, reject) => {

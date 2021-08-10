@@ -32,32 +32,7 @@ npm install js-waku
 ```ts
 import { Waku } from 'js-waku';
 
-const waku = await Waku.create();
-```
-
-### Connect to a new peer
-
-```ts
-// Directly dial a new peer
-await waku.dial('/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ');
-
-// Or, add peer to address book so it auto dials in the background
-waku.addPeerToAddressBook(
-  '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ',
-  ['/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss']
-);
-```
-
-You can also use `getBootstrapNodes` to connect to Waku bootstrap nodes:
-
-```ts
-import { getBootstrapNodes } from 'js-waku';
-
-getBootstrapNodes().then((nodes) => {
-  nodes.forEach((addr) => {
-    waku.dial(addr);
-  });
-});
+const waku = await Waku.create({ bootstrap: true });
 ```
 
 ### Listen for messages

@@ -38,25 +38,21 @@ In order to interact with the Waku network, you first need a Waku instance:
 ```js
 import { Waku } from 'js-waku';
 
-const wakuNode = await Waku.create();
+const wakuNode = await Waku.create({ bootstrap: true });
 ```
 
-# Connect to Other Peers
-
-The Waku instance needs to connect to other peers to communicate with the network.
-You are free to choose other methods to bootstrap and DappConnect will ship with new bootstrap mechanisms in the future.
-
-For now, the easiest way is to connect to Waku bootstrap nodes:
+Passing the `bootstrap` option will connect your node to predefined Waku nodes hosted by Status.
+If you want to bootstrap to your own nodes, you can pass an array of multiaddresses instead:
 
 ```js
-import { getBootstrapNodes } from 'js-waku';
+import { Waku } from 'js-waku';
 
-try {
-  const nodes = await getBootstrapNodes();
-  await Promise.all(nodes.map((addr) => waku.dial(addr)));
-} catch (e) {
-  console.error('Failed to bootstrap to Waku network');
-} 
+const wakuNode = await Waku.create({
+  bootstrap: [
+    '/dns4/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss/p2p/16Uiu2HAkvWiyFsgRhuJEb9JfjYxEkoHLgnUQmr1N5mKWnYjxYRVm',
+    '/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ'
+  ]
+});
 ```
 
 # Use Protobuf

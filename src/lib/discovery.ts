@@ -6,6 +6,8 @@ const dbg = debug('waku:discovery');
 /**
  * GET list of nodes from remote HTTP host.
  *
+ * Default behaviour is to return nodes hosted by Status.
+ *
  * @param path The property path to access the node list. The result should be
  * a string, a string array or an object. If the result is an object then the
  * values of the objects are used as multiaddresses.

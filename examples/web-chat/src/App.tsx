@@ -82,8 +82,10 @@ export default function App() {
     const persistedNick = window.localStorage.getItem('nick');
     return persistedNick !== null ? persistedNick : generate();
   });
-  const [historicalMessagesRetrieved, setHistoricalMessagesRetrieved] =
-    useState(false);
+  const [
+    historicalMessagesRetrieved,
+    setHistoricalMessagesRetrieved,
+  ] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('nick', nick);
@@ -179,16 +181,10 @@ async function initWaku(setter: (waku: Waku) => void) {
           },
         },
       },
+      bootstrap: getBootstrapNodes.bind({}, selectFleetEnv()),
     });
 
     setter(waku);
-
-    const nodes = await getBootstrapNodes(selectFleetEnv());
-    await Promise.all(
-      nodes.map((addr) => {
-        return waku.dial(addr);
-      })
-    );
   } catch (e) {
     console.log('Issue starting waku ', e);
   }

@@ -1,4 +1,6 @@
+import debug from 'debug';
 import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from 'libp2p';
+import Bootstrap from 'libp2p-bootstrap';
 import { MuxedStream } from 'libp2p-interfaces/dist/src/stream-muxer/types';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
@@ -15,6 +17,7 @@ import Ping from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
+import { getBootstrapNodes } from './discovery';
 import { WakuLightPush } from './waku_light_push';
 import { WakuMessage } from './waku_message';
 import { RelayCodecs, WakuRelay } from './waku_relay';
@@ -25,6 +28,8 @@ const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 
 const DefaultPingKeepAliveValueSecs = 0;
 const DefaultRelayKeepAliveValueSecs = 5 * 60;
+
+const dbg = debug('waku:waku');
 
 export interface CreateOptions {
   /**
@@ -71,6 +76,18 @@ export interface CreateOptions {
    * This is only used for test purposes to not run out of entropy during CI runs.
    */
   staticNoiseKey?: bytes;
+  /**
+   * Use libp2p-bootstrap to discover and connect to new nodes.
+   *
+   * You can pass:
+   * - `true` to use {@link getBootstrapNodes},
+   * - an array of multiaddresses,
+   * - a function that returns an array of multiaddresses (or Promise of).
+   *
+   * Note: It overrides any other peerDiscovery modules that may have been set via
+   * {@link CreateOptions.libp2p}.
+   */
+  bootstrap?: boolean | string[] | (() => string[] | Promise<string[]>);
 }
 
 export class Waku {
@@ -160,6 +177,40 @@ export class Waku {
       connEncryption: [new Noise(options?.staticNoiseKey)],
       pubsub: WakuRelay,
     });
+
+    if (options?.bootstrap) {
+      let bootstrap: undefined | (() => string[] | Promise<string[]>);
+
+      if (options.bootstrap === true) {
+        bootstrap = getBootstrapNodes;
+      } else if (Array.isArray(options.bootstrap)) {
+        bootstrap = (): string[] => {
+          return options.bootstrap as string[];
+        };
+      } else if (typeof options.bootstrap === 'function') {
+        bootstrap = options.bootstrap;
+      }
+
+      if (bootstrap !== undefined) {
+        // Note: this overrides any other peer discover
+        libp2pOpts.modules = Object.assign(libp2pOpts.modules, {
+          peerDiscovery: [Bootstrap],
+        });
+
+        try {
+          const list = await bootstrap();
+
+          libp2pOpts.config.peerDiscovery = {
+            [Bootstrap.tag]: {
+              list,
+              enabled: true,
+            },
+          };
+        } catch (e) {
+          dbg('Failed to retrieve bootstrap nodes', e);
+        }
+      }
+    }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore: modules property is correctly set thanks to voodoo
