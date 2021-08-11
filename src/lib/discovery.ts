@@ -10,7 +10,9 @@ const dbg = debug('waku:discovery');
  *
  * @param path The property path to access the node list. The result should be
  * a string, a string array or an object. If the result is an object then the
- * values of the objects are used as multiaddresses.
+ * values of the objects are used as multiaddresses. For example, if the GET
+ * request returns `{ foo: { bar: [address1, address2] } }` then `path` should be
+ * `[ "foo", "bar" ]`.
  * @param url Remote host containing bootstrap peers in JSON format.
  *
  * @returns An array of multiaddresses.
