@@ -146,7 +146,6 @@ function App() {
     const observerDirectMessage = handleDirectMessage.bind(
       {},
       setMessages,
-      ethDmKeyPair.privateKey,
       address
     );
 

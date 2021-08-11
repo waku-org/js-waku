@@ -58,7 +58,6 @@ export function handlePublicKeyMessage(
 
 export async function handleDirectMessage(
   setter: Dispatch<SetStateAction<Message[]>>,
-  privateKey: Uint8Array,
   address: string,
   wakuMsg: WakuMessage
 ) {
