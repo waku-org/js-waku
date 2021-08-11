@@ -26,8 +26,8 @@ import { StoreCodec, WakuStore } from './waku_store';
 
 const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 
-const DefaultPingKeepAliveValueSecs = 0;
-const DefaultRelayKeepAliveValueSecs = 5 * 60;
+export const DefaultPingKeepAliveValueSecs = 0;
+export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 
 const dbg = debug('waku:waku');
 
