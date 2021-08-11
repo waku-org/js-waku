@@ -205,7 +205,7 @@ function App() {
               <legend>Eth-DM Key Pair</legend>
               <KeyPairHandling
                 ethDmKeyPair={ethDmKeyPair}
-                setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
+                setEthDmKeyPair={setEthDmKeyPair}
               />
               <BroadcastPublicKey
                 signer={signer}
