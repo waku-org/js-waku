@@ -71,7 +71,9 @@ function App() {
   const [EncryptionKeyPair, setEncryptionKeyPair] = useState<
     KeyPair | undefined
   >();
-  const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
+  const [publicKeys, setPublicKeys] = useState<Map<string, Uint8Array>>(
+    new Map()
+  );
   const [messages, setMessages] = useState<Message[]>([]);
   const [address, setAddress] = useState<string>();
 

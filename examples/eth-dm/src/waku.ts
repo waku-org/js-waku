@@ -34,23 +34,24 @@ export async function initWaku(): Promise<Waku> {
 
 export function handlePublicKeyMessage(
   myAddress: string,
-  setter: Dispatch<SetStateAction<Map<string, string>>>,
+  setter: Dispatch<SetStateAction<Map<string, Uint8Array>>>,
   msg: WakuMessage
 ) {
   console.log('Public Key Message received:', msg);
   if (!msg.payload) return;
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
   if (!publicKeyMsg) return;
-  const encryptionPublicKey = bufToHex(publicKeyMsg.encryptionPublicKey);
-  console.log(encryptionPublicKey, myAddress);
   if (myAddress && equalByteArrays(publicKeyMsg.ethAddress, myAddress)) return;
 
   const res = validatePublicKeyMessage(publicKeyMsg);
   console.log('Is Public Key Message valid?', res);
 
   if (res) {
-    setter((prevPks: Map<string, string>) => {
-      prevPks.set(bufToHex(publicKeyMsg.ethAddress), encryptionPublicKey);
+    setter((prevPks: Map<string, Uint8Array>) => {
+      prevPks.set(
+        bufToHex(publicKeyMsg.ethAddress),
+        publicKeyMsg.encryptionPublicKey
+      );
       return new Map(prevPks);
     });
   }
