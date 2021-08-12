@@ -33,7 +33,7 @@ export async function initWaku(): Promise<Waku> {
 }
 
 export function handlePublicKeyMessage(
-  myAddress: string,
+  myAddress: string | undefined,
   setter: Dispatch<SetStateAction<Map<string, Uint8Array>>>,
   msg: WakuMessage
 ) {

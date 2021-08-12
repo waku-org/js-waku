@@ -76,13 +76,6 @@ function App() {
   );
   const [messages, setMessages] = useState<Message[]>([]);
   const [address, setAddress] = useState<string>();
-  const [peerStats, setPeerStats] = useState<{
-    relayPeers: number;
-    lightPushPeers: number;
-  }>({
-    relayPeers: 0,
-    lightPushPeers: 0,
-  });
 
   const classes = useStyles();
 
@@ -101,7 +94,6 @@ function App() {
 
   useEffect(() => {
     if (!waku) return;
-    if (!address) return;
 
     const observerPublicKeyMessage = handlePublicKeyMessage.bind(
       {},
@@ -155,17 +147,12 @@ function App() {
     };
   }, [waku, address, EncryptionKeyPair]);
 
-  useEffect(() => {
-    if (!waku) return;
-
-    const interval = setInterval(() => {
-      setPeerStats({
-        relayPeers: waku.relay.getPeers().size,
-        lightPushPeers: waku.lightPush.peers.length,
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [waku]);
+  let relayPeers = 0;
+  let lightPushPeers = 0;
+  if (waku) {
+    relayPeers = waku.relay.getPeers().size;
+    lightPushPeers = waku.lightPush.peers.length;
+  }
 
   let addressDisplay = '';
   if (address) {
@@ -189,8 +176,7 @@ function App() {
               />
             </IconButton>
             <Typography className={classes.peers} aria-label="connected-peers">
-              Peers: {peerStats.relayPeers} relay, {peerStats.lightPushPeers}{' '}
-              light push
+              Peers: {relayPeers} relay, {lightPushPeers} light push
             </Typography>
             <Typography variant="h6" className={classes.title}>
               Ethereum Direct Message
