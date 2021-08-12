@@ -7,20 +7,20 @@ import { Signer } from '@ethersproject/abstract-signer';
 import { PublicKeyContentTopic } from './waku';
 
 interface Props {
-  ethDmKeyPair: KeyPair | undefined;
+  EncryptionKeyPair: KeyPair | undefined;
   waku: Waku | undefined;
   signer: Signer | undefined;
 }
 
 export default function BroadcastPublicKey({
   signer,
-  ethDmKeyPair,
+  EncryptionKeyPair,
   waku,
 }: Props) {
   const [publicKeyMsg, setPublicKeyMsg] = useState<PublicKeyMessage>();
 
   const broadcastPublicKey = () => {
-    if (!ethDmKeyPair) return;
+    if (!EncryptionKeyPair) return;
     if (!signer) return;
     if (!waku) return;
 
@@ -35,7 +35,7 @@ export default function BroadcastPublicKey({
           console.log('Failed to encode Public Key Message in Waku Message');
         });
     } else {
-      createPublicKeyMessage(signer, ethDmKeyPair.publicKey)
+      createPublicKeyMessage(signer, EncryptionKeyPair.publicKey)
         .then((msg) => {
           setPublicKeyMsg(msg);
           encodePublicKeyWakuMessage(msg)
@@ -64,9 +64,9 @@ export default function BroadcastPublicKey({
       variant="contained"
       color="primary"
       onClick={broadcastPublicKey}
-      disabled={!ethDmKeyPair || !waku}
+      disabled={!EncryptionKeyPair || !waku}
     >
-      Broadcast Eth-DM Public Key
+      Broadcast Encryption Public Key
     </Button>
   );
 }

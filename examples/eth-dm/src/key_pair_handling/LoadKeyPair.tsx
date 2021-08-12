@@ -4,19 +4,23 @@ import { loadKeyPairFromStorage } from './key_pair_storage';
 import { KeyPair } from '../crypto';
 
 export interface Props {
-  setEthDmKeyPair: (keyPair: KeyPair) => void;
+  setEncryptionKeyPair: (keyPair: KeyPair) => void;
   disabled: boolean;
   password: string | undefined;
 }
 
-export function LoadKeyPair({ password, disabled, setEthDmKeyPair }: Props) {
+export function LoadKeyPair({
+  password,
+  disabled,
+  setEncryptionKeyPair,
+}: Props) {
   const loadKeyPair = () => {
     if (disabled) return;
     if (!password) return;
     loadKeyPairFromStorage(password).then((keyPair: KeyPair | undefined) => {
       if (!keyPair) return;
-      console.log('EthDm KeyPair loaded from storage');
-      setEthDmKeyPair(keyPair);
+      console.log('Encryption KeyPair loaded from storage');
+      setEncryptionKeyPair(keyPair);
     });
   };
 
@@ -27,7 +31,7 @@ export function LoadKeyPair({ password, disabled, setEthDmKeyPair }: Props) {
       onClick={loadKeyPair}
       disabled={!password || disabled}
     >
-      Load Eth-DM Key Pair from storage
+      Load Encryption Key Pair from storage
     </Button>
   );
 }

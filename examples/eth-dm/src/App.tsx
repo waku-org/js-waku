@@ -68,7 +68,9 @@ const useStyles = makeStyles({
 function App() {
   const [waku, setWaku] = useState<Waku>();
   const [signer, setSigner] = useState<Signer>();
-  const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair | undefined>();
+  const [EncryptionKeyPair, setEncryptionKeyPair] = useState<
+    KeyPair | undefined
+  >();
   const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
   const [messages, setMessages] = useState<Message[]>([]);
   const [address, setAddress] = useState<string>();
@@ -110,21 +112,21 @@ function App() {
 
   useEffect(() => {
     if (!waku) return;
-    if (!ethDmKeyPair) return;
+    if (!EncryptionKeyPair) return;
 
-    waku.relay.addDecryptionKey(ethDmKeyPair.privateKey);
+    waku.relay.addDecryptionKey(EncryptionKeyPair.privateKey);
 
     return function cleanUp() {
       if (!waku) return;
-      if (!ethDmKeyPair) return;
+      if (!EncryptionKeyPair) return;
 
-      waku.relay.deleteDecryptionKey(ethDmKeyPair.privateKey);
+      waku.relay.deleteDecryptionKey(EncryptionKeyPair.privateKey);
     };
-  }, [waku, ethDmKeyPair]);
+  }, [waku, EncryptionKeyPair]);
 
   useEffect(() => {
     if (!waku) return;
-    if (!ethDmKeyPair) return;
+    if (!EncryptionKeyPair) return;
     if (!address) return;
 
     const observerDirectMessage = handleDirectMessage.bind(
@@ -142,7 +144,7 @@ function App() {
         DirectMessageContentTopic,
       ]);
     };
-  }, [waku, address, ethDmKeyPair]);
+  }, [waku, address, EncryptionKeyPair]);
 
   let relayPeers = 0;
   let lightPushPeers = 0;
@@ -189,14 +191,14 @@ function App() {
               <ConnectWallet setAddress={setAddress} setSigner={setSigner} />
             </fieldset>
             <fieldset>
-              <legend>Eth-DM Key Pair</legend>
+              <legend>Encryption Key Pair</legend>
               <KeyPairHandling
-                ethDmKeyPair={ethDmKeyPair}
-                setEthDmKeyPair={setEthDmKeyPair}
+                encryptionKeyPair={EncryptionKeyPair}
+                setEncryptionKeyPair={setEncryptionKeyPair}
               />
               <BroadcastPublicKey
                 signer={signer}
-                ethDmKeyPair={ethDmKeyPair}
+                EncryptionKeyPair={EncryptionKeyPair}
                 waku={waku}
               />
             </fieldset>
