@@ -64,6 +64,21 @@ jobs:
           publish_dir: ./examples/eth-dm/build
           destination_dir: eth-dm
 
+      - name: "[eth-pm-wallet] install using npm i"
+        run: npm install
+        working-directory: examples/eth-pm-wallet-encryption
+
+      - name: "[eth-pm-wallet] build"
+        run: npm run build
+        working-directory: examples/eth-pm-wallet-encryption
+
+      - name: "[eth-pm-wallet] Deploy on gh pages to /eth-pm-wallet"
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./examples/eth-pm-wallet-encryption/build
+          destination_dir: eth-pm-wallet
+
       - name: Generate docs
         run: npm run doc:html
 
