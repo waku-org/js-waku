@@ -5,8 +5,10 @@ import { validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
 import { bufToHex, equalByteArrays } from 'js-waku/lib/utils';
 
-export const PublicKeyContentTopic = '/eth-dm/1/public-key/proto';
-export const DirectMessageContentTopic = '/eth-dm/1/direct-message/proto';
+export const PublicKeyContentTopic =
+  '/eth-pm-wallet/1/encryption-public-key/proto';
+export const DirectMessageContentTopic =
+  '/eth-pm-wallet/1/direct-message/proto';
 
 export async function initWaku(): Promise<Waku> {
   const waku = await Waku.create({});
@@ -34,7 +36,7 @@ export async function initWaku(): Promise<Waku> {
 
 export function handlePublicKeyMessage(
   myAddress: string | undefined,
-  setter: Dispatch<SetStateAction<Map<string, Uint8Array>>>,
+  setPublicKeys: Dispatch<SetStateAction<Map<string, Uint8Array>>>,
   msg: WakuMessage
 ) {
   console.log('Public Key Message received:', msg);
@@ -47,7 +49,7 @@ export function handlePublicKeyMessage(
   console.log('Is Public Key Message valid?', res);
 
   if (res) {
-    setter((prevPks: Map<string, Uint8Array>) => {
+    setPublicKeys((prevPks: Map<string, Uint8Array>) => {
       prevPks.set(
         bufToHex(publicKeyMsg.ethAddress),
         publicKeyMsg.encryptionPublicKey
@@ -60,11 +62,24 @@ export function handlePublicKeyMessage(
 export async function handleDirectMessage(
   setter: Dispatch<SetStateAction<Message[]>>,
   address: string,
+  providerRequest: (request: {
+    method: string;
+    params?: Array<any>;
+  }) => Promise<any>,
   wakuMsg: WakuMessage
 ) {
   console.log('Direct Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
-  const directMessage = DirectMessage.decode(wakuMsg.payload);
+
+  const decryptedPayload = await providerRequest({
+    method: 'eth_decrypt',
+    params: [wakuMsg.payloadAsUtf8, address],
+  }).catch((error) => console.log(error.message));
+
+  console.log('Decrypted Payload:', decryptedPayload);
+  const directMessage = DirectMessage.decode(
+    Buffer.from(decryptedPayload, 'hex')
+  );
   if (!directMessage) {
     console.log('Failed to decode Direct Message');
     return;

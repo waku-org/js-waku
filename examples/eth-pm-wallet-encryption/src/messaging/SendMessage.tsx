@@ -8,9 +8,10 @@ import {
 } from '@material-ui/core';
 import React, { ChangeEvent, useState, KeyboardEvent } from 'react';
 import { Waku, WakuMessage } from 'js-waku';
-import { hexToBuf } from 'js-waku/lib/utils';
+import { bufToHex, hexToBuf } from 'js-waku/lib/utils';
 import { DirectMessage } from './wire';
 import { DirectMessageContentTopic } from '../waku';
+import * as sigUtil from 'eth-sig-util';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -115,9 +116,15 @@ async function encodeEncryptedWakuMessage(
   });
 
   const payload = directMsg.encode();
-  return WakuMessage.fromBytes(payload, DirectMessageContentTopic, {
-    encPublicKey: publicKey,
-  });
+
+  const encObj = sigUtil.encrypt(
+    Buffer.from(publicKey).toString('base64'),
+    { data: bufToHex(payload) },
+    'x25519-xsalsa20-poly1305'
+  );
+
+  const encryptedPayload = Buffer.from(JSON.stringify(encObj), 'utf8');
+  return WakuMessage.fromBytes(encryptedPayload, DirectMessageContentTopic);
 }
 
 function sendMessage(

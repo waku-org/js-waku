@@ -4,23 +4,6 @@ import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
 import { PublicKeyMessage } from './messaging/wire';
 import { hexToBuf, equalByteArrays, bufToHex } from 'js-waku/lib/utils';
-import { generatePrivateKey, getPublicKey } from 'js-waku';
-
-export interface KeyPair {
-  privateKey: Uint8Array;
-  publicKey: Uint8Array;
-}
-
-/**
- * Use the signature of the Salt ("Salt for eth-dm...") as
- * the entropy for the EthCrypto keypair. Note that the entropy is hashed with keccak256
- * to make the private key.
- */
-export async function generateEncryptionKeyPair(): Promise<KeyPair> {
-  const privateKey = generatePrivateKey();
-  const publicKey = getPublicKey(privateKey);
-  return { privateKey, publicKey };
-}
 
 /**
  * Sign the Eth-DM public key with Web3. This can then be published to let other
@@ -29,16 +12,18 @@ export async function generateEncryptionKeyPair(): Promise<KeyPair> {
  */
 export async function createPublicKeyMessage(
   web3Signer: Signer,
+  address: string,
   encryptionPublicKey: Uint8Array
 ): Promise<PublicKeyMessage> {
-  const ethAddress = await web3Signer.getAddress();
+  console.log('Asking wallet to sign Public Key Message');
   const signature = await web3Signer.signMessage(
     formatPublicKeyForSignature(encryptionPublicKey)
   );
+  console.log('Public Key Message signed');
 
   return new PublicKeyMessage({
     encryptionPublicKey: encryptionPublicKey,
-    ethAddress: hexToBuf(ethAddress),
+    ethAddress: hexToBuf(address),
     signature: hexToBuf(signature),
   });
 }
