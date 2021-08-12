@@ -75,6 +75,13 @@ function App() {
   );
   const [messages, setMessages] = useState<Message[]>([]);
   const [address, setAddress] = useState<string>();
+  const [peerStats, setPeerStats] = useState<{
+    relayPeers: number;
+    lightPushPeers: number;
+  }>({
+    relayPeers: 0,
+    lightPushPeers: 0,
+  });
 
   const classes = useStyles();
 
@@ -133,12 +140,17 @@ function App() {
     };
   }, [waku, address, provider?.provider?.request]);
 
-  let relayPeers = 0;
-  let lightPushPeers = 0;
-  if (waku) {
-    relayPeers = waku.relay.getPeers().size;
-    lightPushPeers = waku.lightPush.peers.length;
-  }
+  useEffect(() => {
+    if (!waku) return;
+
+    const interval = setInterval(() => {
+      setPeerStats({
+        relayPeers: waku.relay.getPeers().size,
+        lightPushPeers: waku.lightPush.peers.length,
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [waku]);
 
   let addressDisplay = '';
   if (address) {
@@ -162,7 +174,8 @@ function App() {
               />
             </IconButton>
             <Typography className={classes.peers} aria-label="connected-peers">
-              Peers: {relayPeers} relay, {lightPushPeers} light push
+              Peers: {peerStats.relayPeers} relay, {peerStats.lightPushPeers}{' '}
+              light push
             </Typography>
             <Typography variant="h6" className={classes.title}>
               Ethereum Direct Message
