@@ -5,7 +5,7 @@
 - Private Messaging
 - React/TypeScript
 - Waku Light Push
-- Signature with Web3
+- Signature with Web3 using [EIP-712 v4: `eth_signTypedData_v4`](https://eips.ethereum.org/EIPS/eip-712)
 - Asymmetric Encryption
 - Usage of [`eth_decrypt`](https://docs.metamask.io/guide/rpc-api.html#eth-decrypt) Wallet API
 

@@ -193,6 +193,7 @@ function App() {
                 address={address}
                 encryptionPublicKey={encPublicKey}
                 waku={waku}
+                providerRequest={provider?.provider?.request}
               />
             </fieldset>
             <fieldset>

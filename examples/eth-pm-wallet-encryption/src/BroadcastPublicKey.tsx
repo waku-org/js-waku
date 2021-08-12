@@ -11,6 +11,9 @@ interface Props {
   waku: Waku | undefined;
   signer: Signer | undefined;
   address: string | undefined;
+  providerRequest:
+    | ((request: { method: string; params?: Array<any> }) => Promise<any>)
+    | undefined;
 }
 
 export default function BroadcastPublicKey({
@@ -18,15 +21,22 @@ export default function BroadcastPublicKey({
   encryptionPublicKey,
   address,
   waku,
+  providerRequest,
 }: Props) {
   const broadcastPublicKey = () => {
     if (!encryptionPublicKey) return;
     if (!signer) return;
     if (!address) return;
     if (!waku) return;
+    if (!providerRequest) return;
 
     console.log('Creating Public Key Message');
-    createPublicKeyMessage(signer, address, encryptionPublicKey)
+    createPublicKeyMessage(
+      signer,
+      address,
+      encryptionPublicKey,
+      providerRequest
+    )
       .then((msg) => {
         console.log('Public Key Message created');
         encodePublicKeyWakuMessage(msg)
