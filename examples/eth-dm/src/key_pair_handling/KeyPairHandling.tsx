@@ -2,7 +2,7 @@ import { Button } from '@material-ui/core';
 import { LoadKeyPair } from './LoadKeyPair';
 import { SaveKeyPair } from './SaveKeyPair';
 import React, { useState } from 'react';
-import { generateEthDmKeyPair, KeyPair } from '../crypto';
+import { generateEncryptionKeyPair, KeyPair } from '../crypto';
 import { makeStyles } from '@material-ui/core/styles';
 import PasswordInput from './PasswordInput';
 
@@ -29,24 +29,24 @@ const useStyles = makeStyles({
 });
 
 export interface Props {
-  ethDmKeyPair: KeyPair | undefined;
-  setEthDmKeyPair: (keyPair: KeyPair) => void;
+  encryptionKeyPair: KeyPair | undefined;
+  setEncryptionKeyPair: (keyPair: KeyPair) => void;
 }
 
 export default function KeyPairHandling({
-  ethDmKeyPair,
-  setEthDmKeyPair,
+  encryptionKeyPair,
+  setEncryptionKeyPair,
 }: Props) {
   const classes = useStyles();
 
   const [password, setPassword] = useState<string>();
 
   const generateKeyPair = () => {
-    if (ethDmKeyPair) return;
+    if (encryptionKeyPair) return;
 
-    generateEthDmKeyPair()
+    generateEncryptionKeyPair()
       .then((keyPair) => {
-        setEthDmKeyPair(keyPair);
+        setEncryptionKeyPair(keyPair);
       })
       .catch((e) => {
         console.error('Failed to generate Key Pair', e);
@@ -60,9 +60,9 @@ export default function KeyPairHandling({
         variant="contained"
         color="primary"
         onClick={generateKeyPair}
-        disabled={!!ethDmKeyPair}
+        disabled={!!encryptionKeyPair}
       >
-        Generate Eth-DM Key Pair
+        Generate Encryption Key Pair
       </Button>
       <div className={classes.storage}>
         <PasswordInput
@@ -72,13 +72,16 @@ export default function KeyPairHandling({
         <div className={classes.loadSave}>
           <div className={classes.loadSaveButton}>
             <LoadKeyPair
-              setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
-              disabled={!!ethDmKeyPair}
+              setEncryptionKeyPair={(keyPair) => setEncryptionKeyPair(keyPair)}
+              disabled={!!encryptionKeyPair}
               password={password}
             />
           </div>
           <div className={classes.loadSaveButton}>
-            <SaveKeyPair ethDmKeyPair={ethDmKeyPair} password={password} />
+            <SaveKeyPair
+              EncryptionKeyPair={encryptionKeyPair}
+              password={password}
+            />
           </div>
         </div>
       </div>

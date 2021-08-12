@@ -3,7 +3,6 @@ import '@ethersproject/shims';
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Waku } from 'js-waku';
-import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
 import { KeyPair } from './crypto';
 import { Message } from './messaging/Messages';
@@ -26,8 +25,7 @@ import {
   initWaku,
   PublicKeyContentTopic,
 } from './waku';
-
-declare let window: any;
+import ConnectWallet from './ConnectWallet';
 
 const theme = createMuiTheme({
   palette: {
@@ -70,26 +68,16 @@ const useStyles = makeStyles({
 function App() {
   const [waku, setWaku] = useState<Waku>();
   const [signer, setSigner] = useState<Signer>();
-  const [ethDmKeyPair, setEthDmKeyPair] = useState<KeyPair | undefined>();
-  const [publicKeys, setPublicKeys] = useState<Map<string, string>>(new Map());
+  const [EncryptionKeyPair, setEncryptionKeyPair] = useState<
+    KeyPair | undefined
+  >();
+  const [publicKeys, setPublicKeys] = useState<Map<string, Uint8Array>>(
+    new Map()
+  );
   const [messages, setMessages] = useState<Message[]>([]);
   const [address, setAddress] = useState<string>();
 
   const classes = useStyles();
-
-  useEffect(() => {
-    try {
-      window.ethereum
-        .request({ method: 'eth_requestAccounts' })
-        .then((accounts: string[]) => {
-          const _provider = new ethers.providers.Web3Provider(window.ethereum);
-          setAddress(accounts[0]);
-          setSigner(_provider.getSigner());
-        });
-    } catch (e) {
-      console.error('No web3 provider available');
-    }
-  }, [address, signer]);
 
   // Waku initialization
   useEffect(() => {
@@ -106,7 +94,6 @@ function App() {
 
   useEffect(() => {
     if (!waku) return;
-    if (!address) return;
 
     const observerPublicKeyMessage = handlePublicKeyMessage.bind(
       {},
@@ -126,27 +113,26 @@ function App() {
 
   useEffect(() => {
     if (!waku) return;
-    if (!ethDmKeyPair) return;
+    if (!EncryptionKeyPair) return;
 
-    waku.relay.addDecryptionKey(ethDmKeyPair.privateKey);
+    waku.relay.addDecryptionKey(EncryptionKeyPair.privateKey);
 
     return function cleanUp() {
       if (!waku) return;
-      if (!ethDmKeyPair) return;
+      if (!EncryptionKeyPair) return;
 
-      waku.relay.deleteDecryptionKey(ethDmKeyPair.privateKey);
+      waku.relay.deleteDecryptionKey(EncryptionKeyPair.privateKey);
     };
-  }, [waku, ethDmKeyPair]);
+  }, [waku, EncryptionKeyPair]);
 
   useEffect(() => {
     if (!waku) return;
-    if (!ethDmKeyPair) return;
+    if (!EncryptionKeyPair) return;
     if (!address) return;
 
     const observerDirectMessage = handleDirectMessage.bind(
       {},
       setMessages,
-      ethDmKeyPair.privateKey,
       address
     );
 
@@ -159,7 +145,7 @@ function App() {
         DirectMessageContentTopic,
       ]);
     };
-  }, [waku, address, ethDmKeyPair]);
+  }, [waku, address, EncryptionKeyPair]);
 
   let relayPeers = 0;
   let lightPushPeers = 0;
@@ -202,14 +188,18 @@ function App() {
         <div className={classes.container}>
           <main className={classes.main}>
             <fieldset>
-              <legend>Eth-DM Key Pair</legend>
+              <legend>Wallet</legend>
+              <ConnectWallet setAddress={setAddress} setSigner={setSigner} />
+            </fieldset>
+            <fieldset>
+              <legend>Encryption Key Pair</legend>
               <KeyPairHandling
-                ethDmKeyPair={ethDmKeyPair}
-                setEthDmKeyPair={(keyPair) => setEthDmKeyPair(keyPair)}
+                encryptionKeyPair={EncryptionKeyPair}
+                setEncryptionKeyPair={setEncryptionKeyPair}
               />
               <BroadcastPublicKey
                 signer={signer}
-                ethDmKeyPair={ethDmKeyPair}
+                EncryptionKeyPair={EncryptionKeyPair}
                 waku={waku}
               />
             </fieldset>

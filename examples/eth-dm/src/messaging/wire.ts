@@ -1,7 +1,7 @@
 import * as protobuf from 'protobufjs/light';
 
 export interface PublicKeyMessagePayload {
-  ethDmPublicKey: Uint8Array;
+  encryptionPublicKey: Uint8Array;
   ethAddress: Uint8Array;
   signature: Uint8Array;
 }
@@ -15,7 +15,7 @@ const Root = protobuf.Root,
  */
 export class PublicKeyMessage {
   private static Type = new Type('PublicKeyMessage')
-    .add(new Field('ethDmPublicKey', 1, 'bytes'))
+    .add(new Field('encryptionPublicKey', 1, 'bytes'))
     .add(new Field('ethAddress', 2, 'bytes'))
     .add(new Field('signature', 3, 'bytes'));
   private static Root = new Root()
@@ -35,15 +35,19 @@ export class PublicKeyMessage {
     const payload = PublicKeyMessage.Type.decode(
       bytes
     ) as unknown as PublicKeyMessagePayload;
-    if (!payload.signature || !payload.ethDmPublicKey || !payload.ethAddress) {
+    if (
+      !payload.signature ||
+      !payload.encryptionPublicKey ||
+      !payload.ethAddress
+    ) {
       console.log('Field missing on decoded Public Key Message', payload);
       return;
     }
     return new PublicKeyMessage(payload);
   }
 
-  get ethDmPublicKey(): Uint8Array {
-    return this.payload.ethDmPublicKey;
+  get encryptionPublicKey(): Uint8Array {
+    return this.payload.encryptionPublicKey;
   }
 
   get ethAddress(): Uint8Array {

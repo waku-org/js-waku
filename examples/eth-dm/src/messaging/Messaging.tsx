@@ -14,7 +14,7 @@ const useStyles = makeStyles({
 
 interface Props {
   waku: Waku | undefined;
-  recipients: Map<string, string>;
+  recipients: Map<string, Uint8Array>;
   messages: Message[];
 }
 

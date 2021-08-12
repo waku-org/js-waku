@@ -4,16 +4,16 @@ import { KeyPair } from '../crypto';
 import { saveKeyPairToStorage } from './key_pair_storage';
 
 export interface Props {
-  ethDmKeyPair: KeyPair | undefined;
+  EncryptionKeyPair: KeyPair | undefined;
   password: string | undefined;
 }
 
-export function SaveKeyPair({ password, ethDmKeyPair }: Props) {
+export function SaveKeyPair({ password, EncryptionKeyPair }: Props) {
   const saveKeyPair = () => {
-    if (!ethDmKeyPair) return;
+    if (!EncryptionKeyPair) return;
     if (!password) return;
-    saveKeyPairToStorage(ethDmKeyPair, password).then(() => {
-      console.log('EthDm KeyPair saved to storage');
+    saveKeyPairToStorage(EncryptionKeyPair, password).then(() => {
+      console.log('Encryption KeyPair saved to storage');
     });
   };
 
@@ -22,9 +22,9 @@ export function SaveKeyPair({ password, ethDmKeyPair }: Props) {
       variant="contained"
       color="primary"
       onClick={saveKeyPair}
-      disabled={!password || !ethDmKeyPair}
+      disabled={!password || !EncryptionKeyPair}
     >
-      Save Eth-DM Key Pair to storage
+      Save Encryption Key Pair to storage
     </Button>
   );
 }

@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
 export interface Props {
   waku: Waku | undefined;
   // address, public key
-  recipients: Map<string, string>;
+  recipients: Map<string, Uint8Array>;
 }
 
 export default function SendMessage({ waku, recipients }: Props) {
@@ -106,7 +106,7 @@ export default function SendMessage({ waku, recipients }: Props) {
 
 async function encodeEncryptedWakuMessage(
   message: string,
-  publicKey: string,
+  publicKey: Uint8Array,
   address: string
 ): Promise<WakuMessage> {
   const directMsg = new DirectMessage({
@@ -123,7 +123,7 @@ async function encodeEncryptedWakuMessage(
 function sendMessage(
   waku: Waku,
   recipientAddress: string,
-  recipientPublicKey: string,
+  recipientPublicKey: Uint8Array,
   message: string,
   callback: (res: boolean) => void
 ) {

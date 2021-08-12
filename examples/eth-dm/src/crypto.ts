@@ -16,7 +16,7 @@ export interface KeyPair {
  * the entropy for the EthCrypto keypair. Note that the entropy is hashed with keccak256
  * to make the private key.
  */
-export async function generateEthDmKeyPair(): Promise<KeyPair> {
+export async function generateEncryptionKeyPair(): Promise<KeyPair> {
   const privateKey = generatePrivateKey();
   const publicKey = getPublicKey(privateKey);
   return { privateKey, publicKey };
@@ -29,25 +29,25 @@ export async function generateEthDmKeyPair(): Promise<KeyPair> {
  */
 export async function createPublicKeyMessage(
   web3Signer: Signer,
-  ethDmPublicKey: Uint8Array
+  encryptionPublicKey: Uint8Array
 ): Promise<PublicKeyMessage> {
   const ethAddress = await web3Signer.getAddress();
   const signature = await web3Signer.signMessage(
-    formatPublicKeyForSignature(ethDmPublicKey)
+    formatPublicKeyForSignature(encryptionPublicKey)
   );
 
   return new PublicKeyMessage({
-    ethDmPublicKey: ethDmPublicKey,
+    encryptionPublicKey: encryptionPublicKey,
     ethAddress: hexToBuf(ethAddress),
     signature: hexToBuf(signature),
   });
 }
 
 /**
- * Validate that the EthDm Public Key was signed by the holder of the given Ethereum address.
+ * Validate that the Encryption Public Key was signed by the holder of the given Ethereum address.
  */
 export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
-  const formattedMsg = formatPublicKeyForSignature(msg.ethDmPublicKey);
+  const formattedMsg = formatPublicKeyForSignature(msg.encryptionPublicKey);
   try {
     const sigAddress = ethers.utils.verifyMessage(formattedMsg, msg.signature);
     return equalByteArrays(sigAddress, msg.ethAddress);
@@ -63,13 +63,13 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
 
 /**
  * Prepare Eth-Dm Public key to be signed for publication.
- * The public key is set in on Object `{ ethDmPublicKey: string; }`, converted
+ * The public key is set in on Object `{ encryptionPublicKey: string; }`, converted
  * to JSON and then hashed with Keccak256.
  * The usage of the object helps ensure the signature is only used in an Eth-DM
  * context.
  */
-function formatPublicKeyForSignature(ethDmPublicKey: Uint8Array): string {
+function formatPublicKeyForSignature(encryptionPublicKey: Uint8Array): string {
   return JSON.stringify({
-    ethDmPublicKey: bufToHex(ethDmPublicKey),
+    encryptionPublicKey: bufToHex(encryptionPublicKey),
   });
 }

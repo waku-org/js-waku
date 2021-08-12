@@ -33,24 +33,25 @@ export async function initWaku(): Promise<Waku> {
 }
 
 export function handlePublicKeyMessage(
-  myAddress: string,
-  setter: Dispatch<SetStateAction<Map<string, string>>>,
+  myAddress: string | undefined,
+  setter: Dispatch<SetStateAction<Map<string, Uint8Array>>>,
   msg: WakuMessage
 ) {
   console.log('Public Key Message received:', msg);
   if (!msg.payload) return;
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
   if (!publicKeyMsg) return;
-  const ethDmPublicKey = bufToHex(publicKeyMsg.ethDmPublicKey);
-  console.log(ethDmPublicKey, myAddress);
   if (myAddress && equalByteArrays(publicKeyMsg.ethAddress, myAddress)) return;
 
   const res = validatePublicKeyMessage(publicKeyMsg);
   console.log('Is Public Key Message valid?', res);
 
   if (res) {
-    setter((prevPks: Map<string, string>) => {
-      prevPks.set(bufToHex(publicKeyMsg.ethAddress), ethDmPublicKey);
+    setter((prevPks: Map<string, Uint8Array>) => {
+      prevPks.set(
+        bufToHex(publicKeyMsg.ethAddress),
+        publicKeyMsg.encryptionPublicKey
+      );
       return new Map(prevPks);
     });
   }
@@ -58,7 +59,6 @@ export function handlePublicKeyMessage(
 
 export async function handleDirectMessage(
   setter: Dispatch<SetStateAction<Message[]>>,
-  privateKey: Uint8Array,
   address: string,
   wakuMsg: WakuMessage
 ) {
