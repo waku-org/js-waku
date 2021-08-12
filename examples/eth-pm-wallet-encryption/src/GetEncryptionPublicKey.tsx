@@ -23,8 +23,13 @@ export default function GetEncryptionPublicKey({
       method: 'eth_getEncryptionPublicKey',
       params: [address],
     })
-      .then((key: string) => {
+      .then((key: string | undefined) => {
         console.log('Encryption Public key:', key);
+
+        if (typeof key !== 'string') {
+          console.error('Could not get encryption key');
+          return;
+        }
 
         setEncPublicKey(Buffer.from(key, 'base64'));
       })
