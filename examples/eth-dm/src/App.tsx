@@ -3,7 +3,6 @@ import '@ethersproject/shims';
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Waku } from 'js-waku';
-import { ethers } from 'ethers';
 import { Signer } from '@ethersproject/abstract-signer';
 import { KeyPair } from './crypto';
 import { Message } from './messaging/Messages';
@@ -26,8 +25,7 @@ import {
   initWaku,
   PublicKeyContentTopic,
 } from './waku';
-
-declare let window: any;
+import ConnectWallet from './ConnectWallet';
 
 const theme = createMuiTheme({
   palette: {
@@ -76,20 +74,6 @@ function App() {
   const [address, setAddress] = useState<string>();
 
   const classes = useStyles();
-
-  useEffect(() => {
-    try {
-      window.ethereum
-        .request({ method: 'eth_requestAccounts' })
-        .then((accounts: string[]) => {
-          const _provider = new ethers.providers.Web3Provider(window.ethereum);
-          setAddress(accounts[0]);
-          setSigner(_provider.getSigner());
-        });
-    } catch (e) {
-      console.error('No web3 provider available');
-    }
-  }, [address, signer]);
 
   // Waku initialization
   useEffect(() => {
@@ -200,6 +184,10 @@ function App() {
 
         <div className={classes.container}>
           <main className={classes.main}>
+            <fieldset>
+              <legend>Wallet</legend>
+              <ConnectWallet setAddress={setAddress} setSigner={setSigner} />
+            </fieldset>
             <fieldset>
               <legend>Eth-DM Key Pair</legend>
               <KeyPairHandling
