@@ -2,8 +2,7 @@ import { useEffect, useReducer, useState } from 'react';
 import './App.css';
 import {
   Direction,
-  Environment,
-  getStatusFleetNodes,
+  getBootstrapNodes,
   StoreCodec,
   Waku,
   WakuMessage,
@@ -182,16 +181,10 @@ async function initWaku(setter: (waku: Waku) => void) {
           },
         },
       },
+      bootstrap: getBootstrapNodes.bind({}, selectFleetEnv()),
     });
 
     setter(waku);
-
-    const nodes = await getStatusFleetNodes(selectFleetEnv());
-    await Promise.all(
-      nodes.map((addr) => {
-        return waku.dial(addr);
-      })
-    );
   } catch (e) {
     console.log('Issue starting waku ', e);
   }
@@ -200,9 +193,9 @@ async function initWaku(setter: (waku: Waku) => void) {
 function selectFleetEnv() {
   // Works with react-scripts
   if (process?.env?.NODE_ENV === 'development') {
-    return Environment.Test;
+    return ['fleets', 'wakuv2.test', 'waku-websocket'];
   } else {
-    return Environment.Prod;
+    return ['fleets', 'wakuv2.prod', 'waku-websocket'];
   }
 }
 

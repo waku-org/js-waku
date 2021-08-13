@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- New `bootstrap` option for `Waku.create` to easily connect to Waku nodes upon start up.
+
+### Changed
+- Renamed `discover.getStatusFleetNodes` to `discovery.getBootstrapNodes`; 
+  Changed the API to allow retrieval of bootstrap nodes from other sources.
+
 ### Removed
 - Examples (cli-chat): The focus of this library is Web environment;
   Several examples now cover usage of Waku Relay and Waku Store making cli-chat example obsolete;

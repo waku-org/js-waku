@@ -47,6 +47,7 @@
     "livechat",
     "mkdir",
     "multiaddr",
+    "multiaddresses",
     "multiaddrs",
     "multicodecs",
     "mplex",

@@ -1,5 +1,5 @@
 import './App.css';
-import { getStatusFleetNodes, StoreCodec, Waku } from 'js-waku';
+import { StoreCodec, Waku } from 'js-waku';
 import * as React from 'react';
 import protons from 'protons';
 
@@ -17,9 +17,6 @@ function App() {
   const [waku, setWaku] = React.useState(undefined);
   const [wakuStatus, setWakuStatus] = React.useState('None');
   const [messages, setMessages] = React.useState([]);
-  // Set to true when Waku connects to a store node
-  // it does not reflect whether we then disconnected from said node.
-  const [connectedToStore, setConnectedToStore] = React.useState(false);
 
   React.useEffect(() => {
     if (!!waku) return;
@@ -27,20 +24,15 @@ function App() {
 
     setWakuStatus('Starting');
 
-    Waku.create().then((waku) => {
+    Waku.create({ bootstrap: true }).then((waku) => {
       setWaku(waku);
       setWakuStatus('Connecting');
-      bootstrapWaku(waku).then(() => {
-        setWakuStatus('Ready');
-      });
     });
   }, [waku, wakuStatus]);
 
   React.useEffect(() => {
     if (!waku) return;
-    // This is superfluous as the try/catch block would catch the failure if
-    // we are indeed not connected to any store node.
-    if (!connectedToStore) return;
+    if (wakuStatus !== 'Connected to Store') return;
 
     const interval = setInterval(() => {
       waku.store
@@ -57,33 +49,27 @@ function App() {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [waku, connectedToStore]);
+  }, [waku, wakuStatus]);
 
   React.useEffect(() => {
     if (!waku) return;
 
     // We do not handle disconnection/re-connection in this example
-    if (connectedToStore) return;
+    if (wakuStatus === 'Connected to Store') return;
 
     const isStoreNode = ({ protocols }) => {
       if (protocols.includes(StoreCodec)) {
         // We are now connected to a store node
-        setConnectedToStore(true);
+        setWakuStatus('Connected to Store');
       }
     };
 
-    // This demonstrates how to wait for a connection to a store node.
-    //
-    // This is only for demonstration purposes. It is not really needed in this
-    // example app as we query the store node every 10s and catch if it fails.
-    // Meaning if we are not connected to a store node, then it just fails and
-    // we try again 10s later.
     waku.libp2p.peerStore.on('change:protocols', isStoreNode);
 
     return () => {
       waku.libp2p.peerStore.removeListener('change:protocols', isStoreNode);
     };
-  }, [waku, connectedToStore]);
+  }, [waku, wakuStatus]);
 
   return (
     <div className="App">
@@ -99,11 +85,6 @@ function App() {
 }
 
 export default App;
-
-async function bootstrapWaku(waku) {
-  const nodes = await getStatusFleetNodes();
-  await Promise.all(nodes.map((addr) => waku.dial(addr)));
-}
 
 function decodeMessage(wakuMessage) {
   if (!wakuMessage.payload) return;

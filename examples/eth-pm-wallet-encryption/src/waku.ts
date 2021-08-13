@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
-import { getStatusFleetNodes, Waku, WakuMessage } from 'js-waku';
+import { Waku, WakuMessage } from 'js-waku';
 import { DirectMessage, PublicKeyMessage } from './messaging/wire';
 import { validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
@@ -11,14 +11,7 @@ export const DirectMessageContentTopic =
   '/eth-pm-wallet/1/direct-message/proto';
 
 export async function initWaku(): Promise<Waku> {
-  const waku = await Waku.create({});
-
-  // Dial all nodes it can find
-  getStatusFleetNodes().then((nodes) => {
-    nodes.forEach((addr) => {
-      waku.dial(addr);
-    });
-  });
+  const waku = await Waku.create({ bootstrap: true });
 
   // Wait to be connected to at least one peer
   await new Promise((resolve, reject) => {

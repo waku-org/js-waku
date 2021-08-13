@@ -1,4 +1,4 @@
-export { getStatusFleetNodes, Environment, Protocol } from './lib/discover';
+export { getBootstrapNodes } from './lib/discovery';
 
 export * as utils from './lib/utils';
 

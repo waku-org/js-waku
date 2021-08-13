@@ -82,16 +82,18 @@ function App() {
 # Connect to Other Peers
 
 The Waku instance needs to connect to other peers to communicate with the network.
-First, create `bootstrapWaku` to connect to the Status fleet:
+First, create `bootstrapWaku` to connect to Waku bootstrap nodes:
 
 ```js
-import { getStatusFleetNodes } from 'js-waku';
+import { getBootstrapNodes } from 'js-waku';
 
 async function bootstrapWaku(waku) {
-  // Retrieve node addresses from https://fleets.status.im/
-  const nodes = await getStatusFleetNodes();
-  // Connect to the nodes
-  await Promise.all(nodes.map((addr) => waku.dial(addr)));
+  try {
+    const nodes = await getBootstrapNodes();
+    await Promise.all(nodes.map((addr) => waku.dial(addr)));
+  } catch (e) {
+    console.error('Failed to bootstrap to Waku network');
+  }
 }
 ```
 
