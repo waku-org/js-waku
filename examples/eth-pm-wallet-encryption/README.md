@@ -25,3 +25,10 @@ cd examples/eth-pm-wallet-encryption
 npm install   # Install dependencies for the web app
 npm run start # Start development server to serve the web app on http://localhost:3000/js-waku/eth-pm-wallet
 ```
+
+## Caveats
+
+This is a PoC with some obvious UX caveats:
+
+- As the message payload is fully encrypted, the dApp asks MetaMask who in turns ask the user to decrypt every received message (even if we are the sender).
+- This only uses Relay protocol to receive messages, meaning that participants must have the dApp open at the same time to receive private messages or public keys from each other.
