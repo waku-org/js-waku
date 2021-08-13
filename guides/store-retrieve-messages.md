@@ -41,7 +41,7 @@ import { Waku } from 'js-waku';
 const wakuNode = await Waku.create({ bootstrap: true });
 ```
 
-Passing the `bootstrap` option will connect your node to predefined Waku nodes hosted by Status.
+Passing the `bootstrap` option will connect your node to predefined Waku nodes.
 If you want to bootstrap to your own nodes, you can pass an array of multiaddresses instead:
 
 ```js

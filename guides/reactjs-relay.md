@@ -82,7 +82,7 @@ function App() {
 # Connect to Other Peers
 
 The Waku instance needs to connect to other peers to communicate with the network.
-First, create `bootstrapWaku` to connect to Waku bootstrap nodes (hosted by Status):
+First, create `bootstrapWaku` to connect to Waku bootstrap nodes:
 
 ```js
 import { getBootstrapNodes } from 'js-waku';
