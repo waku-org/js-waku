@@ -4,17 +4,15 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Waku } from 'js-waku';
 import { Signer } from '@ethersproject/abstract-signer';
-import { KeyPair } from './crypto';
 import { Message } from './messaging/Messages';
 import 'fontsource-roboto';
 import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
-import KeyPairHandling from './key_pair_handling/KeyPairHandling';
 import {
   createMuiTheme,
   ThemeProvider,
   makeStyles,
 } from '@material-ui/core/styles';
-import { teal, purple, green } from '@material-ui/core/colors';
+import { lightBlue, orange, teal } from '@material-ui/core/colors';
 import WifiIcon from '@material-ui/icons/Wifi';
 import BroadcastPublicKey from './BroadcastPublicKey';
 import Messaging from './messaging/Messaging';
@@ -25,15 +23,17 @@ import {
   initWaku,
   PublicKeyContentTopic,
 } from './waku';
+import { Web3Provider } from '@ethersproject/providers/src.ts/web3-provider';
+import GetEncryptionPublicKey from './GetEncryptionPublicKey';
 import ConnectWallet from './ConnectWallet';
 
 const theme = createMuiTheme({
   palette: {
     primary: {
-      main: purple[500],
+      main: orange[500],
     },
     secondary: {
-      main: teal[600],
+      main: lightBlue[600],
     },
   },
 });
@@ -68,9 +68,8 @@ const useStyles = makeStyles({
 function App() {
   const [waku, setWaku] = useState<Waku>();
   const [signer, setSigner] = useState<Signer>();
-  const [EncryptionKeyPair, setEncryptionKeyPair] = useState<
-    KeyPair | undefined
-  >();
+  const [provider, setProvider] = useState<Web3Provider>();
+  const [encPublicKey, setEncPublicKey] = useState<Uint8Array>();
   const [publicKeys, setPublicKeys] = useState<Map<string, Uint8Array>>(
     new Map()
   );
@@ -120,27 +119,14 @@ function App() {
 
   useEffect(() => {
     if (!waku) return;
-    if (!EncryptionKeyPair) return;
-
-    waku.relay.addDecryptionKey(EncryptionKeyPair.privateKey);
-
-    return function cleanUp() {
-      if (!waku) return;
-      if (!EncryptionKeyPair) return;
-
-      waku.relay.deleteDecryptionKey(EncryptionKeyPair.privateKey);
-    };
-  }, [waku, EncryptionKeyPair]);
-
-  useEffect(() => {
-    if (!waku) return;
-    if (!EncryptionKeyPair) return;
     if (!address) return;
+    if (!provider?.provider?.request) return;
 
     const observerDirectMessage = handleDirectMessage.bind(
       {},
       setMessages,
-      address
+      address,
+      provider.provider.request
     );
 
     waku.relay.addObserver(observerDirectMessage, [DirectMessageContentTopic]);
@@ -152,7 +138,7 @@ function App() {
         DirectMessageContentTopic,
       ]);
     };
-  }, [waku, address, EncryptionKeyPair]);
+  }, [waku, address, provider?.provider?.request]);
 
   useEffect(() => {
     if (!waku) return;
@@ -184,7 +170,7 @@ function App() {
             >
               <WifiIcon
                 color={waku ? undefined : 'disabled'}
-                style={waku ? { color: green[500] } : {}}
+                style={waku ? { color: teal[500] } : {}}
               />
             </IconButton>
             <Typography className={classes.peers} aria-label="connected-peers">
@@ -202,18 +188,25 @@ function App() {
           <main className={classes.main}>
             <fieldset>
               <legend>Wallet</legend>
-              <ConnectWallet setAddress={setAddress} setSigner={setSigner} />
+              <ConnectWallet
+                setProvider={setProvider}
+                setAddress={setAddress}
+                setSigner={setSigner}
+              />
             </fieldset>
             <fieldset>
-              <legend>Encryption Key Pair</legend>
-              <KeyPairHandling
-                encryptionKeyPair={EncryptionKeyPair}
-                setEncryptionKeyPair={setEncryptionKeyPair}
+              <legend>Encryption Keys</legend>
+              <GetEncryptionPublicKey
+                setEncPublicKey={setEncPublicKey}
+                providerRequest={provider?.provider?.request}
+                address={address}
               />
               <BroadcastPublicKey
                 signer={signer}
-                EncryptionKeyPair={EncryptionKeyPair}
+                address={address}
+                encryptionPublicKey={encPublicKey}
                 waku={waku}
+                providerRequest={provider?.provider?.request}
               />
             </fieldset>
             <fieldset>

@@ -83,7 +83,8 @@
     "wakunode",
     "webfonts",
     "websockets",
-    "wifi"
+    "wifi",
+    "xsalsa20"
   ],
   "flagWords": [],
   "ignorePaths": [
