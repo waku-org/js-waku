@@ -9,8 +9,8 @@ import {
 import React, { ChangeEvent, useState, KeyboardEvent } from 'react';
 import { Waku, WakuMessage } from 'js-waku';
 import { bufToHex, hexToBuf } from 'js-waku/lib/utils';
-import { DirectMessage } from './wire';
-import { DirectMessageContentTopic } from '../waku';
+import { PrivateMessage } from './wire';
+import { PrivateMessageContentTopic } from '../waku';
 import * as sigUtil from 'eth-sig-util';
 
 const useStyles = makeStyles((theme) => ({
@@ -110,12 +110,12 @@ async function encodeEncryptedWakuMessage(
   publicKey: Uint8Array,
   address: string
 ): Promise<WakuMessage> {
-  const directMsg = new DirectMessage({
+  const privateMessage = new PrivateMessage({
     toAddress: hexToBuf(address),
     message: message,
   });
 
-  const payload = directMsg.encode();
+  const payload = privateMessage.encode();
 
   const encObj = sigUtil.encrypt(
     Buffer.from(publicKey).toString('base64'),
@@ -124,7 +124,7 @@ async function encodeEncryptedWakuMessage(
   );
 
   const encryptedPayload = Buffer.from(JSON.stringify(encObj), 'utf8');
-  return WakuMessage.fromBytes(encryptedPayload, DirectMessageContentTopic);
+  return WakuMessage.fromBytes(encryptedPayload, PrivateMessageContentTopic);
 }
 
 function sendMessage(

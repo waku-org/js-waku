@@ -19,8 +19,8 @@ import WifiIcon from '@material-ui/icons/Wifi';
 import BroadcastPublicKey from './BroadcastPublicKey';
 import Messaging from './messaging/Messaging';
 import {
-  DirectMessageContentTopic,
-  handleDirectMessage,
+  PrivateMessageContentTopic,
+  handlePrivateMessage,
   handlePublicKeyMessage,
   initWaku,
   PublicKeyContentTopic,
@@ -137,19 +137,21 @@ function App() {
     if (!EncryptionKeyPair) return;
     if (!address) return;
 
-    const observerDirectMessage = handleDirectMessage.bind(
+    const observerPrivateMessage = handlePrivateMessage.bind(
       {},
       setMessages,
       address
     );
 
-    waku.relay.addObserver(observerDirectMessage, [DirectMessageContentTopic]);
+    waku.relay.addObserver(observerPrivateMessage, [
+      PrivateMessageContentTopic,
+    ]);
 
     return function cleanUp() {
       if (!waku) return;
-      if (!observerDirectMessage) return;
-      waku.relay.deleteObserver(observerDirectMessage, [
-        DirectMessageContentTopic,
+      if (!observerPrivateMessage) return;
+      waku.relay.deleteObserver(observerPrivateMessage, [
+        PrivateMessageContentTopic,
       ]);
     };
   }, [waku, address, EncryptionKeyPair]);
@@ -192,7 +194,7 @@ function App() {
               light push
             </Typography>
             <Typography variant="h6" className={classes.title}>
-              Ethereum Direct Message
+              Ethereum Private Message
             </Typography>
             <Typography>{addressDisplay}</Typography>
           </Toolbar>

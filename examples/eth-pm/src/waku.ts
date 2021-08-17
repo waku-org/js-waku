@@ -1,12 +1,12 @@
 import { Dispatch, SetStateAction } from 'react';
 import { Waku, WakuMessage } from 'js-waku';
-import { DirectMessage, PublicKeyMessage } from './messaging/wire';
+import { PrivateMessage, PublicKeyMessage } from './messaging/wire';
 import { validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
 import { bufToHex, equalByteArrays } from 'js-waku/lib/utils';
 
 export const PublicKeyContentTopic = '/eth-pm/1/public-key/proto';
-export const DirectMessageContentTopic = '/eth-pm/1/private-message/proto';
+export const PrivateMessageContentTopic = '/eth-pm/1/private-message/proto';
 
 export async function initWaku(): Promise<Waku> {
   const waku = await Waku.create({ bootstrap: true });
@@ -50,27 +50,27 @@ export function handlePublicKeyMessage(
   }
 }
 
-export async function handleDirectMessage(
+export async function handlePrivateMessage(
   setter: Dispatch<SetStateAction<Message[]>>,
   address: string,
   wakuMsg: WakuMessage
 ) {
-  console.log('Direct Message received:', wakuMsg);
+  console.log('Private Message received:', wakuMsg);
   if (!wakuMsg.payload) return;
-  const directMessage = DirectMessage.decode(wakuMsg.payload);
-  if (!directMessage) {
-    console.log('Failed to decode Direct Message');
+  const privateMessage = PrivateMessage.decode(wakuMsg.payload);
+  if (!privateMessage) {
+    console.log('Failed to decode Private Message');
     return;
   }
-  if (!equalByteArrays(directMessage.toAddress, address)) return;
+  if (!equalByteArrays(privateMessage.toAddress, address)) return;
 
   const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
 
-  console.log('Message decrypted:', directMessage.message);
+  console.log('Message decrypted:', privateMessage.message);
   setter((prevMsgs: Message[]) => {
     const copy = prevMsgs.slice();
     copy.push({
-      text: directMessage.message,
+      text: privateMessage.message,
       timestamp: timestamp,
     });
     return copy;
