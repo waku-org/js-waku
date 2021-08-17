@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Renamed `discover.getStatusFleetNodes` to `discovery.getBootstrapNodes`; 
   Changed the API to allow retrieval of bootstrap nodes from other sources.
+- Examples: Renamed `eth-dm` to `eth-pm`: "Direct Message" can lead to confusion with "Direct Connection" that
+  refers to low latency network connections.
 
 ### Removed
 - Examples (cli-chat): The focus of this library is Web environment;

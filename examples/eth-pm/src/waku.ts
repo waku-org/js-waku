@@ -5,8 +5,8 @@ import { validatePublicKeyMessage } from './crypto';
 import { Message } from './messaging/Messages';
 import { bufToHex, equalByteArrays } from 'js-waku/lib/utils';
 
-export const PublicKeyContentTopic = '/eth-dm/1/public-key/proto';
-export const DirectMessageContentTopic = '/eth-dm/1/direct-message/proto';
+export const PublicKeyContentTopic = '/eth-pm/1/public-key/proto';
+export const DirectMessageContentTopic = '/eth-pm/1/direct-message/proto';
 
 export async function initWaku(): Promise<Waku> {
   const waku = await Waku.create({ bootstrap: true });

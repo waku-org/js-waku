@@ -11,7 +11,7 @@ const Root = protobuf.Root,
   Field = protobuf.Field;
 
 /**
- * Message used to communicate the Eth-Dm public key linked to a given Ethereum account
+ * Message used to communicate the encryption public key linked to a given Ethereum account
  */
 export class PublicKeyMessage {
   private static Type = new Type('PublicKeyMessage')
