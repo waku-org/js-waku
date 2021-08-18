@@ -8,6 +8,7 @@
     "bitjson",
     "bitauth",
     "bufbuild",
+    "chainsafe",
     "cimg",
     "ciphertext",
     "circleci",
