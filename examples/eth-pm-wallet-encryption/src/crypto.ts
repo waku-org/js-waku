@@ -1,6 +1,5 @@
 import '@ethersproject/shims';
 
-import { Signer } from '@ethersproject/abstract-signer';
 import { PublicKeyMessage } from './messaging/wire';
 import { hexToBuf, equalByteArrays, bufToHex } from 'js-waku/lib/utils';
 import * as sigUtil from 'eth-sig-util';
@@ -11,7 +10,6 @@ import * as sigUtil from 'eth-sig-util';
  * Ethereum Address holder.
  */
 export async function createPublicKeyMessage(
-  web3Signer: Signer,
   address: string,
   encryptionPublicKey: Uint8Array,
   providerRequest: (request: {
