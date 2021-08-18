@@ -49,20 +49,20 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./examples/web-chat/build
 
-      - name: "[eth-dm] install using npm i"
+      - name: "[eth-pm] install using npm i"
         run: npm install
-        working-directory: examples/eth-dm
+        working-directory: examples/eth-pm
 
-      - name: "[eth-dm] build"
+      - name: "[eth-pm] build"
         run: npm run build
-        working-directory: examples/eth-dm
+        working-directory: examples/eth-pm
 
-      - name: "[eth-dm] Deploy on gh pages to /eth-dm"
+      - name: "[eth-pm] Deploy on gh pages to /eth-pm"
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./examples/eth-dm/build
-          destination_dir: eth-dm
+          publish_dir: ./examples/eth-pm/build
+          destination_dir: eth-pm
 
       - name: "[eth-pm-wallet] install using npm i"
         run: npm install

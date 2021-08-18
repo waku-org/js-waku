@@ -69,7 +69,7 @@ function getWrapKey(keyMaterial: CryptoKey, salt: Uint8Array) {
 }
 
 /**
- * Encrypt Eth-DM KeyPair using provided password
+ * Encrypt encryption KeyPair using provided password.
  */
 async function encryptKey(encryptionKeyPair: KeyPair, password: string) {
   const keyMaterial = await getKeyMaterial(password);

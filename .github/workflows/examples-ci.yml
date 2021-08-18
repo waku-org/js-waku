@@ -12,7 +12,7 @@ jobs:
   examples_build_and_test:
     strategy:
       matrix:
-        example: [ web-chat, eth-dm, eth-pm-wallet-encryption, min-react-js-chat, store-reactjs-chat ]
+        example: [ web-chat, eth-pm, eth-pm-wallet-encryption, min-react-js-chat, store-reactjs-chat ]
     runs-on: ubuntu-latest
     steps:
 

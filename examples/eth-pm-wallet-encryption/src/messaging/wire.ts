@@ -11,7 +11,7 @@ const Root = protobuf.Root,
   Field = protobuf.Field;
 
 /**
- * Message used to communicate the Eth-Dm public key linked to a given Ethereum account
+ * Message used to communicate the encryption public key linked to a given Ethereum account
  */
 export class PublicKeyMessage {
   private static Type = new Type('PublicKeyMessage')
@@ -59,36 +59,36 @@ export class PublicKeyMessage {
   }
 }
 
-export interface DirectMessagePayload {
+export interface PrivateMessagePayload {
   toAddress: Uint8Array;
   message: string;
 }
 
 /**
- * Direct Encrypted Message used for private communication over the Waku network.
+ * Encrypted Message used for private communication over the Waku network.
  */
-export class DirectMessage {
-  private static Type = new Type('DirectMessage')
+export class PrivateMessage {
+  private static Type = new Type('PrivateMessage')
     .add(new Field('toAddress', 1, 'bytes'))
     .add(new Field('message', 2, 'string'));
-  private static Root = new Root().define('messages').add(DirectMessage.Type);
+  private static Root = new Root().define('messages').add(PrivateMessage.Type);
 
-  constructor(public payload: DirectMessagePayload) {}
+  constructor(public payload: PrivateMessagePayload) {}
 
   public encode(): Uint8Array {
-    const message = DirectMessage.Type.create(this.payload);
-    return DirectMessage.Type.encode(message).finish();
+    const message = PrivateMessage.Type.create(this.payload);
+    return PrivateMessage.Type.encode(message).finish();
   }
 
-  public static decode(bytes: Uint8Array | Buffer): DirectMessage | undefined {
-    const payload = DirectMessage.Type.decode(
+  public static decode(bytes: Uint8Array | Buffer): PrivateMessage | undefined {
+    const payload = PrivateMessage.Type.decode(
       bytes
-    ) as unknown as DirectMessagePayload;
+    ) as unknown as PrivateMessagePayload;
     if (!payload.toAddress || !payload.message) {
-      console.log('Field missing on decoded Direct Message', payload);
+      console.log('Field missing on decoded PrivateMessage', payload);
       return;
     }
-    return new DirectMessage(payload);
+    return new PrivateMessage(payload);
   }
 
   get toAddress(): Uint8Array {

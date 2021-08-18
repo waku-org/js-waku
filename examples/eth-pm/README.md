@@ -1,4 +1,4 @@
-# Ethereum Direct Message Web App
+# Ethereum Private Message Web App
 
 **Demonstrates**:
 
@@ -10,13 +10,13 @@
 
 A PoC implementation of [20/ETH-DM](https://rfc.vac.dev/spec/20/).
 
-Ethereum Direct Message, or Eth-DM, is a protocol that allows sending encrypted message to a recipient,
+Ethereum Private Message, or Eth-PM, is a protocol that allows sending encrypted message to a recipient,
 only knowing their Ethereum Address.
 
-This is protocol has been created to demonstrated how encryption and signature could be added to messages
+This protocol has been created to demonstrated how encryption and signature could be added to message
 sent over the Waku v2 network.
 
-The `main` branch's HEAD is deployed on GitHub Pages at https://status-im.github.io/js-waku/eth-dm/.
+The `main` branch's HEAD is deployed on GitHub Pages at https://status-im.github.io/js-waku/eth-pm/.
 
 To run a development version locally, do:
 
@@ -24,7 +24,7 @@ To run a development version locally, do:
 git clone https://github.com/status-im/js-waku/ ; cd js-waku
 npm install   # Install dependencies for js-waku
 npm run build # Build js-waku
-cd examples/eth-dm   
+cd examples/eth-pm
 npm install   # Install dependencies for the web app
-npm run start # Start development server to serve the web app on http://localhost:3000/js-waku/eth-dm
+npm run start # Start development server to serve the web app on http://localhost:3000/js-waku/eth-pm
 ```

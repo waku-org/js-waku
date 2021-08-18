@@ -6,8 +6,8 @@ import { hexToBuf, equalByteArrays, bufToHex } from 'js-waku/lib/utils';
 import * as sigUtil from 'eth-sig-util';
 
 /**
- * Sign the Eth-DM public key with Web3. This can then be published to let other
- * users know to use this Eth-DM public key to encrypt messages for the
+ * Sign the encryption public key with Web3. This can then be published to let other
+ * users know to use this encryption public key to encrypt messages for the
  * Ethereum Address holder.
  */
 export async function createPublicKeyMessage(
