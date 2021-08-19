@@ -3,7 +3,6 @@ import '@ethersproject/shims';
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Waku } from 'js-waku';
-import { Signer } from '@ethersproject/abstract-signer';
 import { KeyPair } from './crypto';
 import { Message } from './messaging/Messages';
 import 'fontsource-roboto';
@@ -25,6 +24,7 @@ import {
   initWaku,
   PublicKeyContentTopic,
 } from './waku';
+import { Web3Provider } from '@ethersproject/providers/src.ts/web3-provider';
 import ConnectWallet from './ConnectWallet';
 
 const theme = createMuiTheme({
@@ -67,8 +67,8 @@ const useStyles = makeStyles({
 
 function App() {
   const [waku, setWaku] = useState<Waku>();
-  const [signer, setSigner] = useState<Signer>();
-  const [EncryptionKeyPair, setEncryptionKeyPair] = useState<
+  const [provider, setProvider] = useState<Web3Provider>();
+  const [encryptionKeyPair, setEncryptionKeyPair] = useState<
     KeyPair | undefined
   >();
   const [publicKeys, setPublicKeys] = useState<Map<string, Uint8Array>>(
@@ -120,21 +120,21 @@ function App() {
 
   useEffect(() => {
     if (!waku) return;
-    if (!EncryptionKeyPair) return;
+    if (!encryptionKeyPair) return;
 
-    waku.relay.addDecryptionKey(EncryptionKeyPair.privateKey);
+    waku.relay.addDecryptionKey(encryptionKeyPair.privateKey);
 
     return function cleanUp() {
       if (!waku) return;
-      if (!EncryptionKeyPair) return;
+      if (!encryptionKeyPair) return;
 
-      waku.relay.deleteDecryptionKey(EncryptionKeyPair.privateKey);
+      waku.relay.deleteDecryptionKey(encryptionKeyPair.privateKey);
     };
-  }, [waku, EncryptionKeyPair]);
+  }, [waku, encryptionKeyPair]);
 
   useEffect(() => {
     if (!waku) return;
-    if (!EncryptionKeyPair) return;
+    if (!encryptionKeyPair) return;
     if (!address) return;
 
     const observerPrivateMessage = handlePrivateMessage.bind(
@@ -154,7 +154,7 @@ function App() {
         PrivateMessageContentTopic,
       ]);
     };
-  }, [waku, address, EncryptionKeyPair]);
+  }, [waku, address, encryptionKeyPair]);
 
   useEffect(() => {
     if (!waku) return;
@@ -204,18 +204,22 @@ function App() {
           <main className={classes.main}>
             <fieldset>
               <legend>Wallet</legend>
-              <ConnectWallet setAddress={setAddress} setSigner={setSigner} />
+              <ConnectWallet
+                setAddress={setAddress}
+                setProvider={setProvider}
+              />
             </fieldset>
             <fieldset>
               <legend>Encryption Key Pair</legend>
               <KeyPairHandling
-                encryptionKeyPair={EncryptionKeyPair}
+                encryptionKeyPair={encryptionKeyPair}
                 setEncryptionKeyPair={setEncryptionKeyPair}
               />
               <BroadcastPublicKey
-                signer={signer}
-                EncryptionKeyPair={EncryptionKeyPair}
+                address={address}
+                EncryptionKeyPair={encryptionKeyPair}
                 waku={waku}
+                providerRequest={provider?.provider?.request}
               />
             </fieldset>
             <fieldset>

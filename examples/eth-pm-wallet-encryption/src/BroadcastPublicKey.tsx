@@ -3,13 +3,11 @@ import React from 'react';
 import { createPublicKeyMessage } from './crypto';
 import { PublicKeyMessage } from './messaging/wire';
 import { WakuMessage, Waku } from 'js-waku';
-import { Signer } from '@ethersproject/abstract-signer';
 import { PublicKeyContentTopic } from './waku';
 
 interface Props {
   encryptionPublicKey: Uint8Array | undefined;
   waku: Waku | undefined;
-  signer: Signer | undefined;
   address: string | undefined;
   providerRequest:
     | ((request: { method: string; params?: Array<any> }) => Promise<any>)
@@ -17,7 +15,6 @@ interface Props {
 }
 
 export default function BroadcastPublicKey({
-  signer,
   encryptionPublicKey,
   address,
   waku,
@@ -25,18 +22,12 @@ export default function BroadcastPublicKey({
 }: Props) {
   const broadcastPublicKey = () => {
     if (!encryptionPublicKey) return;
-    if (!signer) return;
     if (!address) return;
     if (!waku) return;
     if (!providerRequest) return;
 
     console.log('Creating Public Key Message');
-    createPublicKeyMessage(
-      signer,
-      address,
-      encryptionPublicKey,
-      providerRequest
-    )
+    createPublicKeyMessage(address, encryptionPublicKey, providerRequest)
       .then((msg) => {
         console.log('Public Key Message created');
         encodePublicKeyWakuMessage(msg)
@@ -63,7 +54,7 @@ export default function BroadcastPublicKey({
       variant="contained"
       color="primary"
       onClick={broadcastPublicKey}
-      disabled={!encryptionPublicKey || !waku || !signer}
+      disabled={!encryptionPublicKey || !waku || !address || !providerRequest}
     >
       Broadcast Encryption Public Key
     </Button>

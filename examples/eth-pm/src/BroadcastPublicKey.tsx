@@ -3,26 +3,30 @@ import React, { useState } from 'react';
 import { createPublicKeyMessage, KeyPair } from './crypto';
 import { PublicKeyMessage } from './messaging/wire';
 import { WakuMessage, Waku } from 'js-waku';
-import { Signer } from '@ethersproject/abstract-signer';
 import { PublicKeyContentTopic } from './waku';
 
 interface Props {
   EncryptionKeyPair: KeyPair | undefined;
   waku: Waku | undefined;
-  signer: Signer | undefined;
+  address: string | undefined;
+  providerRequest:
+    | ((request: { method: string; params?: Array<any> }) => Promise<any>)
+    | undefined;
 }
 
 export default function BroadcastPublicKey({
-  signer,
   EncryptionKeyPair,
   waku,
+  address,
+  providerRequest,
 }: Props) {
   const [publicKeyMsg, setPublicKeyMsg] = useState<PublicKeyMessage>();
 
   const broadcastPublicKey = () => {
     if (!EncryptionKeyPair) return;
-    if (!signer) return;
+    if (!address) return;
     if (!waku) return;
+    if (!providerRequest) return;
 
     if (publicKeyMsg) {
       encodePublicKeyWakuMessage(publicKeyMsg)
@@ -35,7 +39,11 @@ export default function BroadcastPublicKey({
           console.log('Failed to encode Public Key Message in Waku Message');
         });
     } else {
-      createPublicKeyMessage(signer, EncryptionKeyPair.publicKey)
+      createPublicKeyMessage(
+        address,
+        EncryptionKeyPair.publicKey,
+        providerRequest
+      )
         .then((msg) => {
           setPublicKeyMsg(msg);
           encodePublicKeyWakuMessage(msg)
@@ -64,7 +72,7 @@ export default function BroadcastPublicKey({
       variant="contained"
       color="primary"
       onClick={broadcastPublicKey}
-      disabled={!EncryptionKeyPair || !waku}
+      disabled={!EncryptionKeyPair || !waku || !address || !providerRequest}
     >
       Broadcast Encryption Public Key
     </Button>

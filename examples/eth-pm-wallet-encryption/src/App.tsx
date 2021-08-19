@@ -3,7 +3,6 @@ import '@ethersproject/shims';
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Waku } from 'js-waku';
-import { Signer } from '@ethersproject/abstract-signer';
 import { Message } from './messaging/Messages';
 import 'fontsource-roboto';
 import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
@@ -67,7 +66,6 @@ const useStyles = makeStyles({
 
 function App() {
   const [waku, setWaku] = useState<Waku>();
-  const [signer, setSigner] = useState<Signer>();
   const [provider, setProvider] = useState<Web3Provider>();
   const [encPublicKey, setEncPublicKey] = useState<Uint8Array>();
   const [publicKeys, setPublicKeys] = useState<Map<string, Uint8Array>>(
@@ -193,7 +191,6 @@ function App() {
               <ConnectWallet
                 setProvider={setProvider}
                 setAddress={setAddress}
-                setSigner={setSigner}
               />
             </fieldset>
             <fieldset>
@@ -204,7 +201,6 @@ function App() {
                 address={address}
               />
               <BroadcastPublicKey
-                signer={signer}
                 address={address}
                 encryptionPublicKey={encPublicKey}
                 waku={waku}
