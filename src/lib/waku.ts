@@ -1,3 +1,5 @@
+import { bytes } from '@chainsafe/libp2p-noise/dist/src/@types/basic';
+import { Noise } from '@chainsafe/libp2p-noise/dist/src/noise';
 import debug from 'debug';
 import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from 'libp2p';
 import Bootstrap from 'libp2p-bootstrap';
@@ -5,8 +7,6 @@ import { MuxedStream } from 'libp2p-interfaces/dist/src/stream-muxer/types';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
 import Mplex from 'libp2p-mplex';
-import { bytes } from 'libp2p-noise/dist/src/@types/basic';
-import { Noise } from 'libp2p-noise/dist/src/noise';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
 import Websockets from 'libp2p-websockets';

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Examples: Renamed `eth-dm` to `eth-pm`; "Direct Message" can lead to confusion with "Direct Connection" that
   refers to low latency network connections.
 - Examples (eth-pm): Use sign typed data EIP-712 instead of personal sign. 
+- Upgraded dependencies to remove warning at installation.
 
 ### Removed
 - Examples (cli-chat): The focus of this library is Web environment;
