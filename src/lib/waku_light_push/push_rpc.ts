@@ -2,16 +2,12 @@ import { Reader } from 'protobufjs/minimal';
 import { v4 as uuid } from 'uuid';
 
 import * as proto from '../../proto/waku/v2/light_push';
-import { DefaultPubSubTopic } from '../waku';
 import { WakuMessage } from '../waku_message';
 
 export class PushRPC {
   public constructor(public proto: proto.PushRPC) {}
 
-  static createRequest(
-    message: WakuMessage,
-    pubsubTopic: string = DefaultPubSubTopic
-  ): PushRPC {
+  static createRequest(message: WakuMessage, pubsubTopic: string): PushRPC {
     return new PushRPC({
       requestId: uuid(),
       request: {
