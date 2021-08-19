@@ -245,4 +245,72 @@ describe('Waku Store', () => {
 
     await Promise.all([waku1.stop(), waku2.stop()]);
   });
+
+  it('Retrieves history using start and end time', async function () {
+    this.timeout(5_000);
+
+    nimWaku = new NimWaku(makeLogFileName(this));
+    await nimWaku.start({ persistMessages: true });
+
+    const startTime = new Date();
+
+    const message1Timestamp = new Date();
+    message1Timestamp.setTime(startTime.getTime() + 60 * 1000);
+    const message2Timestamp = new Date();
+    message2Timestamp.setTime(startTime.getTime() + 2 * 60 * 1000);
+    const messageTimestamps = [message1Timestamp, message2Timestamp];
+
+    const endTime = new Date();
+    endTime.setTime(startTime.getTime() + 3 * 60 * 1000);
+
+    let firstMessageTime;
+    for (let i = 0; i < 2; i++) {
+      expect(
+        await nimWaku.sendMessage(
+          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic, {
+            timestamp: messageTimestamps[i],
+          })
+        )
+      ).to.be.true;
+      if (!firstMessageTime) firstMessageTime = Date.now() / 1000;
+    }
+
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+      libp2p: { modules: { transport: [TCP] } },
+    });
+    await waku.dial(await nimWaku.getMultiaddrWithId());
+
+    // Wait for identify protocol to finish
+    await new Promise((resolve) => {
+      waku.libp2p.peerStore.once('change:protocols', resolve);
+    });
+
+    const nimPeerId = await nimWaku.getPeerId();
+
+    // TODO: This scenario can be tested once https://github.com/status-im/nim-waku/issues/706 is done
+    // const noMessage = await waku.store.queryHistory([], {
+    //   peerId: nimPeerId,
+    //   endTime: startTime,
+    // });
+
+    const firstMessage = await waku.store.queryHistory([], {
+      peerId: nimPeerId,
+      startTime,
+      endTime: message1Timestamp,
+    });
+
+    const bothMessages = await waku.store.queryHistory([], {
+      peerId: nimPeerId,
+      startTime,
+      endTime,
+    });
+
+    // expect(noMessage?.length).eq(0);
+    expect(firstMessage?.length).eq(1);
+
+    expect(firstMessage[0]?.payloadAsUtf8).eq('Message 0');
+
+    expect(bothMessages?.length).eq(2);
+  });
 });
