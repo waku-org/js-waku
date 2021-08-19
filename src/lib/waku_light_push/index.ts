@@ -7,8 +7,8 @@ import PeerId from 'peer-id';
 
 import { PushResponse } from '../../proto/waku/v2/light_push';
 import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
+import { DefaultPubSubTopic } from '../waku';
 import { WakuMessage } from '../waku_message';
-import { DefaultPubsubTopic } from '../waku_relay';
 
 import { PushRPC } from './push_rpc';
 
@@ -17,32 +17,32 @@ export { PushResponse };
 
 export interface CreateOptions {
   /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubsubTopic}.
+   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
    *
    * The usage of the default pubsub topic is recommended.
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
-   * @default {@link DefaultPubsubTopic}
+   * @default {@link DefaultPubSubTopic}
    */
-  pubsubTopic?: string;
+  pubSubTopic?: string;
 }
 
 export interface PushOptions {
   peerId?: PeerId;
-  pubsubTopic?: string;
+  pubSubTopic?: string;
 }
 
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 export class WakuLightPush {
-  pubsubTopic: string;
+  pubSubTopic: string;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
-    if (options?.pubsubTopic) {
-      this.pubsubTopic = options.pubsubTopic;
+    if (options?.pubSubTopic) {
+      this.pubSubTopic = options.pubSubTopic;
     } else {
-      this.pubsubTopic = DefaultPubsubTopic;
+      this.pubSubTopic = DefaultPubSubTopic;
     }
   }
 
@@ -66,9 +66,9 @@ export class WakuLightPush {
 
     const { stream } = await connection.newStream(LightPushCodec);
     try {
-      const pubsubTopic = opts?.pubsubTopic
-        ? opts.pubsubTopic
-        : this.pubsubTopic;
+      const pubsubTopic = opts?.pubSubTopic
+        ? opts.pubSubTopic
+        : this.pubSubTopic;
       const query = PushRPC.createRequest(message, pubsubTopic);
       const res = await pipe(
         [query.encode()],

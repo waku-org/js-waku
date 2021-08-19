@@ -8,8 +8,8 @@ import PeerId from 'peer-id';
 
 import { HistoryResponse_Error } from '../../proto/waku/v2/store';
 import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
+import { DefaultPubSubTopic } from '../waku';
 import { WakuMessage } from '../waku_message';
-import { DefaultPubsubTopic } from '../waku_relay';
 
 import { Direction, HistoryRPC } from './history_rpc';
 
@@ -21,12 +21,12 @@ export { Direction };
 
 export interface CreateOptions {
   /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubsubTopic}.
+   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
    *
    * The usage of the default pubsub topic is recommended.
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
-   * @default {@link DefaultPubsubTopic}
+   * @default {@link DefaultPubSubTopic}
    */
   pubsubTopic?: string;
 }
@@ -50,7 +50,7 @@ export class WakuStore {
     if (options?.pubsubTopic) {
       this.pubsubTopic = options.pubsubTopic;
     } else {
-      this.pubsubTopic = DefaultPubsubTopic;
+      this.pubsubTopic = DefaultPubSubTopic;
     }
   }
 

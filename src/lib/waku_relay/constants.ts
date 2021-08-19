@@ -9,11 +9,6 @@ export const RelayCodecs = [
   '/vac/waku/relay/2.0.0',
 ];
 
-/**
- * DefaultPubsubTopic is the default gossipsub topic to use for Waku.
- */
-export const DefaultPubsubTopic = '/waku/2/default-waku/proto';
-
 export const RelayPingContentTopic = '/relay-ping/1/ping/null';
 
 /**

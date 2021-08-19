@@ -2,7 +2,7 @@ export { getBootstrapNodes } from './lib/discovery';
 
 export * as utils from './lib/utils';
 
-export { Waku } from './lib/waku';
+export { Waku, DefaultPubSubTopic } from './lib/waku';
 
 export { WakuMessage } from './lib/waku_message';
 

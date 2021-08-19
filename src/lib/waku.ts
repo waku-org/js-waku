@@ -29,11 +29,16 @@ const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 
+/**
+ * DefaultPubSubTopic is the default gossipsub topic to use for Waku.
+ */
+export const DefaultPubSubTopic = '/waku/2/default-waku/proto';
+
 const dbg = debug('waku:waku');
 
 export interface CreateOptions {
   /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubsubTopic}.
+   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
    *
    * One and only one pubsub topic is used by Waku. This is used by:
    * - WakuRelay to receive, route and send messages,
@@ -43,7 +48,7 @@ export interface CreateOptions {
    * The usage of the default pubsub topic is recommended.
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
-   * @default {@link DefaultPubsubTopic}
+   * @default {@link DefaultPubSubTopic}
    */
   pubsubTopic?: string;
   /**

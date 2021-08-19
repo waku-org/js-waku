@@ -17,17 +17,17 @@ import { InMessage } from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 import PeerId from 'peer-id';
 
-import { CreateOptions } from '../waku';
+import { CreateOptions, DefaultPubSubTopic } from '../waku';
 import { WakuMessage } from '../waku_message';
 
 import * as constants from './constants';
-import { DefaultPubsubTopic, RelayCodecs } from './constants';
+import { RelayCodecs } from './constants';
 import { getRelayPeers } from './get_relay_peers';
 import { RelayHeartbeat } from './relay_heartbeat';
 
 const dbg = debug('waku:relay');
 
-export { RelayCodecs, DefaultPubsubTopic };
+export { RelayCodecs };
 
 /**
  * See constructor libp2p-gossipsub [API](https://github.com/ChainSafe/js-libp2p-gossipsub#api).
@@ -97,7 +97,7 @@ export class WakuRelay extends Gossipsub {
 
     Object.assign(this, { multicodecs });
 
-    this.pubsubTopic = options?.pubsubTopic || constants.DefaultPubsubTopic;
+    this.pubsubTopic = options?.pubsubTopic || DefaultPubSubTopic;
   }
 
   /**
@@ -250,7 +250,7 @@ export class WakuRelay extends Gossipsub {
    */
   join(topic: string): void {
     if (!this.started) {
-      throw new Error('WakuRelayPubsub has not started');
+      throw new Error('WakuRelayPubSub has not started');
     }
 
     const fanoutPeers = this.fanout.get(topic);
