@@ -66,10 +66,10 @@ export class WakuLightPush {
 
     const { stream } = await connection.newStream(LightPushCodec);
     try {
-      const pubsubTopic = opts?.pubSubTopic
+      const pubSubTopic = opts?.pubSubTopic
         ? opts.pubSubTopic
         : this.pubSubTopic;
-      const query = PushRPC.createRequest(message, pubsubTopic);
+      const query = PushRPC.createRequest(message, pubSubTopic);
       const res = await pipe(
         [query.encode()],
         lp.encode(),

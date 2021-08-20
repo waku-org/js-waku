@@ -5,7 +5,7 @@ package waku.v2;
 import "waku/v2/message.proto";
 
 message PushRequest {
-  string pubsub_topic = 1;
+  string pub_sub_topic = 1;
   WakuMessage message = 2;
 }
 

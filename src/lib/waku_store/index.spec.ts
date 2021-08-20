@@ -120,7 +120,7 @@ describe('Waku Store', () => {
     }
 
     waku = await Waku.create({
-      pubsubTopic: customPubSubTopic,
+      pubSubTopic: customPubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { modules: { transport: [TCP] } },
     });

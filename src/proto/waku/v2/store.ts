@@ -58,7 +58,7 @@ export interface ContentFilter {
 }
 
 export interface HistoryQuery {
-  pubsubTopic?: string | undefined;
+  pubSubTopic?: string | undefined;
   contentFilters: ContentFilter[];
   pagingInfo?: PagingInfo | undefined;
   startTime?: number | undefined;
@@ -366,8 +366,8 @@ export const HistoryQuery = {
     message: HistoryQuery,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.pubsubTopic !== undefined) {
-      writer.uint32(18).string(message.pubsubTopic);
+    if (message.pubSubTopic !== undefined) {
+      writer.uint32(18).string(message.pubSubTopic);
     }
     for (const v of message.contentFilters) {
       ContentFilter.encode(v!, writer.uint32(26).fork()).ldelim();
@@ -393,7 +393,7 @@ export const HistoryQuery = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 2:
-          message.pubsubTopic = reader.string();
+          message.pubSubTopic = reader.string();
           break;
         case 3:
           message.contentFilters.push(
@@ -420,10 +420,10 @@ export const HistoryQuery = {
   fromJSON(object: any): HistoryQuery {
     const message = { ...baseHistoryQuery } as HistoryQuery;
     message.contentFilters = [];
-    if (object.pubsubTopic !== undefined && object.pubsubTopic !== null) {
-      message.pubsubTopic = String(object.pubsubTopic);
+    if (object.pubSubTopic !== undefined && object.pubSubTopic !== null) {
+      message.pubSubTopic = String(object.pubSubTopic);
     } else {
-      message.pubsubTopic = undefined;
+      message.pubSubTopic = undefined;
     }
     if (object.contentFilters !== undefined && object.contentFilters !== null) {
       for (const e of object.contentFilters) {
@@ -450,8 +450,8 @@ export const HistoryQuery = {
 
   toJSON(message: HistoryQuery): unknown {
     const obj: any = {};
-    message.pubsubTopic !== undefined &&
-      (obj.pubsubTopic = message.pubsubTopic);
+    message.pubSubTopic !== undefined &&
+      (obj.pubSubTopic = message.pubSubTopic);
     if (message.contentFilters) {
       obj.contentFilters = message.contentFilters.map((e) =>
         e ? ContentFilter.toJSON(e) : undefined
@@ -471,10 +471,10 @@ export const HistoryQuery = {
   fromPartial(object: DeepPartial<HistoryQuery>): HistoryQuery {
     const message = { ...baseHistoryQuery } as HistoryQuery;
     message.contentFilters = [];
-    if (object.pubsubTopic !== undefined && object.pubsubTopic !== null) {
-      message.pubsubTopic = object.pubsubTopic;
+    if (object.pubSubTopic !== undefined && object.pubSubTopic !== null) {
+      message.pubSubTopic = object.pubSubTopic;
     } else {
-      message.pubsubTopic = undefined;
+      message.pubSubTopic = undefined;
     }
     if (object.contentFilters !== undefined && object.contentFilters !== null) {
       for (const e of object.contentFilters) {

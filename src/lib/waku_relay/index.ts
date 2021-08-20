@@ -62,7 +62,7 @@ export interface GossipOptions {
  */
 export class WakuRelay extends Gossipsub {
   heartbeat: RelayHeartbeat;
-  pubsubTopic: string;
+  pubSubTopic: string;
 
   /**
    * Decryption private keys to use to attempt decryption of incoming messages.
@@ -97,7 +97,7 @@ export class WakuRelay extends Gossipsub {
 
     Object.assign(this, { multicodecs });
 
-    this.pubsubTopic = options?.pubsubTopic || DefaultPubSubTopic;
+    this.pubSubTopic = options?.pubSubTopic || DefaultPubSubTopic;
   }
 
   /**
@@ -109,7 +109,7 @@ export class WakuRelay extends Gossipsub {
    */
   public start(): void {
     super.start();
-    this.subscribe(this.pubsubTopic);
+    this.subscribe(this.pubSubTopic);
   }
 
   /**
@@ -120,7 +120,7 @@ export class WakuRelay extends Gossipsub {
    */
   public async send(message: WakuMessage): Promise<void> {
     const msg = message.encode();
-    await super.publish(this.pubsubTopic, Buffer.from(msg));
+    await super.publish(this.pubSubTopic, Buffer.from(msg));
   }
 
   /**
@@ -194,7 +194,7 @@ export class WakuRelay extends Gossipsub {
    * Return the relay peers we are connected to and we would publish a message to
    */
   getPeers(): Set<string> {
-    return getRelayPeers(this, this.pubsubTopic, this._options.D, (id) => {
+    return getRelayPeers(this, this.pubSubTopic, this._options.D, (id) => {
       // Filter peers we would not publish to
       return (
         this.score.score(id) >= this._options.scoreThresholds.publishThreshold
@@ -207,9 +207,9 @@ export class WakuRelay extends Gossipsub {
    *
    * @override
    */
-  subscribe(pubsubTopic: string): void {
-    this.on(pubsubTopic, (event) => {
-      dbg(`Message received on ${pubsubTopic}`);
+  subscribe(pubSubTopic: string): void {
+    this.on(pubSubTopic, (event) => {
+      dbg(`Message received on ${pubSubTopic}`);
       WakuMessage.decode(event.data, Array.from(this.decryptionKeys))
         .then((wakuMsg) => {
           if (!wakuMsg) {
@@ -235,7 +235,7 @@ export class WakuRelay extends Gossipsub {
         });
     });
 
-    super.subscribe(pubsubTopic);
+    super.subscribe(pubSubTopic);
   }
 
   /**

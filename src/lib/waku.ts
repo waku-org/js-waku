@@ -50,7 +50,7 @@ export interface CreateOptions {
    *
    * @default {@link DefaultPubSubTopic}
    */
-  pubsubTopic?: string;
+  pubSubTopic?: string;
   /**
    * Set keep alive frequency in seconds: Waku will send a `/ipfs/ping/1.0.0`
    * request to each peer after the set number of seconds. Set to 0 to disable.
@@ -158,9 +158,9 @@ export class Waku {
     );
 
     // Pass pubsub topic to relay
-    if (options?.pubsubTopic) {
+    if (options?.pubSubTopic) {
       libp2pOpts.config.pubsub = Object.assign(
-        { pubsubTopic: options.pubsubTopic },
+        { pubSubTopic: options.pubSubTopic },
         libp2pOpts.config.pubsub
       );
     }
@@ -222,7 +222,7 @@ export class Waku {
     const libp2p = await Libp2p.create(libp2pOpts);
 
     const wakuStore = new WakuStore(libp2p, {
-      pubsubTopic: options?.pubsubTopic,
+      pubSubTopic: options?.pubSubTopic,
     });
     const wakuLightPush = new WakuLightPush(libp2p);
 

@@ -178,16 +178,16 @@ describe('Waku Relay', () => {
     it('Publish', async function () {
       this.timeout(10000);
 
-      const pubsubTopic = '/some/pubsub/topic';
+      const pubSubTopic = '/some/pubsub/topic';
 
       // 1 and 2 uses a custom pubsub
       const [waku1, waku2, waku3] = await Promise.all([
         Waku.create({
-          pubsubTopic,
+          pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_1,
         }),
         Waku.create({
-          pubsubTopic,
+          pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/ws'] } },
         }),

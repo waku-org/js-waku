@@ -7,12 +7,12 @@ import { WakuMessage } from '../waku_message';
 export class PushRPC {
   public constructor(public proto: proto.PushRPC) {}
 
-  static createRequest(message: WakuMessage, pubsubTopic: string): PushRPC {
+  static createRequest(message: WakuMessage, pubSubTopic: string): PushRPC {
     return new PushRPC({
       requestId: uuid(),
       request: {
         message: message.proto,
-        pubsubTopic,
+        pubSubTopic: pubSubTopic,
       },
       response: undefined,
     });

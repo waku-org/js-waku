@@ -25,7 +25,7 @@ message ContentFilter {
 }
 
 message HistoryQuery {
-  optional string pubsub_topic = 2;
+  optional string pub_sub_topic = 2;
   repeated ContentFilter content_filters = 3;
   optional PagingInfo paging_info = 4;
   optional double start_time = 5;
