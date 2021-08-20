@@ -1,3 +1,8 @@
+[![NPM](https://nodei.co/npm/js-waku.png)](https://npmjs.org/package/js-waku)
+
+![GitHub Action](https://img.shields.io/github/workflow/status/status-im/js-waku/CI)
+[![Discord chat](https://img.shields.io/discord/864066763682218004.svg?logo=discord&colorB=7289DA)](https://discord.gg/j5pGbn7MHZ)
+
 # js-waku
 
 A JavaScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/10/).
