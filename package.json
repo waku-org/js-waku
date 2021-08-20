@@ -80,7 +80,6 @@
     "@types/app-root-path": "^1.2.4",
     "@types/axios": "^0.14.0",
     "@types/chai": "^4.2.15",
-    "@types/google-protobuf": "^3.7.4",
     "@types/mocha": "^8.2.2",
     "@types/node": "^14.14.31",
     "@types/secp256k1": "^4.0.2",
