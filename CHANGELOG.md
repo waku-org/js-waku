@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - New `bootstrap` option for `Waku.create` to easily connect to Waku nodes upon start up.
+- Support for `startTime` and `endTime` in Store queries to filter by time window as per [21/WAKU2-FTSTORE](https://rfc.vac.dev/spec/21/).
 
 ### Changed
 - Renamed `discover.getStatusFleetNodes` to `discovery.getBootstrapNodes`; 

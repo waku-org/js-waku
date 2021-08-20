@@ -10,10 +10,12 @@ export enum Direction {
 
 export interface Params {
   contentTopics: string[];
-  cursor?: proto.Index;
   pubSubTopic: string;
   direction: Direction;
   pageSize: number;
+  startTime?: number;
+  endTime?: number;
+  cursor?: proto.Index;
 }
 
 export class HistoryRPC {
@@ -40,8 +42,8 @@ export class HistoryRPC {
         pubSubTopic: params.pubSubTopic,
         contentFilters,
         pagingInfo,
-        startTime: undefined,
-        endTime: undefined,
+        startTime: params.startTime,
+        endTime: params.endTime,
       },
       response: undefined,
     });
