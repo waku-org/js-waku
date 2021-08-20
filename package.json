@@ -10,7 +10,10 @@
   "keywords": [
     "waku",
     "decentralised",
-    "communication"
+    "communication",
+    "web3",
+    "ethereum",
+    "dapps"
   ],
   "scripts": {
     "build": "run-s build:*",
