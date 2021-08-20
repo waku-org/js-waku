@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   refers to low latency network connections.
 - Examples (eth-pm): Use sign typed data EIP-712 instead of personal sign. 
 - Upgraded dependencies to remove warning at installation.
+- **Breaking**: Moved `DefaultPubSubTopic` to `waku.ts` and fixed the casing.
+- **Breaking**: Rename all `pubsubTopic` occurrences to `pubSubTopic`, across all interfaces.
 
 ### Removed
 - Examples (cli-chat): The focus of this library is Web environment;

@@ -11,10 +11,8 @@ import {
   NOISE_KEY_2,
 } from '../../test_utils';
 import { delay } from '../delay';
-import { Waku } from '../waku';
+import { DefaultPubSubTopic, Waku } from '../waku';
 import { WakuMessage } from '../waku_message';
-
-import { DefaultPubsubTopic } from './index';
 
 const log = debug('waku:test');
 
@@ -63,9 +61,9 @@ describe('Waku Relay', () => {
 
     it('Subscribe', async function () {
       const subscribers1 =
-        waku1.libp2p.pubsub.getSubscribers(DefaultPubsubTopic);
+        waku1.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
       const subscribers2 =
-        waku2.libp2p.pubsub.getSubscribers(DefaultPubsubTopic);
+        waku2.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
 
       expect(subscribers1).to.contain(waku2.libp2p.peerId.toB58String());
       expect(subscribers2).to.contain(waku1.libp2p.peerId.toB58String());
@@ -180,16 +178,16 @@ describe('Waku Relay', () => {
     it('Publish', async function () {
       this.timeout(10000);
 
-      const pubsubTopic = '/some/pubsub/topic';
+      const pubSubTopic = '/some/pubsub/topic';
 
       // 1 and 2 uses a custom pubsub
       const [waku1, waku2, waku3] = await Promise.all([
         Waku.create({
-          pubsubTopic,
+          pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_1,
         }),
         Waku.create({
-          pubsubTopic,
+          pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/ws'] } },
         }),
@@ -282,7 +280,7 @@ describe('Waku Relay', () => {
       it('nim subscribes to js', async function () {
         const nimPeerId = await nimWaku.getPeerId();
         const subscribers =
-          waku.libp2p.pubsub.getSubscribers(DefaultPubsubTopic);
+          waku.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
 
         expect(subscribers).to.contain(nimPeerId.toB58String());
       });
@@ -371,7 +369,7 @@ describe('Waku Relay', () => {
 
         while (subscribers.length === 0) {
           await delay(200);
-          subscribers = waku.libp2p.pubsub.getSubscribers(DefaultPubsubTopic);
+          subscribers = waku.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
         }
 
         const nimPeerId = await nimWaku.getPeerId();

@@ -29,11 +29,16 @@ const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 
+/**
+ * DefaultPubSubTopic is the default gossipsub topic to use for Waku.
+ */
+export const DefaultPubSubTopic = '/waku/2/default-waku/proto';
+
 const dbg = debug('waku:waku');
 
 export interface CreateOptions {
   /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubsubTopic}.
+   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
    *
    * One and only one pubsub topic is used by Waku. This is used by:
    * - WakuRelay to receive, route and send messages,
@@ -43,9 +48,9 @@ export interface CreateOptions {
    * The usage of the default pubsub topic is recommended.
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
-   * @default {@link DefaultPubsubTopic}
+   * @default {@link DefaultPubSubTopic}
    */
-  pubsubTopic?: string;
+  pubSubTopic?: string;
   /**
    * Set keep alive frequency in seconds: Waku will send a `/ipfs/ping/1.0.0`
    * request to each peer after the set number of seconds. Set to 0 to disable.
@@ -153,9 +158,9 @@ export class Waku {
     );
 
     // Pass pubsub topic to relay
-    if (options?.pubsubTopic) {
+    if (options?.pubSubTopic) {
       libp2pOpts.config.pubsub = Object.assign(
-        { pubsubTopic: options.pubsubTopic },
+        { pubSubTopic: options.pubSubTopic },
         libp2pOpts.config.pubsub
       );
     }
@@ -217,7 +222,7 @@ export class Waku {
     const libp2p = await Libp2p.create(libp2pOpts);
 
     const wakuStore = new WakuStore(libp2p, {
-      pubsubTopic: options?.pubsubTopic,
+      pubSubTopic: options?.pubSubTopic,
     });
     const wakuLightPush = new WakuLightPush(libp2p);
 

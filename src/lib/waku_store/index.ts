@@ -8,8 +8,8 @@ import PeerId from 'peer-id';
 
 import { HistoryResponse_Error } from '../../proto/waku/v2/store';
 import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
+import { DefaultPubSubTopic } from '../waku';
 import { WakuMessage } from '../waku_message';
-import { DefaultPubsubTopic } from '../waku_relay';
 
 import { Direction, HistoryRPC } from './history_rpc';
 
@@ -21,19 +21,19 @@ export { Direction };
 
 export interface CreateOptions {
   /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubsubTopic}.
+   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
    *
    * The usage of the default pubsub topic is recommended.
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
-   * @default {@link DefaultPubsubTopic}
+   * @default {@link DefaultPubSubTopic}
    */
-  pubsubTopic?: string;
+  pubSubTopic?: string;
 }
 
 export interface QueryOptions {
   peerId?: PeerId;
-  pubsubTopic?: string;
+  pubSubTopic?: string;
   direction?: Direction;
   pageSize?: number;
   callback?: (messages: WakuMessage[]) => void;
@@ -44,13 +44,13 @@ export interface QueryOptions {
  * Implements the [Waku v2 Store protocol](https://rfc.vac.dev/spec/13/).
  */
 export class WakuStore {
-  pubsubTopic: string;
+  pubSubTopic: string;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
-    if (options?.pubsubTopic) {
-      this.pubsubTopic = options.pubsubTopic;
+    if (options?.pubSubTopic) {
+      this.pubSubTopic = options.pubSubTopic;
     } else {
-      this.pubsubTopic = DefaultPubsubTopic;
+      this.pubSubTopic = DefaultPubSubTopic;
     }
   }
 
@@ -61,7 +61,7 @@ export class WakuStore {
    * retrieve all messages.
    * @param options
    * @param options.peerId The peer to query.Options
-   * @param options.pubsubTopic The pubsub topic to pass to the query. Defaults
+   * @param options.pubSubTopic The pubsub topic to pass to the query. Defaults
    * to the value set at creation. See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/).
    * @param options.callback Callback called on page of stored messages as they are retrieved
    * @param options.decryptionKeys Keys that will be used to decrypt messages.
@@ -75,7 +75,7 @@ export class WakuStore {
   ): Promise<WakuMessage[]> {
     const opts = Object.assign(
       {
-        pubsubTopic: this.pubsubTopic,
+        pubSubTopic: this.pubSubTopic,
         direction: Direction.BACKWARD,
         pageSize: 10,
       },
@@ -131,7 +131,7 @@ export class WakuStore {
       }
 
       dbg(
-        `${response.messages.length} messages retrieved for pubsub topic ${opts.pubsubTopic}`
+        `${response.messages.length} messages retrieved for pubsub topic ${opts.pubSubTopic}`
       );
 
       const pageMessages: WakuMessage[] = [];

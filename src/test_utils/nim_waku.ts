@@ -13,8 +13,8 @@ import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { hexToBuf } from '../lib/utils';
+import { DefaultPubSubTopic } from '../lib/waku';
 import { WakuMessage } from '../lib/waku_message';
-import { DefaultPubsubTopic } from '../lib/waku_relay';
 import * as proto from '../proto/waku/v2/message';
 
 import { existsAsync, mkdirAsync, openAsync } from './async_fs';
@@ -171,7 +171,7 @@ export class NimWaku {
 
   async sendMessage(
     message: WakuMessage,
-    pubsubTopic?: string
+    pubSubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -195,7 +195,7 @@ export class NimWaku {
     };
 
     return this.rpcCall<boolean>('post_waku_v2_relay_v1_message', [
-      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
+      pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       rpcMessage,
     ]);
   }
@@ -209,7 +209,7 @@ export class NimWaku {
 
     const protoMsgs = await this.rpcCall<proto.WakuMessage[]>(
       'get_waku_v2_relay_v1_messages',
-      [DefaultPubsubTopic]
+      [DefaultPubSubTopic]
     );
 
     const msgs = await Promise.all(
@@ -233,7 +233,7 @@ export class NimWaku {
   async postAsymmetricMessage(
     message: WakuRelayMessage,
     publicKey: Uint8Array,
-    pubsubTopic?: string
+    pubSubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -242,7 +242,7 @@ export class NimWaku {
     }
 
     return this.rpcCall<boolean>('post_waku_v2_private_v1_asymmetric_message', [
-      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
+      pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       message,
       '0x' + bufToHex(publicKey),
     ]);
@@ -250,14 +250,14 @@ export class NimWaku {
 
   async getAsymmetricMessages(
     privateKey: Uint8Array,
-    pubsubTopic?: string
+    pubSubTopic?: string
   ): Promise<WakuRelayMessage[]> {
     this.checkProcess();
 
     return await this.rpcCall<WakuRelayMessage[]>(
       'get_waku_v2_private_v1_asymmetric_messages',
       [
-        pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
+        pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
         '0x' + bufToHex(privateKey),
       ]
     );
@@ -275,7 +275,7 @@ export class NimWaku {
   async postSymmetricMessage(
     message: WakuRelayMessage,
     symKey: Uint8Array,
-    pubsubTopic?: string
+    pubSubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -284,7 +284,7 @@ export class NimWaku {
     }
 
     return this.rpcCall<boolean>('post_waku_v2_private_v1_symmetric_message', [
-      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
+      pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       message,
       '0x' + bufToHex(symKey),
     ]);
@@ -292,13 +292,13 @@ export class NimWaku {
 
   async getSymmetricMessages(
     symKey: Uint8Array,
-    pubsubTopic?: string
+    pubSubTopic?: string
   ): Promise<WakuRelayMessage[]> {
     this.checkProcess();
 
     return await this.rpcCall<WakuRelayMessage[]>(
       'get_waku_v2_private_v1_symmetric_messages',
-      [pubsubTopic ? pubsubTopic : DefaultPubsubTopic, '0x' + bufToHex(symKey)]
+      [pubSubTopic ? pubSubTopic : DefaultPubSubTopic, '0x' + bufToHex(symKey)]
     );
   }
 

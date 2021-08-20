@@ -6,7 +6,7 @@ import { WakuMessage } from '../../waku/v2/message';
 export const protobufPackage = 'waku.v2';
 
 export interface PushRequest {
-  pubsubTopic: string;
+  pubSubTopic: string;
   message: WakuMessage | undefined;
 }
 
@@ -21,15 +21,15 @@ export interface PushRPC {
   response: PushResponse | undefined;
 }
 
-const basePushRequest: object = { pubsubTopic: '' };
+const basePushRequest: object = { pubSubTopic: '' };
 
 export const PushRequest = {
   encode(
     message: PushRequest,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.pubsubTopic !== '') {
-      writer.uint32(10).string(message.pubsubTopic);
+    if (message.pubSubTopic !== '') {
+      writer.uint32(10).string(message.pubSubTopic);
     }
     if (message.message !== undefined) {
       WakuMessage.encode(message.message, writer.uint32(18).fork()).ldelim();
@@ -45,7 +45,7 @@ export const PushRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.pubsubTopic = reader.string();
+          message.pubSubTopic = reader.string();
           break;
         case 2:
           message.message = WakuMessage.decode(reader, reader.uint32());
@@ -60,10 +60,10 @@ export const PushRequest = {
 
   fromJSON(object: any): PushRequest {
     const message = { ...basePushRequest } as PushRequest;
-    if (object.pubsubTopic !== undefined && object.pubsubTopic !== null) {
-      message.pubsubTopic = String(object.pubsubTopic);
+    if (object.pubSubTopic !== undefined && object.pubSubTopic !== null) {
+      message.pubSubTopic = String(object.pubSubTopic);
     } else {
-      message.pubsubTopic = '';
+      message.pubSubTopic = '';
     }
     if (object.message !== undefined && object.message !== null) {
       message.message = WakuMessage.fromJSON(object.message);
@@ -75,8 +75,8 @@ export const PushRequest = {
 
   toJSON(message: PushRequest): unknown {
     const obj: any = {};
-    message.pubsubTopic !== undefined &&
-      (obj.pubsubTopic = message.pubsubTopic);
+    message.pubSubTopic !== undefined &&
+      (obj.pubSubTopic = message.pubSubTopic);
     message.message !== undefined &&
       (obj.message = message.message
         ? WakuMessage.toJSON(message.message)
@@ -86,10 +86,10 @@ export const PushRequest = {
 
   fromPartial(object: DeepPartial<PushRequest>): PushRequest {
     const message = { ...basePushRequest } as PushRequest;
-    if (object.pubsubTopic !== undefined && object.pubsubTopic !== null) {
-      message.pubsubTopic = object.pubsubTopic;
+    if (object.pubSubTopic !== undefined && object.pubSubTopic !== null) {
+      message.pubSubTopic = object.pubSubTopic;
     } else {
-      message.pubsubTopic = '';
+      message.pubSubTopic = '';
     }
     if (object.message !== undefined && object.message !== null) {
       message.message = WakuMessage.fromPartial(object.message);

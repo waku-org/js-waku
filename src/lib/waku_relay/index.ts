@@ -17,17 +17,17 @@ import { InMessage } from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 import PeerId from 'peer-id';
 
-import { CreateOptions } from '../waku';
+import { CreateOptions, DefaultPubSubTopic } from '../waku';
 import { WakuMessage } from '../waku_message';
 
 import * as constants from './constants';
-import { DefaultPubsubTopic, RelayCodecs } from './constants';
+import { RelayCodecs } from './constants';
 import { getRelayPeers } from './get_relay_peers';
 import { RelayHeartbeat } from './relay_heartbeat';
 
 const dbg = debug('waku:relay');
 
-export { RelayCodecs, DefaultPubsubTopic };
+export { RelayCodecs };
 
 /**
  * See constructor libp2p-gossipsub [API](https://github.com/ChainSafe/js-libp2p-gossipsub#api).
@@ -62,7 +62,7 @@ export interface GossipOptions {
  */
 export class WakuRelay extends Gossipsub {
   heartbeat: RelayHeartbeat;
-  pubsubTopic: string;
+  pubSubTopic: string;
 
   /**
    * Decryption private keys to use to attempt decryption of incoming messages.
@@ -97,7 +97,7 @@ export class WakuRelay extends Gossipsub {
 
     Object.assign(this, { multicodecs });
 
-    this.pubsubTopic = options?.pubsubTopic || constants.DefaultPubsubTopic;
+    this.pubSubTopic = options?.pubSubTopic || DefaultPubSubTopic;
   }
 
   /**
@@ -109,7 +109,7 @@ export class WakuRelay extends Gossipsub {
    */
   public start(): void {
     super.start();
-    this.subscribe(this.pubsubTopic);
+    this.subscribe(this.pubSubTopic);
   }
 
   /**
@@ -120,7 +120,7 @@ export class WakuRelay extends Gossipsub {
    */
   public async send(message: WakuMessage): Promise<void> {
     const msg = message.encode();
-    await super.publish(this.pubsubTopic, Buffer.from(msg));
+    await super.publish(this.pubSubTopic, Buffer.from(msg));
   }
 
   /**
@@ -194,7 +194,7 @@ export class WakuRelay extends Gossipsub {
    * Return the relay peers we are connected to and we would publish a message to
    */
   getPeers(): Set<string> {
-    return getRelayPeers(this, this.pubsubTopic, this._options.D, (id) => {
+    return getRelayPeers(this, this.pubSubTopic, this._options.D, (id) => {
       // Filter peers we would not publish to
       return (
         this.score.score(id) >= this._options.scoreThresholds.publishThreshold
@@ -207,9 +207,9 @@ export class WakuRelay extends Gossipsub {
    *
    * @override
    */
-  subscribe(pubsubTopic: string): void {
-    this.on(pubsubTopic, (event) => {
-      dbg(`Message received on ${pubsubTopic}`);
+  subscribe(pubSubTopic: string): void {
+    this.on(pubSubTopic, (event) => {
+      dbg(`Message received on ${pubSubTopic}`);
       WakuMessage.decode(event.data, Array.from(this.decryptionKeys))
         .then((wakuMsg) => {
           if (!wakuMsg) {
@@ -235,7 +235,7 @@ export class WakuRelay extends Gossipsub {
         });
     });
 
-    super.subscribe(pubsubTopic);
+    super.subscribe(pubSubTopic);
   }
 
   /**
@@ -250,7 +250,7 @@ export class WakuRelay extends Gossipsub {
    */
   join(topic: string): void {
     if (!this.started) {
-      throw new Error('WakuRelayPubsub has not started');
+      throw new Error('WakuRelayPubSub has not started');
     }
 
     const fanoutPeers = this.fanout.get(topic);

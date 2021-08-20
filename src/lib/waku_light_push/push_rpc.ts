@@ -3,20 +3,16 @@ import { v4 as uuid } from 'uuid';
 
 import * as proto from '../../proto/waku/v2/light_push';
 import { WakuMessage } from '../waku_message';
-import { DefaultPubsubTopic } from '../waku_relay';
 
 export class PushRPC {
   public constructor(public proto: proto.PushRPC) {}
 
-  static createRequest(
-    message: WakuMessage,
-    pubsubTopic: string = DefaultPubsubTopic
-  ): PushRPC {
+  static createRequest(message: WakuMessage, pubSubTopic: string): PushRPC {
     return new PushRPC({
       requestId: uuid(),
       request: {
         message: message.proto,
-        pubsubTopic,
+        pubSubTopic: pubSubTopic,
       },
       response: undefined,
     });
