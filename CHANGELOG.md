@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2021-08-20
+
 ### Added
+- Examples: New [Ethereum Private Message Using Wallet Encryption Web App](./examples/eth-pm-wallet-encryption/README.md)
+  example that demonstrates the usage of `eth_encrypt` API (available on Metamask) and EIP-712 for typed structured data signing.
 - New `bootstrap` option for `Waku.create` to easily connect to Waku nodes upon start up.
 - Support for `startTime` and `endTime` in Store queries to filter by time window as per [21/WAKU2-FTSTORE](https://rfc.vac.dev/spec/21/).
 
@@ -29,10 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it is a type used for the [TOY-CHAT](https://rfc.vac.dev/spec/22/) protocol;
   js-waku users should not build on top if this toy protocol and instead design message data structures appropriate to their use case.
 - Unused dependencies & scripts.
-
-### Added
-- Examples: New [Ethereum Private Message Using Wallet Encryption Web App](./examples/eth-pm-wallet-encryption/README.md)
-  example that demonstrates the usage of `eth_encrypt` API (available on Metamask) and EIP-712 for typed structured data signing.
 
 ## [0.10.0] - 2021-08-06
 
@@ -194,7 +194,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://status-im.github.io/js-waku/docs).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/status-im/js-waku/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/status-im/js-waku/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/status-im/js-waku/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/status-im/js-waku/compare/v0.8.0...v0.8.1
