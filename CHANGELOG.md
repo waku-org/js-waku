@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ChatMessage` has been moved from js-waku to web-chat example;
   it is a type used for the [TOY-CHAT](https://rfc.vac.dev/spec/22/) protocol;
   js-waku users should not build on top if this toy protocol and instead design message data structures appropriate to their use case.
+- Unused dependencies & scripts.
 
 ### Added
 - Examples: New [Ethereum Private Message Using Wallet Encryption Web App](./examples/eth-pm-wallet-encryption/README.md)
