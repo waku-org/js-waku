@@ -31,13 +31,17 @@ export interface CreateOptions {
   pubSubTopic?: string;
 }
 
+export interface TimeFilter {
+  startTime: Date;
+  endTime: Date;
+}
+
 export interface QueryOptions {
   peerId?: PeerId;
   pubSubTopic?: string;
   direction?: Direction;
   pageSize?: number;
-  startTime?: Date;
-  endTime?: Date;
+  timeFilter?: TimeFilter;
   callback?: (messages: WakuMessage[]) => void;
   decryptionKeys?: Uint8Array[];
 }
@@ -63,8 +67,7 @@ export class WakuStore {
    * retrieve all messages.
    * @param options
    * @param options.peerId The peer to query.Options
-   * @param options.startTime Query messages with a timestamp greater than this value.
-   * @param options.endTime Query messages with a timestamp lesser than this value.
+   * @param options.timeFilter Query messages with a timestamp within the provided values.
    * @param options.pubSubTopic The pubsub topic to pass to the query. Defaults
    * to the value set at creation. See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/).
    * @param options.callback Callback called on page of stored messages as they are retrieved
@@ -78,11 +81,9 @@ export class WakuStore {
     options?: QueryOptions
   ): Promise<WakuMessage[]> {
     let startTime, endTime;
-    if (options?.startTime) {
-      startTime = options.startTime.getTime() / 1000;
-    }
-    if (options?.endTime) {
-      endTime = options.endTime.getTime() / 1000;
+    if (options?.timeFilter) {
+      startTime = options.timeFilter.startTime.getTime() / 1000;
+      endTime = options.timeFilter.endTime.getTime() / 1000;
     }
 
     const opts = Object.assign(
