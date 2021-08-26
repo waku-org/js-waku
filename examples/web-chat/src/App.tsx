@@ -61,10 +61,20 @@ async function retrieveStoreMessages(
     setArchivedMessages(messages);
   };
 
+  const startTime = new Date();
+  // Only retrieve a week of history
+  startTime.setTime(Date.now() - 1000 * 60 * 60 * 24 * 7);
+
+  const endTime = new Date();
+
   try {
     const res = await waku.store.queryHistory([ChatContentTopic], {
       pageSize: 5,
       direction: Direction.FORWARD,
+      timeFilter: {
+        startTime,
+        endTime,
+      },
       callback,
     });
 
