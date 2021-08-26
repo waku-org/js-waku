@@ -7,6 +7,7 @@
 - Waku Light Push
 - Signature with Web3
 - Asymmetric Encryption
+- Symmetric Encryption
 
 A PoC implementation of [20/ETH-DM](https://rfc.vac.dev/spec/20/).
 

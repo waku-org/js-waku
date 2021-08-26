@@ -4,6 +4,12 @@ import { PublicKeyMessage } from './messaging/wire';
 import { hexToBuf, equalByteArrays, bufToHex } from 'js-waku/lib/utils';
 import { generatePrivateKey, getPublicKey } from 'js-waku';
 import * as sigUtil from 'eth-sig-util';
+import { PublicKeyContentTopic } from './waku';
+import { keccak256 } from 'ethers/lib/utils';
+
+export const PublicKeyMessageEncryptionKey = hexToBuf(
+  keccak256(Buffer.from(PublicKeyContentTopic, 'utf-8'))
+);
 
 export interface KeyPair {
   privateKey: Uint8Array;

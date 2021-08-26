@@ -1,6 +1,10 @@
 import { Button } from '@material-ui/core';
 import React, { useState } from 'react';
-import { createPublicKeyMessage, KeyPair } from './crypto';
+import {
+  createPublicKeyMessage,
+  KeyPair,
+  PublicKeyMessageEncryptionKey,
+} from './crypto';
 import { PublicKeyMessage } from './messaging/wire';
 import { WakuMessage, Waku } from 'js-waku';
 import { PublicKeyContentTopic } from './waku';
@@ -84,5 +88,7 @@ async function encodePublicKeyWakuMessage(
   publicKeyMessage: PublicKeyMessage
 ): Promise<WakuMessage> {
   const payload = publicKeyMessage.encode();
-  return await WakuMessage.fromBytes(payload, PublicKeyContentTopic);
+  return await WakuMessage.fromBytes(payload, PublicKeyContentTopic, {
+    symKey: PublicKeyMessageEncryptionKey,
+  });
 }

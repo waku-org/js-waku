@@ -3,7 +3,7 @@ import '@ethersproject/shims';
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Waku } from 'js-waku';
-import { KeyPair } from './crypto';
+import { KeyPair, PublicKeyMessageEncryptionKey } from './crypto';
 import { Message } from './messaging/Messages';
 import 'fontsource-roboto';
 import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
@@ -108,10 +108,13 @@ function App() {
       setPublicKeys
     );
 
+    waku.relay.addDecryptionKey(PublicKeyMessageEncryptionKey);
     waku.relay.addObserver(observerPublicKeyMessage, [PublicKeyContentTopic]);
 
     return function cleanUp() {
       if (!waku) return;
+
+      waku.relay.deleteDecryptionKey(PublicKeyMessageEncryptionKey);
       waku.relay.deleteObserver(observerPublicKeyMessage, [
         PublicKeyContentTopic,
       ]);
