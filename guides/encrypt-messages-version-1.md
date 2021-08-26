@@ -8,19 +8,19 @@ You can find more details about Waku Message Payload Encryption in [26/WAKU-PAYL
 
 ## What data is encrypted
 
-With waku Message version 1, the payload is encrypted.
+With Waku Message Version 1, the entire payload is encrypted.
 
 Which means that the only discriminating data available in clear text is the content topic and timestamp (if present).
-Hence, if Alice expects to receive messages under a given content topic, she needs to try decrypting of all messages received on said content topic.
+Hence, if Alice expects to receive messages under a given content topic, she needs to try to decrypt all messages received on said content topic.
 
 This needs to be kept in mind for scalability and forward secrecy concerns:
 
-- If there is high traffic on a given content topic then all clients need to process said traffic;
-- If a content topic is only used by a give (group of) users then it is possible to deduce some information about their communication such time and frequency of messages.
+- If there is high traffic on a given content topic then all clients need to process and attempt decryption of all messages with said content topic;
+- If a content topic is only used by a given (group of) user(s) then it is possible to deduce some information about said user(s) communications such as sent time and frequency of messages.
 
 ## Key management
 
-By using Waku Message Version 1, you will need to provide a way for your user to generate and store keys in a secure manner.
+By using Waku Message Version 1, you will need to provide a way to your users to generate and store keys in a secure manner.
 Storing, backing up and recovering key is out of the scope of this guide.
 
 <!-- TODO: Subtle Crypto link once it's back up https://github.com/mdn/content/issues/8314 -->
@@ -31,12 +31,12 @@ Whether you should use symmetric or asymmetric encryption depends on your use ca
 
 **Symmetric** encryption is done using a single key to encrypt and decrypt.
 
-Which means that if Alice knows `K` and use it to encrypt a message,
+Which means that if Alice knows the symmetric key `K` and uses it to encrypt a message,
 she can also use `K` to decrypt any message encrypted with `K`,
 even if she is not the sender.
 
 Group chats is a possible use case for symmetric encryption:
-All participants can use an out-of-band method to determine `K`.
+All participants can use an out-of-band method to agree on a `K`.
 Participants can then use `K` to encrypt and decrypt messages within the group chat.
 Participants MUST keep `K` secret to ensure that no external party can decrypt the group chat messages.
 
@@ -48,7 +48,7 @@ For Alice to encrypt a message for Bob, she needs to know Bob's Public Key `K`.
 Bob can then use his private key `k` to decrypt the message.
 As long as Bob keep his private key `k` secret, then he, and only he, can decrypt messages encrypted with `K`.
 
-Private messaging is a possible use case for aasymmetric encryption:
+Private 1:1 messaging is a possible use case for asymmetric encryption:
 When Alice sends an encrypted message for Bob, only Bob can decrypt it.
 
 ## Symmetric Encryption
@@ -77,7 +77,7 @@ See [Receive and Send Messages Using Waku Relay](relay-receive-send-messages.md)
 import { WakuMessage } from 'js-waku';
 
 const message = await WakuMessage.fromBytes(payload, contentTopic, {
-  symKey: key,
+  symKey: key
 });
 ```
 
@@ -118,12 +118,12 @@ Symmetric keys or asymmetric private keys can be mixed, both decryption methods 
 
 ```js
 // Using await syntax
-const messages = await waku2.store.queryHistory([contentTopic], {
+const messages = await waku.store.queryHistory([contentTopic], {
   decryptionKeys: [key]
 });
 
 // Using callback syntax
-waku2.store.queryHistory([contentTopic], {
+waku.store.queryHistory([contentTopic], {
   decryptionKeys: [key],
   callback: (messages) => {
     // Process decrypted messages
@@ -155,8 +155,8 @@ hence it is not needed to save it as long as as the private key can be recovered
 
 ### Encrypt Message
 
-The public key is used to encrypt messages, to do so,
-pass the key in the `encPublicKey` property to `WakuMessage.fromBytes`.
+The public key is used to encrypt messages;
+to do so, pass it in the `encPublicKey` property to `WakuMessage.fromBytes`.
 
 Same as clear Waku Messages,
 `payload` is your message payload and `contentTopic` is the content topic for your dApp.
@@ -240,13 +240,12 @@ const message = await WakuMessage.fromBytes(payload, contentTopic, {
 console.log(message.payload); // This is encrypted
 ```
 
-However, `WakuMessage` instances returned by `WakuRelay` or `WakuStore` are decrypted,
-if the correct decryption key is passed as explained previously.
+However, `WakuMessage` instances returned by `WakuRelay` or `WakuStore` are always decrypted.
 
-`WakuRelay` and `WakuStore` never returned messages that are encrypted.
-If a message was not succesfully decrypted, then it will be dropped from the results.
+`WakuRelay` and `WakuStore` never return messages that are encrypted.
+If a message was not successfully decrypted, then it will be dropped from the results.
 
-Which means that `WakuMessage` instances returned by `WakuRelay` and `WkauStore` always a clear payload (in regard to Waku Message version 1):
+Which means that `WakuMessage` instances returned by `WakuRelay` and `WakuStore` always have a clear payload (in regard to Waku Message version 1):
 
 ```js
 const messages = await waku.store.queryHistory([contentTopic], {
