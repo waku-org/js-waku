@@ -1,6 +1,10 @@
 import { Button } from '@material-ui/core';
 import React, { useState } from 'react';
-import { createPublicKeyMessage, KeyPair } from './crypto';
+import {
+  createPublicKeyMessage,
+  KeyPair,
+  PublicKeyMessageEncryptionKey,
+} from './crypto';
 import { PublicKeyMessage } from './messaging/wire';
 import { WakuMessage, Waku } from 'js-waku';
 import { PublicKeyContentTopic } from './waku';
@@ -35,8 +39,8 @@ export default function BroadcastPublicKey({
             console.error('Failed to send Public Key Message', e);
           });
         })
-        .catch(() => {
-          console.log('Failed to encode Public Key Message in Waku Message');
+        .catch((e) => {
+          console.log('Failed to encode Public Key Message in Waku Message', e);
         });
     } else {
       createPublicKeyMessage(
@@ -55,9 +59,10 @@ export default function BroadcastPublicKey({
                   console.error('Failed to send Public Key Message', e);
                 });
             })
-            .catch(() => {
+            .catch((e) => {
               console.log(
-                'Failed to encode Public Key Message in Waku Message'
+                'Failed to encode Public Key Message in Waku Message',
+                e
               );
             });
         })
@@ -83,5 +88,7 @@ async function encodePublicKeyWakuMessage(
   publicKeyMessage: PublicKeyMessage
 ): Promise<WakuMessage> {
   const payload = publicKeyMessage.encode();
-  return await WakuMessage.fromBytes(payload, PublicKeyContentTopic);
+  return await WakuMessage.fromBytes(payload, PublicKeyContentTopic, {
+    symKey: PublicKeyMessageEncryptionKey,
+  });
 }
