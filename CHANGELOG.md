@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Breaking**: Moved `startTime` and `endTime` for history queries to a `timeFilter` property as both or neither must be passed; passing only one parameter is not supported.
 
+### Fixed
+- Buffer concat error when using symmetric encryption in the browser.
+
 ## [0.11.0] - 2021-08-20
 
 ### Added

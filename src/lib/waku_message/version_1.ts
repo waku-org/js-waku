@@ -147,7 +147,7 @@ export async function encryptSymmetric(
 
   // Returns `cipher | tag`
   const cipher = await symmetric.encrypt(iv, hexToBuf(key), Buffer.from(data));
-  return Buffer.concat([cipher, iv]);
+  return Buffer.concat([cipher, Buffer.from(iv)]);
 }
 
 /**
