@@ -288,25 +288,19 @@ describe('Waku Store', () => {
 
     const nimPeerId = await nimWaku.getPeerId();
 
-    // TODO: This scenario can be tested once https://github.com/status-im/nim-waku/issues/706 is done
-    // const noMessage = await waku.store.queryHistory([], {
-    //   peerId: nimPeerId,
-    //   endTime: startTime,
-    // });
-
     const firstMessage = await waku.store.queryHistory([], {
       peerId: nimPeerId,
-      startTime,
-      endTime: message1Timestamp,
+      timeFilter: { startTime, endTime: message1Timestamp },
     });
 
     const bothMessages = await waku.store.queryHistory([], {
       peerId: nimPeerId,
-      startTime,
-      endTime,
+      timeFilter: {
+        startTime,
+        endTime,
+      },
     });
 
-    // expect(noMessage?.length).eq(0);
     expect(firstMessage?.length).eq(1);
 
     expect(firstMessage[0]?.payloadAsUtf8).eq('Message 0');
