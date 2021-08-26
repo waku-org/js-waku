@@ -35,8 +35,8 @@ export default function BroadcastPublicKey({
             console.error('Failed to send Public Key Message', e);
           });
         })
-        .catch(() => {
-          console.log('Failed to encode Public Key Message in Waku Message');
+        .catch((e) => {
+          console.log('Failed to encode Public Key Message in Waku Message', e);
         });
     } else {
       createPublicKeyMessage(
@@ -55,9 +55,10 @@ export default function BroadcastPublicKey({
                   console.error('Failed to send Public Key Message', e);
                 });
             })
-            .catch(() => {
+            .catch((e) => {
               console.log(
-                'Failed to encode Public Key Message in Waku Message'
+                'Failed to encode Public Key Message in Waku Message',
+                e
               );
             });
         })
