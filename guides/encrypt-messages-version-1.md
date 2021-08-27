@@ -72,7 +72,7 @@ const key = generatePrivateKey();
 To encrypt a message with the previously generated key,
 pass the key in the `symKey` property to `WakuMessage.fromBytes`.
 
-Same as clear Waku Messages,
+Same as Waku Messages version 0 (unencrypted),
 `payload` is your message payload and `contentTopic` is the content topic for your dApp.
 See [Receive and Send Messages Using Waku Relay](relay-receive-send-messages.md) for details.
 
