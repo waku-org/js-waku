@@ -24,7 +24,7 @@ By using Waku Message Version 1, you will need to provide a way to your users to
 Storing, backing up and recovering key is out of the scope of this guide.
 
 If key recovery is important for your dApp, then check out
-[SubtleCrypto.wrapKey()(https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/wrapKey) which can be used to securely store or export private keys.
+[SubtleCrypto.wrapKey()](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/wrapKey) which can be used to securely store or export private keys.
 
 An example to save and load a key pair in local storage, protected with a password, can be found in [Eth-PM](https://github.com/status-im/js-waku/blob/main/examples/eth-pm/src/key_pair_handling/key_pair_storage.ts).
 
