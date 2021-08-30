@@ -6,7 +6,11 @@ export { Waku, DefaultPubSubTopic } from './lib/waku';
 
 export { WakuMessage } from './lib/waku_message';
 
-export { generatePrivateKey, getPublicKey } from './lib/waku_message/version_1';
+export {
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+} from './lib/waku_message/version_1';
 
 export {
   WakuLightPush,

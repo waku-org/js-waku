@@ -13,7 +13,11 @@ import {
 import { delay } from '../delay';
 import { Waku } from '../waku';
 import { WakuMessage } from '../waku_message';
-import { generatePrivateKey, getPublicKey } from '../waku_message/version_1';
+import {
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+} from '../waku_message/version_1';
 
 import { Direction } from './history_rpc';
 
@@ -160,7 +164,7 @@ describe('Waku Store', () => {
       'This message is not for and I must not be able to read it';
 
     const privateKey = generatePrivateKey();
-    const symKey = generatePrivateKey();
+    const symKey = generateSymmetricKey();
     const publicKey = getPublicKey(privateKey);
 
     const [

@@ -14,7 +14,11 @@ import { delay } from '../delay';
 import { hexToBuf } from '../utils';
 import { Waku } from '../waku';
 
-import { generatePrivateKey, getPublicKey } from './version_1';
+import {
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+} from './version_1';
 
 import { WakuMessage } from './index';
 
@@ -122,7 +126,7 @@ describe('Waku Message: Node only', function () {
         payload: Buffer.from(messageText, 'utf-8').toString('hex'),
       };
 
-      const symKey = generatePrivateKey();
+      const symKey = generateSymmetricKey();
 
       waku.relay.addDecryptionKey(symKey);
 

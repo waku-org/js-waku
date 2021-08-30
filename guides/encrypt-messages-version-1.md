@@ -62,9 +62,9 @@ To use symmetric encryption, you first need to generate a key.
 You can simply use `generatePrivateKey` for secure key generation:
 
 ```js
-import { generatePrivateKey } from 'js-waku';
+import { generateSymmetricKey } from 'js-waku';
 
-const key = generatePrivateKey();
+const key = generateSymmetricKey();
 ```
 
 ### Encrypt Message

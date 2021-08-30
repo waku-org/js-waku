@@ -7,13 +7,15 @@ import * as secp256k1 from 'secp256k1';
 
 import { hexToBuf } from '../utils';
 
-import { IvSize, symmetric } from './symmetric';
+import { IvSize, symmetric, SymmetricKeySize } from './symmetric';
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011
 const IsSignedMask = 4; // 0100
 const PaddingTarget = 256;
 const SignatureLength = 65;
+
+export const PrivateKeySize = 32;
 
 /**
  * Encode the payload pre-encryption.
@@ -172,14 +174,19 @@ export async function decryptSymmetric(
 }
 
 /**
- * Generate a new key. Can be used as a private key for Asymmetric encryption
- * or a key for symmetric encryption.
+ * Generate a new private key to be used for asymmetric encryption.
  *
- * If using Asymmetric encryption, use {@link getPublicKey} to get the
- * corresponding Public Key.
+ * Use {@link getPublicKey} to get the corresponding Public Key.
  */
 export function generatePrivateKey(): Uint8Array {
-  return randomBytes(32);
+  return randomBytes(PrivateKeySize);
+}
+
+/**
+ * Generate a new symmetric key to be used for symmetric encryption.
+ */
+export function generateSymmetricKey(): Uint8Array {
+  return randomBytes(SymmetricKeySize);
 }
 
 /**

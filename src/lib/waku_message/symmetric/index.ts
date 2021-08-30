@@ -16,10 +16,6 @@ export interface Symmetric {
    */
   decrypt: (iv: Buffer, key: Buffer, cipherText: Buffer) => Promise<Buffer>;
   /**
-   * Generate a new private key for Symmetric encryption purposes.
-   */
-  generateKeyForSymmetricEnc: () => Buffer;
-  /**
    * Generate an Initialization Vector (iv) for for Symmetric encryption purposes.
    */
   generateIv: () => Uint8Array;

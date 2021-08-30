@@ -138,14 +138,14 @@ A quick note on the cryptographic libraries used as it is a not a straightforwar
 Asymmetric private keys and symmetric keys are expected to be 32 bytes arrays.
 
 ```ts
-import { generatePrivateKey, getPublicKey } from 'js-waku';
+import { generatePrivateKey, generateSymmetricKey, getPublicKey } from 'js-waku';
 
 // Asymmetric
 const privateKey = generatePrivateKey();
 const publicKey = getPublicKey(privateKey);
 
 // Symmetric
-const symKey = generatePrivateKey();
+const symKey = generateSymmetricKey();
 ```
 
 #### Encrypt Waku Messages
