@@ -65,9 +65,6 @@ export class WakuRelay extends Gossipsub {
   heartbeat: RelayHeartbeat;
   pubSubTopic: string;
 
-  /**
-   * Decryption private keys to use to attempt decryption of incoming messages.
-   */
   public decryptionKeys: Set<Uint8Array>;
 
   /**
@@ -125,10 +122,10 @@ export class WakuRelay extends Gossipsub {
   }
 
   /**
-   * Register a decryption private key or symmetric key to attempt decryption
-   * of messages received on the given content topic. This can either be a
-   * private key for asymmetric encryption or a symmetric key. Waku relay will
-   * attempt to decrypt messages using both methods.
+   * Register a decryption key to attempt decryption of received messages.
+   * This can either be a private key for asymmetric encryption or a symmetric
+   * key. `WakuRelay` will attempt to decrypt messages using both methods.
+   *
    * Strings must be in hex format.
    */
   addDecryptionKey(key: Uint8Array | string): void {
@@ -136,8 +133,9 @@ export class WakuRelay extends Gossipsub {
   }
 
   /**
-   * Delete a decryption key to attempt decryption of messages received on the
-   * given content topic.
+   * Delete a decryption key that was used to attempt decryption of received
+   * messages.
+   *
    * Strings must be in hex format.
    */
   deleteDecryptionKey(key: Uint8Array | string): void {
