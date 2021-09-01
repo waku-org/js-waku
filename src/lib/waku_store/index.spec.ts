@@ -236,9 +236,11 @@ describe('Waku Store', () => {
       storePeers = waku2.store.peers;
     }
 
+    waku2.store.addDecryptionKey(symKey);
+
     dbg('Retrieve messages from store');
     const messages = await waku2.store.queryHistory([], {
-      decryptionKeys: [privateKey, symKey],
+      decryptionKeys: [privateKey],
     });
 
     expect(messages?.length).eq(3);

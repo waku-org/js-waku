@@ -52,6 +52,7 @@ export interface QueryOptions {
  */
 export class WakuStore {
   pubSubTopic: string;
+  public decryptionKeys: Set<Uint8Array>;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
     if (options?.pubSubTopic) {
@@ -59,6 +60,8 @@ export class WakuStore {
     } else {
       this.pubSubTopic = DefaultPubSubTopic;
     }
+
+    this.decryptionKeys = new Set();
   }
 
   /**
@@ -115,7 +118,7 @@ export class WakuStore {
     const connection = this.libp2p.connectionManager.get(peer.id);
     if (!connection) throw 'Failed to get a connection to the peer';
 
-    const decryptionKeys: Uint8Array[] = [];
+    const decryptionKeys = Array.from(this.decryptionKeys.values());
     if (opts.decryptionKeys) {
       opts.decryptionKeys.forEach((key) => {
         decryptionKeys.push(hexToBuf(key));
@@ -196,6 +199,28 @@ export class WakuStore {
         return messages;
       }
     }
+  }
+
+  /**
+   * Register a decryption key to attempt decryption of messages received in any
+   * subsequent [[queryHistory]] call. This can either be a private key for
+   * asymmetric encryption or a symmetric key. [[WakuStore]] will attempt to
+   * decrypt messages using both methods.
+   *
+   * Strings must be in hex format.
+   */
+  addDecryptionKey(key: Uint8Array | string): void {
+    this.decryptionKeys.add(hexToBuf(key));
+  }
+
+  /**
+   * Delete a decryption key that was used to attempt decryption of messages
+   * received in subsequent [[queryHistory]] calls.
+   *
+   * Strings must be in hex format.
+   */
+  deleteDecryptionKey(key: Uint8Array | string): void {
+    this.decryptionKeys.delete(hexToBuf(key));
   }
 
   /**
