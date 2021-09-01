@@ -8,6 +8,7 @@ import PeerId from 'peer-id';
 
 import { HistoryResponse_Error } from '../../proto/waku/v2/store';
 import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
+import { hexToBuf } from '../utils';
 import { DefaultPubSubTopic } from '../waku';
 import { WakuMessage } from '../waku_message';
 
@@ -43,7 +44,7 @@ export interface QueryOptions {
   pageSize?: number;
   timeFilter?: TimeFilter;
   callback?: (messages: WakuMessage[]) => void;
-  decryptionKeys?: Uint8Array[];
+  decryptionKeys?: Array<Uint8Array | string>;
 }
 
 /**
@@ -114,6 +115,13 @@ export class WakuStore {
     const connection = this.libp2p.connectionManager.get(peer.id);
     if (!connection) throw 'Failed to get a connection to the peer';
 
+    const decryptionKeys: Uint8Array[] = [];
+    if (opts.decryptionKeys) {
+      opts.decryptionKeys.forEach((key) => {
+        decryptionKeys.push(hexToBuf(key));
+      });
+    }
+
     const messages: WakuMessage[] = [];
     let cursor = undefined;
     while (true) {
@@ -154,10 +162,7 @@ export class WakuStore {
       const pageMessages: WakuMessage[] = [];
       await Promise.all(
         response.messages.map(async (protoMsg) => {
-          const msg = await WakuMessage.decodeProto(
-            protoMsg,
-            opts.decryptionKeys
-          );
+          const msg = await WakuMessage.decodeProto(protoMsg, decryptionKeys);
 
           if (msg) {
             messages.push(msg);

@@ -17,6 +17,7 @@ import { InMessage } from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 import PeerId from 'peer-id';
 
+import { hexToBuf } from '../utils';
 import { CreateOptions, DefaultPubSubTopic } from '../waku';
 import { WakuMessage } from '../waku_message';
 
@@ -128,17 +129,19 @@ export class WakuRelay extends Gossipsub {
    * of messages received on the given content topic. This can either be a
    * private key for asymmetric encryption or a symmetric key. Waku relay will
    * attempt to decrypt messages using both methods.
+   * Strings must be in hex format.
    */
-  addDecryptionKey(privateKey: Uint8Array): void {
-    this.decryptionKeys.add(privateKey);
+  addDecryptionKey(key: Uint8Array | string): void {
+    this.decryptionKeys.add(hexToBuf(key));
   }
 
   /**
    * Delete a decryption key to attempt decryption of messages received on the
    * given content topic.
+   * Strings must be in hex format.
    */
-  deleteDecryptionKey(privateKey: Uint8Array): void {
-    this.decryptionKeys.delete(privateKey);
+  deleteDecryptionKey(key: Uint8Array | string): void {
+    this.decryptionKeys.delete(hexToBuf(key));
   }
 
   /**
