@@ -42,7 +42,7 @@ const wakuNode = await Waku.create({
 
 # Wait to be connected
 
-When using the `bootstrap` option, it may take some times to connect to other peers.
+When using the `bootstrap` option, it may take some time to connect to other peers.
 To ensure that you have relay peers available to send and receive messages,
 use the following function:
 
