@@ -1,4 +1,4 @@
-import { IvSize, SymmetricKeySize } from './index';
+import { IvSize } from './index';
 
 declare global {
   interface Window {
@@ -42,10 +42,6 @@ export async function decrypt(
       subtle.decrypt({ iv, ...Algorithm }, cryptoKey, cipherText)
     )
     .then(Buffer.from);
-}
-
-export function generateKeyForSymmetricEnc(): Buffer {
-  return crypto.getRandomValues(Buffer.alloc(SymmetricKeySize));
 }
 
 export function generateIv(): Uint8Array {

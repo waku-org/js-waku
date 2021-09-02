@@ -28,7 +28,7 @@ If key recovery is important for your dApp, then check out
 
 An example to save and load a key pair in local storage, protected with a password, can be found in [Eth-PM](https://github.com/status-im/js-waku/blob/main/examples/eth-pm/src/key_pair_handling/key_pair_storage.ts).
 
-## Which encryption method do I need?
+## Which encryption method should I use?
 
 Whether you should use symmetric or asymmetric encryption depends on your use case.
 
@@ -59,12 +59,12 @@ When Alice sends an encrypted message for Bob, only Bob can decrypt it.
 ### Generate Key
 
 To use symmetric encryption, you first need to generate a key.
-You can simply use `generatePrivateKey` for secure key generation:
+Use `generateSymmetricKey` for secure key generation:
 
 ```js
-import { generatePrivateKey } from 'js-waku';
+import { generateSymmetricKey } from 'js-waku';
 
-const key = generatePrivateKey();
+const symmetricKey = generateSymmetricKey();
 ```
 
 ### Encrypt Message
@@ -80,7 +80,7 @@ See [Receive and Send Messages Using Waku Relay](relay-receive-send-messages.md)
 import { WakuMessage } from 'js-waku';
 
 const message = await WakuMessage.fromBytes(payload, contentTopic, {
-  symKey: key
+  symKey: symmetricKey
 });
 ```
 
@@ -92,56 +92,34 @@ await waku.lightPush.push(message);
 
 ### Decrypt Messages
 
-#### Waku Relay
-
-To decrypt messages received over Waku Relay, add the key as a decryption key to your Waku Relay instance.
+To decrypt messages,
+whether they are received over Waku Relay or using Waku Store,
+add the symmetric key as a decryption key to your Waku instance.
 
 ```js
-waku.relay.addDecryptionKey(key);
+waku.addDecryptionKey(symmetricKey);
+```
+Alternatively, you can pass the key when creating the instance:
+
+```js
+import { Waku } from 'js-waku';
+
+const waku = Waku.create({ decryptionKeys: [symmetricKey] });
 ```
 
-`waku.relay` will attempt to decrypt any message it receives using the key, for both symmetric and asymmetric encryption.
-If the message is successfully decrypted, then the decrypted messages will be passed to the observers you have registered.
+It will attempt to decrypt any message it receives using the key, for both symmetric and asymmetric encryption.
 
 You can call `addDecryptionKey` several times if you are using multiple keys,
 symmetric key and asymmetric private keys can be used together.
 
 Messages that are not successfully decrypted are dropped.
 
-To learn more about Waku Relay, check out [Receive and Send Messages Using Waku Relay](relay-receive-send-messages.md).
-
-#### Waku Store
-
-To decrypt messages retrieved via a store query,
-pass the `key` to the query in the `decryptionKeys` property.
-
-`decryptionKeys` accepts an array, allowing you to pass several keys.
-
-Symmetric keys or asymmetric private keys can be mixed, both decryption methods will be attempted.
-
-```js
-// Using await syntax
-const messages = await waku.store.queryHistory([contentTopic], {
-  decryptionKeys: [key]
-});
-
-// Using callback syntax
-waku.store.queryHistory([contentTopic], {
-  decryptionKeys: [key],
-  callback: (messages) => {
-    // Process decrypted messages
-  }
-});
-```
-
-Messages that are not successfully decrypted are excluded from the result array.
-
 ## Asymmetric Encryption
 
 ### Generate Key Pair
 
-To use symmetric encryption, you first need to generate a private key and calculate the corresponding public key.
-You can simply use `generatePrivateKey` for secure key generation:
+To use asymmetric encryption, you first need to generate a private key and calculate the corresponding public key.
+Use `generatePrivateKey` for secure key generation:
 
 ```js
 import { generatePrivateKey, getPublicKey } from 'js-waku';
@@ -181,51 +159,29 @@ await waku.lightPush.push(message);
 
 ### Decrypt Messages
 
-#### Waku Relay
-
 The private key is needed to decrypt messages.
 
-For messages received over Waku Relay, add the private key as a decryption key to your Waku Relay instance.
+To decrypt messages,
+whether they are received over Waku Relay or using Waku Store,
+add the private key as a decryption key to your Waku instance.
 
 ```js
-waku.relay.addDecryptionKey(privateKey);
+waku.addDecryptionKey(privateKey);
+```
+Alternatively, you can pass the key when creating the instance:
+
+```js
+import { Waku } from 'js-waku';
+
+const waku = Waku.create({ decryptionKeys: [privateKey] });
 ```
 
-`waku.relay` will attempt to decrypt any message it receives using the key, for both symmetric and asymmetric encryption.
-If the message is successfully decrypted, then the decrypted messages will be passed to the observers you have registered.
+It will attempt to decrypt any message it receives using the key, for both symmetric and asymmetric encryption.
 
 You can call `addDecryptionKey` several times if you are using multiple keys,
 symmetric key and asymmetric private keys can be used together.
 
 Messages that are not successfully decrypted are dropped.
-
-To learn more about Waku Relay, check out [Receive and Send Messages Using Waku Relay](relay-receive-send-messages.md).
-
-#### Waku Store
-
-To decrypt messages retrieved via a store query,
-pass the `key` to the query in the `decryptionKeys` property.
-
-`decryptionKeys` accepts an array, allowing you to pass several keys.
-
-Symmetric keys or asymmetric private keys can be mixed, both decryption methods will be attempted.
-
-```js
-// Using await syntax
-const messages = await waku.store.queryHistory([contentTopic], {
-  decryptionKeys: [privateKey],
-});
-
-// Using callback syntax
-waku.store.queryHistory([contentTopic], {
-  decryptionKeys: [privateKey],
-  callback: (messages) => {
-    // Process decrypted messages
-  },
-});
-```
-
-Messages that are not successfully decrypted are excluded from the result array.
 
 ## Handling `WakuMessage` instances
 
@@ -251,15 +207,15 @@ If a message was not successfully decrypted, then it will be dropped from the re
 Which means that `WakuMessage` instances returned by `WakuRelay` and `WakuStore` always have a clear payload (in regard to Waku Message version 1):
 
 ```js
-const messages = await waku.store.queryHistory([contentTopic], {
-  decryptionKeys: [privateKey]
-});
+import { Waku } from 'js-waku';
+
+const waku = Waku.create({ decryptionKeys: [privateKey] });
+
+const messages = await waku.store.queryHistory([contentTopic]);
 
 if (messages && messages[0]) {
   console.log(messages[0].payload); // This payload is decrypted
 }
-
-waku.relay.addDecryptionKey(privateKey);
 
 waku.relay.addObserver((message) => {
   console.log(message.payload); // This payload is decrypted

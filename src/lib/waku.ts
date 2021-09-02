@@ -93,6 +93,7 @@ export interface CreateOptions {
    * {@link CreateOptions.libp2p}.
    */
   bootstrap?: boolean | string[] | (() => string[] | Promise<string[]>);
+  decryptionKeys?: Array<Uint8Array | string>;
 }
 
 export class Waku {
@@ -133,6 +134,8 @@ export class Waku {
     libp2p.connectionManager.on('peer:disconnect', (connection: Connection) => {
       this.stopKeepAlive(connection.remotePeer);
     });
+
+    options?.decryptionKeys?.forEach(this.addDecryptionKey);
   }
 
   /**
@@ -268,6 +271,29 @@ export class Waku {
 
   async stop(): Promise<void> {
     return this.libp2p.stop();
+  }
+
+  /**
+   * Register a decryption key to attempt decryption of messages received via
+   * [[WakuRelay]] and [[WakuStore]]. This can either be a private key for
+   * asymmetric encryption or a symmetric key.
+   *
+   * Strings must be in hex format.
+   */
+  addDecryptionKey(key: Uint8Array | string): void {
+    this.relay.addDecryptionKey(key);
+    this.store.addDecryptionKey(key);
+  }
+
+  /**
+   * Delete a decryption key that was used to attempt decryption of messages
+   * received via [[WakuRelay]] or [[WakuStore]].
+   *
+   * Strings must be in hex format.
+   */
+  deleteDecryptionKey(key: Uint8Array | string): void {
+    this.relay.deleteDecryptionKey(key);
+    this.store.deleteDecryptionKey(key);
   }
 
   /**

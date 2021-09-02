@@ -10,9 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Examples (eth-pm): Encrypt Public Key Messages using symmetric encryption. 
 - Guides: Encrypt messages using Waku Message Version 1.
+- Allow passing decryption keys in hex string format.
+- Allow passing decryption keys to `WakuStore` instance to avoid having to pass them at every `queryHistory` call.
+- Allow passing decryption keys to `Waku` instance to avoid having to pass them to both `WakuRelay` and `WakuStore`.
 
 ### Changed
 - **Breaking**: Moved `startTime` and `endTime` for history queries to a `timeFilter` property as both or neither must be passed; passing only one parameter is not supported.
+- Renamed and promote the usage of `generateSymmetricKey()` to generate random symmetric keys.
+- Improved errors thrown by `WakuStore.queryHistory`.
 
 ### Fixed
 - Buffer concat error when using symmetric encryption in the browser.

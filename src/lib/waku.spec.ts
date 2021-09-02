@@ -12,6 +12,10 @@ import {
 } from '../test_utils/';
 
 import { Waku } from './waku';
+import { WakuMessage } from './waku_message';
+import { generateSymmetricKey } from './waku_message/version_1';
+
+const TestContentTopic = '/test/1/waku/utf8';
 
 describe('Waku Dial', function () {
   let waku: Waku;
@@ -128,5 +132,78 @@ describe('Waku Dial', function () {
 
       expect(jsPeers.has(nimPeerId.toB58String())).to.be.true;
     });
+  });
+});
+
+describe('Decryption Keys', () => {
+  afterEach(function () {
+    if (this.currentTest?.state === 'failed') {
+      console.log(`Test failed, log file name is ${makeLogFileName(this)}`);
+    }
+  });
+
+  let waku1: Waku;
+  let waku2: Waku;
+  beforeEach(async function () {
+    [waku1, waku2] = await Promise.all([
+      Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
+      Waku.create({
+        staticNoiseKey: NOISE_KEY_2,
+        libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/ws'] } },
+      }),
+    ]);
+
+    waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+
+    await Promise.all([
+      new Promise((resolve) =>
+        waku1.libp2p.pubsub.once('pubsub:subscription-change', () =>
+          resolve(null)
+        )
+      ),
+      new Promise((resolve) =>
+        waku2.libp2p.pubsub.once('pubsub:subscription-change', () =>
+          resolve(null)
+        )
+      ),
+    ]);
+  });
+
+  afterEach(async function () {
+    this.timeout(5000);
+    await waku1.stop();
+    await waku2.stop();
+  });
+
+  it('Used by Waku Relay', async function () {
+    this.timeout(10000);
+
+    const symKey = generateSymmetricKey();
+
+    waku2.addDecryptionKey(symKey);
+
+    const messageText = 'Message is encrypted';
+    const messageTimestamp = new Date('1995-12-17T03:24:00');
+    const message = await WakuMessage.fromUtf8String(
+      messageText,
+      TestContentTopic,
+      {
+        timestamp: messageTimestamp,
+        symKey,
+      }
+    );
+
+    const receivedMsgPromise: Promise<WakuMessage> = new Promise((resolve) => {
+      waku2.relay.addObserver(resolve);
+    });
+
+    await waku1.relay.send(message);
+
+    const receivedMsg = await receivedMsgPromise;
+
+    expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
+    expect(receivedMsg.version).to.eq(message.version);
+    expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
+    expect(receivedMsg.timestamp?.valueOf()).to.eq(messageTimestamp.valueOf());
   });
 });

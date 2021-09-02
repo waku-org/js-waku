@@ -8,6 +8,7 @@ import PeerId from 'peer-id';
 
 import { HistoryResponse_Error } from '../../proto/waku/v2/store';
 import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
+import { hexToBuf } from '../utils';
 import { DefaultPubSubTopic } from '../waku';
 import { WakuMessage } from '../waku_message';
 
@@ -43,7 +44,7 @@ export interface QueryOptions {
   pageSize?: number;
   timeFilter?: TimeFilter;
   callback?: (messages: WakuMessage[]) => void;
-  decryptionKeys?: Uint8Array[];
+  decryptionKeys?: Array<Uint8Array | string>;
 }
 
 /**
@@ -51,6 +52,7 @@ export interface QueryOptions {
  */
 export class WakuStore {
   pubSubTopic: string;
+  public decryptionKeys: Set<Uint8Array>;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
     if (options?.pubSubTopic) {
@@ -58,6 +60,8 @@ export class WakuStore {
     } else {
       this.pubSubTopic = DefaultPubSubTopic;
     }
+
+    this.decryptionKeys = new Set();
   }
 
   /**
@@ -104,15 +108,24 @@ export class WakuStore {
     let peer;
     if (opts.peerId) {
       peer = this.libp2p.peerStore.get(opts.peerId);
-      if (!peer) throw 'Peer is unknown';
+      if (!peer)
+        throw `Failed to retrieve connection details for provided peer in peer store: ${opts.peerId.toB58String()}`;
     } else {
       peer = this.randomPeer;
+      if (!peer)
+        throw 'Failed to find known peer that registers waku store protocol';
     }
-    if (!peer) throw 'No peer available';
     if (!peer.protocols.includes(StoreCodec))
-      throw 'Peer does not register waku store protocol';
+      throw `Peer does not register waku store protocol: ${peer.id.toB58String()}`;
     const connection = this.libp2p.connectionManager.get(peer.id);
     if (!connection) throw 'Failed to get a connection to the peer';
+
+    const decryptionKeys = Array.from(this.decryptionKeys.values());
+    if (opts.decryptionKeys) {
+      opts.decryptionKeys.forEach((key) => {
+        decryptionKeys.push(hexToBuf(key));
+      });
+    }
 
     const messages: WakuMessage[] = [];
     let cursor = undefined;
@@ -154,10 +167,7 @@ export class WakuStore {
       const pageMessages: WakuMessage[] = [];
       await Promise.all(
         response.messages.map(async (protoMsg) => {
-          const msg = await WakuMessage.decodeProto(
-            protoMsg,
-            opts.decryptionKeys
-          );
+          const msg = await WakuMessage.decodeProto(protoMsg, decryptionKeys);
 
           if (msg) {
             messages.push(msg);
@@ -191,6 +201,28 @@ export class WakuStore {
         return messages;
       }
     }
+  }
+
+  /**
+   * Register a decryption key to attempt decryption of messages received in any
+   * subsequent [[queryHistory]] call. This can either be a private key for
+   * asymmetric encryption or a symmetric key. [[WakuStore]] will attempt to
+   * decrypt messages using both methods.
+   *
+   * Strings must be in hex format.
+   */
+  addDecryptionKey(key: Uint8Array | string): void {
+    this.decryptionKeys.add(hexToBuf(key));
+  }
+
+  /**
+   * Delete a decryption key that was used to attempt decryption of messages
+   * received in subsequent [[queryHistory]] calls.
+   *
+   * Strings must be in hex format.
+   */
+  deleteDecryptionKey(key: Uint8Array | string): void {
+    this.decryptionKeys.delete(hexToBuf(key));
   }
 
   /**

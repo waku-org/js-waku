@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
-import { IvSize, SymmetricKeySize, TagSize } from './index';
+import { IvSize, TagSize } from './index';
 
 const Algorithm = 'aes-256-gcm';
 
@@ -29,10 +29,6 @@ export async function decrypt(
   const a = decipher.update(cipherText);
   const b = decipher.final();
   return Buffer.concat([a, b]);
-}
-
-export function generateKeyForSymmetricEnc(): Buffer {
-  return randomBytes(SymmetricKeySize);
 }
 
 export function generateIv(): Buffer {
