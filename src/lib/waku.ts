@@ -13,12 +13,14 @@ import Websockets from 'libp2p-websockets';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
 import filters from 'libp2p-websockets/src/filters';
+import { Peer } from 'libp2p/dist/src/peer-store';
 import Ping from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { getBootstrapNodes } from './discovery';
-import { WakuLightPush } from './waku_light_push';
+import { getPeersForProtocol } from './select_peer';
+import { LightPushCodec, WakuLightPush } from './waku_light_push';
 import { WakuMessage } from './waku_message';
 import { RelayCodecs, WakuRelay } from './waku_relay';
 import { RelayPingContentTopic } from './waku_relay/constants';
@@ -308,6 +310,46 @@ export class Waku {
       throw 'Not listening on localhost';
     }
     return localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
+  }
+
+  /**
+   * Wait to be connected to a peer. Useful when using the [[CreateOptions.bootstrap]]
+   * with [[Waku.create]]. The Promise resolves only once we are connected to a
+   * Store peer, Relay peer and Light Push peer.
+   */
+  async waitForConnectedPeer(): Promise<void> {
+    const desiredProtocols = [[StoreCodec], [LightPushCodec], RelayCodecs];
+
+    await Promise.all(
+      desiredProtocols.map((desiredProtocolVersions) => {
+        const peers = new Array<Peer>();
+        desiredProtocolVersions.forEach((proto) => {
+          getPeersForProtocol(this.libp2p, proto).forEach((peer) =>
+            peers.push(peer)
+          );
+        });
+        dbg('peers for ', desiredProtocolVersions, peers);
+
+        if (peers.length > 0) {
+          return Promise.resolve();
+        } else {
+          // No peer available for this protocol, waiting to connect to one.
+          return new Promise<void>((resolve) => {
+            this.libp2p.peerStore.on(
+              'change:protocols',
+              ({ protocols: connectedPeerProtocols }) => {
+                desiredProtocolVersions.forEach((desiredProto) => {
+                  if (connectedPeerProtocols.includes(desiredProto)) {
+                    dbg('Resolving for', desiredProto, connectedPeerProtocols);
+                    resolve();
+                  }
+                });
+              }
+            );
+          });
+        }
+      })
+    );
   }
 
   private startKeepAlive(

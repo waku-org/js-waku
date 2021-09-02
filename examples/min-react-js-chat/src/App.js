@@ -1,5 +1,5 @@
 import './App.css';
-import { getBootstrapNodes, Waku, WakuMessage } from 'js-waku';
+import { Waku, WakuMessage } from 'js-waku';
 import * as React from 'react';
 import protons from 'protons';
 
@@ -24,10 +24,10 @@ function App() {
 
     setWakuStatus('Starting');
 
-    Waku.create().then((waku) => {
+    Waku.create({ bootstrap: true }).then((waku) => {
       setWaku(waku);
       setWakuStatus('Connecting');
-      bootstrapWaku(waku).then(() => {
+      waku.waitForConnectedPeer().then(() => {
         setWakuStatus('Ready');
       });
     });
@@ -94,15 +94,6 @@ function App() {
 }
 
 export default App;
-
-async function bootstrapWaku(waku) {
-  try {
-    const nodes = await getBootstrapNodes();
-    await Promise.all(nodes.map((addr) => waku.dial(addr)));
-  } catch (e) {
-    console.error('Failed to bootstrap to Waku network');
-  }
-}
 
 async function sendMessage(message, timestamp, waku) {
   const time = timestamp.getTime();

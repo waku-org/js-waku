@@ -60,7 +60,7 @@ function App() {
     setWakuStatus('Starting');
 
     // Create Waku
-    Waku.create().then((waku) => {
+    Waku.create({ bootstrap: true }).then((waku) => {
       // Once done, put it in the state
       setWaku(waku);
       // And update the status
@@ -69,8 +69,8 @@ function App() {
   }, [waku, wakuStatus]);
 
   return (
-    <div className="App">
-      <header className="App-header">
+    <div className='App'>
+      <header className='App-header'>
         // Display the status on the web page
         <p>{wakuStatus}</p>
       </header>
@@ -79,25 +79,11 @@ function App() {
 }
 ```
 
-# Connect to Other Peers
+# Wait to be connected
 
-The Waku instance needs to connect to other peers to communicate with the network.
-First, create `bootstrapWaku` to connect to Waku bootstrap nodes:
-
-```js
-import { getBootstrapNodes } from 'js-waku';
-
-async function bootstrapWaku(waku) {
-  try {
-    const nodes = await getBootstrapNodes();
-    await Promise.all(nodes.map((addr) => waku.dial(addr)));
-  } catch (e) {
-    console.error('Failed to bootstrap to Waku network');
-  }
-}
-```
-
-Then, bootstrap after Waku is created in the previous `useEffect` block:
+When using the `bootstrap` option, it may take some times to connect to other peers.
+To ensure that you have relay peers available to send and receive messages,
+use the `Waku.waitForConnectedPeer()` async function:
 
 ```js
 React.useEffect(() => {
@@ -106,17 +92,16 @@ React.useEffect(() => {
 
   setWakuStatus('Starting');
 
-  Waku.create().then((waku) => {
+  Waku.create({ bootstrap: true }).then((waku) => {
     setWaku(waku);
     setWakuStatus('Connecting');
-    bootstrapWaku(waku).then(() => {
+    waku.waitForConnectedPeer().then(() => {
       setWakuStatus('Ready');
     });
   });
 }, [waku, wakuStatus]);
-```
 
-DappConnect will provide more discovery and bootstrap methods over time, or you can make your own.
+```
 
 # Define Message Format
 
