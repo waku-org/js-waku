@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow passing decryption keys in hex string format.
 - Allow passing decryption keys to `WakuStore` instance to avoid having to pass them at every `queryHistory` call.
 - Allow passing decryption keys to `Waku` instance to avoid having to pass them to both `WakuRelay` and `WakuStore`.
+- `Waku.waitForConnectedPeer` helper to ensure that we are connected to Waku peers when using the bootstrap option.
 
 ### Changed
 - **Breaking**: Moved `startTime` and `endTime` for history queries to a `timeFilter` property as both or neither must be passed; passing only one parameter is not supported.

@@ -55,6 +55,18 @@ const wakuNode = await Waku.create({
 });
 ```
 
+# Wait to be connected
+
+When using the `bootstrap` option, it may take some times to connect to other peers.
+To ensure that you have store peers available to retrieve historical messages from,
+use the following function:
+
+```js
+await waku.waitForConnectedPeer();
+```
+
+The returned Promise will resolve once you are connected to a Waku Store peer.
+
 # Use Protobuf
 
 Waku v2 protocols use [protobuf](https://developers.google.com/protocol-buffers/) [by default](https://rfc.vac.dev/spec/10/).
@@ -153,19 +165,3 @@ Note that `WakuStore.queryHistory` select an available store node for you.
 However, it can only select a connected node, which is why the bootstrapping is necessary.
 It will throw an error if no store node is available.
 
-## Wait to be connected
-
-Depending on your dApp design, you may want to wait for a store node to be available first.
-In this case, you can listen for the [PeerStore's change protocol event](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#known-protocols-for-a-peer-change)
-to know whether any of your connected peers is a store peer:
-
-```js
-import { StoreCodec } from 'js-waku';
-
-// Or using a callback
-waku.libp2p.peerStore.on('change:protocols', ({ peerId, protocols }) => {
-  if (protocols.includes(StoreCodec)) {
-    // A Store node is available!
-  }
-});
-```

@@ -1,12 +1,6 @@
 import { useEffect, useReducer, useState } from 'react';
 import './App.css';
-import {
-  Direction,
-  getBootstrapNodes,
-  StoreCodec,
-  Waku,
-  WakuMessage,
-} from 'js-waku';
+import { Direction, getBootstrapNodes, Waku, WakuMessage } from 'js-waku';
 import handleCommand from './command';
 import Room from './Room';
 import { WakuContext } from './WakuContext';
@@ -79,8 +73,8 @@ async function retrieveStoreMessages(
     });
 
     return res.length;
-  } catch {
-    console.log('Failed to retrieve messages');
+  } catch (e) {
+    console.log('Failed to retrieve messages', e);
     return 0;
   }
 }
@@ -131,29 +125,21 @@ export default function App() {
     if (!waku) return;
     if (historicalMessagesRetrieved) return;
 
-    const checkAndRetrieve = ({ protocols }: { protocols: string[] }) => {
-      if (protocols.includes(StoreCodec)) {
-        console.log(`Retrieving archived messages}`);
-        setHistoricalMessagesRetrieved(true);
+    const retrieveMessages = async () => {
+      await waku.waitForConnectedPeer();
+      console.log(`Retrieving archived messages}`);
 
-        try {
-          retrieveStoreMessages(waku, dispatchMessages).then((length) =>
-            console.log(`Messages retrieved:`, length)
-          );
-        } catch (e) {
-          console.log(`Error encountered when retrieving archived messages`, e);
-        }
+      try {
+        retrieveStoreMessages(waku, dispatchMessages).then((length) => {
+          console.log(`Messages retrieved:`, length);
+          setHistoricalMessagesRetrieved(true);
+        });
+      } catch (e) {
+        console.log(`Error encountered when retrieving archived messages`, e);
       }
     };
 
-    waku.libp2p.peerStore.on('change:protocols', checkAndRetrieve);
-
-    return () => {
-      waku.libp2p.peerStore.removeListener(
-        'change:protocols',
-        checkAndRetrieve
-      );
-    };
+    retrieveMessages();
   }, [waku, historicalMessagesRetrieved]);
 
   return (

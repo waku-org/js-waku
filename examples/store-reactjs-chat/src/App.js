@@ -1,5 +1,5 @@
 import './App.css';
-import { StoreCodec, Waku } from 'js-waku';
+import { Waku } from 'js-waku';
 import * as React from 'react';
 import protons from 'protons';
 
@@ -57,18 +57,10 @@ function App() {
     // We do not handle disconnection/re-connection in this example
     if (wakuStatus === 'Connected to Store') return;
 
-    const isStoreNode = ({ protocols }) => {
-      if (protocols.includes(StoreCodec)) {
-        // We are now connected to a store node
-        setWakuStatus('Connected to Store');
-      }
-    };
-
-    waku.libp2p.peerStore.on('change:protocols', isStoreNode);
-
-    return () => {
-      waku.libp2p.peerStore.removeListener('change:protocols', isStoreNode);
-    };
+    waku.waitForConnectedPeer().then(() => {
+      // We are now connected to a store node
+      setWakuStatus('Connected to Store');
+    });
   }, [waku, wakuStatus]);
 
   return (
