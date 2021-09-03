@@ -9,7 +9,7 @@ For this guide, we are using a single content topic: `/min-react-js-chat/1/chat/
 
 # Setup
 
-Create a new react app:
+Create a new React app:
 
 ```shell
 npx create-react-app min-react-js-chat
@@ -100,7 +100,6 @@ React.useEffect(() => {
     });
   });
 }, [waku, wakuStatus]);
-
 ```
 
 # Define Message Format

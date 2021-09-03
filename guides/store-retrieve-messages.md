@@ -17,7 +17,6 @@ For example, when the dApp starts.
 
 In this guide, we'll review how you can use Waku Store to retrieve messages.
 
-
 Before starting, you need to choose a _Content Topic_ for your dApp.
 Check out the [how to choose a content topic guide](choose-content-topic.md) to learn more about content topics.
 
