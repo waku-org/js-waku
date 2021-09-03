@@ -316,7 +316,7 @@ export class WakuRelay extends Gossipsub {
       this.gossipTracer.deliverMessage(msg);
     }
 
-    const msgID = this.getMsgId(msg);
+    const msgID = await this.getMsgId(msg);
     const msgIdStr = messageIdToString(msgID);
     // put in seen cache
     this.seenCache.put(msgIdStr);
