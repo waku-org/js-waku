@@ -46,20 +46,16 @@ function App() {
     if (!waku) return;
     if (wakuStatus !== 'Connected') return;
 
-    const interval = setInterval(() => {
-      waku.store
-        .queryHistory([ContentTopic])
-        .catch((e) => {
-          console.log('Failed to retrieve messages', e);
-        })
-        .then((retrievedMessages) => {
-          const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
+    waku.store
+      .queryHistory([ContentTopic])
+      .catch((e) => {
+        console.log('Failed to retrieve messages', e);
+      })
+      .then((retrievedMessages) => {
+        const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
 
-          setMessages(messages);
-        });
-    }, 10000);
-
-    return () => clearInterval(interval);
+        setMessages(messages);
+      });
   }, [waku, wakuStatus]);
 
   return (
