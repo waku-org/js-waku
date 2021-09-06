@@ -23,8 +23,6 @@ In this guide, we'll review how you can use Waku Store to retrieve messages.
 Before starting, you need to choose a _Content Topic_ for your dApp.
 Check out the [how to choose a content topic guide](choose-content-topic.md) to learn more about content topics.
 
-For this guide, we are using a single content topic: `/store-guide/1/news/proto`.
-
 # Setup
 
 Create a new React app:
@@ -70,8 +68,6 @@ function App() {
 
   // Start Waku
   React.useEffect(() => {
-    // If Waku is already assigned, the job is done
-    if (!!waku) return;
     // If Waku status not None, it means we are already starting Waku 
     if (wakuStatus !== 'None') return;
 
@@ -136,15 +132,13 @@ To encode and decode protobuf payloads, you can use the [protons](https://www.np
 
 ## Install Protobuf Library
 
-First, install protons:
-
 ```shell
 npm install protons
 ```
 
 ## Protobuf Definition
 
-Then specify the data structure:
+Define the data structure with protons:
 
 ```js
 import protons from 'protons';
@@ -174,6 +168,7 @@ function decodeMessage(wakuMessage) {
     wakuMessage.payload
   );
 
+  // All fields in protobuf are optional so be sure to check
   if (!timestamp || !text || !nick) return;
 
   const time = new Date();
@@ -190,7 +185,7 @@ function decodeMessage(wakuMessage) {
 
 You now have all the building blocks to retrieve and decode messages for a store node.
 
-Retrieve messages from a store node:
+Finally, retrieve messages from a store node:
 
 ```js
 const ContentTopic = '/toy-chat/2/huilong/proto';
@@ -201,7 +196,6 @@ function App() {
   const [messages, setMessages] = React.useState([]);
 
   React.useEffect(() => {
-    if (!waku) return;
     if (wakuStatus !== 'Connected') return;
 
     waku.store

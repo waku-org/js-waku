@@ -19,7 +19,6 @@ function App() {
   const [messages, setMessages] = React.useState([]);
 
   React.useEffect(() => {
-    if (!!waku) return;
     if (wakuStatus !== 'None') return;
 
     setWakuStatus('Starting');
@@ -43,7 +42,6 @@ function App() {
   }, [waku, wakuStatus]);
 
   React.useEffect(() => {
-    if (!waku) return;
     if (wakuStatus !== 'Connected') return;
 
     waku.store
