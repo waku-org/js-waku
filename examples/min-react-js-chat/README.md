@@ -6,6 +6,7 @@
 - React/JavaScript
 - Waku Relay
 - Protobuf using `protons`.
+- No async/await syntax.
 
 A barebone chat app to illustrate the [ReactJS Relay guide](/guides/reactjs-relay.md).
 

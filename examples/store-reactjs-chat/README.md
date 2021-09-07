@@ -3,6 +3,7 @@
 - React/JavaScript,
 - Waku Store,
 - Protobuf using `protons`.
+- No async/await syntax.
 
 A simple app that retrieves chat messages using [Waku Store](https://rfc.vac.dev/spec/13/)
 to illustrate the [Retrieve Messages Using Waku Store With ReactJS guide](/guides/reactjs-store.md).

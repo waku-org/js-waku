@@ -133,20 +133,20 @@ import { WakuMessage } from 'js-waku';
 
 const ContentTopic = `/min-react-js-chat/1/chat/proto`;
 
-async function sendMessage(message, timestamp, waku) {
+function sendMessage(message, timestamp, waku) {
   const time = timestamp.getTime();
 
   // Encode to protobuf
   const payload = proto.SimpleChatMessage.encode({
     timestamp: time,
-    text: message,
+    text: message
   });
 
   // Wrap in a Waku Message
-  const wakuMessage = await WakuMessage.fromBytes(payload, ContentTopic);
-  
-  // Send over Waku Relay
-  await waku.relay.send(wakuMessage);
+  return WakuMessage.fromBytes(payload, ContentTopic).then((wakuMessage) =>
+    // Send over Waku Relay
+    waku.relay.send(wakuMessage)
+  );
 }
 ```
 
