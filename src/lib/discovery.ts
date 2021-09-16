@@ -1,7 +1,10 @@
 import axios from 'axios';
 import debug from 'debug';
+import { shuffle } from 'libp2p-gossipsub/src/utils';
 
 const dbg = debug('waku:discovery');
+
+const DefaultWantedNumber = 1;
 
 /**
  * GET list of nodes from remote HTTP host.
@@ -14,6 +17,7 @@ const dbg = debug('waku:discovery');
  * request returns `{ foo: { bar: [address1, address2] } }` then `path` should be
  * `[ "foo", "bar" ]`.
  * @param url Remote host containing bootstrap peers in JSON format.
+ * @param wantedNumber The number of connections desired. Defaults to [DefaultWantedNumber].
  *
  * @returns An array of multiaddresses.
  * @throws If the remote host is unreachable or the response cannot be parsed
@@ -21,8 +25,13 @@ const dbg = debug('waku:discovery');
  */
 export async function getBootstrapNodes(
   path: string[] = ['fleets', 'wakuv2.prod', 'waku-websocket'],
-  url = 'https://fleets.status.im/'
+  url = 'https://fleets.status.im/',
+  wantedNumber: number = DefaultWantedNumber
 ): Promise<string[]> {
+  if (wantedNumber <= 0) {
+    return [];
+  }
+
   const res = await axios.get(url, {
     headers: { 'Content-Type': 'application/json' },
   });
@@ -43,7 +52,7 @@ export async function getBootstrapNodes(
   }
 
   if (Array.isArray(nodes)) {
-    return nodes;
+    return getPseudoRandomSubset(nodes, wantedNumber);
   }
 
   if (typeof nodes === 'string') {
@@ -51,10 +60,22 @@ export async function getBootstrapNodes(
   }
 
   if (typeof nodes === 'object') {
-    return Object.values(nodes);
+    nodes = Object.values(nodes);
+    getPseudoRandomSubset(nodes, wantedNumber);
   }
 
   throw `Failed to retrieve bootstrap nodes: response format is not supported: ${JSON.stringify(
     nodes
   )}`;
+}
+
+export function getPseudoRandomSubset(
+  values: string[],
+  wantedNumber: number
+): string[] {
+  if (values.length <= wantedNumber) {
+    return values;
+  }
+
+  return shuffle(values).slice(0, wantedNumber);
 }
