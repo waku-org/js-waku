@@ -31,6 +31,25 @@ describe('Waku Dial', function () {
   });
 
   describe('Bootstrap', function () {
+    it('Passing a boolean', async function () {
+      // This test depends on fleets.status.im being online.
+      // This dependence must be removed once DNS discovery is implemented
+      this.timeout(20_000);
+
+      waku = await Waku.create({
+        staticNoiseKey: NOISE_KEY_1,
+        bootstrap: true,
+      });
+
+      const connectedPeerID: PeerId = await new Promise((resolve) => {
+        waku.libp2p.connectionManager.on('peer:connect', (connection) => {
+          resolve(connection.remotePeer);
+        });
+      });
+
+      expect(connectedPeerID).to.not.be.undefined;
+    });
+
     it('Passing an array', async function () {
       this.timeout(10_000);
 
