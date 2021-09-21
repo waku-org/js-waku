@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2021-09-16
+
 ### Changed
 - Upgrade libp2p libraries: @chainsafe/libp2p-noise@4.1.1, libp2p@0.32.4, libp2p-gossipsub@0.11.1.
-- Connects to a limited number of bootstrap nodes, defaults to 1.
+- Connects to a limited number of bootstrap nodes, defaults to 1. 
 
 ## [0.12.1] - 2021-09-16
 
@@ -221,7 +223,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://status-im.github.io/js-waku/docs).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/status-im/js-waku/compare/v0.12.0...v0.13.0
 [0.12.1]: https://github.com/status-im/js-waku/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/status-im/js-waku/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/status-im/js-waku/compare/v0.10.0...v0.11.0

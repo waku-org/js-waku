@@ -95,7 +95,7 @@ function App() {
 
 export default App;
 
-async function sendMessage(message, timestamp, waku) {
+function sendMessage(message, timestamp, waku) {
   const time = timestamp.getTime();
 
   const payload = proto.SimpleChatMessage.encode({
@@ -103,6 +103,7 @@ async function sendMessage(message, timestamp, waku) {
     text: message,
   });
 
-  const wakuMessage = await WakuMessage.fromBytes(payload, ContentTopic);
-  await waku.relay.send(wakuMessage);
+  return WakuMessage.fromBytes(payload, ContentTopic).then((wakuMessage) =>
+    waku.relay.send(wakuMessage)
+  );
 }

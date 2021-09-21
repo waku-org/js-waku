@@ -19,7 +19,6 @@ function App() {
   const [messages, setMessages] = React.useState([]);
 
   React.useEffect(() => {
-    if (!!waku) return;
     if (wakuStatus !== 'None') return;
 
     setWakuStatus('Starting');
@@ -32,35 +31,29 @@ function App() {
 
   React.useEffect(() => {
     if (!waku) return;
-    if (wakuStatus !== 'Connected to Store') return;
-
-    const interval = setInterval(() => {
-      waku.store
-        .queryHistory([ContentTopic])
-        .catch((e) => {
-          // We may not be connected to a store node just yet
-          console.log('Failed to retrieve messages', e);
-        })
-        .then((retrievedMessages) => {
-          const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
-
-          setMessages(messages);
-        });
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [waku, wakuStatus]);
-
-  React.useEffect(() => {
-    if (!waku) return;
 
     // We do not handle disconnection/re-connection in this example
-    if (wakuStatus === 'Connected to Store') return;
+    if (wakuStatus === 'Connected') return;
 
     waku.waitForConnectedPeer().then(() => {
       // We are now connected to a store node
-      setWakuStatus('Connected to Store');
+      setWakuStatus('Connected');
     });
+  }, [waku, wakuStatus]);
+
+  React.useEffect(() => {
+    if (wakuStatus !== 'Connected') return;
+
+    waku.store
+      .queryHistory([ContentTopic])
+      .catch((e) => {
+        console.log('Failed to retrieve messages', e);
+      })
+      .then((retrievedMessages) => {
+        const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
+
+        setMessages(messages);
+      });
   }, [waku, wakuStatus]);
 
   return (
