@@ -1,6 +1,6 @@
 {
   "name": "js-waku",
-  "version": "0.12.2",
+  "version": "0.13.1",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
