@@ -61,7 +61,7 @@ export async function getBootstrapNodes(
 
   if (typeof nodes === 'object') {
     nodes = Object.values(nodes);
-    getPseudoRandomSubset(nodes, wantedNumber);
+    return getPseudoRandomSubset(nodes, wantedNumber);
   }
 
   throw `Failed to retrieve bootstrap nodes: response format is not supported: ${JSON.stringify(
