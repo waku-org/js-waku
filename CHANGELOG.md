@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `Error: Bootstrap requires a list of peer addresses` error when using `bootstrap: true` in `Waku.create`.
+
 ## [0.13.0] - 2021-09-16
 
 ### Changed
