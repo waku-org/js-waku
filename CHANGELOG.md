@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade libp2p libraries: @chainsafe/libp2p-noise@4.1.1, libp2p@0.32.4, libp2p-gossipsub@0.11.1.
 - Connects to a limited number of bootstrap nodes, defaults to 1. 
 
+## [0.12.2] - 2021-09-21
+
+### Fixed
+
+- **hot fix**: `Error: Bootstrap requires a list of peer addresses` error when using `bootstrap: true` in `Waku.create`.
+
 ## [0.12.1] - 2021-09-16
 
 ### Changed
