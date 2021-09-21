@@ -202,13 +202,13 @@ export class Waku {
       }
 
       if (bootstrap !== undefined) {
-        // Note: this overrides any other peer discover
-        libp2pOpts.modules = Object.assign(libp2pOpts.modules, {
-          peerDiscovery: [Bootstrap],
-        });
-
         try {
           const list = await bootstrap();
+
+          // Note: this overrides any other peer discover
+          libp2pOpts.modules = Object.assign(libp2pOpts.modules, {
+            peerDiscovery: [Bootstrap],
+          });
 
           libp2pOpts.config.peerDiscovery = {
             [Bootstrap.tag]: {
