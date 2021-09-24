@@ -17,7 +17,7 @@ import { generateSymmetricKey } from './waku_message/version_1';
 
 const TestContentTopic = '/test/1/waku/utf8';
 
-describe('Waku Dial', function () {
+describe('Waku Dial [node only]', function () {
   let waku: Waku;
   let waku2: Waku;
   let nimWaku: NimWaku;

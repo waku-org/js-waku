@@ -10,7 +10,7 @@ import { WakuMessage } from '../waku_message';
 
 const TestContentTopic = '/test/1/waku-light-push/utf8';
 
-describe('Waku Light Push', () => {
+describe('Waku Light Push [node only]', () => {
   let waku: Waku;
   let nimWaku: NimWaku;
 

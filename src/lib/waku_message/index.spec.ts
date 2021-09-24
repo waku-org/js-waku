@@ -1,177 +1,134 @@
 import { expect } from 'chai';
-import debug from 'debug';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import TCP from 'libp2p-tcp';
+import fc from 'fast-check';
 
-import {
-  makeLogFileName,
-  NimWaku,
-  NOISE_KEY_1,
-  WakuRelayMessage,
-} from '../../test_utils';
-import { delay } from '../delay';
-import { hexToBuf } from '../utils';
-import { Waku } from '../waku';
-
-import {
-  generatePrivateKey,
-  generateSymmetricKey,
-  getPublicKey,
-} from './version_1';
+import { getPublicKey } from './version_1';
 
 import { WakuMessage } from './index';
 
-const dbg = debug('waku:test:message');
-
 const TestContentTopic = '/test/1/waku-message/utf8';
 
-describe('Waku Message: Node only', function () {
-  describe('Interop: Nim', function () {
-    let waku: Waku;
-    let nimWaku: NimWaku;
+describe('Waku Message: Browser & Node', function () {
+  it('Waku message round trip binary serialization [clear]', async function () {
+    await fc.assert(
+      fc.asyncProperty(fc.string(), async (s) => {
+        const msg = await WakuMessage.fromUtf8String(s, TestContentTopic);
+        const binary = msg.encode();
+        const actual = await WakuMessage.decode(binary);
 
-    beforeEach(async function () {
-      this.timeout(30_000);
+        expect(actual).to.deep.equal(msg);
+      })
+    );
+  });
 
-      waku = await Waku.create({
-        staticNoiseKey: NOISE_KEY_1,
-        libp2p: {
-          addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-          modules: { transport: [TCP] },
-        },
-      });
+  it('Payload to utf-8', async function () {
+    await fc.assert(
+      fc.asyncProperty(fc.string(), async (s) => {
+        const msg = await WakuMessage.fromUtf8String(s, TestContentTopic);
+        const utf8 = msg.payloadAsUtf8;
 
-      const multiAddrWithId = waku.getLocalMultiaddrWithID();
-      nimWaku = new NimWaku(makeLogFileName(this));
-      await nimWaku.start({ staticnode: multiAddrWithId, rpcPrivate: true });
+        return utf8 === s;
+      })
+    );
+  });
 
-      await new Promise((resolve) =>
-        waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-      );
-    });
+  it('Waku message round trip binary encryption [asymmetric, no signature]', async function () {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.uint8Array({ minLength: 1 }),
+        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        async (payload, privKey) => {
+          const publicKey = getPublicKey(privKey);
 
-    afterEach(async function () {
-      nimWaku ? nimWaku.stop() : null;
-      waku ? await waku.stop() : null;
-    });
+          const msg = await WakuMessage.fromBytes(payload, TestContentTopic, {
+            encPublicKey: publicKey,
+          });
 
-    it('JS decrypts nim message [asymmetric, no signature]', async function () {
-      this.timeout(10000);
-      await delay(200);
+          const wireBytes = msg.encode();
+          const actual = await WakuMessage.decode(wireBytes, [privKey]);
 
-      const messageText = 'Here is an encrypted message.';
-      const message: WakuRelayMessage = {
-        contentTopic: TestContentTopic,
-        payload: Buffer.from(messageText, 'utf-8').toString('hex'),
-      };
-
-      const privateKey = generatePrivateKey();
-
-      waku.relay.addDecryptionKey(privateKey);
-
-      const receivedMsgPromise: Promise<WakuMessage> = new Promise(
-        (resolve) => {
-          waku.relay.addObserver(resolve);
+          expect(actual?.payload).to.deep.equal(payload);
         }
-      );
+      )
+    );
+  });
 
-      const publicKey = getPublicKey(privateKey);
-      dbg('Post message');
-      await nimWaku.postAsymmetricMessage(message, publicKey);
+  it('Waku message round trip binary encryption [asymmetric, signature]', async function () {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.uint8Array({ minLength: 1 }),
+        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        async (payload, sigPrivKey, encPrivKey) => {
+          const sigPubKey = getPublicKey(sigPrivKey);
+          const encPubKey = getPublicKey(encPrivKey);
 
-      const receivedMsg = await receivedMsgPromise;
+          const msg = await WakuMessage.fromBytes(payload, TestContentTopic, {
+            encPublicKey: encPubKey,
+            sigPrivKey: sigPrivKey,
+          });
 
-      expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
-      expect(receivedMsg.version).to.eq(1);
-      expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
-    });
+          const wireBytes = msg.encode();
+          const actual = await WakuMessage.decode(wireBytes, [encPrivKey]);
 
-    it('Js encrypts message for nim [asymmetric, no signature]', async function () {
-      this.timeout(5000);
-
-      const keyPair = await nimWaku.getAsymmetricKeyPair();
-      const privateKey = hexToBuf(keyPair.privateKey);
-      const publicKey = hexToBuf(keyPair.publicKey);
-
-      const messageText = 'This is a message I am going to encrypt';
-      const message = await WakuMessage.fromUtf8String(
-        messageText,
-        TestContentTopic,
-        {
-          encPublicKey: publicKey,
+          expect(actual?.payload).to.deep.equal(payload);
+          expect(actual?.signaturePublicKey).to.deep.equal(sigPubKey);
         }
-      );
+      )
+    );
+  });
 
-      await waku.relay.send(message);
+  it('Waku message round trip binary encryption [symmetric, no signature]', async function () {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.uint8Array({ minLength: 1 }),
+        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        async (payload, key) => {
+          const msg = await WakuMessage.fromBytes(payload, TestContentTopic, {
+            symKey: key,
+          });
 
-      let msgs: WakuRelayMessage[] = [];
+          const wireBytes = msg.encode();
+          const actual = await WakuMessage.decode(wireBytes, [key]);
 
-      while (msgs.length === 0) {
-        await delay(200);
-        msgs = await nimWaku.getAsymmetricMessages(privateKey);
-      }
-
-      expect(msgs[0].contentTopic).to.equal(message.contentTopic);
-      expect(hexToBuf(msgs[0].payload).toString('utf-8')).to.equal(messageText);
-    });
-
-    it('JS decrypts nim message [symmetric, no signature]', async function () {
-      this.timeout(10000);
-      await delay(200);
-
-      const messageText = 'Here is a message encrypted in a symmetric manner.';
-      const message: WakuRelayMessage = {
-        contentTopic: TestContentTopic,
-        payload: Buffer.from(messageText, 'utf-8').toString('hex'),
-      };
-
-      const symKey = generateSymmetricKey();
-
-      waku.relay.addDecryptionKey(symKey);
-
-      const receivedMsgPromise: Promise<WakuMessage> = new Promise(
-        (resolve) => {
-          waku.relay.addObserver(resolve);
+          expect(actual?.payload).to.deep.equal(payload);
         }
-      );
+      )
+    );
+  });
 
-      dbg('Post message');
-      await nimWaku.postSymmetricMessage(message, symKey);
+  it('Waku message round trip binary encryption [symmetric, signature]', async function () {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.uint8Array({ minLength: 1 }),
+        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        async (payload, sigPrivKey, symKey) => {
+          const sigPubKey = getPublicKey(sigPrivKey);
 
-      const receivedMsg = await receivedMsgPromise;
+          const msg = await WakuMessage.fromBytes(payload, TestContentTopic, {
+            symKey: symKey,
+            sigPrivKey: sigPrivKey,
+          });
 
-      expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
-      expect(receivedMsg.version).to.eq(1);
-      expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
-    });
+          const wireBytes = msg.encode();
+          const actual = await WakuMessage.decode(wireBytes, [symKey]);
 
-    it('Js encrypts message for nim [symmetric, no signature]', async function () {
-      this.timeout(5000);
-
-      const symKey = await nimWaku.getSymmetricKey();
-
-      const messageText =
-        'This is a message I am going to encrypt with a symmetric key';
-      const message = await WakuMessage.fromUtf8String(
-        messageText,
-        TestContentTopic,
-        {
-          symKey: symKey,
+          expect(actual?.payload).to.deep.equal(payload);
+          expect(actual?.signaturePublicKey).to.deep.equal(sigPubKey);
         }
-      );
+      )
+    );
+  });
 
-      await waku.relay.send(message);
+  it('Waku message round trip utf-8 including emojis', async function () {
+    const messageText = '😁🤣🥧🤦👩‍🎓';
+    const wakuMessage = await WakuMessage.fromUtf8String(
+      messageText,
+      TestContentTopic
+    );
 
-      let msgs: WakuRelayMessage[] = [];
+    const decodedText = wakuMessage.payloadAsUtf8;
 
-      while (msgs.length === 0) {
-        await delay(200);
-        msgs = await nimWaku.getSymmetricMessages(symKey);
-      }
-
-      expect(msgs[0].contentTopic).to.equal(message.contentTopic);
-      expect(hexToBuf(msgs[0].payload).toString('utf-8')).to.equal(messageText);
-    });
+    expect(decodedText).to.eq(messageText);
   });
 });

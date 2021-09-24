@@ -17,7 +17,7 @@ module.exports = function (config) {
     singleRun: true,
     karmaTypescriptConfig: {
       bundlerOptions: {
-        entrypoints: /.*\.browser\.spec\.ts$/,
+        entrypoints: /^.*[^(node)]\.spec\.ts$/,
       },
       coverageOptions: {
         instrumentation: false,
