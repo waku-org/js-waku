@@ -26,7 +26,7 @@ const dbg = debug('waku:test:message');
 
 const TestContentTopic = '/test/1/waku-message/utf8';
 
-describe('Waku Message: Node only', function () {
+describe('Waku Message [node only]', function () {
   describe('Interop: Nim', function () {
     let waku: Waku;
     let nimWaku: NimWaku;

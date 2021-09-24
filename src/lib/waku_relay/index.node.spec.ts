@@ -18,8 +18,10 @@ const log = debug('waku:test');
 
 const TestContentTopic = '/test/1/waku-relay/utf8';
 
-describe('Waku Relay', () => {
-  describe('js only', () => {
+describe('Waku Relay [node only]', () => {
+  // Node needed as we don't have a way to connect 2 js waku
+  // nodes in the browser yet
+  describe('2 js nodes', () => {
     afterEach(function () {
       if (this.currentTest?.state === 'failed') {
         console.log(`Test failed, log file name is ${makeLogFileName(this)}`);
