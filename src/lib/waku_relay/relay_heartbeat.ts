@@ -276,7 +276,7 @@ export class RelayHeartbeat extends Heartbeat {
         const peersList = Array.from(peers).sort(
           (a, b) => getScore(a) - getScore(b)
         );
-        const medianIndex = peers.size / 2;
+        const medianIndex = Math.floor(peers.size / 2);
         const medianScore = getScore(peersList[medianIndex]);
 
         // if the median score is below the threshold, select a better peer (if any) and GRAFT
