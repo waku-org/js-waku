@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-import { getPseudoRandomSubset } from './discovery';
+import { getPseudoRandomSubset } from './index';
 
 describe('Discovery', () => {
   it('returns all values when wanted number matches available values', function () {
