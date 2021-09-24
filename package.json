@@ -55,8 +55,11 @@
   "dependencies": {
     "@chainsafe/libp2p-noise": "^4.1.1",
     "axios": "^0.21.1",
+    "base64url": "^3.0.1",
     "debug": "^4.3.1",
+    "dns2": "^2.0.1",
     "ecies-geth": "^1.5.2",
+    "hi-base32": "^0.5.1",
     "it-concat": "^2.0.0",
     "it-length-prefixed": "^5.0.2",
     "js-sha3": "^0.8.0",
@@ -67,6 +70,8 @@
     "libp2p-websockets": "^0.16.1",
     "multiaddr": "^10.0.1",
     "protobufjs": "^6.8.8",
+    "rlp": "^2.2.6",
+    "scanf": "^1.1.2",
     "secp256k1": "^4.0.2",
     "uuid": "^8.3.2"
   },

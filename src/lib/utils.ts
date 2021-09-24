@@ -1,3 +1,5 @@
+import { keccak256, Message } from 'js-sha3';
+
 export function hexToBuf(hex: string | Buffer | Uint8Array): Buffer {
   if (typeof hex === 'string') {
     return Buffer.from(hex.replace(/^0x/i, ''), 'hex');
@@ -30,4 +32,8 @@ export function equalByteArrays(
   }
 
   return aBuf.compare(bBuf) === 0;
+}
+
+export function keccak256Buf(message: Message): Buffer {
+  return Buffer.from(keccak256.arrayBuffer(message));
 }
