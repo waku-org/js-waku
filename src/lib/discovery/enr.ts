@@ -9,18 +9,9 @@ import { ecdsaVerify } from 'secp256k1';
 
 import { keccak256Buf } from '../utils';
 
-// Convert is not exported from multiaddr's index.d.ts so cannot use import
+// Convert is not exported from multiaddr index.d.ts so cannot use import
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Convert = require('multiaddr/src/convert');
-
-// multiaddr 8.0.0 expects an Uint8Array with internal buffer starting at 0 offset
-function toNewUint8Array(buf: Uint8Array): Uint8Array {
-  const arrayBuffer = buf.buffer.slice(
-    buf.byteOffset,
-    buf.byteOffset + buf.byteLength
-  );
-  return new Uint8Array(arrayBuffer);
-}
 
 export interface PeerInfo {
   id?: Uint8Array | Buffer;
@@ -97,9 +88,9 @@ export class ENR {
     );
 
     return {
-      address: Convert.toString(ipCode, obj.ip) as string,
-      tcpPort: parseInt(Convert.toString(tcpCode, toNewUint8Array(obj.tcp))),
-      udpPort: parseInt(Convert.toString(udpCode, toNewUint8Array(obj.udp))),
+      address: obj.ip ? Convert.toString(ipCode, obj.ip) : null,
+      tcpPort: obj.tcp ? parseInt(Convert.toString(tcpCode, obj.tcp)) : null,
+      udpPort: obj.udp ? parseInt(Convert.toString(udpCode, obj.udp)) : null,
     };
   }
 
@@ -113,7 +104,7 @@ export class ENR {
       `ENR root entry must start with '${this.ROOT_PREFIX}'`
     );
 
-    const rootVals = sscanf(
+    const rootValues = sscanf(
       root,
       `${this.ROOT_PREFIX}v1 e=%s l=%s seq=%d sig=%s`,
       'eRoot',
@@ -122,11 +113,20 @@ export class ENR {
       'signature'
     ) as ENRRootValues;
 
-    assert.ok(rootVals.eRoot, "Could not parse 'e' value from ENR root entry");
-    assert.ok(rootVals.lRoot, "Could not parse 'l' value from ENR root entry");
-    assert.ok(rootVals.seq, "Could not parse 'seq' value from ENR root entry");
     assert.ok(
-      rootVals.signature,
+      rootValues.eRoot,
+      "Could not parse 'e' value from ENR root entry"
+    );
+    assert.ok(
+      rootValues.lRoot,
+      "Could not parse 'l' value from ENR root entry"
+    );
+    assert.ok(
+      rootValues.seq,
+      "Could not parse 'seq' value from ENR root entry"
+    );
+    assert.ok(
+      rootValues.signature,
       "Could not parse 'sig' value from ENR root entry"
     );
 
@@ -137,7 +137,9 @@ export class ENR {
     // (Trailing recovery bit must be trimmed to pass `ecdsaVerify` method)
     const signedComponent = root.split(' sig')[0];
     const signedComponentBuffer = Buffer.from(signedComponent);
-    const signatureBuffer = base64url.toBuffer(rootVals.signature).slice(0, 64);
+    const signatureBuffer = base64url
+      .toBuffer(rootValues.signature)
+      .slice(0, 64);
     const keyBuffer = Buffer.from(decodedPublicKey);
 
     const isVerified = ecdsaVerify(
@@ -148,7 +150,7 @@ export class ENR {
 
     assert(isVerified, 'Unable to verify ENR root signature');
 
-    return rootVals.eRoot;
+    return rootValues.eRoot;
   }
 
   /**
@@ -162,7 +164,7 @@ export class ENR {
       `ENR tree entry must start with '${this.TREE_PREFIX}'`
     );
 
-    const treeVals = sscanf(
+    const treeValues = sscanf(
       tree,
       `${this.TREE_PREFIX}//%s@%s`,
       'publicKey',
@@ -170,12 +172,12 @@ export class ENR {
     ) as ENRTreeValues;
 
     assert.ok(
-      treeVals.publicKey,
+      treeValues.publicKey,
       'Could not parse public key from ENR tree entry'
     );
-    assert.ok(treeVals.domain, 'Could not parse domain from ENR tree entry');
+    assert.ok(treeValues.domain, 'Could not parse domain from ENR tree entry');
 
-    return treeVals;
+    return treeValues;
   }
 
   /**
