@@ -123,7 +123,7 @@ export class DNSNodeDiscovery {
         ? `${subdomain}.${context.domain}`
         : context.domain;
 
-    const response = await this.dns
+    const response: string[] = await this.dns
       .resolve(location, 'TXT')
       .then((res: { answers: Array<{ data: string }> }) =>
         res.answers.map((answer: { data: string }) => answer.data)
@@ -135,12 +135,12 @@ export class DNSNodeDiscovery {
     );
     assert(response[0].length, 'Received empty TXT record');
 
-    if (response.length > 1) {
-      dbg(`Warning, DNS TXT value ${location} may be omitted`, response);
-    }
+    // Branch entries can be an array of strings of comma delimited subdomains, with
+    // some subdomain strings split across the array elements
+    const result = response.join('');
 
-    this._DNSTreeCache[subdomain] = response[0];
-    return response[0];
+    this._DNSTreeCache[subdomain] = result;
+    return result;
   }
 }
 
