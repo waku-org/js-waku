@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-import { DNSNodeDiscovery } from './dns';
+import { DnsClient, DnsNodeDiscovery } from './dns';
 import testData from './testdata.json';
 
 const mockData = testData.dns;
@@ -28,7 +28,7 @@ const errorBranchB = `enrtree-branch:${branchDomainD}`;
 /**
  * Mocks DNS resolution.
  */
-class MockDNS {
+class MockDNS implements DnsClient {
   fqdnRes: Map<string, string[]>;
   fqdnThrows: string[];
 
@@ -45,27 +45,14 @@ class MockDNS {
     this.fqdnThrows.push(fqdn);
   }
 
-  resolve(
-    fqdn: string,
-    type: string
-  ): Promise<{ answers: Array<{ data: string }> }> {
-    if (type !== 'TXT') throw 'Expected TXT DNS queries.';
-
+  resolveTXT(fqdn: string): Promise<string[]> {
     if (this.fqdnThrows.includes(fqdn)) throw 'Mock DNS throws.';
 
     const res = this.fqdnRes.get(fqdn);
 
-    if (!res) throw `Mock DNS could not resolve ${fqdn}}`;
+    if (!res) throw `Mock DNS could not resolve ${fqdn}`;
 
-    const answers = res.map((data) => {
-      return {
-        data: data,
-      };
-    });
-
-    return Promise.resolve({
-      answers,
-    });
+    return Promise.resolve(res);
   }
 }
 
@@ -81,7 +68,7 @@ describe('DNS Node Discovery', () => {
     mockDns.addRes(`${rootDomain}.${host}`, [singleBranch]);
     mockDns.addRes(`${branchDomainA}.${host}`, [mockData.enrA]);
 
-    const dnsNodeDiscovery = new DNSNodeDiscovery(mockDns);
+    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers(1, [mockData.enrTree]);
 
     expect(peers.length).to.eq(1);
@@ -94,7 +81,7 @@ describe('DNS Node Discovery', () => {
     mockDns.addRes(`${branchDomainA}.${host}`, [mockData.enrA]);
     mockDns.addRes(`${branchDomainB}.${host}`, [mockData.enrB]);
 
-    const dnsNodeDiscovery = new DNSNodeDiscovery(mockDns);
+    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers(50, [mockData.enrTree]);
 
     expect(peers.length).to.eq(2);
@@ -109,7 +96,7 @@ describe('DNS Node Discovery', () => {
       mockData.enrB,
     ]);
 
-    const dnsNodeDiscovery = new DNSNodeDiscovery(mockDns);
+    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers(50, [mockData.enrTree]);
 
     expect(peers.length).to.eq(3);
@@ -124,7 +111,7 @@ describe('DNS Node Discovery', () => {
     mockDns.addRes(`${rootDomain}.${host}`, [singleBranch]);
     mockDns.addRes(`${branchDomainA}.${host}`, [singleBranch]);
 
-    const dnsNodeDiscovery = new DNSNodeDiscovery(mockDns);
+    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers(1, [mockData.enrTree]);
 
     expect(peers.length).to.eq(0);
@@ -136,7 +123,7 @@ describe('DNS Node Discovery', () => {
     // Empty response case
     mockDns.addRes(`${branchDomainA}.${host}`, []);
 
-    const dnsNodeDiscovery = new DNSNodeDiscovery(mockDns);
+    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     let peers = await dnsNodeDiscovery.getPeers(1, [mockData.enrTree]);
 
     expect(peers.length).to.eq(0);
@@ -152,14 +139,14 @@ describe('DNS Node Discovery', () => {
     mockDns.addRes(`${rootDomain}.${host}`, [errorBranchA]);
     mockDns.addThrow(`${branchDomainC}.${host}`);
 
-    const dnsNodeDiscovery = new DNSNodeDiscovery(mockDns);
+    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers(1, [mockData.enrTree]);
     expect(peers.length).to.eq(0);
   });
 
   it('ignores unrecognized TXT record formats', async function () {
     mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrBranchBadPrefix]);
-    const dnsNodeDiscovery = new DNSNodeDiscovery(mockDns);
+    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers(1, [mockData.enrTree]);
     expect(peers.length).to.eq(0);
   });
@@ -168,7 +155,7 @@ describe('DNS Node Discovery', () => {
     mockDns.addRes(`${rootDomain}.${host}`, [errorBranchB]);
     mockDns.addRes(`${branchDomainD}.${host}`, [mockData.enrA]);
 
-    const dnsNodeDiscovery = new DNSNodeDiscovery(mockDns);
+    const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peersA = await dnsNodeDiscovery.getPeers(1, [mockData.enrTree]);
     expect(peersA.length).to.eq(1);
 
@@ -191,7 +178,7 @@ describe('DNS Node Discovery [live data]', function () {
 
   it(`should retrieve ${maxQuantity} PeerInfos for test.nodes.vac.dev`, async function () {
     // Google's dns server address. Needs to be set explicitly to run in CI
-    const dnsNodeDiscovery = new DNSNodeDiscovery();
+    const dnsNodeDiscovery = DnsNodeDiscovery.dnsOverHttp();
     const peers = await dnsNodeDiscovery.getPeers(maxQuantity, [enrTree]);
 
     expect(peers.length).to.eq(maxQuantity);

@@ -1,10 +1,8 @@
 import assert from 'assert';
 
 import { debug } from 'debug';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import DNS from 'dns2';
 
+import { Doh } from './doh';
 import { PeerInfo } from './enr';
 import { ENR } from './enr';
 
@@ -16,18 +14,23 @@ type SearchContext = {
   visits: { [key: string]: boolean };
 };
 
-export class DNSNodeDiscovery {
-  private readonly dns: DNS;
+export interface DnsClient {
+  resolveTXT: (domain: string) => Promise<string[]>;
+}
+
+export class DnsNodeDiscovery {
+  private readonly dns: DnsClient;
   private _DNSTreeCache: { [key: string]: string };
   private readonly _errorTolerance: number = 10;
 
-  constructor(dns?: DNS) {
+  public static dnsOverHttp(baseUrl?: string): DnsNodeDiscovery {
+    const dnsClient = new Doh(baseUrl);
+    return new DnsNodeDiscovery(dnsClient);
+  }
+
+  public constructor(dns: DnsClient) {
     this._DNSTreeCache = {};
-    if (dns) {
-      this.dns = dns;
-    } else {
-      this.dns = new DNS();
-    }
+    this.dns = dns;
   }
 
   /**
@@ -123,11 +126,7 @@ export class DNSNodeDiscovery {
         ? `${subdomain}.${context.domain}`
         : context.domain;
 
-    const response: string[] = await this.dns
-      .resolve(location, 'TXT')
-      .then((res: { answers: Array<{ data: string }> }) =>
-        res.answers.map((answer: { data: string }) => answer.data)
-      );
+    const response = await this.dns.resolveTXT(location);
 
     assert(
       response.length,
