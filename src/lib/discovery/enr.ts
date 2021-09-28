@@ -217,3 +217,7 @@ export class ENR {
     };
   }
 }
+
+function peerInfoToMultiaddrStr(peer: PeerInfo): string[] {
+  Multiaddr
+}

@@ -41,13 +41,13 @@ export class DnsNodeDiscovery {
    */
   async getPeers(
     maxQuantity: number,
-    dnsNetworks: string[]
+    enrTreeUrls: string[]
   ): Promise<PeerInfo[]> {
     let totalSearches = 0;
     const peers: PeerInfo[] = [];
 
-    const networkIndex = Math.floor(Math.random() * dnsNetworks.length);
-    const { publicKey, domain } = ENR.parseTree(dnsNetworks[networkIndex]);
+    const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
+    const { publicKey, domain } = ENR.parseTree(enrTreeUrls[networkIndex]);
 
     while (
       peers.length < maxQuantity &&
