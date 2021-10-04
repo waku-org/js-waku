@@ -185,7 +185,42 @@ function decodeMessage(wakuMessage) {
 
 You now have all the building blocks to retrieve and decode messages for a store node.
 
-Finally, retrieve messages from a store node:
+Note that Waku Store queries are paginated.
+The API provided by `js-waku` automatically traverses all pages of the Waku Store response.
+By default, the most recent page is retrieved first but this can be changed with the `direction` option.
+
+First, define a React state to save the messages:
+
+```js
+function App() {
+  const [messages, setMessages] = React.useState([]);
+  /// [..]
+}
+```
+
+Then, define `processMessages` to decode and then store messages in a React state.
+You will pass `processMessages` as a `callback` option to `WakuStore.queryHistory`.
+`processMessages` will be called each time a page is received from the Waku Store. 
+
+
+```js
+const processMessages = (retrievedMessages) => {
+  const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
+
+  setMessages((currentMessages) => {
+    return currentMessages.concat(messages.reverse());
+  });
+};
+```
+
+Finally, pass `processMessage` in `WakuStore.queryHistory` as the `callback` value:
+
+```js
+waku.store
+  .queryHistory([ContentTopic], { callback: processMessages });
+```
+
+All together, you should now have:
 
 ```js
 const ContentTopic = '/toy-chat/2/huilong/proto';
@@ -198,15 +233,18 @@ function App() {
   React.useEffect(() => {
     if (wakuStatus !== 'Connected') return;
 
+    const processMessages = (retrievedMessages) => {
+      const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
+
+      setMessages((currentMessages) => {
+        return currentMessages.concat(messages.reverse());
+      });
+    };
+
     waku.store
-      .queryHistory([ContentTopic])
+      .queryHistory([ContentTopic], { callback: processMessages })
       .catch((e) => {
         console.log('Failed to retrieve messages', e);
-      })
-      .then((retrievedMessages) => {
-        const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
-
-        setMessages(messages);
       });
   }, [waku, wakuStatus]);
 

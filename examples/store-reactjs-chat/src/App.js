@@ -44,15 +44,18 @@ function App() {
   React.useEffect(() => {
     if (wakuStatus !== 'Connected') return;
 
+    const processMessages = (retrievedMessages) => {
+      const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
+
+      setMessages((currentMessages) => {
+        return currentMessages.concat(messages.reverse());
+      });
+    };
+
     waku.store
-      .queryHistory([ContentTopic])
+      .queryHistory([ContentTopic], { callback: processMessages })
       .catch((e) => {
         console.log('Failed to retrieve messages', e);
-      })
-      .then((retrievedMessages) => {
-        const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
-
-        setMessages(messages);
       });
   }, [waku, wakuStatus]);
 
@@ -104,6 +107,7 @@ function formatDate(timestamp) {
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+    second: '2-digit',
     hour12: false,
   });
 }
