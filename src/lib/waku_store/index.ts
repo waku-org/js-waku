@@ -18,6 +18,8 @@ const dbg = debug('waku:store');
 
 export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
 
+export const DefaultPageSize = 10;
+
 export { PageDirection };
 
 export interface CreateOptions {
@@ -38,12 +40,50 @@ export interface TimeFilter {
 }
 
 export interface QueryOptions {
+  /**
+   * The peer to query. If undefined, a pseudo-random peer is selected from the connected Waku Store peers.
+   */
   peerId?: PeerId;
+  /**
+   * The pubsub topic to pass to the query.
+   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/).
+   */
   pubSubTopic?: string;
+  /**
+   * The direction in which pages are retrieved:
+   * - [[Direction.BACKWARD]]: Most recent page first.
+   * - [[Direction.FORWARD]]: Oldest page first.
+   *
+   * Note: This does not affect the ordering of messages with the page
+   * (oldest message is always first).
+   *
+   * @default [[Direction.BACKWARD]]
+   */
   pageDirection?: PageDirection;
+  /**
+   * The number of message per page.
+   *
+   * @default [[DefaultPageSize]]
+   */
   pageSize?: number;
+  /**
+   * Retrieve messages with a timestamp within the provided values.
+   */
   timeFilter?: TimeFilter;
+  /**
+   * Callback called on pages of stored messages as they are retrieved.
+   * Allows for a faster access to the results as it is called as soon as a page
+   * is received.
+   * Traversal of the pages is done automatically so this function will invoked
+   * for each retrieved page.
+   */
   callback?: (messages: WakuMessage[]) => void;
+  /**
+   * Keys that will be used to decrypt messages.
+   *
+   * It can be Asymmetric Private Keys and Symmetric Keys in the same array,
+   * all keys will be tried with both methods.
+   */
   decryptionKeys?: Array<Uint8Array | string>;
 }
 
@@ -65,20 +105,13 @@ export class WakuStore {
   }
 
   /**
-   * Query given peer using Waku Store.
+   * Do a History Query to a Waku Store.
    *
    * @param contentTopics The content topics to pass to the query, leave empty to
    * retrieve all messages.
-   * @param options
-   * @param options.peerId The peer to query.Options
-   * @param options.timeFilter Query messages with a timestamp within the provided values.
-   * @param options.pubSubTopic The pubsub topic to pass to the query. Defaults
-   * to the value set at creation. See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/).
-   * @param options.callback Callback called on page of stored messages as they are retrieved
-   * @param options.decryptionKeys Keys that will be used to decrypt messages.
-   * It can be Asymmetric Private Keys and Symmetric Keys in the same array, all keys will be tried with both
-   * methods.
-   * @throws If not able to reach the peer to query or error when processing the reply.
+   *
+   * @throws If not able to reach a Waku Store peer to query
+   * or if an error is encountered when processing the reply.
    */
   async queryHistory(
     contentTopics: string[],
@@ -94,7 +127,7 @@ export class WakuStore {
       {
         pubSubTopic: this.pubSubTopic,
         pageDirection: PageDirection.BACKWARD,
-        pageSize: 10,
+        pageSize: DefaultPageSize,
       },
       options,
       {
