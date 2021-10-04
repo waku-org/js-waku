@@ -12,13 +12,13 @@ import { hexToBuf } from '../utils';
 import { DefaultPubSubTopic } from '../waku';
 import { WakuMessage } from '../waku_message';
 
-import { Direction, HistoryRPC } from './history_rpc';
+import { HistoryRPC, PageDirection } from './history_rpc';
 
 const dbg = debug('waku:store');
 
 export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
 
-export { Direction };
+export { PageDirection };
 
 export interface CreateOptions {
   /**
@@ -40,7 +40,7 @@ export interface TimeFilter {
 export interface QueryOptions {
   peerId?: PeerId;
   pubSubTopic?: string;
-  direction?: Direction;
+  pageDirection?: PageDirection;
   pageSize?: number;
   timeFilter?: TimeFilter;
   callback?: (messages: WakuMessage[]) => void;
@@ -93,7 +93,7 @@ export class WakuStore {
     const opts = Object.assign(
       {
         pubSubTopic: this.pubSubTopic,
-        direction: Direction.BACKWARD,
+        pageDirection: PageDirection.BACKWARD,
         pageSize: 10,
       },
       options,

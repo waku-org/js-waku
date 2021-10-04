@@ -19,7 +19,7 @@ import {
   getPublicKey,
 } from '../waku_message/version_1';
 
-import { Direction } from './history_rpc';
+import { PageDirection } from './history_rpc';
 
 const dbg = debug('waku:test:store');
 
@@ -94,7 +94,7 @@ describe('Waku Store', () => {
     });
 
     const messages = await waku.store.queryHistory([], {
-      direction: Direction.FORWARD,
+      pageDirection: PageDirection.FORWARD,
     });
 
     expect(messages?.length).eq(15);
