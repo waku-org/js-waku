@@ -266,16 +266,16 @@ Note that `WakuStore.queryHistory` select an available store node for you.
 However, it can only select a connected node, which is why the bootstrapping is necessary.
 It will throw an error if no store node is available.
 
-## Filter messages
+## Filter messages by send time
 
 By default, Waku Store nodes store messages for 30 days.
 Depending on your use case, you may not need to retrieve 30 days worth of messages.
 
-Messages have an optional unencrypted `timestamp` field.
-The timestamp is set by the sender and may be present.
+[Waku Message](https://rfc.vac.dev/spec/14/) defines an optional unencrypted `timestamp` field.
+The timestamp is set by the sender.
 By default, js-waku [sets the timestamp of outgoing message to the current time](https://github.com/status-im/js-waku/blob/a056227538f9409aa9134c7ef0df25f602dbea58/src/lib/waku_message/index.ts#L76).
 
-You can filter messages that include a timestamp with the `timeFilter` option.
+You can filter messages that include a timestamp within given bound with the `timeFilter` option.
 
 Let's only retrieve messages up to a week old:
 
