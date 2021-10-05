@@ -275,9 +275,9 @@ Depending on your use case, you may not need to retrieve 30 days worth of messag
 The timestamp is set by the sender.
 By default, js-waku [sets the timestamp of outgoing message to the current time](https://github.com/status-im/js-waku/blob/a056227538f9409aa9134c7ef0df25f602dbea58/src/lib/waku_message/index.ts#L76).
 
-You can filter messages that include a timestamp within given bound with the `timeFilter` option.
+You can filter messages that include a timestamp within given bounds with the `timeFilter` option.
 
-Let's only retrieve messages up to a week old:
+Retrieve messages up to a week old:
 
 ```js
 const startTime = new Date();
