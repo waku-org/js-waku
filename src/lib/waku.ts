@@ -328,7 +328,6 @@ export class Waku {
             peers.push(peer)
           );
         });
-        dbg('peers for ', desiredProtocolVersions, peers);
 
         if (peers.length > 0) {
           return Promise.resolve();
