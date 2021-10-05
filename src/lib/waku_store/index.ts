@@ -166,6 +166,8 @@ export class WakuStore {
       const { stream } = await connection.newStream(StoreCodec);
       const queryOpts = Object.assign(opts, { cursor });
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
+      dbg('Querying store peer', connection.remoteAddr.toString());
+
       const res = await pipe(
         [historyRpcQuery.encode()],
         lp.encode(),
