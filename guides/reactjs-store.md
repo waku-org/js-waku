@@ -198,10 +198,9 @@ function App() {
 }
 ```
 
-Then, define `processMessages` to decode and then store messages in a React state.
+Then, define `processMessages` to decode and then store messages in the React state.
 You will pass `processMessages` as a `callback` option to `WakuStore.queryHistory`.
-`processMessages` will be called each time a page is received from the Waku Store. 
-
+`processMessages` will be called each time a page is received from the Waku Store.
 
 ```js
 const processMessages = (retrievedMessages) => {
