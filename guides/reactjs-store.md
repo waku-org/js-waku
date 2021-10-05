@@ -187,7 +187,7 @@ You now have all the building blocks to retrieve and decode messages for a store
 
 Note that Waku Store queries are paginated.
 The API provided by `js-waku` automatically traverses all pages of the Waku Store response.
-By default, the most recent page is retrieved first but this can be changed with the `direction` option.
+By default, the most recent page is retrieved first but this can be changed with the `pageDirection` option.
 
 First, define a React state to save the messages:
 
