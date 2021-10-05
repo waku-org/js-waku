@@ -140,23 +140,26 @@ const decodeWakuMessage = (wakuMessage) => {
 
 You now have all the building blocks to retrieve and decode messages for a store node.
 
-Retrieve messages from a store node:
+Store node responses are paginated.
+The `WakuStore.queryHistory` API automatically query all the pages in a sequential manner.
+To process messages as soon as they received (page by page), use the `callback` option:
 
 ```js
 const ContentTopic = '/store-guide/1/news/proto';
 
 waku.store
-  .queryHistory([ContentTopic])
+  .queryHistory([ContentTopic], {
+    callback: (retrievedMessages) => {
+      const articles = retrievedMessages
+        .map(decodeWakuMessage) // Decode messages
+        .filter(Boolean); // Filter out undefined values
+
+      console.log(`${articles.length} articles have been retrieved`);
+    }
+  })
   .catch((e) => {
     // Be sure to catch any potential error
     console.log('Failed to retrieve messages', e);
-  })
-  .then((retrievedMessages) => {
-    const articles = retrievedMessages
-      .map(decodeWakuMessage) // Decode messages
-      .filter(Boolean); // Filter out undefined values
-
-    console.log(`${articles.length} articles have been retrieved`);
   });
 ```
 
