@@ -52,8 +52,15 @@ function App() {
       });
     };
 
+    const startTime = new Date();
+    // 7 days/week, 24 hours/day, 60min/hour, 60secs/min, 100ms/sec
+    startTime.setTime(startTime.getTime() - 7 * 24 * 60 * 60 * 1000);
+
     waku.store
-      .queryHistory([ContentTopic], { callback: processMessages })
+      .queryHistory([ContentTopic], {
+        callback: processMessages,
+        timeFilter: { startTime, endTime: new Date() },
+      })
       .catch((e) => {
         console.log('Failed to retrieve messages', e);
       });

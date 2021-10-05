@@ -266,4 +266,31 @@ Note that `WakuStore.queryHistory` select an available store node for you.
 However, it can only select a connected node, which is why the bootstrapping is necessary.
 It will throw an error if no store node is available.
 
+## Filter messages
+
+By default, Waku Store nodes store messages for 30 days.
+Depending on your use case, you may not need to retrieve 30 days worth of messages.
+
+Messages have an optional unencrypted `timestamp` field.
+The timestamp is set by the sender and may be present.
+By default, js-waku [sets the timestamp of outgoing message to the current time](https://github.com/status-im/js-waku/blob/a056227538f9409aa9134c7ef0df25f602dbea58/src/lib/waku_message/index.ts#L76).
+
+You can filter messages that include a timestamp with the `timeFilter` option.
+
+Let's only retrieve messages up to a week old:
+
+```js
+const startTime = new Date();
+// 7 days/week, 24 hours/day, 60min/hour, 60secs/min, 100ms/sec
+startTime.setTime(startTime.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+waku.store
+  .queryHistory([ContentTopic], {
+    callback: processMessages,
+    timeFilter: { startTime, endTime: new Date() }
+  });
+```
+
+## End result
+
 You can see the complete code in the [Minimal ReactJS Waku Store App](/examples/store-reactjs-chat).
