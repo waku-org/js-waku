@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 
 import * as proto from '../../proto/waku/v2/store';
 
-export enum Direction {
+export enum PageDirection {
   BACKWARD = 'backward',
   FORWARD = 'forward',
 }
@@ -11,7 +11,7 @@ export enum Direction {
 export interface Params {
   contentTopics: string[];
   pubSubTopic: string;
-  direction: Direction;
+  pageDirection: PageDirection;
   pageSize: number;
   startTime?: number;
   endTime?: number;
@@ -25,7 +25,7 @@ export class HistoryRPC {
    * Create History Query.
    */
   static createQuery(params: Params): HistoryRPC {
-    const direction = directionToProto(params.direction);
+    const direction = directionToProto(params.pageDirection);
     const pagingInfo = {
       pageSize: params.pageSize,
       cursor: params.cursor,
@@ -67,11 +67,13 @@ export class HistoryRPC {
   }
 }
 
-function directionToProto(direction: Direction): proto.PagingInfo_Direction {
-  switch (direction) {
-    case Direction.BACKWARD:
+function directionToProto(
+  pageDirection: PageDirection
+): proto.PagingInfo_Direction {
+  switch (pageDirection) {
+    case PageDirection.BACKWARD:
       return proto.PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED;
-    case Direction.FORWARD:
+    case PageDirection.FORWARD:
       return proto.PagingInfo_Direction.DIRECTION_FORWARD;
     default:
       return proto.PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED;

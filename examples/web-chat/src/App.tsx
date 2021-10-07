@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useState } from 'react';
 import './App.css';
-import { Direction, getBootstrapNodes, Waku, WakuMessage } from 'js-waku';
+import { PageDirection, getBootstrapNodes, Waku, WakuMessage } from 'js-waku';
 import handleCommand from './command';
 import Room from './Room';
 import { WakuContext } from './WakuContext';
@@ -64,7 +64,7 @@ async function retrieveStoreMessages(
   try {
     const res = await waku.store.queryHistory([ChatContentTopic], {
       pageSize: 5,
-      direction: Direction.FORWARD,
+      pageDirection: PageDirection.FORWARD,
       timeFilter: {
         startTime,
         endTime,

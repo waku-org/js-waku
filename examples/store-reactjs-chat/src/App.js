@@ -44,15 +44,25 @@ function App() {
   React.useEffect(() => {
     if (wakuStatus !== 'Connected') return;
 
+    const processMessages = (retrievedMessages) => {
+      const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
+
+      setMessages((currentMessages) => {
+        return currentMessages.concat(messages.reverse());
+      });
+    };
+
+    const startTime = new Date();
+    // 7 days/week, 24 hours/day, 60min/hour, 60secs/min, 100ms/sec
+    startTime.setTime(startTime.getTime() - 7 * 24 * 60 * 60 * 1000);
+
     waku.store
-      .queryHistory([ContentTopic])
+      .queryHistory([ContentTopic], {
+        callback: processMessages,
+        timeFilter: { startTime, endTime: new Date() },
+      })
       .catch((e) => {
         console.log('Failed to retrieve messages', e);
-      })
-      .then((retrievedMessages) => {
-        const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
-
-        setMessages(messages);
       });
   }, [waku, wakuStatus]);
 
@@ -104,6 +114,7 @@ function formatDate(timestamp) {
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+    second: '2-digit',
     hour12: false,
   });
 }

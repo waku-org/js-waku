@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Breaking**: Renamed `WakuStore.QueryOptions`'s `direction` to `pageDirection` (and its type) as it only affects the page ordering,
+  not the ordering of messages with the page.
+
+### Fixed
+- Docs: Ensure that `WakuStore`'s `QueryOptions` documentation is available [online](https://status-im.github.io/js-waku/docs/).
+
 ## [0.13.1] - 2021-09-21
 
 ### Fixed
