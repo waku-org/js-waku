@@ -72,12 +72,16 @@ export interface QueryOptions {
   timeFilter?: TimeFilter;
   /**
    * Callback called on pages of stored messages as they are retrieved.
+   *
    * Allows for a faster access to the results as it is called as soon as a page
-   * is received.
-   * Traversal of the pages is done automatically so this function will invoked
-   * for each retrieved page.
+   * is received. Traversal of the pages is done automatically so this function
+   * will invoked for each retrieved page.
+   *
+   * If the call on a page returns `true`, then traversal of the pages is aborted.
+   * For example, this can be used for the caller to stop the query after a
+   * specific message is found.
    */
-  callback?: (messages: WakuMessage[]) => void;
+  callback?: (messages: WakuMessage[]) => void | boolean;
   /**
    * Keys that will be used to decrypt messages.
    *
@@ -211,20 +215,18 @@ export class WakuStore {
         })
       );
 
+      let abort = false;
       if (opts.callback) {
-        // TODO: Test the callback feature
-        // TODO: Change callback to take individual messages
-        opts.callback(pageMessages);
+        abort = Boolean(opts.callback(pageMessages));
       }
 
       const responsePageSize = response.pagingInfo?.pageSize;
       const queryPageSize = historyRpcQuery.query?.pagingInfo?.pageSize;
       if (
-        responsePageSize &&
-        queryPageSize &&
-        responsePageSize < queryPageSize
-      ) {
+        abort ||
         // Response page size smaller than query, meaning this is the last page
+        (responsePageSize && queryPageSize && responsePageSize < queryPageSize)
+      ) {
         return messages;
       }
 
