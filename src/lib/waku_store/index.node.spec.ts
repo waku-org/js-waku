@@ -68,6 +68,89 @@ describe('Waku Store', () => {
     expect(result).to.not.eq(-1);
   });
 
+  it('Retrieves history using callback', async function () {
+    this.timeout(5_000);
+
+    nimWaku = new NimWaku(makeLogFileName(this));
+    await nimWaku.start({ persistMessages: true });
+
+    const totalMsgs = 20;
+
+    for (let i = 0; i < totalMsgs; i++) {
+      expect(
+        await nimWaku.sendMessage(
+          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+        )
+      ).to.be.true;
+    }
+
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+      libp2p: { modules: { transport: [TCP] } },
+    });
+    await waku.dial(await nimWaku.getMultiaddrWithId());
+
+    // Wait for identify protocol to finish
+    await new Promise((resolve) => {
+      waku.libp2p.peerStore.once('change:protocols', resolve);
+    });
+
+    let messages: WakuMessage[] = [];
+
+    await waku.store.queryHistory([], {
+      callback: (_msgs) => {
+        messages = messages.concat(_msgs);
+      },
+    });
+
+    expect(messages?.length).eq(totalMsgs);
+    const result = messages?.findIndex((msg) => {
+      return msg.payloadAsUtf8 === 'Message 0';
+    });
+    expect(result).to.not.eq(-1);
+  });
+
+  it('Retrieval aborts when callback returns true', async function () {
+    this.timeout(5_000);
+
+    nimWaku = new NimWaku(makeLogFileName(this));
+    await nimWaku.start({ persistMessages: true });
+
+    const availMsgs = 20;
+
+    for (let i = 0; i < availMsgs; i++) {
+      expect(
+        await nimWaku.sendMessage(
+          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+        )
+      ).to.be.true;
+    }
+
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+      libp2p: { modules: { transport: [TCP] } },
+    });
+    await waku.dial(await nimWaku.getMultiaddrWithId());
+
+    // Wait for identify protocol to finish
+    await new Promise((resolve) => {
+      waku.libp2p.peerStore.once('change:protocols', resolve);
+    });
+
+    let messages: WakuMessage[] = [];
+    const desiredMsgs = 14;
+
+    await waku.store.queryHistory([], {
+      pageSize: 7,
+      callback: (_msgs) => {
+        messages = messages.concat(_msgs);
+        return messages.length >= desiredMsgs;
+      },
+    });
+
+    expect(messages?.length).eq(desiredMsgs);
+  });
+
   it('Retrieves all historical elements in chronological order through paging', async function () {
     this.timeout(5_000);
 
