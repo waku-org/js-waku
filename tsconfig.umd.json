@@ -1,9 +1,10 @@
 {
   "extends": "./tsconfig",
   "compilerOptions": {
-    "target": "esnext",
-    "outDir": "build/module",
-    "module": "esnext"
+    "module": "UMD",
+    "target": "es6",
+    "removeComments": true,
+    "outFile": "build/min.js"
   },
   "exclude": ["node_modules/**", "src/**/*.spec.ts", "src/test_utils"]
 }
