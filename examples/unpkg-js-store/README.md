@@ -4,7 +4,7 @@
 
 - Waku Store: Using a condition to stop retrieving results from Waku Store.
 - Pure Javascript/HTML.
-- Use minified bundle of js from unpkg (todo), no import, no package manager.
+- Use minified bundle of js from unpkg.com, no import, no package manager.
 
 This example uses Waku Store to retrieve the latest ping relay message (used for keep alive purposes) and displays its timestamp.
 
