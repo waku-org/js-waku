@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - If the `callback` function passed to`WakuStore.queryHistory` returns `true`, then no further pages are retrieved from the store.
-- Use webpack to build UMD bundle of the library.
+- Use webpack to build UMD bundle of the library, see [README](./README.md) for usage.
 
 ### Changed
 - **Breaking**: Renamed `WakuStore.QueryOptions`'s `direction` to `pageDirection` (and its type) as it only affects the page ordering,
