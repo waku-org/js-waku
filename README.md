@@ -32,11 +32,42 @@ Install `js-waku` package:
 npm install js-waku
 ```
 
+### Import js-waku
+
+To use js-waku in your application, you can:
+
+use `import`:
+
+```js
+import { Waku } from 'js-waku';
+
+const waku = await Waku.create();
+```
+
+use `require`:
+
+```js
+const jsWaku = require('js-waku');
+
+jsWaku.Waku.create().then(waku => {
+  // ...
+});
+```
+
+Or directly import it in a `<script>` tag:
+
+```html
+<script src='https://unpkg.com/js-waku@0.14.0-rc.0/build/umd/js-waku.min.bundle.js'></script>
+<script>
+  jswaku.Waku.create().then(waku => {
+    // ...
+  }
+</script>
+```
+
 ### Start a waku node
 
 ```ts
-import { Waku } from 'js-waku';
-
 const waku = await Waku.create({ bootstrap: true });
 ```
 
