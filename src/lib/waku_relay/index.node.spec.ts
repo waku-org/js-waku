@@ -339,6 +339,27 @@ describe('Waku Relay [node only]', () => {
         expect(receivedMsg.version).to.eq(message.version);
         expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
       });
+
+      it('Js sends large file to nim', async function () {
+        this.timeout(30000);
+
+        const payloadLength = 400000;
+        const buf = new Uint8Array(payloadLength);
+        const message = await WakuMessage.fromBytes(buf, TestContentTopic);
+
+        await waku.relay.send(message);
+
+        let msgs: WakuMessage[] = [];
+
+        while (msgs.length === 0) {
+          await delay(1000);
+          msgs = await nimWaku.messages();
+        }
+
+        expect(msgs[0].contentTopic).to.equal(message.contentTopic);
+        expect(msgs[0].version).to.equal(message.version);
+        expect(msgs[0].payload?.length).to.equal(payloadLength);
+      });
     });
 
     describe('Js connects to nim', function () {
