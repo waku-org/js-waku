@@ -46,6 +46,7 @@ jobs:
       - name: "[web-chat] Deploy on gh pages to /"
         uses: peaceiris/actions-gh-pages@v3
         with:
+          keep_files: true # Do not delete sub-folders
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./examples/web-chat/build
 
