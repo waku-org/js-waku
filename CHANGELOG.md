@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Issue when importing the `utils` module.
+
 ## [0.14.0] - 2021-10-13
 
 ### Added
