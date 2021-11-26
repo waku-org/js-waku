@@ -11,7 +11,7 @@ on:
 jobs:
   build_and_test:
     env:
-      BUF_VERSION: '0.41.0'
+      BUF_VERSION: '0.56.0'
     strategy:
       matrix:
         node: [14]
@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-        # This would have been done part of npm pretest but it gives better
+        # This would have been done part of npm pretest, but it gives better
         # visibility in the CI if done as a separate step
       - name: Build wakunode2
         shell: bash
@@ -60,7 +60,7 @@ jobs:
           key: buf-bin-v${{ env.BUF_VERSION }}-ubuntu-latest-v1
 
       - name: Install bufbuild
-        uses: mu-io/setup-buf@v2beta
+        uses: mathematic-inc/setup-buf@v2beta
         with:
           buf-version: ${{ env.BUF_VERSION }}
           token: ${{ secrets.GITHUB_TOKEN }}
