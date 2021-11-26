@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Examples: JS examples uses local ESM folder to replicate behaviour of js-waku publish package.
+
+### Fixed
+
+- `TypeError` issue related to constructors using js-waku in a JS project
+  ([#323](https://github.com/status-im/js-waku/issues/323)).
+
 ## [0.14.1] - 2021-10-22
 
 ### Fixed
