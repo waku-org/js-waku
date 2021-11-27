@@ -11,9 +11,10 @@ module.exports = function (config) {
       require('karma-mocha'),
       require('karma-typescript'),
       require('karma-chrome-launcher'),
+      require('karma-firefox-launcher'),
     ],
     reporters: ['progress', 'karma-typescript'],
-    browsers: ['ChromeHeadless'],
+    browsers: ['ChromeHeadless', 'FirefoxHeadless'],
     singleRun: true,
     karmaTypescriptConfig: {
       bundlerOptions: {
