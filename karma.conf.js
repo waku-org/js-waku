@@ -2,6 +2,11 @@ process.env.CHROME_BIN = require('puppeteer').executablePath();
 
 module.exports = function (config) {
   config.set({
+    client: {
+      mocha:  {
+        timeout: 5000
+      }
+    },
     frameworks: ['mocha', 'karma-typescript'],
     files: ['src/lib/**/*.ts', 'src/proto/**/*.ts'],
     preprocessors: {
