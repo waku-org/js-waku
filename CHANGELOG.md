@@ -264,7 +264,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://status-im.github.io/js-waku/docs).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.14.1...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.14.2...HEAD
+[0.14.2]: https://github.com/status-im/js-waku/compare/v0.14.1...v0.14.2
 [0.14.1]: https://github.com/status-im/js-waku/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/status-im/js-waku/compare/v0.13.1...v0.14.0
 [0.13.1]: https://github.com/status-im/js-waku/compare/v0.13.0...v0.13.1
