@@ -7,5 +7,6 @@ export {
   ContentFilter,
   HistoryQuery,
   HistoryResponse,
+  HistoryResponse_Error,
   HistoryRPC,
 } from './waku/v2/store';

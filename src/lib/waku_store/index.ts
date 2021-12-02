@@ -6,7 +6,7 @@ import Libp2p from 'libp2p';
 import { Peer } from 'libp2p/src/peer-store';
 import PeerId from 'peer-id';
 
-import { HistoryResponse_Error } from '../../proto/waku/v2/store';
+import { HistoryResponse_Error } from '../../proto';
 import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
 import { hexToBuf } from '../utils';
 import { DefaultPubSubTopic } from '../waku';
@@ -51,13 +51,13 @@ export interface QueryOptions {
   pubSubTopic?: string;
   /**
    * The direction in which pages are retrieved:
-   * - [[Direction.BACKWARD]]: Most recent page first.
-   * - [[Direction.FORWARD]]: Oldest page first.
+   * - [[PageDirection.BACKWARD]]: Most recent page first.
+   * - [[PageDirection.FORWARD]]: Oldest page first.
    *
    * Note: This does not affect the ordering of messages with the page
    * (oldest message is always first).
    *
-   * @default [[Direction.BACKWARD]]
+   * @default [[PageDirection.BACKWARD]]
    */
   pageDirection?: PageDirection;
   /**
