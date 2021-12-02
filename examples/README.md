@@ -7,3 +7,5 @@ Here is the list of the code examples and the features they demonstrate:
 - [Minimal ReactJS Chat App](min-react-js-chat): Group chat, React/JavaScript, Relay, Protobuf using `protons`.
 - [Minimal ReactJS Waku Store App](store-reactjs-chat): Waku Store, React/JavaScript, Protobuf using `protons`.
 - [Pure Javascript Using Minified Library](unpkg-js-store): Stop retrieving results from Waku Store on condition, Use minified bundle from Unpkg.com, JavaScript. 
+
+See https://docs.dappconnect.dev/docs/examples/ for more examples.
