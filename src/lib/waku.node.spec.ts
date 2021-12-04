@@ -20,12 +20,9 @@ const TestContentTopic = '/test/1/waku/utf8';
 describe('Waku Dial [node only]', function () {
   let waku: Waku;
   let waku2: Waku;
-  let nimWaku: NimWaku;
 
   afterEach(async function () {
     this.timeout(10_000);
-
-    nimWaku ? nimWaku.stop() : null;
 
     await Promise.all([waku ? waku.stop() : null, waku2 ? waku2.stop() : null]);
   });
@@ -120,6 +117,14 @@ describe('Waku Dial [node only]', function () {
   });
 
   describe('Interop: Nim', function () {
+    let nimWaku: NimWaku;
+
+    afterEach(async function () {
+      this.timeout(10_000);
+
+      nimWaku ? nimWaku.stop() : null;
+    });
+
     it('nim connects to js', async function () {
       this.timeout(10_000);
 
