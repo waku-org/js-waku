@@ -318,6 +318,7 @@ export class NimWaku {
       return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
     }
     const res = await this.info();
+    console.log(res);
     this.multiaddrWithId = multiaddr(res.listenStr);
     const peerIdStr = this.multiaddrWithId.getPeerId();
     if (!peerIdStr) throw 'Nim-waku multiaddr does not contain peerId';
