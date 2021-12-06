@@ -23,6 +23,7 @@ import waitForLine from './log_file';
 const dbg = debug('waku:nim-waku');
 
 const NIM_WAKU_DEFAULT_P2P_PORT = 60000;
+const NIM_WAKU_DEFAULT_WS_PORT = 8000;
 const NIM_WAKU_DEFAULT_RPC_PORT = 8545;
 const NIM_WAKU_DIR = appRoot + '/nim-waku';
 const NIM_WAKU_BIN = NIM_WAKU_DIR + '/build/wakunode2';
@@ -43,6 +44,7 @@ export interface Args {
   lightpush?: boolean;
   topics?: string;
   rpcPrivate?: boolean;
+  websocketSupport?: boolean;
 }
 
 export enum LogLevel {
@@ -303,21 +305,22 @@ export class NimWaku {
   }
 
   async getPeerId(): Promise<PeerId> {
-    return await this.setPeerId().then((res) => res.peerId);
+    return await this._getPeerId().then((res) => res.peerId);
   }
 
   async getMultiaddrWithId(): Promise<Multiaddr> {
-    return await this.setPeerId().then((res) => res.multiaddrWithId);
+    return await this._getPeerId().then((res) => res.multiaddrWithId);
   }
 
-  private async setPeerId(): Promise<{
+  private async _getPeerId(): Promise<{
     peerId: PeerId;
     multiaddrWithId: Multiaddr;
   }> {
-    if (this.peerId && this.multiaddrWithId) {
+    if (this.peerId && this.multiaddrWithId ) {
       return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
     }
     const res = await this.info();
+    console.log(res)
     this.multiaddrWithId = multiaddr(res.listenStr);
     const peerIdStr = this.multiaddrWithId.getPeerId();
     if (!peerIdStr) throw 'Nim-waku multiaddr does not contain peerId';
@@ -328,6 +331,11 @@ export class NimWaku {
   get multiaddr(): Multiaddr {
     const port = NIM_WAKU_DEFAULT_P2P_PORT + this.portsShift;
     return multiaddr(`/ip4/127.0.0.1/tcp/${port}/`);
+  }
+
+  get wsMultiaddr(): Multiaddr {
+    const port = NIM_WAKU_DEFAULT_WS_PORT + this.portsShift;
+    return multiaddr(`/ip4/127.0.0.1/tcp/${port}/ws`);
   }
 
   get rpcUrl(): string {

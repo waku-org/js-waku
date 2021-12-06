@@ -23,7 +23,7 @@ describe('Waku Light Push [node only]', () => {
     this.timeout(5_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ lightpush: true });
+    await nimWaku.start({ lightpush: true, websocketSupport: true });
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
