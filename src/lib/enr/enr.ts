@@ -80,7 +80,6 @@ export class ENR extends Map<ENRKey, ENRValue> {
       obj[kvs[i].toString()] = Buffer.from(kvs[i + 1]);
     }
     const enr = new ENR(obj, toBigIntBE(seq), signature);
-    console.log('signature', signature.length, signature);
 
     if (!enr.verify(RLP.encode([seq, ...kvs]), signature)) {
       throw new Error('Unable to verify ENR signature');
