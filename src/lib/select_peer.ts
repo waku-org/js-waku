@@ -1,5 +1,6 @@
 import Libp2p from 'libp2p';
-import { Peer } from 'libp2p/src/peer-store';
+
+import { Peer } from './peer';
 
 /**
  * Returns a pseudo-random peer that supports the given protocol.

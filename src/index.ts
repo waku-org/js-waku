@@ -1,5 +1,7 @@
 export { getBootstrapNodes } from './lib/discovery';
 
+export { Peer } from './lib/peer';
+
 export * as utils from './lib/utils';
 
 export * as waku from './lib/waku';

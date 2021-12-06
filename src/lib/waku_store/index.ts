@@ -3,10 +3,10 @@ import concat from 'it-concat';
 import lp from 'it-length-prefixed';
 import pipe from 'it-pipe';
 import Libp2p from 'libp2p';
-import { Peer } from 'libp2p/src/peer-store';
 import PeerId from 'peer-id';
 
 import { HistoryResponse_Error } from '../../proto';
+import { Peer } from '../peer';
 import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
 import { hexToBuf } from '../utils';
 import { DefaultPubSubTopic } from '../waku';

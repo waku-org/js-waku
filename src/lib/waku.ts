@@ -13,12 +13,12 @@ import Websockets from 'libp2p-websockets';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
 import filters from 'libp2p-websockets/src/filters';
-import { Peer } from 'libp2p/dist/src/peer-store';
 import Ping from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { getBootstrapNodes } from './discovery';
+import { Peer } from './peer';
 import { getPeersForProtocol } from './select_peer';
 import { LightPushCodec, WakuLightPush } from './waku_light_push';
 import { WakuMessage } from './waku_message';
