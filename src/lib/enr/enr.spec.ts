@@ -59,6 +59,25 @@ describe('ENR', function () {
       expect(bufToHex(eth2)).to.be.equal('f6775d0700000113ffffffffffff1f00');
     });
 
+    it('should decode valid ENR with multiaddrs successfully [shared test vector]', () => {
+      const txt =
+        'enr:-QEnuEBEAyErHEfhiQxAVQoWowGTCuEF9fKZtXSd7H_PymHFhGJA3rGAYDVSHKCyJDGRLBGsloNbS8AZF33IVuefjOO6BIJpZIJ2NIJpcIQS39tkim11bHRpYWRkcnO4lgAvNihub2RlLTAxLmRvLWFtczMud2FrdXYyLnRlc3Quc3RhdHVzaW0ubmV0BgG73gMAODcxbm9kZS0wMS5hYy1jbi1ob25na29uZy1jLndha3V2Mi50ZXN0LnN0YXR1c2ltLm5ldAYBu94DACm9A62t7AQL4Ef5ZYZosRpQTzFVAB8jGjf1TER2wH-0zBOe1-MDBNLeA4lzZWNwMjU2azGhAzfsxbxyCkgCqq8WwYsVWH7YkpMLnU2Bw5xJSimxKav-g3VkcIIjKA';
+      const enr = ENR.decodeTxt(txt);
+
+      expect(enr.multiaddrs).to.not.be.undefined;
+      expect(enr.multiaddrs!.length).to.be.equal(3);
+      const multiaddrsAsStr = enr.multiaddrs!.map((ma) => ma.toString());
+      expect(multiaddrsAsStr).to.include(
+        '/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss'
+      );
+      expect(multiaddrsAsStr).to.include(
+        '/dns6/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss'
+      );
+      expect(multiaddrsAsStr).to.include(
+        '/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss'
+      );
+    });
+
     it('should decode valid enr with tcp successfully', async () => {
       const txt =
         'enr:-IS4QAmC_o1PMi5DbR4Bh4oHVyQunZblg4bTaottPtBodAhJZvxVlWW-4rXITPNg4mwJ8cW__D9FBDc9N4mdhyMqB-EBgmlkgnY0gmlwhIbRi9KJc2VjcDI1NmsxoQOevTdO6jvv3fRruxguKR-3Ge4bcFsLeAIWEDjrfaigNoN0Y3CCdl8';
