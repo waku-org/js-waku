@@ -15,6 +15,11 @@ module.exports = function (config) {
     reporters: ['progress', 'karma-typescript'],
     browsers: ['ChromeHeadless'],
     singleRun: true,
+    client: {
+      mocha: {
+        timeout: 6000, // Default is 2s
+      },
+    },
     karmaTypescriptConfig: {
       bundlerOptions: {
         entrypoints: /^.*[^(node)]\.spec\.ts$/,
