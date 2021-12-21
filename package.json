@@ -97,6 +97,7 @@
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-functional": "^3.0.2",
     "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "fast-check": "^2.14.0",
     "gh-pages": "^3.1.0",
     "karma": "^6.3.4",
