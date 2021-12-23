@@ -101,7 +101,8 @@ describe('ENR', function () {
         ).toString();
         ENR.decodeTxt(txt);
         assert.fail('Expect error here');
-      } catch (err) {
+      } catch (e) {
+        const err = e as Error;
         expect(err.message).to.be.equal(ERR_INVALID_ID);
       }
     });
@@ -112,7 +113,8 @@ describe('ENR', function () {
           'enr:-IS4QJ2d11eu6dC7E7LoXeLMgMP3kom1u3SE8esFSWvaHoo0dP1jg8O3-nx9ht-EO3CmG7L6OkHcMmoIh00IYWB92QABgmlkgnY0gmlwhH8AAAGJc2d11eu6dCsxoQIB_c-jQMOXsbjWkbN-kj99H57gfId5pfb4wa1qxwV4CIN1ZHCCIyk';
         ENR.decodeTxt(txt);
         assert.fail('Expect error here');
-      } catch (err) {
+      } catch (e) {
+        const err = e as Error;
         expect(err.message).to.be.equal('Failed to verify enr: No public key');
       }
     });
@@ -124,7 +126,8 @@ describe('ENR', function () {
         const enr = new ENR({}, BigInt(0), Buffer.alloc(0));
         enr.verify(Buffer.alloc(0), Buffer.alloc(0));
         assert.fail('Expect error here');
-      } catch (err) {
+      } catch (e) {
+        const err = e as Error;
         expect(err.message).to.be.equal(ERR_INVALID_ID);
       }
     });
@@ -138,7 +141,8 @@ describe('ENR', function () {
         );
         enr.verify(Buffer.alloc(0), Buffer.alloc(0));
         assert.fail('Expect error here');
-      } catch (err) {
+      } catch (e) {
+        const err = e as Error;
         expect(err.message).to.be.equal(ERR_INVALID_ID);
       }
     });
@@ -152,7 +156,8 @@ describe('ENR', function () {
         );
         enr.verify(Buffer.alloc(0), Buffer.alloc(0));
         assert.fail('Expect error here');
-      } catch (err) {
+      } catch (e) {
+        const err = e as Error;
         expect(err.message).to.be.equal('Failed to verify enr: No public key');
       }
     });
@@ -175,7 +180,8 @@ describe('ENR', function () {
       try {
         ENR.decodeTxt(buf);
       } catch (e) {
-        expect(e.message).to.equal(
+        const err = e as Error;
+        expect(err.message).to.equal(
           'Decoded ENR invalid signature: must be a byte array'
         );
       }
@@ -188,7 +194,8 @@ describe('ENR', function () {
       try {
         ENR.decodeTxt(buf);
       } catch (e) {
-        expect(e.message).to.equal(
+        const err = e as Error;
+        expect(err.message).to.equal(
           'Decoded ENR invalid sequence number: must be a byte array'
         );
       }
