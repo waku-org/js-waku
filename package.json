@@ -92,7 +92,7 @@
     "chai": "^4.3.4",
     "crypto-browserify": "^3.12.0",
     "cspell": "^4.1.0",
-    "eslint": "^7.8.0",
+    "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-functional": "^3.0.2",
