@@ -113,7 +113,9 @@ export interface HistoryRPC {
   response: HistoryResponse | undefined;
 }
 
-const baseIndex: object = { receivedTime: 0, senderTime: 0 };
+function createBaseIndex(): Index {
+  return { digest: new Uint8Array(), receivedTime: 0, senderTime: 0 };
+}
 
 export const Index = {
   encode(message: Index, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
@@ -132,8 +134,7 @@ export const Index = {
   decode(input: _m0.Reader | Uint8Array, length?: number): Index {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseIndex } as Index;
-    message.digest = new Uint8Array();
+    const message = createBaseIndex();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -155,21 +156,19 @@ export const Index = {
   },
 
   fromJSON(object: any): Index {
-    const message = { ...baseIndex } as Index;
-    message.digest = new Uint8Array();
-    if (object.digest !== undefined && object.digest !== null) {
-      message.digest = bytesFromBase64(object.digest);
-    }
-    if (object.receivedTime !== undefined && object.receivedTime !== null) {
-      message.receivedTime = Number(object.receivedTime);
-    } else {
-      message.receivedTime = 0;
-    }
-    if (object.senderTime !== undefined && object.senderTime !== null) {
-      message.senderTime = Number(object.senderTime);
-    } else {
-      message.senderTime = 0;
-    }
+    const message = createBaseIndex();
+    message.digest =
+      object.digest !== undefined && object.digest !== null
+        ? bytesFromBase64(object.digest)
+        : new Uint8Array();
+    message.receivedTime =
+      object.receivedTime !== undefined && object.receivedTime !== null
+        ? Number(object.receivedTime)
+        : 0;
+    message.senderTime =
+      object.senderTime !== undefined && object.senderTime !== null
+        ? Number(object.senderTime)
+        : 0;
     return message;
   },
 
@@ -185,28 +184,18 @@ export const Index = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Index>): Index {
-    const message = { ...baseIndex } as Index;
-    if (object.digest !== undefined && object.digest !== null) {
-      message.digest = object.digest;
-    } else {
-      message.digest = new Uint8Array();
-    }
-    if (object.receivedTime !== undefined && object.receivedTime !== null) {
-      message.receivedTime = object.receivedTime;
-    } else {
-      message.receivedTime = 0;
-    }
-    if (object.senderTime !== undefined && object.senderTime !== null) {
-      message.senderTime = object.senderTime;
-    } else {
-      message.senderTime = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<Index>, I>>(object: I): Index {
+    const message = createBaseIndex();
+    message.digest = object.digest ?? new Uint8Array();
+    message.receivedTime = object.receivedTime ?? 0;
+    message.senderTime = object.senderTime ?? 0;
     return message;
   },
 };
 
-const basePagingInfo: object = { pageSize: 0, direction: 0 };
+function createBasePagingInfo(): PagingInfo {
+  return { pageSize: 0, cursor: undefined, direction: 0 };
+}
 
 export const PagingInfo = {
   encode(
@@ -228,7 +217,7 @@ export const PagingInfo = {
   decode(input: _m0.Reader | Uint8Array, length?: number): PagingInfo {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...basePagingInfo } as PagingInfo;
+    const message = createBasePagingInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -250,28 +239,26 @@ export const PagingInfo = {
   },
 
   fromJSON(object: any): PagingInfo {
-    const message = { ...basePagingInfo } as PagingInfo;
-    if (object.pageSize !== undefined && object.pageSize !== null) {
-      message.pageSize = Number(object.pageSize);
-    } else {
-      message.pageSize = 0;
-    }
-    if (object.cursor !== undefined && object.cursor !== null) {
-      message.cursor = Index.fromJSON(object.cursor);
-    } else {
-      message.cursor = undefined;
-    }
-    if (object.direction !== undefined && object.direction !== null) {
-      message.direction = pagingInfo_DirectionFromJSON(object.direction);
-    } else {
-      message.direction = 0;
-    }
+    const message = createBasePagingInfo();
+    message.pageSize =
+      object.pageSize !== undefined && object.pageSize !== null
+        ? Number(object.pageSize)
+        : 0;
+    message.cursor =
+      object.cursor !== undefined && object.cursor !== null
+        ? Index.fromJSON(object.cursor)
+        : undefined;
+    message.direction =
+      object.direction !== undefined && object.direction !== null
+        ? pagingInfo_DirectionFromJSON(object.direction)
+        : 0;
     return message;
   },
 
   toJSON(message: PagingInfo): unknown {
     const obj: any = {};
-    message.pageSize !== undefined && (obj.pageSize = message.pageSize);
+    message.pageSize !== undefined &&
+      (obj.pageSize = Math.round(message.pageSize));
     message.cursor !== undefined &&
       (obj.cursor = message.cursor ? Index.toJSON(message.cursor) : undefined);
     message.direction !== undefined &&
@@ -279,28 +266,23 @@ export const PagingInfo = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<PagingInfo>): PagingInfo {
-    const message = { ...basePagingInfo } as PagingInfo;
-    if (object.pageSize !== undefined && object.pageSize !== null) {
-      message.pageSize = object.pageSize;
-    } else {
-      message.pageSize = 0;
-    }
-    if (object.cursor !== undefined && object.cursor !== null) {
-      message.cursor = Index.fromPartial(object.cursor);
-    } else {
-      message.cursor = undefined;
-    }
-    if (object.direction !== undefined && object.direction !== null) {
-      message.direction = object.direction;
-    } else {
-      message.direction = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<PagingInfo>, I>>(
+    object: I
+  ): PagingInfo {
+    const message = createBasePagingInfo();
+    message.pageSize = object.pageSize ?? 0;
+    message.cursor =
+      object.cursor !== undefined && object.cursor !== null
+        ? Index.fromPartial(object.cursor)
+        : undefined;
+    message.direction = object.direction ?? 0;
     return message;
   },
 };
 
-const baseContentFilter: object = { contentTopic: '' };
+function createBaseContentFilter(): ContentFilter {
+  return { contentTopic: '' };
+}
 
 export const ContentFilter = {
   encode(
@@ -316,7 +298,7 @@ export const ContentFilter = {
   decode(input: _m0.Reader | Uint8Array, length?: number): ContentFilter {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseContentFilter } as ContentFilter;
+    const message = createBaseContentFilter();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -332,12 +314,11 @@ export const ContentFilter = {
   },
 
   fromJSON(object: any): ContentFilter {
-    const message = { ...baseContentFilter } as ContentFilter;
-    if (object.contentTopic !== undefined && object.contentTopic !== null) {
-      message.contentTopic = String(object.contentTopic);
-    } else {
-      message.contentTopic = '';
-    }
+    const message = createBaseContentFilter();
+    message.contentTopic =
+      object.contentTopic !== undefined && object.contentTopic !== null
+        ? String(object.contentTopic)
+        : '';
     return message;
   },
 
@@ -348,18 +329,24 @@ export const ContentFilter = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ContentFilter>): ContentFilter {
-    const message = { ...baseContentFilter } as ContentFilter;
-    if (object.contentTopic !== undefined && object.contentTopic !== null) {
-      message.contentTopic = object.contentTopic;
-    } else {
-      message.contentTopic = '';
-    }
+  fromPartial<I extends Exact<DeepPartial<ContentFilter>, I>>(
+    object: I
+  ): ContentFilter {
+    const message = createBaseContentFilter();
+    message.contentTopic = object.contentTopic ?? '';
     return message;
   },
 };
 
-const baseHistoryQuery: object = {};
+function createBaseHistoryQuery(): HistoryQuery {
+  return {
+    pubSubTopic: undefined,
+    contentFilters: [],
+    pagingInfo: undefined,
+    startTime: undefined,
+    endTime: undefined,
+  };
+}
 
 export const HistoryQuery = {
   encode(
@@ -387,8 +374,7 @@ export const HistoryQuery = {
   decode(input: _m0.Reader | Uint8Array, length?: number): HistoryQuery {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseHistoryQuery } as HistoryQuery;
-    message.contentFilters = [];
+    const message = createBaseHistoryQuery();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -418,33 +404,26 @@ export const HistoryQuery = {
   },
 
   fromJSON(object: any): HistoryQuery {
-    const message = { ...baseHistoryQuery } as HistoryQuery;
-    message.contentFilters = [];
-    if (object.pubSubTopic !== undefined && object.pubSubTopic !== null) {
-      message.pubSubTopic = String(object.pubSubTopic);
-    } else {
-      message.pubSubTopic = undefined;
-    }
-    if (object.contentFilters !== undefined && object.contentFilters !== null) {
-      for (const e of object.contentFilters) {
-        message.contentFilters.push(ContentFilter.fromJSON(e));
-      }
-    }
-    if (object.pagingInfo !== undefined && object.pagingInfo !== null) {
-      message.pagingInfo = PagingInfo.fromJSON(object.pagingInfo);
-    } else {
-      message.pagingInfo = undefined;
-    }
-    if (object.startTime !== undefined && object.startTime !== null) {
-      message.startTime = Number(object.startTime);
-    } else {
-      message.startTime = undefined;
-    }
-    if (object.endTime !== undefined && object.endTime !== null) {
-      message.endTime = Number(object.endTime);
-    } else {
-      message.endTime = undefined;
-    }
+    const message = createBaseHistoryQuery();
+    message.pubSubTopic =
+      object.pubSubTopic !== undefined && object.pubSubTopic !== null
+        ? String(object.pubSubTopic)
+        : undefined;
+    message.contentFilters = (object.contentFilters ?? []).map((e: any) =>
+      ContentFilter.fromJSON(e)
+    );
+    message.pagingInfo =
+      object.pagingInfo !== undefined && object.pagingInfo !== null
+        ? PagingInfo.fromJSON(object.pagingInfo)
+        : undefined;
+    message.startTime =
+      object.startTime !== undefined && object.startTime !== null
+        ? Number(object.startTime)
+        : undefined;
+    message.endTime =
+      object.endTime !== undefined && object.endTime !== null
+        ? Number(object.endTime)
+        : undefined;
     return message;
   },
 
@@ -468,39 +447,26 @@ export const HistoryQuery = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<HistoryQuery>): HistoryQuery {
-    const message = { ...baseHistoryQuery } as HistoryQuery;
-    message.contentFilters = [];
-    if (object.pubSubTopic !== undefined && object.pubSubTopic !== null) {
-      message.pubSubTopic = object.pubSubTopic;
-    } else {
-      message.pubSubTopic = undefined;
-    }
-    if (object.contentFilters !== undefined && object.contentFilters !== null) {
-      for (const e of object.contentFilters) {
-        message.contentFilters.push(ContentFilter.fromPartial(e));
-      }
-    }
-    if (object.pagingInfo !== undefined && object.pagingInfo !== null) {
-      message.pagingInfo = PagingInfo.fromPartial(object.pagingInfo);
-    } else {
-      message.pagingInfo = undefined;
-    }
-    if (object.startTime !== undefined && object.startTime !== null) {
-      message.startTime = object.startTime;
-    } else {
-      message.startTime = undefined;
-    }
-    if (object.endTime !== undefined && object.endTime !== null) {
-      message.endTime = object.endTime;
-    } else {
-      message.endTime = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<HistoryQuery>, I>>(
+    object: I
+  ): HistoryQuery {
+    const message = createBaseHistoryQuery();
+    message.pubSubTopic = object.pubSubTopic ?? undefined;
+    message.contentFilters =
+      object.contentFilters?.map((e) => ContentFilter.fromPartial(e)) || [];
+    message.pagingInfo =
+      object.pagingInfo !== undefined && object.pagingInfo !== null
+        ? PagingInfo.fromPartial(object.pagingInfo)
+        : undefined;
+    message.startTime = object.startTime ?? undefined;
+    message.endTime = object.endTime ?? undefined;
     return message;
   },
 };
 
-const baseHistoryResponse: object = { error: 0 };
+function createBaseHistoryResponse(): HistoryResponse {
+  return { messages: [], pagingInfo: undefined, error: 0 };
+}
 
 export const HistoryResponse = {
   encode(
@@ -522,8 +488,7 @@ export const HistoryResponse = {
   decode(input: _m0.Reader | Uint8Array, length?: number): HistoryResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseHistoryResponse } as HistoryResponse;
-    message.messages = [];
+    const message = createBaseHistoryResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -545,23 +510,18 @@ export const HistoryResponse = {
   },
 
   fromJSON(object: any): HistoryResponse {
-    const message = { ...baseHistoryResponse } as HistoryResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(WakuMessage.fromJSON(e));
-      }
-    }
-    if (object.pagingInfo !== undefined && object.pagingInfo !== null) {
-      message.pagingInfo = PagingInfo.fromJSON(object.pagingInfo);
-    } else {
-      message.pagingInfo = undefined;
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = historyResponse_ErrorFromJSON(object.error);
-    } else {
-      message.error = 0;
-    }
+    const message = createBaseHistoryResponse();
+    message.messages = (object.messages ?? []).map((e: any) =>
+      WakuMessage.fromJSON(e)
+    );
+    message.pagingInfo =
+      object.pagingInfo !== undefined && object.pagingInfo !== null
+        ? PagingInfo.fromJSON(object.pagingInfo)
+        : undefined;
+    message.error =
+      object.error !== undefined && object.error !== null
+        ? historyResponse_ErrorFromJSON(object.error)
+        : 0;
     return message;
   },
 
@@ -583,29 +543,24 @@ export const HistoryResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<HistoryResponse>): HistoryResponse {
-    const message = { ...baseHistoryResponse } as HistoryResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(WakuMessage.fromPartial(e));
-      }
-    }
-    if (object.pagingInfo !== undefined && object.pagingInfo !== null) {
-      message.pagingInfo = PagingInfo.fromPartial(object.pagingInfo);
-    } else {
-      message.pagingInfo = undefined;
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = object.error;
-    } else {
-      message.error = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<HistoryResponse>, I>>(
+    object: I
+  ): HistoryResponse {
+    const message = createBaseHistoryResponse();
+    message.messages =
+      object.messages?.map((e) => WakuMessage.fromPartial(e)) || [];
+    message.pagingInfo =
+      object.pagingInfo !== undefined && object.pagingInfo !== null
+        ? PagingInfo.fromPartial(object.pagingInfo)
+        : undefined;
+    message.error = object.error ?? 0;
     return message;
   },
 };
 
-const baseHistoryRPC: object = { requestId: '' };
+function createBaseHistoryRPC(): HistoryRPC {
+  return { requestId: '', query: undefined, response: undefined };
+}
 
 export const HistoryRPC = {
   encode(
@@ -630,7 +585,7 @@ export const HistoryRPC = {
   decode(input: _m0.Reader | Uint8Array, length?: number): HistoryRPC {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseHistoryRPC } as HistoryRPC;
+    const message = createBaseHistoryRPC();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -652,22 +607,19 @@ export const HistoryRPC = {
   },
 
   fromJSON(object: any): HistoryRPC {
-    const message = { ...baseHistoryRPC } as HistoryRPC;
-    if (object.requestId !== undefined && object.requestId !== null) {
-      message.requestId = String(object.requestId);
-    } else {
-      message.requestId = '';
-    }
-    if (object.query !== undefined && object.query !== null) {
-      message.query = HistoryQuery.fromJSON(object.query);
-    } else {
-      message.query = undefined;
-    }
-    if (object.response !== undefined && object.response !== null) {
-      message.response = HistoryResponse.fromJSON(object.response);
-    } else {
-      message.response = undefined;
-    }
+    const message = createBaseHistoryRPC();
+    message.requestId =
+      object.requestId !== undefined && object.requestId !== null
+        ? String(object.requestId)
+        : '';
+    message.query =
+      object.query !== undefined && object.query !== null
+        ? HistoryQuery.fromJSON(object.query)
+        : undefined;
+    message.response =
+      object.response !== undefined && object.response !== null
+        ? HistoryResponse.fromJSON(object.response)
+        : undefined;
     return message;
   },
 
@@ -685,29 +637,26 @@ export const HistoryRPC = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<HistoryRPC>): HistoryRPC {
-    const message = { ...baseHistoryRPC } as HistoryRPC;
-    if (object.requestId !== undefined && object.requestId !== null) {
-      message.requestId = object.requestId;
-    } else {
-      message.requestId = '';
-    }
-    if (object.query !== undefined && object.query !== null) {
-      message.query = HistoryQuery.fromPartial(object.query);
-    } else {
-      message.query = undefined;
-    }
-    if (object.response !== undefined && object.response !== null) {
-      message.response = HistoryResponse.fromPartial(object.response);
-    } else {
-      message.response = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<HistoryRPC>, I>>(
+    object: I
+  ): HistoryRPC {
+    const message = createBaseHistoryRPC();
+    message.requestId = object.requestId ?? '';
+    message.query =
+      object.query !== undefined && object.query !== null
+        ? HistoryQuery.fromPartial(object.query)
+        : undefined;
+    message.response =
+      object.response !== undefined && object.response !== null
+        ? HistoryResponse.fromPartial(object.response)
+        : undefined;
     return message;
   },
 };
 
 declare var self: any | undefined;
 declare var window: any | undefined;
+declare var global: any | undefined;
 var globalThis: any = (() => {
   if (typeof globalThis !== 'undefined') return globalThis;
   if (typeof self !== 'undefined') return self;
@@ -747,6 +696,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -756,6 +706,13 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P &
+      { [K in keyof P]: Exact<P[K], I[K]> } &
+      Record<Exclude<keyof I, KeysOfUnion<P>>, never>;
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {

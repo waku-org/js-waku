@@ -21,7 +21,9 @@ export interface PushRPC {
   response: PushResponse | undefined;
 }
 
-const basePushRequest: object = { pubSubTopic: '' };
+function createBasePushRequest(): PushRequest {
+  return { pubSubTopic: '', message: undefined };
+}
 
 export const PushRequest = {
   encode(
@@ -40,7 +42,7 @@ export const PushRequest = {
   decode(input: _m0.Reader | Uint8Array, length?: number): PushRequest {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...basePushRequest } as PushRequest;
+    const message = createBasePushRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -59,17 +61,15 @@ export const PushRequest = {
   },
 
   fromJSON(object: any): PushRequest {
-    const message = { ...basePushRequest } as PushRequest;
-    if (object.pubSubTopic !== undefined && object.pubSubTopic !== null) {
-      message.pubSubTopic = String(object.pubSubTopic);
-    } else {
-      message.pubSubTopic = '';
-    }
-    if (object.message !== undefined && object.message !== null) {
-      message.message = WakuMessage.fromJSON(object.message);
-    } else {
-      message.message = undefined;
-    }
+    const message = createBasePushRequest();
+    message.pubSubTopic =
+      object.pubSubTopic !== undefined && object.pubSubTopic !== null
+        ? String(object.pubSubTopic)
+        : '';
+    message.message =
+      object.message !== undefined && object.message !== null
+        ? WakuMessage.fromJSON(object.message)
+        : undefined;
     return message;
   },
 
@@ -84,23 +84,22 @@ export const PushRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<PushRequest>): PushRequest {
-    const message = { ...basePushRequest } as PushRequest;
-    if (object.pubSubTopic !== undefined && object.pubSubTopic !== null) {
-      message.pubSubTopic = object.pubSubTopic;
-    } else {
-      message.pubSubTopic = '';
-    }
-    if (object.message !== undefined && object.message !== null) {
-      message.message = WakuMessage.fromPartial(object.message);
-    } else {
-      message.message = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<PushRequest>, I>>(
+    object: I
+  ): PushRequest {
+    const message = createBasePushRequest();
+    message.pubSubTopic = object.pubSubTopic ?? '';
+    message.message =
+      object.message !== undefined && object.message !== null
+        ? WakuMessage.fromPartial(object.message)
+        : undefined;
     return message;
   },
 };
 
-const basePushResponse: object = { isSuccess: false, info: '' };
+function createBasePushResponse(): PushResponse {
+  return { isSuccess: false, info: '' };
+}
 
 export const PushResponse = {
   encode(
@@ -119,7 +118,7 @@ export const PushResponse = {
   decode(input: _m0.Reader | Uint8Array, length?: number): PushResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...basePushResponse } as PushResponse;
+    const message = createBasePushResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -138,17 +137,15 @@ export const PushResponse = {
   },
 
   fromJSON(object: any): PushResponse {
-    const message = { ...basePushResponse } as PushResponse;
-    if (object.isSuccess !== undefined && object.isSuccess !== null) {
-      message.isSuccess = Boolean(object.isSuccess);
-    } else {
-      message.isSuccess = false;
-    }
-    if (object.info !== undefined && object.info !== null) {
-      message.info = String(object.info);
-    } else {
-      message.info = '';
-    }
+    const message = createBasePushResponse();
+    message.isSuccess =
+      object.isSuccess !== undefined && object.isSuccess !== null
+        ? Boolean(object.isSuccess)
+        : false;
+    message.info =
+      object.info !== undefined && object.info !== null
+        ? String(object.info)
+        : '';
     return message;
   },
 
@@ -159,23 +156,19 @@ export const PushResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<PushResponse>): PushResponse {
-    const message = { ...basePushResponse } as PushResponse;
-    if (object.isSuccess !== undefined && object.isSuccess !== null) {
-      message.isSuccess = object.isSuccess;
-    } else {
-      message.isSuccess = false;
-    }
-    if (object.info !== undefined && object.info !== null) {
-      message.info = object.info;
-    } else {
-      message.info = '';
-    }
+  fromPartial<I extends Exact<DeepPartial<PushResponse>, I>>(
+    object: I
+  ): PushResponse {
+    const message = createBasePushResponse();
+    message.isSuccess = object.isSuccess ?? false;
+    message.info = object.info ?? '';
     return message;
   },
 };
 
-const basePushRPC: object = { requestId: '' };
+function createBasePushRPC(): PushRPC {
+  return { requestId: '', request: undefined, response: undefined };
+}
 
 export const PushRPC = {
   encode(
@@ -197,7 +190,7 @@ export const PushRPC = {
   decode(input: _m0.Reader | Uint8Array, length?: number): PushRPC {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...basePushRPC } as PushRPC;
+    const message = createBasePushRPC();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -219,22 +212,19 @@ export const PushRPC = {
   },
 
   fromJSON(object: any): PushRPC {
-    const message = { ...basePushRPC } as PushRPC;
-    if (object.requestId !== undefined && object.requestId !== null) {
-      message.requestId = String(object.requestId);
-    } else {
-      message.requestId = '';
-    }
-    if (object.request !== undefined && object.request !== null) {
-      message.request = PushRequest.fromJSON(object.request);
-    } else {
-      message.request = undefined;
-    }
-    if (object.response !== undefined && object.response !== null) {
-      message.response = PushResponse.fromJSON(object.response);
-    } else {
-      message.response = undefined;
-    }
+    const message = createBasePushRPC();
+    message.requestId =
+      object.requestId !== undefined && object.requestId !== null
+        ? String(object.requestId)
+        : '';
+    message.request =
+      object.request !== undefined && object.request !== null
+        ? PushRequest.fromJSON(object.request)
+        : undefined;
+    message.response =
+      object.response !== undefined && object.response !== null
+        ? PushResponse.fromJSON(object.response)
+        : undefined;
     return message;
   },
 
@@ -252,23 +242,17 @@ export const PushRPC = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<PushRPC>): PushRPC {
-    const message = { ...basePushRPC } as PushRPC;
-    if (object.requestId !== undefined && object.requestId !== null) {
-      message.requestId = object.requestId;
-    } else {
-      message.requestId = '';
-    }
-    if (object.request !== undefined && object.request !== null) {
-      message.request = PushRequest.fromPartial(object.request);
-    } else {
-      message.request = undefined;
-    }
-    if (object.response !== undefined && object.response !== null) {
-      message.response = PushResponse.fromPartial(object.response);
-    } else {
-      message.response = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<PushRPC>, I>>(object: I): PushRPC {
+    const message = createBasePushRPC();
+    message.requestId = object.requestId ?? '';
+    message.request =
+      object.request !== undefined && object.request !== null
+        ? PushRequest.fromPartial(object.request)
+        : undefined;
+    message.response =
+      object.response !== undefined && object.response !== null
+        ? PushResponse.fromPartial(object.response)
+        : undefined;
     return message;
   },
 };
@@ -281,6 +265,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -290,6 +275,13 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P &
+      { [K in keyof P]: Exact<P[K], I[K]> } &
+      Record<Exclude<keyof I, KeysOfUnion<P>>, never>;
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;
