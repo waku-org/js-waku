@@ -11,7 +11,14 @@ export interface WakuMessage {
   timestamp?: number | undefined;
 }
 
-const baseWakuMessage: object = {};
+function createBaseWakuMessage(): WakuMessage {
+  return {
+    payload: undefined,
+    contentTopic: undefined,
+    version: undefined,
+    timestamp: undefined,
+  };
+}
 
 export const WakuMessage = {
   encode(
@@ -36,7 +43,7 @@ export const WakuMessage = {
   decode(input: _m0.Reader | Uint8Array, length?: number): WakuMessage {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseWakuMessage } as WakuMessage;
+    const message = createBaseWakuMessage();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -61,25 +68,23 @@ export const WakuMessage = {
   },
 
   fromJSON(object: any): WakuMessage {
-    const message = { ...baseWakuMessage } as WakuMessage;
-    if (object.payload !== undefined && object.payload !== null) {
-      message.payload = bytesFromBase64(object.payload);
-    }
-    if (object.contentTopic !== undefined && object.contentTopic !== null) {
-      message.contentTopic = String(object.contentTopic);
-    } else {
-      message.contentTopic = undefined;
-    }
-    if (object.version !== undefined && object.version !== null) {
-      message.version = Number(object.version);
-    } else {
-      message.version = undefined;
-    }
-    if (object.timestamp !== undefined && object.timestamp !== null) {
-      message.timestamp = Number(object.timestamp);
-    } else {
-      message.timestamp = undefined;
-    }
+    const message = createBaseWakuMessage();
+    message.payload =
+      object.payload !== undefined && object.payload !== null
+        ? bytesFromBase64(object.payload)
+        : undefined;
+    message.contentTopic =
+      object.contentTopic !== undefined && object.contentTopic !== null
+        ? String(object.contentTopic)
+        : undefined;
+    message.version =
+      object.version !== undefined && object.version !== null
+        ? Number(object.version)
+        : undefined;
+    message.timestamp =
+      object.timestamp !== undefined && object.timestamp !== null
+        ? Number(object.timestamp)
+        : undefined;
     return message;
   },
 
@@ -92,39 +97,27 @@ export const WakuMessage = {
           : undefined);
     message.contentTopic !== undefined &&
       (obj.contentTopic = message.contentTopic);
-    message.version !== undefined && (obj.version = message.version);
+    message.version !== undefined &&
+      (obj.version = Math.round(message.version));
     message.timestamp !== undefined && (obj.timestamp = message.timestamp);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<WakuMessage>): WakuMessage {
-    const message = { ...baseWakuMessage } as WakuMessage;
-    if (object.payload !== undefined && object.payload !== null) {
-      message.payload = object.payload;
-    } else {
-      message.payload = undefined;
-    }
-    if (object.contentTopic !== undefined && object.contentTopic !== null) {
-      message.contentTopic = object.contentTopic;
-    } else {
-      message.contentTopic = undefined;
-    }
-    if (object.version !== undefined && object.version !== null) {
-      message.version = object.version;
-    } else {
-      message.version = undefined;
-    }
-    if (object.timestamp !== undefined && object.timestamp !== null) {
-      message.timestamp = object.timestamp;
-    } else {
-      message.timestamp = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<WakuMessage>, I>>(
+    object: I
+  ): WakuMessage {
+    const message = createBaseWakuMessage();
+    message.payload = object.payload ?? undefined;
+    message.contentTopic = object.contentTopic ?? undefined;
+    message.version = object.version ?? undefined;
+    message.timestamp = object.timestamp ?? undefined;
     return message;
   },
 };
 
 declare var self: any | undefined;
 declare var window: any | undefined;
+declare var global: any | undefined;
 var globalThis: any = (() => {
   if (typeof globalThis !== 'undefined') return globalThis;
   if (typeof self !== 'undefined') return self;
@@ -164,6 +157,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -173,6 +167,13 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P &
+      { [K in keyof P]: Exact<P[K], I[K]> } &
+      Record<Exclude<keyof I, KeysOfUnion<P>>, never>;
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;
