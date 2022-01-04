@@ -53,7 +53,7 @@
     "node": ">=14"
   },
   "dependencies": {
-    "@chainsafe/libp2p-noise": "^4.1.1",
+    "@chainsafe/libp2p-noise": "^5.0.0",
     "axios": "^0.21.1",
     "base64url": "^3.0.1",
     "bigint-buffer": "^1.1.5",
