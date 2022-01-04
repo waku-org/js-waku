@@ -3,7 +3,7 @@ name: Webchat Deploy GH Pages
 on:
   push:
     branches:
-      - 'main'
+      - 'master'
 
 jobs:
   deploy_gh_pages:

@@ -3,7 +3,7 @@ name: Examples CI
 on:
   push:
     branches:
-      - 'main'
+      - 'master'
       - 'staging'
       - 'trying'
   pull_request:
