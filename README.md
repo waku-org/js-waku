@@ -11,7 +11,7 @@ A JavaScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/1
 
 - [Quick start](https://docs.dappconnect.dev/docs/quick_start/)
 - [Full documentation](https://docs.dappconnect.dev/)
-- [API documentation (`main` branch)](https://status-im.github.io/js-waku/docs/)
+- [API documentation (`master` branch)](https://status-im.github.io/js-waku/docs/)
 
 API Documentation can also be generated locally:
 
@@ -24,7 +24,7 @@ npm run doc
 
 ## Changelog
 
-Release changelog can be found in [CHANGELOG.md](https://github.com/status-im/js-waku/blob/main/CHANGELOG.md).
+Release changelog can be found in [CHANGELOG.md](https://github.com/status-im/js-waku/blob/master/CHANGELOG.md).
 
 ## Bugs, Questions & Features
 
@@ -40,7 +40,7 @@ You can track progress on the [project board](https://github.com/status-im/js-wa
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/status-im/js-waku/blob/main/CONTRIBUTING.md).
+See [CONTRIBUTING.md](https://github.com/status-im/js-waku/blob/master/CONTRIBUTING.md).
 
 ## License
 Licensed and distributed under either of
