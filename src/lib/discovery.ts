@@ -9,7 +9,7 @@ const DefaultWantedNumber = 1;
 /**
  * GET list of nodes from remote HTTP host.
  *
- * Default behaviour is to return nodes hosted by Status.
+ * Default behavior is to return nodes hosted by Status.
  *
  * @param path The property path to access the node list. The result should be
  * a string, a string array or an object. If the result is an object then the
