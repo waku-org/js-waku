@@ -79,7 +79,9 @@ jobs:
       - name: Check all protobuf code was committed
         shell: bash
         run: |
-          [ $(git status --short --ignore-submodules|wc -l) -eq 0 ]
+          res=$(git status --short --ignore-submodules)
+          echo -n "'$res'" # For debug purposes
+          [ $(echo -n "$res"|wc -l) -eq 0 ]
 
       - name: build
         run: npm run build
