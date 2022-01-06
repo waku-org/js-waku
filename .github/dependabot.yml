@@ -7,3 +7,10 @@ updates:
       day: "sunday"
     reviewers:
       - "d4nte"
+  - package-ecosystem: "npm"
+    directory: "/examples/web-chat"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    reviewers:
+      - "d4nte"
