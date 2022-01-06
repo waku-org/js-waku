@@ -27,7 +27,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: node-v1-${{ hashFiles('**/package-lock.json') }}
+          key: node-v2-${{ hashFiles('**/package-lock.json') }}
 
       - name: "[js-waku] install using npm ci"
         uses: bahmutov/npm-install@v1
@@ -46,7 +46,6 @@ jobs:
       - name: "[web-chat] Deploy on gh pages to /"
         uses: peaceiris/actions-gh-pages@v3
         with:
-          keep_files: true # Do not delete sub-folders
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./examples/web-chat/build
 
