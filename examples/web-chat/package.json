@@ -4,12 +4,15 @@
   "private": true,
   "homepage": "/js-waku",
   "dependencies": {
-    "@livechat/ui-kit": "*",
+    "@livechat/ui-kit": "^0.5.0-20",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
     "js-waku": "../../build/main",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0",
+    "process": "^0.11.10",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "server-name-generator": "^1.0.5",
-    "web-vitals": "^1.1.1"
+    "stream-browserify": "^3.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.11.10",
@@ -23,14 +26,15 @@
     "gh-pages": "^3.1.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.2.1",
-    "react-scripts": "4.0.3",
-    "typescript": "^4.2.4"
+    "react-app-rewired": "^2.1.11",
+    "react-scripts": "5.0.0",
+    "typescript": "^4.5.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test:unit": "react-scripts test",
-    "eject": "react-scripts eject",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test:unit": "react-app-rewired test",
+    "eject": "react-app-rewired eject",
     "fix": "run-s fix:*",
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts --ext .tsx",
