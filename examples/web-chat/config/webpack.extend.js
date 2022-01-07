@@ -25,6 +25,9 @@ module.exports = {
         Buffer: ['buffer', 'Buffer'],
       }));
 
+    if (!config.ignoreWarnings) config.ignoreWarnings = []
+    config.ignoreWarnings.push(/Failed to parse source map/)
+
     return config;
   },
   prod: (config) => {
@@ -50,6 +53,9 @@ module.exports = {
         process: 'process/browser.js',
         Buffer: ['buffer', 'Buffer'],
       }));
+
+    if (!config.ignoreWarnings) config.ignoreWarnings = []
+    config.ignoreWarnings.push(/Failed to parse source map/)
 
     return config;
   }
