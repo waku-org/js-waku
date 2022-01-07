@@ -10,7 +10,9 @@ export interface ChatMessage {
   payload: Uint8Array;
 }
 
-const baseChatMessage: object = { timestamp: 0, nick: '' };
+function createBaseChatMessage(): ChatMessage {
+  return { timestamp: 0, nick: '', payload: new Uint8Array() };
+}
 
 export const ChatMessage = {
   encode(
@@ -32,8 +34,7 @@ export const ChatMessage = {
   decode(input: _m0.Reader | Uint8Array, length?: number): ChatMessage {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseChatMessage } as ChatMessage;
-    message.payload = new Uint8Array();
+    const message = createBaseChatMessage();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -55,27 +56,26 @@ export const ChatMessage = {
   },
 
   fromJSON(object: any): ChatMessage {
-    const message = { ...baseChatMessage } as ChatMessage;
-    message.payload = new Uint8Array();
-    if (object.timestamp !== undefined && object.timestamp !== null) {
-      message.timestamp = Number(object.timestamp);
-    } else {
-      message.timestamp = 0;
-    }
-    if (object.nick !== undefined && object.nick !== null) {
-      message.nick = String(object.nick);
-    } else {
-      message.nick = '';
-    }
-    if (object.payload !== undefined && object.payload !== null) {
-      message.payload = bytesFromBase64(object.payload);
-    }
+    const message = createBaseChatMessage();
+    message.timestamp =
+      object.timestamp !== undefined && object.timestamp !== null
+        ? Number(object.timestamp)
+        : 0;
+    message.nick =
+      object.nick !== undefined && object.nick !== null
+        ? String(object.nick)
+        : '';
+    message.payload =
+      object.payload !== undefined && object.payload !== null
+        ? bytesFromBase64(object.payload)
+        : new Uint8Array();
     return message;
   },
 
   toJSON(message: ChatMessage): unknown {
     const obj: any = {};
-    message.timestamp !== undefined && (obj.timestamp = message.timestamp);
+    message.timestamp !== undefined &&
+      (obj.timestamp = Math.round(message.timestamp));
     message.nick !== undefined && (obj.nick = message.nick);
     message.payload !== undefined &&
       (obj.payload = base64FromBytes(
@@ -84,29 +84,20 @@ export const ChatMessage = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ChatMessage>): ChatMessage {
-    const message = { ...baseChatMessage } as ChatMessage;
-    if (object.timestamp !== undefined && object.timestamp !== null) {
-      message.timestamp = object.timestamp;
-    } else {
-      message.timestamp = 0;
-    }
-    if (object.nick !== undefined && object.nick !== null) {
-      message.nick = object.nick;
-    } else {
-      message.nick = '';
-    }
-    if (object.payload !== undefined && object.payload !== null) {
-      message.payload = object.payload;
-    } else {
-      message.payload = new Uint8Array();
-    }
+  fromPartial<I extends Exact<DeepPartial<ChatMessage>, I>>(
+    object: I
+  ): ChatMessage {
+    const message = createBaseChatMessage();
+    message.timestamp = object.timestamp ?? 0;
+    message.nick = object.nick ?? '';
+    message.payload = object.payload ?? new Uint8Array();
     return message;
   },
 };
 
 declare var self: any | undefined;
 declare var window: any | undefined;
+declare var global: any | undefined;
 var globalThis: any = (() => {
   if (typeof globalThis !== 'undefined') return globalThis;
   if (typeof self !== 'undefined') return self;
@@ -146,6 +137,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -155,6 +147,14 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {

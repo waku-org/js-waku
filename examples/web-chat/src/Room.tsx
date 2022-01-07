@@ -29,7 +29,7 @@ export default function Room(props: Props) {
       style={{ height: '98vh', display: 'flex', flexDirection: 'column' }}
     >
       <TitleBar
-        leftIcons={`Peers: ${relayPeers} relay, ${storePeers} store.`}
+        leftIcons={[`Peers: ${relayPeers} relay ${storePeers} store.`]}
         title="Waku v2 chat app"
       />
       <ChatList messages={props.messages} />
