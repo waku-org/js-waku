@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^5.0.0",
-    "axios": "^0.21.1",
+    "axios": "^0.24.0",
     "base64url": "^3.0.1",
     "bigint-buffer": "^1.1.5",
     "debug": "^4.3.1",
