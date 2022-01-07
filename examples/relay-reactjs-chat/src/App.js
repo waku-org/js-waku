@@ -17,6 +17,7 @@ function App() {
   const [wakuStatus, setWakuStatus] = React.useState('None');
   // Using a counter just for the messages to be different
   const [sendCounter, setSendCounter] = React.useState(0);
+  const [messages, setMessages] = React.useState([]);
 
   React.useEffect(() => {
     if (!!waku) return;
@@ -34,18 +35,19 @@ function App() {
   }, [waku, wakuStatus]);
 
   const processIncomingMessage = React.useCallback((wakuMessage) => {
-    // Empty message?
     if (!wakuMessage.payload) return;
 
-    // Decode the protobuf payload
-    const { timestamp, text } = proto.SimpleChatMessage.decode(
+    const { text, timestamp } = proto.SimpleChatMessage.decode(
       wakuMessage.payload
     );
+
     const time = new Date();
     time.setTime(timestamp);
+    const message = { text, timestamp: time };
 
-    // For now, just log new messages on the console
-    console.log(`message received at ${time.toString()}: ${text}`);
+    setMessages((messages) => {
+      return [message].concat(messages);
+    });
   }, []);
 
   React.useEffect(() => {
@@ -79,6 +81,17 @@ function App() {
         <button onClick={sendMessageOnClick} disabled={wakuStatus !== 'Ready'}>
           Send Message
         </button>
+        <ul>
+          {messages.map((msg) => {
+            return (
+              <li>
+                <p>
+                  {msg.timestamp.toString()}: {msg.text}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
       </header>
     </div>
   );
