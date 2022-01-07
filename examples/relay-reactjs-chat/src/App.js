@@ -5,21 +5,18 @@ function App() {
   const [waku, setWaku] = React.useState(undefined);
   const [wakuStatus, setWakuStatus] = React.useState('None');
 
-  // Start Waku
   React.useEffect(() => {
-    // If Waku is already assigned, the job is done
     if (!!waku) return;
-    // If Waku status not None, it means we are already starting Waku
     if (wakuStatus !== 'None') return;
 
     setWakuStatus('Starting');
 
-    // Create Waku
     Waku.create({ bootstrap: true }).then((waku) => {
-      // Once done, put it in the state
       setWaku(waku);
-      // And update the status
-      setWakuStatus('Started');
+      setWakuStatus('Connecting');
+      waku.waitForConnectedPeer().then(() => {
+        setWakuStatus('Ready');
+      });
     });
   }, [waku, wakuStatus]);
 
