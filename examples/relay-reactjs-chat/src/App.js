@@ -33,6 +33,33 @@ function App() {
     });
   }, [waku, wakuStatus]);
 
+  const processIncomingMessage = React.useCallback((wakuMessage) => {
+    // Empty message?
+    if (!wakuMessage.payload) return;
+
+    // Decode the protobuf payload
+    const { timestamp, text } = proto.SimpleChatMessage.decode(
+      wakuMessage.payload
+    );
+    const time = new Date();
+    time.setTime(timestamp);
+
+    // For now, just log new messages on the console
+    console.log(`message received at ${time.toString()}: ${text}`);
+  }, []);
+
+  React.useEffect(() => {
+    if (!waku) return;
+
+    // Pass the content topic to only process messages related to your dApp
+    waku.relay.addObserver(processIncomingMessage, [ContentTopic]);
+
+    // `cleanUp` is called when the component is unmounted, see ReactJS doc.
+    return function cleanUp() {
+      waku.relay.deleteObserver(processIncomingMessage, [ContentTopic]);
+    };
+  }, [waku, wakuStatus, processIncomingMessage]);
+
   const sendMessageOnClick = () => {
     // Check Waku is started and connected first.
     if (wakuStatus !== 'Ready') return;
