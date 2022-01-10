@@ -61,16 +61,12 @@ export const PushRequest = {
   },
 
   fromJSON(object: any): PushRequest {
-    const message = createBasePushRequest();
-    message.pubSubTopic =
-      object.pubSubTopic !== undefined && object.pubSubTopic !== null
-        ? String(object.pubSubTopic)
-        : '';
-    message.message =
-      object.message !== undefined && object.message !== null
+    return {
+      pubSubTopic: isSet(object.pubSubTopic) ? String(object.pubSubTopic) : '',
+      message: isSet(object.message)
         ? WakuMessage.fromJSON(object.message)
-        : undefined;
-    return message;
+        : undefined,
+    };
   },
 
   toJSON(message: PushRequest): unknown {
@@ -137,16 +133,10 @@ export const PushResponse = {
   },
 
   fromJSON(object: any): PushResponse {
-    const message = createBasePushResponse();
-    message.isSuccess =
-      object.isSuccess !== undefined && object.isSuccess !== null
-        ? Boolean(object.isSuccess)
-        : false;
-    message.info =
-      object.info !== undefined && object.info !== null
-        ? String(object.info)
-        : '';
-    return message;
+    return {
+      isSuccess: isSet(object.isSuccess) ? Boolean(object.isSuccess) : false,
+      info: isSet(object.info) ? String(object.info) : '',
+    };
   },
 
   toJSON(message: PushResponse): unknown {
@@ -212,20 +202,15 @@ export const PushRPC = {
   },
 
   fromJSON(object: any): PushRPC {
-    const message = createBasePushRPC();
-    message.requestId =
-      object.requestId !== undefined && object.requestId !== null
-        ? String(object.requestId)
-        : '';
-    message.request =
-      object.request !== undefined && object.request !== null
+    return {
+      requestId: isSet(object.requestId) ? String(object.requestId) : '',
+      request: isSet(object.request)
         ? PushRequest.fromJSON(object.request)
-        : undefined;
-    message.response =
-      object.response !== undefined && object.response !== null
+        : undefined,
+      response: isSet(object.response)
         ? PushResponse.fromJSON(object.response)
-        : undefined;
-    return message;
+        : undefined,
+    };
   },
 
   toJSON(message: PushRPC): unknown {
@@ -287,4 +272,8 @@ export type Exact<P, I extends P> = P extends Builtin
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;
   _m0.configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }
