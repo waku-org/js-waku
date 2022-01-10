@@ -1,20 +1,16 @@
 {
-  "name": "store-reactjs-chat",
+  "name": "relay-reactjs-chat",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
-    "assert": "^2.0.0",
-    "buffer": "^6.0.3",
-    "crypto-browserify": "^3.12.0",
-    "js-waku": "^0.14.2",
+    "js-waku": "../../build/esm",
     "protons": "^2.0.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "5.0.0",
-    "stream-browserify": "^3.0.0",
     "web-vitals": "^2.1.3"
   },
   "scripts": {
