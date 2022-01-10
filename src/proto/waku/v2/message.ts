@@ -68,24 +68,16 @@ export const WakuMessage = {
   },
 
   fromJSON(object: any): WakuMessage {
-    const message = createBaseWakuMessage();
-    message.payload =
-      object.payload !== undefined && object.payload !== null
+    return {
+      payload: isSet(object.payload)
         ? bytesFromBase64(object.payload)
-        : undefined;
-    message.contentTopic =
-      object.contentTopic !== undefined && object.contentTopic !== null
+        : undefined,
+      contentTopic: isSet(object.contentTopic)
         ? String(object.contentTopic)
-        : undefined;
-    message.version =
-      object.version !== undefined && object.version !== null
-        ? Number(object.version)
-        : undefined;
-    message.timestamp =
-      object.timestamp !== undefined && object.timestamp !== null
-        ? Number(object.timestamp)
-        : undefined;
-    return message;
+        : undefined,
+      version: isSet(object.version) ? Number(object.version) : undefined,
+      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : undefined,
+    };
   },
 
   toJSON(message: WakuMessage): unknown {
@@ -179,4 +171,8 @@ export type Exact<P, I extends P> = P extends Builtin
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;
   _m0.configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

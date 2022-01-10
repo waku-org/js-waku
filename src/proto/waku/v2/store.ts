@@ -156,20 +156,15 @@ export const Index = {
   },
 
   fromJSON(object: any): Index {
-    const message = createBaseIndex();
-    message.digest =
-      object.digest !== undefined && object.digest !== null
+    return {
+      digest: isSet(object.digest)
         ? bytesFromBase64(object.digest)
-        : new Uint8Array();
-    message.receivedTime =
-      object.receivedTime !== undefined && object.receivedTime !== null
+        : new Uint8Array(),
+      receivedTime: isSet(object.receivedTime)
         ? Number(object.receivedTime)
-        : 0;
-    message.senderTime =
-      object.senderTime !== undefined && object.senderTime !== null
-        ? Number(object.senderTime)
-        : 0;
-    return message;
+        : 0,
+      senderTime: isSet(object.senderTime) ? Number(object.senderTime) : 0,
+    };
   },
 
   toJSON(message: Index): unknown {
@@ -239,20 +234,13 @@ export const PagingInfo = {
   },
 
   fromJSON(object: any): PagingInfo {
-    const message = createBasePagingInfo();
-    message.pageSize =
-      object.pageSize !== undefined && object.pageSize !== null
-        ? Number(object.pageSize)
-        : 0;
-    message.cursor =
-      object.cursor !== undefined && object.cursor !== null
-        ? Index.fromJSON(object.cursor)
-        : undefined;
-    message.direction =
-      object.direction !== undefined && object.direction !== null
+    return {
+      pageSize: isSet(object.pageSize) ? Number(object.pageSize) : 0,
+      cursor: isSet(object.cursor) ? Index.fromJSON(object.cursor) : undefined,
+      direction: isSet(object.direction)
         ? pagingInfo_DirectionFromJSON(object.direction)
-        : 0;
-    return message;
+        : 0,
+    };
   },
 
   toJSON(message: PagingInfo): unknown {
@@ -314,12 +302,11 @@ export const ContentFilter = {
   },
 
   fromJSON(object: any): ContentFilter {
-    const message = createBaseContentFilter();
-    message.contentTopic =
-      object.contentTopic !== undefined && object.contentTopic !== null
+    return {
+      contentTopic: isSet(object.contentTopic)
         ? String(object.contentTopic)
-        : '';
-    return message;
+        : '',
+    };
   },
 
   toJSON(message: ContentFilter): unknown {
@@ -404,27 +391,19 @@ export const HistoryQuery = {
   },
 
   fromJSON(object: any): HistoryQuery {
-    const message = createBaseHistoryQuery();
-    message.pubSubTopic =
-      object.pubSubTopic !== undefined && object.pubSubTopic !== null
+    return {
+      pubSubTopic: isSet(object.pubSubTopic)
         ? String(object.pubSubTopic)
-        : undefined;
-    message.contentFilters = (object.contentFilters ?? []).map((e: any) =>
-      ContentFilter.fromJSON(e)
-    );
-    message.pagingInfo =
-      object.pagingInfo !== undefined && object.pagingInfo !== null
+        : undefined,
+      contentFilters: Array.isArray(object?.contentFilters)
+        ? object.contentFilters.map((e: any) => ContentFilter.fromJSON(e))
+        : [],
+      pagingInfo: isSet(object.pagingInfo)
         ? PagingInfo.fromJSON(object.pagingInfo)
-        : undefined;
-    message.startTime =
-      object.startTime !== undefined && object.startTime !== null
-        ? Number(object.startTime)
-        : undefined;
-    message.endTime =
-      object.endTime !== undefined && object.endTime !== null
-        ? Number(object.endTime)
-        : undefined;
-    return message;
+        : undefined,
+      startTime: isSet(object.startTime) ? Number(object.startTime) : undefined,
+      endTime: isSet(object.endTime) ? Number(object.endTime) : undefined,
+    };
   },
 
   toJSON(message: HistoryQuery): unknown {
@@ -510,19 +489,17 @@ export const HistoryResponse = {
   },
 
   fromJSON(object: any): HistoryResponse {
-    const message = createBaseHistoryResponse();
-    message.messages = (object.messages ?? []).map((e: any) =>
-      WakuMessage.fromJSON(e)
-    );
-    message.pagingInfo =
-      object.pagingInfo !== undefined && object.pagingInfo !== null
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => WakuMessage.fromJSON(e))
+        : [],
+      pagingInfo: isSet(object.pagingInfo)
         ? PagingInfo.fromJSON(object.pagingInfo)
-        : undefined;
-    message.error =
-      object.error !== undefined && object.error !== null
+        : undefined,
+      error: isSet(object.error)
         ? historyResponse_ErrorFromJSON(object.error)
-        : 0;
-    return message;
+        : 0,
+    };
   },
 
   toJSON(message: HistoryResponse): unknown {
@@ -607,20 +584,15 @@ export const HistoryRPC = {
   },
 
   fromJSON(object: any): HistoryRPC {
-    const message = createBaseHistoryRPC();
-    message.requestId =
-      object.requestId !== undefined && object.requestId !== null
-        ? String(object.requestId)
-        : '';
-    message.query =
-      object.query !== undefined && object.query !== null
+    return {
+      requestId: isSet(object.requestId) ? String(object.requestId) : '',
+      query: isSet(object.query)
         ? HistoryQuery.fromJSON(object.query)
-        : undefined;
-    message.response =
-      object.response !== undefined && object.response !== null
+        : undefined,
+      response: isSet(object.response)
         ? HistoryResponse.fromJSON(object.response)
-        : undefined;
-    return message;
+        : undefined,
+    };
   },
 
   toJSON(message: HistoryRPC): unknown {
@@ -725,4 +697,8 @@ function longToNumber(long: Long): number {
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;
   _m0.configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }
