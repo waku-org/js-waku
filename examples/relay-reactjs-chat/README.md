@@ -1,4 +1,4 @@
-# Relay ReactJS Chat Example App
+# Minimal ReactJS Waku Relay App
 
 **Demonstrates**:
 

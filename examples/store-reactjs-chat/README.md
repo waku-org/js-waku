@@ -1,12 +1,13 @@
 # Minimal ReactJS Waku Store App
 
 - React/JavaScript,
+- `create-react-app`/`react-scripts` 5.0.0
 - Waku Store,
 - Protobuf using `protons`.
 - No async/await syntax.
 
 A simple app that retrieves chat messages using [Waku Store](https://rfc.vac.dev/spec/13/)
-to illustrate the [Retrieve Messages Using Waku Store With ReactJS guide](/guides/reactjs-store.md).
+to illustrate the [Retrieve Messages Using Waku Store With ReactJS guide](https://docs.dappconnect.dev/docs/guides/08_reactjs_store/).
 
 To run a development version locally, do:
 

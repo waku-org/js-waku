@@ -1,4 +1,3 @@
-import './App.css';
 import { Waku } from 'js-waku';
 import * as React from 'react';
 import protons from 'protons';
