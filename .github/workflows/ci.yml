@@ -34,7 +34,6 @@ jobs:
         with:
           path: |
             ./nim-waku/build/wakunode2
-            ./nim-waku/vendor/rln/target/debug
           key: nim-waku-build-${{ matrix.os }}-v3-${{ steps.nim-waku-head.outputs.ref }}
 
       - name: Install NodeJS
@@ -46,7 +45,13 @@ jobs:
         # visibility in the CI if done as a separate step
       - name: Build wakunode2
         shell: bash
-        run: (cd nim-waku && ./build/wakunode2 --help) || npm run nim-waku:build
+        working-directory: ./nim-waku
+        continue-on-error: true
+        run: |
+          # For debug purposes
+          ./build/wakunode2 --help
+          # Build nim-waku if `--help` fails
+          ./build/wakunode2 --help || npm run nim-waku:build
 
       - name: Ensure wakunode2 is ready
         shell: bash
