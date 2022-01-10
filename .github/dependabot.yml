@@ -2,15 +2,14 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
+    open-pull-requests-limit: 1
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: "daily"
     reviewers:
       - "d4nte"
   - package-ecosystem: "npm"
     directory: "/examples/web-chat"
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: "daily"
     reviewers:
       - "d4nte"
