@@ -12,6 +12,7 @@ jobs:
   build_and_test:
     env:
       BUF_VERSION: '0.56.0'
+      NIM_WAKU_VERSION: 'v0.6'
     strategy:
       matrix:
         node: [16]
@@ -20,33 +21,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2.3.3
-        with:
-          submodules: 'recursive'
 
-      - name: Get nim-waku HEAD
-        id: nim-waku-head
+      - name: Get nim-waku
         shell: bash
-        run: cd nim-waku && echo "::set-output name=ref::$(git rev-parse HEAD)"
-
-      - name: Cache nim-waku binary
-        id: cache-nim-waku
-        uses: actions/cache@v2
-        with:
-          path: |
-            ./nim-waku/build/wakunode2
-            ./nim-waku/vendor/rln/target/debug
-          key: nim-waku-build-${{ matrix.os }}-v3-${{ steps.nim-waku-head.outputs.ref }}
+        run: |
+          mkdir -p nim-waku/build
+          cd nim-waku
+          wget "https://github.com/status-im/nim-waku/releases/download/${NIM_WAKU_VERSION}/nim-waku-ubuntu-latest.tar.gz.1.zip"
+          unzip nim-waku-ubuntu-latest.tar.gz.1.zip
+          tar xavf nim-waku-ubuntu-latest.tar.gz
 
       - name: Install NodeJS
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-
-        # This would have been done part of npm pretest, but it gives better
-        # visibility in the CI if done as a separate step
-      - name: Build wakunode2
-        shell: bash
-        run: (cd nim-waku && ./build/wakunode2 --help) || npm run nim-waku:build
 
       - name: Ensure wakunode2 is ready
         shell: bash
