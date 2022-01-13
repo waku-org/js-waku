@@ -9,7 +9,7 @@ import { ENRTree } from './enrtree';
 
 const dbg = debug('waku:discovery:dns');
 
-type SearchContext = {
+export type SearchContext = {
   domain: string;
   publicKey: string;
   visits: { [key: string]: boolean };

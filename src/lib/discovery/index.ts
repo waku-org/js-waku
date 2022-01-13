@@ -2,9 +2,9 @@ import { shuffle } from 'libp2p-gossipsub/src/utils';
 
 export { getNodesFromHostedJson } from './hosted_json';
 export { Bootstrap, BootstrapOptions } from './bootstrap';
-export { DnsClient, DnsNodeDiscovery } from './dns';
+export { DnsClient, DnsNodeDiscovery, SearchContext } from './dns';
 export { Endpoints, DnsOverHttps } from './dns_over_https';
-export { ENRTree } from './enrtree';
+export { ENRTree, ENRTreeValues, ENRRootValues } from './enrtree';
 
 export function getPseudoRandomSubset<T>(
   values: T[],

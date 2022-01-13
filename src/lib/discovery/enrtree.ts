@@ -7,14 +7,14 @@ import { ecdsaVerify } from 'secp256k1';
 import { ENR } from '../enr';
 import { keccak256Buf } from '../utils';
 
-type ENRRootValues = {
+export type ENRRootValues = {
   eRoot: string;
   lRoot: string;
   seq: number;
   signature: string;
 };
 
-type ENRTreeValues = {
+export type ENRTreeValues = {
   publicKey: string;
   domain: string;
 };
