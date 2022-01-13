@@ -1,6 +1,11 @@
 import { useEffect, useReducer, useState } from 'react';
 import './App.css';
-import { PageDirection, getBootstrapNodes, Waku, WakuMessage } from 'js-waku';
+import {
+  PageDirection,
+  getNodesFromHostedJson,
+  Waku,
+  WakuMessage,
+} from 'js-waku';
 import handleCommand from './command';
 import Room from './Room';
 import { WakuContext } from './WakuContext';
@@ -175,7 +180,9 @@ async function initWaku(setter: (waku: Waku) => void) {
           },
         },
       },
-      bootstrap: getBootstrapNodes.bind({}, selectFleetEnv()),
+      bootstrap: {
+        getPeers: getNodesFromHostedJson.bind({}, selectFleetEnv()),
+      },
     });
 
     setter(waku);

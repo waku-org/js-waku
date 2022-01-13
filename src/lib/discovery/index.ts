@@ -3,10 +3,10 @@ import { shuffle } from 'libp2p-gossipsub/src/utils';
 export { getNodesFromHostedJson } from './hosted_json';
 export { parseBootstrap } from './bootstrap';
 
-export function getPseudoRandomSubset(
-  values: string[],
+export function getPseudoRandomSubset<T>(
+  values: T[],
   wantedNumber: number
-): string[] {
+): T[] {
   if (values.length <= wantedNumber) {
     return values;
   }

@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test: Upgrade nim-waku node to v0.6.
 - **Breaking**: Renamed `getBootstrapNodes` to `getNodesFromHostedJson`.
 - Minimum node version changed to 16.
+- **Breaking**: Changed `Waku.create` bootstrap option from `{ bootstrap: boolean }` to `{ bootstrap: BootstrapOptions }`.
+  Replace `{ boostrap: true }` with `{ boostrap: { default: true } }` to retain same behaviour.
 
 ### Fixed
 

@@ -28,7 +28,7 @@ export async function getNodesFromHostedJson(
   path: string[] = ['fleets', 'wakuv2.prod', 'waku-websocket'],
   url = 'https://fleets.status.im/',
   wantedNumber: number = DefaultWantedNumber
-): Promise<string[]> {
+): Promise<Multiaddr[]> {
   if (wantedNumber <= 0) {
     return [];
   }
@@ -54,12 +54,12 @@ export async function getNodesFromHostedJson(
 
   if (Array.isArray(nodes)) {
     return getPseudoRandomSubset(nodes, wantedNumber).map(
-      (node: string) => node
+      (node: string) => new Multiaddr(node)
     );
   }
 
   if (typeof nodes === 'string') {
-    return [nodes];
+    return [new Multiaddr(nodes)];
   }
 
   if (typeof nodes === 'object') {

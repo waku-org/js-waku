@@ -19,6 +19,7 @@ import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { parseBootstrap } from './discovery';
+import { BootstrapOptions } from './discovery/bootstrap';
 import { getPeersForProtocol } from './select_peer';
 import { LightPushCodec, WakuLightPush } from './waku_light_push';
 import { WakuMessage } from './waku_message';
@@ -86,12 +87,12 @@ export interface CreateOptions {
   /**
    * Use libp2p-bootstrap to discover and connect to new nodes.
    *
-   * See [BootstrapOptions] for available parameters.
+   * See [[BootstrapOptions]] for available parameters.
    *
    * Note: It overrides any other peerDiscovery modules that may have been set via
    * {@link CreateOptions.libp2p}.
    */
-  bootstrap?: boolean | string[] | (() => string[] | Promise<string[]>);
+  bootstrap?: BootstrapOptions;
   decryptionKeys?: Array<Uint8Array | string>;
 }
 
