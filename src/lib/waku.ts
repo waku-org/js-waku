@@ -18,7 +18,7 @@ import Ping from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
-import { parseBootstrap } from './discovery';
+import { Bootstrap } from './discovery';
 import { BootstrapOptions } from './discovery/bootstrap';
 import { getPeersForProtocol } from './select_peer';
 import { LightPushCodec, WakuLightPush } from './waku_light_push';
@@ -187,11 +187,11 @@ export class Waku {
     });
 
     if (options?.bootstrap) {
-      const bootstrap = parseBootstrap(options?.bootstrap);
+      const bootstrap = new Bootstrap(options?.bootstrap);
 
-      if (bootstrap !== undefined) {
+      if (bootstrap.getBootstrapPeers !== undefined) {
         try {
-          const list = await bootstrap();
+          const list = await bootstrap.getBootstrapPeers();
 
           // Note: this overrides any other peer discover
           libp2pOpts.modules = Object.assign(libp2pOpts.modules, {

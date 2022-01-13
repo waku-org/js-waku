@@ -7,10 +7,6 @@ import { getNodesFromHostedJson, getPseudoRandomSubset } from './index';
 
 const dbg = debug('waku:discovery:bootstrap');
 
-export const DefaultMaxPeers = 1;
-
-export type BootstrapFn = () => Promise<Multiaddr[]>;
-
 /**
  * Setup discovery method used to bootstrap.
  *
@@ -20,7 +16,7 @@ export interface BootstrapOptions {
   /**
    * The maximum of peers to connect to as part of the bootstrap process.
    *
-   * @default [[DefaultMaxPeers]]
+   * @default [[Bootstrap.DefaultMaxPeers]]
    */
   maxPeers?: number;
   /**
@@ -48,56 +44,69 @@ export interface BootstrapOptions {
 }
 
 /**
- * Parse the bootstrap options and returns an async function that returns node addresses upon invocation.
+ * Parse options and expose function to return bootstrap peer addresses.
  */
-export function parseBootstrap(opts: BootstrapOptions): BootstrapFn {
-  const maxPeers = opts.maxPeers ?? DefaultMaxPeers;
+export class Bootstrap {
+  public static DefaultMaxPeers = 1;
 
-  if (opts.default) {
-    dbg('Bootstrap: Use hosted list of peers.');
+  public readonly getBootstrapPeers: (() => Promise<Multiaddr[]>) | undefined;
 
-    return getNodesFromHostedJson.bind({}, undefined, undefined, maxPeers);
-  } else if (opts.peers !== undefined && opts.peers.length > 0) {
-    dbg('Bootstrap: Use provided list of peers.');
+  constructor(opts: BootstrapOptions) {
+    const maxPeers = opts.maxPeers ?? Bootstrap.DefaultMaxPeers;
 
-    const allPeers: Multiaddr[] = opts.peers.map(
-      (node: string) => new Multiaddr(node)
-    );
-    const peers = getPseudoRandomSubset(allPeers, maxPeers);
-    return (): Promise<Multiaddr[]> => Promise.resolve(peers);
-  } else if (typeof opts.getPeers === 'function') {
-    dbg('Bootstrap: Use provided getPeers function.');
-    const getPeers = opts.getPeers;
+    if (opts.default) {
+      dbg('Bootstrap: Use hosted list of peers.');
 
-    return async (): Promise<Multiaddr[]> => {
-      const allPeers = await getPeers();
-      return getPseudoRandomSubset<string | Multiaddr>(allPeers, maxPeers).map(
-        (node) => new Multiaddr(node)
+      this.getBootstrapPeers = getNodesFromHostedJson.bind(
+        {},
+        undefined,
+        undefined,
+        maxPeers
       );
-    };
-  } else if (opts.enrUrl) {
-    const enrUrl = opts.enrUrl;
-    dbg('Bootstrap: Use provided EIP-1459 ENR Tree URL.');
+    } else if (opts.peers !== undefined && opts.peers.length > 0) {
+      dbg('Bootstrap: Use provided list of peers.');
 
-    const dns = DnsNodeDiscovery.dnsOverHttp();
+      const allPeers: Multiaddr[] = opts.peers.map(
+        (node: string) => new Multiaddr(node)
+      );
+      const peers = getPseudoRandomSubset(allPeers, maxPeers);
+      this.getBootstrapPeers = (): Promise<Multiaddr[]> =>
+        Promise.resolve(peers);
+    } else if (typeof opts.getPeers === 'function') {
+      dbg('Bootstrap: Use provided getPeers function.');
+      const getPeers = opts.getPeers;
 
-    return async (): Promise<Multiaddr[]> => {
-      const enrs = await dns.getPeers(maxPeers, [enrUrl]);
-      const addresses: Multiaddr[] = [];
-      enrs.forEach((enr) => {
-        if (!enr.multiaddrs) return;
+      this.getBootstrapPeers = async (): Promise<Multiaddr[]> => {
+        const allPeers = await getPeers();
+        return getPseudoRandomSubset<string | Multiaddr>(
+          allPeers,
+          maxPeers
+        ).map((node) => new Multiaddr(node));
+      };
+    } else if (opts.enrUrl) {
+      const enrUrl = opts.enrUrl;
+      dbg('Bootstrap: Use provided EIP-1459 ENR Tree URL.');
 
-        enr.multiaddrs.forEach((ma: Multiaddr) => {
-          // Only return secure websocket addresses
-          if (ma.protoNames().includes('wss')) {
-            addresses.push(ma);
-          }
+      const dns = DnsNodeDiscovery.dnsOverHttp();
+
+      this.getBootstrapPeers = async (): Promise<Multiaddr[]> => {
+        const enrs = await dns.getPeers(maxPeers, [enrUrl]);
+        const addresses: Multiaddr[] = [];
+        enrs.forEach((enr) => {
+          if (!enr.multiaddrs) return;
+
+          enr.multiaddrs.forEach((ma: Multiaddr) => {
+            // Only return secure websocket addresses
+            if (ma.protoNames().includes('wss')) {
+              addresses.push(ma);
+            }
+          });
         });
-      });
-      return addresses;
-    };
-  } else {
-    dbg('No bootstrap method specified, no peer will be returned');
-    return (): Promise<Multiaddr[]> => Promise.resolve([]);
+        return addresses;
+      };
+    } else {
+      dbg('No bootstrap method specified, no peer will be returned');
+      this.getBootstrapPeers = undefined;
+    }
   }
 }
