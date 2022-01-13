@@ -7,13 +7,6 @@ import { ecdsaVerify } from 'secp256k1';
 import { ENR } from '../enr';
 import { keccak256Buf } from '../utils';
 
-export interface PeerInfo {
-  id?: Uint8Array | Buffer;
-  address?: string;
-  udpPort?: number | null;
-  tcpPort?: number | null;
-}
-
 type ENRRootValues = {
   eRoot: string;
   lRoot: string;

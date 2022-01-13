@@ -1,10 +1,7 @@
-export {
-  getNodesFromHostedJson,
-  getPseudoRandomSubset,
-  parseBootstrap,
-  BootstrapOptions,
-  BootstrapFn,
-} from './lib/discovery';
+export { getNodesFromHostedJson } from './lib/discovery';
+export * as discovery from './lib/discovery';
+
+export * as enr from './lib/enr';
 
 export * as utils from './lib/utils';
 

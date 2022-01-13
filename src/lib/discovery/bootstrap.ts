@@ -20,7 +20,7 @@ export interface BootstrapOptions {
   /**
    * The maximum of peers to connect to as part of the bootstrap process.
    *
-   * @default {{DefaultMaxPeers}}
+   * @default [[DefaultMaxPeers]]
    */
   maxPeers?: number;
   /**
