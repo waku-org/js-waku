@@ -25,6 +25,7 @@ import { ENRKey, ENRValue, NodeId, SequenceNumber } from './types';
 import * as v4 from './v4';
 
 export class ENR extends Map<ENRKey, ENRValue> {
+  public static readonly RECORD_PREFIX = 'enr:';
   public seq: SequenceNumber;
   public signature: Buffer | null;
 
@@ -93,8 +94,10 @@ export class ENR extends Map<ENRKey, ENRValue> {
   }
 
   static decodeTxt(encoded: string): ENR {
-    if (!encoded.startsWith('enr:')) {
-      throw new Error("string encoded ENR must start with 'enr:'");
+    if (!encoded.startsWith(this.RECORD_PREFIX)) {
+      throw new Error(
+        `"string encoded ENR must start with '${this.RECORD_PREFIX}'`
+      );
     }
     return ENR.decode(base64url.toBuffer(encoded.slice(4)));
   }
@@ -388,6 +391,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
 
     return new Multiaddr(maBuf);
   }
+
   setLocationMultiaddr(multiaddr: Multiaddr): void {
     const protoNames = multiaddr.protoNames();
     if (
@@ -428,7 +432,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
       throw new Error(ERR_INVALID_ID);
     }
     if (!this.publicKey) {
-      throw new Error('Failed to verify enr: No public key');
+      throw new Error('Failed to verify ENR: No public key');
     }
     return v4.verify(this.publicKey, data, signature);
   }
@@ -471,6 +475,6 @@ export class ENR extends Map<ENRKey, ENRValue> {
   }
 
   encodeTxt(privateKey?: Buffer): string {
-    return 'enr:' + base64url.encode(this.encode(privateKey));
+    return ENR.RECORD_PREFIX + base64url.encode(this.encode(privateKey));
   }
 }

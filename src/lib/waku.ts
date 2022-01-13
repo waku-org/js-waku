@@ -18,7 +18,7 @@ import Ping from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
-import { getNodesFromHostedJson } from './discovery';
+import { parseBootstrap } from './discovery';
 import { getPeersForProtocol } from './select_peer';
 import { LightPushCodec, WakuLightPush } from './waku_light_push';
 import { WakuMessage } from './waku_message';
@@ -86,10 +86,7 @@ export interface CreateOptions {
   /**
    * Use libp2p-bootstrap to discover and connect to new nodes.
    *
-   * You can pass:
-   * - `true` to use {@link getNodesFromHostedJson},
-   * - an array of multiaddresses,
-   * - a function that returns an array of multiaddresses (or Promise of).
+   * See [BootstrapOptions] for available parameters.
    *
    * Note: It overrides any other peerDiscovery modules that may have been set via
    * {@link CreateOptions.libp2p}.
@@ -189,17 +186,7 @@ export class Waku {
     });
 
     if (options?.bootstrap) {
-      let bootstrap: undefined | (() => string[] | Promise<string[]>);
-
-      if (options.bootstrap === true) {
-        bootstrap = getNodesFromHostedJson;
-      } else if (Array.isArray(options.bootstrap)) {
-        bootstrap = (): string[] => {
-          return options.bootstrap as string[];
-        };
-      } else if (typeof options.bootstrap === 'function') {
-        bootstrap = options.bootstrap;
-      }
+      const bootstrap = parseBootstrap(options?.bootstrap);
 
       if (bootstrap !== undefined) {
         try {
