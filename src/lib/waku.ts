@@ -2,7 +2,7 @@ import { bytes } from '@chainsafe/libp2p-noise/dist/src/@types/basic';
 import { Noise } from '@chainsafe/libp2p-noise/dist/src/noise';
 import debug from 'debug';
 import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from 'libp2p';
-import Bootstrap from 'libp2p-bootstrap';
+import Libp2pBootstrap from 'libp2p-bootstrap';
 import { MuxedStream } from 'libp2p-interfaces/dist/src/stream-muxer/types';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
@@ -195,11 +195,11 @@ export class Waku {
 
           // Note: this overrides any other peer discover
           libp2pOpts.modules = Object.assign(libp2pOpts.modules, {
-            peerDiscovery: [Bootstrap],
+            peerDiscovery: [Libp2pBootstrap],
           });
 
           libp2pOpts.config.peerDiscovery = {
-            [Bootstrap.tag]: {
+            [Libp2pBootstrap.tag]: {
               list,
               enabled: true,
             },
