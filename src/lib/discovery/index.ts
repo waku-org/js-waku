@@ -1,7 +1,7 @@
 import { shuffle } from 'libp2p-gossipsub/src/utils';
 
 export { getNodesFromHostedJson } from './hosted_json';
-export { parseBootstrap } from './bootstrap';
+export { parseBootstrap, BootstrapOptions, BootstrapFn } from './bootstrap';
 
 export function getPseudoRandomSubset<T>(
   values: T[],
