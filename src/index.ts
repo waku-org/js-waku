@@ -1,4 +1,4 @@
-export { getBootstrapNodes } from './lib/discovery';
+export { getNodesFromHostedJson, getPseudoRandomSubset } from './lib/discovery';
 
 export * as utils from './lib/utils';
 
