@@ -21,6 +21,7 @@ export class DnsOverHttps implements DnsClient {
    *
    * @param endpoints The endpoints for Dns-Over-Https queries.
    * See [dns-query](https://www.npmjs.com/package/dns-query) for details.
+   * Defaults to cloudflare, google and opendns.
    *
    * @throws {code: string} If DNS query fails.
    */
