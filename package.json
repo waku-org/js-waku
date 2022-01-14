@@ -39,6 +39,7 @@
     "test:spelling": "cspell \"{README.md,.github/*.md,guides/*.md,src/**/*.ts}\"",
     "test:unit": "nyc --silent mocha",
     "test:karma": "karma start",
+    "test:karma-live-data": "LIVE_DATA_TESTS=true karma start ./karma-live-data.conf.js",
     "examples:test": "run-s examples:pretest; for d in examples/*/; do (cd $d && npm test;); done",
     "proto": "run-s proto:*",
     "proto:lint": "buf lint",

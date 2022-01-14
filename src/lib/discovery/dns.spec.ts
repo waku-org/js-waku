@@ -176,6 +176,12 @@ describe('DNS Node Discovery [live data]', function () {
   const ipTestRegex = /^\d+\.\d+\.\d+\.\d+$/;
   const maxQuantity = 3;
 
+  before(function () {
+    if (process.env.CI && !process.env.LIVE_DATA_TESTS) {
+      this.skip();
+    }
+  });
+
   it(`should retrieve ${maxQuantity} PeerInfos for test.nodes.vac.dev`, async function () {
     this.timeout(5000);
     // Google's dns server address. Needs to be set explicitly to run in CI
