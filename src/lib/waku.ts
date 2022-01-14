@@ -18,8 +18,7 @@ import Ping from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
-import { Bootstrap } from './discovery';
-import { BootstrapOptions } from './discovery/bootstrap';
+import { Bootstrap, BootstrapOptions } from './discovery';
 import { getPeersForProtocol } from './select_peer';
 import { LightPushCodec, WakuLightPush } from './waku_light_push';
 import { WakuMessage } from './waku_message';
