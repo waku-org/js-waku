@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Implement DNS Discovery as per [EIP-1459](https://eips.ethereum.org/EIPS/eip-1459),
+  with ENR records as defined in [31/WAKU2-ENR](https://rfc.vac.dev/spec/31/);
+  Available by passing `{ bootstrap: { enrUrl: enrtree://... } }` to `Waku.create`.
+
 ### Changed
 
 - Test: Upgrade nim-waku node to v0.6.
