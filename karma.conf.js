@@ -11,13 +11,14 @@ module.exports = function (config) {
       require('karma-mocha'),
       require('karma-typescript'),
       require('karma-chrome-launcher'),
+      require('karma-verbose-reporter'),
     ],
-    reporters: ['progress', 'karma-typescript'],
+    reporters: ['progress', 'karma-typescript', 'verbose'],
     browsers: ['ChromeHeadless'],
     singleRun: true,
     client: {
       mocha: {
-        timeout: 6000, // Default is 2s
+        timeout: 20000, // Default is 2s
       },
     },
     karmaTypescriptConfig: {

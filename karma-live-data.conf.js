@@ -8,7 +8,7 @@ originalConfigFn({
 });
 
 // pass `--grep '[live data]'` to mocha to only run live data tests
-properties.client.args = ['--grep', '[live data]]'];
+properties.client.args = ['--grep', 'Decryption performance'];
 
 // export settings
 module.exports = function (config) {

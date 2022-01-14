@@ -68,7 +68,37 @@ describe('Waku Message Version 1', function () {
 
           expect(res).deep.equal(message);
         }
-      )
+      ),
+      { numRuns: 10000 }
+    );
+  });
+});
+
+describe('Waku Message Version 1: Decryption performance', function () {
+  it('Generate & Decrypt', async function () {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.uint8Array({ minLength: 114, maxLength: 500 }),
+        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        async (message, privKey) => {
+          try {
+            await decryptAsymmetric(message, privKey);
+            await decryptSymmetric(message, privKey);
+          } catch (e) {}
+        }
+      ),
+      { numRuns: 200000 }
+    );
+  });
+
+  it('Only generate', async function () {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.uint8Array({ minLength: 114, maxLength: 500 }),
+        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        async () => {}
+      ),
+      { numRuns: 200000 }
     );
   });
 });
