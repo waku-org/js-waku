@@ -44,7 +44,7 @@ export class WakuMessage {
   ) {}
 
   /**
-   * Create Message with a utf-8 string as payload.
+   * Create Message with an utf-8 string as payload.
    */
   static async fromUtf8String(
     utf8: string,
@@ -116,7 +116,7 @@ export class WakuMessage {
    * @params decryptionKeys If the payload is encrypted (version = 1), then the
    * keys are used to attempt decryption of the message. The passed key can either
    * be asymmetric private keys or symmetric keys, both method are tried for each
-   * key until the message is decrypted or combinations are ran out.
+   * key until the message is decrypted or combinations are run out.
    */
   static async decode(
     bytes: Uint8Array,
@@ -134,7 +134,7 @@ export class WakuMessage {
    * @params decryptionKeys If the payload is encrypted (version = 1), then the
    * keys are used to attempt decryption of the message. The passed key can either
    * be asymmetric private keys or symmetric keys, both method are tried for each
-   * key until the message is decrypted or combinations are ran out.
+   * key until the message is decrypted or combinations are run out.
    */
   static async decodeProto(
     protoBuf: proto.WakuMessage,
