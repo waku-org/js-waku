@@ -9,7 +9,7 @@ export const PublicKeyContentTopic = '/eth-pm/1/public-key/proto';
 export const PrivateMessageContentTopic = '/eth-pm/1/private-message/proto';
 
 export async function initWaku(): Promise<Waku> {
-  const waku = await Waku.create({ bootstrap: true });
+  const waku = await Waku.create({ bootstrap: { default: true } });
 
   // Wait to be connected to at least one peer
   await new Promise((resolve, reject) => {

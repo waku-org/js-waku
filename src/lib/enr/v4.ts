@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import crypto from 'crypto';
 
 import { keccak256 } from 'js-sha3';

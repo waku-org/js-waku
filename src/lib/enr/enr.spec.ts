@@ -113,7 +113,7 @@ describe('ENR', function () {
         ENR.decodeTxt(txt);
         assert.fail('Expect error here');
       } catch (err) {
-        expect(err.message).to.be.equal('Failed to verify enr: No public key');
+        expect(err.message).to.be.equal('Failed to verify ENR: No public key');
       }
     });
   });
@@ -153,7 +153,7 @@ describe('ENR', function () {
         enr.verify(Buffer.alloc(0), Buffer.alloc(0));
         assert.fail('Expect error here');
       } catch (err) {
-        expect(err.message).to.be.equal('Failed to verify enr: No public key');
+        expect(err.message).to.be.equal('Failed to verify ENR: No public key');
       }
     });
 

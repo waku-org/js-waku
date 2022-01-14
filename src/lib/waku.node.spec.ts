@@ -38,7 +38,7 @@ describe('Waku Dial [node only]', function () {
 
       waku = await Waku.create({
         staticNoiseKey: NOISE_KEY_1,
-        bootstrap: true,
+        bootstrap: { default: true },
       });
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
@@ -68,7 +68,7 @@ describe('Waku Dial [node only]', function () {
         libp2p: {
           modules: { transport: [TCP] },
         },
-        bootstrap: [multiAddrWithId],
+        bootstrap: { peers: [multiAddrWithId] },
       });
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
@@ -102,8 +102,10 @@ describe('Waku Dial [node only]', function () {
         libp2p: {
           modules: { transport: [TCP] },
         },
-        bootstrap: () => {
-          return [multiAddrWithId];
+        bootstrap: {
+          getPeers: async () => {
+            return [multiAddrWithId];
+          },
         },
       });
 

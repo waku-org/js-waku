@@ -2,7 +2,7 @@ import { bytes } from '@chainsafe/libp2p-noise/dist/src/@types/basic';
 import { Noise } from '@chainsafe/libp2p-noise/dist/src/noise';
 import debug from 'debug';
 import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from 'libp2p';
-import Bootstrap from 'libp2p-bootstrap';
+import Libp2pBootstrap from 'libp2p-bootstrap';
 import { MuxedStream } from 'libp2p-interfaces/dist/src/stream-muxer/types';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
@@ -18,7 +18,8 @@ import Ping from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
-import { getBootstrapNodes } from './discovery';
+import { Bootstrap } from './discovery';
+import { BootstrapOptions } from './discovery/bootstrap';
 import { getPeersForProtocol } from './select_peer';
 import { LightPushCodec, WakuLightPush } from './waku_light_push';
 import { WakuMessage } from './waku_message';
@@ -86,15 +87,12 @@ export interface CreateOptions {
   /**
    * Use libp2p-bootstrap to discover and connect to new nodes.
    *
-   * You can pass:
-   * - `true` to use {@link getBootstrapNodes},
-   * - an array of multiaddresses,
-   * - a function that returns an array of multiaddresses (or Promise of).
+   * See [[BootstrapOptions]] for available parameters.
    *
    * Note: It overrides any other peerDiscovery modules that may have been set via
    * {@link CreateOptions.libp2p}.
    */
-  bootstrap?: boolean | string[] | (() => string[] | Promise<string[]>);
+  bootstrap?: BootstrapOptions;
   decryptionKeys?: Array<Uint8Array | string>;
 }
 
@@ -189,29 +187,19 @@ export class Waku {
     });
 
     if (options?.bootstrap) {
-      let bootstrap: undefined | (() => string[] | Promise<string[]>);
+      const bootstrap = new Bootstrap(options?.bootstrap);
 
-      if (options.bootstrap === true) {
-        bootstrap = getBootstrapNodes;
-      } else if (Array.isArray(options.bootstrap)) {
-        bootstrap = (): string[] => {
-          return options.bootstrap as string[];
-        };
-      } else if (typeof options.bootstrap === 'function') {
-        bootstrap = options.bootstrap;
-      }
-
-      if (bootstrap !== undefined) {
+      if (bootstrap.getBootstrapPeers !== undefined) {
         try {
-          const list = await bootstrap();
+          const list = await bootstrap.getBootstrapPeers();
 
           // Note: this overrides any other peer discover
           libp2pOpts.modules = Object.assign(libp2pOpts.modules, {
-            peerDiscovery: [Bootstrap],
+            peerDiscovery: [Libp2pBootstrap],
           });
 
           libp2pOpts.config.peerDiscovery = {
-            [Bootstrap.tag]: {
+            [Libp2pBootstrap.tag]: {
               list,
               enabled: true,
             },

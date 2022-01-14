@@ -1,11 +1,3 @@
-import axios from 'axios';
-import debug from 'debug';
-import { shuffle } from 'libp2p-gossipsub/src/utils';
-
-const dbg = debug('waku:discovery');
-
-const DefaultWantedNumber = 1;
-
 /**
  * GET list of nodes from remote HTTP host.
  *
@@ -23,11 +15,20 @@ const DefaultWantedNumber = 1;
  * @throws If the remote host is unreachable or the response cannot be parsed
  * according to the passed _path_.
  */
-export async function getBootstrapNodes(
+import axios from 'axios';
+import debug from 'debug';
+import { Multiaddr } from 'multiaddr';
+
+import { getPseudoRandomSubset } from './index';
+const dbg = debug('waku:discovery');
+
+const DefaultWantedNumber = 1;
+
+export async function getNodesFromHostedJson(
   path: string[] = ['fleets', 'wakuv2.prod', 'waku-websocket'],
   url = 'https://fleets.status.im/',
   wantedNumber: number = DefaultWantedNumber
-): Promise<string[]> {
+): Promise<Multiaddr[]> {
   if (wantedNumber <= 0) {
     return [];
   }
@@ -52,30 +53,22 @@ export async function getBootstrapNodes(
   }
 
   if (Array.isArray(nodes)) {
-    return getPseudoRandomSubset(nodes, wantedNumber);
+    return getPseudoRandomSubset(nodes, wantedNumber).map(
+      (node: string) => new Multiaddr(node)
+    );
   }
 
   if (typeof nodes === 'string') {
-    return [nodes];
+    return [new Multiaddr(nodes)];
   }
 
   if (typeof nodes === 'object') {
-    nodes = Object.values(nodes);
+    nodes = Object.values(nodes) as string[];
+    nodes = nodes.map((node: string) => new Multiaddr(node));
     return getPseudoRandomSubset(nodes, wantedNumber);
   }
 
   throw `Failed to retrieve bootstrap nodes: response format is not supported: ${JSON.stringify(
     nodes
   )}`;
-}
-
-export function getPseudoRandomSubset(
-  values: string[],
-  wantedNumber: number
-): string[] {
-  if (values.length <= wantedNumber) {
-    return values;
-  }
-
-  return shuffle(values).slice(0, wantedNumber);
 }
