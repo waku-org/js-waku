@@ -36,15 +36,15 @@ describe('Waku Message: Browser & Node', function () {
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ minLength: 32, maxLength: 32 }),
-        async (payload, privKey) => {
-          const publicKey = getPublicKey(privKey);
+        async (payload, key) => {
+          const publicKey = getPublicKey(key);
 
           const msg = await WakuMessage.fromBytes(payload, TestContentTopic, {
             encPublicKey: publicKey,
           });
 
           const wireBytes = msg.encode();
-          const actual = await WakuMessage.decode(wireBytes, [privKey]);
+          const actual = await WakuMessage.decode(wireBytes, [{ key }]);
 
           expect(actual?.payload).to.deep.equal(payload);
         }
@@ -68,7 +68,9 @@ describe('Waku Message: Browser & Node', function () {
           });
 
           const wireBytes = msg.encode();
-          const actual = await WakuMessage.decode(wireBytes, [encPrivKey]);
+          const actual = await WakuMessage.decode(wireBytes, [
+            { key: encPrivKey },
+          ]);
 
           expect(actual?.payload).to.deep.equal(payload);
           expect(actual?.signaturePublicKey).to.deep.equal(sigPubKey);
@@ -88,7 +90,7 @@ describe('Waku Message: Browser & Node', function () {
           });
 
           const wireBytes = msg.encode();
-          const actual = await WakuMessage.decode(wireBytes, [key]);
+          const actual = await WakuMessage.decode(wireBytes, [{ key }]);
 
           expect(actual?.payload).to.deep.equal(payload);
         }
@@ -111,7 +113,7 @@ describe('Waku Message: Browser & Node', function () {
           });
 
           const wireBytes = msg.encode();
-          const actual = await WakuMessage.decode(wireBytes, [symKey]);
+          const actual = await WakuMessage.decode(wireBytes, [{ key: symKey }]);
 
           expect(actual?.payload).to.deep.equal(payload);
           expect(actual?.signaturePublicKey).to.deep.equal(sigPubKey);

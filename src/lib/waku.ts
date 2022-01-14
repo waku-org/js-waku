@@ -21,7 +21,7 @@ import PeerId from 'peer-id';
 import { Bootstrap, BootstrapOptions } from './discovery';
 import { getPeersForProtocol } from './select_peer';
 import { LightPushCodec, WakuLightPush } from './waku_light_push';
-import { WakuMessage } from './waku_message';
+import { DecryptionMethod, WakuMessage } from './waku_message';
 import { RelayCodecs, WakuRelay } from './waku_relay';
 import { RelayPingContentTopic } from './waku_relay/constants';
 import { StoreCodec, WakuStore } from './waku_store';
@@ -134,7 +134,9 @@ export class Waku {
       this.stopKeepAlive(connection.remotePeer);
     });
 
-    options?.decryptionKeys?.forEach(this.addDecryptionKey);
+    options?.decryptionKeys?.forEach((key) => {
+      this.addDecryptionKey(key);
+    });
   }
 
   /**
@@ -269,9 +271,12 @@ export class Waku {
    *
    * Strings must be in hex format.
    */
-  addDecryptionKey(key: Uint8Array | string): void {
-    this.relay.addDecryptionKey(key);
-    this.store.addDecryptionKey(key);
+  addDecryptionKey(
+    key: Uint8Array | string,
+    options?: { method?: DecryptionMethod; contentTopics?: string[] }
+  ): void {
+    this.relay.addDecryptionKey(key, options);
+    this.store.addDecryptionKey(key, options);
   }
 
   /**

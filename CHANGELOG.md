@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement DNS Discovery as per [EIP-1459](https://eips.ethereum.org/EIPS/eip-1459),
   with ENR records as defined in [31/WAKU2-ENR](https://rfc.vac.dev/spec/31/);
   Available by passing `{ bootstrap: { enrUrl: enrtree://... } }` to `Waku.create`.
+- When using `addDecryptionKey`,
+  it is now possible to specify the decryption method and the content topics of the messages to decrypt;
+  this is to reduce the number of decryption attempt done and improve performance.
 
 ### Changed
 
@@ -20,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimum node version changed to 16.
 - **Breaking**: Changed `Waku.create` bootstrap option from `{ bootstrap: boolean }` to `{ bootstrap: BootstrapOptions }`.
   Replace `{ boostrap: true }` with `{ boostrap: { default: true } }` to retain same behaviour.
+- **Breaking**: `WakuMessage.decode` and `WakuMessage.decodeProto` now accepts method and content topics for the decryption key.
+  `WakuMessage.decode(bytes, [key])` becomes `WakuMessage.decode(bytes, [{key: key}])`.
 
 ### Fixed
 
