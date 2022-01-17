@@ -10,7 +10,7 @@ import { HistoryResponse_Error } from '../../proto';
 import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
 import { hexToBuf } from '../utils';
 import { DefaultPubSubTopic } from '../waku';
-import { WakuMessage } from '../waku_message';
+import { DecryptionMethod, WakuMessage } from '../waku_message';
 
 import { HistoryRPC, PageDirection } from './history_rpc';
 
@@ -96,7 +96,10 @@ export interface QueryOptions {
  */
 export class WakuStore {
   pubSubTopic: string;
-  public decryptionKeys: Set<Uint8Array>;
+  public decryptionKeys: Map<
+    Uint8Array,
+    { method?: DecryptionMethod; contentTopics?: string[] }
+  >;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
     if (options?.pubSubTopic) {
@@ -105,7 +108,7 @@ export class WakuStore {
       this.pubSubTopic = DefaultPubSubTopic;
     }
 
-    this.decryptionKeys = new Set();
+    this.decryptionKeys = new Map();
   }
 
   /**
@@ -157,10 +160,25 @@ export class WakuStore {
     const connection = this.libp2p.connectionManager.get(peer.id);
     if (!connection) throw 'Failed to get a connection to the peer';
 
-    const decryptionKeys = Array.from(this.decryptionKeys.values());
+    const decryptionKeys = Array.from(this.decryptionKeys).map(
+      ([key, { method, contentTopics }]) => {
+        return {
+          key,
+          method,
+          contentTopics,
+        };
+      }
+    );
+
+    // Add the decryption keys passed to this function against the
+    // content topics also passed to this function.
     if (opts.decryptionKeys) {
       opts.decryptionKeys.forEach((key) => {
-        decryptionKeys.push(hexToBuf(key));
+        decryptionKeys.push({
+          key: hexToBuf(key),
+          contentTopics: contentTopics.length ? contentTopics : undefined,
+          method: undefined,
+        });
       });
     }
 
@@ -248,8 +266,11 @@ export class WakuStore {
    *
    * Strings must be in hex format.
    */
-  addDecryptionKey(key: Uint8Array | string): void {
-    this.decryptionKeys.add(hexToBuf(key));
+  addDecryptionKey(
+    key: Uint8Array | string,
+    options?: { method?: DecryptionMethod; contentTopics?: string[] }
+  ): void {
+    this.decryptionKeys.set(hexToBuf(key), options ?? {});
   }
 
   /**

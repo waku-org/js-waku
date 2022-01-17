@@ -12,6 +12,11 @@ import * as version_1 from './version_1';
 const DefaultVersion = 0;
 const dbg = debug('waku:message');
 
+export enum DecryptionMethod {
+  Asymmetric = 'asymmetric',
+  Symmetric = 'symmetric',
+}
+
 export interface Options {
   /**
    * Timestamp to set on the message, defaults to now if not passed.
@@ -44,7 +49,7 @@ export class WakuMessage {
   ) {}
 
   /**
-   * Create Message with a utf-8 string as payload.
+   * Create Message with an utf-8 string as payload.
    */
   static async fromUtf8String(
     utf8: string,
@@ -116,11 +121,15 @@ export class WakuMessage {
    * @params decryptionKeys If the payload is encrypted (version = 1), then the
    * keys are used to attempt decryption of the message. The passed key can either
    * be asymmetric private keys or symmetric keys, both method are tried for each
-   * key until the message is decrypted or combinations are ran out.
+   * key until the message is decrypted or combinations are run out.
    */
   static async decode(
     bytes: Uint8Array,
-    decryptionKeys?: Uint8Array[]
+    decryptionKeys?: Array<{
+      key: Uint8Array;
+      method?: DecryptionMethod;
+      contentTopic?: string[];
+    }>
   ): Promise<WakuMessage | undefined> {
     const protoBuf = proto.WakuMessage.decode(Reader.create(bytes));
 
@@ -134,11 +143,15 @@ export class WakuMessage {
    * @params decryptionKeys If the payload is encrypted (version = 1), then the
    * keys are used to attempt decryption of the message. The passed key can either
    * be asymmetric private keys or symmetric keys, both method are tried for each
-   * key until the message is decrypted or combinations are ran out.
+   * key until the message is decrypted or combinations are run out.
    */
   static async decodeProto(
     protoBuf: proto.WakuMessage,
-    decryptionKeys?: Uint8Array[]
+    decryptionKeys?: Array<{
+      key: Uint8Array;
+      method?: DecryptionMethod;
+      contentTopics?: string[];
+    }>
   ): Promise<WakuMessage | undefined> {
     if (protoBuf.payload === undefined) {
       dbg('Payload is undefined');
@@ -156,17 +169,55 @@ export class WakuMessage {
 
       // Returns a bunch of `undefined` and hopefully one decrypted result
       const allResults = await Promise.all(
-        decryptionKeys.map(async (privateKey) => {
-          try {
-            return await version_1.decryptSymmetric(payload, privateKey);
-          } catch (e) {
-            dbg('Failed to decrypt message using symmetric encryption', e);
-            try {
-              return await version_1.decryptAsymmetric(payload, privateKey);
-            } catch (e) {
-              dbg('Failed to decrypt message using asymmetric encryption', e);
-              return;
+        decryptionKeys.map(async ({ key, method, contentTopics }) => {
+          if (
+            !contentTopics ||
+            (protoBuf.contentTopic &&
+              contentTopics.includes(protoBuf.contentTopic))
+          ) {
+            switch (method) {
+              case DecryptionMethod.Asymmetric:
+                try {
+                  return await version_1.decryptAsymmetric(payload, key);
+                } catch (e) {
+                  dbg(
+                    'Failed to decrypt message using symmetric encryption despite decryption method being specified',
+                    e
+                  );
+                  return;
+                }
+              case DecryptionMethod.Symmetric:
+                try {
+                  return await version_1.decryptSymmetric(payload, key);
+                } catch (e) {
+                  dbg(
+                    'Failed to decrypt message using asymmetric encryption despite decryption method being specified',
+                    e
+                  );
+                  return;
+                }
+              default:
+                try {
+                  return await version_1.decryptSymmetric(payload, key);
+                } catch (e) {
+                  dbg(
+                    'Failed to decrypt message using symmetric encryption',
+                    e
+                  );
+                  try {
+                    return await version_1.decryptAsymmetric(payload, key);
+                  } catch (e) {
+                    dbg(
+                      'Failed to decrypt message using asymmetric encryption',
+                      e
+                    );
+                    return;
+                  }
+                }
             }
+          } else {
+            // No key available for this content topic
+            return;
           }
         })
       );

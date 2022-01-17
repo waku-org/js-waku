@@ -12,7 +12,12 @@ import {
 } from '../../test_utils';
 import { delay } from '../delay';
 import { DefaultPubSubTopic, Waku } from '../waku';
-import { WakuMessage } from '../waku_message';
+import { DecryptionMethod, WakuMessage } from '../waku_message';
+import {
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+} from '../waku_message/version_1';
 
 const log = debug('waku:test');
 
@@ -156,6 +161,72 @@ describe('Waku Relay [node only]', () => {
       expect(allMessages[1].contentTopic).to.eq(barMessage.contentTopic);
       expect(allMessages[1].version).to.eq(barMessage.version);
       expect(allMessages[1].payloadAsUtf8).to.eq(barMessageText);
+    });
+
+    it('Decrypt messages', async function () {
+      this.timeout(10000);
+
+      const encryptedAsymmetricMessageText =
+        'This message is encrypted using asymmetric';
+      const encryptedAsymmetricContentTopic = '/test/1/asymmetric/proto';
+      const encryptedSymmetricMessageText =
+        'This message is encrypted using symmetric encryption';
+      const encryptedSymmetricContentTopic = '/test/1/symmetric/proto';
+
+      const privateKey = generatePrivateKey();
+      const symKey = generateSymmetricKey();
+      const publicKey = getPublicKey(privateKey);
+
+      const [encryptedAsymmetricMessage, encryptedSymmetricMessage] =
+        await Promise.all([
+          WakuMessage.fromUtf8String(
+            encryptedAsymmetricMessageText,
+            encryptedAsymmetricContentTopic,
+            {
+              encPublicKey: publicKey,
+            }
+          ),
+          WakuMessage.fromUtf8String(
+            encryptedSymmetricMessageText,
+            encryptedSymmetricContentTopic,
+            {
+              symKey: symKey,
+            }
+          ),
+        ]);
+
+      waku2.addDecryptionKey(privateKey, {
+        contentTopics: [encryptedAsymmetricContentTopic],
+        method: DecryptionMethod.Asymmetric,
+      });
+      waku2.addDecryptionKey(symKey, {
+        contentTopics: [encryptedSymmetricContentTopic],
+        method: DecryptionMethod.Symmetric,
+      });
+
+      const msgs: WakuMessage[] = [];
+      waku2.relay.addObserver((wakuMsg) => {
+        msgs.push(wakuMsg);
+      });
+
+      await waku1.relay.send(encryptedAsymmetricMessage);
+      await waku1.relay.send(encryptedSymmetricMessage);
+
+      while (msgs.length < 2) {
+        await delay(200);
+      }
+
+      expect(msgs.length).to.eq(2);
+      expect(msgs[0].contentTopic).to.eq(
+        encryptedAsymmetricMessage.contentTopic
+      );
+      expect(msgs[0].version).to.eq(encryptedAsymmetricMessage.version);
+      expect(msgs[0].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
+      expect(msgs[1].contentTopic).to.eq(
+        encryptedSymmetricMessage.contentTopic
+      );
+      expect(msgs[1].version).to.eq(encryptedSymmetricMessage.version);
+      expect(msgs[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
     });
 
     it('Delete observer', async function () {

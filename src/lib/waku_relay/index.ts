@@ -19,7 +19,7 @@ import PeerId from 'peer-id';
 
 import { hexToBuf } from '../utils';
 import { CreateOptions, DefaultPubSubTopic } from '../waku';
-import { WakuMessage } from '../waku_message';
+import { DecryptionMethod, WakuMessage } from '../waku_message';
 
 import * as constants from './constants';
 import { RelayCodecs } from './constants';
@@ -65,7 +65,10 @@ export class WakuRelay extends Gossipsub {
   heartbeat: RelayHeartbeat;
   pubSubTopic: string;
 
-  public decryptionKeys: Set<Uint8Array>;
+  public decryptionKeys: Map<
+    Uint8Array,
+    { method?: DecryptionMethod; contentTopics?: string[] }
+  >;
 
   /**
    * observers called when receiving new message.
@@ -89,13 +92,17 @@ export class WakuRelay extends Gossipsub {
 
     this.heartbeat = new RelayHeartbeat(this);
     this.observers = {};
-    this.decryptionKeys = new Set();
+    this.decryptionKeys = new Map();
 
     const multicodecs = constants.RelayCodecs;
 
     Object.assign(this, { multicodecs });
 
     this.pubSubTopic = options?.pubSubTopic || DefaultPubSubTopic;
+
+    options?.decryptionKeys?.forEach((key) => {
+      this.addDecryptionKey(key);
+    });
   }
 
   /**
@@ -128,8 +135,11 @@ export class WakuRelay extends Gossipsub {
    *
    * Strings must be in hex format.
    */
-  addDecryptionKey(key: Uint8Array | string): void {
-    this.decryptionKeys.add(hexToBuf(key));
+  addDecryptionKey(
+    key: Uint8Array | string,
+    options?: { method?: DecryptionMethod; contentTopics?: string[] }
+  ): void {
+    this.decryptionKeys.set(hexToBuf(key), options ?? {});
   }
 
   /**
@@ -210,8 +220,18 @@ export class WakuRelay extends Gossipsub {
    */
   subscribe(pubSubTopic: string): void {
     this.on(pubSubTopic, (event) => {
+      const decryptionKeys = Array.from(this.decryptionKeys).map(
+        ([key, { method, contentTopics }]) => {
+          return {
+            key,
+            method,
+            contentTopics,
+          };
+        }
+      );
+
       dbg(`Message received on ${pubSubTopic}`);
-      WakuMessage.decode(event.data, Array.from(this.decryptionKeys))
+      WakuMessage.decode(event.data, decryptionKeys)
         .then((wakuMsg) => {
           if (!wakuMsg) {
             dbg('Failed to decode Waku Message');
