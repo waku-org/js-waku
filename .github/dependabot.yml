@@ -13,3 +13,15 @@ updates:
       interval: "daily"
     reviewers:
       - "d4nte"
+  - package-ecosystem: "npm"
+    directory: "/examples/relay-reactjs-chat"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "d4nte"
+  - package-ecosystem: "npm"
+    directory: "/examples/store-reactjs-chat"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "d4nte"
