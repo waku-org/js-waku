@@ -1,11 +1,6 @@
 import { useEffect, useReducer, useState } from 'react';
 import './App.css';
-import {
-  PageDirection,
-  getNodesFromHostedJson,
-  Waku,
-  WakuMessage,
-} from 'js-waku';
+import { PageDirection, Waku, WakuMessage } from 'js-waku';
 import handleCommand from './command';
 import Room from './Room';
 import { WakuContext } from './WakuContext';
@@ -171,32 +166,41 @@ export default function App() {
 
 async function initWaku(setter: (waku: Waku) => void) {
   try {
-    const waku = await Waku.create({
-      libp2p: {
-        config: {
-          pubsub: {
-            enabled: true,
-            emitSelf: true,
+    if (process?.env?.NODE_ENV === 'development') {
+      // Let's use DNS Discovery in development mode
+      const waku = await Waku.create({
+        libp2p: {
+          config: {
+            pubsub: {
+              enabled: true,
+              emitSelf: true,
+            },
           },
         },
-      },
-      bootstrap: {
-        getPeers: getNodesFromHostedJson.bind({}, selectFleetEnv()),
-      },
-    });
-
-    setter(waku);
+        bootstrap: {
+          enrUrl:
+            'enrtree://AOFTICU2XWDULNLZGRMQS4RIZPAZEHYMV4FYHAPW563HNRAOERP7C@test.waku.nodes.status.im',
+        },
+      });
+      setter(waku);
+    } else {
+      const waku = await Waku.create({
+        libp2p: {
+          config: {
+            pubsub: {
+              enabled: true,
+              emitSelf: true,
+            },
+          },
+        },
+        bootstrap: {
+          default: true,
+        },
+      });
+      setter(waku);
+    }
   } catch (e) {
     console.log('Issue starting waku ', e);
-  }
-}
-
-function selectFleetEnv() {
-  // Works with react-scripts
-  if (process?.env?.NODE_ENV === 'development') {
-    return ['fleets', 'wakuv2.test', 'waku-websocket'];
-  } else {
-    return ['fleets', 'wakuv2.prod', 'waku-websocket'];
   }
 }
 
