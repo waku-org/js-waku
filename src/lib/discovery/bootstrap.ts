@@ -91,18 +91,8 @@ export class Bootstrap {
 
       this.getBootstrapPeers = async (): Promise<Multiaddr[]> => {
         const enrs = await dns.getPeers(maxPeers, [enrUrl]);
-        const addresses: Multiaddr[] = [];
-        enrs.forEach((enr) => {
-          if (!enr.multiaddrs) return;
-
-          enr.multiaddrs.forEach((ma: Multiaddr) => {
-            // Only return secure websocket addresses
-            if (ma.protoNames().includes('wss')) {
-              addresses.push(ma);
-            }
-          });
-        });
-        return addresses;
+        dbg(`Found ${enrs.length} peers`);
+        return enrs.map((enr) => enr.getFullMultiaddrs()).flat();
       };
     } else {
       dbg('No bootstrap method specified, no peer will be returned');

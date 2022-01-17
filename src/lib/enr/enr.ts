@@ -416,6 +416,14 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
   }
 
+  /**
+   * Returns the full multiaddr from the ENR fields matching the provided
+   * `protocol` parameter.
+   * To return full multiaddrs from the `multiaddrs` ENR field,
+   * use [[ENR.getFullMultiaddrs]]
+   *
+   * @param protocol
+   */
   getFullMultiaddr(
     protocol: 'udp' | 'udp4' | 'udp6' | 'tcp' | 'tcp4' | 'tcp6'
   ): Multiaddr | undefined {
@@ -424,6 +432,18 @@ export class ENR extends Map<ENRKey, ENRValue> {
       return locationMultiaddr.encapsulate(`/p2p/${this.peerId.toB58String()}`);
     }
     return;
+  }
+
+  /**
+   * Returns the full multiaddrs from the `multiaddrs` ENR field.
+   */
+  getFullMultiaddrs(): Multiaddr[] {
+    if (this.multiaddrs) {
+      return this.multiaddrs.map((ma) => {
+        return ma.encapsulate(`/p2p/${this.peerId.toB58String()}`);
+      });
+    }
+    return [];
   }
 
   verify(data: Buffer, signature: Buffer): boolean {
