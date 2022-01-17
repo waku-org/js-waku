@@ -1,0 +1,24 @@
+{
+  "files": {
+    "main.css": "/js-waku/eth-pm/static/css/main.3545b699.chunk.css",
+    "main.js": "/js-waku/eth-pm/static/js/main.467b4988.chunk.js",
+    "main.js.map": "/js-waku/eth-pm/static/js/main.467b4988.chunk.js.map",
+    "runtime-main.js": "/js-waku/eth-pm/static/js/runtime-main.78cc08cc.js",
+    "runtime-main.js.map": "/js-waku/eth-pm/static/js/runtime-main.78cc08cc.js.map",
+    "static/css/2.d11a99d9.chunk.css": "/js-waku/eth-pm/static/css/2.d11a99d9.chunk.css",
+    "static/js/2.a79c93db.chunk.js": "/js-waku/eth-pm/static/js/2.a79c93db.chunk.js",
+    "static/js/2.a79c93db.chunk.js.map": "/js-waku/eth-pm/static/js/2.a79c93db.chunk.js.map",
+    "index.html": "/js-waku/eth-pm/index.html",
+    "static/css/2.d11a99d9.chunk.css.map": "/js-waku/eth-pm/static/css/2.d11a99d9.chunk.css.map",
+    "static/css/main.3545b699.chunk.css.map": "/js-waku/eth-pm/static/css/main.3545b699.chunk.css.map",
+    "static/js/2.a79c93db.chunk.js.LICENSE.txt": "/js-waku/eth-pm/static/js/2.a79c93db.chunk.js.LICENSE.txt",
+    "static/media/index.css": "/js-waku/eth-pm/static/media/roboto-vietnamese-400-normal.52cebac0.woff2"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.78cc08cc.js",
+    "static/css/2.d11a99d9.chunk.css",
+    "static/js/2.a79c93db.chunk.js",
+    "static/css/main.3545b699.chunk.css",
+    "static/js/main.467b4988.chunk.js"
+  ]
+}
