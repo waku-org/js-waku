@@ -55,7 +55,7 @@ export class Bootstrap {
     const maxPeers = opts.maxPeers ?? Bootstrap.DefaultMaxPeers;
 
     if (opts.default) {
-      dbg('Bootstrap: Use hosted list of peers.');
+      dbg('Use hosted list of peers.');
 
       this.getBootstrapPeers = getNodesFromHostedJson.bind(
         {},
@@ -64,7 +64,7 @@ export class Bootstrap {
         maxPeers
       );
     } else if (opts.peers !== undefined && opts.peers.length > 0) {
-      dbg('Bootstrap: Use provided list of peers.');
+      dbg('Use provided list of peers.');
 
       const allPeers: Multiaddr[] = opts.peers.map(
         (node: string) => new Multiaddr(node)
@@ -85,24 +85,14 @@ export class Bootstrap {
       };
     } else if (opts.enrUrl) {
       const enrUrl = opts.enrUrl;
-      dbg('Bootstrap: Use provided EIP-1459 ENR Tree URL.');
+      dbg('Use provided EIP-1459 ENR Tree URL.');
 
       const dns = DnsNodeDiscovery.dnsOverHttp();
 
       this.getBootstrapPeers = async (): Promise<Multiaddr[]> => {
         const enrs = await dns.getPeers(maxPeers, [enrUrl]);
-        const addresses: Multiaddr[] = [];
-        enrs.forEach((enr) => {
-          if (!enr.multiaddrs) return;
-
-          enr.multiaddrs.forEach((ma: Multiaddr) => {
-            // Only return secure websocket addresses
-            if (ma.protoNames().includes('wss')) {
-              addresses.push(ma);
-            }
-          });
-        });
-        return addresses;
+        dbg(`Found ${enrs.length} peers`);
+        return enrs.map((enr) => enr.getFullMultiaddrs()).flat();
       };
     } else {
       dbg('No bootstrap method specified, no peer will be returned');

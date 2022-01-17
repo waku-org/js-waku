@@ -171,9 +171,8 @@ describe('DNS Node Discovery', () => {
 
 describe('DNS Node Discovery [live data]', function () {
   const publicKey = 'AOFTICU2XWDULNLZGRMQS4RIZPAZEHYMV4FYHAPW563HNRAOERP7C';
-  const fqdn = 'test.nodes.vac.dev';
+  const fqdn = 'test.waku.nodes.status.im';
   const enrTree = `enrtree://${publicKey}@${fqdn}`;
-  const ipTestRegex = /^\d+\.\d+\.\d+\.\d+$/;
   const maxQuantity = 3;
 
   before(function () {
@@ -182,22 +181,21 @@ describe('DNS Node Discovery [live data]', function () {
     }
   });
 
-  it(`should retrieve ${maxQuantity} PeerInfos for test.nodes.vac.dev`, async function () {
-    this.timeout(5000);
+  it(`should retrieve ${maxQuantity} multiaddrs for test.waku.nodes.status.im`, async function () {
+    this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
     const dnsNodeDiscovery = DnsNodeDiscovery.dnsOverHttp();
     const peers = await dnsNodeDiscovery.getPeers(maxQuantity, [enrTree]);
 
     expect(peers.length).to.eq(maxQuantity);
 
-    // TODO: Test multiaddrs entry
-    console.log(peers.map((peer) => peer.multiaddrs));
+    const multiaddrs = peers.map((peer) => peer.multiaddrs).flat();
 
     const seen: string[] = [];
-    for (const peer of peers) {
-      expect(peer!.ip!).to.match(ipTestRegex);
-      expect(seen).to.not.include(peer!.ip!);
-      seen.push(peer!.ip!);
+    for (const ma of multiaddrs) {
+      expect(ma).to.not.be.undefined;
+      expect(seen).to.not.include(ma!.toString());
+      seen.push(ma!.toString());
     }
   });
 });

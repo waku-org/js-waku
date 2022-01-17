@@ -136,7 +136,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return createKeypair(this.keypairType, undefined, this.publicKey);
   }
 
-  async peerId(): Promise<PeerId> {
+  get peerId(): PeerId {
     return createPeerIdFromKeypair(this.keypair);
   }
 
@@ -416,15 +416,34 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
   }
 
-  async getFullMultiaddr(
+  /**
+   * Returns the full multiaddr from the ENR fields matching the provided
+   * `protocol` parameter.
+   * To return full multiaddrs from the `multiaddrs` ENR field,
+   * use [[ENR.getFullMultiaddrs]]
+   *
+   * @param protocol
+   */
+  getFullMultiaddr(
     protocol: 'udp' | 'udp4' | 'udp6' | 'tcp' | 'tcp4' | 'tcp6'
-  ): Promise<Multiaddr | undefined> {
+  ): Multiaddr | undefined {
     const locationMultiaddr = this.getLocationMultiaddr(protocol);
     if (locationMultiaddr) {
-      const peerId = await this.peerId();
-      return locationMultiaddr.encapsulate(`/p2p/${peerId.toB58String()}`);
+      return locationMultiaddr.encapsulate(`/p2p/${this.peerId.toB58String()}`);
     }
     return;
+  }
+
+  /**
+   * Returns the full multiaddrs from the `multiaddrs` ENR field.
+   */
+  getFullMultiaddrs(): Multiaddr[] {
+    if (this.multiaddrs) {
+      return this.multiaddrs.map((ma) => {
+        return ma.encapsulate(`/p2p/${this.peerId.toB58String()}`);
+      });
+    }
+    return [];
   }
 
   verify(data: Buffer, signature: Buffer): boolean {

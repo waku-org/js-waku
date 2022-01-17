@@ -33,9 +33,7 @@ export function createKeypair(
   }
 }
 
-export async function createPeerIdFromKeypair(
-  keypair: IKeypair
-): Promise<PeerId> {
+export function createPeerIdFromKeypair(keypair: IKeypair): PeerId {
   switch (keypair.type) {
     case KeypairType.secp256k1: {
       // manually create a peer id to avoid expensive ops

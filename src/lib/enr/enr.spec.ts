@@ -87,8 +87,7 @@ describe('ENR', function () {
       expect(enr.ip).to.not.be.undefined;
       expect(enr.ip).to.be.equal('134.209.139.210');
       expect(enr.publicKey).to.not.be.undefined;
-      const peerId = await enr.peerId();
-      expect(peerId.toB58String()).to.be.equal(
+      expect(enr.peerId.toB58String()).to.be.equal(
         '16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ'
       );
     });
