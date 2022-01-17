@@ -55,7 +55,7 @@ export class Bootstrap {
     const maxPeers = opts.maxPeers ?? Bootstrap.DefaultMaxPeers;
 
     if (opts.default) {
-      dbg('Bootstrap: Use hosted list of peers.');
+      dbg('Use hosted list of peers.');
 
       this.getBootstrapPeers = getNodesFromHostedJson.bind(
         {},
@@ -64,7 +64,7 @@ export class Bootstrap {
         maxPeers
       );
     } else if (opts.peers !== undefined && opts.peers.length > 0) {
-      dbg('Bootstrap: Use provided list of peers.');
+      dbg('Use provided list of peers.');
 
       const allPeers: Multiaddr[] = opts.peers.map(
         (node: string) => new Multiaddr(node)
@@ -85,7 +85,7 @@ export class Bootstrap {
       };
     } else if (opts.enrUrl) {
       const enrUrl = opts.enrUrl;
-      dbg('Bootstrap: Use provided EIP-1459 ENR Tree URL.');
+      dbg('Use provided EIP-1459 ENR Tree URL.');
 
       const dns = DnsNodeDiscovery.dnsOverHttp();
 
