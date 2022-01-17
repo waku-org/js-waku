@@ -136,7 +136,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return createKeypair(this.keypairType, undefined, this.publicKey);
   }
 
-  async peerId(): Promise<PeerId> {
+  get peerId(): PeerId {
     return createPeerIdFromKeypair(this.keypair);
   }
 
@@ -416,13 +416,12 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
   }
 
-  async getFullMultiaddr(
+  getFullMultiaddr(
     protocol: 'udp' | 'udp4' | 'udp6' | 'tcp' | 'tcp4' | 'tcp6'
-  ): Promise<Multiaddr | undefined> {
+  ): Multiaddr | undefined {
     const locationMultiaddr = this.getLocationMultiaddr(protocol);
     if (locationMultiaddr) {
-      const peerId = await this.peerId();
-      return locationMultiaddr.encapsulate(`/p2p/${peerId.toB58String()}`);
+      return locationMultiaddr.encapsulate(`/p2p/${this.peerId.toB58String()}`);
     }
     return;
   }
