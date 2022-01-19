@@ -1,8 +1,5 @@
 import { expect } from 'chai';
 import debug from 'debug';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import TCP from 'libp2p-tcp';
 
 import {
   makeLogFileName,
@@ -38,7 +35,6 @@ describe('Waku Message [node only]', function () {
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
           addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-          modules: { transport: [TCP] },
         },
       });
 

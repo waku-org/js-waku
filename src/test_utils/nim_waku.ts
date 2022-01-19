@@ -318,10 +318,10 @@ export class NimWaku {
       return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
     }
     const res = await this.info();
-    this.multiaddrWithId = res.listenAddresses.map(ma => multiaddr(ma)).find(ma =>
-      ma.protoNames().includes('ws')
-    );
-    if (!this.multiaddrWithId) throw 'Nim-waku did not return a ws multiaddr'
+    this.multiaddrWithId = res.listenAddresses
+      .map((ma) => multiaddr(ma))
+      .find((ma) => ma.protoNames().includes('ws'));
+    if (!this.multiaddrWithId) throw 'Nim-waku did not return a ws multiaddr';
     const peerIdStr = this.multiaddrWithId.getPeerId();
     if (!peerIdStr) throw 'Nim-waku multiaddr does not contain peerId';
     this.peerId = PeerId.createFromB58String(peerIdStr);
@@ -383,6 +383,7 @@ export function defaultArgs(): Args {
     relay: true,
     rpc: true,
     rpcAdmin: true,
+    websocketSupport: true,
   };
 }
 

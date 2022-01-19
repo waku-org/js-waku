@@ -1,7 +1,4 @@
 import { expect } from 'chai';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import TCP from 'libp2p-tcp';
 
 import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../../test_utils';
 import { delay } from '../delay';
@@ -23,7 +20,7 @@ describe('Waku Light Push [node only]', () => {
     this.timeout(5_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ lightpush: true, websocketSupport: true });
+    await nimWaku.start({ lightpush: true });
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
@@ -58,7 +55,7 @@ describe('Waku Light Push [node only]', () => {
     const customPubSubTopic = '/waku/2/custom-dapp/proto';
 
     nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ lightpush: true, websocketSupport: true, topics: customPubSubTopic });
+    await nimWaku.start({ lightpush: true, topics: customPubSubTopic });
 
     waku = await Waku.create({
       pubSubTopic: customPubSubTopic,

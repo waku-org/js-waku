@@ -1,8 +1,5 @@
 import { expect } from 'chai';
 import debug from 'debug';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import TCP from 'libp2p-tcp';
 
 import {
   makeLogFileName,
@@ -338,7 +335,6 @@ describe('Waku Relay [node only]', () => {
           staticNoiseKey: NOISE_KEY_1,
           libp2p: {
             addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-            modules: { transport: [TCP] },
           },
         });
 
@@ -422,7 +418,6 @@ describe('Waku Relay [node only]', () => {
         this.timeout(30_000);
         waku = await Waku.create({
           staticNoiseKey: NOISE_KEY_1,
-          libp2p: { modules: { transport: [TCP] } },
         });
 
         nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
@@ -521,11 +516,9 @@ describe('Waku Relay [node only]', () => {
         [waku1, waku2] = await Promise.all([
           Waku.create({
             staticNoiseKey: NOISE_KEY_1,
-            libp2p: { modules: { transport: [TCP] } },
           }),
           Waku.create({
             staticNoiseKey: NOISE_KEY_2,
-            libp2p: { modules: { transport: [TCP] } },
           }),
         ]);
 

@@ -1,7 +1,4 @@
 import { expect } from 'chai';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import TCP from 'libp2p-tcp';
 import PeerId from 'peer-id';
 
 import {
@@ -54,7 +51,6 @@ describe('Waku Dial [node only]', function () {
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
           addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-          modules: { transport: [TCP] },
         },
       });
 
@@ -62,9 +58,6 @@ describe('Waku Dial [node only]', function () {
 
       waku2 = await Waku.create({
         staticNoiseKey: NOISE_KEY_2,
-        libp2p: {
-          modules: { transport: [TCP] },
-        },
         bootstrap: { peers: [multiAddrWithId] },
       });
 
@@ -88,7 +81,6 @@ describe('Waku Dial [node only]', function () {
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
           addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-          modules: { transport: [TCP] },
         },
       });
 
@@ -96,9 +88,6 @@ describe('Waku Dial [node only]', function () {
 
       waku2 = await Waku.create({
         staticNoiseKey: NOISE_KEY_2,
-        libp2p: {
-          modules: { transport: [TCP] },
-        },
         bootstrap: {
           getPeers: async () => {
             return [multiAddrWithId];
@@ -134,7 +123,6 @@ describe('Waku Dial [node only]', function () {
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
           addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-          modules: { transport: [TCP] },
         },
       });
 
