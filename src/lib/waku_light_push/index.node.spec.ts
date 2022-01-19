@@ -23,11 +23,10 @@ describe('Waku Light Push [node only]', () => {
     this.timeout(5_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ lightpush: true });
+    await nimWaku.start({ lightpush: true, websocketSupport: true });
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
     await waku.waitForConnectedPeer();
@@ -59,12 +58,11 @@ describe('Waku Light Push [node only]', () => {
     const customPubSubTopic = '/waku/2/custom-dapp/proto';
 
     nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ lightpush: true, topics: customPubSubTopic });
+    await nimWaku.start({ lightpush: true, websocketSupport: true, topics: customPubSubTopic });
 
     waku = await Waku.create({
       pubSubTopic: customPubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
     await waku.waitForConnectedPeer();
