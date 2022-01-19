@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/js-waku/static/css/main.b267dcda.css",
-    "main.js": "/js-waku/static/js/main.dea5c94f.js",
+    "main.js": "/js-waku/static/js/main.a080764c.js",
     "index.html": "/js-waku/index.html",
     "main.b267dcda.css.map": "/js-waku/static/css/main.b267dcda.css.map",
-    "main.dea5c94f.js.map": "/js-waku/static/js/main.dea5c94f.js.map"
+    "main.a080764c.js.map": "/js-waku/static/js/main.a080764c.js.map"
   },
   "entrypoints": [
     "static/css/main.b267dcda.css",
-    "static/js/main.dea5c94f.js"
+    "static/js/main.a080764c.js"
   ]
 }
