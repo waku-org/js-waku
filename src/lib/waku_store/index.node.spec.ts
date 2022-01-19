@@ -21,6 +21,8 @@ import {
 
 import { PageDirection } from './history_rpc';
 
+import { StoreCodec } from './index';
+
 const dbg = debug('waku:test:store');
 
 const TestContentTopic = '/test/1/waku-store/utf8';
@@ -53,12 +55,7 @@ describe('Waku Store', () => {
       libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-
-    // Wait for identify protocol to finish
-    await new Promise((resolve) => {
-      waku.libp2p.peerStore.once('change:protocols', resolve);
-    });
-
+    await waku.waitForConnectedPeer([[StoreCodec]]);
     const messages = await waku.store.queryHistory([]);
 
     expect(messages?.length).eq(2);
@@ -89,11 +86,7 @@ describe('Waku Store', () => {
       libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-
-    // Wait for identify protocol to finish
-    await new Promise((resolve) => {
-      waku.libp2p.peerStore.once('change:protocols', resolve);
-    });
+    await waku.waitForConnectedPeer([[StoreCodec]]);
 
     let messages: WakuMessage[] = [];
 
@@ -131,11 +124,7 @@ describe('Waku Store', () => {
       libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-
-    // Wait for identify protocol to finish
-    await new Promise((resolve) => {
-      waku.libp2p.peerStore.once('change:protocols', resolve);
-    });
+    await waku.waitForConnectedPeer([[StoreCodec]]);
 
     let messages: WakuMessage[] = [];
     const desiredMsgs = 14;
@@ -170,11 +159,7 @@ describe('Waku Store', () => {
       libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-
-    // Wait for identify protocol to finish
-    await new Promise((resolve) => {
-      waku.libp2p.peerStore.once('change:protocols', resolve);
-    });
+    await waku.waitForConnectedPeer([[StoreCodec]]);
 
     const messages = await waku.store.queryHistory([], {
       pageDirection: PageDirection.FORWARD,
@@ -212,11 +197,7 @@ describe('Waku Store', () => {
       libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-
-    // Wait for identify protocol to finish
-    await new Promise((resolve) => {
-      waku.libp2p.peerStore.once('change:protocols', resolve);
-    });
+    await waku.waitForConnectedPeer([[StoreCodec]]);
 
     const nimPeerId = await nimWaku.getPeerId();
 
@@ -485,11 +466,7 @@ describe('Waku Store', () => {
       libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-
-    // Wait for identify protocol to finish
-    await new Promise((resolve) => {
-      waku.libp2p.peerStore.once('change:protocols', resolve);
-    });
+    await waku.waitForConnectedPeer([[StoreCodec]]);
 
     const nimPeerId = await nimWaku.getPeerId();
 

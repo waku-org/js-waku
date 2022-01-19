@@ -19,6 +19,8 @@ import {
   getPublicKey,
 } from '../waku_message/version_1';
 
+import { RelayCodecs } from './constants';
+
 const log = debug('waku:test');
 
 const TestContentTopic = '/test/1/waku-relay/utf8';
@@ -427,11 +429,7 @@ describe('Waku Relay [node only]', () => {
         await nimWaku.start();
 
         await waku.dial(await nimWaku.getMultiaddrWithId());
-
-        // Wait for identify protocol to finish
-        await new Promise((resolve) => {
-          waku.libp2p.peerStore.once('change:protocols', resolve);
-        });
+        await waku.waitForConnectedPeer([RelayCodecs]);
 
         // Wait for one heartbeat to ensure mesh is updated
         await new Promise((resolve) => {
@@ -542,12 +540,8 @@ describe('Waku Relay [node only]', () => {
 
         // Wait for identify protocol to finish
         await Promise.all([
-          new Promise((resolve) =>
-            waku1.libp2p.peerStore.once('change:protocols', resolve)
-          ),
-          new Promise((resolve) =>
-            waku2.libp2p.peerStore.once('change:protocols', resolve)
-          ),
+          waku1.waitForConnectedPeer([RelayCodecs]),
+          waku2.waitForConnectedPeer([RelayCodecs]),
         ]);
 
         await Promise.all([
