@@ -323,179 +323,90 @@ describe('Waku Relay [node only]', () => {
   });
 
   describe('Interop: Nim', function () {
-    describe('Nim connects to js', function () {
-      let waku: Waku;
-      let nimWaku: NimWaku;
+    let waku: Waku;
+    let nimWaku: NimWaku;
 
-      beforeEach(async function () {
-        this.timeout(30_000);
-
-        log('Create waku node');
-        waku = await Waku.create({
-          staticNoiseKey: NOISE_KEY_1,
-          libp2p: {
-            addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-          },
-        });
-
-        const multiAddrWithId = waku.getLocalMultiaddrWithID();
-        nimWaku = new NimWaku(makeLogFileName(this));
-        log('Starting nim-waku');
-        await nimWaku.start({ staticnode: multiAddrWithId });
-
-        log('Waiting for heartbeat');
-        await new Promise((resolve) =>
-          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-        );
+    beforeEach(async function () {
+      this.timeout(30_000);
+      waku = await Waku.create({
+        staticNoiseKey: NOISE_KEY_1,
       });
 
-      afterEach(async function () {
-        this.timeout(5000);
-        nimWaku ? nimWaku.stop() : null;
-        waku ? await waku.stop() : null;
-      });
+      nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
+      await nimWaku.start();
 
-      it('nim subscribes to js', async function () {
-        const nimPeerId = await nimWaku.getPeerId();
-        const subscribers =
-          waku.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
+      await waku.dial(await nimWaku.getMultiaddrWithId());
+      await waku.waitForConnectedPeer([RelayCodecs]);
 
-        expect(subscribers).to.contain(nimPeerId.toB58String());
-      });
-
-      it('Js publishes to nim', async function () {
-        this.timeout(5000);
-
-        const messageText = 'This is a message';
-        const message = await WakuMessage.fromUtf8String(
-          messageText,
-          TestContentTopic
-        );
-
-        await waku.relay.send(message);
-
-        let msgs: WakuMessage[] = [];
-
-        while (msgs.length === 0) {
-          await delay(200);
-          msgs = await nimWaku.messages();
-        }
-
-        expect(msgs[0].contentTopic).to.equal(message.contentTopic);
-        expect(msgs[0].version).to.equal(message.version);
-        expect(msgs[0].payloadAsUtf8).to.equal(messageText);
-      });
-
-      it('Nim publishes to js', async function () {
-        this.timeout(5000);
-        const messageText = 'Here is another message.';
-        const message = await WakuMessage.fromUtf8String(
-          messageText,
-          TestContentTopic
-        );
-
-        const receivedMsgPromise: Promise<WakuMessage> = new Promise(
-          (resolve) => {
-            waku.relay.addObserver(resolve);
-          }
-        );
-
-        await nimWaku.sendMessage(message);
-
-        const receivedMsg = await receivedMsgPromise;
-
-        expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
-        expect(receivedMsg.version).to.eq(message.version);
-        expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
+      // Wait for one heartbeat to ensure mesh is updated
+      await new Promise((resolve) => {
+        waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve);
       });
     });
 
-    describe('Js connects to nim', function () {
-      let waku: Waku;
-      let nimWaku: NimWaku;
+    afterEach(async function () {
+      nimWaku ? nimWaku.stop() : null;
+      waku ? await waku.stop() : null;
+    });
 
-      beforeEach(async function () {
-        this.timeout(30_000);
-        waku = await Waku.create({
-          staticNoiseKey: NOISE_KEY_1,
-        });
+    it('nim subscribes to js', async function () {
+      let subscribers: string[] = [];
 
-        nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
-        await nimWaku.start();
-
-        await waku.dial(await nimWaku.getMultiaddrWithId());
-        await waku.waitForConnectedPeer([RelayCodecs]);
-
-        // Wait for one heartbeat to ensure mesh is updated
-        await new Promise((resolve) => {
-          waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve);
-        });
-      });
-
-      afterEach(async function () {
-        nimWaku ? nimWaku.stop() : null;
-        waku ? await waku.stop() : null;
-      });
-
-      it('nim subscribes to js', async function () {
-        let subscribers: string[] = [];
-
-        while (subscribers.length === 0) {
-          await delay(200);
-          subscribers = waku.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
-        }
-
-        const nimPeerId = await nimWaku.getPeerId();
-        expect(subscribers).to.contain(nimPeerId.toB58String());
-      });
-
-      it('Js publishes to nim', async function () {
-        this.timeout(30000);
-
-        const messageText = 'This is a message';
-        const message = await WakuMessage.fromUtf8String(
-          messageText,
-          TestContentTopic
-        );
-        await delay(1000);
-        await waku.relay.send(message);
-
-        let msgs: WakuMessage[] = [];
-
-        while (msgs.length === 0) {
-          console.log('Waiting for messages');
-          await delay(200);
-          msgs = await nimWaku.messages();
-        }
-
-        expect(msgs[0].contentTopic).to.equal(message.contentTopic);
-        expect(msgs[0].version).to.equal(message.version);
-        expect(msgs[0].payloadAsUtf8).to.equal(messageText);
-      });
-
-      it('Nim publishes to js', async function () {
+      while (subscribers.length === 0) {
         await delay(200);
+        subscribers = waku.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
+      }
 
-        const messageText = 'Here is another message.';
-        const message = await WakuMessage.fromUtf8String(
-          messageText,
-          TestContentTopic
-        );
+      const nimPeerId = await nimWaku.getPeerId();
+      expect(subscribers).to.contain(nimPeerId.toB58String());
+    });
 
-        const receivedMsgPromise: Promise<WakuMessage> = new Promise(
-          (resolve) => {
-            waku.relay.addObserver(resolve);
-          }
-        );
+    it('Js publishes to nim', async function () {
+      this.timeout(30000);
 
-        await nimWaku.sendMessage(message);
+      const messageText = 'This is a message';
+      const message = await WakuMessage.fromUtf8String(
+        messageText,
+        TestContentTopic
+      );
+      await delay(1000);
+      await waku.relay.send(message);
 
-        const receivedMsg = await receivedMsgPromise;
+      let msgs: WakuMessage[] = [];
 
-        expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
-        expect(receivedMsg.version).to.eq(message.version);
-        expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
-      });
+      while (msgs.length === 0) {
+        console.log('Waiting for messages');
+        await delay(200);
+        msgs = await nimWaku.messages();
+      }
+
+      expect(msgs[0].contentTopic).to.equal(message.contentTopic);
+      expect(msgs[0].version).to.equal(message.version);
+      expect(msgs[0].payloadAsUtf8).to.equal(messageText);
+    });
+
+    it('Nim publishes to js', async function () {
+      await delay(200);
+
+      const messageText = 'Here is another message.';
+      const message = await WakuMessage.fromUtf8String(
+        messageText,
+        TestContentTopic
+      );
+
+      const receivedMsgPromise: Promise<WakuMessage> = new Promise(
+        (resolve) => {
+          waku.relay.addObserver(resolve);
+        }
+      );
+
+      await nimWaku.sendMessage(message);
+
+      const receivedMsg = await receivedMsgPromise;
+
+      expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
+      expect(receivedMsg.version).to.eq(message.version);
+      expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
     });
 
     describe.skip('js to nim to js', function () {

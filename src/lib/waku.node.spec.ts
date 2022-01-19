@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import debug from 'debug';
 import PeerId from 'peer-id';
 
 import {
@@ -8,24 +9,72 @@ import {
   NOISE_KEY_2,
 } from '../test_utils/';
 
+import { delay } from './delay';
 import { Waku } from './waku';
 import { WakuMessage } from './waku_message';
 import { generateSymmetricKey } from './waku_message/version_1';
+import { RelayCodecs } from './waku_relay';
+
+const dbg = debug('waku:test');
 
 const TestContentTopic = '/test/1/waku/utf8';
 
 describe('Waku Dial [node only]', function () {
-  let waku: Waku;
-  let waku2: Waku;
+  describe('Interop: Nim', function () {
+    let waku: Waku;
+    let nimWaku: NimWaku;
 
-  afterEach(async function () {
-    this.timeout(10_000);
+    afterEach(async function () {
+      nimWaku ? nimWaku.stop() : null;
+      waku ? await waku.stop() : null;
+    });
 
-    await Promise.all([waku ? waku.stop() : null, waku2 ? waku2.stop() : null]);
+    // TODO: Clarify whether nwaku's `get_waku_v2_admin_v1_peers` can be expected
+    // to return peers with inbound connections.
+    it.skip('js connects to nim', async function () {
+      this.timeout(20_000);
+      nimWaku = new NimWaku(makeLogFileName(this));
+      await nimWaku.start();
+      const multiAddrWithId = await nimWaku.getMultiaddrWithId();
+
+      waku = await Waku.create({
+        staticNoiseKey: NOISE_KEY_1,
+      });
+      await waku.dial(multiAddrWithId);
+      await waku.waitForConnectedPeer([RelayCodecs]);
+
+      let nimPeers = await nimWaku.peers();
+      while (nimPeers.length === 0) {
+        await delay(200);
+        nimPeers = await nimWaku.peers();
+        dbg('nimPeers', nimPeers);
+      }
+
+      expect(nimPeers).to.deep.equal([
+        {
+          multiaddr: multiAddrWithId,
+          protocol: '/vac/waku/relay/2.0.0',
+          connected: true,
+        },
+      ]);
+
+      const nimPeerId = await nimWaku.getPeerId();
+      const jsPeers = waku.libp2p.peerStore.peers;
+
+      expect(jsPeers.has(nimPeerId.toB58String())).to.be.true;
+    });
   });
 
   describe('Bootstrap', function () {
-    it('Passing a boolean', async function () {
+    let waku: Waku;
+    let nimWaku: NimWaku;
+
+    afterEach(async function () {
+      nimWaku ? nimWaku.stop() : null;
+      waku ? await waku.stop() : null;
+    });
+
+    it('Enabling default [live data]', async function () {
       // This test depends on fleets.status.im being online.
       // This dependence must be removed once DNS discovery is implemented
       this.timeout(20_000);
@@ -47,18 +96,13 @@ describe('Waku Dial [node only]', function () {
     it('Passing an array', async function () {
       this.timeout(10_000);
 
+      nimWaku = new NimWaku(makeLogFileName(this));
+      await nimWaku.start();
+      const multiAddrWithId = await nimWaku.getMultiaddrWithId();
+
       waku = await Waku.create({
         staticNoiseKey: NOISE_KEY_1,
-        libp2p: {
-          addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-        },
-      });
-
-      const multiAddrWithId = waku.getLocalMultiaddrWithID();
-
-      waku2 = await Waku.create({
-        staticNoiseKey: NOISE_KEY_2,
-        bootstrap: { peers: [multiAddrWithId] },
+        bootstrap: { peers: [multiAddrWithId.toString()] },
       });
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
@@ -67,27 +111,18 @@ describe('Waku Dial [node only]', function () {
         });
       });
 
-      expect(connectedPeerID.toB58String()).to.eq(
-        waku2.libp2p.peerId.toB58String()
-      );
+      expect(connectedPeerID.toB58String()).to.eq(multiAddrWithId.getPeerId());
     });
-  });
 
-  describe('Bootstrap', function () {
     it('Passing a function', async function () {
       this.timeout(10_000);
 
+      nimWaku = new NimWaku(makeLogFileName(this));
+      await nimWaku.start();
+      const multiAddrWithId = await nimWaku.getMultiaddrWithId();
+
       waku = await Waku.create({
         staticNoiseKey: NOISE_KEY_1,
-        libp2p: {
-          addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-        },
-      });
-
-      const multiAddrWithId = waku.getLocalMultiaddrWithID();
-
-      waku2 = await Waku.create({
-        staticNoiseKey: NOISE_KEY_2,
         bootstrap: {
           getPeers: async () => {
             return [multiAddrWithId];
@@ -101,50 +136,7 @@ describe('Waku Dial [node only]', function () {
         });
       });
 
-      expect(connectedPeerID.toB58String()).to.eq(
-        waku2.libp2p.peerId.toB58String()
-      );
-    });
-  });
-
-  describe('Interop: Nim', function () {
-    let nimWaku: NimWaku;
-
-    afterEach(async function () {
-      this.timeout(10_000);
-
-      nimWaku ? nimWaku.stop() : null;
-    });
-
-    it('nim connects to js', async function () {
-      this.timeout(10_000);
-
-      waku = await Waku.create({
-        staticNoiseKey: NOISE_KEY_1,
-        libp2p: {
-          addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-        },
-      });
-
-      const multiAddrWithId = waku.getLocalMultiaddrWithID();
-
-      nimWaku = new NimWaku(makeLogFileName(this));
-      await nimWaku.start({ staticnode: multiAddrWithId });
-
-      const nimPeers = await nimWaku.peers();
-
-      expect(nimPeers).to.deep.equal([
-        {
-          multiaddr: multiAddrWithId,
-          protocol: '/vac/waku/relay/2.0.0',
-          connected: true,
-        },
-      ]);
-
-      const nimPeerId = await nimWaku.getPeerId();
-      const jsPeers = waku.libp2p.peerStore.peers;
-
-      expect(jsPeers.has(nimPeerId.toB58String())).to.be.true;
+      expect(connectedPeerID.toB58String()).to.eq(multiAddrWithId.getPeerId());
     });
   });
 });
