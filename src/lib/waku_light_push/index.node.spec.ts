@@ -30,11 +30,7 @@ describe('Waku Light Push [node only]', () => {
       libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-
-    // Wait for identify protocol to finish
-    await new Promise((resolve) => {
-      waku.libp2p.peerStore.once('change:protocols', resolve);
-    });
+    await waku.waitForConnectedPeer();
 
     const messageText = 'Light Push works!';
     const message = await WakuMessage.fromUtf8String(
@@ -71,11 +67,7 @@ describe('Waku Light Push [node only]', () => {
       libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-
-    // Wait for identify protocol to finish
-    await new Promise((resolve) => {
-      waku.libp2p.peerStore.once('change:protocols', resolve);
-    });
+    await waku.waitForConnectedPeer();
 
     const nimPeerId = await nimWaku.getPeerId();
 

@@ -303,14 +303,14 @@ export class NimWaku {
   }
 
   async getPeerId(): Promise<PeerId> {
-    return await this.setPeerId().then((res) => res.peerId);
+    return await this._getPeerId().then((res) => res.peerId);
   }
 
   async getMultiaddrWithId(): Promise<Multiaddr> {
-    return await this.setPeerId().then((res) => res.multiaddrWithId);
+    return await this._getPeerId().then((res) => res.multiaddrWithId);
   }
 
-  private async setPeerId(): Promise<{
+  private async _getPeerId(): Promise<{
     peerId: PeerId;
     multiaddrWithId: Multiaddr;
   }> {
@@ -318,7 +318,8 @@ export class NimWaku {
       return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
     }
     const res = await this.info();
-    this.multiaddrWithId = multiaddr(res.listenStr);
+    this.multiaddrWithId = res.listenAddresses.map((ma) => multiaddr(ma))[0];
+    if (!this.multiaddrWithId) throw 'Nim-waku did not return a multiaddr';
     const peerIdStr = this.multiaddrWithId.getPeerId();
     if (!peerIdStr) throw 'Nim-waku multiaddr does not contain peerId';
     this.peerId = PeerId.createFromB58String(peerIdStr);
@@ -411,6 +412,6 @@ export function bufToHex(buffer: Uint8Array): string {
 }
 
 interface RpcInfoResponse {
-  // multiaddr including id.
-  listenStr: string;
+  // multiaddrs including peer id.
+  listenAddresses: string[];
 }

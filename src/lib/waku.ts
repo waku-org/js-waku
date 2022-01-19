@@ -309,8 +309,12 @@ export class Waku {
    * with [[Waku.create]]. The Promise resolves only once we are connected to a
    * Store peer, Relay peer and Light Push peer.
    */
-  async waitForConnectedPeer(): Promise<void> {
-    const desiredProtocols = [[StoreCodec], [LightPushCodec], RelayCodecs];
+  async waitForConnectedPeer(protocols?: string[][]): Promise<void> {
+    const desiredProtocols = protocols ?? [
+      [StoreCodec],
+      [LightPushCodec],
+      RelayCodecs,
+    ];
 
     await Promise.all(
       desiredProtocols.map((desiredProtocolVersions) => {
