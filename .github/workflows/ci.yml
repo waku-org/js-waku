@@ -12,7 +12,7 @@ jobs:
   build_and_test:
     env:
       BUF_VERSION: '0.56.0'
-      NIM_WAKU_VERSION: 'v0.6'
+      NIM_WAKU_VERSION: 'v0.7'
     strategy:
       matrix:
         node: [16]
@@ -27,8 +27,7 @@ jobs:
         run: |
           mkdir -p nim-waku/build
           cd nim-waku
-          wget "https://github.com/status-im/nim-waku/releases/download/${NIM_WAKU_VERSION}/nim-waku-ubuntu-latest.tar.gz.1.zip"
-          unzip nim-waku-ubuntu-latest.tar.gz.1.zip
+          wget "https://github.com/status-im/nim-waku/releases/download/${NIM_WAKU_VERSION}/nim-waku-ubuntu-latest.tar.gz"
           tar xavf nim-waku-ubuntu-latest.tar.gz
 
       - name: Install NodeJS

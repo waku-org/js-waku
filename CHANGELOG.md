@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Test: Upgrade nim-waku node to v0.7. 
+
 ## [0.15.0] - 2022-01-17
 
 ### Added
