@@ -12,6 +12,7 @@ import debug from 'debug';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
+import { delay } from '../lib/delay';
 import { hexToBuf } from '../lib/utils';
 import { DefaultPubSubTopic } from '../lib/waku';
 import { WakuMessage } from '../lib/waku_message';
@@ -140,13 +141,16 @@ export class NimWaku {
   }
 
   public stop(): void {
-    dbg(
-      `nim-waku ${
-        this.process ? this.process.pid : this.pid
-      } getting SIGINT at ${new Date().toLocaleTimeString()}`
-    );
-    this.process ? this.process.kill('SIGINT') : null;
-    this.process = undefined;
+    // If killed too fast the SIGINT may not be registered
+    delay(100).then(() => {
+      dbg(
+        `nim-waku ${
+          this.process ? this.process.pid : this.pid
+        } getting SIGINT at ${new Date().toLocaleTimeString()}`
+      );
+      this.process ? this.process.kill('SIGINT') : null;
+      this.process = undefined;
+    });
   }
 
   async waitForLog(msg: string, timeout: number): Promise<void> {
