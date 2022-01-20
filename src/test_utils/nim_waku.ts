@@ -22,7 +22,6 @@ import waitForLine from './log_file';
 
 const dbg = debug('waku:nim-waku');
 
-const NIM_WAKU_DEFAULT_P2P_PORT = 60000;
 const NIM_WAKU_DEFAULT_RPC_PORT = 8545;
 const NIM_WAKU_DIR = appRoot + '/nim-waku';
 const NIM_WAKU_BIN = NIM_WAKU_DIR + '/build/wakunode2';
@@ -324,11 +323,6 @@ export class NimWaku {
     if (!peerIdStr) throw 'Nim-waku multiaddr does not contain peerId';
     this.peerId = PeerId.createFromB58String(peerIdStr);
     return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
-  }
-
-  get multiaddr(): Multiaddr {
-    const port = NIM_WAKU_DEFAULT_P2P_PORT + this.portsShift;
-    return multiaddr(`/ip4/127.0.0.1/tcp/${port}/`);
   }
 
   get rpcUrl(): string {
