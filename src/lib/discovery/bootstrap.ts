@@ -64,12 +64,14 @@ export class Bootstrap {
         maxPeers
       );
     } else if (opts.peers !== undefined && opts.peers.length > 0) {
-      dbg('Use provided list of peers.');
-
       const allPeers: Multiaddr[] = opts.peers.map(
         (node: string) => new Multiaddr(node)
       );
       const peers = getPseudoRandomSubset(allPeers, maxPeers);
+      dbg(
+        'Use provided list of peers (reduced to maxPeers)',
+        allPeers.map((ma) => ma.toString())
+      );
       this.getBootstrapPeers = (): Promise<Multiaddr[]> =>
         Promise.resolve(peers);
     } else if (typeof opts.getPeers === 'function') {
