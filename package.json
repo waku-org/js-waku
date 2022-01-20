@@ -65,7 +65,7 @@
     "it-concat": "^2.0.0",
     "it-length-prefixed": "^5.0.2",
     "js-sha3": "^0.8.0",
-    "libp2p": "^0.32.4",
+    "libp2p": "^0.35.8",
     "libp2p-bootstrap": "^0.14.0",
     "libp2p-gossipsub": "^0.12.1",
     "libp2p-mplex": "^0.10.4",
