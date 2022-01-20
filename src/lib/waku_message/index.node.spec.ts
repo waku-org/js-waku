@@ -1,8 +1,5 @@
 import { expect } from 'chai';
 import debug from 'debug';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import TCP from 'libp2p-tcp';
 
 import {
   makeLogFileName,
@@ -13,6 +10,7 @@ import {
 import { delay } from '../delay';
 import { hexToBuf } from '../utils';
 import { Waku } from '../waku';
+import { RelayCodecs } from '../waku_relay';
 
 import {
   generatePrivateKey,
@@ -33,19 +31,17 @@ describe('Waku Message [node only]', function () {
 
     beforeEach(async function () {
       this.timeout(30_000);
-
       waku = await Waku.create({
         staticNoiseKey: NOISE_KEY_1,
-        libp2p: {
-          addresses: { listen: ['/ip4/0.0.0.0/tcp/0'] },
-          modules: { transport: [TCP] },
-        },
       });
 
-      const multiAddrWithId = waku.getLocalMultiaddrWithID();
       nimWaku = new NimWaku(makeLogFileName(this));
-      await nimWaku.start({ staticnode: multiAddrWithId, rpcPrivate: true });
+      await nimWaku.start({ rpcPrivate: true });
 
+      await waku.dial(await nimWaku.getMultiaddrWithId());
+      await waku.waitForConnectedPeer([RelayCodecs]);
+
+      // Wait for one heartbeat to ensure mesh is updated
       await new Promise((resolve) =>
         waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
       );
@@ -78,7 +74,8 @@ describe('Waku Message [node only]', function () {
 
       const publicKey = getPublicKey(privateKey);
       dbg('Post message');
-      await nimWaku.postAsymmetricMessage(message, publicKey);
+      const res = await nimWaku.postAsymmetricMessage(message, publicKey);
+      expect(res).to.be.true;
 
       const receivedMsg = await receivedMsgPromise;
 

@@ -1,8 +1,5 @@
 import { expect } from 'chai';
 import debug from 'debug';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import TCP from 'libp2p-tcp';
 
 import {
   makeLogFileName,
@@ -52,7 +49,6 @@ describe('Waku Store', () => {
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
     await waku.waitForConnectedPeer([[StoreCodec]]);
@@ -83,7 +79,6 @@ describe('Waku Store', () => {
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
     await waku.waitForConnectedPeer([[StoreCodec]]);
@@ -121,7 +116,6 @@ describe('Waku Store', () => {
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
     await waku.waitForConnectedPeer([[StoreCodec]]);
@@ -156,7 +150,6 @@ describe('Waku Store', () => {
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
     await waku.waitForConnectedPeer([[StoreCodec]]);
@@ -194,7 +187,6 @@ describe('Waku Store', () => {
     waku = await Waku.create({
       pubSubTopic: customPubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
     await waku.waitForConnectedPeer([[StoreCodec]]);
@@ -262,11 +254,9 @@ describe('Waku Store', () => {
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       Waku.create({
         staticNoiseKey: NOISE_KEY_1,
-        libp2p: { modules: { transport: [TCP] } },
       }),
       Waku.create({
         staticNoiseKey: NOISE_KEY_2,
-        libp2p: { modules: { transport: [TCP] } },
       }),
       nimWaku.getMultiaddrWithId(),
     ]);
@@ -375,11 +365,9 @@ describe('Waku Store', () => {
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       Waku.create({
         staticNoiseKey: NOISE_KEY_1,
-        libp2p: { modules: { transport: [TCP] } },
       }),
       Waku.create({
         staticNoiseKey: NOISE_KEY_2,
-        libp2p: { modules: { transport: [TCP] } },
       }),
       nimWaku.getMultiaddrWithId(),
     ]);
@@ -463,7 +451,6 @@ describe('Waku Store', () => {
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
     await waku.waitForConnectedPeer([[StoreCodec]]);

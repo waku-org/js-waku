@@ -12,6 +12,7 @@ import debug from 'debug';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
+import { delay } from '../lib/delay';
 import { hexToBuf } from '../lib/utils';
 import { DefaultPubSubTopic } from '../lib/waku';
 import { WakuMessage } from '../lib/waku_message';
@@ -22,7 +23,6 @@ import waitForLine from './log_file';
 
 const dbg = debug('waku:nim-waku');
 
-const NIM_WAKU_DEFAULT_P2P_PORT = 60000;
 const NIM_WAKU_DEFAULT_RPC_PORT = 8545;
 const NIM_WAKU_DIR = appRoot + '/nim-waku';
 const NIM_WAKU_BIN = NIM_WAKU_DIR + '/build/wakunode2';
@@ -43,6 +43,7 @@ export interface Args {
   lightpush?: boolean;
   topics?: string;
   rpcPrivate?: boolean;
+  websocketSupport?: boolean;
 }
 
 export enum LogLevel {
@@ -140,13 +141,16 @@ export class NimWaku {
   }
 
   public stop(): void {
-    dbg(
-      `nim-waku ${
-        this.process ? this.process.pid : this.pid
-      } getting SIGINT at ${new Date().toLocaleTimeString()}`
-    );
-    this.process ? this.process.kill('SIGINT') : null;
-    this.process = undefined;
+    // If killed too fast the SIGINT may not be registered
+    delay(100).then(() => {
+      dbg(
+        `nim-waku ${
+          this.process ? this.process.pid : this.pid
+        } getting SIGINT at ${new Date().toLocaleTimeString()}`
+      );
+      this.process ? this.process.kill('SIGINT') : null;
+      this.process = undefined;
+    });
   }
 
   async waitForLog(msg: string, timeout: number): Promise<void> {
@@ -318,17 +322,14 @@ export class NimWaku {
       return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
     }
     const res = await this.info();
-    this.multiaddrWithId = res.listenAddresses.map((ma) => multiaddr(ma))[0];
-    if (!this.multiaddrWithId) throw 'Nim-waku did not return a multiaddr';
+    this.multiaddrWithId = res.listenAddresses
+      .map((ma) => multiaddr(ma))
+      .find((ma) => ma.protoNames().includes('ws'));
+    if (!this.multiaddrWithId) throw 'Nim-waku did not return a ws multiaddr';
     const peerIdStr = this.multiaddrWithId.getPeerId();
     if (!peerIdStr) throw 'Nim-waku multiaddr does not contain peerId';
     this.peerId = PeerId.createFromB58String(peerIdStr);
     return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
-  }
-
-  get multiaddr(): Multiaddr {
-    const port = NIM_WAKU_DEFAULT_P2P_PORT + this.portsShift;
-    return multiaddr(`/ip4/127.0.0.1/tcp/${port}/`);
   }
 
   get rpcUrl(): string {
@@ -386,6 +387,7 @@ export function defaultArgs(): Args {
     relay: true,
     rpc: true,
     rpcAdmin: true,
+    websocketSupport: true,
   };
 }
 

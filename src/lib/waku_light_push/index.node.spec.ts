@@ -1,7 +1,4 @@
 import { expect } from 'chai';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import TCP from 'libp2p-tcp';
 
 import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../../test_utils';
 import { delay } from '../delay';
@@ -27,7 +24,6 @@ describe('Waku Light Push [node only]', () => {
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
     await waku.waitForConnectedPeer();
@@ -64,7 +60,6 @@ describe('Waku Light Push [node only]', () => {
     waku = await Waku.create({
       pubSubTopic: customPubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { modules: { transport: [TCP] } },
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
     await waku.waitForConnectedPeer();

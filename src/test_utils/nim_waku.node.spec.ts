@@ -14,6 +14,7 @@ it('Correctly serialized arguments', function () {
     '--relay=true',
     '--rpc=true',
     '--rpc-admin=true',
+    '--websocket-support=true',
     '--ports-shift=42',
   ];
 
