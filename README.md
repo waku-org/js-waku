@@ -9,9 +9,12 @@ A JavaScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/1
 
 ## Documentation
 
-- [Quick start](https://docs.dappconnect.dev/docs/quick_start/)
-- [Full documentation](https://docs.dappconnect.dev/)
+- [Quick start](https://docs.wakuconnect.dev/docs/quick_start/)
+- [Full documentation](https://docs.wakuconnect.dev/)
 - [API documentation (`master` branch)](https://status-im.github.io/js-waku/docs/)
+- [Waku Connect](https://wakuconnect.dev/)
+- [Waku](https://wakunetwork.com/)
+- [Vac](https://vac.dev/)
 
 API Documentation can also be generated locally:
 
@@ -30,9 +33,9 @@ Release changelog can be found in [CHANGELOG.md](https://github.com/status-im/js
 
 If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/status-im/js-waku/issues/new/).
 
-To get help, join **#dappconnect-support** on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or [Telegram](https://t.me/dappconnectsupport).
+To get help, join **#wakuconnect-support** on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or [Telegram](https://t.me/wakuconnectsupport).
 
-For more general discussion and latest news, join **#dappconnect** on [Vac Discord](https://discord.gg/9DgykdmpZ6) or [Telegram](https://t.me/dappconnect).
+For more general discussion and latest news, join **#wakuconnect** on [Vac Discord](https://discord.gg/9DgykdmpZ6) or [Telegram](https://t.me/wakuconnect).
 
 ## Roadmap
 

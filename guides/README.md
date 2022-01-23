@@ -1,1 +1,1 @@
-Moved to https://docs.dappconnect.dev/guides/index.html
+Moved to https://docs.wakuconnect.dev/docs/guides/
