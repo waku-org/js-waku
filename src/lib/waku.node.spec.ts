@@ -29,8 +29,6 @@ describe('Waku Dial [node only]', function () {
       waku ? await waku.stop() : null;
     });
 
-    // TODO: Clarify whether nwaku's `get_waku_v2_admin_v1_peers` can be expected
-    // to return peers with inbound connections.
     it.skip('js connects to nim', async function () {
       this.timeout(20_000);
       nimWaku = new NimWaku(makeLogFileName(this));
