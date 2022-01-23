@@ -119,13 +119,12 @@ describe('Waku Dial [node only]', function () {
 
       nimWaku = new NimWaku(makeLogFileName(this));
       await nimWaku.start();
-      const multiAddrWithId = await nimWaku.getMultiaddrWithId();
 
       waku = await Waku.create({
         staticNoiseKey: NOISE_KEY_1,
         bootstrap: {
           getPeers: async () => {
-            return [multiAddrWithId];
+            return [await nimWaku.getMultiaddrWithId()];
           },
         },
       });
@@ -136,6 +135,7 @@ describe('Waku Dial [node only]', function () {
         });
       });
 
+      const multiAddrWithId = await nimWaku.getMultiaddrWithId();
       expect(connectedPeerID.toB58String()).to.eq(multiAddrWithId.getPeerId());
     });
   });
