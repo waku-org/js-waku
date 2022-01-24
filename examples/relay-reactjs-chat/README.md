@@ -9,7 +9,7 @@
 - Protobuf using `protons`.
 - No async/await syntax.
 
-A barebone chat app to illustrate the [ReactJS Relay guide](https://docs.dappconnect.dev/docs/guides/07_reactjs_relay/).
+A barebone chat app to illustrate the [ReactJS Relay guide](https://docs.wakuconnect.dev/docs/guides/07_reactjs_relay/).
 
 To run a development version locally, do:
 
