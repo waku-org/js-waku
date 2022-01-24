@@ -103,7 +103,7 @@ function sendMessage(message, waku, timestamp) {
   // Encode to protobuf
   const payload = proto.SimpleChatMessage.encode({
     timestamp: time,
-    text: message
+    text: message,
   });
 
   // Wrap in a Waku Message
