@@ -41,10 +41,11 @@ describe('Waku Message [node only]', function () {
       await waku.dial(await nimWaku.getMultiaddrWithId());
       await waku.waitForConnectedPeer([RelayCodecs]);
 
-      // Wait for one heartbeat to ensure mesh is updated
-      await new Promise((resolve) =>
-        waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-      );
+      let peers = await waku.relay.getPeers();
+      while (peers.size === 0) {
+        await delay(200);
+        peers = await waku.relay.getPeers();
+      }
     });
 
     afterEach(async function () {
@@ -53,8 +54,7 @@ describe('Waku Message [node only]', function () {
     });
 
     it('JS decrypts nim message [asymmetric, no signature]', async function () {
-      this.timeout(10000);
-      await delay(200);
+      this.timeout(5000);
 
       const messageText = 'Here is an encrypted message.';
       const message: WakuRelayMessage = {
@@ -114,8 +114,7 @@ describe('Waku Message [node only]', function () {
     });
 
     it('JS decrypts nim message [symmetric, no signature]', async function () {
-      this.timeout(10000);
-      await delay(200);
+      this.timeout(5000);
 
       const messageText = 'Here is a message encrypted in a symmetric manner.';
       const message: WakuRelayMessage = {
