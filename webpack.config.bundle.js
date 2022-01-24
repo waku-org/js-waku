@@ -1,24 +1,31 @@
-const webpack = require('webpack');
-const path = require('path');
+import webpack from 'webpack';
+import path from 'path';
+import { createRequire } from 'module';
+import { URL } from 'url';
 
-module.exports = {
+const __dirname = new URL('.', import.meta.url).pathname;
+const require = createRequire(import.meta.url);
+
+export default {
   mode: 'development',
   entry: {
-    "js-waku": './src/index.ts'
+    'js-waku': './src/index.ts',
   },
   devtool: 'inline-source-map',
   module: {
-    rules: [{
-      test: /\.ts$/,
-      use: 'ts-loader',
-      exclude: /node_modules/
-    }]
+    rules: [
+      {
+        test: /\.ts$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+    ],
   },
   plugins: [
     new webpack.ProvidePlugin({
       process: 'process/browser.js',
       Buffer: ['buffer', 'Buffer'],
-    })
+    }),
   ],
   resolve: {
     extensions: ['.ts', '.js'],
@@ -35,5 +42,5 @@ module.exports = {
     library: 'jswaku',
     libraryTarget: 'umd',
     globalObject: 'this',
-  }
+  },
 };
