@@ -25,7 +25,7 @@ function App() {
 
     setWakuStatus('Starting');
 
-    Waku.create({ bootstrap: true }).then((waku) => {
+    Waku.create({ bootstrap: { default: true } }).then((waku) => {
       setWaku(waku);
       setWakuStatus('Connecting');
       waku.waitForConnectedPeer().then(() => {
@@ -103,7 +103,7 @@ function sendMessage(message, waku, timestamp) {
   // Encode to protobuf
   const payload = proto.SimpleChatMessage.encode({
     timestamp: time,
-    text: message
+    text: message,
   });
 
   // Wrap in a Waku Message
