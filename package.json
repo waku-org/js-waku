@@ -48,6 +48,7 @@
     "doc": "run-s doc:*",
     "doc:html": "typedoc --excludeInternal --listInvalidSymbolLinks --exclude **/*.spec.ts --out build/docs src/",
     "doc:cname": "echo 'js-waku.wakuconnect.dev' > build/docs/CNAME",
+    "doc:examples": "mkdir -p build/docs/examples",
     "deploy": "node ci/deploy.js",
     "reset-hard": "git clean -dfx && git reset --hard && npm i && npm run build && for d in examples/*; do (cd $d; npm i); done"
   },
