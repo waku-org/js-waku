@@ -2,11 +2,17 @@
   "name": "js-waku",
   "version": "0.15.0",
   "description": "TypeScript implementation of the Waku v2 protocol",
+  "exports": {
+    ".": {
+      "import": "./build/esm/index.js",
+      "require": "./build/main/index.cjs"
+    }
+  },
   "main": "build/main/index.js",
-  "typings": "build/main/index.d.ts",
   "module": "build/esm/index.js",
   "repository": "https://github.com/status-im/js-waku",
   "license": "MIT OR Apache-2.0",
+  "type": "module",
   "keywords": [
     "waku",
     "decentralised",
