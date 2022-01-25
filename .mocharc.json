@@ -2,5 +2,9 @@
   "extension": ["ts"],
   "spec": "src/**/*.spec.ts",
   "require": "ts-node/register",
-  "exit": true
+  "exit": true,
+  "node-option": [
+    "experimental-specifier-resolution=node",
+    "loader=ts-node/esm"
+  ]
 }
