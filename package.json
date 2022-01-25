@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "run-s build:**",
-    "build:main": "tsc -p tsconfig.json",
+    "build:cjs": "tsc --module commonjs --target es2020 --outDir build/main",
     "build:dev": "tsc -p tsconfig.dev.json",
     "build:esm": "tsc --module es2015 --target es2015 --outDir build/esm",
     "build:umd": "webpack --config webpack.config.js",
