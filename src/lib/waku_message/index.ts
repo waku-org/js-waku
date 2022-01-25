@@ -2,13 +2,14 @@
 import { Buffer } from 'buffer';
 
 import debug from 'debug';
-import { Reader } from 'protobufjs/minimal';
+import protobufjs from 'protobufjs/minimal';
 
 // Protecting the user from protobuf oddities
 import * as proto from '../../proto/waku/v2/message';
 
 import * as version_1 from './version_1';
 
+const { Reader } = protobufjs;
 const DefaultVersion = 0;
 const dbg = debug('waku:message');
 

@@ -1,7 +1,9 @@
-import { Reader } from 'protobufjs/minimal';
+import protobufjs from 'protobufjs/minimal';
 import { v4 as uuid } from 'uuid';
 
 import * as proto from '../../proto/waku/v2/store';
+
+const { Reader } = protobufjs;
 
 export enum PageDirection {
   BACKWARD = 'backward',

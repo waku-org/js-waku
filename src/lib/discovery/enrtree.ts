@@ -1,8 +1,8 @@
 import assert from 'assert';
 
 import base64url from 'base64url';
-import * as base32 from 'hi-base32';
-import { ecdsaVerify } from 'secp256k1';
+import base32 from 'hi-base32';
+import secp256k1 from 'secp256k1';
 
 import { ENR } from '../enr';
 import { keccak256Buf } from '../utils';
@@ -48,7 +48,7 @@ export class ENRTree {
       .slice(0, 64);
     const keyBuffer = Buffer.from(decodedPublicKey);
 
-    const isVerified = ecdsaVerify(
+    const isVerified = secp256k1.ecdsaVerify(
       signatureBuffer,
       keccak256Buf(signedComponentBuffer),
       keyBuffer

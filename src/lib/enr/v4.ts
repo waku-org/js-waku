@@ -1,13 +1,14 @@
 import crypto from 'crypto';
 
-import { keccak256 } from 'js-sha3';
-import * as secp256k1 from 'secp256k1';
+import secp256k1 from 'secp256k1';
+
+import { keccak256Buf } from '../utils';
 
 import { createNodeId } from './create';
 import { NodeId } from './types';
 
 export function hash(input: Uint8Array): Buffer {
-  return Buffer.from(keccak256.arrayBuffer(input));
+  return keccak256Buf(input);
 }
 
 export async function createPrivateKey(): Promise<Buffer> {

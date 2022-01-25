@@ -1,6 +1,6 @@
 import assert from 'assert';
 
-import { debug } from 'debug';
+import debug from 'debug';
 
 import { ENR } from '../enr';
 

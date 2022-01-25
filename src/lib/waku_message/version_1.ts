@@ -2,10 +2,9 @@ import { Buffer } from 'buffer';
 import * as crypto from 'crypto';
 
 import * as ecies from 'ecies-geth';
-import { keccak256 } from 'js-sha3';
-import * as secp256k1 from 'secp256k1';
+import secp256k1 from 'secp256k1';
 
-import { hexToBuf } from '../utils';
+import { bufToHex, hexToBuf, keccak256Buf } from '../utils';
 
 import { IvSize, symmetric, SymmetricKeySize } from './symmetric';
 
@@ -57,7 +56,7 @@ export function clearEncode(
   let sig;
   if (sigPrivKey) {
     envelope[0] |= IsSignedMask;
-    const hash = keccak256(envelope);
+    const hash = keccak256Buf(envelope);
     const s = secp256k1.ecdsaSign(hexToBuf(hash), sigPrivKey);
     envelope = Buffer.concat([envelope, s.signature, Buffer.from([s.recid])]);
     sig = {
@@ -98,7 +97,7 @@ export function clearDecode(
   if (isSigned) {
     const signature = getSignature(buf);
     const hash = getHash(buf, isSigned);
-    const publicKey = ecRecoverPubKey(hash, signature);
+    const publicKey = ecRecoverPubKey(bufToHex(hash), signature);
     sig = { signature, publicKey };
   }
 
@@ -238,11 +237,11 @@ function getSignature(message: Buffer): Buffer {
   return message.slice(message.length - SignatureLength, message.length);
 }
 
-function getHash(message: Buffer, isSigned: boolean): string {
+function getHash(message: Buffer, isSigned: boolean): Uint8Array {
   if (isSigned) {
-    return keccak256(message.slice(0, message.length - SignatureLength));
+    return keccak256Buf(message.slice(0, message.length - SignatureLength));
   }
-  return keccak256(message);
+  return keccak256Buf(message);
 }
 
 function ecRecoverPubKey(messageHash: string, signature: Buffer): Uint8Array {

@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 
-import * as secp256k1 from 'secp256k1';
+import secp256k1 from 'secp256k1';
 
 import { AbstractKeypair, IKeypair, IKeypairClass, KeypairType } from './types';
 
