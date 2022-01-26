@@ -13,7 +13,7 @@ import Websockets from 'libp2p-websockets';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
 import filters from 'libp2p-websockets/src/filters';
-import Ping from 'libp2p/src/ping';
+import PingService from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
@@ -336,7 +336,7 @@ export class Waku {
     }
 
     if (desiredProtocols.includes(Protocols.Store)) {
-      const peers = this.store.peers;
+      const peers = await this.store.peers;
 
       if (peers.length == 0) {
         // No peer available for this protocol, waiting to connect to one.
@@ -356,7 +356,7 @@ export class Waku {
     }
 
     if (desiredProtocols.includes(Protocols.LightPush)) {
-      const peers = this.lightPush.peers;
+      const peers = await this.lightPush.peers;
 
       if (peers.length == 0) {
         // No peer available for this protocol, waiting to connect to one.
@@ -390,8 +390,11 @@ export class Waku {
     const peerIdStr = peerId.toB58String();
 
     if (pingPeriodSecs !== 0) {
+      const pingService = new PingService(this.libp2p);
       this.pingKeepAliveTimers[peerIdStr] = setInterval(() => {
-        Ping(this.libp2p, peerId);
+        pingService.ping(peerId).catch((e) => {
+          dbg(`Ping failed (${peerIdStr})`, e);
+        });
       }, pingPeriodSecs * 1000);
     }
 

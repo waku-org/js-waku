@@ -156,11 +156,14 @@ export default function App() {
             nick={nick}
             messages={messages}
             commandHandler={(input: string) => {
-              const { command, response } = handleCommand(input, waku, setNick);
-              const commandMessages = response.map((msg) => {
-                return Message.fromUtf8String(command, msg);
-              });
-              dispatchMessages(commandMessages);
+              handleCommand(input, waku, setNick).then(
+                ({ command, response }) => {
+                  const commandMessages = response.map((msg) => {
+                    return Message.fromUtf8String(command, msg);
+                  });
+                  dispatchMessages(commandMessages);
+                }
+              );
             }}
           />
         </ThemeProvider>

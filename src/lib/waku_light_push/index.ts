@@ -52,10 +52,10 @@ export class WakuLightPush {
   ): Promise<PushResponse | null> {
     let peer;
     if (opts?.peerId) {
-      peer = this.libp2p.peerStore.get(opts.peerId);
+      peer = await this.libp2p.peerStore.get(opts.peerId);
       if (!peer) throw 'Peer is unknown';
     } else {
-      peer = this.randomPeer;
+      peer = await this.randomPeer;
     }
     if (!peer) throw 'No peer available';
     if (!peer.protocols.includes(LightPushCodec))
@@ -99,7 +99,7 @@ export class WakuLightPush {
    * Returns known peers from the address book (`libp2p.peerStore`) that support
    * light push protocol. Waku may or  may not be currently connected to these peers.
    */
-  get peers(): Peer[] {
+  get peers(): Promise<Peer[]> {
     return getPeersForProtocol(this.libp2p, LightPushCodec);
   }
 
@@ -108,7 +108,7 @@ export class WakuLightPush {
    * book (`libp2p.peerStore`). Waku may or  may not be currently connected to
    * this peer.
    */
-  get randomPeer(): Peer | undefined {
-    return selectRandomPeer(this.peers);
+  get randomPeer(): Promise<Peer | undefined> {
+    return this.peers.then((peers) => selectRandomPeer(peers));
   }
 }

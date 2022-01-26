@@ -15,8 +15,16 @@ export function selectRandomPeer(peers: Peer[]): Peer | undefined {
 /**
  * Returns the list of peers that supports the given protocol.
  */
-export function getPeersForProtocol(libp2p: Libp2p, protocol: string): Peer[] {
-  return Array.from(libp2p.peerStore.peers.values()).filter((peer) =>
-    peer.protocols.includes(protocol)
-  );
+export async function getPeersForProtocol(
+  libp2p: Libp2p,
+  protocol: string
+): Promise<Peer[]> {
+  const peers = [];
+
+  for await (const peer of libp2p.peerStore.getPeers()) {
+    if (peer.protocols.includes(protocol)) {
+      peers.push(peer);
+    }
+  }
+  return peers;
 }

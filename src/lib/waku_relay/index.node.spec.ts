@@ -428,12 +428,9 @@ describe('Waku Relay [node only]', () => {
 
         await delay(2000);
         // Check that the two JS peers are NOT directly connected
-        expect(
-          waku1.libp2p.peerStore.peers.has(waku2.libp2p.peerId.toB58String())
-        ).to.be.false;
-        expect(
-          waku2.libp2p.peerStore.peers.has(waku1.libp2p.peerId.toB58String())
-        ).to.be.false;
+        expect(await waku1.libp2p.peerStore.has(waku2.libp2p.peerId)).to.be
+          .false;
+        expect(waku2.libp2p.peerStore.has(waku1.libp2p.peerId)).to.be.false;
 
         const msgStr = 'Hello there!';
         const message = await WakuMessage.fromUtf8String(

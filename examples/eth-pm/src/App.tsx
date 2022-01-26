@@ -162,10 +162,11 @@ function App() {
   useEffect(() => {
     if (!waku) return;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
+      const lightPushPeers = await waku.lightPush.peers;
       setPeerStats({
         relayPeers: waku.relay.getPeers().size,
-        lightPushPeers: waku.lightPush.peers.length,
+        lightPushPeers: lightPushPeers.length,
       });
     }, 1000);
     return () => clearInterval(interval);

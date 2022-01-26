@@ -268,10 +268,10 @@ describe('Waku Store', () => {
 
     dbg('Waku nodes connected to nim Waku');
 
-    let lightPushPeers = waku1.lightPush.peers;
+    let lightPushPeers = await waku1.lightPush.peers;
     while (lightPushPeers.length == 0) {
       await delay(100);
-      lightPushPeers = waku1.lightPush.peers;
+      lightPushPeers = await waku1.lightPush.peers;
     }
 
     dbg('Sending messages using light push');
@@ -282,10 +282,10 @@ describe('Waku Store', () => {
       waku1.lightPush.push(clearMessage),
     ]);
 
-    let storePeers = waku2.store.peers;
+    let storePeers = await waku2.store.peers;
     while (storePeers.length == 0) {
       await delay(100);
-      storePeers = waku2.store.peers;
+      storePeers = await waku2.store.peers;
     }
 
     waku2.store.addDecryptionKey(symKey);
@@ -380,10 +380,10 @@ describe('Waku Store', () => {
 
     dbg('Waku nodes connected to nim Waku');
 
-    let lightPushPeers = waku1.lightPush.peers;
+    let lightPushPeers = await waku1.lightPush.peers;
     while (lightPushPeers.length == 0) {
       await delay(100);
-      lightPushPeers = waku1.lightPush.peers;
+      lightPushPeers = await waku1.lightPush.peers;
     }
 
     dbg('Sending messages using light push');
@@ -394,10 +394,10 @@ describe('Waku Store', () => {
       waku1.lightPush.push(clearMessage),
     ]);
 
-    let storePeers = waku2.store.peers;
+    let storePeers = await waku2.store.peers;
     while (storePeers.length == 0) {
       await delay(100);
-      storePeers = waku2.store.peers;
+      storePeers = await waku2.store.peers;
     }
 
     waku2.addDecryptionKey(symKey, {

@@ -6,6 +6,7 @@ import { useWaku } from './WakuContext';
 import { TitleBar } from '@livechat/ui-kit';
 import { Message } from './Message';
 import { ChatMessage } from './chat_message';
+import { useEffect, useState } from 'react';
 
 interface Props {
   messages: Message[];
@@ -16,12 +17,20 @@ interface Props {
 export default function Room(props: Props) {
   const { waku } = useWaku();
 
+  const [storePeers, setStorePeers] = useState(0);
+
   let relayPeers = 0;
-  let storePeers = 0;
   if (waku) {
     relayPeers = waku.relay.getPeers().size;
-    storePeers = waku.store.peers.length;
   }
+
+  useEffect(() => {
+    if (!waku) return;
+
+    waku.store.peers.then((peers) => {
+      setStorePeers(peers.length);
+    });
+  }, [waku]);
 
   return (
     <div
