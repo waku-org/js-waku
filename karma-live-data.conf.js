@@ -11,6 +11,6 @@ originalConfigFn({
 properties.client.args = ['--grep', '[live data]]'];
 
 // export settings
-module.exports = function (config) {
+export default function (config) {
   config.set(properties);
-};
+}

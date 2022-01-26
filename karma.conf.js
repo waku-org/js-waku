@@ -1,17 +1,18 @@
-process.env.CHROME_BIN = require('puppeteer').executablePath();
+import puppeteer from 'puppeteer';
+import karma_mocha from 'karma-mocha';
+import karma_typescript from 'karma-typescript';
+import karma_chrome_launcher from 'karma-chrome-launcher';
 
-module.exports = function (config) {
+process.env.CHROME_BIN = puppeteer.executablePath();
+
+export default function (config) {
   config.set({
     frameworks: ['mocha', 'karma-typescript'],
     files: ['src/lib/**/*.ts', 'src/proto/**/*.ts'],
     preprocessors: {
       '**/*.ts': ['karma-typescript'],
     },
-    plugins: [
-      require('karma-mocha'),
-      require('karma-typescript'),
-      require('karma-chrome-launcher'),
-    ],
+    plugins: [karma_mocha, karma_typescript, karma_chrome_launcher],
     reporters: ['progress', 'karma-typescript'],
     browsers: ['ChromeHeadless'],
     singleRun: true,
@@ -41,4 +42,4 @@ module.exports = function (config) {
       },
     },
   });
-};
+}
