@@ -117,10 +117,10 @@ jobs:
       - name: install using npm ci
         uses: bahmutov/npm-install@v1
 
-      - name: karma live data tests
+      - name: live data tests
         env:
           DEBUG: "waku:test*"
-        run: npm run test:karma-live-data
+        run: npm run live-data-test
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v2
