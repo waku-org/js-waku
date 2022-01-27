@@ -19,13 +19,13 @@ pipeline {
   stages {
     stage('Deps') {
       steps {
-        sh 'yarn install'
+        sh 'npm ci'
       }
     }
 
     stage('Build') {
       steps {
-        sh 'yarn run doc'
+        sh 'npm run doc'
       }
     }
 
@@ -43,7 +43,7 @@ pipeline {
       when { expression { GIT_BRANCH.endsWith('build-examples') } }
       steps { script {
         sshagent(credentials: ['status-im-auto-ssh']) {
-          sh 'yarn run deploy'
+          sh 'npm run deploy'
         }
       } }
     }
