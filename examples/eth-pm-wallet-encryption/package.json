@@ -18,15 +18,13 @@
     "js-waku": "../../build/main",
     "protobufjs": "^6.11.2",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-scripts": "4.0.3",
-    "typescript": "^4.1.2"
+    "react-dom": "^17.0.2"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "cra-webpack-rewired start",
     "build": "run-s build:*",
-    "build:react": "react-scripts build",
-    "eject": "react-scripts eject",
+    "build:react": "cra-webpack-rewired build",
+    "eject": "cra-webpack-rewired eject",
     "fix": "run-s fix:*",
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts --ext .tsx",
@@ -44,6 +42,8 @@
   "browserslist": {
     "production": [
       ">0.2%",
+      "not ie <= 99",
+      "not android <= 4.4.4",
       "not dead",
       "not op_mini all"
     ],
@@ -56,9 +56,12 @@
   "devDependencies": {
     "@ethersproject/shims": "^5.3.0",
     "@types/node": "^14.17.3",
+    "cra-webpack-rewired": "^1.0.1",
     "cspell": "^5.6.6",
-    "eslint": "^7.29.0",
+    "eslint": "^8.7.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.3.1"
+    "prettier": "^2.3.1",
+    "react-scripts": "5.0.0",
+    "typescript": "^4.5.5"
   }
 }
