@@ -23,9 +23,15 @@ pipeline {
       }
     }
 
-    stage('Build') {
+    stage('Build doc') {
       steps {
         sh 'npm run doc'
+      }
+    }
+
+    stage('Build') {
+      steps {
+        sh 'npm run build'
       }
     }
 
