@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Test: Upgrade nim-waku node to v0.7. 
-- Doc: Renamed "DappConnect" to "Waku Connect". 
+- Doc: Renamed "DappConnect" to "Waku Connect".
+- Docs: API Docs are now available at https://js-waku.wakuconnect.dev/.
 
 ## [0.15.0] - 2022-01-17
 
@@ -64,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not the ordering of messages with the page.
 
 ### Fixed
-- Docs: Ensure that `WakuStore`'s `QueryOptions` documentation is available [online](https://status-im.github.io/js-waku/docs/).
+- Docs: Ensure that `WakuStore`'s `QueryOptions` documentation is available [online](https://js-waku.wakuconnect.dev/).
 
 ## [0.13.1] - 2021-09-21
 
