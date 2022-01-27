@@ -39,7 +39,7 @@ pipeline {
       steps {
         script {
           parallel genExampleBuilds([
-            'js-waku', 'web-chat', 'eth-pm', 'eth-pm-wallet'
+            'web-chat', 'eth-pm', 'eth-pm-wallet-encryption'
           ])
         }
       }
