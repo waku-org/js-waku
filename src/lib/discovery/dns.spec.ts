@@ -176,7 +176,7 @@ describe('DNS Node Discovery [live data]', function () {
   const maxQuantity = 3;
 
   before(function () {
-    if (process.env.CI && !process.env.LIVE_DATA_TESTS) {
+    if (process.env.CI) {
       this.skip();
     }
   });

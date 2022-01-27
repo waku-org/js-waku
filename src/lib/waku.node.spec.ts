@@ -63,13 +63,19 @@ describe('Waku Dial [node only]', function () {
     });
   });
 
-  describe('Bootstrap', function () {
+  describe('Bootstrap [live data]', function () {
     let waku: Waku;
     let nimWaku: NimWaku;
 
     afterEach(async function () {
       nimWaku ? nimWaku.stop() : null;
       waku ? await waku.stop() : null;
+    });
+
+    before(function () {
+      if (process.env.CI) {
+        this.skip();
+      }
     });
 
     it('Enabling default [live data]', async function () {
@@ -89,6 +95,16 @@ describe('Waku Dial [node only]', function () {
       });
 
       expect(connectedPeerID).to.not.be.undefined;
+    });
+  });
+
+  describe('Bootstrap', function () {
+    let waku: Waku;
+    let nimWaku: NimWaku;
+
+    afterEach(async function () {
+      nimWaku ? nimWaku.stop() : null;
+      waku ? await waku.stop() : null;
     });
 
     it('Passing an array', async function () {
