@@ -16,7 +16,8 @@ describe('ENRTree', () => {
   it('ENRTree (root): should error if DNS root entry is mis-prefixed', () => {
     try {
       ENRTree.parseAndVerifyRoot(dns.enrRootBadPrefix, dns.publicKey);
-    } catch (e) {
+    } catch (err: unknown) {
+      const e = err as Error;
       expect(e.toString()).includes(
         "ENRTree root entry must start with 'enrtree-root:'"
       );
@@ -26,7 +27,8 @@ describe('ENRTree', () => {
   it('ENRTree (root): should error if DNS root entry signature is invalid', () => {
     try {
       ENRTree.parseAndVerifyRoot(dns.enrRootBadSig, dns.publicKey);
-    } catch (e) {
+    } catch (err: unknown) {
+      const e = err as Error;
       expect(e.toString()).includes('Unable to verify ENRTree root signature');
     }
   });
@@ -34,7 +36,8 @@ describe('ENRTree', () => {
   it('ENRTree (root): should error if DNS root entry is malformed', () => {
     try {
       ENRTree.parseAndVerifyRoot(dns.enrRootMalformed, dns.publicKey);
-    } catch (e) {
+    } catch (err: unknown) {
+      const e = err as Error;
       expect(e.toString()).includes('Could not parse ENRTree root entry');
     }
   });
@@ -50,7 +53,8 @@ describe('ENRTree', () => {
   it('ENRTree (tree): should error if DNS tree entry is mis-prefixed', () => {
     try {
       ENRTree.parseTree(dns.enrTreeBadPrefix);
-    } catch (e) {
+    } catch (err: unknown) {
+      const e = err as Error;
       expect(e.toString()).includes(
         "ENRTree tree entry must start with 'enrtree:'"
       );
@@ -60,7 +64,8 @@ describe('ENRTree', () => {
   it('ENRTree (tree): should error if DNS tree entry is misformatted', () => {
     try {
       ENRTree.parseTree(dns.enrTreeMalformed);
-    } catch (e) {
+    } catch (err: unknown) {
+      const e = err as Error;
       expect(e.toString()).includes('Could not parse ENRTree tree entry');
     }
   });
@@ -80,7 +85,8 @@ describe('ENRTree', () => {
   it('ENRTree (branch): should error if DNS branch entry is mis-prefixed', () => {
     try {
       ENRTree.parseBranch(dns.enrBranchBadPrefix);
-    } catch (e) {
+    } catch (err: unknown) {
+      const e = err as Error;
       expect(e.toString()).includes(
         "ENRTree branch entry must start with 'enrtree-branch:'"
       );

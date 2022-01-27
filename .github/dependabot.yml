@@ -25,3 +25,15 @@ updates:
       interval: "daily"
     reviewers:
       - "d4nte"
+  - package-ecosystem: "npm"
+    directory: "/examples/eth-pm"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "d4nte"
+  - package-ecosystem: "npm"
+    directory: "/examples/eth-pm-wallet-encryption"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "d4nte"
