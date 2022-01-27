@@ -73,7 +73,7 @@ describe('Waku Dial [node only]', function () {
     });
 
     before(function () {
-      if (process.env.CI && !process.env.LIVE_DATA_TESTS) {
+      if (process.env.CI) {
         this.skip();
       }
     });
