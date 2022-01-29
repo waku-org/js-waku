@@ -54,7 +54,7 @@
     ]
   },
   "devDependencies": {
-    "@ethersproject/shims": "^5.3.0",
+    "@ethersproject/shims": "^5.5.0",
     "@types/node": "^17.0.13",
     "cra-webpack-rewired": "^1.0.1",
     "cspell": "^5.17.0",
