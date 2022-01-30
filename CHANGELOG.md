@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test: Upgrade nim-waku node to v0.7. 
 - Doc: Renamed "DappConnect" to "Waku Connect".
 - Docs: API Docs are now available at https://js-waku.wakuconnect.dev/.
+- **Breaking**: Replace `waitForConnectedPeer` with `waitForRemotePeer`; the new method checks that the peer is ready before resolving the promise.
 
 ## [0.15.0] - 2022-01-17
 

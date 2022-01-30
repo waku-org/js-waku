@@ -8,15 +8,13 @@ import {
   NOISE_KEY_2,
 } from '../../test_utils';
 import { delay } from '../delay';
-import { DefaultPubSubTopic, Waku } from '../waku';
+import { DefaultPubSubTopic, Protocols, Waku } from '../waku';
 import { DecryptionMethod, WakuMessage } from '../waku_message';
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from '../waku_message/version_1';
-
-import { RelayCodecs } from './constants';
 
 const log = debug('waku:test');
 
@@ -50,16 +48,8 @@ describe('Waku Relay [node only]', () => {
 
       log('Wait for mutual pubsub subscription');
       await Promise.all([
-        new Promise((resolve) =>
-          waku1.libp2p.pubsub.once('pubsub:subscription-change', () =>
-            resolve(null)
-          )
-        ),
-        new Promise((resolve) =>
-          waku2.libp2p.pubsub.once('pubsub:subscription-change', () =>
-            resolve(null)
-          )
-        ),
+        waku1.waitForRemotePeer([Protocols.Relay]),
+        waku2.waitForRemotePeer([Protocols.Relay]),
       ]);
       log('before each hook done');
     });
@@ -279,16 +269,8 @@ describe('Waku Relay [node only]', () => {
       waku3.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
 
       await Promise.all([
-        new Promise((resolve) =>
-          waku1.libp2p.pubsub.once('pubsub:subscription-change', () =>
-            resolve(null)
-          )
-        ),
-        new Promise((resolve) =>
-          waku2.libp2p.pubsub.once('pubsub:subscription-change', () =>
-            resolve(null)
-          )
-        ),
+        waku1.waitForRemotePeer([Protocols.Relay]),
+        waku2.waitForRemotePeer([Protocols.Relay]),
         // No subscription change expected for Waku 3
       ]);
 
@@ -336,12 +318,7 @@ describe('Waku Relay [node only]', () => {
       await nimWaku.start();
 
       await waku.dial(await nimWaku.getMultiaddrWithId());
-      await waku.waitForConnectedPeer([RelayCodecs]);
-
-      // Wait for one heartbeat to ensure mesh is updated
-      await new Promise((resolve) => {
-        waku.libp2p.pubsub.once('gossipsub:heartbeat', resolve);
-      });
+      await waku.waitForRemotePeer([Protocols.Relay]);
     });
 
     afterEach(async function () {
@@ -444,17 +421,8 @@ describe('Waku Relay [node only]', () => {
 
         // Wait for identify protocol to finish
         await Promise.all([
-          waku1.waitForConnectedPeer([RelayCodecs]),
-          waku2.waitForConnectedPeer([RelayCodecs]),
-        ]);
-
-        await Promise.all([
-          new Promise((resolve) =>
-            waku1.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-          ),
-          new Promise((resolve) =>
-            waku2.libp2p.pubsub.once('gossipsub:heartbeat', resolve)
-          ),
+          waku1.waitForRemotePeer([Protocols.Relay]),
+          waku2.waitForRemotePeer([Protocols.Relay]),
         ]);
 
         await delay(2000);

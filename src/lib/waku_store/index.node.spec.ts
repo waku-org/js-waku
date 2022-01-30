@@ -8,7 +8,7 @@ import {
   NOISE_KEY_2,
 } from '../../test_utils';
 import { delay } from '../delay';
-import { Waku } from '../waku';
+import { Protocols, Waku } from '../waku';
 import { DecryptionMethod, WakuMessage } from '../waku_message';
 import {
   generatePrivateKey,
@@ -17,8 +17,6 @@ import {
 } from '../waku_message/version_1';
 
 import { PageDirection } from './history_rpc';
-
-import { StoreCodec } from './index';
 
 const dbg = debug('waku:test:store');
 
@@ -51,7 +49,7 @@ describe('Waku Store', () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-    await waku.waitForConnectedPeer([[StoreCodec]]);
+    await waku.waitForRemotePeer([Protocols.Store]);
     const messages = await waku.store.queryHistory([]);
 
     expect(messages?.length).eq(2);
@@ -81,7 +79,7 @@ describe('Waku Store', () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-    await waku.waitForConnectedPeer([[StoreCodec]]);
+    await waku.waitForRemotePeer([Protocols.Store]);
 
     let messages: WakuMessage[] = [];
 
@@ -118,7 +116,7 @@ describe('Waku Store', () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-    await waku.waitForConnectedPeer([[StoreCodec]]);
+    await waku.waitForRemotePeer([Protocols.Store]);
 
     let messages: WakuMessage[] = [];
     const desiredMsgs = 14;
@@ -152,7 +150,7 @@ describe('Waku Store', () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-    await waku.waitForConnectedPeer([[StoreCodec]]);
+    await waku.waitForRemotePeer([Protocols.Store]);
 
     const messages = await waku.store.queryHistory([], {
       pageDirection: PageDirection.FORWARD,
@@ -189,7 +187,7 @@ describe('Waku Store', () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-    await waku.waitForConnectedPeer([[StoreCodec]]);
+    await waku.waitForRemotePeer([Protocols.Store]);
 
     const nimPeerId = await nimWaku.getPeerId();
 
@@ -453,7 +451,7 @@ describe('Waku Store', () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-    await waku.waitForConnectedPeer([[StoreCodec]]);
+    await waku.waitForRemotePeer([Protocols.Store]);
 
     const nimPeerId = await nimWaku.getPeerId();
 

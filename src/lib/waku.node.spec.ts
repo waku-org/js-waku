@@ -10,10 +10,9 @@ import {
 } from '../test_utils/';
 
 import { delay } from './delay';
-import { Waku } from './waku';
+import { Protocols, Waku } from './waku';
 import { WakuMessage } from './waku_message';
 import { generateSymmetricKey } from './waku_message/version_1';
-import { RelayCodecs } from './waku_relay';
 
 const dbg = debug('waku:test');
 
@@ -39,7 +38,7 @@ describe('Waku Dial [node only]', function () {
         staticNoiseKey: NOISE_KEY_1,
       });
       await waku.dial(multiAddrWithId);
-      await waku.waitForConnectedPeer([RelayCodecs]);
+      await waku.waitForRemotePeer([Protocols.Relay]);
 
       let nimPeers = await nimWaku.peers();
       while (nimPeers.length === 0) {
@@ -176,16 +175,8 @@ describe('Decryption Keys', () => {
     waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
 
     await Promise.all([
-      new Promise((resolve) =>
-        waku1.libp2p.pubsub.once('pubsub:subscription-change', () =>
-          resolve(null)
-        )
-      ),
-      new Promise((resolve) =>
-        waku2.libp2p.pubsub.once('pubsub:subscription-change', () =>
-          resolve(null)
-        )
-      ),
+      waku1.waitForRemotePeer([Protocols.Relay]),
+      waku2.waitForRemotePeer([Protocols.Relay]),
     ]);
   });
 
