@@ -199,3 +199,67 @@ describe('Decryption Keys', () => {
     expect(receivedMsg.timestamp?.valueOf()).to.eq(messageTimestamp.valueOf());
   });
 });
+
+describe('Wait for remote peer / get peers', function () {
+  let waku: Waku;
+  let nimWaku: NimWaku;
+
+  afterEach(async function () {
+    nimWaku ? nimWaku.stop() : null;
+    waku ? await waku.stop() : null;
+  });
+
+  it('Relay', async function () {
+    this.timeout(20_000);
+    nimWaku = new NimWaku(makeLogFileName(this));
+    await nimWaku.start();
+    const multiAddrWithId = await nimWaku.getMultiaddrWithId();
+
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+    await waku.dial(multiAddrWithId);
+    await waku.waitForRemotePeer([Protocols.Relay]);
+    const peers = waku.relay.getPeers();
+    const nimPeerId = multiAddrWithId.getPeerId();
+
+    expect(nimPeerId).to.not.be.undefined;
+    expect(peers.has(nimPeerId as string)).to.be.true;
+  });
+
+  it('Store', async function () {
+    this.timeout(20_000);
+    nimWaku = new NimWaku(makeLogFileName(this));
+    await nimWaku.start({ persistMessages: true });
+    const multiAddrWithId = await nimWaku.getMultiaddrWithId();
+
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+    await waku.dial(multiAddrWithId);
+    await waku.waitForRemotePeer([Protocols.Store]);
+    const peers = waku.store.peers.map((peer) => peer.id.toB58String());
+    const nimPeerId = multiAddrWithId.getPeerId();
+
+    expect(nimPeerId).to.not.be.undefined;
+    expect(peers.includes(nimPeerId as string)).to.be.true;
+  });
+
+  it('LightPush', async function () {
+    this.timeout(20_000);
+    nimWaku = new NimWaku(makeLogFileName(this));
+    await nimWaku.start({ lightpush: true });
+    const multiAddrWithId = await nimWaku.getMultiaddrWithId();
+
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+    await waku.dial(multiAddrWithId);
+    await waku.waitForRemotePeer([Protocols.LightPush]);
+    const peers = waku.lightPush.peers.map((peer) => peer.id.toB58String());
+    const nimPeerId = multiAddrWithId.getPeerId();
+
+    expect(nimPeerId).to.not.be.undefined;
+    expect(peers.includes(nimPeerId as string)).to.be.true;
+  });
+});
