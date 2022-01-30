@@ -44,41 +44,6 @@ describe('Waku Dial [node only]', function () {
     });
   });
 
-  describe('Bootstrap [live data]', function () {
-    let waku: Waku;
-    let nimWaku: NimWaku;
-
-    afterEach(async function () {
-      !!nimWaku && nimWaku.stop();
-      !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
-    });
-
-    before(function () {
-      if (process.env.CI) {
-        this.skip();
-      }
-    });
-
-    it('Enabling default [live data]', async function () {
-      // This test depends on fleets.status.im being online.
-      // This dependence must be removed once DNS discovery is implemented
-      this.timeout(20_000);
-
-      waku = await Waku.create({
-        staticNoiseKey: NOISE_KEY_1,
-        bootstrap: { default: true },
-      });
-
-      const connectedPeerID: PeerId = await new Promise((resolve) => {
-        waku.libp2p.connectionManager.on('peer:connect', (connection) => {
-          resolve(connection.remotePeer);
-        });
-      });
-
-      expect(connectedPeerID).to.not.be.undefined;
-    });
-  });
-
   describe('Bootstrap', function () {
     let waku: Waku;
     let nimWaku: NimWaku;
