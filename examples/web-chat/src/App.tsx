@@ -129,7 +129,7 @@ export default function App() {
     if (historicalMessagesRetrieved) return;
 
     const retrieveMessages = async () => {
-      await waku.waitForConnectedPeer();
+      await waku.waitForRemotePeer();
       console.log(`Retrieving archived messages}`);
 
       try {

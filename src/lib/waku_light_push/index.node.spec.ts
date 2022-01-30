@@ -2,7 +2,7 @@ import { expect } from 'chai';
 
 import { makeLogFileName, NimWaku, NOISE_KEY_1 } from '../../test_utils';
 import { delay } from '../delay';
-import { Waku } from '../waku';
+import { Protocols, Waku } from '../waku';
 import { WakuMessage } from '../waku_message';
 
 const TestContentTopic = '/test/1/waku-light-push/utf8';
@@ -26,7 +26,7 @@ describe('Waku Light Push [node only]', () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-    await waku.waitForConnectedPeer();
+    await waku.waitForRemotePeer([Protocols.LightPush]);
 
     const messageText = 'Light Push works!';
     const message = await WakuMessage.fromUtf8String(
@@ -62,7 +62,7 @@ describe('Waku Light Push [node only]', () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.dial(await nimWaku.getMultiaddrWithId());
-    await waku.waitForConnectedPeer();
+    await waku.waitForRemotePeer([Protocols.LightPush]);
 
     const nimPeerId = await nimWaku.getPeerId();
 

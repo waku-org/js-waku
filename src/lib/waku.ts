@@ -13,7 +13,6 @@ import Websockets from 'libp2p-websockets';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
 import filters from 'libp2p-websockets/src/filters';
-import { Peer } from 'libp2p/dist/src/peer-store';
 import Ping from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
@@ -37,6 +36,12 @@ export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 export const DefaultPubSubTopic = '/waku/2/default-waku/proto';
 
 const dbg = debug('waku:waku');
+
+export enum Protocols {
+  Relay = 'relay',
+  Store = 'store',
+  LightPush = 'lightpush',
+}
 
 export interface CreateOptions {
   /**
@@ -305,46 +310,91 @@ export class Waku {
   }
 
   /**
-   * Wait to be connected to a peer. Useful when using the [[CreateOptions.bootstrap]]
-   * with [[Waku.create]]. The Promise resolves only once we are connected to a
-   * Store peer, Relay peer and Light Push peer.
+   * Wait for a remote peer to be ready given the passed protocols.
+   * Useful when using the [[CreateOptions.bootstrap]] with [[Waku.create]].
+   *
+   * @default Remote peer must have Waku Store and Waku Relay enabled.
    */
-  async waitForConnectedPeer(protocols?: string[][]): Promise<void> {
-    const desiredProtocols = protocols ?? [
-      [StoreCodec],
-      [LightPushCodec],
-      RelayCodecs,
-    ];
+  async waitForRemotePeer(protocols?: Protocols[]): Promise<void> {
+    const desiredProtocols = protocols ?? [Protocols.Relay, Protocols.Store];
 
-    await Promise.all(
-      desiredProtocols.map((desiredProtocolVersions) => {
-        const peers = new Array<Peer>();
-        desiredProtocolVersions.forEach((proto) => {
-          getPeersForProtocol(this.libp2p, proto).forEach((peer) =>
-            peers.push(peer)
+    const promises = [];
+
+    if (desiredProtocols.includes(Protocols.Relay)) {
+      const peers = [];
+
+      RelayCodecs.forEach((proto) => {
+        getPeersForProtocol(this.libp2p, proto).forEach((peer) =>
+          peers.push(peer)
+        );
+      });
+
+      if (peers.length == 0) {
+        // No peer available for this protocol, waiting to connect to one.
+        const promise = new Promise<void>((resolve) => {
+          this.libp2p.peerStore.on(
+            'change:protocols',
+            ({ protocols: connectedPeerProtocols }) => {
+              RelayCodecs.forEach((relayProto) => {
+                if (connectedPeerProtocols.includes(relayProto)) {
+                  // Relay peer is ready once subscription has happen.
+                  this.libp2p.pubsub.once('pubsub:subscription-change', () => {
+                    dbg('Resolving for', relayProto, connectedPeerProtocols);
+                    resolve();
+                  });
+                }
+              });
+            }
           );
         });
+        promises.push(promise);
+      }
 
-        if (peers.length > 0) {
-          return Promise.resolve();
-        } else {
+      if (desiredProtocols.includes(Protocols.Store)) {
+        const peers = getPeersForProtocol(this.libp2p, StoreCodec);
+
+        if (peers.length == 0) {
           // No peer available for this protocol, waiting to connect to one.
-          return new Promise<void>((resolve) => {
+          const promise = new Promise<void>((resolve) => {
             this.libp2p.peerStore.on(
               'change:protocols',
               ({ protocols: connectedPeerProtocols }) => {
-                desiredProtocolVersions.forEach((desiredProto) => {
-                  if (connectedPeerProtocols.includes(desiredProto)) {
-                    dbg('Resolving for', desiredProto, connectedPeerProtocols);
-                    resolve();
-                  }
-                });
+                if (connectedPeerProtocols.includes(StoreCodec)) {
+                  dbg('Resolving for', StoreCodec, connectedPeerProtocols);
+                  resolve();
+                }
               }
             );
           });
+          promises.push(promise);
         }
-      })
-    );
+      }
+
+      if (desiredProtocols.includes(Protocols.LightPush)) {
+        const peers = getPeersForProtocol(this.libp2p, LightPushCodec);
+
+        if (peers.length == 0) {
+          // No peer available for this protocol, waiting to connect to one.
+          const promise = new Promise<void>((resolve) => {
+            this.libp2p.peerStore.on(
+              'change:protocols',
+              ({ protocols: connectedPeerProtocols }) => {
+                if (connectedPeerProtocols.includes(LightPushCodec)) {
+                  dbg('Resolving for', LightPushCodec, connectedPeerProtocols);
+                  resolve();
+                }
+              }
+            );
+          });
+
+          promises.push(promise);
+        }
+      }
+
+      await Promise.all(promises);
+    }
+
+    await Promise.all(promises);
   }
 
   private startKeepAlive(

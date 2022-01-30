@@ -28,7 +28,7 @@ function App() {
     Waku.create({ bootstrap: { default: true } }).then((waku) => {
       setWaku(waku);
       setWakuStatus('Connecting');
-      waku.waitForConnectedPeer().then(() => {
+      waku.waitForRemotePeer().then(() => {
         setWakuStatus('Ready');
       });
     });

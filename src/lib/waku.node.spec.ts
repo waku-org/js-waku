@@ -10,10 +10,9 @@ import {
 } from '../test_utils/';
 
 import { delay } from './delay';
-import { Waku } from './waku';
+import { Protocols, Waku } from './waku';
 import { WakuMessage } from './waku_message';
 import { generateSymmetricKey } from './waku_message/version_1';
-import { RelayCodecs } from './waku_relay';
 
 const dbg = debug('waku:test');
 
@@ -39,7 +38,7 @@ describe('Waku Dial [node only]', function () {
         staticNoiseKey: NOISE_KEY_1,
       });
       await waku.dial(multiAddrWithId);
-      await waku.waitForConnectedPeer([RelayCodecs]);
+      await waku.waitForRemotePeer([Protocols.Relay]);
 
       let nimPeers = await nimWaku.peers();
       while (nimPeers.length === 0) {

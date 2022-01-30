@@ -34,7 +34,7 @@ function App() {
     // We do not handle disconnection/re-connection in this example
     if (wakuStatus === 'Connected') return;
 
-    waku.waitForConnectedPeer().then(() => {
+    waku.waitForRemotePeer().then(() => {
       // We are now connected to a store node
       setWakuStatus('Connected');
     });

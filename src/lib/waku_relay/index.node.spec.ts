@@ -8,15 +8,13 @@ import {
   NOISE_KEY_2,
 } from '../../test_utils';
 import { delay } from '../delay';
-import { DefaultPubSubTopic, Waku } from '../waku';
+import { DefaultPubSubTopic, Protocols, Waku } from '../waku';
 import { DecryptionMethod, WakuMessage } from '../waku_message';
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from '../waku_message/version_1';
-
-import { RelayCodecs } from './constants';
 
 const log = debug('waku:test');
 
@@ -336,7 +334,7 @@ describe('Waku Relay [node only]', () => {
       await nimWaku.start();
 
       await waku.dial(await nimWaku.getMultiaddrWithId());
-      await waku.waitForConnectedPeer([RelayCodecs]);
+      await waku.waitForRemotePeer([Protocols.Relay]);
 
       // Wait for one heartbeat to ensure mesh is updated
       await new Promise((resolve) => {
@@ -444,8 +442,8 @@ describe('Waku Relay [node only]', () => {
 
         // Wait for identify protocol to finish
         await Promise.all([
-          waku1.waitForConnectedPeer([RelayCodecs]),
-          waku2.waitForConnectedPeer([RelayCodecs]),
+          waku1.waitForRemotePeer([Protocols.Relay]),
+          waku2.waitForRemotePeer([Protocols.Relay]),
         ]);
 
         await Promise.all([

@@ -9,8 +9,7 @@ import {
 } from '../../test_utils';
 import { delay } from '../delay';
 import { hexToBuf } from '../utils';
-import { Waku } from '../waku';
-import { RelayCodecs } from '../waku_relay';
+import { Protocols, Waku } from '../waku';
 
 import {
   generatePrivateKey,
@@ -39,7 +38,7 @@ describe('Waku Message [node only]', function () {
       await nimWaku.start({ rpcPrivate: true });
 
       await waku.dial(await nimWaku.getMultiaddrWithId());
-      await waku.waitForConnectedPeer([RelayCodecs]);
+      await waku.waitForRemotePeer([Protocols.Relay]);
 
       let peers = await waku.relay.getPeers();
       while (peers.size === 0) {
