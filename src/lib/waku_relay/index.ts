@@ -202,7 +202,7 @@ export class WakuRelay extends Gossipsub {
   }
 
   /**
-   * Return the relay peers we are connected to and we would publish a message to
+   * Return the relay peers we are connected to, and we would publish a message to
    */
   getPeers(): Set<string> {
     return getRelayPeers(this, this.pubSubTopic, this._options.D, (id) => {

@@ -48,7 +48,7 @@ async function find(tail: Tail, line: string): Promise<string> {
 }
 
 function clean(str: string): string {
-  return str.replace(/ /g, '_').replace(/[':()]/g, '');
+  return str.replace(/ /g, '_').replace(/[':()/]/g, '');
 }
 
 export function makeLogFileName(ctx: Context): string {

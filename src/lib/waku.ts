@@ -18,7 +18,6 @@ import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
 import { Bootstrap, BootstrapOptions } from './discovery';
-import { getPeersForProtocol } from './select_peer';
 import { LightPushCodec, WakuLightPush } from './waku_light_push';
 import { DecryptionMethod, WakuMessage } from './waku_message';
 import { RelayCodecs, WakuRelay } from './waku_relay';
@@ -321,13 +320,21 @@ export class Waku {
     const promises = [];
 
     if (desiredProtocols.includes(Protocols.Relay)) {
-      const peers = [];
+      const peers = this.relay.getPeers();
 
-      RelayCodecs.forEach((proto) => {
-        getPeersForProtocol(this.libp2p, proto).forEach((peer) =>
-          peers.push(peer)
-        );
-      });
+      if (peers.size == 0) {
+        // No peer yet available, wait for a subscription
+        const promise = new Promise<void>((resolve) => {
+          this.libp2p.pubsub.once('pubsub:subscription-change', () => {
+            resolve();
+          });
+        });
+        promises.push(promise);
+      }
+    }
+
+    if (desiredProtocols.includes(Protocols.Store)) {
+      const peers = this.store.peers;
 
       if (peers.length == 0) {
         // No peer available for this protocol, waiting to connect to one.
@@ -335,63 +342,36 @@ export class Waku {
           this.libp2p.peerStore.on(
             'change:protocols',
             ({ protocols: connectedPeerProtocols }) => {
-              RelayCodecs.forEach((relayProto) => {
-                if (connectedPeerProtocols.includes(relayProto)) {
-                  // Relay peer is ready once subscription has happen.
-                  this.libp2p.pubsub.once('pubsub:subscription-change', () => {
-                    dbg('Resolving for', relayProto, connectedPeerProtocols);
-                    resolve();
-                  });
-                }
-              });
+              if (connectedPeerProtocols.includes(StoreCodec)) {
+                dbg('Resolving for', StoreCodec, connectedPeerProtocols);
+                resolve();
+              }
             }
           );
         });
         promises.push(promise);
       }
+    }
 
-      if (desiredProtocols.includes(Protocols.Store)) {
-        const peers = getPeersForProtocol(this.libp2p, StoreCodec);
+    if (desiredProtocols.includes(Protocols.LightPush)) {
+      const peers = this.lightPush.peers;
 
-        if (peers.length == 0) {
-          // No peer available for this protocol, waiting to connect to one.
-          const promise = new Promise<void>((resolve) => {
-            this.libp2p.peerStore.on(
-              'change:protocols',
-              ({ protocols: connectedPeerProtocols }) => {
-                if (connectedPeerProtocols.includes(StoreCodec)) {
-                  dbg('Resolving for', StoreCodec, connectedPeerProtocols);
-                  resolve();
-                }
+      if (peers.length == 0) {
+        // No peer available for this protocol, waiting to connect to one.
+        const promise = new Promise<void>((resolve) => {
+          this.libp2p.peerStore.on(
+            'change:protocols',
+            ({ protocols: connectedPeerProtocols }) => {
+              if (connectedPeerProtocols.includes(LightPushCodec)) {
+                dbg('Resolving for', LightPushCodec, connectedPeerProtocols);
+                resolve();
               }
-            );
-          });
-          promises.push(promise);
-        }
+            }
+          );
+        });
+
+        promises.push(promise);
       }
-
-      if (desiredProtocols.includes(Protocols.LightPush)) {
-        const peers = getPeersForProtocol(this.libp2p, LightPushCodec);
-
-        if (peers.length == 0) {
-          // No peer available for this protocol, waiting to connect to one.
-          const promise = new Promise<void>((resolve) => {
-            this.libp2p.peerStore.on(
-              'change:protocols',
-              ({ protocols: connectedPeerProtocols }) => {
-                if (connectedPeerProtocols.includes(LightPushCodec)) {
-                  dbg('Resolving for', LightPushCodec, connectedPeerProtocols);
-                  resolve();
-                }
-              }
-            );
-          });
-
-          promises.push(promise);
-        }
-      }
-
-      await Promise.all(promises);
     }
 
     await Promise.all(promises);
