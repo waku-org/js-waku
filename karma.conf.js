@@ -5,12 +5,14 @@ module.exports = function (config) {
     frameworks: ['mocha', 'karma-typescript'],
     files: ['src/lib/**/*.ts', 'src/proto/**/*.ts'],
     preprocessors: {
-      '**/*.ts': ['karma-typescript'],
+      '**/*.ts': ['karma-typescript', 'env'],
     },
+    envPreprocessor: ['CI'],
     plugins: [
       require('karma-mocha'),
       require('karma-typescript'),
       require('karma-chrome-launcher'),
+      require('karma-env-preprocessor'),
     ],
     reporters: ['progress', 'karma-typescript'],
     browsers: ['ChromeHeadless'],

@@ -176,7 +176,8 @@ describe('DNS Node Discovery [live data]', function () {
   const maxQuantity = 3;
 
   before(function () {
-    if (process.env.CI) {
+    const _window = window as any;
+    if (process.env.CI || _window.__env__.CI) {
       this.skip();
     }
   });
