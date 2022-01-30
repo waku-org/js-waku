@@ -175,16 +175,8 @@ describe('Decryption Keys', () => {
     waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
 
     await Promise.all([
-      new Promise((resolve) =>
-        waku1.libp2p.pubsub.once('pubsub:subscription-change', () =>
-          resolve(null)
-        )
-      ),
-      new Promise((resolve) =>
-        waku2.libp2p.pubsub.once('pubsub:subscription-change', () =>
-          resolve(null)
-        )
-      ),
+      waku1.waitForRemotePeer([Protocols.Relay]),
+      waku2.waitForRemotePeer([Protocols.Relay]),
     ]);
   });
 
