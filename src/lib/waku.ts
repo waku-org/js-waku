@@ -326,7 +326,9 @@ export class Waku {
         // No peer yet available, wait for a subscription
         const promise = new Promise<void>((resolve) => {
           this.libp2p.pubsub.once('pubsub:subscription-change', () => {
-            resolve();
+            // Remote peer subscribed to topic, now wait for a heartbeat
+            // so that the mesh is updated and the remote peer added to it
+            this.libp2p.pubsub.once('gossipsub:heartbeat', resolve);
           });
         });
         promises.push(promise);
