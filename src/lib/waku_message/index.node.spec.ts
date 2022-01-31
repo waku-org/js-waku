@@ -46,8 +46,8 @@ describe('Waku Message [node only]', function () {
     });
 
     afterEach(async function () {
-      nimWaku ? nimWaku.stop() : null;
-      waku ? await waku.stop() : null;
+      !!nimWaku && nimWaku.stop();
+      !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
     });
 
     it('JS decrypts nim message [asymmetric, no signature]', async function () {

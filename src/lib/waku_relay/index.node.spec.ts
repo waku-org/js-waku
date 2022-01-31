@@ -55,9 +55,10 @@ describe('Waku Relay [node only]', () => {
     });
 
     afterEach(async function () {
-      this.timeout(5000);
-      await waku1.stop();
-      await waku2.stop();
+      !!waku1 &&
+        waku1.stop().catch((e) => console.log('Waku failed to stop', e));
+      !!waku2 &&
+        waku2.stop().catch((e) => console.log('Waku failed to stop', e));
     });
 
     it('Subscribe', async function () {
@@ -322,8 +323,8 @@ describe('Waku Relay [node only]', () => {
     });
 
     afterEach(async function () {
-      nimWaku ? nimWaku.stop() : null;
-      waku ? await waku.stop() : null;
+      !!nimWaku && nimWaku.stop();
+      !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
     });
 
     it('nim subscribes to js', async function () {
@@ -392,11 +393,11 @@ describe('Waku Relay [node only]', () => {
       let nimWaku: NimWaku;
 
       afterEach(async function () {
-        nimWaku ? nimWaku.stop() : null;
-        await Promise.all([
-          waku1 ? await waku1.stop() : null,
-          waku2 ? await waku2.stop() : null,
-        ]);
+        !!nimWaku && nimWaku.stop();
+        !!waku1 &&
+          waku1.stop().catch((e) => console.log('Waku failed to stop', e));
+        !!waku2 &&
+          waku2.stop().catch((e) => console.log('Waku failed to stop', e));
       });
 
       it('Js publishes, other Js receives', async function () {

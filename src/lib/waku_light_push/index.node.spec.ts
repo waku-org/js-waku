@@ -15,8 +15,8 @@ describe('Waku Light Push [node only]', () => {
   let nimWaku: NimWaku;
 
   afterEach(async function () {
-    nimWaku ? nimWaku.stop() : null;
-    waku ? await waku.stop() : null;
+    !!nimWaku && nimWaku.stop();
+    !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
   });
 
   it('Push successfully', async function () {
