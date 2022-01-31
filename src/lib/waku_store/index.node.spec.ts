@@ -27,8 +27,8 @@ describe('Waku Store', () => {
   let nimWaku: NimWaku;
 
   afterEach(async function () {
-    nimWaku ? nimWaku.stop() : null;
-    waku ? await waku.stop() : null;
+    !!nimWaku && nimWaku.stop();
+    !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
   });
 
   it('Retrieves history', async function () {
@@ -301,7 +301,8 @@ describe('Waku Store', () => {
     expect(messages[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
     expect(messages[2].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
 
-    await Promise.all([waku1.stop(), waku2.stop()]);
+    !!waku1 && waku1.stop().catch((e) => console.log('Waku failed to stop', e));
+    !!waku2 && waku2.stop().catch((e) => console.log('Waku failed to stop', e));
   });
 
   it('Retrieves history with asymmetric & symmetric encrypted messages on different content topics', async function () {
@@ -415,7 +416,8 @@ describe('Waku Store', () => {
     expect(messages[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
     expect(messages[2].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
 
-    await Promise.all([waku1.stop(), waku2.stop()]);
+    !!waku1 && waku1.stop().catch((e) => console.log('Waku failed to stop', e));
+    !!waku2 && waku2.stop().catch((e) => console.log('Waku failed to stop', e));
   });
 
   it('Retrieves history using start and end time', async function () {

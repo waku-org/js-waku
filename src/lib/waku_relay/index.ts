@@ -385,10 +385,12 @@ export class WakuRelay extends Gossipsub {
     });
     // Publish messages to peers
     const rpc = createGossipRpc([Gossipsub.utils.normalizeOutRpcMessage(msg)]);
+    dbg(`Relay message to ${toSend.size} peers`);
     toSend.forEach((id) => {
       if (id === msg.from) {
         return;
       }
+      dbg('Relay message to', id);
       this._sendRpc(id, rpc);
     });
   }

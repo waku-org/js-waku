@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import debug from 'debug';
 import PeerId from 'peer-id';
 
 import {
@@ -12,6 +13,8 @@ import { Protocols, Waku } from './waku';
 import { WakuMessage } from './waku_message';
 import { generateSymmetricKey } from './waku_message/version_1';
 
+const dbg = debug('waku:test');
+
 const TestContentTopic = '/test/1/waku/utf8';
 
 describe('Waku Dial [node only]', function () {
@@ -20,8 +23,8 @@ describe('Waku Dial [node only]', function () {
     let nimWaku: NimWaku;
 
     afterEach(async function () {
-      nimWaku ? nimWaku.stop() : null;
-      waku ? await waku.stop() : null;
+      !!nimWaku && nimWaku.stop();
+      !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
     });
 
     it('js connects to nim', async function () {
@@ -48,8 +51,8 @@ describe('Waku Dial [node only]', function () {
     let nimWaku: NimWaku;
 
     afterEach(async function () {
-      nimWaku ? nimWaku.stop() : null;
-      waku ? await waku.stop() : null;
+      !!nimWaku && nimWaku.stop();
+      !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
     });
 
     before(function () {
@@ -83,8 +86,8 @@ describe('Waku Dial [node only]', function () {
     let nimWaku: NimWaku;
 
     afterEach(async function () {
-      nimWaku ? nimWaku.stop() : null;
-      waku ? await waku.stop() : null;
+      !!nimWaku && nimWaku.stop();
+      !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
     });
 
     it('Passing an array', async function () {
@@ -145,6 +148,7 @@ describe('Decryption Keys', () => {
   let waku1: Waku;
   let waku2: Waku;
   beforeEach(async function () {
+    this.timeout(5000);
     [waku1, waku2] = await Promise.all([
       Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
       Waku.create({
@@ -162,9 +166,8 @@ describe('Decryption Keys', () => {
   });
 
   afterEach(async function () {
-    this.timeout(5000);
-    await waku1.stop();
-    await waku2.stop();
+    !!waku1 && waku1.stop().catch((e) => console.log('Waku failed to stop', e));
+    !!waku2 && waku2.stop().catch((e) => console.log('Waku failed to stop', e));
   });
 
   it('Used by Waku Relay', async function () {
@@ -205,8 +208,8 @@ describe('Wait for remote peer / get peers', function () {
   let nimWaku: NimWaku;
 
   afterEach(async function () {
-    nimWaku ? nimWaku.stop() : null;
-    waku ? await waku.stop() : null;
+    !!nimWaku && nimWaku.stop();
+    !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
   });
 
   it('Relay', async function () {
@@ -215,11 +218,15 @@ describe('Wait for remote peer / get peers', function () {
     await nimWaku.start();
     const multiAddrWithId = await nimWaku.getMultiaddrWithId();
 
+    dbg('Create');
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
     });
+    dbg('Dial');
     await waku.dial(multiAddrWithId);
+    dbg('waitForRemotePeer');
     await waku.waitForRemotePeer([Protocols.Relay]);
+    dbg('Done, get peers');
     const peers = waku.relay.getPeers();
     const nimPeerId = multiAddrWithId.getPeerId();
 
