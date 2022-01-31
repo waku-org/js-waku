@@ -35,16 +35,10 @@ describe('Waku Message [node only]', function () {
       });
 
       nimWaku = new NimWaku(makeLogFileName(this));
-      await nimWaku.start({ rpcPrivate: true });
+      await nimWaku.start({ rpcPrivate: true, lightpush: true });
 
       await waku.dial(await nimWaku.getMultiaddrWithId());
-      await waku.waitForRemotePeer([Protocols.Relay]);
-
-      let peers = await waku.relay.getPeers();
-      while (peers.size === 0) {
-        await delay(200);
-        peers = await waku.relay.getPeers();
-      }
+      await waku.waitForRemotePeer([Protocols.Relay, Protocols.LightPush]);
     });
 
     afterEach(async function () {
