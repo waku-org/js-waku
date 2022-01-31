@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import debug from 'debug';
 import PeerId from 'peer-id';
 
 import {
@@ -11,6 +12,8 @@ import {
 import { Protocols, Waku } from './waku';
 import { WakuMessage } from './waku_message';
 import { generateSymmetricKey } from './waku_message/version_1';
+
+const dbg = debug('waku:test');
 
 const TestContentTopic = '/test/1/waku/utf8';
 
@@ -145,6 +148,7 @@ describe('Decryption Keys', () => {
   let waku1: Waku;
   let waku2: Waku;
   beforeEach(async function () {
+    this.timeout(5000);
     [waku1, waku2] = await Promise.all([
       Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
       Waku.create({
@@ -215,11 +219,15 @@ describe('Wait for remote peer / get peers', function () {
     await nimWaku.start();
     const multiAddrWithId = await nimWaku.getMultiaddrWithId();
 
+    dbg('Create');
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
     });
+    dbg('Dial');
     await waku.dial(multiAddrWithId);
+    dbg('waitForRemotePeer');
     await waku.waitForRemotePeer([Protocols.Relay]);
+    dbg('Done, get peers');
     const peers = waku.relay.getPeers();
     const nimPeerId = multiAddrWithId.getPeerId();
 

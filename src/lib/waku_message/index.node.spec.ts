@@ -115,6 +115,7 @@ describe('Waku Message [node only]', function () {
         payload: Buffer.from(messageText, 'utf-8').toString('hex'),
       };
 
+      dbg('Generate symmetric key');
       const symKey = generateSymmetricKey();
 
       waku.relay.addDecryptionKey(symKey);
@@ -125,10 +126,11 @@ describe('Waku Message [node only]', function () {
         }
       );
 
-      dbg('Post message');
+      dbg('Post message using nim-waku');
       await nimWaku.postSymmetricMessage(message, symKey);
-
+      dbg('Wait for message to be received by js-waku');
       const receivedMsg = await receivedMsgPromise;
+      dbg('Message received by js-waku');
 
       expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
       expect(receivedMsg.version).to.eq(1);
@@ -138,8 +140,9 @@ describe('Waku Message [node only]', function () {
     it('Js encrypts message for nim [symmetric, no signature]', async function () {
       this.timeout(5000);
 
+      dbg('Getting symmetric key from nim-waku');
       const symKey = await nimWaku.getSymmetricKey();
-
+      dbg('Encrypting message with js-waku');
       const messageText =
         'This is a message I am going to encrypt with a symmetric key';
       const message = await WakuMessage.fromUtf8String(
@@ -149,13 +152,14 @@ describe('Waku Message [node only]', function () {
           symKey: symKey,
         }
       );
-
+      dbg('Sending message over relay');
       await waku.relay.send(message);
 
       let msgs: WakuRelayMessage[] = [];
 
       while (msgs.length === 0) {
         await delay(200);
+        dbg('Getting messages from nim-waku');
         msgs = await nimWaku.getSymmetricMessages(symKey);
       }
 
