@@ -1,0 +1,21 @@
+{
+  "files": {
+    "main.css": "/js-waku/eth-pm/static/css/main.be75e159.css",
+    "main.js": "/js-waku/eth-pm/static/js/main.e0987458.js",
+    "static/media/roboto-all-400-normal.woff": "/js-waku/eth-pm/static/media/roboto-all-400-normal.b5a0a0df312d3423493b.woff",
+    "static/media/roboto-latin-400-normal.woff2": "/js-waku/eth-pm/static/media/roboto-latin-400-normal.176f8f5bd5f02b3abfcf.woff2",
+    "static/media/roboto-cyrillic-ext-400-normal.woff2": "/js-waku/eth-pm/static/media/roboto-cyrillic-ext-400-normal.dd55ea0a2e90d5d86e15.woff2",
+    "static/media/roboto-latin-ext-400-normal.woff2": "/js-waku/eth-pm/static/media/roboto-latin-ext-400-normal.dcc07bcfcd475f34f20b.woff2",
+    "static/media/roboto-cyrillic-400-normal.woff2": "/js-waku/eth-pm/static/media/roboto-cyrillic-400-normal.3605d18d8a4ce5bd39c3.woff2",
+    "static/media/roboto-greek-400-normal.woff2": "/js-waku/eth-pm/static/media/roboto-greek-400-normal.352cc77aaed5208ce13c.woff2",
+    "static/media/roboto-vietnamese-400-normal.woff2": "/js-waku/eth-pm/static/media/roboto-vietnamese-400-normal.52cebac009baf5592e7d.woff2",
+    "static/media/roboto-greek-ext-400-normal.woff2": "/js-waku/eth-pm/static/media/roboto-greek-ext-400-normal.bc7ace6e50c7d9d4d959.woff2",
+    "index.html": "/js-waku/eth-pm/index.html",
+    "main.be75e159.css.map": "/js-waku/eth-pm/static/css/main.be75e159.css.map",
+    "main.e0987458.js.map": "/js-waku/eth-pm/static/js/main.e0987458.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.be75e159.css",
+    "static/js/main.e0987458.js"
+  ]
+}

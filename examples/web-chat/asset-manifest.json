@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/js-waku/static/css/main.b267dcda.css",
+    "main.js": "/js-waku/static/js/main.82f73603.js",
+    "index.html": "/js-waku/index.html",
+    "main.b267dcda.css.map": "/js-waku/static/css/main.b267dcda.css.map",
+    "main.82f73603.js.map": "/js-waku/static/js/main.82f73603.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.b267dcda.css",
+    "static/js/main.82f73603.js"
+  ]
+}
