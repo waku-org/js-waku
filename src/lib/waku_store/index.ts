@@ -143,7 +143,10 @@ export class WakuStore {
       },
       { contentTopics }
     );
-    dbg('Querying history with the following options', options);
+    dbg('Querying history with the following options', {
+      peerId: options?.peerId?.toB58String(),
+      ...options,
+    });
 
     let peer;
     if (opts.peerId) {

@@ -4,13 +4,13 @@
  */
 
 import { ChildProcess, spawn } from 'child_process';
-import { randomInt } from 'crypto';
 
 import appRoot from 'app-root-path';
 import axios from 'axios';
 import debug from 'debug';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
+import portfinder from 'portfinder';
 
 import { hexToBuf } from '../lib/utils';
 import { DefaultPubSubTopic } from '../lib/waku';
@@ -22,7 +22,6 @@ import waitForLine from './log_file';
 
 const dbg = debug('waku:nim-waku');
 
-const NIM_WAKU_DEFAULT_RPC_PORT = 8545;
 const NIM_WAKU_DIR = appRoot + '/nim-waku';
 const NIM_WAKU_BIN = NIM_WAKU_DIR + '/build/wakunode2';
 
@@ -43,6 +42,9 @@ export interface Args {
   topics?: string;
   rpcPrivate?: boolean;
   websocketSupport?: boolean;
+  tcpPort?: number;
+  rpcPort?: number;
+  websocketPort?: number;
 }
 
 export enum LogLevel {
@@ -69,13 +71,12 @@ export interface WakuRelayMessage {
 export class NimWaku {
   private process?: ChildProcess;
   private pid?: number;
-  private portsShift: number;
   private peerId?: PeerId;
   private multiaddrWithId?: Multiaddr;
-  private logPath: string;
+  private readonly logPath: string;
+  private rpcPort?: number;
 
   constructor(logName: string) {
-    this.portsShift = randomInt(0, 5000);
     this.logPath = `${LOG_DIR}/nim-waku_${logName}.log`;
   }
 
@@ -95,14 +96,29 @@ export class NimWaku {
 
     const mergedArgs = defaultArgs();
 
+    const ports: number[] = await new Promise((resolve, reject) => {
+      portfinder.getPorts(3, {}, (err, ports) => {
+        if (err) reject(err);
+        resolve(ports);
+      });
+    });
+
+    this.rpcPort = ports[0];
+
     // Object.assign overrides the properties with the source (if there are conflicts)
     Object.assign(
       mergedArgs,
-      { portsShift: this.portsShift, logLevel: LogLevel.Trace },
+      {
+        tcpPort: ports[1],
+        rpcPort: this.rpcPort,
+        websocketPort: ports[2],
+        logLevel: LogLevel.Trace,
+      },
       args
     );
 
     const argsArray = argsToArray(mergedArgs);
+    dbg(`nim-waku args: ${argsArray}`);
     this.process = spawn(NIM_WAKU_BIN, argsArray, {
       cwd: NIM_WAKU_DIR,
       stdio: [
@@ -328,8 +344,7 @@ export class NimWaku {
   }
 
   get rpcUrl(): string {
-    const port = NIM_WAKU_DEFAULT_RPC_PORT + this.portsShift;
-    return `http://localhost:${port}/`;
+    return `http://localhost:${this.rpcPort}/`;
   }
 
   private async rpcCall<T>(

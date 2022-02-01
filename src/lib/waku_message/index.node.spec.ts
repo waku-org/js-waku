@@ -36,13 +36,17 @@ describe('Waku Message [node only]', function () {
 
       nimWaku = new NimWaku(makeLogFileName(this));
       dbg('Starting nim-waku node');
-      await nimWaku.start({ rpcPrivate: true, lightpush: true });
+      await nimWaku.start({ rpcPrivate: true });
 
       dbg('Dialing to nim-waku node');
       await waku.dial(await nimWaku.getMultiaddrWithId());
       dbg('Wait for remote peer');
-      await waku.waitForRemotePeer([Protocols.Relay, Protocols.LightPush]);
+      await waku.waitForRemotePeer([Protocols.Relay]);
       dbg('Remote peer ready');
+      // As this test uses the nim-waku RPC API, we somehow often face
+      // Race conditions where the nim-waku node does not have the js-waku
+      // Node in its relay mesh just yet.
+      await delay(500);
     });
 
     afterEach(async function () {

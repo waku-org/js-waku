@@ -60,7 +60,7 @@ describe('Waku Store', () => {
   });
 
   it('Retrieves history using callback', async function () {
-    this.timeout(5_000);
+    this.timeout(10_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
     await nimWaku.start({ persistMessages: true });
