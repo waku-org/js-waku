@@ -1,21 +1,21 @@
 {
   "files": {
-    "main.css": "/js-waku/eth-pm-wallet/static/css/main.75719c92.css",
-    "main.js": "/js-waku/eth-pm-wallet/static/js/main.8df92355.js",
-    "static/media/roboto-all-400-normal.woff": "/js-waku/eth-pm-wallet/static/media/roboto-all-400-normal.b5a0a0df312d3423493b.woff",
-    "static/media/roboto-latin-400-normal.woff2": "/js-waku/eth-pm-wallet/static/media/roboto-latin-400-normal.176f8f5bd5f02b3abfcf.woff2",
-    "static/media/roboto-cyrillic-ext-400-normal.woff2": "/js-waku/eth-pm-wallet/static/media/roboto-cyrillic-ext-400-normal.dd55ea0a2e90d5d86e15.woff2",
-    "static/media/roboto-latin-ext-400-normal.woff2": "/js-waku/eth-pm-wallet/static/media/roboto-latin-ext-400-normal.dcc07bcfcd475f34f20b.woff2",
-    "static/media/roboto-cyrillic-400-normal.woff2": "/js-waku/eth-pm-wallet/static/media/roboto-cyrillic-400-normal.3605d18d8a4ce5bd39c3.woff2",
-    "static/media/roboto-greek-400-normal.woff2": "/js-waku/eth-pm-wallet/static/media/roboto-greek-400-normal.352cc77aaed5208ce13c.woff2",
-    "static/media/roboto-vietnamese-400-normal.woff2": "/js-waku/eth-pm-wallet/static/media/roboto-vietnamese-400-normal.52cebac009baf5592e7d.woff2",
-    "static/media/roboto-greek-ext-400-normal.woff2": "/js-waku/eth-pm-wallet/static/media/roboto-greek-ext-400-normal.bc7ace6e50c7d9d4d959.woff2",
-    "index.html": "/js-waku/eth-pm-wallet/index.html",
-    "main.75719c92.css.map": "/js-waku/eth-pm-wallet/static/css/main.75719c92.css.map",
-    "main.8df92355.js.map": "/js-waku/eth-pm-wallet/static/js/main.8df92355.js.map"
+    "main.css": "/examples/eth-pm-wallet/static/css/main.5d946068.css",
+    "main.js": "/examples/eth-pm-wallet/static/js/main.9a9747c9.js",
+    "static/media/roboto-all-400-normal.woff": "/examples/eth-pm-wallet/static/media/roboto-all-400-normal.b5a0a0df312d3423493b.woff",
+    "static/media/roboto-latin-400-normal.woff2": "/examples/eth-pm-wallet/static/media/roboto-latin-400-normal.176f8f5bd5f02b3abfcf.woff2",
+    "static/media/roboto-cyrillic-ext-400-normal.woff2": "/examples/eth-pm-wallet/static/media/roboto-cyrillic-ext-400-normal.dd55ea0a2e90d5d86e15.woff2",
+    "static/media/roboto-latin-ext-400-normal.woff2": "/examples/eth-pm-wallet/static/media/roboto-latin-ext-400-normal.dcc07bcfcd475f34f20b.woff2",
+    "static/media/roboto-cyrillic-400-normal.woff2": "/examples/eth-pm-wallet/static/media/roboto-cyrillic-400-normal.3605d18d8a4ce5bd39c3.woff2",
+    "static/media/roboto-greek-400-normal.woff2": "/examples/eth-pm-wallet/static/media/roboto-greek-400-normal.352cc77aaed5208ce13c.woff2",
+    "static/media/roboto-vietnamese-400-normal.woff2": "/examples/eth-pm-wallet/static/media/roboto-vietnamese-400-normal.52cebac009baf5592e7d.woff2",
+    "static/media/roboto-greek-ext-400-normal.woff2": "/examples/eth-pm-wallet/static/media/roboto-greek-ext-400-normal.bc7ace6e50c7d9d4d959.woff2",
+    "index.html": "/examples/eth-pm-wallet/index.html",
+    "main.5d946068.css.map": "/examples/eth-pm-wallet/static/css/main.5d946068.css.map",
+    "main.9a9747c9.js.map": "/examples/eth-pm-wallet/static/js/main.9a9747c9.js.map"
   },
   "entrypoints": [
-    "static/css/main.75719c92.css",
-    "static/js/main.8df92355.js"
+    "static/css/main.5d946068.css",
+    "static/js/main.9a9747c9.js"
   ]
 }
