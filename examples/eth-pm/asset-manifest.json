@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/examples/eth-pm/static/css/main.e04fce1f.css",
-    "main.js": "/examples/eth-pm/static/js/main.af44249b.js",
+    "main.js": "/examples/eth-pm/static/js/main.5840a539.js",
     "static/media/roboto-all-400-normal.woff": "/examples/eth-pm/static/media/roboto-all-400-normal.b5a0a0df312d3423493b.woff",
     "static/media/roboto-latin-400-normal.woff2": "/examples/eth-pm/static/media/roboto-latin-400-normal.176f8f5bd5f02b3abfcf.woff2",
     "static/media/roboto-cyrillic-ext-400-normal.woff2": "/examples/eth-pm/static/media/roboto-cyrillic-ext-400-normal.dd55ea0a2e90d5d86e15.woff2",
@@ -12,10 +12,10 @@
     "static/media/roboto-greek-ext-400-normal.woff2": "/examples/eth-pm/static/media/roboto-greek-ext-400-normal.bc7ace6e50c7d9d4d959.woff2",
     "index.html": "/examples/eth-pm/index.html",
     "main.e04fce1f.css.map": "/examples/eth-pm/static/css/main.e04fce1f.css.map",
-    "main.af44249b.js.map": "/examples/eth-pm/static/js/main.af44249b.js.map"
+    "main.5840a539.js.map": "/examples/eth-pm/static/js/main.5840a539.js.map"
   },
   "entrypoints": [
     "static/css/main.e04fce1f.css",
-    "static/js/main.af44249b.js"
+    "static/js/main.5840a539.js"
   ]
 }
