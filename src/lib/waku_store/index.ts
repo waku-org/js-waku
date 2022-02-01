@@ -290,7 +290,7 @@ export class WakuStore {
    * Returns known peers from the address book (`libp2p.peerStore`) that support
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
-  get peers(): Promise<Peer[]> {
+  get peers(): AsyncIterable<Peer> {
     return getPeersForProtocol(this.libp2p, StoreCodec);
   }
 
@@ -300,6 +300,6 @@ export class WakuStore {
    * this peer.
    */
   get randomPeer(): Promise<Peer | undefined> {
-    return this.peers.then((peers) => selectRandomPeer(peers));
+    return selectRandomPeer(this.peers);
   }
 }

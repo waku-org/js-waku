@@ -144,10 +144,15 @@ function App() {
     if (!waku) return;
 
     const interval = setInterval(async () => {
-      const lightPushPeers = await waku.lightPush.peers;
+      let lightPushPeers = 0;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      for await (const _peer of waku.store.peers) {
+        lightPushPeers++;
+      }
+
       setPeerStats({
         relayPeers: waku.relay.getPeers().size,
-        lightPushPeers: lightPushPeers.length,
+        lightPushPeers,
       });
     }, 1000);
     return () => clearInterval(interval);

@@ -336,9 +336,14 @@ export class Waku {
     }
 
     if (desiredProtocols.includes(Protocols.Store)) {
-      const peers = await this.store.peers;
+      let storePeerFound = false;
 
-      if (peers.length == 0) {
+      for await (const _peer of this.store.peers) {
+        storePeerFound = true;
+        break;
+      }
+
+      if (!storePeerFound) {
         // No peer available for this protocol, waiting to connect to one.
         const promise = new Promise<void>((resolve) => {
           this.libp2p.peerStore.on(
@@ -356,9 +361,14 @@ export class Waku {
     }
 
     if (desiredProtocols.includes(Protocols.LightPush)) {
-      const peers = await this.lightPush.peers;
+      let lightPushPeerFound = false;
 
-      if (peers.length == 0) {
+      for await (const _peer of this.lightPush.peers) {
+        lightPushPeerFound = true;
+        break;
+      }
+
+      if (!lightPushPeerFound) {
         // No peer available for this protocol, waiting to connect to one.
         const promise = new Promise<void>((resolve) => {
           this.libp2p.peerStore.on(

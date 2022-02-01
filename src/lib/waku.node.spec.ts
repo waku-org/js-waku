@@ -243,9 +243,12 @@ describe('Wait for remote peer / get peers', function () {
     });
     await waku.dial(multiAddrWithId);
     await waku.waitForRemotePeer([Protocols.Store]);
-    const peers = await waku.store.peers.then((peers) =>
-      peers.map((peer) => peer.id.toB58String())
-    );
+
+    const peers = [];
+    for await (const peer of waku.store.peers) {
+      peers.push(peer.id.toB58String());
+    }
+
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -263,9 +266,12 @@ describe('Wait for remote peer / get peers', function () {
     });
     await waku.dial(multiAddrWithId);
     await waku.waitForRemotePeer([Protocols.LightPush]);
-    const peers = await waku.lightPush.peers.then((peers) =>
-      peers.map((peer) => peer.id.toB58String())
-    );
+
+    const peers = [];
+    for await (const peer of waku.lightPush.peers) {
+      peers.push(peer.id.toB58String());
+    }
+
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
