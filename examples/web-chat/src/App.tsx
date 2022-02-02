@@ -130,7 +130,7 @@ export default function App() {
 
     const retrieveMessages = async () => {
       await waku.waitForRemotePeer();
-      console.log(`Retrieving archived messages}`);
+      console.log(`Retrieving archived messages`);
 
       try {
         retrieveStoreMessages(waku, dispatchMessages).then((length) => {
