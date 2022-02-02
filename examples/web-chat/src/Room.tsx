@@ -46,6 +46,7 @@ export default function Room(props: Props) {
 
     (async () => {
       let counter = 0;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for await (const _peer of waku.store.peers) {
         counter++;
       }
