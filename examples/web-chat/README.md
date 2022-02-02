@@ -9,7 +9,7 @@
 
 A ReactJS chat app is provided as a showcase of the library used in the browser.
 It implements [Waku v2 Toy Chat](https://rfc.vac.dev/spec/22/) protocol.
-A deployed version is available at https://status-im.github.io/js-waku/.
+A deployed version is available at https://js-waku.wakuconnect.dev/examples/web-chat/.
 
 To run a development version locally, do:
 

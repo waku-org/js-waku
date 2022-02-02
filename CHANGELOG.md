@@ -294,9 +294,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add usage section to the README.
 - Support of [Waku v2 Relay](https://rfc.vac.dev/spec/11/).
 - Support of [Waku v2 Store](https://rfc.vac.dev/spec/13/).
-- [Node Chat App example](./examples/cli-chat).
+- [Node Chat App example]().
 - [ReactJS Chat App example](./examples/web-chat).
-- [Typedoc Documentation](https://status-im.github.io/js-waku/docs).
+- [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
 [Unreleased]: https://github.com/status-im/js-waku/compare/v0.16.0...HEAD
 [0.16.0]: https://github.com/status-im/js-waku/compare/v0.15.0...v0.16.0
