@@ -2,7 +2,7 @@
   "name": "eth-pm",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/js-waku/eth-pm",
+  "homepage": "/examples/eth-pm",
   "dependencies": {
     "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.11.2",
@@ -15,7 +15,7 @@
     "eth-sig-util": "^3.0.1",
     "ethers": "^5.5.3",
     "fontsource-roboto": "^4.0.0",
-    "js-waku": "../../build/main",
+    "js-waku": "file:../../build/main",
     "protobufjs": "^6.11.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
