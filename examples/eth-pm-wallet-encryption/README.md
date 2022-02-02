@@ -15,7 +15,7 @@ using the encryption API provided by some Web3 Wallet provider such as [MetaMask
 The sender only needs to know the Ethereum address of the recipient.
 The recipient must broadcast his encryption public key as a first step.
 
-The `main` branch's HEAD is deployed on GitHub Pages at https://js-waku.wakuconnect.dev/examples/eth-pm-wallet-encryption/.
+The `master` branch's HEAD is deployed on GitHub Pages at https://js-waku.wakuconnect.dev/examples/eth-pm-wallet-encryption/.
 
 To run a development version locally, do:
 
