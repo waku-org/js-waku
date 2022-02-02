@@ -53,13 +53,18 @@ function connect(peer: string | undefined, waku: Waku | undefined): string[] {
   }
 }
 
-function peers(waku: Waku | undefined): string[] {
+async function peers(waku: Waku | undefined): Promise<string[]> {
   if (!waku) {
     return ['Waku node is starting'];
   }
   let response: string[] = [];
-  waku.libp2p.peerStore.peers.forEach((peer, peerId) => {
-    response.push(peerId + ':');
+  const peers = [];
+
+  for await (const peer of waku.libp2p.peerStore.getPeers()) {
+    peers.push(peer);
+  }
+  Array.from(peers).forEach((peer) => {
+    response.push(peer.id.toB58String() + ':');
     let addresses = '  addresses: [';
     peer.addresses.forEach(({ multiaddr }) => {
       addresses += ' ' + multiaddr.toString() + ',';
@@ -104,11 +109,11 @@ function connections(waku: Waku | undefined): string[] {
   return response;
 }
 
-export default function handleCommand(
+export default async function handleCommand(
   input: string,
   waku: Waku | undefined,
   setNick: (nick: string) => void
-): { command: string; response: string[] } {
+): Promise<{ command: string; response: string[] }> {
   let response: string[] = [];
   const args = parseInput(input);
   const command = args.shift()!;
@@ -126,7 +131,7 @@ export default function handleCommand(
       connect(args.shift(), waku).map((str) => response.push(str));
       break;
     case '/peers':
-      peers(waku).map((str) => response.push(str));
+      (await peers(waku)).map((str) => response.push(str));
       break;
     case '/connections':
       connections(waku).map((str) => response.push(str));

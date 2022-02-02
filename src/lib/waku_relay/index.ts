@@ -8,11 +8,7 @@ import {
   PeerScoreParams,
   PeerScoreThresholds,
 } from 'libp2p-gossipsub/src/score';
-import {
-  createGossipRpc,
-  messageIdToString,
-  shuffle,
-} from 'libp2p-gossipsub/src/utils';
+import { createGossipRpc, shuffle } from 'libp2p-gossipsub/src/utils';
 import { InMessage } from 'libp2p-interfaces/src/pubsub';
 import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
 import PeerId from 'peer-id';
@@ -112,8 +108,8 @@ export class WakuRelay extends Gossipsub {
    * @override
    * @returns {void}
    */
-  public start(): void {
-    super.start();
+  public async start(): Promise<void> {
+    await super.start();
     this.subscribe(this.pubSubTopic);
   }
 
@@ -331,17 +327,16 @@ export class WakuRelay extends Gossipsub {
    * @returns {void}
    */
   async _publish(msg: InMessage): Promise<void> {
+    const msgIdStr = await this.getCanonicalMsgIdStr(msg);
     if (msg.receivedFrom !== this.peerId.toB58String()) {
-      this.score.deliverMessage(msg);
-      this.gossipTracer.deliverMessage(msg);
+      this.score.deliverMessage(msg, msgIdStr);
+      this.gossipTracer.deliverMessage(msgIdStr);
     }
 
-    const msgID = await this.getMsgId(msg);
-    const msgIdStr = messageIdToString(msgID);
     // put in seen cache
     this.seenCache.put(msgIdStr);
 
-    this.messageCache.put(msg);
+    this.messageCache.put(msg, msgIdStr);
 
     const toSend = new Set<string>();
     msg.topicIDs.forEach((topic) => {
@@ -489,36 +484,47 @@ export class WakuRelay extends Gossipsub {
    * @param {string} id
    * @param {string} topic
    * @param {boolean} doPX
-   * @returns {RPC.IControlPrune}
+   * @returns {Promise<RPC.IControlPrune>}
    */
-  _makePrune(id: string, topic: string, doPX: boolean): RPC.IControlPrune {
+  async _makePrune(
+    id: string,
+    topic: string,
+    doPX: boolean
+  ): Promise<RPC.IControlPrune> {
     // backoff is measured in seconds
     // RelayPruneBackoff is measured in milliseconds
     const backoff = constants.RelayPruneBackoff / 1000;
-    const px: RPC.IPeerInfo[] = [];
-    if (doPX) {
-      // select peers for Peer eXchange
-      const peers = getRelayPeers(
-        this,
-        topic,
-        constants.RelayPrunePeers,
-        (xid: string): boolean => {
-          return xid !== id && this.score.score(xid) >= 0;
-        }
-      );
-      peers.forEach((p) => {
+    if (!doPX) {
+      return {
+        topicID: topic,
+        peers: [],
+        backoff: backoff,
+      };
+    }
+
+    // select peers for Peer eXchange
+    const peers = getRelayPeers(
+      this,
+      topic,
+      constants.RelayPrunePeers,
+      (xid: string): boolean => {
+        return xid !== id && this.score.score(xid) >= 0;
+      }
+    );
+    const px = await Promise.all(
+      Array.from(peers).map(async (p) => {
         // see if we have a signed record to send back; if we don't, just send
         // the peer ID and let the pruned peer find them in the DHT -- we can't trust
         // unsigned address records through PX anyways
         // Finding signed records in the DHT is not supported at the time of writing in js-libp2p
         const peerId = PeerId.createFromB58String(p);
-        px.push({
+        return {
           peerID: peerId.toBytes(),
           signedPeerRecord:
-            this._libp2p.peerStore.addressBook.getRawEnvelope(peerId),
-        });
-      });
-    }
+            await this._libp2p.peerStore.addressBook.getRawEnvelope(peerId),
+        };
+      })
+    );
     return {
       topicID: topic,
       peers: px,

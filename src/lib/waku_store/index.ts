@@ -150,11 +150,11 @@ export class WakuStore {
 
     let peer;
     if (opts.peerId) {
-      peer = this.libp2p.peerStore.get(opts.peerId);
+      peer = await this.libp2p.peerStore.get(opts.peerId);
       if (!peer)
         throw `Failed to retrieve connection details for provided peer in peer store: ${opts.peerId.toB58String()}`;
     } else {
-      peer = this.randomPeer;
+      peer = await this.randomPeer;
       if (!peer)
         throw 'Failed to find known peer that registers waku store protocol';
     }
@@ -290,7 +290,7 @@ export class WakuStore {
    * Returns known peers from the address book (`libp2p.peerStore`) that support
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
-  get peers(): Peer[] {
+  get peers(): AsyncIterable<Peer> {
     return getPeersForProtocol(this.libp2p, StoreCodec);
   }
 
@@ -299,7 +299,7 @@ export class WakuStore {
    * book (`libp2p.peerStore`). Waku may or  may not be currently connected to
    * this peer.
    */
-  get randomPeer(): Peer | undefined {
+  get randomPeer(): Promise<Peer | undefined> {
     return selectRandomPeer(this.peers);
   }
 }

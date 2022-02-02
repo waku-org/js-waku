@@ -13,7 +13,7 @@ import Websockets from 'libp2p-websockets';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
 import filters from 'libp2p-websockets/src/filters';
-import Ping from 'libp2p/src/ping';
+import PingService from 'libp2p/src/ping';
 import { Multiaddr, multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
@@ -336,9 +336,14 @@ export class Waku {
     }
 
     if (desiredProtocols.includes(Protocols.Store)) {
-      const peers = this.store.peers;
+      let storePeerFound = false;
 
-      if (peers.length == 0) {
+      for await (const _peer of this.store.peers) {
+        storePeerFound = true;
+        break;
+      }
+
+      if (!storePeerFound) {
         // No peer available for this protocol, waiting to connect to one.
         const promise = new Promise<void>((resolve) => {
           this.libp2p.peerStore.on(
@@ -356,9 +361,14 @@ export class Waku {
     }
 
     if (desiredProtocols.includes(Protocols.LightPush)) {
-      const peers = this.lightPush.peers;
+      let lightPushPeerFound = false;
 
-      if (peers.length == 0) {
+      for await (const _peer of this.lightPush.peers) {
+        lightPushPeerFound = true;
+        break;
+      }
+
+      if (!lightPushPeerFound) {
         // No peer available for this protocol, waiting to connect to one.
         const promise = new Promise<void>((resolve) => {
           this.libp2p.peerStore.on(
@@ -390,8 +400,11 @@ export class Waku {
     const peerIdStr = peerId.toB58String();
 
     if (pingPeriodSecs !== 0) {
+      const pingService = new PingService(this.libp2p);
       this.pingKeepAliveTimers[peerIdStr] = setInterval(() => {
-        Ping(this.libp2p, peerId);
+        pingService.ping(peerId).catch((e) => {
+          dbg(`Ping failed (${peerIdStr})`, e);
+        });
       }, pingPeriodSecs * 1000);
     }
 
