@@ -3,6 +3,12 @@ import PeerId from 'peer-id';
 
 import { Waku } from './waku';
 
+declare global {
+  interface Window {
+    __env__?: any;
+  }
+}
+
 describe('Waku Dial', function () {
   describe('Bootstrap [live data]', function () {
     let waku: Waku;
@@ -12,8 +18,7 @@ describe('Waku Dial', function () {
     });
 
     before(function () {
-      const _window = window as any;
-      if (process.env.CI || _window.__env__.CI) {
+      if (process.env.CI || window.__env__.CI) {
         this.skip();
       }
     });
