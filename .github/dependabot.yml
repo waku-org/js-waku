@@ -7,6 +7,9 @@ updates:
       interval: "daily"
     reviewers:
       - "d4nte"
+    # Update the npm manifest file to relax
+    # the version requirements as js-waku is a library
+    versioning-strategy: widen
   - package-ecosystem: "npm"
     directory: "/examples/web-chat"
     schedule:
