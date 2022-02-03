@@ -3,6 +3,12 @@ import { expect } from 'chai';
 import { DnsClient, DnsNodeDiscovery } from './dns';
 import testData from './testdata.json';
 
+declare global {
+  interface Window {
+    __env__?: any;
+  }
+}
+
 const mockData = testData.dns;
 
 const host = 'nodes.example.org';
@@ -176,7 +182,7 @@ describe('DNS Node Discovery [live data]', function () {
   const maxQuantity = 3;
 
   before(function () {
-    if (process.env.CI) {
+    if (process.env.CI || window.__env__.CI) {
       this.skip();
     }
   });
