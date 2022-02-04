@@ -1,4 +1,4 @@
-import * as protobuf from 'protobufjs/light';
+import * as protobuf from "protobufjs/light";
 
 export interface PublicKeyMessagePayload {
   encryptionPublicKey: Uint8Array;
@@ -14,12 +14,12 @@ const Root = protobuf.Root,
  * Message used to communicate the encryption public key linked to a given Ethereum account
  */
 export class PublicKeyMessage {
-  private static Type = new Type('PublicKeyMessage')
-    .add(new Field('encryptionPublicKey', 1, 'bytes'))
-    .add(new Field('ethAddress', 2, 'bytes'))
-    .add(new Field('signature', 3, 'bytes'));
+  private static Type = new Type("PublicKeyMessage")
+    .add(new Field("encryptionPublicKey", 1, "bytes"))
+    .add(new Field("ethAddress", 2, "bytes"))
+    .add(new Field("signature", 3, "bytes"));
   private static Root = new Root()
-    .define('messages')
+    .define("messages")
     .add(PublicKeyMessage.Type);
 
   constructor(public payload: PublicKeyMessagePayload) {}
@@ -40,7 +40,7 @@ export class PublicKeyMessage {
       !payload.encryptionPublicKey ||
       !payload.ethAddress
     ) {
-      console.log('Field missing on decoded Public Key Message', payload);
+      console.log("Field missing on decoded Public Key Message", payload);
       return;
     }
     return new PublicKeyMessage(payload);
@@ -68,10 +68,10 @@ export interface PrivateMessagePayload {
  * Encrypted Message used for private communication over the Waku network.
  */
 export class PrivateMessage {
-  private static Type = new Type('PrivateMessage')
-    .add(new Field('toAddress', 1, 'bytes'))
-    .add(new Field('message', 2, 'string'));
-  private static Root = new Root().define('messages').add(PrivateMessage.Type);
+  private static Type = new Type("PrivateMessage")
+    .add(new Field("toAddress", 1, "bytes"))
+    .add(new Field("message", 2, "string"));
+  private static Root = new Root().define("messages").add(PrivateMessage.Type);
 
   constructor(public payload: PrivateMessagePayload) {}
 
@@ -85,7 +85,7 @@ export class PrivateMessage {
       bytes
     ) as unknown as PrivateMessagePayload;
     if (!payload.toAddress || !payload.message) {
-      console.log('Field missing on decoded Private Message', payload);
+      console.log("Field missing on decoded Private Message", payload);
       return;
     }
     return new PrivateMessage(payload);

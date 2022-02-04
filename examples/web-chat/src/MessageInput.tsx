@@ -1,5 +1,5 @@
-import { ChangeEvent, KeyboardEvent, useState } from 'react';
-import { useWaku } from './WakuContext';
+import { ChangeEvent, KeyboardEvent, useState } from "react";
+import { useWaku } from "./WakuContext";
 import {
   TextInput,
   TextComposer,
@@ -7,20 +7,20 @@ import {
   Fill,
   Fit,
   SendButton,
-} from '@livechat/ui-kit';
+} from "@livechat/ui-kit";
 
 interface Props {
   sendMessage: ((msg: string) => Promise<void>) | undefined;
 }
 
 export default function MessageInput(props: Props) {
-  const [inputText, setInputText] = useState<string>('');
+  const [inputText, setInputText] = useState<string>("");
   const { waku } = useWaku();
 
   const sendMessage = async () => {
     if (props.sendMessage) {
       await props.sendMessage(inputText);
-      setInputText('');
+      setInputText("");
     }
   };
 
@@ -30,7 +30,7 @@ export default function MessageInput(props: Props) {
 
   const keyPressHandler = async (event: KeyboardEvent<HTMLInputElement>) => {
     if (
-      event.key === 'Enter' &&
+      event.key === "Enter" &&
       !event.altKey &&
       !event.ctrlKey &&
       !event.shiftKey
@@ -41,7 +41,7 @@ export default function MessageInput(props: Props) {
 
   // Enable the button if there are relay peers available or the user is sending a command
   const activeButton =
-    (waku && waku.relay.getPeers().size !== 0) || inputText.startsWith('/');
+    (waku && waku.relay.getPeers().size !== 0) || inputText.startsWith("/");
 
   return (
     <TextComposer

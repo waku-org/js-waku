@@ -5,12 +5,12 @@ import {
   MenuItem,
   Select,
   TextField,
-} from '@material-ui/core';
-import React, { ChangeEvent, useState, KeyboardEvent } from 'react';
-import { Waku, WakuMessage } from 'js-waku';
-import { hexToBuf } from 'js-waku/lib/utils';
-import { PrivateMessage } from './wire';
-import { PrivateMessageContentTopic } from '../waku';
+} from "@material-ui/core";
+import React, { ChangeEvent, useState, KeyboardEvent } from "react";
+import { Waku, WakuMessage } from "js-waku";
+import { hexToBuf } from "js-waku/lib/utils";
+import { PrivateMessage } from "./wire";
+import { PrivateMessageContentTopic } from "../waku";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -30,7 +30,7 @@ export interface Props {
 
 export default function SendMessage({ waku, recipients }: Props) {
   const classes = useStyles();
-  const [recipient, setRecipient] = useState<string>('');
+  const [recipient, setRecipient] = useState<string>("");
   const [message, setMessage] = useState<string>();
 
   const handleRecipientChange = (
@@ -53,7 +53,7 @@ export default function SendMessage({ waku, recipients }: Props) {
 
   const keyDownHandler = async (event: KeyboardEvent<HTMLInputElement>) => {
     if (
-      event.key === 'Enter' &&
+      event.key === "Enter" &&
       !event.altKey &&
       !event.ctrlKey &&
       !event.shiftKey
@@ -66,8 +66,8 @@ export default function SendMessage({ waku, recipients }: Props) {
 
       sendMessage(waku, recipient, publicKey, message, (res) => {
         if (res) {
-          console.log('callback called with', res);
-          setMessage('');
+          console.log("callback called with", res);
+          setMessage("");
         }
       });
     }
@@ -76,9 +76,9 @@ export default function SendMessage({ waku, recipients }: Props) {
   return (
     <div
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
+        display: "flex",
+        alignItems: "center",
+        flexWrap: "wrap",
       }}
     >
       <FormControl className={classes.formControl}>
@@ -129,20 +129,20 @@ function sendMessage(
 ) {
   encodeEncryptedWakuMessage(message, recipientPublicKey, recipientAddress)
     .then((msg) => {
-      console.log('pushing');
+      console.log("pushing");
       waku.lightPush
         .push(msg)
         .then((res) => {
-          console.log('Message sent', res);
+          console.log("Message sent", res);
           callback(res ? res.isSuccess : false);
         })
         .catch((e) => {
-          console.error('Failed to send message', e);
+          console.error("Failed to send message", e);
           callback(false);
         });
     })
     .catch((e) => {
-      console.error('Cannot encode & encrypt message', e);
+      console.error("Cannot encode & encrypt message", e);
       callback(false);
     });
 }

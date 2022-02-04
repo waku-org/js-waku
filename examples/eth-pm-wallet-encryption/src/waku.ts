@@ -1,14 +1,14 @@
-import { Dispatch, SetStateAction } from 'react';
-import { Waku, WakuMessage } from 'js-waku';
-import { PrivateMessage, PublicKeyMessage } from './messaging/wire';
-import { validatePublicKeyMessage } from './crypto';
-import { Message } from './messaging/Messages';
-import { bufToHex, equalByteArrays } from 'js-waku/lib/utils';
+import { Dispatch, SetStateAction } from "react";
+import { Waku, WakuMessage } from "js-waku";
+import { PrivateMessage, PublicKeyMessage } from "./messaging/wire";
+import { validatePublicKeyMessage } from "./crypto";
+import { Message } from "./messaging/Messages";
+import { bufToHex, equalByteArrays } from "js-waku/lib/utils";
 
 export const PublicKeyContentTopic =
-  '/eth-pm-wallet/1/encryption-public-key/proto';
+  "/eth-pm-wallet/1/encryption-public-key/proto";
 export const PrivateMessageContentTopic =
-  '/eth-pm-wallet/1/private-message/proto';
+  "/eth-pm-wallet/1/private-message/proto";
 
 export async function initWaku(): Promise<Waku> {
   const waku = await Waku.create({ bootstrap: { default: true } });
@@ -19,7 +19,7 @@ export async function initWaku(): Promise<Waku> {
     // As we are not implementing connection management in this example
 
     setTimeout(reject, 10000);
-    waku.libp2p.connectionManager.on('peer:connect', () => {
+    waku.libp2p.connectionManager.on("peer:connect", () => {
       resolve(null);
     });
   });
@@ -32,14 +32,14 @@ export function handlePublicKeyMessage(
   setPublicKeys: Dispatch<SetStateAction<Map<string, Uint8Array>>>,
   msg: WakuMessage
 ) {
-  console.log('Public Key Message received:', msg);
+  console.log("Public Key Message received:", msg);
   if (!msg.payload) return;
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
   if (!publicKeyMsg) return;
   if (myAddress && equalByteArrays(publicKeyMsg.ethAddress, myAddress)) return;
 
   const res = validatePublicKeyMessage(publicKeyMsg);
-  console.log('Is Public Key Message valid?', res);
+  console.log("Is Public Key Message valid?", res);
 
   if (res) {
     setPublicKeys((prevPks: Map<string, Uint8Array>) => {
@@ -61,27 +61,27 @@ export async function handlePrivateMessage(
   }) => Promise<any>,
   wakuMsg: WakuMessage
 ) {
-  console.log('Private Message received:', wakuMsg);
+  console.log("Private Message received:", wakuMsg);
   if (!wakuMsg.payload) return;
 
   const decryptedPayload = await providerRequest({
-    method: 'eth_decrypt',
+    method: "eth_decrypt",
     params: [wakuMsg.payloadAsUtf8, address],
   }).catch((error) => console.log(error.message));
 
-  console.log('Decrypted Payload:', decryptedPayload);
+  console.log("Decrypted Payload:", decryptedPayload);
   const privateMessage = PrivateMessage.decode(
-    Buffer.from(decryptedPayload, 'hex')
+    Buffer.from(decryptedPayload, "hex")
   );
   if (!privateMessage) {
-    console.log('Failed to decode Private Message');
+    console.log("Failed to decode Private Message");
     return;
   }
   if (!equalByteArrays(privateMessage.toAddress, address)) return;
 
   const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
 
-  console.log('Message decrypted:', privateMessage.message);
+  console.log("Message decrypted:", privateMessage.message);
   setter((prevMsgs: Message[]) => {
     const copy = prevMsgs.slice();
     copy.push({

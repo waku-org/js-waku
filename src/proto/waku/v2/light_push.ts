@@ -1,9 +1,9 @@
 /* eslint-disable */
-import Long from 'long';
-import _m0 from 'protobufjs/minimal';
-import { WakuMessage } from '../../waku/v2/message';
+import Long from "long";
+import _m0 from "protobufjs/minimal";
+import { WakuMessage } from "../../waku/v2/message";
 
-export const protobufPackage = 'waku.v2';
+export const protobufPackage = "waku.v2";
 
 export interface PushRequest {
   pubSubTopic: string;
@@ -22,7 +22,7 @@ export interface PushRPC {
 }
 
 function createBasePushRequest(): PushRequest {
-  return { pubSubTopic: '', message: undefined };
+  return { pubSubTopic: "", message: undefined };
 }
 
 export const PushRequest = {
@@ -30,7 +30,7 @@ export const PushRequest = {
     message: PushRequest,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.pubSubTopic !== '') {
+    if (message.pubSubTopic !== "") {
       writer.uint32(10).string(message.pubSubTopic);
     }
     if (message.message !== undefined) {
@@ -62,7 +62,7 @@ export const PushRequest = {
 
   fromJSON(object: any): PushRequest {
     return {
-      pubSubTopic: isSet(object.pubSubTopic) ? String(object.pubSubTopic) : '',
+      pubSubTopic: isSet(object.pubSubTopic) ? String(object.pubSubTopic) : "",
       message: isSet(object.message)
         ? WakuMessage.fromJSON(object.message)
         : undefined,
@@ -84,7 +84,7 @@ export const PushRequest = {
     object: I
   ): PushRequest {
     const message = createBasePushRequest();
-    message.pubSubTopic = object.pubSubTopic ?? '';
+    message.pubSubTopic = object.pubSubTopic ?? "";
     message.message =
       object.message !== undefined && object.message !== null
         ? WakuMessage.fromPartial(object.message)
@@ -94,7 +94,7 @@ export const PushRequest = {
 };
 
 function createBasePushResponse(): PushResponse {
-  return { isSuccess: false, info: '' };
+  return { isSuccess: false, info: "" };
 }
 
 export const PushResponse = {
@@ -105,7 +105,7 @@ export const PushResponse = {
     if (message.isSuccess === true) {
       writer.uint32(8).bool(message.isSuccess);
     }
-    if (message.info !== '') {
+    if (message.info !== "") {
       writer.uint32(18).string(message.info);
     }
     return writer;
@@ -135,7 +135,7 @@ export const PushResponse = {
   fromJSON(object: any): PushResponse {
     return {
       isSuccess: isSet(object.isSuccess) ? Boolean(object.isSuccess) : false,
-      info: isSet(object.info) ? String(object.info) : '',
+      info: isSet(object.info) ? String(object.info) : "",
     };
   },
 
@@ -151,13 +151,13 @@ export const PushResponse = {
   ): PushResponse {
     const message = createBasePushResponse();
     message.isSuccess = object.isSuccess ?? false;
-    message.info = object.info ?? '';
+    message.info = object.info ?? "";
     return message;
   },
 };
 
 function createBasePushRPC(): PushRPC {
-  return { requestId: '', request: undefined, response: undefined };
+  return { requestId: "", request: undefined, response: undefined };
 }
 
 export const PushRPC = {
@@ -165,7 +165,7 @@ export const PushRPC = {
     message: PushRPC,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.requestId !== '') {
+    if (message.requestId !== "") {
       writer.uint32(10).string(message.requestId);
     }
     if (message.request !== undefined) {
@@ -203,7 +203,7 @@ export const PushRPC = {
 
   fromJSON(object: any): PushRPC {
     return {
-      requestId: isSet(object.requestId) ? String(object.requestId) : '',
+      requestId: isSet(object.requestId) ? String(object.requestId) : "",
       request: isSet(object.request)
         ? PushRequest.fromJSON(object.request)
         : undefined,
@@ -229,7 +229,7 @@ export const PushRPC = {
 
   fromPartial<I extends Exact<DeepPartial<PushRPC>, I>>(object: I): PushRPC {
     const message = createBasePushRPC();
-    message.requestId = object.requestId ?? '';
+    message.requestId = object.requestId ?? "";
     message.request =
       object.request !== undefined && object.request !== null
         ? PushRequest.fromPartial(object.request)

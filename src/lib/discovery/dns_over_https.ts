@@ -1,18 +1,18 @@
-import { TxtAnswer } from 'dns-packet';
+import { TxtAnswer } from "dns-packet";
 import {
   endpoints as defaultEndpoints,
   Endpoint,
   EndpointProps,
   query,
-} from 'dns-query';
+} from "dns-query";
 
-import { DnsClient } from './dns';
+import { DnsClient } from "./dns";
 
 const { cloudflare, google, opendns } = defaultEndpoints;
 
 export type Endpoints =
-  | 'doh'
-  | 'dns'
+  | "doh"
+  | "dns"
   | Iterable<Endpoint | EndpointProps | string>;
 
 export class DnsOverHttps implements DnsClient {
@@ -31,7 +31,7 @@ export class DnsOverHttps implements DnsClient {
 
   async resolveTXT(domain: string): Promise<string[]> {
     const response = await query({
-      questions: [{ type: 'TXT', name: domain }],
+      questions: [{ type: "TXT", name: domain }],
     });
 
     const answers = response.answers as TxtAnswer[];
@@ -41,18 +41,18 @@ export class DnsOverHttps implements DnsClient {
     const result: string[] = [];
 
     data.forEach((d) => {
-      if (typeof d === 'string') {
+      if (typeof d === "string") {
         result.push(d);
       } else if (Array.isArray(d)) {
         d.forEach((sd) => {
-          if (typeof sd === 'string') {
+          if (typeof sd === "string") {
             result.push(sd);
           } else {
-            result.push(Buffer.from(sd).toString('utf-8'));
+            result.push(Buffer.from(sd).toString("utf-8"));
           }
         });
       } else {
-        result.push(Buffer.from(d).toString('utf-8'));
+        result.push(Buffer.from(d).toString("utf-8"));
       }
     });
 

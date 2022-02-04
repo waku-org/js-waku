@@ -1,37 +1,37 @@
-import { expect } from 'chai';
-import debug from 'debug';
+import { expect } from "chai";
+import debug from "debug";
 
 import {
   makeLogFileName,
   NimWaku,
   NOISE_KEY_1,
   NOISE_KEY_2,
-} from '../../test_utils';
-import { delay } from '../delay';
-import { Protocols, Waku } from '../waku';
-import { DecryptionMethod, WakuMessage } from '../waku_message';
+} from "../../test_utils";
+import { delay } from "../delay";
+import { Protocols, Waku } from "../waku";
+import { DecryptionMethod, WakuMessage } from "../waku_message";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
-} from '../waku_message/version_1';
+} from "../waku_message/version_1";
 
-import { PageDirection } from './history_rpc';
+import { PageDirection } from "./history_rpc";
 
-const dbg = debug('waku:test:store');
+const dbg = debug("waku:test:store");
 
-const TestContentTopic = '/test/1/waku-store/utf8';
+const TestContentTopic = "/test/1/waku-store/utf8";
 
-describe('Waku Store', () => {
+describe("Waku Store", () => {
   let waku: Waku;
   let nimWaku: NimWaku;
 
   afterEach(async function () {
     !!nimWaku && nimWaku.stop();
-    !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
+    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it('Retrieves history', async function () {
+  it("Retrieves history", async function () {
     this.timeout(5_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
@@ -54,12 +54,12 @@ describe('Waku Store', () => {
 
     expect(messages?.length).eq(2);
     const result = messages?.findIndex((msg) => {
-      return msg.payloadAsUtf8 === 'Message 0';
+      return msg.payloadAsUtf8 === "Message 0";
     });
     expect(result).to.not.eq(-1);
   });
 
-  it('Retrieves history using callback', async function () {
+  it("Retrieves history using callback", async function () {
     this.timeout(10_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
@@ -91,12 +91,12 @@ describe('Waku Store', () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return msg.payloadAsUtf8 === 'Message 0';
+      return msg.payloadAsUtf8 === "Message 0";
     });
     expect(result).to.not.eq(-1);
   });
 
-  it('Retrieval aborts when callback returns true', async function () {
+  it("Retrieval aborts when callback returns true", async function () {
     this.timeout(5_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
@@ -132,7 +132,7 @@ describe('Waku Store', () => {
     expect(messages?.length).eq(desiredMsgs);
   });
 
-  it('Retrieves all historical elements in chronological order through paging', async function () {
+  it("Retrieves all historical elements in chronological order through paging", async function () {
     this.timeout(5_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
@@ -166,10 +166,10 @@ describe('Waku Store', () => {
     }
   });
 
-  it('Retrieves history using custom pubsub topic', async function () {
+  it("Retrieves history using custom pubsub topic", async function () {
     this.timeout(5_000);
 
-    const customPubSubTopic = '/waku/2/custom-dapp/proto';
+    const customPubSubTopic = "/waku/2/custom-dapp/proto";
     nimWaku = new NimWaku(makeLogFileName(this));
     await nimWaku.start({ persistMessages: true, topics: customPubSubTopic });
 
@@ -197,25 +197,25 @@ describe('Waku Store', () => {
 
     expect(messages?.length).eq(2);
     const result = messages?.findIndex((msg) => {
-      return msg.payloadAsUtf8 === 'Message 0';
+      return msg.payloadAsUtf8 === "Message 0";
     });
     expect(result).to.not.eq(-1);
   });
 
-  it('Retrieves history with asymmetric & symmetric encrypted messages', async function () {
+  it("Retrieves history with asymmetric & symmetric encrypted messages", async function () {
     this.timeout(10_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
     await nimWaku.start({ persistMessages: true, lightpush: true });
 
     const encryptedAsymmetricMessageText =
-      'This message is encrypted for me using asymmetric';
+      "This message is encrypted for me using asymmetric";
     const encryptedSymmetricMessageText =
-      'This message is encrypted for me using symmetric encryption';
+      "This message is encrypted for me using symmetric encryption";
     const clearMessageText =
-      'This is a clear text message for everyone to read';
+      "This is a clear text message for everyone to read";
     const otherEncMessageText =
-      'This message is not for and I must not be able to read it';
+      "This message is not for and I must not be able to read it";
 
     const privateKey = generatePrivateKey();
     const symKey = generateSymmetricKey();
@@ -247,7 +247,7 @@ describe('Waku Store', () => {
       }),
     ]);
 
-    dbg('Messages have been encrypted');
+    dbg("Messages have been encrypted");
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       Waku.create({
@@ -259,14 +259,14 @@ describe('Waku Store', () => {
       nimWaku.getMultiaddrWithId(),
     ]);
 
-    dbg('Waku nodes created');
+    dbg("Waku nodes created");
 
     await Promise.all([
       waku1.dial(nimWakuMultiaddr),
       waku2.dial(nimWakuMultiaddr),
     ]);
 
-    dbg('Waku nodes connected to nim Waku');
+    dbg("Waku nodes connected to nim Waku");
 
     let lightPushPeerFound = false;
     while (!lightPushPeerFound) {
@@ -277,7 +277,7 @@ describe('Waku Store', () => {
       }
     }
 
-    dbg('Sending messages using light push');
+    dbg("Sending messages using light push");
     await Promise.all([
       waku1.lightPush.push(encryptedAsymmetricMessage),
       waku1.lightPush.push(encryptedSymmetricMessage),
@@ -296,37 +296,37 @@ describe('Waku Store', () => {
 
     waku2.store.addDecryptionKey(symKey);
 
-    dbg('Retrieve messages from store');
+    dbg("Retrieve messages from store");
     const messages = await waku2.store.queryHistory([], {
       decryptionKeys: [privateKey],
     });
 
     expect(messages?.length).eq(3);
-    if (!messages) throw 'Length was tested';
+    if (!messages) throw "Length was tested";
     expect(messages[0].payloadAsUtf8).to.eq(clearMessageText);
     expect(messages[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
     expect(messages[2].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
 
-    !!waku1 && waku1.stop().catch((e) => console.log('Waku failed to stop', e));
-    !!waku2 && waku2.stop().catch((e) => console.log('Waku failed to stop', e));
+    !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
+    !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it('Retrieves history with asymmetric & symmetric encrypted messages on different content topics', async function () {
+  it("Retrieves history with asymmetric & symmetric encrypted messages on different content topics", async function () {
     this.timeout(10_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
     await nimWaku.start({ persistMessages: true, lightpush: true });
 
     const encryptedAsymmetricMessageText =
-      'This message is encrypted for me using asymmetric';
-    const encryptedAsymmetricContentTopic = '/test/1/asymmetric/proto';
+      "This message is encrypted for me using asymmetric";
+    const encryptedAsymmetricContentTopic = "/test/1/asymmetric/proto";
     const encryptedSymmetricMessageText =
-      'This message is encrypted for me using symmetric encryption';
-    const encryptedSymmetricContentTopic = '/test/1/symmetric/proto';
+      "This message is encrypted for me using symmetric encryption";
+    const encryptedSymmetricContentTopic = "/test/1/symmetric/proto";
     const clearMessageText =
-      'This is a clear text message for everyone to read';
+      "This is a clear text message for everyone to read";
     const otherEncMessageText =
-      'This message is not for and I must not be able to read it';
+      "This message is not for and I must not be able to read it";
 
     const privateKey = generatePrivateKey();
     const symKey = generateSymmetricKey();
@@ -365,7 +365,7 @@ describe('Waku Store', () => {
       ),
     ]);
 
-    dbg('Messages have been encrypted');
+    dbg("Messages have been encrypted");
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       Waku.create({
@@ -377,14 +377,14 @@ describe('Waku Store', () => {
       nimWaku.getMultiaddrWithId(),
     ]);
 
-    dbg('Waku nodes created');
+    dbg("Waku nodes created");
 
     await Promise.all([
       waku1.dial(nimWakuMultiaddr),
       waku2.dial(nimWakuMultiaddr),
     ]);
 
-    dbg('Waku nodes connected to nim Waku');
+    dbg("Waku nodes connected to nim Waku");
 
     let lightPushPeerFound = false;
     while (!lightPushPeerFound) {
@@ -395,7 +395,7 @@ describe('Waku Store', () => {
       }
     }
 
-    dbg('Sending messages using light push');
+    dbg("Sending messages using light push");
     await Promise.all([
       waku1.lightPush.push(encryptedAsymmetricMessage),
       waku1.lightPush.push(encryptedSymmetricMessage),
@@ -417,22 +417,22 @@ describe('Waku Store', () => {
       method: DecryptionMethod.Symmetric,
     });
 
-    dbg('Retrieve messages from store');
+    dbg("Retrieve messages from store");
     const messages = await waku2.store.queryHistory([], {
       decryptionKeys: [privateKey],
     });
 
     expect(messages?.length).eq(3);
-    if (!messages) throw 'Length was tested';
+    if (!messages) throw "Length was tested";
     expect(messages[0].payloadAsUtf8).to.eq(clearMessageText);
     expect(messages[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
     expect(messages[2].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
 
-    !!waku1 && waku1.stop().catch((e) => console.log('Waku failed to stop', e));
-    !!waku2 && waku2.stop().catch((e) => console.log('Waku failed to stop', e));
+    !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
+    !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it('Retrieves history using start and end time', async function () {
+  it("Retrieves history using start and end time", async function () {
     this.timeout(5_000);
 
     nimWaku = new NimWaku(makeLogFileName(this));
@@ -484,7 +484,7 @@ describe('Waku Store', () => {
 
     expect(firstMessage?.length).eq(1);
 
-    expect(firstMessage[0]?.payloadAsUtf8).eq('Message 0');
+    expect(firstMessage[0]?.payloadAsUtf8).eq("Message 0");
 
     expect(bothMessages?.length).eq(2);
   });

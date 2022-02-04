@@ -1,4 +1,4 @@
-import { IvSize } from './index';
+import { IvSize } from "./index";
 
 declare global {
   interface Window {
@@ -12,10 +12,10 @@ declare global {
 const crypto = window.crypto || window.msCrypto;
 const subtle: SubtleCrypto = crypto.subtle || crypto.webkitSubtle;
 
-const Algorithm = { name: 'AES-GCM', length: 128 };
+const Algorithm = { name: "AES-GCM", length: 128 };
 
 if (subtle === undefined) {
-  throw new Error('Failed to load Subtle CryptoAPI');
+  throw new Error("Failed to load Subtle CryptoAPI");
 }
 
 export async function encrypt(
@@ -24,7 +24,7 @@ export async function encrypt(
   clearText: Buffer
 ): Promise<Buffer> {
   return subtle
-    .importKey('raw', key, Algorithm, false, ['encrypt'])
+    .importKey("raw", key, Algorithm, false, ["encrypt"])
     .then((cryptoKey) =>
       subtle.encrypt({ iv, ...Algorithm }, cryptoKey, clearText)
     )
@@ -37,7 +37,7 @@ export async function decrypt(
   cipherText: Buffer
 ): Promise<Buffer> {
   return subtle
-    .importKey('raw', key, Algorithm, false, ['decrypt'])
+    .importKey("raw", key, Algorithm, false, ["decrypt"])
     .then((cryptoKey) =>
       subtle.decrypt({ iv, ...Algorithm }, cryptoKey, cipherText)
     )

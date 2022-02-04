@@ -43,8 +43,8 @@ export default class WakuMock extends EventEmitter<Message> {
 
   public async send(message: string): Promise<void> {
     const timestamp = new Date();
-    const handle = 'me';
-    this.emit('message', {
+    const handle = "me";
+    this.emit("message", {
       timestamp,
       handle,
       message,
@@ -58,9 +58,9 @@ export default class WakuMock extends EventEmitter<Message> {
   }
 
   private emitMessage() {
-    const handle = 'you';
+    const handle = "you";
     const timestamp = new Date();
-    this.emit('message', {
+    this.emit("message", {
       timestamp,
       handle,
       message: `This is message #${this.index++}.`,

@@ -1,1 +1,1 @@
-declare module '@livechat/ui-kit';
+declare module "@livechat/ui-kit";

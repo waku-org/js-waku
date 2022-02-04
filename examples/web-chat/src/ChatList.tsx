@@ -1,10 +1,10 @@
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from "react";
 import {
   Message as LiveMessage,
   MessageText,
   MessageList,
-} from '@livechat/ui-kit';
-import { Message } from './Message';
+} from "@livechat/ui-kit";
+import { Message } from "./Message";
 
 interface Props {
   messages: Message[];
@@ -18,7 +18,7 @@ export default function ChatList(props: Props) {
       key={
         message.sentTimestamp
           ? message.sentTimestamp.valueOf()
-          : '' +
+          : "" +
             message.timestamp.valueOf() +
             message.nick +
             message.payloadAsUtf8
@@ -40,10 +40,10 @@ export default function ChatList(props: Props) {
 
 function formatDisplayDate(message: Message): string {
   return message.timestamp.toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
     hour12: false,
   });
 }

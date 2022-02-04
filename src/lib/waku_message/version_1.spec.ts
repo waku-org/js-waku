@@ -1,5 +1,5 @@
-import { expect } from 'chai';
-import fc from 'fast-check';
+import { expect } from "chai";
+import fc from "fast-check";
 
 import {
   clearDecode,
@@ -9,10 +9,10 @@ import {
   encryptAsymmetric,
   encryptSymmetric,
   getPublicKey,
-} from './version_1';
+} from "./version_1";
 
-describe('Waku Message Version 1', function () {
-  it('Sign & Recover', function () {
+describe("Waku Message Version 1", function () {
+  it("Sign & Recover", function () {
     fc.assert(
       fc.property(
         fc.uint8Array(),
@@ -25,22 +25,22 @@ describe('Waku Message Version 1', function () {
 
           expect(res?.payload).deep.equal(
             message,
-            'Payload was not encrypted then decrypted correctly'
+            "Payload was not encrypted then decrypted correctly"
           );
           expect(res?.sig?.publicKey).deep.equal(
             pubKey,
-            'signature Public key was not recovered from encrypted then decrypted signature'
+            "signature Public key was not recovered from encrypted then decrypted signature"
           );
           expect(enc?.sig?.publicKey).deep.equal(
             pubKey,
-            'Incorrect signature public key was returned when signing the payload'
+            "Incorrect signature public key was returned when signing the payload"
           );
         }
       )
     );
   });
 
-  it('Asymmetric encrypt & Decrypt', async function () {
+  it("Asymmetric encrypt & Decrypt", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
@@ -57,7 +57,7 @@ describe('Waku Message Version 1', function () {
     );
   });
 
-  it('Symmetric encrypt & Decrypt', async function () {
+  it("Symmetric encrypt & Decrypt", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array(),

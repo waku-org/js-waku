@@ -1,13 +1,13 @@
-import { WakuMessage } from 'js-waku';
-import { ChatContentTopic } from './App';
-import ChatList from './ChatList';
-import MessageInput from './MessageInput';
-import { useWaku } from './WakuContext';
-import { TitleBar } from '@livechat/ui-kit';
-import { Message } from './Message';
-import { ChatMessage } from './chat_message';
-import { useEffect, useState } from 'react';
-import PeerId from 'peer-id';
+import { WakuMessage } from "js-waku";
+import { ChatContentTopic } from "./App";
+import ChatList from "./ChatList";
+import MessageInput from "./MessageInput";
+import { useWaku } from "./WakuContext";
+import { TitleBar } from "@livechat/ui-kit";
+import { Message } from "./Message";
+import { ChatMessage } from "./chat_message";
+import { useEffect, useState } from "react";
+import PeerId from "peer-id";
 
 interface Props {
   messages: Message[];
@@ -32,10 +32,10 @@ export default function Room(props: Props) {
       });
     };
 
-    waku.libp2p.peerStore.on('change:protocols', addPeer);
+    waku.libp2p.peerStore.on("change:protocols", addPeer);
 
     return () => {
-      waku.libp2p.connectionManager.removeListener('change:protocols', addPeer);
+      waku.libp2p.connectionManager.removeListener("change:protocols", addPeer);
     };
   }, [waku]);
 
@@ -57,7 +57,7 @@ export default function Room(props: Props) {
   return (
     <div
       className="chat-container"
-      style={{ height: '98vh', display: 'flex', flexDirection: 'column' }}
+      style={{ height: "98vh", display: "flex", flexDirection: "column" }}
     >
       <TitleBar
         leftIcons={[`Peers: ${relayPeers} relay ${storePeers} store.`]}
@@ -88,7 +88,7 @@ async function handleMessage(
   commandHandler: (cmd: string) => void,
   messageSender: (msg: WakuMessage) => Promise<void>
 ) {
-  if (message.startsWith('/')) {
+  if (message.startsWith("/")) {
     commandHandler(message);
   } else {
     const timestamp = new Date();

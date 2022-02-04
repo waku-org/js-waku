@@ -1,10 +1,10 @@
-import WakuMock, { Message } from './WakuMock';
+import WakuMock, { Message } from "./WakuMock";
 
-test('Messages are emitted', async () => {
+test("Messages are emitted", async () => {
   const wakuMock = await WakuMock.create();
 
   let message: Message;
-  wakuMock.on('message', (msg) => {
+  wakuMock.on("message", (msg) => {
     message = msg;
   });
 
@@ -13,13 +13,13 @@ test('Messages are emitted', async () => {
   expect(message.message).toBeDefined();
 });
 
-test('Messages are sent', async () => {
+test("Messages are sent", async () => {
   const wakuMock = await WakuMock.create();
 
-  const text = 'This is a message.';
+  const text = "This is a message.";
 
   let message: Message;
-  wakuMock.on('message', (msg) => {
+  wakuMock.on("message", (msg) => {
     message = msg;
   });
 

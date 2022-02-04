@@ -1,28 +1,28 @@
-import debug from 'debug';
-import Libp2p from 'libp2p';
-import Gossipsub from 'libp2p-gossipsub';
-import { AddrInfo, MessageIdFunction } from 'libp2p-gossipsub/src/interfaces';
-import { MessageCache } from 'libp2p-gossipsub/src/message-cache';
-import { RPC } from 'libp2p-gossipsub/src/message/rpc';
+import debug from "debug";
+import Libp2p from "libp2p";
+import Gossipsub from "libp2p-gossipsub";
+import { AddrInfo, MessageIdFunction } from "libp2p-gossipsub/src/interfaces";
+import { MessageCache } from "libp2p-gossipsub/src/message-cache";
+import { RPC } from "libp2p-gossipsub/src/message/rpc";
 import {
   PeerScoreParams,
   PeerScoreThresholds,
-} from 'libp2p-gossipsub/src/score';
-import { createGossipRpc, shuffle } from 'libp2p-gossipsub/src/utils';
-import { InMessage } from 'libp2p-interfaces/src/pubsub';
-import { SignaturePolicy } from 'libp2p-interfaces/src/pubsub/signature-policy';
-import PeerId from 'peer-id';
+} from "libp2p-gossipsub/src/score";
+import { createGossipRpc, shuffle } from "libp2p-gossipsub/src/utils";
+import { InMessage } from "libp2p-interfaces/src/pubsub";
+import { SignaturePolicy } from "libp2p-interfaces/src/pubsub/signature-policy";
+import PeerId from "peer-id";
 
-import { hexToBuf } from '../utils';
-import { CreateOptions, DefaultPubSubTopic } from '../waku';
-import { DecryptionMethod, WakuMessage } from '../waku_message';
+import { hexToBuf } from "../utils";
+import { CreateOptions, DefaultPubSubTopic } from "../waku";
+import { DecryptionMethod, WakuMessage } from "../waku_message";
 
-import * as constants from './constants';
-import { RelayCodecs } from './constants';
-import { getRelayPeers } from './get_relay_peers';
-import { RelayHeartbeat } from './relay_heartbeat';
+import * as constants from "./constants";
+import { RelayCodecs } from "./constants";
+import { getRelayPeers } from "./get_relay_peers";
+import { RelayHeartbeat } from "./relay_heartbeat";
 
-const dbg = debug('waku:relay');
+const dbg = debug("waku:relay");
 
 export { RelayCodecs };
 
@@ -161,10 +161,10 @@ export class WakuRelay extends Gossipsub {
     contentTopics: string[] = []
   ): void {
     if (contentTopics.length === 0) {
-      if (!this.observers['']) {
-        this.observers[''] = new Set();
+      if (!this.observers[""]) {
+        this.observers[""] = new Set();
       }
-      this.observers[''].add(callback);
+      this.observers[""].add(callback);
     } else {
       contentTopics.forEach((contentTopic) => {
         if (!this.observers[contentTopic]) {
@@ -185,8 +185,8 @@ export class WakuRelay extends Gossipsub {
     contentTopics: string[] = []
   ): void {
     if (contentTopics.length === 0) {
-      if (this.observers['']) {
-        this.observers[''].delete(callback);
+      if (this.observers[""]) {
+        this.observers[""].delete(callback);
       }
     } else {
       contentTopics.forEach((contentTopic) => {
@@ -230,12 +230,12 @@ export class WakuRelay extends Gossipsub {
       WakuMessage.decode(event.data, decryptionKeys)
         .then((wakuMsg) => {
           if (!wakuMsg) {
-            dbg('Failed to decode Waku Message');
+            dbg("Failed to decode Waku Message");
             return;
           }
 
-          if (this.observers['']) {
-            this.observers[''].forEach((callbackFn) => {
+          if (this.observers[""]) {
+            this.observers[""].forEach((callbackFn) => {
               callbackFn(wakuMsg);
             });
           }
@@ -248,7 +248,7 @@ export class WakuRelay extends Gossipsub {
           }
         })
         .catch((e) => {
-          dbg('Failed to decode Waku Message', e);
+          dbg("Failed to decode Waku Message", e);
         });
     });
 
@@ -267,7 +267,7 @@ export class WakuRelay extends Gossipsub {
    */
   join(topic: string): void {
     if (!this.started) {
-      throw new Error('WakuRelayPubSub has not started');
+      throw new Error("WakuRelayPubSub has not started");
     }
 
     const fanoutPeers = this.fanout.get(topic);
@@ -311,7 +311,7 @@ export class WakuRelay extends Gossipsub {
       this.mesh.set(topic, peers);
     }
     this.mesh.get(topic)?.forEach((id) => {
-      this.log('JOIN: Add mesh link to %s in %s', id, topic);
+      this.log("JOIN: Add mesh link to %s in %s", id, topic);
       this._sendGraft(id, topic);
     });
   }
@@ -385,7 +385,7 @@ export class WakuRelay extends Gossipsub {
       if (id === msg.from) {
         return;
       }
-      dbg('Relay message to', id);
+      dbg("Relay message to", id);
       this._sendRpc(id, rpc);
     });
   }
@@ -415,7 +415,7 @@ export class WakuRelay extends Gossipsub {
     if (messageIDs.length > constants.RelayMaxIHaveLength) {
       // we do the truncation (with shuffling) per peer below
       this.log(
-        'too many messages for gossip; will truncate IHAVE list (%d messages)',
+        "too many messages for gossip; will truncate IHAVE list (%d messages)",
         messageIDs.length
       );
     }

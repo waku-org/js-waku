@@ -1,21 +1,21 @@
-process.env.CHROME_BIN = require('puppeteer').executablePath();
+process.env.CHROME_BIN = require("puppeteer").executablePath();
 
 module.exports = function (config) {
   config.set({
-    frameworks: ['mocha', 'karma-typescript'],
-    files: ['src/lib/**/*.ts', 'src/proto/**/*.ts'],
+    frameworks: ["mocha", "karma-typescript"],
+    files: ["src/lib/**/*.ts", "src/proto/**/*.ts"],
     preprocessors: {
-      '**/*.ts': ['karma-typescript', 'env'],
+      "**/*.ts": ["karma-typescript", "env"],
     },
-    envPreprocessor: ['CI'],
+    envPreprocessor: ["CI"],
     plugins: [
-      require('karma-mocha'),
-      require('karma-typescript'),
-      require('karma-chrome-launcher'),
-      require('karma-env-preprocessor'),
+      require("karma-mocha"),
+      require("karma-typescript"),
+      require("karma-chrome-launcher"),
+      require("karma-env-preprocessor"),
     ],
-    reporters: ['progress', 'karma-typescript'],
-    browsers: ['ChromeHeadless'],
+    reporters: ["progress", "karma-typescript"],
+    browsers: ["ChromeHeadless"],
     singleRun: true,
     client: {
       mocha: {
@@ -29,17 +29,17 @@ module.exports = function (config) {
       coverageOptions: {
         instrumentation: false,
       },
-      tsconfig: './tsconfig.json',
+      tsconfig: "./tsconfig.json",
       compilerOptions: {
         noEmit: false,
       },
       include: {
-        mode: 'replace',
-        values: ['src/lib/**/*.ts', 'src/proto/**/*.ts'],
+        mode: "replace",
+        values: ["src/lib/**/*.ts", "src/proto/**/*.ts"],
       },
       exclude: {
-        mode: 'replace',
-        values: ['node_modules/**'],
+        mode: "replace",
+        values: ["node_modules/**"],
       },
     },
   });

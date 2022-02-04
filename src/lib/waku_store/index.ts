@@ -1,22 +1,22 @@
-import debug from 'debug';
-import concat from 'it-concat';
-import lp from 'it-length-prefixed';
-import pipe from 'it-pipe';
-import Libp2p from 'libp2p';
-import { Peer } from 'libp2p/src/peer-store';
-import PeerId from 'peer-id';
+import debug from "debug";
+import concat from "it-concat";
+import lp from "it-length-prefixed";
+import pipe from "it-pipe";
+import Libp2p from "libp2p";
+import { Peer } from "libp2p/src/peer-store";
+import PeerId from "peer-id";
 
-import { HistoryResponse_Error } from '../../proto';
-import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
-import { hexToBuf } from '../utils';
-import { DefaultPubSubTopic } from '../waku';
-import { DecryptionMethod, WakuMessage } from '../waku_message';
+import { HistoryResponse_Error } from "../../proto";
+import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
+import { hexToBuf } from "../utils";
+import { DefaultPubSubTopic } from "../waku";
+import { DecryptionMethod, WakuMessage } from "../waku_message";
 
-import { HistoryRPC, PageDirection } from './history_rpc';
+import { HistoryRPC, PageDirection } from "./history_rpc";
 
-const dbg = debug('waku:store');
+const dbg = debug("waku:store");
 
-export const StoreCodec = '/vac/waku/store/2.0.0-beta3';
+export const StoreCodec = "/vac/waku/store/2.0.0-beta3";
 
 export const DefaultPageSize = 10;
 
@@ -143,7 +143,7 @@ export class WakuStore {
       },
       { contentTopics }
     );
-    dbg('Querying history with the following options', {
+    dbg("Querying history with the following options", {
       peerId: options?.peerId?.toB58String(),
       ...options,
     });
@@ -156,12 +156,12 @@ export class WakuStore {
     } else {
       peer = await this.randomPeer;
       if (!peer)
-        throw 'Failed to find known peer that registers waku store protocol';
+        throw "Failed to find known peer that registers waku store protocol";
     }
     if (!peer.protocols.includes(StoreCodec))
       throw `Peer does not register waku store protocol: ${peer.id.toB58String()}`;
     const connection = this.libp2p.connectionManager.get(peer.id);
-    if (!connection) throw 'Failed to get a connection to the peer';
+    if (!connection) throw "Failed to get a connection to the peer";
 
     const decryptionKeys = Array.from(this.decryptionKeys).map(
       ([key, { method, contentTopics }]) => {
@@ -191,7 +191,7 @@ export class WakuStore {
       const { stream } = await connection.newStream(StoreCodec);
       const queryOpts = Object.assign(opts, { cursor });
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
-      dbg('Querying store peer', connection.remoteAddr.toString());
+      dbg("Querying store peer", connection.remoteAddr.toString());
 
       const res = await pipe(
         [historyRpcQuery.encode()],
@@ -204,19 +204,19 @@ export class WakuStore {
 
       const response = reply.response;
       if (!response) {
-        throw 'History response misses response field';
+        throw "History response misses response field";
       }
 
       if (
         response.error &&
         response.error === HistoryResponse_Error.ERROR_INVALID_CURSOR
       ) {
-        throw 'History response contains an Error: INVALID CURSOR';
+        throw "History response contains an Error: INVALID CURSOR";
       }
 
       if (!response.messages || !response.messages.length) {
         // No messages left (or stored)
-        console.log('No messages present in HistoryRPC response');
+        console.log("No messages present in HistoryRPC response");
         return messages;
       }
 
@@ -255,7 +255,7 @@ export class WakuStore {
       if (cursor === undefined) {
         // If the server does not return cursor then there is an issue,
         // Need to abort or we end up in an infinite loop
-        console.log('No cursor returned by peer.');
+        console.log("No cursor returned by peer.");
         return messages;
       }
     }

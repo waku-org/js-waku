@@ -26,10 +26,10 @@ export abstract class AbstractKeypair {
 
   constructor(privateKey?: Buffer, publicKey?: Buffer) {
     if ((this._privateKey = privateKey) && !this.privateKeyVerify()) {
-      throw new Error('Invalid private key');
+      throw new Error("Invalid private key");
     }
     if ((this._publicKey = publicKey) && !this.publicKeyVerify()) {
-      throw new Error('Invalid private key');
+      throw new Error("Invalid private key");
     }
   }
 

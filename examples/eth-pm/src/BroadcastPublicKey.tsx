@@ -1,13 +1,13 @@
-import { Button } from '@material-ui/core';
-import React, { useState } from 'react';
+import { Button } from "@material-ui/core";
+import React, { useState } from "react";
 import {
   createPublicKeyMessage,
   KeyPair,
   PublicKeyMessageEncryptionKey,
-} from './crypto';
-import { PublicKeyMessage } from './messaging/wire';
-import { WakuMessage, Waku } from 'js-waku';
-import { PublicKeyContentTopic } from './waku';
+} from "./crypto";
+import { PublicKeyMessage } from "./messaging/wire";
+import { WakuMessage, Waku } from "js-waku";
+import { PublicKeyContentTopic } from "./waku";
 
 interface Props {
   EncryptionKeyPair: KeyPair | undefined;
@@ -36,11 +36,11 @@ export default function BroadcastPublicKey({
       encodePublicKeyWakuMessage(publicKeyMsg)
         .then((wakuMsg) => {
           waku.lightPush.push(wakuMsg).catch((e) => {
-            console.error('Failed to send Public Key Message', e);
+            console.error("Failed to send Public Key Message", e);
           });
         })
         .catch((e) => {
-          console.log('Failed to encode Public Key Message in Waku Message', e);
+          console.log("Failed to encode Public Key Message in Waku Message", e);
         });
     } else {
       createPublicKeyMessage(
@@ -54,20 +54,20 @@ export default function BroadcastPublicKey({
             .then((wakuMsg) => {
               waku.lightPush
                 .push(wakuMsg)
-                .then((res) => console.log('Public Key Message pushed', res))
+                .then((res) => console.log("Public Key Message pushed", res))
                 .catch((e) => {
-                  console.error('Failed to send Public Key Message', e);
+                  console.error("Failed to send Public Key Message", e);
                 });
             })
             .catch((e) => {
               console.log(
-                'Failed to encode Public Key Message in Waku Message',
+                "Failed to encode Public Key Message in Waku Message",
                 e
               );
             });
         })
         .catch((e) => {
-          console.error('Failed to create public key message', e);
+          console.error("Failed to create public key message", e);
         });
     }
   };

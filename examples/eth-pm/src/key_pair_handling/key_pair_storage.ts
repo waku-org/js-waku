@@ -1,5 +1,5 @@
-import { KeyPair } from '../crypto';
-import { bufToHex, hexToBuf } from 'js-waku/lib/utils';
+import { KeyPair } from "../crypto";
+import { bufToHex, hexToBuf } from "js-waku/lib/utils";
 
 /**
  * Save keypair to storage, encrypted with password
@@ -16,7 +16,7 @@ export async function saveKeyPairToStorage(
     cipher: bufToHex(cipher),
   };
 
-  localStorage.setItem('cipherEncryptionKeyPair', JSON.stringify(data));
+  localStorage.setItem("cipherEncryptionKeyPair", JSON.stringify(data));
 }
 
 /**
@@ -25,7 +25,7 @@ export async function saveKeyPairToStorage(
 export async function loadKeyPairFromStorage(
   password: string
 ): Promise<KeyPair | undefined> {
-  const str = localStorage.getItem('cipherEncryptionKeyPair');
+  const str = localStorage.getItem("cipherEncryptionKeyPair");
   if (!str) return;
   const data = JSON.parse(str);
 
@@ -42,11 +42,11 @@ export async function loadKeyPairFromStorage(
 function getKeyMaterial(password: string): Promise<CryptoKey> {
   const enc = new TextEncoder();
   return window.crypto.subtle.importKey(
-    'raw',
+    "raw",
     enc.encode(password),
-    { name: 'PBKDF2' },
+    { name: "PBKDF2" },
     false,
-    ['deriveBits', 'deriveKey']
+    ["deriveBits", "deriveKey"]
   );
 }
 
@@ -56,15 +56,15 @@ function getKeyMaterial(password: string): Promise<CryptoKey> {
 function getWrapKey(keyMaterial: CryptoKey, salt: Uint8Array) {
   return window.crypto.subtle.deriveKey(
     {
-      name: 'PBKDF2',
+      name: "PBKDF2",
       salt: salt,
       iterations: 100000,
-      hash: 'SHA-256',
+      hash: "SHA-256",
     },
     keyMaterial,
-    { name: 'AES-GCM', length: 256 },
+    { name: "AES-GCM", length: 256 },
     true,
-    ['encrypt', 'decrypt']
+    ["encrypt", "decrypt"]
   );
 }
 
@@ -82,7 +82,7 @@ async function encryptKey(encryptionKeyPair: KeyPair, password: string) {
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
   const cipher = await window.crypto.subtle.encrypt(
     {
-      name: 'AES-GCM',
+      name: "AES-GCM",
       iv: iv,
     },
     wrappingKey,
@@ -107,7 +107,7 @@ async function decryptKey(
   try {
     let decrypted = await window.crypto.subtle.decrypt(
       {
-        name: 'AES-GCM',
+        name: "AES-GCM",
         iv: iv,
       },
       key,

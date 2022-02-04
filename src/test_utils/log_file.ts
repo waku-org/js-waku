@@ -5,11 +5,11 @@
  * @module
  */
 
-import { Context } from 'mocha';
-import pTimeout from 'p-timeout';
-import { Tail } from 'tail';
+import { Context } from "mocha";
+import pTimeout from "p-timeout";
+import { Tail } from "tail";
 
-import { waitForFile } from './async_fs';
+import { waitForFile } from "./async_fs";
 
 export default async function waitForLine(
   filepath: string,
@@ -35,20 +35,20 @@ export default async function waitForLine(
 
 async function find(tail: Tail, line: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    tail.on('line', (data: string) => {
+    tail.on("line", (data: string) => {
       if (data.includes(line)) {
         resolve(data);
       }
     });
 
-    tail.on('error', (err) => {
+    tail.on("error", (err) => {
       reject(err);
     });
   });
 }
 
 function clean(str: string): string {
-  return str.replace(/ /g, '_').replace(/[':()/]/g, '');
+  return str.replace(/ /g, "_").replace(/[':()/]/g, "");
 }
 
 export function makeLogFileName(ctx: Context): string {
@@ -57,7 +57,7 @@ export function makeLogFileName(ctx: Context): string {
   let suite = unitTest?.parent;
 
   while (suite && suite.title) {
-    name = clean(suite.title) + '_' + name;
+    name = clean(suite.title) + "_" + name;
     suite = suite.parent;
   }
   return name;

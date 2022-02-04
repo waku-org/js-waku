@@ -1,11 +1,11 @@
-import { Reader } from 'protobufjs/minimal';
-import { v4 as uuid } from 'uuid';
+import { Reader } from "protobufjs/minimal";
+import { v4 as uuid } from "uuid";
 
-import * as proto from '../../proto/waku/v2/store';
+import * as proto from "../../proto/waku/v2/store";
 
 export enum PageDirection {
-  BACKWARD = 'backward',
-  FORWARD = 'forward',
+  BACKWARD = "backward",
+  FORWARD = "forward",
 }
 
 export interface Params {

@@ -1,8 +1,8 @@
-import { Reader } from 'protobufjs/minimal';
-import { v4 as uuid } from 'uuid';
+import { Reader } from "protobufjs/minimal";
+import { v4 as uuid } from "uuid";
 
-import * as proto from '../../proto/waku/v2/light_push';
-import { WakuMessage } from '../waku_message';
+import * as proto from "../../proto/waku/v2/light_push";
+import { WakuMessage } from "../waku_message";
 
 export class PushRPC {
   public constructor(public proto: proto.PushRPC) {}

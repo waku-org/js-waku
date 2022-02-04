@@ -1,11 +1,11 @@
-import debug from 'debug';
-import { Multiaddr } from 'multiaddr';
+import debug from "debug";
+import { Multiaddr } from "multiaddr";
 
-import { DnsNodeDiscovery } from './dns';
+import { DnsNodeDiscovery } from "./dns";
 
-import { getNodesFromHostedJson, getPseudoRandomSubset } from './index';
+import { getNodesFromHostedJson, getPseudoRandomSubset } from "./index";
 
-const dbg = debug('waku:discovery:bootstrap');
+const dbg = debug("waku:discovery:bootstrap");
 
 /**
  * Setup discovery method used to bootstrap.
@@ -55,7 +55,7 @@ export class Bootstrap {
     const maxPeers = opts.maxPeers ?? Bootstrap.DefaultMaxPeers;
 
     if (opts.default) {
-      dbg('Use hosted list of peers.');
+      dbg("Use hosted list of peers.");
 
       this.getBootstrapPeers = getNodesFromHostedJson.bind(
         {},
@@ -69,13 +69,13 @@ export class Bootstrap {
       );
       const peers = getPseudoRandomSubset(allPeers, maxPeers);
       dbg(
-        'Use provided list of peers (reduced to maxPeers)',
+        "Use provided list of peers (reduced to maxPeers)",
         allPeers.map((ma) => ma.toString())
       );
       this.getBootstrapPeers = (): Promise<Multiaddr[]> =>
         Promise.resolve(peers);
-    } else if (typeof opts.getPeers === 'function') {
-      dbg('Bootstrap: Use provided getPeers function.');
+    } else if (typeof opts.getPeers === "function") {
+      dbg("Bootstrap: Use provided getPeers function.");
       const getPeers = opts.getPeers;
 
       this.getBootstrapPeers = async (): Promise<Multiaddr[]> => {
@@ -87,7 +87,7 @@ export class Bootstrap {
       };
     } else if (opts.enrUrl) {
       const enrUrl = opts.enrUrl;
-      dbg('Use provided EIP-1459 ENR Tree URL.');
+      dbg("Use provided EIP-1459 ENR Tree URL.");
 
       const dns = DnsNodeDiscovery.dnsOverHttp();
 
@@ -97,7 +97,7 @@ export class Bootstrap {
         return enrs.map((enr) => enr.getFullMultiaddrs()).flat();
       };
     } else {
-      dbg('No bootstrap method specified, no peer will be returned');
+      dbg("No bootstrap method specified, no peer will be returned");
       this.getBootstrapPeers = undefined;
     }
   }

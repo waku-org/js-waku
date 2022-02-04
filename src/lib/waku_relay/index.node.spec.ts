@@ -1,31 +1,31 @@
-import { expect } from 'chai';
-import debug from 'debug';
+import { expect } from "chai";
+import debug from "debug";
 
 import {
   makeLogFileName,
   NimWaku,
   NOISE_KEY_1,
   NOISE_KEY_2,
-} from '../../test_utils';
-import { delay } from '../delay';
-import { DefaultPubSubTopic, Protocols, Waku } from '../waku';
-import { DecryptionMethod, WakuMessage } from '../waku_message';
+} from "../../test_utils";
+import { delay } from "../delay";
+import { DefaultPubSubTopic, Protocols, Waku } from "../waku";
+import { DecryptionMethod, WakuMessage } from "../waku_message";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
-} from '../waku_message/version_1';
+} from "../waku_message/version_1";
 
-const log = debug('waku:test');
+const log = debug("waku:test");
 
-const TestContentTopic = '/test/1/waku-relay/utf8';
+const TestContentTopic = "/test/1/waku-relay/utf8";
 
-describe('Waku Relay [node only]', () => {
+describe("Waku Relay [node only]", () => {
   // Node needed as we don't have a way to connect 2 js waku
   // nodes in the browser yet
-  describe('2 js nodes', () => {
+  describe("2 js nodes", () => {
     afterEach(function () {
-      if (this.currentTest?.state === 'failed') {
+      if (this.currentTest?.state === "failed") {
         console.log(`Test failed, log file name is ${makeLogFileName(this)}`);
       }
     });
@@ -35,56 +35,56 @@ describe('Waku Relay [node only]', () => {
     beforeEach(async function () {
       this.timeout(10000);
 
-      log('Starting JS Waku instances');
+      log("Starting JS Waku instances");
       [waku1, waku2] = await Promise.all([
         Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
         Waku.create({
           staticNoiseKey: NOISE_KEY_2,
-          libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/ws'] } },
+          libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
         }),
       ]);
       log("Instances started, adding waku2 to waku1's address book");
       waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
 
-      log('Wait for mutual pubsub subscription');
+      log("Wait for mutual pubsub subscription");
       await Promise.all([
         waku1.waitForRemotePeer([Protocols.Relay]),
         waku2.waitForRemotePeer([Protocols.Relay]),
       ]);
-      log('before each hook done');
+      log("before each hook done");
     });
 
     afterEach(async function () {
       !!waku1 &&
-        waku1.stop().catch((e) => console.log('Waku failed to stop', e));
+        waku1.stop().catch((e) => console.log("Waku failed to stop", e));
       !!waku2 &&
-        waku2.stop().catch((e) => console.log('Waku failed to stop', e));
+        waku2.stop().catch((e) => console.log("Waku failed to stop", e));
     });
 
-    it('Subscribe', async function () {
-      log('Getting subscribers');
+    it("Subscribe", async function () {
+      log("Getting subscribers");
       const subscribers1 =
         waku1.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
       const subscribers2 =
         waku2.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
 
-      log('Asserting mutual subscription');
+      log("Asserting mutual subscription");
       expect(subscribers1).to.contain(waku2.libp2p.peerId.toB58String());
       expect(subscribers2).to.contain(waku1.libp2p.peerId.toB58String());
     });
 
-    it('Register correct protocols', async function () {
+    it("Register correct protocols", async function () {
       const protocols = Array.from(waku1.libp2p.upgrader.protocols.keys());
 
-      expect(protocols).to.contain('/vac/waku/relay/2.0.0');
+      expect(protocols).to.contain("/vac/waku/relay/2.0.0");
       expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
     });
 
-    it('Publish', async function () {
+    it("Publish", async function () {
       this.timeout(10000);
 
-      const messageText = 'JS to JS communication works';
-      const messageTimestamp = new Date('1995-12-17T03:24:00');
+      const messageText = "JS to JS communication works";
+      const messageTimestamp = new Date("1995-12-17T03:24:00");
       const message = await WakuMessage.fromUtf8String(
         messageText,
         TestContentTopic,
@@ -111,23 +111,23 @@ describe('Waku Relay [node only]', () => {
       );
     });
 
-    it('Filter on content topics', async function () {
+    it("Filter on content topics", async function () {
       this.timeout(10000);
 
-      const fooMessageText = 'Published on content topic foo';
-      const barMessageText = 'Published on content topic bar';
+      const fooMessageText = "Published on content topic foo";
+      const barMessageText = "Published on content topic bar";
       const fooMessage = await WakuMessage.fromUtf8String(
         fooMessageText,
-        'foo'
+        "foo"
       );
       const barMessage = await WakuMessage.fromUtf8String(
         barMessageText,
-        'bar'
+        "bar"
       );
 
       const receivedBarMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
-          waku2.relay.addObserver(resolve, ['bar']);
+          waku2.relay.addObserver(resolve, ["bar"]);
         }
       );
 
@@ -153,15 +153,15 @@ describe('Waku Relay [node only]', () => {
       expect(allMessages[1].payloadAsUtf8).to.eq(barMessageText);
     });
 
-    it('Decrypt messages', async function () {
+    it("Decrypt messages", async function () {
       this.timeout(10000);
 
       const encryptedAsymmetricMessageText =
-        'This message is encrypted using asymmetric';
-      const encryptedAsymmetricContentTopic = '/test/1/asymmetric/proto';
+        "This message is encrypted using asymmetric";
+      const encryptedAsymmetricContentTopic = "/test/1/asymmetric/proto";
       const encryptedSymmetricMessageText =
-        'This message is encrypted using symmetric encryption';
-      const encryptedSymmetricContentTopic = '/test/1/symmetric/proto';
+        "This message is encrypted using symmetric encryption";
+      const encryptedSymmetricContentTopic = "/test/1/symmetric/proto";
 
       const privateKey = generatePrivateKey();
       const symKey = generateSymmetricKey();
@@ -219,21 +219,21 @@ describe('Waku Relay [node only]', () => {
       expect(msgs[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
     });
 
-    it('Delete observer', async function () {
+    it("Delete observer", async function () {
       this.timeout(10000);
 
       const messageText =
-        'Published on content topic with added then deleted observer';
+        "Published on content topic with added then deleted observer";
       const message = await WakuMessage.fromUtf8String(
         messageText,
-        'added-then-deleted-observer'
+        "added-then-deleted-observer"
       );
 
       // The promise **fails** if we receive a message on this observer.
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve, reject) => {
-          waku2.relay.addObserver(reject, ['added-then-deleted-observer']);
-          waku2.relay.deleteObserver(reject, ['added-then-deleted-observer']);
+          waku2.relay.addObserver(reject, ["added-then-deleted-observer"]);
+          waku2.relay.deleteObserver(reject, ["added-then-deleted-observer"]);
           setTimeout(resolve, 500);
         }
       );
@@ -244,11 +244,11 @@ describe('Waku Relay [node only]', () => {
     });
   });
 
-  describe('Custom pubsub topic', () => {
-    it('Publish', async function () {
+  describe("Custom pubsub topic", () => {
+    it("Publish", async function () {
       this.timeout(10000);
 
-      const pubSubTopic = '/some/pubsub/topic';
+      const pubSubTopic = "/some/pubsub/topic";
 
       // 1 and 2 uses a custom pubsub
       const [waku1, waku2, waku3] = await Promise.all([
@@ -259,7 +259,7 @@ describe('Waku Relay [node only]', () => {
         Waku.create({
           pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_2,
-          libp2p: { addresses: { listen: ['/ip4/0.0.0.0/tcp/0/ws'] } },
+          libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
         }),
         Waku.create({
           staticNoiseKey: NOISE_KEY_2,
@@ -275,7 +275,7 @@ describe('Waku Relay [node only]', () => {
         // No subscription change expected for Waku 3
       ]);
 
-      const messageText = 'Communicating using a custom pubsub topic';
+      const messageText = "Communicating using a custom pubsub topic";
       const message = await WakuMessage.fromUtf8String(
         messageText,
         TestContentTopic
@@ -305,7 +305,7 @@ describe('Waku Relay [node only]', () => {
     });
   });
 
-  describe('Interop: Nim', function () {
+  describe("Interop: Nim", function () {
     let waku: Waku;
     let nimWaku: NimWaku;
 
@@ -315,7 +315,7 @@ describe('Waku Relay [node only]', () => {
         staticNoiseKey: NOISE_KEY_1,
       });
 
-      nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + '');
+      nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + "");
       await nimWaku.start();
 
       await waku.dial(await nimWaku.getMultiaddrWithId());
@@ -324,10 +324,10 @@ describe('Waku Relay [node only]', () => {
 
     afterEach(async function () {
       !!nimWaku && nimWaku.stop();
-      !!waku && waku.stop().catch((e) => console.log('Waku failed to stop', e));
+      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
     });
 
-    it('nim subscribes to js', async function () {
+    it("nim subscribes to js", async function () {
       let subscribers: string[] = [];
 
       while (subscribers.length === 0) {
@@ -339,10 +339,10 @@ describe('Waku Relay [node only]', () => {
       expect(subscribers).to.contain(nimPeerId.toB58String());
     });
 
-    it('Js publishes to nim', async function () {
+    it("Js publishes to nim", async function () {
       this.timeout(30000);
 
-      const messageText = 'This is a message';
+      const messageText = "This is a message";
       const message = await WakuMessage.fromUtf8String(
         messageText,
         TestContentTopic
@@ -353,7 +353,7 @@ describe('Waku Relay [node only]', () => {
       let msgs: WakuMessage[] = [];
 
       while (msgs.length === 0) {
-        console.log('Waiting for messages');
+        console.log("Waiting for messages");
         await delay(200);
         msgs = await nimWaku.messages();
       }
@@ -363,10 +363,10 @@ describe('Waku Relay [node only]', () => {
       expect(msgs[0].payloadAsUtf8).to.equal(messageText);
     });
 
-    it('Nim publishes to js', async function () {
+    it("Nim publishes to js", async function () {
       await delay(200);
 
-      const messageText = 'Here is another message.';
+      const messageText = "Here is another message.";
       const message = await WakuMessage.fromUtf8String(
         messageText,
         TestContentTopic
@@ -387,7 +387,7 @@ describe('Waku Relay [node only]', () => {
       expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
     });
 
-    describe.skip('js to nim to js', function () {
+    describe.skip("js to nim to js", function () {
       let waku1: Waku;
       let waku2: Waku;
       let nimWaku: NimWaku;
@@ -395,12 +395,12 @@ describe('Waku Relay [node only]', () => {
       afterEach(async function () {
         !!nimWaku && nimWaku.stop();
         !!waku1 &&
-          waku1.stop().catch((e) => console.log('Waku failed to stop', e));
+          waku1.stop().catch((e) => console.log("Waku failed to stop", e));
         !!waku2 &&
-          waku2.stop().catch((e) => console.log('Waku failed to stop', e));
+          waku2.stop().catch((e) => console.log("Waku failed to stop", e));
       });
 
-      it('Js publishes, other Js receives', async function () {
+      it("Js publishes, other Js receives", async function () {
         this.timeout(60_000);
         [waku1, waku2] = await Promise.all([
           Waku.create({
@@ -432,7 +432,7 @@ describe('Waku Relay [node only]', () => {
           .false;
         expect(waku2.libp2p.peerStore.has(waku1.libp2p.peerId)).to.be.false;
 
-        const msgStr = 'Hello there!';
+        const msgStr = "Hello there!";
         const message = await WakuMessage.fromUtf8String(
           msgStr,
           TestContentTopic
@@ -445,7 +445,7 @@ describe('Waku Relay [node only]', () => {
         );
 
         await waku1.relay.send(message);
-        console.log('Waiting for message');
+        console.log("Waiting for message");
         const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
 
         expect(waku2ReceivedMsg.payloadAsUtf8).to.eq(msgStr);

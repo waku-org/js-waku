@@ -1,4 +1,4 @@
-export { WakuMessage } from './waku/v2/message';
+export { WakuMessage } from "./waku/v2/message";
 
 export {
   Index,
@@ -9,4 +9,4 @@ export {
   HistoryResponse,
   HistoryResponse_Error,
   HistoryRPC,
-} from './waku/v2/store';
+} from "./waku/v2/store";

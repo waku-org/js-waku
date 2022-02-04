@@ -1,48 +1,48 @@
-import { useEffect, useReducer, useState } from 'react';
-import './App.css';
+import { useEffect, useReducer, useState } from "react";
+import "./App.css";
 import {
   PageDirection,
   getNodesFromHostedJson,
   Waku,
   WakuMessage,
-} from 'js-waku';
-import handleCommand from './command';
-import Room from './Room';
-import { WakuContext } from './WakuContext';
-import { ThemeProvider } from '@livechat/ui-kit';
-import { generate } from 'server-name-generator';
-import { Message } from './Message';
+} from "js-waku";
+import handleCommand from "./command";
+import Room from "./Room";
+import { WakuContext } from "./WakuContext";
+import { ThemeProvider } from "@livechat/ui-kit";
+import { generate } from "server-name-generator";
+import { Message } from "./Message";
 
 const themes = {
   AuthorName: {
     css: {
-      fontSize: '1.1em',
+      fontSize: "1.1em",
     },
   },
   Message: {
     css: {
-      margin: '0em',
-      padding: '0em',
-      fontSize: '0.83em',
+      margin: "0em",
+      padding: "0em",
+      fontSize: "0.83em",
     },
   },
   MessageText: {
     css: {
-      margin: '0em',
-      padding: '0.1em',
-      paddingLeft: '1em',
-      fontSize: '1.1em',
+      margin: "0em",
+      padding: "0.1em",
+      paddingLeft: "1em",
+      fontSize: "1.1em",
     },
   },
   MessageGroup: {
     css: {
-      margin: '0em',
-      padding: '0.2em',
+      margin: "0em",
+      padding: "0.2em",
     },
   },
 };
 
-export const ChatContentTopic = '/toy-chat/2/huilong/proto';
+export const ChatContentTopic = "/toy-chat/2/huilong/proto";
 
 async function retrieveStoreMessages(
   waku: Waku,
@@ -79,7 +79,7 @@ async function retrieveStoreMessages(
 
     return res.length;
   } catch (e) {
-    console.log('Failed to retrieve messages', e);
+    console.log("Failed to retrieve messages", e);
     return 0;
   }
 }
@@ -88,20 +88,20 @@ export default function App() {
   const [messages, dispatchMessages] = useReducer(reduceMessages, []);
   const [waku, setWaku] = useState<Waku | undefined>(undefined);
   const [nick, setNick] = useState<string>(() => {
-    const persistedNick = window.localStorage.getItem('nick');
+    const persistedNick = window.localStorage.getItem("nick");
     return persistedNick !== null ? persistedNick : generate();
   });
   const [historicalMessagesRetrieved, setHistoricalMessagesRetrieved] =
     useState(false);
 
   useEffect(() => {
-    localStorage.setItem('nick', nick);
+    localStorage.setItem("nick", nick);
   }, [nick]);
 
   useEffect(() => {
     initWaku(setWaku)
-      .then(() => console.log('Waku init done'))
-      .catch((e) => console.log('Waku init failed ', e));
+      .then(() => console.log("Waku init done"))
+      .catch((e) => console.log("Waku init failed ", e));
   }, []);
 
   useEffect(() => {
@@ -110,7 +110,7 @@ export default function App() {
     if (!historicalMessagesRetrieved) return;
 
     const handleRelayMessage = (wakuMsg: WakuMessage) => {
-      console.log('Message received: ', wakuMsg);
+      console.log("Message received: ", wakuMsg);
       const msg = Message.fromWakuMessage(wakuMsg);
       if (msg) {
         dispatchMessages([msg]);
@@ -148,7 +148,7 @@ export default function App() {
   return (
     <div
       className="chat-app"
-      style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}
+      style={{ height: "100vh", width: "100vw", overflow: "hidden" }}
     >
       <WakuContext.Provider value={{ waku: waku }}>
         <ThemeProvider theme={themes}>
@@ -190,16 +190,16 @@ async function initWaku(setter: (waku: Waku) => void) {
 
     setter(waku);
   } catch (e) {
-    console.log('Issue starting waku ', e);
+    console.log("Issue starting waku ", e);
   }
 }
 
 function selectFleetEnv() {
   // Works with react-scripts
-  if (process?.env?.NODE_ENV === 'development') {
-    return ['fleets', 'wakuv2.test', 'waku-websocket'];
+  if (process?.env?.NODE_ENV === "development") {
+    return ["fleets", "wakuv2.test", "waku-websocket"];
   } else {
-    return ['fleets', 'wakuv2.prod', 'waku-websocket'];
+    return ["fleets", "wakuv2.prod", "waku-websocket"];
   }
 }
 

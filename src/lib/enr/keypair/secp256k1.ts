@@ -1,9 +1,9 @@
-import { Buffer } from 'buffer';
-import crypto from 'crypto';
+import { Buffer } from "buffer";
+import crypto from "crypto";
 
-import * as secp256k1 from 'secp256k1';
+import * as secp256k1 from "secp256k1";
 
-import { AbstractKeypair, IKeypair, IKeypairClass, KeypairType } from './types';
+import { AbstractKeypair, IKeypair, IKeypairClass, KeypairType } from "./types";
 
 export function secp256k1PublicKeyToCompressed(publicKey: Uint8Array): Buffer {
   if (publicKey.length === 64) {
@@ -69,7 +69,7 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
 };
 
 function randomBytes(length: number): Uint8Array {
-  if (typeof window !== 'undefined' && window && window.crypto) {
+  if (typeof window !== "undefined" && window && window.crypto) {
     const array = new Uint8Array(length);
     window.crypto.getRandomValues(array);
     return array;

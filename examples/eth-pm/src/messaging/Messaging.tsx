@@ -1,14 +1,14 @@
-import Messages, { Message } from './Messages';
-import { Waku } from 'js-waku';
-import SendMessage from './SendMessage';
-import { makeStyles } from '@material-ui/core';
+import Messages, { Message } from "./Messages";
+import { Waku } from "js-waku";
+import SendMessage from "./SendMessage";
+import { makeStyles } from "@material-ui/core";
 
 const useStyles = makeStyles({
   root: {
-    display: 'flex',
-    alignItems: 'left',
-    flexDirection: 'column',
-    margin: '5px',
+    display: "flex",
+    alignItems: "left",
+    flexDirection: "column",
+    margin: "5px",
   },
 });
 

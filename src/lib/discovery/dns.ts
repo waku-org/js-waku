@@ -1,13 +1,13 @@
-import assert from 'assert';
+import assert from "assert";
 
-import { debug } from 'debug';
+import { debug } from "debug";
 
-import { ENR } from '../enr';
+import { ENR } from "../enr";
 
-import { DnsOverHttps, Endpoints } from './dns_over_https';
-import { ENRTree } from './enrtree';
+import { DnsOverHttps, Endpoints } from "./dns_over_https";
+import { ENRTree } from "./enrtree";
 
-const dbg = debug('waku:discovery:dns');
+const dbg = debug("waku:discovery:dns");
 
 export type SearchContext = {
   domain: string;
@@ -130,13 +130,13 @@ export class DnsNodeDiscovery {
 
     assert(
       response.length,
-      'Received empty result array while fetching TXT record'
+      "Received empty result array while fetching TXT record"
     );
-    assert(response[0].length, 'Received empty TXT record');
+    assert(response[0].length, "Received empty TXT record");
 
     // Branch entries can be an array of strings of comma delimited subdomains, with
     // some subdomain strings split across the array elements
-    const result = response.join('');
+    const result = response.join("");
 
     this._DNSTreeCache[subdomain] = result;
     return result;
@@ -148,7 +148,7 @@ function getEntryType(entry: string): string {
   if (entry.startsWith(ENRTree.BRANCH_PREFIX)) return ENRTree.BRANCH_PREFIX;
   if (entry.startsWith(ENRTree.RECORD_PREFIX)) return ENRTree.RECORD_PREFIX;
 
-  return '';
+  return "";
 }
 
 /**
@@ -171,7 +171,7 @@ function selectRandomPath(branches: string[], context: SearchContext): string {
   }
   // If all possible paths are circular...
   if (Object.keys(circularRefs).length === branches.length) {
-    throw new Error('Unresolvable circular path detected');
+    throw new Error("Unresolvable circular path detected");
   }
 
   // Randomly select a viable path

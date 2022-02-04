@@ -1,7 +1,7 @@
-import { Button } from '@material-ui/core';
-import React from 'react';
-import { KeyPair } from '../crypto';
-import { saveKeyPairToStorage } from './key_pair_storage';
+import { Button } from "@material-ui/core";
+import React from "react";
+import { KeyPair } from "../crypto";
+import { saveKeyPairToStorage } from "./key_pair_storage";
 
 export interface Props {
   EncryptionKeyPair: KeyPair | undefined;
@@ -13,7 +13,7 @@ export function SaveKeyPair({ password, EncryptionKeyPair }: Props) {
     if (!EncryptionKeyPair) return;
     if (!password) return;
     saveKeyPairToStorage(EncryptionKeyPair, password).then(() => {
-      console.log('Encryption KeyPair saved to storage');
+      console.log("Encryption KeyPair saved to storage");
     });
   };
 

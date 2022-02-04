@@ -1,11 +1,11 @@
-import assert from 'assert';
+import assert from "assert";
 
-import base64url from 'base64url';
-import * as base32 from 'hi-base32';
-import { ecdsaVerify } from 'secp256k1';
+import base64url from "base64url";
+import * as base32 from "hi-base32";
+import { ecdsaVerify } from "secp256k1";
 
-import { ENR } from '../enr';
-import { keccak256Buf } from '../utils';
+import { ENR } from "../enr";
+import { keccak256Buf } from "../utils";
 
 export type ENRRootValues = {
   eRoot: string;
@@ -21,9 +21,9 @@ export type ENRTreeValues = {
 
 export class ENRTree {
   public static readonly RECORD_PREFIX = ENR.RECORD_PREFIX;
-  public static readonly TREE_PREFIX = 'enrtree:';
-  public static readonly BRANCH_PREFIX = 'enrtree-branch:';
-  public static readonly ROOT_PREFIX = 'enrtree-root:';
+  public static readonly TREE_PREFIX = "enrtree:";
+  public static readonly BRANCH_PREFIX = "enrtree-branch:";
+  public static readonly ROOT_PREFIX = "enrtree-root:";
 
   /**
    * Extracts the branch subdomain referenced by a DNS tree root string after verifying
@@ -41,7 +41,7 @@ export class ENRTree {
     // The signature is a 65-byte secp256k1 over the keccak256 hash
     // of the record content, excluding the `sig=` part, encoded as URL-safe base64 string
     // (Trailing recovery bit must be trimmed to pass `ecdsaVerify` method)
-    const signedComponent = root.split(' sig')[0];
+    const signedComponent = root.split(" sig")[0];
     const signedComponentBuffer = Buffer.from(signedComponent);
     const signatureBuffer = base64url
       .toBuffer(rootValues.signature)
@@ -54,7 +54,7 @@ export class ENRTree {
       keyBuffer
     );
 
-    assert(isVerified, 'Unable to verify ENRTree root signature');
+    assert(isVerified, "Unable to verify ENRTree root signature");
 
     return rootValues.eRoot;
   }
@@ -64,7 +64,7 @@ export class ENRTree {
       /^enrtree-root:v1 e=([^ ]+) l=([^ ]+) seq=(\d+) sig=([^ ]+)$/
     );
 
-    assert.ok(Array.isArray(matches), 'Could not parse ENRTree root entry');
+    assert.ok(Array.isArray(matches), "Could not parse ENRTree root entry");
 
     matches.shift(); // The first entry is the full match
     const [eRoot, lRoot, seq, signature] = matches;
@@ -90,13 +90,13 @@ export class ENRTree {
 
     const matches = tree.match(/^enrtree:\/\/([^@]+)@(.+)$/);
 
-    assert.ok(Array.isArray(matches), 'Could not parse ENRTree tree entry');
+    assert.ok(Array.isArray(matches), "Could not parse ENRTree tree entry");
 
     matches.shift(); // The first entry is the full match
     const [publicKey, domain] = matches;
 
-    assert.ok(publicKey, 'Could not parse public key from ENRTree tree entry');
-    assert.ok(domain, 'Could not parse domain from ENRTree tree entry');
+    assert.ok(publicKey, "Could not parse public key from ENRTree tree entry");
+    assert.ok(domain, "Could not parse domain from ENRTree tree entry");
 
     return { publicKey, domain };
   }
@@ -111,6 +111,6 @@ export class ENRTree {
       `ENRTree branch entry must start with '${this.BRANCH_PREFIX}'`
     );
 
-    return branch.split(this.BRANCH_PREFIX)[1].split(',');
+    return branch.split(this.BRANCH_PREFIX)[1].split(",");
   }
 }
