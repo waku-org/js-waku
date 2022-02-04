@@ -1,13 +1,13 @@
-import { Buffer } from 'buffer';
-import * as crypto from 'crypto';
+import { Buffer } from "buffer";
+import * as crypto from "crypto";
 
-import * as ecies from 'ecies-geth';
-import { keccak256 } from 'js-sha3';
-import * as secp256k1 from 'secp256k1';
+import * as ecies from "ecies-geth";
+import { keccak256 } from "js-sha3";
+import * as secp256k1 from "secp256k1";
 
-import { hexToBuf } from '../utils';
+import { hexToBuf } from "../utils";
 
-import { IvSize, symmetric, SymmetricKeySize } from './symmetric';
+import { IvSize, symmetric, SymmetricKeySize } from "./symmetric";
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011
@@ -49,7 +49,7 @@ export function clearEncode(
   const pad = Buffer.from(randomBytes(paddingSize));
 
   if (!validateDataIntegrity(pad, paddingSize)) {
-    throw new Error('failed to generate random padding of size ' + paddingSize);
+    throw new Error("failed to generate random padding of size " + paddingSize);
   }
 
   envelope = Buffer.concat([envelope, pad]);
@@ -256,7 +256,7 @@ function ecRecoverPubKey(messageHash: string, signature: Buffer): Uint8Array {
 }
 
 function randomBytes(length: number): Uint8Array {
-  if (typeof window !== 'undefined' && window && window.crypto) {
+  if (typeof window !== "undefined" && window && window.crypto) {
     const array = new Uint8Array(length);
     window.crypto.getRandomValues(array);
     return array;

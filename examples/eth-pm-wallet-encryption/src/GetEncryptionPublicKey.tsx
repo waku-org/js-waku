@@ -1,5 +1,5 @@
-import { Button } from '@material-ui/core';
-import React from 'react';
+import { Button } from "@material-ui/core";
+import React from "react";
 
 interface Props {
   setEncPublicKey: (key: Uint8Array) => void;
@@ -18,20 +18,20 @@ export default function GetEncryptionPublicKey({
     if (!providerRequest) return;
     if (!address) return;
 
-    console.log('Getting Encryption Public Key from Wallet');
+    console.log("Getting Encryption Public Key from Wallet");
     providerRequest({
-      method: 'eth_getEncryptionPublicKey',
+      method: "eth_getEncryptionPublicKey",
       params: [address],
     })
       .then((key: string | undefined) => {
-        console.log('Encryption Public key:', key);
+        console.log("Encryption Public key:", key);
 
-        if (typeof key !== 'string') {
-          console.error('Could not get encryption key');
+        if (typeof key !== "string") {
+          console.error("Could not get encryption key");
           return;
         }
 
-        setEncPublicKey(Buffer.from(key, 'base64'));
+        setEncPublicKey(Buffer.from(key, "base64"));
       })
       .catch((error) => {
         if (error.code === 4001) {

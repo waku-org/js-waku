@@ -1,6 +1,6 @@
-import { Reader } from 'protobufjs/minimal';
+import { Reader } from "protobufjs/minimal";
 
-import * as proto from './proto/chat_message';
+import * as proto from "./proto/chat_message";
 
 /**
  * ChatMessage is used by the various show case waku apps that demonstrates
@@ -21,7 +21,7 @@ export class ChatMessage {
     text: string
   ): ChatMessage {
     const timestampNumber = Math.floor(timestamp.valueOf() / 1000);
-    const payload = Buffer.from(text, 'utf-8');
+    const payload = Buffer.from(text, "utf-8");
 
     return new ChatMessage({
       timestamp: timestampNumber,
@@ -57,9 +57,9 @@ export class ChatMessage {
 
   get payloadAsUtf8(): string {
     if (!this.proto.payload) {
-      return '';
+      return "";
     }
 
-    return Buffer.from(this.proto.payload).toString('utf-8');
+    return Buffer.from(this.proto.payload).toString("utf-8");
   }
 }

@@ -3,12 +3,12 @@
  * @module
  */
 
-import Gossipsub from 'libp2p-gossipsub';
-import { Heartbeat } from 'libp2p-gossipsub/src/heartbeat';
-import { shuffle } from 'libp2p-gossipsub/src/utils';
+import Gossipsub from "libp2p-gossipsub";
+import { Heartbeat } from "libp2p-gossipsub/src/heartbeat";
+import { shuffle } from "libp2p-gossipsub/src/utils";
 
-import * as constants from './constants';
-import { getRelayPeers } from './get_relay_peers';
+import * as constants from "./constants";
+import { getRelayPeers } from "./get_relay_peers";
 
 export class RelayHeartbeat extends Heartbeat {
   /**
@@ -107,7 +107,7 @@ export class RelayHeartbeat extends Heartbeat {
       // prune/graft helper functions (defined per topic)
       const prunePeer = (id: string): void => {
         this.gossipsub.log(
-          'HEARTBEAT: Remove mesh link to %s in %s',
+          "HEARTBEAT: Remove mesh link to %s in %s",
           id,
           topic
         );
@@ -126,7 +126,7 @@ export class RelayHeartbeat extends Heartbeat {
         }
       };
       const graftPeer = (id: string): void => {
-        this.gossipsub.log('HEARTBEAT: Add mesh link to %s in %s', id, topic);
+        this.gossipsub.log("HEARTBEAT: Add mesh link to %s in %s", id, topic);
         // update peer score
         this.gossipsub.score.graft(id, topic);
         // add peer to mesh
@@ -145,7 +145,7 @@ export class RelayHeartbeat extends Heartbeat {
         const score = getScore(id);
         if (score < 0) {
           this.gossipsub.log(
-            'HEARTBEAT: Prune peer %s with negative score: score=%d, topic=%s',
+            "HEARTBEAT: Prune peer %s with negative score: score=%d, topic=%s",
             id,
             score,
             topic
@@ -301,7 +301,7 @@ export class RelayHeartbeat extends Heartbeat {
           );
           peersToGraft.forEach((id: string) => {
             this.gossipsub.log(
-              'HEARTBEAT: Opportunistically graft peer %s on topic %s',
+              "HEARTBEAT: Opportunistically graft peer %s on topic %s",
               id,
               topic
             );
@@ -374,6 +374,6 @@ export class RelayHeartbeat extends Heartbeat {
     // advance the message history window
     this.gossipsub.messageCache.shift();
 
-    this.gossipsub.emit('gossipsub:heartbeat');
+    this.gossipsub.emit("gossipsub:heartbeat");
   }
 }

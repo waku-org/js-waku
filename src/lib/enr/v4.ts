@@ -1,10 +1,10 @@
-import crypto from 'crypto';
+import crypto from "crypto";
 
-import { keccak256 } from 'js-sha3';
-import * as secp256k1 from 'secp256k1';
+import { keccak256 } from "js-sha3";
+import * as secp256k1 from "secp256k1";
 
-import { createNodeId } from './create';
-import { NodeId } from './types';
+import { createNodeId } from "./create";
+import { NodeId } from "./types";
 
 export function hash(input: Uint8Array): Buffer {
   return Buffer.from(keccak256.arrayBuffer(input));
@@ -44,7 +44,7 @@ export class ENRKeyPair {
   public static async create(privateKey?: Buffer): Promise<ENRKeyPair> {
     if (privateKey) {
       if (!secp256k1.privateKeyVerify(privateKey)) {
-        throw new Error('Invalid private key');
+        throw new Error("Invalid private key");
       }
     }
     const _privateKey = privateKey || (await createPrivateKey());
@@ -64,7 +64,7 @@ export class ENRKeyPair {
 }
 
 function randomBytes(length: number): Uint8Array {
-  if (typeof window !== 'undefined' && window && window.crypto) {
+  if (typeof window !== "undefined" && window && window.crypto) {
     const array = new Uint8Array(length);
     window.crypto.getRandomValues(array);
     return array;

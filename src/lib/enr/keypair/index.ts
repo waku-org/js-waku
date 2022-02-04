@@ -1,15 +1,15 @@
-import { keys } from 'libp2p-crypto';
-import mh from 'multihashes';
-import PeerId from 'peer-id';
+import { keys } from "libp2p-crypto";
+import mh from "multihashes";
+import PeerId from "peer-id";
 
 const { keysPBM, supportedKeys } = keys;
 
-import { ERR_TYPE_NOT_IMPLEMENTED } from './constants';
-import { Secp256k1Keypair } from './secp256k1';
-import { IKeypair, KeypairType } from './types';
+import { ERR_TYPE_NOT_IMPLEMENTED } from "./constants";
+import { Secp256k1Keypair } from "./secp256k1";
+import { IKeypair, KeypairType } from "./types";
 
-export * from './types';
-export * from './secp256k1';
+export * from "./types";
+export * from "./secp256k1";
 
 export async function generateKeypair(type: KeypairType): Promise<IKeypair> {
   switch (type) {
@@ -47,7 +47,7 @@ export function createPeerIdFromKeypair(keypair: IKeypair): PeerId {
       const pubKey = new supportedKeys.secp256k1.Secp256k1PublicKey(
         keypair.publicKey
       );
-      const id = mh.encode(pubKey.bytes, 'identity');
+      const id = mh.encode(pubKey.bytes, "identity");
       return new PeerId(id, privKey, pubKey);
     }
     default:

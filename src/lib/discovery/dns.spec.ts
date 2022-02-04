@@ -1,7 +1,7 @@
-import { expect } from 'chai';
+import { expect } from "chai";
 
-import { DnsClient, DnsNodeDiscovery } from './dns';
-import testData from './testdata.json';
+import { DnsClient, DnsNodeDiscovery } from "./dns";
+import testData from "./testdata.json";
 
 declare global {
   interface Window {
@@ -11,14 +11,14 @@ declare global {
 
 const mockData = testData.dns;
 
-const host = 'nodes.example.org';
-const rootDomain = 'JORXBYVVM7AEKETX5DGXW44EAY';
-const branchDomainA = 'D2SNLTAGWNQ34NTQTPHNZDECFU';
-const branchDomainB = 'D3SNLTAGWNQ34NTQTPHNZDECFU';
-const branchDomainC = 'D4SNLTAGWNQ34NTQTPHNZDECFU';
-const branchDomainD = 'D5SNLTAGWNQ34NTQTPHNZDECFU';
-const partialBranchA = 'AAAA';
-const partialBranchB = 'BBBB';
+const host = "nodes.example.org";
+const rootDomain = "JORXBYVVM7AEKETX5DGXW44EAY";
+const branchDomainA = "D2SNLTAGWNQ34NTQTPHNZDECFU";
+const branchDomainB = "D3SNLTAGWNQ34NTQTPHNZDECFU";
+const branchDomainC = "D4SNLTAGWNQ34NTQTPHNZDECFU";
+const branchDomainD = "D5SNLTAGWNQ34NTQTPHNZDECFU";
+const partialBranchA = "AAAA";
+const partialBranchB = "BBBB";
 const singleBranch = `enrtree-branch:${branchDomainA}`;
 const doubleBranch = `enrtree-branch:${branchDomainA},${branchDomainB}`;
 const multiComponentBranch = [
@@ -52,7 +52,7 @@ class MockDNS implements DnsClient {
   }
 
   resolveTXT(fqdn: string): Promise<string[]> {
-    if (this.fqdnThrows.includes(fqdn)) throw 'Mock DNS throws.';
+    if (this.fqdnThrows.includes(fqdn)) throw "Mock DNS throws.";
 
     const res = this.fqdnRes.get(fqdn);
 
@@ -62,7 +62,7 @@ class MockDNS implements DnsClient {
   }
 }
 
-describe('DNS Node Discovery', () => {
+describe("DNS Node Discovery", () => {
   let mockDns: MockDNS;
 
   beforeEach(() => {
@@ -70,7 +70,7 @@ describe('DNS Node Discovery', () => {
     mockDns.addRes(host, [mockData.enrRoot]);
   });
 
-  it('retrieves a single peer', async function () {
+  it("retrieves a single peer", async function () {
     mockDns.addRes(`${rootDomain}.${host}`, [singleBranch]);
     mockDns.addRes(`${branchDomainA}.${host}`, [mockData.enrA]);
 
@@ -78,11 +78,11 @@ describe('DNS Node Discovery', () => {
     const peers = await dnsNodeDiscovery.getPeers(1, [mockData.enrTree]);
 
     expect(peers.length).to.eq(1);
-    expect(peers[0].ip).to.eq('45.77.40.127');
+    expect(peers[0].ip).to.eq("45.77.40.127");
     expect(peers[0].tcp).to.eq(30303);
   });
 
-  it('retrieves all peers (2) when maxQuantity larger than DNS tree size', async function () {
+  it("retrieves all peers (2) when maxQuantity larger than DNS tree size", async function () {
     mockDns.addRes(`${rootDomain}.${host}`, [doubleBranch]);
     mockDns.addRes(`${branchDomainA}.${host}`, [mockData.enrA]);
     mockDns.addRes(`${branchDomainB}.${host}`, [mockData.enrB]);
@@ -94,7 +94,7 @@ describe('DNS Node Discovery', () => {
     expect(peers[0].ip).to.not.eq(peers[1].ip);
   });
 
-  it('retrieves all peers (3) when branch entries are composed of multiple strings', async function () {
+  it("retrieves all peers (3) when branch entries are composed of multiple strings", async function () {
     mockDns.addRes(`${rootDomain}.${host}`, multiComponentBranch);
     mockDns.addRes(`${branchDomainA}.${host}`, [mockData.enr]);
     mockDns.addRes(`${branchDomainB}.${host}`, [mockData.enrA]);
@@ -111,7 +111,7 @@ describe('DNS Node Discovery', () => {
     expect(peers[1].ip).to.not.eq(peers[2].ip);
   });
 
-  it('it tolerates circular branch references', async function () {
+  it("it tolerates circular branch references", async function () {
     // root --> branchA
     // branchA --> branchA
     mockDns.addRes(`${rootDomain}.${host}`, [singleBranch]);
@@ -123,7 +123,7 @@ describe('DNS Node Discovery', () => {
     expect(peers.length).to.eq(0);
   });
 
-  it('recovers when dns.resolve returns empty', async function () {
+  it("recovers when dns.resolve returns empty", async function () {
     mockDns.addRes(`${rootDomain}.${host}`, [singleBranch]);
 
     // Empty response case
@@ -141,7 +141,7 @@ describe('DNS Node Discovery', () => {
     expect(peers.length).to.eq(0);
   });
 
-  it('ignores domain fetching errors', async function () {
+  it("ignores domain fetching errors", async function () {
     mockDns.addRes(`${rootDomain}.${host}`, [errorBranchA]);
     mockDns.addThrow(`${branchDomainC}.${host}`);
 
@@ -150,14 +150,14 @@ describe('DNS Node Discovery', () => {
     expect(peers.length).to.eq(0);
   });
 
-  it('ignores unrecognized TXT record formats', async function () {
+  it("ignores unrecognized TXT record formats", async function () {
     mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrBranchBadPrefix]);
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers(1, [mockData.enrTree]);
     expect(peers.length).to.eq(0);
   });
 
-  it('caches peers it previously fetched', async function () {
+  it("caches peers it previously fetched", async function () {
     mockDns.addRes(`${rootDomain}.${host}`, [errorBranchB]);
     mockDns.addRes(`${branchDomainD}.${host}`, [mockData.enrA]);
 
@@ -175,9 +175,9 @@ describe('DNS Node Discovery', () => {
   });
 });
 
-describe('DNS Node Discovery [live data]', function () {
-  const publicKey = 'AOFTICU2XWDULNLZGRMQS4RIZPAZEHYMV4FYHAPW563HNRAOERP7C';
-  const fqdn = 'test.waku.nodes.status.im';
+describe("DNS Node Discovery [live data]", function () {
+  const publicKey = "AOFTICU2XWDULNLZGRMQS4RIZPAZEHYMV4FYHAPW563HNRAOERP7C";
+  const fqdn = "test.waku.nodes.status.im";
   const enrTree = `enrtree://${publicKey}@${fqdn}`;
   const maxQuantity = 3;
 

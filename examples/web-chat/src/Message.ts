@@ -1,5 +1,5 @@
-import { WakuMessage } from 'js-waku';
-import { ChatMessage } from './chat_message';
+import { WakuMessage } from "js-waku";
+import { ChatMessage } from "./chat_message";
 
 export class Message {
   public chatMessage: ChatMessage;
@@ -20,7 +20,7 @@ export class Message {
         }
       } catch (e) {
         console.error(
-          'Failed to decode chat message',
+          "Failed to decode chat message",
           wakuMsg.payloadAsUtf8,
           e
         );

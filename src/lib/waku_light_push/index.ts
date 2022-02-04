@@ -1,18 +1,18 @@
-import concat from 'it-concat';
-import lp from 'it-length-prefixed';
-import pipe from 'it-pipe';
-import Libp2p from 'libp2p';
-import { Peer } from 'libp2p/src/peer-store';
-import PeerId from 'peer-id';
+import concat from "it-concat";
+import lp from "it-length-prefixed";
+import pipe from "it-pipe";
+import Libp2p from "libp2p";
+import { Peer } from "libp2p/src/peer-store";
+import PeerId from "peer-id";
 
-import { PushResponse } from '../../proto/waku/v2/light_push';
-import { getPeersForProtocol, selectRandomPeer } from '../select_peer';
-import { DefaultPubSubTopic } from '../waku';
-import { WakuMessage } from '../waku_message';
+import { PushResponse } from "../../proto/waku/v2/light_push";
+import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
+import { DefaultPubSubTopic } from "../waku";
+import { WakuMessage } from "../waku_message";
 
-import { PushRPC } from './push_rpc';
+import { PushRPC } from "./push_rpc";
 
-export const LightPushCodec = '/vac/waku/lightpush/2.0.0-beta1';
+export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 
 export interface CreateOptions {
@@ -53,16 +53,16 @@ export class WakuLightPush {
     let peer;
     if (opts?.peerId) {
       peer = await this.libp2p.peerStore.get(opts.peerId);
-      if (!peer) throw 'Peer is unknown';
+      if (!peer) throw "Peer is unknown";
     } else {
       peer = await this.randomPeer;
     }
-    if (!peer) throw 'No peer available';
+    if (!peer) throw "No peer available";
     if (!peer.protocols.includes(LightPushCodec))
-      throw 'Peer does not register waku light push protocol';
+      throw "Peer does not register waku light push protocol";
 
     const connection = this.libp2p.connectionManager.get(peer.id);
-    if (!connection) throw 'Failed to get a connection to the peer';
+    if (!connection) throw "Failed to get a connection to the peer";
 
     const { stream } = await connection.newStream(LightPushCodec);
     try {
@@ -81,16 +81,16 @@ export class WakuLightPush {
         const response = PushRPC.decode(res.slice()).response;
 
         if (!response) {
-          console.log('No response in PushRPC');
+          console.log("No response in PushRPC");
           return null;
         }
 
         return response;
       } catch (err) {
-        console.log('Failed to decode push reply', err);
+        console.log("Failed to decode push reply", err);
       }
     } catch (err) {
-      console.log('Failed to send waku light push request', err);
+      console.log("Failed to send waku light push request", err);
     }
     return null;
   }

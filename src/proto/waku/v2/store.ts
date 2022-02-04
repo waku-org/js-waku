@@ -1,9 +1,9 @@
 /* eslint-disable */
-import Long from 'long';
-import _m0 from 'protobufjs/minimal';
-import { WakuMessage } from '../../waku/v2/message';
+import Long from "long";
+import _m0 from "protobufjs/minimal";
+import { WakuMessage } from "../../waku/v2/message";
 
-export const protobufPackage = 'waku.v2';
+export const protobufPackage = "waku.v2";
 
 export interface Index {
   digest: Uint8Array;
@@ -28,13 +28,13 @@ export function pagingInfo_DirectionFromJSON(
 ): PagingInfo_Direction {
   switch (object) {
     case 0:
-    case 'DIRECTION_BACKWARD_UNSPECIFIED':
+    case "DIRECTION_BACKWARD_UNSPECIFIED":
       return PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED;
     case 1:
-    case 'DIRECTION_FORWARD':
+    case "DIRECTION_FORWARD":
       return PagingInfo_Direction.DIRECTION_FORWARD;
     case -1:
-    case 'UNRECOGNIZED':
+    case "UNRECOGNIZED":
     default:
       return PagingInfo_Direction.UNRECOGNIZED;
   }
@@ -45,11 +45,11 @@ export function pagingInfo_DirectionToJSON(
 ): string {
   switch (object) {
     case PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED:
-      return 'DIRECTION_BACKWARD_UNSPECIFIED';
+      return "DIRECTION_BACKWARD_UNSPECIFIED";
     case PagingInfo_Direction.DIRECTION_FORWARD:
-      return 'DIRECTION_FORWARD';
+      return "DIRECTION_FORWARD";
     default:
-      return 'UNKNOWN';
+      return "UNKNOWN";
   }
 }
 
@@ -82,13 +82,13 @@ export function historyResponse_ErrorFromJSON(
 ): HistoryResponse_Error {
   switch (object) {
     case 0:
-    case 'ERROR_NONE_UNSPECIFIED':
+    case "ERROR_NONE_UNSPECIFIED":
       return HistoryResponse_Error.ERROR_NONE_UNSPECIFIED;
     case 1:
-    case 'ERROR_INVALID_CURSOR':
+    case "ERROR_INVALID_CURSOR":
       return HistoryResponse_Error.ERROR_INVALID_CURSOR;
     case -1:
-    case 'UNRECOGNIZED':
+    case "UNRECOGNIZED":
     default:
       return HistoryResponse_Error.UNRECOGNIZED;
   }
@@ -99,11 +99,11 @@ export function historyResponse_ErrorToJSON(
 ): string {
   switch (object) {
     case HistoryResponse_Error.ERROR_NONE_UNSPECIFIED:
-      return 'ERROR_NONE_UNSPECIFIED';
+      return "ERROR_NONE_UNSPECIFIED";
     case HistoryResponse_Error.ERROR_INVALID_CURSOR:
-      return 'ERROR_INVALID_CURSOR';
+      return "ERROR_INVALID_CURSOR";
     default:
-      return 'UNKNOWN';
+      return "UNKNOWN";
   }
 }
 
@@ -269,7 +269,7 @@ export const PagingInfo = {
 };
 
 function createBaseContentFilter(): ContentFilter {
-  return { contentTopic: '' };
+  return { contentTopic: "" };
 }
 
 export const ContentFilter = {
@@ -277,7 +277,7 @@ export const ContentFilter = {
     message: ContentFilter,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.contentTopic !== '') {
+    if (message.contentTopic !== "") {
       writer.uint32(10).string(message.contentTopic);
     }
     return writer;
@@ -305,7 +305,7 @@ export const ContentFilter = {
     return {
       contentTopic: isSet(object.contentTopic)
         ? String(object.contentTopic)
-        : '',
+        : "",
     };
   },
 
@@ -320,7 +320,7 @@ export const ContentFilter = {
     object: I
   ): ContentFilter {
     const message = createBaseContentFilter();
-    message.contentTopic = object.contentTopic ?? '';
+    message.contentTopic = object.contentTopic ?? "";
     return message;
   },
 };
@@ -536,7 +536,7 @@ export const HistoryResponse = {
 };
 
 function createBaseHistoryRPC(): HistoryRPC {
-  return { requestId: '', query: undefined, response: undefined };
+  return { requestId: "", query: undefined, response: undefined };
 }
 
 export const HistoryRPC = {
@@ -544,7 +544,7 @@ export const HistoryRPC = {
     message: HistoryRPC,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.requestId !== '') {
+    if (message.requestId !== "") {
       writer.uint32(10).string(message.requestId);
     }
     if (message.query !== undefined) {
@@ -585,7 +585,7 @@ export const HistoryRPC = {
 
   fromJSON(object: any): HistoryRPC {
     return {
-      requestId: isSet(object.requestId) ? String(object.requestId) : '',
+      requestId: isSet(object.requestId) ? String(object.requestId) : "",
       query: isSet(object.query)
         ? HistoryQuery.fromJSON(object.query)
         : undefined,
@@ -613,7 +613,7 @@ export const HistoryRPC = {
     object: I
   ): HistoryRPC {
     const message = createBaseHistoryRPC();
-    message.requestId = object.requestId ?? '';
+    message.requestId = object.requestId ?? "";
     message.query =
       object.query !== undefined && object.query !== null
         ? HistoryQuery.fromPartial(object.query)
@@ -630,16 +630,16 @@ declare var self: any | undefined;
 declare var window: any | undefined;
 declare var global: any | undefined;
 var globalThis: any = (() => {
-  if (typeof globalThis !== 'undefined') return globalThis;
-  if (typeof self !== 'undefined') return self;
-  if (typeof window !== 'undefined') return window;
-  if (typeof global !== 'undefined') return global;
-  throw 'Unable to locate global object';
+  if (typeof globalThis !== "undefined") return globalThis;
+  if (typeof self !== "undefined") return self;
+  if (typeof window !== "undefined") return window;
+  if (typeof global !== "undefined") return global;
+  throw "Unable to locate global object";
 })();
 
 const atob: (b64: string) => string =
   globalThis.atob ||
-  ((b64) => globalThis.Buffer.from(b64, 'base64').toString('binary'));
+  ((b64) => globalThis.Buffer.from(b64, "base64").toString("binary"));
 function bytesFromBase64(b64: string): Uint8Array {
   const bin = atob(b64);
   const arr = new Uint8Array(bin.length);
@@ -651,13 +651,13 @@ function bytesFromBase64(b64: string): Uint8Array {
 
 const btoa: (bin: string) => string =
   globalThis.btoa ||
-  ((bin) => globalThis.Buffer.from(bin, 'binary').toString('base64'));
+  ((bin) => globalThis.Buffer.from(bin, "binary").toString("base64"));
 function base64FromBytes(arr: Uint8Array): string {
   const bin: string[] = [];
   for (const byte of arr) {
     bin.push(String.fromCharCode(byte));
   }
-  return btoa(bin.join(''));
+  return btoa(bin.join(""));
 }
 
 type Builtin =
@@ -689,7 +689,7 @@ export type Exact<P, I extends P> = P extends Builtin
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new globalThis.Error('Value is larger than Number.MAX_SAFE_INTEGER');
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
   }
   return long.toNumber();
 }

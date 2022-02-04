@@ -1,30 +1,30 @@
-import { Button } from '@material-ui/core';
-import { LoadKeyPair } from './LoadKeyPair';
-import { SaveKeyPair } from './SaveKeyPair';
-import React, { useState } from 'react';
-import { generateEncryptionKeyPair, KeyPair } from '../crypto';
-import { makeStyles } from '@material-ui/core/styles';
-import PasswordInput from './PasswordInput';
+import { Button } from "@material-ui/core";
+import { LoadKeyPair } from "./LoadKeyPair";
+import { SaveKeyPair } from "./SaveKeyPair";
+import React, { useState } from "react";
+import { generateEncryptionKeyPair, KeyPair } from "../crypto";
+import { makeStyles } from "@material-ui/core/styles";
+import PasswordInput from "./PasswordInput";
 
 const useStyles = makeStyles({
   root: {
-    textAlign: 'center',
-    display: 'flex',
-    alignItems: 'center',
-    flexDirection: 'column',
-    margin: '5px',
+    textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    flexDirection: "column",
+    margin: "5px",
   },
-  generate: { margin: '5px' },
+  generate: { margin: "5px" },
   storage: {
-    margin: '5px',
+    margin: "5px",
   },
   loadSave: {
-    display: 'flex',
-    flexDirection: 'row',
-    margin: '5px',
+    display: "flex",
+    flexDirection: "row",
+    margin: "5px",
   },
   loadSaveButton: {
-    margin: '5px',
+    margin: "5px",
   },
 });
 
@@ -49,7 +49,7 @@ export default function KeyPairHandling({
         setEncryptionKeyPair(keyPair);
       })
       .catch((e) => {
-        console.error('Failed to generate Key Pair', e);
+        console.error("Failed to generate Key Pair", e);
       });
   };
 

@@ -1,14 +1,14 @@
-import { expect } from 'chai';
-import fc from 'fast-check';
+import { expect } from "chai";
+import fc from "fast-check";
 
-import { getPublicKey } from './version_1';
+import { getPublicKey } from "./version_1";
 
-import { WakuMessage } from './index';
+import { WakuMessage } from "./index";
 
-const TestContentTopic = '/test/1/waku-message/utf8';
+const TestContentTopic = "/test/1/waku-message/utf8";
 
-describe('Waku Message: Browser & Node', function () {
-  it('Waku message round trip binary serialization [clear]', async function () {
+describe("Waku Message: Browser & Node", function () {
+  it("Waku message round trip binary serialization [clear]", async function () {
     await fc.assert(
       fc.asyncProperty(fc.string(), async (s) => {
         const msg = await WakuMessage.fromUtf8String(s, TestContentTopic);
@@ -20,7 +20,7 @@ describe('Waku Message: Browser & Node', function () {
     );
   });
 
-  it('Payload to utf-8', async function () {
+  it("Payload to utf-8", async function () {
     await fc.assert(
       fc.asyncProperty(fc.string(), async (s) => {
         const msg = await WakuMessage.fromUtf8String(s, TestContentTopic);
@@ -31,7 +31,7 @@ describe('Waku Message: Browser & Node', function () {
     );
   });
 
-  it('Waku message round trip binary encryption [asymmetric, no signature]', async function () {
+  it("Waku message round trip binary encryption [asymmetric, no signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
@@ -52,7 +52,7 @@ describe('Waku Message: Browser & Node', function () {
     );
   });
 
-  it('Waku message round trip binary encryption [asymmetric, signature]', async function () {
+  it("Waku message round trip binary encryption [asymmetric, signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
@@ -79,7 +79,7 @@ describe('Waku Message: Browser & Node', function () {
     );
   });
 
-  it('Waku message round trip binary encryption [symmetric, no signature]', async function () {
+  it("Waku message round trip binary encryption [symmetric, no signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
@@ -98,7 +98,7 @@ describe('Waku Message: Browser & Node', function () {
     );
   });
 
-  it('Waku message round trip binary encryption [symmetric, signature]', async function () {
+  it("Waku message round trip binary encryption [symmetric, signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
@@ -122,8 +122,8 @@ describe('Waku Message: Browser & Node', function () {
     );
   });
 
-  it('Waku message round trip utf-8 including emojis', async function () {
-    const messageText = '😁🤣🥧🤦👩‍🎓';
+  it("Waku message round trip utf-8 including emojis", async function () {
+    const messageText = "😁🤣🥧🤦👩‍🎓";
     const wakuMessage = await WakuMessage.fromUtf8String(
       messageText,
       TestContentTopic

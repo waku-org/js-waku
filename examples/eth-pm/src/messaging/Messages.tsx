@@ -1,5 +1,5 @@
-import React from 'react';
-import { List, ListItem, ListItemText } from '@material-ui/core';
+import React from "react";
+import { List, ListItem, ListItemText } from "@material-ui/core";
 
 /**
  * Clear text message
@@ -31,10 +31,10 @@ function generate(messages: Message[]) {
 
 function formatDisplayDate(timestamp: Date): string {
   return timestamp.toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
     hour12: false,
   });
 }

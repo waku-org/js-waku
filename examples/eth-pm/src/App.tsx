@@ -1,31 +1,31 @@
-import '@ethersproject/shims';
+import "@ethersproject/shims";
 
-import React, { useEffect, useState } from 'react';
-import './App.css';
-import { Waku } from 'js-waku';
-import { KeyPair, PublicKeyMessageEncryptionKey } from './crypto';
-import { Message } from './messaging/Messages';
-import 'fontsource-roboto';
-import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
-import KeyPairHandling from './key_pair_handling/KeyPairHandling';
+import React, { useEffect, useState } from "react";
+import "./App.css";
+import { Waku } from "js-waku";
+import { KeyPair, PublicKeyMessageEncryptionKey } from "./crypto";
+import { Message } from "./messaging/Messages";
+import "fontsource-roboto";
+import { AppBar, IconButton, Toolbar, Typography } from "@material-ui/core";
+import KeyPairHandling from "./key_pair_handling/KeyPairHandling";
 import {
   createMuiTheme,
   ThemeProvider,
   makeStyles,
-} from '@material-ui/core/styles';
-import { teal, purple, green } from '@material-ui/core/colors';
-import WifiIcon from '@material-ui/icons/Wifi';
-import BroadcastPublicKey from './BroadcastPublicKey';
-import Messaging from './messaging/Messaging';
+} from "@material-ui/core/styles";
+import { teal, purple, green } from "@material-ui/core/colors";
+import WifiIcon from "@material-ui/icons/Wifi";
+import BroadcastPublicKey from "./BroadcastPublicKey";
+import Messaging from "./messaging/Messaging";
 import {
   PrivateMessageContentTopic,
   handlePrivateMessage,
   handlePublicKeyMessage,
   initWaku,
   PublicKeyContentTopic,
-} from './waku';
-import { Web3Provider } from '@ethersproject/providers/src.ts/web3-provider';
-import ConnectWallet from './ConnectWallet';
+} from "./waku";
+import { Web3Provider } from "@ethersproject/providers/src.ts/web3-provider";
+import ConnectWallet from "./ConnectWallet";
 
 const theme = createMuiTheme({
   palette: {
@@ -40,21 +40,21 @@ const theme = createMuiTheme({
 
 const useStyles = makeStyles({
   root: {
-    textAlign: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
+    textAlign: "center",
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100vh",
   },
   appBar: {
     // height: '200p',
   },
   container: {
-    display: 'flex',
+    display: "flex",
     flex: 1,
   },
   main: {
     flex: 1,
-    margin: '10px',
+    margin: "10px",
   },
   wakuStatus: {
     marginRight: theme.spacing(2),
@@ -91,11 +91,11 @@ function App() {
     if (waku) return;
     initWaku()
       .then((_waku) => {
-        console.log('waku: ready');
+        console.log("waku: ready");
         setWaku(_waku);
       })
       .catch((e) => {
-        console.error('Failed to initiate Waku', e);
+        console.error("Failed to initiate Waku", e);
       });
   }, [waku]);
 
@@ -177,10 +177,10 @@ function App() {
     return () => clearInterval(interval);
   }, [waku]);
 
-  let addressDisplay = '';
+  let addressDisplay = "";
   if (address) {
     addressDisplay =
-      address.substr(0, 6) + '...' + address.substr(address.length - 4, 4);
+      address.substr(0, 6) + "..." + address.substr(address.length - 4, 4);
   }
 
   return (
@@ -194,12 +194,12 @@ function App() {
               aria-label="waku-status"
             >
               <WifiIcon
-                color={waku ? undefined : 'disabled'}
+                color={waku ? undefined : "disabled"}
                 style={waku ? { color: green[500] } : {}}
               />
             </IconButton>
             <Typography className={classes.peers} aria-label="connected-peers">
-              Peers: {peerStats.relayPeers} relay, {peerStats.lightPushPeers}{' '}
+              Peers: {peerStats.relayPeers} relay, {peerStats.lightPushPeers}{" "}
               light push
             </Typography>
             <Typography variant="h6" className={classes.title}>

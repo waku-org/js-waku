@@ -15,18 +15,18 @@
  * @throws If the remote host is unreachable or the response cannot be parsed
  * according to the passed _path_.
  */
-import axios from 'axios';
-import debug from 'debug';
-import { Multiaddr } from 'multiaddr';
+import axios from "axios";
+import debug from "debug";
+import { Multiaddr } from "multiaddr";
 
-import { getPseudoRandomSubset } from './index';
-const dbg = debug('waku:discovery');
+import { getPseudoRandomSubset } from "./index";
+const dbg = debug("waku:discovery");
 
 const DefaultWantedNumber = 1;
 
 export async function getNodesFromHostedJson(
-  path: string[] = ['fleets', 'wakuv2.prod', 'waku-websocket'],
-  url = 'https://fleets.status.im/',
+  path: string[] = ["fleets", "wakuv2.prod", "waku-websocket"],
+  url = "https://fleets.status.im/",
   wantedNumber: number = DefaultWantedNumber
 ): Promise<Multiaddr[]> {
   if (wantedNumber <= 0) {
@@ -34,7 +34,7 @@ export async function getNodesFromHostedJson(
   }
 
   const res = await axios.get(url, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
   });
 
   let nodes = res.data;
@@ -58,11 +58,11 @@ export async function getNodesFromHostedJson(
     );
   }
 
-  if (typeof nodes === 'string') {
+  if (typeof nodes === "string") {
     return [new Multiaddr(nodes)];
   }
 
-  if (typeof nodes === 'object') {
+  if (typeof nodes === "object") {
     nodes = Object.values(nodes) as string[];
     nodes = nodes.map((node: string) => new Multiaddr(node));
     return getPseudoRandomSubset(nodes, wantedNumber);

@@ -1,7 +1,7 @@
-import { Button } from '@material-ui/core';
-import React from 'react';
-import { loadKeyPairFromStorage } from './key_pair_storage';
-import { KeyPair } from '../crypto';
+import { Button } from "@material-ui/core";
+import React from "react";
+import { loadKeyPairFromStorage } from "./key_pair_storage";
+import { KeyPair } from "../crypto";
 
 export interface Props {
   setEncryptionKeyPair: (keyPair: KeyPair) => void;
@@ -19,7 +19,7 @@ export function LoadKeyPair({
     if (!password) return;
     loadKeyPairFromStorage(password).then((keyPair: KeyPair | undefined) => {
       if (!keyPair) return;
-      console.log('Encryption KeyPair loaded from storage');
+      console.log("Encryption KeyPair loaded from storage");
       setEncryptionKeyPair(keyPair);
     });
   };

@@ -3,33 +3,33 @@
  * @module
  */
 
-import { ChildProcess, spawn } from 'child_process';
+import { ChildProcess, spawn } from "child_process";
 
-import appRoot from 'app-root-path';
-import axios from 'axios';
-import debug from 'debug';
-import { Multiaddr, multiaddr } from 'multiaddr';
-import PeerId from 'peer-id';
-import portfinder from 'portfinder';
+import appRoot from "app-root-path";
+import axios from "axios";
+import debug from "debug";
+import { Multiaddr, multiaddr } from "multiaddr";
+import PeerId from "peer-id";
+import portfinder from "portfinder";
 
-import { hexToBuf } from '../lib/utils';
-import { DefaultPubSubTopic } from '../lib/waku';
-import { WakuMessage } from '../lib/waku_message';
-import * as proto from '../proto/waku/v2/message';
+import { hexToBuf } from "../lib/utils";
+import { DefaultPubSubTopic } from "../lib/waku";
+import { WakuMessage } from "../lib/waku_message";
+import * as proto from "../proto/waku/v2/message";
 
-import { existsAsync, mkdirAsync, openAsync } from './async_fs';
-import waitForLine from './log_file';
+import { existsAsync, mkdirAsync, openAsync } from "./async_fs";
+import waitForLine from "./log_file";
 
-const dbg = debug('waku:nim-waku');
+const dbg = debug("waku:nim-waku");
 
-const NIM_WAKU_DIR = appRoot + '/nim-waku';
-const NIM_WAKU_BIN = NIM_WAKU_DIR + '/build/wakunode2';
+const NIM_WAKU_DIR = appRoot + "/nim-waku";
+const NIM_WAKU_BIN = NIM_WAKU_DIR + "/build/wakunode2";
 
-const LOG_DIR = './log';
+const LOG_DIR = "./log";
 
 export interface Args {
   staticnode?: string;
-  nat?: 'none';
+  nat?: "none";
   listenAddress?: string;
   relay?: boolean;
   rpc?: boolean;
@@ -48,13 +48,13 @@ export interface Args {
 }
 
 export enum LogLevel {
-  Error = 'error',
-  Info = 'info',
-  Warn = 'warn',
-  Debug = 'debug',
-  Trace = 'trace',
-  Notice = 'notice',
-  Fatal = 'fatal',
+  Error = "error",
+  Info = "info",
+  Warn = "warn",
+  Debug = "debug",
+  Trace = "trace",
+  Notice = "notice",
+  Fatal = "fatal",
 }
 
 export interface KeyPair {
@@ -92,7 +92,7 @@ export class NimWaku {
       }
     }
 
-    const logFile = await openAsync(this.logPath, 'w');
+    const logFile = await openAsync(this.logPath, "w");
 
     const mergedArgs = defaultArgs();
 
@@ -122,7 +122,7 @@ export class NimWaku {
     this.process = spawn(NIM_WAKU_BIN, argsArray, {
       cwd: NIM_WAKU_DIR,
       stdio: [
-        'ignore', // stdin
+        "ignore", // stdin
         logFile, // stdout
         logFile, // stderr
       ],
@@ -134,7 +134,7 @@ export class NimWaku {
       } started at ${new Date().toLocaleTimeString()}`
     );
 
-    this.process.on('exit', (signal) => {
+    this.process.on("exit", (signal) => {
       dbg(
         `nim-waku ${
           this.process ? this.process.pid : this.pid
@@ -142,7 +142,7 @@ export class NimWaku {
       );
     });
 
-    this.process.on('error', (err) => {
+    this.process.on("error", (err) => {
       console.log(
         `nim-waku ${
           this.process ? this.process.pid : this.pid
@@ -151,15 +151,15 @@ export class NimWaku {
     });
 
     dbg("Waiting to see 'Node setup complete' in nim-waku logs");
-    await this.waitForLog('Node setup complete', 9000);
-    dbg('nim-waku node has been started');
+    await this.waitForLog("Node setup complete", 9000);
+    dbg("nim-waku node has been started");
   }
 
   public stop(): void {
     const pid = this.process ? this.process.pid : this.pid;
     dbg(`nim-waku ${pid} getting SIGINT at ${new Date().toLocaleTimeString()}`);
-    if (!this.process) throw 'nim-waku process not set';
-    const res = this.process.kill('SIGINT');
+    if (!this.process) throw "nim-waku process not set";
+    const res = this.process.kill("SIGINT");
     dbg(`nim-waku ${pid} interrupted:`, res);
     this.process = undefined;
   }
@@ -175,13 +175,13 @@ export class NimWaku {
   async peers(): Promise<string[]> {
     this.checkProcess();
 
-    return this.rpcCall<string[]>('get_waku_v2_admin_v1_peers', []);
+    return this.rpcCall<string[]>("get_waku_v2_admin_v1_peers", []);
   }
 
   async info(): Promise<RpcInfoResponse> {
     this.checkProcess();
 
-    return this.rpcCall<RpcInfoResponse>('get_waku_v2_debug_v1_info', []);
+    return this.rpcCall<RpcInfoResponse>("get_waku_v2_debug_v1_info", []);
   }
 
   async sendMessage(
@@ -191,7 +191,7 @@ export class NimWaku {
     this.checkProcess();
 
     if (!message.payload) {
-      throw 'Attempting to send empty message';
+      throw "Attempting to send empty message";
     }
     let timestamp;
     if (message.timestamp) {
@@ -209,7 +209,7 @@ export class NimWaku {
       timestamp,
     };
 
-    return this.rpcCall<boolean>('post_waku_v2_relay_v1_message', [
+    return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       rpcMessage,
     ]);
@@ -223,7 +223,7 @@ export class NimWaku {
     };
 
     const protoMsgs = await this.rpcCall<proto.WakuMessage[]>(
-      'get_waku_v2_relay_v1_messages',
+      "get_waku_v2_relay_v1_messages",
       [DefaultPubSubTopic]
     );
 
@@ -240,7 +240,7 @@ export class NimWaku {
     const { seckey, pubkey } = await this.rpcCall<{
       seckey: string;
       pubkey: string;
-    }>('get_waku_v2_private_v1_asymmetric_keypair', []);
+    }>("get_waku_v2_private_v1_asymmetric_keypair", []);
 
     return { privateKey: seckey, publicKey: pubkey };
   }
@@ -253,13 +253,13 @@ export class NimWaku {
     this.checkProcess();
 
     if (!message.payload) {
-      throw 'Attempting to send empty message';
+      throw "Attempting to send empty message";
     }
 
-    return this.rpcCall<boolean>('post_waku_v2_private_v1_asymmetric_message', [
+    return this.rpcCall<boolean>("post_waku_v2_private_v1_asymmetric_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       message,
-      '0x' + bufToHex(publicKey),
+      "0x" + bufToHex(publicKey),
     ]);
   }
 
@@ -270,10 +270,10 @@ export class NimWaku {
     this.checkProcess();
 
     return await this.rpcCall<WakuRelayMessage[]>(
-      'get_waku_v2_private_v1_asymmetric_messages',
+      "get_waku_v2_private_v1_asymmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
-        '0x' + bufToHex(privateKey),
+        "0x" + bufToHex(privateKey),
       ]
     );
   }
@@ -282,7 +282,7 @@ export class NimWaku {
     this.checkProcess();
 
     return this.rpcCall<string>(
-      'get_waku_v2_private_v1_symmetric_key',
+      "get_waku_v2_private_v1_symmetric_key",
       []
     ).then(hexToBuf);
   }
@@ -295,13 +295,13 @@ export class NimWaku {
     this.checkProcess();
 
     if (!message.payload) {
-      throw 'Attempting to send empty message';
+      throw "Attempting to send empty message";
     }
 
-    return this.rpcCall<boolean>('post_waku_v2_private_v1_symmetric_message', [
+    return this.rpcCall<boolean>("post_waku_v2_private_v1_symmetric_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       message,
-      '0x' + bufToHex(symKey),
+      "0x" + bufToHex(symKey),
     ]);
   }
 
@@ -312,8 +312,8 @@ export class NimWaku {
     this.checkProcess();
 
     return await this.rpcCall<WakuRelayMessage[]>(
-      'get_waku_v2_private_v1_symmetric_messages',
-      [pubSubTopic ? pubSubTopic : DefaultPubSubTopic, '0x' + bufToHex(symKey)]
+      "get_waku_v2_private_v1_symmetric_messages",
+      [pubSubTopic ? pubSubTopic : DefaultPubSubTopic, "0x" + bufToHex(symKey)]
     );
   }
 
@@ -335,10 +335,10 @@ export class NimWaku {
     const res = await this.info();
     this.multiaddrWithId = res.listenAddresses
       .map((ma) => multiaddr(ma))
-      .find((ma) => ma.protoNames().includes('ws'));
-    if (!this.multiaddrWithId) throw 'Nim-waku did not return a ws multiaddr';
+      .find((ma) => ma.protoNames().includes("ws"));
+    if (!this.multiaddrWithId) throw "Nim-waku did not return a ws multiaddr";
     const peerIdStr = this.multiaddrWithId.getPeerId();
-    if (!peerIdStr) throw 'Nim-waku multiaddr does not contain peerId';
+    if (!peerIdStr) throw "Nim-waku multiaddr does not contain peerId";
     this.peerId = PeerId.createFromB58String(peerIdStr);
     return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
   }
@@ -354,13 +354,13 @@ export class NimWaku {
     const res = await axios.post(
       this.rpcUrl,
       {
-        jsonrpc: '2.0',
+        jsonrpc: "2.0",
         id: 1,
         method,
         params,
       },
       {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
 
@@ -380,7 +380,7 @@ export function argsToArray(args: Args): Array<string> {
   for (const [key, value] of Object.entries(args)) {
     // Change the key from camelCase to kebab-case
     const kebabKey = key.replace(/([A-Z])/, (_, capital) => {
-      return '-' + capital.toLowerCase();
+      return "-" + capital.toLowerCase();
     });
 
     const arg = `--${kebabKey}=${value}`;
@@ -392,8 +392,8 @@ export function argsToArray(args: Args): Array<string> {
 
 export function defaultArgs(): Args {
   return {
-    nat: 'none',
-    listenAddress: '127.0.0.1',
+    nat: "none",
+    listenAddress: "127.0.0.1",
     relay: true,
     rpc: true,
     rpcAdmin: true,
@@ -405,22 +405,22 @@ export function strToHex(str: string): string {
   let hex: string;
   try {
     hex = unescape(encodeURIComponent(str))
-      .split('')
+      .split("")
       .map(function (v) {
         return v.charCodeAt(0).toString(16);
       })
-      .join('');
+      .join("");
   } catch (e) {
     hex = str;
-    console.log('invalid text input: ' + str);
+    console.log("invalid text input: " + str);
   }
   return hex;
 }
 
 export function bufToHex(buffer: Uint8Array): string {
   return Array.prototype.map
-    .call(buffer, (x) => ('00' + x.toString(16)).slice(-2))
-    .join('');
+    .call(buffer, (x) => ("00" + x.toString(16)).slice(-2))
+    .join("");
 }
 
 interface RpcInfoResponse {

@@ -1,20 +1,20 @@
 // Ensure that this class matches the proto interface while
-import { Buffer } from 'buffer';
+import { Buffer } from "buffer";
 
-import debug from 'debug';
-import { Reader } from 'protobufjs/minimal';
+import debug from "debug";
+import { Reader } from "protobufjs/minimal";
 
 // Protecting the user from protobuf oddities
-import * as proto from '../../proto/waku/v2/message';
+import * as proto from "../../proto/waku/v2/message";
 
-import * as version_1 from './version_1';
+import * as version_1 from "./version_1";
 
 const DefaultVersion = 0;
-const dbg = debug('waku:message');
+const dbg = debug("waku:message");
 
 export enum DecryptionMethod {
-  Asymmetric = 'asymmetric',
-  Symmetric = 'symmetric',
+  Asymmetric = "asymmetric",
+  Symmetric = "symmetric",
 }
 
 export interface Options {
@@ -56,7 +56,7 @@ export class WakuMessage {
     contentTopic: string,
     opts?: Options
   ): Promise<WakuMessage> {
-    const payload = Buffer.from(utf8, 'utf-8');
+    const payload = Buffer.from(utf8, "utf-8");
     return WakuMessage.fromBytes(payload, contentTopic, opts);
   }
 
@@ -87,7 +87,7 @@ export class WakuMessage {
     let sig;
 
     if (encPublicKey && symKey) {
-      throw 'Pass either `encPublicKey` or `symKey`, not both.';
+      throw "Pass either `encPublicKey` or `symKey`, not both.";
     }
 
     if (encPublicKey) {
@@ -154,7 +154,7 @@ export class WakuMessage {
     }>
   ): Promise<WakuMessage | undefined> {
     if (protoBuf.payload === undefined) {
-      dbg('Payload is undefined');
+      dbg("Payload is undefined");
       return;
     }
     const payload = protoBuf.payload;
@@ -163,7 +163,7 @@ export class WakuMessage {
     let signature;
     if (protoBuf.version === 1 && protoBuf.payload) {
       if (decryptionKeys === undefined) {
-        dbg('Payload is encrypted but no private keys have been provided.');
+        dbg("Payload is encrypted but no private keys have been provided.");
         return;
       }
 
@@ -181,7 +181,7 @@ export class WakuMessage {
                   return await version_1.decryptAsymmetric(payload, key);
                 } catch (e) {
                   dbg(
-                    'Failed to decrypt message using symmetric encryption despite decryption method being specified',
+                    "Failed to decrypt message using symmetric encryption despite decryption method being specified",
                     e
                   );
                   return;
@@ -191,7 +191,7 @@ export class WakuMessage {
                   return await version_1.decryptSymmetric(payload, key);
                 } catch (e) {
                   dbg(
-                    'Failed to decrypt message using asymmetric encryption despite decryption method being specified',
+                    "Failed to decrypt message using asymmetric encryption despite decryption method being specified",
                     e
                   );
                   return;
@@ -201,14 +201,14 @@ export class WakuMessage {
                   return await version_1.decryptSymmetric(payload, key);
                 } catch (e) {
                   dbg(
-                    'Failed to decrypt message using symmetric encryption',
+                    "Failed to decrypt message using symmetric encryption",
                     e
                   );
                   try {
                     return await version_1.decryptAsymmetric(payload, key);
                   } catch (e) {
                     dbg(
-                      'Failed to decrypt message using asymmetric encryption',
+                      "Failed to decrypt message using asymmetric encryption",
                       e
                     );
                     return;
@@ -229,14 +229,14 @@ export class WakuMessage {
       const decodedResults = allResults.filter(isDefined);
 
       if (decodedResults.length === 0) {
-        dbg('Failed to decrypt payload.');
+        dbg("Failed to decrypt payload.");
         return;
       }
       const dec = decodedResults[0];
 
       const res = await version_1.clearDecode(dec);
       if (!res) {
-        dbg('Failed to decode payload.');
+        dbg("Failed to decode payload.");
         return;
       }
       Object.assign(protoBuf, { payload: res.payload });
@@ -253,10 +253,10 @@ export class WakuMessage {
 
   get payloadAsUtf8(): string {
     if (!this.proto.payload) {
-      return '';
+      return "";
     }
 
-    return Buffer.from(this.proto.payload).toString('utf-8');
+    return Buffer.from(this.proto.payload).toString("utf-8");
   }
 
   get payload(): Uint8Array | undefined {

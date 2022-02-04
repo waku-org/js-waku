@@ -1,28 +1,28 @@
-import { bytes } from '@chainsafe/libp2p-noise/dist/src/@types/basic';
-import { Noise } from '@chainsafe/libp2p-noise/dist/src/noise';
-import debug from 'debug';
-import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from 'libp2p';
-import Libp2pBootstrap from 'libp2p-bootstrap';
-import { MuxedStream } from 'libp2p-interfaces/dist/src/stream-muxer/types';
+import { bytes } from "@chainsafe/libp2p-noise/dist/src/@types/basic";
+import { Noise } from "@chainsafe/libp2p-noise/dist/src/noise";
+import debug from "debug";
+import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from "libp2p";
+import Libp2pBootstrap from "libp2p-bootstrap";
+import { MuxedStream } from "libp2p-interfaces/dist/src/stream-muxer/types";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
-import Mplex from 'libp2p-mplex';
+import Mplex from "libp2p-mplex";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
-import Websockets from 'libp2p-websockets';
+import Websockets from "libp2p-websockets";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
-import filters from 'libp2p-websockets/src/filters';
-import PingService from 'libp2p/src/ping';
-import { Multiaddr, multiaddr } from 'multiaddr';
-import PeerId from 'peer-id';
+import filters from "libp2p-websockets/src/filters";
+import PingService from "libp2p/src/ping";
+import { Multiaddr, multiaddr } from "multiaddr";
+import PeerId from "peer-id";
 
-import { Bootstrap, BootstrapOptions } from './discovery';
-import { LightPushCodec, WakuLightPush } from './waku_light_push';
-import { DecryptionMethod, WakuMessage } from './waku_message';
-import { RelayCodecs, WakuRelay } from './waku_relay';
-import { RelayPingContentTopic } from './waku_relay/constants';
-import { StoreCodec, WakuStore } from './waku_store';
+import { Bootstrap, BootstrapOptions } from "./discovery";
+import { LightPushCodec, WakuLightPush } from "./waku_light_push";
+import { DecryptionMethod, WakuMessage } from "./waku_message";
+import { RelayCodecs, WakuRelay } from "./waku_relay";
+import { RelayPingContentTopic } from "./waku_relay/constants";
+import { StoreCodec, WakuStore } from "./waku_store";
 
 const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 
@@ -32,14 +32,14 @@ export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 /**
  * DefaultPubSubTopic is the default gossipsub topic to use for Waku.
  */
-export const DefaultPubSubTopic = '/waku/2/default-waku/proto';
+export const DefaultPubSubTopic = "/waku/2/default-waku/proto";
 
-const dbg = debug('waku:waku');
+const dbg = debug("waku:waku");
 
 export enum Protocols {
-  Relay = 'relay',
-  Store = 'store',
-  LightPush = 'lightpush',
+  Relay = "relay",
+  Store = "store",
+  LightPush = "lightpush",
 }
 
 export interface CreateOptions {
@@ -78,7 +78,7 @@ export interface CreateOptions {
    * allowing its omission and letting Waku set good defaults.
    * Notes that some values are overridden by {@link Waku} to ensure it implements the Waku protocol.
    */
-  libp2p?: Omit<Libp2pOptions & import('libp2p').CreateOptions, 'modules'> & {
+  libp2p?: Omit<Libp2pOptions & import("libp2p").CreateOptions, "modules"> & {
     modules?: Partial<Libp2pModules>;
   };
   /**
@@ -130,11 +130,11 @@ export class Waku {
     const relayKeepAlive =
       options.relayKeepAlive || DefaultRelayKeepAliveValueSecs;
 
-    libp2p.connectionManager.on('peer:connect', (connection: Connection) => {
+    libp2p.connectionManager.on("peer:connect", (connection: Connection) => {
       this.startKeepAlive(connection.remotePeer, pingKeepAlive, relayKeepAlive);
     });
 
-    libp2p.connectionManager.on('peer:disconnect', (connection: Connection) => {
+    libp2p.connectionManager.on("peer:disconnect", (connection: Connection) => {
       this.stopKeepAlive(connection.remotePeer);
     });
 
@@ -210,7 +210,7 @@ export class Waku {
             },
           };
         } catch (e) {
-          dbg('Failed to retrieve bootstrap nodes', e);
+          dbg("Failed to retrieve bootstrap nodes", e);
         }
       }
     }
@@ -249,13 +249,13 @@ export class Waku {
     multiaddrs: Multiaddr[] | string[]
   ): void {
     let peer;
-    if (typeof peerId === 'string') {
+    if (typeof peerId === "string") {
       peer = PeerId.createFromB58String(peerId);
     } else {
       peer = peerId;
     }
     const addresses = multiaddrs.map((addr: Multiaddr | string) => {
-      if (typeof addr === 'string') {
+      if (typeof addr === "string") {
         return multiaddr(addr);
       } else {
         return addr;
@@ -302,10 +302,10 @@ export class Waku {
     const localMultiaddr = this.libp2p.multiaddrs.find((addr) =>
       addr.toString().match(/127\.0\.0\.1/)
     );
-    if (!localMultiaddr || localMultiaddr.toString() === '') {
-      throw 'Not listening on localhost';
+    if (!localMultiaddr || localMultiaddr.toString() === "") {
+      throw "Not listening on localhost";
     }
-    return localMultiaddr + '/p2p/' + this.libp2p.peerId.toB58String();
+    return localMultiaddr + "/p2p/" + this.libp2p.peerId.toB58String();
   }
 
   /**
@@ -325,10 +325,10 @@ export class Waku {
       if (peers.size == 0) {
         // No peer yet available, wait for a subscription
         const promise = new Promise<void>((resolve) => {
-          this.libp2p.pubsub.once('pubsub:subscription-change', () => {
+          this.libp2p.pubsub.once("pubsub:subscription-change", () => {
             // Remote peer subscribed to topic, now wait for a heartbeat
             // so that the mesh is updated and the remote peer added to it
-            this.libp2p.pubsub.once('gossipsub:heartbeat', resolve);
+            this.libp2p.pubsub.once("gossipsub:heartbeat", resolve);
           });
         });
         promises.push(promise);
@@ -347,10 +347,10 @@ export class Waku {
         // No peer available for this protocol, waiting to connect to one.
         const promise = new Promise<void>((resolve) => {
           this.libp2p.peerStore.on(
-            'change:protocols',
+            "change:protocols",
             ({ protocols: connectedPeerProtocols }) => {
               if (connectedPeerProtocols.includes(StoreCodec)) {
-                dbg('Resolving for', StoreCodec, connectedPeerProtocols);
+                dbg("Resolving for", StoreCodec, connectedPeerProtocols);
                 resolve();
               }
             }
@@ -372,10 +372,10 @@ export class Waku {
         // No peer available for this protocol, waiting to connect to one.
         const promise = new Promise<void>((resolve) => {
           this.libp2p.peerStore.on(
-            'change:protocols',
+            "change:protocols",
             ({ protocols: connectedPeerProtocols }) => {
               if (connectedPeerProtocols.includes(LightPushCodec)) {
-                dbg('Resolving for', LightPushCodec, connectedPeerProtocols);
+                dbg("Resolving for", LightPushCodec, connectedPeerProtocols);
                 resolve();
               }
             }

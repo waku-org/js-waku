@@ -1,8 +1,8 @@
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 
-import { IvSize, TagSize } from './index';
+import { IvSize, TagSize } from "./index";
 
-const Algorithm = 'aes-256-gcm';
+const Algorithm = "aes-256-gcm";
 
 export async function encrypt(
   iv: Buffer | Uint8Array,
