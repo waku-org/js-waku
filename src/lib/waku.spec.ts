@@ -8,6 +8,7 @@ declare global {
     __env__?: any;
   }
 }
+declare let window: Window | undefined;
 
 describe("Waku Dial", function () {
   describe("Bootstrap [live data]", function () {
@@ -18,7 +19,10 @@ describe("Waku Dial", function () {
     });
 
     before(function () {
-      if (process.env.CI || window.__env__.CI) {
+      if (
+        process.env.CI ||
+        (typeof window !== "undefined" && window?.__env__?.CI)
+      ) {
         this.skip();
       }
     });
