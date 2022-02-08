@@ -29,7 +29,30 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "libp2p-gossipsub/src/utils",
+              "rlp",
+              "multiaddr/src/convert",
+              "varint",
+              "multihashes",
+              "@chainsafe/libp2p-noise/dist/src/noise",
+              "debug",
+              "libp2p",
+              "libp2p-bootstrap",
+              "libp2p-crypto",
+              "libp2p-websockets",
+              "libp2p-websockets/src/filters",
+              "libp2p/src/ping",
+              "multiaddr",
+              "peer-id",
+              "buffer",
+              "crypto",
+              "ecies-geth",
+              "secp256k1",
+              "libp2p-gossipsub",
+              "it-concat"
+            ]
           },
           "configurations": {
             "production": {
