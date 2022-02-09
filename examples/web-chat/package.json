@@ -23,7 +23,7 @@
     "@types/react": "^17.0.39",
     "@types/react-dom": "^17.0.11",
     "cra-webpack-rewired": "^1.0.1",
-    "cspell": "^5.18.2",
+    "cspell": "^5.18.4",
     "gh-pages": "^3.2.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.5.1",
