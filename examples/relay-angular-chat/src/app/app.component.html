@@ -1,2 +1,10 @@
 <h1>{{title}}</h1>
-<app-messages></app-messages>
+<p>Waku node's status: {{ wakuStatus }}</p>
+<button (click)="sendMessageOnClick()" [disabled]="wakuStatus !== 'Connected'">Send Message</button>
+<h2>Messages</h2>
+<ul class="messages">
+  <li *ngFor="let message of messages">
+      <span class="badge">{{ message.timestamp }}</span>
+      <span class="name">{{ message.text }}</span>
+  </li>
+</ul>
