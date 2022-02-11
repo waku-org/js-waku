@@ -6,7 +6,6 @@
 import { ChildProcess, spawn } from "child_process";
 
 import appRoot from "app-root-path";
-import axios from "axios";
 import debug from "debug";
 import { Multiaddr, multiaddr } from "multiaddr";
 import PeerId from "peer-id";
@@ -333,6 +332,7 @@ export class NimWaku {
       return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
     }
     const res = await this.info();
+    console.log(res);
     this.multiaddrWithId = res.listenAddresses
       .map((ma) => multiaddr(ma))
       .find((ma) => ma.protoNames().includes("ws"));
@@ -351,20 +351,19 @@ export class NimWaku {
     method: string,
     params: Array<string | number | unknown>
   ): Promise<T> {
-    const res = await axios.post(
-      this.rpcUrl,
-      {
+    const res = await fetch(this.rpcUrl, {
+      method: "POST",
+      body: JSON.stringify({
         jsonrpc: "2.0",
         id: 1,
         method,
         params,
-      },
-      {
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+      }),
+      headers: new Headers({ "Content-Type": "application/json" }),
+    });
 
-    return res.data.result;
+    const json = await res.json();
+    return json.result;
   }
 
   private checkProcess(): void {

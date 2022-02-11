@@ -15,7 +15,6 @@
  * @throws If the remote host is unreachable or the response cannot be parsed
  * according to the passed _path_.
  */
-import axios from "axios";
 import debug from "debug";
 import { Multiaddr } from "multiaddr";
 
@@ -33,11 +32,8 @@ export async function getNodesFromHostedJson(
     return [];
   }
 
-  const res = await axios.get(url, {
-    headers: { "Content-Type": "application/json" },
-  });
-
-  let nodes = res.data;
+  const res = await fetch(url);
+  let nodes = await res.json();
 
   for (const prop of path) {
     if (nodes[prop] === undefined) {

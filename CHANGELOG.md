@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ran `npm audit fix`.
 - `Waku.dial` accepts protocols expected from the peer. Defaults to Waku Relay only.
 
+### Removed
+
+- axios dependency in favour of fetch.
+
 ## [0.16.0] - 2022-01-31
 
 ### Changed
