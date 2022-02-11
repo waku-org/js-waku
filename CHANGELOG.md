@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Breaking**: Upgrade `libp2p` to `0.36.2` & `libp2p-gossipsub` to `0.13.0`. Some APIs are now async.
+- docs: Various improvements.
+- Ran `npm audit fix`.
 
 ## [0.16.0] - 2022-01-31
 
