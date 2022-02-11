@@ -1,7 +1,6 @@
-import { Waku } from 'js-waku';
-import * as React from 'react';
-import protons from 'protons';
-import { WakuMessage } from 'js-waku';
+import { Waku, WakuMessage } from "js-waku";
+import * as React from "react";
+import protons from "protons";
 
 const ContentTopic = `/relay-reactjs-chat/1/chat/proto`;
 
@@ -14,22 +13,22 @@ message SimpleChatMessage {
 
 function App() {
   const [waku, setWaku] = React.useState(undefined);
-  const [wakuStatus, setWakuStatus] = React.useState('None');
+  const [wakuStatus, setWakuStatus] = React.useState("None");
   // Using a counter just for the messages to be different
   const [sendCounter, setSendCounter] = React.useState(0);
   const [messages, setMessages] = React.useState([]);
 
   React.useEffect(() => {
     if (!!waku) return;
-    if (wakuStatus !== 'None') return;
+    if (wakuStatus !== "None") return;
 
-    setWakuStatus('Starting');
+    setWakuStatus("Starting");
 
     Waku.create({ bootstrap: { default: true } }).then((waku) => {
       setWaku(waku);
-      setWakuStatus('Connecting');
+      setWakuStatus("Connecting");
       waku.waitForRemotePeer().then(() => {
-        setWakuStatus('Ready');
+        setWakuStatus("Ready");
       });
     });
   }, [waku, wakuStatus]);
@@ -64,10 +63,10 @@ function App() {
 
   const sendMessageOnClick = () => {
     // Check Waku is started and connected first.
-    if (wakuStatus !== 'Ready') return;
+    if (wakuStatus !== "Ready") return;
 
     sendMessage(`Here is message #${sendCounter}`, waku, new Date()).then(() =>
-      console.log('Message sent')
+      console.log("Message sent")
     );
 
     // For demonstration purposes.
@@ -78,7 +77,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <p>{wakuStatus}</p>
-        <button onClick={sendMessageOnClick} disabled={wakuStatus !== 'Ready'}>
+        <button onClick={sendMessageOnClick} disabled={wakuStatus !== "Ready"}>
           Send Message
         </button>
         <ul>
