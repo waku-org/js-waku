@@ -46,7 +46,7 @@
     "watch:build": "tsc -p tsconfig.json -w",
     "watch:test": "nyc --silent mocha --watch",
     "doc": "run-s doc:*",
-    "doc:html": "typedoc --excludeInternal --listInvalidSymbolLinks --exclude **/*.spec.ts --out build/docs src/",
+    "doc:html": "typedoc",
     "doc:cname": "echo 'js-waku.wakuconnect.dev' > build/docs/CNAME",
     "doc:examples": "mkdir -p build/docs/examples",
     "deploy": "node ci/deploy.js",
