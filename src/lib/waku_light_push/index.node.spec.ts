@@ -2,7 +2,7 @@ import { expect } from "chai";
 import debug from "debug";
 
 import { makeLogFileName, NimWaku, NOISE_KEY_1 } from "../../test_utils";
-import { delay } from "../delay";
+import { delay } from "../../test_utils/delay";
 import { Protocols, Waku } from "../waku";
 import { WakuMessage } from "../waku_message";
 

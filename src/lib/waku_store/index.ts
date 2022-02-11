@@ -93,6 +93,8 @@ export interface QueryOptions {
 
 /**
  * Implements the [Waku v2 Store protocol](https://rfc.vac.dev/spec/13/).
+ *
+ * The Waku Store protocol can be used to retrieved historical messages.
  */
 export class WakuStore {
   pubSubTopic: string;
@@ -112,10 +114,11 @@ export class WakuStore {
   }
 
   /**
-   * Do a History Query to a Waku Store.
+   * Do a query to a Waku Store to retrieve historical/missed messages.
    *
    * @param contentTopics The content topics to pass to the query, leave empty to
    * retrieve all messages.
+   * @param options Optional parameters.
    *
    * @throws If not able to reach a Waku Store peer to query
    * or if an error is encountered when processing the reply.
