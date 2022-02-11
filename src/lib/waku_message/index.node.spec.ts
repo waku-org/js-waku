@@ -7,7 +7,7 @@ import {
   NOISE_KEY_1,
   WakuRelayMessage,
 } from "../../test_utils";
-import { delay } from "../delay";
+import { delay } from "../../test_utils/delay";
 import { hexToBuf } from "../utils";
 import { Protocols, Waku } from "../waku";
 

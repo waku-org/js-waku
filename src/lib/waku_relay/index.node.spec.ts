@@ -7,7 +7,7 @@ import {
   NOISE_KEY_1,
   NOISE_KEY_2,
 } from "../../test_utils";
-import { delay } from "../delay";
+import { delay } from "../../test_utils/delay";
 import { DefaultPubSubTopic, Protocols, Waku } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 import {
