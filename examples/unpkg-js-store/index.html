@@ -19,21 +19,19 @@
    * This example demonstrates how to use the js-waku minified bundle
    * available on unpkg.com.
    *
-   * It is a simple scripts that uses Waku Store to retrieve ping relay messages
+   * It is a simple script that uses Waku Store to retrieve ping relay messages
    * and displays the timestamp of the most recent ping relay message.
-   *
-   * More explanations are provided in this guide (TODO).
    */
   const timestampDiv = document.getElementById('timestamp');
 
   try {
     timestampDiv.innerHTML = '<p>Starting waku.</p>';
-    jswaku.Waku.create({ bootstrap: true }).catch(e => {
+    jswaku.Waku.create({ bootstrap: { default: true } }).catch(e => {
         timestampDiv.innerHTML = 'Failed to create Waku: ' + e.toString();
       }
     ).then(waku => {
       timestampDiv.innerHTML = '<p>Connecting to a peer.</p>';
-      waku.waitForConnectedPeer()
+      waku.waitForRemotePeer()
         .catch((e) => {
           timestampDiv.innerHTML = 'Failed to connect to peers' + e.toString();
         })
