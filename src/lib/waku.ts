@@ -144,9 +144,7 @@ export class Waku {
   }
 
   /**
-   * Create new waku node
-   *
-   * @param options Takes the same options than `Libp2p`.
+   * Create and start new waku node.
    */
   static async create(options?: CreateOptions): Promise<Waku> {
     // Get an object in case options or libp2p are undefined
@@ -296,7 +294,8 @@ export class Waku {
 
   /**
    * Return the local multiaddr with peer id on which libp2p is listening.
-   * @throws if libp2p is not listening on localhost
+   *
+   * @throws if libp2p is not listening on localhost.
    */
   getLocalMultiaddrWithID(): string {
     const localMultiaddr = this.libp2p.multiaddrs.find((addr) =>
