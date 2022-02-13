@@ -1,6 +1,13 @@
 import { expect } from "chai";
 
-import { getPseudoRandomSubset } from "./index";
+import { getNodesFromHostedJson, getPseudoRandomSubset } from "./index";
+
+declare global {
+  interface Window {
+    __env__?: any;
+  }
+}
+declare let window: Window | undefined;
 
 describe("Discovery", () => {
   it("returns all values when wanted number matches available values", function () {
@@ -31,5 +38,27 @@ describe("Discovery", () => {
     const res = getPseudoRandomSubset(values, 2);
 
     expect(res.length).to.eq(2);
+  });
+});
+
+describe("Discovery [live data]", function () {
+  before(function () {
+    if (
+      process.env.CI ||
+      (typeof window !== "undefined" && window?.__env__?.CI)
+    ) {
+      this.skip();
+    }
+  });
+
+  it("Returns nodes from default hosted JSON [live data]", async function () {
+    const res = await getNodesFromHostedJson(
+      ["fleets", "wakuv2.prod", "waku-websocket"],
+      "https://fleets.status.im/",
+      3
+    );
+
+    expect(res.length).to.eq(3);
+    expect(res[0].toString()).to.not.be.undefined;
   });
 });
