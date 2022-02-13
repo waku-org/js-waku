@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { argsToArray, bufToHex, defaultArgs, strToHex } from "./nim_waku";
+import { argsToArray, bytesToHex, defaultArgs, strToHex } from "./nim_waku";
 
 describe("nim_waku", () => {
   it("Correctly serialized arguments", function () {
@@ -37,7 +37,7 @@ describe("nim_waku", () => {
     ]);
     const expected = "5468697320697320616e207574662d3820737472696e672e";
 
-    const actual = bufToHex(buf);
+    const actual = bytesToHex(buf);
     expect(actual).to.deep.equal(expected);
   });
 });

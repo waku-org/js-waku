@@ -8,7 +8,7 @@ import PeerId from "peer-id";
 
 import { HistoryResponse_Error } from "../../proto";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
-import { hexToBuf } from "../utils";
+import { hexToBytes } from "../utils";
 import { DefaultPubSubTopic } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
@@ -181,7 +181,7 @@ export class WakuStore {
     if (opts.decryptionKeys) {
       opts.decryptionKeys.forEach((key) => {
         decryptionKeys.push({
-          key: hexToBuf(key),
+          key: hexToBytes(key),
           contentTopics: contentTopics.length ? contentTopics : undefined,
           method: undefined,
         });
@@ -276,7 +276,7 @@ export class WakuStore {
     key: Uint8Array | string,
     options?: { method?: DecryptionMethod; contentTopics?: string[] }
   ): void {
-    this.decryptionKeys.set(hexToBuf(key), options ?? {});
+    this.decryptionKeys.set(hexToBytes(key), options ?? {});
   }
 
   /**
@@ -286,7 +286,7 @@ export class WakuStore {
    * Strings must be in hex format.
    */
   deleteDecryptionKey(key: Uint8Array | string): void {
-    this.decryptionKeys.delete(hexToBuf(key));
+    this.decryptionKeys.delete(hexToBytes(key));
   }
 
   /**

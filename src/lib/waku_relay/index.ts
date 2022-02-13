@@ -13,7 +13,7 @@ import { InMessage } from "libp2p-interfaces/src/pubsub";
 import { SignaturePolicy } from "libp2p-interfaces/src/pubsub/signature-policy";
 import PeerId from "peer-id";
 
-import { hexToBuf } from "../utils";
+import { hexToBytes } from "../utils";
 import { CreateOptions, DefaultPubSubTopic } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
@@ -135,7 +135,7 @@ export class WakuRelay extends Gossipsub {
     key: Uint8Array | string,
     options?: { method?: DecryptionMethod; contentTopics?: string[] }
   ): void {
-    this.decryptionKeys.set(hexToBuf(key), options ?? {});
+    this.decryptionKeys.set(hexToBytes(key), options ?? {});
   }
 
   /**
@@ -145,7 +145,7 @@ export class WakuRelay extends Gossipsub {
    * Strings must be in hex format.
    */
   deleteDecryptionKey(key: Uint8Array | string): void {
-    this.decryptionKeys.delete(hexToBuf(key));
+    this.decryptionKeys.delete(hexToBytes(key));
   }
 
   /**

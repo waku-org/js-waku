@@ -5,7 +5,7 @@ import * as ecies from "ecies-geth";
 import { keccak256 } from "js-sha3";
 import * as secp256k1 from "secp256k1";
 
-import { hexToBuf } from "../utils";
+import { hexToBytes } from "../utils";
 
 import { IvSize, symmetric, SymmetricKeySize } from "./symmetric";
 
@@ -58,7 +58,7 @@ export function clearEncode(
   if (sigPrivKey) {
     envelope[0] |= IsSignedMask;
     const hash = keccak256(envelope);
-    const s = secp256k1.ecdsaSign(hexToBuf(hash), sigPrivKey);
+    const s = secp256k1.ecdsaSign(hexToBytes(hash), sigPrivKey);
     envelope = Buffer.concat([envelope, s.signature, Buffer.from([s.recid])]);
     sig = {
       signature: Buffer.from(s.signature),
@@ -116,7 +116,7 @@ export async function encryptAsymmetric(
   data: Uint8Array | Buffer,
   publicKey: Uint8Array | Buffer | string
 ): Promise<Uint8Array> {
-  return ecies.encrypt(hexToBuf(publicKey), Buffer.from(data));
+  return ecies.encrypt(Buffer.from(hexToBytes(publicKey)), Buffer.from(data));
 }
 
 /**
@@ -148,7 +148,11 @@ export async function encryptSymmetric(
   const iv = symmetric.generateIv();
 
   // Returns `cipher | tag`
-  const cipher = await symmetric.encrypt(iv, hexToBuf(key), Buffer.from(data));
+  const cipher = await symmetric.encrypt(
+    iv,
+    Buffer.from(hexToBytes(key)),
+    Buffer.from(data)
+  );
   return Buffer.concat([cipher, Buffer.from(iv)]);
 }
 
@@ -170,7 +174,7 @@ export async function decryptSymmetric(
   const cipher = data.slice(0, ivStart);
   const iv = data.slice(ivStart);
 
-  return symmetric.decrypt(iv, hexToBuf(key), cipher);
+  return symmetric.decrypt(iv, Buffer.from(hexToBytes(key)), cipher);
 }
 
 /**
@@ -250,7 +254,7 @@ function ecRecoverPubKey(messageHash: string, signature: Buffer): Uint8Array {
   return secp256k1.ecdsaRecover(
     signature.slice(0, 64),
     recovery,
-    hexToBuf(messageHash),
+    hexToBytes(messageHash),
     false
   );
 }

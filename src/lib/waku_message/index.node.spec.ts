@@ -2,13 +2,14 @@ import { expect } from "chai";
 import debug from "debug";
 
 import {
+  bytesToUtf8,
   makeLogFileName,
   NimWaku,
   NOISE_KEY_1,
   WakuRelayMessage,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { hexToBuf } from "../utils";
+import { hexToBytes } from "../utils";
 import { Protocols, Waku } from "../waku";
 
 import {
@@ -90,8 +91,8 @@ describe("Waku Message [node only]", function () {
 
       dbg("Ask nim-waku to generate asymmetric key pair");
       const keyPair = await nimWaku.getAsymmetricKeyPair();
-      const privateKey = hexToBuf(keyPair.privateKey);
-      const publicKey = hexToBuf(keyPair.publicKey);
+      const privateKey = hexToBytes(keyPair.privateKey);
+      const publicKey = hexToBytes(keyPair.publicKey);
 
       const messageText = "This is a message I am going to encrypt";
       dbg("Encrypt message");
@@ -116,7 +117,7 @@ describe("Waku Message [node only]", function () {
 
       dbg("Check message content");
       expect(msgs[0].contentTopic).to.equal(message.contentTopic);
-      expect(hexToBuf(msgs[0].payload).toString("utf-8")).to.equal(messageText);
+      expect(bytesToUtf8(hexToBytes(msgs[0].payload))).to.equal(messageText);
     });
 
     it("JS decrypts nim message [symmetric, no signature]", async function () {
@@ -177,7 +178,7 @@ describe("Waku Message [node only]", function () {
       }
 
       expect(msgs[0].contentTopic).to.equal(message.contentTopic);
-      expect(hexToBuf(msgs[0].payload).toString("utf-8")).to.equal(messageText);
+      expect(bytesToUtf8(hexToBytes(msgs[0].payload))).to.equal(messageText);
     });
   });
 });
