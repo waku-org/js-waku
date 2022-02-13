@@ -3,7 +3,7 @@ import { Waku, WakuMessage } from "js-waku";
 import { PrivateMessage, PublicKeyMessage } from "./messaging/wire";
 import { validatePublicKeyMessage } from "./crypto";
 import { Message } from "./messaging/Messages";
-import { bufToHex, equalByteArrays } from "js-waku/lib/utils";
+import { bytesToHex, equalByteArrays } from "js-waku/lib/utils";
 
 export const PublicKeyContentTopic =
   "/eth-pm-wallet/1/encryption-public-key/proto";
@@ -44,7 +44,7 @@ export function handlePublicKeyMessage(
   if (res) {
     setPublicKeys((prevPks: Map<string, Uint8Array>) => {
       prevPks.set(
-        bufToHex(publicKeyMsg.ethAddress),
+        bytesToHex(publicKeyMsg.ethAddress),
         publicKeyMsg.encryptionPublicKey
       );
       return new Map(prevPks);

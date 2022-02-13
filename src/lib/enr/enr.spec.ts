@@ -2,7 +2,7 @@ import { assert, expect } from "chai";
 import { Multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
-import { bufToHex } from "../utils";
+import { bytesToHex } from "../utils";
 
 import { ERR_INVALID_ID } from "./constants";
 import { ENR } from "./enr";
@@ -31,8 +31,8 @@ describe("ENR", function () {
       const txt = enr.encodeTxt(keypair.privateKey);
       expect(txt.slice(0, 4)).to.be.equal("enr:");
       const enr2 = ENR.decodeTxt(txt);
-      expect(bufToHex(enr2.signature as Buffer)).to.be.equal(
-        bufToHex(enr.signature as Buffer)
+      expect(bytesToHex(enr2.signature as Buffer)).to.be.equal(
+        bytesToHex(enr.signature as Buffer)
       );
       const multiaddr = enr2.getLocationMultiaddr("udp")!;
       expect(multiaddr.toString()).to.be.equal("/ip4/18.223.219.100/udp/9000");
@@ -56,7 +56,7 @@ describe("ENR", function () {
       const enr = ENR.decodeTxt(txt);
       const eth2 = enr.get("eth2") as Buffer;
       expect(eth2).to.not.be.undefined;
-      expect(bufToHex(eth2)).to.be.equal("f6775d0700000113ffffffffffff1f00");
+      expect(bytesToHex(eth2)).to.be.equal("f6775d0700000113ffffffffffff1f00");
     });
 
     it("should decode valid ENR with multiaddrs successfully [shared test vector]", () => {

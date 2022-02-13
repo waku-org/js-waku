@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - docs: Various improvements.
 - Ran `npm audit fix`.
 - `Waku.dial` accepts protocols expected from the peer. Defaults to Waku Relay only.
-- Deprecated `hexToBuf` in favour of `hexToBytes` to move towards removing the `buffer` polyfill.
+- Deprecated `hexToBuf` & `bufToHex` in favour of `hexToBytes` & `bytesToHex` to move towards removing the `buffer` polyfill.
 
 ### Removed
 

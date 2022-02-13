@@ -203,7 +203,7 @@ export class NimWaku {
     }
 
     const rpcMessage = {
-      payload: bufToHex(message.payload),
+      payload: bytesToHex(message.payload),
       contentTopic: message.contentTopic,
       timestamp,
     };
@@ -258,7 +258,7 @@ export class NimWaku {
     return this.rpcCall<boolean>("post_waku_v2_private_v1_asymmetric_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       message,
-      "0x" + bufToHex(publicKey),
+      "0x" + bytesToHex(publicKey),
     ]);
   }
 
@@ -272,7 +272,7 @@ export class NimWaku {
       "get_waku_v2_private_v1_asymmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
-        "0x" + bufToHex(privateKey),
+        "0x" + bytesToHex(privateKey),
       ]
     );
   }
@@ -300,7 +300,7 @@ export class NimWaku {
     return this.rpcCall<boolean>("post_waku_v2_private_v1_symmetric_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       message,
-      "0x" + bufToHex(symKey),
+      "0x" + bytesToHex(symKey),
     ]);
   }
 
@@ -312,7 +312,10 @@ export class NimWaku {
 
     return await this.rpcCall<WakuRelayMessage[]>(
       "get_waku_v2_private_v1_symmetric_messages",
-      [pubSubTopic ? pubSubTopic : DefaultPubSubTopic, "0x" + bufToHex(symKey)]
+      [
+        pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
+        "0x" + bytesToHex(symKey),
+      ]
     );
   }
 
@@ -416,7 +419,7 @@ export function strToHex(str: string): string {
   return hex;
 }
 
-export function bufToHex(buffer: Uint8Array): string {
+export function bytesToHex(buffer: Uint8Array): string {
   return Array.prototype.map
     .call(buffer, (x) => ("00" + x.toString(16)).slice(-2))
     .join("");

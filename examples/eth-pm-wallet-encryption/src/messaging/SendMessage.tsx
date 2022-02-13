@@ -8,7 +8,7 @@ import {
 } from "@material-ui/core";
 import React, { ChangeEvent, useState, KeyboardEvent } from "react";
 import { Waku, WakuMessage } from "js-waku";
-import { bufToHex, hexToBytes } from "js-waku/lib/utils";
+import { bytesToHex, hexToBytes } from "js-waku/lib/utils";
 import { PrivateMessage } from "./wire";
 import { PrivateMessageContentTopic } from "../waku";
 import * as sigUtil from "eth-sig-util";
@@ -119,7 +119,7 @@ async function encodeEncryptedWakuMessage(
 
   const encObj = sigUtil.encrypt(
     Buffer.from(publicKey).toString("base64"),
-    { data: bufToHex(payload) },
+    { data: bytesToHex(payload) },
     "x25519-xsalsa20-poly1305"
   );
 

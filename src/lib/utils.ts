@@ -30,10 +30,25 @@ export function hexToBytes(hex: string | Uint8Array): Uint8Array {
 
 /**
  * Convert input to hex string (no `0x` prefix).
+ *
+ * @deprecated Use `bytesToHex` instead.
  */
 export function bufToHex(buf: Uint8Array | Buffer | ArrayBuffer): string {
   const _buf = Buffer.from(buf);
   return _buf.toString("hex");
+}
+
+/**
+ * Convert byte array to hex string (no `0x` prefix).
+ */
+export function bytesToHex(bytes: Uint8Array): string {
+  const hex = [];
+  for (let i = 0; i < bytes.length; i++) {
+    const current = bytes[i] < 0 ? bytes[i] + 256 : bytes[i];
+    hex.push((current >>> 4).toString(16));
+    hex.push((current & 0xf).toString(16));
+  }
+  return hex.join("");
 }
 
 /**
@@ -48,13 +63,13 @@ export function equalByteArrays(
   if (typeof a === "string") {
     _a = a.replace(/^0x/i, "").toLowerCase();
   } else {
-    _a = bufToHex(a);
+    _a = bytesToHex(a);
   }
 
   if (typeof b === "string") {
     _b = b.replace(/^0x/i, "").toLowerCase();
   } else {
-    _b = bufToHex(b);
+    _b = bytesToHex(b);
   }
 
   return _a === _b;
