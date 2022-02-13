@@ -1,13 +1,13 @@
 import "@ethersproject/shims";
 
 import { PublicKeyMessage } from "./messaging/wire";
-import { hexToBuf, equalByteArrays, bufToHex } from "js-waku/lib/utils";
+import { hexToBytes, equalByteArrays, bufToHex } from "js-waku/lib/utils";
 import { generatePrivateKey, getPublicKey } from "js-waku";
 import * as sigUtil from "eth-sig-util";
 import { PublicKeyContentTopic } from "./waku";
 import { keccak256 } from "ethers/lib/utils";
 
-export const PublicKeyMessageEncryptionKey = hexToBuf(
+export const PublicKeyMessageEncryptionKey = hexToBytes(
   keccak256(Buffer.from(PublicKeyContentTopic, "utf-8"))
 );
 
@@ -49,8 +49,8 @@ export async function createPublicKeyMessage(
 
   return new PublicKeyMessage({
     encryptionPublicKey: encryptionPublicKey,
-    ethAddress: hexToBuf(address),
-    signature: hexToBuf(signature),
+    ethAddress: hexToBytes(address),
+    signature: hexToBytes(signature),
   });
 }
 
@@ -100,7 +100,7 @@ export async function signEncryptionKey(
 
   console.log("TYPED SIGNED:" + JSON.stringify(result));
 
-  return hexToBuf(result);
+  return hexToBytes(result);
 }
 
 /**

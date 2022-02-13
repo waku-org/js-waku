@@ -11,7 +11,7 @@ import { Multiaddr, multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 import portfinder from "portfinder";
 
-import { hexToBuf } from "../lib/utils";
+import { hexToBytes } from "../lib/utils";
 import { DefaultPubSubTopic } from "../lib/waku";
 import { WakuMessage } from "../lib/waku_message";
 import * as proto from "../proto/waku/v2/message";
@@ -277,13 +277,13 @@ export class NimWaku {
     );
   }
 
-  async getSymmetricKey(): Promise<Buffer> {
+  async getSymmetricKey(): Promise<Uint8Array> {
     this.checkProcess();
 
     return this.rpcCall<string>(
       "get_waku_v2_private_v1_symmetric_key",
       []
-    ).then(hexToBuf);
+    ).then(hexToBytes);
   }
 
   async postSymmetricMessage(
