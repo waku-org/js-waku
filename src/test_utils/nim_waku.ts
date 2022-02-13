@@ -118,7 +118,7 @@ export class NimWaku {
     );
 
     const argsArray = argsToArray(mergedArgs);
-    dbg(`nim-waku args: ${argsArray}`);
+    dbg(`nim-waku args: ${argsArray.join(" ")}`);
     this.process = spawn(NIM_WAKU_BIN, argsArray, {
       cwd: NIM_WAKU_DIR,
       stdio: [

@@ -231,12 +231,29 @@ export class Waku {
    * Dials to the provided peer.
    *
    * @param peer The peer to dial
+   * @param protocols Waku protocols we expect from the peer; Default to Relay
    */
-  async dial(peer: PeerId | Multiaddr | string): Promise<{
+  async dial(
+    peer: PeerId | Multiaddr | string,
+    protocols?: Protocols[]
+  ): Promise<{
     stream: MuxedStream;
     protocol: string;
   }> {
-    return this.libp2p.dialProtocol(peer, [StoreCodec].concat(RelayCodecs));
+    const _protocols = protocols ?? [Protocols.Relay];
+
+    const codecs: string[] = [];
+    if (_protocols.includes(Protocols.Relay)) {
+      RelayCodecs.forEach((codec) => codecs.push(codec));
+    }
+    if (_protocols.includes(Protocols.Store)) {
+      codecs.push(StoreCodec);
+    }
+    if (_protocols.includes(Protocols.LightPush)) {
+      codecs.push(LightPushCodec);
+    }
+
+    return this.libp2p.dialProtocol(peer, codecs);
   }
 
   /**

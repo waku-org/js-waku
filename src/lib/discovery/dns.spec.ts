@@ -8,6 +8,7 @@ declare global {
     __env__?: any;
   }
 }
+declare let window: Window | undefined;
 
 const mockData = testData.dns;
 
@@ -182,7 +183,10 @@ describe("DNS Node Discovery [live data]", function () {
   const maxQuantity = 3;
 
   before(function () {
-    if (process.env.CI || window.__env__.CI) {
+    if (
+      process.env.CI ||
+      (typeof window !== "undefined" && window?.__env__?.CI)
+    ) {
       this.skip();
     }
   });

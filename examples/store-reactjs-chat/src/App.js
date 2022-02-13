@@ -1,8 +1,8 @@
-import { Waku } from 'js-waku';
-import * as React from 'react';
-import protons from 'protons';
+import { Waku } from "js-waku";
+import * as React from "react";
+import protons from "protons";
 
-const ContentTopic = '/toy-chat/2/huilong/proto';
+const ContentTopic = "/toy-chat/2/huilong/proto";
 
 const proto = protons(`
 message ChatMessage {
@@ -14,17 +14,17 @@ message ChatMessage {
 
 function App() {
   const [waku, setWaku] = React.useState(undefined);
-  const [wakuStatus, setWakuStatus] = React.useState('None');
+  const [wakuStatus, setWakuStatus] = React.useState("None");
   const [messages, setMessages] = React.useState([]);
 
   React.useEffect(() => {
-    if (wakuStatus !== 'None') return;
+    if (wakuStatus !== "None") return;
 
-    setWakuStatus('Starting');
+    setWakuStatus("Starting");
 
     Waku.create({ bootstrap: { default: true } }).then((waku) => {
       setWaku(waku);
-      setWakuStatus('Connecting');
+      setWakuStatus("Connecting");
     });
   }, [waku, wakuStatus]);
 
@@ -32,16 +32,16 @@ function App() {
     if (!waku) return;
 
     // We do not handle disconnection/re-connection in this example
-    if (wakuStatus === 'Connected') return;
+    if (wakuStatus === "Connected") return;
 
     waku.waitForRemotePeer().then(() => {
       // We are now connected to a store node
-      setWakuStatus('Connected');
+      setWakuStatus("Connected");
     });
   }, [waku, wakuStatus]);
 
   React.useEffect(() => {
-    if (wakuStatus !== 'Connected') return;
+    if (wakuStatus !== "Connected") return;
 
     const processMessages = (retrievedMessages) => {
       const messages = retrievedMessages.map(decodeMessage).filter(Boolean);
@@ -61,7 +61,7 @@ function App() {
         timeFilter: { startTime, endTime: new Date() },
       })
       .catch((e) => {
-        console.log('Failed to retrieve messages', e);
+        console.log("Failed to retrieve messages", e);
       });
   }, [waku, wakuStatus]);
 
@@ -92,7 +92,7 @@ function decodeMessage(wakuMessage) {
   const time = new Date();
   time.setTime(timestamp);
 
-  const utf8Text = Buffer.from(text).toString('utf-8');
+  const utf8Text = Buffer.from(text).toString("utf-8");
 
   return { text: utf8Text, timestamp: time, nick };
 }
@@ -109,11 +109,11 @@ function Messages(props) {
 
 function formatDate(timestamp) {
   return timestamp.toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    second: '2-digit',
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: false,
   });
 }
