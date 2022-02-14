@@ -60,7 +60,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
   }
 
-  static decodeFromValues(decoded: Uint8Array[]): ENR {
+  static decodeFromValues(decoded: Buffer[]): ENR {
     if (!Array.isArray(decoded)) {
       throw new Error("Decoded ENR must be an array");
     }
@@ -78,7 +78,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
     const obj: Record<ENRKey, ENRValue> = {};
     for (let i = 0; i < kvs.length; i += 2) {
-      obj[kvs[i].toString()] = kvs[i + 1];
+      obj[kvs[i].toString()] = new Uint8Array(kvs[i + 1]);
     }
     const enr = new ENR(
       obj,
@@ -93,7 +93,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   }
 
   static decode(encoded: Uint8Array): ENR {
-    const decoded = RLP.decode(encoded) as unknown as Uint8Array[];
+    const decoded = RLP.decode(encoded) as unknown as Buffer[];
     return ENR.decodeFromValues(decoded);
   }
 
