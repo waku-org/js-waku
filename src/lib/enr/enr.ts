@@ -10,12 +10,7 @@ import { encode as varintEncode } from "varint";
 import { bytesToUtf8, utf8ToBytes } from "../utf8";
 import { bytesToHex } from "../utils";
 
-import {
-  ERR_INVALID_ID,
-  ERR_NO_SIGNATURE,
-  MAX_RECORD_SIZE,
-  MULTIADDR_LENGTH_SIZE,
-} from "./constants";
+import { ERR_INVALID_ID, ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
 import {
   createKeypair,
   createKeypairFromPeerId,
@@ -23,6 +18,7 @@ import {
   IKeypair,
   KeypairType,
 } from "./keypair";
+import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
 import * as v4 from "./v4";
 
@@ -275,32 +271,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
   get multiaddrs(): Multiaddr[] | undefined {
     const raw = this.get("multiaddrs");
 
-    if (raw) {
-      const multiaddrs = [];
+    if (raw) return decodeMultiaddrs(raw);
 
-      try {
-        let index = 0;
-
-        while (index < raw.length) {
-          const sizeBytes = raw.slice(index, index + 2);
-          const size = Buffer.from(sizeBytes).readUInt16BE(0);
-
-          const multiaddrBytes = raw.slice(
-            index + MULTIADDR_LENGTH_SIZE,
-            index + size + MULTIADDR_LENGTH_SIZE
-          );
-          const multiaddr = new Multiaddr(multiaddrBytes);
-
-          multiaddrs.push(multiaddr);
-          index += size + MULTIADDR_LENGTH_SIZE;
-        }
-      } catch (e) {
-        throw new Error("Invalid value in multiaddrs field");
-      }
-      return multiaddrs;
-    } else {
-      return undefined;
-    }
+    return;
   }
 
   /**
@@ -319,30 +292,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (multiaddrs === undefined) {
       this.delete("multiaddrs");
     } else {
-      let multiaddrsBuf = Buffer.from([]);
-
-      multiaddrs.forEach((multiaddr) => {
-        if (multiaddr.getPeerId())
-          throw new Error("`multiaddr` field MUST not contain peer id");
-
-        const bytes = multiaddr.bytes;
-
-        let buf = Buffer.alloc(2);
-
-        // Prepend the size of the next entry
-        const written = buf.writeUInt16BE(bytes.length, 0);
-
-        if (written !== MULTIADDR_LENGTH_SIZE) {
-          throw new Error(
-            `Internal error: unsigned 16-bit integer was not written in ${MULTIADDR_LENGTH_SIZE} bytes`
-          );
-        }
-
-        buf = Buffer.concat([buf, bytes]);
-
-        multiaddrsBuf = Buffer.concat([multiaddrsBuf, buf]);
-      });
-
+      const multiaddrsBuf = encodeMultiaddrs(multiaddrs);
       this.set("multiaddrs", multiaddrsBuf);
     }
   }
