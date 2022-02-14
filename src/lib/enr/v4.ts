@@ -10,20 +10,24 @@ export function hash(input: Uint8Array): Buffer {
   return Buffer.from(keccak256.arrayBuffer(input));
 }
 
-export async function createPrivateKey(): Promise<Buffer> {
+export async function createPrivateKey(): Promise<Uint8Array> {
   return Buffer.from(await randomBytes(32));
 }
 
-export function publicKey(privKey: Uint8Array): Buffer {
+export function publicKey(privKey: Uint8Array): Uint8Array {
   return Buffer.from(secp256k1.publicKeyCreate(privKey));
 }
 
-export function sign(privKey: Uint8Array, msg: Uint8Array): Buffer {
+export function sign(privKey: Uint8Array, msg: Uint8Array): Uint8Array {
   const { signature } = secp256k1.ecdsaSign(hash(msg), privKey);
   return Buffer.from(signature);
 }
 
-export function verify(pubKey: Buffer, msg: Buffer, sig: Buffer): boolean {
+export function verify(
+  pubKey: Uint8Array,
+  msg: Uint8Array,
+  sig: Uint8Array
+): boolean {
   // Remove the recovery id if present (byte #65)
   return secp256k1.ecdsaVerify(sig.slice(0, 64), hash(msg), pubKey);
 }
@@ -37,11 +41,11 @@ export function nodeId(pubKey: Uint8Array): NodeId {
 export class ENRKeyPair {
   public constructor(
     public readonly nodeId: NodeId,
-    public readonly privateKey: Buffer,
-    public readonly publicKey: Buffer
+    public readonly privateKey: Uint8Array,
+    public readonly publicKey: Uint8Array
   ) {}
 
-  public static async create(privateKey?: Buffer): Promise<ENRKeyPair> {
+  public static async create(privateKey?: Uint8Array): Promise<ENRKeyPair> {
     if (privateKey) {
       if (!secp256k1.privateKeyVerify(privateKey)) {
         throw new Error("Invalid private key");
@@ -54,11 +58,11 @@ export class ENRKeyPair {
     return new ENRKeyPair(_nodeId, _privateKey, _publicKey);
   }
 
-  public sign(msg: Buffer): Buffer {
+  public sign(msg: Uint8Array): Uint8Array {
     return sign(this.privateKey, msg);
   }
 
-  public verify(msg: Buffer, sig: Buffer): boolean {
+  public verify(msg: Uint8Array, sig: Uint8Array): boolean {
     return verify(this.publicKey, msg, sig);
   }
 }

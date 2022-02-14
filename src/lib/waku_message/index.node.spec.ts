@@ -2,13 +2,13 @@ import { expect } from "chai";
 import debug from "debug";
 
 import {
-  bytesToUtf8,
   makeLogFileName,
   NimWaku,
   NOISE_KEY_1,
   WakuRelayMessage,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
+import { bytesToUtf8 } from "../utf8";
 import { hexToBytes } from "../utils";
 import { Protocols, Waku } from "../waku";
 

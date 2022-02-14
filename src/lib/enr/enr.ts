@@ -7,6 +7,7 @@ import PeerId from "peer-id";
 import * as RLP from "rlp";
 import { encode as varintEncode } from "varint";
 
+import { bytesToUtf8, utf8ToBytes } from "../utf8";
 import { bytesToHex } from "../utils";
 
 import {
@@ -28,22 +29,25 @@ import * as v4 from "./v4";
 export class ENR extends Map<ENRKey, ENRValue> {
   public static readonly RECORD_PREFIX = "enr:";
   public seq: SequenceNumber;
-  public signature: Buffer | null;
+  public signature: Uint8Array | null;
 
   constructor(
     kvs: Record<ENRKey, ENRValue> = {},
     seq: SequenceNumber = 1n,
-    signature: Buffer | null = null
+    signature: Uint8Array | null = null
   ) {
     super(Object.entries(kvs));
     this.seq = seq;
     this.signature = signature;
   }
 
-  static createV4(publicKey: Buffer, kvs: Record<ENRKey, ENRValue> = {}): ENR {
+  static createV4(
+    publicKey: Uint8Array,
+    kvs: Record<ENRKey, ENRValue> = {}
+  ): ENR {
     return new ENR({
       ...kvs,
-      id: Buffer.from("v4"),
+      id: utf8ToBytes("v4"),
       secp256k1: publicKey,
     });
   }
@@ -61,7 +65,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
   }
 
-  static decodeFromValues(decoded: Buffer[]): ENR {
+  static decodeFromValues(decoded: Uint8Array[]): ENR {
     if (!Array.isArray(decoded)) {
       throw new Error("Decoded ENR must be an array");
     }
@@ -79,7 +83,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
     const obj: Record<ENRKey, ENRValue> = {};
     for (let i = 0; i < kvs.length; i += 2) {
-      obj[kvs[i].toString()] = Buffer.from(kvs[i + 1]);
+      obj[kvs[i].toString()] = kvs[i + 1];
     }
     const enr = new ENR(obj, BigInt("0x" + bytesToHex(seq)), signature);
 
@@ -89,8 +93,8 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return enr;
   }
 
-  static decode(encoded: Buffer): ENR {
-    const decoded = RLP.decode(encoded) as unknown as Buffer[];
+  static decode(encoded: Uint8Array): ENR {
+    const decoded = RLP.decode(encoded) as unknown as Uint8Array[];
     return ENR.decodeFromValues(decoded);
   }
 
@@ -110,9 +114,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
   }
 
   get id(): string {
-    const id = this.get("id") as Buffer;
+    const id = this.get("id");
     if (!id) throw new Error("id not found.");
-    return id.toString("utf8");
+    return bytesToUtf8(id);
   }
 
   get keypairType(): KeypairType {
@@ -124,27 +128,31 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
   }
 
-  get publicKey(): Buffer {
+  get publicKey(): Uint8Array | undefined {
     switch (this.id) {
       case "v4":
-        return this.get("secp256k1") as Buffer;
+        return this.get("secp256k1");
       default:
         throw new Error(ERR_INVALID_ID);
     }
   }
 
-  get keypair(): IKeypair {
-    return createKeypair(this.keypairType, undefined, this.publicKey);
+  get keypair(): IKeypair | undefined {
+    if (this.publicKey) {
+      const publicKey = this.publicKey;
+      return createKeypair(this.keypairType, undefined, Buffer.from(publicKey));
+    }
+    return;
   }
 
-  get peerId(): PeerId {
-    return createPeerIdFromKeypair(this.keypair);
+  get peerId(): PeerId | undefined {
+    return this.keypair ? createPeerIdFromKeypair(this.keypair) : undefined;
   }
 
-  get nodeId(): NodeId {
+  get nodeId(): NodeId | undefined {
     switch (this.id) {
       case "v4":
-        return v4.nodeId(this.publicKey);
+        return this.publicKey ? v4.nodeId(this.publicKey) : undefined;
       default:
         throw new Error(ERR_INVALID_ID);
     }
@@ -428,9 +436,13 @@ export class ENR extends Map<ENRKey, ENRValue> {
   getFullMultiaddr(
     protocol: "udp" | "udp4" | "udp6" | "tcp" | "tcp4" | "tcp6"
   ): Multiaddr | undefined {
-    const locationMultiaddr = this.getLocationMultiaddr(protocol);
-    if (locationMultiaddr) {
-      return locationMultiaddr.encapsulate(`/p2p/${this.peerId.toB58String()}`);
+    if (this.peerId) {
+      const locationMultiaddr = this.getLocationMultiaddr(protocol);
+      if (locationMultiaddr) {
+        return locationMultiaddr.encapsulate(
+          `/p2p/${this.peerId.toB58String()}`
+        );
+      }
     }
     return;
   }
@@ -439,15 +451,16 @@ export class ENR extends Map<ENRKey, ENRValue> {
    * Returns the full multiaddrs from the `multiaddrs` ENR field.
    */
   getFullMultiaddrs(): Multiaddr[] {
-    if (this.multiaddrs) {
+    if (this.peerId && this.multiaddrs) {
+      const peerId = this.peerId;
       return this.multiaddrs.map((ma) => {
-        return ma.encapsulate(`/p2p/${this.peerId.toB58String()}`);
+        return ma.encapsulate(`/p2p/${peerId.toB58String()}`);
       });
     }
     return [];
   }
 
-  verify(data: Buffer, signature: Buffer): boolean {
+  verify(data: Uint8Array, signature: Uint8Array): boolean {
     if (!this.get("id") || this.id !== "v4") {
       throw new Error(ERR_INVALID_ID);
     }
@@ -457,7 +470,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return v4.verify(this.publicKey, data, signature);
   }
 
-  sign(data: Buffer, privateKey: Buffer): Buffer {
+  sign(data: Uint8Array, privateKey: Uint8Array): Uint8Array {
     switch (this.id) {
       case "v4":
         this.signature = v4.sign(privateKey, data);
@@ -468,7 +481,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return this.signature;
   }
 
-  encodeToValues(privateKey?: Buffer): (ENRKey | ENRValue | number)[] {
+  encodeToValues(privateKey?: Uint8Array): (ENRKey | ENRValue | number)[] {
     // sort keys and flatten into [k, v, k, v, ...]
     const content: Array<ENRKey | ENRValue | number> = Array.from(this.keys())
       .sort((a, b) => a.localeCompare(b))
@@ -486,7 +499,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return content;
   }
 
-  encode(privateKey?: Buffer): Buffer {
+  encode(privateKey?: Uint8Array): Uint8Array {
     const encoded = RLP.encode(this.encodeToValues(privateKey));
     if (encoded.length >= MAX_RECORD_SIZE) {
       throw new Error("ENR must be less than 300 bytes");
@@ -494,7 +507,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return encoded;
   }
 
-  encodeTxt(privateKey?: Buffer): string {
-    return ENR.RECORD_PREFIX + base64url.encode(this.encode(privateKey));
+  encodeTxt(privateKey?: Uint8Array): string {
+    return (
+      ENR.RECORD_PREFIX + base64url.encode(Buffer.from(this.encode(privateKey)))
+    );
   }
 }
