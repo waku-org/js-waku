@@ -335,7 +335,6 @@ export class NimWaku {
       return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
     }
     const res = await this.info();
-    console.log(res);
     this.multiaddrWithId = res.listenAddresses
       .map((ma) => multiaddr(ma))
       .find((ma) => ma.protoNames().includes("ws"));
