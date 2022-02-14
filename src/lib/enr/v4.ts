@@ -6,21 +6,21 @@ import * as secp256k1 from "secp256k1";
 import { createNodeId } from "./create";
 import { NodeId } from "./types";
 
-export function hash(input: Uint8Array): Buffer {
-  return Buffer.from(keccak256.arrayBuffer(input));
+export function hash(input: Uint8Array): Uint8Array {
+  return new Uint8Array(keccak256.arrayBuffer(input));
 }
 
 export async function createPrivateKey(): Promise<Uint8Array> {
-  return Buffer.from(await randomBytes(32));
+  return new Uint8Array(await randomBytes(32));
 }
 
 export function publicKey(privKey: Uint8Array): Uint8Array {
-  return Buffer.from(secp256k1.publicKeyCreate(privKey));
+  return new Uint8Array(secp256k1.publicKeyCreate(privKey));
 }
 
 export function sign(privKey: Uint8Array, msg: Uint8Array): Uint8Array {
   const { signature } = secp256k1.ecdsaSign(hash(msg), privKey);
-  return Buffer.from(signature);
+  return new Uint8Array(signature);
 }
 
 export function verify(
