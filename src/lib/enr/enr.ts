@@ -1,4 +1,3 @@
-import base64url from "base64url";
 import { Multiaddr, protocols } from "multiaddr";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
@@ -8,7 +7,7 @@ import * as RLP from "rlp";
 import { encode as varintEncode } from "varint";
 
 import { bytesToUtf8, utf8ToBytes } from "../utf8";
-import { bytesToHex } from "../utils";
+import { base64ToBytes, bytesToBase64, bytesToHex } from "../utils";
 
 import { ERR_INVALID_ID, ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
 import {
@@ -61,7 +60,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
   }
 
-  static decodeFromValues(decoded: Uint8Array[]): ENR {
+  static decodeFromValues(decoded: Buffer[]): ENR {
     if (!Array.isArray(decoded)) {
       throw new Error("Decoded ENR must be an array");
     }
@@ -79,9 +78,13 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
     const obj: Record<ENRKey, ENRValue> = {};
     for (let i = 0; i < kvs.length; i += 2) {
-      obj[kvs[i].toString()] = kvs[i + 1];
+      obj[kvs[i].toString()] = new Uint8Array(kvs[i + 1]);
     }
-    const enr = new ENR(obj, BigInt("0x" + bytesToHex(seq)), signature);
+    const enr = new ENR(
+      obj,
+      BigInt("0x" + bytesToHex(seq)),
+      new Uint8Array(signature)
+    );
 
     if (!enr.verify(RLP.encode([seq, ...kvs]), signature)) {
       throw new Error("Unable to verify ENR signature");
@@ -90,7 +93,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   }
 
   static decode(encoded: Uint8Array): ENR {
-    const decoded = RLP.decode(encoded) as unknown as Uint8Array[];
+    const decoded = RLP.decode(encoded) as unknown as Buffer[];
     return ENR.decodeFromValues(decoded);
   }
 
@@ -100,7 +103,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
         `"string encoded ENR must start with '${this.RECORD_PREFIX}'`
       );
     }
-    return ENR.decode(base64url.toBuffer(encoded.slice(4)));
+    return ENR.decode(base64ToBytes(encoded.slice(4)));
   }
 
   set(k: ENRKey, v: ENRValue): this {
@@ -457,9 +460,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return encoded;
   }
 
-  encodeTxt(privateKey?: Uint8Array): string {
-    return (
-      ENR.RECORD_PREFIX + base64url.encode(Buffer.from(this.encode(privateKey)))
-    );
+  async encodeTxt(privateKey?: Uint8Array): Promise<string> {
+    return ENR.RECORD_PREFIX + (await bytesToBase64(this.encode(privateKey)));
   }
 }

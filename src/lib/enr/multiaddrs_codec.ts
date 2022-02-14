@@ -5,24 +5,22 @@ import { MULTIADDR_LENGTH_SIZE } from "./constants";
 export function decodeMultiaddrs(bytes: Uint8Array): Multiaddr[] {
   const multiaddrs = [];
 
-  try {
-    let index = 0;
+  let index = 0;
 
-    while (index < bytes.length) {
-      const sizeBytes = bytes.slice(index, index + 2);
-      const size = Buffer.from(sizeBytes).readUInt16BE(0);
+  while (index < bytes.length) {
+    const sizeDataView = new DataView(
+      bytes.buffer,
+      index,
+      MULTIADDR_LENGTH_SIZE
+    );
+    const size = sizeDataView.getUint16(0);
+    index += MULTIADDR_LENGTH_SIZE;
 
-      const multiaddrBytes = bytes.slice(
-        index + MULTIADDR_LENGTH_SIZE,
-        index + size + MULTIADDR_LENGTH_SIZE
-      );
-      const multiaddr = new Multiaddr(multiaddrBytes);
+    const multiaddrBytes = bytes.slice(index, index + size);
+    index += size;
 
-      multiaddrs.push(multiaddr);
-      index += size + MULTIADDR_LENGTH_SIZE;
-    }
-  } catch (e) {
-    throw new Error("Invalid value in multiaddrs field");
+    const multiaddr = new Multiaddr(multiaddrBytes);
+    multiaddrs.push(multiaddr);
   }
   return multiaddrs;
 }
