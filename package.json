@@ -59,7 +59,6 @@
   "dependencies": {
     "@chainsafe/libp2p-noise": "^5.0.0",
     "base64url": "^3.0.1",
-    "bigint-buffer": "^1.1.5",
     "debug": "^4.3.1",
     "dns-query": "^0.8.0",
     "ecies-geth": "^1.5.2",

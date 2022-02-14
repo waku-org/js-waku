@@ -1,5 +1,4 @@
 import base64url from "base64url";
-import { toBigIntBE } from "bigint-buffer";
 import { Multiaddr, protocols } from "multiaddr";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
@@ -7,6 +6,8 @@ import muConvert from "multiaddr/src/convert";
 import PeerId from "peer-id";
 import * as RLP from "rlp";
 import { encode as varintEncode } from "varint";
+
+import { bytesToHex } from "../utils";
 
 import {
   ERR_INVALID_ID,
@@ -80,7 +81,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     for (let i = 0; i < kvs.length; i += 2) {
       obj[kvs[i].toString()] = Buffer.from(kvs[i + 1]);
     }
-    const enr = new ENR(obj, toBigIntBE(seq), signature);
+    const enr = new ENR(obj, BigInt("0x" + bytesToHex(seq)), signature);
 
     if (!enr.verify(RLP.encode([seq, ...kvs]), signature)) {
       throw new Error("Unable to verify ENR signature");
