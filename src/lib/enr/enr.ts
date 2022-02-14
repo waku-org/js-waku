@@ -312,8 +312,8 @@ export class ENR extends Map<ENRKey, ENRValue> {
    *
    * If the peer information only contains information that can be represented with the ENR pre-defined keys
    * (ip, tcp, etc) then the usage of [[setLocationMultiaddr]] should be preferred.
-   *
-   * The multiaddresses stored in this field must to be location multiaddresses, ie, peer id less.
+   * The multiaddresses stored in this field must be location multiaddresses,
+   * ie, without a peer id.
    */
   set multiaddrs(multiaddrs: Multiaddr[] | undefined) {
     if (multiaddrs === undefined) {
