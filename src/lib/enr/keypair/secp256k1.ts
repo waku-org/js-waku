@@ -1,25 +1,26 @@
-import { Buffer } from "buffer";
 import crypto from "crypto";
 
 import * as secp256k1 from "secp256k1";
 
 import { AbstractKeypair, IKeypair, IKeypairClass, KeypairType } from "./types";
 
-export function secp256k1PublicKeyToCompressed(publicKey: Uint8Array): Buffer {
+export function secp256k1PublicKeyToCompressed(
+  publicKey: Uint8Array
+): Uint8Array {
   if (publicKey.length === 64) {
     publicKey = Buffer.concat([Buffer.from([4]), publicKey]);
   }
   return Buffer.from(secp256k1.publicKeyConvert(publicKey, true));
 }
 
-export function secp256k1PublicKeyToFull(publicKey: Uint8Array): Buffer {
+export function secp256k1PublicKeyToFull(publicKey: Uint8Array): Uint8Array {
   if (publicKey.length === 64) {
     return Buffer.concat([Buffer.from([4]), publicKey]);
   }
   return Buffer.from(secp256k1.publicKeyConvert(publicKey, false));
 }
 
-export function secp256k1PublicKeyToRaw(publicKey: Uint8Array): Buffer {
+export function secp256k1PublicKeyToRaw(publicKey: Uint8Array): Uint8Array {
   return Buffer.from(secp256k1.publicKeyConvert(publicKey, false).slice(1));
 }
 
@@ -29,7 +30,7 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
 {
   readonly type: KeypairType;
 
-  constructor(privateKey?: Buffer, publicKey?: Buffer) {
+  constructor(privateKey?: Uint8Array, publicKey?: Uint8Array) {
     let pub = publicKey;
     if (pub) {
       pub = secp256k1PublicKeyToCompressed(pub);
@@ -58,12 +59,12 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
     return true;
   }
 
-  sign(msg: Buffer): Buffer {
+  sign(msg: Uint8Array): Uint8Array {
     const { signature, recid } = secp256k1.ecdsaSign(msg, this.privateKey);
     return Buffer.concat([signature, Buffer.from([recid])]);
   }
 
-  verify(msg: Buffer, sig: Buffer): boolean {
+  verify(msg: Uint8Array, sig: Uint8Array): boolean {
     return secp256k1.ecdsaVerify(sig, msg, this.publicKey);
   }
 };

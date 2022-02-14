@@ -140,7 +140,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   get keypair(): IKeypair | undefined {
     if (this.publicKey) {
       const publicKey = this.publicKey;
-      return createKeypair(this.keypairType, undefined, Buffer.from(publicKey));
+      return createKeypair(this.keypairType, undefined, publicKey);
     }
     return;
   }

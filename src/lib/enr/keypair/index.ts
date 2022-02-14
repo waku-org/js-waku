@@ -22,8 +22,8 @@ export async function generateKeypair(type: KeypairType): Promise<IKeypair> {
 
 export function createKeypair(
   type: KeypairType,
-  privateKey?: Buffer,
-  publicKey?: Buffer
+  privateKey?: Uint8Array,
+  publicKey?: Uint8Array
 ): IKeypair {
   switch (type) {
     case KeypairType.secp256k1:
