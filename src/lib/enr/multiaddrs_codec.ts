@@ -28,29 +28,25 @@ export function decodeMultiaddrs(bytes: Uint8Array): Multiaddr[] {
 }
 
 export function encodeMultiaddrs(multiaddrs: Multiaddr[]): Uint8Array {
-  let multiaddrsBuf = Buffer.from([]);
+  const totalLength = multiaddrs.reduce(
+    (acc, ma) => acc + MULTIADDR_LENGTH_SIZE + ma.bytes.length,
+    0
+  );
+  const bytes = new Uint8Array(totalLength);
+  const dataView = new DataView(bytes.buffer);
 
+  let index = 0;
   multiaddrs.forEach((multiaddr) => {
     if (multiaddr.getPeerId())
       throw new Error("`multiaddr` field MUST not contain peer id");
 
-    const bytes = multiaddr.bytes;
-
-    let buf = Buffer.alloc(2);
-
     // Prepend the size of the next entry
-    const written = buf.writeUInt16BE(bytes.length, 0);
+    dataView.setUint16(index, multiaddr.bytes.length);
+    index += MULTIADDR_LENGTH_SIZE;
 
-    if (written !== MULTIADDR_LENGTH_SIZE) {
-      throw new Error(
-        `Internal error: unsigned 16-bit integer was not written in ${MULTIADDR_LENGTH_SIZE} bytes`
-      );
-    }
-
-    buf = Buffer.concat([buf, bytes]);
-
-    multiaddrsBuf = Buffer.concat([multiaddrsBuf, buf]);
+    bytes.set(multiaddr.bytes, index);
+    index += multiaddr.bytes.length;
   });
 
-  return multiaddrsBuf;
+  return bytes;
 }
