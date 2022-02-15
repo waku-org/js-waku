@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Replaced `rlp` dependency with `@ethersproject/rlp`.
+- **breaking**: `staticNoiseKey` changed from `Buffer` to `Uint8Array`.
 
 ### Removed
 
