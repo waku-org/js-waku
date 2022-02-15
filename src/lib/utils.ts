@@ -78,8 +78,8 @@ export function equalByteArrays(
 /**
  * Return Keccak-256 of the input.
  */
-export function keccak256Buf(message: Message): Buffer {
-  return Buffer.from(keccak256.arrayBuffer(message));
+export function keccak256Buf(message: Message): Uint8Array {
+  return new Uint8Array(keccak256.arrayBuffer(message));
 }
 
 /**
