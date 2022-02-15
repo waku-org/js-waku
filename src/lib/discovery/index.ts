@@ -1,6 +1,7 @@
 import { shuffle } from "libp2p-gossipsub/src/utils";
 
-export { getNodesFromHostedJson } from "./hosted_json";
+export { getPredefinedBootstrapNodes } from "./predefined";
+export * as predefined from "./predefined";
 export { Bootstrap, BootstrapOptions } from "./bootstrap";
 export { DnsClient, DnsNodeDiscovery, SearchContext } from "./dns";
 export { Endpoints, DnsOverHttps } from "./dns_over_https";

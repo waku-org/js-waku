@@ -1,6 +1,8 @@
 import { expect } from "chai";
 
-import { getNodesFromHostedJson, getPseudoRandomSubset } from "./index";
+import { fleets } from "./predefined";
+
+import { getPseudoRandomSubset } from "./index";
 
 declare global {
   interface Window {
@@ -51,14 +53,15 @@ describe("Discovery [live data]", function () {
     }
   });
 
-  it("Returns nodes from default hosted JSON [live data]", async function () {
-    const res = await getNodesFromHostedJson(
-      ["fleets", "wakuv2.prod", "waku-websocket"],
-      "https://fleets.status.im/",
-      3
-    );
+  it("Check pre-defined nodes against hosted JSON [live data]", async function () {
+    const res = await fetch("https://fleets.status.im/");
+    const nodes = await res.json();
 
-    expect(res.length).to.eq(3);
-    expect(res[0].toString()).to.not.be.undefined;
+    expect(fleets.fleets["wakuv2.prod"]["waku-websocket"]).to.deep.eq(
+      nodes.fleets["wakuv2.prod"]["waku-websocket"]
+    );
+    expect(fleets.fleets["wakuv2.test"]["waku-websocket"]).to.deep.eq(
+      nodes.fleets["wakuv2.test"]["waku-websocket"]
+    );
   });
 });

@@ -3,7 +3,7 @@ import { Multiaddr } from "multiaddr";
 
 import { DnsNodeDiscovery } from "./dns";
 
-import { getNodesFromHostedJson, getPseudoRandomSubset } from "./index";
+import { getPredefinedBootstrapNodes, getPseudoRandomSubset } from "./index";
 
 const dbg = debug("waku:discovery:bootstrap");
 
@@ -57,12 +57,11 @@ export class Bootstrap {
     if (opts.default) {
       dbg("Use hosted list of peers.");
 
-      this.getBootstrapPeers = getNodesFromHostedJson.bind(
-        {},
-        undefined,
-        undefined,
-        maxPeers
-      );
+      this.getBootstrapPeers = (): Promise<Multiaddr[]> => {
+        return Promise.resolve(
+          getPredefinedBootstrapNodes(undefined, maxPeers)
+        );
+      };
     } else if (opts.peers !== undefined && opts.peers.length > 0) {
       const allPeers: Multiaddr[] = opts.peers.map(
         (node: string) => new Multiaddr(node)
