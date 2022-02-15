@@ -2,7 +2,8 @@ import { assert, expect } from "chai";
 import { Multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
-import { bytesToHex } from "../utils";
+import { utf8ToBytes } from "../utf8";
+import { bytesToHex, hexToBytes } from "../utils";
 
 import { ERR_INVALID_ID } from "./constants";
 import { ENR } from "./enr";
@@ -31,9 +32,10 @@ describe("ENR", function () {
       const txt = await enr.encodeTxt(keypair.privateKey);
 
       const enr2 = ENR.decodeTxt(txt);
-      expect(bytesToHex(enr2.signature as Buffer)).to.be.equal(
-        bytesToHex(enr.signature as Buffer)
-      );
+      if (!enr.signature) throw "enr.signature is undefined";
+      if (!enr2.signature) throw "enr.signature is undefined";
+
+      expect(bytesToHex(enr2.signature)).to.be.equal(bytesToHex(enr.signature));
       const multiaddr = enr2.getLocationMultiaddr("udp")!;
       expect(multiaddr.toString()).to.be.equal("/ip4/18.223.219.100/udp/9000");
       expect(enr2.multiaddrs).to.not.be.undefined;
@@ -54,8 +56,8 @@ describe("ENR", function () {
       const txt =
         "enr:-Ku4QMh15cIjmnq-co5S3tYaNXxDzKTgj0ufusA-QfZ66EWHNsULt2kb0eTHoo1Dkjvvf6CAHDS1Di-htjiPFZzaIPcLh2F0dG5ldHOIAAAAAAAAAACEZXRoMpD2d10HAAABE________x8AgmlkgnY0gmlwhHZFkMSJc2VjcDI1NmsxoQIWSDEWdHwdEA3Lw2B_byeFQOINTZ0GdtF9DBjes6JqtIN1ZHCCIyg";
       const enr = ENR.decodeTxt(txt);
-      const eth2 = enr.get("eth2") as Buffer;
-      expect(eth2).to.not.be.undefined;
+      const eth2 = enr.get("eth2");
+      if (!eth2) throw "eth2 is undefined";
       expect(bytesToHex(eth2)).to.be.equal("f6775d0700000113ffffffffffff1f00");
     });
 
@@ -126,8 +128,8 @@ describe("ENR", function () {
   describe("Verify", () => {
     it("should throw error - no id", () => {
       try {
-        const enr = new ENR({}, BigInt(0), Buffer.alloc(0));
-        enr.verify(Buffer.alloc(0), Buffer.alloc(0));
+        const enr = new ENR({}, BigInt(0), new Uint8Array());
+        enr.verify(new Uint8Array(), new Uint8Array());
         assert.fail("Expect error here");
       } catch (err: unknown) {
         const e = err as Error;
@@ -138,11 +140,11 @@ describe("ENR", function () {
     it("should throw error - invalid id", () => {
       try {
         const enr = new ENR(
-          { id: Buffer.from("v3") },
+          { id: utf8ToBytes("v3") },
           BigInt(0),
-          Buffer.alloc(0)
+          new Uint8Array()
         );
-        enr.verify(Buffer.alloc(0), Buffer.alloc(0));
+        enr.verify(new Uint8Array(), new Uint8Array());
         assert.fail("Expect error here");
       } catch (err: unknown) {
         const e = err as Error;
@@ -153,11 +155,11 @@ describe("ENR", function () {
     it("should throw error - no public key", () => {
       try {
         const enr = new ENR(
-          { id: Buffer.from("v4") },
+          { id: utf8ToBytes("v4") },
           BigInt(0),
-          Buffer.alloc(0)
+          new Uint8Array()
         );
-        enr.verify(Buffer.alloc(0), Buffer.alloc(0));
+        enr.verify(new Uint8Array(), new Uint8Array());
         assert.fail("Expect error here");
       } catch (err: unknown) {
         const e = err as Error;
@@ -170,19 +172,18 @@ describe("ENR", function () {
         "enr:-Ku4QMh15cIjmnq-co5S3tYaNXxDzKTgj0ufusA-QfZ66EWHNsULt2kb0eTHoo1Dkjvvf6CAHDS1Di-htjiPFZzaIPcLh2F0dG5ldHOIAAAAAAAAAACEZXRoMpD2d10HAAABE________x8AgmlkgnY0gmlwhHZFkMSJc2VjcDI1NmsxoQIWSDEWdHwdEA3Lw2B_byeFQOINTZ0GdtF9DBjes6JqtIN1ZHCCIyg";
       const enr = ENR.decodeTxt(txt);
       // should have id and public key inside ENR
-      expect(enr.verify(Buffer.alloc(32), Buffer.alloc(64))).to.be.false;
+      expect(enr.verify(new Uint8Array(32), new Uint8Array(64))).to.be.false;
     });
   });
 
   describe("Static tests", () => {
-    let privateKey: Buffer;
+    let privateKey: Uint8Array;
     let record: ENR;
 
     beforeEach(() => {
       const seq = 1n;
-      privateKey = Buffer.from(
-        "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291",
-        "hex"
+      privateKey = hexToBytes(
+        "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
       record = ENR.createV4(v4.publicKey(privateKey));
       record.setLocationMultiaddr(new Multiaddr("/ip4/127.0.0.1/udp/30303"));
@@ -216,13 +217,12 @@ describe("ENR", function () {
   });
 
   describe("Multiaddr getters and setters", () => {
-    let privateKey: Buffer;
+    let privateKey: Uint8Array;
     let record: ENR;
 
     beforeEach(() => {
-      privateKey = Buffer.from(
-        "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291",
-        "hex"
+      privateKey = hexToBytes(
+        "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
       record = ENR.createV4(v4.publicKey(privateKey));
     });
