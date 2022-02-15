@@ -9,6 +9,11 @@ message SimpleChatMessage {
 }
 `);
 
+interface MessageInterface {
+  timestamp: Date,
+  text: string
+}
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -19,8 +24,7 @@ export class AppComponent {
   
   contentTopic: string = `/relay-angular-chat/1/chat/proto`;
   title: string = 'relay-angular-chat';
-  // TODO: Probably better to create a Message interface and use that type here rather than any.
-  messages: any[] = [];
+  messages: MessageInterface[] = [];
   messageCount: number = 0;
   // TODO: The other ignores are because of this. the Waku type isn't being picked up for some reason.
   // hacked around it with this dirty empty object for now
