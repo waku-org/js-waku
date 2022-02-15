@@ -6,6 +6,8 @@ import {
   query,
 } from "dns-query";
 
+import { bytesToUtf8 } from "../utf8";
+
 import { DnsClient } from "./dns";
 
 const { cloudflare, google, opendns } = defaultEndpoints;
@@ -48,11 +50,11 @@ export class DnsOverHttps implements DnsClient {
           if (typeof sd === "string") {
             result.push(sd);
           } else {
-            result.push(Buffer.from(sd).toString("utf-8"));
+            result.push(bytesToUtf8(sd));
           }
         });
       } else {
-        result.push(Buffer.from(d).toString("utf-8"));
+        result.push(bytesToUtf8(d));
       }
     });
 
