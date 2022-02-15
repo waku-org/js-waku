@@ -1,11 +1,10 @@
 import assert from "assert";
 
-import base64url from "base64url";
 import * as base32 from "hi-base32";
 import { ecdsaVerify } from "secp256k1";
 
 import { ENR } from "../enr";
-import { keccak256Buf } from "../utils";
+import { base64ToBytes, keccak256Buf } from "../utils";
 
 export type ENRRootValues = {
   eRoot: string;
@@ -43,15 +42,12 @@ export class ENRTree {
     // (Trailing recovery bit must be trimmed to pass `ecdsaVerify` method)
     const signedComponent = root.split(" sig")[0];
     const signedComponentBuffer = Buffer.from(signedComponent);
-    const signatureBuffer = base64url
-      .toBuffer(rootValues.signature)
-      .slice(0, 64);
-    const keyBuffer = Buffer.from(decodedPublicKey);
+    const signatureBuffer = base64ToBytes(rootValues.signature).slice(0, 64);
 
     const isVerified = ecdsaVerify(
       signatureBuffer,
       keccak256Buf(signedComponentBuffer),
-      keyBuffer
+      new Uint8Array(decodedPublicKey)
     );
 
     assert(isVerified, "Unable to verify ENRTree root signature");
