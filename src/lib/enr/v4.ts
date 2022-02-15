@@ -11,16 +11,16 @@ export function hash(input: Uint8Array): Uint8Array {
 }
 
 export async function createPrivateKey(): Promise<Uint8Array> {
-  return new Uint8Array(await randomBytes(32));
+  return randomBytes(32);
 }
 
 export function publicKey(privKey: Uint8Array): Uint8Array {
-  return new Uint8Array(secp256k1.publicKeyCreate(privKey));
+  return secp256k1.publicKeyCreate(privKey);
 }
 
 export function sign(privKey: Uint8Array, msg: Uint8Array): Uint8Array {
   const { signature } = secp256k1.ecdsaSign(hash(msg), privKey);
-  return new Uint8Array(signature);
+  return signature;
 }
 
 export function verify(

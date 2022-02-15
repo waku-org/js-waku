@@ -80,11 +80,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     for (let i = 0; i < kvs.length; i += 2) {
       obj[bytesToUtf8(kvs[i])] = kvs[i + 1];
     }
-    const enr = new ENR(
-      obj,
-      BigInt("0x" + bytesToHex(seq)),
-      new Uint8Array(signature)
-    );
+    const enr = new ENR(obj, BigInt("0x" + bytesToHex(seq)), signature);
 
     const rlpEncodedBytes = hexToBytes(RLP.encode([seq, ...kvs]));
     if (!enr.verify(rlpEncodedBytes, signature)) {
