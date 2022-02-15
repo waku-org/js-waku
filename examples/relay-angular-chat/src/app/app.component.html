@@ -4,7 +4,6 @@
 <h2>Messages</h2>
 <ul class="messages">
   <li *ngFor="let message of messages">
-      <span class="badge">{{ message.timestamp }}</span>
-      <span class="name">{{ message.text }}</span>
+      <span>{{ message.timestamp }} {{ message.text }}</span>
   </li>
 </ul>
