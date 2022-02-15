@@ -51,7 +51,8 @@
               "ecies-geth",
               "secp256k1",
               "libp2p-gossipsub",
-              "it-concat"
+              "it-concat",
+              "protons"
             ]
           },
           "configurations": {
