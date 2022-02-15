@@ -8,7 +8,7 @@
 - Protobuf using `protons`
 - No async/await syntax
 
-A barebones messaging app to illustrate the [Angular Relay guide](https://docs.wakuconnect.dev/docs/guides/09_angular_relay/).
+A barebones messaging app to illustrate the [Angular Relay guide](https://docs.wakuconnect.dev/docs/guides/10_angular_relay/).
 
 To run a development version locally, do:
 
