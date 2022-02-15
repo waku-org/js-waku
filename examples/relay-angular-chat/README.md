@@ -1,27 +1,26 @@
-# RelayAngularChat
+# Minimal Angular (v13) Waku Relay App
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.2.2.
+**Demonstrates**:
 
-## Development server
+- Group messaging
+- Angular/JavaScript
+- Waku Relay
+- Protobuf using `protons`
+- No async/await syntax
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+A barebones messaging app to illustrate the [Angular Relay guide](https://docs.wakuconnect.dev/docs/guides/09_angular_relay/).
 
-## Code scaffolding
+To run a development version locally, do:
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+```shell
+git clone https://github.com/status-im/js-waku/ ; cd js-waku
+npm install   # Install dependencies for js-waku
+npm run build # Build js-waku
+cd examples/relay-reactjs-chat
+yarn   # Install dependencies for the web app
+yarn run start # Start development server to serve the web app on http://localhost:4200/
+```
 
-## Build
+### Known issues
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+There is a problem when using `npm` to install/run the Angular app.
