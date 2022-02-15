@@ -41,6 +41,10 @@ export class AppComponent {
       });
     });
   }
+  
+  ngOnDestroy(): void {
+    this.waku.relay.deleteObserver(this.processIncomingMessages, [this.contentTopic]);
+  }
 
   processIncomingMessages = (wakuMessage: WakuMessage) => {
     if (!wakuMessage.payload) return;
@@ -54,7 +58,6 @@ export class AppComponent {
 
     this.messages.push(message);
   }
-
 
   send(message: string, waku: object, timestamp: Date) {
     const time = timestamp.getTime();
