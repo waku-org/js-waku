@@ -10,18 +10,18 @@ export function secp256k1PublicKeyToCompressed(
   if (publicKey.length === 64) {
     publicKey = Buffer.concat([Buffer.from([4]), publicKey]);
   }
-  return Buffer.from(secp256k1.publicKeyConvert(publicKey, true));
+  return secp256k1.publicKeyConvert(publicKey, true);
 }
 
 export function secp256k1PublicKeyToFull(publicKey: Uint8Array): Uint8Array {
   if (publicKey.length === 64) {
     return Buffer.concat([Buffer.from([4]), publicKey]);
   }
-  return Buffer.from(secp256k1.publicKeyConvert(publicKey, false));
+  return secp256k1.publicKeyConvert(publicKey, false);
 }
 
 export function secp256k1PublicKeyToRaw(publicKey: Uint8Array): Uint8Array {
-  return Buffer.from(secp256k1.publicKeyConvert(publicKey, false).slice(1));
+  return secp256k1.publicKeyConvert(publicKey, false).slice(1);
 }
 
 export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair

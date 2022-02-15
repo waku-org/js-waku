@@ -1,13 +1,13 @@
+import * as RLP from "@ethersproject/rlp";
 import { Multiaddr, protocols } from "multiaddr";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
 import muConvert from "multiaddr/src/convert";
 import PeerId from "peer-id";
-import * as RLP from "rlp";
 import { encode as varintEncode } from "varint";
 
 import { bytesToUtf8, utf8ToBytes } from "../utf8";
-import { base64ToBytes, bytesToBase64, bytesToHex } from "../utils";
+import { base64ToBytes, bytesToBase64, bytesToHex, hexToBytes } from "../utils";
 
 import { ERR_INVALID_ID, ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
 import {
@@ -60,7 +60,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
   }
 
-  static decodeFromValues(decoded: Buffer[]): ENR {
+  static decodeFromValues(decoded: Uint8Array[]): ENR {
     if (!Array.isArray(decoded)) {
       throw new Error("Decoded ENR must be an array");
     }
@@ -78,7 +78,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
     const obj: Record<ENRKey, ENRValue> = {};
     for (let i = 0; i < kvs.length; i += 2) {
-      obj[kvs[i].toString()] = new Uint8Array(kvs[i + 1]);
+      obj[bytesToUtf8(kvs[i])] = kvs[i + 1];
     }
     const enr = new ENR(
       obj,
@@ -86,14 +86,15 @@ export class ENR extends Map<ENRKey, ENRValue> {
       new Uint8Array(signature)
     );
 
-    if (!enr.verify(RLP.encode([seq, ...kvs]), signature)) {
+    const rlpEncodedBytes = hexToBytes(RLP.encode([seq, ...kvs]));
+    if (!enr.verify(rlpEncodedBytes, signature)) {
       throw new Error("Unable to verify ENR signature");
     }
     return enr;
   }
 
   static decode(encoded: Uint8Array): ENR {
-    const decoded = RLP.decode(encoded) as unknown as Buffer[];
+    const decoded = RLP.decode(encoded).map(hexToBytes);
     return ENR.decodeFromValues(decoded);
   }
 
@@ -434,15 +435,16 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return this.signature;
   }
 
-  encodeToValues(privateKey?: Uint8Array): (ENRKey | ENRValue | number)[] {
+  encodeToValues(privateKey?: Uint8Array): (ENRKey | ENRValue | number[])[] {
     // sort keys and flatten into [k, v, k, v, ...]
-    const content: Array<ENRKey | ENRValue | number> = Array.from(this.keys())
+    const content: Array<ENRKey | ENRValue | number[]> = Array.from(this.keys())
       .sort((a, b) => a.localeCompare(b))
       .map((k) => [k, this.get(k)] as [ENRKey, ENRValue])
+      .map(([k, v]) => [utf8ToBytes(k), v])
       .flat();
-    content.unshift(Number(this.seq));
+    content.unshift(new Uint8Array([Number(this.seq)]));
     if (privateKey) {
-      content.unshift(this.sign(RLP.encode(content), privateKey));
+      content.unshift(this.sign(hexToBytes(RLP.encode(content)), privateKey));
     } else {
       if (!this.signature) {
         throw new Error(ERR_NO_SIGNATURE);
@@ -453,7 +455,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   }
 
   encode(privateKey?: Uint8Array): Uint8Array {
-    const encoded = RLP.encode(this.encodeToValues(privateKey));
+    const encoded = hexToBytes(RLP.encode(this.encodeToValues(privateKey)));
     if (encoded.length >= MAX_RECORD_SIZE) {
       throw new Error("ENR must be less than 300 bytes");
     }
