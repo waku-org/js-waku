@@ -1,11 +1,9 @@
-// Ensure that this class matches the proto interface while
-import { Buffer } from "buffer";
-
 import debug from "debug";
 import { Reader } from "protobufjs/minimal";
 
 // Protecting the user from protobuf oddities
 import * as proto from "../../proto/waku/v2/message";
+import { bytesToUtf8, utf8ToBytes } from "../utf8";
 
 import * as version_1 from "./version_1";
 
@@ -56,7 +54,7 @@ export class WakuMessage {
     contentTopic: string,
     opts?: Options
   ): Promise<WakuMessage> {
-    const payload = Buffer.from(utf8, "utf-8");
+    const payload = utf8ToBytes(utf8);
     return WakuMessage.fromBytes(payload, contentTopic, opts);
   }
 
@@ -256,7 +254,7 @@ export class WakuMessage {
       return "";
     }
 
-    return Buffer.from(this.proto.payload).toString("utf-8");
+    return bytesToUtf8(this.proto.payload);
   }
 
   get payload(): Uint8Array | undefined {
