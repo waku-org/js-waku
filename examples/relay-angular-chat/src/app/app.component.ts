@@ -23,12 +23,10 @@ interface MessageInterface {
 export class AppComponent {
   
   contentTopic: string = `/relay-angular-chat/1/chat/proto`;
-  title: string = 'relay-angular-chat';
   messages: MessageInterface[] = [];
   messageCount: number = 0;
-  // TODO: The other ignores are because of this. the Waku type isn't being picked up for some reason.
-  // hacked around it with this dirty empty object for now
-  waku = {};
+  title: string = 'relay-angular-chat';
+  waku!: Waku;
   wakuStatus: string = 'None';
 
   ngOnInit(): void {
@@ -38,17 +36,15 @@ export class AppComponent {
       waku.waitForRemotePeer().then(() => {
         this.wakuStatus = 'Connected';
         this.waku = waku;
-        // @ts-ignore: As this uses an object _on_ the waku object, TS moans. Properly imported type should fix it
+
         this.waku.relay.addObserver(this.processIncomingMessages, [this.contentTopic]);
       });
     });
   }
 
   processIncomingMessages = (wakuMessage: WakuMessage) => {
-    // Empty message?
     if (!wakuMessage.payload) return;
 
-    // Decode the protobuf payload
     const { timestamp, text } = proto.SimpleChatMessage.decode(
       wakuMessage.payload
     );
@@ -63,16 +59,12 @@ export class AppComponent {
   send(message: string, waku: object, timestamp: Date) {
     const time = timestamp.getTime();
 
-    // Encode to protobuf
     const payload = proto.SimpleChatMessage.encode({
       timestamp: time,
       text: message,
     });
 
-    // Wrap in a Waku Message
     return WakuMessage.fromBytes(payload, this.contentTopic).then((wakuMessage) => {
-      // Send over Waku Relay
-      // @ts-ignore: As this uses an object _on_ the waku object, TS moans. Properly imported type should fix it
       this.waku.relay.send(wakuMessage);
     });
   }
