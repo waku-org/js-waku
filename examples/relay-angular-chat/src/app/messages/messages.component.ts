@@ -39,6 +39,8 @@ export class MessagesComponent implements OnInit {
       this.waku = waku;
       this.waku.relay.addObserver(this.processIncomingMessages, [this.contentTopic]);
     });
+
+    window.onbeforeunload = () => this.ngOnDestroy();
   }
 
   ngOnDestroy(): void {
