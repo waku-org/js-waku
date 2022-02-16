@@ -40,6 +40,9 @@ export class AppComponent {
         this.waku.relay.addObserver(this.processIncomingMessages, [this.contentTopic]);
       });
     });
+
+    window.onbeforeunload = () => this.ngOnDestroy();
+    
   }
   
   ngOnDestroy(): void {
