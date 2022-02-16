@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0] - 2022-02-16
+
 ### Changed
 
 - **Breaking**: Upgrade `libp2p` to `0.36.2` & `libp2p-gossipsub` to `0.13.0`. Some APIs are now async.
@@ -312,6 +314,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
 [Unreleased]: https://github.com/status-im/js-waku/compare/v0.16.0...HEAD
+[0.17.0]: https://github.com/status-im/js-waku/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/status-im/js-waku/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/status-im/js-waku/compare/v0.14.2...v0.15.0
 [0.14.2]: https://github.com/status-im/js-waku/compare/v0.14.1...v0.14.2
