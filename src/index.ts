@@ -1,4 +1,4 @@
-export { getNodesFromHostedJson } from "./lib/discovery";
+export { getPredefinedBootstrapNodes } from "./lib/discovery";
 export * as discovery from "./lib/discovery";
 
 export * as enr from "./lib/enr";

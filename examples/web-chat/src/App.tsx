@@ -2,7 +2,7 @@ import { useEffect, useReducer, useState } from "react";
 import "./App.css";
 import {
   PageDirection,
-  getNodesFromHostedJson,
+  getPredefinedBootstrapNodes,
   Waku,
   WakuMessage,
 } from "js-waku";
@@ -12,6 +12,7 @@ import { WakuContext } from "./WakuContext";
 import { ThemeProvider } from "@livechat/ui-kit";
 import { generate } from "server-name-generator";
 import { Message } from "./Message";
+import { Fleet } from "js-waku/lib/discovery/predefined";
 
 const themes = {
   AuthorName: {
@@ -184,7 +185,8 @@ async function initWaku(setter: (waku: Waku) => void) {
         },
       },
       bootstrap: {
-        getPeers: getNodesFromHostedJson.bind({}, selectFleetEnv()),
+        getPeers: () =>
+          Promise.resolve(getPredefinedBootstrapNodes(selectFleetEnv())),
       },
     });
 
@@ -197,9 +199,9 @@ async function initWaku(setter: (waku: Waku) => void) {
 function selectFleetEnv() {
   // Works with react-scripts
   if (process?.env?.NODE_ENV === "development") {
-    return ["fleets", "wakuv2.test", "waku-websocket"];
+    return Fleet.Test;
   } else {
-    return ["fleets", "wakuv2.prod", "waku-websocket"];
+    return Fleet.Prod;
   }
 }
 
