@@ -1,1 +1,7 @@
-<p>messages works!</p>
+<button (click)="sendMessage()" [disabled]="wakuStatus !== 'Connected'">Send Message</button>
+<h2>Messages</h2>
+<ul class="messages">
+  <li *ngFor="let message of messages">
+    <span>{{ message.timestamp }} {{ message.text }}</span>
+  </li>
+</ul>
