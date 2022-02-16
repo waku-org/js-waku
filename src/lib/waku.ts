@@ -180,15 +180,11 @@ export class Waku {
       options?.libp2p?.modules
     );
 
-    const staticNoiseKey = options?.staticNoiseKey
-      ? Buffer.from(options?.staticNoiseKey)
-      : undefined;
-
     // streamMuxer, connection encryption and pubsub are overridden
     // as those are the only ones currently supported by Waku nodes.
     libp2pOpts.modules = Object.assign(libp2pOpts.modules, {
       streamMuxer: [Mplex],
-      connEncryption: [new Noise(staticNoiseKey)],
+      connEncryption: [new Noise(options?.staticNoiseKey)],
       pubsub: WakuRelay,
     });
 
