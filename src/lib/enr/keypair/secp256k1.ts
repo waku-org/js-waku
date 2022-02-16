@@ -8,20 +8,26 @@ export function secp256k1PublicKeyToCompressed(
   publicKey: Uint8Array
 ): Uint8Array {
   if (publicKey.length === 64) {
-    publicKey = Buffer.concat([Buffer.from([4]), publicKey]);
+    const _publicKey = new Uint8Array(publicKey.length + 1);
+    _publicKey.set([4]);
+    _publicKey.set(publicKey, 1);
+    publicKey = _publicKey;
   }
-  return Buffer.from(secp256k1.publicKeyConvert(publicKey, true));
+  return secp256k1.publicKeyConvert(publicKey, true);
 }
 
 export function secp256k1PublicKeyToFull(publicKey: Uint8Array): Uint8Array {
   if (publicKey.length === 64) {
-    return Buffer.concat([Buffer.from([4]), publicKey]);
+    const _publicKey = new Uint8Array(publicKey.length + 1);
+    _publicKey.set([4]);
+    _publicKey.set(publicKey, 1);
+    publicKey = _publicKey;
   }
-  return Buffer.from(secp256k1.publicKeyConvert(publicKey, false));
+  return secp256k1.publicKeyConvert(publicKey, false);
 }
 
 export function secp256k1PublicKeyToRaw(publicKey: Uint8Array): Uint8Array {
-  return Buffer.from(secp256k1.publicKeyConvert(publicKey, false).slice(1));
+  return secp256k1.publicKeyConvert(publicKey, false).slice(1);
 }
 
 export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
@@ -40,9 +46,9 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
   }
 
   static async generate(): Promise<Secp256k1Keypair> {
-    const privateKey = Buffer.from(await randomBytes(32));
+    const privateKey = await randomBytes(32);
     const publicKey = secp256k1.publicKeyCreate(privateKey);
-    return new Secp256k1Keypair(privateKey, Buffer.from(publicKey));
+    return new Secp256k1Keypair(privateKey, publicKey);
   }
 
   privateKeyVerify(key = this._privateKey): boolean {
@@ -61,7 +67,11 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
 
   sign(msg: Uint8Array): Uint8Array {
     const { signature, recid } = secp256k1.ecdsaSign(msg, this.privateKey);
-    return Buffer.concat([signature, Buffer.from([recid])]);
+
+    const result = new Uint8Array(signature.length + 1);
+    result.set(signature);
+    result.set([recid], signature.length);
+    return result;
   }
 
   verify(msg: Uint8Array, sig: Uint8Array): boolean {

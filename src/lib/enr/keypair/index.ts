@@ -60,7 +60,7 @@ export function createKeypairFromPeerId(peerId: PeerId): IKeypair {
   const pub = keysPBM.PublicKey.decode(peerId.pubKey.bytes);
   return createKeypair(
     pub.Type as KeypairType,
-    peerId.privKey ? Buffer.from(peerId.privKey.marshal()) : undefined,
-    Buffer.from(pub.Data)
+    peerId.privKey ? peerId.privKey.marshal() : undefined,
+    pub.Data
   );
 }

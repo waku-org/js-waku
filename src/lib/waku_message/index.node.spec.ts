@@ -8,8 +8,8 @@ import {
   WakuRelayMessage,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { bytesToUtf8 } from "../utf8";
-import { hexToBytes } from "../utils";
+import { bytesToUtf8, utf8ToBytes } from "../utf8";
+import { bytesToHex, hexToBytes } from "../utils";
 import { Protocols, Waku } from "../waku";
 
 import {
@@ -61,7 +61,7 @@ describe("Waku Message [node only]", function () {
       const messageText = "Here is an encrypted message.";
       const message: WakuRelayMessage = {
         contentTopic: TestContentTopic,
-        payload: Buffer.from(messageText, "utf-8").toString("hex"),
+        payload: bytesToHex(utf8ToBytes(messageText)),
       };
 
       const privateKey = generatePrivateKey();
@@ -126,7 +126,7 @@ describe("Waku Message [node only]", function () {
       const messageText = "Here is a message encrypted in a symmetric manner.";
       const message: WakuRelayMessage = {
         contentTopic: TestContentTopic,
-        payload: Buffer.from(messageText, "utf-8").toString("hex"),
+        payload: bytesToHex(utf8ToBytes(messageText)),
       };
 
       dbg("Generate symmetric key");

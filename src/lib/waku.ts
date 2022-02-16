@@ -1,4 +1,3 @@
-import { bytes } from "@chainsafe/libp2p-noise/dist/src/@types/basic";
 import { Noise } from "@chainsafe/libp2p-noise/dist/src/noise";
 import debug from "debug";
 import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from "libp2p";
@@ -86,7 +85,7 @@ export interface CreateOptions {
    * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * This is only used for test purposes to not run out of entropy during CI runs.
    */
-  staticNoiseKey?: bytes;
+  staticNoiseKey?: Uint8Array;
   /**
    * Use libp2p-bootstrap to discover and connect to new nodes.
    *
@@ -181,11 +180,15 @@ export class Waku {
       options?.libp2p?.modules
     );
 
+    const staticNoiseKey = options?.staticNoiseKey
+      ? Buffer.from(options?.staticNoiseKey)
+      : undefined;
+
     // streamMuxer, connection encryption and pubsub are overridden
     // as those are the only ones currently supported by Waku nodes.
     libp2pOpts.modules = Object.assign(libp2pOpts.modules, {
       streamMuxer: [Mplex],
-      connEncryption: [new Noise(options?.staticNoiseKey)],
+      connEncryption: [new Noise(staticNoiseKey)],
       pubsub: WakuRelay,
     });
 
