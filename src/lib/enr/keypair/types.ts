@@ -6,25 +6,25 @@ export enum KeypairType {
 
 export interface IKeypair {
   type: KeypairType;
-  privateKey: Buffer;
-  publicKey: Buffer;
+  privateKey: Uint8Array;
+  publicKey: Uint8Array;
   privateKeyVerify(): boolean;
   publicKeyVerify(): boolean;
-  sign(msg: Buffer): Buffer;
-  verify(msg: Buffer, sig: Buffer): boolean;
+  sign(msg: Uint8Array): Uint8Array;
+  verify(msg: Uint8Array, sig: Uint8Array): boolean;
   hasPrivateKey(): boolean;
 }
 
 export interface IKeypairClass {
-  new (privateKey?: Buffer, publicKey?: Buffer): IKeypair;
+  new (privateKey?: Uint8Array, publicKey?: Uint8Array): IKeypair;
   generate(): Promise<IKeypair>;
 }
 
 export abstract class AbstractKeypair {
-  _privateKey?: Buffer;
-  readonly _publicKey?: Buffer;
+  _privateKey?: Uint8Array;
+  readonly _publicKey?: Uint8Array;
 
-  constructor(privateKey?: Buffer, publicKey?: Buffer) {
+  constructor(privateKey?: Uint8Array, publicKey?: Uint8Array) {
     if ((this._privateKey = privateKey) && !this.privateKeyVerify()) {
       throw new Error("Invalid private key");
     }
@@ -33,14 +33,14 @@ export abstract class AbstractKeypair {
     }
   }
 
-  get privateKey(): Buffer {
+  get privateKey(): Uint8Array {
     if (!this._privateKey) {
       throw new Error();
     }
     return this._privateKey;
   }
 
-  get publicKey(): Buffer {
+  get publicKey(): Uint8Array {
     if (!this._publicKey) {
       throw new Error();
     }

@@ -28,8 +28,8 @@ describe("ENR", function () {
           "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
         ),
       ];
-      const txt = enr.encodeTxt(keypair.privateKey);
-      expect(txt.slice(0, 4)).to.be.equal("enr:");
+      const txt = await enr.encodeTxt(keypair.privateKey);
+
       const enr2 = ENR.decodeTxt(txt);
       expect(bytesToHex(enr2.signature as Buffer)).to.be.equal(
         bytesToHex(enr.signature as Buffer)
@@ -87,17 +87,21 @@ describe("ENR", function () {
       expect(enr.ip).to.not.be.undefined;
       expect(enr.ip).to.be.equal("134.209.139.210");
       expect(enr.publicKey).to.not.be.undefined;
-      expect(enr.peerId.toB58String()).to.be.equal(
+      expect(enr.peerId?.toB58String()).to.be.equal(
         "16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ"
       );
     });
 
-    it("should throw error - no id", () => {
+    it("should throw error - no id", async () => {
       try {
-        const txt = Buffer.from(
-          "656e723a2d435972595a62404b574342526c4179357a7a61445a584a42476b636e68344d486342465a6e75584e467264764a6a5830346a527a6a7a",
-          "hex"
-        ).toString();
+        const peerId = await PeerId.create({ keyType: "secp256k1" });
+        const enr = ENR.createFromPeerId(peerId);
+        const keypair = createKeypairFromPeerId(peerId);
+        enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
+
+        enr.set("id", new Uint8Array([0]));
+        const txt = await enr.encodeTxt(keypair.privateKey);
+
         ENR.decodeTxt(txt);
         assert.fail("Expect error here");
       } catch (err: unknown) {
@@ -170,37 +174,6 @@ describe("ENR", function () {
     });
   });
 
-  describe("Fuzzing testcases", () => {
-    it("should throw error in invalid signature", () => {
-      const buf = Buffer.from(
-        "656e723a2d4b7634514147774f54385374716d7749354c486149796d494f346f6f464b664e6b456a576130663150384f73456c67426832496a622d4772445f2d623957346b6350466377796e354845516d526371584e716470566f3168656f42683246306447356c64484f494141414141414141414143455a58526f4d704141414141414141414141505f5f5f5f5f5f5f5f5f5f676d6c6b676e5930676d6c7768424c663232534a6332566a634449314e6d73786f514a78436e4536765f7832656b67595f756f45317274777a76477934306d7139654436365866485042576749494e315a48437f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f434436410d0a",
-        "hex"
-      ).toString();
-      try {
-        ENR.decodeTxt(buf);
-      } catch (err: unknown) {
-        const e = err as Error;
-        expect(e.message).to.equal(
-          "Decoded ENR invalid signature: must be a byte array"
-        );
-      }
-    });
-    it("should throw error in invalid sequence number", () => {
-      const buf = Buffer.from(
-        "656e723a2d495334514b6b33ff583945717841337838334162436979416e537550444d764b353264433530486d31584744643574457951684d3356634a4c2d5062446b44673541507a5f706f76763022d48dcf992d5379716b306e616e636f4e572d656e7263713042676d6c6b676e5930676d6c77684838414141474a6332566a634449314e6d73786f514d31453579557370397638516a397476335a575843766146427672504e647a384b5049314e68576651577a494e315a4843434239410a",
-        "hex"
-      ).toString();
-      try {
-        ENR.decodeTxt(buf);
-      } catch (err: unknown) {
-        const e = err as Error;
-        expect(e.message).to.equal(
-          "Decoded ENR invalid sequence number: must be a byte array"
-        );
-      }
-    });
-  });
-
   describe("Static tests", () => {
     let privateKey: Buffer;
     let record: ENR;
@@ -212,9 +185,10 @@ describe("ENR", function () {
         "hex"
       );
       record = ENR.createV4(v4.publicKey(privateKey));
-      record.set("ip", Buffer.from("7f000001", "hex"));
-      record.set("udp", Buffer.from((30303).toString(16), "hex"));
+      record.setLocationMultiaddr(new Multiaddr("/ip4/127.0.0.1/udp/30303"));
       record.seq = seq;
+      // To set signature
+      record.encode(privateKey);
     });
 
     it("should properly compute the node id", () => {
@@ -228,7 +202,7 @@ describe("ENR", function () {
       expect(decoded).to.deep.equal(record);
     });
 
-    it("should encode/decode to text encoding", () => {
+    it("should encode/decode to text encoding", async () => {
       // spec enr https://eips.ethereum.org/EIPS/eip-778
       const testTxt =
         "enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjzCBOonrkTfj499SZuOh8R33Ls8RRcy5wBgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQPKY0yuDUmstAHYpMa2_oxVtw0RW_QAdpzBQA8yWM0xOIN1ZHCCdl8";
@@ -236,7 +210,8 @@ describe("ENR", function () {
       expect(decoded.udp).to.be.equal(30303);
       expect(decoded.ip).to.be.equal("127.0.0.1");
       expect(decoded).to.deep.equal(record);
-      expect(record.encodeTxt(privateKey)).to.equal(testTxt);
+      const recordTxt = await record.encodeTxt(privateKey);
+      expect(recordTxt).to.equal(testTxt);
     });
   });
 

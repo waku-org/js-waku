@@ -1,6 +1,6 @@
 {
   "extension": ["ts"],
   "spec": "src/**/*.spec.ts",
-  "require": ["ts-node/register", "isomorphic-fetch"],
+  "require": ["ts-node/register", "isomorphic-fetch", "jsdom-global/register"],
   "exit": true
 }

@@ -20,7 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- axios dependency in favour of fetch.
+- `axios` dependency in favour of fetch.
+- `base64url` and `bigint-buffer` dependencies.
 
 ## [0.16.0] - 2022-01-31
 

@@ -51,15 +51,13 @@
     "doc:cname": "echo 'js-waku.wakuconnect.dev' > build/docs/CNAME",
     "doc:examples": "mkdir -p build/docs/examples",
     "deploy": "node ci/deploy.js",
-    "reset-hard": "git clean -dfx && git reset --hard && npm i && npm run build && for d in examples/*; do (cd $d; npm i); done"
+    "reset-hard": "git clean -dfx && git reset --hard && npm i && npm run build && for d in examples/*/; do (cd $d; npm i); done"
   },
   "engines": {
     "node": ">=16"
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^5.0.0",
-    "base64url": "^3.0.1",
-    "bigint-buffer": "^1.1.5",
     "debug": "^4.3.1",
     "dns-query": "^0.8.0",
     "ecies-geth": "^1.5.2",
@@ -107,6 +105,8 @@
     "fast-check": "^2.14.0",
     "gh-pages": "^3.2.3",
     "isomorphic-fetch": "^3.0.0",
+    "jsdom": "^19.0.0",
+    "jsdom-global": "^3.0.2",
     "karma": "^6.3.12",
     "karma-chrome-launcher": "^3.1.0",
     "karma-env-preprocessor": "^0.1.1",

@@ -45,10 +45,7 @@ describe("Discovery", () => {
 
 describe("Discovery [live data]", function () {
   before(function () {
-    if (
-      process.env.CI ||
-      (typeof window !== "undefined" && window?.__env__?.CI)
-    ) {
+    if (process.env.CI || window?.__env__?.CI) {
       this.skip();
     }
   });

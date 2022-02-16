@@ -3,6 +3,8 @@ export * as discovery from "./lib/discovery";
 
 export * as enr from "./lib/enr";
 
+export * as utf8 from "./lib/utf8";
+
 export * as utils from "./lib/utils";
 
 export * as waku from "./lib/waku";

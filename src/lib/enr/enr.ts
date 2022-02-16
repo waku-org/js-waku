@@ -1,5 +1,3 @@
-import base64url from "base64url";
-import { toBigIntBE } from "bigint-buffer";
 import { Multiaddr, protocols } from "multiaddr";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
@@ -8,12 +6,10 @@ import PeerId from "peer-id";
 import * as RLP from "rlp";
 import { encode as varintEncode } from "varint";
 
-import {
-  ERR_INVALID_ID,
-  ERR_NO_SIGNATURE,
-  MAX_RECORD_SIZE,
-  MULTIADDR_LENGTH_SIZE,
-} from "./constants";
+import { bytesToUtf8, utf8ToBytes } from "../utf8";
+import { base64ToBytes, bytesToBase64, bytesToHex } from "../utils";
+
+import { ERR_INVALID_ID, ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
 import {
   createKeypair,
   createKeypairFromPeerId,
@@ -21,28 +17,32 @@ import {
   IKeypair,
   KeypairType,
 } from "./keypair";
+import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
 import * as v4 from "./v4";
 
 export class ENR extends Map<ENRKey, ENRValue> {
   public static readonly RECORD_PREFIX = "enr:";
   public seq: SequenceNumber;
-  public signature: Buffer | null;
+  public signature: Uint8Array | null;
 
   constructor(
     kvs: Record<ENRKey, ENRValue> = {},
     seq: SequenceNumber = 1n,
-    signature: Buffer | null = null
+    signature: Uint8Array | null = null
   ) {
     super(Object.entries(kvs));
     this.seq = seq;
     this.signature = signature;
   }
 
-  static createV4(publicKey: Buffer, kvs: Record<ENRKey, ENRValue> = {}): ENR {
+  static createV4(
+    publicKey: Uint8Array,
+    kvs: Record<ENRKey, ENRValue> = {}
+  ): ENR {
     return new ENR({
       ...kvs,
-      id: Buffer.from("v4"),
+      id: utf8ToBytes("v4"),
       secp256k1: publicKey,
     });
   }
@@ -78,9 +78,13 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
     const obj: Record<ENRKey, ENRValue> = {};
     for (let i = 0; i < kvs.length; i += 2) {
-      obj[kvs[i].toString()] = Buffer.from(kvs[i + 1]);
+      obj[kvs[i].toString()] = new Uint8Array(kvs[i + 1]);
     }
-    const enr = new ENR(obj, toBigIntBE(seq), signature);
+    const enr = new ENR(
+      obj,
+      BigInt("0x" + bytesToHex(seq)),
+      new Uint8Array(signature)
+    );
 
     if (!enr.verify(RLP.encode([seq, ...kvs]), signature)) {
       throw new Error("Unable to verify ENR signature");
@@ -88,7 +92,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return enr;
   }
 
-  static decode(encoded: Buffer): ENR {
+  static decode(encoded: Uint8Array): ENR {
     const decoded = RLP.decode(encoded) as unknown as Buffer[];
     return ENR.decodeFromValues(decoded);
   }
@@ -99,7 +103,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
         `"string encoded ENR must start with '${this.RECORD_PREFIX}'`
       );
     }
-    return ENR.decode(base64url.toBuffer(encoded.slice(4)));
+    return ENR.decode(base64ToBytes(encoded.slice(4)));
   }
 
   set(k: ENRKey, v: ENRValue): this {
@@ -109,9 +113,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
   }
 
   get id(): string {
-    const id = this.get("id") as Buffer;
+    const id = this.get("id");
     if (!id) throw new Error("id not found.");
-    return id.toString("utf8");
+    return bytesToUtf8(id);
   }
 
   get keypairType(): KeypairType {
@@ -123,27 +127,31 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
   }
 
-  get publicKey(): Buffer {
+  get publicKey(): Uint8Array | undefined {
     switch (this.id) {
       case "v4":
-        return this.get("secp256k1") as Buffer;
+        return this.get("secp256k1");
       default:
         throw new Error(ERR_INVALID_ID);
     }
   }
 
-  get keypair(): IKeypair {
-    return createKeypair(this.keypairType, undefined, this.publicKey);
+  get keypair(): IKeypair | undefined {
+    if (this.publicKey) {
+      const publicKey = this.publicKey;
+      return createKeypair(this.keypairType, undefined, publicKey);
+    }
+    return;
   }
 
-  get peerId(): PeerId {
-    return createPeerIdFromKeypair(this.keypair);
+  get peerId(): PeerId | undefined {
+    return this.keypair ? createPeerIdFromKeypair(this.keypair) : undefined;
   }
 
-  get nodeId(): NodeId {
+  get nodeId(): NodeId | undefined {
     switch (this.id) {
       case "v4":
-        return v4.nodeId(this.publicKey);
+        return this.publicKey ? v4.nodeId(this.publicKey) : undefined;
       default:
         throw new Error(ERR_INVALID_ID);
     }
@@ -266,32 +274,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
   get multiaddrs(): Multiaddr[] | undefined {
     const raw = this.get("multiaddrs");
 
-    if (raw) {
-      const multiaddrs = [];
+    if (raw) return decodeMultiaddrs(raw);
 
-      try {
-        let index = 0;
-
-        while (index < raw.length) {
-          const sizeBytes = raw.slice(index, index + 2);
-          const size = Buffer.from(sizeBytes).readUInt16BE(0);
-
-          const multiaddrBytes = raw.slice(
-            index + MULTIADDR_LENGTH_SIZE,
-            index + size + MULTIADDR_LENGTH_SIZE
-          );
-          const multiaddr = new Multiaddr(multiaddrBytes);
-
-          multiaddrs.push(multiaddr);
-          index += size + MULTIADDR_LENGTH_SIZE;
-        }
-      } catch (e) {
-        throw new Error("Invalid value in multiaddrs field");
-      }
-      return multiaddrs;
-    } else {
-      return undefined;
-    }
+    return;
   }
 
   /**
@@ -303,37 +288,14 @@ export class ENR extends Map<ENRKey, ENRValue> {
    *
    * If the peer information only contains information that can be represented with the ENR pre-defined keys
    * (ip, tcp, etc) then the usage of [[setLocationMultiaddr]] should be preferred.
-   *
-   * The multiaddresses stored in this field must to be location multiaddresses, ie, peer id less.
+   * The multiaddresses stored in this field must be location multiaddresses,
+   * ie, without a peer id.
    */
   set multiaddrs(multiaddrs: Multiaddr[] | undefined) {
     if (multiaddrs === undefined) {
       this.delete("multiaddrs");
     } else {
-      let multiaddrsBuf = Buffer.from([]);
-
-      multiaddrs.forEach((multiaddr) => {
-        if (multiaddr.getPeerId())
-          throw new Error("`multiaddr` field MUST not contain peer id");
-
-        const bytes = multiaddr.bytes;
-
-        let buf = Buffer.alloc(2);
-
-        // Prepend the size of the next entry
-        const written = buf.writeUInt16BE(bytes.length, 0);
-
-        if (written !== MULTIADDR_LENGTH_SIZE) {
-          throw new Error(
-            `Internal error: unsigned 16-bit integer was not written in ${MULTIADDR_LENGTH_SIZE} bytes`
-          );
-        }
-
-        buf = Buffer.concat([buf, bytes]);
-
-        multiaddrsBuf = Buffer.concat([multiaddrsBuf, buf]);
-      });
-
+      const multiaddrsBuf = encodeMultiaddrs(multiaddrs);
       this.set("multiaddrs", multiaddrsBuf);
     }
   }
@@ -427,9 +389,13 @@ export class ENR extends Map<ENRKey, ENRValue> {
   getFullMultiaddr(
     protocol: "udp" | "udp4" | "udp6" | "tcp" | "tcp4" | "tcp6"
   ): Multiaddr | undefined {
-    const locationMultiaddr = this.getLocationMultiaddr(protocol);
-    if (locationMultiaddr) {
-      return locationMultiaddr.encapsulate(`/p2p/${this.peerId.toB58String()}`);
+    if (this.peerId) {
+      const locationMultiaddr = this.getLocationMultiaddr(protocol);
+      if (locationMultiaddr) {
+        return locationMultiaddr.encapsulate(
+          `/p2p/${this.peerId.toB58String()}`
+        );
+      }
     }
     return;
   }
@@ -438,15 +404,16 @@ export class ENR extends Map<ENRKey, ENRValue> {
    * Returns the full multiaddrs from the `multiaddrs` ENR field.
    */
   getFullMultiaddrs(): Multiaddr[] {
-    if (this.multiaddrs) {
+    if (this.peerId && this.multiaddrs) {
+      const peerId = this.peerId;
       return this.multiaddrs.map((ma) => {
-        return ma.encapsulate(`/p2p/${this.peerId.toB58String()}`);
+        return ma.encapsulate(`/p2p/${peerId.toB58String()}`);
       });
     }
     return [];
   }
 
-  verify(data: Buffer, signature: Buffer): boolean {
+  verify(data: Uint8Array, signature: Uint8Array): boolean {
     if (!this.get("id") || this.id !== "v4") {
       throw new Error(ERR_INVALID_ID);
     }
@@ -456,7 +423,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return v4.verify(this.publicKey, data, signature);
   }
 
-  sign(data: Buffer, privateKey: Buffer): Buffer {
+  sign(data: Uint8Array, privateKey: Uint8Array): Uint8Array {
     switch (this.id) {
       case "v4":
         this.signature = v4.sign(privateKey, data);
@@ -467,7 +434,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return this.signature;
   }
 
-  encodeToValues(privateKey?: Buffer): (ENRKey | ENRValue | number)[] {
+  encodeToValues(privateKey?: Uint8Array): (ENRKey | ENRValue | number)[] {
     // sort keys and flatten into [k, v, k, v, ...]
     const content: Array<ENRKey | ENRValue | number> = Array.from(this.keys())
       .sort((a, b) => a.localeCompare(b))
@@ -485,7 +452,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return content;
   }
 
-  encode(privateKey?: Buffer): Buffer {
+  encode(privateKey?: Uint8Array): Uint8Array {
     const encoded = RLP.encode(this.encodeToValues(privateKey));
     if (encoded.length >= MAX_RECORD_SIZE) {
       throw new Error("ENR must be less than 300 bytes");
@@ -493,7 +460,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return encoded;
   }
 
-  encodeTxt(privateKey?: Buffer): string {
-    return ENR.RECORD_PREFIX + base64url.encode(this.encode(privateKey));
+  async encodeTxt(privateKey?: Uint8Array): Promise<string> {
+    return ENR.RECORD_PREFIX + (await bytesToBase64(this.encode(privateKey)));
   }
 }
