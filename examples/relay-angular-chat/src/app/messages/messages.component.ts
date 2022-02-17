@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { WakuService } from '../waku.service';
-import protons from 'protons';
 import { Waku, WakuMessage } from 'js-waku';
+import protons from 'protons';
 
 const proto = protons(`
 message SimpleChatMessage {

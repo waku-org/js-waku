@@ -1,17 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Waku } from 'js-waku';
-import { distinctUntilChanged, BehaviorSubject, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WakuService {
 
-  // private wakuSubject = new BehaviorSubject<Waku>({} as Waku);
-  private wakuSubject = new ReplaySubject<Waku>();
+  private wakuSubject = new Subject<Waku>();
   public waku = this.wakuSubject.asObservable();
 
-  private wakuStatusSubject = new ReplaySubject<string>();
+  private wakuStatusSubject = new BehaviorSubject('');
   public wakuStatus = this.wakuStatusSubject.asObservable();
 
   constructor() { }
