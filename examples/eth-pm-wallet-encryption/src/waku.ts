@@ -35,7 +35,8 @@ export function handlePublicKeyMessage(
   if (!msg.payload) return;
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
   if (!publicKeyMsg) return;
-  if (myAddress && utils.equalByteArrays(publicKeyMsg.ethAddress, myAddress)) return;
+  if (myAddress && utils.equalByteArrays(publicKeyMsg.ethAddress, myAddress))
+    return;
 
   const res = validatePublicKeyMessage(publicKeyMsg);
   console.log("Is Public Key Message valid?", res);
