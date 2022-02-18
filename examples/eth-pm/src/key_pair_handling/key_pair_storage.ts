@@ -1,5 +1,5 @@
 import { KeyPair } from "../crypto";
-import { bytesToHex, hexToBytes } from "js-waku/lib/utils";
+import { utils } from "js-waku";
 
 /**
  * Save keypair to storage, encrypted with password
@@ -11,9 +11,9 @@ export async function saveKeyPairToStorage(
   const { salt, iv, cipher } = await encryptKey(EncryptionKeyPair, password);
 
   const data = {
-    salt: bytesToHex(salt),
-    iv: bytesToHex(iv),
-    cipher: bytesToHex(cipher),
+    salt: utils.bytesToHex(salt),
+    iv: utils.bytesToHex(iv),
+    cipher: utils.bytesToHex(cipher),
   };
 
   localStorage.setItem("cipherEncryptionKeyPair", JSON.stringify(data));
@@ -29,9 +29,9 @@ export async function loadKeyPairFromStorage(
   if (!str) return;
   const data = JSON.parse(str);
 
-  const salt = hexToBytes(data.salt);
-  const iv = hexToBytes(data.iv);
-  const cipher = hexToBytes(data.cipher);
+  const salt = utils.hexToBytes(data.salt);
+  const iv = utils.hexToBytes(data.iv);
+  const cipher = utils.hexToBytes(data.cipher);
 
   return await decryptKey(salt, iv, cipher, password);
 }
