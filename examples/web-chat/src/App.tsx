@@ -1,8 +1,9 @@
 import { useEffect, useReducer, useState } from "react";
 import "./App.css";
 import {
-  PageDirection,
+  discovery,
   getPredefinedBootstrapNodes,
+  PageDirection,
   Waku,
   WakuMessage,
 } from "js-waku";
@@ -12,7 +13,6 @@ import { WakuContext } from "./WakuContext";
 import { ThemeProvider } from "@livechat/ui-kit";
 import { generate } from "server-name-generator";
 import { Message } from "./Message";
-import { Fleet } from "js-waku/lib/discovery/predefined";
 
 const themes = {
   AuthorName: {
@@ -199,9 +199,9 @@ async function initWaku(setter: (waku: Waku) => void) {
 function selectFleetEnv() {
   // Works with react-scripts
   if (process?.env?.NODE_ENV === "development") {
-    return Fleet.Test;
+    return discovery.predefined.Fleet.Test;
   } else {
-    return Fleet.Prod;
+    return discovery.predefined.Fleet.Prod;
   }
 }
 
