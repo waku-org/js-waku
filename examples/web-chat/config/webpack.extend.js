@@ -8,7 +8,10 @@ module.exports = {
     Object.assign(config.resolve.fallback, {
       buffer: require.resolve("buffer"),
       crypto: require.resolve("crypto-browserify"),
+      http: require.resolve("http-browserify"),
+      https: require.resolve("https-browserify"),
       stream: require.resolve("stream-browserify"),
+      zlib: require.resolve("browserify-zlib"),
     });
 
     if (!config.plugins) config.plugins = [];
@@ -36,7 +39,10 @@ module.exports = {
     Object.assign(config.resolve.fallback, {
       buffer: require.resolve("buffer"),
       crypto: require.resolve("crypto-browserify"),
+      http: require.resolve("http-browserify"),
+      https: require.resolve("https-browserify"),
       stream: require.resolve("stream-browserify"),
+      zlib: require.resolve("browserify-zlib"),
     });
 
     if (!config.plugins) config.plugins = [];
