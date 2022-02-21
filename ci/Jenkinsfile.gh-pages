@@ -39,7 +39,7 @@ pipeline {
     }
 
     stage('Publish') {
-      when { expression { GIT_BRANCH.endsWith('build-examples') } }
+      when { expression { GIT_BRANCH.endsWith('master') } }
       steps { script {
         sshagent(credentials: ['status-im-auto-ssh']) {
           sh 'npm run deploy'
