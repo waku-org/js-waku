@@ -36,7 +36,6 @@ export async function createPublicKeyMessage(
 function buildMsgParams(encryptionPublicKey: Uint8Array, fromAddress: string) {
   return JSON.stringify({
     domain: {
-      chainId: 1,
       name: "Ethereum Private Message over Waku",
       version: "1",
     },
@@ -50,7 +49,6 @@ function buildMsgParams(encryptionPublicKey: Uint8Array, fromAddress: string) {
       EIP712Domain: [
         { name: "name", type: "string" },
         { name: "version", type: "string" },
-        { name: "chainId", type: "uint256" },
       ],
       PublishEncryptionPublicKey: [
         { name: "encryptionPublicKey", type: "string" },
