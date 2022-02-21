@@ -94,7 +94,7 @@ export async function signEncryptionKey(
   const msgParams = buildMsgParams(encryptionPublicKey, fromAddress);
 
   const result = await providerRequest({
-    method: "eth_signTypedData_v3",
+    method: "eth_signTypedData_v4",
     params: [fromAddress, msgParams],
     from: fromAddress,
   });
