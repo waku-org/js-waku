@@ -40,6 +40,8 @@ function buildMsgParams(encryptionPublicKey: Uint8Array, fromAddress: string) {
       version: "1",
     },
     message: {
+      message:
+        "By signing this message you certify that messages addressed to `ownerAddress` must be encrypted with `encryptionPublicKey`",
       encryptionPublicKey: bytesToHex(encryptionPublicKey),
       ownerAddress: fromAddress,
     },
@@ -51,6 +53,7 @@ function buildMsgParams(encryptionPublicKey: Uint8Array, fromAddress: string) {
         { name: "version", type: "string" },
       ],
       PublishEncryptionPublicKey: [
+        { name: "message", type: "string" },
         { name: "encryptionPublicKey", type: "string" },
         { name: "ownerAddress", type: "string" },
       ],
