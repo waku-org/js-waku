@@ -81,6 +81,7 @@
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@size-limit/preset-big-lib": "^7.0.8",
     "@types/app-root-path": "^1.2.4",
+    "@types/bl": "^5.0.2",
     "@types/chai": "^4.2.15",
     "@types/mocha": "^9.1.0",
     "@types/node": "^17.0.6",
