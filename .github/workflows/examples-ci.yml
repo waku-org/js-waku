@@ -24,41 +24,17 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Check if `yarn` or `npm` is used.
-        id: use-yarn
-        shell: bash
-        run: echo "::set-output name=lockfile::$(ls yarn.lock 2> /dev/null)"
-        working-directory: examples/${{ matrix.example }}
-
-      - name: (npm) Cache npm cache
-        if: steps.use-yarn.outputs.lockfile != 'yarn.lock'
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: examples-node-v1-${{ hashFiles('**/package-lock.json') }}
-
-      - name: "[js-waku] install using npm ci"
+      - name: Install js-waku
         uses: bahmutov/npm-install@v1
 
-      - name: "[js-waku] build"
+      - name: Build js-waku
         run: npm run build
 
-      - name: (npm) ${{ matrix.example }} install using npm i
-        if: steps.use-yarn.outputs.lockfile != 'yarn.lock'
-        run: npm install
-        working-directory: examples/${{ matrix.example }}
+      - name: Install ${{ matrix.example }}
+        uses: bahmutov/npm-install@v1
+        with:
+          working-directory: examples/${{ matrix.example }}
 
-      - name: (npm) ${{ matrix.example }} test
-        if: steps.use-yarn.outputs.lockfile != 'yarn.lock'
+      - name: Test ${{ matrix.example }}
         run: npm run test
-        working-directory: examples/${{ matrix.example }}
-
-      - name: (yarn) ${{ matrix.example }} install using yarn
-        if: steps.use-yarn.outputs.lockfile == 'yarn.lock'
-        run: yarn install --frozen-lockfile
-        working-directory: examples/${{ matrix.example }}
-
-      - name: (yarn) ${{ matrix.example }} test
-        if: steps.use-yarn.outputs.lockfile == 'yarn.lock'
-        run: echo "test skipped" # yarn test; tracked with https://github.com/status-im/js-waku/issues/563
         working-directory: examples/${{ matrix.example }}
