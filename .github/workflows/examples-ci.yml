@@ -12,7 +12,7 @@ jobs:
   examples_build_and_test:
     strategy:
       matrix:
-        example: [ web-chat, eth-pm, eth-pm-wallet-encryption, relay-reactjs-chat, store-reactjs-chat ]
+        example: [ web-chat, eth-pm, eth-pm-wallet-encryption, relay-reactjs-chat, store-reactjs-chat, relay-angular-chat ]
     runs-on: ubuntu-latest
     steps:
 
@@ -24,7 +24,14 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Cache npm cache
+      - name: Check if `yarn` or `npm` is used.
+        id: use-yarn
+        shell: bash
+        run: echo "::set-output name=lockfile::$(ls yarn.lock 2> /dev/null)"
+        working-directory: examples/${{ matrix.example }}
+
+      - name: (npm) Cache npm cache
+        if: steps.use-yarn.outputs.lockfile != 'yarn.lock'
         uses: actions/cache@v2
         with:
           path: ~/.npm
@@ -36,10 +43,22 @@ jobs:
       - name: "[js-waku] build"
         run: npm run build
 
-      - name: ${{ matrix.example }} install using npm i
+      - name: (npm) ${{ matrix.example }} install using npm i
+        if: steps.use-yarn.outputs.lockfile != 'yarn.lock'
         run: npm install
         working-directory: examples/${{ matrix.example }}
 
-      - name: ${{ matrix.example }} test
+      - name: (npm) ${{ matrix.example }} test
+        if: steps.use-yarn.outputs.lockfile != 'yarn.lock'
         run: npm run test
+        working-directory: examples/${{ matrix.example }}
+
+      - name: (yarn) ${{ matrix.example }} install using yarn
+        if: steps.use-yarn.outputs.lockfile == 'yarn.lock'
+        run: yarn install --frozen-lockfile
+        working-directory: examples/${{ matrix.example }}
+
+      - name: (yarn) ${{ matrix.example }} test
+        if: steps.use-yarn.outputs.lockfile == 'yarn.lock'
+        run: echo "test skipped" # yarn test; tracked with https://github.com/status-im/js-waku/issues/563
         working-directory: examples/${{ matrix.example }}
