@@ -103,7 +103,7 @@ export class WakuMessage {
     return new WakuMessage(
       {
         payload: _payload,
-        timestamp: timestamp.valueOf() / 1000,
+        timestampDeprecated: timestamp.valueOf() / 1000,
         version,
         contentTopic,
       },
@@ -270,8 +270,8 @@ export class WakuMessage {
   }
 
   get timestamp(): Date | undefined {
-    if (this.proto.timestamp) {
-      return new Date(this.proto.timestamp * 1000);
+    if (this.proto.timestampDeprecated) {
+      return new Date(this.proto.timestampDeprecated * 1000);
     }
     return;
   }

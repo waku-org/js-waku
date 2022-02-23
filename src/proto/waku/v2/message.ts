@@ -8,7 +8,7 @@ export interface WakuMessage {
   payload?: Uint8Array | undefined;
   contentTopic?: string | undefined;
   version?: number | undefined;
-  timestamp?: number | undefined;
+  timestampDeprecated?: number | undefined;
 }
 
 function createBaseWakuMessage(): WakuMessage {
@@ -16,7 +16,7 @@ function createBaseWakuMessage(): WakuMessage {
     payload: undefined,
     contentTopic: undefined,
     version: undefined,
-    timestamp: undefined,
+    timestampDeprecated: undefined,
   };
 }
 
@@ -34,8 +34,8 @@ export const WakuMessage = {
     if (message.version !== undefined) {
       writer.uint32(24).uint32(message.version);
     }
-    if (message.timestamp !== undefined) {
-      writer.uint32(33).double(message.timestamp);
+    if (message.timestampDeprecated !== undefined) {
+      writer.uint32(33).double(message.timestampDeprecated);
     }
     return writer;
   },
@@ -57,7 +57,7 @@ export const WakuMessage = {
           message.version = reader.uint32();
           break;
         case 4:
-          message.timestamp = reader.double();
+          message.timestampDeprecated = reader.double();
           break;
         default:
           reader.skipType(tag & 7);
@@ -76,7 +76,9 @@ export const WakuMessage = {
         ? String(object.contentTopic)
         : undefined,
       version: isSet(object.version) ? Number(object.version) : undefined,
-      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : undefined,
+      timestampDeprecated: isSet(object.timestampDeprecated)
+        ? Number(object.timestampDeprecated)
+        : undefined,
     };
   },
 
@@ -91,7 +93,8 @@ export const WakuMessage = {
       (obj.contentTopic = message.contentTopic);
     message.version !== undefined &&
       (obj.version = Math.round(message.version));
-    message.timestamp !== undefined && (obj.timestamp = message.timestamp);
+    message.timestampDeprecated !== undefined &&
+      (obj.timestampDeprecated = message.timestampDeprecated);
     return obj;
   },
 
@@ -102,7 +105,7 @@ export const WakuMessage = {
     message.payload = object.payload ?? undefined;
     message.contentTopic = object.contentTopic ?? undefined;
     message.version = object.version ?? undefined;
-    message.timestamp = object.timestamp ?? undefined;
+    message.timestampDeprecated = object.timestampDeprecated ?? undefined;
     return message;
   },
 };
