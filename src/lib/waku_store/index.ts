@@ -294,7 +294,7 @@ export class WakuStore {
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
   get peers(): AsyncIterable<Peer> {
-    return getPeersForProtocol(this.libp2p, StoreCodec);
+    return getPeersForProtocol(this.libp2p, [StoreCodec]);
   }
 
   /**
