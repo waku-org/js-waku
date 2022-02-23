@@ -104,6 +104,8 @@ export class WakuMessage {
       {
         payload: _payload,
         timestampDeprecated: timestamp.valueOf() / 1000,
+        // nanoseconds https://rfc.vac.dev/spec/14/
+        timestamp: timestamp.valueOf() * 1000,
         version,
         contentTopic,
       },
@@ -270,6 +272,11 @@ export class WakuMessage {
   }
 
   get timestamp(): Date | undefined {
+    if (this.proto.timestamp) {
+      // nanoseconds https://rfc.vac.dev/spec/14/
+      return new Date(this.proto.timestamp / 1000);
+    }
+
     if (this.proto.timestampDeprecated) {
       return new Date(this.proto.timestampDeprecated * 1000);
     }
