@@ -9,6 +9,7 @@ export interface WakuMessage {
   contentTopic?: string | undefined;
   version?: number | undefined;
   timestampDeprecated?: number | undefined;
+  timestamp?: number | undefined;
 }
 
 function createBaseWakuMessage(): WakuMessage {
@@ -17,6 +18,7 @@ function createBaseWakuMessage(): WakuMessage {
     contentTopic: undefined,
     version: undefined,
     timestampDeprecated: undefined,
+    timestamp: undefined,
   };
 }
 
@@ -36,6 +38,9 @@ export const WakuMessage = {
     }
     if (message.timestampDeprecated !== undefined) {
       writer.uint32(33).double(message.timestampDeprecated);
+    }
+    if (message.timestamp !== undefined) {
+      writer.uint32(80).sint64(message.timestamp);
     }
     return writer;
   },
@@ -59,6 +64,9 @@ export const WakuMessage = {
         case 4:
           message.timestampDeprecated = reader.double();
           break;
+        case 10:
+          message.timestamp = longToNumber(reader.sint64() as Long);
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -79,6 +87,7 @@ export const WakuMessage = {
       timestampDeprecated: isSet(object.timestampDeprecated)
         ? Number(object.timestampDeprecated)
         : undefined,
+      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : undefined,
     };
   },
 
@@ -95,6 +104,8 @@ export const WakuMessage = {
       (obj.version = Math.round(message.version));
     message.timestampDeprecated !== undefined &&
       (obj.timestampDeprecated = message.timestampDeprecated);
+    message.timestamp !== undefined &&
+      (obj.timestamp = Math.round(message.timestamp));
     return obj;
   },
 
@@ -106,6 +117,7 @@ export const WakuMessage = {
     message.contentTopic = object.contentTopic ?? undefined;
     message.version = object.version ?? undefined;
     message.timestampDeprecated = object.timestampDeprecated ?? undefined;
+    message.timestamp = object.timestamp ?? undefined;
     return message;
   },
 };
@@ -170,6 +182,13 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToNumber(long: Long): number {
+  if (long.gt(Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  return long.toNumber();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;
