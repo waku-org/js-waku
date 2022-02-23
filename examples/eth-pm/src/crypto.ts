@@ -57,11 +57,12 @@ export async function createPublicKeyMessage(
 function buildMsgParams(encryptionPublicKey: Uint8Array, fromAddress: string) {
   return JSON.stringify({
     domain: {
-      chainId: 1,
       name: "Ethereum Private Message over Waku",
       version: "1",
     },
     message: {
+      message:
+        "By signing this message you certify that messages addressed to `ownerAddress` must be encrypted with `encryptionPublicKey`",
       encryptionPublicKey: bytesToHex(encryptionPublicKey),
       ownerAddress: fromAddress,
     },
@@ -71,9 +72,9 @@ function buildMsgParams(encryptionPublicKey: Uint8Array, fromAddress: string) {
       EIP712Domain: [
         { name: "name", type: "string" },
         { name: "version", type: "string" },
-        { name: "chainId", type: "uint256" },
       ],
       PublishEncryptionPublicKey: [
+        { name: "message", type: "string" },
         { name: "encryptionPublicKey", type: "string" },
         { name: "ownerAddress", type: "string" },
       ],
@@ -93,7 +94,7 @@ export async function signEncryptionKey(
   const msgParams = buildMsgParams(encryptionPublicKey, fromAddress);
 
   const result = await providerRequest({
-    method: "eth_signTypedData_v3",
+    method: "eth_signTypedData_v4",
     params: [fromAddress, msgParams],
     from: fromAddress,
   });
