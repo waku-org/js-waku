@@ -16,27 +16,47 @@ updates:
       interval: "daily"
     reviewers:
       - "d4nte"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          ["version-update:semver-patch", "version-update:semver-minor"]
   - package-ecosystem: "npm"
     directory: "/examples/relay-reactjs-chat"
     schedule:
       interval: "daily"
     reviewers:
       - "d4nte"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          ["version-update:semver-patch", "version-update:semver-minor"]
   - package-ecosystem: "npm"
     directory: "/examples/store-reactjs-chat"
     schedule:
       interval: "daily"
     reviewers:
       - "d4nte"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          ["version-update:semver-patch", "version-update:semver-minor"]
   - package-ecosystem: "npm"
     directory: "/examples/eth-pm"
     schedule:
       interval: "daily"
     reviewers:
       - "d4nte"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          ["version-update:semver-patch", "version-update:semver-minor"]
   - package-ecosystem: "npm"
     directory: "/examples/eth-pm-wallet-encryption"
     schedule:
       interval: "daily"
     reviewers:
       - "d4nte"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          ["version-update:semver-patch", "version-update:semver-minor"]
