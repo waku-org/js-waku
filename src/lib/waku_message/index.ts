@@ -272,14 +272,20 @@ export class WakuMessage {
   }
 
   get timestamp(): Date | undefined {
-    if (this.proto.timestamp) {
-      // nanoseconds https://rfc.vac.dev/spec/14/
-      const timestamp = this.proto.timestamp.div(1000).toNumber();
-      return new Date(timestamp);
-    }
+    // In the case we receive a value that is bigger than JS's max number,
+    // we catch the error and return undefined.
+    try {
+      if (this.proto.timestamp) {
+        // nanoseconds https://rfc.vac.dev/spec/14/
+        const timestamp = this.proto.timestamp.div(1000).toNumber();
+        return new Date(timestamp);
+      }
 
-    if (this.proto.timestampDeprecated) {
-      return new Date(this.proto.timestampDeprecated * 1000);
+      if (this.proto.timestampDeprecated) {
+        return new Date(this.proto.timestampDeprecated * 1000);
+      }
+    } catch (e) {
+      return;
     }
     return;
   }
