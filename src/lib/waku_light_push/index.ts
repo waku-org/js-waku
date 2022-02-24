@@ -100,7 +100,7 @@ export class WakuLightPush {
    * light push protocol. Waku may or  may not be currently connected to these peers.
    */
   get peers(): AsyncIterable<Peer> {
-    return getPeersForProtocol(this.libp2p, LightPushCodec);
+    return getPeersForProtocol(this.libp2p, [LightPushCodec]);
   }
 
   /**

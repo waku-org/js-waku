@@ -24,10 +24,17 @@ export async function selectRandomPeer(
  */
 export async function* getPeersForProtocol(
   libp2p: Libp2p,
-  protocol: string
+  protocols: string[]
 ): AsyncIterable<Peer> {
   for await (const peer of libp2p.peerStore.getPeers()) {
-    if (!peer.protocols.includes(protocol)) {
+    let peerFound = false;
+    for (let i = 0; i < protocols.length; i++) {
+      if (peer.protocols.includes(protocols[i])) {
+        peerFound = true;
+        break;
+      }
+    }
+    if (!peerFound) {
       continue;
     }
     yield peer;

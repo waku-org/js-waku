@@ -21,7 +21,7 @@ import { LightPushCodec, WakuLightPush } from "./waku_light_push";
 import { DecryptionMethod, WakuMessage } from "./waku_message";
 import { RelayCodecs, WakuRelay } from "./waku_relay";
 import { RelayPingContentTopic } from "./waku_relay/constants";
-import { StoreCodec, WakuStore } from "./waku_store";
+import { StoreCodecs, WakuStore } from "./waku_store";
 
 const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 
@@ -246,7 +246,9 @@ export class Waku {
       RelayCodecs.forEach((codec) => codecs.push(codec));
     }
     if (_protocols.includes(Protocols.Store)) {
-      codecs.push(StoreCodec);
+      for (const codec of Object.values(StoreCodecs)) {
+        codecs.push(codec);
+      }
     }
     if (_protocols.includes(Protocols.LightPush)) {
       codecs.push(LightPushCodec);
@@ -364,9 +366,11 @@ export class Waku {
           this.libp2p.peerStore.on(
             "change:protocols",
             ({ protocols: connectedPeerProtocols }) => {
-              if (connectedPeerProtocols.includes(StoreCodec)) {
-                dbg("Resolving for", StoreCodec, connectedPeerProtocols);
-                resolve();
+              for (const codec of Object.values(StoreCodecs)) {
+                if (connectedPeerProtocols.includes(codec)) {
+                  dbg("Resolving for", codec, connectedPeerProtocols);
+                  resolve();
+                }
               }
             }
           );

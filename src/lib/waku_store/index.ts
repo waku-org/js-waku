@@ -6,7 +6,6 @@ import Libp2p from "libp2p";
 import { Peer } from "libp2p/src/peer-store";
 import PeerId from "peer-id";
 
-import { HistoryResponse_Error } from "../../proto";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
 import { DefaultPubSubTopic } from "../waku";
@@ -16,7 +15,10 @@ import { HistoryRPC, PageDirection } from "./history_rpc";
 
 const dbg = debug("waku:store");
 
-export const StoreCodec = "/vac/waku/store/2.0.0-beta3";
+export enum StoreCodecs {
+  V2Beta3 = "/vac/waku/store/2.0.0-beta3",
+  V2Beta4 = "/vac/waku/store/2.0.0-beta4",
+}
 
 export const DefaultPageSize = 10;
 
@@ -128,9 +130,10 @@ export class WakuStore {
     options?: QueryOptions
   ): Promise<WakuMessage[]> {
     let startTime, endTime;
+
     if (options?.timeFilter) {
-      startTime = options.timeFilter.startTime.getTime() / 1000;
-      endTime = options.timeFilter.endTime.getTime() / 1000;
+      startTime = options.timeFilter.startTime;
+      endTime = options.timeFilter.endTime;
     }
 
     const opts = Object.assign(
@@ -140,12 +143,9 @@ export class WakuStore {
         pageSize: DefaultPageSize,
       },
       options,
-      {
-        startTime,
-        endTime,
-      },
-      { contentTopics }
+      { contentTopics, startTime, endTime }
     );
+
     dbg("Querying history with the following options", {
       peerId: options?.peerId?.toB58String(),
       ...options,
@@ -161,8 +161,19 @@ export class WakuStore {
       if (!peer)
         throw "Failed to find known peer that registers waku store protocol";
     }
-    if (!peer.protocols.includes(StoreCodec))
+
+    let storeCodec = "";
+    for (const codec of Object.values(StoreCodecs)) {
+      if (peer.protocols.includes(codec)) {
+        storeCodec = codec;
+        // Do not break as we want to keep the last value
+      }
+    }
+    dbg(`Use store codec ${storeCodec}`);
+    if (!storeCodec)
       throw `Peer does not register waku store protocol: ${peer.id.toB58String()}`;
+
+    Object.assign(opts, { storeCodec });
     const connection = this.libp2p.connectionManager.get(peer.id);
     if (!connection) throw "Failed to get a connection to the peer";
 
@@ -191,7 +202,7 @@ export class WakuStore {
     const messages: WakuMessage[] = [];
     let cursor = undefined;
     while (true) {
-      const { stream } = await connection.newStream(StoreCodec);
+      const { stream } = await connection.newStream(storeCodec);
       const queryOpts = Object.assign(opts, { cursor });
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
       dbg("Querying store peer", connection.remoteAddr.toString());
@@ -203,18 +214,15 @@ export class WakuStore {
         lp.decode(),
         concat
       );
-      const reply = HistoryRPC.decode(res.slice());
+      const reply = historyRpcQuery.decode(res.slice());
 
       const response = reply.response;
       if (!response) {
         throw "History response misses response field";
       }
 
-      if (
-        response.error &&
-        response.error === HistoryResponse_Error.ERROR_INVALID_CURSOR
-      ) {
-        throw "History response contains an Error: INVALID CURSOR";
+      if (response.error) {
+        throw "History response contains an Error" + response.error;
       }
 
       if (!response.messages || !response.messages.length) {
@@ -279,7 +287,7 @@ export class WakuStore {
     this.decryptionKeys.set(hexToBytes(key), options ?? {});
   }
 
-  /**
+  /**cursorV2Beta4
    * Delete a decryption key that was used to attempt decryption of messages
    * received in subsequent [[queryHistory]] calls.
    *
@@ -294,7 +302,12 @@ export class WakuStore {
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
   get peers(): AsyncIterable<Peer> {
-    return getPeersForProtocol(this.libp2p, StoreCodec);
+    const codecs = [];
+    for (const codec of Object.values(StoreCodecs)) {
+      codecs.push(codec);
+    }
+
+    return getPeersForProtocol(this.libp2p, codecs);
   }
 
   /**

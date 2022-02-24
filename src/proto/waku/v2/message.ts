@@ -8,7 +8,8 @@ export interface WakuMessage {
   payload?: Uint8Array | undefined;
   contentTopic?: string | undefined;
   version?: number | undefined;
-  timestamp?: number | undefined;
+  timestampDeprecated?: number | undefined;
+  timestamp?: Long | undefined;
 }
 
 function createBaseWakuMessage(): WakuMessage {
@@ -16,6 +17,7 @@ function createBaseWakuMessage(): WakuMessage {
     payload: undefined,
     contentTopic: undefined,
     version: undefined,
+    timestampDeprecated: undefined,
     timestamp: undefined,
   };
 }
@@ -34,8 +36,11 @@ export const WakuMessage = {
     if (message.version !== undefined) {
       writer.uint32(24).uint32(message.version);
     }
+    if (message.timestampDeprecated !== undefined) {
+      writer.uint32(33).double(message.timestampDeprecated);
+    }
     if (message.timestamp !== undefined) {
-      writer.uint32(33).double(message.timestamp);
+      writer.uint32(80).sint64(message.timestamp);
     }
     return writer;
   },
@@ -57,7 +62,10 @@ export const WakuMessage = {
           message.version = reader.uint32();
           break;
         case 4:
-          message.timestamp = reader.double();
+          message.timestampDeprecated = reader.double();
+          break;
+        case 10:
+          message.timestamp = reader.sint64() as Long;
           break;
         default:
           reader.skipType(tag & 7);
@@ -76,7 +84,12 @@ export const WakuMessage = {
         ? String(object.contentTopic)
         : undefined,
       version: isSet(object.version) ? Number(object.version) : undefined,
-      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : undefined,
+      timestampDeprecated: isSet(object.timestampDeprecated)
+        ? Number(object.timestampDeprecated)
+        : undefined,
+      timestamp: isSet(object.timestamp)
+        ? Long.fromString(object.timestamp)
+        : undefined,
     };
   },
 
@@ -91,7 +104,10 @@ export const WakuMessage = {
       (obj.contentTopic = message.contentTopic);
     message.version !== undefined &&
       (obj.version = Math.round(message.version));
-    message.timestamp !== undefined && (obj.timestamp = message.timestamp);
+    message.timestampDeprecated !== undefined &&
+      (obj.timestampDeprecated = message.timestampDeprecated);
+    message.timestamp !== undefined &&
+      (obj.timestamp = (message.timestamp || undefined).toString());
     return obj;
   },
 
@@ -102,7 +118,11 @@ export const WakuMessage = {
     message.payload = object.payload ?? undefined;
     message.contentTopic = object.contentTopic ?? undefined;
     message.version = object.version ?? undefined;
-    message.timestamp = object.timestamp ?? undefined;
+    message.timestampDeprecated = object.timestampDeprecated ?? undefined;
+    message.timestamp =
+      object.timestamp !== undefined && object.timestamp !== null
+        ? Long.fromValue(object.timestamp)
+        : undefined;
     return message;
   },
 };
@@ -152,6 +172,8 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
+  : T extends Long
+  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>

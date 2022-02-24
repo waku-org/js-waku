@@ -1,7 +1,7 @@
 import debug from "debug";
+import Long from "long";
 import { Reader } from "protobufjs/minimal";
 
-// Protecting the user from protobuf oddities
 import * as proto from "../../proto/waku/v2/message";
 import { bytesToUtf8, utf8ToBytes } from "../utf8";
 
@@ -103,7 +103,9 @@ export class WakuMessage {
     return new WakuMessage(
       {
         payload: _payload,
-        timestamp: timestamp.valueOf() / 1000,
+        timestampDeprecated: timestamp.valueOf() / 1000,
+        // nanoseconds https://rfc.vac.dev/spec/14/
+        timestamp: Long.fromNumber(timestamp.valueOf()).mul(1000),
         version,
         contentTopic,
       },
@@ -270,8 +272,20 @@ export class WakuMessage {
   }
 
   get timestamp(): Date | undefined {
-    if (this.proto.timestamp) {
-      return new Date(this.proto.timestamp * 1000);
+    // In the case we receive a value that is bigger than JS's max number,
+    // we catch the error and return undefined.
+    try {
+      if (this.proto.timestamp) {
+        // nanoseconds https://rfc.vac.dev/spec/14/
+        const timestamp = this.proto.timestamp.div(1000).toNumber();
+        return new Date(timestamp);
+      }
+
+      if (this.proto.timestampDeprecated) {
+        return new Date(this.proto.timestampDeprecated * 1000);
+      }
+    } catch (e) {
+      return;
     }
     return;
   }

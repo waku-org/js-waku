@@ -253,6 +253,8 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
+  : T extends Long
+  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>

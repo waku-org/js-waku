@@ -10,7 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Replaced `rlp` dependency with `@ethersproject/rlp`.
-- **breaking**: `staticNoiseKey` changed from `Buffer` to `Uint8Array`.
+- **Breaking**: `staticNoiseKey` changed from `Buffer` to `Uint8Array`.
+- Implement Waku Store 2.0.0-beta4. The `WakuMessage.timestamp` field now stores nanoseconds over the wire.
+- **Breaking**: `HistoryRPC.createQuery` takes `Date` instead of `number` for `startTime` and `endTime`.
 
 ### Removed
 
