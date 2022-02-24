@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2022-02-24
+
 ### Changed
 
 - Replaced `rlp` dependency with `@ethersproject/rlp`.
@@ -324,7 +326,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/status-im/js-waku/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/status-im/js-waku/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/status-im/js-waku/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/status-im/js-waku/compare/v0.14.2...v0.15.0
