@@ -4,4 +4,4 @@ plugins:
   - name: ts_proto
     out: ./src/proto
     strategy: all
-    opt: grpc_js,esModuleInterop=true
+    opt: grpc_js,esModuleInterop=true,forceLong=long

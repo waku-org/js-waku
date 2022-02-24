@@ -1,7 +1,7 @@
 import debug from "debug";
+import Long from "long";
 import { Reader } from "protobufjs/minimal";
 
-// Protecting the user from protobuf oddities
 import * as proto from "../../proto/waku/v2/message";
 import { bytesToUtf8, utf8ToBytes } from "../utf8";
 
@@ -105,7 +105,7 @@ export class WakuMessage {
         payload: _payload,
         timestampDeprecated: timestamp.valueOf() / 1000,
         // nanoseconds https://rfc.vac.dev/spec/14/
-        timestamp: timestamp.valueOf() * 1000,
+        timestamp: Long.fromNumber(timestamp.valueOf()).mul(1000),
         version,
         contentTopic,
       },
@@ -274,7 +274,8 @@ export class WakuMessage {
   get timestamp(): Date | undefined {
     if (this.proto.timestamp) {
       // nanoseconds https://rfc.vac.dev/spec/14/
-      return new Date(this.proto.timestamp / 1000);
+      const timestamp = this.proto.timestamp.div(1000).toNumber();
+      return new Date(timestamp);
     }
 
     if (this.proto.timestampDeprecated) {

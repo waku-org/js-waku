@@ -9,7 +9,7 @@ export interface WakuMessage {
   contentTopic?: string | undefined;
   version?: number | undefined;
   timestampDeprecated?: number | undefined;
-  timestamp?: number | undefined;
+  timestamp?: Long | undefined;
 }
 
 function createBaseWakuMessage(): WakuMessage {
@@ -65,7 +65,7 @@ export const WakuMessage = {
           message.timestampDeprecated = reader.double();
           break;
         case 10:
-          message.timestamp = longToNumber(reader.sint64() as Long);
+          message.timestamp = reader.sint64() as Long;
           break;
         default:
           reader.skipType(tag & 7);
@@ -87,7 +87,9 @@ export const WakuMessage = {
       timestampDeprecated: isSet(object.timestampDeprecated)
         ? Number(object.timestampDeprecated)
         : undefined,
-      timestamp: isSet(object.timestamp) ? Number(object.timestamp) : undefined,
+      timestamp: isSet(object.timestamp)
+        ? Long.fromString(object.timestamp)
+        : undefined,
     };
   },
 
@@ -105,7 +107,7 @@ export const WakuMessage = {
     message.timestampDeprecated !== undefined &&
       (obj.timestampDeprecated = message.timestampDeprecated);
     message.timestamp !== undefined &&
-      (obj.timestamp = Math.round(message.timestamp));
+      (obj.timestamp = (message.timestamp || undefined).toString());
     return obj;
   },
 
@@ -117,7 +119,10 @@ export const WakuMessage = {
     message.contentTopic = object.contentTopic ?? undefined;
     message.version = object.version ?? undefined;
     message.timestampDeprecated = object.timestampDeprecated ?? undefined;
-    message.timestamp = object.timestamp ?? undefined;
+    message.timestamp =
+      object.timestamp !== undefined && object.timestamp !== null
+        ? Long.fromValue(object.timestamp)
+        : undefined;
     return message;
   },
 };
@@ -167,6 +172,8 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
+  : T extends Long
+  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -182,13 +189,6 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
-
-function longToNumber(long: Long): number {
-  if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-  }
-  return long.toNumber();
-}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;

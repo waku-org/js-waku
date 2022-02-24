@@ -1,7 +1,7 @@
 import { Reader } from "protobufjs/minimal";
 import { v4 as uuid } from "uuid";
-
 import * as proto from "../../proto/waku/v2/store/v2beta3/store";
+import Long from 'long';
 
 export enum PageDirection {
   BACKWARD = "backward",
@@ -27,7 +27,7 @@ export class HistoryRPC {
   static createQuery(params: Params): HistoryRPC {
     const direction = directionToProto(params.pageDirection);
     const pagingInfo = {
-      pageSize: params.pageSize,
+      pageSize: Long.fromNumber(params.pageSize),
       cursor: params.cursor,
       direction,
     };

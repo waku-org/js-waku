@@ -12,7 +12,7 @@ export interface Index {
 }
 
 export interface PagingInfo {
-  pageSize: number;
+  pageSize: Long;
   cursor: Index | undefined;
   direction: PagingInfo_Direction;
 }
@@ -189,7 +189,7 @@ export const Index = {
 };
 
 function createBasePagingInfo(): PagingInfo {
-  return { pageSize: 0, cursor: undefined, direction: 0 };
+  return { pageSize: Long.UZERO, cursor: undefined, direction: 0 };
 }
 
 export const PagingInfo = {
@@ -197,7 +197,7 @@ export const PagingInfo = {
     message: PagingInfo,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.pageSize !== 0) {
+    if (!message.pageSize.isZero()) {
       writer.uint32(8).uint64(message.pageSize);
     }
     if (message.cursor !== undefined) {
@@ -217,7 +217,7 @@ export const PagingInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.pageSize = longToNumber(reader.uint64() as Long);
+          message.pageSize = reader.uint64() as Long;
           break;
         case 2:
           message.cursor = Index.decode(reader, reader.uint32());
@@ -235,7 +235,9 @@ export const PagingInfo = {
 
   fromJSON(object: any): PagingInfo {
     return {
-      pageSize: isSet(object.pageSize) ? Number(object.pageSize) : 0,
+      pageSize: isSet(object.pageSize)
+        ? Long.fromString(object.pageSize)
+        : Long.UZERO,
       cursor: isSet(object.cursor) ? Index.fromJSON(object.cursor) : undefined,
       direction: isSet(object.direction)
         ? pagingInfo_DirectionFromJSON(object.direction)
@@ -246,7 +248,7 @@ export const PagingInfo = {
   toJSON(message: PagingInfo): unknown {
     const obj: any = {};
     message.pageSize !== undefined &&
-      (obj.pageSize = Math.round(message.pageSize));
+      (obj.pageSize = (message.pageSize || Long.UZERO).toString());
     message.cursor !== undefined &&
       (obj.cursor = message.cursor ? Index.toJSON(message.cursor) : undefined);
     message.direction !== undefined &&
@@ -258,7 +260,10 @@ export const PagingInfo = {
     object: I
   ): PagingInfo {
     const message = createBasePagingInfo();
-    message.pageSize = object.pageSize ?? 0;
+    message.pageSize =
+      object.pageSize !== undefined && object.pageSize !== null
+        ? Long.fromValue(object.pageSize)
+        : Long.UZERO;
     message.cursor =
       object.cursor !== undefined && object.cursor !== null
         ? Index.fromPartial(object.cursor)
@@ -671,6 +676,8 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
   ? T
+  : T extends Long
+  ? string | number | Long
   : T extends Array<infer U>
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
@@ -686,13 +693,6 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
-
-function longToNumber(long: Long): number {
-  if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-  }
-  return long.toNumber();
-}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;
