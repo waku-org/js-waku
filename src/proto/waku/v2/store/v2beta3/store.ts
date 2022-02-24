@@ -1,9 +1,9 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
-import { WakuMessage } from "../../waku/v2/message";
+import { WakuMessage } from "../../../../waku/v2/message";
 
-export const protobufPackage = "waku.v2";
+export const protobufPackage = "waku.v2.store.v2beta3";
 
 export interface Index {
   digest: Uint8Array;

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package waku.v2;
+package waku.v2.store.v2beta3;
 
 import "waku/v2/message.proto";
 

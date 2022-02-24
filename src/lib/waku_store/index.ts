@@ -6,7 +6,7 @@ import Libp2p from "libp2p";
 import { Peer } from "libp2p/src/peer-store";
 import PeerId from "peer-id";
 
-import { HistoryResponse_Error } from "../../proto";
+import * as proto from "../../proto/waku/v2/store/v2beta3/store";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
 import { DefaultPubSubTopic } from "../waku";
@@ -212,7 +212,7 @@ export class WakuStore {
 
       if (
         response.error &&
-        response.error === HistoryResponse_Error.ERROR_INVALID_CURSOR
+        response.error === proto.HistoryResponse_Error.ERROR_INVALID_CURSOR
       ) {
         throw "History response contains an Error: INVALID CURSOR";
       }
