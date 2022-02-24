@@ -31,5 +31,3 @@ export { WakuRelay, RelayCodecs } from "./lib/waku_relay";
 
 export * as waku_store from "./lib/waku_store";
 export { PageDirection, WakuStore, StoreCodec } from "./lib/waku_store";
-
-export * as proto from "./proto";
