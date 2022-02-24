@@ -1,7 +1,11 @@
+import Long from "long";
 import { Reader } from "protobufjs/minimal";
 import { v4 as uuid } from "uuid";
-import * as proto from "../../proto/waku/v2/store/v2beta3/store";
-import Long from 'long';
+
+import * as protoV2Beta3 from "../../proto/waku/v2/store/v2beta3/store";
+import * as protoV2Beta4 from "../../proto/waku/v2/store/v2beta4/store";
+
+import { StoreCodecs } from "./index";
 
 export enum PageDirection {
   BACKWARD = "backward",
@@ -13,69 +17,142 @@ export interface Params {
   pubSubTopic: string;
   pageDirection: PageDirection;
   pageSize: number;
-  startTime?: number;
-  endTime?: number;
-  cursor?: proto.Index;
+  startTime?: Date;
+  endTime?: Date;
+  cursor?: protoV2Beta3.Index | protoV2Beta4.Index;
+  storeCodec?: StoreCodecs;
 }
 
 export class HistoryRPC {
-  public constructor(public proto: proto.HistoryRPC) {}
+  private readonly protoCodec: any;
+
+  private constructor(
+    public readonly proto: protoV2Beta3.HistoryRPC | protoV2Beta4.HistoryRPC,
+    public readonly storeCodec: StoreCodecs
+  ) {
+    switch (storeCodec) {
+      case StoreCodecs.V2Beta3:
+        this.protoCodec = protoV2Beta3;
+        break;
+      case StoreCodecs.V2Beta4:
+        this.protoCodec = protoV2Beta4;
+        break;
+      default:
+        throw `Internal Error: Unexpected store codec value received in constructor: ${storeCodec}`;
+    }
+  }
+
+  get query():
+    | protoV2Beta3.HistoryQuery
+    | protoV2Beta4.HistoryQuery
+    | undefined {
+    return this.proto.query;
+  }
+
+  get response():
+    | protoV2Beta3.HistoryResponse
+    | protoV2Beta4.HistoryResponse
+    | undefined {
+    return this.proto.response;
+  }
 
   /**
    * Create History Query.
    */
   static createQuery(params: Params): HistoryRPC {
-    const direction = directionToProto(params.pageDirection);
-    const pagingInfo = {
-      pageSize: Long.fromNumber(params.pageSize),
-      cursor: params.cursor,
-      direction,
-    };
+    const storeCodec = params.storeCodec ?? StoreCodecs.V2Beta4;
 
     const contentFilters = params.contentTopics.map((contentTopic) => {
       return { contentTopic };
     });
 
-    return new HistoryRPC({
-      requestId: uuid(),
-      query: {
-        pubSubTopic: params.pubSubTopic,
-        contentFilters,
-        pagingInfo,
-        startTime: params.startTime,
-        endTime: params.endTime,
-      },
-      response: undefined,
-    });
+    const direction = directionToProto(params.pageDirection);
+
+    switch (storeCodec) {
+      case StoreCodecs.V2Beta3:
+        // Using function to scope variables
+        return ((): HistoryRPC => {
+          const pagingInfo = {
+            pageSize: Long.fromNumber(params.pageSize),
+            cursor: params.cursor,
+            direction,
+          } as protoV2Beta3.PagingInfo;
+
+          let startTime, endTime;
+          if (params.startTime) startTime = params.startTime.valueOf() / 1000;
+
+          if (params.endTime) endTime = params.endTime.valueOf() / 1000;
+
+          return new HistoryRPC(
+            {
+              requestId: uuid(),
+              query: {
+                pubSubTopic: params.pubSubTopic,
+                contentFilters,
+                pagingInfo,
+                startTime,
+                endTime,
+              },
+              response: undefined,
+            },
+            storeCodec
+          );
+        })();
+      case StoreCodecs.V2Beta4:
+        return ((): HistoryRPC => {
+          const pagingInfo = {
+            pageSize: Long.fromNumber(params.pageSize),
+            cursor: params.cursor,
+            direction,
+          } as protoV2Beta4.PagingInfo;
+
+          let startTime, endTime;
+          if (params.startTime)
+            startTime = Long.fromNumber(params.startTime.valueOf()).mul(1000);
+
+          if (params.endTime)
+            endTime = Long.fromNumber(params.endTime.valueOf()).mul(1000);
+
+          return new HistoryRPC(
+            {
+              requestId: uuid(),
+              query: {
+                pubSubTopic: params.pubSubTopic,
+                contentFilters,
+                pagingInfo,
+                startTime,
+                endTime,
+              },
+              response: undefined,
+            },
+            storeCodec
+          );
+        })();
+
+      default:
+        throw `Internal Error: Unexpected store codec value received in createQuery: ${storeCodec}`;
+    }
   }
 
-  static decode(bytes: Uint8Array): HistoryRPC {
-    const res = proto.HistoryRPC.decode(Reader.create(bytes));
-    return new HistoryRPC(res);
+  decode(bytes: Uint8Array): HistoryRPC {
+    const res = this.protoCodec.HistoryRPC.decode(Reader.create(bytes));
+    return new HistoryRPC(res, this.storeCodec);
   }
 
   encode(): Uint8Array {
-    return proto.HistoryRPC.encode(this.proto).finish();
-  }
-
-  get query(): proto.HistoryQuery | undefined {
-    return this.proto.query;
-  }
-
-  get response(): proto.HistoryResponse | undefined {
-    return this.proto.response;
+    return this.protoCodec.HistoryRPC.encode(this.proto).finish();
   }
 }
 
 function directionToProto(
   pageDirection: PageDirection
-): proto.PagingInfo_Direction {
+): protoV2Beta4.PagingInfo_Direction {
   switch (pageDirection) {
     case PageDirection.BACKWARD:
-      return proto.PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+      return protoV2Beta4.PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED;
     case PageDirection.FORWARD:
-      return proto.PagingInfo_Direction.DIRECTION_FORWARD;
+      return protoV2Beta4.PagingInfo_Direction.DIRECTION_FORWARD;
     default:
-      return proto.PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+      return protoV2Beta4.PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED;
   }
 }
