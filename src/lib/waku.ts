@@ -8,6 +8,9 @@ import { MuxedStream } from "libp2p-interfaces/dist/src/stream-muxer/types";
 import Mplex from "libp2p-mplex";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
+import WebRTCDirect from "libp2p-webrtc-direct";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: No types available
 import Websockets from "libp2p-websockets";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
@@ -175,7 +178,7 @@ export class Waku {
     // Default transport for libp2p is Websockets
     libp2pOpts.modules = Object.assign(
       {
-        transport: [Websockets],
+        transport: [Websockets, WebRTCDirect],
       },
       options?.libp2p?.modules
     );
