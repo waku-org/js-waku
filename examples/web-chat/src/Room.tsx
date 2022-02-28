@@ -7,7 +7,6 @@ import { TitleBar } from "@livechat/ui-kit";
 import { Message } from "./Message";
 import { ChatMessage } from "./chat_message";
 import { useEffect, useState } from "react";
-import PeerId from "peer-id";
 
 interface Props {
   messages: Message[];
@@ -18,41 +17,31 @@ interface Props {
 export default function Room(props: Props) {
   const { waku } = useWaku();
 
-  const [peers, setPeers] = useState<PeerId[]>([]);
   const [storePeers, setStorePeers] = useState(0);
   const [relayPeers, setRelayPeers] = useState(0);
 
   useEffect(() => {
-    // Add a peer to the list every time a connection happen to ensure the stats update correctly
     if (!waku) return;
 
-    const addPeer = (event: { peerId: PeerId }) => {
-      setPeers((peers) => {
-        return [...peers, event.peerId];
-      });
-    };
-
-    waku.libp2p.peerStore.on("change:protocols", addPeer);
-
-    return () => {
-      waku.libp2p.connectionManager.removeListener("change:protocols", addPeer);
-    };
+    // Update relay peer count on heartbeat
+    waku.relay.on("gossipsub:heartbeat", () => {
+      setRelayPeers(waku.relay.getPeers().size);
+    });
   }, [waku]);
 
   useEffect(() => {
     if (!waku) return;
 
-    setRelayPeers(waku.relay.getPeers().size);
-
-    (async () => {
+    // Update store peer when new peer connected & identified
+    waku.libp2p.peerStore.on("change:protocols", async () => {
       let counter = 0;
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for await (const _peer of waku.store.peers) {
         counter++;
       }
       setStorePeers(counter);
-    })();
-  }, [waku, peers]);
+    });
+  }, [waku]);
 
   return (
     <div
