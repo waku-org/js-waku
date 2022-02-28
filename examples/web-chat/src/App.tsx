@@ -1,18 +1,13 @@
 import { useEffect, useReducer, useState } from "react";
 import "./App.css";
-import {
-  PageDirection,
-  getPredefinedBootstrapNodes,
-  Waku,
-  WakuMessage,
-} from "js-waku";
+import { PageDirection, Waku, WakuMessage } from "js-waku";
 import handleCommand from "./command";
 import Room from "./Room";
 import { WakuContext } from "./WakuContext";
 import { ThemeProvider } from "@livechat/ui-kit";
 import { generate } from "server-name-generator";
 import { Message } from "./Message";
-import { Fleet } from "js-waku/lib/discovery/predefined";
+import { Protocols } from "js-waku/lib/waku";
 
 const themes = {
   AuthorName: {
@@ -130,8 +125,7 @@ export default function App() {
     if (historicalMessagesRetrieved) return;
 
     const retrieveMessages = async () => {
-      await waku.waitForRemotePeer();
-      console.log(`Retrieving archived messages`);
+      await waku.waitForRemotePeer([Protocols.Relay]);
 
       try {
         retrieveStoreMessages(waku, dispatchMessages).then((length) => {
@@ -185,22 +179,15 @@ async function initWaku(setter: (waku: Waku) => void) {
         },
       },
       bootstrap: {
-        peers: getPredefinedBootstrapNodes(selectFleetEnv()),
+        peers: [
+          `/ip4/127.0.0.1/tcp/9090/http/p2p-webrtc-direct/p2p/12D3KooWCuo3MdXfMgaqpLC5Houi1TRoFqgK9aoxok4NK5udMu8m`,
+        ],
       },
     });
 
     setter(waku);
   } catch (e) {
     console.log("Issue starting waku ", e);
-  }
-}
-
-function selectFleetEnv() {
-  // Works with react-scripts
-  if (process?.env?.NODE_ENV === "development") {
-    return Fleet.Test;
-  } else {
-    return Fleet.Prod;
   }
 }
 

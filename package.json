@@ -8,6 +8,7 @@
   "exports": "./",
   "repository": "https://github.com/status-im/js-waku",
   "license": "MIT OR Apache-2.0",
+  "exports": "./",
   "keywords": [
     "waku",
     "decentralised",
