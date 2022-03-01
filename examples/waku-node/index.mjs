@@ -16,7 +16,7 @@ import WebRTCDirect from 'libp2p-webrtc-direct';
     libp2p: {
       peerId: hardcodedPeerId,
       addresses: {
-        listen: ['/ip4/127.0.0.1/tcp/9090/http/p2p-webrtc-direct']
+        listen: ['/ip4/0.0.0.0/tcp/9090/http/p2p-webrtc-direct']
       },
       modules: {
         transport: [WebRTCDirect]

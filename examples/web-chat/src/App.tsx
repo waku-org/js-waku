@@ -180,7 +180,7 @@ async function initWaku(setter: (waku: Waku) => void) {
       },
       bootstrap: {
         peers: [
-          `/ip4/127.0.0.1/tcp/9090/http/p2p-webrtc-direct/p2p/12D3KooWCuo3MdXfMgaqpLC5Houi1TRoFqgK9aoxok4NK5udMu8m`,
+          `/dns4/waku.fryorcraken.xyz/tcp/9090/http/p2p-webrtc-direct/p2p/12D3KooWCuo3MdXfMgaqpLC5Houi1TRoFqgK9aoxok4NK5udMu8m`,
         ],
       },
     });
