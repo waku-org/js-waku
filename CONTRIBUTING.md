@@ -23,16 +23,17 @@ To build and test this repository, you need:
   - [bufbuild](https://github.com/bufbuild/buf) (only if changing protobuf files).
   - [protoc](https://grpc.io/docs/protoc-installation/) (only if changing protobuf files).
   - Chrome (for browser testing).
+  - g++ & make (to build nim-waku)
 
 To ensure interoperability with [nim-waku](https://github.com/status-im/nim-waku/), some tests are run against a nim-waku node.
 This is why `nim-waku` is present as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules), which itself contain several submodules.
 At this stage, it is not possible to exclude nim-waku tests, hence `git submodule update --init --recursive` is run before testing (see [`pretest` script](https://github.com/status-im/js-waku/blob/master/package.json)).
 
-To build nim-waku, you also need [Rust](https://www.rust-lang.org/tools/install).
+If you do not want to run `npm run test`, you can still build nim-waku by running `npm run pretest`.
 
-Note that we run tests in both NodeJS and browser environments (both Chrome and Firefox, using [karma](https://karma-runner.github.io/)).
-Files named `*.spec.ts` are only run in NodeJS environment;
-Files named `*.browser.spec.ts` are run in both NodeJS and browser environment.
+Note that we run tests in both NodeJS and browser environments (using [karma](https://karma-runner.github.io/)).
+Files named `*.node.spec.ts` are only run in NodeJS environment;
+Files named `*.spec.ts` are run in both NodeJS and browser environment.
 
 ## Guidelines
 
