@@ -31,6 +31,14 @@ export class DnsOverHttps implements DnsClient {
     public endpoints: Endpoints = [cloudflare, google, opendns]
   ) {}
 
+  /**
+   * Resolves a TXT record
+   *
+   * @param domain The domain name
+   *
+   * @throws if the result is provided in byte form which cannot be decoded
+   * to UTF-8
+   */
   async resolveTXT(domain: string): Promise<string[]> {
     const response = await query({
       questions: [{ type: "TXT", name: domain }],

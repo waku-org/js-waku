@@ -79,38 +79,45 @@ export class DnsNodeDiscovery {
     subdomain: string,
     context: SearchContext
   ): Promise<ENR | null> {
-    const entry = await this._getTXTRecord(subdomain, context);
-    context.visits[subdomain] = true;
-
-    let next: string;
-    let branches: string[];
-
-    const entryType = getEntryType(entry);
     try {
-      switch (entryType) {
-        case ENRTree.ROOT_PREFIX:
-          next = ENRTree.parseAndVerifyRoot(entry, context.publicKey);
-          return await this._search(next, context);
-        case ENRTree.BRANCH_PREFIX:
-          branches = ENRTree.parseBranch(entry);
-          next = selectRandomPath(branches, context);
-          return await this._search(next, context);
-        case ENRTree.RECORD_PREFIX:
-          return ENR.decodeTxt(entry);
-        default:
-          return null;
+      const entry = await this._getTXTRecord(subdomain, context);
+      context.visits[subdomain] = true;
+
+      let next: string;
+      let branches: string[];
+
+      const entryType = getEntryType(entry);
+      try {
+        switch (entryType) {
+          case ENRTree.ROOT_PREFIX:
+            next = ENRTree.parseAndVerifyRoot(entry, context.publicKey);
+            return await this._search(next, context);
+          case ENRTree.BRANCH_PREFIX:
+            branches = ENRTree.parseBranch(entry);
+            next = selectRandomPath(branches, context);
+            return await this._search(next, context);
+          case ENRTree.RECORD_PREFIX:
+            return ENR.decodeTxt(entry);
+          default:
+            return null;
+        }
+      } catch (error) {
+        dbg(
+          `Failed to search DNS tree ${entryType} at subdomain ${subdomain}: ${error}`
+        );
+        return null;
       }
     } catch (error) {
-      dbg(
-        `Failed to search DNS tree ${entryType} at subdomain ${subdomain}: ${error}`
-      );
+      dbg(`Failed to retrieve TXT record at subdomain ${subdomain}: ${error}`);
       return null;
     }
   }
 
   /**
    * Retrieves the TXT record stored at a location from either
-   * this DNS tree cache or via DNS query
+   * this DNS tree cache or via DNS query.
+   *
+   * @throws if the TXT Record contains non-UTF-8 values.
    */
   private async _getTXTRecord(
     subdomain: string,
