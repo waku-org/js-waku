@@ -1,4 +1,5 @@
 import * as RLP from "@ethersproject/rlp";
+import debug from "debug";
 import { Multiaddr, protocols } from "multiaddr";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: No types available
@@ -20,6 +21,8 @@ import {
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
 import * as v4 from "./v4";
+
+const dbg = debug("waku:enr");
 
 export class ENR extends Map<ENRKey, ENRValue> {
   public static readonly RECORD_PREFIX = "enr:";
@@ -78,7 +81,11 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
     const obj: Record<ENRKey, ENRValue> = {};
     for (let i = 0; i < kvs.length; i += 2) {
-      obj[bytesToUtf8(kvs[i])] = kvs[i + 1];
+      try {
+        obj[bytesToUtf8(kvs[i])] = kvs[i + 1];
+      } catch (e) {
+        dbg("Failed to decode ENR key to UTF-8, skipping it", kvs[i], e);
+      }
     }
     const enr = new ENR(obj, BigInt("0x" + bytesToHex(seq)), signature);
 

@@ -19,11 +19,7 @@ export class Message {
           return new Message(chatMsg, wakuMsg.timestamp);
         }
       } catch (e) {
-        console.error(
-          "Failed to decode chat message",
-          wakuMsg.payloadAsUtf8,
-          e
-        );
+        console.error("Failed to decode chat message", e);
       }
     }
     return;

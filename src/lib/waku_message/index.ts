@@ -256,7 +256,12 @@ export class WakuMessage {
       return "";
     }
 
-    return bytesToUtf8(this.proto.payload);
+    try {
+      return bytesToUtf8(this.proto.payload);
+    } catch (e) {
+      dbg("Could not decode byte as UTF-8", e);
+      return "";
+    }
   }
 
   get payload(): Uint8Array | undefined {
