@@ -9,6 +9,7 @@ export interface Index {
   digest: Uint8Array;
   receivedTime: Long;
   senderTime: Long;
+  pubsubTopic: string;
 }
 
 export interface PagingInfo {
@@ -118,6 +119,7 @@ function createBaseIndex(): Index {
     digest: new Uint8Array(),
     receivedTime: Long.ZERO,
     senderTime: Long.ZERO,
+    pubsubTopic: "",
   };
 }
 
@@ -131,6 +133,9 @@ export const Index = {
     }
     if (!message.senderTime.isZero()) {
       writer.uint32(24).sint64(message.senderTime);
+    }
+    if (message.pubsubTopic !== "") {
+      writer.uint32(34).string(message.pubsubTopic);
     }
     return writer;
   },
@@ -151,6 +156,9 @@ export const Index = {
         case 3:
           message.senderTime = reader.sint64() as Long;
           break;
+        case 4:
+          message.pubsubTopic = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -170,6 +178,7 @@ export const Index = {
       senderTime: isSet(object.senderTime)
         ? Long.fromString(object.senderTime)
         : Long.ZERO,
+      pubsubTopic: isSet(object.pubsubTopic) ? String(object.pubsubTopic) : "",
     };
   },
 
@@ -183,6 +192,8 @@ export const Index = {
       (obj.receivedTime = (message.receivedTime || Long.ZERO).toString());
     message.senderTime !== undefined &&
       (obj.senderTime = (message.senderTime || Long.ZERO).toString());
+    message.pubsubTopic !== undefined &&
+      (obj.pubsubTopic = message.pubsubTopic);
     return obj;
   },
 
@@ -197,6 +208,7 @@ export const Index = {
       object.senderTime !== undefined && object.senderTime !== null
         ? Long.fromValue(object.senderTime)
         : Long.ZERO;
+    message.pubsubTopic = object.pubsubTopic ?? "";
     return message;
   },
 };

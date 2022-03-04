@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New `pubsub_topic` field on the `cursor` of Waku Store queries ([#585](https://github.com/status-im/js-waku/issues/595)).
+
 ### Changed
 
 - Add `exports` to `package.json` for NodeJS usage (not officially supported but helpful for experiments).
