@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Add `exports` to `package.json` for NodeJS usage (not officially supported but helpful for experiments).
+
 ### Fixed
 
 - Handle errors thrown by `bytesToUtf8`.
