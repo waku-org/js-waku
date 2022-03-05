@@ -63,7 +63,6 @@
     "@ethersproject/rlp": "^5.5.0",
     "debug": "^4.3.1",
     "dns-query": "^0.8.0",
-    "ecies-geth": "^1.5.2",
     "hi-base32": "^0.5.1",
     "it-concat": "^2.0.0",
     "it-length-prefixed": "^5.0.2",

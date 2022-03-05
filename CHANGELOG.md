@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Handle errors thrown by `bytesToUtf8`.
 
+### Removed
+
+- Removed `ecies-geth` dependency.
+
 ## [0.18.0] - 2022-02-24
 
 ### Changed
