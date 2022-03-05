@@ -18,7 +18,7 @@ import {
   getPublicKey,
 } from "./version_1";
 
-import { WakuMessage } from "./index";
+import { DecryptionMethod, WakuMessage } from "./index";
 
 const dbg = debug("waku:test:message");
 
@@ -66,7 +66,9 @@ describe("Waku Message [node only]", function () {
 
       const privateKey = generatePrivateKey();
 
-      waku.relay.addDecryptionKey(privateKey);
+      waku.relay.addDecryptionKey(privateKey, {
+        method: DecryptionMethod.Asymmetric,
+      });
 
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
@@ -132,7 +134,9 @@ describe("Waku Message [node only]", function () {
       dbg("Generate symmetric key");
       const symKey = generateSymmetricKey();
 
-      waku.relay.addDecryptionKey(symKey);
+      waku.relay.addDecryptionKey(symKey, {
+        method: DecryptionMethod.Symmetric,
+      });
 
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
