@@ -200,6 +200,7 @@ describe("Waku Relay [node only]", () => {
       });
 
       await waku1.relay.send(encryptedAsymmetricMessage);
+      await delay(200);
       await waku1.relay.send(encryptedSymmetricMessage);
 
       while (msgs.length < 2) {

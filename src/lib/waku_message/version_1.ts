@@ -1,12 +1,12 @@
 import { Buffer } from "buffer";
 import * as crypto from "crypto";
 
-import * as ecies from "ecies-geth";
 import { keccak256 } from "js-sha3";
 import * as secp256k1 from "secp256k1";
 
 import { hexToBytes } from "../utils";
 
+import * as ecies from "./ecies";
 import { IvSize, symmetric, SymmetricKeySize } from "./symmetric";
 
 const FlagsLength = 1;
