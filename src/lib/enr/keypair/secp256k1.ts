@@ -1,7 +1,7 @@
-import crypto from "crypto";
-
 import * as secp256k1 from "secp256k1";
 import { concat } from "uint8arrays/concat";
+
+import { randomBytes } from "../../crypto";
 
 import { AbstractKeypair, IKeypair, IKeypairClass, KeypairType } from "./types";
 
@@ -41,7 +41,7 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
   }
 
   static async generate(): Promise<Secp256k1Keypair> {
-    const privateKey = await randomBytes(32);
+    const privateKey = randomBytes(32);
     const publicKey = secp256k1.publicKeyCreate(privateKey);
     return new Secp256k1Keypair(privateKey, publicKey);
   }
@@ -69,13 +69,3 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
     return secp256k1.ecdsaVerify(sig, msg, this.publicKey);
   }
 };
-
-function randomBytes(length: number): Uint8Array {
-  if (typeof window !== "undefined" && window && window.crypto) {
-    const array = new Uint8Array(length);
-    window.crypto.getRandomValues(array);
-    return array;
-  } else {
-    return crypto.randomBytes(length);
-  }
-}

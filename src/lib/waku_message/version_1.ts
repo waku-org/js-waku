@@ -1,9 +1,9 @@
 import { Buffer } from "buffer";
-import * as crypto from "crypto";
 
 import { keccak256 } from "js-sha3";
 import * as secp256k1 from "secp256k1";
 
+import { randomBytes } from "../crypto";
 import { hexToBytes } from "../utils";
 
 import * as ecies from "./ecies";
@@ -257,14 +257,4 @@ function ecRecoverPubKey(messageHash: string, signature: Buffer): Uint8Array {
     hexToBytes(messageHash),
     false
   );
-}
-
-function randomBytes(length: number): Uint8Array {
-  if (typeof window !== "undefined" && window && window.crypto) {
-    const array = new Uint8Array(length);
-    window.crypto.getRandomValues(array);
-    return array;
-  } else {
-    return crypto.randomBytes(length);
-  }
 }
