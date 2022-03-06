@@ -7,7 +7,7 @@ import * as secp256k1 from "secp256k1";
 import { hexToBytes } from "../utils";
 
 import * as ecies from "./ecies";
-import { IvSize, symmetric, SymmetricKeySize } from "./symmetric";
+import * as symmetric from "./symmetric";
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011
@@ -170,7 +170,7 @@ export async function decryptSymmetric(
   key: Uint8Array | Buffer | string
 ): Promise<Uint8Array> {
   const data = Buffer.from(payload);
-  const ivStart = data.length - IvSize;
+  const ivStart = data.length - symmetric.IvSize;
   const cipher = data.slice(0, ivStart);
   const iv = data.slice(ivStart);
 
@@ -190,7 +190,7 @@ export function generatePrivateKey(): Uint8Array {
  * Generate a new symmetric key to be used for symmetric encryption.
  */
 export function generateSymmetricKey(): Uint8Array {
-  return randomBytes(SymmetricKeySize);
+  return randomBytes(symmetric.KeySize);
 }
 
 /**

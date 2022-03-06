@@ -1,38 +1,37 @@
-export const SymmetricKeySize = 32;
+import { randomBytes, subtle } from "../../crypto";
+
+export const KeySize = 32;
 export const IvSize = 12;
 export const TagSize = 16;
 
-export interface Symmetric {
-  /**
-   * Proceed with symmetric encryption of `clearText` value.
-   */
-  encrypt: (
-    iv: Buffer | Uint8Array,
-    key: Buffer,
-    clearText: Buffer
-  ) => Promise<Buffer>;
-  /**
-   * Proceed with symmetric decryption of `cipherText` value.
-   */
-  decrypt: (iv: Buffer, key: Buffer, cipherText: Buffer) => Promise<Buffer>;
-  /**
-   * Generate an Initialization Vector (iv) for for Symmetric encryption purposes.
-   */
-  generateIv: () => Uint8Array;
+const Algorithm = { name: "AES-GCM", length: 128 };
+
+export async function encrypt(
+  iv: Buffer | Uint8Array,
+  key: Buffer,
+  clearText: Buffer
+): Promise<Buffer> {
+  return subtle
+    .importKey("raw", key, Algorithm, false, ["encrypt"])
+    .then((cryptoKey) =>
+      subtle.encrypt({ iv, ...Algorithm }, cryptoKey, clearText)
+    )
+    .then(Buffer.from);
 }
 
-export let symmetric: Symmetric = {} as unknown as Symmetric;
+export async function decrypt(
+  iv: Buffer,
+  key: Buffer,
+  cipherText: Buffer
+): Promise<Buffer> {
+  return subtle
+    .importKey("raw", key, Algorithm, false, ["decrypt"])
+    .then((cryptoKey) =>
+      subtle.decrypt({ iv, ...Algorithm }, cryptoKey, cipherText)
+    )
+    .then(Buffer.from);
+}
 
-import("./browser")
-  .then((mod) => {
-    symmetric = mod;
-  })
-  .catch((eBrowser) => {
-    import("./node")
-      .then((mod) => {
-        symmetric = mod;
-      })
-      .catch((eNode) => {
-        throw `Could not load any symmetric crypto modules: ${eBrowser}, ${eNode}`;
-      });
-  });
+export function generateIv(): Uint8Array {
+  return randomBytes(IvSize);
+}
