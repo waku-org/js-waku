@@ -181,7 +181,7 @@ export class WakuMessage {
                   return await version_1.decryptAsymmetric(payload, key);
                 } catch (e) {
                   dbg(
-                    "Failed to decrypt message using symmetric encryption despite decryption method being specified",
+                    "Failed to decrypt message using asymmetric encryption despite decryption method being specified",
                     e
                   );
                   return;
