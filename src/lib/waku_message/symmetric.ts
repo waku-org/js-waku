@@ -1,22 +1,10 @@
-import { IvSize } from "./index";
+import { randomBytes, subtle } from "../crypto";
 
-declare global {
-  interface Window {
-    msCrypto?: Crypto;
-  }
-  interface Crypto {
-    webkitSubtle?: SubtleCrypto;
-  }
-}
-
-const crypto = window.crypto || window.msCrypto;
-const subtle: SubtleCrypto = crypto.subtle || crypto.webkitSubtle;
+export const KeySize = 32;
+export const IvSize = 12;
+export const TagSize = 16;
 
 const Algorithm = { name: "AES-GCM", length: 128 };
-
-if (subtle === undefined) {
-  throw new Error("Failed to load Subtle CryptoAPI");
-}
 
 export async function encrypt(
   iv: Buffer | Uint8Array,
@@ -45,7 +33,5 @@ export async function decrypt(
 }
 
 export function generateIv(): Uint8Array {
-  const iv = new Uint8Array(IvSize);
-  crypto.getRandomValues(iv);
-  return iv;
+  return randomBytes(IvSize);
 }
