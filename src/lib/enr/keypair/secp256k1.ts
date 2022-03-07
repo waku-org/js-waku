@@ -1,4 +1,4 @@
-import * as secp256k1 from "secp256k1";
+import * as secp from "@noble/secp256k1";
 import { concat } from "uint8arrays/concat";
 
 import { randomBytes } from "../../crypto";
@@ -11,18 +11,22 @@ export function secp256k1PublicKeyToCompressed(
   if (publicKey.length === 64) {
     publicKey = concat([[4], publicKey], 65);
   }
-  return secp256k1.publicKeyConvert(publicKey, true);
+  const point = secp.Point.fromHex(publicKey);
+  return point.toRawBytes(true);
 }
 
 export function secp256k1PublicKeyToFull(publicKey: Uint8Array): Uint8Array {
   if (publicKey.length === 64) {
     publicKey = concat([[4], publicKey], 65);
   }
-  return secp256k1.publicKeyConvert(publicKey, false);
+  const point = secp.Point.fromHex(publicKey);
+
+  return point.toRawBytes(false);
 }
 
 export function secp256k1PublicKeyToRaw(publicKey: Uint8Array): Uint8Array {
-  return secp256k1.publicKeyConvert(publicKey, false).slice(1);
+  const point = secp.Point.fromHex(publicKey);
+  return point.toRawBytes(false).slice(1);
 }
 
 export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
@@ -42,30 +46,43 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
 
   static async generate(): Promise<Secp256k1Keypair> {
     const privateKey = randomBytes(32);
-    const publicKey = secp256k1.publicKeyCreate(privateKey);
+    const publicKey = secp.getPublicKey(privateKey);
     return new Secp256k1Keypair(privateKey, publicKey);
   }
 
   privateKeyVerify(key = this._privateKey): boolean {
     if (key) {
-      return secp256k1.privateKeyVerify(key);
+      return secp.utils.isValidPrivateKey(key);
     }
     return true;
   }
 
   publicKeyVerify(key = this._publicKey): boolean {
     if (key) {
-      return secp256k1.publicKeyVerify(key);
+      try {
+        secp.Point.fromHex(key);
+        return true;
+      } catch {
+        return false;
+      }
     }
     return true;
   }
 
-  sign(msg: Uint8Array): Uint8Array {
-    const { signature, recid } = secp256k1.ecdsaSign(msg, this.privateKey);
+  async sign(msg: Uint8Array): Promise<Uint8Array> {
+    const [signature, recid] = await secp.sign(msg, this.privateKey, {
+      recovered: true,
+      der: false,
+    });
     return concat([signature, [recid]], signature.length + 1);
   }
 
   verify(msg: Uint8Array, sig: Uint8Array): boolean {
-    return secp256k1.ecdsaVerify(sig, msg, this.publicKey);
+    try {
+      const _sig = secp.Signature.fromCompact(sig.slice(0, 64));
+      return secp.verify(_sig, msg, this.publicKey);
+    } catch {
+      return false;
+    }
   }
 };
