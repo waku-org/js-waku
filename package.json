@@ -158,6 +158,9 @@
       "**/*.spec.js"
     ]
   },
+  "browser": {
+    "./lib/crypto_subtle.js": "./lib/crypto_subtle_browser.js"
+  },
   "size-limit": [
     {
       "path": "build/esm/index.js",
