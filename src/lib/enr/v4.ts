@@ -1,7 +1,8 @@
+import * as secp from "@noble/secp256k1";
 import { keccak256 } from "js-sha3";
-import * as secp256k1 from "secp256k1";
 
 import { randomBytes } from "../crypto";
+import { bytesToHex } from "../utils";
 
 import { createNodeId } from "./create";
 import { NodeId } from "./types";
@@ -15,12 +16,21 @@ export function createPrivateKey(): Uint8Array {
 }
 
 export function publicKey(privKey: Uint8Array): Uint8Array {
-  return secp256k1.publicKeyCreate(privKey);
+  return secp.getPublicKey(privKey, true);
 }
 
-export function sign(privKey: Uint8Array, msg: Uint8Array): Uint8Array {
-  const { signature } = secp256k1.ecdsaSign(hash(msg), privKey);
-  return signature;
+export function compressPublicKey(publicKey: Uint8Array): Uint8Array {
+  const point = secp.Point.fromHex(bytesToHex(publicKey));
+  return point.toRawBytes(true);
+}
+
+export async function sign(
+  privKey: Uint8Array,
+  msg: Uint8Array
+): Promise<Uint8Array> {
+  return secp.sign(hash(msg), privKey, {
+    der: false,
+  });
 }
 
 export function verify(
@@ -28,12 +38,17 @@ export function verify(
   msg: Uint8Array,
   sig: Uint8Array
 ): boolean {
-  // Remove the recovery id if present (byte #65)
-  return secp256k1.ecdsaVerify(sig.slice(0, 64), hash(msg), pubKey);
+  try {
+    const _sig = secp.Signature.fromCompact(sig.slice(0, 64));
+    return secp.verify(_sig, hash(msg), pubKey);
+  } catch {
+    return false;
+  }
 }
 
 export function nodeId(pubKey: Uint8Array): NodeId {
-  const uncompressedPubkey = secp256k1.publicKeyConvert(pubKey, false);
+  const publicKey = secp.Point.fromHex(pubKey);
+  const uncompressedPubkey = publicKey.toRawBytes(false);
 
   return createNodeId(hash(uncompressedPubkey.slice(1)));
 }
@@ -47,7 +62,7 @@ export class ENRKeyPair {
 
   public static create(privateKey?: Uint8Array): ENRKeyPair {
     if (privateKey) {
-      if (!secp256k1.privateKeyVerify(privateKey)) {
+      if (!secp.utils.isValidPrivateKey(privateKey)) {
         throw new Error("Invalid private key");
       }
     }
@@ -58,7 +73,7 @@ export class ENRKeyPair {
     return new ENRKeyPair(_nodeId, _privateKey, _publicKey);
   }
 
-  public sign(msg: Uint8Array): Uint8Array {
+  public async sign(msg: Uint8Array): Promise<Uint8Array> {
     return sign(this.privateKey, msg);
   }
 
