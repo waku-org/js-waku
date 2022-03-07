@@ -9,7 +9,7 @@ import { fleets } from "./discovery/predefined";
 import { Protocols, Waku } from "./waku";
 import { WakuMessage } from "./waku_message";
 
-describe("Test nwaku test fleet", () => {
+describe("Test nwaku prod fleet", () => {
   const wakus: Waku[] = [];
 
   afterEach(function () {
@@ -23,7 +23,7 @@ describe("Test nwaku test fleet", () => {
     // This dependence must be removed once DNS discovery is implemented
     this.timeout(20_000);
 
-    const nodes = Object.values(fleets.fleets["wakuv2.test"]["waku-websocket"]);
+    const nodes = Object.values(fleets.fleets["wakuv2.prod"]["waku-websocket"]);
 
     const peerIds = nodes.map((a) => {
       const ma = new Multiaddr(a);
@@ -53,11 +53,11 @@ describe("Test nwaku test fleet", () => {
   it("Relay", async function () {
     // This test depends on fleets.status.im being online.
     // This dependence must be removed once DNS discovery is implemented
-    this.timeout(20_000);
+    this.timeout(60000);
 
     const id = randomBytes(4).toString();
 
-    const nodes = Object.values(fleets.fleets["wakuv2.test"]["waku-websocket"]);
+    const nodes = Object.values(fleets.fleets["wakuv2.prod"]["waku-websocket"]);
 
     expect(nodes.length).to.eq(3);
 
@@ -96,7 +96,7 @@ describe("Test nwaku test fleet", () => {
     });
 
     await Promise.all(relayPromises);
-    await delay(5000);
+    await delay(10000);
 
     console.log(messages);
 
@@ -115,9 +115,9 @@ describe("Test nwaku test fleet", () => {
   it("Store", async function () {
     // This test depends on fleets.status.im being online.
     // This dependence must be removed once DNS discovery is implemented
-    this.timeout(20_000);
+    this.timeout(30000);
 
-    const nodes = Object.values(fleets.fleets["wakuv2.test"]["waku-websocket"]);
+    const nodes = Object.values(fleets.fleets["wakuv2.prod"]["waku-websocket"]);
 
     expect(nodes.length).to.eq(3);
 
@@ -146,7 +146,7 @@ describe("Test nwaku test fleet", () => {
     });
 
     await Promise.all(relayPromises);
-    await delay(1000);
+    await delay(5000);
 
     const storePromises = wakus.map(async (waku, index) => {
       const messages = await waku.store.queryHistory([contentTopic]);
