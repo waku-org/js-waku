@@ -1,7 +1,7 @@
 import assert from "assert";
 
+import * as secp from "@noble/secp256k1";
 import * as base32 from "hi-base32";
-import { ecdsaVerify } from "secp256k1";
 import { fromString } from "uint8arrays/from-string";
 
 import { ENR } from "../enr";
@@ -48,11 +48,17 @@ export class ENRTree {
       64
     );
 
-    const isVerified = ecdsaVerify(
-      signatureBuffer,
-      keccak256Buf(signedComponentBuffer),
-      new Uint8Array(decodedPublicKey)
-    );
+    let isVerified;
+    try {
+      const _sig = secp.Signature.fromCompact(signatureBuffer.slice(0, 64));
+      isVerified = secp.verify(
+        _sig,
+        keccak256Buf(signedComponentBuffer),
+        new Uint8Array(decodedPublicKey)
+      );
+    } catch {
+      isVerified = false;
+    }
 
     assert(isVerified, "Unable to verify ENRTree root signature");
 

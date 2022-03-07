@@ -502,7 +502,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return encoded;
   }
 
-  encodeTxt(privateKey?: Uint8Array): string {
+  async encodeTxt(privateKey?: Uint8Array): Promise<string> {
     return (
       ENR.RECORD_PREFIX + toString(await this.encode(privateKey), "base64url")
     );

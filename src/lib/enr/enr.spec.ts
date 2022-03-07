@@ -37,7 +37,7 @@ describe("ENR", function () {
         lightPush: false,
       };
 
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const enr2 = ENR.decodeTxt(txt);
 
       if (!enr.signature) throw "enr.signature is undefined";
@@ -116,7 +116,7 @@ describe("ENR", function () {
         enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
 
         enr.set("id", new Uint8Array([0]));
-        const txt = enr.encodeTxt(keypair.privateKey);
+        const txt = await enr.encodeTxt(keypair.privateKey);
 
         ENR.decodeTxt(txt);
         assert.fail("Expect error here");
@@ -399,10 +399,10 @@ describe("ENR", function () {
       };
     });
 
-    it("should set field with all protocols disabled", () => {
+    it("should set field with all protocols disabled", async () => {
       enr.waku2 = waku2Protocols;
 
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -411,14 +411,14 @@ describe("ENR", function () {
       expect(decoded.lightPush).to.equal(false);
     });
 
-    it("should set field with all protocols enabled", () => {
+    it("should set field with all protocols enabled", async () => {
       waku2Protocols.relay = true;
       waku2Protocols.store = true;
       waku2Protocols.filter = true;
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(true);
@@ -427,11 +427,11 @@ describe("ENR", function () {
       expect(decoded.lightPush).to.equal(true);
     });
 
-    it("should set field with only RELAY enabled", () => {
+    it("should set field with only RELAY enabled", async () => {
       waku2Protocols.relay = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(true);
@@ -440,11 +440,11 @@ describe("ENR", function () {
       expect(decoded.lightPush).to.equal(false);
     });
 
-    it("should set field with only STORE enabled", () => {
+    it("should set field with only STORE enabled", async () => {
       waku2Protocols.store = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -453,11 +453,11 @@ describe("ENR", function () {
       expect(decoded.lightPush).to.equal(false);
     });
 
-    it("should set field with only FILTER enabled", () => {
+    it("should set field with only FILTER enabled", async () => {
       waku2Protocols.filter = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -466,11 +466,11 @@ describe("ENR", function () {
       expect(decoded.lightPush).to.equal(false);
     });
 
-    it("should set field with only LIGHTPUSH enabled", () => {
+    it("should set field with only LIGHTPUSH enabled", async () => {
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(false);
