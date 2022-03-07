@@ -56,8 +56,8 @@ describe("Waku Message: Browser & Node", function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
-        fc.uint8Array({ minLength: 32, maxLength: 32 }),
-        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        fc.uint8Array({ minLength: 32, maxLength: 32, min: 1 }),
+        fc.uint8Array({ minLength: 32, maxLength: 32, min: 1 }),
         async (payload, sigPrivKey, encPrivKey) => {
           const sigPubKey = getPublicKey(sigPrivKey);
           const encPubKey = getPublicKey(encPrivKey);
