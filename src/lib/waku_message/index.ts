@@ -104,8 +104,8 @@ export class WakuMessage {
       {
         payload: _payload,
         timestampDeprecated: timestamp.valueOf() / 1000,
-        // nanoseconds https://rfc.vac.dev/spec/14/
-        timestamp: Long.fromNumber(timestamp.valueOf()).mul(1000),
+        // milliseconds 10^-3 to nanoseconds 10^-9
+        timestamp: Long.fromNumber(timestamp.valueOf()).mul(1_000_000),
         version,
         contentTopic,
       },
@@ -281,8 +281,8 @@ export class WakuMessage {
     // we catch the error and return undefined.
     try {
       if (this.proto.timestamp) {
-        // nanoseconds https://rfc.vac.dev/spec/14/
-        const timestamp = this.proto.timestamp.div(1000).toNumber();
+        // nanoseconds 10^-9 to milliseconds 10^-3
+        const timestamp = this.proto.timestamp.div(1_000_000).toNumber();
         return new Date(timestamp);
       }
 
