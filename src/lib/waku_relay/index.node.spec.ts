@@ -379,7 +379,7 @@ describe("Waku Relay [node only]", () => {
         }
       );
 
-      await nimWaku.sendMessage(message);
+      await nimWaku.sendMessage(NimWaku.toWakuRelayMessage(message));
 
       const receivedMsg = await receivedMsgPromise;
 
