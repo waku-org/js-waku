@@ -448,18 +448,25 @@ describe("Waku Store", () => {
     nimWaku = new NimWaku(makeLogFileName(this));
     await nimWaku.start({ persistMessages: true });
 
+    const now = new Date();
+
     const startTime = new Date();
+    // Set start time 5 minutes in the past
+    startTime.setTime(now.getTime() - 5 * 60 * 1000);
 
     const message1Timestamp = new Date();
-    message1Timestamp.setTime(startTime.getTime() + 60 * 1000);
+    // Set first message was 4 minutes in the past
+    message1Timestamp.setTime(now.getTime() - 4 * 60 * 1000);
+
     const message2Timestamp = new Date();
-    message2Timestamp.setTime(startTime.getTime() + 2 * 60 * 1000);
+    // Set second message 2 minutes in the past
+    message2Timestamp.setTime(now.getTime() - 2 * 60 * 1000);
     const messageTimestamps = [message1Timestamp, message2Timestamp];
 
     const endTime = new Date();
-    endTime.setTime(startTime.getTime() + 3 * 60 * 1000);
+    // Set end time 1 minute in the paste
+    endTime.setTime(now.getTime() - 60 * 1000);
 
-    let firstMessageTime;
     for (let i = 0; i < 2; i++) {
       expect(
         await nimWaku.sendMessage(
@@ -470,7 +477,6 @@ describe("Waku Store", () => {
           )
         )
       ).to.be.true;
-      if (!firstMessageTime) firstMessageTime = Date.now() / 1000;
     }
 
     waku = await Waku.create({
