@@ -31,7 +31,7 @@ export interface BootstrapOptions {
   /**
    * Multiaddrs of peers to connect to.
    */
-  peers?: string[];
+  peers?: string[] | Multiaddr[];
   /**
    * Getter that retrieve multiaddrs of peers to connect to.
    */
@@ -64,7 +64,13 @@ export class Bootstrap {
       };
     } else if (opts.peers !== undefined && opts.peers.length > 0) {
       const allPeers: Multiaddr[] = opts.peers.map(
-        (node: string) => new Multiaddr(node)
+        (node: string | Multiaddr) => {
+          if (typeof node === "string") {
+            return new Multiaddr(node);
+          } else {
+            return node;
+          }
+        }
       );
       const peers = getPseudoRandomSubset(allPeers, maxPeers);
       dbg(

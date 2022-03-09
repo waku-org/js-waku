@@ -62,7 +62,7 @@ describe("Waku Dial [node only]", function () {
 
       waku = await Waku.create({
         staticNoiseKey: NOISE_KEY_1,
-        bootstrap: { peers: [multiAddrWithId.toString()] },
+        bootstrap: { peers: [multiAddrWithId] },
       });
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
