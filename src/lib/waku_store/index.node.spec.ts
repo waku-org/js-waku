@@ -40,7 +40,9 @@ describe("Waku Store", () => {
     for (let i = 0; i < 2; i++) {
       expect(
         await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          NimWaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          )
         )
       ).to.be.true;
     }
@@ -70,7 +72,9 @@ describe("Waku Store", () => {
     for (let i = 0; i < totalMsgs; i++) {
       expect(
         await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          NimWaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          )
         )
       ).to.be.true;
     }
@@ -107,7 +111,9 @@ describe("Waku Store", () => {
     for (let i = 0; i < availMsgs; i++) {
       expect(
         await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          NimWaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          )
         )
       ).to.be.true;
     }
@@ -141,7 +147,9 @@ describe("Waku Store", () => {
     for (let i = 0; i < 15; i++) {
       expect(
         await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          NimWaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          )
         )
       ).to.be.true;
     }
@@ -176,7 +184,9 @@ describe("Waku Store", () => {
     for (let i = 0; i < 2; i++) {
       expect(
         await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic),
+          NimWaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          ),
           customPubSubTopic
         )
       ).to.be.true;
@@ -453,9 +463,11 @@ describe("Waku Store", () => {
     for (let i = 0; i < 2; i++) {
       expect(
         await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic, {
-            timestamp: messageTimestamps[i],
-          })
+          NimWaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic, {
+              timestamp: messageTimestamps[i],
+            })
+          )
         )
       ).to.be.true;
       if (!firstMessageTime) firstMessageTime = Date.now() / 1000;

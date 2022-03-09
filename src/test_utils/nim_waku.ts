@@ -62,9 +62,9 @@ export interface KeyPair {
 }
 
 export interface WakuRelayMessage {
-  payload: string;
+  payload: string; // Hex encoded data string without `0x` prefix.
   contentTopic?: string;
-  timestamp?: number; // Integer in seconds
+  timestamp?: number; // Unix epoch time in nanoseconds as a 64-bits integer value.
 }
 
 export class NimWaku {
@@ -74,6 +74,27 @@ export class NimWaku {
   private multiaddrWithId?: Multiaddr;
   private readonly logPath: string;
   private rpcPort?: number;
+
+  /**
+   * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
+   * by the nwaku JSON-RPC API.
+   */
+  static toWakuRelayMessage(message: WakuMessage): WakuRelayMessage {
+    if (!message.payload) {
+      throw "Attempting to convert empty message";
+    }
+
+    let timestamp;
+    if (message.proto.timestamp) {
+      timestamp = message.proto.timestamp.toNumber();
+    }
+
+    return {
+      payload: bytesToHex(message.payload),
+      contentTopic: message.contentTopic,
+      timestamp,
+    };
+  }
 
   constructor(logName: string) {
     this.logPath = `${LOG_DIR}/nim-waku_${logName}.log`;
@@ -184,28 +205,14 @@ export class NimWaku {
   }
 
   async sendMessage(
-    message: WakuMessage,
+    message: WakuRelayMessage,
     pubSubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
-    if (!message.payload) {
-      throw "Attempting to send empty message";
-    }
-    let timestamp;
-    if (message.timestamp) {
-      timestamp = message.timestamp.valueOf() * 1000;
-    }
-
-    const rpcMessage = {
-      payload: bytesToHex(message.payload),
-      contentTopic: message.contentTopic,
-      timestamp,
-    };
-
     return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
-      rpcMessage,
+      message,
     ]);
   }
 
