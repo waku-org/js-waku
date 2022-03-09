@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2022-03-09
+
 ### Added
 
 - New `pubsub_topic` field on the `cursor` of Waku Store queries ([#585](https://github.com/status-im/js-waku/issues/595)).
@@ -343,7 +345,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/status-im/js-waku/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/status-im/js-waku/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/status-im/js-waku/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/status-im/js-waku/compare/v0.15.0...v0.16.0
