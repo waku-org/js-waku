@@ -107,12 +107,17 @@ export class HistoryRPC {
           } as protoV2Beta4.PagingInfo;
 
           let startTime, endTime;
-          if (params.startTime)
-            startTime = Long.fromNumber(params.startTime.valueOf()).mul(1000);
+          if (params.startTime) {
+            // milliseconds 10^-3 to nanoseconds 10^-9
+            startTime = Long.fromNumber(params.startTime.valueOf()).mul(
+              1_000_000
+            );
+          }
 
-          if (params.endTime)
-            endTime = Long.fromNumber(params.endTime.valueOf()).mul(1000);
-
+          if (params.endTime) {
+            // milliseconds 10^-3 to nanoseconds 10^-9
+            endTime = Long.fromNumber(params.endTime.valueOf()).mul(1_000_000);
+          }
           return new HistoryRPC(
             {
               requestId: uuid(),

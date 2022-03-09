@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Handle errors thrown by `bytesToUtf8`.
+- `WakuMessage.timestamp` field must use nanoseconds (was using microseconds).
 
 ### Removed
 
