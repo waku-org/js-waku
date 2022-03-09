@@ -185,8 +185,7 @@ async function initWaku(setter: (waku: Waku) => void) {
         },
       },
       bootstrap: {
-        getPeers: () =>
-          Promise.resolve(getPredefinedBootstrapNodes(selectFleetEnv())),
+        peers: getPredefinedBootstrapNodes(selectFleetEnv()),
       },
     });
 
