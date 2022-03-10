@@ -8,3 +8,6 @@ export const ERR_NO_SIGNATURE = "No valid signature found";
 // The maximum length of byte size of a multiaddr to encode in the `multiaddr` field
 // The size is a big endian 16-bit unsigned integer
 export const MULTIADDR_LENGTH_SIZE = 2;
+
+// The size of the waku2 field key in bits
+export const WAKU2_FIELD_LENGTH = 8;
