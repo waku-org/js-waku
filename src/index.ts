@@ -8,7 +8,7 @@ export * as utf8 from "./lib/utf8";
 export * as utils from "./lib/utils";
 
 export * as waku from "./lib/waku";
-export { Waku, DefaultPubSubTopic } from "./lib/waku";
+export { Waku, DefaultPubSubTopic, Protocols } from "./lib/waku";
 
 export * as waku_message from "./lib/waku_message";
 export { WakuMessage } from "./lib/waku_message";
