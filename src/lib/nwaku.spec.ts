@@ -173,7 +173,6 @@ describe("Test nwaku fleets", () => {
       });
 
       await Promise.all(relayPromises);
-      await delay(30000);
 
       console.log(messages);
 
@@ -402,7 +401,6 @@ describe("Test nwaku fleets", () => {
       });
 
       await Promise.all(relayPromises);
-      await delay(30000);
 
       console.log(messages);
 
