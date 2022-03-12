@@ -31,7 +31,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
 
   constructor(
     kvs: Record<ENRKey, ENRValue> = {},
-    seq: SequenceNumber = BigInt(1),
+    seq: SequenceNumber = 1n,
     signature: Uint8Array | null = null
   ) {
     super(Object.entries(kvs));
