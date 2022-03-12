@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Use `BigInt` constructor instead of happening `n` as it seems to have better browser support.
+
 ## [0.19.1] - 2022-03-10
 
 ### Added
