@@ -21,6 +21,7 @@ import {
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
 import * as v4 from "./v4";
+import { decodeWaku2, encodeWaku2, Waku2 } from "./waku2_codec";
 
 const dbg = debug("waku:enr");
 
@@ -415,6 +416,29 @@ export class ENR extends Map<ENRKey, ENRValue> {
       });
     }
     return [];
+  }
+
+  /**
+   * Get the `waku2` field from ENR.
+   */
+  get waku2(): Waku2 | undefined {
+    const raw = this.get("waku2");
+
+    if (raw) return decodeWaku2(raw);
+
+    return;
+  }
+
+  /**
+   * Set the `waku2` field on the ENR.
+   */
+  set waku2(waku2: Waku2 | undefined) {
+    if (waku2 === undefined) {
+      this.delete("waku2");
+    } else {
+      const waku2Buffer = encodeWaku2(waku2);
+      this.set("waku2", waku2Buffer);
+    }
   }
 
   verify(data: Uint8Array, signature: Uint8Array): boolean {

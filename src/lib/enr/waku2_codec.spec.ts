@@ -16,7 +16,7 @@ const waku2FieldEncodings = {
   storeAndLightpushTrue: new Uint8Array([0, 1, 0, 1, 0, 0, 0, 0]),
 };
 
-describe.only("ENR waku2 codec", function () {
+describe("ENR waku2 codec", function () {
   let protocols: Waku2;
 
   beforeEach(function () {

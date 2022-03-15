@@ -8,6 +8,7 @@ import { bytesToHex, hexToBytes } from "../utils";
 import { ERR_INVALID_ID } from "./constants";
 import { ENR } from "./enr";
 import { createKeypairFromPeerId } from "./keypair";
+import { Waku2 } from "./waku2_codec";
 
 import { v4 } from "./index";
 
@@ -362,6 +363,48 @@ describe("ENR", function () {
         new Multiaddr(`/ip4/${ip4}/tcp/${tcp}`)
       );
       enr.ip6 = ip6;
+    });
+  });
+
+  describe("waku2 key", async () => {
+    let peerId;
+    let enr: ENR;
+    let waku2Protocols: Waku2;
+
+    before(async function () {
+      peerId = await PeerId.create({ keyType: "secp256k1" });
+      enr = ENR.createFromPeerId(peerId);
+      waku2Protocols = {
+        relay: false,
+        store: false,
+        filter: false,
+        lightpush: false,
+      };
+    });
+
+    it("should set field with all protocols disabled", () => {
+      enr.waku2 = waku2Protocols;
+      const decoded = enr.waku2;
+
+      expect(decoded.relay).to.equal(false);
+      expect(decoded.store).to.equal(false);
+      expect(decoded.filter).to.equal(false);
+      expect(decoded.lightpush).to.equal(false);
+    });
+
+    it("should set field with all protocols enabled", () => {
+      waku2Protocols.relay = true;
+      waku2Protocols.store = true;
+      waku2Protocols.filter = true;
+      waku2Protocols.lightpush = true;
+
+      enr.waku2 = waku2Protocols;
+      const decoded = enr.waku2;
+
+      expect(decoded.relay).to.equal(true);
+      expect(decoded.store).to.equal(true);
+      expect(decoded.filter).to.equal(true);
+      expect(decoded.lightpush).to.equal(true);
     });
   });
 });
