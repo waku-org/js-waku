@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add babel as peer dependency to ensure that recent version enough is installed when using js-waku with an old React version.
+
 ## [0.19.1] - 2022-03-10
 
 ### Added
