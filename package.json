@@ -5,7 +5,13 @@
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/esm/index.js",
-  "exports": "./",
+  "exports": {
+    "node": {
+      "module": "./build/esm/index.js",
+      "import": "./build/main/index.js"
+    },
+    "default": "./build/main/index.js"
+  },
   "repository": "https://github.com/status-im/js-waku",
   "license": "MIT OR Apache-2.0",
   "keywords": [
