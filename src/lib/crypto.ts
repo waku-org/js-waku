@@ -11,7 +11,11 @@ declare global {
   }
 }
 
-const crypto = window.crypto || window.msCrypto || nodeCrypto.webcrypto;
+const crypto =
+  (typeof window !== "undefined" &&
+    (window as Window) &&
+    (window.crypto || window.msCrypto)) ||
+  (nodeCrypto.webcrypto as unknown as Crypto);
 const subtle: SubtleCrypto = crypto.subtle || crypto.webkitSubtle;
 
 if (subtle === undefined) {
