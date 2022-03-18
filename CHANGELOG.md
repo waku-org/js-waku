@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Enable usage in NodeJS by fixing `exports` field and usage of the `crypto` module.
+
 ## [0.19.1] - 2022-03-10
 
 ### Added
