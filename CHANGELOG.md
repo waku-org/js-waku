@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.2] - 2022-03-21
+
 ### Fixed
 
 - Enable usage in NodeJS by fixing `exports` field and usage of the `crypto` module.
@@ -356,7 +358,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.19.1...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.19.2...HEAD
+[0.19.2]: https://github.com/status-im/js-waku/compare/v0.19.0...v0.19.2
 [0.19.1]: https://github.com/status-im/js-waku/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/status-im/js-waku/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/status-im/js-waku/compare/v0.17.0...v0.18.0
