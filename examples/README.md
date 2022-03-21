@@ -13,5 +13,6 @@ Here is the list of the code examples and the features they demonstrate:
   No async/await syntax.
 - [Minimal ReactJS Waku Store App](store-reactjs-chat): Waku Store, React/JavaScript, Protobuf using `protons`.
 - [Using Waku Store in JavaScript](store-js): Stop retrieving results from Waku Store on condition, Use minified bundle from Unpkg.com, JavaScript.
+- [Using Waku Relay in JavaScript](relay-js): Receive and send text messages with Waku Relay, Use minified bundle from Unpkg.com, JavaScript.
 
 See https://docs.wakuconnect.dev/docs/examples/ for more examples.
