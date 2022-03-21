@@ -1,4 +1,4 @@
-# Pure Javascript Using Minified Library
+# Using Waku Store in JavaScript
 
 **Demonstrates**:
 
