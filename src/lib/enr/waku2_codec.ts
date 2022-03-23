@@ -19,9 +19,12 @@ const protocols = ["relay", "store", "filter", "lightpush"];
 export function encodeWaku2(protocols: Waku2): Uint8Array {
   const bytes = new Uint8Array(WAKU2_FIELD_LENGTH);
 
+  const fieldPositions = Waku2FieldPositions as unknown as {
+    [key: string]: number;
+  };
+
   for (const [key, value] of Object.entries(protocols)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const position = (<any>Waku2FieldPositions)[key.toUpperCase()];
+    const position = fieldPositions[key.toUpperCase()];
     const valueArray = [value | 0];
 
     bytes.set(valueArray, position);
