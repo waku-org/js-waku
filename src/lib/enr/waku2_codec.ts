@@ -14,7 +14,7 @@ enum Waku2FieldPositions {
   LIGHTPUSH = 3,
 }
 
-const protocols = ["relay", "store", "filter", "lightpush"];
+const ProtocolsInOrder = ["relay", "store", "filter", "lightpush"];
 
 export function encodeWaku2(protocols: Waku2): Uint8Array {
   const bytes = new Uint8Array(WAKU2_FIELD_LENGTH);
@@ -43,7 +43,7 @@ export function decodeWaku2(bytes: Uint8Array): Waku2 {
 
   const object: { [key: string]: boolean } = {};
 
-  protocols.forEach((protocol, index) => {
+  ProtocolsInOrder.forEach((protocol, index) => {
     object[protocol] = !!bytes[index];
   });
 
