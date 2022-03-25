@@ -5,10 +5,12 @@ import { Multiaddr, protocols } from "multiaddr";
 // @ts-ignore: No types available
 import muConvert from "multiaddr/src/convert";
 import PeerId from "peer-id";
+import { fromString } from "uint8arrays/from-string";
+import { toString } from "uint8arrays/to-string";
 import { encode as varintEncode } from "varint";
 
 import { bytesToUtf8, utf8ToBytes } from "../utf8";
-import { base64ToBytes, bytesToBase64, bytesToHex, hexToBytes } from "../utils";
+import { bytesToHex, hexToBytes } from "../utils";
 
 import { ERR_INVALID_ID, ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
 import {
@@ -107,7 +109,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
         `"string encoded ENR must start with '${this.RECORD_PREFIX}'`
       );
     }
-    return ENR.decode(base64ToBytes(encoded.slice(4)));
+    return ENR.decode(fromString(encoded.slice(4), "base64url"));
   }
 
   set(k: ENRKey, v: ENRValue): this {
@@ -465,7 +467,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return encoded;
   }
 
-  async encodeTxt(privateKey?: Uint8Array): Promise<string> {
-    return ENR.RECORD_PREFIX + (await bytesToBase64(this.encode(privateKey)));
+  encodeTxt(privateKey?: Uint8Array): string {
+    return ENR.RECORD_PREFIX + toString(this.encode(privateKey), "base64url");
   }
 }

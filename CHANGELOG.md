@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Examples: Add Relay JavaScript example.
 
+### Fixed
+
+- Replace Base 64 buggy conversion functions with `uint8arrays`. 
+
 ## [0.19.2] - 2022-03-21
 
 ### Fixed
