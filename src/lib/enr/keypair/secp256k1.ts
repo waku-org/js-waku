@@ -1,6 +1,7 @@
 import crypto from "crypto";
 
 import * as secp256k1 from "secp256k1";
+import { concat } from "uint8arrays/concat";
 
 import { AbstractKeypair, IKeypair, IKeypairClass, KeypairType } from "./types";
 
@@ -8,20 +9,14 @@ export function secp256k1PublicKeyToCompressed(
   publicKey: Uint8Array
 ): Uint8Array {
   if (publicKey.length === 64) {
-    const _publicKey = new Uint8Array(publicKey.length + 1);
-    _publicKey.set([4]);
-    _publicKey.set(publicKey, 1);
-    publicKey = _publicKey;
+    publicKey = concat([[4], publicKey], 65);
   }
   return secp256k1.publicKeyConvert(publicKey, true);
 }
 
 export function secp256k1PublicKeyToFull(publicKey: Uint8Array): Uint8Array {
   if (publicKey.length === 64) {
-    const _publicKey = new Uint8Array(publicKey.length + 1);
-    _publicKey.set([4]);
-    _publicKey.set(publicKey, 1);
-    publicKey = _publicKey;
+    publicKey = concat([[4], publicKey], 65);
   }
   return secp256k1.publicKeyConvert(publicKey, false);
 }
@@ -67,11 +62,7 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
 
   sign(msg: Uint8Array): Uint8Array {
     const { signature, recid } = secp256k1.ecdsaSign(msg, this.privateKey);
-
-    const result = new Uint8Array(signature.length + 1);
-    result.set(signature);
-    result.set([recid], signature.length);
-    return result;
+    return concat([signature, [recid]], signature.length + 1);
   }
 
   verify(msg: Uint8Array, sig: Uint8Array): boolean {
