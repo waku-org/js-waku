@@ -29,7 +29,7 @@ describe("ENR", function () {
           "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
         ),
       ];
-      const txt = await enr.encodeTxt(keypair.privateKey);
+      const txt = enr.encodeTxt(keypair.privateKey);
 
       const enr2 = ENR.decodeTxt(txt);
       if (!enr.signature) throw "enr.signature is undefined";
@@ -102,7 +102,7 @@ describe("ENR", function () {
         enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
 
         enr.set("id", new Uint8Array([0]));
-        const txt = await enr.encodeTxt(keypair.privateKey);
+        const txt = enr.encodeTxt(keypair.privateKey);
 
         ENR.decodeTxt(txt);
         assert.fail("Expect error here");
@@ -203,7 +203,7 @@ describe("ENR", function () {
       expect(decoded).to.deep.equal(record);
     });
 
-    it("should encode/decode to text encoding", async () => {
+    it("should encode/decode to text encoding", () => {
       // spec enr https://eips.ethereum.org/EIPS/eip-778
       const testTxt =
         "enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjzCBOonrkTfj499SZuOh8R33Ls8RRcy5wBgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQPKY0yuDUmstAHYpMa2_oxVtw0RW_QAdpzBQA8yWM0xOIN1ZHCCdl8";
@@ -211,7 +211,7 @@ describe("ENR", function () {
       expect(decoded.udp).to.be.equal(30303);
       expect(decoded.ip).to.be.equal("127.0.0.1");
       expect(decoded).to.deep.equal(record);
-      const recordTxt = await record.encodeTxt(privateKey);
+      const recordTxt = record.encodeTxt(privateKey);
       expect(recordTxt).to.equal(testTxt);
     });
   });
