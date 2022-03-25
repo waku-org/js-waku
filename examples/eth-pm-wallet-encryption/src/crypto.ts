@@ -1,8 +1,9 @@
 import "@ethersproject/shims";
 
 import { PublicKeyMessage } from "./messaging/wire";
-import { hexToBytes, equalByteArrays, bytesToHex } from "js-waku/lib/utils";
+import { hexToBytes, bytesToHex } from "js-waku/lib/utils";
 import * as sigUtil from "eth-sig-util";
+import { equals } from "uint8arrays/equals";
 
 /**
  * Sign the encryption public key with Web3. This can then be published to let other
@@ -97,5 +98,5 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
   console.log("Recovered", recovered);
   console.log("ethAddress", "0x" + bytesToHex(msg.ethAddress));
 
-  return equalByteArrays(recovered, msg.ethAddress);
+  return equals(hexToBytes(recovered), msg.ethAddress);
 }

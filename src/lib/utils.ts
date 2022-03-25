@@ -52,30 +52,6 @@ export function bytesToHex(bytes: Uint8Array): string {
 }
 
 /**
- * Compare both inputs, return true if they represent the same byte array.
- */
-export function equalByteArrays(
-  a: Uint8Array | string,
-  b: Uint8Array | string
-): boolean {
-  let _a: string;
-  let _b: string;
-  if (typeof a === "string") {
-    _a = a.replace(/^0x/i, "").toLowerCase();
-  } else {
-    _a = bytesToHex(a);
-  }
-
-  if (typeof b === "string") {
-    _b = b.replace(/^0x/i, "").toLowerCase();
-  } else {
-    _b = bytesToHex(b);
-  }
-
-  return _a === _b;
-}
-
-/**
  * Return Keccak-256 of the input.
  */
 export function keccak256Buf(message: Message): Uint8Array {

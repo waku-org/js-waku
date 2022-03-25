@@ -3,7 +3,8 @@ import { Waku, WakuMessage } from "js-waku";
 import { PrivateMessage, PublicKeyMessage } from "./messaging/wire";
 import { validatePublicKeyMessage } from "./crypto";
 import { Message } from "./messaging/Messages";
-import { bytesToHex, equalByteArrays } from "js-waku/lib/utils";
+import { bytesToHex, hexToBytes } from "js-waku/lib/utils";
+import { equals } from "uint8arrays/equals";
 
 export const PublicKeyContentTopic = "/eth-pm/1/public-key/proto";
 export const PrivateMessageContentTopic = "/eth-pm/1/private-message/proto";
@@ -34,7 +35,8 @@ export function handlePublicKeyMessage(
   if (!msg.payload) return;
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
   if (!publicKeyMsg) return;
-  if (myAddress && equalByteArrays(publicKeyMsg.ethAddress, myAddress)) return;
+  if (myAddress && equals(publicKeyMsg.ethAddress, hexToBytes(myAddress)))
+    return;
 
   const res = validatePublicKeyMessage(publicKeyMsg);
   console.log("Is Public Key Message valid?", res);
@@ -62,7 +64,7 @@ export async function handlePrivateMessage(
     console.log("Failed to decode Private Message");
     return;
   }
-  if (!equalByteArrays(privateMessage.toAddress, address)) return;
+  if (!equals(privateMessage.toAddress, hexToBytes(address))) return;
 
   const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
 

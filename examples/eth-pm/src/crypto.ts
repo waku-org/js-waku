@@ -1,11 +1,12 @@
 import "@ethersproject/shims";
 
 import { PublicKeyMessage } from "./messaging/wire";
-import { hexToBytes, equalByteArrays, bytesToHex } from "js-waku/lib/utils";
+import { hexToBytes, bytesToHex } from "js-waku/lib/utils";
 import { generatePrivateKey, getPublicKey } from "js-waku";
 import * as sigUtil from "eth-sig-util";
 import { PublicKeyContentTopic } from "./waku";
 import { keccak256 } from "ethers/lib/utils";
+import { equals } from "uint8arrays/equals";
 
 export const PublicKeyMessageEncryptionKey = hexToBytes(
   keccak256(Buffer.from(PublicKeyContentTopic, "utf-8"))
@@ -118,5 +119,5 @@ export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
   console.log("Recovered", recovered);
   console.log("ethAddress", "0x" + bytesToHex(msg.ethAddress));
 
-  return equalByteArrays(recovered, msg.ethAddress);
+  return equals(hexToBytes(recovered), msg.ethAddress);
 }
