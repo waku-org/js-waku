@@ -1,19 +1,6 @@
 import { keccak256, Message } from "js-sha3";
 
 /**
- * Convert input to a Buffer.
- *
- * @deprecated Use `hexToBytes` instead.
- */
-export function hexToBuf(hex: string | Buffer | Uint8Array): Buffer {
-  if (typeof hex === "string") {
-    return Buffer.from(hex.replace(/^0x/i, ""), "hex");
-  } else {
-    return Buffer.from(hex);
-  }
-}
-
-/**
  * Convert input to a byte array.
  */
 export function hexToBytes(hex: string | Uint8Array): Uint8Array {
@@ -26,16 +13,6 @@ export function hexToBytes(hex: string | Uint8Array): Uint8Array {
     return new Uint8Array(bytes);
   }
   return hex;
-}
-
-/**
- * Convert input to hex string (no `0x` prefix).
- *
- * @deprecated Use `bytesToHex` instead.
- */
-export function bufToHex(buf: Uint8Array | Buffer | ArrayBuffer): string {
-  const _buf = Buffer.from(buf);
-  return _buf.toString("hex");
 }
 
 /**

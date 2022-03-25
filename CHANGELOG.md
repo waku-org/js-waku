@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Breaking**: Removed `equalByteArrays`, use `uint8arrays/equals` instead.
   See changes in `eth-pm` example.
+- **Breaking**: Removed deprecated utils functions.
 
 ## [0.19.2] - 2022-03-21
 
