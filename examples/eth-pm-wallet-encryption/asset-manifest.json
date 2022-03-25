@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/examples/eth-pm-wallet-encryption/static/css/main.9e5ad33d.css",
-    "main.js": "/examples/eth-pm-wallet-encryption/static/js/main.0c6d9673.js",
+    "main.js": "/examples/eth-pm-wallet-encryption/static/js/main.b855e21b.js",
     "static/media/roboto-all-400-normal.woff": "/examples/eth-pm-wallet-encryption/static/media/roboto-all-400-normal.b5a0a0df312d3423493b.woff",
     "static/media/roboto-latin-400-normal.woff2": "/examples/eth-pm-wallet-encryption/static/media/roboto-latin-400-normal.176f8f5bd5f02b3abfcf.woff2",
     "static/media/roboto-cyrillic-ext-400-normal.woff2": "/examples/eth-pm-wallet-encryption/static/media/roboto-cyrillic-ext-400-normal.dd55ea0a2e90d5d86e15.woff2",
@@ -12,10 +12,10 @@
     "static/media/roboto-greek-ext-400-normal.woff2": "/examples/eth-pm-wallet-encryption/static/media/roboto-greek-ext-400-normal.bc7ace6e50c7d9d4d959.woff2",
     "index.html": "/examples/eth-pm-wallet-encryption/index.html",
     "main.9e5ad33d.css.map": "/examples/eth-pm-wallet-encryption/static/css/main.9e5ad33d.css.map",
-    "main.0c6d9673.js.map": "/examples/eth-pm-wallet-encryption/static/js/main.0c6d9673.js.map"
+    "main.b855e21b.js.map": "/examples/eth-pm-wallet-encryption/static/js/main.b855e21b.js.map"
   },
   "entrypoints": [
     "static/css/main.9e5ad33d.css",
-    "static/js/main.0c6d9673.js"
+    "static/js/main.b855e21b.js"
   ]
 }
