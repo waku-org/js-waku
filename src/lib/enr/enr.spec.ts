@@ -2,8 +2,7 @@ import { assert, expect } from "chai";
 import { Multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
-import { utf8ToBytes } from "../utf8";
-import { bytesToHex, hexToBytes } from "../utils";
+import { bytesToHex, hexToBytes, utf8ToBytes } from "../utils";
 
 import { ERR_INVALID_ID } from "./constants";
 import { ENR } from "./enr";

@@ -9,8 +9,7 @@ import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";
 import { encode as varintEncode } from "varint";
 
-import { bytesToUtf8, utf8ToBytes } from "../utf8";
-import { bytesToHex, hexToBytes } from "../utils";
+import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
 
 import { ERR_INVALID_ID, ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
 import {

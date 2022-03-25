@@ -3,7 +3,7 @@ import Long from "long";
 import { Reader } from "protobufjs/minimal";
 
 import * as proto from "../../proto/waku/v2/message";
-import { bytesToUtf8, utf8ToBytes } from "../utf8";
+import { bytesToUtf8, utf8ToBytes } from "../utils";
 
 import * as version_1 from "./version_1";
 
@@ -252,12 +252,12 @@ export class WakuMessage {
   }
 
   get payloadAsUtf8(): string {
-    if (!this.proto.payload) {
+    if (!this.payload) {
       return "";
     }
 
     try {
-      return bytesToUtf8(this.proto.payload);
+      return bytesToUtf8(this.payload);
     } catch (e) {
       dbg("Could not decode byte as UTF-8", e);
       return "";
@@ -265,7 +265,10 @@ export class WakuMessage {
   }
 
   get payload(): Uint8Array | undefined {
-    return this.proto.payload;
+    if (this.proto.payload) {
+      return new Uint8Array(this.proto.payload);
+    }
+    return;
   }
 
   get contentTopic(): string | undefined {

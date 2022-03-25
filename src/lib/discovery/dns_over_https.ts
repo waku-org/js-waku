@@ -6,7 +6,7 @@ import {
   query,
 } from "dns-query";
 
-import { bytesToUtf8 } from "../utf8";
+import { bytesToUtf8 } from "../utils";
 
 import { DnsClient } from "./dns";
 

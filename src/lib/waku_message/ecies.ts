@@ -1,8 +1,8 @@
 import * as secp from "@noble/secp256k1";
+import { concat } from "uint8arrays/concat";
 
 import { randomBytes, sha256, subtle } from "../crypto";
 import { hexToBytes } from "../utils";
-
 /**
  * HKDF as implemented in go-ethereum.
  */
@@ -12,17 +12,18 @@ function kdf(secret: Uint8Array, outputLength: number): Promise<Uint8Array> {
   let willBeResult = Promise.resolve(new Uint8Array());
   while (written < outputLength) {
     const counters = new Uint8Array([ctr >> 24, ctr >> 16, ctr >> 8, ctr]);
-    const countersSecret = new Uint8Array(counters.length + secret.length);
-    countersSecret.set(counters, 0);
-    countersSecret.set(secret, counters.length);
+    const countersSecret = concat(
+      [counters, secret],
+      counters.length + secret.length
+    );
     const willBeHashResult = sha256(countersSecret);
     willBeResult = willBeResult.then((result) =>
       willBeHashResult.then((hashResult) => {
         const _hashResult = new Uint8Array(hashResult);
-        const _res = new Uint8Array(result.length + _hashResult.length);
-        _res.set(result, 0);
-        _res.set(_hashResult, result.length);
-        return _res;
+        return concat(
+          [result, _hashResult],
+          result.length + _hashResult.length
+        );
       })
     );
     written += 32;
@@ -135,24 +136,16 @@ export async function encrypt(
   const encryptionKey = hash.slice(0, 16);
   const cipherText = await aesCtrEncrypt(iv, encryptionKey, msg);
 
-  const ivCipherText = new Uint8Array(iv.length + cipherText.length);
-  ivCipherText.set(iv, 0);
-  ivCipherText.set(cipherText, iv.length);
+  const ivCipherText = concat([iv, cipherText], iv.length + cipherText.length);
 
   const macKey = await sha256(hash.slice(16));
   const hmac = await hmacSha256Sign(macKey, ivCipherText);
   const ephemPublicKey = secp.getPublicKey(ephemPrivateKey, false);
 
-  const cipher = new Uint8Array(
+  return concat(
+    [ephemPublicKey, ivCipherText, hmac],
     ephemPublicKey.length + ivCipherText.length + hmac.length
   );
-  let index = 0;
-  cipher.set(ephemPublicKey, index);
-  index += ephemPublicKey.length;
-  cipher.set(ivCipherText, index);
-  index += ivCipherText.length;
-  cipher.set(hmac, index);
-  return cipher;
 }
 
 const metaLength = 1 + 64 + 16 + 32;
