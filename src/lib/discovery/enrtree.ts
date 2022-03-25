@@ -5,8 +5,7 @@ import { ecdsaVerify } from "secp256k1";
 import { fromString } from "uint8arrays/from-string";
 
 import { ENR } from "../enr";
-import { utf8ToBytes } from "../utf8";
-import { keccak256Buf } from "../utils";
+import { keccak256Buf, utf8ToBytes } from "../utils";
 
 export type ENRRootValues = {
   eRoot: string;

@@ -8,8 +8,7 @@ import {
   WakuRelayMessage,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { bytesToUtf8, utf8ToBytes } from "../utf8";
-import { bytesToHex, hexToBytes } from "../utils";
+import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
 import { Protocols, Waku } from "../waku";
 
 import {

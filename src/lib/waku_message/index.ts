@@ -3,7 +3,7 @@ import Long from "long";
 import { Reader } from "protobufjs/minimal";
 
 import * as proto from "../../proto/waku/v2/message";
-import { bytesToUtf8, utf8ToBytes } from "../utf8";
+import { bytesToUtf8, utf8ToBytes } from "../utils";
 
 import * as version_1 from "./version_1";
 

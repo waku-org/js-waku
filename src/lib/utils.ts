@@ -27,3 +27,13 @@ export const bytesToHex = (bytes: Uint8Array): string =>
 export function keccak256Buf(message: Message): Uint8Array {
   return new Uint8Array(keccak256.arrayBuffer(message));
 }
+
+/**
+ * Decode byte array to utf-8 string.
+ */
+export const bytesToUtf8 = (b: Uint8Array): string => toString(b, "utf8");
+
+/**
+ * Encode utf-8 string to byte array.
+ */
+export const utf8ToBytes = (s: string): Uint8Array => fromString(s, "utf8");

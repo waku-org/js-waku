@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Examples: Add Relay JavaScript example.
+- **Breaking**: Moved utf-8 conversion functions to `utils`.
 
 ### Fixed
 
