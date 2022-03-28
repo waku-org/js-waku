@@ -32,9 +32,12 @@ pipeline {
 
     stage('Examples') {
       parallel {
-        stage('web-chat') { steps { script { buildExample() } } }
-        stage('eth-pm') { steps { script { buildExample() } } }
-        stage('eth-pm-wallet-encryption') { steps { script { buildExample() } } }
+        stage('eth-pm') { steps { script { buildExample('npm') } } }
+        stage('eth-pm-wallet-encryption') { steps { script { buildExample('npm') } } }
+        stage('relay-angular-chat') { steps { script { buildExample('yarn') } } }
+        stage('relay-reactjs-chat') { steps { script { buildExample('npm') } } }
+        stage('store-reactjs-chat') { steps { script { buildExample('npm') } } }
+        stage('web-chat') { steps { script { buildExample('npm') } } }
       }
     }
 
@@ -52,11 +55,10 @@ pipeline {
   }
 }
 
-def buildExample(example=STAGE_NAME) {
+def buildExample(example=STAGE_NAME, buildTool) {
   def dest = "${WORKSPACE}/build/docs/examples/${example}"
   dir("examples/${example}") {
-    sh 'npm install'
-    sh 'npm run build'
+    sh "${buildTool} install"
     sh "mkdir -p ${dest}"
     sh "cp -r build/. ${dest}"
   }
