@@ -6,9 +6,14 @@ module.exports = {
     if (!config.resolve) config.resolve = {};
     if (!config.resolve.fallback) config.resolve.fallback = {};
     Object.assign(config.resolve.fallback, {
+      assert: require.resolve("assert"),
       buffer: require.resolve("buffer"),
       crypto: require.resolve("crypto-browserify"),
+      http: require.resolve("http-browserify"),
+      https: require.resolve("https-browserify"),
       stream: require.resolve("stream-browserify"),
+      url: require.resolve("url"),
+      zlib: require.resolve("browserify-zlib"),
     });
 
     if (!config.plugins) config.plugins = [];
@@ -34,9 +39,14 @@ module.exports = {
     if (!config.resolve) config.resolve = {};
     if (!config.resolve.fallback) config.resolve.fallback = {};
     Object.assign(config.resolve.fallback, {
+      assert: require.resolve("assert"),
       buffer: require.resolve("buffer"),
       crypto: require.resolve("crypto-browserify"),
+      http: require.resolve("http-browserify"),
+      https: require.resolve("https-browserify"),
       stream: require.resolve("stream-browserify"),
+      url: require.resolve("url"),
+      zlib: require.resolve("browserify-zlib"),
     });
 
     if (!config.plugins) config.plugins = [];
