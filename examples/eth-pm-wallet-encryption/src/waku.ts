@@ -1,9 +1,8 @@
 import { Dispatch, SetStateAction } from "react";
-import { Waku, WakuMessage } from "js-waku";
+import { utils, Waku, WakuMessage } from "js-waku";
 import { PrivateMessage, PublicKeyMessage } from "./messaging/wire";
 import { validatePublicKeyMessage } from "./crypto";
 import { Message } from "./messaging/Messages";
-import { bytesToHex, hexToBytes } from "js-waku/lib/utils";
 import { equals } from "uint8arrays/equals";
 
 export const PublicKeyContentTopic =
@@ -37,7 +36,7 @@ export function handlePublicKeyMessage(
   if (!msg.payload) return;
   const publicKeyMsg = PublicKeyMessage.decode(msg.payload);
   if (!publicKeyMsg) return;
-  if (myAddress && equals(publicKeyMsg.ethAddress, hexToBytes(myAddress)))
+  if (myAddress && equals(publicKeyMsg.ethAddress, utils.hexToBytes(myAddress)))
     return;
 
   const res = validatePublicKeyMessage(publicKeyMsg);
@@ -46,7 +45,7 @@ export function handlePublicKeyMessage(
   if (res) {
     setPublicKeys((prevPks: Map<string, Uint8Array>) => {
       prevPks.set(
-        bytesToHex(publicKeyMsg.ethAddress),
+        utils.bytesToHex(publicKeyMsg.ethAddress),
         publicKeyMsg.encryptionPublicKey
       );
       return new Map(prevPks);
@@ -79,7 +78,7 @@ export async function handlePrivateMessage(
     console.log("Failed to decode Private Message");
     return;
   }
-  if (!equals(privateMessage.toAddress, hexToBytes(address))) return;
+  if (!equals(privateMessage.toAddress, utils.hexToBytes(address))) return;
 
   const timestamp = wakuMsg.timestamp ? wakuMsg.timestamp : new Date();
 
