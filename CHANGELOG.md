@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Examples: Add Relay JavaScript example.
 - **Breaking**: Moved utf-8 conversion functions to `utils`.
+- Froze `libp2p-gossipsub` to `0.13.0` as new patch version bring breaking changes.
 
 ### Fixed
 
