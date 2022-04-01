@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import debug from "debug";
 
-import { makeLogFileName, NimWaku, NOISE_KEY_1 } from "../../test_utils";
+import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
 import { Protocols, Waku } from "../waku";
 import { WakuMessage } from "../waku_message";
@@ -12,23 +12,23 @@ const TestContentTopic = "/test/1/waku-light-push/utf8";
 
 describe("Waku Light Push [node only]", () => {
   let waku: Waku;
-  let nimWaku: NimWaku;
+  let nwaku: Nwaku;
 
   afterEach(async function () {
-    !!nimWaku && nimWaku.stop();
+    !!nwaku && nwaku.stop();
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
   it("Push successfully", async function () {
     this.timeout(5_000);
 
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ lightpush: true });
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ lightpush: true });
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.dial(await nimWaku.getMultiaddrWithId());
+    await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.LightPush]);
 
     const messageText = "Light Push works!";
@@ -44,7 +44,7 @@ describe("Waku Light Push [node only]", () => {
 
     while (msgs.length === 0) {
       await delay(200);
-      msgs = await nimWaku.messages();
+      msgs = await nwaku.messages();
     }
 
     expect(msgs[0].contentTopic).to.equal(message.contentTopic);
@@ -57,17 +57,17 @@ describe("Waku Light Push [node only]", () => {
 
     const customPubSubTopic = "/waku/2/custom-dapp/proto";
 
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ lightpush: true, topics: customPubSubTopic });
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ lightpush: true, topics: customPubSubTopic });
 
     waku = await Waku.create({
       pubSubTopic: customPubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.dial(await nimWaku.getMultiaddrWithId());
+    await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.LightPush]);
 
-    const nimPeerId = await nimWaku.getPeerId();
+    const nimPeerId = await nwaku.getPeerId();
 
     const messageText = "Light Push works!";
     const message = await WakuMessage.fromUtf8String(
@@ -84,10 +84,10 @@ describe("Waku Light Push [node only]", () => {
 
     let msgs: WakuMessage[] = [];
 
-    dbg("Waiting for message to show on nim-waku side");
+    dbg("Waiting for message to show in nwaku");
     while (msgs.length === 0) {
       await delay(200);
-      msgs = await nimWaku.messages();
+      msgs = await nwaku.messages();
     }
 
     expect(msgs[0].contentTopic).to.equal(message.contentTopic);

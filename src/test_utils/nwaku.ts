@@ -19,7 +19,7 @@ import * as proto from "../proto/waku/v2/message";
 import { existsAsync, mkdirAsync, openAsync } from "./async_fs";
 import waitForLine from "./log_file";
 
-const dbg = debug("waku:nim-waku");
+const dbg = debug("waku:nwaku");
 
 const NIM_WAKU_DIR = appRoot + "/nim-waku";
 const NIM_WAKU_BIN = NIM_WAKU_DIR + "/build/wakunode2";
@@ -67,7 +67,7 @@ export interface WakuRelayMessage {
   timestamp?: number; // Unix epoch time in nanoseconds as a 64-bits integer value.
 }
 
-export class NimWaku {
+export class Nwaku {
   private process?: ChildProcess;
   private pid?: number;
   private peerId?: PeerId;
@@ -97,7 +97,7 @@ export class NimWaku {
   }
 
   constructor(logName: string) {
-    this.logPath = `${LOG_DIR}/nim-waku_${logName}.log`;
+    this.logPath = `${LOG_DIR}/nwaku_${logName}.log`;
   }
 
   async start(args?: Args): Promise<void> {
@@ -138,7 +138,7 @@ export class NimWaku {
     );
 
     const argsArray = argsToArray(mergedArgs);
-    dbg(`nim-waku args: ${argsArray.join(" ")}`);
+    dbg(`nwaku args: ${argsArray.join(" ")}`);
     this.process = spawn(NIM_WAKU_BIN, argsArray, {
       cwd: NIM_WAKU_DIR,
       stdio: [
@@ -149,14 +149,12 @@ export class NimWaku {
     });
     this.pid = this.process.pid;
     dbg(
-      `nim-waku ${
-        this.process.pid
-      } started at ${new Date().toLocaleTimeString()}`
+      `nwaku ${this.process.pid} started at ${new Date().toLocaleTimeString()}`
     );
 
     this.process.on("exit", (signal) => {
       dbg(
-        `nim-waku ${
+        `nwaku ${
           this.process ? this.process.pid : this.pid
         } process exited with ${signal} at ${new Date().toLocaleTimeString()}`
       );
@@ -164,23 +162,23 @@ export class NimWaku {
 
     this.process.on("error", (err) => {
       console.log(
-        `nim-waku ${
+        `nwaku ${
           this.process ? this.process.pid : this.pid
         } process encountered an error: ${err} at ${new Date().toLocaleTimeString()}`
       );
     });
 
-    dbg("Waiting to see 'Node setup complete' in nim-waku logs");
+    dbg("Waiting to see 'Node setup complete' in nwaku logs");
     await this.waitForLog("Node setup complete", 9000);
-    dbg("nim-waku node has been started");
+    dbg("nwaku node has been started");
   }
 
   public stop(): void {
     const pid = this.process ? this.process.pid : this.pid;
-    dbg(`nim-waku ${pid} getting SIGINT at ${new Date().toLocaleTimeString()}`);
-    if (!this.process) throw "nim-waku process not set";
+    dbg(`nwaku ${pid} getting SIGINT at ${new Date().toLocaleTimeString()}`);
+    if (!this.process) throw "nwaku process not set";
     const res = this.process.kill("SIGINT");
-    dbg(`nim-waku ${pid} interrupted:`, res);
+    dbg(`nwaku ${pid} interrupted:`, res);
     this.process = undefined;
   }
 
@@ -188,9 +186,9 @@ export class NimWaku {
     return waitForLine(this.logPath, msg, timeout);
   }
 
-  /** Calls nim-waku2 JSON-RPC API `get_waku_v2_admin_v1_peers` to check
+  /** Calls nwaku JSON-RPC API `get_waku_v2_admin_v1_peers` to check
    * for known peers
-   * @throws if nim-waku2 isn't started.
+   * @throws if nwaku isn't started.
    */
   async peers(): Promise<string[]> {
     this.checkProcess();
@@ -340,9 +338,9 @@ export class NimWaku {
     this.multiaddrWithId = res.listenAddresses
       .map((ma) => multiaddr(ma))
       .find((ma) => ma.protoNames().includes("ws"));
-    if (!this.multiaddrWithId) throw "Nim-waku did not return a ws multiaddr";
+    if (!this.multiaddrWithId) throw "Nwaku did not return a ws multiaddr";
     const peerIdStr = this.multiaddrWithId.getPeerId();
-    if (!peerIdStr) throw "Nim-waku multiaddr does not contain peerId";
+    if (!peerIdStr) throw "Nwaku multiaddr does not contain peerId";
     this.peerId = PeerId.createFromB58String(peerIdStr);
     return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
   }
@@ -372,7 +370,7 @@ export class NimWaku {
 
   private checkProcess(): void {
     if (!this.process) {
-      throw "Nim Waku isn't started";
+      throw "Nwaku hasn't started";
     }
   }
 }

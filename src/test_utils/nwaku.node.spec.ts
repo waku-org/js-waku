@@ -1,8 +1,8 @@
 import { expect } from "chai";
 
-import { argsToArray, bytesToHex, defaultArgs, strToHex } from "./nim_waku";
+import { argsToArray, bytesToHex, defaultArgs, strToHex } from "./nwaku";
 
-describe("nim_waku", () => {
+describe("nwaku", () => {
   it("Correctly serialized arguments", function () {
     const args = defaultArgs();
     Object.assign(args, { portsShift: 42 });

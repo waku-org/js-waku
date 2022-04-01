@@ -3,9 +3,9 @@ import debug from "debug";
 
 import {
   makeLogFileName,
-  NimWaku,
   NOISE_KEY_1,
   NOISE_KEY_2,
+  Nwaku,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
 import { DefaultPubSubTopic, Protocols, Waku } from "../waku";
@@ -306,9 +306,9 @@ describe("Waku Relay [node only]", () => {
     });
   });
 
-  describe("Interop: Nim", function () {
+  describe("Interop: nwaku", function () {
     let waku: Waku;
-    let nimWaku: NimWaku;
+    let nwaku: Nwaku;
 
     beforeEach(async function () {
       this.timeout(30_000);
@@ -316,19 +316,19 @@ describe("Waku Relay [node only]", () => {
         staticNoiseKey: NOISE_KEY_1,
       });
 
-      nimWaku = new NimWaku(this.test?.ctx?.currentTest?.title + "");
-      await nimWaku.start();
+      nwaku = new Nwaku(this.test?.ctx?.currentTest?.title + "");
+      await nwaku.start();
 
-      await waku.dial(await nimWaku.getMultiaddrWithId());
+      await waku.dial(await nwaku.getMultiaddrWithId());
       await waku.waitForRemotePeer([Protocols.Relay]);
     });
 
     afterEach(async function () {
-      !!nimWaku && nimWaku.stop();
+      !!nwaku && nwaku.stop();
       !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
     });
 
-    it("nim subscribes to js", async function () {
+    it("nwaku subscribes", async function () {
       let subscribers: string[] = [];
 
       while (subscribers.length === 0) {
@@ -336,11 +336,11 @@ describe("Waku Relay [node only]", () => {
         subscribers = waku.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
       }
 
-      const nimPeerId = await nimWaku.getPeerId();
+      const nimPeerId = await nwaku.getPeerId();
       expect(subscribers).to.contain(nimPeerId.toB58String());
     });
 
-    it("Js publishes to nim", async function () {
+    it("Publishes to nwaku", async function () {
       this.timeout(30000);
 
       const messageText = "This is a message";
@@ -356,7 +356,7 @@ describe("Waku Relay [node only]", () => {
       while (msgs.length === 0) {
         console.log("Waiting for messages");
         await delay(200);
-        msgs = await nimWaku.messages();
+        msgs = await nwaku.messages();
       }
 
       expect(msgs[0].contentTopic).to.equal(message.contentTopic);
@@ -364,7 +364,7 @@ describe("Waku Relay [node only]", () => {
       expect(msgs[0].payloadAsUtf8).to.equal(messageText);
     });
 
-    it("Nim publishes to js", async function () {
+    it("Nwaku publishes", async function () {
       await delay(200);
 
       const messageText = "Here is another message.";
@@ -379,7 +379,7 @@ describe("Waku Relay [node only]", () => {
         }
       );
 
-      await nimWaku.sendMessage(NimWaku.toWakuRelayMessage(message));
+      await nwaku.sendMessage(Nwaku.toWakuRelayMessage(message));
 
       const receivedMsg = await receivedMsgPromise;
 
@@ -388,13 +388,13 @@ describe("Waku Relay [node only]", () => {
       expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
     });
 
-    describe.skip("js to nim to js", function () {
+    describe.skip("Two nodes connected to nwaku", function () {
       let waku1: Waku;
       let waku2: Waku;
-      let nimWaku: NimWaku;
+      let nwaku: Nwaku;
 
       afterEach(async function () {
-        !!nimWaku && nimWaku.stop();
+        !!nwaku && nwaku.stop();
         !!waku1 &&
           waku1.stop().catch((e) => console.log("Waku failed to stop", e));
         !!waku2 &&
@@ -412,13 +412,13 @@ describe("Waku Relay [node only]", () => {
           }),
         ]);
 
-        nimWaku = new NimWaku(makeLogFileName(this));
-        await nimWaku.start();
+        nwaku = new Nwaku(makeLogFileName(this));
+        await nwaku.start();
 
-        const nimWakuMultiaddr = await nimWaku.getMultiaddrWithId();
+        const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
         await Promise.all([
-          waku1.dial(nimWakuMultiaddr),
-          waku2.dial(nimWakuMultiaddr),
+          waku1.dial(nwakuMultiaddr),
+          waku2.dial(nwakuMultiaddr),
         ]);
 
         // Wait for identify protocol to finish

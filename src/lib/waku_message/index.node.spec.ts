@@ -3,8 +3,8 @@ import debug from "debug";
 
 import {
   makeLogFileName,
-  NimWaku,
   NOISE_KEY_1,
+  Nwaku,
   WakuRelayMessage,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
@@ -24,9 +24,9 @@ const dbg = debug("waku:test:message");
 const TestContentTopic = "/test/1/waku-message/utf8";
 
 describe("Waku Message [node only]", function () {
-  describe("Interop: Nim", function () {
+  describe("Interop: nwaku", function () {
     let waku: Waku;
-    let nimWaku: NimWaku;
+    let nwaku: Nwaku;
 
     beforeEach(async function () {
       this.timeout(30_000);
@@ -34,27 +34,27 @@ describe("Waku Message [node only]", function () {
         staticNoiseKey: NOISE_KEY_1,
       });
 
-      nimWaku = new NimWaku(makeLogFileName(this));
-      dbg("Starting nim-waku node");
-      await nimWaku.start({ rpcPrivate: true });
+      nwaku = new Nwaku(makeLogFileName(this));
+      dbg("Starting nwaku node");
+      await nwaku.start({ rpcPrivate: true });
 
-      dbg("Dialing to nim-waku node");
-      await waku.dial(await nimWaku.getMultiaddrWithId());
+      dbg("Dialing to nwaku node");
+      await waku.dial(await nwaku.getMultiaddrWithId());
       dbg("Wait for remote peer");
       await waku.waitForRemotePeer([Protocols.Relay]);
       dbg("Remote peer ready");
-      // As this test uses the nim-waku RPC API, we somehow often face
-      // Race conditions where the nim-waku node does not have the js-waku
+      // As this test uses the nwaku RPC API, we somehow often face
+      // Race conditions where the nwaku node does not have the js-waku
       // Node in its relay mesh just yet.
       await delay(500);
     });
 
     afterEach(async function () {
-      !!nimWaku && nimWaku.stop();
+      !!nwaku && nwaku.stop();
       !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
     });
 
-    it("JS decrypts nim message [asymmetric, no signature]", async function () {
+    it("Decrypts nwaku message [asymmetric, no signature]", async function () {
       this.timeout(5000);
 
       const messageText = "Here is an encrypted message.";
@@ -77,7 +77,7 @@ describe("Waku Message [node only]", function () {
 
       const publicKey = getPublicKey(privateKey);
       dbg("Post message");
-      const res = await nimWaku.postAsymmetricMessage(message, publicKey);
+      const res = await nwaku.postAsymmetricMessage(message, publicKey);
       expect(res).to.be.true;
 
       const receivedMsg = await receivedMsgPromise;
@@ -87,11 +87,11 @@ describe("Waku Message [node only]", function () {
       expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
     });
 
-    it("Js encrypts message for nim [asymmetric, no signature]", async function () {
+    it("Encrypts message for nwaku [asymmetric, no signature]", async function () {
       this.timeout(5000);
 
-      dbg("Ask nim-waku to generate asymmetric key pair");
-      const keyPair = await nimWaku.getAsymmetricKeyPair();
+      dbg("Ask nwaku to generate asymmetric key pair");
+      const keyPair = await nwaku.getAsymmetricKeyPair();
       const privateKey = hexToBytes(keyPair.privateKey);
       const publicKey = hexToBytes(keyPair.publicKey);
 
@@ -111,9 +111,9 @@ describe("Waku Message [node only]", function () {
       let msgs: WakuRelayMessage[] = [];
 
       while (msgs.length === 0) {
-        dbg("Wait for message to be seen by nim-waku");
+        dbg("Wait for message to be seen by nwaku");
         await delay(200);
-        msgs = await nimWaku.getAsymmetricMessages(privateKey);
+        msgs = await nwaku.getAsymmetricMessages(privateKey);
       }
 
       dbg("Check message content");
@@ -121,7 +121,7 @@ describe("Waku Message [node only]", function () {
       expect(bytesToUtf8(hexToBytes(msgs[0].payload))).to.equal(messageText);
     });
 
-    it("JS decrypts nim message [symmetric, no signature]", async function () {
+    it("Decrypts nwaku message [symmetric, no signature]", async function () {
       this.timeout(5000);
 
       const messageText = "Here is a message encrypted in a symmetric manner.";
@@ -143,8 +143,8 @@ describe("Waku Message [node only]", function () {
         }
       );
 
-      dbg("Post message using nim-waku");
-      await nimWaku.postSymmetricMessage(message, symKey);
+      dbg("Post message using nwaku");
+      await nwaku.postSymmetricMessage(message, symKey);
       dbg("Wait for message to be received by js-waku");
       const receivedMsg = await receivedMsgPromise;
       dbg("Message received by js-waku");
@@ -154,11 +154,11 @@ describe("Waku Message [node only]", function () {
       expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
     });
 
-    it("Js encrypts message for nim [symmetric, no signature]", async function () {
+    it("Encrypts message for nwaku [symmetric, no signature]", async function () {
       this.timeout(5000);
 
-      dbg("Getting symmetric key from nim-waku");
-      const symKey = await nimWaku.getSymmetricKey();
+      dbg("Getting symmetric key from nwaku");
+      const symKey = await nwaku.getSymmetricKey();
       dbg("Encrypting message with js-waku");
       const messageText =
         "This is a message I am going to encrypt with a symmetric key";
@@ -176,8 +176,8 @@ describe("Waku Message [node only]", function () {
 
       while (msgs.length === 0) {
         await delay(200);
-        dbg("Getting messages from nim-waku");
-        msgs = await nimWaku.getSymmetricMessages(symKey);
+        dbg("Getting messages from nwaku");
+        msgs = await nwaku.getSymmetricMessages(symKey);
       }
 
       expect(msgs[0].contentTopic).to.equal(message.contentTopic);
