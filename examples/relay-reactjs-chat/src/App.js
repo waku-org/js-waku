@@ -1,15 +1,12 @@
 import { Waku, WakuMessage } from "js-waku";
 import * as React from "react";
-import protons from "protons";
+import protobuf from "protobufjs";
 
 const ContentTopic = `/relay-reactjs-chat/1/chat/proto`;
 
-const proto = protons(`
-message SimpleChatMessage {
-  uint64 timestamp = 1;
-  string text = 2;
-}
-`);
+const SimpleChatMessage = new protobuf.Type("SimpleChatMessage")
+  .add(new protobuf.Field("timestamp", 1, "uint64"))
+  .add(new protobuf.Field("text", 2, "string"));
 
 function App() {
   const [waku, setWaku] = React.useState(undefined);
@@ -36,9 +33,7 @@ function App() {
   const processIncomingMessage = React.useCallback((wakuMessage) => {
     if (!wakuMessage.payload) return;
 
-    const { text, timestamp } = proto.SimpleChatMessage.decode(
-      wakuMessage.payload
-    );
+    const { text, timestamp } = SimpleChatMessage.decode(wakuMessage.payload);
 
     const time = new Date();
     time.setTime(timestamp);
@@ -100,10 +95,11 @@ function sendMessage(message, waku, timestamp) {
   const time = timestamp.getTime();
 
   // Encode to protobuf
-  const payload = proto.SimpleChatMessage.encode({
+  const protoMsg = SimpleChatMessage.create({
     timestamp: time,
     text: message,
   });
+  const payload = SimpleChatMessage.encode(protoMsg).finish();
 
   // Wrap in a Waku Message
   return WakuMessage.fromBytes(payload, ContentTopic).then((wakuMessage) =>
