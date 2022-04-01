@@ -37,7 +37,10 @@ jobs:
 
       - name: Ensure wakunode2 is ready
         shell: bash
-        run: cd nim-waku && ./build/wakunode2 --help
+        run: |
+          uname -a
+          cd nim-waku/build
+          ./wakunode2 --help
 
       - name: Install bufbuild
         uses: mathematic-inc/setup-buf@v2beta
