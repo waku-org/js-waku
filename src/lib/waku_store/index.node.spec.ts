@@ -32,7 +32,7 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ persistMessages: true });
@@ -62,7 +62,7 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history using callback", async function () {
-    this.timeout(10_000);
+    this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ persistMessages: true });
@@ -101,7 +101,7 @@ describe("Waku Store", () => {
   });
 
   it("Retrieval aborts when callback returns true", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ persistMessages: true });
@@ -139,7 +139,7 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves all historical elements in chronological order through paging", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ persistMessages: true });
@@ -175,7 +175,7 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history using custom pubsub topic", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
     const customPubSubTopic = "/waku/2/custom-dapp/proto";
     nwaku = new Nwaku(makeLogFileName(this));
@@ -213,7 +213,7 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history with asymmetric & symmetric encrypted messages", async function () {
-    this.timeout(10_000);
+    this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ persistMessages: true, lightpush: true });
@@ -322,7 +322,7 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history with asymmetric & symmetric encrypted messages on different content topics", async function () {
-    this.timeout(10_000);
+    this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ persistMessages: true, lightpush: true });
@@ -443,7 +443,7 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history using start and end time", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ persistMessages: true });

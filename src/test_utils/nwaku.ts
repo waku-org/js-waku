@@ -169,7 +169,7 @@ export class Nwaku {
     });
 
     dbg("Waiting to see 'Node setup complete' in nwaku logs");
-    await this.waitForLog("Node setup complete", 9000);
+    await this.waitForLog("Node setup complete", 15000);
     dbg("nwaku node has been started");
   }
 

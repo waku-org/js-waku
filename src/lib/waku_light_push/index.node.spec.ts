@@ -20,7 +20,7 @@ describe("Waku Light Push [node only]", () => {
   });
 
   it("Push successfully", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ lightpush: true });
@@ -53,7 +53,7 @@ describe("Waku Light Push [node only]", () => {
   });
 
   it("Push on custom pubsub topic", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
     const customPubSubTopic = "/waku/2/custom-dapp/proto";
 
