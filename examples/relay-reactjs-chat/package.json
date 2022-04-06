@@ -6,6 +6,7 @@
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^14.0.4",
+    "it-pipe": "^2.0.3",
     "js-waku": "file:../../",
     "protobufjs": "^6.11.2",
     "react": "^17.0.2",
