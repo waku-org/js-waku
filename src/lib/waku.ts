@@ -1,4 +1,4 @@
-import { Noise } from "@chainsafe/libp2p-noise/dist/src/noise";
+import { Noise } from "@chainsafe/libp2p-noise";
 import debug from "debug";
 import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from "libp2p";
 import Libp2pBootstrap from "libp2p-bootstrap";
