@@ -3,9 +3,9 @@ import debug from "debug";
 
 import {
   makeLogFileName,
-  NimWaku,
   NOISE_KEY_1,
   NOISE_KEY_2,
+  Nwaku,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
 import { Protocols, Waku } from "../waku";
@@ -24,23 +24,25 @@ const TestContentTopic = "/test/1/waku-store/utf8";
 
 describe("Waku Store", () => {
   let waku: Waku;
-  let nimWaku: NimWaku;
+  let nwaku: Nwaku;
 
   afterEach(async function () {
-    !!nimWaku && nimWaku.stop();
+    !!nwaku && nwaku.stop();
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
   it("Retrieves history", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ persistMessages: true });
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ persistMessages: true });
 
     for (let i = 0; i < 2; i++) {
       expect(
-        await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+        await nwaku.sendMessage(
+          Nwaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          )
         )
       ).to.be.true;
     }
@@ -48,7 +50,7 @@ describe("Waku Store", () => {
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.dial(await nimWaku.getMultiaddrWithId());
+    await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
     const messages = await waku.store.queryHistory([]);
 
@@ -60,17 +62,19 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history using callback", async function () {
-    this.timeout(10_000);
+    this.timeout(15_000);
 
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ persistMessages: true });
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ persistMessages: true });
 
     const totalMsgs = 20;
 
     for (let i = 0; i < totalMsgs; i++) {
       expect(
-        await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+        await nwaku.sendMessage(
+          Nwaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          )
         )
       ).to.be.true;
     }
@@ -78,7 +82,7 @@ describe("Waku Store", () => {
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.dial(await nimWaku.getMultiaddrWithId());
+    await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
 
     let messages: WakuMessage[] = [];
@@ -97,17 +101,19 @@ describe("Waku Store", () => {
   });
 
   it("Retrieval aborts when callback returns true", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ persistMessages: true });
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ persistMessages: true });
 
     const availMsgs = 20;
 
     for (let i = 0; i < availMsgs; i++) {
       expect(
-        await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+        await nwaku.sendMessage(
+          Nwaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          )
         )
       ).to.be.true;
     }
@@ -115,7 +121,7 @@ describe("Waku Store", () => {
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.dial(await nimWaku.getMultiaddrWithId());
+    await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
 
     let messages: WakuMessage[] = [];
@@ -133,15 +139,17 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves all historical elements in chronological order through paging", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ persistMessages: true });
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ persistMessages: true });
 
     for (let i = 0; i < 15; i++) {
       expect(
-        await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+        await nwaku.sendMessage(
+          Nwaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          )
         )
       ).to.be.true;
     }
@@ -149,7 +157,7 @@ describe("Waku Store", () => {
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.dial(await nimWaku.getMultiaddrWithId());
+    await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
 
     const messages = await waku.store.queryHistory([], {
@@ -167,16 +175,18 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history using custom pubsub topic", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
     const customPubSubTopic = "/waku/2/custom-dapp/proto";
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ persistMessages: true, topics: customPubSubTopic });
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ persistMessages: true, topics: customPubSubTopic });
 
     for (let i = 0; i < 2; i++) {
       expect(
-        await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic),
+        await nwaku.sendMessage(
+          Nwaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
+          ),
           customPubSubTopic
         )
       ).to.be.true;
@@ -186,10 +196,10 @@ describe("Waku Store", () => {
       pubSubTopic: customPubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.dial(await nimWaku.getMultiaddrWithId());
+    await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
 
-    const nimPeerId = await nimWaku.getPeerId();
+    const nimPeerId = await nwaku.getPeerId();
 
     const messages = await waku.store.queryHistory([], {
       peerId: nimPeerId,
@@ -203,10 +213,10 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history with asymmetric & symmetric encrypted messages", async function () {
-    this.timeout(10_000);
+    this.timeout(15_000);
 
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ persistMessages: true, lightpush: true });
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ persistMessages: true, lightpush: true });
 
     const encryptedAsymmetricMessageText =
       "This message is encrypted for me using asymmetric";
@@ -256,7 +266,7 @@ describe("Waku Store", () => {
       Waku.create({
         staticNoiseKey: NOISE_KEY_2,
       }),
-      nimWaku.getMultiaddrWithId(),
+      nwaku.getMultiaddrWithId(),
     ]);
 
     dbg("Waku nodes created");
@@ -266,7 +276,7 @@ describe("Waku Store", () => {
       waku2.dial(nimWakuMultiaddr),
     ]);
 
-    dbg("Waku nodes connected to nim Waku");
+    dbg("Waku nodes connected to nwaku");
 
     let lightPushPeerFound = false;
     while (!lightPushPeerFound) {
@@ -312,10 +322,10 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history with asymmetric & symmetric encrypted messages on different content topics", async function () {
-    this.timeout(10_000);
+    this.timeout(15_000);
 
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ persistMessages: true, lightpush: true });
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ persistMessages: true, lightpush: true });
 
     const encryptedAsymmetricMessageText =
       "This message is encrypted for me using asymmetric";
@@ -374,7 +384,7 @@ describe("Waku Store", () => {
       Waku.create({
         staticNoiseKey: NOISE_KEY_2,
       }),
-      nimWaku.getMultiaddrWithId(),
+      nwaku.getMultiaddrWithId(),
     ]);
 
     dbg("Waku nodes created");
@@ -384,7 +394,7 @@ describe("Waku Store", () => {
       waku2.dial(nimWakuMultiaddr),
     ]);
 
-    dbg("Waku nodes connected to nim Waku");
+    dbg("Waku nodes connected to nwaku");
 
     let lightPushPeerFound = false;
     while (!lightPushPeerFound) {
@@ -433,49 +443,57 @@ describe("Waku Store", () => {
   });
 
   it("Retrieves history using start and end time", async function () {
-    this.timeout(5_000);
+    this.timeout(15_000);
 
-    nimWaku = new NimWaku(makeLogFileName(this));
-    await nimWaku.start({ persistMessages: true });
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ persistMessages: true });
+
+    const now = new Date();
 
     const startTime = new Date();
+    // Set start time 5 minutes in the past
+    startTime.setTime(now.getTime() - 5 * 60 * 1000);
 
     const message1Timestamp = new Date();
-    message1Timestamp.setTime(startTime.getTime() + 60 * 1000);
+    // Set first message was 4 minutes in the past
+    message1Timestamp.setTime(now.getTime() - 4 * 60 * 1000);
+
     const message2Timestamp = new Date();
-    message2Timestamp.setTime(startTime.getTime() + 2 * 60 * 1000);
+    // Set second message 2 minutes in the past
+    message2Timestamp.setTime(now.getTime() - 2 * 60 * 1000);
     const messageTimestamps = [message1Timestamp, message2Timestamp];
 
     const endTime = new Date();
-    endTime.setTime(startTime.getTime() + 3 * 60 * 1000);
+    // Set end time 1 minute in the past
+    endTime.setTime(now.getTime() - 60 * 1000);
 
-    let firstMessageTime;
     for (let i = 0; i < 2; i++) {
       expect(
-        await nimWaku.sendMessage(
-          await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic, {
-            timestamp: messageTimestamps[i],
-          })
+        await nwaku.sendMessage(
+          Nwaku.toWakuRelayMessage(
+            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic, {
+              timestamp: messageTimestamps[i],
+            })
+          )
         )
       ).to.be.true;
-      if (!firstMessageTime) firstMessageTime = Date.now() / 1000;
     }
 
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.dial(await nimWaku.getMultiaddrWithId());
+    await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
 
-    const nimPeerId = await nimWaku.getPeerId();
+    const nwakuPeerId = await nwaku.getPeerId();
 
     const firstMessage = await waku.store.queryHistory([], {
-      peerId: nimPeerId,
+      peerId: nwakuPeerId,
       timeFilter: { startTime, endTime: message1Timestamp },
     });
 
     const bothMessages = await waku.store.queryHistory([], {
-      peerId: nimPeerId,
+      peerId: nwakuPeerId,
       timeFilter: {
         startTime,
         endTime,

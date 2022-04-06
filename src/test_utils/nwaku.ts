@@ -19,7 +19,7 @@ import * as proto from "../proto/waku/v2/message";
 import { existsAsync, mkdirAsync, openAsync } from "./async_fs";
 import waitForLine from "./log_file";
 
-const dbg = debug("waku:nim-waku");
+const dbg = debug("waku:nwaku");
 
 const NIM_WAKU_DIR = appRoot + "/nim-waku";
 const NIM_WAKU_BIN = NIM_WAKU_DIR + "/build/wakunode2";
@@ -62,12 +62,12 @@ export interface KeyPair {
 }
 
 export interface WakuRelayMessage {
-  payload: string;
+  payload: string; // Hex encoded data string without `0x` prefix.
   contentTopic?: string;
-  timestamp?: number; // Float in seconds
+  timestamp?: number; // Unix epoch time in nanoseconds as a 64-bits integer value.
 }
 
-export class NimWaku {
+export class Nwaku {
   private process?: ChildProcess;
   private pid?: number;
   private peerId?: PeerId;
@@ -75,8 +75,29 @@ export class NimWaku {
   private readonly logPath: string;
   private rpcPort?: number;
 
+  /**
+   * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
+   * by the nwaku JSON-RPC API.
+   */
+  static toWakuRelayMessage(message: WakuMessage): WakuRelayMessage {
+    if (!message.payload) {
+      throw "Attempting to convert empty message";
+    }
+
+    let timestamp;
+    if (message.proto.timestamp) {
+      timestamp = message.proto.timestamp.toNumber();
+    }
+
+    return {
+      payload: bytesToHex(message.payload),
+      contentTopic: message.contentTopic,
+      timestamp,
+    };
+  }
+
   constructor(logName: string) {
-    this.logPath = `${LOG_DIR}/nim-waku_${logName}.log`;
+    this.logPath = `${LOG_DIR}/nwaku_${logName}.log`;
   }
 
   async start(args?: Args): Promise<void> {
@@ -117,7 +138,7 @@ export class NimWaku {
     );
 
     const argsArray = argsToArray(mergedArgs);
-    dbg(`nim-waku args: ${argsArray.join(" ")}`);
+    dbg(`nwaku args: ${argsArray.join(" ")}`);
     this.process = spawn(NIM_WAKU_BIN, argsArray, {
       cwd: NIM_WAKU_DIR,
       stdio: [
@@ -128,14 +149,12 @@ export class NimWaku {
     });
     this.pid = this.process.pid;
     dbg(
-      `nim-waku ${
-        this.process.pid
-      } started at ${new Date().toLocaleTimeString()}`
+      `nwaku ${this.process.pid} started at ${new Date().toLocaleTimeString()}`
     );
 
     this.process.on("exit", (signal) => {
       dbg(
-        `nim-waku ${
+        `nwaku ${
           this.process ? this.process.pid : this.pid
         } process exited with ${signal} at ${new Date().toLocaleTimeString()}`
       );
@@ -143,23 +162,23 @@ export class NimWaku {
 
     this.process.on("error", (err) => {
       console.log(
-        `nim-waku ${
+        `nwaku ${
           this.process ? this.process.pid : this.pid
         } process encountered an error: ${err} at ${new Date().toLocaleTimeString()}`
       );
     });
 
-    dbg("Waiting to see 'Node setup complete' in nim-waku logs");
-    await this.waitForLog("Node setup complete", 9000);
-    dbg("nim-waku node has been started");
+    dbg("Waiting to see 'Node setup complete' in nwaku logs");
+    await this.waitForLog("Node setup complete", 15000);
+    dbg("nwaku node has been started");
   }
 
   public stop(): void {
     const pid = this.process ? this.process.pid : this.pid;
-    dbg(`nim-waku ${pid} getting SIGINT at ${new Date().toLocaleTimeString()}`);
-    if (!this.process) throw "nim-waku process not set";
+    dbg(`nwaku ${pid} getting SIGINT at ${new Date().toLocaleTimeString()}`);
+    if (!this.process) throw "nwaku process not set";
     const res = this.process.kill("SIGINT");
-    dbg(`nim-waku ${pid} interrupted:`, res);
+    dbg(`nwaku ${pid} interrupted:`, res);
     this.process = undefined;
   }
 
@@ -167,9 +186,9 @@ export class NimWaku {
     return waitForLine(this.logPath, msg, timeout);
   }
 
-  /** Calls nim-waku2 JSON-RPC API `get_waku_v2_admin_v1_peers` to check
+  /** Calls nwaku JSON-RPC API `get_waku_v2_admin_v1_peers` to check
    * for known peers
-   * @throws if nim-waku2 isn't started.
+   * @throws if nwaku isn't started.
    */
   async peers(): Promise<string[]> {
     this.checkProcess();
@@ -184,33 +203,14 @@ export class NimWaku {
   }
 
   async sendMessage(
-    message: WakuMessage,
+    message: WakuRelayMessage,
     pubSubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
-    if (!message.payload) {
-      throw "Attempting to send empty message";
-    }
-    let timestamp;
-    if (message.timestamp) {
-      timestamp = message.timestamp.valueOf() / 1000;
-      if (Number.isInteger(timestamp)) {
-        // Add a millisecond to ensure it's not an integer
-        // Until https://github.com/status-im/nim-waku/issues/691 is done
-        timestamp += 0.001;
-      }
-    }
-
-    const rpcMessage = {
-      payload: bytesToHex(message.payload),
-      contentTopic: message.contentTopic,
-      timestamp,
-    };
-
     return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
-      rpcMessage,
+      message,
     ]);
   }
 
@@ -338,9 +338,9 @@ export class NimWaku {
     this.multiaddrWithId = res.listenAddresses
       .map((ma) => multiaddr(ma))
       .find((ma) => ma.protoNames().includes("ws"));
-    if (!this.multiaddrWithId) throw "Nim-waku did not return a ws multiaddr";
+    if (!this.multiaddrWithId) throw "Nwaku did not return a ws multiaddr";
     const peerIdStr = this.multiaddrWithId.getPeerId();
-    if (!peerIdStr) throw "Nim-waku multiaddr does not contain peerId";
+    if (!peerIdStr) throw "Nwaku multiaddr does not contain peerId";
     this.peerId = PeerId.createFromB58String(peerIdStr);
     return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
   }
@@ -370,7 +370,7 @@ export class NimWaku {
 
   private checkProcess(): void {
     if (!this.process) {
-      throw "Nim Waku isn't started";
+      throw "Nwaku hasn't started";
     }
   }
 }

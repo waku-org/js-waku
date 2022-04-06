@@ -1,5 +1,5 @@
 /**
- * Utilities to make it help check nim-waku logs.
+ * Utilities to make it help check nwaku logs.
  *
  * @hidden
  * @module

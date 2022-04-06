@@ -12,7 +12,7 @@ export enum Fleet {
 /**
  * Return list of pre-defined (hardcoded) bootstrap nodes.
  *
- * Default behavior is to return nodes of the nim-waku Status Prod fleet.
+ * Default behavior is to return nodes of the nwaku Status Prod fleet.
  *
  * @param fleet The fleet to be returned. Defaults to production fleet.
  * @param wantedNumber The number of connections desired. Defaults to [[DefaultWantedNumber]].

@@ -12,7 +12,7 @@ jobs:
   build_and_test:
     env:
       BUF_VERSION: '0.56.0'
-      NIM_WAKU_VERSION: 'v0.7'
+      NIM_WAKU_VERSION: 'v0.9'
     strategy:
       matrix:
         node: [16]
@@ -37,7 +37,10 @@ jobs:
 
       - name: Ensure wakunode2 is ready
         shell: bash
-        run: cd nim-waku && ./build/wakunode2 --help
+        run: |
+          uname -a
+          cd nim-waku/build
+          ./wakunode2 --help
 
       - name: Install bufbuild
         uses: mathematic-inc/setup-buf@v2beta
