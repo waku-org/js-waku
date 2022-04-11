@@ -65,7 +65,7 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@chainsafe/libp2p-noise": "^5.0.0",
+    "@chainsafe/libp2p-noise": "^6.1.0",
     "@ethersproject/rlp": "^5.5.0",
     "debug": "^4.3.1",
     "dns-query": "^0.8.0",
