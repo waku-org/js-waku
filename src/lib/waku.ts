@@ -17,6 +17,8 @@ import { Multiaddr, multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
 import { Bootstrap, BootstrapOptions } from "./discovery";
+import { WakuFilter } from "./waku_filter";
+import { FilterCodec } from "./waku_filter";
 import { LightPushCodec, WakuLightPush } from "./waku_light_push";
 import { DecryptionMethod, WakuMessage } from "./waku_message";
 import { RelayCodecs, WakuRelay } from "./waku_relay";
@@ -39,6 +41,7 @@ export enum Protocols {
   Relay = "relay",
   Store = "store",
   LightPush = "lightpush",
+  Filter = "filter",
 }
 
 export interface CreateOptions {
@@ -102,6 +105,7 @@ export class Waku {
   public libp2p: Libp2p;
   public relay: WakuRelay;
   public store: WakuStore;
+  public filter: WakuFilter;
   public lightPush: WakuLightPush;
 
   private pingKeepAliveTimers: {
@@ -115,11 +119,13 @@ export class Waku {
     options: CreateOptions,
     libp2p: Libp2p,
     store: WakuStore,
-    lightPush: WakuLightPush
+    lightPush: WakuLightPush,
+    filter: WakuFilter
   ) {
     this.libp2p = libp2p;
     this.relay = libp2p.pubsub as unknown as WakuRelay;
     this.store = store;
+    this.filter = filter;
     this.lightPush = lightPush;
     this.pingKeepAliveTimers = {};
     this.relayKeepAliveTimers = {};
@@ -220,10 +226,17 @@ export class Waku {
       pubSubTopic: options?.pubSubTopic,
     });
     const wakuLightPush = new WakuLightPush(libp2p);
+    const wakuFilter = new WakuFilter(libp2p);
 
     await libp2p.start();
 
-    return new Waku(options ? options : {}, libp2p, wakuStore, wakuLightPush);
+    return new Waku(
+      options ? options : {},
+      libp2p,
+      wakuStore,
+      wakuLightPush,
+      wakuFilter
+    );
   }
 
   /**
@@ -395,6 +408,32 @@ export class Waku {
             ({ protocols: connectedPeerProtocols }) => {
               if (connectedPeerProtocols.includes(LightPushCodec)) {
                 dbg("Resolving for", LightPushCodec, connectedPeerProtocols);
+                resolve();
+              }
+            }
+          );
+        });
+
+        promises.push(promise);
+      }
+    }
+
+    if (desiredProtocols.includes(Protocols.Filter)) {
+      let filterPeerFound = false;
+
+      for await (const _peer of this.filter.peers) {
+        filterPeerFound = true;
+        break;
+      }
+
+      if (!filterPeerFound) {
+        // No peer available for this protocol, waiting to connect to one.
+        const promise = new Promise<void>((resolve) => {
+          this.libp2p.peerStore.on(
+            "change:protocols",
+            ({ protocols: connectedPeerProtocols }) => {
+              if (connectedPeerProtocols.includes(FilterCodec)) {
+                dbg("Resolving for", FilterCodec, connectedPeerProtocols);
                 resolve();
               }
             }
