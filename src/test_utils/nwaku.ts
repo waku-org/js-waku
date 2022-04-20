@@ -33,6 +33,7 @@ export interface Args {
   relay?: boolean;
   rpc?: boolean;
   rpcAdmin?: boolean;
+  filter?: boolean;
   nodekey?: string;
   portsShift?: number;
   logLevel?: LogLevel;
