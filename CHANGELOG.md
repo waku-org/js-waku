@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Prefer the use of `BigInt` over integer literal (`n` postfix) to facilitate the use of a polyfill.
+
 ### Fixed
 
 - Declare `it-pipe` dependency, import as per `it-pipe@2.0.0` convention.
