@@ -1,12 +1,14 @@
 {
   "name": "@waku/relay-angular-chat",
   "version": "0.1.0",
+  "homepage": "/examples/relay-angular-chat",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test-ci": "ng test --watch=false"
   },
   "private": true,
   "dependencies": {
@@ -19,7 +21,7 @@
     "@angular/platform-browser-dynamic": "~13.2.0",
     "@angular/router": "~13.2.0",
     "crypto-browserify": "^3.12.0",
-    "js-waku": "file:../../build/esm",
+    "js-waku": "^0.19.2",
     "protons": "^2.0.3",
     "rxjs": "~7.5.0",
     "stream-browserify": "^3.0.0",
@@ -31,7 +33,7 @@
     "@angular/cli": "~13.2.2",
     "@angular/compiler-cli": "~13.2.0",
     "@types/bl": "^5.0.2",
-    "@types/jasmine": "~4.0.0",
+    "@types/jasmine": "~3.10.0",
     "@types/node": "^17.0.21",
     "jasmine-core": "~4.0.0",
     "karma": "~6.3.0",

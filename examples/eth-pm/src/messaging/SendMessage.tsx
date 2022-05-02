@@ -7,8 +7,7 @@ import {
   TextField,
 } from "@material-ui/core";
 import React, { ChangeEvent, useState, KeyboardEvent } from "react";
-import { Waku, WakuMessage } from "js-waku";
-import { hexToBytes } from "js-waku/lib/utils";
+import { utils, Waku, WakuMessage } from "js-waku";
 import { PrivateMessage } from "./wire";
 import { PrivateMessageContentTopic } from "../waku";
 
@@ -110,7 +109,7 @@ async function encodeEncryptedWakuMessage(
   address: string
 ): Promise<WakuMessage> {
   const privateMessage = new PrivateMessage({
-    toAddress: hexToBytes(address),
+    toAddress: utils.hexToBytes(address),
     message: message,
   });
 

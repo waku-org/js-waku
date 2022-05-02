@@ -1,14 +1,13 @@
 import "@ethersproject/shims";
 
 import { PublicKeyMessage } from "./messaging/wire";
-import { hexToBytes, bytesToHex } from "js-waku/lib/utils";
-import { generatePrivateKey, getPublicKey } from "js-waku";
+import { generatePrivateKey, getPublicKey, utils } from "js-waku";
 import * as sigUtil from "eth-sig-util";
 import { PublicKeyContentTopic } from "./waku";
 import { keccak256 } from "ethers/lib/utils";
 import { equals } from "uint8arrays/equals";
 
-export const PublicKeyMessageEncryptionKey = hexToBytes(
+export const PublicKeyMessageEncryptionKey = utils.hexToBytes(
   keccak256(Buffer.from(PublicKeyContentTopic, "utf-8"))
 );
 
@@ -50,8 +49,8 @@ export async function createPublicKeyMessage(
 
   return new PublicKeyMessage({
     encryptionPublicKey: encryptionPublicKey,
-    ethAddress: hexToBytes(address),
-    signature: hexToBytes(signature),
+    ethAddress: utils.hexToBytes(address),
+    signature: utils.hexToBytes(signature),
   });
 }
 
@@ -64,7 +63,7 @@ function buildMsgParams(encryptionPublicKey: Uint8Array, fromAddress: string) {
     message: {
       message:
         "By signing this message you certify that messages addressed to `ownerAddress` must be encrypted with `encryptionPublicKey`",
-      encryptionPublicKey: bytesToHex(encryptionPublicKey),
+      encryptionPublicKey: utils.bytesToHex(encryptionPublicKey),
       ownerAddress: fromAddress,
     },
     // Refers to the keys of the *types* object below.
@@ -102,7 +101,7 @@ export async function signEncryptionKey(
 
   console.log("TYPED SIGNED:" + JSON.stringify(result));
 
-  return hexToBytes(result);
+  return utils.hexToBytes(result);
 }
 
 /**
@@ -111,13 +110,16 @@ export async function signEncryptionKey(
 export function validatePublicKeyMessage(msg: PublicKeyMessage): boolean {
   const recovered = sigUtil.recoverTypedSignature_v4({
     data: JSON.parse(
-      buildMsgParams(msg.encryptionPublicKey, "0x" + bytesToHex(msg.ethAddress))
+      buildMsgParams(
+        msg.encryptionPublicKey,
+        "0x" + utils.bytesToHex(msg.ethAddress)
+      )
     ),
-    sig: "0x" + bytesToHex(msg.signature),
+    sig: "0x" + utils.bytesToHex(msg.signature),
   });
 
   console.log("Recovered", recovered);
-  console.log("ethAddress", "0x" + bytesToHex(msg.ethAddress));
+  console.log("ethAddress", "0x" + utils.bytesToHex(msg.ethAddress));
 
-  return equals(hexToBytes(recovered), msg.ethAddress);
+  return equals(utils.hexToBytes(recovered), msg.ethAddress);
 }
