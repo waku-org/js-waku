@@ -3,26 +3,33 @@ name: Examples CI
 on:
   push:
     branches:
-      - 'master'
-      - 'staging'
-      - 'trying'
+      - "master"
+      - "staging"
+      - "trying"
   pull_request:
 
 jobs:
   examples_build_and_test:
     strategy:
       matrix:
-        example: [ web-chat, eth-pm, eth-pm-wallet-encryption, relay-reactjs-chat, store-reactjs-chat, relay-angular-chat ]
+        example:
+          [
+            web-chat,
+            eth-pm,
+            eth-pm-wallet-encryption,
+            relay-reactjs-chat,
+            store-reactjs-chat,
+            relay-angular-chat,
+          ]
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Install NodeJS
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: "16"
 
       - name: Check if `yarn` or `npm` is used.
         id: use-yarn
