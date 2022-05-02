@@ -32,9 +32,11 @@ pipeline {
 
     stage('Examples') {
       parallel {
-        stage('web-chat') { steps { script { buildExample() } } }
         stage('eth-pm') { steps { script { buildExample() } } }
         stage('eth-pm-wallet-encryption') { steps { script { buildExample() } } }
+        stage('relay-reactjs-chat') { steps { script { buildExample() } } }
+        stage('store-reactjs-chat') { steps { script { buildExample() } } }
+        stage('web-chat') { steps { script { buildExample() } } }
       }
     }
 
