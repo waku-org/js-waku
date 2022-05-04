@@ -1,7 +1,7 @@
 import debug from "debug";
 import { Multiaddr } from "multiaddr";
 
-import { DnsNodeDiscovery } from "./dns";
+import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns";
 
 import { getPredefinedBootstrapNodes, getPseudoRandomSubset } from "./index";
 
@@ -10,11 +10,12 @@ const dbg = debug("waku:discovery:bootstrap");
 /**
  * Setup discovery method used to bootstrap.
  *
- * Only one method is used. `default`, `peers`, `getPeers` and `enr` options are mutually exclusive.
+ * Only one method is used. [[default]], [[peers]], [[getPeers]] and [[enrUrl]] options are mutually exclusive.
  */
 export interface BootstrapOptions {
   /**
    * The maximum of peers to connect to as part of the bootstrap process.
+   * This only applies if [[peers]] or [[getPeers]] is used.
    *
    * @default [[Bootstrap.DefaultMaxPeers]]
    */
@@ -39,12 +40,21 @@ export interface BootstrapOptions {
   /**
    * An EIP-1459 ENR Tree URL. For example:
    * "enrtree://AOFTICU2XWDULNLZGRMQS4RIZPAZEHYMV4FYHAPW563HNRAOERP7C@test.nodes.vac.dev"
+   *
+   * [[wantedNodeCapabilityCount]] MUST be passed when using this option.
    */
   enrUrl?: string;
+  /**
+   * Specifies what node capabilities (protocol) must be returned.
+   * This only applies when [[enrUrl]] is passed (EIP-1459 DNS Discovery).
+   */
+  wantedNodeCapabilityCount?: Partial<NodeCapabilityCount>;
 }
 
 /**
  * Parse options and expose function to return bootstrap peer addresses.
+ *
+ * @throws if an invalid combination of options is passed, see [[BootstrapOptions]] for details.
  */
 export class Bootstrap {
   public static DefaultMaxPeers = 1;
@@ -91,13 +101,16 @@ export class Bootstrap {
         ).map((node) => new Multiaddr(node));
       };
     } else if (opts.enrUrl) {
+      const wantedNodeCapabilityCount = opts.wantedNodeCapabilityCount;
+      if (!wantedNodeCapabilityCount)
+        throw "`wantedNodeCapabilityCount` must be defined when using `enrUrl`";
       const enrUrl = opts.enrUrl;
       dbg("Use provided EIP-1459 ENR Tree URL.");
 
       const dns = DnsNodeDiscovery.dnsOverHttp();
 
       this.getBootstrapPeers = async (): Promise<Multiaddr[]> => {
-        const enrs = await dns.getPeers(maxPeers, [enrUrl]);
+        const enrs = await dns.getPeers([enrUrl], wantedNodeCapabilityCount);
         dbg(`Found ${enrs.length} peers`);
         return enrs.map((enr) => enr.getFullMultiaddrs()).flat();
       };

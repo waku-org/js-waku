@@ -5,3 +5,4 @@ export * from "./enr";
 export * from "./types";
 export * from "./create";
 export * from "./keypair";
+export * from "./waku2_codec";
