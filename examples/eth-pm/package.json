@@ -15,7 +15,7 @@
     "eth-sig-util": "^3.0.1",
     "ethers": "^5.5.4",
     "fontsource-roboto": "^4.0.0",
-    "js-waku": "file:../../build/main",
+    "js-waku": "^0.19.2",
     "protobufjs": "^6.11.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
@@ -56,12 +56,17 @@
   "devDependencies": {
     "@ethersproject/shims": "^5.5.0",
     "@types/node": "^17.0.19",
+    "assert": "^2.0.0",
+    "buffer": "^6.0.3",
     "cra-webpack-rewired": "^1.0.1",
+    "crypto-browserify": "^3.12.0",
     "cspell": "^5.18.4",
     "eslint": "^8.9.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.5.1",
+    "process": "^0.11.10",
     "react-scripts": "5.0.0",
+    "stream-browserify": "^3.0.0",
     "typescript": "^4.5.5"
   }
 }

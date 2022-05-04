@@ -3,16 +3,16 @@ name: CI
 on:
   push:
     branches:
-      - 'master'
-      - 'staging'
-      - 'trying'
+      - "master"
+      - "staging"
+      - "trying"
   pull_request:
 
 jobs:
   build_and_test:
     env:
-      BUF_VERSION: '0.56.0'
-      NIM_WAKU_VERSION: 'v0.9'
+      BUF_VERSION: "0.56.0"
+      NIM_WAKU_VERSION: "v0.9"
     strategy:
       matrix:
         node: [16]
@@ -51,7 +51,7 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
         with:
-          version: '3.x'
+          version: "3.x"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache npm cache
