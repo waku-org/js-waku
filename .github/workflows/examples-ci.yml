@@ -44,12 +44,6 @@ jobs:
           path: ~/.npm
           key: examples-node-v1-${{ hashFiles('**/package-lock.json') }}
 
-      - name: "[js-waku] install using npm ci"
-        uses: bahmutov/npm-install@v1
-
-      - name: "[js-waku] build"
-        run: npm run build
-
       - name: (npm) ${{ matrix.example }} install using npm i
         if: steps.use-yarn.outputs.lockfile != 'yarn.lock'
         run: npm install
