@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support of the `waku2` ENR key: When using DNS Discovery, wanted node capabilities (e.g. relay, store) must be passed. 
+
 ### Changed
 
 - Prefer the use of `BigInt` over integer literal (`n` postfix) to facilitate the use of a polyfill.
