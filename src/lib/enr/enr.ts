@@ -88,7 +88,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
         dbg("Failed to decode ENR key to UTF-8, skipping it", kvs[i], e);
       }
     }
-    const enr = new ENR(obj, BigInt("0x" + bytesToHex(seq)), signature);
+    // If seq is an empty array, translate as value 0
+    const hexSeq = "0x" + (seq.length ? bytesToHex(seq) : "00");
+    const enr = new ENR(obj, BigInt(hexSeq), signature);
 
     const rlpEncodedBytes = hexToBytes(RLP.encode([seq, ...kvs]));
     if (!enr.verify(rlpEncodedBytes, signature)) {
