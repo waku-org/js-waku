@@ -22,6 +22,7 @@ import {
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
 import * as v4 from "./v4";
+import { decodeWaku2, encodeWaku2, Waku2 } from "./waku2_codec";
 
 const dbg = debug("waku:enr");
 
@@ -88,7 +89,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
         dbg("Failed to decode ENR key to UTF-8, skipping it", kvs[i], e);
       }
     }
-    const enr = new ENR(obj, BigInt("0x" + bytesToHex(seq)), signature);
+    // If seq is an empty array, translate as value 0
+    const hexSeq = "0x" + (seq.length ? bytesToHex(seq) : "00");
+    const enr = new ENR(obj, BigInt(hexSeq), signature);
 
     const rlpEncodedBytes = hexToBytes(RLP.encode([seq, ...kvs]));
     if (!enr.verify(rlpEncodedBytes, signature)) {
@@ -416,6 +419,28 @@ export class ENR extends Map<ENRKey, ENRValue> {
       });
     }
     return [];
+  }
+
+  /**
+   * Get the `waku2` field from ENR.
+   */
+  get waku2(): Waku2 | undefined {
+    const raw = this.get("waku2");
+    if (raw) return decodeWaku2(raw[0]);
+
+    return;
+  }
+
+  /**
+   * Set the `waku2` field on the ENR.
+   */
+  set waku2(waku2: Waku2 | undefined) {
+    if (waku2 === undefined) {
+      this.delete("waku2");
+    } else {
+      const byte = encodeWaku2(waku2);
+      this.set("waku2", new Uint8Array([byte]));
+    }
   }
 
   verify(data: Uint8Array, signature: Uint8Array): boolean {
