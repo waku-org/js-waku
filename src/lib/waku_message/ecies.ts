@@ -1,7 +1,7 @@
 import * as secp from "@noble/secp256k1";
 import { concat } from "uint8arrays/concat";
 
-import { randomBytes, sha256, subtle } from "../crypto";
+import { getSubtle, randomBytes, sha256 } from "../crypto";
 import { hexToBytes } from "../utils";
 /**
  * HKDF as implemented in go-ethereum.
@@ -37,10 +37,10 @@ function aesCtrEncrypt(
   key: ArrayBufferLike,
   data: ArrayBufferLike
 ): Promise<Uint8Array> {
-  return subtle
+  return getSubtle()
     .importKey("raw", key, "AES-CTR", false, ["encrypt"])
     .then((cryptoKey) =>
-      subtle.encrypt(
+      getSubtle().encrypt(
         { name: "AES-CTR", counter: counter, length: 128 },
         cryptoKey,
         data
@@ -54,10 +54,10 @@ function aesCtrDecrypt(
   key: ArrayBufferLike,
   data: ArrayBufferLike
 ): Promise<Uint8Array> {
-  return subtle
+  return getSubtle()
     .importKey("raw", key, "AES-CTR", false, ["decrypt"])
     .then((cryptoKey) =>
-      subtle.decrypt(
+      getSubtle().decrypt(
         { name: "AES-CTR", counter: counter, length: 128 },
         cryptoKey,
         data
@@ -71,9 +71,9 @@ function hmacSha256Sign(
   msg: ArrayBufferLike
 ): PromiseLike<Uint8Array> {
   const algorithm = { name: "HMAC", hash: { name: "SHA-256" } };
-  return subtle
+  return getSubtle()
     .importKey("raw", key, algorithm, false, ["sign"])
-    .then((cryptoKey) => subtle.sign(algorithm, cryptoKey, msg))
+    .then((cryptoKey) => getSubtle().sign(algorithm, cryptoKey, msg))
     .then((bytes) => new Uint8Array(bytes));
 }
 
@@ -83,9 +83,9 @@ function hmacSha256Verify(
   sig: ArrayBufferLike
 ): Promise<boolean> {
   const algorithm = { name: "HMAC", hash: { name: "SHA-256" } };
-  const _key = subtle.importKey("raw", key, algorithm, false, ["verify"]);
+  const _key = getSubtle().importKey("raw", key, algorithm, false, ["verify"]);
   return _key.then((cryptoKey) =>
-    subtle.verify(algorithm, cryptoKey, sig, msg)
+    getSubtle().verify(algorithm, cryptoKey, sig, msg)
   );
 }
 

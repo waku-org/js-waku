@@ -1,4 +1,4 @@
-import { randomBytes, subtle } from "../crypto";
+import { getSubtle, randomBytes } from "../crypto";
 
 export const KeySize = 32;
 export const IvSize = 12;
@@ -11,10 +11,10 @@ export async function encrypt(
   key: Buffer,
   clearText: Buffer
 ): Promise<Buffer> {
-  return subtle
+  return getSubtle()
     .importKey("raw", key, Algorithm, false, ["encrypt"])
     .then((cryptoKey) =>
-      subtle.encrypt({ iv, ...Algorithm }, cryptoKey, clearText)
+      getSubtle().encrypt({ iv, ...Algorithm }, cryptoKey, clearText)
     )
     .then(Buffer.from);
 }
@@ -24,10 +24,10 @@ export async function decrypt(
   key: Buffer,
   cipherText: Buffer
 ): Promise<Buffer> {
-  return subtle
+  return getSubtle()
     .importKey("raw", key, Algorithm, false, ["decrypt"])
     .then((cryptoKey) =>
-      subtle.decrypt({ iv, ...Algorithm }, cryptoKey, cipherText)
+      getSubtle().decrypt({ iv, ...Algorithm }, cryptoKey, cipherText)
     )
     .then(Buffer.from);
 }
