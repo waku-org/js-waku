@@ -10,7 +10,7 @@ export interface IKeypair {
   publicKey: Uint8Array;
   privateKeyVerify(): boolean;
   publicKeyVerify(): boolean;
-  sign(msg: Uint8Array): Uint8Array;
+  sign(msg: Uint8Array): Promise<Uint8Array>;
   verify(msg: Uint8Array, sig: Uint8Array): boolean;
   hasPrivateKey(): boolean;
 }
@@ -29,7 +29,7 @@ export abstract class AbstractKeypair {
       throw new Error("Invalid private key");
     }
     if ((this._publicKey = publicKey) && !this.publicKeyVerify()) {
-      throw new Error("Invalid private key");
+      throw new Error("Invalid public key");
     }
   }
 

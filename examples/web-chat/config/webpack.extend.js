@@ -8,7 +8,7 @@ module.exports = {
     Object.assign(config.resolve.fallback, {
       assert: require.resolve("assert"),
       buffer: require.resolve("buffer"),
-      crypto: require.resolve("crypto-browserify"),
+      crypto: false,
       http: require.resolve("http-browserify"),
       https: require.resolve("https-browserify"),
       stream: require.resolve("stream-browserify"),
@@ -41,7 +41,7 @@ module.exports = {
     Object.assign(config.resolve.fallback, {
       assert: require.resolve("assert"),
       buffer: require.resolve("buffer"),
-      crypto: require.resolve("crypto-browserify"),
+      crypto: false,
       http: require.resolve("http-browserify"),
       https: require.resolve("https-browserify"),
       stream: require.resolve("stream-browserify"),

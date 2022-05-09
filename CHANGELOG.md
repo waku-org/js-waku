@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Prefer the use of `BigInt` over integer literal (`n` postfix) to facilitate the use of a polyfill.
+- Replaced `secp256k1` and hence `elliptic` dependencies with `@noble/secp256k1`,
+  reducing package size, number of dependency and removing need for `crypto-browserify` polyfill.
 
 ### Fixed
 

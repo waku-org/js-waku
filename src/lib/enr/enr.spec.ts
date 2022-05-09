@@ -37,7 +37,7 @@ describe("ENR", function () {
         lightPush: false,
       };
 
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const enr2 = ENR.decodeTxt(txt);
 
       if (!enr.signature) throw "enr.signature is undefined";
@@ -116,7 +116,7 @@ describe("ENR", function () {
         enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
 
         enr.set("id", new Uint8Array([0]));
-        const txt = enr.encodeTxt(keypair.privateKey);
+        const txt = await enr.encodeTxt(keypair.privateKey);
 
         ENR.decodeTxt(txt);
         assert.fail("Expect error here");
@@ -190,11 +190,11 @@ describe("ENR", function () {
     });
   });
 
-  describe("Static tests", () => {
+  describe("Static tests", function () {
     let privateKey: Uint8Array;
     let record: ENR;
 
-    beforeEach(() => {
+    beforeEach(async function () {
       const seq = BigInt(1);
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
@@ -202,8 +202,7 @@ describe("ENR", function () {
       record = ENR.createV4(v4.publicKey(privateKey));
       record.setLocationMultiaddr(new Multiaddr("/ip4/127.0.0.1/udp/30303"));
       record.seq = seq;
-      // To set signature
-      record.encode(privateKey);
+      await record.encodeTxt(privateKey);
     });
 
     it("should properly compute the node id", () => {
@@ -212,21 +211,24 @@ describe("ENR", function () {
       );
     });
 
-    it("should encode/decode to RLP encoding", () => {
-      const decoded = ENR.decode(record.encode(privateKey));
+    it("should encode/decode to RLP encoding", async function () {
+      const decoded = ENR.decode(await record.encode(privateKey));
       expect(decoded).to.deep.equal(record);
     });
 
-    it("should encode/decode to text encoding", () => {
+    it("should encode/decode to text encoding", async function () {
       // spec enr https://eips.ethereum.org/EIPS/eip-778
       const testTxt =
         "enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjzCBOonrkTfj499SZuOh8R33Ls8RRcy5wBgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQPKY0yuDUmstAHYpMa2_oxVtw0RW_QAdpzBQA8yWM0xOIN1ZHCCdl8";
       const decoded = ENR.decodeTxt(testTxt);
-      expect(decoded.udp).to.be.equal(30303);
-      expect(decoded.ip).to.be.equal("127.0.0.1");
-      expect(decoded).to.deep.equal(record);
-      const recordTxt = record.encodeTxt(privateKey);
-      expect(recordTxt).to.equal(testTxt);
+      // Note: Signatures are different due to the extra entropy added
+      // by @noble/secp256k1:
+      // https://github.com/paulmillr/noble-secp256k1#signmsghash-privatekey
+      expect(decoded.udp).to.deep.equal(record.udp);
+      expect(decoded.ip).to.deep.equal(record.ip);
+      expect(decoded.id).to.deep.equal(record.id);
+      expect(decoded.seq).to.equal(record.seq);
+      expect(decoded.get("secp256k1")).to.deep.equal(record.get("secp256k1"));
     });
   });
 
@@ -397,10 +399,10 @@ describe("ENR", function () {
       };
     });
 
-    it("should set field with all protocols disabled", () => {
+    it("should set field with all protocols disabled", async () => {
       enr.waku2 = waku2Protocols;
 
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -409,14 +411,14 @@ describe("ENR", function () {
       expect(decoded.lightPush).to.equal(false);
     });
 
-    it("should set field with all protocols enabled", () => {
+    it("should set field with all protocols enabled", async () => {
       waku2Protocols.relay = true;
       waku2Protocols.store = true;
       waku2Protocols.filter = true;
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(true);
@@ -425,11 +427,11 @@ describe("ENR", function () {
       expect(decoded.lightPush).to.equal(true);
     });
 
-    it("should set field with only RELAY enabled", () => {
+    it("should set field with only RELAY enabled", async () => {
       waku2Protocols.relay = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(true);
@@ -438,11 +440,11 @@ describe("ENR", function () {
       expect(decoded.lightPush).to.equal(false);
     });
 
-    it("should set field with only STORE enabled", () => {
+    it("should set field with only STORE enabled", async () => {
       waku2Protocols.store = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -451,11 +453,11 @@ describe("ENR", function () {
       expect(decoded.lightPush).to.equal(false);
     });
 
-    it("should set field with only FILTER enabled", () => {
+    it("should set field with only FILTER enabled", async () => {
       waku2Protocols.filter = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -464,11 +466,11 @@ describe("ENR", function () {
       expect(decoded.lightPush).to.equal(false);
     });
 
-    it("should set field with only LIGHTPUSH enabled", () => {
+    it("should set field with only LIGHTPUSH enabled", async () => {
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const decoded = ENR.decodeTxt(txt).waku2!;
 
       expect(decoded.relay).to.equal(false);
