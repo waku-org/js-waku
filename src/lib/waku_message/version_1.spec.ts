@@ -44,7 +44,7 @@ describe("Waku Message Version 1", function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
-        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (message, privKey) => {
           const publicKey = getPublicKey(privKey);
 
