@@ -1,5 +1,6 @@
 import nodeCrypto from "crypto";
 
+import * as secp from "@noble/secp256k1";
 import { concat } from "uint8arrays/concat";
 
 declare const self: Record<string, any> | undefined;
@@ -20,18 +21,7 @@ export function getSubtle(): SubtleCrypto {
   }
 }
 
-export function randomBytes(bytesLength = 32): Uint8Array {
-  if (crypto.web) {
-    return crypto.web.getRandomValues(new Uint8Array(bytesLength));
-  } else if (crypto.node) {
-    const { randomBytes } = crypto.node;
-    return Uint8Array.from(randomBytes(bytesLength));
-  } else {
-    throw new Error(
-      "The environment doesn't have randomBytes function (if in the browser, be sure to use to be in a secure context, ie, https)"
-    );
-  }
-}
+export const randomBytes = secp.utils.randomBytes;
 
 export async function sha256(...messages: Uint8Array[]): Promise<Uint8Array> {
   if (crypto.web) {
