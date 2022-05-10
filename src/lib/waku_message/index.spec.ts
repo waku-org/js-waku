@@ -53,6 +53,8 @@ describe("Waku Message: Browser & Node", function () {
   });
 
   it("Waku message round trip binary encryption [asymmetric, signature]", async function () {
+    this.timeout(4000);
+
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
