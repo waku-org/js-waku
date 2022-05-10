@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.2",
-    "@testing-library/react": "^12.1.2",
+    "@testing-library/react": "^13.2.0",
     "@testing-library/user-event": "^14.0.4",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
