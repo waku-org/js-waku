@@ -53,6 +53,8 @@ describe("Waku Message: Browser & Node", function () {
   });
 
   it("Waku message round trip binary encryption [asymmetric, signature]", async function () {
+    this.timeout(4000);
+
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
@@ -83,7 +85,7 @@ describe("Waku Message: Browser & Node", function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
-        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (payload, key) => {
           const msg = await WakuMessage.fromBytes(payload, TestContentTopic, {
             symKey: key,
@@ -102,8 +104,8 @@ describe("Waku Message: Browser & Node", function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
-        fc.uint8Array({ minLength: 32, maxLength: 32 }),
-        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
+        fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (payload, sigPrivKey, symKey) => {
           const sigPubKey = getPublicKey(sigPrivKey);
 
