@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2022-05-10
+
+### Changed
+
+- Replaced `secp256k1` and hence `elliptic` dependencies with `@noble/secp256k1`,
+  reducing package size, number of dependency and removing need for `crypto-browserify` polyfill.
+
 ## [0.21.0] - 2022-05-5
 
 ### Added
@@ -16,8 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Prefer the use of `BigInt` over integer literal (`n` postfix) to facilitate the use of a polyfill.
-- Replaced `secp256k1` and hence `elliptic` dependencies with `@noble/secp256k1`,
-  reducing package size, number of dependency and removing need for `crypto-browserify` polyfill.
 
 ### Fixed
 
@@ -393,6 +398,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
 [Unreleased]: https://github.com/status-im/js-waku/compare/v0.21.0...HEAD
+[0.22.0]: https://github.com/status-im/js-waku/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/status-im/js-waku/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/status-im/js-waku/compare/v0.19.2...v0.20.0
 [0.19.2]: https://github.com/status-im/js-waku/compare/v0.19.0...v0.19.2
