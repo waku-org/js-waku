@@ -7,7 +7,7 @@ module.exports = {
     if (!config.resolve.fallback) config.resolve.fallback = {};
     Object.assign(config.resolve.fallback, {
       buffer: require.resolve('buffer'),
-      crypto: require.resolve('crypto-browserify'),
+      crypto: false,
       stream: require.resolve('stream-browserify'),
     });
 
@@ -35,7 +35,7 @@ module.exports = {
     if (!config.resolve.fallback) config.resolve.fallback = {};
     Object.assign(config.resolve.fallback, {
       buffer: require.resolve('buffer'),
-      crypto: require.resolve('crypto-browserify'),
+      crypto: false,
       stream: require.resolve('stream-browserify'),
     });
 
