@@ -1,5 +1,3 @@
-import assert from "assert";
-
 import { debug } from "debug";
 
 import { ENR } from "../enr";
@@ -134,11 +132,9 @@ export class DnsNodeDiscovery {
 
     const response = await this.dns.resolveTXT(location);
 
-    assert(
-      response.length,
-      "Received empty result array while fetching TXT record"
-    );
-    assert(response[0].length, "Received empty TXT record");
+    if (!response.length)
+      throw new Error("Received empty result array while fetching TXT record");
+    if (!response[0].length) throw new Error("Received empty TXT record");
 
     // Branch entries can be an array of strings of comma delimited subdomains, with
     // some subdomain strings split across the array elements
