@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta charset='UTF-8' />
+  <meta content='width=device-width, initial-scale=1.0' name='viewport' />
+  <title>JS-Waku unpkg example</title>
+</head>
+
+<body>
+
+<div><h1>Timestamp of latest relay ping</h1></div>
+<div id='timestamp'></div>
+
+<script
+  src='https://unpkg.com/js-waku@latest/build/umd/js-waku.min.bundle.js'></script>
+<script>
+  /**
+   * This example demonstrates how to use the js-waku minified bundle
+   * available on unpkg.com.
+   *
+   * It is a simple script that uses Waku Store to retrieve ping relay messages
+   * and displays the timestamp of the most recent ping relay message.
+   */
+  const timestampDiv = document.getElementById('timestamp');
+
+  try {
+    timestampDiv.innerHTML = '<p>Starting waku.</p>';
+    jswaku.Waku.create({ bootstrap: { default: true } }).catch(e => {
+        timestampDiv.innerHTML = 'Failed to create Waku: ' + e.toString();
+      }
+    ).then(waku => {
+      timestampDiv.innerHTML = '<p>Connecting to a peer.</p>';
+      waku.waitForRemotePeer()
+        .catch((e) => {
+          timestampDiv.innerHTML = 'Failed to connect to peers' + e.toString();
+        })
+        .then(() => {
+          timestampDiv.innerHTML = '<p>Retrieving messages.</p>';
+
+          const callback = (wakuMessages) => {
+            // Messages are ordered with oldest first
+            // even with page direction `backward`
+            const latestFirst = wakuMessages.reverse();
+            const latestMessage = latestFirst[0];
+            if (latestMessage) {
+              timestampDiv.innerHTML = latestMessage.timestamp;
+            } else {
+              timestampDiv.innerHTML = '<p>No ping message available</p>';
+            }
+
+            // When returning true, `queryHistory` stops retrieving pages
+            // In our case, we only want one message, hence one page.
+            return true;
+          };
+
+          const startTime = new Date();
+          // Only retrieve a week of messages
+          startTime.setTime(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+          waku.store
+            .queryHistory(['/relay-ping/1/ping/null'], {
+              callback,
+              pageDirection: 'backward',
+              pageSize: 1,
+              timeFilter: {
+                startTime,
+                endTime: new Date()
+              }
+            })
+            .catch((e) => {
+              timestampDiv.innerHTML = 'Failed to retrieve messages' + e.toString();
+            });
+        });
+    });
+  } catch (e) {
+    timestampDiv.innerHTML = 'Failed to start application' + e.toString();
+  }
+</script>
+</body>
+
+</html>

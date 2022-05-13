@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta charset='UTF-8' />
+  <meta content='width=device-width, initial-scale=1.0' name='viewport' />
+  <title>JS-Waku Chat</title>
+</head>
+
+<body>
+
+<div><h1>Waku Node Status</h1></div>
+<div id='status'></div>
+
+<input id='textInput' placeholder='Type your message here' type='text'>
+<button id='sendButton' onclick='sendMessage();' type='button'>Send Message
+</button>
+
+<div><h1>Messages</h1></div>
+<div id='messages'></div>
+
+
+<script
+  src='https://unpkg.com/js-waku@latest/build/umd/js-waku.min.bundle.js'></script>
+<script>
+  /**
+   * Demonstrate usage of js-waku in the browser. Use relay, gossip sub protocol to send and receive messages.
+   * Recommended payload is protobuf. Using simple utf-8 string for demo purposes only.
+   *
+   * - API documentation: https://js-waku.wakuconnect.dev/
+   * - Guides: https://docs.wakuconnect.dev/
+   *
+   * Note: open this HTML in two different browsers to experience decentralized communication.
+   * A node will not show its own messages, this can be changed by modifying the `Waku.create` call:
+   *
+   * Waku.create({
+   *     bootstrap: {default: true}, libp2p: {
+   *         config: {
+   *             pubsub: {
+   *                 enabled: true,
+   *                 emitSelf: true,
+   *             },
+   *         },
+   *     },
+   * })
+   *
+   */
+
+  const { Waku, WakuMessage } = jswaku;
+  const statusDiv = document.getElementById('status');
+  const messagesDiv = document.getElementById('messages');
+  const textInput = document.getElementById('textInput');
+  const sendButton = document.getElementById('sendButton');
+
+  // Keep it disabled until Waku node is ready
+  textInput.disabled = true;
+  sendButton.disabled = true;
+
+  // Every Waku Message has a content topic that categorizes it.
+  // It is always encoded in clear text.
+  // Recommendation: `/dapp-name/version/functionality/codec`
+  // We recommend to use protobuf as codec (`proto`), this demo uses utf-8
+  // for simplicity's sake.
+  const contentTopic = '/relay-demo/1/message/utf-8';
+
+  // Function to be used to send the text input over Waku.
+  let sendMessage = () => {
+  };
+
+  try {
+    statusDiv.innerHTML = '<p>Starting</p>';
+
+    // Create and starts a Waku node.
+    // `default: true` bootstraps by connecting to pre-defined/hardcoded Waku nodes.
+    // We are currently working on migrating this method to DNS Discovery.
+    //
+    // https://js-waku.wakuconnect.dev/classes/waku.Waku.html#create
+    Waku.create({ bootstrap: { default: true } }).catch(e => {
+        statusDiv.innerHTML = 'Error';
+        console.log('Issue starting Waku node', e);
+      }
+    ).then(wakuNode => {
+
+      // Had a hook to process all incoming messages on a specified content topic.
+      //
+      // https://js-waku.wakuconnect.dev/classes/waku_relay.WakuRelay.html#addObserver
+      wakuNode.relay.addObserver((wakuMessage) => {
+
+        // Checks there is a payload on the message.
+        // Waku Message is encoded in protobuf, in proto v3 fields are always optional.
+        //
+        // https://js-waku.wakuconnect.dev/classes/waku_message.WakuMessage.html#payload
+        if (!wakuMessage.payload)
+          return;
+
+        // Helper method to decode the payload to utf-8. A production dApp should
+        // use `wakuMessage.payload` (Uint8Array) which enables encoding a data
+        // structure of their choice.
+        //
+        // https://js-waku.wakuconnect.dev/classes/waku_message.WakuMessage.html#payloadAsUtf8
+        const text = wakuMessage.payloadAsUtf8;
+        messagesDiv.innerHTML = `<p>${text}</p><br />` + messagesDiv.innerHTML;
+      }, [contentTopic]);
+
+      statusDiv.innerHTML = '<p>Connecting to a peer</p>';
+
+      // Best effort method that waits for the Waku node to be connected to remote
+      // waku nodes (peers) and for appropriate handshakes to be done.
+      //
+      // https://js-waku.wakuconnect.dev/classes/waku.Waku.html#waitForRemotePeer
+      wakuNode.waitForRemotePeer()
+        .catch((e) => {
+          statusDiv.innerHTML = 'Failed to connect to peers: ' + e.toString();
+        })
+        .then(() => {
+
+          // We are now connected to a remote peer, let's define the `sendMessage`
+          // function that sends the text input over Waku Relay, the gossipsub
+          // protocol.
+          sendMessage = () => {
+            const text = textInput.value;
+            // Reset the text input.
+            textInput.value = null;
+
+            // Helper functions are available to create a Waku Message.
+            // These functions also provide native symmetric, asymmetric encryption,
+            // signing and signature verification. Check the `Options` object for details:
+            // https://js-waku.wakuconnect.dev/interfaces/waku_message.Options.html
+            //
+            // `WakuMessage.fromBytes` should be preferred for a production dApp to
+            // serialize a data structure.
+            //
+            // https://js-waku.wakuconnect.dev/classes/waku_message.WakuMessage.html#fromUtf8String
+            WakuMessage.fromUtf8String(text, contentTopic).catch(e => console.log('Error encoding message', e)).then(
+              wakuMessage => {
+                // Once the message is constructed, send it over Waku Relay.
+                //
+                // https://js-waku.wakuconnect.dev/classes/waku_relay.WakuRelay.html#send
+                wakuNode.relay.send(wakuMessage).catch((e) => {
+                  console.log('Error sending message', e);
+                }).then(() => {
+                  console.log('Message sent', text);
+                });
+              }
+            );
+
+          };
+
+          // Ready to send & receive messages, enable text input.
+          textInput.disabled = false;
+          sendButton.disabled = false;
+          statusDiv.innerHTML = '<p>Ready!</p>';
+
+        });
+    });
+  } catch (e) {
+    timestampDiv.innerHTML = 'Failed to start application';
+    console.log(e);
+  }
+</script>
+</body>
+
+</html>

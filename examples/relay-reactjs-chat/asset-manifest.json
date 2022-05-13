@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/static/css/main.e6c13ad2.css",
-    "main.js": "/static/js/main.747e0753.js",
-    "index.html": "/index.html",
-    "main.e6c13ad2.css.map": "/static/css/main.e6c13ad2.css.map",
-    "main.747e0753.js.map": "/static/js/main.747e0753.js.map"
+    "main.css": "/examples/relay-reactjs-chat/static/css/main.e6c13ad2.css",
+    "main.js": "/examples/relay-reactjs-chat/static/js/main.9ca902f8.js",
+    "index.html": "/examples/relay-reactjs-chat/index.html",
+    "main.e6c13ad2.css.map": "/examples/relay-reactjs-chat/static/css/main.e6c13ad2.css.map",
+    "main.9ca902f8.js.map": "/examples/relay-reactjs-chat/static/js/main.9ca902f8.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.747e0753.js"
+    "static/js/main.9ca902f8.js"
   ]
 }
