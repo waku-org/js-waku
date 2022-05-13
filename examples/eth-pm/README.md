@@ -17,7 +17,7 @@ only knowing their Ethereum Address.
 This protocol has been created to demonstrated how encryption and signature could be added to message
 sent over the Waku v2 network.
 
-The `master` branch's HEAD is deployed on GitHub Pages at https://js-waku.wakuconnect.dev/examples/eth-pm/.
+The `master` branch's HEAD is deployed at https://js-waku.wakuconnect.dev/examples/eth-pm/.
 
 To run a development version locally, do:
 
