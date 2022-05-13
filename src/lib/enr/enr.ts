@@ -31,6 +31,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   public static readonly RECORD_PREFIX = "enr:";
   public seq: SequenceNumber;
   public signature: Uint8Array | null;
+  public peerId?: PeerId;
 
   constructor(
     kvs: Record<ENRKey, ENRValue> = {},
@@ -40,6 +41,16 @@ export class ENR extends Map<ENRKey, ENRValue> {
     super(Object.entries(kvs));
     this.seq = seq;
     this.signature = signature;
+
+    try {
+      const publicKey = this.publicKey;
+      if (publicKey) {
+        const keypair = createKeypair(this.keypairType, undefined, publicKey);
+        this.peerId = createPeerIdFromKeypair(keypair);
+      }
+    } catch (e) {
+      dbg("Could not calculate peer id for ENR", e);
+    }
   }
 
   static createV4(
@@ -96,6 +107,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
     // If seq is an empty array, translate as value 0
     const hexSeq = "0x" + (seq.length ? bytesToHex(seq) : "00");
+
     const enr = new ENR(obj, BigInt(hexSeq), signature);
 
     const rlpEncodedBytes = hexToBytes(RLP.encode([seq, ...kvs]));
@@ -155,10 +167,6 @@ export class ENR extends Map<ENRKey, ENRValue> {
       return createKeypair(this.keypairType, undefined, publicKey);
     }
     return;
-  }
-
-  get peerId(): PeerId | undefined {
-    return this.keypair ? createPeerIdFromKeypair(this.keypair) : undefined;
   }
 
   get nodeId(): NodeId | undefined {
