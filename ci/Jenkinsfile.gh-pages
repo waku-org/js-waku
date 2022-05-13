@@ -40,6 +40,13 @@ pipeline {
       }
     }
 
+    stage('HTML Examples') {
+      parallel {
+        stage('relay-js') { steps { script { copyExample() } } }
+        stage('store-js') { steps { script { copyExample() } } }
+      }
+    }
+
     stage('Publish') {
       when { expression { GIT_BRANCH.endsWith('master') } }
       steps { script {
@@ -61,5 +68,12 @@ def buildExample(example=STAGE_NAME) {
     sh 'npm run build'
     sh "mkdir -p ${dest}"
     sh "cp -r build/. ${dest}"
+  }
+}
+
+def copyExample(example=STAGE_NAME) {
+  def dest = "${WORKSPACE}/build/docs/examples/${example}"
+  dir("examples/${example}") {
+    sh "cp index.html ${dest}"
   }
 }
