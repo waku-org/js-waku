@@ -11,6 +11,8 @@
 
 A barebone chat app to illustrate the [ReactJS Relay guide](https://docs.wakuconnect.dev/docs/guides/07_reactjs_relay/).
 
+The `master` branch's HEAD is deployed at https://js-waku.wakuconnect.dev/examples/relay-reactjs-chat/.
+
 To run a development version locally, do:
 
 ```shell

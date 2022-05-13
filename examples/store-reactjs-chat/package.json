@@ -2,6 +2,7 @@
   "name": "store-reactjs-chat",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/examples/store-reactjs-chat",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
