@@ -41,16 +41,25 @@ export class ENR extends Map<ENRKey, ENRValue> {
     super(Object.entries(kvs));
     this.seq = seq;
     this.signature = signature;
+  }
 
+  static async create(
+    kvs: Record<ENRKey, ENRValue> = {},
+    seq: SequenceNumber = BigInt(1),
+    signature: Uint8Array | null = null
+  ): Promise<ENR> {
+    const enr = new ENR(kvs, seq, signature);
     try {
-      const publicKey = this.publicKey;
+      const publicKey = enr.publicKey;
       if (publicKey) {
-        const keypair = createKeypair(this.keypairType, undefined, publicKey);
-        this.peerId = createPeerIdFromKeypair(keypair);
+        const keypair = createKeypair(enr.keypairType, undefined, publicKey);
+        enr.peerId = await createPeerIdFromKeypair(keypair);
       }
     } catch (e) {
       dbg("Could not calculate peer id for ENR", e);
     }
+
+    return enr;
   }
 
   static createV4(
