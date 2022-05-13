@@ -113,5 +113,12 @@
     "gen",
     "proto",
     "*.spec.ts"
-  ]
+  ],
+  "patterns": [
+    {
+      "name": "import",
+      "pattern": "/import .*/"
+    }
+  ],
+  "ignoreRegExpList": ["import"]
 }
