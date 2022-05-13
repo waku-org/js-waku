@@ -15,7 +15,7 @@
     "eth-sig-util": "^3.0.1",
     "ethers": "^5.5.4",
     "fontsource-roboto": "^4.0.0",
-    "js-waku": "^0.19.2",
+    "js-waku": "^0.22.0",
     "protobufjs": "^6.11.2",
     "react": "^18.1.0",
     "react-dom": "^18.1.0"
@@ -59,7 +59,6 @@
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "cra-webpack-rewired": "^1.0.1",
-    "crypto-browserify": "^3.12.0",
     "cspell": "^5.18.4",
     "eslint": "^8.9.0",
     "npm-run-all": "^4.1.5",
