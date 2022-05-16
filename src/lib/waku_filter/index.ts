@@ -17,8 +17,17 @@ export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 const log = debug("waku:filter");
 
 type FilterSubscriptionOpts = {
+  /**
+   * The Pubsub topic for the subscription
+   */
   topic?: string;
+  /**
+   * Optionally specify a PeerId for the subscription. If not included, will use a random peer
+   */
   peerId?: PeerId;
+  /**
+   * Array of ContentTopics to subscribe to. If empty, will subscribe to all messages on the network
+   */
   contentTopics: string[];
 };
 
@@ -26,6 +35,11 @@ type FilterCallback = (msg: WakuMessage) => void | Promise<void>;
 
 type UnsubscribeFunction = () => Promise<void>;
 
+/**
+ * Implements part of the [Waku v2 Filter protocol](https://rfc.vac.dev/spec/12/).
+ *
+ * WakuFilter can be used as a light filter node, but cannot currently be used as a full node that pushes messages to clients
+ */
 export class WakuFilter {
   private subscriptions: {
     [requestId: string]: FilterCallback;
@@ -36,11 +50,17 @@ export class WakuFilter {
   >;
 
   constructor(public libp2p: Libp2p) {
-    this.libp2p.handle(FilterCodec, this.onRequest.bind(this));
     this.subscriptions = {};
     this.decryptionKeys = new Map();
+    this.libp2p.handle(FilterCodec, this.onRequest.bind(this));
   }
 
+  /**
+   *
+   * @param opts The FilterSubscriptionOpts used to narrow which messages are returned, and which peer to connect to
+   * @param callback A function that will be called on each message returned by the filter
+   * @returns Unsubscribe function that can be used to end the subscription
+   */
   async subscribe(
     opts: FilterSubscriptionOpts,
     callback: FilterCallback
@@ -144,6 +164,7 @@ export class WakuFilter {
       requestId,
       false
     );
+
     const stream = await this.newStream(peer);
     try {
       await pipe([unsubscribeRequest.encode()], lp.encode(), stream.sink);
@@ -167,16 +188,18 @@ export class WakuFilter {
     let peer;
     if (peerId) {
       peer = await this.libp2p.peerStore.get(peerId);
-      if (!peer)
+      if (!peer) {
         throw new Error(
           `Failed to retrieve connection details for provided peer in peer store: ${peerId.toB58String()}`
         );
+      }
     } else {
       peer = await this.randomPeer;
-      if (!peer)
+      if (!peer) {
         throw new Error(
           "Failed to find known peer that registers waku filter protocol"
         );
+      }
     }
     return peer;
   }
