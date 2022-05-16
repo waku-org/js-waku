@@ -310,6 +310,7 @@ export class Waku {
   ): void {
     this.relay.addDecryptionKey(key, options);
     this.store.addDecryptionKey(key, options);
+    this.filter.addDecryptionKey(key, options);
   }
 
   /**
@@ -321,6 +322,7 @@ export class Waku {
   deleteDecryptionKey(key: Uint8Array | string): void {
     this.relay.deleteDecryptionKey(key);
     this.store.deleteDecryptionKey(key);
+    this.filter.deleteDecryptionKey(key);
   }
 
   /**

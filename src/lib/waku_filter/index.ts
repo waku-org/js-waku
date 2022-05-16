@@ -6,6 +6,7 @@ import { Peer, PeerId } from "libp2p/src/peer-store";
 
 import { WakuMessage as WakuMessageProto } from "../../proto/waku/v2/message";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
+import { hexToBytes } from "../utils";
 import { DefaultPubSubTopic } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message/index";
 
@@ -168,6 +169,30 @@ export class WakuFilter {
         throw "Failed to find known peer that registers waku store protocol";
     }
     return peer;
+  }
+
+  /**
+   * Register a decryption key to attempt decryption of messages received in any
+   * subsequent [[subscribe]] call. This can either be a private key for
+   * asymmetric encryption or a symmetric key. [[WakuStore]] will attempt to
+   * decrypt messages using both methods.
+   *
+   * Strings must be in hex format.
+   */
+  addDecryptionKey(
+    key: Uint8Array | string,
+    options?: { method?: DecryptionMethod; contentTopics?: string[] }
+  ): void {
+    this.decryptionKeys.set(hexToBytes(key), options ?? {});
+  }
+
+  /**cursorV2Beta4
+   * Delete a decryption key so that it cannot be used in future [[subscribe]] calls
+   *
+   * Strings must be in hex format.
+   */
+  deleteDecryptionKey(key: Uint8Array | string): void {
+    this.decryptionKeys.delete(hexToBytes(key));
   }
 
   get peers(): AsyncIterable<Peer> {
