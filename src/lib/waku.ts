@@ -329,10 +329,10 @@ export class Waku {
    * Wait for a remote peer to be ready given the passed protocols.
    * Useful when using the [[CreateOptions.bootstrap]] with [[Waku.create]].
    *
-   * @default Remote peer must have Waku Store and Waku Relay enabled.
+   * @default Remote peer must have Waku Relay enabled.
    */
   async waitForRemotePeer(protocols?: Protocols[]): Promise<void> {
-    const desiredProtocols = protocols ?? [Protocols.Relay, Protocols.Store];
+    const desiredProtocols = protocols ?? [Protocols.Relay];
 
     const promises = [];
 

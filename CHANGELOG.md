@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `waitForRemotePeer` waits for a Relay peer by default instead of Relay and Store.
+
 ## [0.23.0] - 2022-05-19
 
 ### Added
