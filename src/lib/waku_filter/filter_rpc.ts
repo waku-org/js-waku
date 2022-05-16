@@ -7,6 +7,9 @@ export type ContentFilter = {
   contentTopic: string;
 };
 
+/**
+ * FilterRPC represents a message conforming to the Waku Filter protocol
+ */
 export class FilterRPC {
   public constructor(public proto: proto.FilterRPC) {}
 
@@ -27,11 +30,20 @@ export class FilterRPC {
     });
   }
 
+  /**
+   *
+   * @param bytes Uint8Array of bytes from a FilterRPC message
+   * @returns FilterRPC
+   */
   static decode(bytes: Uint8Array): FilterRPC {
     const res = proto.FilterRPC.decode(Reader.create(bytes));
     return new FilterRPC(res);
   }
 
+  /**
+   * Encode the current FilterRPC request to bytes
+   * @returns Uint8Array
+   */
   encode(): Uint8Array {
     return proto.FilterRPC.encode(this.proto).finish();
   }
