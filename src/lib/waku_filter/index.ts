@@ -22,11 +22,11 @@ type FilterSubscriptionOpts = {
    */
   topic?: string;
   /**
-   * Optionally specify a PeerId for the subscription. If not included, will use a random peer
+   * Optionally specify a PeerId for the subscription. If not included, will use a random peer.
    */
   peerId?: PeerId;
   /**
-   * Array of ContentTopics to subscribe to. If empty, will subscribe to all messages on the network
+   * Array of ContentTopics to subscribe to. If empty, no messages will be returned from the filter.
    */
   contentTopics: string[];
 };
@@ -38,7 +38,7 @@ type UnsubscribeFunction = () => Promise<void>;
 /**
  * Implements part of the [Waku v2 Filter protocol](https://rfc.vac.dev/spec/12/).
  *
- * WakuFilter can be used as a light filter node, but cannot currently be used as a full node that pushes messages to clients
+ * WakuFilter can be used as a light filter node, but cannot currently be used as a full node that pushes messages to clients.
  */
 export class WakuFilter {
   private subscriptions: {
