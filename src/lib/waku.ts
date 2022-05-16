@@ -17,8 +17,7 @@ import { Multiaddr, multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
 import { Bootstrap, BootstrapOptions } from "./discovery";
-import { WakuFilter } from "./waku_filter";
-import { FilterCodec } from "./waku_filter";
+import { FilterCodec, WakuFilter } from "./waku_filter";
 import { LightPushCodec, WakuLightPush } from "./waku_light_push";
 import { DecryptionMethod, WakuMessage } from "./waku_message";
 import { RelayCodecs, WakuRelay } from "./waku_relay";
