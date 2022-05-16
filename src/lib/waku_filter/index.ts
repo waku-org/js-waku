@@ -1,5 +1,4 @@
 import debug from "debug";
-// import concat from "it-concat";
 import lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import Libp2p from "libp2p";
@@ -62,7 +61,7 @@ export class WakuFilter {
 
     const { stream } = await connection.newStream(FilterCodec);
     try {
-      await pipe([request.encode()], lp.encode(), stream.sink);
+      await pipe([request.encode()], lp.encode(), stream);
     } catch (e) {
       log("Error subscribing", e);
     }
@@ -104,8 +103,19 @@ export class WakuFilter {
       console.warn(`No callback registered for request ID ${requestId}`);
       return;
     }
+
+    const decryptionKeys = Array.from(this.decryptionKeys).map(
+      ([key, { method, contentTopics }]) => {
+        return {
+          key,
+          method,
+          contentTopics,
+        };
+      }
+    );
+
     for (const message of messages) {
-      const decoded = await WakuMessage.decodeProto(message, []);
+      const decoded = await WakuMessage.decodeProto(message, decryptionKeys);
       if (!decoded) {
         console.error("Not able to decode message");
         continue;
