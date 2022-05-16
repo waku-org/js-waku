@@ -166,7 +166,7 @@ export class WakuFilter {
     } else {
       peer = await this.randomPeer;
       if (!peer)
-        throw "Failed to find known peer that registers waku store protocol";
+        throw "Failed to find known peer that registers waku filter protocol";
     }
     return peer;
   }
