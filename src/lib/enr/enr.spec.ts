@@ -6,7 +6,8 @@ import { bytesToHex, hexToBytes, utf8ToBytes } from "../utils";
 
 import { ERR_INVALID_ID } from "./constants";
 import { ENR } from "./enr";
-import { createKeypairFromPeerId } from "./keypair";
+import { createKeypairFromPeerId, IKeypair } from "./keypair";
+import { Waku2 } from "./waku2_codec";
 
 import { v4 } from "./index";
 
@@ -19,18 +20,26 @@ describe("ENR", function () {
       enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
       enr.multiaddrs = [
         new Multiaddr(
-          "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss"
+          "/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"
         ),
         new Multiaddr(
-          "/dns6/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss"
+          "/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"
         ),
         new Multiaddr(
           "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
         ),
       ];
-      const txt = enr.encodeTxt(keypair.privateKey);
 
+      enr.waku2 = {
+        relay: true,
+        store: false,
+        filter: true,
+        lightPush: false,
+      };
+
+      const txt = await enr.encodeTxt(keypair.privateKey);
       const enr2 = ENR.decodeTxt(txt);
+
       if (!enr.signature) throw "enr.signature is undefined";
       if (!enr2.signature) throw "enr.signature is undefined";
 
@@ -41,14 +50,20 @@ describe("ENR", function () {
       expect(enr2.multiaddrs!.length).to.be.equal(3);
       const multiaddrsAsStr = enr2.multiaddrs!.map((ma) => ma.toString());
       expect(multiaddrsAsStr).to.include(
-        "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"
       );
       expect(multiaddrsAsStr).to.include(
-        "/dns6/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"
       );
       expect(multiaddrsAsStr).to.include(
         "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
       );
+      expect(enr2.waku2).to.deep.equal({
+        relay: true,
+        store: false,
+        filter: true,
+        lightPush: false,
+      });
     });
 
     it("should decode valid enr successfully", () => {
@@ -101,7 +116,7 @@ describe("ENR", function () {
         enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
 
         enr.set("id", new Uint8Array([0]));
-        const txt = enr.encodeTxt(keypair.privateKey);
+        const txt = await enr.encodeTxt(keypair.privateKey);
 
         ENR.decodeTxt(txt);
         assert.fail("Expect error here");
@@ -175,20 +190,19 @@ describe("ENR", function () {
     });
   });
 
-  describe("Static tests", () => {
+  describe("Static tests", function () {
     let privateKey: Uint8Array;
     let record: ENR;
 
-    beforeEach(() => {
-      const seq = 1n;
+    beforeEach(async function () {
+      const seq = BigInt(1);
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
       record = ENR.createV4(v4.publicKey(privateKey));
       record.setLocationMultiaddr(new Multiaddr("/ip4/127.0.0.1/udp/30303"));
       record.seq = seq;
-      // To set signature
-      record.encode(privateKey);
+      await record.encodeTxt(privateKey);
     });
 
     it("should properly compute the node id", () => {
@@ -197,21 +211,24 @@ describe("ENR", function () {
       );
     });
 
-    it("should encode/decode to RLP encoding", () => {
-      const decoded = ENR.decode(record.encode(privateKey));
+    it("should encode/decode to RLP encoding", async function () {
+      const decoded = ENR.decode(await record.encode(privateKey));
       expect(decoded).to.deep.equal(record);
     });
 
-    it("should encode/decode to text encoding", () => {
+    it("should encode/decode to text encoding", async function () {
       // spec enr https://eips.ethereum.org/EIPS/eip-778
       const testTxt =
         "enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjzCBOonrkTfj499SZuOh8R33Ls8RRcy5wBgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQPKY0yuDUmstAHYpMa2_oxVtw0RW_QAdpzBQA8yWM0xOIN1ZHCCdl8";
       const decoded = ENR.decodeTxt(testTxt);
-      expect(decoded.udp).to.be.equal(30303);
-      expect(decoded.ip).to.be.equal("127.0.0.1");
-      expect(decoded).to.deep.equal(record);
-      const recordTxt = record.encodeTxt(privateKey);
-      expect(recordTxt).to.equal(testTxt);
+      // Note: Signatures are different due to the extra entropy added
+      // by @noble/secp256k1:
+      // https://github.com/paulmillr/noble-secp256k1#signmsghash-privatekey
+      expect(decoded.udp).to.deep.equal(record.udp);
+      expect(decoded.ip).to.deep.equal(record.ip);
+      expect(decoded.id).to.deep.equal(record.id);
+      expect(decoded.seq).to.equal(record.seq);
+      expect(decoded.get("secp256k1")).to.deep.equal(record.get("secp256k1"));
     });
   });
 
@@ -361,6 +378,119 @@ describe("ENR", function () {
         new Multiaddr(`/ip4/${ip4}/tcp/${tcp}`)
       );
       enr.ip6 = ip6;
+    });
+  });
+
+  describe("waku2 key round trip", async () => {
+    let peerId;
+    let enr: ENR;
+    let waku2Protocols: Waku2;
+    let keypair: IKeypair;
+
+    beforeEach(async function () {
+      peerId = await PeerId.create({ keyType: "secp256k1" });
+      enr = ENR.createFromPeerId(peerId);
+      keypair = createKeypairFromPeerId(peerId);
+      waku2Protocols = {
+        relay: false,
+        store: false,
+        filter: false,
+        lightPush: false,
+      };
+    });
+
+    it("should set field with all protocols disabled", async () => {
+      enr.waku2 = waku2Protocols;
+
+      const txt = await enr.encodeTxt(keypair.privateKey);
+      const decoded = ENR.decodeTxt(txt).waku2!;
+
+      expect(decoded.relay).to.equal(false);
+      expect(decoded.store).to.equal(false);
+      expect(decoded.filter).to.equal(false);
+      expect(decoded.lightPush).to.equal(false);
+    });
+
+    it("should set field with all protocols enabled", async () => {
+      waku2Protocols.relay = true;
+      waku2Protocols.store = true;
+      waku2Protocols.filter = true;
+      waku2Protocols.lightPush = true;
+
+      enr.waku2 = waku2Protocols;
+      const txt = await enr.encodeTxt(keypair.privateKey);
+      const decoded = ENR.decodeTxt(txt).waku2!;
+
+      expect(decoded.relay).to.equal(true);
+      expect(decoded.store).to.equal(true);
+      expect(decoded.filter).to.equal(true);
+      expect(decoded.lightPush).to.equal(true);
+    });
+
+    it("should set field with only RELAY enabled", async () => {
+      waku2Protocols.relay = true;
+
+      enr.waku2 = waku2Protocols;
+      const txt = await enr.encodeTxt(keypair.privateKey);
+      const decoded = ENR.decodeTxt(txt).waku2!;
+
+      expect(decoded.relay).to.equal(true);
+      expect(decoded.store).to.equal(false);
+      expect(decoded.filter).to.equal(false);
+      expect(decoded.lightPush).to.equal(false);
+    });
+
+    it("should set field with only STORE enabled", async () => {
+      waku2Protocols.store = true;
+
+      enr.waku2 = waku2Protocols;
+      const txt = await enr.encodeTxt(keypair.privateKey);
+      const decoded = ENR.decodeTxt(txt).waku2!;
+
+      expect(decoded.relay).to.equal(false);
+      expect(decoded.store).to.equal(true);
+      expect(decoded.filter).to.equal(false);
+      expect(decoded.lightPush).to.equal(false);
+    });
+
+    it("should set field with only FILTER enabled", async () => {
+      waku2Protocols.filter = true;
+
+      enr.waku2 = waku2Protocols;
+      const txt = await enr.encodeTxt(keypair.privateKey);
+      const decoded = ENR.decodeTxt(txt).waku2!;
+
+      expect(decoded.relay).to.equal(false);
+      expect(decoded.store).to.equal(false);
+      expect(decoded.filter).to.equal(true);
+      expect(decoded.lightPush).to.equal(false);
+    });
+
+    it("should set field with only LIGHTPUSH enabled", async () => {
+      waku2Protocols.lightPush = true;
+
+      enr.waku2 = waku2Protocols;
+      const txt = await enr.encodeTxt(keypair.privateKey);
+      const decoded = ENR.decodeTxt(txt).waku2!;
+
+      expect(decoded.relay).to.equal(false);
+      expect(decoded.store).to.equal(false);
+      expect(decoded.filter).to.equal(false);
+      expect(decoded.lightPush).to.equal(true);
+    });
+  });
+
+  describe("Waku2 key: decode", () => {
+    it("Relay + Store", function () {
+      const txt =
+        "enr:-Iu4QADPfXNCM6iYyte0pIdbMirIw_AsKR7J1DeJBysXDWz4DZvyjgIwpMt-sXTVUzLJdE9FaStVy2ZKtHUVQAH61-KAgmlkgnY0gmlwhMCosvuJc2VjcDI1NmsxoQI0OCNtPJtBayNgvFvKp-0YyCozcvE1rqm_V1W51nHVv4N0Y3CC6mCFd2FrdTIH";
+
+      const decoded = ENR.decodeTxt(txt).waku2!;
+
+      expect(decoded.relay).to.equal(true);
+      expect(decoded.store).to.equal(true);
+      expect(decoded.filter).to.equal(true);
+      expect(decoded.lightPush).to.equal(false);
     });
   });
 });

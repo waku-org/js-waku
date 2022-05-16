@@ -1,11 +1,10 @@
-import assert from "assert";
-
 import { debug } from "debug";
 
 import { ENR } from "../enr";
 
 import { DnsOverHttps, Endpoints } from "./dns_over_https";
 import { ENRTree } from "./enrtree";
+import fetchNodesUntilCapabilitiesFulfilled from "./fetch_nodes";
 
 const dbg = debug("waku:discovery:dns");
 
@@ -17,6 +16,13 @@ export type SearchContext = {
 
 export interface DnsClient {
   resolveTXT: (domain: string) => Promise<string[]>;
+}
+
+export interface NodeCapabilityCount {
+  relay: number;
+  store: number;
+  filter: number;
+  lightPush: number;
 }
 
 export class DnsNodeDiscovery {
@@ -31,38 +37,29 @@ export class DnsNodeDiscovery {
 
   /**
    * Returns a list of verified peers listed in an EIP-1459 DNS tree. Method may
-   * return fewer peers than requested if `maxQuantity` is larger than the number
-   * of ENR records or the number of errors/duplicate peers encountered by randomized
-   * search exceeds `maxQuantity` plus the `errorTolerance` factor.
+   * return fewer peers than requested if [[wantedNodeCapabilityCount]] requires
+   * larger quantity of peers than available or the number of errors/duplicate
+   * peers encountered by randomized search exceeds the sum of the fields of
+   * [[wantedNodeCapabilityCount]] plus the [[_errorTolerance]] factor.
    */
-  async getPeers(maxQuantity: number, enrTreeUrls: string[]): Promise<ENR[]> {
-    let totalSearches = 0;
-    const peers: ENR[] = [];
-
+  async getPeers(
+    enrTreeUrls: string[],
+    wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
+  ): Promise<ENR[]> {
     const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
     const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
+    const context: SearchContext = {
+      domain,
+      publicKey,
+      visits: {},
+    };
 
-    while (
-      peers.length < maxQuantity &&
-      totalSearches < maxQuantity + this._errorTolerance
-    ) {
-      const context: SearchContext = {
-        domain,
-        publicKey,
-        visits: {},
-      };
-
-      const peer = await this._search(domain, context);
-
-      if (peer && isNewPeer(peer, peers)) {
-        peers.push(peer);
-        dbg(
-          `got new peer candidate from DNS address=${peer.nodeId}@${peer.ip}`
-        );
-      }
-
-      totalSearches++;
-    }
+    const peers = await fetchNodesUntilCapabilitiesFulfilled(
+      wantedNodeCapabilityCount,
+      this._errorTolerance,
+      () => this._search(domain, context)
+    );
+    dbg("retrieved peers: ", peers);
     return peers;
   }
 
@@ -135,11 +132,9 @@ export class DnsNodeDiscovery {
 
     const response = await this.dns.resolveTXT(location);
 
-    assert(
-      response.length,
-      "Received empty result array while fetching TXT record"
-    );
-    assert(response[0].length, "Received empty TXT record");
+    if (!response.length)
+      throw new Error("Received empty result array while fetching TXT record");
+    if (!response[0].length) throw new Error("Received empty TXT record");
 
     // Branch entries can be an array of strings of comma delimited subdomains, with
     // some subdomain strings split across the array elements
@@ -188,21 +183,4 @@ function selectRandomPath(branches: string[], context: SearchContext): string {
   } while (circularRefs[index]);
 
   return branches[index];
-}
-
-/**
- * @returns false if candidate peer already exists in the
- *         current collection of peers based on the node id value;
- *         true otherwise.
- */
-function isNewPeer(peer: ENR | null, peers: ENR[]): boolean {
-  if (!peer || !peer.nodeId) return false;
-
-  for (const existingPeer of peers) {
-    if (peer.nodeId === existingPeer.nodeId) {
-      return false;
-    }
-  }
-
-  return true;
 }

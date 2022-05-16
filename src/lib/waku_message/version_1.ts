@@ -1,13 +1,13 @@
 import { Buffer } from "buffer";
-import * as crypto from "crypto";
 
+import * as secp from "@noble/secp256k1";
 import { keccak256 } from "js-sha3";
-import * as secp256k1 from "secp256k1";
 
+import { randomBytes } from "../crypto";
 import { hexToBytes } from "../utils";
 
 import * as ecies from "./ecies";
-import { IvSize, symmetric, SymmetricKeySize } from "./symmetric";
+import * as symmetric from "./symmetric";
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011
@@ -26,10 +26,10 @@ export const PrivateKeySize = 32;
  * @returns The encoded payload, ready for encryption using {@link encryptAsymmetric}
  * or {@link encryptSymmetric}.
  */
-export function clearEncode(
+export async function clearEncode(
   messagePayload: Uint8Array,
   sigPrivKey?: Uint8Array
-): { payload: Uint8Array; sig?: Signature } {
+): Promise<{ payload: Uint8Array; sig?: Signature }> {
   let envelope = Buffer.from([0]); // No flags
   envelope = addPayloadSizeField(envelope, messagePayload);
   envelope = Buffer.concat([envelope, Buffer.from(messagePayload)]);
@@ -58,10 +58,17 @@ export function clearEncode(
   if (sigPrivKey) {
     envelope[0] |= IsSignedMask;
     const hash = keccak256(envelope);
-    const s = secp256k1.ecdsaSign(hexToBytes(hash), sigPrivKey);
-    envelope = Buffer.concat([envelope, s.signature, Buffer.from([s.recid])]);
+    const [signature, recid] = await secp.sign(hash, sigPrivKey, {
+      recovered: true,
+      der: false,
+    });
+    envelope = Buffer.concat([
+      envelope,
+      hexToBytes(signature),
+      Buffer.from([recid]),
+    ]);
     sig = {
-      signature: Buffer.from(s.signature),
+      signature: Buffer.from(signature),
       publicKey: getPublicKey(sigPrivKey),
     };
   }
@@ -71,7 +78,7 @@ export function clearEncode(
 
 export type Signature = {
   signature: Uint8Array;
-  publicKey: Uint8Array;
+  publicKey: Uint8Array | undefined;
 };
 
 /**
@@ -170,7 +177,7 @@ export async function decryptSymmetric(
   key: Uint8Array | Buffer | string
 ): Promise<Uint8Array> {
   const data = Buffer.from(payload);
-  const ivStart = data.length - IvSize;
+  const ivStart = data.length - symmetric.IvSize;
   const cipher = data.slice(0, ivStart);
   const iv = data.slice(ivStart);
 
@@ -190,7 +197,7 @@ export function generatePrivateKey(): Uint8Array {
  * Generate a new symmetric key to be used for symmetric encryption.
  */
 export function generateSymmetricKey(): Uint8Array {
-  return randomBytes(SymmetricKeySize);
+  return randomBytes(symmetric.KeySize);
 }
 
 /**
@@ -198,7 +205,7 @@ export function generateSymmetricKey(): Uint8Array {
  * encryption.
  */
 export function getPublicKey(privateKey: Uint8Array | Buffer): Uint8Array {
-  return secp256k1.publicKeyCreate(privateKey, false);
+  return secp.getPublicKey(privateKey, false);
 }
 
 /**
@@ -249,22 +256,19 @@ function getHash(message: Buffer, isSigned: boolean): string {
   return keccak256(message);
 }
 
-function ecRecoverPubKey(messageHash: string, signature: Buffer): Uint8Array {
+function ecRecoverPubKey(
+  messageHash: string,
+  signature: Buffer
+): Uint8Array | undefined {
   const recovery = signature.slice(64).readIntBE(0, 1);
-  return secp256k1.ecdsaRecover(
-    signature.slice(0, 64),
-    recovery,
+  const _signature = secp.Signature.fromCompact(signature.slice(0, 64));
+
+  return secp.recoverPublicKey(
     hexToBytes(messageHash),
+    _signature,
+    recovery,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore: compressed: false
     false
   );
-}
-
-function randomBytes(length: number): Uint8Array {
-  if (typeof window !== "undefined" && window && window.crypto) {
-    const array = new Uint8Array(length);
-    window.crypto.getRandomValues(array);
-    return array;
-  } else {
-    return crypto.randomBytes(length);
-  }
 }

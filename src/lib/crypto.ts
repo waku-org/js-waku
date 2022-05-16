@@ -1,33 +1,24 @@
 import nodeCrypto from "crypto";
 
-// IE 11
-declare global {
-  interface Window {
-    msCrypto?: Crypto;
+import * as secp from "@noble/secp256k1";
+
+declare const self: Record<string, any> | undefined;
+const crypto: { node?: any; web?: any } = {
+  node: nodeCrypto,
+  web: typeof self === "object" && "crypto" in self ? self.crypto : undefined,
+};
+
+export function getSubtle(): SubtleCrypto {
+  if (crypto.web) {
+    return crypto.web.subtle;
+  } else if (crypto.node) {
+    return crypto.node.webcrypto.subtle;
+  } else {
+    throw new Error(
+      "The environment doesn't have Crypto Subtle API (if in the browser, be sure to use to be in a secure context, ie, https)"
+    );
   }
-
-  interface Crypto {
-    webkitSubtle?: SubtleCrypto;
-  }
 }
 
-const crypto =
-  (typeof window !== "undefined" &&
-    (window as Window) &&
-    (window.crypto || window.msCrypto)) ||
-  (nodeCrypto.webcrypto as unknown as Crypto);
-const subtle: SubtleCrypto = crypto.subtle || crypto.webkitSubtle;
-
-if (subtle === undefined) {
-  throw new Error("crypto and/or subtle api unavailable");
-}
-
-export { crypto, subtle };
-
-export function randomBytes(size: number): Uint8Array {
-  return crypto.getRandomValues(new Uint8Array(size));
-}
-
-export function sha256(msg: ArrayBufferLike): Promise<ArrayBuffer> {
-  return subtle.digest({ name: "SHA-256" }, msg);
-}
+export const randomBytes = secp.utils.randomBytes;
+export const sha256 = secp.utils.sha256;

@@ -22,6 +22,8 @@ import {
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
 import * as v4 from "./v4";
+import { compressPublicKey } from "./v4";
+import { decodeWaku2, encodeWaku2, Waku2 } from "./waku2_codec";
 
 const dbg = debug("waku:enr");
 
@@ -32,7 +34,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
 
   constructor(
     kvs: Record<ENRKey, ENRValue> = {},
-    seq: SequenceNumber = 1n,
+    seq: SequenceNumber = BigInt(1),
     signature: Uint8Array | null = null
   ) {
     super(Object.entries(kvs));
@@ -44,6 +46,10 @@ export class ENR extends Map<ENRKey, ENRValue> {
     publicKey: Uint8Array,
     kvs: Record<ENRKey, ENRValue> = {}
   ): ENR {
+    // EIP-778 specifies that the key must be in compressed format, 33 bytes
+    if (publicKey.length !== 33) {
+      publicKey = compressPublicKey(publicKey);
+    }
     return new ENR({
       ...kvs,
       id: utf8ToBytes("v4"),
@@ -88,7 +94,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
         dbg("Failed to decode ENR key to UTF-8, skipping it", kvs[i], e);
       }
     }
-    const enr = new ENR(obj, BigInt("0x" + bytesToHex(seq)), signature);
+    // If seq is an empty array, translate as value 0
+    const hexSeq = "0x" + (seq.length ? bytesToHex(seq) : "00");
+    const enr = new ENR(obj, BigInt(hexSeq), signature);
 
     const rlpEncodedBytes = hexToBytes(RLP.encode([seq, ...kvs]));
     if (!enr.verify(rlpEncodedBytes, signature)) {
@@ -418,6 +426,28 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return [];
   }
 
+  /**
+   * Get the `waku2` field from ENR.
+   */
+  get waku2(): Waku2 | undefined {
+    const raw = this.get("waku2");
+    if (raw) return decodeWaku2(raw[0]);
+
+    return;
+  }
+
+  /**
+   * Set the `waku2` field on the ENR.
+   */
+  set waku2(waku2: Waku2 | undefined) {
+    if (waku2 === undefined) {
+      this.delete("waku2");
+    } else {
+      const byte = encodeWaku2(waku2);
+      this.set("waku2", new Uint8Array([byte]));
+    }
+  }
+
   verify(data: Uint8Array, signature: Uint8Array): boolean {
     if (!this.get("id") || this.id !== "v4") {
       throw new Error(ERR_INVALID_ID);
@@ -428,10 +458,10 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return v4.verify(this.publicKey, data, signature);
   }
 
-  sign(data: Uint8Array, privateKey: Uint8Array): Uint8Array {
+  async sign(data: Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
     switch (this.id) {
       case "v4":
-        this.signature = v4.sign(privateKey, data);
+        this.signature = await v4.sign(privateKey, data);
         break;
       default:
         throw new Error(ERR_INVALID_ID);
@@ -439,7 +469,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return this.signature;
   }
 
-  encodeToValues(privateKey?: Uint8Array): (ENRKey | ENRValue | number[])[] {
+  async encodeToValues(
+    privateKey?: Uint8Array
+  ): Promise<(ENRKey | ENRValue | number[])[]> {
     // sort keys and flatten into [k, v, k, v, ...]
     const content: Array<ENRKey | ENRValue | number[]> = Array.from(this.keys())
       .sort((a, b) => a.localeCompare(b))
@@ -448,7 +480,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
       .flat();
     content.unshift(new Uint8Array([Number(this.seq)]));
     if (privateKey) {
-      content.unshift(this.sign(hexToBytes(RLP.encode(content)), privateKey));
+      content.unshift(
+        await this.sign(hexToBytes(RLP.encode(content)), privateKey)
+      );
     } else {
       if (!this.signature) {
         throw new Error(ERR_NO_SIGNATURE);
@@ -458,15 +492,19 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return content;
   }
 
-  encode(privateKey?: Uint8Array): Uint8Array {
-    const encoded = hexToBytes(RLP.encode(this.encodeToValues(privateKey)));
+  async encode(privateKey?: Uint8Array): Promise<Uint8Array> {
+    const encoded = hexToBytes(
+      RLP.encode(await this.encodeToValues(privateKey))
+    );
     if (encoded.length >= MAX_RECORD_SIZE) {
       throw new Error("ENR must be less than 300 bytes");
     }
     return encoded;
   }
 
-  encodeTxt(privateKey?: Uint8Array): string {
-    return ENR.RECORD_PREFIX + toString(this.encode(privateKey), "base64url");
+  async encodeTxt(privateKey?: Uint8Array): Promise<string> {
+    return (
+      ENR.RECORD_PREFIX + toString(await this.encode(privateKey), "base64url")
+    );
   }
 }

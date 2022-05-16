@@ -89,12 +89,12 @@ export class WakuMessage {
     }
 
     if (encPublicKey) {
-      const enc = version_1.clearEncode(_payload, sigPrivKey);
+      const enc = await version_1.clearEncode(_payload, sigPrivKey);
       _payload = await version_1.encryptAsymmetric(enc.payload, encPublicKey);
       sig = enc.sig;
       version = 1;
     } else if (symKey) {
-      const enc = version_1.clearEncode(_payload, sigPrivKey);
+      const enc = await version_1.clearEncode(_payload, sigPrivKey);
       _payload = await version_1.encryptSymmetric(enc.payload, symKey);
       sig = enc.sig;
       version = 1;

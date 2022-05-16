@@ -1,7 +1,5 @@
-import assert from "assert";
-
+import * as secp from "@noble/secp256k1";
 import * as base32 from "hi-base32";
-import { ecdsaVerify } from "secp256k1";
 import { fromString } from "uint8arrays/from-string";
 
 import { ENR } from "../enr";
@@ -30,10 +28,10 @@ export class ENRTree {
    * the root record signature with its base32 compressed public key.
    */
   static parseAndVerifyRoot(root: string, publicKey: string): string {
-    assert(
-      root.startsWith(this.ROOT_PREFIX),
-      `ENRTree root entry must start with '${this.ROOT_PREFIX}'`
-    );
+    if (!root.startsWith(this.ROOT_PREFIX))
+      throw new Error(
+        `ENRTree root entry must start with '${this.ROOT_PREFIX}'`
+      );
 
     const rootValues = ENRTree.parseRootValues(root);
     const decodedPublicKey = base32.decode.asBytes(publicKey);
@@ -48,13 +46,19 @@ export class ENRTree {
       64
     );
 
-    const isVerified = ecdsaVerify(
-      signatureBuffer,
-      keccak256Buf(signedComponentBuffer),
-      new Uint8Array(decodedPublicKey)
-    );
+    let isVerified;
+    try {
+      const _sig = secp.Signature.fromCompact(signatureBuffer.slice(0, 64));
+      isVerified = secp.verify(
+        _sig,
+        keccak256Buf(signedComponentBuffer),
+        new Uint8Array(decodedPublicKey)
+      );
+    } catch {
+      isVerified = false;
+    }
 
-    assert(isVerified, "Unable to verify ENRTree root signature");
+    if (!isVerified) throw new Error("Unable to verify ENRTree root signature");
 
     return rootValues.eRoot;
   }
@@ -64,15 +68,21 @@ export class ENRTree {
       /^enrtree-root:v1 e=([^ ]+) l=([^ ]+) seq=(\d+) sig=([^ ]+)$/
     );
 
-    assert.ok(Array.isArray(matches), "Could not parse ENRTree root entry");
+    if (!Array.isArray(matches))
+      throw new Error("Could not parse ENRTree root entry");
 
     matches.shift(); // The first entry is the full match
     const [eRoot, lRoot, seq, signature] = matches;
 
-    assert.ok(eRoot, "Could not parse 'e' value from ENRTree root entry");
-    assert.ok(lRoot, "Could not parse 'l' value from ENRTree root entry");
-    assert.ok(seq, "Could not parse 'seq' value from ENRTree root entry");
-    assert.ok(signature, "Could not parse 'sig' value from ENRTree root entry");
+    if (!eRoot)
+      throw new Error("Could not parse 'e' value from ENRTree root entry");
+    if (!lRoot)
+      throw new Error("Could not parse 'l' value from ENRTree root entry");
+
+    if (!seq)
+      throw new Error("Could not parse 'seq' value from ENRTree root entry");
+    if (!signature)
+      throw new Error("Could not parse 'sig' value from ENRTree root entry");
 
     return { eRoot, lRoot, seq: Number(seq), signature };
   }
@@ -83,20 +93,23 @@ export class ENRTree {
    * and the public key is used to verify the root entry record
    */
   static parseTree(tree: string): ENRTreeValues {
-    assert(
-      tree.startsWith(this.TREE_PREFIX),
-      `ENRTree tree entry must start with '${this.TREE_PREFIX}'`
-    );
+    if (!tree.startsWith(this.TREE_PREFIX))
+      throw new Error(
+        `ENRTree tree entry must start with '${this.TREE_PREFIX}'`
+      );
 
     const matches = tree.match(/^enrtree:\/\/([^@]+)@(.+)$/);
 
-    assert.ok(Array.isArray(matches), "Could not parse ENRTree tree entry");
+    if (!Array.isArray(matches))
+      throw new Error("Could not parse ENRTree tree entry");
 
     matches.shift(); // The first entry is the full match
     const [publicKey, domain] = matches;
 
-    assert.ok(publicKey, "Could not parse public key from ENRTree tree entry");
-    assert.ok(domain, "Could not parse domain from ENRTree tree entry");
+    if (!publicKey)
+      throw new Error("Could not parse public key from ENRTree tree entry");
+    if (!domain)
+      throw new Error("Could not parse domain from ENRTree tree entry");
 
     return { publicKey, domain };
   }
@@ -106,10 +119,10 @@ export class ENRTree {
    * either further branch entries or ENR records.
    */
   static parseBranch(branch: string): string[] {
-    assert(
-      branch.startsWith(this.BRANCH_PREFIX),
-      `ENRTree branch entry must start with '${this.BRANCH_PREFIX}'`
-    );
+    if (!branch.startsWith(this.BRANCH_PREFIX))
+      throw new Error(
+        `ENRTree branch entry must start with '${this.BRANCH_PREFIX}'`
+      );
 
     return branch.split(this.BRANCH_PREFIX)[1].split(",");
   }

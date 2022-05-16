@@ -39,6 +39,8 @@ export interface Args {
   logLevel?: LogLevel;
   persistMessages?: boolean;
   lightpush?: boolean;
+  filter?: boolean;
+  store?: boolean;
   topics?: string;
   rpcPrivate?: boolean;
   websocketSupport?: boolean;
@@ -428,4 +430,5 @@ export function bytesToHex(buffer: Uint8Array): string {
 interface RpcInfoResponse {
   // multiaddrs including peer id.
   listenAddresses: string[];
+  enrUri?: string;
 }

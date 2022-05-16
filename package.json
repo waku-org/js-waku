@@ -1,6 +1,6 @@
 {
   "name": "js-waku",
-  "version": "0.20.0",
+  "version": "0.22.0",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -34,7 +34,7 @@
     "build:umd:min:bundle": "webpack --config webpack.config.min.bundle.js",
     "size": "npm run build:esm && size-limit",
     "fix": "run-s fix:*",
-    "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.conf.js\" --write",
+    "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.conf.js\" \".github/**/*.yml\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
     "pretest": "run-s pretest:*",
     "pretest:1-init-git-submodules": "[ -f './nim-waku/build/wakunode2' ] || git submodule update --init --recursive",
@@ -44,7 +44,7 @@
     "nim-waku:force-build": "(cd nim-waku && rm -rf ./build/ ./vendor && make -j$(nproc --all 2>/dev/null || echo 2) update) && run-s nim-waku:build",
     "test": "run-s build test:*",
     "test:lint": "eslint src --ext .ts",
-    "test:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.conf.js\" --list-different",
+    "test:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.conf.js\" \".github/**/*.yml\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,guides/*.md,src/**/*.ts}\"",
     "test:unit": "nyc --silent mocha",
     "test:karma": "karma start",
@@ -61,12 +61,16 @@
     "deploy": "node ci/deploy.js",
     "reset-hard": "git clean -dfx && git reset --hard && npm i && npm run build && for d in examples/*/; do (cd $d; npm i); done"
   },
+  "browser": {
+    "crypto": false
+  },
   "engines": {
     "node": ">=16"
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^5.0.0",
     "@ethersproject/rlp": "^5.5.0",
+    "@noble/secp256k1": "^1.3.4",
     "debug": "^4.3.1",
     "dns-query": "^0.8.0",
     "hi-base32": "^0.5.1",
@@ -81,14 +85,12 @@
     "multiaddr": "^10.0.1",
     "multihashes": "^4.0.3",
     "protobufjs": "^6.8.8",
-    "secp256k1": "^4.0.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@size-limit/preset-big-lib": "^7.0.8",
     "@types/app-root-path": "^1.2.4",
-    "@types/bl": "^5.0.2",
     "@types/chai": "^4.2.15",
     "@types/mocha": "^9.1.0",
     "@types/node": "^17.0.6",
@@ -99,10 +101,8 @@
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",
     "app-root-path": "^3.0.0",
-    "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "chai": "^4.3.4",
-    "crypto-browserify": "^3.12.0",
     "cspell": "^5.14.0",
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",

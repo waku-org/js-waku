@@ -32,9 +32,18 @@ pipeline {
 
     stage('Examples') {
       parallel {
-        stage('web-chat') { steps { script { buildExample() } } }
         stage('eth-pm') { steps { script { buildExample() } } }
         stage('eth-pm-wallet-encryption') { steps { script { buildExample() } } }
+        stage('relay-reactjs-chat') { steps { script { buildExample() } } }
+        stage('store-reactjs-chat') { steps { script { buildExample() } } }
+        stage('web-chat') { steps { script { buildExample() } } }
+      }
+    }
+
+    stage('HTML Examples') {
+      parallel {
+        stage('relay-js') { steps { script { copyExample() } } }
+        stage('store-js') { steps { script { copyExample() } } }
       }
     }
 
@@ -59,5 +68,12 @@ def buildExample(example=STAGE_NAME) {
     sh 'npm run build'
     sh "mkdir -p ${dest}"
     sh "cp -r build/. ${dest}"
+  }
+}
+
+def copyExample(example=STAGE_NAME) {
+  def dest = "${WORKSPACE}/build/docs/examples/${example}"
+  dir("examples/${example}") {
+    sh "cp index.html ${dest}"
   }
 }

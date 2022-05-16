@@ -14,11 +14,11 @@ import {
 describe("Waku Message Version 1", function () {
   it("Sign & Recover", function () {
     fc.assert(
-      fc.property(
+      fc.asyncProperty(
         fc.uint8Array(),
         fc.uint8Array({ minLength: 32, maxLength: 32 }),
-        (message, privKey) => {
-          const enc = clearEncode(message, privKey);
+        async (message, privKey) => {
+          const enc = await clearEncode(message, privKey);
           const res = clearDecode(enc.payload);
 
           const pubKey = getPublicKey(privKey);
@@ -44,7 +44,7 @@ describe("Waku Message Version 1", function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
-        fc.uint8Array({ minLength: 32, maxLength: 32 }),
+        fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (message, privKey) => {
           const publicKey = getPublicKey(privKey);
 
