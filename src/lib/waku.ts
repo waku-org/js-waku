@@ -332,11 +332,11 @@ export class Waku {
    * @default Remote peer must have Waku Relay enabled.
    */
   async waitForRemotePeer(protocols?: Protocols[]): Promise<void> {
-    const desiredProtocols = protocols ?? [Protocols.Relay];
+    protocols = protocols ?? [Protocols.Relay];
 
     const promises = [];
 
-    if (desiredProtocols.includes(Protocols.Relay)) {
+    if (protocols.includes(Protocols.Relay)) {
       const peers = this.relay.getPeers();
 
       if (peers.size == 0) {
@@ -352,7 +352,7 @@ export class Waku {
       }
     }
 
-    if (desiredProtocols.includes(Protocols.Store)) {
+    if (protocols.includes(Protocols.Store)) {
       const storePromise = (async (): Promise<void> => {
         for await (const peer of this.store.peers) {
           dbg("Store peer found", peer.id.toB58String());
@@ -362,7 +362,7 @@ export class Waku {
       promises.push(storePromise);
     }
 
-    if (desiredProtocols.includes(Protocols.LightPush)) {
+    if (protocols.includes(Protocols.LightPush)) {
       const lightPushPromise = (async (): Promise<void> => {
         for await (const peer of this.lightPush.peers) {
           dbg("Light Push peer found", peer.id.toB58String());
