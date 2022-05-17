@@ -353,56 +353,23 @@ export class Waku {
     }
 
     if (desiredProtocols.includes(Protocols.Store)) {
-      let storePeerFound = false;
-
-      for await (const _peer of this.store.peers) {
-        storePeerFound = true;
-        break;
-      }
-
-      if (!storePeerFound) {
-        // No peer available for this protocol, waiting to connect to one.
-        const promise = new Promise<void>((resolve) => {
-          this.libp2p.peerStore.on(
-            "change:protocols",
-            ({ protocols: connectedPeerProtocols }) => {
-              for (const codec of Object.values(StoreCodecs)) {
-                if (connectedPeerProtocols.includes(codec)) {
-                  dbg("Resolving for", codec, connectedPeerProtocols);
-                  resolve();
-                }
-              }
-            }
-          );
-        });
-        promises.push(promise);
-      }
+      const storePromise = (async (): Promise<void> => {
+        for await (const peer of this.store.peers) {
+          dbg("Store peer found", peer.id.toB58String());
+          break;
+        }
+      })();
+      promises.push(storePromise);
     }
 
     if (desiredProtocols.includes(Protocols.LightPush)) {
-      let lightPushPeerFound = false;
-
-      for await (const _peer of this.lightPush.peers) {
-        lightPushPeerFound = true;
-        break;
-      }
-
-      if (!lightPushPeerFound) {
-        // No peer available for this protocol, waiting to connect to one.
-        const promise = new Promise<void>((resolve) => {
-          this.libp2p.peerStore.on(
-            "change:protocols",
-            ({ protocols: connectedPeerProtocols }) => {
-              if (connectedPeerProtocols.includes(LightPushCodec)) {
-                dbg("Resolving for", LightPushCodec, connectedPeerProtocols);
-                resolve();
-              }
-            }
-          );
-        });
-
-        promises.push(promise);
-      }
+      const lightPushPromise = (async (): Promise<void> => {
+        for await (const peer of this.lightPush.peers) {
+          dbg("Light Push peer found", peer.id.toB58String());
+          break;
+        }
+      })();
+      promises.push(lightPushPromise);
     }
 
     await Promise.all(promises);
