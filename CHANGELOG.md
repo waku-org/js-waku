@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Some dependencies that were used but not declared (often transient).
+
 ### Removed
 
 - No more `assert` usage.
