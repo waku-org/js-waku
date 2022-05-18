@@ -329,12 +329,21 @@ export class Waku {
    * Wait for a remote peer to be ready given the passed protocols.
    * Useful when using the [[CreateOptions.bootstrap]] with [[Waku.create]].
    *
-   * @default Remote peer must have Waku Relay enabled.
+   * @param protocols The protocols that need to be enabled by remote peers.
+   * @param timeoutMs A timeout value in milliseconds..
+   *
+   * @returns A promise that **resolves** if all desired protocols are fulfilled by
+   * remote nodes, **rejects** if the timeoutMs is reached.
+   *
+   * @default Remote peer must have Waku Relay enabled and no time out is applied.
    */
-  async waitForRemotePeer(protocols?: Protocols[]): Promise<void> {
+  async waitForRemotePeer(
+    protocols?: Protocols[],
+    timeoutMs?: number
+  ): Promise<void> {
     protocols = protocols ?? [Protocols.Relay];
 
-    const promises = [];
+    const promises: Promise<void>[] = [];
 
     if (protocols.includes(Protocols.Relay)) {
       const peers = this.relay.getPeers();
@@ -372,7 +381,15 @@ export class Waku {
       promises.push(lightPushPromise);
     }
 
-    await Promise.all(promises);
+    if (timeoutMs) {
+      await rejectOnTimeout(
+        Promise.all(promises),
+        timeoutMs,
+        "Timed out waiting for a remote peer."
+      );
+    } else {
+      await Promise.all(promises);
+    }
   }
 
   private startKeepAlive(
@@ -417,3 +434,13 @@ export class Waku {
     }
   }
 }
+
+const awaitTimeout = (ms: number, rejectReason: string): Promise<void> =>
+  new Promise((_resolve, reject) => setTimeout(() => reject(rejectReason), ms));
+
+const rejectOnTimeout = (
+  promise: Promise<any>,
+  timeoutMs: number,
+  rejectReason: string
+): Promise<void> =>
+  Promise.race([promise, awaitTimeout(timeoutMs, rejectReason)]);

@@ -166,10 +166,13 @@ describe("Decryption Keys", () => {
 
 describe("Wait for remote peer / get peers", function () {
   let waku: Waku;
-  let nwaku: Nwaku;
+  let nwaku: Nwaku | undefined;
 
   afterEach(async function () {
-    !!nwaku && nwaku.stop();
+    if (nwaku) {
+      nwaku.stop();
+      nwaku = undefined;
+    }
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
@@ -214,6 +217,23 @@ describe("Wait for remote peer / get peers", function () {
     expect(peers.has(nimPeerId as string)).to.be.true;
   });
 
+  it("Relay - times out", function (done) {
+    this.timeout(5000);
+    Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+    }).then((waku) => {
+      waku.waitForRemotePeer([Protocols.Relay], 200).then(
+        () => {
+          throw "Promise expected to reject on time out";
+        },
+        (reason) => {
+          expect(reason).to.eq("Timed out waiting for a remote peer.");
+          done();
+        }
+      );
+    });
+  });
+
   it("Store - dialed first", async function () {
     this.timeout(20_000);
     nwaku = new Nwaku(makeLogFileName(this));
@@ -238,7 +258,7 @@ describe("Wait for remote peer / get peers", function () {
     expect(peers.includes(nimPeerId as string)).to.be.true;
   });
 
-  it("Store - dialed after", async function () {
+  it("Store - dialed after - with timeout", async function () {
     this.timeout(20_000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ persistMessages: true });
@@ -247,7 +267,7 @@ describe("Wait for remote peer / get peers", function () {
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
     });
-    const waitPromise = waku.waitForRemotePeer([Protocols.Store]);
+    const waitPromise = waku.waitForRemotePeer([Protocols.Store], 2000);
     await delay(1000);
     await waku.dial(multiAddrWithId);
     await waitPromise;
