@@ -42,7 +42,7 @@
     "examples:pretest": "for d in examples/*/; do (cd $d && npm install); done",
     "nim-waku:build": "(cd nim-waku; NIMFLAGS=\"-d:chronicles_colors=off -d:chronicles_sinks=textlines -d:chronicles_log_level=TRACE\" make -j$(nproc --all 2>/dev/null || echo 2) wakunode2)",
     "nim-waku:force-build": "(cd nim-waku && rm -rf ./build/ ./vendor && make -j$(nproc --all 2>/dev/null || echo 2) update) && run-s nim-waku:build",
-    "test": "run-s build test:*",
+    "test": "run-s test:*",
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.conf.js\" \".github/**/*.yml\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,guides/*.md,src/**/*.ts}\"",
