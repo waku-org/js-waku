@@ -2,10 +2,11 @@ import { shuffle } from "libp2p-gossipsub/src/utils";
 
 export { getPredefinedBootstrapNodes } from "./predefined";
 export * as predefined from "./predefined";
-export { Bootstrap, BootstrapOptions } from "./bootstrap";
+export * as bootstrap from "./bootstrap";
+export * as enrtree from "./enrtree";
 export * as dns from "./dns";
-export { Endpoints, DnsOverHttps } from "./dns_over_https";
-export { ENRTree, ENRTreeValues, ENRRootValues } from "./enrtree";
+export * as dns_over_https from "./dns_over_https";
+export { ENRTree } from "./enrtree";
 
 export function getPseudoRandomSubset<T>(
   values: T[],

@@ -5,17 +5,17 @@ import { fromString } from "uint8arrays/from-string";
 import { ENR } from "../enr";
 import { keccak256Buf, utf8ToBytes } from "../utils";
 
-export type ENRRootValues = {
+export interface ENRRootValues {
   eRoot: string;
   lRoot: string;
   seq: number;
   signature: string;
-};
+}
 
-export type ENRTreeValues = {
+export interface ENRTreeValues {
   publicKey: string;
   domain: string;
-};
+}
 
 export class ENRTree {
   public static readonly RECORD_PREFIX = ENR.RECORD_PREFIX;

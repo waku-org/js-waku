@@ -16,7 +16,7 @@ import PingService from "libp2p/src/ping";
 import { Multiaddr, multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
-import { Bootstrap, BootstrapOptions } from "./discovery";
+import { Bootstrap, BootstrapOptions } from "./discovery/bootstrap";
 import { LightPushCodec, WakuLightPush } from "./waku_light_push";
 import { DecryptionMethod, WakuMessage } from "./waku_message";
 import { RelayCodecs, WakuRelay } from "./waku_relay";
