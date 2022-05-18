@@ -6,3 +6,4 @@ node_modules
 src/**.js
 coverage
 *.log
+.parcel-cache

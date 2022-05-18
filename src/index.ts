@@ -1,15 +1,25 @@
+import * as _discovery from "./lib/discovery";
+import * as _enr from "./lib/enr";
+import * as _utils from "./lib/utils";
+import * as _waku from "./lib/waku";
+import * as _waku_light_push from "./lib/waku_light_push";
+import * as _waku_message from "./lib/waku_message";
+import * as _waku_relay from "./lib/waku_relay";
+import * as _waku_store from "./lib/waku_store";
+
 export { getPredefinedBootstrapNodes } from "./lib/discovery";
-export * as discovery from "./lib/discovery";
 
-export * as enr from "./lib/enr";
+export const discovery = { ..._discovery };
 
-export * as utils from "./lib/utils";
+export const enr = { ..._enr };
 
-export * as waku from "./lib/waku";
+export const utils = { ..._utils };
+
 export { Waku, DefaultPubSubTopic, Protocols } from "./lib/waku";
+export const waku = { ..._waku };
 
-export * as waku_message from "./lib/waku_message";
 export { WakuMessage } from "./lib/waku_message";
+export const waku_message = { ..._waku_message };
 
 export {
   generatePrivateKey,
@@ -17,15 +27,15 @@ export {
   getPublicKey,
 } from "./lib/waku_message/version_1";
 
-export * as waku_light_push from "./lib/waku_light_push";
 export {
   WakuLightPush,
   LightPushCodec,
   PushResponse,
 } from "./lib/waku_light_push";
+export const waku_light_push = { ..._waku_light_push };
 
-export * as waku_relay from "./lib/waku_relay";
 export { WakuRelay, RelayCodecs } from "./lib/waku_relay";
+export const waku_relay = { ..._waku_relay };
 
-export * as waku_store from "./lib/waku_store";
 export { PageDirection, WakuStore, StoreCodecs } from "./lib/waku_store";
+export const waku_store = { ..._waku_store };
