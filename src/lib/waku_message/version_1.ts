@@ -234,9 +234,7 @@ function validateDataIntegrity(
     return false;
   }
 
-  return !(
-    expectedSize > 3 && Buffer.from(value).equals(Buffer.alloc(value.length))
-  );
+  return expectedSize <= 3 || value.findIndex((i) => i !== 0) !== -1;
 }
 
 function getSignature(message: Uint8Array): Uint8Array {
