@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `waitForRemotePeer` now accepts a `timeoutMs` parameter that rejects the promise if it is reached. By default, no timeout is applied.
+
+### Changed
+
+- `waitForRemotePeer` waits for a Relay peer by default instead of Relay and Store.
+
 ## [0.23.0] - 2022-05-19
 
 ### Added

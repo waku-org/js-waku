@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import debug from "debug";
 import PeerId from "peer-id";
 
 import {
@@ -8,12 +7,11 @@ import {
   NOISE_KEY_2,
   Nwaku,
 } from "../test_utils/";
+import { delay } from "../test_utils/delay";
 
 import { Protocols, Waku } from "./waku";
 import { WakuMessage } from "./waku_message";
 import { generateSymmetricKey } from "./waku_message/version_1";
-
-const dbg = debug("waku:test");
 
 const TestContentTopic = "/test/1/waku/utf8";
 
@@ -168,28 +166,28 @@ describe("Decryption Keys", () => {
 
 describe("Wait for remote peer / get peers", function () {
   let waku: Waku;
-  let nwaku: Nwaku;
+  let nwaku: Nwaku | undefined;
 
   afterEach(async function () {
-    !!nwaku && nwaku.stop();
+    if (nwaku) {
+      nwaku.stop();
+      nwaku = undefined;
+    }
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it("Relay", async function () {
+  it("Relay - dialed first", async function () {
     this.timeout(20_000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start();
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    dbg("Create");
     waku = await Waku.create({
       staticNoiseKey: NOISE_KEY_1,
     });
-    dbg("Dial");
     await waku.dial(multiAddrWithId);
-    dbg("waitForRemotePeer");
+    await delay(1000);
     await waku.waitForRemotePeer([Protocols.Relay]);
-    dbg("Done, get peers");
     const peers = waku.relay.getPeers();
     const nimPeerId = multiAddrWithId.getPeerId();
 
@@ -197,7 +195,46 @@ describe("Wait for remote peer / get peers", function () {
     expect(peers.has(nimPeerId as string)).to.be.true;
   });
 
-  it("Store", async function () {
+  it("Relay - dialed after", async function () {
+    this.timeout(20_000);
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start();
+    const multiAddrWithId = await nwaku.getMultiaddrWithId();
+
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+
+    const waitPromise = waku.waitForRemotePeer([Protocols.Relay]);
+    await delay(1000);
+    await waku.dial(multiAddrWithId);
+    await waitPromise;
+
+    const peers = waku.relay.getPeers();
+    const nimPeerId = multiAddrWithId.getPeerId();
+
+    expect(nimPeerId).to.not.be.undefined;
+    expect(peers.has(nimPeerId as string)).to.be.true;
+  });
+
+  it("Relay - times out", function (done) {
+    this.timeout(5000);
+    Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+    }).then((waku) => {
+      waku.waitForRemotePeer([Protocols.Relay], 200).then(
+        () => {
+          throw "Promise expected to reject on time out";
+        },
+        (reason) => {
+          expect(reason).to.eq("Timed out waiting for a remote peer.");
+          done();
+        }
+      );
+    });
+  });
+
+  it("Store - dialed first", async function () {
     this.timeout(20_000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ persistMessages: true });
@@ -207,7 +244,33 @@ describe("Wait for remote peer / get peers", function () {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.dial(multiAddrWithId);
+    await delay(1000);
     await waku.waitForRemotePeer([Protocols.Store]);
+
+    const peers = [];
+    for await (const peer of waku.store.peers) {
+      peers.push(peer.id.toB58String());
+    }
+
+    const nimPeerId = multiAddrWithId.getPeerId();
+
+    expect(nimPeerId).to.not.be.undefined;
+    expect(peers.includes(nimPeerId as string)).to.be.true;
+  });
+
+  it("Store - dialed after - with timeout", async function () {
+    this.timeout(20_000);
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({ persistMessages: true });
+    const multiAddrWithId = await nwaku.getMultiaddrWithId();
+
+    waku = await Waku.create({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+    const waitPromise = waku.waitForRemotePeer([Protocols.Store], 2000);
+    await delay(1000);
+    await waku.dial(multiAddrWithId);
+    await waitPromise;
 
     const peers = [];
     for await (const peer of waku.store.peers) {
