@@ -126,15 +126,15 @@ export async function encryptAsymmetric(
 
 /**
  * Proceed with Asymmetric decryption of the data as per [26/WAKU-PAYLOAD](https://rfc.vac.dev/spec/26/).
- * The return data is expect to be flags | payload-length | payload | [signature].
+ * The returned data is expected to be `flags | payload-length | payload | [signature]`.
  *
  * @internal
  */
 export async function decryptAsymmetric(
-  payload: Uint8Array | Buffer,
-  privKey: Uint8Array | Buffer
+  payload: Uint8Array,
+  privKey: Uint8Array
 ): Promise<Uint8Array> {
-  return ecies.decrypt(Buffer.from(privKey), Buffer.from(payload));
+  return ecies.decrypt(privKey, payload);
 }
 
 /**
@@ -167,15 +167,14 @@ export async function encryptSymmetric(
  * @internal
  */
 export async function decryptSymmetric(
-  payload: Uint8Array | Buffer,
-  key: Uint8Array | Buffer | string
+  payload: Uint8Array,
+  key: Uint8Array | string
 ): Promise<Uint8Array> {
-  const data = Buffer.from(payload);
-  const ivStart = data.length - symmetric.IvSize;
-  const cipher = data.slice(0, ivStart);
-  const iv = data.slice(ivStart);
+  const ivStart = payload.length - symmetric.IvSize;
+  const cipher = payload.slice(0, ivStart);
+  const iv = payload.slice(ivStart);
 
-  return symmetric.decrypt(iv, Buffer.from(hexToBytes(key)), cipher);
+  return symmetric.decrypt(iv, hexToBytes(key), cipher);
 }
 
 /**
