@@ -252,9 +252,12 @@ function getHash(message: Uint8Array, isSigned: boolean): string {
 
 function ecRecoverPubKey(
   messageHash: string,
-  signature: Buffer
+  signature: Uint8Array
 ): Uint8Array | undefined {
-  const recovery = signature.slice(64).readIntBE(0, 1);
+  // TODO: This is only needed because we are getting a `Buffer` instance.
+  signature = new Uint8Array(signature);
+  const recoveryDataView = new DataView(signature.slice(64).buffer);
+  const recovery = recoveryDataView.getUint8(0);
   const _signature = secp.Signature.fromCompact(signature.slice(0, 64));
 
   return secp.recoverPublicKey(
