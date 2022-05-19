@@ -1,5 +1,5 @@
 import { keys } from "libp2p-crypto";
-import mh from "multihashes";
+import { identity } from "multiformats/hashes/identity";
 import PeerId from "peer-id";
 
 const { keysPBM, supportedKeys } = keys;
@@ -33,7 +33,9 @@ export function createKeypair(
   }
 }
 
-export function createPeerIdFromKeypair(keypair: IKeypair): PeerId {
+export async function createPeerIdFromKeypair(
+  keypair: IKeypair
+): Promise<PeerId> {
   switch (keypair.type) {
     case KeypairType.secp256k1: {
       // manually create a peer id to avoid expensive ops
@@ -47,8 +49,8 @@ export function createPeerIdFromKeypair(keypair: IKeypair): PeerId {
       const pubKey = new supportedKeys.secp256k1.Secp256k1PublicKey(
         keypair.publicKey
       );
-      const id = mh.encode(pubKey.bytes, "identity");
-      return new PeerId(id, privKey, pubKey);
+      const id = await identity.digest(pubKey.bytes);
+      return new PeerId(id.bytes, privKey, pubKey);
     }
     default:
       throw new Error(ERR_TYPE_NOT_IMPLEMENTED);

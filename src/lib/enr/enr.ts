@@ -31,8 +31,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
   public static readonly RECORD_PREFIX = "enr:";
   public seq: SequenceNumber;
   public signature: Uint8Array | null;
+  public peerId?: PeerId;
 
-  constructor(
+  private constructor(
     kvs: Record<ENRKey, ENRValue> = {},
     seq: SequenceNumber = BigInt(1),
     signature: Uint8Array | null = null
@@ -42,15 +43,34 @@ export class ENR extends Map<ENRKey, ENRValue> {
     this.signature = signature;
   }
 
+  static async create(
+    kvs: Record<ENRKey, ENRValue> = {},
+    seq: SequenceNumber = BigInt(1),
+    signature: Uint8Array | null = null
+  ): Promise<ENR> {
+    const enr = new ENR(kvs, seq, signature);
+    try {
+      const publicKey = enr.publicKey;
+      if (publicKey) {
+        const keypair = createKeypair(enr.keypairType, undefined, publicKey);
+        enr.peerId = await createPeerIdFromKeypair(keypair);
+      }
+    } catch (e) {
+      dbg("Could not calculate peer id for ENR", e);
+    }
+
+    return enr;
+  }
+
   static createV4(
     publicKey: Uint8Array,
     kvs: Record<ENRKey, ENRValue> = {}
-  ): ENR {
+  ): Promise<ENR> {
     // EIP-778 specifies that the key must be in compressed format, 33 bytes
     if (publicKey.length !== 33) {
       publicKey = compressPublicKey(publicKey);
     }
-    return new ENR({
+    return ENR.create({
       ...kvs,
       id: utf8ToBytes("v4"),
       secp256k1: publicKey,
@@ -60,7 +80,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   static createFromPeerId(
     peerId: PeerId,
     kvs: Record<ENRKey, ENRValue> = {}
-  ): ENR {
+  ): Promise<ENR> {
     const keypair = createKeypairFromPeerId(peerId);
     switch (keypair.type) {
       case KeypairType.secp256k1:
@@ -70,7 +90,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
   }
 
-  static decodeFromValues(decoded: Uint8Array[]): ENR {
+  static async decodeFromValues(decoded: Uint8Array[]): Promise<ENR> {
     if (!Array.isArray(decoded)) {
       throw new Error("Decoded ENR must be an array");
     }
@@ -96,7 +116,8 @@ export class ENR extends Map<ENRKey, ENRValue> {
     }
     // If seq is an empty array, translate as value 0
     const hexSeq = "0x" + (seq.length ? bytesToHex(seq) : "00");
-    const enr = new ENR(obj, BigInt(hexSeq), signature);
+
+    const enr = await ENR.create(obj, BigInt(hexSeq), signature);
 
     const rlpEncodedBytes = hexToBytes(RLP.encode([seq, ...kvs]));
     if (!enr.verify(rlpEncodedBytes, signature)) {
@@ -105,12 +126,12 @@ export class ENR extends Map<ENRKey, ENRValue> {
     return enr;
   }
 
-  static decode(encoded: Uint8Array): ENR {
+  static decode(encoded: Uint8Array): Promise<ENR> {
     const decoded = RLP.decode(encoded).map(hexToBytes);
     return ENR.decodeFromValues(decoded);
   }
 
-  static decodeTxt(encoded: string): ENR {
+  static decodeTxt(encoded: string): Promise<ENR> {
     if (!encoded.startsWith(this.RECORD_PREFIX)) {
       throw new Error(
         `"string encoded ENR must start with '${this.RECORD_PREFIX}'`
@@ -155,10 +176,6 @@ export class ENR extends Map<ENRKey, ENRValue> {
       return createKeypair(this.keypairType, undefined, publicKey);
     }
     return;
-  }
-
-  get peerId(): PeerId | undefined {
-    return this.keypair ? createPeerIdFromKeypair(this.keypair) : undefined;
   }
 
   get nodeId(): NodeId | undefined {

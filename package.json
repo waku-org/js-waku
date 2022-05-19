@@ -87,7 +87,7 @@
     "libp2p-websockets": "^0.16.1",
     "long": "^4.0.0",
     "multiaddr": "^10.0.1",
-    "multihashes": "^4.0.3",
+    "multiformats": "^9.6.5",
     "peer-id": "^0.16.0",
     "protobufjs": "^6.8.8",
     "uint8arrays": "^3.0.0",
