@@ -36,9 +36,9 @@ export async function clearEncode(
   messagePayload: Uint8Array,
   sigPrivKey?: Uint8Array
 ): Promise<{ payload: Uint8Array; sig?: Signature }> {
-  let envelope = Buffer.from([0]); // No flags
-  envelope = Buffer.from(addPayloadSizeField(envelope, messagePayload));
-  envelope = Buffer.concat([envelope, Buffer.from(messagePayload)]);
+  let envelope = new Uint8Array([0]); // No flags
+  envelope = addPayloadSizeField(envelope, messagePayload);
+  envelope = concat([envelope, messagePayload]);
 
   // Calculate padding:
   let rawSize =
@@ -52,29 +52,26 @@ export async function clearEncode(
 
   const remainder = rawSize % PaddingTarget;
   const paddingSize = PaddingTarget - remainder;
-  const pad = Buffer.from(randomBytes(paddingSize));
+  const pad = randomBytes(paddingSize);
 
   if (!validateDataIntegrity(pad, paddingSize)) {
     throw new Error("failed to generate random padding of size " + paddingSize);
   }
 
-  envelope = Buffer.concat([envelope, pad]);
+  envelope = concat([envelope, pad]);
 
   let sig;
   if (sigPrivKey) {
     envelope[0] |= IsSignedMask;
     const hash = keccak256(envelope);
-    const [signature, recid] = await secp.sign(hash, sigPrivKey, {
+    const [hexSignature, recid] = await secp.sign(hash, sigPrivKey, {
       recovered: true,
       der: false,
     });
-    envelope = Buffer.concat([
-      envelope,
-      hexToBytes(signature),
-      Buffer.from([recid]),
-    ]);
+    const bytesSignature = hexToBytes(hexSignature);
+    envelope = concat([envelope, bytesSignature, [recid]]);
     sig = {
-      signature: Buffer.from(signature),
+      signature: bytesSignature,
       publicKey: getPublicKey(sigPrivKey),
     };
   }
