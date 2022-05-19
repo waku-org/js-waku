@@ -94,7 +94,7 @@ export function clearDecode(
   const sizeOfPayloadSizeField = getSizeOfPayloadSizeField(message);
   if (sizeOfPayloadSizeField === 0) return;
 
-  const payloadSize = buf.readUIntLE(start, sizeOfPayloadSizeField);
+  const payloadSize = getPayloadSize(message, sizeOfPayloadSizeField);
   start += sizeOfPayloadSizeField;
   const payload = buf.slice(start, start + payloadSize);
 
@@ -112,6 +112,14 @@ export function clearDecode(
 function getSizeOfPayloadSizeField(message: Uint8Array): number {
   const messageDataView = new DataView(message.buffer);
   return messageDataView.getUint8(0) & FlagMask;
+}
+
+function getPayloadSize(
+  message: Uint8Array,
+  sizeOfPayloadSizeField: number
+): number {
+  const buf = Buffer.from(message);
+  return buf.readUIntLE(1, sizeOfPayloadSizeField);
 }
 
 /**
