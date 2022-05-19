@@ -118,10 +118,10 @@ export function clearDecode(
  * @internal
  */
 export async function encryptAsymmetric(
-  data: Uint8Array | Buffer,
-  publicKey: Uint8Array | Buffer | string
+  data: Uint8Array,
+  publicKey: Uint8Array | string
 ): Promise<Uint8Array> {
-  return ecies.encrypt(Buffer.from(hexToBytes(publicKey)), Buffer.from(data));
+  return ecies.encrypt(hexToBytes(publicKey), data);
 }
 
 /**
@@ -147,18 +147,14 @@ export async function decryptAsymmetric(
  * @internal
  */
 export async function encryptSymmetric(
-  data: Uint8Array | Buffer,
-  key: Uint8Array | Buffer | string
+  data: Uint8Array,
+  key: Uint8Array | string
 ): Promise<Uint8Array> {
   const iv = symmetric.generateIv();
 
   // Returns `cipher | tag`
-  const cipher = await symmetric.encrypt(
-    iv,
-    Buffer.from(hexToBytes(key)),
-    Buffer.from(data)
-  );
-  return Buffer.concat([cipher, Buffer.from(iv)]);
+  const cipher = await symmetric.encrypt(iv, hexToBytes(key), data);
+  return concat([cipher, iv]);
 }
 
 /**
