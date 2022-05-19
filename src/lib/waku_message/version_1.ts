@@ -103,7 +103,7 @@ export function clearDecode(
   if (isSigned) {
     const signature = getSignature(buf);
     const hash = getHash(buf, isSigned);
-    const publicKey = ecRecoverPubKey(hash, signature);
+    const publicKey = ecRecoverPubKey(hash, Buffer.from(signature));
     sig = { signature, publicKey };
   }
 
@@ -202,7 +202,7 @@ export function generateSymmetricKey(): Uint8Array {
  * Return the public key for the given private key, to be used for asymmetric
  * encryption.
  */
-export function getPublicKey(privateKey: Uint8Array | Buffer): Uint8Array {
+export function getPublicKey(privateKey: Uint8Array): Uint8Array {
   return secp.getPublicKey(privateKey, false);
 }
 
@@ -244,11 +244,11 @@ function validateDataIntegrity(
   );
 }
 
-function getSignature(message: Buffer): Buffer {
+function getSignature(message: Uint8Array): Uint8Array {
   return message.slice(message.length - SignatureLength, message.length);
 }
 
-function getHash(message: Buffer, isSigned: boolean): string {
+function getHash(message: Uint8Array, isSigned: boolean): string {
   if (isSigned) {
     return keccak256(message.slice(0, message.length - SignatureLength));
   }
