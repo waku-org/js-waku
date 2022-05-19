@@ -43,7 +43,7 @@ export async function clearEncode(
   // Calculate padding:
   let rawSize =
     FlagsLength +
-    getSizeOfPayloadSizeField(messagePayload) +
+    computeSizeOfPayloadSizeField(messagePayload) +
     messagePayload.length;
 
   if (sigPrivKey) {
@@ -91,8 +91,7 @@ export function clearDecode(
   let start = 1;
   let sig;
 
-  const sizeOfPayloadSizeField = buf.readUIntLE(0, 1) & FlagMask;
-
+  const sizeOfPayloadSizeField = getSizeOfPayloadSizeField(message);
   if (sizeOfPayloadSizeField === 0) return;
 
   const payloadSize = buf.readUIntLE(start, sizeOfPayloadSizeField);
@@ -108,6 +107,11 @@ export function clearDecode(
   }
 
   return { payload, sig };
+}
+
+function getSizeOfPayloadSizeField(message: Uint8Array): number {
+  const buf = Buffer.from(message);
+  return buf.readUIntLE(0, 1) & FlagMask;
 }
 
 /**
@@ -205,7 +209,7 @@ export function getPublicKey(privateKey: Uint8Array): Uint8Array {
  * Computes the flags & auxiliary-field as per [26/WAKU-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 function addPayloadSizeField(msg: Uint8Array, payload: Uint8Array): Uint8Array {
-  const fieldSize = getSizeOfPayloadSizeField(payload);
+  const fieldSize = computeSizeOfPayloadSizeField(payload);
   let field = new Uint8Array(4);
   const fieldDataView = new DataView(field.buffer);
   fieldDataView.setUint32(0, payload.length, true);
@@ -218,7 +222,7 @@ function addPayloadSizeField(msg: Uint8Array, payload: Uint8Array): Uint8Array {
 /**
  * Returns the size of the auxiliary-field which in turns contains the payload size
  */
-function getSizeOfPayloadSizeField(payload: Uint8Array): number {
+function computeSizeOfPayloadSizeField(payload: Uint8Array): number {
   let s = 1;
   for (let i = payload.length; i >= 256; i /= 256) {
     s++;
