@@ -2,6 +2,7 @@ import { Buffer } from "buffer";
 
 import * as secp from "@noble/secp256k1";
 import { keccak256 } from "js-sha3";
+import { concat } from "uint8arrays/concat";
 
 import { randomBytes } from "../crypto";
 import { hexToBytes } from "../utils";
@@ -36,7 +37,7 @@ export async function clearEncode(
   sigPrivKey?: Uint8Array
 ): Promise<{ payload: Uint8Array; sig?: Signature }> {
   let envelope = Buffer.from([0]); // No flags
-  envelope = addPayloadSizeField(envelope, messagePayload);
+  envelope = Buffer.from(addPayloadSizeField(envelope, messagePayload));
   envelope = Buffer.concat([envelope, Buffer.from(messagePayload)]);
 
   // Calculate padding:
@@ -211,12 +212,13 @@ export function getPublicKey(privateKey: Uint8Array | Buffer): Uint8Array {
 /**
  * Computes the flags & auxiliary-field as per [26/WAKU-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
-function addPayloadSizeField(msg: Buffer, payload: Uint8Array): Buffer {
+function addPayloadSizeField(msg: Uint8Array, payload: Uint8Array): Uint8Array {
   const fieldSize = getSizeOfPayloadSizeField(payload);
-  let field = Buffer.alloc(4);
-  field.writeUInt32LE(payload.length, 0);
+  let field = new Uint8Array(4);
+  const fieldDataView = new DataView(field.buffer);
+  fieldDataView.setUint32(0, payload.length, true);
   field = field.slice(0, fieldSize);
-  msg = Buffer.concat([msg, field]);
+  msg = concat([msg, field]);
   msg[0] |= fieldSize;
   return msg;
 }
