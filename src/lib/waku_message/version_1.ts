@@ -17,6 +17,11 @@ const SignatureLength = 65;
 
 export const PrivateKeySize = 32;
 
+export type Signature = {
+  signature: Uint8Array;
+  publicKey: Uint8Array | undefined;
+};
+
 /**
  * Encode the payload pre-encryption.
  *
@@ -75,11 +80,6 @@ export async function clearEncode(
 
   return { payload: envelope, sig };
 }
-
-export type Signature = {
-  signature: Uint8Array;
-  publicKey: Uint8Array | undefined;
-};
 
 /**
  * Decode a decrypted payload.
