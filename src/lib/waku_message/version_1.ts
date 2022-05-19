@@ -110,8 +110,8 @@ export function clearDecode(
 }
 
 function getSizeOfPayloadSizeField(message: Uint8Array): number {
-  const buf = Buffer.from(message);
-  return buf.readUIntLE(0, 1) & FlagMask;
+  const messageDataView = new DataView(message.buffer);
+  return messageDataView.getUint8(0) & FlagMask;
 }
 
 /**
