@@ -78,7 +78,7 @@ function App() {
         <ul>
           {messages.map((msg) => {
             return (
-              <li key={msg.timestamp}>
+              <li key={msg.timestamp.valueOf()}>
                 <p>
                   {msg.timestamp.toString()}: {msg.text}
                 </p>
