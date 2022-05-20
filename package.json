@@ -2,16 +2,13 @@
   "name": "js-waku",
   "version": "0.24.0",
   "description": "TypeScript implementation of the Waku v2 protocol",
-  "main": "build/main/index.js",
-  "typings": "build/main/index.d.ts",
-  "module": "build/esm/index.js",
+  "types": "./build/esm/index.d.ts",
   "exports": {
     "node": {
-      "module": "./build/esm/index.js",
-      "import": "./build/main/index.js"
-    },
-    "default": "./build/main/index.js"
+      "import": "./build/esm/index.js"
+    }
   },
+  "type": "module",
   "repository": "https://github.com/status-im/js-waku",
   "license": "MIT OR Apache-2.0",
   "keywords": [
@@ -25,15 +22,14 @@
   "scripts": {
     "prepare": "husky install",
     "build": "rimraf ./build; run-p build:**",
-    "build:main": "tsc -p tsconfig.json",
-    "build:esm": "tsc --module es2015 --target es2015 --outDir build/esm",
-    "build:umd": "webpack --config webpack.config.js",
-    "build:umd:min": "webpack --config webpack.config.min.js",
-    "build:umd:bundle": "webpack --config webpack.config.bundle.js",
-    "build:umd:min:bundle": "webpack --config webpack.config.min.bundle.js",
+    "build:esm": "tsc",
+    "build:umd": "webpack --config webpack.config.cjs",
+    "build:umd:min": "webpack --config webpack.config.min.cjs",
+    "build:umd:bundle": "webpack --config webpack.config.bundle.cjs",
+    "build:umd:min:bundle": "webpack --config webpack.config.min.bundle.cjs",
     "size": "npm run build:esm && size-limit",
     "fix": "run-s fix:*",
-    "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.conf.js\" \".github/**/*.yml\" --write",
+    "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.*js\" \".github/**/*.yml\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
     "pretest": "run-s pretest:*",
     "pretest:1-init-git-submodules": "[ -f './nim-waku/build/wakunode2' ] || git submodule update --init --recursive",
@@ -43,11 +39,11 @@
     "nim-waku:force-build": "(cd nim-waku && rm -rf ./build/ ./vendor && make -j$(nproc --all 2>/dev/null || echo 2) update) && run-s nim-waku:build",
     "test": "run-s test:*",
     "test:lint": "eslint src --ext .ts",
-    "test:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.conf.js\" \".github/**/*.yml\" --list-different",
+    "test:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.*js\" \".github/**/*.yml\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,guides/*.md,src/**/*.ts}\"",
     "test:tsc": "tsc -p tsconfig.dev.json",
     "test:unit": "nyc --silent mocha",
-    "test:karma": "karma start",
+    "test:karma": "karma start karma.conf.cjs",
     "examples:test": "run-s examples:pretest; for d in examples/*/; do (cd $d && npm test;); done",
     "proto": "run-s proto:*",
     "proto:lint": "buf lint",
@@ -121,6 +117,7 @@
     "fast-check": "^2.14.0",
     "gh-pages": "^3.2.3",
     "husky": "^7.0.4",
+    "ignore-loader": "^0.1.2",
     "isomorphic-fetch": "^3.0.0",
     "jsdom": "^19.0.0",
     "jsdom-global": "^3.0.2",
@@ -128,7 +125,7 @@
     "karma-chrome-launcher": "^3.1.0",
     "karma-env-preprocessor": "^0.1.1",
     "karma-mocha": "^2.0.1",
-    "karma-typescript": "^5.5.3",
+    "karma-webpack": "^5.0.0",
     "lint-staged": "^12.3.4",
     "mocha": "^9.1.3",
     "npm-run-all": "^4.1.5",
@@ -151,7 +148,6 @@
     "webpack-cli": "^4.9.0"
   },
   "files": [
-    "build/main",
     "build/esm",
     "build/umd",
     "!**/*.spec.*",
