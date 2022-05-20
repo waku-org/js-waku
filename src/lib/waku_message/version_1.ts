@@ -1,8 +1,7 @@
 import * as secp from "@noble/secp256k1";
-import { keccak256 } from "js-sha3";
 import { concat } from "uint8arrays/concat";
 
-import { randomBytes } from "../crypto";
+import { keccak256, randomBytes } from "../crypto";
 import { hexToBytes } from "../utils";
 
 import * as ecies from "./ecies";
@@ -239,7 +238,7 @@ function getSignature(message: Uint8Array): Uint8Array {
   return message.slice(message.length - SignatureLength, message.length);
 }
 
-function getHash(message: Uint8Array, isSigned: boolean): string {
+function getHash(message: Uint8Array, isSigned: boolean): Uint8Array {
   if (isSigned) {
     return keccak256(message.slice(0, message.length - SignatureLength));
   }
@@ -247,7 +246,7 @@ function getHash(message: Uint8Array, isSigned: boolean): string {
 }
 
 function ecRecoverPubKey(
-  messageHash: string,
+  messageHash: Uint8Array,
   signature: Uint8Array
 ): Uint8Array | undefined {
   const recoveryDataView = new DataView(signature.slice(64).buffer);
@@ -255,7 +254,7 @@ function ecRecoverPubKey(
   const _signature = secp.Signature.fromCompact(signature.slice(0, 64));
 
   return secp.recoverPublicKey(
-    hexToBytes(messageHash),
+    messageHash,
     _signature,
     recovery,
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
