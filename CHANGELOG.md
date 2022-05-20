@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `waitForRemotePeer` waits for a Relay peer by default instead of Relay and Store.
+- **Breaking**: Removed dupe secp256k1 code, removed some unused APIs.
 
 ## [0.23.0] - 2022-05-19
 
