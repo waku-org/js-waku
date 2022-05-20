@@ -5,11 +5,6 @@ import { bytesToHex } from "../utils";
 
 import { NodeId } from "./types";
 
-export function compressPublicKey(publicKey: Uint8Array): Uint8Array {
-  const point = secp.Point.fromHex(bytesToHex(publicKey));
-  return point.toRawBytes(true);
-}
-
 export async function sign(
   privKey: Uint8Array,
   msg: Uint8Array

@@ -1,33 +1,8 @@
 import * as secp from "@noble/secp256k1";
-import { concat } from "uint8arrays/concat";
 
-import { randomBytes } from "../../crypto";
+import { compressPublicKey, randomBytes } from "../../crypto";
 
 import { IKeypair, IKeypairClass, KeypairType } from "./types";
-
-export function secp256k1PublicKeyToCompressed(
-  publicKey: Uint8Array
-): Uint8Array {
-  if (publicKey.length === 64) {
-    publicKey = concat([[4], publicKey], 65);
-  }
-  const point = secp.Point.fromHex(publicKey);
-  return point.toRawBytes(true);
-}
-
-export function secp256k1PublicKeyToFull(publicKey: Uint8Array): Uint8Array {
-  if (publicKey.length === 64) {
-    publicKey = concat([[4], publicKey], 65);
-  }
-  const point = secp.Point.fromHex(publicKey);
-
-  return point.toRawBytes(false);
-}
-
-export function secp256k1PublicKeyToRaw(publicKey: Uint8Array): Uint8Array {
-  const point = secp.Point.fromHex(publicKey);
-  return point.toRawBytes(false).slice(1);
-}
 
 export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
   implements IKeypair
@@ -39,7 +14,7 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
   constructor(privateKey?: Uint8Array, publicKey?: Uint8Array) {
     let pub = publicKey;
     if (pub) {
-      pub = secp256k1PublicKeyToCompressed(pub);
+      pub = compressPublicKey(pub);
     }
     if ((this._privateKey = privateKey) && !this.privateKeyVerify()) {
       throw new Error("Invalid private key");

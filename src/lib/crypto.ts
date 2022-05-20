@@ -72,3 +72,11 @@ export async function sign(
 export function keccak256(input: Uint8Array): Uint8Array {
   return new Uint8Array(sha3.keccak256.arrayBuffer(input));
 }
+
+export function compressPublicKey(publicKey: Uint8Array): Uint8Array {
+  if (publicKey.length === 64) {
+    publicKey = concat([[4], publicKey], 65);
+  }
+  const point = secp.Point.fromHex(publicKey);
+  return point.toRawBytes(true);
+}

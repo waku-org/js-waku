@@ -9,6 +9,7 @@ import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";
 import { encode as varintEncode } from "varint";
 
+import { compressPublicKey } from "../crypto";
 import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
 
 import { ERR_INVALID_ID, ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
@@ -22,7 +23,6 @@ import {
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
 import * as v4 from "./v4";
-import { compressPublicKey } from "./v4";
 import { decodeWaku2, encodeWaku2, Waku2 } from "./waku2_codec";
 
 const dbg = debug("waku:enr");
