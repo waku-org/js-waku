@@ -13,8 +13,3 @@ export interface IKeypair {
   verify(msg: Uint8Array, sig: Uint8Array): boolean;
   hasPrivateKey(): boolean;
 }
-
-export interface IKeypairClass {
-  new (privateKey?: Uint8Array, publicKey?: Uint8Array): IKeypair;
-  generate(): Promise<IKeypair>;
-}

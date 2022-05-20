@@ -2,11 +2,9 @@ import * as secp from "@noble/secp256k1";
 
 import { compressPublicKey, randomBytes } from "../../crypto";
 
-import { IKeypair, IKeypairClass, KeypairType } from "./types";
+import { IKeypair, KeypairType } from "./types";
 
-export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
-  implements IKeypair
-{
+export class Secp256k1Keypair implements IKeypair {
   readonly type: KeypairType;
   _privateKey?: Uint8Array;
   readonly _publicKey?: Uint8Array;
@@ -77,4 +75,4 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
   hasPrivateKey(): boolean {
     return !!this._privateKey;
   }
-};
+}
