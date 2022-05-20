@@ -1,6 +1,7 @@
 import nodeCrypto from "crypto";
 
 import * as secp from "@noble/secp256k1";
+import * as sha3 from "js-sha3";
 
 import * as symmetric from "./waku_message/symmetric";
 import { PrivateKeySize } from "./waku_message/version_1";
@@ -47,3 +48,7 @@ export function generateSymmetricKey(): Uint8Array {
  * encryption.
  */
 export const getPublicKey = secp.getPublicKey;
+
+export function keccak256(input: Uint8Array): Uint8Array {
+  return new Uint8Array(sha3.keccak256.arrayBuffer(input));
+}

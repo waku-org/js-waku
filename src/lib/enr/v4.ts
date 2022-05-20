@@ -1,15 +1,10 @@
 import * as secp from "@noble/secp256k1";
-import { keccak256 } from "js-sha3";
 
-import { randomBytes } from "../crypto";
+import { keccak256, randomBytes } from "../crypto";
 import { bytesToHex } from "../utils";
 
 import { createNodeId } from "./create";
 import { NodeId } from "./types";
-
-export function hash(input: Uint8Array): Uint8Array {
-  return new Uint8Array(keccak256.arrayBuffer(input));
-}
 
 export function createPrivateKey(): Uint8Array {
   return randomBytes(32);
@@ -28,7 +23,7 @@ export async function sign(
   privKey: Uint8Array,
   msg: Uint8Array
 ): Promise<Uint8Array> {
-  return secp.sign(hash(msg), privKey, {
+  return secp.sign(keccak256(msg), privKey, {
     der: false,
   });
 }
@@ -40,7 +35,7 @@ export function verify(
 ): boolean {
   try {
     const _sig = secp.Signature.fromCompact(sig.slice(0, 64));
-    return secp.verify(_sig, hash(msg), pubKey);
+    return secp.verify(_sig, keccak256(msg), pubKey);
   } catch {
     return false;
   }
@@ -50,7 +45,7 @@ export function nodeId(pubKey: Uint8Array): NodeId {
   const publicKey = secp.Point.fromHex(pubKey);
   const uncompressedPubkey = publicKey.toRawBytes(false);
 
-  return createNodeId(hash(uncompressedPubkey.slice(1)));
+  return createNodeId(keccak256(uncompressedPubkey.slice(1)));
 }
 
 export class ENRKeyPair {
