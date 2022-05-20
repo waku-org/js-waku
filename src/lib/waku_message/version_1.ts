@@ -118,14 +118,23 @@ function getPayloadSize(
   message: Uint8Array,
   sizeOfPayloadSizeField: number
 ): number {
-  const buf = Buffer.from(message);
-  return buf.readUIntLE(1, sizeOfPayloadSizeField);
+  let payloadSizeBytes = message.slice(1, 1 + sizeOfPayloadSizeField);
+  // int 32 == 4 bytes
+  if (sizeOfPayloadSizeField < 4) {
+    // If less than 4 bytes pad right (Little Endian).
+    payloadSizeBytes = concat(
+      [payloadSizeBytes, new Uint8Array(4 - sizeOfPayloadSizeField)],
+      4
+    );
+  }
+  const payloadSizeDataView = new DataView(payloadSizeBytes.buffer);
+  return payloadSizeDataView.getInt32(0, true);
 }
 
 /**
  * Proceed with Asymmetric encryption of the data as per [26/WAKU-PAYLOAD](https://rfc.vac.dev/spec/26/).
  * The data MUST be flags | payload-length | payload | [signature].
- * The returned result can be set to `WakuMessage.payload`.
+ * The returned result  can be set to `WakuMessage.payload`.
  *
  * @internal
  */
