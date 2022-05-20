@@ -1,7 +1,7 @@
 import nodeCrypto from "crypto";
 
+import { keccak_256 } from "@noble/hashes/sha3";
 import * as secp from "@noble/secp256k1";
-import * as sha3 from "js-sha3";
 import { concat } from "uint8arrays/concat";
 
 import * as symmetric from "./waku_message/symmetric";
@@ -27,6 +27,7 @@ export function getSubtle(): SubtleCrypto {
 
 export const randomBytes = secp.utils.randomBytes;
 export const sha256 = secp.utils.sha256;
+export const keccak256 = keccak_256;
 
 /**
  * Generate a new private key to be used for asymmetric encryption.
@@ -67,10 +68,6 @@ export async function sign(
     der: false,
   });
   return concat([signature, [recoveryId]], signature.length + 1);
-}
-
-export function keccak256(input: Uint8Array): Uint8Array {
-  return new Uint8Array(sha3.keccak256.arrayBuffer(input));
 }
 
 export function compressPublicKey(publicKey: Uint8Array): Uint8Array {
