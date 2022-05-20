@@ -3,7 +3,6 @@ import * as secp from "@noble/secp256k1";
 import { keccak256 } from "../crypto";
 import { bytesToHex } from "../utils";
 
-import { createNodeId } from "./create";
 import { NodeId } from "./types";
 
 export function compressPublicKey(publicKey: Uint8Array): Uint8Array {
@@ -31,6 +30,13 @@ export function verify(
   } catch {
     return false;
   }
+}
+
+function createNodeId(bytes: Uint8Array): NodeId {
+  if (bytes.length !== 32) {
+    throw new Error("NodeId must be 32 bytes in length");
+  }
+  return bytesToHex(bytes);
 }
 
 export function nodeId(pubKey: Uint8Array): NodeId {
