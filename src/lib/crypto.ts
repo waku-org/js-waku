@@ -80,3 +80,19 @@ export function compressPublicKey(publicKey: Uint8Array): Uint8Array {
   const point = secp.Point.fromHex(publicKey);
   return point.toRawBytes(true);
 }
+
+/**
+ * Verify an ECDSA signature.
+ */
+export function verifySignature(
+  signature: Uint8Array,
+  message: Uint8Array | string,
+  publicKey: Uint8Array
+): boolean {
+  try {
+    const _signature = secp.Signature.fromCompact(signature.slice(0, 64));
+    return secp.verify(_signature, message, publicKey);
+  } catch {
+    return false;
+  }
+}

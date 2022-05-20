@@ -14,19 +14,6 @@ export async function sign(
   });
 }
 
-export function verify(
-  pubKey: Uint8Array,
-  msg: Uint8Array,
-  sig: Uint8Array
-): boolean {
-  try {
-    const _sig = secp.Signature.fromCompact(sig.slice(0, 64));
-    return secp.verify(_sig, keccak256(msg), pubKey);
-  } catch {
-    return false;
-  }
-}
-
 export function nodeId(pubKey: Uint8Array): NodeId {
   const publicKey = secp.Point.fromHex(pubKey);
   const uncompressedPubkey = publicKey.toRawBytes(false);

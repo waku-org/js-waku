@@ -49,15 +49,6 @@ export class Secp256k1Keypair implements IKeypair {
     return true;
   }
 
-  verify(msg: Uint8Array, sig: Uint8Array): boolean {
-    try {
-      const _sig = secp.Signature.fromCompact(sig.slice(0, 64));
-      return secp.verify(_sig, msg, this.publicKey);
-    } catch {
-      return false;
-    }
-  }
-
   get privateKey(): Uint8Array {
     if (!this._privateKey) {
       throw new Error();

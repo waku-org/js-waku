@@ -10,6 +10,5 @@ export interface IKeypair {
   publicKey: Uint8Array;
   privateKeyVerify(): boolean;
   publicKeyVerify(): boolean;
-  verify(msg: Uint8Array, sig: Uint8Array): boolean;
   hasPrivateKey(): boolean;
 }

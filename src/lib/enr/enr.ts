@@ -9,7 +9,7 @@ import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";
 import { encode as varintEncode } from "varint";
 
-import { compressPublicKey } from "../crypto";
+import { compressPublicKey, keccak256, verifySignature } from "../crypto";
 import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
 
 import { ERR_INVALID_ID, ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
@@ -472,7 +472,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (!this.publicKey) {
       throw new Error("Failed to verify ENR: No public key");
     }
-    return v4.verify(this.publicKey, data, signature);
+    return verifySignature(signature, keccak256(data), this.publicKey);
   }
 
   async sign(data: Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
