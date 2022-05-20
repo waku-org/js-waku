@@ -87,18 +87,16 @@ export async function clearEncode(
 export function clearDecode(
   message: Uint8Array | Buffer
 ): { payload: Uint8Array; sig?: Signature } | undefined {
-  const buf = Buffer.from(message);
-  let start = 1;
-  let sig;
-
   const sizeOfPayloadSizeField = getSizeOfPayloadSizeField(message);
   if (sizeOfPayloadSizeField === 0) return;
 
   const payloadSize = getPayloadSize(message, sizeOfPayloadSizeField);
-  start += sizeOfPayloadSizeField;
-  const payload = buf.slice(start, start + payloadSize);
+  const payloadStart = 1 + sizeOfPayloadSizeField;
+  const payload = message.slice(payloadStart, payloadStart + payloadSize);
 
   const isSigned = isMessageSigned(message);
+
+  let sig;
   if (isSigned) {
     const signature = getSignature(message);
     const hash = getHash(message, isSigned);
