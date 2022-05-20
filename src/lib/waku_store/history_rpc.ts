@@ -1,11 +1,13 @@
 import Long from "long";
-import { Reader } from "protobufjs/minimal";
+import protobufjs from "protobufjs/minimal";
 import { v4 as uuid } from "uuid";
 
 import * as protoV2Beta3 from "../../proto/waku/v2/store/v2beta3/store";
 import * as protoV2Beta4 from "../../proto/waku/v2/store/v2beta4/store";
 
 import { StoreCodecs } from "./constants";
+
+const { Reader } = protobufjs;
 
 export enum PageDirection {
   BACKWARD = "backward",

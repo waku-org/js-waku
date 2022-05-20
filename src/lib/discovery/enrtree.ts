@@ -1,4 +1,4 @@
-import * as base32 from "hi-base32";
+import base32 from "hi-base32";
 import { fromString } from "uint8arrays/from-string";
 
 import { keccak256, verifySignature } from "../crypto";
