@@ -98,7 +98,7 @@ export function clearDecode(
   start += sizeOfPayloadSizeField;
   const payload = buf.slice(start, start + payloadSize);
 
-  const isSigned = (buf.readUIntLE(0, 1) & IsSignedMask) == IsSignedMask;
+  const isSigned = isMessageSigned(buf);
   if (isSigned) {
     const signature = getSignature(buf);
     const hash = getHash(buf, isSigned);
@@ -129,6 +129,10 @@ function getPayloadSize(
   }
   const payloadSizeDataView = new DataView(payloadSizeBytes.buffer);
   return payloadSizeDataView.getInt32(0, true);
+}
+
+function isMessageSigned(message: Buffer): boolean {
+  return (message.readUIntLE(0, 1) & IsSignedMask) == IsSignedMask;
 }
 
 /**
