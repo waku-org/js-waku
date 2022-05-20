@@ -3,7 +3,7 @@ import { concat } from "uint8arrays/concat";
 
 import { randomBytes } from "../../crypto";
 
-import { AbstractKeypair, IKeypair, IKeypairClass, KeypairType } from "./types";
+import { IKeypair, IKeypairClass, KeypairType } from "./types";
 
 export function secp256k1PublicKeyToCompressed(
   publicKey: Uint8Array
@@ -30,17 +30,24 @@ export function secp256k1PublicKeyToRaw(publicKey: Uint8Array): Uint8Array {
 }
 
 export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
-  extends AbstractKeypair
   implements IKeypair
 {
   readonly type: KeypairType;
+  _privateKey?: Uint8Array;
+  readonly _publicKey?: Uint8Array;
 
   constructor(privateKey?: Uint8Array, publicKey?: Uint8Array) {
     let pub = publicKey;
     if (pub) {
       pub = secp256k1PublicKeyToCompressed(pub);
     }
-    super(privateKey, pub);
+    if ((this._privateKey = privateKey) && !this.privateKeyVerify()) {
+      throw new Error("Invalid private key");
+    }
+    if ((this._publicKey = pub) && !this.publicKeyVerify()) {
+      throw new Error("Invalid public key");
+    }
+
     this.type = KeypairType.secp256k1;
   }
 
@@ -76,5 +83,23 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
     } catch {
       return false;
     }
+  }
+
+  get privateKey(): Uint8Array {
+    if (!this._privateKey) {
+      throw new Error();
+    }
+    return this._privateKey;
+  }
+
+  get publicKey(): Uint8Array {
+    if (!this._publicKey) {
+      throw new Error();
+    }
+    return this._publicKey;
+  }
+
+  hasPrivateKey(): boolean {
+    return !!this._privateKey;
   }
 };
