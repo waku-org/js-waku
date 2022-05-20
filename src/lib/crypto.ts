@@ -2,6 +2,9 @@ import nodeCrypto from "crypto";
 
 import * as secp from "@noble/secp256k1";
 
+import * as symmetric from "./waku_message/symmetric";
+import { PrivateKeySize } from "./waku_message/version_1";
+
 declare const self: Record<string, any> | undefined;
 const crypto: { node?: any; web?: any } = {
   node: nodeCrypto,
@@ -22,3 +25,25 @@ export function getSubtle(): SubtleCrypto {
 
 export const randomBytes = secp.utils.randomBytes;
 export const sha256 = secp.utils.sha256;
+
+/**
+ * Generate a new private key to be used for asymmetric encryption.
+ *
+ * Use {@link getPublicKey} to get the corresponding Public Key.
+ */
+export function generatePrivateKey(): Uint8Array {
+  return randomBytes(PrivateKeySize);
+}
+
+/**
+ * Generate a new symmetric key to be used for symmetric encryption.
+ */
+export function generateSymmetricKey(): Uint8Array {
+  return randomBytes(symmetric.KeySize);
+}
+
+/**
+ * Return the public key for the given private key, to be used for asymmetric
+ * encryption.
+ */
+export const getPublicKey = secp.getPublicKey;

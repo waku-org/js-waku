@@ -1,3 +1,9 @@
+export {
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+} from "./lib/crypto";
+
 export { getPredefinedBootstrapNodes } from "./lib/discovery";
 export * as discovery from "./lib/discovery";
 
@@ -10,12 +16,6 @@ export { Waku, DefaultPubSubTopic, Protocols } from "./lib/waku";
 
 export * as waku_message from "./lib/waku_message";
 export { WakuMessage } from "./lib/waku_message";
-
-export {
-  generatePrivateKey,
-  generateSymmetricKey,
-  getPublicKey,
-} from "./lib/waku_message/version_1";
 
 export * as waku_light_push from "./lib/waku_light_push";
 export {

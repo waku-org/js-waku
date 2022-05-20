@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import fc from "fast-check";
 
+import { getPublicKey } from "../crypto";
+
 import {
   clearDecode,
   clearEncode,
@@ -8,7 +10,6 @@ import {
   decryptSymmetric,
   encryptAsymmetric,
   encryptSymmetric,
-  getPublicKey,
 } from "./version_1";
 
 describe("Waku Message Version 1", function () {

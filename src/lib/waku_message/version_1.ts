@@ -70,7 +70,7 @@ export async function clearEncode(
     envelope = concat([envelope, bytesSignature, [recid]]);
     sig = {
       signature: bytesSignature,
-      publicKey: getPublicKey(sigPrivKey),
+      publicKey: secp.getPublicKey(sigPrivKey, false),
     };
   }
 
@@ -197,30 +197,6 @@ export async function decryptSymmetric(
   const iv = payload.slice(ivStart);
 
   return symmetric.decrypt(iv, hexToBytes(key), cipher);
-}
-
-/**
- * Generate a new private key to be used for asymmetric encryption.
- *
- * Use {@link getPublicKey} to get the corresponding Public Key.
- */
-export function generatePrivateKey(): Uint8Array {
-  return randomBytes(PrivateKeySize);
-}
-
-/**
- * Generate a new symmetric key to be used for symmetric encryption.
- */
-export function generateSymmetricKey(): Uint8Array {
-  return randomBytes(symmetric.KeySize);
-}
-
-/**
- * Return the public key for the given private key, to be used for asymmetric
- * encryption.
- */
-export function getPublicKey(privateKey: Uint8Array): Uint8Array {
-  return secp.getPublicKey(privateKey, false);
 }
 
 /**
