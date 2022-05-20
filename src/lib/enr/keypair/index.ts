@@ -2,12 +2,12 @@ import { keys } from "libp2p-crypto";
 import { identity } from "multiformats/hashes/identity";
 import PeerId from "peer-id";
 
-const { keysPBM, supportedKeys } = keys;
-
-import { ERR_TYPE_NOT_IMPLEMENTED } from "./constants";
 import { Secp256k1Keypair } from "./secp256k1";
 import { IKeypair, KeypairType } from "./types";
 
+const { keysPBM, supportedKeys } = keys;
+
+export const ERR_TYPE_NOT_IMPLEMENTED = "Keypair type not implemented";
 export * from "./types";
 export * from "./secp256k1";
 

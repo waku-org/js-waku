@@ -1,9 +1,9 @@
-import * as secp from "@noble/secp256k1";
 import * as base32 from "hi-base32";
 import { fromString } from "uint8arrays/from-string";
 
+import { keccak256, verifySignature } from "../crypto";
 import { ENR } from "../enr";
-import { keccak256Buf, utf8ToBytes } from "../utils";
+import { utf8ToBytes } from "../utils";
 
 export type ENRRootValues = {
   eRoot: string;
@@ -46,17 +46,11 @@ export class ENRTree {
       64
     );
 
-    let isVerified;
-    try {
-      const _sig = secp.Signature.fromCompact(signatureBuffer.slice(0, 64));
-      isVerified = secp.verify(
-        _sig,
-        keccak256Buf(signedComponentBuffer),
-        new Uint8Array(decodedPublicKey)
-      );
-    } catch {
-      isVerified = false;
-    }
+    const isVerified = verifySignature(
+      signatureBuffer,
+      keccak256(signedComponentBuffer),
+      new Uint8Array(decodedPublicKey)
+    );
 
     if (!isVerified) throw new Error("Unable to verify ENRTree root signature");
 

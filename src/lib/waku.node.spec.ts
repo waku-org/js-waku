@@ -9,9 +9,9 @@ import {
 } from "../test_utils/";
 import { delay } from "../test_utils/delay";
 
+import { generateSymmetricKey } from "./crypto";
 import { Protocols, Waku } from "./waku";
 import { WakuMessage } from "./waku_message";
-import { generateSymmetricKey } from "./waku_message/version_1";
 
 const TestContentTopic = "/test/1/waku/utf8";
 

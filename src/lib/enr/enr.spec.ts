@@ -2,14 +2,13 @@ import { assert, expect } from "chai";
 import { Multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
+import { getPublicKey } from "../crypto";
 import { bytesToHex, hexToBytes, utf8ToBytes } from "../utils";
 
 import { ERR_INVALID_ID } from "./constants";
 import { ENR } from "./enr";
 import { createKeypairFromPeerId, IKeypair } from "./keypair";
 import { Waku2 } from "./waku2_codec";
-
-import { v4 } from "./index";
 
 describe("ENR", function () {
   describe("Txt codec", () => {
@@ -199,7 +198,7 @@ describe("ENR", function () {
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
-      record = await ENR.createV4(v4.publicKey(privateKey));
+      record = await ENR.createV4(getPublicKey(privateKey));
       record.setLocationMultiaddr(new Multiaddr("/ip4/127.0.0.1/udp/30303"));
       record.seq = seq;
       await record.encodeTxt(privateKey);
@@ -240,7 +239,7 @@ describe("ENR", function () {
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
-      record = await ENR.createV4(v4.publicKey(privateKey));
+      record = await ENR.createV4(getPublicKey(privateKey));
     });
 
     it("should get / set UDP multiaddr", () => {

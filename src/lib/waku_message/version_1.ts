@@ -1,8 +1,7 @@
 import * as secp from "@noble/secp256k1";
-import { keccak256 } from "js-sha3";
 import { concat } from "uint8arrays/concat";
 
-import { randomBytes } from "../crypto";
+import { keccak256, randomBytes, sign } from "../crypto";
 import { hexToBytes } from "../utils";
 
 import * as ecies from "./ecies";
@@ -62,15 +61,11 @@ export async function clearEncode(
   if (sigPrivKey) {
     envelope[0] |= IsSignedMask;
     const hash = keccak256(envelope);
-    const [hexSignature, recid] = await secp.sign(hash, sigPrivKey, {
-      recovered: true,
-      der: false,
-    });
-    const bytesSignature = hexToBytes(hexSignature);
-    envelope = concat([envelope, bytesSignature, [recid]]);
+    const bytesSignature = await sign(hash, sigPrivKey);
+    envelope = concat([envelope, bytesSignature]);
     sig = {
       signature: bytesSignature,
-      publicKey: getPublicKey(sigPrivKey),
+      publicKey: secp.getPublicKey(sigPrivKey, false),
     };
   }
 
@@ -200,30 +195,6 @@ export async function decryptSymmetric(
 }
 
 /**
- * Generate a new private key to be used for asymmetric encryption.
- *
- * Use {@link getPublicKey} to get the corresponding Public Key.
- */
-export function generatePrivateKey(): Uint8Array {
-  return randomBytes(PrivateKeySize);
-}
-
-/**
- * Generate a new symmetric key to be used for symmetric encryption.
- */
-export function generateSymmetricKey(): Uint8Array {
-  return randomBytes(symmetric.KeySize);
-}
-
-/**
- * Return the public key for the given private key, to be used for asymmetric
- * encryption.
- */
-export function getPublicKey(privateKey: Uint8Array): Uint8Array {
-  return secp.getPublicKey(privateKey, false);
-}
-
-/**
  * Computes the flags & auxiliary-field as per [26/WAKU-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 function addPayloadSizeField(msg: Uint8Array, payload: Uint8Array): Uint8Array {
@@ -263,7 +234,7 @@ function getSignature(message: Uint8Array): Uint8Array {
   return message.slice(message.length - SignatureLength, message.length);
 }
 
-function getHash(message: Uint8Array, isSigned: boolean): string {
+function getHash(message: Uint8Array, isSigned: boolean): Uint8Array {
   if (isSigned) {
     return keccak256(message.slice(0, message.length - SignatureLength));
   }
@@ -271,7 +242,7 @@ function getHash(message: Uint8Array, isSigned: boolean): string {
 }
 
 function ecRecoverPubKey(
-  messageHash: string,
+  messageHash: Uint8Array,
   signature: Uint8Array
 ): Uint8Array | undefined {
   const recoveryDataView = new DataView(signature.slice(64).buffer);
@@ -279,7 +250,7 @@ function ecRecoverPubKey(
   const _signature = secp.Signature.fromCompact(signature.slice(0, 64));
 
   return secp.recoverPublicKey(
-    hexToBytes(messageHash),
+    messageHash,
     _signature,
     recovery,
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
