@@ -100,9 +100,9 @@ export function clearDecode(
 
   const isSigned = isMessageSigned(buf);
   if (isSigned) {
-    const signature = getSignature(buf);
-    const hash = getHash(buf, isSigned);
-    const publicKey = ecRecoverPubKey(hash, Buffer.from(signature));
+    const signature = getSignature(message);
+    const hash = getHash(message, isSigned);
+    const publicKey = ecRecoverPubKey(hash, signature);
     sig = { signature, publicKey };
   }
 
@@ -277,8 +277,6 @@ function ecRecoverPubKey(
   messageHash: string,
   signature: Uint8Array
 ): Uint8Array | undefined {
-  // TODO: This is only needed because we are getting a `Buffer` instance.
-  signature = new Uint8Array(signature);
   const recoveryDataView = new DataView(signature.slice(64).buffer);
   const recovery = recoveryDataView.getUint8(0);
   const _signature = secp.Signature.fromCompact(signature.slice(0, 64));
