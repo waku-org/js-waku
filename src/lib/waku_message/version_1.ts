@@ -1,5 +1,3 @@
-import { Buffer } from "buffer";
-
 import * as secp from "@noble/secp256k1";
 import { keccak256 } from "js-sha3";
 import { concat } from "uint8arrays/concat";
@@ -85,7 +83,7 @@ export async function clearEncode(
  * @internal
  */
 export function clearDecode(
-  message: Uint8Array | Buffer
+  message: Uint8Array
 ): { payload: Uint8Array; sig?: Signature } | undefined {
   const sizeOfPayloadSizeField = getSizeOfPayloadSizeField(message);
   if (sizeOfPayloadSizeField === 0) return;
