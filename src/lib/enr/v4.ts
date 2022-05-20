@@ -32,16 +32,9 @@ export function verify(
   }
 }
 
-function createNodeId(bytes: Uint8Array): NodeId {
-  if (bytes.length !== 32) {
-    throw new Error("NodeId must be 32 bytes in length");
-  }
-  return bytesToHex(bytes);
-}
-
 export function nodeId(pubKey: Uint8Array): NodeId {
   const publicKey = secp.Point.fromHex(pubKey);
   const uncompressedPubkey = publicKey.toRawBytes(false);
 
-  return createNodeId(keccak256(uncompressedPubkey.slice(1)));
+  return bytesToHex(keccak256(uncompressedPubkey.slice(1)));
 }
