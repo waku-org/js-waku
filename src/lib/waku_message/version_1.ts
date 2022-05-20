@@ -1,7 +1,7 @@
 import * as secp from "@noble/secp256k1";
 import { concat } from "uint8arrays/concat";
 
-import { keccak256, randomBytes } from "../crypto";
+import { keccak256, randomBytes, sign } from "../crypto";
 import { hexToBytes } from "../utils";
 
 import * as ecies from "./ecies";
@@ -61,12 +61,8 @@ export async function clearEncode(
   if (sigPrivKey) {
     envelope[0] |= IsSignedMask;
     const hash = keccak256(envelope);
-    const [hexSignature, recid] = await secp.sign(hash, sigPrivKey, {
-      recovered: true,
-      der: false,
-    });
-    const bytesSignature = hexToBytes(hexSignature);
-    envelope = concat([envelope, bytesSignature, [recid]]);
+    const bytesSignature = await sign(hash, sigPrivKey);
+    envelope = concat([envelope, bytesSignature]);
     sig = {
       signature: bytesSignature,
       publicKey: secp.getPublicKey(sigPrivKey, false),

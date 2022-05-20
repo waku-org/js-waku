@@ -69,14 +69,6 @@ export const Secp256k1Keypair: IKeypairClass = class Secp256k1Keypair
     return true;
   }
 
-  async sign(msg: Uint8Array): Promise<Uint8Array> {
-    const [signature, recid] = await secp.sign(msg, this.privateKey, {
-      recovered: true,
-      der: false,
-    });
-    return concat([signature, [recid]], signature.length + 1);
-  }
-
   verify(msg: Uint8Array, sig: Uint8Array): boolean {
     try {
       const _sig = secp.Signature.fromCompact(sig.slice(0, 64));
