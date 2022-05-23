@@ -1,6 +1,6 @@
 {
-  "name": "js-waku",
-  "version": "0.24.0",
+  "name": "@waku/staging",
+  "version": "0.24.0-esm.rc2",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "types": "./dist/esm/index.d.ts",
   "exports": {
