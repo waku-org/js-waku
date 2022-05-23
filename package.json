@@ -167,7 +167,7 @@
     {
       "path": "build/esm/index.js",
       "import": "{ Waku }",
-      "config": "./webpack.config.js"
+      "config": "./webpack.config.cjs"
     }
   ],
   "lint-staged": {
