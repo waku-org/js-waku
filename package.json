@@ -123,7 +123,6 @@
     "jsdom-global": "^3.0.2",
     "karma": "^6.3.12",
     "karma-chrome-launcher": "^3.1.0",
-    "karma-env-preprocessor": "^0.1.1",
     "karma-mocha": "^2.0.1",
     "karma-webpack": "^5.0.0",
     "lint-staged": "^12.3.4",
