@@ -149,6 +149,8 @@
   "files": [
     "build/esm",
     "build/umd",
+    "src/lib/**/*.ts",
+    "src/proto/**/*.ts",
     "!**/*.spec.*",
     "!**/*.json",
     "CHANGELOG.md",
