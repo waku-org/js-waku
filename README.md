@@ -33,9 +33,7 @@ Release changelog can be found in [CHANGELOG.md](https://github.com/status-im/js
 
 If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/status-im/js-waku/issues/new/).
 
-To get help, join **#wakuconnect-support** on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or [Telegram](https://t.me/wakuconnectsupport).
-
-For more general discussion and latest news, join **#wakuconnect** on [Vac Discord](https://discord.gg/9DgykdmpZ6) or [Telegram](https://t.me/wakuconnect).
+For general discussion, get help or latest news, join **#js-waku** on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or the [Waku Telegram Group](https://t.me/waku_org).
 
 ## Roadmap
 
