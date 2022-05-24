@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { getPublicKey } from "./version_1";
+import { getPublicKey } from "../crypto";
 
 import { WakuMessage } from "./index";
 

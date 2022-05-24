@@ -8,14 +8,13 @@ import {
   WakuRelayMessage,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
-import { Protocols, Waku } from "../waku";
-
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
-} from "./version_1";
+} from "../crypto";
+import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
+import { Protocols, Waku } from "../waku";
 
 import { DecryptionMethod, WakuMessage } from "./index";
 

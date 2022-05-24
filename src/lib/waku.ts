@@ -343,14 +343,23 @@ export class Waku {
    * Wait for a remote peer to be ready given the passed protocols.
    * Useful when using the [[CreateOptions.bootstrap]] with [[Waku.create]].
    *
-   * @default Remote peer must have Waku Store and Waku Relay enabled.
+   * @param protocols The protocols that need to be enabled by remote peers.
+   * @param timeoutMs A timeout value in milliseconds..
+   *
+   * @returns A promise that **resolves** if all desired protocols are fulfilled by
+   * remote nodes, **rejects** if the timeoutMs is reached.
+   *
+   * @default Remote peer must have Waku Relay enabled and no time out is applied.
    */
-  async waitForRemotePeer(protocols?: Protocols[]): Promise<void> {
-    const desiredProtocols = protocols ?? [Protocols.Relay, Protocols.Store];
+  async waitForRemotePeer(
+    protocols?: Protocols[],
+    timeoutMs?: number
+  ): Promise<void> {
+    protocols = protocols ?? [Protocols.Relay];
 
-    const promises = [];
+    const promises: Promise<void>[] = [];
 
-    if (desiredProtocols.includes(Protocols.Relay)) {
+    if (protocols.includes(Protocols.Relay)) {
       const peers = this.relay.getPeers();
 
       if (peers.size == 0) {
@@ -366,57 +375,24 @@ export class Waku {
       }
     }
 
-    if (desiredProtocols.includes(Protocols.Store)) {
-      let storePeerFound = false;
-
-      for await (const _peer of this.store.peers) {
-        storePeerFound = true;
-        break;
-      }
-
-      if (!storePeerFound) {
-        // No peer available for this protocol, waiting to connect to one.
-        const promise = new Promise<void>((resolve) => {
-          this.libp2p.peerStore.on(
-            "change:protocols",
-            ({ protocols: connectedPeerProtocols }) => {
-              for (const codec of Object.values(StoreCodecs)) {
-                if (connectedPeerProtocols.includes(codec)) {
-                  dbg("Resolving for", codec, connectedPeerProtocols);
-                  resolve();
-                }
-              }
-            }
-          );
-        });
-        promises.push(promise);
-      }
+    if (protocols.includes(Protocols.Store)) {
+      const storePromise = (async (): Promise<void> => {
+        for await (const peer of this.store.peers) {
+          dbg("Store peer found", peer.id.toB58String());
+          break;
+        }
+      })();
+      promises.push(storePromise);
     }
 
-    if (desiredProtocols.includes(Protocols.LightPush)) {
-      let lightPushPeerFound = false;
-
-      for await (const _peer of this.lightPush.peers) {
-        lightPushPeerFound = true;
-        break;
-      }
-
-      if (!lightPushPeerFound) {
-        // No peer available for this protocol, waiting to connect to one.
-        const promise = new Promise<void>((resolve) => {
-          this.libp2p.peerStore.on(
-            "change:protocols",
-            ({ protocols: connectedPeerProtocols }) => {
-              if (connectedPeerProtocols.includes(LightPushCodec)) {
-                dbg("Resolving for", LightPushCodec, connectedPeerProtocols);
-                resolve();
-              }
-            }
-          );
-        });
-
-        promises.push(promise);
-      }
+    if (protocols.includes(Protocols.LightPush)) {
+      const lightPushPromise = (async (): Promise<void> => {
+        for await (const peer of this.lightPush.peers) {
+          dbg("Light Push peer found", peer.id.toB58String());
+          break;
+        }
+      })();
+      promises.push(lightPushPromise);
     }
 
     if (desiredProtocols.includes(Protocols.Filter)) {
@@ -445,7 +421,15 @@ export class Waku {
       }
     }
 
-    await Promise.all(promises);
+    if (timeoutMs) {
+      await rejectOnTimeout(
+        Promise.all(promises),
+        timeoutMs,
+        "Timed out waiting for a remote peer."
+      );
+    } else {
+      await Promise.all(promises);
+    }
   }
 
   private startKeepAlive(
@@ -490,3 +474,13 @@ export class Waku {
     }
   }
 }
+
+const awaitTimeout = (ms: number, rejectReason: string): Promise<void> =>
+  new Promise((_resolve, reject) => setTimeout(() => reject(rejectReason), ms));
+
+const rejectOnTimeout = (
+  promise: Promise<any>,
+  timeoutMs: number,
+  rejectReason: string
+): Promise<void> =>
+  Promise.race([promise, awaitTimeout(timeoutMs, rejectReason)]);

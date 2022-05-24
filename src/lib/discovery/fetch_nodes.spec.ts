@@ -8,7 +8,7 @@ import fetchNodesUntilCapabilitiesFulfilled from "./fetch_nodes";
 
 async function createEnr(waku2: Waku2): Promise<ENR> {
   const peerId = await PeerId.create({ keyType: "secp256k1" });
-  const enr = ENR.createFromPeerId(peerId);
+  const enr = await ENR.createFromPeerId(peerId);
   enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
   enr.multiaddrs = [
     new Multiaddr("/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"),
