@@ -8,7 +8,7 @@ import { WakuMessage as WakuMessageProto } from "../../proto/waku/v2/message";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
 import { DefaultPubSubTopic } from "../waku";
-import { DecryptionMethod, WakuMessage } from "../waku_message/index";
+import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { ContentFilter, FilterRPC } from "./filter_rpc";
 
