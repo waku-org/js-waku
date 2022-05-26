@@ -50,7 +50,7 @@ describe("Waku Filter", () => {
       messageText,
       TestContentTopic
     );
-    waku.relay.send(message);
+    await waku.relay.send(message);
     while (messageCount === 0) {
       await delay(250);
     }
@@ -69,10 +69,10 @@ describe("Waku Filter", () => {
       { contentTopics: [TestContentTopic] },
       callback
     );
-    waku.relay.send(
+    await waku.relay.send(
       await WakuMessage.fromUtf8String("Filtering works!", TestContentTopic)
     );
-    waku.relay.send(
+    await waku.relay.send(
       await WakuMessage.fromUtf8String(
         "Filtering still works!",
         TestContentTopic
@@ -93,7 +93,7 @@ describe("Waku Filter", () => {
       { contentTopics: [TestContentTopic] },
       callback
     );
-    waku.relay.send(
+    await waku.relay.send(
       await WakuMessage.fromUtf8String(
         "This should be received",
         TestContentTopic
@@ -101,7 +101,7 @@ describe("Waku Filter", () => {
     );
     await delay(100);
     await unsubscribe();
-    waku.relay.send(
+    await waku.relay.send(
       await WakuMessage.fromUtf8String(
         "This should not be received",
         TestContentTopic
