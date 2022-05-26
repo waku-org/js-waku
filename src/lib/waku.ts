@@ -265,6 +265,9 @@ export class Waku {
     if (_protocols.includes(Protocols.LightPush)) {
       codecs.push(LightPushCodec);
     }
+    if (_protocols.includes(Protocols.Filter)) {
+      codecs.push(FilterCodec);
+    }
 
     return this.libp2p.dialProtocol(peer, codecs);
   }
