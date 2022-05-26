@@ -25,10 +25,6 @@ type FilterSubscriptionOpts = {
    * Optionally specify a PeerId for the subscription. If not included, will use a random peer.
    */
   peerId?: PeerId;
-  /**
-   * Array of ContentTopics to subscribe to. If empty, no messages will be returned from the filter.
-   */
-  contentTopics: string[];
 };
 
 type FilterCallback = (msg: WakuMessage) => void | Promise<void>;
@@ -56,17 +52,18 @@ export class WakuFilter {
   }
 
   /**
-   *
-   * @param opts The FilterSubscriptionOpts used to narrow which messages are returned, and which peer to connect to
-   * @param callback A function that will be called on each message returned by the filter
-   * @returns Unsubscribe function that can be used to end the subscription
+   * @param contentTopics Array of ContentTopics to subscribe to. If empty, no messages will be returned from the filter.
+   * @param callback A function that will be called on each message returned by the filter.
+   * @param opts The FilterSubscriptionOpts used to narrow which messages are returned, and which peer to connect to.
+   * @returns Unsubscribe function that can be used to end the subscription.
    */
   async subscribe(
-    opts: FilterSubscriptionOpts,
-    callback: FilterCallback
+    callback: FilterCallback,
+    contentTopics: string[],
+    opts?: FilterSubscriptionOpts
   ): Promise<UnsubscribeFunction> {
-    const topic = opts.pubsubTopic || DefaultPubSubTopic;
-    const contentFilters = opts.contentTopics.map((contentTopic) => ({
+    const topic = opts?.pubsubTopic || DefaultPubSubTopic;
+    const contentFilters = contentTopics.map((contentTopic) => ({
       contentTopic,
     }));
     const request = FilterRPC.createRequest(
@@ -76,7 +73,7 @@ export class WakuFilter {
       true
     );
 
-    const peer = await this.getPeer(opts.peerId);
+    const peer = await this.getPeer(opts?.peerId);
     const stream = await this.newStream(peer);
 
     try {
@@ -86,7 +83,7 @@ export class WakuFilter {
         "Error subscribing to peer ",
         peer.id.toB58String(),
         "for content topics",
-        opts.contentTopics,
+        contentTopics,
         ": ",
         e
       );

@@ -42,10 +42,7 @@ describe("Waku Filter", () => {
       expect(msg.contentTopic).to.eq(TestContentTopic);
       expect(msg.payloadAsUtf8).to.eq(messageText);
     };
-    await waku.filter.subscribe(
-      { contentTopics: [TestContentTopic] },
-      callback
-    );
+    await waku.filter.subscribe(callback, [TestContentTopic]);
     const message = await WakuMessage.fromUtf8String(
       messageText,
       TestContentTopic
@@ -65,10 +62,7 @@ describe("Waku Filter", () => {
       messageCount++;
       expect(msg.contentTopic).to.eq(TestContentTopic);
     };
-    await waku.filter.subscribe(
-      { contentTopics: [TestContentTopic] },
-      callback
-    );
+    await waku.filter.subscribe(callback, [TestContentTopic]);
     await waku.relay.send(
       await WakuMessage.fromUtf8String("Filtering works!", TestContentTopic)
     );
@@ -89,10 +83,9 @@ describe("Waku Filter", () => {
     const callback = (): void => {
       messageCount++;
     };
-    const unsubscribe = await waku.filter.subscribe(
-      { contentTopics: [TestContentTopic] },
-      callback
-    );
+    const unsubscribe = await waku.filter.subscribe(callback, [
+      TestContentTopic,
+    ]);
     await waku.relay.send(
       await WakuMessage.fromUtf8String(
         "This should be received",
