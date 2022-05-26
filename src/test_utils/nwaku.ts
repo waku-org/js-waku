@@ -13,7 +13,7 @@ import debug from "debug";
 import portfinder from "portfinder";
 
 import { DefaultPubSubTopic } from "../lib/constants";
-import { hexToBytes } from "../lib/utils";
+import { bytesToHex, hexToBytes } from "../lib/utils";
 import { WakuMessage } from "../lib/waku_message";
 import * as proto from "../proto/message";
 
@@ -403,28 +403,6 @@ export function defaultArgs(): Args {
     rpcAdmin: true,
     websocketSupport: true,
   };
-}
-
-export function strToHex(str: string): string {
-  let hex: string;
-  try {
-    hex = unescape(encodeURIComponent(str))
-      .split("")
-      .map(function (v) {
-        return v.charCodeAt(0).toString(16);
-      })
-      .join("");
-  } catch (e) {
-    hex = str;
-    console.log("invalid text input: " + str);
-  }
-  return hex;
-}
-
-export function bytesToHex(buffer: Uint8Array): string {
-  return Array.prototype.map
-    .call(buffer, (x) => ("00" + x.toString(16)).slice(-2))
-    .join("");
 }
 
 interface RpcInfoResponse {
