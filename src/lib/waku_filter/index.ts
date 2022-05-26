@@ -37,16 +37,14 @@ type UnsubscribeFunction = () => Promise<void>;
  * WakuFilter can be used as a light filter node, but cannot currently be used as a full node that pushes messages to clients.
  */
 export class WakuFilter {
-  private subscriptions: {
-    [requestId: string]: FilterCallback;
-  };
+  private subscriptions: Map<string, FilterCallback>;
   public decryptionKeys: Map<
     Uint8Array,
     { method?: DecryptionMethod; contentTopics?: string[] }
   >;
 
   constructor(public libp2p: Libp2p) {
-    this.subscriptions = {};
+    this.subscriptions = new Map();
     this.decryptionKeys = new Map();
     this.libp2p.handle(FilterCodec, this.onRequest.bind(this));
   }
@@ -122,7 +120,7 @@ export class WakuFilter {
     requestId: string,
     messages: WakuMessageProto[]
   ): Promise<void> {
-    const callback = this.subscriptions[requestId];
+    const callback = this.subscriptions.get(requestId);
     if (!callback) {
       log(`No callback registered for request ID ${requestId}`);
       return;
@@ -149,11 +147,11 @@ export class WakuFilter {
   }
 
   private addCallback(requestId: string, callback: FilterCallback): void {
-    this.subscriptions[requestId] = callback;
+    this.subscriptions.set(requestId, callback);
   }
 
   private removeCallback(requestId: string): void {
-    delete this.subscriptions[requestId];
+    this.subscriptions.delete(requestId);
   }
 
   private async unsubscribe(
