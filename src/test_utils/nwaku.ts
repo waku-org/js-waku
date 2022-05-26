@@ -24,6 +24,7 @@ const dbg = debug("waku:nwaku");
 
 const NIM_WAKU_DIR = appRoot + "/nwaku";
 const NIM_WAKU_BIN = NIM_WAKU_DIR + "/build/wakunode2";
+const NODE_READY_LOG_LINE = "Node setup complete";
 
 const LOG_DIR = "./log";
 
@@ -135,7 +136,6 @@ export class Nwaku {
         tcpPort: ports[1],
         rpcPort: this.rpcPort,
         websocketPort: ports[2],
-        logLevel: LogLevel.Trace,
       },
       args
     );
@@ -171,8 +171,8 @@ export class Nwaku {
       );
     });
 
-    dbg("Waiting to see 'Node setup complete' in nwaku logs");
-    await this.waitForLog("Node setup complete", 15000);
+    dbg(`Waiting to see '${NODE_READY_LOG_LINE}' in nwaku logs`);
+    await this.waitForLog(NODE_READY_LOG_LINE, 15000);
     dbg("nwaku node has been started");
   }
 
@@ -366,7 +366,7 @@ export class Nwaku {
       }),
       headers: new Headers({ "Content-Type": "application/json" }),
     });
-
+    dbg(`Response received for ${method} call: `, res, "params: ", params);
     const json = await res.json();
     return json.result;
   }
@@ -396,12 +396,13 @@ export function argsToArray(args: Args): Array<string> {
 
 export function defaultArgs(): Args {
   return {
-    nat: "none",
     listenAddress: "127.0.0.1",
+    nat: "none",
     relay: true,
     rpc: true,
     rpcAdmin: true,
     websocketSupport: true,
+    logLevel: LogLevel.Debug,
   };
 }
 

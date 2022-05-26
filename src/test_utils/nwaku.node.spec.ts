@@ -10,12 +10,13 @@ describe("nwaku", () => {
     const actual = argsToArray(args);
 
     const expected = [
-      "--nat=none",
       "--listen-address=127.0.0.1",
+      "--nat=none",
       "--relay=true",
       "--rpc=true",
       "--rpc-admin=true",
       "--websocket-support=true",
+      "--log-level=debug",
       "--ports-shift=42",
     ];
 
