@@ -20,7 +20,7 @@ type FilterSubscriptionOpts = {
   /**
    * The Pubsub topic for the subscription
    */
-  topic?: string;
+  pubsubTopic?: string;
   /**
    * Optionally specify a PeerId for the subscription. If not included, will use a random peer.
    */
@@ -65,7 +65,7 @@ export class WakuFilter {
     opts: FilterSubscriptionOpts,
     callback: FilterCallback
   ): Promise<UnsubscribeFunction> {
-    const topic = opts.topic || DefaultPubSubTopic;
+    const topic = opts.pubsubTopic || DefaultPubSubTopic;
     const contentFilters = opts.contentTopics.map((contentTopic) => ({
       contentTopic,
     }));
@@ -76,13 +76,20 @@ export class WakuFilter {
       true
     );
 
-    const peer = await this.getPeer();
+    const peer = await this.getPeer(opts.peerId);
     const stream = await this.newStream(peer);
 
     try {
       await pipe([request.encode()], lp.encode(), stream);
     } catch (e) {
-      log("Error subscribing", e);
+      log(
+        "Error subscribing to peer ",
+        peer.id.toB58String(),
+        "for content topics",
+        opts.contentTopics,
+        ": ",
+        e
+      );
       throw e;
     }
 
