@@ -2,14 +2,14 @@ import { keys } from "libp2p-crypto";
 import { identity } from "multiformats/hashes/identity";
 import PeerId from "peer-id";
 
-import { Secp256k1Keypair } from "./secp256k1";
-import { IKeypair, KeypairType } from "./types";
+import { Secp256k1Keypair } from "./secp256k1.js";
+import { IKeypair, KeypairType } from "./types.js";
 
 const { keysPBM, supportedKeys } = keys;
 
 export const ERR_TYPE_NOT_IMPLEMENTED = "Keypair type not implemented";
-export * from "./types";
-export * from "./secp256k1";
+export * from "./types.js";
+export * from "./secp256k1.js";
 
 export async function generateKeypair(type: KeypairType): Promise<IKeypair> {
   switch (type) {

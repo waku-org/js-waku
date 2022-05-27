@@ -1,7 +1,7 @@
 import { v4 as uuid } from "uuid";
 
-import * as proto from "../../proto/light_push";
-import { WakuMessage } from "../waku_message";
+import * as proto from "../../proto/light_push.js";
+import { WakuMessage } from "../waku_message/index.js";
 
 export class PushRPC {
   public constructor(public proto: proto.PushRPC) {}

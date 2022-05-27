@@ -1,10 +1,10 @@
 import debug from "debug";
 
-import { ENR } from "../enr";
+import { ENR } from "../enr/index.js";
 
-import { DnsOverHttps, Endpoints } from "./dns_over_https";
-import { ENRTree } from "./enrtree";
-import fetchNodesUntilCapabilitiesFulfilled from "./fetch_nodes";
+import { DnsOverHttps, Endpoints } from "./dns_over_https.js";
+import { ENRTree } from "./enrtree.js";
+import fetchNodesUntilCapabilitiesFulfilled from "./fetch_nodes.js";
 
 const dbg = debug("waku:discovery:dns");
 

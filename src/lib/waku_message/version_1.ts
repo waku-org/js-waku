@@ -1,12 +1,12 @@
 import * as secp from "@noble/secp256k1";
 import { concat } from "uint8arrays/concat";
 
-import { keccak256, randomBytes, sign } from "../crypto";
-import { hexToBytes } from "../utils";
+import { keccak256, randomBytes, sign } from "../crypto.js";
+import { hexToBytes } from "../utils.js";
 
-import { Symmetric } from "./constants";
-import * as ecies from "./ecies";
-import * as symmetric from "./symmetric";
+import { Symmetric } from "./constants.js";
+import * as ecies from "./ecies.js";
+import * as symmetric from "./symmetric.js";
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011

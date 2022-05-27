@@ -1,9 +1,9 @@
 import debug from "debug";
 import { Multiaddr } from "multiaddr";
 
-import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns";
-import { getPredefinedBootstrapNodes } from "./predefined";
-import { getPseudoRandomSubset } from "./random_subset";
+import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns.js";
+import { getPredefinedBootstrapNodes } from "./predefined.js";
+import { getPseudoRandomSubset } from "./random_subset.js";
 
 const dbg = debug("waku:discovery:bootstrap");
 

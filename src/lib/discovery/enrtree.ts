@@ -1,9 +1,9 @@
 import base32 from "hi-base32";
 import { fromString } from "uint8arrays/from-string";
 
-import { keccak256, verifySignature } from "../crypto";
-import { ENR } from "../enr";
-import { utf8ToBytes } from "../utils";
+import { keccak256, verifySignature } from "../crypto.js";
+import { ENR } from "../enr/index.js";
+import { utf8ToBytes } from "../utils.js";
 
 export type ENRRootValues = {
   eRoot: string;

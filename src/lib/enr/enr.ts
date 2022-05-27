@@ -9,21 +9,25 @@ import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";
 import { encode as varintEncode } from "varint";
 
-import { compressPublicKey, keccak256, verifySignature } from "../crypto";
-import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
+import { compressPublicKey, keccak256, verifySignature } from "../crypto.js";
+import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils.js";
 
-import { ERR_INVALID_ID, ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
+import {
+  ERR_INVALID_ID,
+  ERR_NO_SIGNATURE,
+  MAX_RECORD_SIZE,
+} from "./constants.js";
 import {
   createKeypair,
   createKeypairFromPeerId,
   createPeerIdFromKeypair,
   IKeypair,
   KeypairType,
-} from "./keypair";
-import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
-import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
-import * as v4 from "./v4";
-import { decodeWaku2, encodeWaku2, Waku2 } from "./waku2_codec";
+} from "./keypair/index.js";
+import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
+import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types.js";
+import * as v4 from "./v4.js";
+import { decodeWaku2, encodeWaku2, Waku2 } from "./waku2_codec.js";
 
 const dbg = debug("waku:enr");
 

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { argsToArray, bytesToHex, defaultArgs, strToHex } from "./nwaku";
+import { argsToArray, bytesToHex, defaultArgs, strToHex } from "./nwaku.js";
 
 describe("nwaku", () => {
   it("Correctly serialized arguments", function () {

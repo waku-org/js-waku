@@ -6,9 +6,9 @@ import {
   query,
 } from "dns-query";
 
-import { bytesToUtf8 } from "../utils";
+import { bytesToUtf8 } from "../utils.js";
 
-import { DnsClient } from "./dns";
+import { DnsClient } from "./dns.js";
 
 const { cloudflare, google, opendns } = defaultEndpoints;
 

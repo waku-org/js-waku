@@ -7,8 +7,8 @@ import Gossipsub from "libp2p-gossipsub";
 import { Heartbeat } from "libp2p-gossipsub/src/heartbeat";
 import { shuffle } from "libp2p-gossipsub/src/utils";
 
-import * as constants from "./constants";
-import { getRelayPeers } from "./get_relay_peers";
+import * as constants from "./constants.js";
+import { getRelayPeers } from "./get_relay_peers.js";
 
 export class RelayHeartbeat extends Heartbeat {
   /**

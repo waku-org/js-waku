@@ -1,9 +1,9 @@
 import { v4 as uuid } from "uuid";
 
-import * as protoV2Beta3 from "../../proto/store_v2beta3";
-import * as protoV2Beta4 from "../../proto/store_v2beta4";
+import * as protoV2Beta3 from "../../proto/store_v2beta3.js";
+import * as protoV2Beta4 from "../../proto/store_v2beta4.js";
 
-import { StoreCodecs } from "./constants";
+import { StoreCodecs } from "./constants.js";
 
 const OneMillion = BigInt(1_000_000);
 

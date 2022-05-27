@@ -6,13 +6,12 @@ import Libp2p from "libp2p";
 import { Peer } from "libp2p/src/peer-store";
 import PeerId from "peer-id";
 
-import * as protoV2Beta4 from "../../proto/store_v2beta4";
-import { DefaultPubSubTopic, StoreCodecs } from "../constants";
-import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
-import { hexToBytes } from "../utils";
-import { DecryptionMethod, WakuMessage } from "../waku_message";
-
-import { HistoryRPC, PageDirection } from "./history_rpc";
+import * as protoV2Beta4 from "../../proto/store_v2beta4.js";
+import { DefaultPubSubTopic, StoreCodecs } from "../constants.js";
+import { getPeersForProtocol, selectRandomPeer } from "../select_peer.js";
+import { hexToBytes } from "../utils.js";
+import { DecryptionMethod, WakuMessage } from "../waku_message/index.js";
+import { HistoryRPC, PageDirection } from "./history_rpc.js";
 
 const dbg = debug("waku:store");
 

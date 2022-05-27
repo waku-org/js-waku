@@ -5,12 +5,12 @@ import Libp2p from "libp2p";
 import { Peer } from "libp2p/src/peer-store";
 import PeerId from "peer-id";
 
-import { PushResponse } from "../../proto/light_push";
-import { DefaultPubSubTopic } from "../constants";
-import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
-import { WakuMessage } from "../waku_message";
+import { PushResponse } from "../../proto/light_push.js";
+import { DefaultPubSubTopic } from "../constants.js";
+import { getPeersForProtocol, selectRandomPeer } from "../select_peer.js";
+import { WakuMessage } from "../waku_message/index.js";
 
-import { PushRPC } from "./push_rpc";
+import { PushRPC } from "./push_rpc.js";
 
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };

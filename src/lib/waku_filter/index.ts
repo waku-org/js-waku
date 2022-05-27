@@ -4,13 +4,13 @@ import { pipe } from "it-pipe";
 import Libp2p, { MuxedStream } from "libp2p";
 import { Peer, PeerId } from "libp2p/src/peer-store";
 
-import { WakuMessage as WakuMessageProto } from "../../proto/message";
-import { DefaultPubSubTopic } from "../constants";
-import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
-import { hexToBytes } from "../utils";
-import { DecryptionMethod, WakuMessage } from "../waku_message";
+import { WakuMessage as WakuMessageProto } from "../../proto/message.js";
+import { DefaultPubSubTopic } from "../constants.js";
+import { getPeersForProtocol, selectRandomPeer } from "../select_peer.js";
+import { hexToBytes } from "../utils.js";
+import { DecryptionMethod, WakuMessage } from "../waku_message/index.js";
 
-import { ContentFilter, FilterRPC } from "./filter_rpc";
+import { ContentFilter, FilterRPC } from "./filter_rpc.js";
 
 export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 

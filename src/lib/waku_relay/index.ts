@@ -13,10 +13,10 @@ import { InMessage } from "libp2p-interfaces/src/pubsub";
 import { SignaturePolicy } from "libp2p-interfaces/src/pubsub/signature-policy";
 import PeerId from "peer-id";
 
-import { DefaultPubSubTopic } from "../constants";
-import { hexToBytes } from "../utils";
-import { CreateOptions } from "../waku";
-import { DecryptionMethod, WakuMessage } from "../waku_message";
+import { DefaultPubSubTopic } from "../constants.js";
+import { hexToBytes } from "../utils.js";
+import { CreateOptions } from "../waku.js";
+import { DecryptionMethod, WakuMessage } from "../waku_message/index.js";
 
 import * as constants from "./constants";
 import { getRelayPeers } from "./get_relay_peers";
@@ -78,7 +78,7 @@ export class WakuRelay extends Gossipsub {
   ) {
     super(
       libp2p,
-      Object.assign(options, {
+      Object.assign(options ?? {}, {
         // Ensure that no signature is included nor expected in the messages.
         globalSignaturePolicy: SignaturePolicy.StrictNoSign,
       })

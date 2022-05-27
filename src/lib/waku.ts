@@ -16,13 +16,13 @@ import PingService from "libp2p/src/ping";
 import { Multiaddr, multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
-import { Bootstrap, BootstrapOptions } from "./discovery";
-import { FilterCodec, WakuFilter } from "./waku_filter";
-import { LightPushCodec, WakuLightPush } from "./waku_light_push";
-import { DecryptionMethod, WakuMessage } from "./waku_message";
-import { WakuRelay } from "./waku_relay";
-import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
-import { StoreCodecs, WakuStore } from "./waku_store";
+import { Bootstrap, BootstrapOptions } from "./discovery/index.js";
+import { FilterCodec, WakuFilter } from "./waku_filter/index.js";
+import { LightPushCodec, WakuLightPush } from "./waku_light_push/index.js";
+import { DecryptionMethod, WakuMessage } from "./waku_message/index.js";
+import { WakuRelay } from "./waku_relay/index.js";
+import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants.js";
+import { StoreCodecs, WakuStore } from "./waku_store/index.js";
 
 const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 

@@ -1,7 +1,7 @@
 import Gossipsub from "libp2p-gossipsub";
 import { shuffle } from "libp2p-gossipsub/src/utils";
 
-import { RelayCodecs } from "./constants";
+import { RelayCodecs } from "./constants.js";
 
 /**
  * Given a topic, returns up to count peers subscribed to that topic

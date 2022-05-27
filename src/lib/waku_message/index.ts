@@ -1,9 +1,9 @@
 import debug from "debug";
 
-import * as proto from "../../proto/message";
-import { bytesToUtf8, utf8ToBytes } from "../utils";
+import * as proto from "../../proto/message.js";
+import { bytesToUtf8, utf8ToBytes } from "../utils.js";
 
-import * as version_1 from "./version_1";
+import * as version_1 from "./version_1.js";
 
 const DefaultVersion = 0;
 const dbg = debug("waku:message");

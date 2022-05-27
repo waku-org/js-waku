@@ -1,6 +1,6 @@
 import { Multiaddr } from "multiaddr";
 
-import { getPseudoRandomSubset } from "./random_subset";
+import { getPseudoRandomSubset } from "./random_subset.js";
 
 export const DefaultWantedNumber = 1;
 
