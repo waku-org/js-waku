@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "prepare": "husky install",
-    "build": "run-s build:**",
+    "build": "rimraf ./build; run-s build:**",
     "build:main": "tsc -p tsconfig.json",
     "build:dev": "tsc -p tsconfig.dev.json",
     "build:esm": "tsc --module es2015 --target es2015 --outDir build/esm",
