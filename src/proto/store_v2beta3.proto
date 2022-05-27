@@ -1,14 +1,11 @@
 syntax = "proto3";
 
-package waku.v2.store.v2beta4;
-
-import "waku/v2/message.proto";
+import "message.proto";
 
 message Index {
   bytes digest = 1;
-  sint64 received_time = 2;
-  sint64 sender_time = 3;
-  string pubsub_topic = 4;
+  double received_time = 2;
+  double sender_time = 3;
 }
 
 message PagingInfo {
@@ -29,8 +26,8 @@ message HistoryQuery {
   optional string pub_sub_topic = 2;
   repeated ContentFilter content_filters = 3;
   optional PagingInfo paging_info = 4;
-  optional sint64 start_time = 5;
-  optional sint64 end_time = 6;
+  optional double start_time = 5;
+  optional double end_time = 6;
 }
 
 message HistoryResponse {
@@ -45,6 +42,6 @@ message HistoryResponse {
 
 message HistoryRPC {
   string request_id = 1;
-  HistoryQuery query = 2;
-  HistoryResponse response = 3;
+  optional HistoryQuery query = 2;
+  optional HistoryResponse response = 3;
 }
