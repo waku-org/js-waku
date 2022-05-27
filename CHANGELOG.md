@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.0] - 2022-05-27
+
 ### Added
 
 - `waitForRemotePeer` now accepts a `timeoutMs` parameter that rejects the promise if it is reached. By default, no timeout is applied.
@@ -421,7 +423,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.23.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.24.0...HEAD
+[0.24.0]: https://github.com/status-im/js-waku/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/status-im/js-waku/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/status-im/js-waku/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/status-im/js-waku/compare/v0.20.0...v0.21.0
