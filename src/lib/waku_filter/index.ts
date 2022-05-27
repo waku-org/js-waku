@@ -32,9 +32,11 @@ type FilterCallback = (msg: WakuMessage) => void | Promise<void>;
 type UnsubscribeFunction = () => Promise<void>;
 
 /**
- * Implements part of the [Waku v2 Filter protocol](https://rfc.vac.dev/spec/12/).
+ * Implements client side of the [Waku v2 Filter protocol](https://rfc.vac.dev/spec/12/).
  *
- * WakuFilter can be used as a light filter node, but cannot currently be used as a full node that pushes messages to clients.
+ * Note this currently only works in NodeJS when the Waku node is listening on a port, see:
+ * - https://github.com/status-im/go-waku/issues/245
+ * - https://github.com/status-im/nwaku/issues/948
  */
 export class WakuFilter {
   private subscriptions: Map<string, FilterCallback>;
