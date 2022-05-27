@@ -24,9 +24,8 @@
   ],
   "scripts": {
     "prepare": "husky install",
-    "build": "run-s build:**",
+    "build": "rimraf ./build; run-p build:**",
     "build:main": "tsc -p tsconfig.json",
-    "build:dev": "tsc -p tsconfig.dev.json",
     "build:esm": "tsc --module es2015 --target es2015 --outDir build/esm",
     "build:umd": "webpack --config webpack.config.js",
     "build:umd:min": "webpack --config webpack.config.min.js",
@@ -59,6 +58,7 @@
     "doc:html": "typedoc",
     "doc:cname": "echo 'js-waku.wakuconnect.dev' > build/docs/CNAME",
     "doc:examples": "mkdir -p build/docs/examples",
+    "prepublish": "npm run build",
     "deploy": "node ci/deploy.js",
     "reset-hard": "git clean -dfx && git reset --hard && npm i && npm run build && for d in examples/*/; do (cd $d; npm i); done"
   },
