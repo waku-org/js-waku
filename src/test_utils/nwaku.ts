@@ -22,8 +22,11 @@ import waitForLine from "./log_file";
 
 const dbg = debug("waku:nwaku");
 
-const NIM_WAKU_DIR = appRoot + "/nwaku";
-const NIM_WAKU_BIN = NIM_WAKU_DIR + "/build/wakunode2";
+const WAKU_SERVICE_NODE_DIR =
+  process.env.WAKU_SERVICE_NODE_DIR ?? appRoot + "/nwaku";
+const WAKU_SERVICE_NODE_BIN =
+  process.env.WAKU_SERVICE_NODE_BIN ??
+  WAKU_SERVICE_NODE_DIR + "/build/wakunode2";
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 const LOG_DIR = "./log";
@@ -142,8 +145,8 @@ export class Nwaku {
 
     const argsArray = argsToArray(mergedArgs);
     dbg(`nwaku args: ${argsArray.join(" ")}`);
-    this.process = spawn(NIM_WAKU_BIN, argsArray, {
-      cwd: NIM_WAKU_DIR,
+    this.process = spawn(WAKU_SERVICE_NODE_BIN, argsArray, {
+      cwd: WAKU_SERVICE_NODE_DIR,
       stdio: [
         "ignore", // stdin
         logFile, // stdout
