@@ -58,6 +58,7 @@
     "doc:html": "typedoc",
     "doc:cname": "echo 'js-waku.wakuconnect.dev' > build/docs/CNAME",
     "doc:examples": "mkdir -p build/docs/examples",
+    "prepublish": "npm run build",
     "deploy": "node ci/deploy.js",
     "reset-hard": "git clean -dfx && git reset --hard && npm i && npm run build && for d in examples/*/; do (cd $d; npm i); done"
   },
