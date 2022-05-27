@@ -1,8 +1,6 @@
 syntax = "proto3";
 
-package waku.v2;
-
-import "waku/v2/message.proto";
+import "message.proto";
 
 message PushRequest {
   string pub_sub_topic = 1;
@@ -16,6 +14,6 @@ message PushResponse {
 
 message PushRPC {
   string request_id = 1;
-  PushRequest request = 2;
-  PushResponse response = 3;
+  optional PushRequest request = 2;
+  optional PushResponse response = 3;
 }

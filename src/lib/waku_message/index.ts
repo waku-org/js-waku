@@ -1,8 +1,6 @@
 import debug from "debug";
-import Long from "long";
-import { Reader } from "protobufjs/minimal";
 
-import * as proto from "../../proto/waku/v2/message";
+import * as proto from "../../proto/message";
 import { bytesToUtf8, utf8ToBytes } from "../utils";
 
 import * as version_1 from "./version_1";
@@ -105,7 +103,7 @@ export class WakuMessage {
         payload: _payload,
         timestampDeprecated: timestamp.valueOf() / 1000,
         // milliseconds 10^-3 to nanoseconds 10^-9
-        timestamp: Long.fromNumber(timestamp.valueOf()).mul(1_000_000),
+        timestamp: BigInt(timestamp.valueOf()) * BigInt(1_000_000),
         version,
         contentTopic,
       },
@@ -131,7 +129,7 @@ export class WakuMessage {
       contentTopic?: string[];
     }>
   ): Promise<WakuMessage | undefined> {
-    const protoBuf = proto.WakuMessage.decode(Reader.create(bytes));
+    const protoBuf = proto.WakuMessage.decode(bytes);
 
     return WakuMessage.decodeProto(protoBuf, decryptionKeys);
   }
@@ -248,7 +246,7 @@ export class WakuMessage {
   }
 
   encode(): Uint8Array {
-    return proto.WakuMessage.encode(this.proto).finish();
+    return proto.WakuMessage.encode(this.proto);
   }
 
   get payloadAsUtf8(): string {
@@ -285,8 +283,8 @@ export class WakuMessage {
     try {
       if (this.proto.timestamp) {
         // nanoseconds 10^-9 to milliseconds 10^-3
-        const timestamp = this.proto.timestamp.div(1_000_000).toNumber();
-        return new Date(timestamp);
+        const timestamp = this.proto.timestamp / BigInt(1_000_000);
+        return new Date(Number(timestamp));
       }
 
       if (this.proto.timestampDeprecated) {

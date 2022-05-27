@@ -5,7 +5,7 @@ import Libp2p from "libp2p";
 import { Peer } from "libp2p/src/peer-store";
 import PeerId from "peer-id";
 
-import { PushResponse } from "../../proto/waku/v2/light_push";
+import { PushResponse } from "../../proto/light_push";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { DefaultPubSubTopic } from "../waku";
 import { WakuMessage } from "../waku_message";

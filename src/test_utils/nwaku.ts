@@ -14,7 +14,7 @@ import portfinder from "portfinder";
 import { hexToBytes } from "../lib/utils";
 import { DefaultPubSubTopic } from "../lib/waku";
 import { WakuMessage } from "../lib/waku_message";
-import * as proto from "../proto/waku/v2/message";
+import * as proto from "../proto/message";
 
 import { existsAsync, mkdirAsync, openAsync } from "./async_fs";
 import waitForLine from "./log_file";
@@ -88,7 +88,7 @@ export class Nwaku {
 
     let timestamp;
     if (message.proto.timestamp) {
-      timestamp = message.proto.timestamp.toNumber();
+      timestamp = Number.parseInt(message.proto.timestamp.toString(10));
     }
 
     return {
