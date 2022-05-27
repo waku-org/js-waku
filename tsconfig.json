@@ -45,8 +45,8 @@
     "types": ["node", "mocha"],
     "typeRoots": ["node_modules/@types", "src/types"]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules/**", "src/**/*.spec.ts", "src/test_utils"],
+  "include": ["src"],
+  "exclude": ["src/**/*.spec.ts", "src/test_utils"],
   "compileOnSave": false,
   "ts-node": {
     "files": true
