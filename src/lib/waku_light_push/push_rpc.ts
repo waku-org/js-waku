@@ -1,10 +1,7 @@
-import protobufjs from "protobufjs/minimal";
 import { v4 as uuid } from "uuid";
 
-import * as proto from "../../proto/waku/v2/light_push";
+import * as proto from "../../proto/light_push";
 import { WakuMessage } from "../waku_message";
-
-const { Reader } = protobufjs;
 
 export class PushRPC {
   public constructor(public proto: proto.PushRPC) {}
@@ -21,12 +18,12 @@ export class PushRPC {
   }
 
   static decode(bytes: Uint8Array): PushRPC {
-    const res = proto.PushRPC.decode(Reader.create(bytes));
+    const res = proto.PushRPC.decode(bytes);
     return new PushRPC(res);
   }
 
   encode(): Uint8Array {
-    return proto.PushRPC.encode(this.proto).finish();
+    return proto.PushRPC.encode(this.proto);
   }
 
   get query(): proto.PushRequest | undefined {
