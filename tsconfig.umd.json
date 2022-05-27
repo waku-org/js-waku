@@ -5,6 +5,5 @@
     "target": "es6",
     "removeComments": true,
     "outFile": "build/min.js"
-  },
-  "exclude": ["node_modules/**", "src/**/*.spec.ts", "src/test_utils"]
+  }
 }
