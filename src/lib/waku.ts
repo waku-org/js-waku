@@ -135,8 +135,18 @@ export class Waku {
       this.startKeepAlive(connection.remotePeer, pingKeepAlive, relayKeepAlive);
     });
 
+    /**
+     * NOTE: Event is not being emitted on closing nor loosing a connection.
+     * @see https://github.com/libp2p/js-libp2p/issues/939
+     *
+     * >This event will be triggered anytime we are disconnected from another peer,
+     * >regardless of the circumstances of that disconnection.
+     * >If we happen to have multiple connections to a peer,
+     * >this event will **only** be triggered when the last connection is closed.
+     * @see https://github.com/libp2p/js-libp2p/blob/bad9e8c0ff58d60a78314077720c82ae331cc55b/doc/API.md?plain=1#L2100
+     */
     libp2p.connectionManager.on("peer:disconnect", (connection: Connection) => {
-      // TODO: reconnect or stop; this event will only be triggered when the last connection is closed.
+      // TODO: (retry) reconnect or stop completely and emit own event
       this.stopKeepAlive(connection.remotePeer);
     });
 
@@ -284,15 +294,7 @@ export class Waku {
   }
 
   async stop(): Promise<void> {
-    for (const timer of [
-      ...Object.values(this.pingKeepAliveTimers),
-      ...Object.values(this.relayKeepAliveTimers),
-    ]) {
-      clearInterval(timer);
-    }
-    this.pingKeepAliveTimers = {};
-    this.relayKeepAliveTimers = {};
-
+    this.stopAllKeepAlives();
     await this.libp2p.stop();
   }
 
@@ -445,6 +447,18 @@ export class Waku {
       clearInterval(this.relayKeepAliveTimers[peerIdStr]);
       delete this.relayKeepAliveTimers[peerIdStr];
     }
+  }
+
+  private stopAllKeepAlives(): void {
+    for (const timer of [
+      ...Object.values(this.pingKeepAliveTimers),
+      ...Object.values(this.relayKeepAliveTimers),
+    ]) {
+      clearInterval(timer);
+    }
+
+    this.pingKeepAliveTimers = {};
+    this.relayKeepAliveTimers = {};
   }
 }
 
