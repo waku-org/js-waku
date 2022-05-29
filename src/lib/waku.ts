@@ -101,9 +101,6 @@ export interface CreateOptions {
 // TODO: listen to and emit libp2p (error) events
 // TODO?: do "started" check in all methods
 export class Waku {
-  private static started = false;
-  private static stopping = false;
-
   public libp2p: Libp2p;
   public relay: WakuRelay;
   public store: WakuStore;
@@ -152,12 +149,6 @@ export class Waku {
    * Create and start new waku node.
    */
   static async create(options?: CreateOptions): Promise<Waku> {
-    if (Waku.started) {
-      throw "Already started";
-    }
-
-    Waku.started = true;
-
     // Get an object in case options or libp2p are undefined
     const libp2pOpts = Object.assign({}, options?.libp2p);
 
@@ -293,13 +284,6 @@ export class Waku {
   }
 
   async stop(): Promise<void> {
-    if (Waku.stopping) {
-      // FIXME?: do not throw
-      throw "Already stopping";
-    }
-
-    Waku.stopping = true;
-
     for (const timer of [
       ...Object.values(this.pingKeepAliveTimers),
       ...Object.values(this.relayKeepAliveTimers),
@@ -310,9 +294,6 @@ export class Waku {
     this.relayKeepAliveTimers = {};
 
     await this.libp2p.stop();
-
-    Waku.stopping = false;
-    Waku.started = false;
   }
 
   /**
