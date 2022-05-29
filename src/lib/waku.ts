@@ -138,6 +138,7 @@ export class Waku {
     /**
      * NOTE: Event is not being emitted on closing nor loosing a connection.
      * @see https://github.com/libp2p/js-libp2p/issues/939
+     * @see https://github.com/status-im/js-waku/issues/252
      *
      * >This event will be triggered anytime we are disconnected from another peer,
      * >regardless of the circumstances of that disconnection.
