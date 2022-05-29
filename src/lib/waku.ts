@@ -98,7 +98,12 @@ export interface CreateOptions {
   decryptionKeys?: Array<Uint8Array | string>;
 }
 
+// TODO: listen to and emit libp2p (error) events
+// TODO?: do "started" check in all methods
 export class Waku {
+  private static started = false;
+  private static stopping = false;
+
   public libp2p: Libp2p;
   public relay: WakuRelay;
   public store: WakuStore;
@@ -134,6 +139,7 @@ export class Waku {
     });
 
     libp2p.connectionManager.on("peer:disconnect", (connection: Connection) => {
+      // TODO: recconnect or stop; this event will only be triggered when the last connection is closed.
       this.stopKeepAlive(connection.remotePeer);
     });
 
@@ -141,11 +147,17 @@ export class Waku {
       this.addDecryptionKey(key);
     });
   }
-
+  // TODO?: rename to start or createAndStart
   /**
    * Create and start new waku node.
    */
   static async create(options?: CreateOptions): Promise<Waku> {
+    if (Waku.started) {
+      throw "Already started";
+    }
+
+    Waku.started = true;
+
     // Get an object in case options or libp2p are undefined
     const libp2pOpts = Object.assign({}, options?.libp2p);
 
@@ -281,7 +293,26 @@ export class Waku {
   }
 
   async stop(): Promise<void> {
-    return this.libp2p.stop();
+    if (Waku.stopping) {
+      // FIXME?: do not throw
+      throw "Already stopping";
+    }
+
+    Waku.stopping = true;
+
+    for (const timer of [
+      ...Object.values(this.pingKeepAliveTimers),
+      ...Object.values(this.relayKeepAliveTimers),
+    ]) {
+      clearInterval(timer);
+    }
+    this.pingKeepAliveTimers = {};
+    this.relayKeepAliveTimers = {};
+
+    await this.libp2p.stop();
+
+    Waku.stopping = false;
+    Waku.started = false;
   }
 
   /**
@@ -413,6 +444,7 @@ export class Waku {
 
     if (relayPeriodSecs !== 0) {
       this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
+        // TODO?: try..catch
         WakuMessage.fromBytes(new Uint8Array(), RelayPingContentTopic).then(
           (wakuMsg) => this.relay.send(wakuMsg)
         );
