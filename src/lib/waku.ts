@@ -98,8 +98,6 @@ export interface CreateOptions {
   decryptionKeys?: Array<Uint8Array | string>;
 }
 
-// TODO: listen to and emit libp2p (error) events
-// TODO?: do "started" check in all methods
 export class Waku {
   public libp2p: Libp2p;
   public relay: WakuRelay;
@@ -136,7 +134,7 @@ export class Waku {
     });
 
     /**
-     * NOTE: Event is not being emitted on closing nor loosing a connection.
+     * NOTE: Event is not being emitted on closing nor losing a connection.
      * @see https://github.com/libp2p/js-libp2p/issues/939
      * @see https://github.com/status-im/js-waku/issues/252
      *
@@ -147,7 +145,6 @@ export class Waku {
      * @see https://github.com/libp2p/js-libp2p/blob/bad9e8c0ff58d60a78314077720c82ae331cc55b/doc/API.md?plain=1#L2100
      */
     libp2p.connectionManager.on("peer:disconnect", (connection: Connection) => {
-      // TODO: (retry) reconnect or stop completely and emit own event
       this.stopKeepAlive(connection.remotePeer);
     });
 
@@ -155,7 +152,7 @@ export class Waku {
       this.addDecryptionKey(key);
     });
   }
-  // TODO?: rename to start or createAndStart
+
   /**
    * Create and start new waku node.
    */
@@ -428,7 +425,6 @@ export class Waku {
 
     if (relayPeriodSecs !== 0) {
       this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
-        // TODO?: try..catch
         WakuMessage.fromBytes(new Uint8Array(), RelayPingContentTopic).then(
           (wakuMsg) => this.relay.send(wakuMsg)
         );
