@@ -139,7 +139,7 @@ export class Waku {
     });
 
     libp2p.connectionManager.on("peer:disconnect", (connection: Connection) => {
-      // TODO: recconnect or stop; this event will only be triggered when the last connection is closed.
+      // TODO: reconnect or stop; this event will only be triggered when the last connection is closed.
       this.stopKeepAlive(connection.remotePeer);
     });
 
