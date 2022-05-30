@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target": "es2015",
-    "outDir": "dist/esm",
+    "target": "es2020",
+    "outDir": "dist/cjs",
     "rootDir": "src",
     "moduleResolution": "node",
-    "module": "es2015",
+    "module": "commonjs",
     "declaration": true,
     "sourceMap": true,
     "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,

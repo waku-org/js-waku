@@ -25,8 +25,8 @@
   "scripts": {
     "prepare": "husky install",
     "build": "rimraf ./dist; run-s build:**",
-    "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --target es2020 --outDir dist/cjs",
+    "build:cjs": "tsc",
+    "build:esm": "tsc --module es2015 --target es2015 --outDir dist/esm",
     "build:umd": "rollup --config rollup.config.js -- dist/esm/index.js",
     "build:umd:min": "terser --ecma 6 --compress --mangle -o dist/umd/index.min.js -- dist/umd/index.js && gzip -9 -c dist/umd/index.min.js > dist/umd/index.min.js.gz",
     "fix": "run-s fix:*",
