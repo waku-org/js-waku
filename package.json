@@ -29,7 +29,6 @@
     "build:cjs": "tsc --module commonjs --target es2020 --outDir dist/cjs",
     "build:umd": "rollup --config rollup.config.js -- dist/esm/index.js",
     "build:umd:min": "terser --ecma 6 --compress --mangle -o dist/umd/index.umd.min.js -- dist/umd/index.umd.js && gzip -9 -c dist/umd/index.umd.min.js > dist/umd/index.umd.min.js.gz",
-    "size": "npm run build:esm && size-limit",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.conf.js\" \".github/**/*.yml\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
@@ -98,7 +97,6 @@
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
-    "@size-limit/preset-big-lib": "^7.0.8",
     "@types/app-root-path": "^1.2.4",
     "@types/chai": "^4.2.15",
     "@types/mocha": "^9.1.0",
@@ -140,8 +138,8 @@
     "process": "^0.11.10",
     "puppeteer": "^13.0.1",
     "rollup": "^2.75.0",
+    "rollup-plugin-filesize": "^9.1.2",
     "rollup-plugin-polyfill-node": "^0.9.0",
-    "size-limit": "^7.0.8",
     "stream-browserify": "^3.0.0",
     "tail": "^2.2.0",
     "terser": "^5.13.1",
@@ -168,13 +166,6 @@
       "**/*.spec.js"
     ]
   },
-  "size-limit": [
-    {
-      "path": "dist/esm/index.js",
-      "import": "{ Waku }",
-      "config": "./webpack.config.js"
-    }
-  ],
   "lint-staged": {
     "*.ts": [
       "eslint --fix"
