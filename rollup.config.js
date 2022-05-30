@@ -6,7 +6,7 @@ import nodePolyfills from "rollup-plugin-polyfill-node";
 
 export default {
   output: {
-    file: "dist/umd/index.umd.js",
+    file: "dist/umd/index.js",
     format: "umd",
     name: "jswaku",
   },

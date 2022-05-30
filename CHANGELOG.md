@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Published files moved from `build` to `dist/`.
+- Replaces webpack with rollup for UMD builds: prepares for ESM migration, UMD file path has changed to `/dist/umd/index.min.js`.
+
 ## [0.24.0] - 2022-05-27
 
 ### Added

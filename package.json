@@ -28,7 +28,7 @@
     "build:esm": "tsc",
     "build:cjs": "tsc --module commonjs --target es2020 --outDir dist/cjs",
     "build:umd": "rollup --config rollup.config.js -- dist/esm/index.js",
-    "build:umd:min": "terser --ecma 6 --compress --mangle -o dist/umd/index.umd.min.js -- dist/umd/index.umd.js && gzip -9 -c dist/umd/index.umd.min.js > dist/umd/index.umd.min.js.gz",
+    "build:umd:min": "terser --ecma 6 --compress --mangle -o dist/umd/index.min.js -- dist/umd/index.js && gzip -9 -c dist/umd/index.min.js > dist/umd/index.min.js.gz",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.conf.js\" \".github/**/*.yml\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
