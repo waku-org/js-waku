@@ -1,6 +1,5 @@
 import { getSubtle, randomBytes } from "../crypto";
 
-export const KeySize = 32;
 export const IvSize = 12;
 export const TagSize = 16;
 

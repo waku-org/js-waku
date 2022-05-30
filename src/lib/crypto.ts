@@ -4,9 +4,6 @@ import * as secp from "@noble/secp256k1";
 import * as sha3 from "js-sha3";
 import { concat } from "uint8arrays/concat";
 
-import * as symmetric from "./waku_message/symmetric";
-import { PrivateKeySize } from "./waku_message/version_1";
-
 declare const self: Record<string, any> | undefined;
 const crypto: { node?: any; web?: any } = {
   node: nodeCrypto,
@@ -34,14 +31,14 @@ export const sha256 = secp.utils.sha256;
  * Use {@link getPublicKey} to get the corresponding Public Key.
  */
 export function generatePrivateKey(): Uint8Array {
-  return randomBytes(PrivateKeySize);
+  return randomBytes(32);
 }
 
 /**
  * Generate a new symmetric key to be used for symmetric encryption.
  */
 export function generateSymmetricKey(): Uint8Array {
-  return randomBytes(symmetric.KeySize);
+  return randomBytes(32);
 }
 
 /**
