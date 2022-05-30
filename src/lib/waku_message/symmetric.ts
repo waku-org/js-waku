@@ -1,9 +1,6 @@
 import { getSubtle, randomBytes } from "../crypto";
 
-export const IvSize = 12;
-export const TagSize = 16;
-
-const Algorithm = { name: "AES-GCM", length: 128 };
+import { Symmetric } from "./constants";
 
 export async function encrypt(
   iv: Uint8Array,
@@ -11,9 +8,9 @@ export async function encrypt(
   clearText: Uint8Array
 ): Promise<Uint8Array> {
   return getSubtle()
-    .importKey("raw", key, Algorithm, false, ["encrypt"])
+    .importKey("raw", key, Symmetric.algorithm, false, ["encrypt"])
     .then((cryptoKey) =>
-      getSubtle().encrypt({ iv, ...Algorithm }, cryptoKey, clearText)
+      getSubtle().encrypt({ iv, ...Symmetric.algorithm }, cryptoKey, clearText)
     )
     .then((cipher) => new Uint8Array(cipher));
 }
@@ -24,13 +21,13 @@ export async function decrypt(
   cipherText: Uint8Array
 ): Promise<Uint8Array> {
   return getSubtle()
-    .importKey("raw", key, Algorithm, false, ["decrypt"])
+    .importKey("raw", key, Symmetric.algorithm, false, ["decrypt"])
     .then((cryptoKey) =>
-      getSubtle().decrypt({ iv, ...Algorithm }, cryptoKey, cipherText)
+      getSubtle().decrypt({ iv, ...Symmetric.algorithm }, cryptoKey, cipherText)
     )
     .then((clear) => new Uint8Array(clear));
 }
 
 export function generateIv(): Uint8Array {
-  return randomBytes(IvSize);
+  return randomBytes(Symmetric.ivSize);
 }

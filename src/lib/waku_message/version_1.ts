@@ -4,6 +4,7 @@ import { concat } from "uint8arrays/concat";
 import { keccak256, randomBytes, sign } from "../crypto";
 import { hexToBytes } from "../utils";
 
+import { Symmetric } from "./constants";
 import * as ecies from "./ecies";
 import * as symmetric from "./symmetric";
 
@@ -12,8 +13,6 @@ const FlagMask = 3; // 0011
 const IsSignedMask = 4; // 0100
 const PaddingTarget = 256;
 const SignatureLength = 65;
-
-export const PrivateKeySize = 32;
 
 export type Signature = {
   signature: Uint8Array;
@@ -187,7 +186,7 @@ export async function decryptSymmetric(
   payload: Uint8Array,
   key: Uint8Array | string
 ): Promise<Uint8Array> {
-  const ivStart = payload.length - symmetric.IvSize;
+  const ivStart = payload.length - Symmetric.ivSize;
   const cipher = payload.slice(0, ivStart);
   const iv = payload.slice(ivStart);
 
