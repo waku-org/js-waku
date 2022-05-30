@@ -1,6 +1,6 @@
 {
-  "name": "js-waku",
-  "version": "0.24.0",
+  "name": "@waku/staging",
+  "version": "0.24.0-rollup.rc1",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "main": "dist/cjs/index.js",
   "typings": "dist/cjs/index.d.ts",
