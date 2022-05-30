@@ -5,10 +5,11 @@
 
 import { ChildProcess, spawn } from "child_process";
 
+import type { PeerId } from "@libp2p/interfaces/peer-id";
+import { peerIdFromString } from "@libp2p/peer-id";
 import appRoot from "app-root-path";
 import debug from "debug";
 import { Multiaddr, multiaddr } from "multiaddr";
-import PeerId from "peer-id";
 import portfinder from "portfinder";
 
 import { DefaultPubSubTopic } from "../lib/constants.js";
@@ -343,7 +344,7 @@ export class Nwaku {
     if (!this.multiaddrWithId) throw "Nwaku did not return a ws multiaddr";
     const peerIdStr = this.multiaddrWithId.getPeerId();
     if (!peerIdStr) throw "Nwaku multiaddr does not contain peerId";
-    this.peerId = PeerId.createFromB58String(peerIdStr);
+    this.peerId = peerIdFromString(peerIdStr);
     return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
   }
 
