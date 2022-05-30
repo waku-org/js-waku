@@ -42,18 +42,6 @@ jobs:
           cd nim-waku/build
           ./wakunode2 --help
 
-      - name: Install bufbuild
-        uses: mathematic-inc/setup-buf@v2beta
-        with:
-          buf-version: ${{ env.BUF_VERSION }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-        with:
-          version: "3.x"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Cache npm cache
         uses: actions/cache@v2
         with:

@@ -7,6 +7,7 @@ import { Peer } from "libp2p/src/peer-store";
 import PeerId from "peer-id";
 
 import { DefaultPubSubTopic, StoreCodecs } from "../constants";
+import * as protoV2Beta4 from "../../proto/store_v2beta4";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
@@ -211,10 +212,11 @@ export class WakuStore {
       );
       const reply = historyRpcQuery.decode(res.slice());
 
-      const response = reply.response;
-      if (!response) {
+      if (!reply.response) {
         throw "History response misses response field";
       }
+
+      const response = reply.response as protoV2Beta4.HistoryResponse;
 
       if (response.error) {
         throw "History response contains an Error" + response.error;

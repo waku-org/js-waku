@@ -20,8 +20,6 @@ To help ensure your PR passes, just run before committing:
 To build and test this repository, you need:
   
   - [Node.js & npm](https://nodejs.org/en/).
-  - [bufbuild](https://github.com/bufbuild/buf) (only if changing protobuf files).
-  - [protoc](https://grpc.io/docs/protoc-installation/) (only if changing protobuf files).
   - Chrome (for browser testing).
   - g++ & make (to build nim-waku)
 

@@ -22,6 +22,9 @@ module.exports = {
   ],
   resolve: {
     extensions: ['.ts', '.js'],
+    alias: {
+      "protons-runtime": path.resolve(__dirname, 'node_modules/protons-runtime/dist/src/index.js')
+    },
     fallback: {
       buffer: require.resolve('buffer/'),
       crypto: false,

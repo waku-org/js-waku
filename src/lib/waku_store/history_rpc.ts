@@ -1,11 +1,11 @@
-import Long from "long";
-import { Reader } from "protobufjs/minimal";
 import { v4 as uuid } from "uuid";
 
-import * as protoV2Beta3 from "../../proto/waku/v2/store/v2beta3/store";
-import * as protoV2Beta4 from "../../proto/waku/v2/store/v2beta4/store";
+import * as protoV2Beta3 from "../../proto/store_v2beta3";
+import * as protoV2Beta4 from "../../proto/store_v2beta4";
 
 import { StoreCodecs } from "./constants";
+
+const OneMillion = BigInt(1_000_000);
 
 export enum PageDirection {
   BACKWARD = "backward",
@@ -24,7 +24,9 @@ export interface Params {
 }
 
 export class HistoryRPC {
-  private readonly protoCodec: any;
+  private readonly historyRpc:
+    | typeof protoV2Beta3.HistoryRPC
+    | typeof protoV2Beta4.HistoryRPC;
 
   private constructor(
     public readonly proto: protoV2Beta3.HistoryRPC | protoV2Beta4.HistoryRPC,
@@ -32,10 +34,10 @@ export class HistoryRPC {
   ) {
     switch (storeCodec) {
       case StoreCodecs.V2Beta3:
-        this.protoCodec = protoV2Beta3;
+        this.historyRpc = protoV2Beta3.HistoryRPC;
         break;
       case StoreCodecs.V2Beta4:
-        this.protoCodec = protoV2Beta4;
+        this.historyRpc = protoV2Beta4.HistoryRPC;
         break;
       default:
         throw `Internal Error: Unexpected store codec value received in constructor: ${storeCodec}`;
@@ -73,7 +75,7 @@ export class HistoryRPC {
         // Using function to scope variables
         return ((): HistoryRPC => {
           const pagingInfo = {
-            pageSize: Long.fromNumber(params.pageSize),
+            pageSize: BigInt(params.pageSize),
             cursor: params.cursor,
             direction,
           } as protoV2Beta3.PagingInfo;
@@ -101,7 +103,7 @@ export class HistoryRPC {
       case StoreCodecs.V2Beta4:
         return ((): HistoryRPC => {
           const pagingInfo = {
-            pageSize: Long.fromNumber(params.pageSize),
+            pageSize: BigInt(params.pageSize),
             cursor: params.cursor,
             direction,
           } as protoV2Beta4.PagingInfo;
@@ -109,14 +111,12 @@ export class HistoryRPC {
           let startTime, endTime;
           if (params.startTime) {
             // milliseconds 10^-3 to nanoseconds 10^-9
-            startTime = Long.fromNumber(params.startTime.valueOf()).mul(
-              1_000_000
-            );
+            startTime = BigInt(params.startTime.valueOf()) * OneMillion;
           }
 
           if (params.endTime) {
             // milliseconds 10^-3 to nanoseconds 10^-9
-            endTime = Long.fromNumber(params.endTime.valueOf()).mul(1_000_000);
+            endTime = BigInt(params.endTime.valueOf()) * OneMillion;
           }
           return new HistoryRPC(
             {
@@ -140,24 +140,24 @@ export class HistoryRPC {
   }
 
   decode(bytes: Uint8Array): HistoryRPC {
-    const res = this.protoCodec.HistoryRPC.decode(Reader.create(bytes));
+    const res = this.historyRpc.decode(bytes);
     return new HistoryRPC(res, this.storeCodec);
   }
 
   encode(): Uint8Array {
-    return this.protoCodec.HistoryRPC.encode(this.proto).finish();
+    return this.historyRpc.encode(this.proto as any);
   }
 }
 
 function directionToProto(
   pageDirection: PageDirection
-): protoV2Beta4.PagingInfo_Direction {
+): protoV2Beta4.PagingInfo.Direction {
   switch (pageDirection) {
     case PageDirection.BACKWARD:
-      return protoV2Beta4.PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+      return protoV2Beta4.PagingInfo.Direction.DIRECTION_BACKWARD_UNSPECIFIED;
     case PageDirection.FORWARD:
-      return protoV2Beta4.PagingInfo_Direction.DIRECTION_FORWARD;
+      return protoV2Beta4.PagingInfo.Direction.DIRECTION_FORWARD;
     default:
-      return protoV2Beta4.PagingInfo_Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+      return protoV2Beta4.PagingInfo.Direction.DIRECTION_BACKWARD_UNSPECIFIED;
   }
 }

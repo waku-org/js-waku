@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Migrate from ts-proto to protons; the latter does not bring Buffer/Long deps, is ESM compatible and remove the need for bufbuild.
+
 ## [0.24.0] - 2022-05-27
 
 ### Added

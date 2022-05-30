@@ -4,7 +4,7 @@ import { pipe } from "it-pipe";
 import Libp2p, { MuxedStream } from "libp2p";
 import { Peer, PeerId } from "libp2p/src/peer-store";
 
-import { WakuMessage as WakuMessageProto } from "../../proto/waku/v2/message";
+import { WakuMessage as WakuMessageProto } from "../../proto/message";
 import { DefaultPubSubTopic } from "../constants";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
