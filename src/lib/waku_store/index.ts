@@ -6,23 +6,18 @@ import Libp2p from "libp2p";
 import { Peer } from "libp2p/src/peer-store";
 import PeerId from "peer-id";
 
+import { DefaultPubSubTopic, StoreCodecs } from "../constants";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
-import { DefaultPubSubTopic } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { HistoryRPC, PageDirection } from "./history_rpc";
 
 const dbg = debug("waku:store");
 
-export enum StoreCodecs {
-  V2Beta3 = "/vac/waku/store/2.0.0-beta3",
-  V2Beta4 = "/vac/waku/store/2.0.0-beta4",
-}
-
 export const DefaultPageSize = 10;
 
-export { PageDirection };
+export { PageDirection, StoreCodecs };
 
 export interface CreateOptions {
   /**

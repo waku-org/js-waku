@@ -5,9 +5,9 @@ import Libp2p, { MuxedStream } from "libp2p";
 import { Peer, PeerId } from "libp2p/src/peer-store";
 
 import { WakuMessage as WakuMessageProto } from "../../proto/waku/v2/message";
+import { DefaultPubSubTopic } from "../constants";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
-import { DefaultPubSubTopic } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { ContentFilter, FilterRPC } from "./filter_rpc";

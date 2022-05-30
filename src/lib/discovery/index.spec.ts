@@ -1,8 +1,7 @@
 import { expect } from "chai";
 
 import { fleets } from "./predefined";
-
-import { getPseudoRandomSubset } from "./index";
+import { getPseudoRandomSubset } from "./random_subset";
 
 declare global {
   interface Window {
