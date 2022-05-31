@@ -7,10 +7,10 @@
   "module": "dist/esm/index.js",
   "exports": {
     "node": {
-      "module": "./build/esm/index.js",
-      "import": "./build/cjs/index.js"
+      "import": "./build/esm/index.js",
+      "require": "./build/cjs/index.js"
     },
-    "default": "./build/cjs/index.js"
+    "default": "./build/esm/index.js"
   },
   "repository": "https://github.com/status-im/js-waku",
   "license": "MIT OR Apache-2.0",
