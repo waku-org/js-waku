@@ -10,7 +10,7 @@
       "import": "./build/esm/index.js",
       "require": "./build/main/index.js"
     },
-    "default": "./build/esm/index.js"
+    "default": "./build/main/index.js"
   },
   "repository": "https://github.com/status-im/js-waku",
   "license": "MIT OR Apache-2.0",
