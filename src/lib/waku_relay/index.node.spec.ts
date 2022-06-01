@@ -8,12 +8,13 @@ import {
   Nwaku,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
+import { DefaultPubSubTopic } from "../constants";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
-import { DefaultPubSubTopic, Protocols, Waku } from "../waku";
+import { Protocols, Waku } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 const log = debug("waku:test");

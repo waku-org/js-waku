@@ -11,8 +11,8 @@ import { Multiaddr, multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 import portfinder from "portfinder";
 
+import { DefaultPubSubTopic } from "../lib/constants";
 import { hexToBytes } from "../lib/utils";
-import { DefaultPubSubTopic } from "../lib/waku";
 import { WakuMessage } from "../lib/waku_message";
 import * as proto from "../proto/waku/v2/message";
 

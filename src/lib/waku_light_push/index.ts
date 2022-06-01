@@ -6,8 +6,8 @@ import { Peer } from "libp2p/src/peer-store";
 import PeerId from "peer-id";
 
 import { PushResponse } from "../../proto/waku/v2/light_push";
+import { DefaultPubSubTopic } from "../constants";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
-import { DefaultPubSubTopic } from "../waku";
 import { WakuMessage } from "../waku_message";
 
 import { PushRPC } from "./push_rpc";

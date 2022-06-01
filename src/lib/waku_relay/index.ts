@@ -13,18 +13,16 @@ import { InMessage } from "libp2p-interfaces/src/pubsub";
 import { SignaturePolicy } from "libp2p-interfaces/src/pubsub/signature-policy";
 import PeerId from "peer-id";
 
+import { DefaultPubSubTopic } from "../constants";
 import { hexToBytes } from "../utils";
-import { CreateOptions, DefaultPubSubTopic } from "../waku";
+import { CreateOptions } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import * as constants from "./constants";
-import { RelayCodecs } from "./constants";
 import { getRelayPeers } from "./get_relay_peers";
 import { RelayHeartbeat } from "./relay_heartbeat";
 
 const dbg = debug("waku:relay");
-
-export { RelayCodecs };
 
 /**
  * See constructor libp2p-gossipsub [API](https://github.com/ChainSafe/js-libp2p-gossipsub#api).

@@ -20,19 +20,14 @@ import { Bootstrap, BootstrapOptions } from "./discovery";
 import { FilterCodec, WakuFilter } from "./waku_filter";
 import { LightPushCodec, WakuLightPush } from "./waku_light_push";
 import { DecryptionMethod, WakuMessage } from "./waku_message";
-import { RelayCodecs, WakuRelay } from "./waku_relay";
-import { RelayPingContentTopic } from "./waku_relay/constants";
+import { WakuRelay } from "./waku_relay";
+import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
 import { StoreCodecs, WakuStore } from "./waku_store";
 
 const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
-
-/**
- * DefaultPubSubTopic is the default gossipsub topic to use for Waku.
- */
-export const DefaultPubSubTopic = "/waku/2/default-waku/proto";
 
 const dbg = debug("waku:waku");
 
