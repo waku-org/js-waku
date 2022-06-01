@@ -7,7 +7,6 @@ import {
   NOISE_KEY_2,
   Nwaku,
 } from "../../test_utils";
-import { delay } from "../../test_utils/delay";
 import {
   generatePrivateKey,
   generateSymmetricKey,
@@ -278,14 +277,7 @@ describe("Waku Store", () => {
 
     dbg("Waku nodes connected to nwaku");
 
-    let lightPushPeerFound = false;
-    while (!lightPushPeerFound) {
-      await delay(100);
-      for await (const _peer of waku1.lightPush.peers) {
-        lightPushPeerFound = true;
-        break;
-      }
-    }
+    await waku1.waitForRemotePeer([Protocols.LightPush]);
 
     dbg("Sending messages using light push");
     await Promise.all([
@@ -295,14 +287,7 @@ describe("Waku Store", () => {
       waku1.lightPush.push(clearMessage),
     ]);
 
-    let storePeerFound = false;
-    while (!storePeerFound) {
-      await delay(100);
-      for await (const _peer of waku2.store.peers) {
-        storePeerFound = true;
-        break;
-      }
-    }
+    await waku2.waitForRemotePeer([Protocols.Store]);
 
     waku2.store.addDecryptionKey(symKey);
 
@@ -396,14 +381,7 @@ describe("Waku Store", () => {
 
     dbg("Waku nodes connected to nwaku");
 
-    let lightPushPeerFound = false;
-    while (!lightPushPeerFound) {
-      await delay(100);
-      for await (const _peer of waku1.lightPush.peers) {
-        lightPushPeerFound = true;
-        break;
-      }
-    }
+    await waku1.waitForRemotePeer([Protocols.LightPush]);
 
     dbg("Sending messages using light push");
     await Promise.all([
@@ -413,14 +391,7 @@ describe("Waku Store", () => {
       waku1.lightPush.push(clearMessage),
     ]);
 
-    let storePeerFound = false;
-    while (!storePeerFound) {
-      await delay(100);
-      for await (const _peer of waku2.store.peers) {
-        storePeerFound = true;
-        break;
-      }
-    }
+    await waku2.waitForRemotePeer([Protocols.Store]);
 
     waku2.addDecryptionKey(symKey, {
       contentTopics: [encryptedSymmetricContentTopic],
