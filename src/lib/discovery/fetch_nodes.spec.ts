@@ -42,7 +42,7 @@ describe("Fetch nodes until capabilities are fulfilled", function () {
     );
 
     expect(res.length).to.eq(1);
-    expect(res[0].peerId!.toB58String()).to.eq(relayNode.peerId?.toB58String());
+    expect(res[0].peerId!.toString()).to.eq(relayNode.peerId?.toString());
   });
 
   it("1 Store, 2 fetches", async function () {
@@ -65,7 +65,7 @@ describe("Fetch nodes until capabilities are fulfilled", function () {
     );
 
     expect(res.length).to.eq(1);
-    expect(res[0].peerId!.toB58String()).to.eq(storeNode.peerId?.toB58String());
+    expect(res[0].peerId!.toString()).to.eq(storeNode.peerId?.toString());
   });
 
   it("1 Store, 2 relays, 2 fetches", async function () {
@@ -94,15 +94,9 @@ describe("Fetch nodes until capabilities are fulfilled", function () {
     );
 
     expect(res.length).to.eq(3);
-    expect(res[0].peerId!.toB58String()).to.eq(
-      relayNode1.peerId?.toB58String()
-    );
-    expect(res[1].peerId!.toB58String()).to.eq(
-      relayNode2.peerId?.toB58String()
-    );
-    expect(res[2].peerId!.toB58String()).to.eq(
-      relayStoreNode.peerId?.toB58String()
-    );
+    expect(res[0].peerId!.toString()).to.eq(relayNode1.peerId?.toString());
+    expect(res[1].peerId!.toString()).to.eq(relayNode2.peerId?.toString());
+    expect(res[2].peerId!.toString()).to.eq(relayStoreNode.peerId?.toString());
   });
 
   it("1 Relay, 1 Filter, gives up", async function () {
@@ -117,6 +111,6 @@ describe("Fetch nodes until capabilities are fulfilled", function () {
     );
 
     expect(res.length).to.eq(1);
-    expect(res[0].peerId!.toB58String()).to.eq(relayNode.peerId?.toB58String());
+    expect(res[0].peerId!.toString()).to.eq(relayNode.peerId?.toString());
   });
 });

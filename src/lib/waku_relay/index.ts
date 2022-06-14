@@ -326,7 +326,7 @@ export class WakuRelay extends Gossipsub {
    */
   async _publish(msg: InMessage): Promise<void> {
     const msgIdStr = await this.getCanonicalMsgIdStr(msg);
-    if (msg.receivedFrom !== this.peerId.toB58String()) {
+    if (msg.receivedFrom !== this.peerId.toString()) {
       this.score.deliverMessage(msg, msgIdStr);
       this.gossipTracer.deliverMessage(msgIdStr);
     }

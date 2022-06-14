@@ -346,7 +346,7 @@ export class Waku {
     if (!localMultiaddr || localMultiaddr.toString() === "") {
       throw "Not listening on localhost";
     }
-    return localMultiaddr + "/p2p/" + this.libp2p.peerId.toB58String();
+    return localMultiaddr + "/p2p/" + this.libp2p.peerId.toString();
   }
 
   /**
@@ -388,7 +388,7 @@ export class Waku {
     if (protocols.includes(Protocols.Store)) {
       const storePromise = (async (): Promise<void> => {
         for await (const peer of this.store.peers) {
-          dbg("Store peer found", peer.id.toB58String());
+          dbg("Store peer found", peer.id.toString());
           break;
         }
       })();
@@ -398,7 +398,7 @@ export class Waku {
     if (protocols.includes(Protocols.LightPush)) {
       const lightPushPromise = (async (): Promise<void> => {
         for await (const peer of this.lightPush.peers) {
-          dbg("Light Push peer found", peer.id.toB58String());
+          dbg("Light Push peer found", peer.id.toString());
           break;
         }
       })();
@@ -408,7 +408,7 @@ export class Waku {
     if (protocols.includes(Protocols.Filter)) {
       const filterPromise = (async (): Promise<void> => {
         for await (const peer of this.filter.peers) {
-          dbg("Filter peer found", peer.id.toB58String());
+          dbg("Filter peer found", peer.id.toString());
           break;
         }
       })();
@@ -434,7 +434,7 @@ export class Waku {
     // Just in case a timer already exist for this peer
     this.stopKeepAlive(peerId);
 
-    const peerIdStr = peerId.toB58String();
+    const peerIdStr = peerId.toString();
 
     if (pingPeriodSecs !== 0) {
       const pingService = new PingService(this.libp2p);
@@ -455,7 +455,7 @@ export class Waku {
   }
 
   private stopKeepAlive(peerId: PeerId): void {
-    const peerIdStr = peerId.toB58String();
+    const peerIdStr = peerId.toString();
 
     if (this.pingKeepAliveTimers[peerIdStr]) {
       clearInterval(this.pingKeepAliveTimers[peerIdStr]);

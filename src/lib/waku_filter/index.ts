@@ -87,7 +87,7 @@ export class WakuFilter {
     } catch (e) {
       log(
         "Error subscribing to peer ",
-        peer.id.toB58String(),
+        peer.id.toString(),
         "for content topics",
         contentTopics,
         ": ",
@@ -200,7 +200,7 @@ export class WakuFilter {
       peer = await this.libp2p.peerStore.get(peerId);
       if (!peer) {
         throw new Error(
-          `Failed to retrieve connection details for provided peer in peer store: ${peerId.toB58String()}`
+          `Failed to retrieve connection details for provided peer in peer store: ${peerId.toString()}`
         );
       }
     } else {

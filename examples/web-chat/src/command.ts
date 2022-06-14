@@ -26,7 +26,7 @@ function info(waku: Waku | undefined): string[] {
   if (!waku) {
     return ["Waku node is starting"];
   }
-  return [`PeerId: ${waku.libp2p.peerId.toB58String()}`];
+  return [`PeerId: ${waku.libp2p.peerId.toString()}`];
 }
 
 function connect(peer: string | undefined, waku: Waku | undefined): string[] {
@@ -64,7 +64,7 @@ async function peers(waku: Waku | undefined): Promise<string[]> {
     peers.push(peer);
   }
   Array.from(peers).forEach((peer) => {
-    response.push(peer.id.toB58String() + ":");
+    response.push(peer.id.toString() + ":");
     let addresses = "  addresses: [";
     peer.addresses.forEach(({ multiaddr }) => {
       addresses += " " + multiaddr.toString() + ",";

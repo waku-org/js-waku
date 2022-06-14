@@ -146,7 +146,7 @@ export class WakuStore {
     );
 
     dbg("Querying history with the following options", {
-      peerId: options?.peerId?.toB58String(),
+      peerId: options?.peerId?.toString(),
       ...options,
     });
 
@@ -154,7 +154,7 @@ export class WakuStore {
     if (opts.peerId) {
       peer = await this.libp2p.peerStore.get(opts.peerId);
       if (!peer)
-        throw `Failed to retrieve connection details for provided peer in peer store: ${opts.peerId.toB58String()}`;
+        throw `Failed to retrieve connection details for provided peer in peer store: ${opts.peerId.toString()}`;
     } else {
       peer = await this.randomPeer;
       if (!peer)
@@ -170,7 +170,7 @@ export class WakuStore {
     }
     dbg(`Use store codec ${storeCodec}`);
     if (!storeCodec)
-      throw `Peer does not register waku store protocol: ${peer.id.toB58String()}`;
+      throw `Peer does not register waku store protocol: ${peer.id.toString()}`;
 
     Object.assign(opts, { storeCodec });
     const connection = this.libp2p.connectionManager.get(peer.id);

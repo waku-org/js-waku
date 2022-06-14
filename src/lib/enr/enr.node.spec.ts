@@ -36,7 +36,7 @@ describe("ENR Interop: nwaku", function () {
 
     expect(nwakuInfo.enrUri).to.not.be.undefined;
     const dec = await ENR.decodeTxt(nwakuInfo.enrUri ?? "");
-    expect(dec.peerId?.toB58String()).to.eq(nimPeerId.toB58String());
+    expect(dec.peerId?.toString()).to.eq(nimPeerId.toString());
     expect(dec.waku2).to.deep.eq({
       relay: true,
       store: false,
@@ -67,7 +67,7 @@ describe("ENR Interop: nwaku", function () {
 
     expect(nwakuInfo.enrUri).to.not.be.undefined;
     const dec = await ENR.decodeTxt(nwakuInfo.enrUri ?? "");
-    expect(dec.peerId?.toB58String()).to.eq(nimPeerId.toB58String());
+    expect(dec.peerId?.toString()).to.eq(nimPeerId.toString());
     expect(dec.waku2).to.deep.eq({
       relay: true,
       store: true,
@@ -98,7 +98,7 @@ describe("ENR Interop: nwaku", function () {
 
     expect(nwakuInfo.enrUri).to.not.be.undefined;
     const dec = await ENR.decodeTxt(nwakuInfo.enrUri ?? "");
-    expect(dec.peerId?.toB58String()).to.eq(nimPeerId.toB58String());
+    expect(dec.peerId?.toString()).to.eq(nimPeerId.toString());
     expect(dec.waku2).to.deep.eq({
       relay: true,
       store: true,

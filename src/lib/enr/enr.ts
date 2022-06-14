@@ -422,9 +422,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (this.peerId) {
       const locationMultiaddr = this.getLocationMultiaddr(protocol);
       if (locationMultiaddr) {
-        return locationMultiaddr.encapsulate(
-          `/p2p/${this.peerId.toB58String()}`
-        );
+        return locationMultiaddr.encapsulate(`/p2p/${this.peerId.toString()}`);
       }
     }
     return;
@@ -437,7 +435,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (this.peerId && this.multiaddrs) {
       const peerId = this.peerId;
       return this.multiaddrs.map((ma) => {
-        return ma.encapsulate(`/p2p/${peerId.toB58String()}`);
+        return ma.encapsulate(`/p2p/${peerId.toString()}`);
       });
     }
     return [];

@@ -70,8 +70,8 @@ describe("Waku Relay [node only]", () => {
         waku2.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
 
       log("Asserting mutual subscription");
-      expect(subscribers1).to.contain(waku2.libp2p.peerId.toB58String());
-      expect(subscribers2).to.contain(waku1.libp2p.peerId.toB58String());
+      expect(subscribers1).to.contain(waku2.libp2p.peerId.toString());
+      expect(subscribers2).to.contain(waku1.libp2p.peerId.toString());
     });
 
     it("Register correct protocols", async function () {
@@ -338,7 +338,7 @@ describe("Waku Relay [node only]", () => {
       }
 
       const nimPeerId = await nwaku.getPeerId();
-      expect(subscribers).to.contain(nimPeerId.toB58String());
+      expect(subscribers).to.contain(nimPeerId.toString());
     });
 
     it("Publishes to nwaku", async function () {
