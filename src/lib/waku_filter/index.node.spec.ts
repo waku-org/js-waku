@@ -22,7 +22,7 @@ describe("Waku Filter", () => {
   });
 
   beforeEach(async function () {
-    this.timeout(10000);
+    this.timeout(15000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ filter: true, lightpush: true });
     waku = await createWaku({
