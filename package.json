@@ -4,7 +4,7 @@
   "description": "TypeScript implementation of the Waku v2 protocol",
   "types": "./dist/esm/index.d.ts",
   "exports": {
-    "node": {
+    ".": {
       "import": "./dist/esm/index.js"
     }
   },
