@@ -82,6 +82,7 @@ describe("Waku Light Push [node only]", () => {
     dbg("Send message via lightpush");
     const pushResponse = await waku.lightPush.push(message, {
       peerId: nimPeerId,
+      pubSubTopic: customPubSubTopic,
     });
     dbg("Ack received", pushResponse);
     expect(pushResponse?.isSuccess).to.be.true;
