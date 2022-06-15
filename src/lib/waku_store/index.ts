@@ -221,7 +221,6 @@ export class WakuStore {
 
       const response = reply.response as protoV2Beta4.HistoryResponse;
 
-      console.log("Response", response);
       if (response.error && response.error !== Error.ERROR_NONE_UNSPECIFIED) {
         throw "History response contains an Error: " + response.error;
       }

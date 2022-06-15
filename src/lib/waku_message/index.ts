@@ -7,6 +7,7 @@ import * as version_1 from "./version_1";
 
 const DefaultVersion = 0;
 const dbg = debug("waku:message");
+const OneMillion = BigInt(1_000_000);
 
 export enum DecryptionMethod {
   Asymmetric = "asymmetric",
@@ -103,7 +104,7 @@ export class WakuMessage {
         payload: _payload,
         timestampDeprecated: timestamp.valueOf() / 1000,
         // milliseconds 10^-3 to nanoseconds 10^-9
-        timestamp: BigInt(timestamp.valueOf()) * BigInt(1_000_000),
+        timestamp: BigInt(timestamp.valueOf()) * OneMillion,
         version,
         contentTopic,
       },
@@ -283,7 +284,7 @@ export class WakuMessage {
     try {
       if (this.proto.timestamp) {
         // nanoseconds 10^-9 to milliseconds 10^-3
-        const timestamp = this.proto.timestamp / BigInt(1_000_000);
+        const timestamp = this.proto.timestamp / OneMillion;
         return new Date(Number(timestamp));
       }
 
