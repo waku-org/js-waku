@@ -16,17 +16,17 @@ import {
 import type { Codec } from "protons-runtime";
 
 export interface Index {
-  digest: Uint8Array;
-  receivedTime: number;
-  senderTime: number;
+  digest?: Uint8Array;
+  receivedTime?: number;
+  senderTime?: number;
 }
 
 export namespace Index {
   export const codec = (): Codec<Index> => {
     return message<Index>({
-      1: { name: "digest", codec: bytes },
-      2: { name: "receivedTime", codec: double },
-      3: { name: "senderTime", codec: double },
+      1: { name: "digest", codec: bytes, optional: true },
+      2: { name: "receivedTime", codec: double, optional: true },
+      3: { name: "senderTime", codec: double, optional: true },
     });
   };
 
@@ -40,9 +40,9 @@ export namespace Index {
 }
 
 export interface PagingInfo {
-  pageSize: bigint;
-  cursor: Index;
-  direction: PagingInfo.Direction;
+  pageSize?: bigint;
+  cursor?: Index;
+  direction?: PagingInfo.Direction;
 }
 
 export namespace PagingInfo {
@@ -64,9 +64,13 @@ export namespace PagingInfo {
 
   export const codec = (): Codec<PagingInfo> => {
     return message<PagingInfo>({
-      1: { name: "pageSize", codec: uint64 },
-      2: { name: "cursor", codec: Index.codec() },
-      3: { name: "direction", codec: PagingInfo.Direction.codec() },
+      1: { name: "pageSize", codec: uint64, optional: true },
+      2: { name: "cursor", codec: Index.codec(), optional: true },
+      3: {
+        name: "direction",
+        codec: PagingInfo.Direction.codec(),
+        optional: true,
+      },
     });
   };
 
@@ -80,13 +84,13 @@ export namespace PagingInfo {
 }
 
 export interface ContentFilter {
-  contentTopic: string;
+  contentTopic?: string;
 }
 
 export namespace ContentFilter {
   export const codec = (): Codec<ContentFilter> => {
     return message<ContentFilter>({
-      1: { name: "contentTopic", codec: string },
+      1: { name: "contentTopic", codec: string, optional: true },
     });
   };
 
@@ -133,8 +137,8 @@ export namespace HistoryQuery {
 
 export interface HistoryResponse {
   messages: WakuMessage[];
-  pagingInfo: PagingInfo;
-  error: HistoryResponse.Error;
+  pagingInfo?: PagingInfo;
+  error?: HistoryResponse.Error;
 }
 
 export namespace HistoryResponse {
@@ -157,8 +161,12 @@ export namespace HistoryResponse {
   export const codec = (): Codec<HistoryResponse> => {
     return message<HistoryResponse>({
       2: { name: "messages", codec: WakuMessage.codec(), repeats: true },
-      3: { name: "pagingInfo", codec: PagingInfo.codec() },
-      4: { name: "error", codec: HistoryResponse.Error.codec() },
+      3: { name: "pagingInfo", codec: PagingInfo.codec(), optional: true },
+      4: {
+        name: "error",
+        codec: HistoryResponse.Error.codec(),
+        optional: true,
+      },
     });
   };
 
@@ -172,7 +180,7 @@ export namespace HistoryResponse {
 }
 
 export interface HistoryRPC {
-  requestId: string;
+  requestId?: string;
   query?: HistoryQuery;
   response?: HistoryResponse;
 }
@@ -180,7 +188,7 @@ export interface HistoryRPC {
 export namespace HistoryRPC {
   export const codec = (): Codec<HistoryRPC> => {
     return message<HistoryRPC>({
-      1: { name: "requestId", codec: string },
+      1: { name: "requestId", codec: string, optional: true },
       2: { name: "query", codec: HistoryQuery.codec(), optional: true },
       3: { name: "response", codec: HistoryResponse.codec(), optional: true },
     });

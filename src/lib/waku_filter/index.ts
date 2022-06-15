@@ -73,6 +73,12 @@ export class WakuFilter {
       true
     );
 
+    const requestId = request.requestId;
+    if (!requestId)
+      throw new Error(
+        "Internal error: createRequest expected to set `requestId`"
+      );
+
     const peer = await this.getPeer(opts?.peerId);
     const stream = await this.newStream(peer);
 
@@ -90,11 +96,11 @@ export class WakuFilter {
       throw e;
     }
 
-    this.addCallback(request.requestId, callback);
+    this.addCallback(requestId, callback);
 
     return async () => {
-      await this.unsubscribe(topic, contentFilters, request.requestId, peer);
-      this.removeCallback(request.requestId);
+      await this.unsubscribe(topic, contentFilters, requestId, peer);
+      this.removeCallback(requestId);
     };
   }
 
@@ -107,7 +113,7 @@ export class WakuFilter {
         async (source: AsyncIterable<Buffer>) => {
           for await (const bytes of source) {
             const res = FilterRPC.decode(bytes.slice());
-            if (res.push?.messages?.length) {
+            if (res.requestId && res.push?.messages?.length) {
               await this.pushMessages(res.requestId, res.push.messages);
             }
           }

@@ -51,7 +51,7 @@ export class FilterRPC {
     return this.proto.push;
   }
 
-  get requestId(): string {
+  get requestId(): string | undefined {
     return this.proto.requestId;
   }
 }

@@ -15,20 +15,20 @@ import {
 import type { Codec } from "protons-runtime";
 
 export interface FilterRequest {
-  subscribe: boolean;
-  topic: string;
+  subscribe?: boolean;
+  topic?: string;
   contentFilters: FilterRequest.ContentFilter[];
 }
 
 export namespace FilterRequest {
   export interface ContentFilter {
-    contentTopic: string;
+    contentTopic?: string;
   }
 
   export namespace ContentFilter {
     export const codec = (): Codec<ContentFilter> => {
       return message<ContentFilter>({
-        1: { name: "contentTopic", codec: string },
+        1: { name: "contentTopic", codec: string, optional: true },
       });
     };
 
@@ -43,8 +43,8 @@ export namespace FilterRequest {
 
   export const codec = (): Codec<FilterRequest> => {
     return message<FilterRequest>({
-      1: { name: "subscribe", codec: bool },
-      2: { name: "topic", codec: string },
+      1: { name: "subscribe", codec: bool, optional: true },
+      2: { name: "topic", codec: string, optional: true },
       3: {
         name: "contentFilters",
         codec: FilterRequest.ContentFilter.codec(),
@@ -83,7 +83,7 @@ export namespace MessagePush {
 }
 
 export interface FilterRPC {
-  requestId: string;
+  requestId?: string;
   request?: FilterRequest;
   push?: MessagePush;
 }
@@ -91,7 +91,7 @@ export interface FilterRPC {
 export namespace FilterRPC {
   export const codec = (): Codec<FilterRPC> => {
     return message<FilterRPC>({
-      1: { name: "requestId", codec: string },
+      1: { name: "requestId", codec: string, optional: true },
       2: { name: "request", codec: FilterRequest.codec(), optional: true },
       3: { name: "push", codec: MessagePush.codec(), optional: true },
     });

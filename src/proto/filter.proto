@@ -3,12 +3,12 @@ syntax = "proto3";
 import "message.proto";
 
 message FilterRequest {
-  bool subscribe = 1;
-  string topic = 2;
+  optional bool subscribe = 1;
+  optional string topic = 2;
   repeated ContentFilter content_filters = 3;
 
   message ContentFilter {
-    string content_topic = 1;
+    optional string content_topic = 1;
   }
 }
 
@@ -17,7 +17,7 @@ message MessagePush {
 }
 
 message FilterRPC {
-  string request_id = 1;
+  optional string request_id = 1;
   optional FilterRequest request = 2;
   optional MessagePush push = 3;
 }

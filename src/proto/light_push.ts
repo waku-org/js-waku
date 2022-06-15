@@ -15,15 +15,15 @@ import {
 import type { Codec } from "protons-runtime";
 
 export interface PushRequest {
-  pubSubTopic: string;
-  message: WakuMessage;
+  pubSubTopic?: string;
+  message?: WakuMessage;
 }
 
 export namespace PushRequest {
   export const codec = (): Codec<PushRequest> => {
     return message<PushRequest>({
-      1: { name: "pubSubTopic", codec: string },
-      2: { name: "message", codec: WakuMessage.codec() },
+      1: { name: "pubSubTopic", codec: string, optional: true },
+      2: { name: "message", codec: WakuMessage.codec(), optional: true },
     });
   };
 
@@ -37,15 +37,15 @@ export namespace PushRequest {
 }
 
 export interface PushResponse {
-  isSuccess: boolean;
-  info: string;
+  isSuccess?: boolean;
+  info?: string;
 }
 
 export namespace PushResponse {
   export const codec = (): Codec<PushResponse> => {
     return message<PushResponse>({
-      1: { name: "isSuccess", codec: bool },
-      2: { name: "info", codec: string },
+      1: { name: "isSuccess", codec: bool, optional: true },
+      2: { name: "info", codec: string, optional: true },
     });
   };
 
@@ -59,7 +59,7 @@ export namespace PushResponse {
 }
 
 export interface PushRPC {
-  requestId: string;
+  requestId?: string;
   request?: PushRequest;
   response?: PushResponse;
 }
@@ -67,7 +67,7 @@ export interface PushRPC {
 export namespace PushRPC {
   export const codec = (): Codec<PushRPC> => {
     return message<PushRPC>({
-      1: { name: "requestId", codec: string },
+      1: { name: "requestId", codec: string, optional: true },
       2: { name: "request", codec: PushRequest.codec(), optional: true },
       3: { name: "response", codec: PushResponse.codec(), optional: true },
     });
