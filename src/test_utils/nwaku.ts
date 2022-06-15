@@ -249,12 +249,19 @@ export class Nwaku {
   async getAsymmetricKeyPair(): Promise<KeyPair> {
     this.checkProcess();
 
-    const { seckey, pubkey } = await this.rpcCall<{
+    const { privateKey, publicKey, seckey, pubkey } = await this.rpcCall<{
       seckey: string;
       pubkey: string;
+      privateKey: string;
+      publicKey: string;
     }>("get_waku_v2_private_v1_asymmetric_keypair", []);
 
-    return { privateKey: seckey, publicKey: pubkey };
+    // To be removed once https://github.com/vacp2p/rfc/issues/507 is fixed
+    if (seckey) {
+      return { privateKey: seckey, publicKey: pubkey };
+    } else {
+      return { privateKey, publicKey };
+    }
   }
 
   async postAsymmetricMessage(
