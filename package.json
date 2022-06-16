@@ -149,6 +149,7 @@
   "files": [
     "dist/esm",
     "dist/umd",
+    "src/*.ts",
     "src/lib/**/*.ts",
     "src/proto/**/*.ts",
     "!**/*.spec.*",
