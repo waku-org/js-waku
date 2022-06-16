@@ -7,6 +7,7 @@ export default {
   output: {
     file: "dist/cjs/index.cjs",
     format: "cjs",
+    name: "waku",
   },
   plugins: [
     commonjs(),

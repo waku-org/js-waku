@@ -7,7 +7,7 @@ export default {
   output: {
     file: "dist/umd/index.js",
     format: "umd",
-    name: "jswaku",
+    name: "waku",
   },
   plugins: [
     commonjs(),
