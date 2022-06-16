@@ -6,7 +6,8 @@
   "exports": {
     ".": {
       "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js"
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
     }
   },
   "type": "module",
@@ -23,6 +24,7 @@
   "scripts": {
     "prepare": "husky install",
     "build": "rimraf ./dist; run-s build:**",
+    "build:cjs": "tsc --module commonjs --outDir dist/cjs",
     "build:esm": "tsc && node build-scripts/fix-imports.js",
     "build:umd": "rollup --config rollup.config.js -- dist/esm/index.js",
     "build:umd:min": "terser --ecma 6 --compress --mangle -o dist/umd/index.min.js -- dist/umd/index.js && gzip -9 -c dist/umd/index.min.js > dist/umd/index.min.js.gz",
@@ -148,6 +150,7 @@
   },
   "files": [
     "dist/esm",
+    "dist/cjs",
     "dist/umd",
     "src/*.ts",
     "src/lib/**/*.ts",
