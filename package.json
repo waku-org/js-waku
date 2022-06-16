@@ -30,7 +30,7 @@
     "build:cjs": "rollup --config rollup.cjs.config.js -- dist/esm/index.js",
     "build:umd": "webpack --config webpack.umd.config.cjs",
     "build:umd:min": "terser --ecma 6 --compress --mangle -o dist/umd/index.min.js -- dist/umd/index.js && gzip -9 -c dist/umd/index.min.js > dist/umd/index.min.js.gz",
-    "size": "npm run build:esm && size-limit",
+    "size": "npm run build && size-limit",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.*js\" \".github/**/*.yml\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
@@ -172,9 +172,9 @@
   },
   "size-limit": [
     {
-      "path": "dist/esm/index.js",
+      "path": "dist/umd/index.js",
       "import": "{ Waku }",
-      "config": "./webpack.config.cjs"
+      "config": "./webpack.umd.config.cjs"
     }
   ],
   "lint-staged": {
