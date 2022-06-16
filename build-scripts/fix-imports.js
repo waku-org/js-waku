@@ -36,8 +36,16 @@ function fixImportsAtFile(filePath) {
     }
 
     const [_, importPath] = l.split(`"`);
-    const fullPath = path.join(filePath, "..", importPath);
-    const exists = fs.existsSync(fullPath);
+    let exists = true;
+    let fullPath;
+    if (importPath.startsWith(".")) {
+      fullPath = path.join(filePath, "..", importPath);
+      exists = fs.existsSync(fullPath);
+    } else {
+      fullPath = path.join(process.cwd(), "node_modules", importPath);
+      exists = fs.existsSync(fullPath);
+    }
+
     if (exists === false) {
       console.log("Update ", l);
       return l.replace(IMPORT_REGEXP, JUST_ADD_AN_EXTENSION);
