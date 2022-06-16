@@ -28,7 +28,7 @@
     "build": "rimraf ./dist; run-s build:**",
     "build:esm": "tsc && node build-scripts/fix-imports.js",
     "build:cjs": "rollup --config rollup.cjs.config.js -- dist/esm/index.js",
-    "build:umd": "rollup --config rollup.config.js -- dist/esm/index.js",
+    "build:umd": "webpack --config webpack.umd.config.cjs",
     "build:umd:min": "terser --ecma 6 --compress --mangle -o dist/umd/index.min.js -- dist/umd/index.js && gzip -9 -c dist/umd/index.min.js > dist/umd/index.min.js.gz",
     "size": "npm run build:esm && size-limit",
     "fix": "run-s fix:*",
@@ -148,7 +148,8 @@
     "ts-node": "^10.4.0",
     "typedoc": "^0.22.10",
     "typedoc-plugin-no-inherit": "^1.3.1",
-    "typescript": "^4.5.5"
+    "typescript": "^4.5.5",
+    "webpack-cli": "^4.10.0"
   },
   "files": [
     "dist/esm",

@@ -2,7 +2,7 @@ const webpack = require("webpack");
 const path = require("path");
 
 module.exports = {
-  mode: "development",
+  mode: "production",
   entry: {
     "js-waku": "./src/index.ts",
   },
@@ -31,9 +31,9 @@ module.exports = {
     },
   },
   output: {
-    filename: "[name].bundle.js",
-    path: path.resolve(__dirname, "build/umd"),
-    library: "jswaku",
+    filename: "index.js",
+    path: path.resolve(__dirname, "dist/umd"),
+    library: "waku",
     libraryTarget: "umd",
     globalObject: "this",
   },
