@@ -3,6 +3,8 @@
   "version": "0.24.0",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "types": "./dist/esm/index.d.ts",
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
   "exports": {
     ".": {
       "types": "./dist/esm/index.d.ts",
