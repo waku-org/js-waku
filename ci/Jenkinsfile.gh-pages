@@ -19,7 +19,7 @@ pipeline {
   stages {
     stage('Deps') {
       steps {
-        sh 'npm install'
+        sh 'npm ci'
       }
     }
 
@@ -64,7 +64,7 @@ pipeline {
 def buildExample(example=STAGE_NAME) {
   def dest = "${WORKSPACE}/build/docs/examples/${example}"
   dir("examples/${example}") {
-    sh 'npm install'
+    sh 'npm ci'
     sh 'npm run build'
     sh "mkdir -p ${dest}"
     sh "cp -r build/. ${dest}"
