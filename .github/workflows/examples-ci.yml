@@ -42,7 +42,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.npm
-          key: examples-node-v1-${{ hashFiles('**/package-lock.json') }}
+          key: examples-node-v1-${{ hashFiles('examples/*/package-lock.json') }}
 
       - name: (npm) ${{ matrix.example }} install using npm ci
         if: steps.use-yarn.outputs.lockfile != 'yarn.lock'
