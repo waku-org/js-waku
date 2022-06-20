@@ -1,8 +1,9 @@
+import type { PeerId } from "@libp2p/interface-peer-id";
+import type { Peer } from "@libp2p/interface-peer-store";
 import debug from "debug";
 import lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
-import Libp2p, { MuxedStream } from "libp2p";
-import { Peer, PeerId } from "libp2p/src/peer-store";
+import { Libp2p } from "libp2p";
 
 import { WakuMessage as WakuMessageProto } from "../../proto/message";
 import { DefaultPubSubTopic } from "../constants";
@@ -104,10 +105,11 @@ export class WakuFilter {
     };
   }
 
-  private async onRequest({ stream }: Libp2p.HandlerProps): Promise<void> {
+  // `any` can be removed at the next libp2p release >0.37.3
+  private onRequest({ stream }: any): void {
     log("Receiving message push");
     try {
-      await pipe(
+      pipe(
         stream.source,
         lp.decode(),
         async (source: AsyncIterable<Buffer>) => {
@@ -184,13 +186,15 @@ export class WakuFilter {
     }
   }
 
-  private async newStream(peer: Peer): Promise<MuxedStream> {
-    const connection = this.libp2p.connectionManager.get(peer.id);
-    if (!connection) {
+  // Should be able to remove any at next libp2p release >0.37.3
+  private async newStream(peer: Peer): Promise<any> {
+    const connections = this.libp2p.connectionManager.getConnections(peer.id);
+    if (!connections) {
       throw new Error("Failed to get a connection to the peer");
     }
 
-    const { stream } = await connection.newStream(FilterCodec);
+    // TODO: Appropriate connection selection
+    const { stream } = await connections[0].newStream(FilterCodec);
     return stream;
   }
 
@@ -204,7 +208,7 @@ export class WakuFilter {
         );
       }
     } else {
-      peer = await this.randomPeer;
+      peer = await this.randomPeer();
       if (!peer) {
         throw new Error(
           "Failed to find known peer that registers waku filter protocol"
@@ -238,11 +242,11 @@ export class WakuFilter {
     this.decryptionKeys.delete(hexToBytes(key));
   }
 
-  get peers(): AsyncIterable<Peer> {
+  async peers(): Promise<Peer[]> {
     return getPeersForProtocol(this.libp2p, [FilterCodec]);
   }
 
-  get randomPeer(): Promise<Peer | undefined> {
-    return selectRandomPeer(this.peers);
+  async randomPeer(): Promise<Peer | undefined> {
+    return selectRandomPeer(await this.peers());
   }
 }

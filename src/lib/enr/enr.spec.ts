@@ -1,5 +1,5 @@
+import { Multiaddr } from "@multiformats/multiaddr";
 import { assert, expect } from "chai";
-import { Multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
 import { getPublicKey } from "../crypto";

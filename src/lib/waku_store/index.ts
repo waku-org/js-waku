@@ -1,21 +1,18 @@
+import type { PeerId } from "@libp2p/interface-peer-id";
+import { Peer } from "@libp2p/interface-peer-store";
 import debug from "debug";
 import concat from "it-concat";
 import lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
-import Libp2p from "libp2p";
-import { Peer } from "libp2p/src/peer-store";
-import PeerId from "peer-id";
+import { Libp2p } from "libp2p";
 
 import * as protoV2Beta4 from "../../proto/store_v2beta4";
-import { HistoryResponse } from "../../proto/store_v2beta4";
 import { DefaultPubSubTopic, StoreCodecs } from "../constants";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { HistoryRPC, PageDirection } from "./history_rpc";
-
-import Error = HistoryResponse.Error;
 
 const dbg = debug("waku:store");
 
@@ -156,7 +153,7 @@ export class WakuStore {
       if (!peer)
         throw `Failed to retrieve connection details for provided peer in peer store: ${opts.peerId.toString()}`;
     } else {
-      peer = await this.randomPeer;
+      peer = await this.randomPeer();
       if (!peer)
         throw "Failed to find known peer that registers waku store protocol";
     }
@@ -173,8 +170,9 @@ export class WakuStore {
       throw `Peer does not register waku store protocol: ${peer.id.toString()}`;
 
     Object.assign(opts, { storeCodec });
-    const connection = this.libp2p.connectionManager.get(peer.id);
-    if (!connection) throw "Failed to get a connection to the peer";
+    const connections = this.libp2p.connectionManager.getConnections(peer.id);
+    if (!connections || !connections.length)
+      throw "Failed to get a connection to the peer";
 
     const decryptionKeys = Array.from(this.decryptionKeys).map(
       ([key, { method, contentTopics }]) => {
@@ -201,10 +199,11 @@ export class WakuStore {
     const messages: WakuMessage[] = [];
     let cursor = undefined;
     while (true) {
-      const { stream } = await connection.newStream(storeCodec);
+      // TODO: Some connection selection logic?
+      const { stream } = await connections[0].newStream(storeCodec);
       const queryOpts = Object.assign(opts, { cursor });
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
-      dbg("Querying store peer", connection.remoteAddr.toString());
+      dbg("Querying store peer", connections[0].remoteAddr.toString());
 
       const res = await pipe(
         [historyRpcQuery.encode()],
@@ -221,8 +220,8 @@ export class WakuStore {
 
       const response = reply.response as protoV2Beta4.HistoryResponse;
 
-      if (response.error && response.error !== Error.ERROR_NONE_UNSPECIFIED) {
-        throw "History response contains an Error: " + response.error;
+      if (response.error) {
+        throw "History response contains an Error" + response.error;
       }
 
       if (!response.messages || !response.messages.length) {
@@ -301,7 +300,7 @@ export class WakuStore {
    * Returns known peers from the address book (`libp2p.peerStore`) that support
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
-  get peers(): AsyncIterable<Peer> {
+  async peers(): Promise<Peer[]> {
     const codecs = [];
     for (const codec of Object.values(StoreCodecs)) {
       codecs.push(codec);
@@ -315,7 +314,7 @@ export class WakuStore {
    * book (`libp2p.peerStore`). Waku may or  may not be currently connected to
    * this peer.
    */
-  get randomPeer(): Promise<Peer | undefined> {
-    return selectRandomPeer(this.peers);
+  async randomPeer(): Promise<Peer | undefined> {
+    return selectRandomPeer(await this.peers());
   }
 }

@@ -1,5 +1,5 @@
+import { Multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
-import { Multiaddr } from "multiaddr";
 
 import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns";
 import { getPredefinedBootstrapNodes } from "./predefined";

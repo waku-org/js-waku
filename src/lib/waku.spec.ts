@@ -1,5 +1,5 @@
+import type { PeerId } from "@libp2p/interface-peer-id";
 import { expect } from "chai";
-import PeerId from "peer-id";
 
 import { Waku } from "./waku";
 
@@ -27,9 +27,12 @@ describe("Waku Dial", function () {
       });
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
-        waku.libp2p.connectionManager.on("peer:connect", (connection) => {
-          resolve(connection.remotePeer);
-        });
+        waku.libp2p.connectionManager.addEventListener(
+          "peer:connect",
+          (evt) => {
+            resolve(evt.detail.remotePeer);
+          }
+        );
       });
 
       expect(connectedPeerID).to.not.be.undefined;

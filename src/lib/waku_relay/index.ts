@@ -1,5 +1,5 @@
 import debug from "debug";
-import Libp2p from "libp2p";
+import { Libp2p } from "libp2p";
 import Gossipsub from "libp2p-gossipsub";
 import { AddrInfo, MessageIdFunction } from "libp2p-gossipsub/src/interfaces";
 import { MessageCache } from "libp2p-gossipsub/src/message-cache";

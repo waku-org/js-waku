@@ -1,9 +1,11 @@
 import * as RLP from "@ethersproject/rlp";
+import { Multiaddr } from "@multiformats/multiaddr";
+import {
+  convertToBytes,
+  convertToString,
+} from "@multiformats/multiaddr/src/convert";
+import { names } from "@multiformats/multiaddr/src/protocols-table";
 import debug from "debug";
-import { Multiaddr, protocols } from "multiaddr";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import muConvert from "multiaddr/src/convert";
 import PeerId from "peer-id";
 import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";
@@ -190,7 +192,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   get ip(): string | undefined {
     const raw = this.get("ip");
     if (raw) {
-      return muConvert.toString(protocols.names.ip4.code, raw) as string;
+      return convertToString(names.ip4.code, raw) as string;
     } else {
       return undefined;
     }
@@ -198,7 +200,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
 
   set ip(ip: string | undefined) {
     if (ip) {
-      this.set("ip", muConvert.toBytes(protocols.names.ip4.code, ip));
+      this.set("ip", convertToBytes(names.ip4.code, ip));
     } else {
       this.delete("ip");
     }
@@ -207,7 +209,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   get tcp(): number | undefined {
     const raw = this.get("tcp");
     if (raw) {
-      return Number(muConvert.toString(protocols.names.tcp.code, raw));
+      return Number(convertToString(names.tcp.code, raw));
     } else {
       return undefined;
     }
@@ -217,14 +219,14 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (port === undefined) {
       this.delete("tcp");
     } else {
-      this.set("tcp", muConvert.toBytes(protocols.names.tcp.code, port));
+      this.set("tcp", convertToBytes(names.tcp.code, port.toString(10)));
     }
   }
 
   get udp(): number | undefined {
     const raw = this.get("udp");
     if (raw) {
-      return Number(muConvert.toString(protocols.names.udp.code, raw));
+      return Number(convertToString(names.udp.code, raw));
     } else {
       return undefined;
     }
@@ -234,14 +236,14 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (port === undefined) {
       this.delete("udp");
     } else {
-      this.set("udp", muConvert.toBytes(protocols.names.udp.code, port));
+      this.set("udp", convertToBytes(names.udp.code, port.toString(10)));
     }
   }
 
   get ip6(): string | undefined {
     const raw = this.get("ip6");
     if (raw) {
-      return muConvert.toString(protocols.names.ip6.code, raw) as string;
+      return convertToString(names.ip6.code, raw) as string;
     } else {
       return undefined;
     }
@@ -249,7 +251,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
 
   set ip6(ip: string | undefined) {
     if (ip) {
-      this.set("ip6", muConvert.toBytes(protocols.names.ip6.code, ip));
+      this.set("ip6", convertToBytes(names.ip6.code, ip));
     } else {
       this.delete("ip6");
     }
@@ -258,7 +260,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   get tcp6(): number | undefined {
     const raw = this.get("tcp6");
     if (raw) {
-      return Number(muConvert.toString(protocols.names.tcp.code, raw));
+      return Number(convertToString(names.tcp.code, raw));
     } else {
       return undefined;
     }
@@ -268,14 +270,14 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (port === undefined) {
       this.delete("tcp6");
     } else {
-      this.set("tcp6", muConvert.toBytes(protocols.names.tcp.code, port));
+      this.set("tcp6", convertToBytes(names.tcp.code, port.toString(10)));
     }
   }
 
   get udp6(): number | undefined {
     const raw = this.get("udp6");
     if (raw) {
-      return Number(muConvert.toString(protocols.names.udp.code, raw));
+      return Number(convertToString(names.udp.code, raw));
     } else {
       return undefined;
     }
@@ -285,7 +287,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (port === undefined) {
       this.delete("udp6");
     } else {
-      this.set("udp6", muConvert.toBytes(protocols.names.udp.code, port));
+      this.set("udp6", convertToBytes(names.udp.code, port.toString(10)));
     }
   }
 
@@ -371,9 +373,9 @@ export class ENR extends Map<ENRKey, ENRValue> {
     //  N bytes for the ip address
     //  1 or 2 bytes for the protocol as buffer (tcp or udp)
     //  2 bytes for the port
-    const ipMa = protocols.names[isIpv6 ? "ip6" : "ip4"];
+    const ipMa = names[isIpv6 ? "ip6" : "ip4"];
     const ipByteLen = ipMa.size / 8;
-    const protoMa = protocols.names[protoName];
+    const protoMa = names[protoName];
     const protoBuf = varintEncode(protoMa.code);
     const maBuf = new Uint8Array(3 + ipByteLen + protoBuf.length);
     maBuf[0] = ipMa.code;

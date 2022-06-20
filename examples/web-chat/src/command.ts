@@ -1,4 +1,4 @@
-import { multiaddr } from "multiaddr";
+import { multiaddr } from "@multiformats/multiaddr";
 import PeerId from "peer-id";
 import { Waku } from "js-waku";
 

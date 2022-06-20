@@ -1,3 +1,4 @@
+import { PeerId } from "@libp2p/interface-peer-id";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -45,7 +46,10 @@ describe("Waku Relay [node only]", () => {
         }),
       ]);
       log("Instances started, adding waku2 to waku1's address book");
-      waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+      waku1.addPeerToAddressBook(
+        waku2.libp2p.peerId,
+        waku2.libp2p.getMultiaddrs()
+      );
 
       log("Wait for mutual pubsub subscription");
       await Promise.all([
@@ -75,7 +79,7 @@ describe("Waku Relay [node only]", () => {
     });
 
     it("Register correct protocols", async function () {
-      const protocols = Array.from(waku1.libp2p.upgrader.protocols.keys());
+      const protocols = waku1.libp2p.registrar.getProtocols();
 
       expect(protocols).to.contain("/vac/waku/relay/2.0.0");
       expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
@@ -268,8 +272,14 @@ describe("Waku Relay [node only]", () => {
         }),
       ]);
 
-      waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
-      waku3.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+      waku1.addPeerToAddressBook(
+        waku2.libp2p.peerId,
+        waku2.libp2p.getMultiaddrs()
+      );
+      waku3.addPeerToAddressBook(
+        waku2.libp2p.peerId,
+        waku2.libp2p.getMultiaddrs()
+      );
 
       await Promise.all([
         waku1.waitForRemotePeer([Protocols.Relay]),
@@ -330,7 +340,7 @@ describe("Waku Relay [node only]", () => {
     });
 
     it("nwaku subscribes", async function () {
-      let subscribers: string[] = [];
+      let subscribers: PeerId[] = [];
 
       while (subscribers.length === 0) {
         await delay(200);

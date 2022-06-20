@@ -1,5 +1,5 @@
+import type { PeerId } from "@libp2p/interface-peer-id";
 import { expect } from "chai";
-import PeerId from "peer-id";
 
 import {
   makeLogFileName,
@@ -64,9 +64,12 @@ describe("Waku Dial [node only]", function () {
       });
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
-        waku.libp2p.connectionManager.on("peer:connect", (connection) => {
-          resolve(connection.remotePeer);
-        });
+        waku.libp2p.connectionManager.addEventListener(
+          "peer:connect",
+          (evt) => {
+            resolve(evt.detail.remotePeer);
+          }
+        );
       });
 
       expect(connectedPeerID.toString()).to.eq(multiAddrWithId.getPeerId());
@@ -88,9 +91,12 @@ describe("Waku Dial [node only]", function () {
       });
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
-        waku.libp2p.connectionManager.on("peer:connect", (connection) => {
-          resolve(connection.remotePeer);
-        });
+        waku.libp2p.connectionManager.addEventListener(
+          "peer:connect",
+          (evt) => {
+            resolve(evt.detail.remotePeer);
+          }
+        );
       });
 
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
@@ -118,7 +124,10 @@ describe("Decryption Keys", () => {
       }),
     ]);
 
-    waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+    waku1.addPeerToAddressBook(
+      waku2.libp2p.peerId,
+      waku2.libp2p.getMultiaddrs()
+    );
 
     await Promise.all([
       waku1.waitForRemotePeer([Protocols.Relay]),
@@ -247,11 +256,7 @@ describe("Wait for remote peer / get peers", function () {
     await delay(1000);
     await waku.waitForRemotePeer([Protocols.Store]);
 
-    const peers = [];
-    for await (const peer of waku.store.peers) {
-      peers.push(peer.id.toString());
-    }
-
+    const peers = (await waku.store.peers()).map((peer) => peer.id.toString());
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -272,10 +277,7 @@ describe("Wait for remote peer / get peers", function () {
     await waku.dial(multiAddrWithId);
     await waitPromise;
 
-    const peers = [];
-    for await (const peer of waku.store.peers) {
-      peers.push(peer.id.toString());
-    }
+    const peers = (await waku.store.peers()).map((peer) => peer.id.toString());
 
     const nimPeerId = multiAddrWithId.getPeerId();
 
@@ -295,10 +297,9 @@ describe("Wait for remote peer / get peers", function () {
     await waku.dial(multiAddrWithId);
     await waku.waitForRemotePeer([Protocols.LightPush]);
 
-    const peers = [];
-    for await (const peer of waku.lightPush.peers) {
-      peers.push(peer.id.toString());
-    }
+    const peers = (await waku.lightPush.peers()).map((peer) =>
+      peer.id.toString()
+    );
 
     const nimPeerId = multiAddrWithId.getPeerId();
 
@@ -318,10 +319,7 @@ describe("Wait for remote peer / get peers", function () {
     await waku.dial(multiAddrWithId);
     await waku.waitForRemotePeer([Protocols.Filter]);
 
-    const peers = [];
-    for await (const peer of waku.filter.peers) {
-      peers.push(peer.id.toString());
-    }
+    const peers = (await waku.filter.peers()).map((peer) => peer.id.toString());
 
     const nimPeerId = multiAddrWithId.getPeerId();
 

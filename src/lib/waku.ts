@@ -1,6 +1,8 @@
 import { Noise } from "@chainsafe/libp2p-noise";
+import type { PeerId } from "@libp2p/interface-peer-id";
+import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
-import Libp2p, { Connection, Libp2pModules, Libp2pOptions } from "libp2p";
+import { createLibp2p, Libp2p, Libp2pOptions } from "libp2p";
 import Libp2pBootstrap from "libp2p-bootstrap";
 import { MuxedStream } from "libp2p-interfaces/dist/src/stream-muxer/types";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -13,8 +15,6 @@ import Websockets from "libp2p-websockets";
 // @ts-ignore: No types available
 import filters from "libp2p-websockets/src/filters";
 import PingService from "libp2p/src/ping";
-import { Multiaddr, multiaddr } from "multiaddr";
-import PeerId from "peer-id";
 
 import { Bootstrap, BootstrapOptions } from "./discovery";
 import { FilterCodec, WakuFilter } from "./waku_filter";
@@ -74,9 +74,7 @@ export interface CreateOptions {
    * allowing its omission and letting Waku set good defaults.
    * Notes that some values are overridden by {@link Waku} to ensure it implements the Waku protocol.
    */
-  libp2p?: Omit<Libp2pOptions & import("libp2p").CreateOptions, "modules"> & {
-    modules?: Partial<Libp2pModules>;
-  };
+  libp2p?: Partial<Libp2pOptions>;
   /**
    * Byte array used as key for the noise protocol used for connection encryption
    * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
@@ -129,7 +127,8 @@ export class Waku {
     const relayKeepAlive =
       options.relayKeepAlive || DefaultRelayKeepAliveValueSecs;
 
-    libp2p.connectionManager.on("peer:connect", (connection: Connection) => {
+    libp2p.connectionManager.addEventListener("peer:connect", (evt) => {
+      const { detail: connection } = evt;
       this.startKeepAlive(connection.remotePeer, pingKeepAlive, relayKeepAlive);
     });
 
@@ -144,7 +143,8 @@ export class Waku {
      * >this event will **only** be triggered when the last connection is closed.
      * @see https://github.com/libp2p/js-libp2p/blob/bad9e8c0ff58d60a78314077720c82ae331cc55b/doc/API.md?plain=1#L2100
      */
-    libp2p.connectionManager.on("peer:disconnect", (connection: Connection) => {
+    libp2p.connectionManager.addEventListener("peer:disconnect", (evt) => {
+      const { detail: connection } = evt;
       this.stopKeepAlive(connection.remotePeer);
     });
 
@@ -158,11 +158,10 @@ export class Waku {
    */
   static async create(options?: CreateOptions): Promise<Waku> {
     // Get an object in case options or libp2p are undefined
-    const libp2pOpts = Object.assign({}, options?.libp2p);
 
     // Default for Websocket filter is `all`:
     // Returns all TCP and DNS based addresses, both with ws or wss.
-    libp2pOpts.config = Object.assign(
+    const libp2pOpts: Partial<Libp2pOptions> | undefined = Object.assign(
       {
         transport: {
           [websocketsTransportKey]: {
@@ -170,34 +169,20 @@ export class Waku {
           },
         },
       },
-      options?.libp2p?.config
+      options?.libp2p
     );
 
+    // TODO: Pass self-emit?
     // Pass pubsub topic to relay
-    if (options?.pubSubTopic) {
-      libp2pOpts.config.pubsub = Object.assign(
-        { pubSubTopic: options.pubSubTopic },
-        libp2pOpts.config.pubsub
-      );
-    }
-
-    libp2pOpts.modules = Object.assign({}, options?.libp2p?.modules);
+    libp2pOpts.pubsub = new WakuRelay({ pubSubTopic: options?.pubSubTopic });
 
     // Default transport for libp2p is Websockets
-    libp2pOpts.modules = Object.assign(
-      {
-        transport: [Websockets],
-      },
-      options?.libp2p?.modules
-    );
+    libp2pOpts.transports = options?.libp2p?.transports ?? [Websockets];
 
     // streamMuxer, connection encryption and pubsub are overridden
     // as those are the only ones currently supported by Waku nodes.
-    libp2pOpts.modules = Object.assign(libp2pOpts.modules, {
-      streamMuxer: [Mplex],
-      connEncryption: [new Noise(options?.staticNoiseKey)],
-      pubsub: WakuRelay,
-    });
+    libp2pOpts.streamMuxers = [Mplex];
+    libp2pOpts.connectionEncryption = [new Noise(options?.staticNoiseKey)];
 
     if (options?.bootstrap) {
       const bootstrap = new Bootstrap(options?.bootstrap);
@@ -225,7 +210,7 @@ export class Waku {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore: modules property is correctly set thanks to voodoo
-    const libp2p = await Libp2p.create(libp2pOpts);
+    const libp2p = await createLibp2p(libp2pOpts);
 
     const wakuStore = new WakuStore(libp2p, {
       pubSubTopic: options?.pubSubTopic,

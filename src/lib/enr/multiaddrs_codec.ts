@@ -1,4 +1,4 @@
-import { Multiaddr } from "multiaddr";
+import { Multiaddr } from "@multiformats/multiaddr";
 
 import { MULTIADDR_LENGTH_SIZE } from "./constants";
 

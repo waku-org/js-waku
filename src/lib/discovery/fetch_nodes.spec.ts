@@ -1,5 +1,5 @@
+import { Multiaddr } from "@multiformats/multiaddr";
 import { expect } from "chai";
-import { Multiaddr } from "multiaddr";
 import PeerId from "peer-id";
 
 import { ENR, Waku2 } from "../enr";
