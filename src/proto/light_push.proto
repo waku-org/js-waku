@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "message.proto";
+
+message PushRequest {
+  optional string pub_sub_topic = 1;
+  optional WakuMessage message = 2;
+}
+
+message PushResponse {
+  optional bool is_success = 1;
+  optional string info = 2;
+}
+
+message PushRPC {
+  optional string request_id = 1;
+  optional PushRequest request = 2;
+  optional PushResponse response = 3;
+}

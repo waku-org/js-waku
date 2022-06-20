@@ -1,7 +1,7 @@
 import nodeCrypto from "crypto";
 
 import * as secp from "@noble/secp256k1";
-import * as sha3 from "js-sha3";
+import sha3 from "js-sha3";
 import { concat } from "uint8arrays/concat";
 
 import { Asymmetric, Symmetric } from "./waku_message/constants";

@@ -11,4 +11,5 @@ jobs:
       - uses: actions/checkout@v1
       - uses: andresz1/size-limit-action@v1
         with:
+          skip_step: build # Done in the package.json script
           github_token: ${{ secrets.GITHUB_TOKEN }}

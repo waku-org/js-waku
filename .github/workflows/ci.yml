@@ -42,18 +42,6 @@ jobs:
           cd nim-waku/build
           ./wakunode2 --help
 
-      - name: Install bufbuild
-        uses: mathematic-inc/setup-buf@v2beta
-        with:
-          buf-version: ${{ env.BUF_VERSION }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-        with:
-          version: "3.x"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Cache npm cache
         uses: actions/cache@v2
         with:
@@ -64,7 +52,9 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Generate protobuf code
-        run: npm run proto
+        run: |
+          npm run proto
+          npm run fix
 
       - name: Check all protobuf code was committed
         shell: bash
@@ -75,11 +65,6 @@ jobs:
 
       - name: build
         run: npm run build
-
-      - name: Check no proto files changed
-        shell: bash
-        run: |
-          [ $(git status --short --ignore-submodules|wc -l) -eq 0 ]
 
       - name: test
         env:

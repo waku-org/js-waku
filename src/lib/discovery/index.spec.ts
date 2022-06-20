@@ -3,13 +3,6 @@ import { expect } from "chai";
 import { fleets } from "./predefined";
 import { getPseudoRandomSubset } from "./random_subset";
 
-declare global {
-  interface Window {
-    __env__?: any;
-  }
-}
-declare let window: Window | undefined;
-
 describe("Discovery", () => {
   it("returns all values when wanted number matches available values", function () {
     const values = ["a", "b", "c"];
@@ -44,7 +37,7 @@ describe("Discovery", () => {
 
 describe("Discovery [live data]", function () {
   before(function () {
-    if (process.env.CI || window?.__env__?.CI) {
+    if (process.env.CI) {
       this.skip();
     }
   });

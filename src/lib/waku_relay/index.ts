@@ -78,7 +78,7 @@ export class WakuRelay extends Gossipsub {
   ) {
     super(
       libp2p,
-      Object.assign(options, {
+      Object.assign(options ?? {}, {
         // Ensure that no signature is included nor expected in the messages.
         globalSignaturePolicy: SignaturePolicy.StrictNoSign,
       })

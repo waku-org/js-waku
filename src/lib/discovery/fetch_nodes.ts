@@ -1,4 +1,4 @@
-import { debug } from "debug";
+import debug from "debug";
 
 import { ENR, Waku2 } from "../enr";
 

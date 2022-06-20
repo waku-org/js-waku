@@ -1,7 +1,6 @@
-import { Reader } from "protobufjs/minimal";
 import { v4 as uuid } from "uuid";
 
-import * as proto from "../../proto/waku/v2/filter";
+import * as proto from "../../proto/filter";
 
 export type ContentFilter = {
   contentTopic: string;
@@ -36,7 +35,7 @@ export class FilterRPC {
    * @returns FilterRPC
    */
   static decode(bytes: Uint8Array): FilterRPC {
-    const res = proto.FilterRPC.decode(Reader.create(bytes));
+    const res = proto.FilterRPC.decode(bytes);
     return new FilterRPC(res);
   }
 
@@ -45,14 +44,14 @@ export class FilterRPC {
    * @returns Uint8Array
    */
   encode(): Uint8Array {
-    return proto.FilterRPC.encode(this.proto).finish();
+    return proto.FilterRPC.encode(this.proto);
   }
 
   get push(): proto.MessagePush | undefined {
     return this.proto.push;
   }
 
-  get requestId(): string {
+  get requestId(): string | undefined {
     return this.proto.requestId;
   }
 }

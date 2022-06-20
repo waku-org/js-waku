@@ -2,6 +2,7 @@
 .nyc_output
 .angular
 build
+dist
 node_modules
 src/**.js
 coverage
