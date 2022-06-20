@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Published files moved from `build` to `dist/`.
 - Migrate from ts-proto to protons;
   the latter does not bring Buffer/Long deps, is ESM compatible and remove the need for bufbuild and protoc.
+- Move package to `"type": "module"`.
+- Use ESM code in Mocha and Karma tests.
 
 ## [0.24.0] - 2022-05-27
 
