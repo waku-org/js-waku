@@ -22,7 +22,7 @@
     "@angular/router": "~13.2.0",
     "crypto-browserify": "^3.12.0",
     "js-waku": "^0.19.2",
-    "protons": "^2.0.3",
+    "protons": "^3.0.4",
     "rxjs": "~7.5.0",
     "stream-browserify": "^3.0.0",
     "tslib": "^2.3.0",
