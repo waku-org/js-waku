@@ -201,7 +201,7 @@ describe("Wait for remote peer / get peers", function () {
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
-    expect(peers.has(nimPeerId as string)).to.be.true;
+    expect(peers).to.includes(nimPeerId);
   });
 
   it("Relay - dialed after", async function () {
@@ -219,11 +219,12 @@ describe("Wait for remote peer / get peers", function () {
     await waku.dial(multiAddrWithId);
     await waitPromise;
 
+    // TODO: Should getMeshPeers be used instead?
     const peers = waku.relay.getPeers();
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
-    expect(peers.has(nimPeerId as string)).to.be.true;
+    expect(peers).includes(nimPeerId);
   });
 
   it("Relay - times out", function (done) {

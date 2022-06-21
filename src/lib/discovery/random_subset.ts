@@ -1,4 +1,4 @@
-import { shuffle } from "libp2p-gossipsub/src/utils/index";
+import { shuffle } from "@chainsafe/libp2p-gossipsub/utils/shuffle";
 
 export function getPseudoRandomSubset<T>(
   values: T[],

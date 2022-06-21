@@ -128,8 +128,7 @@ export class Waku {
       options.relayKeepAlive || DefaultRelayKeepAliveValueSecs;
 
     libp2p.connectionManager.addEventListener("peer:connect", (evt) => {
-      const { detail: connection } = evt;
-      this.startKeepAlive(connection.remotePeer, pingKeepAlive, relayKeepAlive);
+      this.startKeepAlive(evt.detail.remotePeer, pingKeepAlive, relayKeepAlive);
     });
 
     /**
@@ -144,8 +143,7 @@ export class Waku {
      * @see https://github.com/libp2p/js-libp2p/blob/bad9e8c0ff58d60a78314077720c82ae331cc55b/doc/API.md?plain=1#L2100
      */
     libp2p.connectionManager.addEventListener("peer:disconnect", (evt) => {
-      const { detail: connection } = evt;
-      this.stopKeepAlive(connection.remotePeer);
+      this.stopKeepAlive(evt.detail.remotePeer);
     });
 
     options?.decryptionKeys?.forEach((key) => {
@@ -372,10 +370,21 @@ export class Waku {
 
     if (protocols.includes(Protocols.Store)) {
       const storePromise = (async (): Promise<void> => {
-        for await (const peer of this.store.peers) {
-          dbg("Store peer found", peer.id.toString());
-          break;
+        const peers = await this.store.peers();
+
+        if (peers.length) {
+          dbg("Store peer found: ", peers[0].id.toString());
+          return;
         }
+
+        await new Promise<void>((resolve) => {
+          this.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
+            if (evt.detail.protocols.includes(LightPushCodec)) {
+              dbg("Resolving for", LightPushCodec, evt.detail.protocols);
+              resolve();
+            }
+          });
+        });
       })();
       promises.push(storePromise);
     }
