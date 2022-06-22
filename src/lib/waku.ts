@@ -1,19 +1,13 @@
 import { Noise } from "@chainsafe/libp2p-noise";
 import type { PeerId } from "@libp2p/interface-peer-id";
+import { MuxedStream } from "@libp2p/interfaces/stream-muxer/types";
+import { Mplex } from "@libp2p/mplex";
+import { WebSockets } from "@libp2p/websockets";
+import filters from "@libp2p/websockets/filters";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
 import { createLibp2p, Libp2p, Libp2pOptions } from "libp2p";
 import Libp2pBootstrap from "libp2p-bootstrap";
-import { MuxedStream } from "libp2p-interfaces/dist/src/stream-muxer/types";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import Mplex from "libp2p-mplex";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import Websockets from "libp2p-websockets";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import filters from "libp2p-websockets/src/filters";
 import PingService from "libp2p/src/ping";
 
 import { Bootstrap, BootstrapOptions } from "./discovery";
@@ -23,8 +17,6 @@ import { DecryptionMethod, WakuMessage } from "./waku_message";
 import { WakuRelay } from "./waku_relay";
 import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
 import { StoreCodecs, WakuStore } from "./waku_store";
-
-const websocketsTransportKey = Websockets.prototype[Symbol.toStringTag];
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -91,6 +83,35 @@ export interface CreateOptions {
    */
   bootstrap?: BootstrapOptions;
   decryptionKeys?: Array<Uint8Array | string>;
+}
+
+export async function createWaku(): Promise<Waku> {
+  const libp2pOpts = {
+    transports: new WebSockets({ filter: filters.all }),
+    streamMuxers: [new Mplex()],
+    pubsub: new WakuRelay(),
+    connectionEncryption: [new Noise()],
+  };
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore: modules property is correctly set thanks to voodoo
+  const libp2p = await createLibp2p(libp2pOpts);
+
+  const wakuStore = new WakuStore(libp2p, {
+    pubSubTopic: options?.pubSubTopic,
+  });
+  const wakuLightPush = new WakuLightPush(libp2p);
+  const wakuFilter = new WakuFilter(libp2p);
+
+  await libp2p.start();
+
+  return new Waku(
+    options ? options : {},
+    libp2p,
+    wakuStore,
+    wakuLightPush,
+    wakuFilter
+  );
 }
 
 export class Waku {
