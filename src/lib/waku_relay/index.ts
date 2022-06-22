@@ -3,6 +3,10 @@ import {
   GossipsubMessage,
   GossipsubOpts,
 } from "@chainsafe/libp2p-gossipsub";
+import {
+  PeerIdStr,
+  TopicStr,
+} from "@chainsafe/libp2p-gossipsub/dist/src/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import debug from "debug";
 
@@ -204,6 +208,10 @@ export class WakuRelay extends GossipSub {
     );
 
     super.subscribe(pubSubTopic);
+  }
+
+  getMeshPeers(topic?: TopicStr): PeerIdStr[] {
+    return super.getMeshPeers(topic ?? DefaultPubSubTopic);
   }
 
   // TODO: Implement method that uses Relay codec

@@ -83,8 +83,9 @@ export class Bootstrap
   private timer?: ReturnType<typeof setInterval>;
   private readonly interval: number;
 
-  constructor(opts: BootstrapOptions) {
+  constructor(opts?: BootstrapOptions) {
     super();
+    opts = opts ?? {};
 
     const methods = [
       !!opts.default,
