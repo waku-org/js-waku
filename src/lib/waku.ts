@@ -8,7 +8,6 @@ import filters from "@libp2p/websockets/filters";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
 import { createLibp2p, Libp2p, Libp2pOptions } from "libp2p";
-import PingService from "libp2p/src/ping";
 
 import { Bootstrap, BootstrapOptions } from "./discovery";
 import { FilterCodec, WakuFilter } from "./waku_filter";
@@ -181,7 +180,7 @@ export class Waku {
    * @param protocols Waku protocols we expect from the peer; Default to Relay
    */
   async dial(
-    peer: PeerId | Multiaddr | string,
+    peer: PeerId | Multiaddr,
     protocols?: Protocols[]
   ): Promise<{
     stream: MuxedStream;
@@ -404,9 +403,8 @@ export class Waku {
     const peerIdStr = peerId.toString();
 
     if (pingPeriodSecs !== 0) {
-      const pingService = new PingService(this.libp2p);
       this.pingKeepAliveTimers[peerIdStr] = setInterval(() => {
-        pingService.ping(peerId).catch((e) => {
+        this.libp2p.ping(peerId).catch((e) => {
           dbg(`Ping failed (${peerIdStr})`, e);
         });
       }, pingPeriodSecs * 1000);
