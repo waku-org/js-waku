@@ -82,5 +82,9 @@ export async function createKeypairFromPeerId(
     ? await unmarshalPrivateKey(peerId.privateKey)
     : undefined;
 
-  return createKeypair(keypairType, privateKey?.bytes, publicKey?.bytes);
+  return createKeypair(
+    keypairType,
+    privateKey?.marshal(),
+    publicKey?.marshal()
+  );
 }
