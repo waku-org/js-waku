@@ -1,9 +1,5 @@
-import {
-  marshalPrivateKey,
-  marshalPublicKey,
-  unmarshalPrivateKey,
-  unmarshalPublicKey,
-} from "@libp2p/crypto/keys";
+import { unmarshalPrivateKey, unmarshalPublicKey } from "@libp2p/crypto/keys";
+import { supportedKeys } from "@libp2p/crypto/keys";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { peerIdFromKeys } from "@libp2p/peer-id";
 
@@ -42,15 +38,15 @@ export async function createPeerIdFromKeypair(
 ): Promise<PeerId> {
   switch (keypair.type) {
     case KeypairType.secp256k1: {
-      // manually create a peer id to avoid expensive ops
+      const publicKey = new supportedKeys.secp256k1.Secp256k1PublicKey(
+        keypair.publicKey
+      );
+
       const privateKey = keypair.hasPrivateKey()
-        ? marshalPrivateKey({ bytes: keypair.privateKey })
+        ? new supportedKeys.secp256k1.Secp256k1PrivateKey(keypair.privateKey)
         : undefined;
 
-      return peerIdFromKeys(
-        marshalPublicKey({ bytes: keypair.publicKey }),
-        privateKey
-      );
+      return peerIdFromKeys(publicKey.bytes, privateKey?.bytes);
     }
     default:
       throw new Error(ERR_TYPE_NOT_IMPLEMENTED);
