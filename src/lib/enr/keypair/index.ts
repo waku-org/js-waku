@@ -1,16 +1,20 @@
-import { keys } from "libp2p-crypto";
-import { identity } from "multiformats/hashes/identity";
-import PeerId from "peer-id";
+import {
+  marshalPrivateKey,
+  marshalPublicKey,
+  unmarshalPrivateKey,
+  unmarshalPublicKey,
+} from "@libp2p/crypto/keys";
+import type { PeerId } from "@libp2p/interface-peer-id";
+import { peerIdFromKeys } from "@libp2p/peer-id";
 
 import { Secp256k1Keypair } from "./secp256k1";
 import { IKeypair, KeypairType } from "./types";
-
-const { keysPBM, supportedKeys } = keys;
 
 export const ERR_TYPE_NOT_IMPLEMENTED = "Keypair type not implemented";
 export * from "./types";
 export * from "./secp256k1";
 
+// TODO: Check if @libp2p/crypto methods can be used instead.
 export async function generateKeypair(type: KeypairType): Promise<IKeypair> {
   switch (type) {
     case KeypairType.secp256k1:
@@ -39,30 +43,44 @@ export async function createPeerIdFromKeypair(
   switch (keypair.type) {
     case KeypairType.secp256k1: {
       // manually create a peer id to avoid expensive ops
-      const privKey = keypair.hasPrivateKey()
-        ? new supportedKeys.secp256k1.Secp256k1PrivateKey(
-            keypair.privateKey,
-            keypair.publicKey
-          )
+      const privateKey = keypair.hasPrivateKey()
+        ? marshalPrivateKey({ bytes: keypair.privateKey })
         : undefined;
 
-      const pubKey = new supportedKeys.secp256k1.Secp256k1PublicKey(
-        keypair.publicKey
+      return peerIdFromKeys(
+        marshalPublicKey({ bytes: keypair.publicKey }),
+        privateKey
       );
-      const id = await identity.digest(pubKey.bytes);
-      return new PeerId(id.bytes, privKey, pubKey);
     }
     default:
       throw new Error(ERR_TYPE_NOT_IMPLEMENTED);
   }
 }
 
-export function createKeypairFromPeerId(peerId: PeerId): IKeypair {
-  // pub/private key bytes from peer-id are encoded in protobuf format
-  const pub = keysPBM.PublicKey.decode(peerId.pubKey.bytes);
-  return createKeypair(
-    pub.Type as KeypairType,
-    peerId.privKey ? peerId.privKey.marshal() : undefined,
-    pub.Data
-  );
+export async function createKeypairFromPeerId(
+  peerId: PeerId
+): Promise<IKeypair> {
+  let keypairType;
+  switch (peerId.type) {
+    case "RSA":
+      keypairType = KeypairType.rsa;
+      break;
+    case "Ed25519":
+      keypairType = KeypairType.ed25519;
+      break;
+    case "secp256k1":
+      keypairType = KeypairType.secp256k1;
+      break;
+    default:
+      throw new Error("Unsupported peer id type");
+  }
+
+  const publicKey = peerId.publicKey
+    ? unmarshalPublicKey(peerId.publicKey)
+    : undefined;
+  const privateKey = peerId.privateKey
+    ? await unmarshalPrivateKey(peerId.privateKey)
+    : undefined;
+
+  return createKeypair(keypairType, privateKey?.bytes, publicKey?.bytes);
 }

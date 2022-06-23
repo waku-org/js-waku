@@ -12,7 +12,7 @@ import {
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
-import { Protocols, Waku } from "../waku";
+import { createWaku, Protocols, Waku } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { PageDirection } from "./history_rpc";
@@ -46,9 +46,10 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await Waku.create({
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
     const messages = await waku.store.queryHistory([]);
@@ -78,9 +79,10 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await Waku.create({
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
 
@@ -117,9 +119,10 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await Waku.create({
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
 
@@ -153,9 +156,10 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await Waku.create({
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
 
@@ -191,10 +195,11 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await Waku.create({
+    waku = await createWaku({
       pubSubTopic: customPubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
 
@@ -259,12 +264,12 @@ describe("Waku Store", () => {
     dbg("Messages have been encrypted");
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
-      Waku.create({
+      createWaku({
         staticNoiseKey: NOISE_KEY_1,
-      }),
-      Waku.create({
+      }).then((waku) => waku.start().then(() => waku)),
+      createWaku({
         staticNoiseKey: NOISE_KEY_2,
-      }),
+      }).then((waku) => waku.start().then(() => waku)),
       nwaku.getMultiaddrWithId(),
     ]);
 
@@ -363,12 +368,12 @@ describe("Waku Store", () => {
     dbg("Messages have been encrypted");
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
-      Waku.create({
+      createWaku({
         staticNoiseKey: NOISE_KEY_1,
-      }),
-      Waku.create({
+      }).then((waku) => waku.start().then(() => waku)),
+      createWaku({
         staticNoiseKey: NOISE_KEY_2,
-      }),
+      }).then((waku) => waku.start().then(() => waku)),
       nwaku.getMultiaddrWithId(),
     ]);
 
@@ -450,9 +455,10 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await Waku.create({
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Store]);
 

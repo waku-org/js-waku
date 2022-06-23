@@ -1,4 +1,5 @@
 import * as RLP from "@ethersproject/rlp";
+import type { PeerId } from "@libp2p/interface-peer-id";
 import { Multiaddr } from "@multiformats/multiaddr";
 import {
   convertToBytes,
@@ -6,7 +7,6 @@ import {
 } from "@multiformats/multiaddr/src/convert";
 import { names } from "@multiformats/multiaddr/src/protocols-table";
 import debug from "debug";
-import PeerId from "peer-id";
 import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";
 import { encode as varintEncode } from "varint";
@@ -79,11 +79,11 @@ export class ENR extends Map<ENRKey, ENRValue> {
     });
   }
 
-  static createFromPeerId(
+  static async createFromPeerId(
     peerId: PeerId,
     kvs: Record<ENRKey, ENRValue> = {}
   ): Promise<ENR> {
-    const keypair = createKeypairFromPeerId(peerId);
+    const keypair = await createKeypairFromPeerId(peerId);
     switch (keypair.type) {
       case KeypairType.secp256k1:
         return ENR.createV4(keypair.publicKey, kvs);

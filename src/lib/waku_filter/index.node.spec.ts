@@ -3,7 +3,7 @@ import debug from "debug";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { Protocols, Waku } from "../waku";
+import { createWaku, Protocols, Waku } from "../waku";
 import { WakuMessage } from "../waku_message";
 
 const log = debug("waku:test");
@@ -23,10 +23,11 @@ describe("Waku Filter", () => {
     this.timeout(10000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ filter: true });
-    waku = await Waku.create({
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     });
+    await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.Filter, Protocols.Relay]);
   });

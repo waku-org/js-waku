@@ -168,10 +168,6 @@ export class Waku {
     });
   }
 
-  start(): void {
-    this.libp2p.start();
-  }
-
   /**
    * Dials to the provided peer.
    *
@@ -223,6 +219,10 @@ export class Waku {
       }
     });
     this.libp2p.peerStore.addressBook.set(peer, addresses);
+  }
+
+  async start(): Promise<void> {
+    await this.libp2p.start();
   }
 
   async stop(): Promise<void> {
@@ -444,9 +444,10 @@ export class Waku {
 const awaitTimeout = (ms: number, rejectReason: string): Promise<void> =>
   new Promise((_resolve, reject) => setTimeout(() => reject(rejectReason), ms));
 
-const rejectOnTimeout = (
-  promise: Promise<any>,
+async function rejectOnTimeout<T>(
+  promise: Promise<T>,
   timeoutMs: number,
   rejectReason: string
-): Promise<void> =>
-  Promise.race([promise, awaitTimeout(timeoutMs, rejectReason)]);
+): Promise<void> {
+  await Promise.race([promise, awaitTimeout(timeoutMs, rejectReason)]);
+}

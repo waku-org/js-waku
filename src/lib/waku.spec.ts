@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { expect } from "chai";
 
-import { Waku } from "./waku";
+import { createWaku, Waku } from "./waku";
 
 describe("Waku Dial", function () {
   describe("Bootstrap [live data]", function () {
@@ -22,9 +22,10 @@ describe("Waku Dial", function () {
       // This dependence must be removed once DNS discovery is implemented
       this.timeout(20_000);
 
-      waku = await Waku.create({
+      waku = await createWaku({
         bootstrap: { default: true },
       });
+      await waku.start();
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
         waku.libp2p.connectionManager.addEventListener(

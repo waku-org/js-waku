@@ -14,7 +14,7 @@ import {
   getPublicKey,
 } from "../crypto";
 import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
-import { Protocols, Waku } from "../waku";
+import { createWaku, Protocols, Waku } from "../waku";
 
 import { DecryptionMethod, WakuMessage } from "./index";
 
@@ -29,9 +29,10 @@ describe("Waku Message [node only]", function () {
 
     beforeEach(async function () {
       this.timeout(30_000);
-      waku = await Waku.create({
+      waku = await createWaku({
         staticNoiseKey: NOISE_KEY_1,
       });
+      await waku.start();
 
       nwaku = new Nwaku(makeLogFileName(this));
       dbg("Starting nwaku node");

@@ -15,7 +15,7 @@ import {
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
-import { Protocols, Waku } from "../waku";
+import { createWaku, Protocols, Waku } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 const log = debug("waku:test");
@@ -39,11 +39,13 @@ describe("Waku Relay [node only]", () => {
 
       log("Starting JS Waku instances");
       [waku1, waku2] = await Promise.all([
-        Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
-        Waku.create({
+        createWaku({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
+          waku.start().then(() => waku)
+        ),
+        createWaku({
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-        }),
+        }).then((waku) => waku.start().then(() => waku)),
       ]);
       log("Instances started, adding waku2 to waku1's address book");
       waku1.addPeerToAddressBook(
@@ -258,18 +260,18 @@ describe("Waku Relay [node only]", () => {
 
       // 1 and 2 uses a custom pubsub
       const [waku1, waku2, waku3] = await Promise.all([
-        Waku.create({
+        createWaku({
           pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_1,
-        }),
-        Waku.create({
+        }).then((waku) => waku.start().then(() => waku)),
+        createWaku({
           pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-        }),
-        Waku.create({
+        }).then((waku) => waku.start().then(() => waku)),
+        createWaku({
           staticNoiseKey: NOISE_KEY_2,
-        }),
+        }).then((waku) => waku.start().then(() => waku)),
       ]);
 
       waku1.addPeerToAddressBook(
@@ -323,9 +325,10 @@ describe("Waku Relay [node only]", () => {
 
     beforeEach(async function () {
       this.timeout(30_000);
-      waku = await Waku.create({
+      waku = await createWaku({
         staticNoiseKey: NOISE_KEY_1,
       });
+      await waku.start();
 
       nwaku = new Nwaku(this.test?.ctx?.currentTest?.title + "");
       await nwaku.start();
@@ -415,12 +418,12 @@ describe("Waku Relay [node only]", () => {
       it("Js publishes, other Js receives", async function () {
         this.timeout(60_000);
         [waku1, waku2] = await Promise.all([
-          Waku.create({
+          createWaku({
             staticNoiseKey: NOISE_KEY_1,
-          }),
-          Waku.create({
+          }).then((waku) => waku.start().then(() => waku)),
+          createWaku({
             staticNoiseKey: NOISE_KEY_2,
-          }),
+          }).then((waku) => waku.start().then(() => waku)),
         ]);
 
         nwaku = new Nwaku(makeLogFileName(this));

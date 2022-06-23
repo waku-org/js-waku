@@ -1,13 +1,13 @@
+import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { Multiaddr } from "@multiformats/multiaddr";
 import { expect } from "chai";
-import PeerId from "peer-id";
 
 import { ENR, Waku2 } from "../enr";
 
 import fetchNodesUntilCapabilitiesFulfilled from "./fetch_nodes";
 
 async function createEnr(waku2: Waku2): Promise<ENR> {
-  const peerId = await PeerId.create({ keyType: "secp256k1" });
+  const peerId = await createSecp256k1PeerId();
   const enr = await ENR.createFromPeerId(peerId);
   enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
   enr.multiaddrs = [

@@ -3,7 +3,7 @@ import debug from "debug";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { Protocols, Waku } from "../waku";
+import { createWaku, Protocols, Waku } from "../waku";
 import { WakuMessage } from "../waku_message";
 
 const dbg = debug("waku:test:lightpush");
@@ -25,9 +25,10 @@ describe("Waku Light Push [node only]", () => {
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ lightpush: true });
 
-    waku = await Waku.create({
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.LightPush]);
 
@@ -60,10 +61,11 @@ describe("Waku Light Push [node only]", () => {
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ lightpush: true, topics: customPubSubTopic });
 
-    waku = await Waku.create({
+    waku = await createWaku({
       pubSubTopic: customPubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.waitForRemotePeer([Protocols.LightPush]);
 
