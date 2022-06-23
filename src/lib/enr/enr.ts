@@ -347,7 +347,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     const isIpv6 = protocol.endsWith("6");
     const ipVal = this.get(isIpv6 ? "ip6" : "ip");
     if (!ipVal) {
-      return undefined;
+      return;
     }
 
     const isUdp = protocol.startsWith("udp");
@@ -367,7 +367,12 @@ export class ENR extends Map<ENRKey, ENRValue> {
       return;
     }
 
-    return mulitaddrFromFields(isIpv6, protoName, ipVal, protoVal);
+    return mulitaddrFromFields(
+      isIpv6 ? "ip6" : "ip4",
+      protoName,
+      ipVal,
+      protoVal
+    );
   }
 
   setLocationMultiaddr(multiaddr: Multiaddr): void {

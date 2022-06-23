@@ -1,17 +1,21 @@
 import { Multiaddr } from "@multiformats/multiaddr";
+import { convertToString } from "@multiformats/multiaddr/convert";
 
 export function mulitaddrFromFields(
-  isIpv6: boolean,
+  ipFamily: string,
   protocol: string,
   ipBytes: Uint8Array,
-  portBytes: Uint8Array
+  protocolBytes: Uint8Array
 ): Multiaddr {
-  const familyStr = isIpv6 ? "ip6" : "ip4";
-  let ma = new Multiaddr("/" + familyStr);
+  let ma = new Multiaddr(
+    "/" + ipFamily + "/" + convertToString(ipFamily, ipBytes)
+  );
 
-  ma = ma.encapsulate(new Multiaddr(ipBytes));
-  ma = ma.encapsulate(new Multiaddr("/" + protocol));
-  ma = ma.encapsulate(portBytes);
+  ma = ma.encapsulate(
+    new Multiaddr(
+      "/" + protocol + "/" + convertToString(protocol, protocolBytes)
+    )
+  );
 
   return ma;
 }
