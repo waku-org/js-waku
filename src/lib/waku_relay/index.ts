@@ -44,13 +44,12 @@ export class WakuRelay extends GossipSub {
   };
 
   constructor(options?: Partial<CreateOptions & GossipsubOpts>) {
-    super(
-      Object.assign(options, {
-        // Ensure that no signature is included nor expected in the messages.
-        globalSignaturePolicy: SignaturePolicy.StrictNoSign,
-        fallbackToFloodsub: false,
-      })
-    );
+    options = Object.assign(options ?? {}, {
+      // Ensure that no signature is included nor expected in the messages.
+      globalSignaturePolicy: SignaturePolicy.StrictNoSign,
+      fallbackToFloodsub: false,
+    });
+    super(options);
     this.multicodecs = constants.RelayCodecs;
 
     this.observers = {};

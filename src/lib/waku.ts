@@ -91,7 +91,7 @@ export async function createWaku(options?: CreateOptions): Promise<Waku> {
 
   // TODO: Use options
   const libp2pOpts = {
-    transports: new WebSockets({ filter: filterAll }),
+    transports: [new WebSockets({ filter: filterAll })],
     streamMuxers: [new Mplex()],
     pubsub: new WakuRelay(),
     connectionEncryption: [new Noise()],
