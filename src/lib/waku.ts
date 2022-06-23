@@ -3,7 +3,7 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import { Mplex } from "@libp2p/mplex";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { WebSockets } from "@libp2p/websockets";
-import filters from "@libp2p/websockets/filters";
+import { all as filterAll } from "@libp2p/websockets/filters";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
 import { createLibp2p, Libp2p, Libp2pOptions } from "libp2p";
@@ -91,7 +91,7 @@ export async function createWaku(options?: CreateOptions): Promise<Waku> {
 
   // TODO: Use options
   const libp2pOpts = {
-    transports: new WebSockets({ filter: filters.all }),
+    transports: new WebSockets({ filter: filterAll }),
     streamMuxers: [new Mplex()],
     pubsub: new WakuRelay(),
     connectionEncryption: [new Noise()],

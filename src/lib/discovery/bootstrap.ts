@@ -5,7 +5,7 @@ import type {
 import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
-import { peerIdFromString } from "@libp2p/peer-id/src";
+import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
 

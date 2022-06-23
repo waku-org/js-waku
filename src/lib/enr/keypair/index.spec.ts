@@ -1,4 +1,4 @@
-import { Secp256k1PublicKey } from "@libp2p/crypto/dist/src/keys/secp256k1-class";
+import { supportedKeys } from "@libp2p/crypto/keys";
 import { peerIdFromKeys } from "@libp2p/peer-id";
 import { expect } from "chai";
 
@@ -25,7 +25,9 @@ describe("createPeerIdFromKeypair", function () {
   it("should properly create a PeerId from a secp256k1 keypair without private key", async function () {
     const keypair = await generateKeypair(KeypairType.secp256k1);
     delete (keypair as Secp256k1Keypair)._privateKey;
-    const pubKey = new Secp256k1PublicKey(keypair.publicKey);
+    const pubKey = new supportedKeys.secp256k1.Secp256k1PublicKey(
+      keypair.publicKey
+    );
 
     const expectedPeerId = await peerIdFromKeys(pubKey.bytes);
     const actualPeerId = await createPeerIdFromKeypair(keypair);
