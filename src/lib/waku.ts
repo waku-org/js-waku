@@ -19,7 +19,7 @@ import { StoreCodecs, WakuStore } from "./waku_store";
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 
-const dbg = debug("waku:waku");
+const log = debug("waku:waku");
 
 export enum Protocols {
   Relay = "relay",
@@ -316,7 +316,7 @@ export class Waku {
         const peers = await this.store.peers();
 
         if (peers.length) {
-          dbg("Store peer found: ", peers[0].id.toString());
+          log("Store peer found: ", peers[0].id.toString());
           return;
         }
 
@@ -324,7 +324,7 @@ export class Waku {
           this.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
             for (const codec of Object.values(StoreCodecs)) {
               if (evt.detail.protocols.includes(codec)) {
-                dbg("Resolving for", codec, evt.detail.protocols);
+                log("Resolving for", codec, evt.detail.protocols);
                 resolve();
               }
             }
@@ -339,14 +339,14 @@ export class Waku {
         const peers = await this.lightPush.peers();
 
         if (peers.length) {
-          dbg("Light Push peer found: ", peers[0].id.toString());
+          log("Light Push peer found: ", peers[0].id.toString());
           return;
         }
 
         await new Promise<void>((resolve) => {
           this.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
             if (evt.detail.protocols.includes(LightPushCodec)) {
-              dbg("Resolving for", LightPushCodec, evt.detail.protocols);
+              log("Resolving for", LightPushCodec, evt.detail.protocols);
               resolve();
             }
           });
@@ -360,14 +360,14 @@ export class Waku {
         const peers = await this.filter.peers();
 
         if (peers.length) {
-          dbg("Filter peer found: ", peers[0].id.toString());
+          log("Filter peer found: ", peers[0].id.toString());
           return;
         }
 
         await new Promise<void>((resolve) => {
           this.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
             if (evt.detail.protocols.includes(FilterCodec)) {
-              dbg("Resolving for", FilterCodec, evt.detail.protocols);
+              log("Resolving for", FilterCodec, evt.detail.protocols);
               resolve();
             }
           });
@@ -400,7 +400,7 @@ export class Waku {
     if (pingPeriodSecs !== 0) {
       this.pingKeepAliveTimers[peerIdStr] = setInterval(() => {
         this.libp2p.ping(peerId).catch((e) => {
-          dbg(`Ping failed (${peerIdStr})`, e);
+          log(`Ping failed (${peerIdStr})`, e);
         });
       }, pingPeriodSecs * 1000);
     }
