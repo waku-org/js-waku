@@ -1,9 +1,9 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
-import concat from "it-concat";
-import lp from "it-length-prefixed";
+import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Libp2p } from "libp2p";
+import { concat } from "uint8arrays/concat";
 
 import { PushResponse } from "../../proto/light_push";
 import { DefaultPubSubTopic } from "../constants";
@@ -71,15 +71,21 @@ export class WakuLightPush {
         ? opts.pubSubTopic
         : this.pubSubTopic;
       const query = PushRPC.createRequest(message, pubSubTopic);
-      const res = await pipe(
+      const res: Uint8Array[] = [];
+      await pipe(
         [query.encode()],
         lp.encode(),
         stream,
         lp.decode(),
-        concat
+        async (source) => {
+          for await (const chunk of source) {
+            res.push(chunk.slice());
+          }
+        }
       );
       try {
-        const response = PushRPC.decode(res.slice()).response;
+        const bytes = concat(res);
+        const response = PushRPC.decode(bytes).response;
 
         if (!response) {
           console.log("No response in PushRPC");

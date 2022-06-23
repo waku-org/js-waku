@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import debug from "debug";
-import lp from "it-length-prefixed";
+import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Libp2p } from "libp2p";
 
@@ -109,18 +109,14 @@ export class WakuFilter {
   private onRequest({ stream }: any): void {
     log("Receiving message push");
     try {
-      pipe(
-        stream.source,
-        lp.decode(),
-        async (source: AsyncIterable<Buffer>) => {
-          for await (const bytes of source) {
-            const res = FilterRPC.decode(bytes.slice());
-            if (res.requestId && res.push?.messages?.length) {
-              await this.pushMessages(res.requestId, res.push.messages);
-            }
+      pipe(stream.source, lp.decode(), async (source) => {
+        for await (const bytes of source) {
+          const res = FilterRPC.decode(bytes.slice());
+          if (res.requestId && res.push?.messages?.length) {
+            await this.pushMessages(res.requestId, res.push.messages);
           }
         }
-      );
+      });
     } catch (e) {
       log("Error decoding message", e);
     }

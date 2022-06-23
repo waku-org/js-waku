@@ -1,10 +1,10 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer } from "@libp2p/interface-peer-store";
 import debug from "debug";
-import concat from "it-concat";
-import lp from "it-length-prefixed";
+import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Libp2p } from "libp2p";
+import { concat } from "uint8arrays/concat";
 
 import * as protoV2Beta4 from "../../proto/store_v2beta4";
 import { DefaultPubSubTopic, StoreCodecs } from "../constants";
@@ -205,14 +205,20 @@ export class WakuStore {
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
       dbg("Querying store peer", connections[0].remoteAddr.toString());
 
-      const res = await pipe(
+      const res: Uint8Array[] = [];
+      await pipe(
         [historyRpcQuery.encode()],
         lp.encode(),
         stream,
         lp.decode(),
-        concat
+        async (source) => {
+          for await (const chunk of source) {
+            res.push(chunk.slice());
+          }
+        }
       );
-      const reply = historyRpcQuery.decode(res.slice());
+      const bytes = concat(res);
+      const reply = historyRpcQuery.decode(bytes);
 
       if (!reply.response) {
         throw "History response misses response field";
