@@ -20,7 +20,7 @@ import {
   IKeypair,
   KeypairType,
 } from "./keypair";
-import { mulitaddrFromFields } from "./multiaddr_from_fields";
+import { multiaddrFromFields } from "./multiaddr_from_fields";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
 import * as v4 from "./v4";
@@ -367,7 +367,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
       return;
     }
 
-    return mulitaddrFromFields(
+    return multiaddrFromFields(
       isIpv6 ? "ip6" : "ip4",
       protoName,
       ipVal,

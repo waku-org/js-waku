@@ -1,7 +1,7 @@
 import { Multiaddr } from "@multiformats/multiaddr";
 import { convertToString } from "@multiformats/multiaddr/convert";
 
-export function mulitaddrFromFields(
+export function multiaddrFromFields(
   ipFamily: string,
   protocol: string,
   ipBytes: Uint8Array,
