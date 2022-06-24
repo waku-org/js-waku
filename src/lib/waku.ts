@@ -1,5 +1,6 @@
 import { Noise } from "@chainsafe/libp2p-noise";
 import type { PeerId } from "@libp2p/interface-peer-id";
+import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { Mplex } from "@libp2p/mplex";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { WebSockets } from "@libp2p/websockets";
@@ -299,6 +300,7 @@ export class Waku {
       if (peers.length == 0) {
         // No peer yet available, wait for a subscription
         const promise = new Promise<void>((resolve) => {
+          // TODO: Remove listeners once done
           this.relay.addEventListener("subscription-change", () => {
             // Remote peer subscribed to topic, now wait for a heartbeat
             // so that the mesh is updated and the remote peer added to it
@@ -321,14 +323,20 @@ export class Waku {
         }
 
         await new Promise<void>((resolve) => {
-          this.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
+          const cb = (evt: CustomEvent<PeerProtocolsChangeData>): void => {
             for (const codec of Object.values(StoreCodecs)) {
               if (evt.detail.protocols.includes(codec)) {
-                log("Resolving for", codec, evt.detail.protocols);
+                log("Resolving for", StoreCodecs, evt.detail.protocols);
+                this.libp2p.peerStore.removeEventListener(
+                  "change:protocols",
+                  cb
+                );
                 resolve();
+                break;
               }
             }
-          });
+          };
+          this.libp2p.peerStore.addEventListener("change:protocols", cb);
         });
       })();
       promises.push(storePromise);
@@ -344,12 +352,14 @@ export class Waku {
         }
 
         await new Promise<void>((resolve) => {
-          this.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
+          const cb = (evt: CustomEvent<PeerProtocolsChangeData>): void => {
             if (evt.detail.protocols.includes(LightPushCodec)) {
               log("Resolving for", LightPushCodec, evt.detail.protocols);
+              this.libp2p.peerStore.removeEventListener("change:protocols", cb);
               resolve();
             }
-          });
+          };
+          this.libp2p.peerStore.addEventListener("change:protocols", cb);
         });
       })();
       promises.push(lightPushPromise);
@@ -365,12 +375,14 @@ export class Waku {
         }
 
         await new Promise<void>((resolve) => {
-          this.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
+          const cb = (evt: CustomEvent<PeerProtocolsChangeData>): void => {
             if (evt.detail.protocols.includes(FilterCodec)) {
               log("Resolving for", FilterCodec, evt.detail.protocols);
+              this.libp2p.peerStore.removeEventListener("change:protocols", cb);
               resolve();
             }
-          });
+          };
+          this.libp2p.peerStore.addEventListener("change:protocols", cb);
         });
       })();
       promises.push(filterPromise);
