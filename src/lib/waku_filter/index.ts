@@ -1,6 +1,7 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import debug from "debug";
+import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Libp2p } from "libp2p";
@@ -49,7 +50,9 @@ export class WakuFilter {
   constructor(public libp2p: Libp2p) {
     this.subscriptions = new Map();
     this.decryptionKeys = new Map();
-    this.libp2p.handle(FilterCodec, this.onRequest.bind(this));
+    this.libp2p
+      .handle(FilterCodec, this.onRequest.bind(this))
+      .catch((e) => log("Failed to register filter protocol", e));
   }
 
   /**
@@ -84,7 +87,15 @@ export class WakuFilter {
     const stream = await this.newStream(peer);
 
     try {
-      await pipe([request.encode()], lp.encode(), stream);
+      const res = await pipe(
+        [request.encode()],
+        lp.encode(),
+        stream,
+        lp.decode(),
+        async (source) => await all(source)
+      );
+
+      log("response", res);
     } catch (e) {
       log(
         "Error subscribing to peer ",
@@ -109,14 +120,21 @@ export class WakuFilter {
   private onRequest({ stream }: any): void {
     log("Receiving message push");
     try {
-      pipe(stream.source, lp.decode(), async (source) => {
+      pipe(stream, lp.decode(), async (source) => {
         for await (const bytes of source) {
           const res = FilterRPC.decode(bytes.slice());
           if (res.requestId && res.push?.messages?.length) {
             await this.pushMessages(res.requestId, res.push.messages);
           }
         }
-      });
+      }).then(
+        () => {
+          log("Receiving pipe closed.");
+        },
+        (e) => {
+          log("Error with receiving pipe", e);
+        }
+      );
     } catch (e) {
       log("Error decoding message", e);
     }

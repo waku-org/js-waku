@@ -1,5 +1,6 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
+import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Libp2p } from "libp2p";
@@ -71,17 +72,12 @@ export class WakuLightPush {
         ? opts.pubSubTopic
         : this.pubSubTopic;
       const query = PushRPC.createRequest(message, pubSubTopic);
-      const res: Uint8Array[] = [];
-      await pipe(
+      const res = await pipe(
         [query.encode()],
         lp.encode(),
         stream,
         lp.decode(),
-        async (source) => {
-          for await (const chunk of source) {
-            res.push(chunk.slice());
-          }
-        }
+        async (source) => await all(source)
       );
       try {
         const bytes = concat(res);

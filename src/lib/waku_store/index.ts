@@ -1,6 +1,7 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer } from "@libp2p/interface-peer-store";
 import debug from "debug";
+import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Libp2p } from "libp2p";
@@ -205,17 +206,12 @@ export class WakuStore {
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
       dbg("Querying store peer", connections[0].remoteAddr.toString());
 
-      const res: Uint8Array[] = [];
-      await pipe(
+      const res = await pipe(
         [historyRpcQuery.encode()],
         lp.encode(),
         stream,
         lp.decode(),
-        async (source) => {
-          for await (const chunk of source) {
-            res.push(chunk.slice());
-          }
-        }
+        async (source) => await all(source)
       );
       const bytes = concat(res);
       const reply = historyRpcQuery.decode(bytes);
