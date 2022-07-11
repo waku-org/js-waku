@@ -10,7 +10,7 @@
     "ethers": "^5.5.4",
     "fontsource-roboto": "^4.0.0",
     "js-waku": "^0.24.0",
-    "protobufjs": "^6.11.2",
+    "protobufjs": "^7.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   },
