@@ -1,34 +1,47 @@
-import { TxtAnswer } from "dns-packet";
-import {
-  endpoints as defaultEndpoints,
-  Endpoint,
-  EndpointProps,
-  query,
-} from "dns-query";
+import debug from "debug";
+import { Endpoint, query, toEndpoint } from "dns-query";
 
 import { bytesToUtf8 } from "../utils";
 
 import { DnsClient } from "./dns";
 
-const { cloudflare, google, opendns } = defaultEndpoints;
-
-export type Endpoints =
-  | "doh"
-  | "dns"
-  | Iterable<Endpoint | EndpointProps | string>;
+const log = debug("waku:dns-over-https");
 
 export class DnsOverHttps implements DnsClient {
   /**
+   * Default endpoints to use for DNS queries.
+   * Taken from https://github.com/martinheidegger/dns-query as static data
+   * to avoid dynamic queries.
+   *
+   * To dynamically retrieve other endpoints, use https://github.com/martinheidegger/dns-query#well-known-endpoints
+   */
+  static DefaultEndpoints: Endpoint[] = [
+    toEndpoint({
+      name: "cisco-doh",
+      protocol: "https:",
+      host: "doh.opendns.com",
+      ipv4: "146.112.41.2",
+    }),
+    toEndpoint({
+      name: "cloudflare",
+      protocol: "https:",
+      host: "dns.cloudflare.com",
+      ipv4: "1.0.0.1",
+    }),
+  ];
+
+  /**
    * Create new Dns-Over-Http DNS client.
    *
-   * @param endpoints The endpoints for Dns-Over-Https queries.
-   * See [dns-query](https://www.npmjs.com/package/dns-query) for details.
-   * Defaults to cloudflare, google and opendns.
+   * @param endpoints The endpoints for Dns-Over-Https queries;
+   * Defaults to [[DnsOverHttps.DefaultEndpoints]].
+   * @param retries Retries if a given endpoint fails.
    *
    * @throws {code: string} If DNS query fails.
    */
   public constructor(
-    public endpoints: Endpoints = [cloudflare, google, opendns]
+    private endpoints: Endpoint[] = DnsOverHttps.DefaultEndpoints,
+    private retries: number = 3
   ) {}
 
   /**
@@ -36,17 +49,31 @@ export class DnsOverHttps implements DnsClient {
    *
    * @param domain The domain name
    *
-   * @throws if the result is provided in byte form which cannot be decoded
-   * to UTF-8
+   * @throws if the query fails
    */
   async resolveTXT(domain: string): Promise<string[]> {
-    const response = await query({
-      questions: [{ type: "TXT", name: domain }],
-    });
+    let answers;
+    try {
+      const res = await query(
+        {
+          question: { type: "TXT", name: domain },
+        },
+        {
+          endpoints: this.endpoints,
+          retries: this.retries,
+        }
+      );
+      answers = res.answers;
+    } catch (error) {
+      log("query failed: ", error);
+      throw new Error("DNS query failed");
+    }
 
-    const answers = response.answers as TxtAnswer[];
+    if (!answers) throw new Error(`Could not resolve ${domain}`);
 
-    const data = answers.map((a) => a.data);
+    const data = answers.map((a) => a.data) as
+      | Array<string | Uint8Array>
+      | Array<Array<string | Uint8Array>>;
 
     const result: string[] = [];
 
