@@ -2,7 +2,7 @@ import debug from "debug";
 
 import { ENR } from "../enr";
 
-import { DnsOverHttps, Endpoints } from "./dns_over_https";
+import { DnsOverHttps } from "./dns_over_https";
 import { ENRTree } from "./enrtree";
 import fetchNodesUntilCapabilitiesFulfilled from "./fetch_nodes";
 
@@ -30,8 +30,10 @@ export class DnsNodeDiscovery {
   private readonly _DNSTreeCache: { [key: string]: string };
   private readonly _errorTolerance: number = 10;
 
-  public static dnsOverHttp(endpoints?: Endpoints): DnsNodeDiscovery {
-    const dnsClient = new DnsOverHttps(endpoints);
+  public static dnsOverHttp(dnsClient?: DnsClient): DnsNodeDiscovery {
+    if (!dnsClient) {
+      dnsClient = new DnsOverHttps();
+    }
     return new DnsNodeDiscovery(dnsClient);
   }
 
