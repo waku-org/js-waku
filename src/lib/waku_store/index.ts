@@ -201,7 +201,7 @@ export class WakuStore {
     let cursor = undefined;
     while (true) {
       // TODO: Some connection selection logic?
-      const { stream } = await connections[0].newStream(storeCodec);
+      const stream = await connections[0].newStream(storeCodec);
       const queryOpts = Object.assign(opts, { cursor });
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
       dbg("Querying store peer", connections[0].remoteAddr.toString());

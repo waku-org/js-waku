@@ -1,10 +1,12 @@
+import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
+import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
-import { Libp2p } from "libp2p";
+import type { Libp2p } from "libp2p";
 
 import { WakuMessage as WakuMessageProto } from "../../proto/message";
 import { DefaultPubSubTopic } from "../constants";
@@ -116,11 +118,10 @@ export class WakuFilter {
     };
   }
 
-  // `any` can be removed at the next libp2p release >0.37.3
-  private onRequest({ stream }: any): void {
+  private onRequest(streamData: IncomingStreamData): void {
     log("Receiving message push");
     try {
-      pipe(stream, lp.decode(), async (source) => {
+      pipe(streamData.stream, lp.decode(), async (source) => {
         for await (const bytes of source) {
           const res = FilterRPC.decode(bytes.slice());
           if (res.requestId && res.push?.messages?.length) {
@@ -201,15 +202,14 @@ export class WakuFilter {
   }
 
   // Should be able to remove any at next libp2p release >0.37.3
-  private async newStream(peer: Peer): Promise<any> {
+  private async newStream(peer: Peer): Promise<Stream> {
     const connections = this.libp2p.connectionManager.getConnections(peer.id);
     if (!connections) {
       throw new Error("Failed to get a connection to the peer");
     }
 
     // TODO: Appropriate connection selection
-    const { stream } = await connections[0].newStream(FilterCodec);
-    return stream;
+    return connections[0].newStream(FilterCodec);
   }
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {

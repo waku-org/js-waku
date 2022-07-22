@@ -66,7 +66,7 @@ export class WakuLightPush {
     if (!connections) throw "Failed to get a connection to the peer";
 
     // TODO: Appropriate connection management
-    const { stream } = await connections[0].newStream(LightPushCodec);
+    const stream = await connections[0].newStream(LightPushCodec);
     try {
       const pubSubTopic = opts?.pubSubTopic
         ? opts.pubSubTopic

@@ -87,7 +87,7 @@
     "it-length-prefixed": "^7.0.1",
     "it-pipe": "^2.0.3",
     "js-sha3": "^0.8.0",
-    "libp2p": "^0.37.3",
+    "libp2p": "next",
     "multiformats": "^9.6.5",
     "protons-runtime": "^1.0.4",
     "uint8arrays": "^3.0.0",

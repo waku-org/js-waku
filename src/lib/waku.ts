@@ -1,4 +1,5 @@
 import { Noise } from "@chainsafe/libp2p-noise";
+import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { Mplex } from "@libp2p/mplex";
@@ -175,9 +176,10 @@ export class Waku {
    * @param peer The peer to dial
    * @param protocols Waku protocols we expect from the peer; Default to Relay
    */
-  // TODO: Any to be removed once libp2p uses @libp2p/interface-connection for
-  // dialProtocol
-  async dial(peer: PeerId | Multiaddr, protocols?: Protocols[]): Promise<any> {
+  async dial(
+    peer: PeerId | Multiaddr,
+    protocols?: Protocols[]
+  ): Promise<Stream> {
     const _protocols = protocols ?? [Protocols.Relay];
 
     const codecs: string[] = [];
