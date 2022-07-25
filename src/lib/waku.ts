@@ -104,8 +104,7 @@ export async function createWaku(options?: CreateOptions): Promise<Waku> {
 
   const wakuStore = new WakuStore(libp2p, options);
   const wakuLightPush = new WakuLightPush(libp2p, options);
-  // TODO pass options
-  const wakuFilter = new WakuFilter(libp2p);
+  const wakuFilter = new WakuFilter(libp2p, options);
 
   await libp2p.start();
 

@@ -20,6 +20,18 @@ export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 
 const log = debug("waku:filter");
 
+export interface CreateOptions {
+  /**
+   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
+   *
+   * The usage of the default pubsub topic is recommended.
+   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
+   *
+   * @default {@link DefaultPubSubTopic}
+   */
+  pubSubTopic?: string;
+}
+
 type FilterSubscriptionOpts = {
   /**
    * The Pubsub topic for the subscription
@@ -43,16 +55,17 @@ type UnsubscribeFunction = () => Promise<void>;
  * - https://github.com/status-im/nwaku/issues/948
  */
 export class WakuFilter {
+  pubSubTopic: string;
   private subscriptions: Map<string, FilterCallback>;
   public decryptionKeys: Map<
     Uint8Array,
     { method?: DecryptionMethod; contentTopics?: string[] }
   >;
 
-  // TODO: Accept options (pubsubtopic)
-  constructor(public libp2p: Libp2p) {
+  constructor(public libp2p: Libp2p, options?: CreateOptions) {
     this.subscriptions = new Map();
     this.decryptionKeys = new Map();
+    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
     this.libp2p
       .handle(FilterCodec, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
@@ -69,7 +82,7 @@ export class WakuFilter {
     contentTopics: string[],
     opts?: FilterSubscriptionOpts
   ): Promise<UnsubscribeFunction> {
-    const topic = opts?.pubsubTopic || DefaultPubSubTopic;
+    const topic = opts?.pubsubTopic ?? this.pubSubTopic;
     const contentFilters = contentTopics.map((contentTopic) => ({
       contentTopic,
     }));
