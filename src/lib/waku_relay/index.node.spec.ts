@@ -367,7 +367,9 @@ describe("Waku Relay [node only]", () => {
       }
 
       const nimPeerId = await nwaku.getPeerId();
-      expect(subscribers).to.contain(nimPeerId.toString());
+      expect(subscribers.map((p) => p.toString())).to.contain(
+        nimPeerId.toString()
+      );
     });
 
     it("Publishes to nwaku", async function () {
