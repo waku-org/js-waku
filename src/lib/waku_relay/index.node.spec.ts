@@ -6,6 +6,7 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
+  NOISE_KEY_3,
   Nwaku,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
@@ -256,13 +257,26 @@ describe("Waku Relay [node only]", () => {
   });
 
   describe("Custom pubsub topic", () => {
+    let waku1: Waku;
+    let waku2: Waku;
+    let waku3: Waku;
+    afterEach(async function () {
+      !!waku1 &&
+        waku1.stop().catch((e) => console.log("Waku failed to stop", e));
+      !!waku2 &&
+        waku2.stop().catch((e) => console.log("Waku failed to stop", e));
+      !!waku3 &&
+        waku3.stop().catch((e) => console.log("Waku failed to stop", e));
+    });
+
     it("Publish", async function () {
       this.timeout(10000);
 
       const pubSubTopic = "/some/pubsub/topic";
 
       // 1 and 2 uses a custom pubsub
-      const [waku1, waku2, waku3] = await Promise.all([
+      // 3 uses the default pubsub
+      [waku1, waku2, waku3] = await Promise.all([
         createWaku({
           pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_1,
@@ -273,7 +287,7 @@ describe("Waku Relay [node only]", () => {
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
         }).then((waku) => waku.start().then(() => waku)),
         createWaku({
-          staticNoiseKey: NOISE_KEY_2,
+          staticNoiseKey: NOISE_KEY_3,
         }).then((waku) => waku.start().then(() => waku)),
       ]);
 
@@ -289,7 +303,6 @@ describe("Waku Relay [node only]", () => {
       await Promise.all([
         waitForRemotePeer(waku1, [Protocols.Relay]),
         waitForRemotePeer(waku2, [Protocols.Relay]),
-        // No subscription change expected for Waku 3
       ]);
 
       const messageText = "Communicating using a custom pubsub topic";
