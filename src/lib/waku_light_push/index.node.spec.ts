@@ -90,7 +90,7 @@ describe("Waku Light Push [node only]", () => {
     dbg("Waiting for message to show in nwaku");
     while (msgs.length === 0) {
       await delay(200);
-      msgs = await nwaku.messages();
+      msgs = await nwaku.messages(customPubSubTopic);
     }
 
     expect(msgs[0].contentTopic).to.equal(message.contentTopic);

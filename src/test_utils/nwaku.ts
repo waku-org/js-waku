@@ -217,7 +217,7 @@ export class Nwaku {
     ]);
   }
 
-  async messages(): Promise<WakuMessage[]> {
+  async messages(pubsubTopic?: string): Promise<WakuMessage[]> {
     this.checkProcess();
 
     const isDefined = (msg: WakuMessage | undefined): msg is WakuMessage => {
@@ -226,7 +226,7 @@ export class Nwaku {
 
     const protoMsgs = await this.rpcCall<proto.WakuMessage[]>(
       "get_waku_v2_relay_v1_messages",
-      [DefaultPubSubTopic]
+      [pubsubTopic ?? DefaultPubSubTopic]
     );
 
     const msgs = await Promise.all(
