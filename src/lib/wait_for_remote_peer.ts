@@ -1,6 +1,8 @@
+import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import { Peer, PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
+import { pEvent } from "p-event";
 
 import { StoreCodecs } from "./constants";
 import { Protocols, Waku } from "./waku";
@@ -14,9 +16,17 @@ interface WakuProtocol {
   peers: () => Promise<Peer[]>;
 }
 
+interface WakuGossipSubProtocol extends GossipSub {
+  getMeshPeers: () => string[];
+}
+
 /**
  * Wait for a remote peer to be ready given the passed protocols.
  * Useful when using the [[CreateOptions.bootstrap]] with [[Waku.create]].
+ *
+ * If the passed protocols is a GossipSub protocol, then it resolves only once
+ * a peer is in a mesh, to help ensure that other peers will send and receive
+ * message to us.
  *
  * @param waku The Waku Node
  * @param protocols The protocols that need to be enabled by remote peers.
@@ -34,23 +44,10 @@ export async function waitForRemotePeer(
 ): Promise<void> {
   protocols = protocols ?? [Protocols.Relay];
 
-  const promises: Promise<void>[] = [];
+  const promises = [];
 
   if (protocols.includes(Protocols.Relay)) {
-    const peers = waku.relay.getMeshPeers(waku.relay.pubSubTopic);
-
-    if (peers.length == 0) {
-      // No peer yet available, wait for a subscription
-      const promise = new Promise<void>((resolve) => {
-        // TODO: Remove listeners once done
-        waku.relay.addEventListener("subscription-change", () => {
-          // Remote peer subscribed to topic, now wait for a heartbeat
-          // so that the mesh is updated and the remote peer added to it
-          waku.relay.addEventListener("gossipsub:heartbeat", () => resolve());
-        });
-      });
-      promises.push(promise);
-    }
+    promises.push(waitForGossipSubPeerInMesh(waku.relay));
   }
 
   if (protocols.includes(Protocols.Store)) {
@@ -103,6 +100,21 @@ async function waitForConnectedPeer(
     };
     waku.libp2p.peerStore.addEventListener("change:protocols", cb);
   });
+}
+
+/**
+ * Wait for a peer with the given protocol to be connected and in the gossipsub
+ * mesh.
+ */
+async function waitForGossipSubPeerInMesh(
+  waku: WakuGossipSubProtocol
+): Promise<void> {
+  let peers = waku.getMeshPeers();
+
+  while (peers.length == 0) {
+    await pEvent(waku, "gossipsub:heartbeat");
+    peers = waku.getMeshPeers();
+  }
 }
 
 const awaitTimeout = (ms: number, rejectReason: string): Promise<void> =>

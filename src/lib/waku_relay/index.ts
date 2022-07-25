@@ -210,9 +210,6 @@ export class WakuRelay extends GossipSub {
   }
 
   getMeshPeers(topic?: TopicStr): PeerIdStr[] {
-    return super.getMeshPeers(topic ?? DefaultPubSubTopic);
+    return super.getMeshPeers(topic ?? this.pubSubTopic);
   }
-
-  // TODO: Implement method that uses Relay codec
-  // public async heartbeat(): Promise<void> {
 }

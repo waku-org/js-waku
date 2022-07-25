@@ -89,6 +89,7 @@
     "js-sha3": "^0.8.0",
     "libp2p": "next",
     "multiformats": "^9.6.5",
+    "p-event": "^5.0.1",
     "protons-runtime": "^1.0.4",
     "uint8arrays": "^3.0.0",
     "uuid": "^8.3.2"
