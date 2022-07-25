@@ -96,6 +96,7 @@ export async function createWaku(options?: CreateOptions): Promise<Waku> {
       streamMuxers: [new Mplex()],
       pubsub: new WakuRelay(options),
       connectionEncryption: [new Noise()],
+      peerDiscovery: peerDiscovery,
     },
     options?.libp2p ?? {}
   );
