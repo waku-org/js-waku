@@ -103,11 +103,7 @@ export class WakuStore {
   >;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
-    if (options?.pubSubTopic) {
-      this.pubSubTopic = options.pubSubTopic;
-    } else {
-      this.pubSubTopic = DefaultPubSubTopic;
-    }
+    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
 
     this.decryptionKeys = new Map();
   }

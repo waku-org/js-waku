@@ -55,7 +55,7 @@ export class WakuRelay extends GossipSub {
     this.observers = {};
     this.decryptionKeys = new Map();
 
-    this.pubSubTopic = options?.pubSubTopic || DefaultPubSubTopic;
+    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
 
     options?.decryptionKeys?.forEach((key) => {
       this.addDecryptionKey(key);

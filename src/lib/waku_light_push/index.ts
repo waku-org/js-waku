@@ -40,11 +40,7 @@ export class WakuLightPush {
   pubSubTopic: string;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
-    if (options?.pubSubTopic) {
-      this.pubSubTopic = options.pubSubTopic;
-    } else {
-      this.pubSubTopic = DefaultPubSubTopic;
-    }
+    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
   }
 
   async push(
