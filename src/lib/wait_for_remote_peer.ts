@@ -53,40 +53,16 @@ export async function waitForRemotePeer(
     }
   }
 
-  // TODO: This can be factored in one helper function
-  // Probably need to add a "string" protocol to each class to make it easier
   if (protocols.includes(Protocols.Store)) {
-    const storePromise = (async (): Promise<void> => {
-      const peers = await waku.store.peers();
-
-      if (peers.length) {
-        log("Store peer found: ", peers[0].id.toString());
-        return;
-      }
-
-      await new Promise<void>((resolve) => {
-        const cb = (evt: CustomEvent<PeerProtocolsChangeData>): void => {
-          for (const codec of Object.values(StoreCodecs)) {
-            if (evt.detail.protocols.includes(codec)) {
-              log("Resolving for", StoreCodecs, evt.detail.protocols);
-              waku.libp2p.peerStore.removeEventListener("change:protocols", cb);
-              resolve();
-              break;
-            }
-          }
-        };
-        waku.libp2p.peerStore.addEventListener("change:protocols", cb);
-      });
-    })();
-    promises.push(storePromise);
+    promises.push(waitForConnectedPeer(waku.store, Object.values(StoreCodecs)));
   }
 
   if (protocols.includes(Protocols.LightPush)) {
-    promises.push(waitForConnectedPeer(waku.lightPush, LightPushCodec));
+    promises.push(waitForConnectedPeer(waku.lightPush, [LightPushCodec]));
   }
 
   if (protocols.includes(Protocols.Filter)) {
-    promises.push(waitForConnectedPeer(waku.lightPush, FilterCodec));
+    promises.push(waitForConnectedPeer(waku.filter, [FilterCodec]));
   }
 
   if (timeoutMs) {
@@ -105,21 +81,24 @@ export async function waitForRemotePeer(
  */
 async function waitForConnectedPeer(
   waku: WakuProtocol,
-  codec: string
+  codecs: string[]
 ): Promise<void> {
   const peers = await waku.peers();
 
   if (peers.length) {
-    log(`${codec} peer found: `, peers[0].id.toString());
+    log(`${codecs} peer found: `, peers[0].id.toString());
     return;
   }
 
   await new Promise<void>((resolve) => {
     const cb = (evt: CustomEvent<PeerProtocolsChangeData>): void => {
-      if (evt.detail.protocols.includes(codec)) {
-        log("Resolving for", codec, evt.detail.protocols);
-        waku.libp2p.peerStore.removeEventListener("change:protocols", cb);
-        resolve();
+      for (const codec of codecs) {
+        if (evt.detail.protocols.includes(codec)) {
+          log("Resolving for", codec, evt.detail.protocols);
+          waku.libp2p.peerStore.removeEventListener("change:protocols", cb);
+          resolve();
+          break;
+        }
       }
     };
     waku.libp2p.peerStore.addEventListener("change:protocols", cb);
