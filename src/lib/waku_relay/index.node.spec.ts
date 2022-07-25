@@ -71,10 +71,12 @@ describe("Waku Relay [node only]", () => {
 
     it("Subscribe", async function () {
       log("Getting subscribers");
-      const subscribers1 =
-        waku1.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
-      const subscribers2 =
-        waku2.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
+      const subscribers1 = waku1.libp2p.pubsub
+        .getSubscribers(DefaultPubSubTopic)
+        .map((p) => p.toString());
+      const subscribers2 = waku2.libp2p.pubsub
+        .getSubscribers(DefaultPubSubTopic)
+        .map((p) => p.toString());
 
       log("Asserting mutual subscription");
       expect(subscribers1).to.contain(waku2.libp2p.peerId.toString());

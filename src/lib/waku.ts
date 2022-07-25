@@ -90,25 +90,26 @@ export async function createWaku(options?: CreateOptions): Promise<Waku> {
     peerDiscovery.push(new Bootstrap(options?.bootstrap));
   }
 
-  // TODO: Use options
-  const libp2pOpts = {
-    transports: [new WebSockets({ filter: filterAll })],
-    streamMuxers: [new Mplex()],
-    pubsub: new WakuRelay(),
-    connectionEncryption: [new Noise()],
-  };
+  const libp2pOpts = Object.assign(
+    {
+      transports: [new WebSockets({ filter: filterAll })],
+      streamMuxers: [new Mplex()],
+      pubsub: new WakuRelay(options),
+      connectionEncryption: [new Noise()],
+    },
+    options?.libp2p ?? {}
+  );
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore: modules property is correctly set thanks to voodoo
   const libp2p = await createLibp2p(libp2pOpts);
 
-  const wakuStore = new WakuStore(libp2p);
-  const wakuLightPush = new WakuLightPush(libp2p);
+  const wakuStore = new WakuStore(libp2p, options);
+  const wakuLightPush = new WakuLightPush(libp2p, options);
+  // TODO pass options
   const wakuFilter = new WakuFilter(libp2p);
 
   await libp2p.start();
 
-  return new Waku({}, libp2p, wakuStore, wakuLightPush, wakuFilter);
+  return new Waku(options ?? {}, libp2p, wakuStore, wakuLightPush, wakuFilter);
 }
 
 export class Waku {

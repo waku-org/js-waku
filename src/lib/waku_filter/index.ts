@@ -49,6 +49,7 @@ export class WakuFilter {
     { method?: DecryptionMethod; contentTopics?: string[] }
   >;
 
+  // TODO: Accept options (pubsubtopic)
   constructor(public libp2p: Libp2p) {
     this.subscriptions = new Map();
     this.decryptionKeys = new Map();
