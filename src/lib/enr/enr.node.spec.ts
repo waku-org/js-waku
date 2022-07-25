@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
+import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { createWaku, Protocols, Waku } from "../waku";
 
 import { ENR } from "./enr";
@@ -30,7 +31,7 @@ describe("ENR Interop: nwaku", function () {
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
-    await waku.waitForRemotePeer([Protocols.Relay]);
+    await waitForRemotePeer(waku, [Protocols.Relay]);
 
     const nwakuInfo = await nwaku.info();
     const nimPeerId = await nwaku.getPeerId();
@@ -62,7 +63,7 @@ describe("ENR Interop: nwaku", function () {
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
-    await waku.waitForRemotePeer([Protocols.Relay]);
+    await waitForRemotePeer(waku, [Protocols.Relay]);
 
     const nwakuInfo = await nwaku.info();
     const nimPeerId = await nwaku.getPeerId();
@@ -94,7 +95,7 @@ describe("ENR Interop: nwaku", function () {
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
-    await waku.waitForRemotePeer([Protocols.Relay]);
+    await waitForRemotePeer(waku, [Protocols.Relay]);
 
     const nwakuInfo = await nwaku.info();
     const nimPeerId = await nwaku.getPeerId();

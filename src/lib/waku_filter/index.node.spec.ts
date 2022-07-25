@@ -3,6 +3,7 @@ import debug from "debug";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
+import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { createWaku, Protocols, Waku } from "../waku";
 import { WakuMessage } from "../waku_message";
 
@@ -29,7 +30,7 @@ describe("Waku Filter", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waku.waitForRemotePeer([Protocols.Filter, Protocols.LightPush]);
+    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });
 
   it("creates a subscription", async function () {

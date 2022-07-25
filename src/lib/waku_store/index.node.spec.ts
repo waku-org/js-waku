@@ -12,6 +12,7 @@ import {
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
+import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { createWaku, Protocols, Waku } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
@@ -51,7 +52,7 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waku.waitForRemotePeer([Protocols.Store]);
+    await waitForRemotePeer(waku, [Protocols.Store]);
     const messages = await waku.store.queryHistory([]);
 
     expect(messages?.length).eq(2);
@@ -84,7 +85,7 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waku.waitForRemotePeer([Protocols.Store]);
+    await waitForRemotePeer(waku, [Protocols.Store]);
 
     let messages: WakuMessage[] = [];
 
@@ -124,7 +125,7 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waku.waitForRemotePeer([Protocols.Store]);
+    await waitForRemotePeer(waku, [Protocols.Store]);
 
     let messages: WakuMessage[] = [];
     const desiredMsgs = 14;
@@ -161,7 +162,7 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waku.waitForRemotePeer([Protocols.Store]);
+    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const messages = await waku.store.queryHistory([], {
       pageDirection: PageDirection.FORWARD,
@@ -201,7 +202,7 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waku.waitForRemotePeer([Protocols.Store]);
+    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const nimPeerId = await nwaku.getPeerId();
 
@@ -282,7 +283,7 @@ describe("Waku Store", () => {
 
     dbg("Waku nodes connected to nwaku");
 
-    await waku1.waitForRemotePeer([Protocols.LightPush]);
+    await waitForRemotePeer(waku1, [Protocols.LightPush]);
 
     dbg("Sending messages using light push");
     await Promise.all([
@@ -292,7 +293,7 @@ describe("Waku Store", () => {
       waku1.lightPush.push(clearMessage),
     ]);
 
-    await waku2.waitForRemotePeer([Protocols.Store]);
+    await waitForRemotePeer(waku2, [Protocols.Store]);
 
     waku2.store.addDecryptionKey(symKey);
 
@@ -386,7 +387,7 @@ describe("Waku Store", () => {
 
     dbg("Waku nodes connected to nwaku");
 
-    await waku1.waitForRemotePeer([Protocols.LightPush]);
+    await waitForRemotePeer(waku1, [Protocols.LightPush]);
 
     dbg("Sending messages using light push");
     await Promise.all([
@@ -396,7 +397,7 @@ describe("Waku Store", () => {
       waku1.lightPush.push(clearMessage),
     ]);
 
-    await waku2.waitForRemotePeer([Protocols.Store]);
+    await waitForRemotePeer(waku2, [Protocols.Store]);
 
     waku2.addDecryptionKey(symKey, {
       contentTopics: [encryptedSymmetricContentTopic],
@@ -460,7 +461,7 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waku.waitForRemotePeer([Protocols.Store]);
+    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const nwakuPeerId = await nwaku.getPeerId();
 

@@ -14,6 +14,7 @@ import {
   getPublicKey,
 } from "../crypto";
 import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
+import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { createWaku, Protocols, Waku } from "../waku";
 
 import { DecryptionMethod, WakuMessage } from "./index";
@@ -41,7 +42,7 @@ describe("Waku Message [node only]", function () {
       dbg("Dialing to nwaku node");
       await waku.dial(await nwaku.getMultiaddrWithId());
       dbg("Wait for remote peer");
-      await waku.waitForRemotePeer([Protocols.Relay]);
+      await waitForRemotePeer(waku, [Protocols.Relay]);
       dbg("Remote peer ready");
       // As this test uses the nwaku RPC API, we somehow often face
       // Race conditions where the nwaku node does not have the js-waku

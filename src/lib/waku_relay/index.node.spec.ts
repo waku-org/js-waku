@@ -15,6 +15,7 @@ import {
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
+import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { createWaku, Protocols, Waku } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
@@ -55,8 +56,8 @@ describe("Waku Relay [node only]", () => {
 
       log("Wait for mutual pubsub subscription");
       await Promise.all([
-        waku1.waitForRemotePeer([Protocols.Relay]),
-        waku2.waitForRemotePeer([Protocols.Relay]),
+        waitForRemotePeer(waku1, [Protocols.Relay]),
+        waitForRemotePeer(waku2, [Protocols.Relay]),
       ]);
       log("before each hook done");
     });
@@ -284,8 +285,8 @@ describe("Waku Relay [node only]", () => {
       );
 
       await Promise.all([
-        waku1.waitForRemotePeer([Protocols.Relay]),
-        waku2.waitForRemotePeer([Protocols.Relay]),
+        waitForRemotePeer(waku1, [Protocols.Relay]),
+        waitForRemotePeer(waku2, [Protocols.Relay]),
         // No subscription change expected for Waku 3
       ]);
 
@@ -334,7 +335,7 @@ describe("Waku Relay [node only]", () => {
       await nwaku.start();
 
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waku.waitForRemotePeer([Protocols.Relay]);
+      await waitForRemotePeer(waku, [Protocols.Relay]);
     });
 
     afterEach(async function () {
@@ -437,8 +438,8 @@ describe("Waku Relay [node only]", () => {
 
         // Wait for identify protocol to finish
         await Promise.all([
-          waku1.waitForRemotePeer([Protocols.Relay]),
-          waku2.waitForRemotePeer([Protocols.Relay]),
+          waitForRemotePeer(waku1, [Protocols.Relay]),
+          waitForRemotePeer(waku2, [Protocols.Relay]),
         ]);
 
         await delay(2000);
