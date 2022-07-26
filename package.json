@@ -3,13 +3,11 @@
   "version": "0.24.0",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "types": "./dist/esm/index.d.ts",
-  "main": "./dist/cjs/index.cjs",
   "module": "./dist/esm/index.js",
   "exports": {
     ".": {
       "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.cjs"
+      "import": "./dist/esm/index.js"
     }
   },
   "type": "module",
@@ -27,7 +25,6 @@
     "prepare": "husky install",
     "build": "rimraf ./dist; run-s build:**",
     "build:esm": "tsc && node build-scripts/fix-imports.js",
-    "build:cjs": "rollup --config rollup.cjs.config.js -- dist/esm/index.js",
     "build:umd": "webpack --config webpack.umd.config.cjs",
     "build:umd:min": "terser --ecma 6 --compress --mangle -o dist/umd/index.min.js -- dist/umd/index.js && gzip -9 -c dist/umd/index.min.js > dist/umd/index.min.js.gz",
     "size": "npm run build && size-limit",
@@ -157,7 +154,6 @@
   },
   "files": [
     "dist/esm",
-    "dist/cjs",
     "dist/umd",
     "src/*.ts",
     "src/lib/**/*.ts",
