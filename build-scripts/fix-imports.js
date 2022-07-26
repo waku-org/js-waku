@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 
-const START_PATH = path.join(process.cwd(), "dist/esm");
+const START_PATH = path.join(process.cwd(), "dist/");
 const IMPORT_REGEXP =
   /^((import|export) [^';]* from "(\.[^@";]*\/[^";]*)[^";]*)"/g;
 const JUST_ADD_AN_EXTENSION = '$1.js"';

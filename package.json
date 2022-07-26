@@ -2,12 +2,12 @@
   "name": "js-waku",
   "version": "0.24.0",
   "description": "TypeScript implementation of the Waku v2 protocol",
-  "types": "./dist/esm/index.d.ts",
-  "module": "./dist/esm/index.js",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "type": "module",
@@ -25,7 +25,7 @@
     "prepare": "husky install",
     "build": "rimraf ./dist; run-s build:**",
     "build:esm": "tsc && node build-scripts/fix-imports.js",
-    "build:bundle": "rollup --config rollup.config.js -- dist/esm/index.js",
+    "build:bundle": "rollup --config rollup.config.js -- dist/index.js",
     "build:bundle:min": "terser --ecma 11 --compress --mangle -o dist/bundle.min.js -- dist/bundle.js && gzip -9 -c dist/bundle.min.js > dist/bundle.min.js.gz",
     "size": "npm run build && size-limit",
     "fix": "run-s fix:*",
@@ -152,7 +152,7 @@
     "webpack-cli": "^4.10.0"
   },
   "files": [
-    "dist/esm",
+    "dist",
     "src/*.ts",
     "src/lib/**/*.ts",
     "src/proto/**/*.ts",
