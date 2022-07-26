@@ -26,8 +26,7 @@
     "build": "rimraf ./dist; run-s build:**",
     "build:esm": "tsc && node build-scripts/fix-imports.js",
     "build:bundle": "rollup --config rollup.config.js -- dist/esm/index.js",
-    "build:umd": "webpack --config webpack.umd.config.cjs",
-    "build:umd:min": "terser --ecma 6 --compress --mangle -o dist/umd/index.min.js -- dist/umd/index.js && gzip -9 -c dist/umd/index.min.js > dist/umd/index.min.js.gz",
+    "build:bundle:min": "terser --ecma 11 --compress --mangle -o dist/bundle.min.js -- dist/bundle.js && gzip -9 -c dist/bundle.min.js > dist/bundle.min.js.gz",
     "size": "npm run build && size-limit",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.*js\" \".github/**/*.yml\" --write",
@@ -155,7 +154,6 @@
   },
   "files": [
     "dist/esm",
-    "dist/umd",
     "src/*.ts",
     "src/lib/**/*.ts",
     "src/proto/**/*.ts",
