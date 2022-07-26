@@ -3,7 +3,7 @@ import fs from "fs";
 
 const START_PATH = path.join(process.cwd(), "dist/esm");
 const IMPORT_REGEXP =
-  /^((import|export) [^';]* from "(@[^";]+\/)?([^@";]*\/[^";]*)[^";]*)"/g;
+  /^((import|export) [^';]* from "(\.[^@";]*\/[^";]*)[^";]*)"/g;
 const JUST_ADD_AN_EXTENSION = '$1.js"';
 const ADD_INDEX_FILE = '$1/index.js"';
 const JS_EXT = ".js";
@@ -36,7 +36,7 @@ function fixImportsAtFile(filePath) {
     }
 
     const [_, importPath] = l.split(`"`);
-    let exists = true;
+    let exists;
     let fullPath;
     if (importPath.startsWith(".")) {
       fullPath = path.join(filePath, "..", importPath);
