@@ -142,7 +142,6 @@
     "rollup": "^2.75.0",
     "rollup-plugin-polyfill-node": "^0.10.1",
     "size-limit": "^7.0.8",
-    "stream-browserify": "^3.0.0",
     "tail": "^2.2.0",
     "terser": "^5.13.1",
     "ts-loader": "^9.2.6",
