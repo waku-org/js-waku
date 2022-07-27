@@ -22,7 +22,7 @@ interface WakuGossipSubProtocol extends GossipSub {
 
 /**
  * Wait for a remote peer to be ready given the passed protocols.
- * Useful when using the [[CreateOptions.bootstrap]] with [[Waku.create]].
+ * Useful when using the [[CreateOptions.bootstrap]] with [[createWaku]].
  *
  * If the passed protocols is a GossipSub protocol, then it resolves only once
  * a peer is in a mesh, to help ensure that other peers will send and receive

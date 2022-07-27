@@ -15,6 +15,7 @@ import { hexToBytes } from "../utils";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { ContentFilter, FilterRPC } from "./filter_rpc";
+export { ContentFilter };
 
 export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 
@@ -32,7 +33,7 @@ export interface CreateOptions {
   pubSubTopic?: string;
 }
 
-type FilterSubscriptionOpts = {
+export type FilterSubscriptionOpts = {
   /**
    * The Pubsub topic for the subscription
    */
@@ -43,9 +44,9 @@ type FilterSubscriptionOpts = {
   peerId?: PeerId;
 };
 
-type FilterCallback = (msg: WakuMessage) => void | Promise<void>;
+export type FilterCallback = (msg: WakuMessage) => void | Promise<void>;
 
-type UnsubscribeFunction = () => Promise<void>;
+export type UnsubscribeFunction = () => Promise<void>;
 
 /**
  * Implements client side of the [Waku v2 Filter protocol](https://rfc.vac.dev/spec/12/).
