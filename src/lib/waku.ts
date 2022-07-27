@@ -107,8 +107,6 @@ export async function createWaku(options?: CreateOptions): Promise<Waku> {
   const wakuLightPush = new WakuLightPush(libp2p, options);
   const wakuFilter = new WakuFilter(libp2p, options);
 
-  await libp2p.start();
-
   return new Waku(options ?? {}, libp2p, wakuStore, wakuLightPush, wakuFilter);
 }
 
@@ -231,6 +229,10 @@ export class Waku {
   async stop(): Promise<void> {
     this.stopAllKeepAlives();
     await this.libp2p.stop();
+  }
+
+  isStarted(): boolean {
+    return this.libp2p.isStarted();
   }
 
   /**

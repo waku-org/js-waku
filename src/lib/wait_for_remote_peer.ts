@@ -44,6 +44,8 @@ export async function waitForRemotePeer(
 ): Promise<void> {
   protocols = protocols ?? [Protocols.Relay];
 
+  if (!waku.isStarted()) return Promise.reject("Waku node is not started");
+
   const promises = [];
 
   if (protocols.includes(Protocols.Relay)) {
