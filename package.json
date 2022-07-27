@@ -140,7 +140,6 @@
     "protons": "^3.0.4",
     "puppeteer": "^13.0.1",
     "rollup": "^2.75.0",
-    "rollup-plugin-polyfill-node": "^0.10.1",
     "size-limit": "^7.0.8",
     "tail": "^2.2.0",
     "terser": "^5.13.1",
