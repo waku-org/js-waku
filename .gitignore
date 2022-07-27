@@ -7,3 +7,5 @@ node_modules
 src/**.js
 coverage
 *.log
+/tsconfig.tsbuildinfo
+/tsconfig.dev.tsbuildinfo
