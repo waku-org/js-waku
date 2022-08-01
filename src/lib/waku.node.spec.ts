@@ -8,9 +8,10 @@ import {
   Nwaku,
 } from "../test_utils/";
 
+import { createWaku } from "./create_waku";
 import { generateSymmetricKey } from "./crypto";
 import { waitForRemotePeer } from "./wait_for_remote_peer";
-import { createWaku, Protocols, Waku } from "./waku";
+import { Protocols, Waku } from "./waku";
 import { WakuMessage } from "./waku_message";
 
 const TestContentTopic = "/test/1/waku/utf8";

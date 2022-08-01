@@ -18,7 +18,7 @@ export { waitForRemotePeer } from "./lib/wait_for_remote_peer";
 export * as proto_message from "./proto/message";
 
 export * as waku from "./lib/waku";
-export { createWaku, Waku, Protocols } from "./lib/waku";
+export { Waku, Protocols } from "./lib/waku";
 
 export * as waku_message from "./lib/waku_message";
 export { WakuMessage } from "./lib/waku_message";
@@ -38,3 +38,4 @@ export { WakuRelay } from "./lib/waku_relay";
 
 export * as waku_store from "./lib/waku_store";
 export { PageDirection, WakuStore, StoreCodecs } from "./lib/waku_store";
+export { createWaku } from "./lib/create_waku";

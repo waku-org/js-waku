@@ -8,6 +8,7 @@ import {
   WakuRelayMessage,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
+import { createWaku } from "../create_waku";
 import {
   generatePrivateKey,
   generateSymmetricKey,
@@ -15,7 +16,7 @@ import {
 } from "../crypto";
 import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { createWaku, Protocols, Waku } from "../waku";
+import { Protocols, Waku } from "../waku";
 
 import { DecryptionMethod, WakuMessage } from "./index";
 
