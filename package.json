@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./lib/create_waku": {
+      "types": "./dist/lib/create_waku.d.ts",
+      "import": "./dist/lib/create_waku.js"
     }
   },
   "type": "module",
