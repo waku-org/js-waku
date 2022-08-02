@@ -58,7 +58,6 @@ describe("Waku Dial [node only]", function () {
       nwaku = new Nwaku(makeLogFileName(this));
       await nwaku.start();
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
-      console.log(multiAddrWithId);
       waku = await createWaku({
         staticNoiseKey: NOISE_KEY_1,
         bootstrap: { peers: [multiAddrWithId] },
