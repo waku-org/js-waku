@@ -42,6 +42,10 @@ module.exports = function (config) {
       ],
       resolve: {
         extensions: [".ts", ".js"],
+        fallback: {
+          // Can be removed once https://github.com/libp2p/js-libp2p-pubsub/pull/92 is merged and released
+          buffer: false,
+        },
       },
       stats: { warnings: false },
     },
