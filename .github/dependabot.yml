@@ -5,7 +5,7 @@ updates:
     open-pull-requests-limit: 1
     schedule:
       interval: "daily"
-    reviewers: ["d4nte"]
+    reviewers: ["fryorcraken"]
     # Update the npm manifest file to relax
     # the version requirements as js-waku is a library
     versioning-strategy: widen
@@ -15,7 +15,7 @@ updates:
     directory: "/examples/web-chat"
     schedule:
       interval: "daily"
-    reviewers: ["d4nte"]
+    reviewers: ["fryorcraken"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -26,7 +26,7 @@ updates:
     directory: "/examples/relay-reactjs-chat"
     schedule:
       interval: "daily"
-    reviewers: ["d4nte"]
+    reviewers: ["fryorcraken"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -37,7 +37,7 @@ updates:
     directory: "/examples/store-reactjs-chat"
     schedule:
       interval: "daily"
-    reviewers: ["d4nte"]
+    reviewers: ["fryorcraken"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -48,7 +48,7 @@ updates:
     directory: "/examples/eth-pm"
     schedule:
       interval: "daily"
-    reviewers: ["d4nte"]
+    reviewers: ["fryorcraken"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -59,7 +59,7 @@ updates:
     directory: "/examples/eth-pm-wallet-encryption"
     schedule:
       interval: "daily"
-    reviewers: ["d4nte"]
+    reviewers: ["fryorcraken"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -70,7 +70,7 @@ updates:
     directory: "/examples/relay-angular-chat"
     schedule:
       interval: "daily"
-    reviewers: ["d4nte"]
+    reviewers: ["fryorcraken"]
     ignore:
       - dependency-name: "*"
         update-types:
