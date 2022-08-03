@@ -1,3 +1,4 @@
+import { PeerId } from "@libp2p/interface-peer-id";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -5,6 +6,7 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
+  NOISE_KEY_3,
   Nwaku,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
@@ -14,7 +16,8 @@ import {
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
-import { Protocols, Waku } from "../waku";
+import { waitForRemotePeer } from "../wait_for_remote_peer";
+import { createWaku, Protocols, Waku } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 const log = debug("waku:test");
@@ -38,19 +41,24 @@ describe("Waku Relay [node only]", () => {
 
       log("Starting JS Waku instances");
       [waku1, waku2] = await Promise.all([
-        Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
-        Waku.create({
+        createWaku({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
+          waku.start().then(() => waku)
+        ),
+        createWaku({
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-        }),
+        }).then((waku) => waku.start().then(() => waku)),
       ]);
       log("Instances started, adding waku2 to waku1's address book");
-      waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+      waku1.addPeerToAddressBook(
+        waku2.libp2p.peerId,
+        waku2.libp2p.getMultiaddrs()
+      );
 
       log("Wait for mutual pubsub subscription");
       await Promise.all([
-        waku1.waitForRemotePeer([Protocols.Relay]),
-        waku2.waitForRemotePeer([Protocols.Relay]),
+        waitForRemotePeer(waku1, [Protocols.Relay]),
+        waitForRemotePeer(waku2, [Protocols.Relay]),
       ]);
       log("before each hook done");
     });
@@ -64,18 +72,20 @@ describe("Waku Relay [node only]", () => {
 
     it("Subscribe", async function () {
       log("Getting subscribers");
-      const subscribers1 =
-        waku1.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
-      const subscribers2 =
-        waku2.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
+      const subscribers1 = waku1.libp2p.pubsub
+        .getSubscribers(DefaultPubSubTopic)
+        .map((p) => p.toString());
+      const subscribers2 = waku2.libp2p.pubsub
+        .getSubscribers(DefaultPubSubTopic)
+        .map((p) => p.toString());
 
       log("Asserting mutual subscription");
-      expect(subscribers1).to.contain(waku2.libp2p.peerId.toB58String());
-      expect(subscribers2).to.contain(waku1.libp2p.peerId.toB58String());
+      expect(subscribers1).to.contain(waku2.libp2p.peerId.toString());
+      expect(subscribers2).to.contain(waku1.libp2p.peerId.toString());
     });
 
     it("Register correct protocols", async function () {
-      const protocols = Array.from(waku1.libp2p.upgrader.protocols.keys());
+      const protocols = waku1.libp2p.registrar.getProtocols();
 
       expect(protocols).to.contain("/vac/waku/relay/2.0.0");
       expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
@@ -247,34 +257,52 @@ describe("Waku Relay [node only]", () => {
   });
 
   describe("Custom pubsub topic", () => {
+    let waku1: Waku;
+    let waku2: Waku;
+    let waku3: Waku;
+    afterEach(async function () {
+      !!waku1 &&
+        waku1.stop().catch((e) => console.log("Waku failed to stop", e));
+      !!waku2 &&
+        waku2.stop().catch((e) => console.log("Waku failed to stop", e));
+      !!waku3 &&
+        waku3.stop().catch((e) => console.log("Waku failed to stop", e));
+    });
+
     it("Publish", async function () {
       this.timeout(10000);
 
       const pubSubTopic = "/some/pubsub/topic";
 
       // 1 and 2 uses a custom pubsub
-      const [waku1, waku2, waku3] = await Promise.all([
-        Waku.create({
+      // 3 uses the default pubsub
+      [waku1, waku2, waku3] = await Promise.all([
+        createWaku({
           pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_1,
-        }),
-        Waku.create({
+        }).then((waku) => waku.start().then(() => waku)),
+        createWaku({
           pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-        }),
-        Waku.create({
-          staticNoiseKey: NOISE_KEY_2,
-        }),
+        }).then((waku) => waku.start().then(() => waku)),
+        createWaku({
+          staticNoiseKey: NOISE_KEY_3,
+        }).then((waku) => waku.start().then(() => waku)),
       ]);
 
-      waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
-      waku3.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+      waku1.addPeerToAddressBook(
+        waku2.libp2p.peerId,
+        waku2.libp2p.getMultiaddrs()
+      );
+      waku3.addPeerToAddressBook(
+        waku2.libp2p.peerId,
+        waku2.libp2p.getMultiaddrs()
+      );
 
       await Promise.all([
-        waku1.waitForRemotePeer([Protocols.Relay]),
-        waku2.waitForRemotePeer([Protocols.Relay]),
-        // No subscription change expected for Waku 3
+        waitForRemotePeer(waku1, [Protocols.Relay]),
+        waitForRemotePeer(waku2, [Protocols.Relay]),
       ]);
 
       const messageText = "Communicating using a custom pubsub topic";
@@ -313,15 +341,16 @@ describe("Waku Relay [node only]", () => {
 
     beforeEach(async function () {
       this.timeout(30_000);
-      waku = await Waku.create({
+      waku = await createWaku({
         staticNoiseKey: NOISE_KEY_1,
       });
+      await waku.start();
 
       nwaku = new Nwaku(this.test?.ctx?.currentTest?.title + "");
       await nwaku.start();
 
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waku.waitForRemotePeer([Protocols.Relay]);
+      await waitForRemotePeer(waku, [Protocols.Relay]);
     });
 
     afterEach(async function () {
@@ -330,7 +359,7 @@ describe("Waku Relay [node only]", () => {
     });
 
     it("nwaku subscribes", async function () {
-      let subscribers: string[] = [];
+      let subscribers: PeerId[] = [];
 
       while (subscribers.length === 0) {
         await delay(200);
@@ -338,7 +367,9 @@ describe("Waku Relay [node only]", () => {
       }
 
       const nimPeerId = await nwaku.getPeerId();
-      expect(subscribers).to.contain(nimPeerId.toB58String());
+      expect(subscribers.map((p) => p.toString())).to.contain(
+        nimPeerId.toString()
+      );
     });
 
     it("Publishes to nwaku", async function () {
@@ -405,12 +436,12 @@ describe("Waku Relay [node only]", () => {
       it("Js publishes, other Js receives", async function () {
         this.timeout(60_000);
         [waku1, waku2] = await Promise.all([
-          Waku.create({
+          createWaku({
             staticNoiseKey: NOISE_KEY_1,
-          }),
-          Waku.create({
+          }).then((waku) => waku.start().then(() => waku)),
+          createWaku({
             staticNoiseKey: NOISE_KEY_2,
-          }),
+          }).then((waku) => waku.start().then(() => waku)),
         ]);
 
         nwaku = new Nwaku(makeLogFileName(this));
@@ -424,8 +455,8 @@ describe("Waku Relay [node only]", () => {
 
         // Wait for identify protocol to finish
         await Promise.all([
-          waku1.waitForRemotePeer([Protocols.Relay]),
-          waku2.waitForRemotePeer([Protocols.Relay]),
+          waitForRemotePeer(waku1, [Protocols.Relay]),
+          waitForRemotePeer(waku2, [Protocols.Relay]),
         ]);
 
         await delay(2000);

@@ -3,7 +3,8 @@ import debug from "debug";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { Protocols, Waku } from "../waku";
+import { waitForRemotePeer } from "../wait_for_remote_peer";
+import { createWaku, Protocols, Waku } from "../waku";
 import { WakuMessage } from "../waku_message";
 
 const log = debug("waku:test");
@@ -22,13 +23,14 @@ describe("Waku Filter", () => {
   beforeEach(async function () {
     this.timeout(10000);
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ filter: true });
-    waku = await Waku.create({
+    await nwaku.start({ filter: true, lightpush: true });
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     });
+    await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waku.waitForRemotePeer([Protocols.Filter, Protocols.Relay]);
+    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });
 
   it("creates a subscription", async function () {
@@ -47,7 +49,7 @@ describe("Waku Filter", () => {
       messageText,
       TestContentTopic
     );
-    await waku.relay.send(message);
+    await waku.lightPush.push(message);
     while (messageCount === 0) {
       await delay(250);
     }
@@ -63,10 +65,10 @@ describe("Waku Filter", () => {
       expect(msg.contentTopic).to.eq(TestContentTopic);
     };
     await waku.filter.subscribe(callback, [TestContentTopic]);
-    await waku.relay.send(
+    await waku.lightPush.push(
       await WakuMessage.fromUtf8String("Filtering works!", TestContentTopic)
     );
-    await waku.relay.send(
+    await waku.lightPush.push(
       await WakuMessage.fromUtf8String(
         "Filtering still works!",
         TestContentTopic
@@ -86,7 +88,7 @@ describe("Waku Filter", () => {
     const unsubscribe = await waku.filter.subscribe(callback, [
       TestContentTopic,
     ]);
-    await waku.relay.send(
+    await waku.lightPush.push(
       await WakuMessage.fromUtf8String(
         "This should be received",
         TestContentTopic
@@ -94,7 +96,7 @@ describe("Waku Filter", () => {
     );
     await delay(100);
     await unsubscribe();
-    await waku.relay.send(
+    await waku.lightPush.push(
       await WakuMessage.fromUtf8String(
         "This should not be received",
         TestContentTopic

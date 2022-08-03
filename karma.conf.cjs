@@ -1,5 +1,4 @@
 process.env.CHROME_BIN = require("puppeteer").executablePath();
-const webpackConfig = require("./webpack.config.cjs");
 const webpack = require("webpack");
 
 module.exports = function (config) {
@@ -20,14 +19,34 @@ module.exports = function (config) {
     },
     webpack: {
       mode: "production",
-      module: webpackConfig.module,
+      module: {
+        rules: [
+          {
+            test: /\.(js|tsx?)$/,
+            use: "ts-loader",
+            exclude: /(node_modules)|(node\.spec\.ts)/,
+          },
+          {
+            test: /node\.spec\.ts$/,
+            use: "ignore-loader",
+          },
+        ],
+      },
       plugins: [
         new webpack.DefinePlugin({
           "process.env.CI": process.env.CI || false,
         }),
-        ...webpackConfig.plugins,
+        new webpack.ProvidePlugin({
+          process: "process/browser.js",
+        }),
       ],
-      resolve: webpackConfig.resolve,
+      resolve: {
+        extensions: [".ts", ".js"],
+        fallback: {
+          // Can be removed once https://github.com/libp2p/js-libp2p-pubsub/pull/92 is merged and released
+          buffer: false,
+        },
+      },
       stats: { warnings: false },
     },
   });

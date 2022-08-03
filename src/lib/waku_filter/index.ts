@@ -1,8 +1,12 @@
+import type { Stream } from "@libp2p/interface-connection";
+import type { PeerId } from "@libp2p/interface-peer-id";
+import type { Peer } from "@libp2p/interface-peer-store";
+import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import debug from "debug";
-import lp from "it-length-prefixed";
+import all from "it-all";
+import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
-import Libp2p, { MuxedStream } from "libp2p";
-import { Peer, PeerId } from "libp2p/src/peer-store";
+import type { Libp2p } from "libp2p";
 
 import { WakuMessage as WakuMessageProto } from "../../proto/message";
 import { DefaultPubSubTopic } from "../constants";
@@ -11,12 +15,25 @@ import { hexToBytes } from "../utils";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { ContentFilter, FilterRPC } from "./filter_rpc";
+export { ContentFilter };
 
 export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 
 const log = debug("waku:filter");
 
-type FilterSubscriptionOpts = {
+export interface CreateOptions {
+  /**
+   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
+   *
+   * The usage of the default pubsub topic is recommended.
+   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
+   *
+   * @default {@link DefaultPubSubTopic}
+   */
+  pubSubTopic?: string;
+}
+
+export type FilterSubscriptionOpts = {
   /**
    * The Pubsub topic for the subscription
    */
@@ -27,9 +44,9 @@ type FilterSubscriptionOpts = {
   peerId?: PeerId;
 };
 
-type FilterCallback = (msg: WakuMessage) => void | Promise<void>;
+export type FilterCallback = (msg: WakuMessage) => void | Promise<void>;
 
-type UnsubscribeFunction = () => Promise<void>;
+export type UnsubscribeFunction = () => Promise<void>;
 
 /**
  * Implements client side of the [Waku v2 Filter protocol](https://rfc.vac.dev/spec/12/).
@@ -39,16 +56,20 @@ type UnsubscribeFunction = () => Promise<void>;
  * - https://github.com/status-im/nwaku/issues/948
  */
 export class WakuFilter {
+  pubSubTopic: string;
   private subscriptions: Map<string, FilterCallback>;
   public decryptionKeys: Map<
     Uint8Array,
     { method?: DecryptionMethod; contentTopics?: string[] }
   >;
 
-  constructor(public libp2p: Libp2p) {
+  constructor(public libp2p: Libp2p, options?: CreateOptions) {
     this.subscriptions = new Map();
     this.decryptionKeys = new Map();
-    this.libp2p.handle(FilterCodec, this.onRequest.bind(this));
+    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+    this.libp2p
+      .handle(FilterCodec, this.onRequest.bind(this))
+      .catch((e) => log("Failed to register filter protocol", e));
   }
 
   /**
@@ -62,7 +83,7 @@ export class WakuFilter {
     contentTopics: string[],
     opts?: FilterSubscriptionOpts
   ): Promise<UnsubscribeFunction> {
-    const topic = opts?.pubsubTopic || DefaultPubSubTopic;
+    const topic = opts?.pubsubTopic ?? this.pubSubTopic;
     const contentFilters = contentTopics.map((contentTopic) => ({
       contentTopic,
     }));
@@ -83,11 +104,19 @@ export class WakuFilter {
     const stream = await this.newStream(peer);
 
     try {
-      await pipe([request.encode()], lp.encode(), stream);
+      const res = await pipe(
+        [request.encode()],
+        lp.encode(),
+        stream,
+        lp.decode(),
+        async (source) => await all(source)
+      );
+
+      log("response", res);
     } catch (e) {
       log(
         "Error subscribing to peer ",
-        peer.id.toB58String(),
+        peer.id.toString(),
         "for content topics",
         contentTopics,
         ": ",
@@ -104,19 +133,22 @@ export class WakuFilter {
     };
   }
 
-  private async onRequest({ stream }: Libp2p.HandlerProps): Promise<void> {
+  private onRequest(streamData: IncomingStreamData): void {
     log("Receiving message push");
     try {
-      await pipe(
-        stream.source,
-        lp.decode(),
-        async (source: AsyncIterable<Buffer>) => {
-          for await (const bytes of source) {
-            const res = FilterRPC.decode(bytes.slice());
-            if (res.requestId && res.push?.messages?.length) {
-              await this.pushMessages(res.requestId, res.push.messages);
-            }
+      pipe(streamData.stream, lp.decode(), async (source) => {
+        for await (const bytes of source) {
+          const res = FilterRPC.decode(bytes.slice());
+          if (res.requestId && res.push?.messages?.length) {
+            await this.pushMessages(res.requestId, res.push.messages);
           }
+        }
+      }).then(
+        () => {
+          log("Receiving pipe closed.");
+        },
+        (e) => {
+          log("Error with receiving pipe", e);
         }
       );
     } catch (e) {
@@ -184,14 +216,15 @@ export class WakuFilter {
     }
   }
 
-  private async newStream(peer: Peer): Promise<MuxedStream> {
-    const connection = this.libp2p.connectionManager.get(peer.id);
-    if (!connection) {
+  // Should be able to remove any at next libp2p release >0.37.3
+  private async newStream(peer: Peer): Promise<Stream> {
+    const connections = this.libp2p.connectionManager.getConnections(peer.id);
+    if (!connections) {
       throw new Error("Failed to get a connection to the peer");
     }
 
-    const { stream } = await connection.newStream(FilterCodec);
-    return stream;
+    // TODO: Appropriate connection selection
+    return connections[0].newStream(FilterCodec);
   }
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {
@@ -200,11 +233,11 @@ export class WakuFilter {
       peer = await this.libp2p.peerStore.get(peerId);
       if (!peer) {
         throw new Error(
-          `Failed to retrieve connection details for provided peer in peer store: ${peerId.toB58String()}`
+          `Failed to retrieve connection details for provided peer in peer store: ${peerId.toString()}`
         );
       }
     } else {
-      peer = await this.randomPeer;
+      peer = await this.randomPeer();
       if (!peer) {
         throw new Error(
           "Failed to find known peer that registers waku filter protocol"
@@ -238,11 +271,11 @@ export class WakuFilter {
     this.decryptionKeys.delete(hexToBytes(key));
   }
 
-  get peers(): AsyncIterable<Peer> {
+  async peers(): Promise<Peer[]> {
     return getPeersForProtocol(this.libp2p, [FilterCodec]);
   }
 
-  get randomPeer(): Promise<Peer | undefined> {
-    return selectRandomPeer(this.peers);
+  async randomPeer(): Promise<Peer | undefined> {
+    return selectRandomPeer(await this.peers());
   }
 }

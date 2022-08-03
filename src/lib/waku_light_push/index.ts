@@ -1,9 +1,10 @@
-import concat from "it-concat";
-import lp from "it-length-prefixed";
+import type { PeerId } from "@libp2p/interface-peer-id";
+import type { Peer } from "@libp2p/interface-peer-store";
+import all from "it-all";
+import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
-import Libp2p from "libp2p";
-import { Peer } from "libp2p/src/peer-store";
-import PeerId from "peer-id";
+import { Libp2p } from "libp2p";
+import { concat } from "uint8arrays/concat";
 
 import { PushResponse } from "../../proto/light_push";
 import { DefaultPubSubTopic } from "../constants";
@@ -39,11 +40,7 @@ export class WakuLightPush {
   pubSubTopic: string;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
-    if (options?.pubSubTopic) {
-      this.pubSubTopic = options.pubSubTopic;
-    } else {
-      this.pubSubTopic = DefaultPubSubTopic;
-    }
+    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
   }
 
   async push(
@@ -55,16 +52,17 @@ export class WakuLightPush {
       peer = await this.libp2p.peerStore.get(opts.peerId);
       if (!peer) throw "Peer is unknown";
     } else {
-      peer = await this.randomPeer;
+      peer = await this.randomPeer();
     }
     if (!peer) throw "No peer available";
     if (!peer.protocols.includes(LightPushCodec))
       throw "Peer does not register waku light push protocol";
 
-    const connection = this.libp2p.connectionManager.get(peer.id);
-    if (!connection) throw "Failed to get a connection to the peer";
+    const connections = this.libp2p.connectionManager.getConnections(peer.id);
+    if (!connections) throw "Failed to get a connection to the peer";
 
-    const { stream } = await connection.newStream(LightPushCodec);
+    // TODO: Appropriate connection management
+    const stream = await connections[0].newStream(LightPushCodec);
     try {
       const pubSubTopic = opts?.pubSubTopic
         ? opts.pubSubTopic
@@ -75,10 +73,11 @@ export class WakuLightPush {
         lp.encode(),
         stream,
         lp.decode(),
-        concat
+        async (source) => await all(source)
       );
       try {
-        const response = PushRPC.decode(res.slice()).response;
+        const bytes = concat(res);
+        const response = PushRPC.decode(bytes).response;
 
         if (!response) {
           console.log("No response in PushRPC");
@@ -97,9 +96,10 @@ export class WakuLightPush {
 
   /**
    * Returns known peers from the address book (`libp2p.peerStore`) that support
-   * light push protocol. Waku may or  may not be currently connected to these peers.
+   * light push protocol. Waku may or may not be currently connected to these
+   * peers.
    */
-  get peers(): AsyncIterable<Peer> {
+  async peers(): Promise<Peer[]> {
     return getPeersForProtocol(this.libp2p, [LightPushCodec]);
   }
 
@@ -108,7 +108,7 @@ export class WakuLightPush {
    * book (`libp2p.peerStore`). Waku may or  may not be currently connected to
    * this peer.
    */
-  get randomPeer(): Promise<Peer | undefined> {
-    return selectRandomPeer(this.peers);
+  async randomPeer(): Promise<Peer | undefined> {
+    return selectRandomPeer(await this.peers());
   }
 }

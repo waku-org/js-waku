@@ -2,14 +2,12 @@
   "name": "js-waku",
   "version": "0.24.0",
   "description": "TypeScript implementation of the Waku v2 protocol",
-  "types": "./dist/esm/index.d.ts",
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/esm/index.js",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.cjs"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "type": "module",
@@ -25,11 +23,10 @@
   ],
   "scripts": {
     "prepare": "husky install",
-    "build": "rimraf ./dist; run-s build:**",
+    "build": "run-s build:**",
     "build:esm": "tsc && node build-scripts/fix-imports.js",
-    "build:cjs": "rollup --config rollup.cjs.config.js -- dist/esm/index.js",
-    "build:umd": "webpack --config webpack.umd.config.cjs",
-    "build:umd:min": "terser --ecma 6 --compress --mangle -o dist/umd/index.min.js -- dist/umd/index.js && gzip -9 -c dist/umd/index.min.js > dist/umd/index.min.js.gz",
+    "build:bundle": "rollup --config rollup.config.js -- dist/index.js",
+    "build:bundle:min": "terser --ecma 11 --compress --mangle -o dist/bundle.min.js -- dist/bundle.js && gzip -9 -c dist/bundle.min.js > dist/bundle.min.js.gz",
     "size": "npm run build && size-limit",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.*js\" \".github/**/*.yml\" --write",
@@ -66,49 +63,50 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@chainsafe/libp2p-noise": "^5.0.0",
+    "@chainsafe/libp2p-gossipsub": "^3.4.0",
+    "@chainsafe/libp2p-noise": "^7.0.1",
     "@ethersproject/rlp": "^5.5.0",
+    "@libp2p/crypto": "^1.0.0",
+    "@libp2p/interface-peer-discovery": "^1.0.0",
+    "@libp2p/interface-peer-id": "^1.0.2",
+    "@libp2p/interface-peer-info": "^1.0.1",
+    "@libp2p/interface-peer-store": "^1.0.0",
+    "@libp2p/interfaces": "^3.0.2",
+    "@libp2p/mplex": "^4.0.1",
+    "@libp2p/peer-id": "^1.1.10",
+    "@libp2p/websockets": "^3.0.0",
+    "@multiformats/multiaddr": "^10.2.0",
     "@noble/secp256k1": "^1.3.4",
-    "debug": "^4.3.1",
-    "dns-query": "^0.11.1",
+    "debug": "^4.3.4",
+    "dns-query": "^0.11.2",
     "hi-base32": "^0.5.1",
-    "it-concat": "^2.0.0",
-    "it-length-prefixed": "^5.0.2",
-    "it-pipe": "^1.1.0",
+    "it-all": "^1.0.6",
+    "it-length-prefixed": "^7.0.1",
+    "it-pipe": "^2.0.3",
     "js-sha3": "^0.8.0",
-    "libp2p": "^0.36.2",
-    "libp2p-bootstrap": "^0.14.0",
-    "libp2p-crypto": "^0.21.2",
-    "libp2p-gossipsub": "0.13.0",
-    "libp2p-interfaces": "^4.0.6",
-    "libp2p-mplex": "^0.10.4",
-    "libp2p-websockets": "^0.16.1",
-    "multiaddr": "^10.0.1",
-    "multiformats": "^9.6.5",
-    "peer-id": "^0.16.0",
+    "libp2p": "next",
+    "p-event": "^5.0.1",
     "protons-runtime": "^1.0.4",
     "uint8arrays": "^3.0.0",
-    "uuid": "^8.3.2",
-    "varint": "^6.0.0"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@libp2p/peer-id-factory": "^1.0.15",
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@size-limit/preset-big-lib": "^7.0.8",
     "@types/app-root-path": "^1.2.4",
     "@types/chai": "^4.2.15",
+    "@types/debug": "^4.1.7",
     "@types/mocha": "^9.1.0",
     "@types/node": "^17.0.6",
-    "@types/secp256k1": "^4.0.2",
     "@types/tail": "^2.0.0",
     "@types/uuid": "^8.3.0",
-    "@types/varint": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",
     "app-root-path": "^3.0.0",
-    "buffer": "^6.0.3",
     "chai": "^4.3.4",
     "cspell": "^5.14.0",
     "eslint": "^8.6.0",
@@ -139,22 +137,17 @@
     "protons": "^3.0.4",
     "puppeteer": "^13.0.1",
     "rollup": "^2.75.0",
-    "rollup-plugin-polyfill-node": "^0.9.0",
     "size-limit": "^7.0.8",
-    "stream-browserify": "^3.0.0",
     "tail": "^2.2.0",
     "terser": "^5.13.1",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.4.0",
     "typedoc": "^0.22.10",
     "typedoc-plugin-no-inherit": "^1.3.1",
-    "typescript": "^4.5.5",
-    "webpack-cli": "^4.10.0"
+    "typescript": "^4.5.5"
   },
   "files": [
-    "dist/esm",
-    "dist/cjs",
-    "dist/umd",
+    "dist",
     "src/*.ts",
     "src/lib/**/*.ts",
     "src/proto/**/*.ts",
@@ -172,9 +165,39 @@
   },
   "size-limit": [
     {
-      "path": "dist/umd/index.js",
-      "import": "{ Waku }",
-      "config": "./webpack.umd.config.cjs"
+      "name": "Waku core",
+      "path": "dist/bundle.min.js",
+      "import": "{ Waku }"
+    },
+    {
+      "name": "Waku default setup",
+      "path": "dist/bundle.min.js",
+      "import": "{ createWaku, waitForRemotePeer }"
+    },
+    {
+      "name": "Asymmetric, symmetric encryption and signature",
+      "path": "dist/bundle.min.js",
+      "import": "{ waku_message }"
+    },
+    {
+      "name": "DNS discovery",
+      "path": "dist/bundle.min.js",
+      "import": "{ discovery }"
+    },
+    {
+      "name": "Privacy preserving protocols",
+      "path": "dist/bundle.min.js",
+      "import": "{ WakuRelay }"
+    },
+    {
+      "name": "Light protocols",
+      "path": "dist/bundle.min.js",
+      "import": "{ WakuLightPush, WakuFilter }"
+    },
+    {
+      "name": "History retrieval protocols",
+      "path": "dist/bundle.min.js",
+      "import": "{ WakuStore }"
     }
   ],
   "lint-staged": {

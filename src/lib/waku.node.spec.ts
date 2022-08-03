@@ -1,5 +1,5 @@
+import type { PeerId } from "@libp2p/interface-peer-id";
 import { expect } from "chai";
-import PeerId from "peer-id";
 
 import {
   makeLogFileName,
@@ -7,10 +7,10 @@ import {
   NOISE_KEY_2,
   Nwaku,
 } from "../test_utils/";
-import { delay } from "../test_utils/delay";
 
 import { generateSymmetricKey } from "./crypto";
-import { Protocols, Waku } from "./waku";
+import { waitForRemotePeer } from "./wait_for_remote_peer";
+import { createWaku, Protocols, Waku } from "./waku";
 import { WakuMessage } from "./waku_message";
 
 const TestContentTopic = "/test/1/waku/utf8";
@@ -31,11 +31,12 @@ describe("Waku Dial [node only]", function () {
       await nwaku.start();
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-      waku = await Waku.create({
+      waku = await createWaku({
         staticNoiseKey: NOISE_KEY_1,
       });
+      await waku.start();
       await waku.dial(multiAddrWithId);
-      await waku.waitForRemotePeer([Protocols.Relay]);
+      await waitForRemotePeer(waku, [Protocols.Relay]);
 
       const nimPeerId = await nwaku.getPeerId();
       expect(await waku.libp2p.peerStore.has(nimPeerId)).to.be.true;
@@ -57,19 +58,22 @@ describe("Waku Dial [node only]", function () {
       nwaku = new Nwaku(makeLogFileName(this));
       await nwaku.start();
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
-
-      waku = await Waku.create({
+      waku = await createWaku({
         staticNoiseKey: NOISE_KEY_1,
         bootstrap: { peers: [multiAddrWithId] },
       });
+      await waku.start();
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
-        waku.libp2p.connectionManager.on("peer:connect", (connection) => {
-          resolve(connection.remotePeer);
-        });
+        waku.libp2p.connectionManager.addEventListener(
+          "peer:connect",
+          (evt) => {
+            resolve(evt.detail.remotePeer);
+          }
+        );
       });
 
-      expect(connectedPeerID.toB58String()).to.eq(multiAddrWithId.getPeerId());
+      expect(connectedPeerID.toString()).to.eq(multiAddrWithId.getPeerId());
     });
 
     it("Passing a function", async function () {
@@ -78,7 +82,7 @@ describe("Waku Dial [node only]", function () {
       nwaku = new Nwaku(makeLogFileName(this));
       await nwaku.start();
 
-      waku = await Waku.create({
+      waku = await createWaku({
         staticNoiseKey: NOISE_KEY_1,
         bootstrap: {
           getPeers: async () => {
@@ -86,15 +90,19 @@ describe("Waku Dial [node only]", function () {
           },
         },
       });
+      await waku.start();
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
-        waku.libp2p.connectionManager.on("peer:connect", (connection) => {
-          resolve(connection.remotePeer);
-        });
+        waku.libp2p.connectionManager.addEventListener(
+          "peer:connect",
+          (evt) => {
+            resolve(evt.detail.remotePeer);
+          }
+        );
       });
 
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
-      expect(connectedPeerID.toB58String()).to.eq(multiAddrWithId.getPeerId());
+      expect(connectedPeerID.toString()).to.eq(multiAddrWithId.getPeerId());
     });
   });
 });
@@ -111,18 +119,23 @@ describe("Decryption Keys", () => {
   beforeEach(async function () {
     this.timeout(5000);
     [waku1, waku2] = await Promise.all([
-      Waku.create({ staticNoiseKey: NOISE_KEY_1 }),
-      Waku.create({
+      createWaku({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
+        waku.start().then(() => waku)
+      ),
+      createWaku({
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-      }),
+      }).then((waku) => waku.start().then(() => waku)),
     ]);
 
-    waku1.addPeerToAddressBook(waku2.libp2p.peerId, waku2.libp2p.multiaddrs);
+    waku1.addPeerToAddressBook(
+      waku2.libp2p.peerId,
+      waku2.libp2p.getMultiaddrs()
+    );
 
     await Promise.all([
-      waku1.waitForRemotePeer([Protocols.Relay]),
-      waku2.waitForRemotePeer([Protocols.Relay]),
+      waitForRemotePeer(waku1, [Protocols.Relay]),
+      waitForRemotePeer(waku2, [Protocols.Relay]),
     ]);
   });
 
@@ -161,171 +174,5 @@ describe("Decryption Keys", () => {
     expect(receivedMsg.version).to.eq(message.version);
     expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
     expect(receivedMsg.timestamp?.valueOf()).to.eq(messageTimestamp.valueOf());
-  });
-});
-
-describe("Wait for remote peer / get peers", function () {
-  let waku: Waku;
-  let nwaku: Nwaku | undefined;
-
-  afterEach(async function () {
-    if (nwaku) {
-      nwaku.stop();
-      nwaku = undefined;
-    }
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
-  });
-
-  it("Relay - dialed first", async function () {
-    this.timeout(20_000);
-    nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start();
-    const multiAddrWithId = await nwaku.getMultiaddrWithId();
-
-    waku = await Waku.create({
-      staticNoiseKey: NOISE_KEY_1,
-    });
-    await waku.dial(multiAddrWithId);
-    await delay(1000);
-    await waku.waitForRemotePeer([Protocols.Relay]);
-    const peers = waku.relay.getPeers();
-    const nimPeerId = multiAddrWithId.getPeerId();
-
-    expect(nimPeerId).to.not.be.undefined;
-    expect(peers.has(nimPeerId as string)).to.be.true;
-  });
-
-  it("Relay - dialed after", async function () {
-    this.timeout(20_000);
-    nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start();
-    const multiAddrWithId = await nwaku.getMultiaddrWithId();
-
-    waku = await Waku.create({
-      staticNoiseKey: NOISE_KEY_1,
-    });
-
-    const waitPromise = waku.waitForRemotePeer([Protocols.Relay]);
-    await delay(1000);
-    await waku.dial(multiAddrWithId);
-    await waitPromise;
-
-    const peers = waku.relay.getPeers();
-    const nimPeerId = multiAddrWithId.getPeerId();
-
-    expect(nimPeerId).to.not.be.undefined;
-    expect(peers.has(nimPeerId as string)).to.be.true;
-  });
-
-  it("Relay - times out", function (done) {
-    this.timeout(5000);
-    Waku.create({
-      staticNoiseKey: NOISE_KEY_1,
-    }).then((waku) => {
-      waku.waitForRemotePeer([Protocols.Relay], 200).then(
-        () => {
-          throw "Promise expected to reject on time out";
-        },
-        (reason) => {
-          expect(reason).to.eq("Timed out waiting for a remote peer.");
-          done();
-        }
-      );
-    });
-  });
-
-  it("Store - dialed first", async function () {
-    this.timeout(20_000);
-    nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true });
-    const multiAddrWithId = await nwaku.getMultiaddrWithId();
-
-    waku = await Waku.create({
-      staticNoiseKey: NOISE_KEY_1,
-    });
-    await waku.dial(multiAddrWithId);
-    await delay(1000);
-    await waku.waitForRemotePeer([Protocols.Store]);
-
-    const peers = [];
-    for await (const peer of waku.store.peers) {
-      peers.push(peer.id.toB58String());
-    }
-
-    const nimPeerId = multiAddrWithId.getPeerId();
-
-    expect(nimPeerId).to.not.be.undefined;
-    expect(peers.includes(nimPeerId as string)).to.be.true;
-  });
-
-  it("Store - dialed after - with timeout", async function () {
-    this.timeout(20_000);
-    nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true });
-    const multiAddrWithId = await nwaku.getMultiaddrWithId();
-
-    waku = await Waku.create({
-      staticNoiseKey: NOISE_KEY_1,
-    });
-    const waitPromise = waku.waitForRemotePeer([Protocols.Store], 2000);
-    await delay(1000);
-    await waku.dial(multiAddrWithId);
-    await waitPromise;
-
-    const peers = [];
-    for await (const peer of waku.store.peers) {
-      peers.push(peer.id.toB58String());
-    }
-
-    const nimPeerId = multiAddrWithId.getPeerId();
-
-    expect(nimPeerId).to.not.be.undefined;
-    expect(peers.includes(nimPeerId as string)).to.be.true;
-  });
-
-  it("LightPush", async function () {
-    this.timeout(20_000);
-    nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ lightpush: true });
-    const multiAddrWithId = await nwaku.getMultiaddrWithId();
-
-    waku = await Waku.create({
-      staticNoiseKey: NOISE_KEY_1,
-    });
-    await waku.dial(multiAddrWithId);
-    await waku.waitForRemotePeer([Protocols.LightPush]);
-
-    const peers = [];
-    for await (const peer of waku.lightPush.peers) {
-      peers.push(peer.id.toB58String());
-    }
-
-    const nimPeerId = multiAddrWithId.getPeerId();
-
-    expect(nimPeerId).to.not.be.undefined;
-    expect(peers.includes(nimPeerId as string)).to.be.true;
-  });
-
-  it("Filter", async function () {
-    this.timeout(20_000);
-    nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ filter: true });
-    const multiAddrWithId = await nwaku.getMultiaddrWithId();
-
-    waku = await Waku.create({
-      staticNoiseKey: NOISE_KEY_1,
-    });
-    await waku.dial(multiAddrWithId);
-    await waku.waitForRemotePeer([Protocols.Filter]);
-
-    const peers = [];
-    for await (const peer of waku.filter.peers) {
-      peers.push(peer.id.toB58String());
-    }
-
-    const nimPeerId = multiAddrWithId.getPeerId();
-
-    expect(nimPeerId).to.not.be.undefined;
-    expect(peers.includes(nimPeerId as string)).to.be.true;
   });
 });

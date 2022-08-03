@@ -24,3 +24,13 @@ export const NOISE_KEY_2 = new Uint8Array(
     return b;
   })()
 );
+
+export const NOISE_KEY_3 = new Uint8Array(
+  ((): number[] => {
+    const b = [];
+    for (let i = 0; i < 32; i++) {
+      b.push(3);
+    }
+    return b;
+  })()
+);

@@ -1,6 +1,6 @@
+import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
+import { Multiaddr } from "@multiformats/multiaddr";
 import { assert, expect } from "chai";
-import { Multiaddr } from "multiaddr";
-import PeerId from "peer-id";
 
 import { getPublicKey } from "../crypto";
 import { bytesToHex, hexToBytes, utf8ToBytes } from "../utils";
@@ -13,9 +13,9 @@ import { Waku2 } from "./waku2_codec";
 describe("ENR", function () {
   describe("Txt codec", () => {
     it("should encodeTxt and decodeTxt", async () => {
-      const peerId = await PeerId.create({ keyType: "secp256k1" });
+      const peerId = await createSecp256k1PeerId();
       const enr = await ENR.createFromPeerId(peerId);
-      const keypair = createKeypairFromPeerId(peerId);
+      const keypair = await createKeypairFromPeerId(peerId);
       enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
       enr.multiaddrs = [
         new Multiaddr(
@@ -102,16 +102,16 @@ describe("ENR", function () {
       expect(enr.ip).to.not.be.undefined;
       expect(enr.ip).to.be.equal("134.209.139.210");
       expect(enr.publicKey).to.not.be.undefined;
-      expect(enr.peerId?.toB58String()).to.be.equal(
+      expect(enr.peerId?.toString()).to.be.equal(
         "16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ"
       );
     });
 
     it("should throw error - no id", async () => {
       try {
-        const peerId = await PeerId.create({ keyType: "secp256k1" });
+        const peerId = await createSecp256k1PeerId();
         const enr = await ENR.createFromPeerId(peerId);
-        const keypair = createKeypairFromPeerId(peerId);
+        const keypair = await createKeypairFromPeerId(peerId);
         enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
 
         enr.set("id", new Uint8Array([0]));
@@ -307,7 +307,7 @@ describe("ENR", function () {
     let enr: ENR;
 
     before(async function () {
-      peerId = await PeerId.create({ keyType: "secp256k1" });
+      peerId = await createSecp256k1PeerId();
       enr = await ENR.createFromPeerId(peerId);
       enr.ip = ip4;
       enr.ip6 = ip6;
@@ -387,9 +387,9 @@ describe("ENR", function () {
     let keypair: IKeypair;
 
     beforeEach(async function () {
-      peerId = await PeerId.create({ keyType: "secp256k1" });
+      peerId = await createSecp256k1PeerId();
       enr = await ENR.createFromPeerId(peerId);
-      keypair = createKeypairFromPeerId(peerId);
+      keypair = await createKeypairFromPeerId(peerId);
       waku2Protocols = {
         relay: false,
         store: false,

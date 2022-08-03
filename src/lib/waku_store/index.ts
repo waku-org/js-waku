@@ -1,10 +1,11 @@
+import type { PeerId } from "@libp2p/interface-peer-id";
+import { Peer } from "@libp2p/interface-peer-store";
 import debug from "debug";
-import concat from "it-concat";
-import lp from "it-length-prefixed";
+import all from "it-all";
+import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
-import Libp2p from "libp2p";
-import { Peer } from "libp2p/src/peer-store";
-import PeerId from "peer-id";
+import { Libp2p } from "libp2p";
+import { concat } from "uint8arrays/concat";
 
 import * as protoV2Beta4 from "../../proto/store_v2beta4";
 import { HistoryResponse } from "../../proto/store_v2beta4";
@@ -105,11 +106,7 @@ export class WakuStore {
   >;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
-    if (options?.pubSubTopic) {
-      this.pubSubTopic = options.pubSubTopic;
-    } else {
-      this.pubSubTopic = DefaultPubSubTopic;
-    }
+    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
 
     this.decryptionKeys = new Map();
   }
@@ -146,7 +143,7 @@ export class WakuStore {
     );
 
     dbg("Querying history with the following options", {
-      peerId: options?.peerId?.toB58String(),
+      peerId: options?.peerId?.toString(),
       ...options,
     });
 
@@ -154,9 +151,9 @@ export class WakuStore {
     if (opts.peerId) {
       peer = await this.libp2p.peerStore.get(opts.peerId);
       if (!peer)
-        throw `Failed to retrieve connection details for provided peer in peer store: ${opts.peerId.toB58String()}`;
+        throw `Failed to retrieve connection details for provided peer in peer store: ${opts.peerId.toString()}`;
     } else {
-      peer = await this.randomPeer;
+      peer = await this.randomPeer();
       if (!peer)
         throw "Failed to find known peer that registers waku store protocol";
     }
@@ -170,11 +167,12 @@ export class WakuStore {
     }
     dbg(`Use store codec ${storeCodec}`);
     if (!storeCodec)
-      throw `Peer does not register waku store protocol: ${peer.id.toB58String()}`;
+      throw `Peer does not register waku store protocol: ${peer.id.toString()}`;
 
     Object.assign(opts, { storeCodec });
-    const connection = this.libp2p.connectionManager.get(peer.id);
-    if (!connection) throw "Failed to get a connection to the peer";
+    const connections = this.libp2p.connectionManager.getConnections(peer.id);
+    if (!connections || !connections.length)
+      throw "Failed to get a connection to the peer";
 
     const decryptionKeys = Array.from(this.decryptionKeys).map(
       ([key, { method, contentTopics }]) => {
@@ -201,19 +199,21 @@ export class WakuStore {
     const messages: WakuMessage[] = [];
     let cursor = undefined;
     while (true) {
-      const { stream } = await connection.newStream(storeCodec);
+      // TODO: Some connection selection logic?
+      const stream = await connections[0].newStream(storeCodec);
       const queryOpts = Object.assign(opts, { cursor });
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
-      dbg("Querying store peer", connection.remoteAddr.toString());
+      dbg("Querying store peer", connections[0].remoteAddr.toString());
 
       const res = await pipe(
         [historyRpcQuery.encode()],
         lp.encode(),
         stream,
         lp.decode(),
-        concat
+        async (source) => await all(source)
       );
-      const reply = historyRpcQuery.decode(res.slice());
+      const bytes = concat(res);
+      const reply = historyRpcQuery.decode(bytes);
 
       if (!reply.response) {
         throw "History response misses response field";
@@ -301,7 +301,7 @@ export class WakuStore {
    * Returns known peers from the address book (`libp2p.peerStore`) that support
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
-  get peers(): AsyncIterable<Peer> {
+  async peers(): Promise<Peer[]> {
     const codecs = [];
     for (const codec of Object.values(StoreCodecs)) {
       codecs.push(codec);
@@ -315,7 +315,7 @@ export class WakuStore {
    * book (`libp2p.peerStore`). Waku may or  may not be currently connected to
    * this peer.
    */
-  get randomPeer(): Promise<Peer | undefined> {
-    return selectRandomPeer(this.peers);
+  async randomPeer(): Promise<Peer | undefined> {
+    return selectRandomPeer(await this.peers());
   }
 }

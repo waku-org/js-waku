@@ -2,7 +2,7 @@
   "compilerOptions": {
     "incremental": true,
     "target": "es2020",
-    "outDir": "dist/esm",
+    "outDir": "dist/",
     "rootDir": "src",
     "moduleResolution": "node",
     "module": "es2020",

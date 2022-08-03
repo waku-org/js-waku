@@ -1,13 +1,13 @@
 import * as RLP from "@ethersproject/rlp";
+import type { PeerId } from "@libp2p/interface-peer-id";
+import { Multiaddr } from "@multiformats/multiaddr";
+import {
+  convertToBytes,
+  convertToString,
+} from "@multiformats/multiaddr/convert";
 import debug from "debug";
-import { Multiaddr, protocols } from "multiaddr";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: No types available
-import muConvert from "multiaddr/src/convert";
-import PeerId from "peer-id";
 import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";
-import { encode as varintEncode } from "varint";
 
 import { compressPublicKey, keccak256, verifySignature } from "../crypto";
 import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
@@ -20,6 +20,7 @@ import {
   IKeypair,
   KeypairType,
 } from "./keypair";
+import { multiaddrFromFields } from "./multiaddr_from_fields";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
 import * as v4 from "./v4";
@@ -77,11 +78,11 @@ export class ENR extends Map<ENRKey, ENRValue> {
     });
   }
 
-  static createFromPeerId(
+  static async createFromPeerId(
     peerId: PeerId,
     kvs: Record<ENRKey, ENRValue> = {}
   ): Promise<ENR> {
-    const keypair = createKeypairFromPeerId(peerId);
+    const keypair = await createKeypairFromPeerId(peerId);
     switch (keypair.type) {
       case KeypairType.secp256k1:
         return ENR.createV4(keypair.publicKey, kvs);
@@ -190,7 +191,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   get ip(): string | undefined {
     const raw = this.get("ip");
     if (raw) {
-      return muConvert.toString(protocols.names.ip4.code, raw) as string;
+      return convertToString("ip4", raw) as string;
     } else {
       return undefined;
     }
@@ -198,7 +199,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
 
   set ip(ip: string | undefined) {
     if (ip) {
-      this.set("ip", muConvert.toBytes(protocols.names.ip4.code, ip));
+      this.set("ip", convertToBytes("ip4", ip));
     } else {
       this.delete("ip");
     }
@@ -207,7 +208,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   get tcp(): number | undefined {
     const raw = this.get("tcp");
     if (raw) {
-      return Number(muConvert.toString(protocols.names.tcp.code, raw));
+      return Number(convertToString("tcp", raw));
     } else {
       return undefined;
     }
@@ -217,14 +218,14 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (port === undefined) {
       this.delete("tcp");
     } else {
-      this.set("tcp", muConvert.toBytes(protocols.names.tcp.code, port));
+      this.set("tcp", convertToBytes("tcp", port.toString(10)));
     }
   }
 
   get udp(): number | undefined {
     const raw = this.get("udp");
     if (raw) {
-      return Number(muConvert.toString(protocols.names.udp.code, raw));
+      return Number(convertToString("udp", raw));
     } else {
       return undefined;
     }
@@ -234,14 +235,14 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (port === undefined) {
       this.delete("udp");
     } else {
-      this.set("udp", muConvert.toBytes(protocols.names.udp.code, port));
+      this.set("udp", convertToBytes("udp", port.toString(10)));
     }
   }
 
   get ip6(): string | undefined {
     const raw = this.get("ip6");
     if (raw) {
-      return muConvert.toString(protocols.names.ip6.code, raw) as string;
+      return convertToString("ip6", raw) as string;
     } else {
       return undefined;
     }
@@ -249,7 +250,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
 
   set ip6(ip: string | undefined) {
     if (ip) {
-      this.set("ip6", muConvert.toBytes(protocols.names.ip6.code, ip));
+      this.set("ip6", convertToBytes("ip6", ip));
     } else {
       this.delete("ip6");
     }
@@ -258,7 +259,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   get tcp6(): number | undefined {
     const raw = this.get("tcp6");
     if (raw) {
-      return Number(muConvert.toString(protocols.names.tcp.code, raw));
+      return Number(convertToString("tcp", raw));
     } else {
       return undefined;
     }
@@ -268,14 +269,14 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (port === undefined) {
       this.delete("tcp6");
     } else {
-      this.set("tcp6", muConvert.toBytes(protocols.names.tcp.code, port));
+      this.set("tcp6", convertToBytes("tcp", port.toString(10)));
     }
   }
 
   get udp6(): number | undefined {
     const raw = this.get("udp6");
     if (raw) {
-      return Number(muConvert.toString(protocols.names.udp.code, raw));
+      return Number(convertToString("udp", raw));
     } else {
       return undefined;
     }
@@ -285,7 +286,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (port === undefined) {
       this.delete("udp6");
     } else {
-      this.set("udp6", muConvert.toBytes(protocols.names.udp.code, port));
+      this.set("udp6", convertToBytes("udp", port.toString(10)));
     }
   }
 
@@ -346,7 +347,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     const isIpv6 = protocol.endsWith("6");
     const ipVal = this.get(isIpv6 ? "ip6" : "ip");
     if (!ipVal) {
-      return undefined;
+      return;
     }
 
     const isUdp = protocol.startsWith("udp");
@@ -359,29 +360,19 @@ export class ENR extends Map<ENRKey, ENRValue> {
       protoName = "tcp";
       protoVal = isIpv6 ? this.get("tcp6") : this.get("tcp");
     } else {
-      return undefined;
+      return;
     }
+
     if (!protoVal) {
-      return undefined;
+      return;
     }
 
-    // Create raw multiaddr buffer
-    // multiaddr length is:
-    //  1 byte for the ip protocol (ip4 or ip6)
-    //  N bytes for the ip address
-    //  1 or 2 bytes for the protocol as buffer (tcp or udp)
-    //  2 bytes for the port
-    const ipMa = protocols.names[isIpv6 ? "ip6" : "ip4"];
-    const ipByteLen = ipMa.size / 8;
-    const protoMa = protocols.names[protoName];
-    const protoBuf = varintEncode(protoMa.code);
-    const maBuf = new Uint8Array(3 + ipByteLen + protoBuf.length);
-    maBuf[0] = ipMa.code;
-    maBuf.set(ipVal, 1);
-    maBuf.set(protoBuf, 1 + ipByteLen);
-    maBuf.set(protoVal, 1 + ipByteLen + protoBuf.length);
-
-    return new Multiaddr(maBuf);
+    return multiaddrFromFields(
+      isIpv6 ? "ip6" : "ip4",
+      protoName,
+      ipVal,
+      protoVal
+    );
   }
 
   setLocationMultiaddr(multiaddr: Multiaddr): void {
@@ -422,9 +413,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (this.peerId) {
       const locationMultiaddr = this.getLocationMultiaddr(protocol);
       if (locationMultiaddr) {
-        return locationMultiaddr.encapsulate(
-          `/p2p/${this.peerId.toB58String()}`
-        );
+        return locationMultiaddr.encapsulate(`/p2p/${this.peerId.toString()}`);
       }
     }
     return;
@@ -437,7 +426,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
     if (this.peerId && this.multiaddrs) {
       const peerId = this.peerId;
       return this.multiaddrs.map((ma) => {
-        return ma.encapsulate(`/p2p/${peerId.toB58String()}`);
+        return ma.encapsulate(`/p2p/${peerId.toString()}`);
       });
     }
     return [];

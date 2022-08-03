@@ -1,6 +1,5 @@
 import { expect } from "chai";
 
-import { fleets } from "./predefined";
 import { getPseudoRandomSubset } from "./random_subset";
 
 describe("Discovery", () => {
@@ -32,25 +31,5 @@ describe("Discovery", () => {
     const res = getPseudoRandomSubset(values, 2);
 
     expect(res.length).to.eq(2);
-  });
-});
-
-describe("Discovery [live data]", function () {
-  before(function () {
-    if (process.env.CI) {
-      this.skip();
-    }
-  });
-
-  it("Check pre-defined nodes against hosted JSON [live data]", async function () {
-    const res = await fetch("https://fleets.status.im/");
-    const nodes = await res.json();
-
-    expect(fleets.fleets["wakuv2.prod"]["waku-websocket"]).to.deep.eq(
-      nodes.fleets["wakuv2.prod"]["waku-websocket"]
-    );
-    expect(fleets.fleets["wakuv2.test"]["waku-websocket"]).to.deep.eq(
-      nodes.fleets["wakuv2.test"]["waku-websocket"]
-    );
   });
 });

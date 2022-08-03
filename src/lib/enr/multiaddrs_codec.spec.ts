@@ -1,5 +1,5 @@
+import { Multiaddr } from "@multiformats/multiaddr";
 import { expect } from "chai";
-import { Multiaddr } from "multiaddr";
 
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 

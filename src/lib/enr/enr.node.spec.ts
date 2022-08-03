@@ -1,7 +1,8 @@
 import { expect } from "chai";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
-import { Protocols, Waku } from "../waku";
+import { waitForRemotePeer } from "../wait_for_remote_peer";
+import { createWaku, Protocols, Waku } from "../waku";
 
 import { ENR } from "./enr";
 
@@ -25,18 +26,19 @@ describe("ENR Interop: nwaku", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await Waku.create({
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(multiAddrWithId);
-    await waku.waitForRemotePeer([Protocols.Relay]);
+    await waitForRemotePeer(waku, [Protocols.Relay]);
 
     const nwakuInfo = await nwaku.info();
     const nimPeerId = await nwaku.getPeerId();
 
     expect(nwakuInfo.enrUri).to.not.be.undefined;
     const dec = await ENR.decodeTxt(nwakuInfo.enrUri ?? "");
-    expect(dec.peerId?.toB58String()).to.eq(nimPeerId.toB58String());
+    expect(dec.peerId?.toString()).to.eq(nimPeerId.toString());
     expect(dec.waku2).to.deep.eq({
       relay: true,
       store: false,
@@ -56,18 +58,19 @@ describe("ENR Interop: nwaku", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await Waku.create({
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(multiAddrWithId);
-    await waku.waitForRemotePeer([Protocols.Relay]);
+    await waitForRemotePeer(waku, [Protocols.Relay]);
 
     const nwakuInfo = await nwaku.info();
     const nimPeerId = await nwaku.getPeerId();
 
     expect(nwakuInfo.enrUri).to.not.be.undefined;
     const dec = await ENR.decodeTxt(nwakuInfo.enrUri ?? "");
-    expect(dec.peerId?.toB58String()).to.eq(nimPeerId.toB58String());
+    expect(dec.peerId?.toString()).to.eq(nimPeerId.toString());
     expect(dec.waku2).to.deep.eq({
       relay: true,
       store: true,
@@ -87,18 +90,19 @@ describe("ENR Interop: nwaku", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await Waku.create({
+    waku = await createWaku({
       staticNoiseKey: NOISE_KEY_1,
     });
+    await waku.start();
     await waku.dial(multiAddrWithId);
-    await waku.waitForRemotePeer([Protocols.Relay]);
+    await waitForRemotePeer(waku, [Protocols.Relay]);
 
     const nwakuInfo = await nwaku.info();
     const nimPeerId = await nwaku.getPeerId();
 
     expect(nwakuInfo.enrUri).to.not.be.undefined;
     const dec = await ENR.decodeTxt(nwakuInfo.enrUri ?? "");
-    expect(dec.peerId?.toB58String()).to.eq(nimPeerId.toB58String());
+    expect(dec.peerId?.toString()).to.eq(nimPeerId.toString());
     expect(dec.waku2).to.deep.eq({
       relay: true,
       store: true,
