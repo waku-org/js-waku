@@ -1,7 +1,7 @@
 import { Noise } from "@chainsafe/libp2p-noise";
 import { Mplex } from "@libp2p/mplex";
 import { WebSockets } from "@libp2p/websockets";
-import { all as filterAll } from "@libp2p/websockets/dist/src/filters";
+import { all as filterAll } from "@libp2p/websockets/filters";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 
 import { Bootstrap, BootstrapOptions } from "./discovery";
