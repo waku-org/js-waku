@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fix
 
 - size-limit config to test several usages of Waku.
+- `buffer` is not needed in the browser.
 
 ## [0.24.0] - 2022-05-27
 
