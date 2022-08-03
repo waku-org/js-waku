@@ -57,6 +57,7 @@
     "reset-hard": "git clean -dfx && git reset --hard && npm i && npm run build && for d in examples/*/; do (cd $d; npm i); done"
   },
   "browser": {
+    "buffer": false,
     "crypto": false
   },
   "engines": {
@@ -163,43 +164,6 @@
       "**/*.spec.js"
     ]
   },
-  "size-limit": [
-    {
-      "name": "Waku core",
-      "path": "dist/bundle.min.js",
-      "import": "{ Waku }"
-    },
-    {
-      "name": "Waku default setup",
-      "path": "dist/bundle.min.js",
-      "import": "{ createWaku, waitForRemotePeer }"
-    },
-    {
-      "name": "Asymmetric, symmetric encryption and signature",
-      "path": "dist/bundle.min.js",
-      "import": "{ waku_message }"
-    },
-    {
-      "name": "DNS discovery",
-      "path": "dist/bundle.min.js",
-      "import": "{ discovery }"
-    },
-    {
-      "name": "Privacy preserving protocols",
-      "path": "dist/bundle.min.js",
-      "import": "{ WakuRelay }"
-    },
-    {
-      "name": "Light protocols",
-      "path": "dist/bundle.min.js",
-      "import": "{ WakuLightPush, WakuFilter }"
-    },
-    {
-      "name": "History retrieval protocols",
-      "path": "dist/bundle.min.js",
-      "import": "{ WakuStore }"
-    }
-  ],
   "lint-staged": {
     "*.ts": [
       "eslint --fix"
