@@ -10,7 +10,7 @@
     "sourceMap": true,
     "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
     "resolveJsonModule": true /* Include modules imported with .json extension. */,
-
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
     "strict": true /* Enable all strict type-checking options. */,
 
     /* Strict Type-Checking Options */
