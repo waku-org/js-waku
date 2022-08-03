@@ -30,7 +30,7 @@
     "size": "npm run build && size-limit",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.*js\" \".github/**/*.yml\" --write",
-    "fix:lint": "eslint src --ext .ts --fix",
+    "fix:lint": "eslint src --ext .ts --ext .cjs --fix",
     "pretest": "run-s pretest:*",
     "pretest:1-init-git-submodules": "[ -f './nim-waku/build/wakunode2' ] || git submodule update --init --recursive",
     "pretest:2-build-nim-waku": "[ -f './nim-waku/build/wakunode2' ] || run-s nim-waku:build",
