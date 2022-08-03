@@ -24,7 +24,7 @@ describe("Waku Dial", function () {
       this.timeout(20_000);
 
       waku = await createWaku({
-        bootstrap: { default: true },
+        defaultBootstrap: true,
       });
       await waku.start();
 

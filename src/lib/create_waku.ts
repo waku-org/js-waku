@@ -1,10 +1,13 @@
 import { Noise } from "@chainsafe/libp2p-noise";
+import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
 import { Mplex } from "@libp2p/mplex";
 import { WebSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import { createLibp2p, Libp2pOptions } from "libp2p";
+import type { Libp2p } from "libp2p";
 
-import { Bootstrap, BootstrapOptions } from "./discovery";
+import { getPredefinedBootstrapNodes } from "./peer_discovery_dns/predefined";
+import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
 import { Waku, WakuOptions } from "./waku";
 import { WakuFilter } from "./waku_filter";
 import { WakuLightPush } from "./waku_light_push";
@@ -48,33 +51,45 @@ export interface CreateOptions {
    * Note: It overrides any other peerDiscovery modules that may have been set via
    * {@link CreateOptions.libp2p}.
    */
-  bootstrap?: BootstrapOptions;
+  defaultBootstrap?: boolean;
 }
 
 export async function createWaku(
   options?: CreateOptions & WakuOptions
 ): Promise<Waku> {
-  const peerDiscovery = [];
-  if (options?.bootstrap) {
-    peerDiscovery.push(new Bootstrap(options?.bootstrap));
+  const libp2pOptions = options?.libp2p ?? {};
+  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
+  if (options?.defaultBootstrap) {
+    peerDiscovery.push(defaultPeerDiscovery());
+    Object.assign(libp2pOptions, { peerDiscovery });
   }
 
-  const libp2pOpts = Object.assign(
-    {
-      transports: [new WebSockets({ filter: filterAll })],
-      streamMuxers: [new Mplex()],
-      pubsub: new WakuRelay(options),
-      connectionEncryption: [new Noise()],
-      peerDiscovery: peerDiscovery,
-    },
-    options?.libp2p ?? {}
-  );
-
-  const libp2p = await createLibp2p(libp2pOpts);
+  const libp2p = await defaultLibp2p(new WakuRelay(options), libp2pOptions);
 
   const wakuStore = new WakuStore(libp2p, options);
   const wakuLightPush = new WakuLightPush(libp2p, options);
   const wakuFilter = new WakuFilter(libp2p, options);
 
   return new Waku(options ?? {}, libp2p, wakuStore, wakuLightPush, wakuFilter);
+}
+
+export function defaultPeerDiscovery(): PeerDiscovery {
+  return new PeerDiscoveryStaticPeers(getPredefinedBootstrapNodes());
+}
+
+export async function defaultLibp2p(
+  wakuRelay: WakuRelay,
+  options?: Partial<Libp2pOptions>
+): Promise<Libp2p> {
+  const libp2pOpts = Object.assign(
+    {
+      transports: [new WebSockets({ filter: filterAll })],
+      streamMuxers: [new Mplex()],
+      connectionEncryption: [new Noise()],
+    },
+    { pubsub: wakuRelay },
+    options ?? {}
+  );
+
+  return createLibp2p(libp2pOpts);
 }

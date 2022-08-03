@@ -11,7 +11,7 @@ import debug from "debug";
 import { multiaddrsToPeerInfo } from "./multiaddr_to_peer_info";
 import { getPseudoRandomSubset } from "./random_subset";
 
-const log = debug("waku:discovery:static-list");
+const log = debug("waku:peer-discovery-static-list");
 
 export interface Options {
   /**
@@ -75,7 +75,7 @@ export class PeerDiscoveryStaticPeers
 
   private _startTimer(): void {
     if (this.peers) {
-      log("Starting emitting static peers for boostrap.");
+      log("Starting to emit static peers.");
       if (this.timer != null) {
         return;
       }

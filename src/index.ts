@@ -6,9 +6,6 @@ export {
   getPublicKey,
 } from "./lib/crypto";
 
-export { getPredefinedBootstrapNodes } from "./lib/discovery";
-export * as discovery from "./lib/discovery";
-
 export * as enr from "./lib/enr";
 
 export * as utils from "./lib/utils";
