@@ -12,9 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Published files moved from `build` to `dist/`.
 - Migrate from ts-proto to protons;
   the latter does not bring Buffer/Long deps, is ESM compatible and remove the need for bufbuild and protoc.
-- Move package to `"type": "module"`.
+- Move package to `"type": "module"`, it is now a [pure ESM package](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
 - Use ESM code in Mocha and Karma tests.
 - Upgrade `dns-query` dependency, breaking change on `DnsNodeDiscovery` API.
+- Bump many libp2p libraries to their latest version (which usually are pure ESM).
+- Replace webpack with parcel for bundling
+- Examples: Updated store-js and relay-js to demonstrate usage of ESM bundle in `<script>` tag.
+- Remove need for buffer polyfilling, however it may still be needed to set `buffer: false` in your bundler.
+- **breaking**: Various API changes. Refer to tests to check proper usage of the new API.
+
+### Fix
+
+- size-limit config to test several usages of Waku.
 
 ## [0.24.0] - 2022-05-27
 
