@@ -57,7 +57,6 @@
     "reset-hard": "git clean -dfx && git reset --hard && npm i && npm run build && for d in examples/*/; do (cd $d; npm i); done"
   },
   "browser": {
-    "buffer": false,
     "crypto": false
   },
   "engines": {
