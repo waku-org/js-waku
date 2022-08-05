@@ -12,6 +12,10 @@
     "./lib/create_waku": {
       "types": "./dist/lib/create_waku.d.ts",
       "import": "./dist/lib/create_waku.js"
+    },
+    "./lib/peer_discovery_dns": {
+      "types": "./dist/lib/peer_discovery_dns/index.d.ts",
+      "import": "./dist/lib/peer_discovery_dns/index.js"
     }
   },
   "type": "module",
@@ -29,8 +33,7 @@
     "prepare": "husky install",
     "build": "run-s build:**",
     "build:esm": "tsc && node build-scripts/fix-imports.js",
-    "build:bundle": "rollup --config rollup.config.js -- dist/index.js",
-    "build:bundle:min": "terser --ecma 11 --compress --mangle -o dist/bundle.min.js -- dist/bundle.js && gzip -9 -c dist/bundle.min.js > dist/bundle.min.js.gz",
+    "build:bundle": "rollup --config rollup.config.js",
     "size": "npm run build && size-limit",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.*js\" \".github/**/*.yml\" --write",
@@ -141,7 +144,6 @@
     "rollup": "^2.75.0",
     "size-limit": "^8.0.0",
     "tail": "^2.2.0",
-    "terser": "^5.13.1",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.4.0",
     "typedoc": "^0.22.10",
@@ -150,6 +152,7 @@
   },
   "files": [
     "dist",
+    "bundle",
     "src/*.ts",
     "src/lib/**/*.ts",
     "src/proto/**/*.ts",

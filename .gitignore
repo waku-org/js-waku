@@ -8,3 +8,4 @@ coverage
 *.log
 /tsconfig.tsbuildinfo
 /tsconfig.dev.tsbuildinfo
+/bundle/
