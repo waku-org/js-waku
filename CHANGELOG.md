@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump many libp2p libraries to their latest version (which usually are pure ESM).
 - Replace webpack with parcel for bundling
 - Examples: Updated store-js and relay-js to demonstrate usage of ESM bundle in `<script>` tag.
-- Remove need for buffer polyfilling, however it may still be needed to set `buffer: false` in your bundler.
+- Remove need to polyfill `buffer`.
 - **breaking**: Various API changes. Refer to tests to check proper usage of the new API.
 
 ### Fix
