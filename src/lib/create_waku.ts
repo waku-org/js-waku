@@ -44,12 +44,7 @@ export interface CreateOptions {
    */
   staticNoiseKey?: Uint8Array;
   /**
-   * Use libp2p-bootstrap to discover and connect to new nodes.
-   *
-   * See [[BootstrapOptions]] for available parameters.
-   *
-   * Note: It overrides any other peerDiscovery modules that may have been set via
-   * {@link CreateOptions.libp2p}.
+   * Use recommended bootstrap method to discovery and connect to new nodes.
    */
   defaultBootstrap?: boolean;
 }
