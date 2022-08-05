@@ -6,8 +6,8 @@ import { all as filterAll } from "@libp2p/websockets/filters";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 import type { Libp2p } from "libp2p";
 
-import { getPredefinedBootstrapNodes } from "./peer_discovery_dns/predefined";
 import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
+import { getPredefinedBootstrapNodes } from "./predefined_bootstrap_nodes";
 import { Waku, WakuOptions } from "./waku";
 import { WakuFilter } from "./waku_filter";
 import { WakuLightPush } from "./waku_light_push";

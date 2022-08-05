@@ -15,7 +15,7 @@ module.exports = [
   {
     name: "Asymmetric, symmetric encryption and signature",
     path: "bundle/index.js",
-    import: "{ waku_message }",
+    import: "{ WakuMessage }",
   },
   {
     name: "DNS discovery",
