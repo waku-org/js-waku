@@ -1,5 +1,4 @@
 .idea/*
-.nyc_output
 .angular
 build
 dist
