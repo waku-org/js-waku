@@ -1,5 +1,5 @@
 {
-  "entryPoints": ["./src/index.ts"],
+  "entryPoints": ["./src/index.ts", "./src/lib/create_waku.ts"],
   "out": "build/docs",
   "exclude": "**/*.spec.ts",
   "excludeInternal": true,

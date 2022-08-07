@@ -1,37 +1,40 @@
 module.exports = [
   {
     name: "Waku core",
-    path: "dist/bundle.min.js",
+    path: "bundle/index.js",
     import: "{ Waku }",
   },
   {
     name: "Waku default setup",
-    path: "dist/bundle.min.js",
-    import: "{ createWaku, waitForRemotePeer }",
+    path: ["bundle/index.js", "bundle/lib/create_waku.js"],
+    import: {
+      "./bundle/lib/create_waku.js": "{ createWaku }",
+      "./bundle/index.js": "{ waitForRemotePeer }",
+    },
   },
   {
     name: "Asymmetric, symmetric encryption and signature",
-    path: "dist/bundle.min.js",
-    import: "{ waku_message }",
+    path: "bundle/index.js",
+    import: "{ WakuMessage }",
   },
   {
     name: "DNS discovery",
-    path: "dist/bundle.min.js",
-    import: "{ discovery }",
+    path: "bundle/lib/peer_discovery_dns.js",
+    import: "{ PeerDiscoveryDns }",
   },
   {
     name: "Privacy preserving protocols",
-    path: "dist/bundle.min.js",
+    path: "bundle/index.js",
     import: "{ WakuRelay }",
   },
   {
     name: "Light protocols",
-    path: "dist/bundle.min.js",
+    path: "bundle/index.js",
     import: "{ WakuLightPush, WakuFilter }",
   },
   {
     name: "History retrieval protocols",
-    path: "dist/bundle.min.js",
+    path: "bundle/index.js",
     import: "{ WakuStore }",
   },
 ];

@@ -8,9 +8,11 @@ import {
   Nwaku,
 } from "../test_utils/";
 
+import { createWaku } from "./create_waku";
 import { generateSymmetricKey } from "./crypto";
+import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
 import { waitForRemotePeer } from "./wait_for_remote_peer";
-import { createWaku, Protocols, Waku } from "./waku";
+import { Protocols, Waku } from "./waku";
 import { WakuMessage } from "./waku_message";
 
 const TestContentTopic = "/test/1/waku/utf8";
@@ -60,7 +62,9 @@ describe("Waku Dial [node only]", function () {
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
       waku = await createWaku({
         staticNoiseKey: NOISE_KEY_1,
-        bootstrap: { peers: [multiAddrWithId] },
+        libp2p: {
+          peerDiscovery: [new PeerDiscoveryStaticPeers([multiAddrWithId])],
+        },
       });
       await waku.start();
 
@@ -76,7 +80,7 @@ describe("Waku Dial [node only]", function () {
       expect(connectedPeerID.toString()).to.eq(multiAddrWithId.getPeerId());
     });
 
-    it("Passing a function", async function () {
+    it("Using a function", async function () {
       this.timeout(10_000);
 
       nwaku = new Nwaku(makeLogFileName(this));
@@ -84,10 +88,10 @@ describe("Waku Dial [node only]", function () {
 
       waku = await createWaku({
         staticNoiseKey: NOISE_KEY_1,
-        bootstrap: {
-          getPeers: async () => {
-            return [await nwaku.getMultiaddrWithId()];
-          },
+        libp2p: {
+          peerDiscovery: [
+            new PeerDiscoveryStaticPeers([await nwaku.getMultiaddrWithId()]),
+          ],
         },
       });
       await waku.start();

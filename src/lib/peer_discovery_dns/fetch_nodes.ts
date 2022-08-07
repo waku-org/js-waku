@@ -11,7 +11,7 @@ const dbg = debug("waku:discovery:fetch_nodes");
  * fulfilled or the number of [[getNode]] call exceeds the sum of
  * [[wantedNodeCapabilityCount]] plus [[errorTolerance]].
  */
-export default async function fetchNodesUntilCapabilitiesFulfilled(
+export async function fetchNodesUntilCapabilitiesFulfilled(
   wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
   errorTolerance: number,
   getNode: () => Promise<ENR | null>
@@ -55,6 +55,56 @@ export default async function fetchNodesUntilCapabilitiesFulfilled(
     totalSearches++;
   }
   return peers;
+}
+
+/**
+ * Fetch nodes using passed [[getNode]] until all wanted capabilities are
+ * fulfilled or the number of [[getNode]] call exceeds the sum of
+ * [[wantedNodeCapabilityCount]] plus [[errorTolerance]].
+ */
+export async function* yieldNodesUntilCapabilitiesFulfilled(
+  wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
+  errorTolerance: number,
+  getNode: () => Promise<ENR | null>
+): AsyncGenerator<ENR> {
+  const wanted = {
+    relay: wantedNodeCapabilityCount.relay ?? 0,
+    store: wantedNodeCapabilityCount.store ?? 0,
+    filter: wantedNodeCapabilityCount.filter ?? 0,
+    lightPush: wantedNodeCapabilityCount.lightPush ?? 0,
+  };
+
+  const maxSearches =
+    wanted.relay + wanted.store + wanted.filter + wanted.lightPush;
+
+  const actual = {
+    relay: 0,
+    store: 0,
+    filter: 0,
+    lightPush: 0,
+  };
+
+  let totalSearches = 0;
+  const peerNodeIds = new Set();
+
+  while (
+    !isSatisfied(wanted, actual) &&
+    totalSearches < maxSearches + errorTolerance
+  ) {
+    const peer = await getNode();
+    if (peer && peer.nodeId && !peerNodeIds.has(peer.nodeId)) {
+      peerNodeIds.add(peer.nodeId);
+      // ENRs without a waku2 key are ignored.
+      if (peer.waku2) {
+        if (helpsSatisfyCapabilities(peer.waku2, wanted, actual)) {
+          addCapabilities(peer.waku2, actual);
+          yield peer;
+        }
+      }
+      dbg(`got new peer candidate from DNS address=${peer.nodeId}@${peer.ip}`);
+    }
+    totalSearches++;
+  }
 }
 
 function isSatisfied(

@@ -6,9 +6,6 @@ export {
   getPublicKey,
 } from "./lib/crypto";
 
-export { getPredefinedBootstrapNodes } from "./lib/discovery";
-export * as discovery from "./lib/discovery";
-
 export * as enr from "./lib/enr";
 
 export * as utils from "./lib/utils";
@@ -18,7 +15,7 @@ export { waitForRemotePeer } from "./lib/wait_for_remote_peer";
 export * as proto_message from "./proto/message";
 
 export * as waku from "./lib/waku";
-export { createWaku, Waku, Protocols } from "./lib/waku";
+export { Waku, Protocols } from "./lib/waku";
 
 export * as waku_message from "./lib/waku_message";
 export { WakuMessage } from "./lib/waku_message";

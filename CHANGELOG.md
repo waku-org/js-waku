@@ -20,11 +20,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Examples: Updated store-js and relay-js to demonstrate usage of ESM bundle in `<script>` tag.
 - Remove need to polyfill `buffer`.
 - **breaking**: Various API changes. Refer to tests to check proper usage of the new API.
+- **breaking**: `createWaku` is in separate exports path.
+- **breaking**: Bootstrap class split: dns discovery, static list.
+- **breaking**: bundled files are now under `bundle/`.
 
-### Fix
+### Fixed
 
 - size-limit config to test several usages of Waku.
 - `buffer` is not needed in the browser.
+
+### Removed
+
+- `terser` minification and `gzip` compressions have been removed.
 
 ## [0.24.0] - 2022-05-27
 

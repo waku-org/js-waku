@@ -4,7 +4,7 @@ import { expect } from "chai";
 
 import { ENR, Waku2 } from "../enr";
 
-import fetchNodesUntilCapabilitiesFulfilled from "./fetch_nodes";
+import { fetchNodesUntilCapabilitiesFulfilled } from "./fetch_nodes";
 
 async function createEnr(waku2: Waku2): Promise<ENR> {
   const peerId = await createSecp256k1PeerId();

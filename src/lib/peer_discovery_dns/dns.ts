@@ -4,7 +4,10 @@ import { ENR } from "../enr";
 
 import { DnsOverHttps } from "./dns_over_https";
 import { ENRTree } from "./enrtree";
-import fetchNodesUntilCapabilitiesFulfilled from "./fetch_nodes";
+import {
+  fetchNodesUntilCapabilitiesFulfilled,
+  yieldNodesUntilCapabilitiesFulfilled,
+} from "./fetch_nodes";
 
 const dbg = debug("waku:discovery:dns");
 
@@ -68,6 +71,30 @@ export class DnsNodeDiscovery {
   public constructor(dns: DnsClient) {
     this._DNSTreeCache = {};
     this.dns = dns;
+  }
+
+  /**
+   * {@docInherit getPeers}
+   */
+  async *getNextPeer(
+    enrTreeUrls: string[],
+    wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
+  ): AsyncGenerator<ENR> {
+    const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
+    const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
+    const context: SearchContext = {
+      domain,
+      publicKey,
+      visits: {},
+    };
+
+    for await (const peer of yieldNodesUntilCapabilitiesFulfilled(
+      wantedNodeCapabilityCount,
+      this._errorTolerance,
+      () => this._search(domain, context)
+    )) {
+      yield peer;
+    }
   }
 
   /**

@@ -11,13 +11,14 @@ import {
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
 import { DefaultPubSubTopic } from "../constants";
+import { createWaku } from "../create_waku";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { createWaku, Protocols, Waku } from "../waku";
+import { Protocols, Waku } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 const log = debug("waku:test");

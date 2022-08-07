@@ -1,8 +1,9 @@
 import { expect } from "chai";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
+import { createWaku } from "../create_waku";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { createWaku, Protocols, Waku } from "../waku";
+import { Protocols, Waku } from "../waku";
 
 import { ENR } from "./enr";
 

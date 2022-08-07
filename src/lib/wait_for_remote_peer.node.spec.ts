@@ -3,8 +3,9 @@ import { expect } from "chai";
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../test_utils";
 import { delay } from "../test_utils/delay";
 
+import { createWaku } from "./create_waku";
 import { waitForRemotePeer } from "./wait_for_remote_peer";
-import { createWaku, Protocols, Waku } from "./waku";
+import { Protocols, Waku } from "./waku";
 
 describe("Wait for remote peer", function () {
   let waku: Waku;

@@ -27,10 +27,12 @@
    */
 
   import {
-    createWaku,
     waitForRemotePeer,
     WakuMessage
-  } from '../../dist/bundle.js';
+  } from '../../bundle/index.js';
+  import {
+    createWaku,
+  } from '../../bundle/lib/create_waku.js';
 
   const statusDiv = document.getElementById('status');
   const messagesDiv = document.getElementById('messages');
@@ -56,7 +58,7 @@
     // We are currently working on migrating this method to DNS Discovery.
     //
     // https://js-waku.wakuconnect.dev/classes/waku.Waku.html#create
-    const waku = await createWaku({ bootstrap: { default: true } });
+    const waku = await createWaku({ defaultBootstrap: true });
     await waku.start();
 
     // Had a hook to process all incoming messages on a specified content topic.

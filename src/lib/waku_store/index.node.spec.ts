@@ -7,13 +7,14 @@ import {
   NOISE_KEY_2,
   Nwaku,
 } from "../../test_utils";
+import { createWaku } from "../create_waku";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { createWaku, Protocols, Waku } from "../waku";
+import { Protocols, Waku } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { PageDirection } from "./history_rpc";

@@ -14,10 +14,12 @@
 
 <script type='module'>
   import {
-    createWaku,
     waitForRemotePeer,
     Protocols
-  } from '../../dist/bundle.min.js';
+  } from '../../bundle/index.js';
+  import {
+    createWaku,
+  } from '../../bundle/lib/create_waku.js';
 
   /**
    * This example demonstrates how to use the js-waku minified bundle
@@ -30,7 +32,7 @@
 
   try {
     timestampDiv.innerHTML = '<p>Creating waku.</p>';
-    const node = await createWaku({ bootstrap: { default: true } });
+    const node = await createWaku({ defaultBootstrap: true });
 
     timestampDiv.innerHTML = '<p>Starting waku.</p>';
     await node.start();

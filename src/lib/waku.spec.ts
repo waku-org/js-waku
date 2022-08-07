@@ -1,7 +1,8 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { expect } from "chai";
 
-import { createWaku, Waku } from "./waku";
+import { createWaku } from "./create_waku";
+import { Waku } from "./waku";
 
 describe("Waku Dial", function () {
   describe("Bootstrap [live data]", function () {
@@ -23,7 +24,7 @@ describe("Waku Dial", function () {
       this.timeout(20_000);
 
       waku = await createWaku({
-        bootstrap: { default: true },
+        defaultBootstrap: true,
       });
       await waku.start();
 

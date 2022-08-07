@@ -12,12 +12,29 @@ import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants";
 import { hexToBytes } from "../utils";
-import { CreateOptions } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import * as constants from "./constants";
 
 const dbg = debug("waku:relay");
+
+export interface CreateOptions {
+  /**
+   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
+   *
+   * One and only one pubsub topic is used by Waku. This is used by:
+   * - WakuRelay to receive, route and send messages,
+   * - WakuLightPush to send messages,
+   * - WakuStore to retrieve messages.
+   *
+   * The usage of the default pubsub topic is recommended.
+   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
+   *
+   * @default {@link DefaultPubSubTopic}
+   */
+  pubSubTopic?: string;
+  decryptionKeys?: Array<Uint8Array | string>;
+}
 
 /**
  * Implements the [Waku v2 Relay protocol]{@link https://rfc.vac.dev/spec/11/}.
