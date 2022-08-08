@@ -1,5 +1,4 @@
 status = [
-  "size",
   "build_and_test (16, ubuntu-latest)",
   "examples_build_and_test (eth-pm)",
   "examples_build_and_test (eth-pm-wallet-encryption)",
