@@ -94,6 +94,7 @@
     "libp2p": "next",
     "p-event": "^5.0.1",
     "protons-runtime": "^2.0.2",
+    "uint8arraylist": "^2.3.2",
     "uint8arrays": "^3.0.0",
     "uuid": "^8.3.2"
   },
