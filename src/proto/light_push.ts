@@ -13,6 +13,7 @@ import {
   sint64,
 } from "protons-runtime";
 import type { Codec } from "protons-runtime";
+import type { Uint8ArrayList } from "uint8arraylist";
 
 export interface PushRequest {
   pubSubTopic?: string;
@@ -20,18 +21,24 @@ export interface PushRequest {
 }
 
 export namespace PushRequest {
+  let _codec: Codec<PushRequest>;
+
   export const codec = (): Codec<PushRequest> => {
-    return message<PushRequest>({
-      1: { name: "pubSubTopic", codec: string, optional: true },
-      2: { name: "message", codec: WakuMessage.codec(), optional: true },
-    });
+    if (_codec == null) {
+      _codec = message<PushRequest>({
+        1: { name: "pubSubTopic", codec: string, optional: true },
+        2: { name: "message", codec: WakuMessage.codec(), optional: true },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: PushRequest): Uint8Array => {
+  export const encode = (obj: PushRequest): Uint8ArrayList => {
     return encodeMessage(obj, PushRequest.codec());
   };
 
-  export const decode = (buf: Uint8Array): PushRequest => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): PushRequest => {
     return decodeMessage(buf, PushRequest.codec());
   };
 }
@@ -42,18 +49,24 @@ export interface PushResponse {
 }
 
 export namespace PushResponse {
+  let _codec: Codec<PushResponse>;
+
   export const codec = (): Codec<PushResponse> => {
-    return message<PushResponse>({
-      1: { name: "isSuccess", codec: bool, optional: true },
-      2: { name: "info", codec: string, optional: true },
-    });
+    if (_codec == null) {
+      _codec = message<PushResponse>({
+        1: { name: "isSuccess", codec: bool, optional: true },
+        2: { name: "info", codec: string, optional: true },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: PushResponse): Uint8Array => {
+  export const encode = (obj: PushResponse): Uint8ArrayList => {
     return encodeMessage(obj, PushResponse.codec());
   };
 
-  export const decode = (buf: Uint8Array): PushResponse => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): PushResponse => {
     return decodeMessage(buf, PushResponse.codec());
   };
 }
@@ -65,19 +78,25 @@ export interface PushRPC {
 }
 
 export namespace PushRPC {
+  let _codec: Codec<PushRPC>;
+
   export const codec = (): Codec<PushRPC> => {
-    return message<PushRPC>({
-      1: { name: "requestId", codec: string, optional: true },
-      2: { name: "request", codec: PushRequest.codec(), optional: true },
-      3: { name: "response", codec: PushResponse.codec(), optional: true },
-    });
+    if (_codec == null) {
+      _codec = message<PushRPC>({
+        1: { name: "requestId", codec: string, optional: true },
+        2: { name: "request", codec: PushRequest.codec(), optional: true },
+        3: { name: "response", codec: PushResponse.codec(), optional: true },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: PushRPC): Uint8Array => {
+  export const encode = (obj: PushRPC): Uint8ArrayList => {
     return encodeMessage(obj, PushRPC.codec());
   };
 
-  export const decode = (buf: Uint8Array): PushRPC => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): PushRPC => {
     return decodeMessage(buf, PushRPC.codec());
   };
 }
@@ -91,21 +110,27 @@ export interface WakuMessage {
 }
 
 export namespace WakuMessage {
+  let _codec: Codec<WakuMessage>;
+
   export const codec = (): Codec<WakuMessage> => {
-    return message<WakuMessage>({
-      1: { name: "payload", codec: bytes, optional: true },
-      2: { name: "contentTopic", codec: string, optional: true },
-      3: { name: "version", codec: uint32, optional: true },
-      4: { name: "timestampDeprecated", codec: double, optional: true },
-      10: { name: "timestamp", codec: sint64, optional: true },
-    });
+    if (_codec == null) {
+      _codec = message<WakuMessage>({
+        1: { name: "payload", codec: bytes, optional: true },
+        2: { name: "contentTopic", codec: string, optional: true },
+        3: { name: "version", codec: uint32, optional: true },
+        4: { name: "timestampDeprecated", codec: double, optional: true },
+        10: { name: "timestamp", codec: sint64, optional: true },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: WakuMessage): Uint8Array => {
+  export const encode = (obj: WakuMessage): Uint8ArrayList => {
     return encodeMessage(obj, WakuMessage.codec());
   };
 
-  export const decode = (buf: Uint8Array): WakuMessage => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): WakuMessage => {
     return decodeMessage(buf, WakuMessage.codec());
   };
 }

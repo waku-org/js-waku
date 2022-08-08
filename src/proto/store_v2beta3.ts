@@ -14,6 +14,7 @@ import {
   sint64,
 } from "protons-runtime";
 import type { Codec } from "protons-runtime";
+import type { Uint8ArrayList } from "uint8arraylist";
 
 export interface Index {
   digest?: Uint8Array;
@@ -22,19 +23,25 @@ export interface Index {
 }
 
 export namespace Index {
+  let _codec: Codec<Index>;
+
   export const codec = (): Codec<Index> => {
-    return message<Index>({
-      1: { name: "digest", codec: bytes, optional: true },
-      2: { name: "receivedTime", codec: double, optional: true },
-      3: { name: "senderTime", codec: double, optional: true },
-    });
+    if (_codec == null) {
+      _codec = message<Index>({
+        1: { name: "digest", codec: bytes, optional: true },
+        2: { name: "receivedTime", codec: double, optional: true },
+        3: { name: "senderTime", codec: double, optional: true },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: Index): Uint8Array => {
+  export const encode = (obj: Index): Uint8ArrayList => {
     return encodeMessage(obj, Index.codec());
   };
 
-  export const decode = (buf: Uint8Array): Index => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): Index => {
     return decodeMessage(buf, Index.codec());
   };
 }
@@ -62,23 +69,29 @@ export namespace PagingInfo {
     };
   }
 
+  let _codec: Codec<PagingInfo>;
+
   export const codec = (): Codec<PagingInfo> => {
-    return message<PagingInfo>({
-      1: { name: "pageSize", codec: uint64, optional: true },
-      2: { name: "cursor", codec: Index.codec(), optional: true },
-      3: {
-        name: "direction",
-        codec: PagingInfo.Direction.codec(),
-        optional: true,
-      },
-    });
+    if (_codec == null) {
+      _codec = message<PagingInfo>({
+        1: { name: "pageSize", codec: uint64, optional: true },
+        2: { name: "cursor", codec: Index.codec(), optional: true },
+        3: {
+          name: "direction",
+          codec: PagingInfo.Direction.codec(),
+          optional: true,
+        },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: PagingInfo): Uint8Array => {
+  export const encode = (obj: PagingInfo): Uint8ArrayList => {
     return encodeMessage(obj, PagingInfo.codec());
   };
 
-  export const decode = (buf: Uint8Array): PagingInfo => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): PagingInfo => {
     return decodeMessage(buf, PagingInfo.codec());
   };
 }
@@ -88,17 +101,23 @@ export interface ContentFilter {
 }
 
 export namespace ContentFilter {
+  let _codec: Codec<ContentFilter>;
+
   export const codec = (): Codec<ContentFilter> => {
-    return message<ContentFilter>({
-      1: { name: "contentTopic", codec: string, optional: true },
-    });
+    if (_codec == null) {
+      _codec = message<ContentFilter>({
+        1: { name: "contentTopic", codec: string, optional: true },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: ContentFilter): Uint8Array => {
+  export const encode = (obj: ContentFilter): Uint8ArrayList => {
     return encodeMessage(obj, ContentFilter.codec());
   };
 
-  export const decode = (buf: Uint8Array): ContentFilter => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): ContentFilter => {
     return decodeMessage(buf, ContentFilter.codec());
   };
 }
@@ -112,25 +131,31 @@ export interface HistoryQuery {
 }
 
 export namespace HistoryQuery {
+  let _codec: Codec<HistoryQuery>;
+
   export const codec = (): Codec<HistoryQuery> => {
-    return message<HistoryQuery>({
-      2: { name: "pubSubTopic", codec: string, optional: true },
-      3: {
-        name: "contentFilters",
-        codec: ContentFilter.codec(),
-        repeats: true,
-      },
-      4: { name: "pagingInfo", codec: PagingInfo.codec(), optional: true },
-      5: { name: "startTime", codec: double, optional: true },
-      6: { name: "endTime", codec: double, optional: true },
-    });
+    if (_codec == null) {
+      _codec = message<HistoryQuery>({
+        2: { name: "pubSubTopic", codec: string, optional: true },
+        3: {
+          name: "contentFilters",
+          codec: ContentFilter.codec(),
+          repeats: true,
+        },
+        4: { name: "pagingInfo", codec: PagingInfo.codec(), optional: true },
+        5: { name: "startTime", codec: double, optional: true },
+        6: { name: "endTime", codec: double, optional: true },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: HistoryQuery): Uint8Array => {
+  export const encode = (obj: HistoryQuery): Uint8ArrayList => {
     return encodeMessage(obj, HistoryQuery.codec());
   };
 
-  export const decode = (buf: Uint8Array): HistoryQuery => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): HistoryQuery => {
     return decodeMessage(buf, HistoryQuery.codec());
   };
 }
@@ -158,23 +183,29 @@ export namespace HistoryResponse {
     };
   }
 
+  let _codec: Codec<HistoryResponse>;
+
   export const codec = (): Codec<HistoryResponse> => {
-    return message<HistoryResponse>({
-      2: { name: "messages", codec: WakuMessage.codec(), repeats: true },
-      3: { name: "pagingInfo", codec: PagingInfo.codec(), optional: true },
-      4: {
-        name: "error",
-        codec: HistoryResponse.Error.codec(),
-        optional: true,
-      },
-    });
+    if (_codec == null) {
+      _codec = message<HistoryResponse>({
+        2: { name: "messages", codec: WakuMessage.codec(), repeats: true },
+        3: { name: "pagingInfo", codec: PagingInfo.codec(), optional: true },
+        4: {
+          name: "error",
+          codec: HistoryResponse.Error.codec(),
+          optional: true,
+        },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: HistoryResponse): Uint8Array => {
+  export const encode = (obj: HistoryResponse): Uint8ArrayList => {
     return encodeMessage(obj, HistoryResponse.codec());
   };
 
-  export const decode = (buf: Uint8Array): HistoryResponse => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): HistoryResponse => {
     return decodeMessage(buf, HistoryResponse.codec());
   };
 }
@@ -186,19 +217,25 @@ export interface HistoryRPC {
 }
 
 export namespace HistoryRPC {
+  let _codec: Codec<HistoryRPC>;
+
   export const codec = (): Codec<HistoryRPC> => {
-    return message<HistoryRPC>({
-      1: { name: "requestId", codec: string, optional: true },
-      2: { name: "query", codec: HistoryQuery.codec(), optional: true },
-      3: { name: "response", codec: HistoryResponse.codec(), optional: true },
-    });
+    if (_codec == null) {
+      _codec = message<HistoryRPC>({
+        1: { name: "requestId", codec: string, optional: true },
+        2: { name: "query", codec: HistoryQuery.codec(), optional: true },
+        3: { name: "response", codec: HistoryResponse.codec(), optional: true },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: HistoryRPC): Uint8Array => {
+  export const encode = (obj: HistoryRPC): Uint8ArrayList => {
     return encodeMessage(obj, HistoryRPC.codec());
   };
 
-  export const decode = (buf: Uint8Array): HistoryRPC => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): HistoryRPC => {
     return decodeMessage(buf, HistoryRPC.codec());
   };
 }
@@ -212,21 +249,27 @@ export interface WakuMessage {
 }
 
 export namespace WakuMessage {
+  let _codec: Codec<WakuMessage>;
+
   export const codec = (): Codec<WakuMessage> => {
-    return message<WakuMessage>({
-      1: { name: "payload", codec: bytes, optional: true },
-      2: { name: "contentTopic", codec: string, optional: true },
-      3: { name: "version", codec: uint32, optional: true },
-      4: { name: "timestampDeprecated", codec: double, optional: true },
-      10: { name: "timestamp", codec: sint64, optional: true },
-    });
+    if (_codec == null) {
+      _codec = message<WakuMessage>({
+        1: { name: "payload", codec: bytes, optional: true },
+        2: { name: "contentTopic", codec: string, optional: true },
+        3: { name: "version", codec: uint32, optional: true },
+        4: { name: "timestampDeprecated", codec: double, optional: true },
+        10: { name: "timestamp", codec: sint64, optional: true },
+      });
+    }
+
+    return _codec;
   };
 
-  export const encode = (obj: WakuMessage): Uint8Array => {
+  export const encode = (obj: WakuMessage): Uint8ArrayList => {
     return encodeMessage(obj, WakuMessage.codec());
   };
 
-  export const decode = (buf: Uint8Array): WakuMessage => {
+  export const decode = (buf: Uint8Array | Uint8ArrayList): WakuMessage => {
     return decodeMessage(buf, WakuMessage.codec());
   };
 }

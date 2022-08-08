@@ -139,7 +139,7 @@
     "portfinder": "^1.0.28",
     "prettier": "^2.1.1",
     "process": "^0.11.10",
-    "protons": "^3.0.4",
+    "protons": "^4.0.3",
     "puppeteer": "^13.0.1",
     "rollup": "^2.75.0",
     "size-limit": "^8.0.0",
