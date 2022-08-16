@@ -12,7 +12,7 @@ jobs:
   build_and_test:
     env:
       BUF_VERSION: "0.56.0"
-      NIM_WAKU_VERSION: "v0.9"
+      NIM_WAKU_VERSION: "v0.11"
     strategy:
       matrix:
         node: [16]
