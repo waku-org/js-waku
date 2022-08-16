@@ -224,6 +224,8 @@ export class WakuFilter {
     }
 
     // TODO: Appropriate connection selection
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore: tsc is confused by the @libp2p/interface-connection type to use
     return connections[0].newStream(FilterCodec);
   }
 
