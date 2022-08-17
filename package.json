@@ -18,6 +18,13 @@
       "import": "./dist/lib/peer_discovery_dns/index.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "lib/*": [
+        "dist/lib/*"
+      ]
+    }
+  },
   "type": "module",
   "repository": "https://github.com/status-im/js-waku",
   "license": "MIT OR Apache-2.0",
