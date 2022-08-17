@@ -216,7 +216,7 @@ export class WakuStore {
       const reply = historyRpcQuery.decode(bytes);
 
       if (!reply.response) {
-        throw "History response misses response field";
+        dbg("No message returned from store: `response` field missing");
       }
 
       const response = reply.response as protoV2Beta4.HistoryResponse;
