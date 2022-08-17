@@ -227,7 +227,7 @@ export class WakuStore {
 
       if (!response.messages || !response.messages.length) {
         // No messages left (or stored)
-        console.log("No messages present in HistoryRPC response");
+        dbg("No message returned from store: `messages` array empty");
         return messages;
       }
 
@@ -265,8 +265,8 @@ export class WakuStore {
       cursor = response.pagingInfo?.cursor;
       if (cursor === undefined) {
         // If the server does not return cursor then there is an issue,
-        // Need to abort or we end up in an infinite loop
-        console.log("No cursor returned by peer.");
+        // Need to abort, or we end up in an infinite loop
+        dbg("Store response does not contain a cursor, stopping pagination");
         return messages;
       }
     }
