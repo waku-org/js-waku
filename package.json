@@ -20,6 +20,10 @@
     "./lib/peer_discovery_static_list": {
       "types": "./dist/lib/peer_discovery_static_list.d.ts",
       "import": "./dist/lib/peer_discovery_static_list.js"
+    },
+    "./lib/predefined_bootstrap_nodes": {
+      "types": "./dist/lib/predefined_bootstrap_nodes.d.ts",
+      "import": "./dist/lib/predefined_bootstrap_nodes.js"
     }
   },
   "typesVersions": {
