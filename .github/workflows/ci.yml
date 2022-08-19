@@ -102,16 +102,11 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [check, build, proto, browser, node]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2.3.3
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v2.3.3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
-
-      - name: install using npm ci
-        uses: bahmutov/npm-install@v1
+      - uses: bahmutov/npm-install@v1
 
       - name: Append git hash to version
         shell: bash
@@ -124,5 +119,4 @@ jobs:
       - name: Authenticate with registry
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ./.npmrc
 
-      - name: publish
-        run: npm publish --tag next --access public
+      - run: npm publish --tag next --access public
