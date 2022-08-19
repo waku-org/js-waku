@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  NIM_WAKU_VERSION: "v0.9"
+  NWAKU_VERSION: "v0.11"
   NODE_JS: "16"
 
 jobs:
@@ -69,18 +69,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Get nim-waku
+      - name: Get nwaku
         shell: bash
         run: |
-          mkdir -p nim-waku/build
-          cd nim-waku
-          wget "https://github.com/status-im/nim-waku/releases/download/${NIM_WAKU_VERSION}/nim-waku-ubuntu-latest.tar.gz"
+          mkdir -p nwaku/build
+          cd nwaku
+          wget "https://github.com/status-im/nwaku/releases/download/${NWAKU_VERSION}/nim-waku-ubuntu-latest.tar.gz"
           tar xavf nim-waku-ubuntu-latest.tar.gz
       - name: Ensure wakunode2 is ready
         shell: bash
         run: |
           uname -a
-          cd nim-waku/build
+          cd nwaku/build
           ./wakunode2 --help
       - uses: actions/setup-node@v3
         with:
@@ -88,13 +88,13 @@ jobs:
       - uses: bahmutov/npm-install@v1
       - run: npm run test:node
         env:
-          DEBUG: "waku:nim-waku*,waku:test*"
+          DEBUG: "waku:nwaku*,waku:test*"
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v2
         if: failure()
         with:
-          name: nim-waku-logs
+          name: nwaku-logs
           path: log/
 
   release_next:

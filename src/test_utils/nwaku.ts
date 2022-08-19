@@ -22,7 +22,7 @@ import waitForLine from "./log_file";
 
 const dbg = debug("waku:nwaku");
 
-const NIM_WAKU_DIR = appRoot + "/nim-waku";
+const NIM_WAKU_DIR = appRoot + "/nwaku";
 const NIM_WAKU_BIN = NIM_WAKU_DIR + "/build/wakunode2";
 
 const LOG_DIR = "./log";
