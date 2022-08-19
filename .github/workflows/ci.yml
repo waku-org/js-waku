@@ -31,7 +31,7 @@ jobs:
           tar xavf nim-waku-ubuntu-latest.tar.gz
 
       - name: Install NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
 
