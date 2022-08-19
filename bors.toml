@@ -1,5 +1,9 @@
 status = [
-  "build_and_test",
+  "check",
+  "build",
+  "proto",
+  "browser",
+  "node",
   "examples_build_and_test (eth-pm)",
   "examples_build_and_test (eth-pm-wallet-encryption)",
   "examples_build_and_test (relay-angular-chat)",
