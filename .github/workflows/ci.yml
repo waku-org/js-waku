@@ -8,14 +8,15 @@ on:
       - "trying"
   pull_request:
 
+env:
+  BUF_VERSION: "0.56.0"
+  NIM_WAKU_VERSION: "v0.9"
+  NODE_JS: "16"
+
 jobs:
   build_and_test:
-    env:
-      BUF_VERSION: "0.56.0"
-      NIM_WAKU_VERSION: "v0.9"
     strategy:
       matrix:
-        node: [16]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -31,9 +32,9 @@ jobs:
           tar xavf nim-waku-ubuntu-latest.tar.gz
 
       - name: Install NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: ${{ env.NODE_JS }}
 
       - name: Ensure wakunode2 is ready
         shell: bash
@@ -41,12 +42,6 @@ jobs:
           uname -a
           cd nim-waku/build
           ./wakunode2 --help
-
-      - name: Cache npm cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: node-${{ matrix.os }}-${{ matrix.node }}-v1-${{ hashFiles('**/package-lock.json') }}
 
       - name: install using npm ci
         uses: bahmutov/npm-install@v1
@@ -77,3 +72,33 @@ jobs:
         with:
           name: nim-waku-logs
           path: log/
+
+  release_next:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [build_and_test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.3.3
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+
+      - name: install using npm ci
+        uses: bahmutov/npm-install@v1
+
+      - name: Append git hash to version
+        shell: bash
+        run: |
+          CURR_VERSION=$(cat package.json | jq .version | tr -d '"')
+          GIT_HASH=$(git rev-parse --short HEAD)
+          cat package.json| jq --arg version "$CURR_VERSION-$GIT_HASH" '.version |= $version' > _package.json
+          mv -f _package.json package.json
+
+      - name: Authenticate with registry
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ./.npmrc
+
+      - name: publish
+        run: npm publish --tag next --access public
