@@ -13,40 +13,41 @@ env:
   NODE_JS: "16"
 
 jobs:
-  build_and_test:
+  check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Get nim-waku
-        shell: bash
-        run: |
-          mkdir -p nim-waku/build
-          cd nim-waku
-          wget "https://github.com/status-im/nim-waku/releases/download/${NIM_WAKU_VERSION}/nim-waku-ubuntu-latest.tar.gz"
-          tar xavf nim-waku-ubuntu-latest.tar.gz
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
+      - uses: bahmutov/npm-install@v1
+      - run: npm run test:lint
+      - run: npm run test:prettier
+      - run: npm run test:spelling
+      - run: npm run test:tsc
 
-      - name: Ensure wakunode2 is ready
-        shell: bash
-        run: |
-          uname -a
-          cd nim-waku/build
-          ./wakunode2 --help
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+      - uses: bahmutov/npm-install@v1
+      - run: npm run build
 
-      - name: install using npm ci
-        uses: bahmutov/npm-install@v1
-
+  proto:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+      - uses: bahmutov/npm-install@v1
       - name: Generate protobuf code
         run: |
           npm run proto
           npm run fix
-
       - name: Check all protobuf code was committed
         shell: bash
         run: |
@@ -54,13 +55,40 @@ jobs:
           echo -n "'$res'" # For debug purposes
           [ $(echo -n "$res"|wc -l) -eq 0 ]
 
-      - name: build
-        run: npm run build
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+      - uses: bahmutov/npm-install@v1
+      - run: npm run test:browser
 
-      - name: test
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get nim-waku
+        shell: bash
+        run: |
+          mkdir -p nim-waku/build
+          cd nim-waku
+          wget "https://github.com/status-im/nim-waku/releases/download/${NIM_WAKU_VERSION}/nim-waku-ubuntu-latest.tar.gz"
+          tar xavf nim-waku-ubuntu-latest.tar.gz
+      - name: Ensure wakunode2 is ready
+        shell: bash
+        run: |
+          uname -a
+          cd nim-waku/build
+          ./wakunode2 --help
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+      - uses: bahmutov/npm-install@v1
+      - run: npm run test:node
         env:
           DEBUG: "waku:nim-waku*,waku:test*"
-        run: npm run test
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v2
@@ -72,7 +100,7 @@ jobs:
   release_next:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [build_and_test]
+    needs: [check, build, proto, browser, node]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2.3.3
