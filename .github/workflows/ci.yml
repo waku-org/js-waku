@@ -8,14 +8,15 @@ on:
       - "trying"
   pull_request:
 
+env:
+  BUF_VERSION: "0.56.0"
+  NIM_WAKU_VERSION: "v0.9"
+  NODE_JS: "16"
+
 jobs:
   build_and_test:
-    env:
-      BUF_VERSION: "0.56.0"
-      NIM_WAKU_VERSION: "v0.9"
     strategy:
       matrix:
-        node: [16]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -33,7 +34,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: ${{ env.NODE_JS }}
 
       - name: Ensure wakunode2 is ready
         shell: bash
