@@ -42,12 +42,6 @@ jobs:
           cd nim-waku/build
           ./wakunode2 --help
 
-      - name: Cache npm cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: node-${{ matrix.os }}-${{ matrix.node }}-v1-${{ hashFiles('**/package-lock.json') }}
-
       - name: install using npm ci
         uses: bahmutov/npm-install@v1
 
