@@ -56,13 +56,13 @@ export interface Args {
 }
 
 export enum LogLevel {
-  Error = "error",
-  Info = "info",
-  Warn = "warn",
-  Debug = "debug",
-  Trace = "trace",
-  Notice = "notice",
-  Fatal = "fatal",
+  Error = "ERROR",
+  Info = "INFO",
+  Warn = "WARN",
+  Debug = "DEBUG",
+  Trace = "TRACE",
+  Notice = "NOTICE",
+  Fatal = "FATAL",
 }
 
 export interface KeyPair {

@@ -16,7 +16,7 @@ describe("nwaku", () => {
       "--rpc=true",
       "--rpc-admin=true",
       "--websocket-support=true",
-      "--log-level=debug",
+      "--log-level=DEBUG",
       "--ports-shift=42",
     ];
 
