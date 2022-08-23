@@ -27,6 +27,8 @@ const WAKU_SERVICE_NODE_DIR =
 const WAKU_SERVICE_NODE_BIN =
   process.env.WAKU_SERVICE_NODE_BIN ??
   WAKU_SERVICE_NODE_DIR + "/build/wakunode2";
+const WAKU_SERVICE_NODE_PARAMS =
+  process.env.WAKU_SERVICE_NODE_PARAMS ?? undefined;
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 const LOG_DIR = "./log";
@@ -144,6 +146,9 @@ export class Nwaku {
     );
 
     const argsArray = argsToArray(mergedArgs);
+    if (WAKU_SERVICE_NODE_PARAMS) {
+      argsArray.push(WAKU_SERVICE_NODE_PARAMS);
+    }
     dbg(`nwaku args: ${argsArray.join(" ")}`);
     this.process = spawn(WAKU_SERVICE_NODE_BIN, argsArray, {
       cwd: WAKU_SERVICE_NODE_DIR,
