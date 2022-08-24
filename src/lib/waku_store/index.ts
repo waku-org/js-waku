@@ -217,6 +217,7 @@ export class WakuStore {
 
       if (!reply.response) {
         dbg("No message returned from store: `response` field missing");
+        return messages;
       }
 
       const response = reply.response as protoV2Beta4.HistoryResponse;
