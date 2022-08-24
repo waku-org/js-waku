@@ -2,6 +2,7 @@ import { expect } from "chai";
 import fc from "fast-check";
 
 import { getPublicKey } from "../crypto";
+import { bytesToHex } from "../utils";
 
 import {
   clearDecode,
@@ -41,7 +42,7 @@ describe("Waku Message Version 1", function () {
     );
   });
 
-  it("Asymmetric encrypt & Decrypt", async function () {
+  it("Asymmetric encrypt & decrypt", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
@@ -70,6 +71,17 @@ describe("Waku Message Version 1", function () {
           expect(res).deep.equal(message);
         }
       )
+    );
+  });
+
+  it("Clear encode and decode", async function () {
+    await fc.assert(
+      fc.asyncProperty(fc.uint8Array(), async (payload) => {
+        const enc = await clearEncode(payload);
+        const dec = clearDecode(enc.payload);
+        if (!dec?.payload) throw "payload missing";
+        expect(bytesToHex(dec?.payload)).to.eq(bytesToHex(payload));
+      })
     );
   });
 });

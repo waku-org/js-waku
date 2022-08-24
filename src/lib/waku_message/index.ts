@@ -38,6 +38,13 @@ export interface Options {
   sigPrivKey?: Uint8Array;
 }
 
+// TODO: Use this in Options
+export interface DecryptionParams {
+  key: Uint8Array;
+  method?: DecryptionMethod;
+  contentTopics?: string[];
+}
+
 export class WakuMessage {
   private constructor(
     public proto: proto.WakuMessage,
@@ -124,33 +131,25 @@ export class WakuMessage {
    */
   static async decode(
     bytes: Uint8Array,
-    decryptionKeys?: Array<{
-      key: Uint8Array;
-      method?: DecryptionMethod;
-      contentTopic?: string[];
-    }>
+    decryptionParams?: DecryptionParams[]
   ): Promise<WakuMessage | undefined> {
     const protoBuf = proto.WakuMessage.decode(bytes);
 
-    return WakuMessage.decodeProto(protoBuf, decryptionKeys);
+    return WakuMessage.decodeProto(protoBuf, decryptionParams);
   }
 
   /**
    * Decode and decrypt Waku Message Protobuf Object into Waku Message.
    *
    * @params protoBuf The message to decode and decrypt.
-   * @params decryptionKeys If the payload is encrypted (version = 1), then the
+   * @params decryptionParams If the payload is encrypted (version = 1), then the
    * keys are used to attempt decryption of the message. The passed key can either
    * be asymmetric private keys or symmetric keys, both method are tried for each
    * key until the message is decrypted or combinations are run out.
    */
   static async decodeProto(
     protoBuf: proto.WakuMessage,
-    decryptionKeys?: Array<{
-      key: Uint8Array;
-      method?: DecryptionMethod;
-      contentTopics?: string[];
-    }>
+    decryptionParams?: DecryptionParams[]
   ): Promise<WakuMessage | undefined> {
     if (protoBuf.payload === undefined) {
       dbg("Payload is undefined");
@@ -161,14 +160,14 @@ export class WakuMessage {
     let signaturePublicKey;
     let signature;
     if (protoBuf.version === 1 && protoBuf.payload) {
-      if (decryptionKeys === undefined) {
+      if (decryptionParams === undefined) {
         dbg("Payload is encrypted but no private keys have been provided.");
         return;
       }
 
       // Returns a bunch of `undefined` and hopefully one decrypted result
       const allResults = await Promise.all(
-        decryptionKeys.map(async ({ key, method, contentTopics }) => {
+        decryptionParams.map(async ({ key, method, contentTopics }) => {
           if (
             !contentTopics ||
             (protoBuf.contentTopic &&
@@ -274,8 +273,10 @@ export class WakuMessage {
     return this.proto.contentTopic;
   }
 
-  get version(): number | undefined {
-    return this.proto.version;
+  get version(): number {
+    // TODO: absent value should be replaced by default
+    // value of the type by the protobuf decoder
+    return this.proto.version ?? 0;
   }
 
   get timestamp(): Date | undefined {

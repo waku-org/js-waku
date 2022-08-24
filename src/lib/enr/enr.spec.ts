@@ -1,6 +1,7 @@
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { Multiaddr } from "@multiformats/multiaddr";
 import { assert, expect } from "chai";
+import { equals } from "uint8arrays/equals";
 
 import { getPublicKey } from "../crypto";
 import { bytesToHex, hexToBytes, utf8ToBytes } from "../utils";
@@ -211,8 +212,12 @@ describe("ENR", function () {
     });
 
     it("should encode/decode to RLP encoding", async function () {
-      const decoded = await ENR.decode(await record.encode(privateKey));
-      expect(decoded).to.deep.equal(record);
+      const encoded = await record.encode(privateKey);
+      const decoded = await ENR.decode(encoded);
+
+      record.forEach((value, key) => {
+        expect(equals(decoded.get(key)!, value)).to.be.true;
+      });
     });
 
     it("should encode/decode to text encoding", async function () {

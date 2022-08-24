@@ -4,11 +4,11 @@ import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Libp2p } from "libp2p";
-import { concat } from "uint8arrays/concat";
 
 import { PushResponse } from "../../proto/light_push";
 import { DefaultPubSubTopic } from "../constants";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
+import { concat } from "../utils";
 import { WakuMessage } from "../waku_message";
 
 import { PushRPC } from "./push_rpc";

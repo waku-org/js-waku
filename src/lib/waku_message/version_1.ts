@@ -1,8 +1,7 @@
 import * as secp from "@noble/secp256k1";
-import { concat } from "uint8arrays/concat";
 
 import { keccak256, randomBytes, sign } from "../crypto";
-import { hexToBytes } from "../utils";
+import { concat, hexToBytes } from "../utils";
 
 import { Symmetric } from "./constants";
 import * as ecies from "./ecies";
@@ -55,7 +54,6 @@ export async function clearEncode(
   }
 
   envelope = concat([envelope, pad]);
-
   let sig;
   if (sigPrivKey) {
     envelope[0] |= IsSignedMask;

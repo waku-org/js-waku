@@ -1,8 +1,7 @@
 import * as secp from "@noble/secp256k1";
-import { concat } from "uint8arrays/concat";
 
 import { getSubtle, randomBytes, sha256 } from "../crypto";
-import { hexToBytes } from "../utils";
+import { concat, hexToBytes } from "../utils";
 /**
  * HKDF as implemented in go-ethereum.
  */
