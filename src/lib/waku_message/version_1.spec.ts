@@ -42,7 +42,7 @@ describe("Waku Message Version 1", function () {
     );
   });
 
-  it("Asymmetric encrypt & Decrypt", async function () {
+  it("Asymmetric encrypt & decrypt", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.uint8Array({ minLength: 1 }),
