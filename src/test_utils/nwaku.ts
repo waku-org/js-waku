@@ -13,7 +13,7 @@ import debug from "debug";
 import portfinder from "portfinder";
 
 import { DefaultPubSubTopic } from "../lib/constants";
-import { hexToBytes } from "../lib/utils";
+import { bytesToHex, hexToBytes } from "../lib/utils";
 import { WakuMessage } from "../lib/waku_message";
 import * as proto from "../proto/message";
 
@@ -22,8 +22,14 @@ import waitForLine from "./log_file";
 
 const dbg = debug("waku:nwaku");
 
-const NIM_WAKU_DIR = appRoot + "/nwaku";
-const NIM_WAKU_BIN = NIM_WAKU_DIR + "/build/wakunode2";
+const WAKU_SERVICE_NODE_DIR =
+  process.env.WAKU_SERVICE_NODE_DIR ?? appRoot + "/nwaku";
+const WAKU_SERVICE_NODE_BIN =
+  process.env.WAKU_SERVICE_NODE_BIN ??
+  WAKU_SERVICE_NODE_DIR + "/build/wakunode2";
+const WAKU_SERVICE_NODE_PARAMS =
+  process.env.WAKU_SERVICE_NODE_PARAMS ?? undefined;
+const NODE_READY_LOG_LINE = "Node setup complete";
 
 const LOG_DIR = "./log";
 
@@ -50,13 +56,13 @@ export interface Args {
 }
 
 export enum LogLevel {
-  Error = "error",
-  Info = "info",
-  Warn = "warn",
-  Debug = "debug",
-  Trace = "trace",
-  Notice = "notice",
-  Fatal = "fatal",
+  Error = "ERROR",
+  Info = "INFO",
+  Warn = "WARN",
+  Debug = "DEBUG",
+  Trace = "TRACE",
+  Notice = "NOTICE",
+  Fatal = "FATAL",
 }
 
 export interface KeyPair {
@@ -135,15 +141,17 @@ export class Nwaku {
         tcpPort: ports[1],
         rpcPort: this.rpcPort,
         websocketPort: ports[2],
-        logLevel: LogLevel.Trace,
       },
       args
     );
 
     const argsArray = argsToArray(mergedArgs);
+    if (WAKU_SERVICE_NODE_PARAMS) {
+      argsArray.push(WAKU_SERVICE_NODE_PARAMS);
+    }
     dbg(`nwaku args: ${argsArray.join(" ")}`);
-    this.process = spawn(NIM_WAKU_BIN, argsArray, {
-      cwd: NIM_WAKU_DIR,
+    this.process = spawn(WAKU_SERVICE_NODE_BIN, argsArray, {
+      cwd: WAKU_SERVICE_NODE_DIR,
       stdio: [
         "ignore", // stdin
         logFile, // stdout
@@ -171,8 +179,8 @@ export class Nwaku {
       );
     });
 
-    dbg("Waiting to see 'Node setup complete' in nwaku logs");
-    await this.waitForLog("Node setup complete", 15000);
+    dbg(`Waiting to see '${NODE_READY_LOG_LINE}' in nwaku logs`);
+    await this.waitForLog(NODE_READY_LOG_LINE, 15000);
     dbg("nwaku node has been started");
   }
 
@@ -217,7 +225,9 @@ export class Nwaku {
     ]);
   }
 
-  async messages(pubsubTopic?: string): Promise<WakuMessage[]> {
+  async messages(
+    pubsubTopic: string = DefaultPubSubTopic
+  ): Promise<WakuMessage[]> {
     this.checkProcess();
 
     const isDefined = (msg: WakuMessage | undefined): msg is WakuMessage => {
@@ -226,7 +236,7 @@ export class Nwaku {
 
     const protoMsgs = await this.rpcCall<proto.WakuMessage[]>(
       "get_waku_v2_relay_v1_messages",
-      [pubsubTopic ?? DefaultPubSubTopic]
+      [pubsubTopic]
     );
 
     const msgs = await Promise.all(
@@ -356,6 +366,7 @@ export class Nwaku {
     method: string,
     params: Array<string | number | unknown>
   ): Promise<T> {
+    dbg("RPC Query: ", method, params);
     const res = await fetch(this.rpcUrl, {
       method: "POST",
       body: JSON.stringify({
@@ -366,8 +377,8 @@ export class Nwaku {
       }),
       headers: new Headers({ "Content-Type": "application/json" }),
     });
-
     const json = await res.json();
+    dbg(`RPC Response: `, res, json);
     return json.result;
   }
 
@@ -396,35 +407,14 @@ export function argsToArray(args: Args): Array<string> {
 
 export function defaultArgs(): Args {
   return {
-    nat: "none",
     listenAddress: "127.0.0.1",
+    nat: "none",
     relay: true,
     rpc: true,
     rpcAdmin: true,
     websocketSupport: true,
+    logLevel: LogLevel.Debug,
   };
-}
-
-export function strToHex(str: string): string {
-  let hex: string;
-  try {
-    hex = unescape(encodeURIComponent(str))
-      .split("")
-      .map(function (v) {
-        return v.charCodeAt(0).toString(16);
-      })
-      .join("");
-  } catch (e) {
-    hex = str;
-    console.log("invalid text input: " + str);
-  }
-  return hex;
-}
-
-export function bytesToHex(buffer: Uint8Array): string {
-  return Array.prototype.map
-    .call(buffer, (x) => ("00" + x.toString(16)).slice(-2))
-    .join("");
 }
 
 interface RpcInfoResponse {

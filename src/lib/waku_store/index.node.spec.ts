@@ -36,7 +36,7 @@ describe("Waku Store", () => {
     this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true });
+    await nwaku.start({ persistMessages: true, store: true });
 
     for (let i = 0; i < 2; i++) {
       expect(
@@ -67,7 +67,7 @@ describe("Waku Store", () => {
     this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true });
+    await nwaku.start({ persistMessages: true, store: true });
 
     const totalMsgs = 20;
 
@@ -107,7 +107,7 @@ describe("Waku Store", () => {
     this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true });
+    await nwaku.start({ persistMessages: true, store: true });
 
     const availMsgs = 20;
 
@@ -146,7 +146,7 @@ describe("Waku Store", () => {
     this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true });
+    await nwaku.start({ persistMessages: true, store: true });
 
     for (let i = 0; i < 15; i++) {
       expect(
@@ -184,7 +184,11 @@ describe("Waku Store", () => {
 
     const customPubSubTopic = "/waku/2/custom-dapp/proto";
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true, topics: customPubSubTopic });
+    await nwaku.start({
+      persistMessages: true,
+      store: true,
+      topics: customPubSubTopic,
+    });
 
     for (let i = 0; i < 2; i++) {
       expect(
@@ -222,7 +226,7 @@ describe("Waku Store", () => {
     this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true, lightpush: true });
+    await nwaku.start({ persistMessages: true, store: true, lightpush: true });
 
     const encryptedAsymmetricMessageText =
       "This message is encrypted for me using asymmetric";
@@ -317,7 +321,7 @@ describe("Waku Store", () => {
     this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true, lightpush: true });
+    await nwaku.start({ persistMessages: true, store: true, lightpush: true });
 
     const encryptedAsymmetricMessageText =
       "This message is encrypted for me using asymmetric";
@@ -424,7 +428,7 @@ describe("Waku Store", () => {
     this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true });
+    await nwaku.start({ persistMessages: true, store: true });
 
     const now = new Date();
 
