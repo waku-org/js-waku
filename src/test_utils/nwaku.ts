@@ -215,12 +215,12 @@ export class Nwaku {
 
   async sendMessage(
     message: WakuRelayMessage,
-    pubSubTopic?: string
+    pubSubTopic: string = DefaultPubSubTopic
   ): Promise<boolean> {
     this.checkProcess();
 
     return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
-      pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
+      pubSubTopic,
       message,
     ]);
   }
