@@ -2,8 +2,8 @@ import nodeCrypto from "crypto";
 
 import * as secp from "@noble/secp256k1";
 import sha3 from "js-sha3";
-import { concat } from "uint8arrays/concat";
 
+import { concat } from "./utils";
 import { Asymmetric, Symmetric } from "./waku_message/constants";
 
 declare const self: Record<string, any> | undefined;
@@ -65,7 +65,10 @@ export async function sign(
     recovered: true,
     der: false,
   });
-  return concat([signature, [recoveryId]], signature.length + 1);
+  return concat(
+    [signature, new Uint8Array([recoveryId])],
+    signature.length + 1
+  );
 }
 
 export function keccak256(input: Uint8Array): Uint8Array {
@@ -74,7 +77,7 @@ export function keccak256(input: Uint8Array): Uint8Array {
 
 export function compressPublicKey(publicKey: Uint8Array): Uint8Array {
   if (publicKey.length === 64) {
-    publicKey = concat([[4], publicKey], 65);
+    publicKey = concat([new Uint8Array([4]), publicKey], 65);
   }
   const point = secp.Point.fromHex(publicKey);
   return point.toRawBytes(true);
