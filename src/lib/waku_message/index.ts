@@ -273,8 +273,10 @@ export class WakuMessage {
     return this.proto.contentTopic;
   }
 
-  get version(): number | undefined {
-    return this.proto.version;
+  get version(): number {
+    // TODO: absent value should be replaced by default
+    // value of the type by the protobuf decoder
+    return this.proto.version ?? 0;
   }
 
   get timestamp(): Date | undefined {
