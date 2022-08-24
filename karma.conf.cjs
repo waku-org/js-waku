@@ -23,10 +23,12 @@ module.exports = function (config) {
         rules: [
           {
             test: /\.(js|tsx?)$/,
-            use: [{
-              loader: 'ts-loader',
-              options: { configFile: 'tsconfig.karma.json' }
-            }],
+            use: [
+              {
+                loader: "ts-loader",
+                options: { configFile: "tsconfig.karma.json" },
+              },
+            ],
             exclude: /(node_modules)|(node\.spec\.ts)/,
           },
           {
@@ -47,7 +49,7 @@ module.exports = function (config) {
         extensions: [".ts", ".js"],
       },
       stats: { warnings: false },
-      devtool: 'inline-source-map'
+      devtool: "inline-source-map",
     },
   });
 };

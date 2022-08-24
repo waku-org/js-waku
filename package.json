@@ -186,7 +186,7 @@
     "*.ts": [
       "eslint --fix"
     ],
-    "*.{ts,json,conf.js}": [
+    "*.{ts,json,conf*.*js}": [
       "prettier --write"
     ]
   }
