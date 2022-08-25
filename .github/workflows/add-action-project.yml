@@ -12,4 +12,4 @@ jobs:
       - uses: actions/add-to-project@v0.3.0
         with:
           project-url: https://github.com/orgs/waku-org/projects/2
-          github-token: ${{ secrets.GH_ACTION_PROJECT_MGMT }}
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
