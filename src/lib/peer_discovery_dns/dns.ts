@@ -64,7 +64,15 @@ export class DnsNodeDiscovery {
       this._errorTolerance,
       () => this._search(domain, context)
     );
-    dbg("retrieved peers: ", peers);
+    dbg(
+      "retrieved peers: ",
+      peers.map((peer) => {
+        return {
+          id: peer.peerId?.toString(),
+          multiaddrs: peer.multiaddrs?.map((ma) => ma.toString()),
+        };
+      })
+    );
     return peers;
   }
 
