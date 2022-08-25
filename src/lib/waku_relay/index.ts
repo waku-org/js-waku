@@ -41,7 +41,6 @@ export interface CreateOptions {
  * Must be passed as a `pubsub` module to a {Libp2p} instance.
  *
  * @implements {require('libp2p-interfaces/src/pubsub')}
- * @noInheritDoc
  */
 export class WakuRelay extends GossipSub {
   pubSubTopic: string;
