@@ -18,6 +18,7 @@ import { WakuMessage } from "../lib/waku_message";
 import * as proto from "../proto/message";
 
 import { existsAsync, mkdirAsync, openAsync } from "./async_fs";
+import { delay } from "./delay";
 import waitForLine from "./log_file";
 
 const dbg = debug("waku:nwaku");
@@ -181,6 +182,7 @@ export class Nwaku {
 
     dbg(`Waiting to see '${NODE_READY_LOG_LINE}' in nwaku logs`);
     await this.waitForLog(NODE_READY_LOG_LINE, 15000);
+    if (process.env.CI) await delay(100);
     dbg("nwaku node has been started");
   }
 
