@@ -1,26 +1,15 @@
-name: Add new issues to js-waku project board
+name: Add new issues to Waku project board
 
 on:
   issues:
     types: [opened]
-  pull_request_target:
-    types: [opened]
 
 jobs:
-  add-new-issue-to-new-column:
+  add-to-project:
+    name: Add issue to project
     runs-on: ubuntu-latest
     steps:
-      - name: Add issue to column "New"
-        if: ${{ !!github.event.issue }}
-        uses: alex-page/github-project-automation-plus@v0.6.0
+      - uses: actions/add-to-project@v0.3.0
         with:
-          project: js-waku
-          column: New
-          repo-token: ${{ secrets.GH_ACTION_PROJECT_MGMT }}
-      - name: Add pull request to column "In Progress"
-        if: ${{ !!github.event.pull_request }}
-        uses: alex-page/github-project-automation-plus@v0.6.0
-        with:
-          project: js-waku
-          column: In Progress
-          repo-token: ${{ secrets.GH_ACTION_PROJECT_MGMT }}
+          project-url: https://github.com/orgs/waku-org/projects/2
+          github-token: ${{ secrets.GH_ACTION_PROJECT_MGMT }}
