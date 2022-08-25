@@ -251,8 +251,8 @@ export class WakuFilter {
 
   /**
    * Register a decryption key to attempt decryption of messages received in any
-   * subsequent [[subscribe]] call. This can either be a private key for
-   * asymmetric encryption or a symmetric key. [[WakuStore]] will attempt to
+   * subsequent { @link subscribe } call. This can either be a private key for
+   * asymmetric encryption or a symmetric key. { @link WakuStore } will attempt to
    * decrypt messages using both methods.
    *
    * Strings must be in hex format.
@@ -265,7 +265,7 @@ export class WakuFilter {
   }
 
   /**
-   * Delete a decryption key so that it cannot be used in future [[subscribe]] calls
+   * Delete a decryption key so that it cannot be used in future { @link subscribe } calls
    *
    * Strings must be in hex format.
    */

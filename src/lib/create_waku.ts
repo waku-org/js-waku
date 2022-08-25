@@ -16,7 +16,7 @@ import { WakuStore } from "./waku_store";
 
 export interface CreateOptions {
   /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
+   * The PubSub Topic to use.
    *
    * One and only one pubsub topic is used by Waku. This is used by:
    * - WakuRelay to receive, route and send messages,
@@ -26,15 +26,15 @@ export interface CreateOptions {
    * The usage of the default pubsub topic is recommended.
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
-   * @default {@link DefaultPubSubTopic}
+   * @default {@link index.DefaultPubSubTopic}
    */
   pubSubTopic?: string;
   /**
-   * You can pass options to the `Libp2p` instance used by {@link Waku} using the {@link CreateOptions.libp2p} property.
+   * You can pass options to the `Libp2p` instance used by {@link index.waku.Waku} using the {@link CreateOptions.libp2p} property.
    * This property is the same type than the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * apart that we made the `modules` property optional and partial,
    * allowing its omission and letting Waku set good defaults.
-   * Notes that some values are overridden by {@link Waku} to ensure it implements the Waku protocol.
+   * Notes that some values are overridden by {@link index.waku.Waku} to ensure it implements the Waku protocol.
    */
   libp2p?: Partial<Libp2pOptions>;
   /**

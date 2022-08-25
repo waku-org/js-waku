@@ -37,8 +37,8 @@ export interface CreateOptions {
 }
 
 /**
- * Implements the [Waku v2 Relay protocol]{@link https://rfc.vac.dev/spec/11/}.
- * Must be passed as a `pubsub` module to a {Libp2p} instance.
+ * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
+ * Must be passed as a `pubsub` module to a `Libp2p` instance.
  *
  * @implements {require('libp2p-interfaces/src/pubsub')}
  */

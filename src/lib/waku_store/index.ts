@@ -52,19 +52,19 @@ export interface QueryOptions {
   pubSubTopic?: string;
   /**
    * The direction in which pages are retrieved:
-   * - [[PageDirection.BACKWARD]]: Most recent page first.
-   * - [[PageDirection.FORWARD]]: Oldest page first.
+   * - { @link PageDirection.BACKWARD }: Most recent page first.
+   * - { @link PageDirection.FORWARD }: Oldest page first.
    *
    * Note: This does not affect the ordering of messages with the page
    * (oldest message is always first).
    *
-   * @default [[PageDirection.BACKWARD]]
+   * @default { @link PageDirection.BACKWARD }
    */
   pageDirection?: PageDirection;
   /**
    * The number of message per page.
    *
-   * @default [[DefaultPageSize]]
+   * @default { @link DefaultPageSize }
    */
   pageSize?: number;
   /**
@@ -274,8 +274,8 @@ export class WakuStore {
 
   /**
    * Register a decryption key to attempt decryption of messages received in any
-   * subsequent [[queryHistory]] call. This can either be a private key for
-   * asymmetric encryption or a symmetric key. [[WakuStore]] will attempt to
+   * subsequent { @link queryHistory } call. This can either be a private key for
+   * asymmetric encryption or a symmetric key. { @link WakuStore } will attempt to
    * decrypt messages using both methods.
    *
    * Strings must be in hex format.
@@ -289,7 +289,7 @@ export class WakuStore {
 
   /**cursorV2Beta4
    * Delete a decryption key that was used to attempt decryption of messages
-   * received in subsequent [[queryHistory]] calls.
+   * received in subsequent { @link queryHistory } calls.
    *
    * Strings must be in hex format.
    */
