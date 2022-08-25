@@ -22,7 +22,7 @@ describe("Waku Filter", () => {
   });
 
   beforeEach(async function () {
-    this.timeout(10000);
+    this.timeout(15000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ filter: true, lightpush: true });
     waku = await createWaku({
@@ -46,6 +46,10 @@ describe("Waku Filter", () => {
       expect(msg.payloadAsUtf8).to.eq(messageText);
     };
     await waku.filter.subscribe(callback, [TestContentTopic]);
+    // As the filter protocol does not cater for a ack of subscription
+    // we cannot know whether the subscription happened. Something we want to
+    // correct in future versions of the protocol.
+    await delay(200);
     const message = await WakuMessage.fromUtf8String(
       messageText,
       TestContentTopic
@@ -66,6 +70,7 @@ describe("Waku Filter", () => {
       expect(msg.contentTopic).to.eq(TestContentTopic);
     };
     await waku.filter.subscribe(callback, [TestContentTopic]);
+    await delay(200);
     await waku.lightPush.push(
       await WakuMessage.fromUtf8String("Filtering works!", TestContentTopic)
     );
@@ -89,6 +94,7 @@ describe("Waku Filter", () => {
     const unsubscribe = await waku.filter.subscribe(callback, [
       TestContentTopic,
     ]);
+    await delay(200);
     await waku.lightPush.push(
       await WakuMessage.fromUtf8String(
         "This should be received",
@@ -97,6 +103,7 @@ describe("Waku Filter", () => {
     );
     await delay(100);
     await unsubscribe();
+    await delay(200);
     await waku.lightPush.push(
       await WakuMessage.fromUtf8String(
         "This should not be received",
