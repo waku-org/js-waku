@@ -170,7 +170,7 @@ export class Waku {
 
   /**
    * Register a decryption key to attempt decryption of messages received via
-   * [[WakuRelay]] and [[WakuStore]]. This can either be a private key for
+   * { @link WakuRelay } and { @link WakuStore }. This can either be a private key for
    * asymmetric encryption or a symmetric key.
    *
    * Strings must be in hex format.
@@ -186,7 +186,7 @@ export class Waku {
 
   /**
    * Delete a decryption key that was used to attempt decryption of messages
-   * received via [[WakuRelay]] or [[WakuStore]].
+   * received via { @link WakuRelay } or { @link WakuStore }.
    *
    * Strings must be in hex format.
    */

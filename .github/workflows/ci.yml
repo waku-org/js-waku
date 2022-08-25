@@ -25,6 +25,7 @@ jobs:
       - run: npm run test:prettier
       - run: npm run test:spelling
       - run: npm run test:tsc
+      - run: npm run doc:html
 
   build:
     runs-on: ubuntu-latest

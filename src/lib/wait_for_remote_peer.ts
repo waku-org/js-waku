@@ -22,8 +22,8 @@ interface WakuGossipSubProtocol extends GossipSub {
 
 /**
  * Wait for a remote peer to be ready given the passed protocols.
- * Must be used after attempting to connect to nodes, using {@link Waku.dial} or
- * a bootstrap method with {@link Waku.constructor}.
+ * Must be used after attempting to connect to nodes, using {@link index.waku.Waku.dial} or
+ * a bootstrap method with {@link index.waku.Waku.constructor}.
  *
  * If the passed protocols is a GossipSub protocol, then it resolves only once
  * a peer is in a mesh, to help ensure that other peers will send and receive
