@@ -9,7 +9,7 @@ import { toString } from "uint8arrays/to-string";
 export function hexToBytes(hex: string | Uint8Array): Uint8Array {
   if (typeof hex === "string") {
     const _hex = hex.replace(/^0x/i, "");
-    return fromString(_hex, "base16");
+    return fromString(_hex.toLowerCase(), "base16");
   }
   return hex;
 }
