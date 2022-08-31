@@ -232,7 +232,8 @@ export class WakuStore {
       }
 
       dbg(
-        `${response.messages.length} messages retrieved for pubsub topic ${opts.pubSubTopic}`
+        `${response.messages.length} messages retrieved for (${opts.pubSubTopic})`,
+        contentTopics
       );
 
       const pageMessages: WakuMessage[] = [];
