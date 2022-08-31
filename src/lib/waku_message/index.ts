@@ -151,15 +151,11 @@ export class WakuMessage {
     protoBuf: proto.WakuMessage,
     decryptionParams?: DecryptionParams[]
   ): Promise<WakuMessage | undefined> {
-    if (protoBuf.payload === undefined) {
-      dbg("Payload is undefined");
-      return;
-    }
     const payload = protoBuf.payload;
 
     let signaturePublicKey;
     let signature;
-    if (protoBuf.version === 1 && protoBuf.payload) {
+    if (protoBuf.version === 1 && payload) {
       if (decryptionParams === undefined) {
         dbg("Payload is encrypted but no private keys have been provided.");
         return;
