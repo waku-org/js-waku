@@ -231,6 +231,7 @@ export class Waku {
 
     if (relayPeriodSecs !== 0) {
       this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
+        log("Sending Waku Relay ping message");
         WakuMessage.fromBytes(new Uint8Array(), RelayPingContentTopic).then(
           (wakuMsg) => this.relay.send(wakuMsg)
         );
