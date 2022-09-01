@@ -24,6 +24,10 @@
     "./lib/predefined_bootstrap_nodes": {
       "types": "./dist/lib/predefined_bootstrap_nodes.d.ts",
       "import": "./dist/lib/predefined_bootstrap_nodes.js"
+    },
+    "./lib/wait_for_remote_peer": {
+      "types": "./dist/lib/wait_for_remote_peer.d.ts",
+      "import": "./dist/lib/wait_for_remote_peer.js"
     }
   },
   "typesVersions": {

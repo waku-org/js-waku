@@ -9,7 +9,7 @@ module.exports = [
     path: ["bundle/index.js", "bundle/lib/create_waku.js"],
     import: {
       "./bundle/lib/create_waku.js": "{ createWaku }",
-      "./bundle/index.js": "{ waitForRemotePeer }",
+      "./bundle/lib/wait_for_remote_peer.js": "{ waitForRemotePeer }",
     },
   },
   {
