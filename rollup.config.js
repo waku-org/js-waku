@@ -9,6 +9,7 @@ export default {
     "lib/peer_discovery_dns": "dist/lib/peer_discovery_dns/index.js",
     "lib/peer_discovery_static_list": "dist/lib/peer_discovery_static_list.js",
     "lib/predefined_bootstrap_nodes": "dist/lib/predefined_bootstrap_nodes.js",
+    "lib/wait_for_remote_peer": "dist/lib/wait_for_remote_peer.js",
   },
   output: {
     dir: "bundle",
