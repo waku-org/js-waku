@@ -10,8 +10,6 @@ export * as enr from "./lib/enr";
 
 export * as utils from "./lib/utils";
 
-export { waitForRemotePeer } from "./lib/wait_for_remote_peer";
-
 export * as proto_message from "./proto/message";
 
 export * as waku from "./lib/waku";
