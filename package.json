@@ -113,7 +113,7 @@
     "js-sha3": "^0.8.0",
     "libp2p": "0.38.0",
     "p-event": "^5.0.1",
-    "protons-runtime": "^1.0.4",
+    "protons-runtime": "^3.1.0",
     "uint8arrays": "^3.0.0",
     "uuid": "^8.3.2"
   },
@@ -159,7 +159,7 @@
     "portfinder": "^1.0.28",
     "prettier": "^2.1.1",
     "process": "^0.11.10",
-    "protons": "^3.0.4",
+    "protons": "^5.1.0",
     "puppeteer": "^13.0.1",
     "rollup": "^2.75.0",
     "size-limit": "^8.0.0",
