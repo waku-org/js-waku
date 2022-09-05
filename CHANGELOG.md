@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Simple connection management that selects the most recent connection for store, light push and filter requests.
+
 ## [0.25.0] - 2022-09-5
 
 ### Changed

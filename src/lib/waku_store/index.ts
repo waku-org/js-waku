@@ -10,6 +10,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 import * as protoV2Beta4 from "../../proto/store_v2beta4";
 import { HistoryResponse } from "../../proto/store_v2beta4";
 import { DefaultPubSubTopic, StoreCodecs } from "../constants";
+import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
@@ -171,8 +172,9 @@ export class WakuStore {
 
     Object.assign(opts, { storeCodec });
     const connections = this.libp2p.connectionManager.getConnections(peer.id);
-    if (!connections || !connections.length)
-      throw "Failed to get a connection to the peer";
+    const connection = selectConnection(connections);
+
+    if (!connection) throw "Failed to get a connection to the peer";
 
     const decryptionKeys = Array.from(this.decryptionKeys).map(
       ([key, { method, contentTopics }]) => {
@@ -199,8 +201,7 @@ export class WakuStore {
     const messages: WakuMessage[] = [];
     let cursor = undefined;
     while (true) {
-      // TODO: Some connection selection logic?
-      const stream = await connections[0].newStream(storeCodec);
+      const stream = await connection.newStream(storeCodec);
       const queryOpts = Object.assign(opts, { cursor });
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
       dbg("Querying store peer", connections[0].remoteAddr.toString());
