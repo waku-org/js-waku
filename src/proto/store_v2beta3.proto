@@ -33,11 +33,11 @@ message HistoryQuery {
 message HistoryResponse {
   repeated WakuMessage messages = 2;
   optional PagingInfo paging_info = 3;
-  enum Error {
+  enum HistoryError {
     ERROR_NONE_UNSPECIFIED = 0;
     ERROR_INVALID_CURSOR = 1;
   }
-  optional Error error = 4;
+  optional HistoryError error = 4;
 }
 
 message HistoryRPC {

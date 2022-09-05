@@ -15,7 +15,7 @@ import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { HistoryRPC, PageDirection } from "./history_rpc";
 
-import Error = HistoryResponse.Error;
+import Error = HistoryResponse.HistoryError;
 
 const dbg = debug("waku:store");
 

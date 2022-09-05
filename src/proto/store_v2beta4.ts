@@ -140,23 +140,23 @@ export namespace HistoryQuery {
 export interface HistoryResponse {
   messages: WakuMessage[];
   pagingInfo?: PagingInfo;
-  error?: HistoryResponse.Error;
+  error?: HistoryResponse.HistoryError;
 }
 
 export namespace HistoryResponse {
-  export enum Error {
+  export enum HistoryError {
     ERROR_NONE_UNSPECIFIED = "ERROR_NONE_UNSPECIFIED",
     ERROR_INVALID_CURSOR = "ERROR_INVALID_CURSOR",
   }
 
-  enum __ErrorValues {
+  enum __HistoryErrorValues {
     ERROR_NONE_UNSPECIFIED = 0,
     ERROR_INVALID_CURSOR = 1,
   }
 
-  export namespace Error {
+  export namespace HistoryError {
     export const codec = () => {
-      return enumeration<typeof Error>(__ErrorValues);
+      return enumeration<typeof HistoryError>(__HistoryErrorValues);
     };
   }
 
@@ -166,7 +166,7 @@ export namespace HistoryResponse {
       3: { name: "pagingInfo", codec: PagingInfo.codec(), optional: true },
       4: {
         name: "error",
-        codec: HistoryResponse.Error.codec(),
+        codec: HistoryResponse.HistoryError.codec(),
         optional: true,
       },
     });
