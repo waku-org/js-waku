@@ -9,7 +9,7 @@ import {
   yieldNodesUntilCapabilitiesFulfilled,
 } from "./fetch_nodes";
 
-const dbg = debug("waku:discovery:dns");
+const log = debug("waku:discovery:dns");
 
 export type SearchContext = {
   domain: string;
@@ -64,7 +64,7 @@ export class DnsNodeDiscovery {
       this._errorTolerance,
       () => this._search(domain, context)
     );
-    dbg(
+    log(
       "retrieved peers: ",
       peers.map((peer) => {
         return {
@@ -136,13 +136,13 @@ export class DnsNodeDiscovery {
             return null;
         }
       } catch (error) {
-        dbg(
+        log(
           `Failed to search DNS tree ${entryType} at subdomain ${subdomain}: ${error}`
         );
         return null;
       }
     } catch (error) {
-      dbg(`Failed to retrieve TXT record at subdomain ${subdomain}: ${error}`);
+      log(`Failed to retrieve TXT record at subdomain ${subdomain}: ${error}`);
       return null;
     }
   }

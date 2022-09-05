@@ -4,7 +4,7 @@ import { ENR, Waku2 } from "../enr";
 
 import { NodeCapabilityCount } from "./dns";
 
-const dbg = debug("waku:discovery:fetch_nodes");
+const log = debug("waku:discovery:fetch_nodes");
 
 /**
  * Fetch nodes using passed [[getNode]] until all wanted capabilities are
@@ -49,7 +49,7 @@ export async function fetchNodesUntilCapabilitiesFulfilled(
           peers.push(peer);
         }
       }
-      dbg(`got new peer candidate from DNS address=${peer.nodeId}@${peer.ip}`);
+      log(`got new peer candidate from DNS address=${peer.nodeId}@${peer.ip}`);
     }
 
     totalSearches++;
@@ -101,7 +101,7 @@ export async function* yieldNodesUntilCapabilitiesFulfilled(
           yield peer;
         }
       }
-      dbg(`got new peer candidate from DNS address=${peer.nodeId}@${peer.ip}`);
+      log(`got new peer candidate from DNS address=${peer.nodeId}@${peer.ip}`);
     }
     totalSearches++;
   }

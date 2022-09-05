@@ -16,7 +16,7 @@ import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import * as constants from "./constants";
 
-const dbg = debug("waku:relay");
+const log = debug("waku:relay");
 
 export interface CreateOptions {
   /**
@@ -194,11 +194,11 @@ export class WakuRelay extends GossipSub {
             }
           );
 
-          dbg(`Message received on ${pubSubTopic}`);
+          log(`Message received on ${pubSubTopic}`);
           WakuMessage.decode(event.detail.msg.data, decryptionParams)
             .then((wakuMsg) => {
               if (!wakuMsg) {
-                dbg("Failed to decode Waku Message");
+                log("Failed to decode Waku Message");
                 return;
               }
 
@@ -216,7 +216,7 @@ export class WakuRelay extends GossipSub {
               }
             })
             .catch((e) => {
-              dbg("Failed to decode Waku Message", e);
+              log("Failed to decode Waku Message", e);
             });
         }
       }

@@ -20,7 +20,7 @@ import { Protocols, Waku } from "../waku";
 
 import { DecryptionMethod, WakuMessage } from "./index";
 
-const dbg = debug("waku:test:message");
+const log = debug("waku:test:message");
 
 const TestContentTopic = "/test/1/waku-message/utf8";
 
@@ -37,14 +37,14 @@ describe("Waku Message [node only]", function () {
       await waku.start();
 
       nwaku = new Nwaku(makeLogFileName(this));
-      dbg("Starting nwaku node");
+      log("Starting nwaku node");
       await nwaku.start({ rpcPrivate: true });
 
-      dbg("Dialing to nwaku node");
+      log("Dialing to nwaku node");
       await waku.dial(await nwaku.getMultiaddrWithId());
-      dbg("Wait for remote peer");
+      log("Wait for remote peer");
       await waitForRemotePeer(waku, [Protocols.Relay]);
-      dbg("Remote peer ready");
+      log("Remote peer ready");
       // As this test uses the nwaku RPC API, we somehow often face
       // Race conditions where the nwaku node does not have the js-waku
       // Node in its relay mesh just yet.
@@ -78,7 +78,7 @@ describe("Waku Message [node only]", function () {
       );
 
       const publicKey = getPublicKey(privateKey);
-      dbg("Post message");
+      log("Post message");
       const res = await nwaku.postAsymmetricMessage(message, publicKey);
       expect(res).to.be.true;
 
@@ -92,13 +92,13 @@ describe("Waku Message [node only]", function () {
     it("Encrypts message for nwaku [asymmetric, no signature]", async function () {
       this.timeout(5000);
 
-      dbg("Ask nwaku to generate asymmetric key pair");
+      log("Ask nwaku to generate asymmetric key pair");
       const keyPair = await nwaku.getAsymmetricKeyPair();
       const privateKey = hexToBytes(keyPair.privateKey);
       const publicKey = hexToBytes(keyPair.publicKey);
 
       const messageText = "This is a message I am going to encrypt";
-      dbg("Encrypt message");
+      log("Encrypt message");
       const message = await WakuMessage.fromUtf8String(
         messageText,
         TestContentTopic,
@@ -107,18 +107,18 @@ describe("Waku Message [node only]", function () {
         }
       );
 
-      dbg("Send message over relay");
+      log("Send message over relay");
       await waku.relay.send(message);
 
       let msgs: WakuRelayMessage[] = [];
 
       while (msgs.length === 0) {
-        dbg("Wait for message to be seen by nwaku");
+        log("Wait for message to be seen by nwaku");
         await delay(200);
         msgs = await nwaku.getAsymmetricMessages(privateKey);
       }
 
-      dbg("Check message content");
+      log("Check message content");
       expect(msgs[0].contentTopic).to.equal(message.contentTopic);
       expect(bytesToUtf8(hexToBytes(msgs[0].payload))).to.equal(messageText);
     });
@@ -132,7 +132,7 @@ describe("Waku Message [node only]", function () {
         payload: bytesToHex(utf8ToBytes(messageText)),
       };
 
-      dbg("Generate symmetric key");
+      log("Generate symmetric key");
       const symKey = generateSymmetricKey();
 
       waku.relay.addDecryptionKey(symKey, {
@@ -145,11 +145,11 @@ describe("Waku Message [node only]", function () {
         }
       );
 
-      dbg("Post message using nwaku");
+      log("Post message using nwaku");
       await nwaku.postSymmetricMessage(message, symKey);
-      dbg("Wait for message to be received by js-waku");
+      log("Wait for message to be received by js-waku");
       const receivedMsg = await receivedMsgPromise;
-      dbg("Message received by js-waku");
+      log("Message received by js-waku");
 
       expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
       expect(receivedMsg.version).to.eq(1);
@@ -159,9 +159,9 @@ describe("Waku Message [node only]", function () {
     it("Encrypts message for nwaku [symmetric, no signature]", async function () {
       this.timeout(5000);
 
-      dbg("Getting symmetric key from nwaku");
+      log("Getting symmetric key from nwaku");
       const symKey = await nwaku.getSymmetricKey();
-      dbg("Encrypting message with js-waku");
+      log("Encrypting message with js-waku");
       const messageText =
         "This is a message I am going to encrypt with a symmetric key";
       const message = await WakuMessage.fromUtf8String(
@@ -171,14 +171,14 @@ describe("Waku Message [node only]", function () {
           symKey: symKey,
         }
       );
-      dbg("Sending message over relay");
+      log("Sending message over relay");
       await waku.relay.send(message);
 
       let msgs: WakuRelayMessage[] = [];
 
       while (msgs.length === 0) {
         await delay(200);
-        dbg("Getting messages from nwaku");
+        log("Getting messages from nwaku");
         msgs = await nwaku.getSymmetricMessages(symKey);
       }
 
