@@ -270,8 +270,7 @@ export class WakuMessage {
   }
 
   get version(): number {
-    // TODO: absent value should be replaced by default
-    // value of the type by the protobuf decoder
+    // https://github.com/status-im/js-waku/issues/921
     return this.proto.version ?? 0;
   }
 
