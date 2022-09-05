@@ -173,7 +173,7 @@ export class Nwaku {
     });
 
     this.process.on("error", (err) => {
-      console.log(
+      dbg(
         `nwaku ${
           this.process ? this.process.pid : this.pid
         } process encountered an error: ${err} at ${new Date().toLocaleTimeString()}`
