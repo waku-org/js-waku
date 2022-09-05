@@ -129,7 +129,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: ${{ env.NODE_JS }}
 
       - uses: bahmutov/npm-install@v1
 
