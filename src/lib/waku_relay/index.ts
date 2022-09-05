@@ -184,7 +184,7 @@ export class WakuRelay extends GossipSub {
       "gossipsub:message",
       (event: CustomEvent<GossipsubMessage>) => {
         if (event.detail.msg.topic === pubSubTopic) {
-          const decryptionKeys = Array.from(this.decryptionKeys).map(
+          const decryptionParams = Array.from(this.decryptionKeys).map(
             ([key, { method, contentTopics }]) => {
               return {
                 key,
@@ -195,7 +195,7 @@ export class WakuRelay extends GossipSub {
           );
 
           dbg(`Message received on ${pubSubTopic}`);
-          WakuMessage.decode(event.detail.msg.data, decryptionKeys)
+          WakuMessage.decode(event.detail.msg.data, decryptionParams)
             .then((wakuMsg) => {
               if (!wakuMsg) {
                 dbg("Failed to decode Waku Message");

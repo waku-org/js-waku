@@ -38,7 +38,6 @@ export interface Options {
   sigPrivKey?: Uint8Array;
 }
 
-// TODO: Use this in Options
 export interface DecryptionParams {
   key: Uint8Array;
   method?: DecryptionMethod;

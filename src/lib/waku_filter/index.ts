@@ -167,7 +167,7 @@ export class WakuFilter {
       return;
     }
 
-    const decryptionKeys = Array.from(this.decryptionKeys).map(
+    const decryptionParams = Array.from(this.decryptionKeys).map(
       ([key, { method, contentTopics }]) => {
         return {
           key,
@@ -178,7 +178,7 @@ export class WakuFilter {
     );
 
     for (const message of messages) {
-      const decoded = await WakuMessage.decodeProto(message, decryptionKeys);
+      const decoded = await WakuMessage.decodeProto(message, decryptionParams);
       if (!decoded) {
         log("Not able to decode message");
         continue;

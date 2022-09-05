@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Simple connection management that selects the most recent connection for store, light push and filter requests.
 
+### Changed
+
+- **breaking**: `DecryptionParams` may be passed when using `queryHistory` instead of just keys. 
+
 ## [0.25.0] - 2022-09-5
 
 ### Changed

@@ -304,7 +304,7 @@ describe("Waku Store", () => {
 
     dbg("Retrieve messages from store");
     const messages = await waku2.store.queryHistory([], {
-      decryptionKeys: [privateKey],
+      decryptionParams: [{ key: privateKey }],
     });
 
     expect(messages?.length).eq(3);
@@ -411,7 +411,7 @@ describe("Waku Store", () => {
 
     dbg("Retrieve messages from store");
     const messages = await waku2.store.queryHistory([], {
-      decryptionKeys: [privateKey],
+      decryptionParams: [{ key: privateKey }],
     });
 
     expect(messages?.length).eq(3);
