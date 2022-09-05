@@ -92,7 +92,7 @@
     "@chainsafe/libp2p-gossipsub": "^4.1.1",
     "@chainsafe/libp2p-noise": "^8.0.1",
     "@ethersproject/rlp": "^5.5.0",
-    "@libp2p/crypto": "^1.0.0",
+    "@libp2p/crypto": "^1.0.4",
     "@libp2p/interface-connection": "3.0.1",
     "@libp2p/interface-peer-discovery": "^1.0.0",
     "@libp2p/interface-peer-id": "^1.0.2",
