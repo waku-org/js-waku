@@ -10,16 +10,6 @@ export const ERR_TYPE_NOT_IMPLEMENTED = "Keypair type not implemented";
 export * from "./types";
 export * from "./secp256k1";
 
-// TODO: Check if @libp2p/crypto methods can be used instead.
-export async function generateKeypair(type: KeypairType): Promise<IKeypair> {
-  switch (type) {
-    case KeypairType.secp256k1:
-      return await Secp256k1Keypair.generate();
-    default:
-      throw new Error(ERR_TYPE_NOT_IMPLEMENTED);
-  }
-}
-
 export function createKeypair(
   type: KeypairType,
   privateKey?: Uint8Array,
