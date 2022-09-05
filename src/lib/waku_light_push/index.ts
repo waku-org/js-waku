@@ -4,11 +4,11 @@ import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Libp2p } from "libp2p";
+import { Uint8ArrayList } from "uint8arraylist";
 
 import { PushResponse } from "../../proto/light_push";
 import { DefaultPubSubTopic } from "../constants";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
-import { concat } from "../utils";
 import { WakuMessage } from "../waku_message";
 
 import { PushRPC } from "./push_rpc";
@@ -76,7 +76,11 @@ export class WakuLightPush {
         async (source) => await all(source)
       );
       try {
-        const bytes = concat(res);
+        const bytes = new Uint8ArrayList();
+        res.forEach((chunk) => {
+          bytes.append(chunk);
+        });
+
         const response = PushRPC.decode(bytes).response;
 
         if (!response) {

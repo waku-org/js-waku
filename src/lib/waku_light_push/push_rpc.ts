@@ -1,3 +1,4 @@
+import type { Uint8ArrayList } from "uint8arraylist";
 import { v4 as uuid } from "uuid";
 
 import * as proto from "../../proto/light_push";
@@ -17,7 +18,7 @@ export class PushRPC {
     });
   }
 
-  static decode(bytes: Uint8Array): PushRPC {
+  static decode(bytes: Uint8ArrayList): PushRPC {
     const res = proto.PushRPC.decode(bytes);
     return new PushRPC(res);
   }

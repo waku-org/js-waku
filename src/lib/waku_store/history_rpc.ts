@@ -1,3 +1,4 @@
+import type { Uint8ArrayList } from "uint8arraylist";
 import { v4 as uuid } from "uuid";
 
 import * as protoV2Beta3 from "../../proto/store_v2beta3";
@@ -139,7 +140,7 @@ export class HistoryRPC {
     }
   }
 
-  decode(bytes: Uint8Array): HistoryRPC {
+  decode(bytes: Uint8ArrayList): HistoryRPC {
     const res = this.historyRpc.decode(bytes);
     return new HistoryRPC(res, this.storeCodec);
   }

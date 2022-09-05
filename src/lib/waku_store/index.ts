@@ -5,17 +5,18 @@ import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Libp2p } from "libp2p";
+import { Uint8ArrayList } from "uint8arraylist";
 
 import * as protoV2Beta4 from "../../proto/store_v2beta4";
 import { HistoryResponse } from "../../proto/store_v2beta4";
 import { DefaultPubSubTopic, StoreCodecs } from "../constants";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
-import { concat, hexToBytes } from "../utils";
+import { hexToBytes } from "../utils";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { HistoryRPC, PageDirection } from "./history_rpc";
 
-import Error = HistoryResponse.Error;
+import Error = HistoryResponse.HistoryError;
 
 const dbg = debug("waku:store");
 
@@ -211,7 +212,11 @@ export class WakuStore {
         lp.decode(),
         async (source) => await all(source)
       );
-      const bytes = concat(res);
+      const bytes = new Uint8ArrayList();
+      res.forEach((chunk) => {
+        bytes.append(chunk);
+      });
+
       const reply = historyRpcQuery.decode(bytes);
 
       if (!reply.response) {
