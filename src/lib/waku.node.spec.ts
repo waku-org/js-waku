@@ -10,9 +10,10 @@ import {
 
 import { createWaku } from "./create_waku";
 import { generateSymmetricKey } from "./crypto";
+import type { Waku } from "./interfaces";
 import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
 import { waitForRemotePeer } from "./wait_for_remote_peer";
-import { Protocols, Waku } from "./waku";
+import { Protocols } from "./waku";
 import { WakuMessage } from "./waku_message";
 
 const TestContentTopic = "/test/1/waku/utf8";

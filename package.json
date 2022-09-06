@@ -13,6 +13,9 @@
       "types": "./dist/lib/create_waku.d.ts",
       "import": "./dist/lib/create_waku.js"
     },
+    "./lib/interfaces": {
+      "types": "./dist/lib/interfaces.d.ts"
+    },
     "./lib/peer_discovery_dns": {
       "types": "./dist/lib/peer_discovery_dns/index.d.ts",
       "import": "./dist/lib/peer_discovery_dns/index.js"

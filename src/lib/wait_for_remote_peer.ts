@@ -5,7 +5,8 @@ import type { Libp2p } from "libp2p";
 import { pEvent } from "p-event";
 
 import { StoreCodecs } from "./constants";
-import { Protocols, Waku } from "./waku";
+import type { Waku } from "./interfaces";
+import { Protocols } from "./waku";
 import { FilterCodec } from "./waku_filter";
 import { LightPushCodec } from "./waku_light_push";
 

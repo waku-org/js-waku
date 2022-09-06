@@ -14,9 +14,10 @@ import {
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
+import type { Waku } from "../interfaces";
 import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols, Waku } from "../waku";
+import { Protocols } from "../waku";
 
 import { DecryptionMethod, WakuMessage } from "./index";
 

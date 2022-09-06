@@ -4,8 +4,9 @@ import debug from "debug";
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
 import { createWaku } from "../create_waku";
+import type { Waku } from "../interfaces";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols, Waku } from "../waku";
+import { Protocols } from "../waku";
 import { WakuMessage } from "../waku_message";
 
 const log = debug("waku:test");

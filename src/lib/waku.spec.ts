@@ -2,7 +2,7 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import { expect } from "chai";
 
 import { createWaku } from "./create_waku";
-import { Waku } from "./waku";
+import type { Waku } from "./interfaces";
 
 describe("Waku Dial", function () {
   describe("Bootstrap [live data]", function () {

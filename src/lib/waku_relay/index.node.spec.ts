@@ -17,8 +17,9 @@ import {
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
+import type { Waku } from "../interfaces";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols, Waku } from "../waku";
+import { Protocols } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 const log = debug("waku:test");

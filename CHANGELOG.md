@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **breaking**: `DecryptionParams` may be passed when using `queryHistory` instead of just keys.
 - Examples have been moved to https://github.com/waku-org/js-waku-examples.
+- `Waku` is now defined as an interface with `WakuNode` an implementation of it.
 
 ### Fixed
 

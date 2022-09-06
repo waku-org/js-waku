@@ -6,6 +6,7 @@ import { multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
+import { Waku } from "./interfaces";
 import { FilterCodec, WakuFilter } from "./waku_filter";
 import { LightPushCodec, WakuLightPush } from "./waku_light_push";
 import { DecryptionMethod, WakuMessage } from "./waku_message";
@@ -43,7 +44,7 @@ export interface WakuOptions {
   decryptionKeys?: Array<Uint8Array | string>;
 }
 
-export class Waku {
+export class WakuNode implements Waku {
   public libp2p: Libp2p;
   public relay: WakuRelay;
   public store: WakuStore;
