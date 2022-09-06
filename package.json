@@ -60,7 +60,7 @@
     "pretest": "run-s pretest:*",
     "pretest:1-init-git-submodules": "[ -f './nwaku/build/wakunode2' ] || git submodule update --init --recursive",
     "pretest:2-build-nwaku": "[ -f './nwaku/build/wakunode2' ] || run-s nwaku:build",
-    "nwaku:build": "(cd nwaku; NIMFLAGS=\"-d:chronicles_colors=off -d:chronicles_sinks=textlines -d:chronicles_log_level=TRACE\" make -j$(nproc --all 2>/dev/null || echo 2) wakunode2)",
+    "nwaku:build": "(cd nwaku; make update; NIMFLAGS=\"-d:chronicles_colors=off -d:chronicles_sinks=textlines -d:chronicles_log_level=TRACE\" make -j$(nproc --all 2>/dev/null || echo 2) wakunode2)",
     "nwaku:force-build": "(cd nwaku && rm -rf ./build/ ./vendor && make -j$(nproc --all 2>/dev/null || echo 2) update) && run-s nwaku:build",
     "test": "run-s test:*",
     "test:lint": "eslint src --ext .ts",
