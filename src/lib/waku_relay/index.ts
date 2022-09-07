@@ -229,3 +229,5 @@ export class WakuRelay extends GossipSub {
     return super.getMeshPeers(topic ?? this.pubSubTopic);
   }
 }
+
+WakuRelay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];

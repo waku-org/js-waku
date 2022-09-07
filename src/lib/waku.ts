@@ -1,5 +1,6 @@
 import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PubSub } from "@libp2p/interface-pubsub";
 import { peerIdFromString } from "@libp2p/peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import { multiaddr } from "@multiformats/multiaddr";
@@ -12,6 +13,7 @@ import { LightPushCodec, WakuLightPush } from "./waku_light_push";
 import { DecryptionMethod, WakuMessage } from "./waku_message";
 import { WakuRelay } from "./waku_relay";
 import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
+import * as relayConstants from "./waku_relay/constants";
 import { StoreCodecs, WakuStore } from "./waku_store";
 
 export const DefaultPingKeepAliveValueSecs = 0;
@@ -46,10 +48,10 @@ export interface WakuOptions {
 
 export class WakuNode implements Waku {
   public libp2p: Libp2p;
-  public relay: WakuRelay;
-  public store: WakuStore;
-  public filter: WakuFilter;
-  public lightPush: WakuLightPush;
+  public relay?: WakuRelay;
+  public store?: WakuStore;
+  public filter?: WakuFilter;
+  public lightPush?: WakuLightPush;
 
   private pingKeepAliveTimers: {
     [peer: string]: ReturnType<typeof setInterval>;
@@ -61,22 +63,27 @@ export class WakuNode implements Waku {
   constructor(
     options: WakuOptions,
     libp2p: Libp2p,
-    store: WakuStore,
-    lightPush: WakuLightPush,
-    filter: WakuFilter
+    store?: WakuStore,
+    lightPush?: WakuLightPush,
+    filter?: WakuFilter
   ) {
     this.libp2p = libp2p;
-    this.relay = libp2p.pubsub as unknown as WakuRelay;
     this.store = store;
     this.filter = filter;
     this.lightPush = lightPush;
+
+    if (isWakuRelay(libp2p.pubsub)) {
+      this.relay = libp2p.pubsub;
+    }
+
     this.pingKeepAliveTimers = {};
     this.relayKeepAliveTimers = {};
 
     const pingKeepAlive =
       options.pingKeepAlive || DefaultPingKeepAliveValueSecs;
-    const relayKeepAlive =
-      options.relayKeepAlive || DefaultRelayKeepAliveValueSecs;
+    const relayKeepAlive = this.relay
+      ? options.relayKeepAlive || DefaultRelayKeepAliveValueSecs
+      : 0;
 
     libp2p.connectionManager.addEventListener("peer:connect", (evt) => {
       this.startKeepAlive(evt.detail.remotePeer, pingKeepAlive, relayKeepAlive);
@@ -180,9 +187,9 @@ export class WakuNode implements Waku {
     key: Uint8Array | string,
     options?: { method?: DecryptionMethod; contentTopics?: string[] }
   ): void {
-    this.relay.addDecryptionKey(key, options);
-    this.store.addDecryptionKey(key, options);
-    this.filter.addDecryptionKey(key, options);
+    if (this.relay) this.relay.addDecryptionKey(key, options);
+    if (this.store) this.store.addDecryptionKey(key, options);
+    if (this.filter) this.filter.addDecryptionKey(key, options);
   }
 
   /**
@@ -192,9 +199,9 @@ export class WakuNode implements Waku {
    * Strings must be in hex format.
    */
   deleteDecryptionKey(key: Uint8Array | string): void {
-    this.relay.deleteDecryptionKey(key);
-    this.store.deleteDecryptionKey(key);
-    this.filter.deleteDecryptionKey(key);
+    if (this.relay) this.relay.deleteDecryptionKey(key);
+    if (this.store) this.store.deleteDecryptionKey(key);
+    if (this.filter) this.filter.deleteDecryptionKey(key);
   }
 
   /**
@@ -230,11 +237,12 @@ export class WakuNode implements Waku {
       }, pingPeriodSecs * 1000);
     }
 
-    if (relayPeriodSecs !== 0) {
+    const relay = this.relay;
+    if (relay && relayPeriodSecs !== 0) {
       this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
         log("Sending Waku Relay ping message");
         WakuMessage.fromBytes(new Uint8Array(), RelayPingContentTopic).then(
-          (wakuMsg) => this.relay.send(wakuMsg)
+          (wakuMsg) => relay.send(wakuMsg)
         );
       }, relayPeriodSecs * 1000);
     }
@@ -265,4 +273,17 @@ export class WakuNode implements Waku {
     this.pingKeepAliveTimers = {};
     this.relayKeepAliveTimers = {};
   }
+}
+
+function isWakuRelay(pubsub: PubSub): pubsub is WakuRelay {
+  if (pubsub) {
+    try {
+      return pubsub.multicodecs.includes(
+        relayConstants.RelayCodecs[relayConstants.RelayCodecs.length - 1]
+      );
+      // Exception is expected if `libp2p` was not instantiated with pubsub
+      // eslint-disable-next-line no-empty
+    } catch (e) {}
+  }
+  return false;
 }

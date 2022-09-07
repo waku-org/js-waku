@@ -8,9 +8,9 @@ import {
   Nwaku,
 } from "../test_utils/";
 
-import { createWaku } from "./create_waku";
+import { createLightNode, createPrivacyNode } from "./create_waku";
 import { generateSymmetricKey } from "./crypto";
-import type { Waku } from "./interfaces";
+import type { Waku, WakuLight, WakuPrivacy } from "./interfaces";
 import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
 import { waitForRemotePeer } from "./wait_for_remote_peer";
 import { Protocols } from "./waku";
@@ -31,15 +31,20 @@ describe("Waku Dial [node only]", function () {
     it("connects to nwaku", async function () {
       this.timeout(20_000);
       nwaku = new Nwaku(makeLogFileName(this));
-      await nwaku.start();
+      await nwaku.start({
+        filter: true,
+        store: true,
+        lightpush: true,
+        persistMessages: true,
+      });
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-      waku = await createWaku({
+      waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
-      await waitForRemotePeer(waku, [Protocols.Relay]);
+      await waitForRemotePeer(waku);
 
       const nimPeerId = await nwaku.getPeerId();
       expect(await waku.libp2p.peerStore.has(nimPeerId)).to.be.true;
@@ -47,7 +52,7 @@ describe("Waku Dial [node only]", function () {
   });
 
   describe("Bootstrap", function () {
-    let waku: Waku;
+    let waku: WakuLight;
     let nwaku: Nwaku;
 
     afterEach(async function () {
@@ -61,7 +66,7 @@ describe("Waku Dial [node only]", function () {
       nwaku = new Nwaku(makeLogFileName(this));
       await nwaku.start();
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
-      waku = await createWaku({
+      waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
           peerDiscovery: [new PeerDiscoveryStaticPeers([multiAddrWithId])],
@@ -87,7 +92,7 @@ describe("Waku Dial [node only]", function () {
       nwaku = new Nwaku(makeLogFileName(this));
       await nwaku.start();
 
-      waku = await createWaku({
+      waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
           peerDiscovery: [
@@ -119,15 +124,15 @@ describe("Decryption Keys", () => {
     }
   });
 
-  let waku1: Waku;
-  let waku2: Waku;
+  let waku1: WakuPrivacy;
+  let waku2: WakuPrivacy;
   beforeEach(async function () {
     this.timeout(5000);
     [waku1, waku2] = await Promise.all([
-      createWaku({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
+      createPrivacyNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
         waku.start().then(() => waku)
       ),
-      createWaku({
+      createPrivacyNode({
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
       }).then((waku) => waku.start().then(() => waku)),

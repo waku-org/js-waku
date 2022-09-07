@@ -12,10 +12,10 @@ import type { WakuStore } from "./waku_store";
 
 export interface Waku {
   libp2p: Libp2p;
-  relay: WakuRelay;
-  store: WakuStore;
-  filter: WakuFilter;
-  lightPush: WakuLightPush;
+  relay?: WakuRelay;
+  store?: WakuStore;
+  filter?: WakuFilter;
+  lightPush?: WakuLightPush;
 
   dial(peer: PeerId | Multiaddr, protocols?: Protocols[]): Promise<Stream>;
 
@@ -36,4 +36,18 @@ export interface Waku {
   ): void;
 
   deleteDecryptionKey(key: Uint8Array | string): void;
+}
+
+export interface WakuLight extends Waku {
+  relay: undefined;
+  store: WakuStore;
+  filter: WakuFilter;
+  lightPush: WakuLightPush;
+}
+
+export interface WakuPrivacy extends Waku {
+  relay: WakuRelay;
+  store: undefined;
+  filter: undefined;
+  lightPush: undefined;
 }

@@ -6,7 +6,7 @@ import { all as filterAll } from "@libp2p/websockets/filters";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 import type { Libp2p } from "libp2p";
 
-import type { Waku } from "./interfaces";
+import type { Waku, WakuLight, WakuPrivacy } from "./interfaces";
 import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
 import { getPredefinedBootstrapNodes } from "./predefined_bootstrap_nodes";
 import { WakuNode, WakuOptions } from "./waku";
@@ -50,6 +50,60 @@ export interface CreateOptions {
   defaultBootstrap?: boolean;
 }
 
+/**
+ * Create a Waku node that uses Waku Light Push, Filter and Store to send and
+ * receive messages, enabling low resource consumption.
+ * **Note: This is NOT compatible with nwaku**
+ * Ref: https://github.com/status-im/nwaku/issues/1085
+ */
+export async function createLightNode(
+  options?: CreateOptions & WakuOptions
+): Promise<WakuLight> {
+  const libp2pOptions = options?.libp2p ?? {};
+  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
+  if (options?.defaultBootstrap) {
+    peerDiscovery.push(defaultPeerDiscovery());
+    Object.assign(libp2pOptions, { peerDiscovery });
+  }
+
+  const libp2p = await defaultLibp2p(undefined, libp2pOptions);
+
+  const wakuStore = new WakuStore(libp2p, options);
+  const wakuLightPush = new WakuLightPush(libp2p, options);
+  const wakuFilter = new WakuFilter(libp2p, options);
+
+  return new WakuNode(
+    options ?? {},
+    libp2p,
+    wakuStore,
+    wakuLightPush,
+    wakuFilter
+  ) as WakuLight;
+}
+
+/**
+ * Create a Waku node that uses Waku Relay to send and receive messages,
+ * enabling some privacy preserving properties.
+ */
+export async function createPrivacyNode(
+  options?: CreateOptions & WakuOptions
+): Promise<WakuPrivacy> {
+  const libp2pOptions = options?.libp2p ?? {};
+  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
+  if (options?.defaultBootstrap) {
+    peerDiscovery.push(defaultPeerDiscovery());
+    Object.assign(libp2pOptions, { peerDiscovery });
+  }
+
+  const libp2p = await defaultLibp2p(new WakuRelay(options), libp2pOptions);
+
+  return new WakuNode(options ?? {}, libp2p) as WakuPrivacy;
+}
+
+/**
+ * @deprecated use { @link createLightNode } (only compatible with nwaku v0.12),
+ * { @link createPrivacyNode } or { @link Waku.constructor } instead;
+ */
 export async function createWaku(
   options?: CreateOptions & WakuOptions
 ): Promise<Waku> {
@@ -80,7 +134,7 @@ export function defaultPeerDiscovery(): PeerDiscovery {
 }
 
 export async function defaultLibp2p(
-  wakuRelay: WakuRelay,
+  wakuRelay?: WakuRelay,
   options?: Partial<Libp2pOptions>
 ): Promise<Libp2p> {
   const libp2pOpts = Object.assign(
@@ -89,7 +143,7 @@ export async function defaultLibp2p(
       streamMuxers: [new Mplex()],
       connectionEncryption: [new Noise()],
     },
-    { pubsub: wakuRelay },
+    wakuRelay ? { pubsub: wakuRelay } : {},
     options ?? {}
   );
 

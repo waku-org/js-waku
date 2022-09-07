@@ -7,13 +7,13 @@ import {
   NOISE_KEY_2,
   Nwaku,
 } from "../../test_utils";
-import { createWaku } from "../create_waku";
+import { createLightNode } from "../create_waku";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
-import type { Waku } from "../interfaces";
+import type { WakuLight } from "../interfaces";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { Protocols } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
@@ -25,7 +25,7 @@ const log = debug("waku:test:store");
 const TestContentTopic = "/test/1/waku-store/utf8";
 
 describe("Waku Store", () => {
-  let waku: Waku;
+  let waku: WakuLight;
   let nwaku: Nwaku;
 
   afterEach(async function () {
@@ -49,7 +49,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createWaku({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -82,7 +82,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createWaku({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -122,7 +122,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createWaku({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -159,7 +159,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createWaku({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -202,7 +202,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createWaku({
+    waku = await createLightNode({
       pubSubTopic: customPubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
     });
@@ -269,10 +269,10 @@ describe("Waku Store", () => {
     log("Messages have been encrypted");
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
-      createWaku({
+      createLightNode({
         staticNoiseKey: NOISE_KEY_1,
       }).then((waku) => waku.start().then(() => waku)),
-      createWaku({
+      createLightNode({
         staticNoiseKey: NOISE_KEY_2,
       }).then((waku) => waku.start().then(() => waku)),
       nwaku.getMultiaddrWithId(),
@@ -371,10 +371,10 @@ describe("Waku Store", () => {
     log("Messages have been encrypted");
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
-      createWaku({
+      createLightNode({
         staticNoiseKey: NOISE_KEY_1,
       }).then((waku) => waku.start().then(() => waku)),
-      createWaku({
+      createLightNode({
         staticNoiseKey: NOISE_KEY_2,
       }).then((waku) => waku.start().then(() => waku)),
       nwaku.getMultiaddrWithId(),
@@ -458,7 +458,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createWaku({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();

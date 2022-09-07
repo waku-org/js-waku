@@ -36,33 +36,41 @@ interface WakuGossipSubProtocol extends GossipSub {
  *
  * @returns A promise that **resolves** if all desired protocols are fulfilled by
  * remote nodes, **rejects** if the timeoutMs is reached.
- *
- * @default Remote peer must have Waku Relay enabled and no time out is applied.
+ * @throws If passing a protocol that is not mounted
+ * @default Wait for remote peers with protocols enabled locally and no time out is applied.
  */
 export async function waitForRemotePeer(
   waku: Waku,
   protocols?: Protocols[],
   timeoutMs?: number
 ): Promise<void> {
-  protocols = protocols ?? [Protocols.Relay];
+  protocols = protocols ?? getEnabledProtocols(waku);
 
   if (!waku.isStarted()) return Promise.reject("Waku node is not started");
 
   const promises = [];
 
   if (protocols.includes(Protocols.Relay)) {
+    if (!waku.relay)
+      throw new Error("Cannot wait for Relay peer: protocol not mounted");
     promises.push(waitForGossipSubPeerInMesh(waku.relay));
   }
 
   if (protocols.includes(Protocols.Store)) {
+    if (!waku.store)
+      throw new Error("Cannot wait for Store peer: protocol not mounted");
     promises.push(waitForConnectedPeer(waku.store, Object.values(StoreCodecs)));
   }
 
   if (protocols.includes(Protocols.LightPush)) {
+    if (!waku.lightPush)
+      throw new Error("Cannot wait for LightPush peer: protocol not mounted");
     promises.push(waitForConnectedPeer(waku.lightPush, [LightPushCodec]));
   }
 
   if (protocols.includes(Protocols.Filter)) {
+    if (!waku.filter)
+      throw new Error("Cannot wait for Filter peer: protocol not mounted");
     promises.push(waitForConnectedPeer(waku.filter, [FilterCodec]));
   }
 
@@ -130,4 +138,26 @@ async function rejectOnTimeout<T>(
   rejectReason: string
 ): Promise<void> {
   await Promise.race([promise, awaitTimeout(timeoutMs, rejectReason)]);
+}
+
+function getEnabledProtocols(waku: Waku): Protocols[] {
+  const protocols = [];
+
+  if (waku.relay) {
+    protocols.push(Protocols.Relay);
+  }
+
+  if (waku.filter) {
+    protocols.push(Protocols.Filter);
+  }
+
+  if (waku.store) {
+    protocols.push(Protocols.Store);
+  }
+
+  if (waku.lightPush) {
+    protocols.push(Protocols.LightPush);
+  }
+
+  return protocols;
 }
