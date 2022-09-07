@@ -10,6 +10,7 @@ import type { Libp2p } from "libp2p";
 
 import { WakuMessage as WakuMessageProto } from "../../proto/message";
 import { DefaultPubSubTopic } from "../constants";
+import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
@@ -166,7 +167,7 @@ export class WakuFilter {
       return;
     }
 
-    const decryptionKeys = Array.from(this.decryptionKeys).map(
+    const decryptionParams = Array.from(this.decryptionKeys).map(
       ([key, { method, contentTopics }]) => {
         return {
           key,
@@ -177,7 +178,7 @@ export class WakuFilter {
     );
 
     for (const message of messages) {
-      const decoded = await WakuMessage.decodeProto(message, decryptionKeys);
+      const decoded = await WakuMessage.decodeProto(message, decryptionParams);
       if (!decoded) {
         log("Not able to decode message");
         continue;
@@ -216,17 +217,14 @@ export class WakuFilter {
     }
   }
 
-  // Should be able to remove any at next libp2p release >0.37.3
   private async newStream(peer: Peer): Promise<Stream> {
     const connections = this.libp2p.connectionManager.getConnections(peer.id);
-    if (!connections) {
+    const connection = selectConnection(connections);
+    if (!connection) {
       throw new Error("Failed to get a connection to the peer");
     }
 
-    // TODO: Appropriate connection selection
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore: tsc is confused by the @libp2p/interface-connection type to use
-    return connections[0].newStream(FilterCodec);
+    return connection.newStream(FilterCodec);
   }
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {

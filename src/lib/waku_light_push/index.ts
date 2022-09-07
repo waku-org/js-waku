@@ -8,6 +8,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import { PushResponse } from "../../proto/light_push";
 import { DefaultPubSubTopic } from "../constants";
+import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { WakuMessage } from "../waku_message";
 
@@ -59,10 +60,11 @@ export class WakuLightPush {
       throw "Peer does not register waku light push protocol";
 
     const connections = this.libp2p.connectionManager.getConnections(peer.id);
-    if (!connections) throw "Failed to get a connection to the peer";
+    const connection = selectConnection(connections);
 
-    // TODO: Appropriate connection management
-    const stream = await connections[0].newStream(LightPushCodec);
+    if (!connection) throw "Failed to get a connection to the peer";
+
+    const stream = await connection.newStream(LightPushCodec);
     try {
       const pubSubTopic = opts?.pubSubTopic
         ? opts.pubSubTopic

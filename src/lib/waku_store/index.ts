@@ -10,9 +10,14 @@ import { Uint8ArrayList } from "uint8arraylist";
 import * as protoV2Beta4 from "../../proto/store_v2beta4";
 import { HistoryResponse } from "../../proto/store_v2beta4";
 import { DefaultPubSubTopic, StoreCodecs } from "../constants";
+import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { hexToBytes } from "../utils";
-import { DecryptionMethod, WakuMessage } from "../waku_message";
+import {
+  DecryptionMethod,
+  DecryptionParams,
+  WakuMessage,
+} from "../waku_message";
 
 import { HistoryRPC, PageDirection } from "./history_rpc";
 
@@ -90,7 +95,7 @@ export interface QueryOptions {
    * It can be Asymmetric Private Keys and Symmetric Keys in the same array,
    * all keys will be tried with both methods.
    */
-  decryptionKeys?: Array<Uint8Array | string>;
+  decryptionParams?: DecryptionParams[];
 }
 
 /**
@@ -171,36 +176,30 @@ export class WakuStore {
 
     Object.assign(opts, { storeCodec });
     const connections = this.libp2p.connectionManager.getConnections(peer.id);
-    if (!connections || !connections.length)
-      throw "Failed to get a connection to the peer";
+    const connection = selectConnection(connections);
 
-    const decryptionKeys = Array.from(this.decryptionKeys).map(
-      ([key, { method, contentTopics }]) => {
-        return {
-          key,
-          method,
-          contentTopics,
-        };
-      }
-    );
+    if (!connection) throw "Failed to get a connection to the peer";
+
+    let decryptionParams: DecryptionParams[] = [];
+
+    this.decryptionKeys.forEach(({ method, contentTopics }, key) => {
+      decryptionParams.push({
+        key,
+        method,
+        contentTopics,
+      });
+    });
 
     // Add the decryption keys passed to this function against the
     // content topics also passed to this function.
-    if (opts.decryptionKeys) {
-      opts.decryptionKeys.forEach((key) => {
-        decryptionKeys.push({
-          key: hexToBytes(key),
-          contentTopics: contentTopics.length ? contentTopics : undefined,
-          method: undefined,
-        });
-      });
+    if (opts.decryptionParams) {
+      decryptionParams = decryptionParams.concat(opts.decryptionParams);
     }
 
     const messages: WakuMessage[] = [];
     let cursor = undefined;
     while (true) {
-      // TODO: Some connection selection logic?
-      const stream = await connections[0].newStream(storeCodec);
+      const stream = await connection.newStream(storeCodec);
       const queryOpts = Object.assign(opts, { cursor });
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
       dbg("Querying store peer", connections[0].remoteAddr.toString());
@@ -244,7 +243,7 @@ export class WakuStore {
       const pageMessages: WakuMessage[] = [];
       await Promise.all(
         response.messages.map(async (protoMsg) => {
-          const msg = await WakuMessage.decodeProto(protoMsg, decryptionKeys);
+          const msg = await WakuMessage.decodeProto(protoMsg, decryptionParams);
 
           if (msg) {
             messages.push(msg);
