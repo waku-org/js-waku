@@ -1,7 +1,14 @@
 {
-  "entryPoints": ["./src/index.ts", "./src/lib/create_waku.ts"],
+  "entryPoints": [
+    "./src/index.ts",
+    "./src/lib/create_waku.ts",
+    "./src/lib/peer_discovery_dns.ts",
+    "./src/lib/peer_discovery_static_list.ts",
+    "./src/lib/predefined_bootstrap_nodes.ts",
+    "./src/lib/wait_for_remote_peer.ts"
+  ],
   "out": "build/docs",
-  "exclude": "**/*.spec.ts",
+  "exclude": ["**/*.spec.ts"],
   "excludeInternal": true,
   "validation": {
     "invalidLink": true,
