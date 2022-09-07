@@ -228,10 +228,8 @@ describe("Waku Store", () => {
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ persistMessages: true, store: true, lightpush: true });
 
-    const encryptedAsymmetricMessageText =
-      "This message is encrypted for me using asymmetric";
-    const encryptedSymmetricMessageText =
-      "This message is encrypted for me using symmetric encryption";
+    const encryptedAsymmetricMessageText = "asymmetric encryption";
+    const encryptedSymmetricMessageText = "symmetric encryption";
     const clearMessageText =
       "This is a clear text message for everyone to read";
     const otherEncMessageText =
@@ -307,11 +305,9 @@ describe("Waku Store", () => {
       decryptionParams: [{ key: privateKey }],
     });
 
-    expect(messages?.length).eq(3);
-    if (!messages) throw "Length was tested";
-    expect(messages[0].payloadAsUtf8).to.eq(clearMessageText);
-    expect(messages[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
-    expect(messages[2].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
+    expect(messages[0]?.payloadAsUtf8).to.eq(clearMessageText);
+    expect(messages[1]?.payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
+    expect(messages[2]?.payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
 
     !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
     !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
