@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-message ChatMessage {
-  uint64 timestamp = 1;
-  string nick = 2;
-  bytes payload = 3;
-}
