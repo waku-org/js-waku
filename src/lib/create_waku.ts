@@ -53,8 +53,9 @@ export interface CreateOptions {
 /**
  * Create a Waku node that uses Waku Light Push, Filter and Store to send and
  * receive messages, enabling low resource consumption.
- * **Note: This is NOT compatible with nwaku**
- * Ref: https://github.com/status-im/nwaku/issues/1085
+ * **Note: This is NOT compatible with nwaku v0.11**
+ *
+ * @see https://github.com/status-im/nwaku/issues/1085
  */
 export async function createLightNode(
   options?: CreateOptions & WakuOptions
@@ -139,8 +140,8 @@ export async function createFullNode(
 }
 
 /**
- * @deprecated use { @link createLightNode } (only compatible with nwaku v0.12),
- * { @link createPrivacyNode } or { @link Waku.constructor } instead;
+ * @deprecated use { @link createLightNode }, { @link createPrivacyNode } or
+ * { @link index.waku.WakuNode.constructor } instead.
  */
 export async function createWaku(
   options?: CreateOptions & WakuOptions
