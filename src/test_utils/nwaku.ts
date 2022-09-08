@@ -21,7 +21,7 @@ import { existsAsync, mkdirAsync, openAsync } from "./async_fs";
 import { delay } from "./delay";
 import waitForLine from "./log_file";
 
-const dbg = debug("waku:nwaku");
+const log = debug("waku:nwaku");
 
 const WAKU_SERVICE_NODE_DIR =
   process.env.WAKU_SERVICE_NODE_DIR ?? appRoot + "/nwaku";
@@ -150,7 +150,7 @@ export class Nwaku {
     if (WAKU_SERVICE_NODE_PARAMS) {
       argsArray.push(WAKU_SERVICE_NODE_PARAMS);
     }
-    dbg(`nwaku args: ${argsArray.join(" ")}`);
+    log(`nwaku args: ${argsArray.join(" ")}`);
     this.process = spawn(WAKU_SERVICE_NODE_BIN, argsArray, {
       cwd: WAKU_SERVICE_NODE_DIR,
       stdio: [
@@ -160,12 +160,12 @@ export class Nwaku {
       ],
     });
     this.pid = this.process.pid;
-    dbg(
+    log(
       `nwaku ${this.process.pid} started at ${new Date().toLocaleTimeString()}`
     );
 
     this.process.on("exit", (signal) => {
-      dbg(
+      log(
         `nwaku ${
           this.process ? this.process.pid : this.pid
         } process exited with ${signal} at ${new Date().toLocaleTimeString()}`
@@ -173,25 +173,25 @@ export class Nwaku {
     });
 
     this.process.on("error", (err) => {
-      console.log(
+      log(
         `nwaku ${
           this.process ? this.process.pid : this.pid
         } process encountered an error: ${err} at ${new Date().toLocaleTimeString()}`
       );
     });
 
-    dbg(`Waiting to see '${NODE_READY_LOG_LINE}' in nwaku logs`);
+    log(`Waiting to see '${NODE_READY_LOG_LINE}' in nwaku logs`);
     await this.waitForLog(NODE_READY_LOG_LINE, 15000);
     if (process.env.CI) await delay(100);
-    dbg("nwaku node has been started");
+    log("nwaku node has been started");
   }
 
   public stop(): void {
     const pid = this.process ? this.process.pid : this.pid;
-    dbg(`nwaku ${pid} getting SIGINT at ${new Date().toLocaleTimeString()}`);
+    log(`nwaku ${pid} getting SIGINT at ${new Date().toLocaleTimeString()}`);
     if (!this.process) throw "nwaku process not set";
     const res = this.process.kill("SIGINT");
-    dbg(`nwaku ${pid} interrupted:`, res);
+    log(`nwaku ${pid} interrupted:`, res);
     this.process = undefined;
   }
 
@@ -375,7 +375,7 @@ export class Nwaku {
     method: string,
     params: Array<string | number | unknown>
   ): Promise<T> {
-    dbg("RPC Query: ", method, params);
+    log("RPC Query: ", method, params);
     const res = await fetch(this.rpcUrl, {
       method: "POST",
       body: JSON.stringify({
@@ -387,7 +387,7 @@ export class Nwaku {
       headers: new Headers({ "Content-Type": "application/json" }),
     });
     const json = await res.json();
-    dbg(`RPC Response: `, res, json);
+    log(`RPC Response: `, res, json);
     return json.result;
   }
 

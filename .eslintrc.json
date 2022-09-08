@@ -32,13 +32,15 @@
     "sort-imports": [
       "error",
       { "ignoreDeclarationSort": true, "ignoreCase": true }
-    ]
+    ],
+    "no-console": "warn"
   },
   "overrides": [
     {
       "files": ["*.spec.ts", "**/test_utils/*.ts"],
       "rules": {
-        "@typescript-eslint/no-non-null-assertion": "off"
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "no-console": "off"
       }
     }
   ]

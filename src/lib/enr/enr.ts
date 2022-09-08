@@ -26,7 +26,7 @@ import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
 import * as v4 from "./v4";
 import { decodeWaku2, encodeWaku2, Waku2 } from "./waku2_codec";
 
-const dbg = debug("waku:enr");
+const log = debug("waku:enr");
 
 export class ENR extends Map<ENRKey, ENRValue> {
   public static readonly RECORD_PREFIX = "enr:";
@@ -57,7 +57,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
         enr.peerId = await createPeerIdFromKeypair(keypair);
       }
     } catch (e) {
-      dbg("Could not calculate peer id for ENR", e);
+      log("Could not calculate peer id for ENR", e);
     }
 
     return enr;
@@ -112,7 +112,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
       try {
         obj[bytesToUtf8(kvs[i])] = kvs[i + 1];
       } catch (e) {
-        dbg("Failed to decode ENR key to UTF-8, skipping it", kvs[i], e);
+        log("Failed to decode ENR key to UTF-8, skipping it", kvs[i], e);
       }
     }
     // If seq is an empty array, translate as value 0

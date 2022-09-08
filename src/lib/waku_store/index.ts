@@ -23,7 +23,7 @@ import { HistoryRPC, PageDirection } from "./history_rpc";
 
 import Error = HistoryResponse.HistoryError;
 
-const dbg = debug("waku:store");
+const log = debug("waku:store");
 
 export const DefaultPageSize = 10;
 
@@ -147,7 +147,7 @@ export class WakuStore {
       { contentTopics, startTime, endTime }
     );
 
-    dbg("Querying history with the following options", {
+    log("Querying history with the following options", {
       peerId: options?.peerId?.toString(),
       ...options,
     });
@@ -170,7 +170,7 @@ export class WakuStore {
         // Do not break as we want to keep the last value
       }
     }
-    dbg(`Use store codec ${storeCodec}`);
+    log(`Use store codec ${storeCodec}`);
     if (!storeCodec)
       throw `Peer does not register waku store protocol: ${peer.id.toString()}`;
 
@@ -202,7 +202,7 @@ export class WakuStore {
       const stream = await connection.newStream(storeCodec);
       const queryOpts = Object.assign(opts, { cursor });
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
-      dbg("Querying store peer", connections[0].remoteAddr.toString());
+      log("Querying store peer", connections[0].remoteAddr.toString());
 
       const res = await pipe(
         [historyRpcQuery.encode()],
@@ -219,7 +219,7 @@ export class WakuStore {
       const reply = historyRpcQuery.decode(bytes);
 
       if (!reply.response) {
-        dbg("No message returned from store: `response` field missing");
+        log("No message returned from store: `response` field missing");
         return messages;
       }
 
@@ -231,11 +231,11 @@ export class WakuStore {
 
       if (!response.messages || !response.messages.length) {
         // No messages left (or stored)
-        dbg("No message returned from store: `messages` array empty");
+        log("No message returned from store: `messages` array empty");
         return messages;
       }
 
-      dbg(
+      log(
         `${response.messages.length} messages retrieved for (${opts.pubSubTopic})`,
         contentTopics
       );
@@ -271,7 +271,7 @@ export class WakuStore {
       if (cursor === undefined) {
         // If the server does not return cursor then there is an issue,
         // Need to abort, or we end up in an infinite loop
-        dbg("Store response does not contain a cursor, stopping pagination");
+        log("Store response does not contain a cursor, stopping pagination");
         return messages;
       }
     }

@@ -1,5 +1,6 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
+import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -13,6 +14,8 @@ import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
 import { WakuMessage } from "../waku_message";
 
 import { PushRPC } from "./push_rpc";
+
+const log = debug("waku:light-push");
 
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
@@ -86,16 +89,16 @@ export class WakuLightPush {
         const response = PushRPC.decode(bytes).response;
 
         if (!response) {
-          console.log("No response in PushRPC");
+          log("No response in PushRPC");
           return null;
         }
 
         return response;
       } catch (err) {
-        console.log("Failed to decode push reply", err);
+        log("Failed to decode push reply", err);
       }
     } catch (err) {
-      console.log("Failed to send waku light push request", err);
+      log("Failed to send waku light push request", err);
     }
     return null;
   }

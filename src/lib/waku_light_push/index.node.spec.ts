@@ -8,7 +8,7 @@ import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { Protocols, Waku } from "../waku";
 import { WakuMessage } from "../waku_message";
 
-const dbg = debug("waku:test:lightpush");
+const log = debug("waku:test:lightpush");
 
 const TestContentTopic = "/test/1/waku-light-push/utf8";
 
@@ -79,17 +79,17 @@ describe("Waku Light Push [node only]", () => {
       TestContentTopic
     );
 
-    dbg("Send message via lightpush");
+    log("Send message via lightpush");
     const pushResponse = await waku.lightPush.push(message, {
       peerId: nimPeerId,
       pubSubTopic: customPubSubTopic,
     });
-    dbg("Ack received", pushResponse);
+    log("Ack received", pushResponse);
     expect(pushResponse?.isSuccess).to.be.true;
 
     let msgs: WakuMessage[] = [];
 
-    dbg("Waiting for message to show in nwaku");
+    log("Waiting for message to show in nwaku");
     while (msgs.length === 0) {
       await delay(200);
       msgs = await nwaku.messages(customPubSubTopic);

@@ -19,7 +19,7 @@ import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { PageDirection } from "./history_rpc";
 
-const dbg = debug("waku:test:store");
+const log = debug("waku:test:store");
 
 const TestContentTopic = "/test/1/waku-store/utf8";
 
@@ -265,7 +265,7 @@ describe("Waku Store", () => {
       }),
     ]);
 
-    dbg("Messages have been encrypted");
+    log("Messages have been encrypted");
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createWaku({
@@ -277,18 +277,18 @@ describe("Waku Store", () => {
       nwaku.getMultiaddrWithId(),
     ]);
 
-    dbg("Waku nodes created");
+    log("Waku nodes created");
 
     await Promise.all([
       waku1.dial(nimWakuMultiaddr),
       waku2.dial(nimWakuMultiaddr),
     ]);
 
-    dbg("Waku nodes connected to nwaku");
+    log("Waku nodes connected to nwaku");
 
     await waitForRemotePeer(waku1, [Protocols.LightPush]);
 
-    dbg("Sending messages using light push");
+    log("Sending messages using light push");
     await Promise.all([
       waku1.lightPush.push(encryptedAsymmetricMessage),
       waku1.lightPush.push(encryptedSymmetricMessage),
@@ -300,7 +300,7 @@ describe("Waku Store", () => {
 
     waku2.store.addDecryptionKey(symKey);
 
-    dbg("Retrieve messages from store");
+    log("Retrieve messages from store");
     const messages = await waku2.store.queryHistory([], {
       decryptionParams: [{ key: privateKey }],
     });
@@ -367,7 +367,7 @@ describe("Waku Store", () => {
       ),
     ]);
 
-    dbg("Messages have been encrypted");
+    log("Messages have been encrypted");
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createWaku({
@@ -379,18 +379,18 @@ describe("Waku Store", () => {
       nwaku.getMultiaddrWithId(),
     ]);
 
-    dbg("Waku nodes created");
+    log("Waku nodes created");
 
     await Promise.all([
       waku1.dial(nimWakuMultiaddr),
       waku2.dial(nimWakuMultiaddr),
     ]);
 
-    dbg("Waku nodes connected to nwaku");
+    log("Waku nodes connected to nwaku");
 
     await waitForRemotePeer(waku1, [Protocols.LightPush]);
 
-    dbg("Sending messages using light push");
+    log("Sending messages using light push");
     await Promise.all([
       waku1.lightPush.push(encryptedAsymmetricMessage),
       waku1.lightPush.push(encryptedSymmetricMessage),
@@ -405,7 +405,7 @@ describe("Waku Store", () => {
       method: DecryptionMethod.Symmetric,
     });
 
-    dbg("Retrieve messages from store");
+    log("Retrieve messages from store");
     const messages = await waku2.store.queryHistory([], {
       decryptionParams: [{ key: privateKey }],
     });
