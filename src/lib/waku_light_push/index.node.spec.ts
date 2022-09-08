@@ -3,8 +3,8 @@ import debug from "debug";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { createLightNode } from "../create_waku";
-import type { WakuLight } from "../interfaces";
+import { createFullNode } from "../create_waku";
+import type { WakuFull } from "../interfaces";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { Protocols } from "../waku";
 import { WakuMessage } from "../waku_message";
@@ -14,7 +14,7 @@ const log = debug("waku:test:lightpush");
 const TestContentTopic = "/test/1/waku-light-push/utf8";
 
 describe("Waku Light Push [node only]", () => {
-  let waku: WakuLight;
+  let waku: WakuFull;
   let nwaku: Nwaku;
 
   afterEach(async function () {
@@ -28,7 +28,7 @@ describe("Waku Light Push [node only]", () => {
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ lightpush: true });
 
-    waku = await createLightNode({
+    waku = await createFullNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -64,7 +64,7 @@ describe("Waku Light Push [node only]", () => {
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ lightpush: true, topics: customPubSubTopic });
 
-    waku = await createLightNode({
+    waku = await createFullNode({
       pubSubTopic: customPubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
     });

@@ -51,3 +51,10 @@ export interface WakuPrivacy extends Waku {
   filter: undefined;
   lightPush: undefined;
 }
+
+export interface WakuFull extends Waku {
+  relay: WakuRelay;
+  store: WakuStore;
+  filter: WakuFilter;
+  lightPush: WakuLightPush;
+}

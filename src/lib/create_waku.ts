@@ -6,7 +6,7 @@ import { all as filterAll } from "@libp2p/websockets/filters";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 import type { Libp2p } from "libp2p";
 
-import type { Waku, WakuLight, WakuPrivacy } from "./interfaces";
+import type { Waku, WakuFull, WakuLight, WakuPrivacy } from "./interfaces";
 import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
 import { getPredefinedBootstrapNodes } from "./predefined_bootstrap_nodes";
 import { WakuNode, WakuOptions } from "./waku";
@@ -98,6 +98,44 @@ export async function createPrivacyNode(
   const libp2p = await defaultLibp2p(new WakuRelay(options), libp2pOptions);
 
   return new WakuNode(options ?? {}, libp2p) as WakuPrivacy;
+}
+
+/**
+ * Create a Waku node that uses all Waku protocols.
+ *
+ * This helper is not recommended except if:
+ * - you are interfacing with nwaku v0.11 or below
+ * - you are doing some form of testing
+ *
+ * If you are building a full node, it is recommended to use
+ * [nwaku](github.com/status-im/nwaku) and its JSON RPC API or wip REST API.
+ *
+ * @see https://github.com/status-im/nwaku/issues/1085
+ * @internal
+ */
+export async function createFullNode(
+  options?: CreateOptions & WakuOptions
+): Promise<WakuFull> {
+  const libp2pOptions = options?.libp2p ?? {};
+  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
+  if (options?.defaultBootstrap) {
+    peerDiscovery.push(defaultPeerDiscovery());
+    Object.assign(libp2pOptions, { peerDiscovery });
+  }
+
+  const libp2p = await defaultLibp2p(new WakuRelay(options), libp2pOptions);
+
+  const wakuStore = new WakuStore(libp2p, options);
+  const wakuLightPush = new WakuLightPush(libp2p, options);
+  const wakuFilter = new WakuFilter(libp2p, options);
+
+  return new WakuNode(
+    options ?? {},
+    libp2p,
+    wakuStore,
+    wakuLightPush,
+    wakuFilter
+  ) as WakuFull;
 }
 
 /**

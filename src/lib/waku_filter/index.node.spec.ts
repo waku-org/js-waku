@@ -3,8 +3,8 @@ import debug from "debug";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { createLightNode } from "../create_waku";
-import type { WakuLight } from "../interfaces";
+import { createFullNode } from "../create_waku";
+import type { WakuFull } from "../interfaces";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { Protocols } from "../waku";
 import { WakuMessage } from "../waku_message";
@@ -14,7 +14,7 @@ const log = debug("waku:test");
 const TestContentTopic = "/test/1/waku-filter";
 
 describe("Waku Filter", () => {
-  let waku: WakuLight;
+  let waku: WakuFull;
   let nwaku: Nwaku;
 
   afterEach(async function () {
@@ -26,7 +26,7 @@ describe("Waku Filter", () => {
     this.timeout(15000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ filter: true, lightpush: true });
-    waku = await createLightNode({
+    waku = await createFullNode({
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     });
