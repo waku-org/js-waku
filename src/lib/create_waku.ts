@@ -31,6 +31,10 @@ export interface CreateOptions {
    */
   pubSubTopic?: string;
   /**
+   * Publish to self too, if subscribed.
+   */
+  emitSelf?: boolean;
+  /**
    * You can pass options to the `Libp2p` instance used by {@link index.waku.WakuNode} using the {@link CreateOptions.libp2p} property.
    * This property is the same type than the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * apart that we made the `modules` property optional and partial,
