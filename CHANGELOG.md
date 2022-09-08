@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **breaking**: `DecryptionParams` may be passed when using `queryHistory` instead of just keys.
 - Examples have been moved to https://github.com/waku-org/js-waku-examples.
 
+### Fixed
+
+- doc: add missing modules.
+
 ## [0.25.0] - 2022-09-5
 
 ### Changed

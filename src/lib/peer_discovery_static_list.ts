@@ -23,15 +23,13 @@ export interface Options {
   /**
    * The interval between emitting addresses in milliseconds.
    *
-   * @default {@link PeerDiscoveryEvents.DefaultInterval}
+   * @default {@link PeerDiscoveryStaticPeers.DefaultInterval}
    */
   interval?: number;
 }
 
 /**
- * Parse options and expose function to return bootstrap peer addresses.
- *
- * @throws if an invalid combination of options is passed, see [[BootstrapOptions]] for details.
+ * Pass a list of multiaddr that will be used to bootstrap a node.
  */
 export class PeerDiscoveryStaticPeers
   extends EventEmitter<PeerDiscoveryEvents>

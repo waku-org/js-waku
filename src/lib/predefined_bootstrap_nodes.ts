@@ -15,7 +15,7 @@ export enum Fleet {
  * Default behavior is to return nodes of the nwaku Status Prod fleet.
  *
  * @param fleet The fleet to be returned. Defaults to production fleet.
- * @param wantedNumber The number of connections desired. Defaults to [[DefaultWantedNumber]].
+ * @param wantedNumber The number of connections desired. Defaults to {@link DefaultWantedNumber}.
  *
  * @returns An array of multiaddresses.
  */
