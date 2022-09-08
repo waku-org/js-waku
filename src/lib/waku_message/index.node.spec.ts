@@ -8,15 +8,16 @@ import {
   WakuRelayMessage,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { createWaku } from "../create_waku";
+import { createPrivacyNode } from "../create_waku";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
+import type { WakuPrivacy } from "../interfaces";
 import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols, Waku } from "../waku";
+import { Protocols } from "../waku";
 
 import { DecryptionMethod, WakuMessage } from "./index";
 
@@ -26,12 +27,12 @@ const TestContentTopic = "/test/1/waku-message/utf8";
 
 describe("Waku Message [node only]", function () {
   describe("Interop: nwaku", function () {
-    let waku: Waku;
+    let waku: WakuPrivacy;
     let nwaku: Nwaku;
 
     beforeEach(async function () {
       this.timeout(30_000);
-      waku = await createWaku({
+      waku = await createPrivacyNode({
         staticNoiseKey: NOISE_KEY_1,
       });
       await waku.start();

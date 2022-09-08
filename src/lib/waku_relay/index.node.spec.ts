@@ -11,14 +11,15 @@ import {
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
 import { DefaultPubSubTopic } from "../constants";
-import { createWaku } from "../create_waku";
+import { createPrivacyNode } from "../create_waku";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
+import type { WakuPrivacy } from "../interfaces";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols, Waku } from "../waku";
+import { Protocols } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 const log = debug("waku:test");
@@ -35,17 +36,17 @@ describe("Waku Relay [node only]", () => {
       }
     });
 
-    let waku1: Waku;
-    let waku2: Waku;
+    let waku1: WakuPrivacy;
+    let waku2: WakuPrivacy;
     beforeEach(async function () {
       this.timeout(10000);
 
       log("Starting JS Waku instances");
       [waku1, waku2] = await Promise.all([
-        createWaku({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
+        createPrivacyNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
           waku.start().then(() => waku)
         ),
-        createWaku({
+        createPrivacyNode({
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
         }).then((waku) => waku.start().then(() => waku)),
@@ -258,9 +259,9 @@ describe("Waku Relay [node only]", () => {
   });
 
   describe("Custom pubsub topic", () => {
-    let waku1: Waku;
-    let waku2: Waku;
-    let waku3: Waku;
+    let waku1: WakuPrivacy;
+    let waku2: WakuPrivacy;
+    let waku3: WakuPrivacy;
     afterEach(async function () {
       !!waku1 &&
         waku1.stop().catch((e) => console.log("Waku failed to stop", e));
@@ -278,16 +279,16 @@ describe("Waku Relay [node only]", () => {
       // 1 and 2 uses a custom pubsub
       // 3 uses the default pubsub
       [waku1, waku2, waku3] = await Promise.all([
-        createWaku({
+        createPrivacyNode({
           pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_1,
         }).then((waku) => waku.start().then(() => waku)),
-        createWaku({
+        createPrivacyNode({
           pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
         }).then((waku) => waku.start().then(() => waku)),
-        createWaku({
+        createPrivacyNode({
           staticNoiseKey: NOISE_KEY_3,
         }).then((waku) => waku.start().then(() => waku)),
       ]);
@@ -337,12 +338,12 @@ describe("Waku Relay [node only]", () => {
   });
 
   describe("Interop: nwaku", function () {
-    let waku: Waku;
+    let waku: WakuPrivacy;
     let nwaku: Nwaku;
 
     beforeEach(async function () {
       this.timeout(30_000);
-      waku = await createWaku({
+      waku = await createPrivacyNode({
         staticNoiseKey: NOISE_KEY_1,
       });
       await waku.start();
@@ -422,8 +423,8 @@ describe("Waku Relay [node only]", () => {
     });
 
     describe.skip("Two nodes connected to nwaku", function () {
-      let waku1: Waku;
-      let waku2: Waku;
+      let waku1: WakuPrivacy;
+      let waku2: WakuPrivacy;
       let nwaku: Nwaku;
 
       afterEach(async function () {
@@ -437,10 +438,10 @@ describe("Waku Relay [node only]", () => {
       it("Js publishes, other Js receives", async function () {
         this.timeout(60_000);
         [waku1, waku2] = await Promise.all([
-          createWaku({
+          createPrivacyNode({
             staticNoiseKey: NOISE_KEY_1,
           }).then((waku) => waku.start().then(() => waku)),
-          createWaku({
+          createPrivacyNode({
             staticNoiseKey: NOISE_KEY_2,
           }).then((waku) => waku.start().then(() => waku)),
         ]);

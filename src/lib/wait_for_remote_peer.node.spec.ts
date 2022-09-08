@@ -3,12 +3,14 @@ import { expect } from "chai";
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../test_utils";
 import { delay } from "../test_utils/delay";
 
-import { createWaku } from "./create_waku";
+import { createLightNode, createPrivacyNode } from "./create_waku";
+import type { WakuLight, WakuPrivacy } from "./interfaces";
 import { waitForRemotePeer } from "./wait_for_remote_peer";
-import { Protocols, Waku } from "./waku";
+import { Protocols } from "./waku";
 
 describe("Wait for remote peer", function () {
-  let waku: Waku;
+  let waku1: WakuPrivacy;
+  let waku2: WakuLight;
   let nwaku: Nwaku | undefined;
 
   afterEach(async function () {
@@ -16,7 +18,8 @@ describe("Wait for remote peer", function () {
       nwaku.stop();
       nwaku = undefined;
     }
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    waku1?.stop().catch((e) => console.log("Waku failed to stop", e));
+    waku2?.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
   it("Relay - dialed first", async function () {
@@ -30,14 +33,14 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createWaku({
+    waku1 = await createPrivacyNode({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.start();
-    await waku.dial(multiAddrWithId);
+    await waku1.start();
+    await waku1.dial(multiAddrWithId);
     await delay(1000);
-    await waitForRemotePeer(waku, [Protocols.Relay]);
-    const peers = waku.relay.getMeshPeers();
+    await waitForRemotePeer(waku1, [Protocols.Relay]);
+    const peers = waku1.relay.getMeshPeers();
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -55,17 +58,17 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createWaku({
+    waku1 = await createPrivacyNode({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.start();
+    await waku1.start();
 
-    const waitPromise = waitForRemotePeer(waku, [Protocols.Relay]);
+    const waitPromise = waitForRemotePeer(waku1, [Protocols.Relay]);
     await delay(1000);
-    await waku.dial(multiAddrWithId);
+    await waku1.dial(multiAddrWithId);
     await waitPromise;
 
-    const peers = waku.relay.getMeshPeers();
+    const peers = waku1.relay.getMeshPeers();
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -74,12 +77,12 @@ describe("Wait for remote peer", function () {
 
   it("Relay - times out", function (done) {
     this.timeout(5000);
-    createWaku({
+    createPrivacyNode({
       staticNoiseKey: NOISE_KEY_1,
     })
-      .then((waku) => waku.start().then(() => waku))
-      .then((waku) => {
-        waitForRemotePeer(waku, [Protocols.Relay], 200).then(
+      .then((waku1) => waku1.start().then(() => waku1))
+      .then((waku1) => {
+        waitForRemotePeer(waku1, [Protocols.Relay], 200).then(
           () => {
             throw "Promise expected to reject on time out";
           },
@@ -103,15 +106,15 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createWaku({
+    waku2 = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.start();
-    await waku.dial(multiAddrWithId);
+    await waku2.start();
+    await waku2.dial(multiAddrWithId);
     await delay(1000);
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    await waitForRemotePeer(waku2, [Protocols.Store]);
 
-    const peers = (await waku.store.peers()).map((peer) => peer.id.toString());
+    const peers = (await waku2.store.peers()).map((peer) => peer.id.toString());
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -130,16 +133,16 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createWaku({
+    waku2 = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.start();
-    const waitPromise = waitForRemotePeer(waku, [Protocols.Store], 2000);
+    await waku2.start();
+    const waitPromise = waitForRemotePeer(waku2, [Protocols.Store], 2000);
     await delay(1000);
-    await waku.dial(multiAddrWithId);
+    await waku2.dial(multiAddrWithId);
     await waitPromise;
 
-    const peers = (await waku.store.peers()).map((peer) => peer.id.toString());
+    const peers = (await waku2.store.peers()).map((peer) => peer.id.toString());
 
     const nimPeerId = multiAddrWithId.getPeerId();
 
@@ -158,14 +161,14 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createWaku({
+    waku2 = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.start();
-    await waku.dial(multiAddrWithId);
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku2.start();
+    await waku2.dial(multiAddrWithId);
+    await waitForRemotePeer(waku2, [Protocols.LightPush]);
 
-    const peers = (await waku.lightPush.peers()).map((peer) =>
+    const peers = (await waku2.lightPush.peers()).map((peer) =>
       peer.id.toString()
     );
 
@@ -186,14 +189,79 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createWaku({
+    waku2 = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
-    await waku.start();
-    await waku.dial(multiAddrWithId);
-    await waitForRemotePeer(waku, [Protocols.Filter]);
+    await waku2.start();
+    await waku2.dial(multiAddrWithId);
+    await waitForRemotePeer(waku2, [Protocols.Filter]);
 
-    const peers = (await waku.filter.peers()).map((peer) => peer.id.toString());
+    const peers = (await waku2.filter.peers()).map((peer) =>
+      peer.id.toString()
+    );
+
+    const nimPeerId = multiAddrWithId.getPeerId();
+
+    expect(nimPeerId).to.not.be.undefined;
+    expect(peers.includes(nimPeerId as string)).to.be.true;
+  });
+
+  it("Light Node - default protocols", async function () {
+    this.timeout(20_000);
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({
+      filter: true,
+      lightpush: true,
+      relay: false,
+      store: true,
+      persistMessages: true,
+    });
+    const multiAddrWithId = await nwaku.getMultiaddrWithId();
+
+    waku2 = await createLightNode({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+    await waku2.start();
+    await waku2.dial(multiAddrWithId);
+    await waitForRemotePeer(waku2);
+
+    const filterPeers = (await waku2.filter.peers()).map((peer) =>
+      peer.id.toString()
+    );
+    const storePeers = (await waku2.store.peers()).map((peer) =>
+      peer.id.toString()
+    );
+    const lightPushPeers = (await waku2.lightPush.peers()).map((peer) =>
+      peer.id.toString()
+    );
+
+    const nimPeerId = multiAddrWithId.getPeerId();
+
+    expect(nimPeerId).to.not.be.undefined;
+    expect(filterPeers.includes(nimPeerId as string)).to.be.true;
+    expect(storePeers.includes(nimPeerId as string)).to.be.true;
+    expect(lightPushPeers.includes(nimPeerId as string)).to.be.true;
+  });
+
+  it("Privacy Node - default protocol", async function () {
+    this.timeout(20_000);
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({
+      filter: false,
+      lightpush: false,
+      relay: true,
+      store: false,
+    });
+    const multiAddrWithId = await nwaku.getMultiaddrWithId();
+
+    waku1 = await createPrivacyNode({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+    await waku1.start();
+    await waku1.dial(multiAddrWithId);
+    await waitForRemotePeer(waku1);
+
+    const peers = await waku1.relay.getMeshPeers();
 
     const nimPeerId = multiAddrWithId.getPeerId();
 

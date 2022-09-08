@@ -12,11 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Simple connection management that selects the most recent connection for store, light push and filter requests.
+- `createLightNode` to create a Waku node for resource restricted environment with Light Push, Filter and Relay.
+- `createPrivacyNode` to create a Waku node for privacy preserving usage with Relay only.
+- `createFullNode` to create a Waku node for with all protocols, for **testing purposes only**.
 
 ### Changed
 
 - **breaking**: `DecryptionParams` may be passed when using `queryHistory` instead of just keys.
 - Examples have been moved to https://github.com/waku-org/js-waku-examples.
+- `Waku` is now defined as an interface with `WakuNode` an implementation of it.
+- `createWaku` is deprecated in favour of `createLightNode` and `createPrivacyNode`.
+- `waitForRemotePeer` can throw, default behaviour has changed.
 
 ### Fixed
 

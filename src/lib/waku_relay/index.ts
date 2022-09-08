@@ -18,7 +18,7 @@ import * as constants from "./constants";
 
 const log = debug("waku:relay");
 
-export interface CreateOptions {
+export type CreateOptions = {
   /**
    * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
    *
@@ -34,7 +34,7 @@ export interface CreateOptions {
    */
   pubSubTopic?: string;
   decryptionKeys?: Array<Uint8Array | string>;
-}
+} & GossipsubOpts;
 
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
@@ -59,7 +59,7 @@ export class WakuRelay extends GossipSub {
     [contentTopic: string]: Set<(message: WakuMessage) => void>;
   };
 
-  constructor(options?: Partial<CreateOptions & GossipsubOpts>) {
+  constructor(options?: Partial<CreateOptions>) {
     options = Object.assign(options ?? {}, {
       // Ensure that no signature is included nor expected in the messages.
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
@@ -229,3 +229,5 @@ export class WakuRelay extends GossipSub {
     return super.getMeshPeers(topic ?? this.pubSubTopic);
   }
 }
+
+WakuRelay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
