@@ -1,9 +1,10 @@
-const { promisify } = require('util')
-const { publish } = require('gh-pages')
-const ghpublish = promisify(publish)
+import { promisify } from 'util'
+import { publish } from 'gh-pages'
 
 /* fix for "Unhandled promise rejections" */
 process.on('unhandledRejection', err => { throw err })
+
+const ghpublish = promisify(publish)
 
 const Args = process.argv.slice(2)
 const USE_HTTPS = Args[0] && Args[0].toUpperCase() === 'HTTPS'
