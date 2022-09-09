@@ -11,7 +11,7 @@ A JavaScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/1
 
 - [Quick start](https://docs.wakuconnect.dev/docs/quick_start/)
 - [Full documentation](https://docs.wakuconnect.dev/)
-- [API documentation (`master` branch)](https://js-waku.wakuconnect.dev/)
+- [API documentation (`master` branch)](https://js.waku.org/)
 - [Waku Connect](https://wakuconnect.dev/)
 - [Waku](https://wakunetwork.com/)
 - [Vac](https://vac.dev/)

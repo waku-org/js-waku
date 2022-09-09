@@ -9,7 +9,7 @@ const Args = process.argv.slice(2)
 const USE_HTTPS = Args[0] && Args[0].toUpperCase() === 'HTTPS'
 
 const branch = 'gh-pages'
-const org = 'status-im'
+const org = 'waku-org'
 const repo = 'js-waku'
 /* use SSH auth by default */
 let repoUrl = USE_HTTPS
