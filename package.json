@@ -77,7 +77,7 @@
     "watch:test": "mocha --watch",
     "doc": "run-s doc:*",
     "doc:html": "typedoc --treatWarningsAsErrors",
-    "doc:cname": "echo 'js-waku.wakuconnect.dev' > build/docs/CNAME",
+    "doc:cname": "echo 'js.waku.org' > build/docs/CNAME",
     "prepublish": "npm run build",
     "deploy": "node ci/deploy.js",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
