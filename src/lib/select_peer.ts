@@ -4,9 +4,7 @@ import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
  * Returns a pseudo-random peer that supports the given protocol.
  * Useful for protocols such as store and light push
  */
-export async function selectRandomPeer(
-  peers: Peer[]
-): Promise<Peer | undefined> {
+export function selectRandomPeer(peers: Peer[]): Peer | undefined {
   if (peers.length === 0) return;
 
   const index = Math.round(Math.random() * (peers.length - 1));
