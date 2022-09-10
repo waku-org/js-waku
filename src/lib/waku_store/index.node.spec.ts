@@ -14,6 +14,7 @@ import {
   getPublicKey,
 } from "../crypto";
 import type { WakuFull } from "../interfaces";
+import { utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { Protocols } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
@@ -42,9 +43,10 @@ describe("Waku Store", () => {
     for (let i = 0; i < 2; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toWakuRelayMessage(
-            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
-          )
+          Nwaku.toMessageRpcQuery({
+            payload: utf8ToBytes(`Message ${i}`),
+            contentTopic: TestContentTopic,
+          })
         )
       ).to.be.true;
     }
@@ -75,9 +77,10 @@ describe("Waku Store", () => {
     for (let i = 0; i < totalMsgs; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toWakuRelayMessage(
-            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
-          )
+          Nwaku.toMessageRpcQuery({
+            payload: utf8ToBytes(`Message ${i}`),
+            contentTopic: TestContentTopic,
+          })
         )
       ).to.be.true;
     }
@@ -115,9 +118,10 @@ describe("Waku Store", () => {
     for (let i = 0; i < availMsgs; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toWakuRelayMessage(
-            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
-          )
+          Nwaku.toMessageRpcQuery({
+            payload: utf8ToBytes(`Message ${i}`),
+            contentTopic: TestContentTopic,
+          })
         )
       ).to.be.true;
     }
@@ -152,9 +156,10 @@ describe("Waku Store", () => {
     for (let i = 0; i < 15; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toWakuRelayMessage(
-            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
-          )
+          Nwaku.toMessageRpcQuery({
+            payload: utf8ToBytes(`Message ${i}`),
+            contentTopic: TestContentTopic,
+          })
         )
       ).to.be.true;
     }
@@ -194,9 +199,10 @@ describe("Waku Store", () => {
     for (let i = 0; i < 2; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toWakuRelayMessage(
-            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic)
-          ),
+          Nwaku.toMessageRpcQuery({
+            payload: utf8ToBytes(`Message ${i}`),
+            contentTopic: TestContentTopic,
+          }),
           customPubSubTopic
         )
       ).to.be.true;
@@ -449,11 +455,11 @@ describe("Waku Store", () => {
     for (let i = 0; i < 2; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toWakuRelayMessage(
-            await WakuMessage.fromUtf8String(`Message ${i}`, TestContentTopic, {
-              timestamp: messageTimestamps[i],
-            })
-          )
+          Nwaku.toMessageRpcQuery({
+            payload: utf8ToBytes(`Message ${i}`),
+            contentTopic: TestContentTopic,
+            timestamp: messageTimestamps[i],
+          })
         )
       ).to.be.true;
     }

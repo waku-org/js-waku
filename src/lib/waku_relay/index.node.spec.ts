@@ -4,6 +4,7 @@ import debug from "debug";
 
 import {
   makeLogFileName,
+  MessageRpcResponse,
   NOISE_KEY_1,
   NOISE_KEY_2,
   NOISE_KEY_3,
@@ -18,6 +19,7 @@ import {
   getPublicKey,
 } from "../crypto";
 import type { WakuPrivacy } from "../interfaces";
+import { bytesToUtf8, utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { Protocols } from "../waku";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
@@ -385,7 +387,7 @@ describe("Waku Relay [node only]", () => {
       await delay(1000);
       await waku.relay.send(message);
 
-      let msgs: WakuMessage[] = [];
+      let msgs: MessageRpcResponse[] = [];
 
       while (msgs.length === 0) {
         console.log("Waiting for messages");
@@ -395,17 +397,19 @@ describe("Waku Relay [node only]", () => {
 
       expect(msgs[0].contentTopic).to.equal(message.contentTopic);
       expect(msgs[0].version).to.equal(message.version);
-      expect(msgs[0].payloadAsUtf8).to.equal(messageText);
+      expect(bytesToUtf8(new Uint8Array(msgs[0].payload))).to.equal(
+        messageText
+      );
     });
 
     it("Nwaku publishes", async function () {
       await delay(200);
 
       const messageText = "Here is another message.";
-      const message = await WakuMessage.fromUtf8String(
-        messageText,
-        TestContentTopic
-      );
+      const message = {
+        payload: utf8ToBytes(messageText),
+        contentTopic: TestContentTopic,
+      };
 
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve) => {
@@ -413,12 +417,12 @@ describe("Waku Relay [node only]", () => {
         }
       );
 
-      await nwaku.sendMessage(Nwaku.toWakuRelayMessage(message));
+      await nwaku.sendMessage(Nwaku.toMessageRpcQuery(message));
 
       const receivedMsg = await receivedMsgPromise;
 
       expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
-      expect(receivedMsg.version).to.eq(message.version);
+      expect(receivedMsg.version).to.eq(0);
       expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
     });
 
