@@ -272,7 +272,7 @@ export class WakuFilter {
   }
 
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.libp2p, [FilterCodec]);
+    return getPeersForProtocol(this.libp2p.peerStore, [FilterCodec]);
   }
 
   async randomPeer(): Promise<Peer | undefined> {

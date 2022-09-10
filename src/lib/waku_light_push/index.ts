@@ -109,7 +109,7 @@ export class WakuLightPush {
    * peers.
    */
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.libp2p, [LightPushCodec]);
+    return getPeersForProtocol(this.libp2p.peerStore, [LightPushCodec]);
   }
 
   /**

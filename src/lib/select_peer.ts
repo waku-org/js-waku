@@ -1,5 +1,4 @@
-import { Peer } from "@libp2p/interface-peer-store";
-import { Libp2p } from "libp2p";
+import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 
 /**
  * Returns a pseudo-random peer that supports the given protocol.
@@ -18,11 +17,11 @@ export async function selectRandomPeer(
  * Returns the list of peers that supports the given protocol.
  */
 export async function getPeersForProtocol(
-  libp2p: Libp2p,
+  peerStore: PeerStore,
   protocols: string[]
 ): Promise<Peer[]> {
   const peers: Peer[] = [];
-  await libp2p.peerStore.forEach((peer) => {
+  await peerStore.forEach((peer) => {
     for (let i = 0; i < protocols.length; i++) {
       if (peer.protocols.includes(protocols[i])) {
         peers.push(peer);

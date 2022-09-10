@@ -312,7 +312,7 @@ export class WakuStore {
       codecs.push(codec);
     }
 
-    return getPeersForProtocol(this.libp2p, codecs);
+    return getPeersForProtocol(this.libp2p.peerStore, codecs);
   }
 
   /**
