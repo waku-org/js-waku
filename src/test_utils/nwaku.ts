@@ -14,8 +14,6 @@ import portfinder from "portfinder";
 
 import { DefaultPubSubTopic } from "../lib/constants";
 import { bytesToHex, hexToBytes } from "../lib/utils";
-import { WakuMessage } from "../lib/waku_message";
-import * as proto from "../proto/message";
 
 import { existsAsync, mkdirAsync, openAsync } from "./async_fs";
 import { delay } from "./delay";
@@ -33,6 +31,14 @@ const WAKU_SERVICE_NODE_PARAMS =
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 const LOG_DIR = "./log";
+
+const OneMillion = BigInt(1_000_000);
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+BigInt.prototype.toJSON = function toJSON() {
+  return Number(this);
+};
 
 export interface Args {
   staticnode?: string;
@@ -71,10 +77,24 @@ export interface KeyPair {
   publicKey: string;
 }
 
-export interface WakuRelayMessage {
+export interface MessageRpcQuery {
   payload: string; // Hex encoded data string without `0x` prefix.
   contentTopic?: string;
-  timestamp?: number; // Unix epoch time in nanoseconds as a 64-bits integer value.
+  timestamp?: bigint; // Unix epoch time in nanoseconds as a 64-bits integer value.
+}
+
+export interface MessageRpcResponse {
+  payload: number[];
+  contentTopic?: string;
+  version?: number;
+  timestamp?: bigint; // Unix epoch time in nanoseconds as a 64-bits integer value.
+}
+
+export interface MessageRpcResponseHex {
+  payload: string;
+  contentTopic?: string;
+  version?: number;
+  timestamp?: bigint; // Unix epoch time in nanoseconds as a 64-bits integer value.
 }
 
 export class Nwaku {
@@ -89,14 +109,18 @@ export class Nwaku {
    * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
    * by the nwaku JSON-RPC API.
    */
-  static toWakuRelayMessage(message: WakuMessage): WakuRelayMessage {
+  static toMessageRpcQuery(message: {
+    payload: Uint8Array;
+    contentTopic: string;
+    timestamp?: Date;
+  }): MessageRpcQuery {
     if (!message.payload) {
       throw "Attempting to convert empty message";
     }
 
     let timestamp;
-    if (message.proto.timestamp) {
-      timestamp = Number.parseInt(message.proto.timestamp.toString(10));
+    if (message.timestamp) {
+      timestamp = BigInt(message.timestamp.valueOf()) * OneMillion;
     }
 
     return {
@@ -216,10 +240,14 @@ export class Nwaku {
   }
 
   async sendMessage(
-    message: WakuRelayMessage,
+    message: MessageRpcQuery,
     pubSubTopic: string = DefaultPubSubTopic
   ): Promise<boolean> {
     this.checkProcess();
+
+    if (typeof message.timestamp === "undefined") {
+      message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
+    }
 
     return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
       pubSubTopic,
@@ -229,20 +257,18 @@ export class Nwaku {
 
   async messages(
     pubsubTopic: string = DefaultPubSubTopic
-  ): Promise<WakuMessage[]> {
+  ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
-    const isDefined = (msg: WakuMessage | undefined): msg is WakuMessage => {
+    const isDefined = (
+      msg: MessageRpcResponse | undefined
+    ): msg is MessageRpcResponse => {
       return !!msg;
     };
 
-    const protoMsgs = await this.rpcCall<proto.WakuMessage[]>(
+    const msgs = await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_relay_v1_messages",
       [pubsubTopic]
-    );
-
-    const msgs = await Promise.all(
-      protoMsgs.map(async (protoMsg) => await WakuMessage.decodeProto(protoMsg))
     );
 
     return msgs.filter(isDefined);
@@ -267,7 +293,7 @@ export class Nwaku {
   }
 
   async postAsymmetricMessage(
-    message: WakuRelayMessage,
+    message: MessageRpcQuery,
     publicKey: Uint8Array,
     pubSubTopic?: string
   ): Promise<boolean> {
@@ -287,10 +313,10 @@ export class Nwaku {
   async getAsymmetricMessages(
     privateKey: Uint8Array,
     pubSubTopic?: string
-  ): Promise<WakuRelayMessage[]> {
+  ): Promise<MessageRpcResponseHex[]> {
     this.checkProcess();
 
-    return await this.rpcCall<WakuRelayMessage[]>(
+    return await this.rpcCall<MessageRpcResponseHex[]>(
       "get_waku_v2_private_v1_asymmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
@@ -309,7 +335,7 @@ export class Nwaku {
   }
 
   async postSymmetricMessage(
-    message: WakuRelayMessage,
+    message: MessageRpcQuery,
     symKey: Uint8Array,
     pubSubTopic?: string
   ): Promise<boolean> {
@@ -329,10 +355,10 @@ export class Nwaku {
   async getSymmetricMessages(
     symKey: Uint8Array,
     pubSubTopic?: string
-  ): Promise<WakuRelayMessage[]> {
+  ): Promise<MessageRpcResponseHex[]> {
     this.checkProcess();
 
-    return await this.rpcCall<WakuRelayMessage[]>(
+    return await this.rpcCall<MessageRpcResponseHex[]>(
       "get_waku_v2_private_v1_symmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
@@ -387,7 +413,7 @@ export class Nwaku {
       headers: new Headers({ "Content-Type": "application/json" }),
     });
     const json = await res.json();
-    log(`RPC Response: `, res, json);
+    log(`RPC Response: `, res, JSON.stringify(json));
     return json.result;
   }
 

@@ -3,9 +3,10 @@ import debug from "debug";
 
 import {
   makeLogFileName,
+  MessageRpcQuery,
+  MessageRpcResponseHex,
   NOISE_KEY_1,
   Nwaku,
-  WakuRelayMessage,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
 import { createPrivacyNode } from "../create_waku";
@@ -61,7 +62,7 @@ describe("Waku Message [node only]", function () {
       this.timeout(5000);
 
       const messageText = "Here is an encrypted message.";
-      const message: WakuRelayMessage = {
+      const message: MessageRpcQuery = {
         contentTopic: TestContentTopic,
         payload: bytesToHex(utf8ToBytes(messageText)),
       };
@@ -111,7 +112,7 @@ describe("Waku Message [node only]", function () {
       log("Send message over relay");
       await waku.relay.send(message);
 
-      let msgs: WakuRelayMessage[] = [];
+      let msgs: MessageRpcResponseHex[] = [];
 
       while (msgs.length === 0) {
         log("Wait for message to be seen by nwaku");
@@ -128,7 +129,7 @@ describe("Waku Message [node only]", function () {
       this.timeout(5000);
 
       const messageText = "Here is a message encrypted in a symmetric manner.";
-      const message: WakuRelayMessage = {
+      const message: MessageRpcQuery = {
         contentTopic: TestContentTopic,
         payload: bytesToHex(utf8ToBytes(messageText)),
       };
@@ -175,7 +176,7 @@ describe("Waku Message [node only]", function () {
       log("Sending message over relay");
       await waku.relay.send(message);
 
-      let msgs: WakuRelayMessage[] = [];
+      let msgs: MessageRpcResponseHex[] = [];
 
       while (msgs.length === 0) {
         await delay(200);

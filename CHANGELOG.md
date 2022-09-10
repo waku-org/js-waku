@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `addPeerToAddressBook` is now async.
 - API Docs moved to https://js.waku.org/
+- test: fix typing for nwaku JSON RPC responses.
 
 ## [0.26.0] - 2022-09-08
 

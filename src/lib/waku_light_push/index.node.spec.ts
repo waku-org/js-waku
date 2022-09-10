@@ -1,10 +1,16 @@
 import { expect } from "chai";
 import debug from "debug";
 
-import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
+import {
+  makeLogFileName,
+  MessageRpcResponse,
+  NOISE_KEY_1,
+  Nwaku,
+} from "../../test_utils";
 import { delay } from "../../test_utils/delay";
 import { createFullNode } from "../create_waku";
 import type { WakuFull } from "../interfaces";
+import { bytesToUtf8 } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { Protocols } from "../waku";
 import { WakuMessage } from "../waku_message";
@@ -44,7 +50,7 @@ describe("Waku Light Push [node only]", () => {
     const pushResponse = await waku.lightPush.push(message);
     expect(pushResponse?.isSuccess).to.be.true;
 
-    let msgs: WakuMessage[] = [];
+    let msgs: MessageRpcResponse[] = [];
 
     while (msgs.length === 0) {
       await delay(200);
@@ -53,7 +59,7 @@ describe("Waku Light Push [node only]", () => {
 
     expect(msgs[0].contentTopic).to.equal(message.contentTopic);
     expect(msgs[0].version).to.equal(message.version);
-    expect(msgs[0].payloadAsUtf8).to.equal(messageText);
+    expect(bytesToUtf8(new Uint8Array(msgs[0].payload))).to.equal(messageText);
   });
 
   it("Push on custom pubsub topic", async function () {
@@ -88,7 +94,7 @@ describe("Waku Light Push [node only]", () => {
     log("Ack received", pushResponse);
     expect(pushResponse?.isSuccess).to.be.true;
 
-    let msgs: WakuMessage[] = [];
+    let msgs: MessageRpcResponse[] = [];
 
     log("Waiting for message to show in nwaku");
     while (msgs.length === 0) {
@@ -98,6 +104,6 @@ describe("Waku Light Push [node only]", () => {
 
     expect(msgs[0].contentTopic).to.equal(message.contentTopic);
     expect(msgs[0].version).to.equal(message.version);
-    expect(msgs[0].payloadAsUtf8).to.equal(messageText);
+    expect(bytesToUtf8(new Uint8Array(msgs[0].payload))!).to.equal(messageText);
   });
 });
