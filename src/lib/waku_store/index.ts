@@ -21,7 +21,7 @@ import {
 
 import { HistoryRPC, PageDirection } from "./history_rpc";
 
-import Error = HistoryResponse.HistoryError;
+import HistoryError = HistoryResponse.HistoryError;
 
 const log = debug("waku:store");
 
@@ -225,7 +225,10 @@ export class WakuStore {
 
       const response = reply.response as protoV2Beta4.HistoryResponse;
 
-      if (response.error && response.error !== Error.ERROR_NONE_UNSPECIFIED) {
+      if (
+        response.error &&
+        response.error !== HistoryError.ERROR_NONE_UNSPECIFIED
+      ) {
         throw "History response contains an Error: " + response.error;
       }
 
