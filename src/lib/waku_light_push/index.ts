@@ -10,7 +10,11 @@ import { Uint8ArrayList } from "uint8arraylist";
 import { PushResponse } from "../../proto/light_push";
 import { DefaultPubSubTopic } from "../constants";
 import { selectConnection } from "../select_connection";
-import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
+import {
+  getPeersForProtocol,
+  selectPeerForProtocol,
+  selectRandomPeer,
+} from "../select_peer";
 import { WakuMessage } from "../waku_message";
 
 import { PushRPC } from "./push_rpc";
@@ -51,16 +55,16 @@ export class WakuLightPush {
     message: WakuMessage,
     opts?: PushOptions
   ): Promise<PushResponse | null> {
-    let peer;
-    if (opts?.peerId) {
-      peer = await this.libp2p.peerStore.get(opts.peerId);
-      if (!peer) throw "Peer is unknown";
-    } else {
-      peer = await this.randomPeer();
+    const res = await selectPeerForProtocol(
+      this.libp2p.peerStore,
+      [LightPushCodec],
+      opts?.peerId
+    );
+
+    if (!res) {
+      throw new Error("Failed to get a peer");
     }
-    if (!peer) throw "No peer available";
-    if (!peer.protocols.includes(LightPushCodec))
-      throw "Peer does not register waku light push protocol";
+    const { peer } = res;
 
     const connections = this.libp2p.connectionManager.getConnections(peer.id);
     const connection = selectConnection(connections);

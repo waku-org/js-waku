@@ -11,7 +11,7 @@ import * as protoV2Beta4 from "../../proto/store_v2beta4";
 import { HistoryResponse } from "../../proto/store_v2beta4";
 import { DefaultPubSubTopic, StoreCodecs } from "../constants";
 import { selectConnection } from "../select_connection";
-import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
+import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer";
 import { hexToBytes } from "../utils";
 import {
   DecryptionMethod,
@@ -152,29 +152,17 @@ export class WakuStore {
       ...options,
     });
 
-    let peer;
-    if (opts.peerId) {
-      peer = await this.libp2p.peerStore.get(opts.peerId);
-      if (!peer)
-        throw `Failed to retrieve connection details for provided peer in peer store: ${opts.peerId.toString()}`;
-    } else {
-      peer = await this.randomPeer();
-      if (!peer)
-        throw "Failed to find known peer that registers waku store protocol";
-    }
+    const res = await selectPeerForProtocol(
+      this.libp2p.peerStore,
+      Object.values(StoreCodecs),
+      opts?.peerId
+    );
 
-    let storeCodec = "";
-    for (const codec of Object.values(StoreCodecs)) {
-      if (peer.protocols.includes(codec)) {
-        storeCodec = codec;
-        // Do not break as we want to keep the last value
-      }
+    if (!res) {
+      throw new Error("Failed to get a peer");
     }
-    log(`Use store codec ${storeCodec}`);
-    if (!storeCodec)
-      throw `Peer does not register waku store protocol: ${peer.id.toString()}`;
+    const { peer, protocol } = res;
 
-    Object.assign(opts, { storeCodec });
     const connections = this.libp2p.connectionManager.getConnections(peer.id);
     const connection = selectConnection(connections);
 
@@ -199,7 +187,7 @@ export class WakuStore {
     const messages: WakuMessage[] = [];
     let cursor = undefined;
     while (true) {
-      const stream = await connection.newStream(storeCodec);
+      const stream = await connection.newStream(protocol);
       const queryOpts = Object.assign(opts, { cursor });
       const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
       log("Querying store peer", connections[0].remoteAddr.toString());
@@ -316,14 +304,5 @@ export class WakuStore {
     }
 
     return getPeersForProtocol(this.libp2p.peerStore, codecs);
-  }
-
-  /**
-   * Returns a random peer that supports store protocol from the address
-   * book (`libp2p.peerStore`). Waku may or  may not be currently connected to
-   * this peer.
-   */
-  async randomPeer(): Promise<Peer | undefined> {
-    return selectRandomPeer(await this.peers());
   }
 }
