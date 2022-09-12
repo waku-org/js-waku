@@ -1,3 +1,4 @@
+import type { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer } from "@libp2p/interface-peer-store";
 import debug from "debug";
@@ -19,7 +20,7 @@ import {
   WakuMessage,
 } from "../waku_message";
 
-import { HistoryRPC, PageDirection } from "./history_rpc";
+import { HistoryRPC, PageDirection, Params } from "./history_rpc";
 
 import HistoryError = HistoryResponse.HistoryError;
 
@@ -78,18 +79,6 @@ export interface QueryOptions {
    */
   timeFilter?: TimeFilter;
   /**
-   * Callback called on pages of stored messages as they are retrieved.
-   *
-   * Allows for a faster access to the results as it is called as soon as a page
-   * is received. Traversal of the pages is done automatically so this function
-   * will invoked for each retrieved page.
-   *
-   * If the call on a page returns `true`, then traversal of the pages is aborted.
-   * For example, this can be used for the caller to stop the query after a
-   * specific message is found.
-   */
-  callback?: (messages: WakuMessage[]) => void | boolean;
-  /**
    * Keys that will be used to decrypt messages.
    *
    * It can be Asymmetric Private Keys and Symmetric Keys in the same array,
@@ -121,6 +110,8 @@ export class WakuStore {
    *
    * @param contentTopics The content topics to pass to the query, leave empty to
    * retrieve all messages.
+   * @param callback called on a page of retrieved messages. If the callback returns `true`
+   * then pagination is stopped.
    * @param options Optional parameters.
    *
    * @throws If not able to reach a Waku Store peer to query
@@ -128,8 +119,11 @@ export class WakuStore {
    */
   async queryHistory(
     contentTopics: string[],
+    callback: (
+      messages: Array<Promise<WakuMessage | undefined>>
+    ) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
-  ): Promise<WakuMessage[]> {
+  ): Promise<void> {
     let startTime, endTime;
 
     if (options?.timeFilter) {
@@ -137,7 +131,7 @@ export class WakuStore {
       endTime = options.timeFilter.endTime;
     }
 
-    const opts = Object.assign(
+    const queryOpts = Object.assign(
       {
         pubSubTopic: this.pubSubTopic,
         pageDirection: PageDirection.BACKWARD,
@@ -155,7 +149,7 @@ export class WakuStore {
     const res = await selectPeerForProtocol(
       this.libp2p.peerStore,
       Object.values(StoreCodecs),
-      opts?.peerId
+      options?.peerId
     );
 
     if (!res) {
@@ -180,90 +174,20 @@ export class WakuStore {
 
     // Add the decryption keys passed to this function against the
     // content topics also passed to this function.
-    if (opts.decryptionParams) {
-      decryptionParams = decryptionParams.concat(opts.decryptionParams);
+    if (options?.decryptionParams) {
+      decryptionParams = decryptionParams.concat(options.decryptionParams);
     }
 
-    const messages: WakuMessage[] = [];
-    let cursor = undefined;
-    while (true) {
-      const stream = await connection.newStream(protocol);
-      const queryOpts = Object.assign(opts, { cursor });
-      const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
-      log("Querying store peer", connections[0].remoteAddr.toString());
-
-      const res = await pipe(
-        [historyRpcQuery.encode()],
-        lp.encode(),
-        stream,
-        lp.decode(),
-        async (source) => await all(source)
-      );
-      const bytes = new Uint8ArrayList();
-      res.forEach((chunk) => {
-        bytes.append(chunk);
-      });
-
-      const reply = historyRpcQuery.decode(bytes);
-
-      if (!reply.response) {
-        log("No message returned from store: `response` field missing");
-        return messages;
-      }
-
-      const response = reply.response as protoV2Beta4.HistoryResponse;
-
-      if (
-        response.error &&
-        response.error !== HistoryError.ERROR_NONE_UNSPECIFIED
-      ) {
-        throw "History response contains an Error: " + response.error;
-      }
-
-      if (!response.messages || !response.messages.length) {
-        // No messages left (or stored)
-        log("No message returned from store: `messages` array empty");
-        return messages;
-      }
-
-      log(
-        `${response.messages.length} messages retrieved for (${opts.pubSubTopic})`,
-        contentTopics
-      );
-
-      const pageMessages: WakuMessage[] = [];
-      await Promise.all(
-        response.messages.map(async (protoMsg) => {
-          const msg = await WakuMessage.decodeProto(protoMsg, decryptionParams);
-
-          if (msg) {
-            messages.push(msg);
-            pageMessages.push(msg);
-          }
-        })
-      );
-
-      let abort = false;
-      if (opts.callback) {
-        abort = Boolean(opts.callback(pageMessages));
-      }
-
-      const responsePageSize = response.pagingInfo?.pageSize;
-      const queryPageSize = historyRpcQuery.query?.pagingInfo?.pageSize;
-      if (
-        abort ||
-        // Response page size smaller than query, meaning this is the last page
-        (responsePageSize && queryPageSize && responsePageSize < queryPageSize)
-      ) {
-        return messages;
-      }
-
-      cursor = response.pagingInfo?.cursor;
-      if (cursor === undefined) {
-        // If the server does not return cursor then there is an issue,
-        // Need to abort, or we end up in an infinite loop
-        log("Store response does not contain a cursor, stopping pagination");
-        return messages;
+    for await (const messagePromises of paginate(
+      connection,
+      protocol,
+      queryOpts,
+      decryptionParams
+    )) {
+      const abort = Boolean(await callback(messagePromises));
+      if (abort) {
+        // TODO: Also abort underlying generator
+        break;
       }
     }
   }
@@ -304,5 +228,90 @@ export class WakuStore {
     }
 
     return getPeersForProtocol(this.libp2p.peerStore, codecs);
+  }
+}
+
+async function* paginate(
+  connection: Connection,
+  protocol: string,
+  queryOpts: Params,
+  decryptionParams: DecryptionParams[]
+): AsyncGenerator<Promise<WakuMessage | undefined>[]> {
+  let cursor = undefined;
+  while (true) {
+    queryOpts = Object.assign(queryOpts, { cursor });
+
+    const stream = await connection.newStream(protocol);
+    const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
+
+    log(
+      "Querying store peer",
+      connection.remoteAddr.toString(),
+      `for (${queryOpts.pubSubTopic})`,
+      queryOpts.contentTopics
+    );
+
+    const res = await pipe(
+      [historyRpcQuery.encode()],
+      lp.encode(),
+      stream,
+      lp.decode(),
+      async (source) => await all(source)
+    );
+
+    const bytes = new Uint8ArrayList();
+    res.forEach((chunk) => {
+      bytes.append(chunk);
+    });
+
+    const reply = historyRpcQuery.decode(bytes);
+
+    if (!reply.response) {
+      log("Stopping pagination due to store `response` field missing");
+      break;
+    }
+
+    const response = reply.response as protoV2Beta4.HistoryResponse;
+
+    if (
+      response.error &&
+      response.error !== HistoryError.ERROR_NONE_UNSPECIFIED
+    ) {
+      throw "History response contains an Error: " + response.error;
+    }
+
+    if (!response.messages) {
+      log(
+        "Stopping pagination due to store `response.messages` field missing or empty"
+      );
+      break;
+    }
+
+    log(`${response.messages.length} messages retrieved from store`);
+
+    yield response.messages.map((protoMsg) =>
+      WakuMessage.decodeProto(protoMsg, decryptionParams)
+    );
+
+    cursor = response.pagingInfo?.cursor;
+    if (typeof cursor === "undefined") {
+      // If the server does not return cursor then there is an issue,
+      // Need to abort, or we end up in an infinite loop
+      log(
+        "Stopping pagination due to `response.pagingInfo.cursor` missing from store response"
+      );
+      break;
+    }
+
+    const responsePageSize = response.pagingInfo?.pageSize;
+    const queryPageSize = historyRpcQuery.query?.pagingInfo?.pageSize;
+    if (
+      // Response page size smaller than query, meaning this is the last page
+      responsePageSize &&
+      queryPageSize &&
+      responsePageSize < queryPageSize
+    ) {
+      break;
+    }
   }
 }

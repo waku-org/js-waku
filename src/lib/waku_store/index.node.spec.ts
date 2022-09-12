@@ -25,6 +25,12 @@ const log = debug("waku:test:store");
 
 const TestContentTopic = "/test/1/waku-store/utf8";
 
+const isWakuMessageDefined = (
+  msg: WakuMessage | undefined
+): msg is WakuMessage => {
+  return !!msg;
+};
+
 describe("Waku Store", () => {
   let waku: WakuFull;
   let nwaku: Nwaku;
@@ -57,7 +63,18 @@ describe("Waku Store", () => {
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
-    const messages = await waku.store.queryHistory([]);
+
+    const messages: WakuMessage[] = [];
+    await waku.store.queryHistory([], async (msgPromises) => {
+      await Promise.all(
+        msgPromises.map(async (promise) => {
+          const msg = await promise;
+          if (msg) {
+            messages.push(msg);
+          }
+        })
+      );
+    });
 
     expect(messages?.length).eq(2);
     const result = messages?.findIndex((msg) => {
@@ -92,12 +109,16 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    let messages: WakuMessage[] = [];
-
-    await waku.store.queryHistory([], {
-      callback: (_msgs) => {
-        messages = messages.concat(_msgs);
-      },
+    const messages: WakuMessage[] = [];
+    await waku.store.queryHistory([], async (msgPromises) => {
+      await Promise.all(
+        msgPromises.map(async (promise) => {
+          const msg = await promise;
+          if (msg) {
+            messages.push(msg);
+          }
+        })
+      );
     });
 
     expect(messages?.length).eq(totalMsgs);
@@ -136,13 +157,16 @@ describe("Waku Store", () => {
     let messages: WakuMessage[] = [];
     const desiredMsgs = 14;
 
-    await waku.store.queryHistory([], {
-      pageSize: 7,
-      callback: (_msgs) => {
-        messages = messages.concat(_msgs);
+    await waku.store.queryHistory(
+      [],
+      async (msgPromises) => {
+        const msgsOrUndefined = await Promise.all(msgPromises);
+        const msgs = msgsOrUndefined.filter(isWakuMessageDefined);
+        messages = messages.concat(msgs);
         return messages.length >= desiredMsgs;
       },
-    });
+      { pageSize: 7 }
+    );
 
     expect(messages?.length).eq(desiredMsgs);
   });
@@ -171,9 +195,21 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages = await waku.store.queryHistory([], {
-      pageDirection: PageDirection.FORWARD,
-    });
+    let messages: WakuMessage[] = [];
+    await waku.store.queryHistory(
+      [],
+      async (msgPromises) => {
+        const msgsOrUndefined = await Promise.all(msgPromises);
+        const msgs = msgsOrUndefined.filter(isWakuMessageDefined);
+        // Note: messages within a page are ordered from oldest to most recent
+        // so the `concat` can only preserve order when `PageDirection`
+        // is forward
+        messages = messages.concat(msgs);
+      },
+      {
+        pageDirection: PageDirection.FORWARD,
+      }
+    );
 
     expect(messages?.length).eq(15);
     for (let index = 0; index < 2; index++) {
@@ -218,9 +254,23 @@ describe("Waku Store", () => {
 
     const nimPeerId = await nwaku.getPeerId();
 
-    const messages = await waku.store.queryHistory([], {
-      peerId: nimPeerId,
-    });
+    const messages: WakuMessage[] = [];
+    await waku.store.queryHistory(
+      [],
+      async (msgPromises) => {
+        await Promise.all(
+          msgPromises.map(async (promise) => {
+            const msg = await promise;
+            if (msg) {
+              messages.push(msg);
+            }
+          })
+        );
+      },
+      {
+        peerId: nimPeerId,
+      }
+    );
 
     expect(messages?.length).eq(2);
     const result = messages?.findIndex((msg) => {
@@ -246,6 +296,7 @@ describe("Waku Store", () => {
     const symKey = generateSymmetricKey();
     const publicKey = getPublicKey(privateKey);
 
+    const timestamp = new Date();
     const [
       encryptedAsymmetricMessage,
       encryptedSymmetricMessage,
@@ -257,6 +308,7 @@ describe("Waku Store", () => {
         TestContentTopic,
         {
           encPublicKey: publicKey,
+          timestamp,
         }
       ),
       WakuMessage.fromUtf8String(
@@ -264,16 +316,19 @@ describe("Waku Store", () => {
         TestContentTopic,
         {
           symKey: symKey,
+          timestamp: new Date(timestamp.valueOf() + 1),
         }
       ),
-      WakuMessage.fromUtf8String(clearMessageText, TestContentTopic),
+      WakuMessage.fromUtf8String(clearMessageText, TestContentTopic, {
+        timestamp: new Date(timestamp.valueOf() + 2),
+      }),
       WakuMessage.fromUtf8String(otherEncMessageText, TestContentTopic, {
         encPublicKey: getPublicKey(generatePrivateKey()),
+        timestamp: new Date(timestamp.valueOf() + 3),
       }),
     ]);
 
     log("Messages have been encrypted");
-
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createFullNode({
         staticNoiseKey: NOISE_KEY_1,
@@ -308,13 +363,23 @@ describe("Waku Store", () => {
     waku2.store.addDecryptionKey(symKey);
 
     log("Retrieve messages from store");
-    const messages = await waku2.store.queryHistory([], {
-      decryptionParams: [{ key: privateKey }],
-    });
+    let messages: WakuMessage[] = [];
+    await waku2.store.queryHistory(
+      [],
+      async (msgPromises) => {
+        const msgsOrUndefined = await Promise.all(msgPromises);
+        const msgs = msgsOrUndefined.filter(isWakuMessageDefined);
+        messages = messages.concat(msgs);
+      },
+      {
+        decryptionParams: [{ key: privateKey }],
+      }
+    );
 
-    expect(messages[0]?.payloadAsUtf8).to.eq(clearMessageText);
+    // Messages are ordered from oldest to latest within a page (1 page query)
+    expect(messages[0]?.payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
     expect(messages[1]?.payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
-    expect(messages[2]?.payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
+    expect(messages[2]?.payloadAsUtf8).to.eq(clearMessageText);
 
     !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
     !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
@@ -341,6 +406,7 @@ describe("Waku Store", () => {
     const symKey = generateSymmetricKey();
     const publicKey = getPublicKey(privateKey);
 
+    const timestamp = new Date();
     const [
       encryptedAsymmetricMessage,
       encryptedSymmetricMessage,
@@ -352,6 +418,7 @@ describe("Waku Store", () => {
         encryptedAsymmetricContentTopic,
         {
           encPublicKey: publicKey,
+          timestamp,
         }
       ),
       WakuMessage.fromUtf8String(
@@ -359,17 +426,20 @@ describe("Waku Store", () => {
         encryptedSymmetricContentTopic,
         {
           symKey: symKey,
+          timestamp: new Date(timestamp.valueOf() + 1),
         }
       ),
       WakuMessage.fromUtf8String(
         clearMessageText,
-        encryptedAsymmetricContentTopic
+        encryptedAsymmetricContentTopic,
+        { timestamp: new Date(timestamp.valueOf() + 2) }
       ),
       WakuMessage.fromUtf8String(
         otherEncMessageText,
         encryptedSymmetricContentTopic,
         {
           encPublicKey: getPublicKey(generatePrivateKey()),
+          timestamp: new Date(timestamp.valueOf() + 3),
         }
       ),
     ]);
@@ -412,16 +482,26 @@ describe("Waku Store", () => {
       method: DecryptionMethod.Symmetric,
     });
 
+    let messages: WakuMessage[] = [];
     log("Retrieve messages from store");
-    const messages = await waku2.store.queryHistory([], {
-      decryptionParams: [{ key: privateKey }],
-    });
+    await waku2.store.queryHistory(
+      [],
+      async (msgPromises) => {
+        const msgsOrUndefined = await Promise.all(msgPromises);
+        const msgs = msgsOrUndefined.filter(isWakuMessageDefined);
+        messages = messages.concat(msgs);
+      },
+      {
+        decryptionParams: [{ key: privateKey }],
+      }
+    );
 
     expect(messages?.length).eq(3);
     if (!messages) throw "Length was tested";
-    expect(messages[0].payloadAsUtf8).to.eq(clearMessageText);
+    // Messages are ordered from oldest to latest within a page (1 page query)
+    expect(messages[0].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
     expect(messages[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
-    expect(messages[2].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
+    expect(messages[2].payloadAsUtf8).to.eq(clearMessageText);
 
     !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
     !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
@@ -473,22 +553,50 @@ describe("Waku Store", () => {
 
     const nwakuPeerId = await nwaku.getPeerId();
 
-    const firstMessage = await waku.store.queryHistory([], {
-      peerId: nwakuPeerId,
-      timeFilter: { startTime, endTime: message1Timestamp },
-    });
-
-    const bothMessages = await waku.store.queryHistory([], {
-      peerId: nwakuPeerId,
-      timeFilter: {
-        startTime,
-        endTime,
+    const firstMessages: WakuMessage[] = [];
+    await waku.store.queryHistory(
+      [],
+      async (msgPromises) => {
+        await Promise.all(
+          msgPromises.map(async (promise) => {
+            const msg = await promise;
+            if (msg) {
+              firstMessages.push(msg);
+            }
+          })
+        );
       },
-    });
+      {
+        peerId: nwakuPeerId,
+        timeFilter: { startTime, endTime: message1Timestamp },
+      }
+    );
 
-    expect(firstMessage?.length).eq(1);
+    const bothMessages: WakuMessage[] = [];
+    await waku.store.queryHistory(
+      [],
+      async (msgPromises) => {
+        await Promise.all(
+          msgPromises.map(async (promise) => {
+            const msg = await promise;
+            if (msg) {
+              bothMessages.push(msg);
+            }
+          })
+        );
+      },
+      {
+        peerId: nwakuPeerId,
+        timeFilter: {
+          startTime,
+          endTime,
+        },
+      }
+    );
 
-    expect(firstMessage[0]?.payloadAsUtf8).eq("Message 0");
+    expect(firstMessages?.length).eq(1);
+
+    expect(firstMessages[0]?.payloadAsUtf8).eq("Message 0");
 
     expect(bothMessages?.length).eq(2);
   });
