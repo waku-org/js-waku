@@ -83,7 +83,8 @@
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "browser": {
-    "crypto": false
+    "crypto": false,
+    "util": false
   },
   "engines": {
     "node": ">=16"
