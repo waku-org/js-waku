@@ -76,6 +76,13 @@ export class WakuNode implements Waku {
       this.relay = libp2p.pubsub;
     }
 
+    log(
+      "Waku node created",
+      this.libp2p.peerId.toString(),
+      `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
+        .lightPush}, filter: ${!!this.filter}`
+    );
+
     this.pingKeepAliveTimers = {};
     this.relayKeepAliveTimers = {};
 
