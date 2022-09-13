@@ -13,10 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API Docs moved to https://js.waku.org/
 - test: fix typing for nwaku JSON RPC responses.
 
-### Fixed
-
-- Specify that `util` polyfill is not needed so that bundlers can automatically discard it.
-
 ## [0.26.0] - 2022-09-08
 
 ### Added
