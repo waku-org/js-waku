@@ -7,8 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.0] - 2022-09-13
+
+### Added
+
+- `createLightNode` to create a Waku node for resource restricted environment with Light Push, Filter and Relay.
+- `createPrivacyNode` to create a Waku node for privacy preserving usage with Relay only.
+- `createFullNode` to create a Waku node for with all protocols, for **testing purposes only**.
+
 ### Changed
 
+- `Waku` is now defined as an interface with `WakuNode` an implementation of it.
+- `createWaku` is deprecated in favour of `createLightNode` and `createPrivacyNode`.
+- `waitForRemotePeer` can throw, default behaviour has changed.
 - `addPeerToAddressBook` is now async.
 - API Docs moved to https://js.waku.org/
 - test: fix typing for nwaku JSON RPC responses.
@@ -18,17 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Simple connection management that selects the most recent connection for store, light push and filter requests.
-- `createLightNode` to create a Waku node for resource restricted environment with Light Push, Filter and Relay.
-- `createPrivacyNode` to create a Waku node for privacy preserving usage with Relay only.
-- `createFullNode` to create a Waku node for with all protocols, for **testing purposes only**.
 
 ### Changed
 
 - **breaking**: `DecryptionParams` may be passed when using `queryHistory` instead of just keys.
 - Examples have been moved to https://github.com/waku-org/js-waku-examples.
-- `Waku` is now defined as an interface with `WakuNode` an implementation of it.
-- `createWaku` is deprecated in favour of `createLightNode` and `createPrivacyNode`.
-- `waitForRemotePeer` can throw, default behaviour has changed.
 
 ### Fixed
 
@@ -478,7 +483,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.26.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.27.0...HEAD
+[0.27.0]: https://github.com/status-im/js-waku/compare/v0.26.0...v0.27.0
 [0.26.0]: https://github.com/status-im/js-waku/compare/v0.25.0...v0.26.0
 [0.25.0]: https://github.com/status-im/js-waku/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/status-im/js-waku/compare/v0.23.0...v0.24.0
