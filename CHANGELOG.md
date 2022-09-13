@@ -13,10 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API Docs moved to https://js.waku.org/
 - test: fix typing for nwaku JSON RPC responses.
 
-### Fixed
-
-- Downgrade to @libp2p/mplex@5.1.2 to fix "Muxer already closed" issue.
-
 ## [0.26.0] - 2022-09-08
 
 ### Added
