@@ -123,7 +123,11 @@
     {
       "name": "import",
       "pattern": "/import .*/"
+    },
+    {
+      "name": "multiaddr",
+      "pattern": "//dns4/.*/"
     }
   ],
-  "ignoreRegExpList": ["import"]
+  "ignoreRegExpList": ["import", "multiaddr"]
 }
