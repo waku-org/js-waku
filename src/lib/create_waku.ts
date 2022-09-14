@@ -12,7 +12,7 @@ import { getPredefinedBootstrapNodes } from "./predefined_bootstrap_nodes";
 import { WakuNode, WakuOptions } from "./waku";
 import { WakuFilter } from "./waku_filter";
 import { WakuLightPush } from "./waku_light_push";
-import { WakuRelay } from "./waku_relay";
+import { CreateOptions as RelayCreateOptions, WakuRelay } from "./waku_relay";
 import { WakuStore } from "./waku_store";
 
 export interface CreateOptions {
@@ -87,7 +87,7 @@ export async function createLightNode(
  * enabling some privacy preserving properties.
  */
 export async function createPrivacyNode(
-  options?: CreateOptions & WakuOptions
+  options?: CreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<WakuPrivacy> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -115,7 +115,7 @@ export async function createPrivacyNode(
  * @internal
  */
 export async function createFullNode(
-  options?: CreateOptions & WakuOptions
+  options?: CreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<WakuFull> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -144,7 +144,7 @@ export async function createFullNode(
  * { @link index.waku.WakuNode.constructor } instead.
  */
 export async function createWaku(
-  options?: CreateOptions & WakuOptions
+  options?: CreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<Waku> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];

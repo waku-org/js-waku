@@ -444,6 +444,7 @@ describe("Waku Relay [node only]", () => {
         [waku1, waku2] = await Promise.all([
           createPrivacyNode({
             staticNoiseKey: NOISE_KEY_1,
+            emitSelf: true,
           }).then((waku) => waku.start().then(() => waku)),
           createPrivacyNode({
             staticNoiseKey: NOISE_KEY_2,
