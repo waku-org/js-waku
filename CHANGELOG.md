@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Correct options type for `createFullNode` & `createPrivacy` to enable passing gossipsub options.
+- `WakuStore` now provides several APIs: `queryGenerator`, `queryCallbackOnPromise`, `queryOrderedCallback`;
+  each provides different guarantees and performance.
 
 ## [0.27.0] - 2022-09-13
 

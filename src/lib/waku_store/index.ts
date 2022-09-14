@@ -108,22 +108,95 @@ export class WakuStore {
   /**
    * Do a query to a Waku Store to retrieve historical/missed messages.
    *
-   * @param contentTopics The content topics to pass to the query, leave empty to
-   * retrieve all messages.
-   * @param callback called on a page of retrieved messages. If the callback returns `true`
-   * then pagination is stopped.
-   * @param options Optional parameters.
+   * The callback function takes a `WakuMessage` in input,
+   * messages are processed in order:
+   * - oldest to latest if `options.pageDirection` == { @link PageDirection.FORWARD }
+   * - latest to oldest if `options.pageDirection` == { @link PageDirection.BACKWARD }
+   *
+   * The ordering may affect performance.
    *
    * @throws If not able to reach a Waku Store peer to query
    * or if an error is encountered when processing the reply.
    */
-  async queryHistory(
+  async queryOrderedCallback(
     contentTopics: string[],
     callback: (
-      messages: Array<Promise<WakuMessage | undefined>>
+      message: WakuMessage
     ) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
+    const abort = false;
+    for await (const promises of this.queryGenerator(contentTopics, options)) {
+      if (abort) break;
+      let messages = await Promise.all(promises);
+
+      messages = messages.filter(isWakuMessageDefined);
+
+      // Messages in pages are ordered from oldest (first) to most recent (last).
+      // https://github.com/vacp2p/rfc/issues/533
+      if (
+        typeof options?.pageDirection === "undefined" ||
+        options?.pageDirection === PageDirection.BACKWARD
+      ) {
+        messages = messages.reverse();
+      }
+
+      await Promise.all(
+        messages.map((msg) => {
+          if (!abort) {
+            if (msg) return callback(msg);
+          }
+        })
+      );
+    }
+  }
+
+  /**
+   * Do a query to a Waku Store to retrieve historical/missed messages.
+   *
+   * The callback function takes a `Promise<WakuMessage>` in input,
+   * useful if messages needs to be decrypted and performance matters.
+   * **Order of messages is not guaranteed**.
+   *
+   * @returns the promises of the callback call.
+   *
+   * @throws If not able to reach a Waku Store peer to query
+   * or if an error is encountered when processing the reply.
+   */
+  async queryCallbackOnPromise(
+    contentTopics: string[],
+    callback: (
+      message: Promise<WakuMessage | undefined>
+    ) => Promise<void | boolean> | boolean | void,
+    options?: QueryOptions
+  ): Promise<Array<Promise<void>>> {
+    let abort = false;
+    let promises: Promise<void>[] = [];
+    for await (const page of this.queryGenerator(contentTopics, options)) {
+      const _promises = page.map(async (msg) => {
+        if (!abort) {
+          abort = Boolean(await callback(msg));
+        }
+      });
+
+      promises = promises.concat(_promises);
+    }
+    return promises;
+  }
+
+  /**
+   * Do a query to a Waku Store to retrieve historical/missed messages.
+   *
+   * This is a generator, useful if you want most control on how messages
+   * are processed.
+   *
+   * @throws If not able to reach a Waku Store peer to query
+   * or if an error is encountered when processing the reply.
+   */
+  async *queryGenerator(
+    contentTopics: string[],
+    options?: QueryOptions
+  ): AsyncGenerator<Promise<WakuMessage | undefined>[]> {
     let startTime, endTime;
 
     if (options?.timeFilter) {
@@ -178,23 +251,19 @@ export class WakuStore {
       decryptionParams = decryptionParams.concat(options.decryptionParams);
     }
 
-    for await (const messagePromises of paginate(
+    for await (const messages of paginate(
       connection,
       protocol,
       queryOpts,
       decryptionParams
     )) {
-      const abort = Boolean(await callback(messagePromises));
-      if (abort) {
-        // TODO: Also abort underlying generator
-        break;
-      }
+      yield messages;
     }
   }
 
   /**
    * Register a decryption key to attempt decryption of messages received in any
-   * subsequent { @link queryHistory } call. This can either be a private key for
+   * subsequent query call. This can either be a private key for
    * asymmetric encryption or a symmetric key. { @link WakuStore } will attempt to
    * decrypt messages using both methods.
    *
@@ -209,7 +278,7 @@ export class WakuStore {
 
   /**cursorV2Beta4
    * Delete a decryption key that was used to attempt decryption of messages
-   * received in subsequent { @link queryHistory } calls.
+   * received in subsequent query calls.
    *
    * Strings must be in hex format.
    */
@@ -280,7 +349,7 @@ async function* paginate(
       throw "History response contains an Error: " + response.error;
     }
 
-    if (!response.messages) {
+    if (!response.messages || !response.messages.length) {
       log(
         "Stopping pagination due to store `response.messages` field missing or empty"
       );
@@ -315,3 +384,9 @@ async function* paginate(
     }
   }
 }
+
+export const isWakuMessageDefined = (
+  msg: WakuMessage | undefined
+): msg is WakuMessage => {
+  return !!msg;
+};
