@@ -11,7 +11,11 @@ import type { Libp2p } from "libp2p";
 import { WakuMessage as WakuMessageProto } from "../../proto/message";
 import { DefaultPubSubTopic } from "../constants";
 import { selectConnection } from "../select_connection";
-import { getPeersForProtocol, selectRandomPeer } from "../select_peer";
+import {
+  getPeersForProtocol,
+  selectPeerForProtocol,
+  selectRandomPeer,
+} from "../select_peer";
 import { hexToBytes } from "../utils";
 import { DecryptionMethod, WakuMessage } from "../waku_message";
 
@@ -228,23 +232,15 @@ export class WakuFilter {
   }
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {
-    let peer;
-    if (peerId) {
-      peer = await this.libp2p.peerStore.get(peerId);
-      if (!peer) {
-        throw new Error(
-          `Failed to retrieve connection details for provided peer in peer store: ${peerId.toString()}`
-        );
-      }
-    } else {
-      peer = await this.randomPeer();
-      if (!peer) {
-        throw new Error(
-          "Failed to find known peer that registers waku filter protocol"
-        );
-      }
+    const res = await selectPeerForProtocol(
+      this.libp2p.peerStore,
+      [FilterCodec],
+      peerId
+    );
+    if (!res) {
+      throw new Error(`Failed to select peer for ${FilterCodec}`);
     }
-    return peer;
+    return res.peer;
   }
 
   /**
@@ -272,7 +268,7 @@ export class WakuFilter {
   }
 
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.libp2p, [FilterCodec]);
+    return getPeersForProtocol(this.libp2p.peerStore, [FilterCodec]);
   }
 
   async randomPeer(): Promise<Peer | undefined> {
