@@ -14,7 +14,7 @@ import debug from "debug";
 import { DefaultPubSubTopic } from "../constants";
 import { Decoder, Encoder, Message } from "../interfaces";
 import { pushOrInitMapSet } from "../push_or_init_map";
-import { DecoderV0 } from "../waku_message/version_0";
+import { TopicOnlyDecoder } from "../waku_message/topic_only_message";
 
 import * as constants from "./constants";
 
@@ -52,6 +52,7 @@ export type CreateOptions = {
  */
 export class WakuRelay extends GossipSub {
   pubSubTopic: string;
+  defaultDecoder: Decoder<Message>;
   public static multicodec: string = constants.RelayCodecs[0];
 
   /**
@@ -72,6 +73,9 @@ export class WakuRelay extends GossipSub {
     this.observers = new Map();
 
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+
+    // TODO: User might want to decide what decoder should be used (e.g. for RLN)
+    this.defaultDecoder = new TopicOnlyDecoder();
   }
 
   /**
@@ -136,30 +140,32 @@ export class WakuRelay extends GossipSub {
         if (event.detail.msg.topic !== pubSubTopic) return;
         log(`Message received on ${pubSubTopic}`);
 
-        const decoderV0 = new DecoderV0("");
-        // TODO: User might want to decide what decoder should be used (e.g. for RLN)
-        const protoMsg = await decoderV0.decodeProto(event.detail.msg.data);
-        if (!protoMsg) {
-          return;
-        }
-        const contentTopic = protoMsg.contentTopic;
-
-        if (typeof contentTopic === "undefined") {
+        const topicOnlyMsg = await this.defaultDecoder.decodeProto(
+          event.detail.msg.data
+        );
+        if (!topicOnlyMsg || !topicOnlyMsg.contentTopic) {
           log("Message does not have a content topic, skipping");
           return;
         }
 
-        const observers = this.observers.get(contentTopic);
+        const observers = this.observers.get(topicOnlyMsg.contentTopic);
         if (!observers) {
           return;
         }
         await Promise.all(
           Array.from(observers).map(async ({ decoder, callback }) => {
+            const protoMsg = await decoder.decodeProto(event.detail.msg.data);
+            if (!protoMsg) {
+              log(
+                "Internal error: message previously decoded failed on 2nd pass."
+              );
+              return;
+            }
             const msg = await decoder.decode(protoMsg);
             if (msg) {
               callback(msg);
             } else {
-              log("Failed to decode messages on", contentTopic);
+              log("Failed to decode messages on", topicOnlyMsg.contentTopic);
             }
           })
         );

@@ -11,6 +11,7 @@ export * as enr from "./lib/enr";
 export * as utils from "./lib/utils";
 
 export * as proto_message from "./proto/message";
+export * as proto_topic_only_message from "./proto/topic_only_message";
 
 export * as waku from "./lib/waku";
 export { WakuNode, Protocols } from "./lib/waku";

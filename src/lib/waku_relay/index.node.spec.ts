@@ -160,7 +160,9 @@ describe("Waku Relay [node only]", () => {
         payload: utf8ToBytes(fooMessageText),
       });
 
-      await delay(200);
+      while (!fooMessages.length && !barMessages.length) {
+        await delay(100);
+      }
 
       expect(fooMessages[0].contentTopic).to.eq(fooContentTopic);
       expect(bytesToUtf8(fooMessages[0].payload!)).to.eq(fooMessageText);
