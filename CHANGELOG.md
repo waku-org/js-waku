@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `queryCallbackOnPromise`'s return value has been simplified to `Promise<void>`.
 - doc: clarified behaviour of `WakuStore` query functions.
+- Waku message encoding and decoding is more generic, to enable upcoming feature such as [RLN](https://rfc.vac.dev/spec/17/) & [Noise](https://rfc.vac.dev/spec/43/);
+  it also enables separating the `version_1` module out to reduce bundle size and improve cross-platform compatibility when not used.
+- Due to the change above, all APIs that handle messages have changed to receive a `Decoder` or `Encoder`.
+
+### Deleted
+
+- `WakuMessage` class in favour of the `Message`, `Encoder`, `Decoder` interfaces and `EncoderV0`, `AsymEncoder`, `SymEncoder` (and related decoders).
 
 ## [0.28.0] - 2022-09-16
 

@@ -10,7 +10,7 @@ import type { Libp2p } from "libp2p";
 import { Waku } from "./interfaces";
 import { FilterCodec, WakuFilter } from "./waku_filter";
 import { LightPushCodec, WakuLightPush } from "./waku_light_push";
-import { DecryptionMethod, WakuMessage } from "./waku_message";
+import { EncoderV0 } from "./waku_message/version_0";
 import { WakuRelay } from "./waku_relay";
 import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
 import * as relayConstants from "./waku_relay/constants";
@@ -43,7 +43,6 @@ export interface WakuOptions {
    * @default {@link DefaultRelayKeepAliveValueSecs}
    */
   relayKeepAlive?: number;
-  decryptionKeys?: Array<Uint8Array | string>;
 }
 
 export class WakuNode implements Waku {
@@ -109,10 +108,6 @@ export class WakuNode implements Waku {
      */
     libp2p.connectionManager.addEventListener("peer:disconnect", (evt) => {
       this.stopKeepAlive(evt.detail.remotePeer);
-    });
-
-    options?.decryptionKeys?.forEach((key) => {
-      this.addDecryptionKey(key);
     });
   }
 
@@ -184,34 +179,6 @@ export class WakuNode implements Waku {
   }
 
   /**
-   * Register a decryption key to attempt decryption of messages received via
-   * { @link WakuRelay } and { @link WakuStore }. This can either be a private key for
-   * asymmetric encryption or a symmetric key.
-   *
-   * Strings must be in hex format.
-   */
-  addDecryptionKey(
-    key: Uint8Array | string,
-    options?: { method?: DecryptionMethod; contentTopics?: string[] }
-  ): void {
-    if (this.relay) this.relay.addDecryptionKey(key, options);
-    if (this.store) this.store.addDecryptionKey(key, options);
-    if (this.filter) this.filter.addDecryptionKey(key, options);
-  }
-
-  /**
-   * Delete a decryption key that was used to attempt decryption of messages
-   * received via { @link WakuRelay } or { @link WakuStore }.
-   *
-   * Strings must be in hex format.
-   */
-  deleteDecryptionKey(key: Uint8Array | string): void {
-    if (this.relay) this.relay.deleteDecryptionKey(key);
-    if (this.store) this.store.deleteDecryptionKey(key);
-    if (this.filter) this.filter.deleteDecryptionKey(key);
-  }
-
-  /**
    * Return the local multiaddr with peer id on which libp2p is listening.
    *
    * @throws if libp2p is not listening on localhost.
@@ -246,11 +213,12 @@ export class WakuNode implements Waku {
 
     const relay = this.relay;
     if (relay && relayPeriodSecs !== 0) {
+      const encoder = new EncoderV0(RelayPingContentTopic);
       this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
         log("Sending Waku Relay ping message");
-        WakuMessage.fromBytes(new Uint8Array(), RelayPingContentTopic).then(
-          (wakuMsg) => relay.send(wakuMsg)
-        );
+        relay
+          .send(encoder, { payload: new Uint8Array() })
+          .catch((e) => log("Failed to send relay ping", e));
       }, relayPeriodSecs * 1000);
     }
   }

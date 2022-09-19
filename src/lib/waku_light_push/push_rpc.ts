@@ -2,16 +2,18 @@ import type { Uint8ArrayList } from "uint8arraylist";
 import { v4 as uuid } from "uuid";
 
 import * as proto from "../../proto/light_push";
-import { WakuMessage } from "../waku_message";
 
 export class PushRPC {
   public constructor(public proto: proto.PushRPC) {}
 
-  static createRequest(message: WakuMessage, pubSubTopic: string): PushRPC {
+  static createRequest(
+    message: proto.WakuMessage,
+    pubSubTopic: string
+  ): PushRPC {
     return new PushRPC({
       requestId: uuid(),
       request: {
-        message: message.proto,
+        message: message,
         pubSubTopic: pubSubTopic,
       },
       response: undefined,

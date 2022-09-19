@@ -6,7 +6,6 @@ import type { Libp2p } from "libp2p";
 import type { Protocols } from "./waku";
 import type { WakuFilter } from "./waku_filter";
 import type { WakuLightPush } from "./waku_light_push";
-import type { DecryptionMethod } from "./waku_message";
 import type { WakuRelay } from "./waku_relay";
 import type { WakuStore } from "./waku_store";
 
@@ -29,13 +28,6 @@ export interface Waku {
   stop(): Promise<void>;
 
   isStarted(): boolean;
-
-  addDecryptionKey(
-    key: Uint8Array | string,
-    options?: { method?: DecryptionMethod; contentTopics?: string[] }
-  ): void;
-
-  deleteDecryptionKey(key: Uint8Array | string): void;
 }
 
 export interface WakuLight extends Waku {
@@ -57,4 +49,29 @@ export interface WakuFull extends Waku {
   store: WakuStore;
   filter: WakuFilter;
   lightPush: WakuLightPush;
+}
+
+export interface ProtoMessage {
+  payload?: Uint8Array;
+  contentTopic?: string;
+  version?: number;
+  timestamp?: bigint;
+}
+
+export interface Message {
+  payload?: Uint8Array;
+  contentTopic?: string;
+  timestamp?: Date;
+}
+
+export interface Encoder {
+  contentTopic: string;
+  encode: (message: Message) => Promise<Uint8Array | undefined>;
+  encodeProto: (message: Message) => Promise<ProtoMessage | undefined>;
+}
+
+export interface Decoder {
+  contentTopic: string;
+  decodeProto: (bytes: Uint8Array) => Promise<ProtoMessage | undefined>;
+  decode: (proto: ProtoMessage) => Promise<Message | undefined>;
 }

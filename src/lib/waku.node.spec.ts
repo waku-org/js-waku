@@ -10,11 +10,12 @@ import {
 
 import { createLightNode, createPrivacyNode } from "./create_waku";
 import { generateSymmetricKey } from "./crypto";
-import type { Waku, WakuLight, WakuPrivacy } from "./interfaces";
+import type { Message, Waku, WakuLight, WakuPrivacy } from "./interfaces";
 import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
+import { bytesToUtf8, utf8ToBytes } from "./utils";
 import { waitForRemotePeer } from "./wait_for_remote_peer";
 import { Protocols } from "./waku";
-import { WakuMessage } from "./waku_message";
+import { SymDecoder, SymEncoder } from "./waku_message/version_1.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
 
@@ -158,31 +159,26 @@ describe("Decryption Keys", () => {
     this.timeout(10000);
 
     const symKey = generateSymmetricKey();
+    const decoder = new SymDecoder(TestContentTopic, symKey);
 
-    waku2.addDecryptionKey(symKey);
-
+    const encoder = new SymEncoder(TestContentTopic, symKey);
     const messageText = "Message is encrypted";
     const messageTimestamp = new Date("1995-12-17T03:24:00");
-    const message = await WakuMessage.fromUtf8String(
-      messageText,
-      TestContentTopic,
-      {
-        timestamp: messageTimestamp,
-        symKey,
-      }
-    );
+    const message = {
+      payload: utf8ToBytes(messageText),
+      timestamp: messageTimestamp,
+    };
 
-    const receivedMsgPromise: Promise<WakuMessage> = new Promise((resolve) => {
-      waku2.relay.addObserver(resolve);
+    const receivedMsgPromise: Promise<Message> = new Promise((resolve) => {
+      waku2.relay.addObserver(decoder, resolve);
     });
 
-    await waku1.relay.send(message);
+    await waku1.relay.send(encoder, message);
 
     const receivedMsg = await receivedMsgPromise;
 
-    expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
-    expect(receivedMsg.version).to.eq(message.version);
-    expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
+    expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
+    expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
     expect(receivedMsg.timestamp?.valueOf()).to.eq(messageTimestamp.valueOf());
   });
 });

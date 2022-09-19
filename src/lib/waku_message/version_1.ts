@@ -1,100 +1,225 @@
 import * as secp from "@noble/secp256k1";
+import debug from "debug";
 
+import * as proto from "../../proto/message";
 import { keccak256, randomBytes, sign } from "../crypto";
+import { Decoder, Encoder, Message, ProtoMessage } from "../interfaces";
 import { concat, hexToBytes } from "../utils";
 
 import { Symmetric } from "./constants";
 import * as ecies from "./ecies";
 import * as symmetric from "./symmetric";
+import { DecoderV0, MessageV0 } from "./version_0";
+
+const log = debug("waku:message:version-1");
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011
 const IsSignedMask = 4; // 0100
 const PaddingTarget = 256;
 const SignatureLength = 65;
+const OneMillion = BigInt(1_000_000);
+
+export const Version = 1;
 
 export type Signature = {
   signature: Uint8Array;
   publicKey: Uint8Array | undefined;
 };
 
-/**
- * Encode the payload pre-encryption.
- *
- * @internal
- * @param messagePayload: The payload to include in the message
- * @param sigPrivKey: If set, a signature using this private key is added.
- * @returns The encoded payload, ready for encryption using {@link encryptAsymmetric}
- * or {@link encryptSymmetric}.
- */
-export async function clearEncode(
-  messagePayload: Uint8Array,
-  sigPrivKey?: Uint8Array
-): Promise<{ payload: Uint8Array; sig?: Signature }> {
-  let envelope = new Uint8Array([0]); // No flags
-  envelope = addPayloadSizeField(envelope, messagePayload);
-  envelope = concat([envelope, messagePayload]);
+export class MessageV1 extends MessageV0 implements Message {
+  private readonly _decodedPayload: Uint8Array;
 
-  // Calculate padding:
-  let rawSize =
-    FlagsLength +
-    computeSizeOfPayloadSizeField(messagePayload) +
-    messagePayload.length;
-
-  if (sigPrivKey) {
-    rawSize += SignatureLength;
+  constructor(
+    proto: proto.WakuMessage,
+    decodedPayload: Uint8Array,
+    public signature?: Uint8Array,
+    public signaturePublicKey?: Uint8Array
+  ) {
+    super(proto);
+    this._decodedPayload = decodedPayload;
   }
 
-  const remainder = rawSize % PaddingTarget;
-  const paddingSize = PaddingTarget - remainder;
-  const pad = randomBytes(paddingSize);
-
-  if (!validateDataIntegrity(pad, paddingSize)) {
-    throw new Error("failed to generate random padding of size " + paddingSize);
+  get payload(): Uint8Array {
+    return this._decodedPayload;
   }
-
-  envelope = concat([envelope, pad]);
-  let sig;
-  if (sigPrivKey) {
-    envelope[0] |= IsSignedMask;
-    const hash = keccak256(envelope);
-    const bytesSignature = await sign(hash, sigPrivKey);
-    envelope = concat([envelope, bytesSignature]);
-    sig = {
-      signature: bytesSignature,
-      publicKey: secp.getPublicKey(sigPrivKey, false),
-    };
-  }
-
-  return { payload: envelope, sig };
 }
 
-/**
- * Decode a decrypted payload.
- *
- * @internal
- */
-export function clearDecode(
-  message: Uint8Array
-): { payload: Uint8Array; sig?: Signature } | undefined {
-  const sizeOfPayloadSizeField = getSizeOfPayloadSizeField(message);
-  if (sizeOfPayloadSizeField === 0) return;
+export class AsymEncoder implements Encoder {
+  constructor(
+    public contentTopic: string,
+    private publicKey: Uint8Array,
+    private sigPrivKey?: Uint8Array
+  ) {}
 
-  const payloadSize = getPayloadSize(message, sizeOfPayloadSizeField);
-  const payloadStart = 1 + sizeOfPayloadSizeField;
-  const payload = message.slice(payloadStart, payloadStart + payloadSize);
+  async encode(message: Message): Promise<Uint8Array | undefined> {
+    const protoMessage = await this.encodeProto(message);
+    if (!protoMessage) return;
 
-  const isSigned = isMessageSigned(message);
-
-  let sig;
-  if (isSigned) {
-    const signature = getSignature(message);
-    const hash = getHash(message, isSigned);
-    const publicKey = ecRecoverPubKey(hash, signature);
-    sig = { signature, publicKey };
+    return proto.WakuMessage.encode(protoMessage);
   }
 
-  return { payload, sig };
+  async encodeProto(message: Message): Promise<ProtoMessage | undefined> {
+    const timestamp = message.timestamp ?? new Date();
+    if (!message.payload) {
+      log("No payload to encrypt, skipping: ", message);
+      return;
+    }
+    const preparedPayload = await preCipher(message.payload, this.sigPrivKey);
+
+    const payload = await encryptAsymmetric(preparedPayload, this.publicKey);
+
+    return {
+      payload,
+      version: Version,
+      contentTopic: this.contentTopic,
+      timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+    };
+  }
+}
+
+export class SymEncoder implements Encoder {
+  constructor(
+    public contentTopic: string,
+    private symKey: Uint8Array,
+    private sigPrivKey?: Uint8Array
+  ) {}
+
+  async encode(message: Message): Promise<Uint8Array | undefined> {
+    const protoMessage = await this.encodeProto(message);
+    if (!protoMessage) return;
+
+    return proto.WakuMessage.encode(protoMessage);
+  }
+
+  async encodeProto(message: Message): Promise<ProtoMessage | undefined> {
+    const timestamp = message.timestamp ?? new Date();
+    if (!message.payload) {
+      log("No payload to encrypt, skipping: ", message);
+      return;
+    }
+    const preparedPayload = await preCipher(message.payload, this.sigPrivKey);
+
+    const payload = await encryptSymmetric(preparedPayload, this.symKey);
+    return {
+      payload,
+      version: Version,
+      contentTopic: this.contentTopic,
+      timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+    };
+  }
+}
+
+export class AsymDecoder extends DecoderV0 implements Decoder {
+  constructor(contentTopic: string, private privateKey: Uint8Array) {
+    super(contentTopic);
+  }
+
+  async decode(protoMessage: ProtoMessage): Promise<MessageV1 | undefined> {
+    const cipherPayload = protoMessage.payload;
+
+    if (protoMessage.version !== Version) {
+      log(
+        "Failed to decrypt due to incorrect version, expected:",
+        Version,
+        ", actual:",
+        protoMessage.version
+      );
+      return;
+    }
+
+    let payload;
+    if (!cipherPayload) {
+      log(`No payload to decrypt for contentTopic ${this.contentTopic}`);
+      return;
+    }
+
+    try {
+      payload = await decryptAsymmetric(cipherPayload, this.privateKey);
+    } catch (e) {
+      log(
+        `Failed to decrypt message using asymmetric decryption for contentTopic: ${this.contentTopic}`,
+        e
+      );
+      return;
+    }
+
+    if (!payload) {
+      log(`Failed to decrypt payload for contentTopic ${this.contentTopic}`);
+      return;
+    }
+
+    const res = await postCipher(payload);
+
+    if (!res) {
+      log(`Failed to decode payload for contentTopic ${this.contentTopic}`);
+      return;
+    }
+
+    log("Message decrypted", protoMessage);
+    return new MessageV1(
+      protoMessage,
+      res.payload,
+      res.sig?.signature,
+      res.sig?.publicKey
+    );
+  }
+}
+
+export class SymDecoder extends DecoderV0 implements Decoder {
+  constructor(contentTopic: string, private symKey: Uint8Array) {
+    super(contentTopic);
+  }
+
+  async decode(protoMessage: ProtoMessage): Promise<MessageV1 | undefined> {
+    const cipherPayload = protoMessage.payload;
+
+    if (protoMessage.version !== Version) {
+      log(
+        "Failed to decrypt due to incorrect version, expected:",
+        Version,
+        ", actual:",
+        protoMessage.version
+      );
+      return;
+    }
+
+    let payload;
+    if (!cipherPayload) {
+      log(`No payload to decrypt for contentTopic ${this.contentTopic}`);
+      return;
+    }
+
+    try {
+      payload = await decryptSymmetric(cipherPayload, this.symKey);
+    } catch (e) {
+      log(
+        `Failed to decrypt message using asymmetric decryption for contentTopic: ${this.contentTopic}`,
+        e
+      );
+      return;
+    }
+
+    if (!payload) {
+      log(`Failed to decrypt payload for contentTopic ${this.contentTopic}`);
+      return;
+    }
+
+    const res = await postCipher(payload);
+
+    if (!res) {
+      log(`Failed to decode payload for contentTopic ${this.contentTopic}`);
+      return;
+    }
+
+    log("Message decrypted", protoMessage);
+    return new MessageV1(
+      protoMessage,
+      res.payload,
+      res.sig?.signature,
+      res.sig?.publicKey
+    );
+  }
 }
 
 function getSizeOfPayloadSizeField(message: Uint8Array): number {
@@ -246,12 +371,77 @@ function ecRecoverPubKey(
   const recovery = recoveryDataView.getUint8(0);
   const _signature = secp.Signature.fromCompact(signature.slice(0, 64));
 
-  return secp.recoverPublicKey(
-    messageHash,
-    _signature,
-    recovery,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore: compressed: false
-    false
-  );
+  return secp.recoverPublicKey(messageHash, _signature, recovery, false);
+}
+
+/**
+ * Prepare the payload pre-encryption.
+ *
+ * @internal
+ * @returns The encoded payload, ready for encryption using {@link encryptAsymmetric}
+ * or {@link encryptSymmetric}.
+ */
+export async function preCipher(
+  messagePayload: Uint8Array,
+  sigPrivKey?: Uint8Array
+): Promise<Uint8Array> {
+  let envelope = new Uint8Array([0]); // No flags
+  envelope = addPayloadSizeField(envelope, messagePayload);
+  envelope = concat([envelope, messagePayload]);
+
+  // Calculate padding:
+  let rawSize =
+    FlagsLength +
+    computeSizeOfPayloadSizeField(messagePayload) +
+    messagePayload.length;
+
+  if (sigPrivKey) {
+    rawSize += SignatureLength;
+  }
+
+  const remainder = rawSize % PaddingTarget;
+  const paddingSize = PaddingTarget - remainder;
+  const pad = randomBytes(paddingSize);
+
+  if (!validateDataIntegrity(pad, paddingSize)) {
+    throw new Error("failed to generate random padding of size " + paddingSize);
+  }
+
+  envelope = concat([envelope, pad]);
+  if (sigPrivKey) {
+    envelope[0] |= IsSignedMask;
+    const hash = keccak256(envelope);
+    const bytesSignature = await sign(hash, sigPrivKey);
+    envelope = concat([envelope, bytesSignature]);
+  }
+
+  return envelope;
+}
+
+/**
+ * Decode a decrypted payload.
+ *
+ * @internal
+ */
+export function postCipher(
+  message: Uint8Array
+): { payload: Uint8Array; sig?: Signature } | undefined {
+  const sizeOfPayloadSizeField = getSizeOfPayloadSizeField(message);
+  if (sizeOfPayloadSizeField === 0) return;
+
+  const payloadSize = getPayloadSize(message, sizeOfPayloadSizeField);
+  const payloadStart = 1 + sizeOfPayloadSizeField;
+  const payload = message.slice(payloadStart, payloadStart + payloadSize);
+
+  const isSigned = isMessageSigned(message);
+
+  let sig;
+  if (isSigned) {
+    const signature = getSignature(message);
+    const hash = getHash(message, isSigned);
+    const publicKey = ecRecoverPubKey(hash, signature);
+    sig = { signature, publicKey };
+  }
+
+  return { payload, sig };
 }

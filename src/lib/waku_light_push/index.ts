@@ -9,13 +9,13 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import { PushResponse } from "../../proto/light_push";
 import { DefaultPubSubTopic } from "../constants";
+import { Encoder, Message } from "../interfaces";
 import { selectConnection } from "../select_connection";
 import {
   getPeersForProtocol,
   selectPeerForProtocol,
   selectRandomPeer,
 } from "../select_peer";
-import { WakuMessage } from "../waku_message";
 
 import { PushRPC } from "./push_rpc";
 
@@ -52,9 +52,12 @@ export class WakuLightPush {
   }
 
   async push(
-    message: WakuMessage,
+    encoder: Encoder,
+    message: Message,
     opts?: PushOptions
-  ): Promise<PushResponse | null> {
+  ): Promise<PushResponse | undefined> {
+    const pubSubTopic = opts?.pubSubTopic ? opts.pubSubTopic : this.pubSubTopic;
+
     const res = await selectPeerForProtocol(
       this.libp2p.peerStore,
       [LightPushCodec],
@@ -73,10 +76,12 @@ export class WakuLightPush {
 
     const stream = await connection.newStream(LightPushCodec);
     try {
-      const pubSubTopic = opts?.pubSubTopic
-        ? opts.pubSubTopic
-        : this.pubSubTopic;
-      const query = PushRPC.createRequest(message, pubSubTopic);
+      const protoMessage = await encoder.encodeProto(message);
+      if (!protoMessage) {
+        log("Failed to encode to protoMessage, aborting push");
+        return;
+      }
+      const query = PushRPC.createRequest(protoMessage, pubSubTopic);
       const res = await pipe(
         [query.encode()],
         lp.encode(),
@@ -94,7 +99,7 @@ export class WakuLightPush {
 
         if (!response) {
           log("No response in PushRPC");
-          return null;
+          return;
         }
 
         return response;
@@ -104,7 +109,7 @@ export class WakuLightPush {
     } catch (err) {
       log("Failed to send waku light push request", err);
     }
-    return null;
+    return;
   }
 
   /**
