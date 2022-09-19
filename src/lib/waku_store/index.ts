@@ -63,7 +63,7 @@ export interface QueryOptions {
    * - { @link PageDirection.FORWARD }: Oldest page first.
    *
    * Note: This does not affect the ordering of messages with the page
-   * (oldest message is always first).
+   * (the oldest message is always first).
    *
    * @default { @link PageDirection.BACKWARD }
    */
@@ -114,6 +114,9 @@ export class WakuStore {
    * - latest to oldest if `options.pageDirection` == { @link PageDirection.BACKWARD }
    *
    * The ordering may affect performance.
+   * The ordering depends on the behavior of the remote store node.
+   * If strong ordering is needed, you may need to handle this at application level
+   * and set your own timestamps too (the WakuMessage timestamps are not certified).
    *
    * @throws If not able to reach a Waku Store peer to query
    * or if an error is encountered when processing the reply.
@@ -156,9 +159,14 @@ export class WakuStore {
    *
    * The callback function takes a `Promise<WakuMessage>` in input,
    * useful if messages needs to be decrypted and performance matters.
-   * **Order of messages is not guaranteed**.
    *
-   * @returns the promises of the callback call.
+   * The order of the messages passed to the callback is as follows:
+   * - within a page, messages are expected to be ordered from oldest to most recent
+   * - pages direction depends on { @link QueryOptions.pageDirection }
+   *
+   * Do note that the resolution of the `Promise<WakuMessage | undefined` may
+   * break the order as it may rely on the browser decryption API, which in turn,
+   * may have a different speed depending on the type of decryption.
    *
    * @throws If not able to reach a Waku Store peer to query
    * or if an error is encountered when processing the reply.
@@ -169,7 +177,7 @@ export class WakuStore {
       message: Promise<WakuMessage | undefined>
     ) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
-  ): Promise<Array<Promise<void>>> {
+  ): Promise<void> {
     let abort = false;
     let promises: Promise<void>[] = [];
     for await (const page of this.queryGenerator(contentTopics, options)) {
@@ -181,7 +189,7 @@ export class WakuStore {
 
       promises = promises.concat(_promises);
     }
-    return promises;
+    await Promise.all(promises);
   }
 
   /**
@@ -189,6 +197,13 @@ export class WakuStore {
    *
    * This is a generator, useful if you want most control on how messages
    * are processed.
+   *
+   * The order of the messages returned by the remote Waku node SHOULD BE
+   * as follows:
+   * - within a page, messages SHOULD be ordered from oldest to most recent
+   * - pages direction depends on { @link QueryOptions.pageDirection }
+   *
+   * However, there is no way to guarantee the behavior of the remote node.
    *
    * @throws If not able to reach a Waku Store peer to query
    * or if an error is encountered when processing the reply.

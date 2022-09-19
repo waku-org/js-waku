@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `queryCallbackOnPromise`'s return value has been simplified to `Promise<void>`.
+- doc: clarified behaviour of `WakuStore` query functions.
+
 ## [0.28.0] - 2022-09-16
 
 ### Changed
