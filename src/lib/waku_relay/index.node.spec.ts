@@ -381,9 +381,7 @@ describe("Waku Relay [node only]", () => {
       const messageText = "Here is another message.";
 
       const receivedMsgPromise: Promise<MessageV0> = new Promise((resolve) => {
-        waku.relay.addObserver(TestDecoder, (msg) =>
-          resolve(msg as unknown as MessageV0)
-        );
+        waku.relay.addObserver<MessageV0>(TestDecoder, (msg) => resolve(msg));
       });
 
       await nwaku.sendMessage(

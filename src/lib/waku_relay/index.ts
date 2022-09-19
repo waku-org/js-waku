@@ -20,7 +20,12 @@ import * as constants from "./constants";
 
 const log = debug("waku:relay");
 
-export type Callback = (msg: Message) => void;
+export type Callback<T extends Message> = (msg: T) => void;
+
+export type Observer<T extends Message> = {
+  decoder: Decoder<T>;
+  callback: Callback<T>;
+};
 
 export type CreateOptions = {
   /**
@@ -53,7 +58,7 @@ export class WakuRelay extends GossipSub {
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  public observers: Map<string, Set<{ decoder: Decoder; callback: Callback }>>;
+  public observers: Map<string, Set<Observer<any>>>;
 
   constructor(options?: Partial<CreateOptions>) {
     options = Object.assign(options ?? {}, {
@@ -101,7 +106,10 @@ export class WakuRelay extends GossipSub {
    *
    * @returns Function to delete the observer
    */
-  addObserver(decoder: Decoder, callback: Callback): () => void {
+  addObserver<T extends Message>(
+    decoder: Decoder<T>,
+    callback: Callback<T>
+  ): () => void {
     const observer = {
       decoder,
       callback,

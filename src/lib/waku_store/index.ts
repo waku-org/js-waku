@@ -103,8 +103,8 @@ export class WakuStore {
    * @throws If not able to reach a Waku Store peer to query
    * or if an error is encountered when processing the reply.
    */
-  async queryOrderedCallback(
-    decoder: Decoder,
+  async queryOrderedCallback<T extends Message>(
+    decoder: Decoder<T>,
     callback: (message: Message) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
@@ -151,8 +151,8 @@ export class WakuStore {
    * @throws If not able to reach a Waku Store peer to query
    * or if an error is encountered when processing the reply.
    */
-  async queryCallbackOnPromise(
-    decoder: Decoder,
+  async queryCallbackOnPromise<T extends Message>(
+    decoder: Decoder<T>,
     callback: (
       message: Promise<Message | undefined>
     ) => Promise<void | boolean> | boolean | void,
@@ -188,8 +188,8 @@ export class WakuStore {
    * @throws If not able to reach a Waku Store peer to query
    * or if an error is encountered when processing the reply.
    */
-  async *queryGenerator(
-    decoder: Decoder,
+  async *queryGenerator<T extends Message>(
+    decoder: Decoder<T>,
     options?: QueryOptions
   ): AsyncGenerator<Promise<Message | undefined>[]> {
     let startTime, endTime;
@@ -256,11 +256,11 @@ export class WakuStore {
   }
 }
 
-async function* paginate(
+async function* paginate<T extends Message>(
   connection: Connection,
   protocol: string,
   queryOpts: Params,
-  decoder: Decoder
+  decoder: Decoder<T>
 ): AsyncGenerator<Promise<Message | undefined>[]> {
   let cursor = undefined;
   while (true) {

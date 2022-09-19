@@ -75,7 +75,7 @@ export class EncoderV0 implements Encoder {
   }
 }
 
-export class DecoderV0 implements Decoder {
+export class DecoderV0 implements Decoder<MessageV0> {
   constructor(public contentTopic: string) {}
 
   decodeProto(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
@@ -84,7 +84,7 @@ export class DecoderV0 implements Decoder {
     return Promise.resolve(protoMessage);
   }
 
-  async decode(proto: ProtoMessage): Promise<Message | undefined> {
+  async decode(proto: ProtoMessage): Promise<MessageV0 | undefined> {
     // https://github.com/status-im/js-waku/issues/921
     if (proto.version === undefined) {
       proto.version = 0;
