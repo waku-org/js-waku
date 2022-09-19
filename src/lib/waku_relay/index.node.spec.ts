@@ -248,8 +248,10 @@ describe("Waku Relay [node only]", () => {
       // The promise **fails** if we receive a message on this observer.
       const receivedMsgPromise: Promise<WakuMessage> = new Promise(
         (resolve, reject) => {
-          waku2.relay.addObserver(reject, ["added-then-deleted-observer"]);
-          waku2.relay.deleteObserver(reject, ["added-then-deleted-observer"]);
+          const deleteObserver = waku2.relay.addObserver(reject, [
+            "added-then-deleted-observer",
+          ]);
+          deleteObserver();
           setTimeout(resolve, 500);
         }
       );

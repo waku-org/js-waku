@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `WakuRelay.addObserver` now returns a function to delete the observer.
+
 ### Changed
 
 - `queryCallbackOnPromise`'s return value has been simplified to `Promise<void>`.
