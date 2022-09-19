@@ -100,16 +100,17 @@ export class WakuStore {
    * If strong ordering is needed, you may need to handle this at application level
    * and set your own timestamps too (the WakuMessage timestamps are not certified).
    *
-   * @throws If not able to reach a Waku Store peer to query
-   * or if an error is encountered when processing the reply.
+   * @throws If not able to reach a Waku Store peer to query,
+   * or if an error is encountered when processing the reply,
+   * or if two decoders with the same content topic are passed.
    */
   async queryOrderedCallback<T extends Message>(
-    decoder: Decoder<T>,
+    decoders: Decoder<T>[],
     callback: (message: Message) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
     const abort = false;
-    for await (const promises of this.queryGenerator(decoder, options)) {
+    for await (const promises of this.queryGenerator(decoders, options)) {
       if (abort) break;
       let messages = await Promise.all(promises);
 
@@ -148,11 +149,12 @@ export class WakuStore {
    * break the order as it may rely on the browser decryption API, which in turn,
    * may have a different speed depending on the type of decryption.
    *
-   * @throws If not able to reach a Waku Store peer to query
-   * or if an error is encountered when processing the reply.
+   * @throws If not able to reach a Waku Store peer to query,
+   * or if an error is encountered when processing the reply,
+   * or if two decoders with the same content topic are passed.
    */
   async queryCallbackOnPromise<T extends Message>(
-    decoder: Decoder<T>,
+    decoders: Decoder<T>[],
     callback: (
       message: Promise<Message | undefined>
     ) => Promise<void | boolean> | boolean | void,
@@ -160,7 +162,7 @@ export class WakuStore {
   ): Promise<void> {
     let abort = false;
     let promises: Promise<void>[] = [];
-    for await (const page of this.queryGenerator(decoder, options)) {
+    for await (const page of this.queryGenerator(decoders, options)) {
       const _promises = page.map(async (msg) => {
         if (!abort) {
           abort = Boolean(await callback(msg));
@@ -185,11 +187,12 @@ export class WakuStore {
    *
    * However, there is no way to guarantee the behavior of the remote node.
    *
-   * @throws If not able to reach a Waku Store peer to query
-   * or if an error is encountered when processing the reply.
+   * @throws If not able to reach a Waku Store peer to query,
+   * or if an error is encountered when processing the reply,
+   * or if two decoders with the same content topic are passed.
    */
   async *queryGenerator<T extends Message>(
-    decoder: Decoder<T>,
+    decoders: Decoder<T>[],
     options?: QueryOptions
   ): AsyncGenerator<Promise<Message | undefined>[]> {
     let startTime, endTime;
@@ -199,7 +202,17 @@ export class WakuStore {
       endTime = options.timeFilter.endTime;
     }
 
-    const contentTopic = decoder.contentTopic;
+    const decodersAsMap = new Map();
+    decoders.forEach((dec) => {
+      if (decodersAsMap.has(dec.contentTopic)) {
+        throw new Error(
+          "API does not support different decoder per content topic"
+        );
+      }
+      decodersAsMap.set(dec.contentTopic, dec);
+    });
+
+    const contentTopics = decoders.map((dec) => dec.contentTopic);
 
     const queryOpts = Object.assign(
       {
@@ -208,7 +221,7 @@ export class WakuStore {
         pageSize: DefaultPageSize,
       },
       options,
-      { contentTopics: [contentTopic], startTime, endTime }
+      { contentTopics, startTime, endTime }
     );
 
     log("Querying history with the following options", {
@@ -236,7 +249,7 @@ export class WakuStore {
       connection,
       protocol,
       queryOpts,
-      decoder
+      decodersAsMap
     )) {
       yield messages;
     }
@@ -260,8 +273,17 @@ async function* paginate<T extends Message>(
   connection: Connection,
   protocol: string,
   queryOpts: Params,
-  decoder: Decoder<T>
-): AsyncGenerator<Promise<Message | undefined>[]> {
+  decoders: Map<string, Decoder<T>>
+): AsyncGenerator<Promise<T | undefined>[]> {
+  if (
+    queryOpts.contentTopics.toString() !==
+    Array.from(decoders.keys()).toString()
+  ) {
+    throw new Error(
+      "Internal error, the decoders should match the query's content topics"
+    );
+  }
+
   let cursor = undefined;
   while (true) {
     queryOpts = Object.assign(queryOpts, { cursor });
@@ -314,7 +336,16 @@ async function* paginate<T extends Message>(
 
     log(`${response.messages.length} messages retrieved from store`);
 
-    yield response.messages.map((protoMsg) => decoder.decode(protoMsg));
+    yield response.messages.map((protoMsg) => {
+      const contentTopic = protoMsg.contentTopic;
+      if (typeof contentTopic !== "undefined") {
+        const decoder = decoders.get(contentTopic);
+        if (decoder) {
+          return decoder.decode(protoMsg);
+        }
+      }
+      return Promise.resolve(undefined);
+    });
 
     cursor = response.pagingInfo?.cursor;
     if (typeof cursor === "undefined") {
