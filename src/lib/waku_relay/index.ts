@@ -131,12 +131,12 @@ export class WakuRelay extends GossipSub {
    * @param callback called when a new message is received via waku relay
    * @param contentTopics Content Topics for which the callback with be called,
    * all of them if undefined, [] or ["",..] is passed.
-   * @returns {void}
+   * @returns Function to delete the observer
    */
   addObserver(
     callback: (message: WakuMessage) => void,
     contentTopics: string[] = []
-  ): void {
+  ): () => void {
     if (contentTopics.length === 0) {
       if (!this.observers[""]) {
         this.observers[""] = new Set();
@@ -150,6 +150,20 @@ export class WakuRelay extends GossipSub {
         this.observers[contentTopic].add(callback);
       });
     }
+
+    return () => {
+      if (contentTopics.length === 0) {
+        if (this.observers[""]) {
+          this.observers[""].delete(callback);
+        }
+      } else {
+        contentTopics.forEach((contentTopic) => {
+          if (this.observers[contentTopic]) {
+            this.observers[contentTopic].delete(callback);
+          }
+        });
+      }
+    };
   }
 
   /**
