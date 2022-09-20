@@ -10,10 +10,10 @@ import {
 import { delay } from "../../test_utils/delay";
 import { createFullNode } from "../create_waku";
 import type { WakuFull } from "../interfaces";
-import { bytesToUtf8 } from "../utils";
+import { bytesToUtf8, utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { Protocols } from "../waku";
-import { WakuMessage } from "../waku_message";
+import { EncoderV0 } from "../waku_message/version_0";
 
 const log = debug("waku:test:lightpush");
 
@@ -42,12 +42,11 @@ describe("Waku Light Push [node only]", () => {
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const messageText = "Light Push works!";
-    const message = await WakuMessage.fromUtf8String(
-      messageText,
-      TestContentTopic
-    );
+    const encoder = new EncoderV0(TestContentTopic);
 
-    const pushResponse = await waku.lightPush.push(message);
+    const pushResponse = await waku.lightPush.push(encoder, {
+      payload: utf8ToBytes(messageText),
+    });
     expect(pushResponse?.isSuccess).to.be.true;
 
     let msgs: MessageRpcResponse[] = [];
@@ -57,8 +56,7 @@ describe("Waku Light Push [node only]", () => {
       msgs = await nwaku.messages();
     }
 
-    expect(msgs[0].contentTopic).to.equal(message.contentTopic);
-    expect(msgs[0].version).to.equal(message.version);
+    expect(msgs[0].contentTopic).to.equal(TestContentTopic);
     expect(bytesToUtf8(new Uint8Array(msgs[0].payload))).to.equal(messageText);
   });
 
@@ -81,16 +79,17 @@ describe("Waku Light Push [node only]", () => {
     const nimPeerId = await nwaku.getPeerId();
 
     const messageText = "Light Push works!";
-    const message = await WakuMessage.fromUtf8String(
-      messageText,
-      TestContentTopic
-    );
+    const encoder = new EncoderV0(TestContentTopic);
 
     log("Send message via lightpush");
-    const pushResponse = await waku.lightPush.push(message, {
-      peerId: nimPeerId,
-      pubSubTopic: customPubSubTopic,
-    });
+    const pushResponse = await waku.lightPush.push(
+      encoder,
+      { payload: utf8ToBytes(messageText) },
+      {
+        peerId: nimPeerId,
+        pubSubTopic: customPubSubTopic,
+      }
+    );
     log("Ack received", pushResponse);
     expect(pushResponse?.isSuccess).to.be.true;
 
@@ -102,8 +101,7 @@ describe("Waku Light Push [node only]", () => {
       msgs = await nwaku.messages(customPubSubTopic);
     }
 
-    expect(msgs[0].contentTopic).to.equal(message.contentTopic);
-    expect(msgs[0].version).to.equal(message.version);
+    expect(msgs[0].contentTopic).to.equal(TestContentTopic);
     expect(bytesToUtf8(new Uint8Array(msgs[0].payload))!).to.equal(messageText);
   });
 });

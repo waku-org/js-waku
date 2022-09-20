@@ -15,9 +15,6 @@ export * as proto_message from "./proto/message";
 export * as waku from "./lib/waku";
 export { WakuNode, Protocols } from "./lib/waku";
 
-export * as waku_message from "./lib/waku_message";
-export { WakuMessage } from "./lib/waku_message";
-
 export * as waku_filter from "./lib/waku_filter";
 export { WakuFilter } from "./lib/waku_filter";
 

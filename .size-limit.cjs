@@ -10,12 +10,14 @@ module.exports = [
     import: {
       "./bundle/lib/create_waku.js": "{ createLightNode }",
       "./bundle/lib/wait_for_remote_peer.js": "{ waitForRemotePeer }",
+      "./bundle/lib/waku_message/version_0.js":
+        "{ MessageV0, DecoderV0, EncoderV0 }",
     },
   },
   {
     name: "Asymmetric, symmetric encryption and signature",
-    path: "bundle/index.js",
-    import: "{ WakuMessage }",
+    path: "bundle/lib/waku_message/version_1.js",
+    import: "{ MessageV1, AsymEncoder, AsymDecoder, SymEncoder, SymDecoder }",
   },
   {
     name: "DNS discovery",

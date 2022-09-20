@@ -11,14 +11,9 @@ import { Uint8ArrayList } from "uint8arraylist";
 import * as protoV2Beta4 from "../../proto/store_v2beta4";
 import { HistoryResponse } from "../../proto/store_v2beta4";
 import { DefaultPubSubTopic, StoreCodecs } from "../constants";
+import { Decoder, Message } from "../interfaces";
 import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer";
-import { hexToBytes } from "../utils";
-import {
-  DecryptionMethod,
-  DecryptionParams,
-  WakuMessage,
-} from "../waku_message";
 
 import { HistoryRPC, PageDirection, Params } from "./history_rpc";
 
@@ -78,13 +73,6 @@ export interface QueryOptions {
    * Retrieve messages with a timestamp within the provided values.
    */
   timeFilter?: TimeFilter;
-  /**
-   * Keys that will be used to decrypt messages.
-   *
-   * It can be Asymmetric Private Keys and Symmetric Keys in the same array,
-   * all keys will be tried with both methods.
-   */
-  decryptionParams?: DecryptionParams[];
 }
 
 /**
@@ -94,15 +82,9 @@ export interface QueryOptions {
  */
 export class WakuStore {
   pubSubTopic: string;
-  public decryptionKeys: Map<
-    Uint8Array,
-    { method?: DecryptionMethod; contentTopics?: string[] }
-  >;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
-
-    this.decryptionKeys = new Map();
   }
 
   /**
@@ -122,14 +104,12 @@ export class WakuStore {
    * or if an error is encountered when processing the reply.
    */
   async queryOrderedCallback(
-    contentTopics: string[],
-    callback: (
-      message: WakuMessage
-    ) => Promise<void | boolean> | boolean | void,
+    decoder: Decoder,
+    callback: (message: Message) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
     const abort = false;
-    for await (const promises of this.queryGenerator(contentTopics, options)) {
+    for await (const promises of this.queryGenerator(decoder, options)) {
       if (abort) break;
       let messages = await Promise.all(promises);
 
@@ -172,15 +152,15 @@ export class WakuStore {
    * or if an error is encountered when processing the reply.
    */
   async queryCallbackOnPromise(
-    contentTopics: string[],
+    decoder: Decoder,
     callback: (
-      message: Promise<WakuMessage | undefined>
+      message: Promise<Message | undefined>
     ) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
     let abort = false;
     let promises: Promise<void>[] = [];
-    for await (const page of this.queryGenerator(contentTopics, options)) {
+    for await (const page of this.queryGenerator(decoder, options)) {
       const _promises = page.map(async (msg) => {
         if (!abort) {
           abort = Boolean(await callback(msg));
@@ -209,15 +189,17 @@ export class WakuStore {
    * or if an error is encountered when processing the reply.
    */
   async *queryGenerator(
-    contentTopics: string[],
+    decoder: Decoder,
     options?: QueryOptions
-  ): AsyncGenerator<Promise<WakuMessage | undefined>[]> {
+  ): AsyncGenerator<Promise<Message | undefined>[]> {
     let startTime, endTime;
 
     if (options?.timeFilter) {
       startTime = options.timeFilter.startTime;
       endTime = options.timeFilter.endTime;
     }
+
+    const contentTopic = decoder.contentTopic;
 
     const queryOpts = Object.assign(
       {
@@ -226,7 +208,7 @@ export class WakuStore {
         pageSize: DefaultPageSize,
       },
       options,
-      { contentTopics, startTime, endTime }
+      { contentTopics: [contentTopic], startTime, endTime }
     );
 
     log("Querying history with the following options", {
@@ -250,55 +232,14 @@ export class WakuStore {
 
     if (!connection) throw "Failed to get a connection to the peer";
 
-    let decryptionParams: DecryptionParams[] = [];
-
-    this.decryptionKeys.forEach(({ method, contentTopics }, key) => {
-      decryptionParams.push({
-        key,
-        method,
-        contentTopics,
-      });
-    });
-
-    // Add the decryption keys passed to this function against the
-    // content topics also passed to this function.
-    if (options?.decryptionParams) {
-      decryptionParams = decryptionParams.concat(options.decryptionParams);
-    }
-
     for await (const messages of paginate(
       connection,
       protocol,
       queryOpts,
-      decryptionParams
+      decoder
     )) {
       yield messages;
     }
-  }
-
-  /**
-   * Register a decryption key to attempt decryption of messages received in any
-   * subsequent query call. This can either be a private key for
-   * asymmetric encryption or a symmetric key. { @link WakuStore } will attempt to
-   * decrypt messages using both methods.
-   *
-   * Strings must be in hex format.
-   */
-  addDecryptionKey(
-    key: Uint8Array | string,
-    options?: { method?: DecryptionMethod; contentTopics?: string[] }
-  ): void {
-    this.decryptionKeys.set(hexToBytes(key), options ?? {});
-  }
-
-  /**cursorV2Beta4
-   * Delete a decryption key that was used to attempt decryption of messages
-   * received in subsequent query calls.
-   *
-   * Strings must be in hex format.
-   */
-  deleteDecryptionKey(key: Uint8Array | string): void {
-    this.decryptionKeys.delete(hexToBytes(key));
   }
 
   /**
@@ -319,8 +260,8 @@ async function* paginate(
   connection: Connection,
   protocol: string,
   queryOpts: Params,
-  decryptionParams: DecryptionParams[]
-): AsyncGenerator<Promise<WakuMessage | undefined>[]> {
+  decoder: Decoder
+): AsyncGenerator<Promise<Message | undefined>[]> {
   let cursor = undefined;
   while (true) {
     queryOpts = Object.assign(queryOpts, { cursor });
@@ -373,9 +314,7 @@ async function* paginate(
 
     log(`${response.messages.length} messages retrieved from store`);
 
-    yield response.messages.map((protoMsg) =>
-      WakuMessage.decodeProto(protoMsg, decryptionParams)
-    );
+    yield response.messages.map((protoMsg) => decoder.decode(protoMsg));
 
     cursor = response.pagingInfo?.cursor;
     if (typeof cursor === "undefined") {
@@ -401,7 +340,7 @@ async function* paginate(
 }
 
 export const isWakuMessageDefined = (
-  msg: WakuMessage | undefined
-): msg is WakuMessage => {
+  msg: Message | undefined
+): msg is Message => {
   return !!msg;
 };

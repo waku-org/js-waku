@@ -8,15 +8,19 @@ import {
   TopicStr,
 } from "@chainsafe/libp2p-gossipsub/dist/src/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
+import { PublishResult } from "@libp2p/interface-pubsub";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants";
-import { hexToBytes } from "../utils";
-import { DecryptionMethod, WakuMessage } from "../waku_message";
+import { Decoder, Encoder, Message } from "../interfaces";
+import { pushOrInitMapSet } from "../push_or_init_map";
+import { DecoderV0 } from "../waku_message/version_0";
 
 import * as constants from "./constants";
 
 const log = debug("waku:relay");
+
+export type Callback = (msg: Message) => void;
 
 export type CreateOptions = {
   /**
@@ -33,7 +37,6 @@ export type CreateOptions = {
    * @default {@link DefaultPubSubTopic}
    */
   pubSubTopic?: string;
-  decryptionKeys?: Array<Uint8Array | string>;
 } & GossipsubOpts;
 
 /**
@@ -46,18 +49,11 @@ export class WakuRelay extends GossipSub {
   pubSubTopic: string;
   public static multicodec: string = constants.RelayCodecs[0];
 
-  public decryptionKeys: Map<
-    Uint8Array,
-    { method?: DecryptionMethod; contentTopics?: string[] }
-  >;
-
   /**
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  public observers: {
-    [contentTopic: string]: Set<(message: WakuMessage) => void>;
-  };
+  public observers: Map<string, Set<{ decoder: Decoder; callback: Callback }>>;
 
   constructor(options?: Partial<CreateOptions>) {
     options = Object.assign(options ?? {}, {
@@ -68,14 +64,9 @@ export class WakuRelay extends GossipSub {
     super(options);
     this.multicodecs = constants.RelayCodecs;
 
-    this.observers = {};
-    this.decryptionKeys = new Map();
+    this.observers = new Map();
 
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
-
-    options?.decryptionKeys?.forEach((key) => {
-      this.addDecryptionKey(key);
-    });
   }
 
   /**
@@ -92,100 +83,37 @@ export class WakuRelay extends GossipSub {
 
   /**
    * Send Waku message.
-   *
-   * @param {WakuMessage} message
-   * @returns {Promise<void>}
    */
-  public async send(message: WakuMessage): Promise<void> {
-    const msg = message.encode();
-    await this.publish(this.pubSubTopic, msg);
+  public async send(
+    encoder: Encoder,
+    message: Message
+  ): Promise<PublishResult> {
+    const msg = await encoder.encode(message);
+    if (!msg) {
+      log("Failed to encode message, aborting publish");
+      return { recipients: [] };
+    }
+    return this.publish(this.pubSubTopic, msg);
   }
 
   /**
-   * Register a decryption key to attempt decryption of received messages.
-   * This can either be a private key for asymmetric encryption or a symmetric
-   * key. `WakuRelay` will attempt to decrypt messages using both methods.
+   * Add an observer and associated Decoder to process incoming messages on a given content topic.
    *
-   * Strings must be in hex format.
-   */
-  addDecryptionKey(
-    key: Uint8Array | string,
-    options?: { method?: DecryptionMethod; contentTopics?: string[] }
-  ): void {
-    this.decryptionKeys.set(hexToBytes(key), options ?? {});
-  }
-
-  /**
-   * Delete a decryption key that was used to attempt decryption of received
-   * messages.
-   *
-   * Strings must be in hex format.
-   */
-  deleteDecryptionKey(key: Uint8Array | string): void {
-    this.decryptionKeys.delete(hexToBytes(key));
-  }
-
-  /**
-   * Register an observer of new messages received via waku relay
-   *
-   * @param callback called when a new message is received via waku relay
-   * @param contentTopics Content Topics for which the callback with be called,
-   * all of them if undefined, [] or ["",..] is passed.
    * @returns Function to delete the observer
    */
-  addObserver(
-    callback: (message: WakuMessage) => void,
-    contentTopics: string[] = []
-  ): () => void {
-    if (contentTopics.length === 0) {
-      if (!this.observers[""]) {
-        this.observers[""] = new Set();
-      }
-      this.observers[""].add(callback);
-    } else {
-      contentTopics.forEach((contentTopic) => {
-        if (!this.observers[contentTopic]) {
-          this.observers[contentTopic] = new Set();
-        }
-        this.observers[contentTopic].add(callback);
-      });
-    }
+  addObserver(decoder: Decoder, callback: Callback): () => void {
+    const observer = {
+      decoder,
+      callback,
+    };
+    pushOrInitMapSet(this.observers, decoder.contentTopic, observer);
 
     return () => {
-      if (contentTopics.length === 0) {
-        if (this.observers[""]) {
-          this.observers[""].delete(callback);
-        }
-      } else {
-        contentTopics.forEach((contentTopic) => {
-          if (this.observers[contentTopic]) {
-            this.observers[contentTopic].delete(callback);
-          }
-        });
+      const observers = this.observers.get(decoder.contentTopic);
+      if (observers) {
+        observers.delete(observer);
       }
     };
-  }
-
-  /**
-   * Remove an observer of new messages received via waku relay.
-   * Useful to ensure the same observer is not registered several time
-   * (e.g when loading React components)
-   */
-  deleteObserver(
-    callback: (message: WakuMessage) => void,
-    contentTopics: string[] = []
-  ): void {
-    if (contentTopics.length === 0) {
-      if (this.observers[""]) {
-        this.observers[""].delete(callback);
-      }
-    } else {
-      contentTopics.forEach((contentTopic) => {
-        if (this.observers[contentTopic]) {
-          this.observers[contentTopic].delete(callback);
-        }
-      });
-    }
   }
 
   /**
@@ -196,43 +124,37 @@ export class WakuRelay extends GossipSub {
   subscribe(pubSubTopic: string): void {
     this.addEventListener(
       "gossipsub:message",
-      (event: CustomEvent<GossipsubMessage>) => {
-        if (event.detail.msg.topic === pubSubTopic) {
-          const decryptionParams = Array.from(this.decryptionKeys).map(
-            ([key, { method, contentTopics }]) => {
-              return {
-                key,
-                method,
-                contentTopics,
-              };
-            }
-          );
+      async (event: CustomEvent<GossipsubMessage>) => {
+        if (event.detail.msg.topic !== pubSubTopic) return;
+        log(`Message received on ${pubSubTopic}`);
 
-          log(`Message received on ${pubSubTopic}`);
-          WakuMessage.decode(event.detail.msg.data, decryptionParams)
-            .then((wakuMsg) => {
-              if (!wakuMsg) {
-                log("Failed to decode Waku Message");
-                return;
-              }
-
-              if (this.observers[""]) {
-                this.observers[""].forEach((callbackFn) => {
-                  callbackFn(wakuMsg);
-                });
-              }
-              if (wakuMsg.contentTopic) {
-                if (this.observers[wakuMsg.contentTopic]) {
-                  this.observers[wakuMsg.contentTopic].forEach((callbackFn) => {
-                    callbackFn(wakuMsg);
-                  });
-                }
-              }
-            })
-            .catch((e) => {
-              log("Failed to decode Waku Message", e);
-            });
+        const decoderV0 = new DecoderV0("");
+        // TODO: User might want to decide what decoder should be used (e.g. for RLN)
+        const protoMsg = await decoderV0.decodeProto(event.detail.msg.data);
+        if (!protoMsg) {
+          return;
         }
+        const contentTopic = protoMsg.contentTopic;
+
+        if (typeof contentTopic === "undefined") {
+          log("Message does not have a content topic, skipping");
+          return;
+        }
+
+        const observers = this.observers.get(contentTopic);
+        if (!observers) {
+          return;
+        }
+        await Promise.all(
+          Array.from(observers).map(async ({ decoder, callback }) => {
+            const msg = await decoder.decode(protoMsg);
+            if (msg) {
+              callback(msg);
+            } else {
+              log("Failed to decode messages on", contentTopic);
+            }
+          })
+        );
       }
     );
 

@@ -18,15 +18,23 @@ import {
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
-import type { WakuPrivacy } from "../interfaces";
+import type { Message, WakuPrivacy } from "../interfaces";
 import { bytesToUtf8, utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { Protocols } from "../waku";
-import { DecryptionMethod, WakuMessage } from "../waku_message";
+import { DecoderV0, EncoderV0, MessageV0 } from "../waku_message/version_0.js";
+import {
+  AsymDecoder,
+  AsymEncoder,
+  SymDecoder,
+  SymEncoder,
+} from "../waku_message/version_1.js";
 
 const log = debug("waku:test");
 
 const TestContentTopic = "/test/1/waku-relay/utf8";
+const TestEncoder = new EncoderV0(TestContentTopic);
+const TestDecoder = new DecoderV0(TestContentTopic);
 
 describe("Waku Relay [node only]", () => {
   // Node needed as we don't have a way to connect 2 js waku
@@ -100,27 +108,21 @@ describe("Waku Relay [node only]", () => {
 
       const messageText = "JS to JS communication works";
       const messageTimestamp = new Date("1995-12-17T03:24:00");
-      const message = await WakuMessage.fromUtf8String(
-        messageText,
-        TestContentTopic,
-        {
-          timestamp: messageTimestamp,
-        }
-      );
+      const message = {
+        payload: utf8ToBytes(messageText),
+        timestamp: messageTimestamp,
+      };
 
-      const receivedMsgPromise: Promise<WakuMessage> = new Promise(
-        (resolve) => {
-          waku2.relay.addObserver(resolve);
-        }
-      );
+      const receivedMsgPromise: Promise<Message> = new Promise((resolve) => {
+        waku2.relay.addObserver(TestDecoder, resolve);
+      });
 
-      await waku1.relay.send(message);
+      await waku1.relay.send(TestEncoder, message);
 
       const receivedMsg = await receivedMsgPromise;
 
-      expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
-      expect(receivedMsg.version).to.eq(message.version);
-      expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
+      expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
+      expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
       expect(receivedMsg.timestamp?.valueOf()).to.eq(
         messageTimestamp.valueOf()
       );
@@ -131,108 +133,83 @@ describe("Waku Relay [node only]", () => {
 
       const fooMessageText = "Published on content topic foo";
       const barMessageText = "Published on content topic bar";
-      const fooMessage = await WakuMessage.fromUtf8String(
-        fooMessageText,
-        "foo"
-      );
-      const barMessage = await WakuMessage.fromUtf8String(
-        barMessageText,
-        "bar"
-      );
 
-      const receivedBarMsgPromise: Promise<WakuMessage> = new Promise(
-        (resolve) => {
-          waku2.relay.addObserver(resolve, ["bar"]);
-        }
-      );
+      const fooContentTopic = "foo";
+      const barContentTopic = "bar";
 
-      const allMessages: WakuMessage[] = [];
-      waku2.relay.addObserver((wakuMsg) => {
-        allMessages.push(wakuMsg);
+      const fooEncoder = new EncoderV0(fooContentTopic);
+      const barEncoder = new EncoderV0(barContentTopic);
+
+      const fooDecoder = new DecoderV0(fooContentTopic);
+      const barDecoder = new DecoderV0(barContentTopic);
+
+      const fooMessages: Message[] = [];
+      waku2.relay.addObserver(fooDecoder, (msg) => {
+        fooMessages.push(msg);
       });
 
-      await waku1.relay.send(fooMessage);
-      await waku1.relay.send(barMessage);
+      const barMessages: Message[] = [];
+      waku2.relay.addObserver(barDecoder, (msg) => {
+        barMessages.push(msg);
+      });
 
-      const receivedBarMsg = await receivedBarMsgPromise;
+      await waku1.relay.send(barEncoder, {
+        payload: utf8ToBytes(barMessageText),
+      });
+      await waku1.relay.send(fooEncoder, {
+        payload: utf8ToBytes(fooMessageText),
+      });
 
-      expect(receivedBarMsg.contentTopic).to.eq(barMessage.contentTopic);
-      expect(receivedBarMsg.version).to.eq(barMessage.version);
-      expect(receivedBarMsg.payloadAsUtf8).to.eq(barMessageText);
-      expect(allMessages.length).to.eq(2);
-      expect(allMessages[0].contentTopic).to.eq(fooMessage.contentTopic);
-      expect(allMessages[0].version).to.eq(fooMessage.version);
-      expect(allMessages[0].payloadAsUtf8).to.eq(fooMessageText);
-      expect(allMessages[1].contentTopic).to.eq(barMessage.contentTopic);
-      expect(allMessages[1].version).to.eq(barMessage.version);
-      expect(allMessages[1].payloadAsUtf8).to.eq(barMessageText);
+      await delay(200);
+
+      expect(fooMessages[0].contentTopic).to.eq(fooContentTopic);
+      expect(bytesToUtf8(fooMessages[0].payload!)).to.eq(fooMessageText);
+
+      expect(barMessages[0].contentTopic).to.eq(barContentTopic);
+      expect(bytesToUtf8(barMessages[0].payload!)).to.eq(barMessageText);
+
+      expect(fooMessages.length).to.eq(1);
+      expect(barMessages.length).to.eq(1);
     });
 
     it("Decrypt messages", async function () {
       this.timeout(10000);
 
-      const encryptedAsymmetricMessageText =
-        "This message is encrypted using asymmetric";
-      const encryptedAsymmetricContentTopic = "/test/1/asymmetric/proto";
-      const encryptedSymmetricMessageText =
-        "This message is encrypted using symmetric encryption";
-      const encryptedSymmetricContentTopic = "/test/1/symmetric/proto";
+      const asymText = "This message is encrypted using asymmetric";
+      const asymTopic = "/test/1/asymmetric/proto";
+      const symText = "This message is encrypted using symmetric encryption";
+      const symTopic = "/test/1/symmetric/proto";
 
       const privateKey = generatePrivateKey();
       const symKey = generateSymmetricKey();
       const publicKey = getPublicKey(privateKey);
 
-      const [encryptedAsymmetricMessage, encryptedSymmetricMessage] =
-        await Promise.all([
-          WakuMessage.fromUtf8String(
-            encryptedAsymmetricMessageText,
-            encryptedAsymmetricContentTopic,
-            {
-              encPublicKey: publicKey,
-            }
-          ),
-          WakuMessage.fromUtf8String(
-            encryptedSymmetricMessageText,
-            encryptedSymmetricContentTopic,
-            {
-              symKey: symKey,
-            }
-          ),
-        ]);
+      const asymEncoder = new AsymEncoder(asymTopic, publicKey);
+      const symEncoder = new SymEncoder(symTopic, symKey);
 
-      waku2.addDecryptionKey(privateKey, {
-        contentTopics: [encryptedAsymmetricContentTopic],
-        method: DecryptionMethod.Asymmetric,
-      });
-      waku2.addDecryptionKey(symKey, {
-        contentTopics: [encryptedSymmetricContentTopic],
-        method: DecryptionMethod.Symmetric,
-      });
+      const asymDecoder = new AsymDecoder(asymTopic, privateKey);
+      const symDecoder = new SymDecoder(symTopic, symKey);
 
-      const msgs: WakuMessage[] = [];
-      waku2.relay.addObserver((wakuMsg) => {
+      const msgs: Message[] = [];
+      waku2.relay.addObserver(asymDecoder, (wakuMsg) => {
+        msgs.push(wakuMsg);
+      });
+      waku2.relay.addObserver(symDecoder, (wakuMsg) => {
         msgs.push(wakuMsg);
       });
 
-      await waku1.relay.send(encryptedAsymmetricMessage);
+      await waku1.relay.send(asymEncoder, { payload: utf8ToBytes(asymText) });
       await delay(200);
-      await waku1.relay.send(encryptedSymmetricMessage);
+      await waku1.relay.send(symEncoder, { payload: utf8ToBytes(symText) });
 
       while (msgs.length < 2) {
         await delay(200);
       }
 
-      expect(msgs.length).to.eq(2);
-      expect(msgs[0].contentTopic).to.eq(
-        encryptedAsymmetricMessage.contentTopic
-      );
-      expect(msgs[0].version).to.eq(encryptedAsymmetricMessage.version);
-      expect(msgs[0].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
-      expect(msgs[1].contentTopic).to.eq(
-        encryptedSymmetricMessage.contentTopic
-      );
-      expect(msgs[1].version).to.eq(encryptedSymmetricMessage.version);
-      expect(msgs[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
+      expect(msgs[0].contentTopic).to.eq(asymTopic);
+      expect(bytesToUtf8(msgs[0].payload!)).to.eq(asymText);
+      expect(msgs[1].contentTopic).to.eq(symTopic);
+      expect(bytesToUtf8(msgs[1].payload!)).to.eq(symText);
     });
 
     it("Delete observer", async function () {
@@ -240,22 +217,23 @@ describe("Waku Relay [node only]", () => {
 
       const messageText =
         "Published on content topic with added then deleted observer";
-      const message = await WakuMessage.fromUtf8String(
-        messageText,
-        "added-then-deleted-observer"
-      );
+
+      const contentTopic = "added-then-deleted-observer";
 
       // The promise **fails** if we receive a message on this observer.
-      const receivedMsgPromise: Promise<WakuMessage> = new Promise(
+      const receivedMsgPromise: Promise<Message> = new Promise(
         (resolve, reject) => {
-          const deleteObserver = waku2.relay.addObserver(reject, [
-            "added-then-deleted-observer",
-          ]);
+          const deleteObserver = waku2.relay.addObserver(
+            new DecoderV0(contentTopic),
+            reject
+          );
           deleteObserver();
           setTimeout(resolve, 500);
         }
       );
-      await waku1.relay.send(message);
+      await waku1.relay.send(new EncoderV0(contentTopic), {
+        payload: utf8ToBytes(messageText),
+      });
 
       await receivedMsgPromise;
       // If it does not throw then we are good.
@@ -312,32 +290,30 @@ describe("Waku Relay [node only]", () => {
       ]);
 
       const messageText = "Communicating using a custom pubsub topic";
-      const message = await WakuMessage.fromUtf8String(
-        messageText,
-        TestContentTopic
-      );
 
-      const waku2ReceivedMsgPromise: Promise<WakuMessage> = new Promise(
+      const waku2ReceivedMsgPromise: Promise<Message> = new Promise(
         (resolve) => {
-          waku2.relay.addObserver(resolve);
+          waku2.relay.addObserver(TestDecoder, resolve);
         }
       );
 
       // The promise **fails** if we receive a message on the default
       // pubsub topic.
-      const waku3NoMsgPromise: Promise<WakuMessage> = new Promise(
+      const waku3NoMsgPromise: Promise<Message> = new Promise(
         (resolve, reject) => {
-          waku3.relay.addObserver(reject);
+          waku3.relay.addObserver(TestDecoder, reject);
           setTimeout(resolve, 1000);
         }
       );
 
-      await waku1.relay.send(message);
+      await waku1.relay.send(TestEncoder, {
+        payload: utf8ToBytes(messageText),
+      });
 
       const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
       await waku3NoMsgPromise;
 
-      expect(waku2ReceivedMsg.payloadAsUtf8).to.eq(messageText);
+      expect(bytesToUtf8(waku2ReceivedMsg.payload!)).to.eq(messageText);
     });
   });
 
@@ -382,12 +358,7 @@ describe("Waku Relay [node only]", () => {
       this.timeout(30000);
 
       const messageText = "This is a message";
-      const message = await WakuMessage.fromUtf8String(
-        messageText,
-        TestContentTopic
-      );
-      await delay(1000);
-      await waku.relay.send(message);
+      await waku.relay.send(TestEncoder, { payload: utf8ToBytes(messageText) });
 
       let msgs: MessageRpcResponse[] = [];
 
@@ -397,8 +368,8 @@ describe("Waku Relay [node only]", () => {
         msgs = await nwaku.messages();
       }
 
-      expect(msgs[0].contentTopic).to.equal(message.contentTopic);
-      expect(msgs[0].version).to.equal(message.version);
+      expect(msgs[0].contentTopic).to.equal(TestContentTopic);
+      expect(msgs[0].version).to.equal(0);
       expect(bytesToUtf8(new Uint8Array(msgs[0].payload))).to.equal(
         messageText
       );
@@ -408,24 +379,25 @@ describe("Waku Relay [node only]", () => {
       await delay(200);
 
       const messageText = "Here is another message.";
-      const message = {
-        payload: utf8ToBytes(messageText),
-        contentTopic: TestContentTopic,
-      };
 
-      const receivedMsgPromise: Promise<WakuMessage> = new Promise(
-        (resolve) => {
-          waku.relay.addObserver(resolve);
-        }
+      const receivedMsgPromise: Promise<MessageV0> = new Promise((resolve) => {
+        waku.relay.addObserver(TestDecoder, (msg) =>
+          resolve(msg as unknown as MessageV0)
+        );
+      });
+
+      await nwaku.sendMessage(
+        Nwaku.toMessageRpcQuery({
+          contentTopic: TestContentTopic,
+          payload: utf8ToBytes(messageText),
+        })
       );
-
-      await nwaku.sendMessage(Nwaku.toMessageRpcQuery(message));
 
       const receivedMsg = await receivedMsgPromise;
 
-      expect(receivedMsg.contentTopic).to.eq(message.contentTopic);
+      expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
       expect(receivedMsg.version).to.eq(0);
-      expect(receivedMsg.payloadAsUtf8).to.eq(messageText);
+      expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
     });
 
     describe.skip("Two nodes connected to nwaku", function () {
@@ -475,22 +447,19 @@ describe("Waku Relay [node only]", () => {
         expect(waku2.libp2p.peerStore.has(waku1.libp2p.peerId)).to.be.false;
 
         const msgStr = "Hello there!";
-        const message = await WakuMessage.fromUtf8String(
-          msgStr,
-          TestContentTopic
-        );
+        const message = { payload: utf8ToBytes(msgStr) };
 
-        const waku2ReceivedMsgPromise: Promise<WakuMessage> = new Promise(
+        const waku2ReceivedMsgPromise: Promise<Message> = new Promise(
           (resolve) => {
-            waku2.relay.addObserver(resolve);
+            waku2.relay.addObserver(TestDecoder, resolve);
           }
         );
 
-        await waku1.relay.send(message);
+        await waku1.relay.send(TestEncoder, message);
         console.log("Waiting for message");
         const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
 
-        expect(waku2ReceivedMsg.payloadAsUtf8).to.eq(msgStr);
+        expect(waku2ReceivedMsg.payload).to.eq(msgStr);
       });
     });
   });

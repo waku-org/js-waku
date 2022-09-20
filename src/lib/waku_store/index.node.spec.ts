@@ -13,17 +13,25 @@ import {
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
-import type { WakuFull } from "../interfaces";
-import { utf8ToBytes } from "../utils";
+import type { Message, WakuFull } from "../interfaces";
+import { bytesToUtf8, utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { Protocols } from "../waku";
-import { DecryptionMethod, WakuMessage } from "../waku_message";
+import { DecoderV0, EncoderV0 } from "../waku_message/version_0.js";
+import {
+  AsymDecoder,
+  AsymEncoder,
+  SymDecoder,
+  SymEncoder,
+} from "../waku_message/version_1.js";
 
 import { PageDirection } from "./history_rpc";
 
 const log = debug("waku:test:store");
 
 const TestContentTopic = "/test/1/waku-store/utf8";
+const TestEncoder = new EncoderV0(TestContentTopic);
+const TestDecoder = new DecoderV0(TestContentTopic);
 
 describe("Waku Store", () => {
   let waku: WakuFull;
@@ -62,9 +70,9 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: WakuMessage[] = [];
+    const messages: Message[] = [];
     let promises: Promise<void>[] = [];
-    for await (const msgPromises of waku.store.queryGenerator([])) {
+    for await (const msgPromises of waku.store.queryGenerator(TestDecoder)) {
       const _promises = msgPromises.map(async (promise) => {
         const msg = await promise;
         if (msg) {
@@ -78,7 +86,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return msg.payloadAsUtf8 === "Message 0";
+      return bytesToUtf8(msg.payload!) === "Message 0";
     });
     expect(result).to.not.eq(-1);
   });
@@ -93,9 +101,9 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: WakuMessage[] = [];
+    const messages: Message[] = [];
     let promises: Promise<void>[] = [];
-    for await (const msgPromises of waku.store.queryGenerator([])) {
+    for await (const msgPromises of waku.store.queryGenerator(TestDecoder)) {
       const _promises = msgPromises.map(async (promise) => {
         const msg = await promise;
         if (msg) {
@@ -133,8 +141,8 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: WakuMessage[] = [];
-    await waku.store.queryCallbackOnPromise([], async (msgPromise) => {
+    const messages: Message[] = [];
+    await waku.store.queryCallbackOnPromise(TestDecoder, async (msgPromise) => {
       const msg = await msgPromise;
       if (msg) {
         messages.push(msg);
@@ -143,7 +151,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return msg.payloadAsUtf8 === "Message 0";
+      return bytesToUtf8(msg.payload!) === "Message 0";
     });
     expect(result).to.not.eq(-1);
   });
@@ -172,9 +180,9 @@ describe("Waku Store", () => {
     await waitForRemotePeer(waku, [Protocols.Store]);
 
     const desiredMsgs = 14;
-    const messages: WakuMessage[] = [];
+    const messages: Message[] = [];
     await waku.store.queryCallbackOnPromise(
-      [],
+      TestDecoder,
       async (msgPromise) => {
         const msg = await msgPromise;
         if (msg) {
@@ -210,9 +218,9 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: WakuMessage[] = [];
+    const messages: Message[] = [];
     await waku.store.queryOrderedCallback(
-      [],
+      TestDecoder,
       async (msg) => {
         messages.push(msg);
       },
@@ -225,7 +233,7 @@ describe("Waku Store", () => {
     for (let index = 0; index < totalMsgs; index++) {
       expect(
         messages?.findIndex((msg) => {
-          return msg.payloadAsUtf8 === `Message ${index}`;
+          return bytesToUtf8(msg.payload!) === `Message ${index}`;
         })
       ).to.eq(index);
     }
@@ -253,9 +261,9 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    let messages: WakuMessage[] = [];
+    let messages: Message[] = [];
     await waku.store.queryOrderedCallback(
-      [],
+      TestDecoder,
       async (msg) => {
         messages.push(msg);
       },
@@ -270,7 +278,7 @@ describe("Waku Store", () => {
     for (let index = 0; index < totalMsgs; index++) {
       expect(
         messages?.findIndex((msg) => {
-          return msg.payloadAsUtf8 === `Message ${index}`;
+          return bytesToUtf8(msg.payload!) === `Message ${index}`;
         })
       ).to.eq(index);
     }
@@ -279,60 +287,45 @@ describe("Waku Store", () => {
   it("Generator, with asymmetric & symmetric encrypted messages", async function () {
     this.timeout(15_000);
 
-    const encryptedAsymmetricMessageText =
-      "This message is encrypted for me using asymmetric";
-    const encryptedAsymmetricContentTopic = "/test/1/asymmetric/proto";
-    const encryptedSymmetricMessageText =
+    const asymText = "This message is encrypted for me using asymmetric";
+    const asymTopic = "/test/1/asymmetric/proto";
+    const symText =
       "This message is encrypted for me using symmetric encryption";
-    const encryptedSymmetricContentTopic = "/test/1/symmetric/proto";
-    const clearMessageText =
-      "This is a clear text message for everyone to read";
-    const otherEncMessageText =
+    const symTopic = "/test/1/symmetric/proto";
+    const clearText = "This is a clear text message for everyone to read";
+    const otherText =
       "This message is not for and I must not be able to read it";
+
+    const timestamp = new Date();
+
+    const asymMsg = { payload: utf8ToBytes(asymText), timestamp };
+    const symMsg = {
+      payload: utf8ToBytes(symText),
+      timestamp: new Date(timestamp.valueOf() + 1),
+    };
+    const clearMsg = {
+      payload: utf8ToBytes(clearText),
+      timestamp: new Date(timestamp.valueOf() + 2),
+    };
+    const otherMsg = {
+      payload: utf8ToBytes(otherText),
+      timestamp: new Date(timestamp.valueOf() + 3),
+    };
 
     const privateKey = generatePrivateKey();
     const symKey = generateSymmetricKey();
     const publicKey = getPublicKey(privateKey);
 
-    const timestamp = new Date();
-    const [
-      encryptedAsymmetricMessage,
-      encryptedSymmetricMessage,
-      clearMessage,
-      otherEncMessage,
-    ] = await Promise.all([
-      WakuMessage.fromUtf8String(
-        encryptedAsymmetricMessageText,
-        encryptedAsymmetricContentTopic,
-        {
-          encPublicKey: publicKey,
-          timestamp,
-        }
-      ),
-      WakuMessage.fromUtf8String(
-        encryptedSymmetricMessageText,
-        encryptedSymmetricContentTopic,
-        {
-          symKey: symKey,
-          timestamp: new Date(timestamp.valueOf() + 1),
-        }
-      ),
-      WakuMessage.fromUtf8String(
-        clearMessageText,
-        encryptedAsymmetricContentTopic,
-        { timestamp: new Date(timestamp.valueOf() + 2) }
-      ),
-      WakuMessage.fromUtf8String(
-        otherEncMessageText,
-        encryptedSymmetricContentTopic,
-        {
-          encPublicKey: getPublicKey(generatePrivateKey()),
-          timestamp: new Date(timestamp.valueOf() + 3),
-        }
-      ),
-    ]);
+    const asymEncoder = new AsymEncoder(asymTopic, publicKey);
+    const symEncoder = new SymEncoder(symTopic, symKey);
 
-    log("Messages have been encrypted");
+    const otherEncoder = new AsymEncoder(
+      TestContentTopic,
+      getPublicKey(generatePrivateKey())
+    );
+
+    const asymDecoder = new AsymDecoder(asymTopic, privateKey);
+    const symDecoder = new SymDecoder(symTopic, symKey);
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createFullNode({
@@ -357,25 +350,18 @@ describe("Waku Store", () => {
 
     log("Sending messages using light push");
     await Promise.all([
-      waku1.lightPush.push(encryptedAsymmetricMessage),
-      waku1.lightPush.push(encryptedSymmetricMessage),
-      waku1.lightPush.push(otherEncMessage),
-      waku1.lightPush.push(clearMessage),
+      waku1.lightPush.push(asymEncoder, asymMsg),
+      waku1.lightPush.push(symEncoder, symMsg),
+      waku1.lightPush.push(otherEncoder, otherMsg),
+      waku1.lightPush.push(TestEncoder, clearMsg),
     ]);
 
     await waitForRemotePeer(waku2, [Protocols.Store]);
 
-    waku2.addDecryptionKey(symKey, {
-      contentTopics: [encryptedSymmetricContentTopic],
-      method: DecryptionMethod.Symmetric,
-    });
-
-    const messages: WakuMessage[] = [];
+    const messages: Message[] = [];
     log("Retrieve messages from store");
 
-    for await (const msgPromises of waku2.store.queryGenerator([], {
-      decryptionParams: [{ key: privateKey }],
-    })) {
+    for await (const msgPromises of waku2.store.queryGenerator(asymDecoder)) {
       for (const promise of msgPromises) {
         const msg = await promise;
         if (msg) {
@@ -384,24 +370,29 @@ describe("Waku Store", () => {
       }
     }
 
-    expect(messages?.length).eq(3);
-    if (!messages) throw "Length was tested";
-    // Messages are ordered from oldest to latest within a page (1 page query)
-    expect(messages[0].payloadAsUtf8).to.eq(encryptedAsymmetricMessageText);
-    expect(messages[1].payloadAsUtf8).to.eq(encryptedSymmetricMessageText);
-    expect(messages[2].payloadAsUtf8).to.eq(clearMessageText);
-
-    for (const text of [
-      encryptedAsymmetricMessageText,
-      encryptedSymmetricMessageText,
-      clearMessageText,
-    ]) {
-      expect(
-        messages?.findIndex((msg) => {
-          return msg.payloadAsUtf8 === text;
-        })
-      ).to.not.eq(-1);
+    for await (const msgPromises of waku2.store.queryGenerator(symDecoder)) {
+      for (const promise of msgPromises) {
+        const msg = await promise;
+        if (msg) {
+          messages.push(msg);
+        }
+      }
     }
+
+    for await (const msgPromises of waku2.store.queryGenerator(TestDecoder)) {
+      for (const promise of msgPromises) {
+        const msg = await promise;
+        if (msg) {
+          messages.push(msg);
+        }
+      }
+    }
+
+    // Messages are ordered from oldest to latest within a page (1 page query)
+    expect(bytesToUtf8(messages[0].payload!)).to.eq(asymText);
+    expect(bytesToUtf8(messages[1].payload!)).to.eq(symText);
+    expect(bytesToUtf8(messages[2].payload!)).to.eq(clearText);
+    expect(messages?.length).eq(3);
 
     !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
     !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
@@ -450,9 +441,9 @@ describe("Waku Store", () => {
 
     const nwakuPeerId = await nwaku.getPeerId();
 
-    const firstMessages: WakuMessage[] = [];
+    const firstMessages: Message[] = [];
     await waku.store.queryOrderedCallback(
-      [],
+      TestDecoder,
       (msg) => {
         if (msg) {
           firstMessages.push(msg);
@@ -464,9 +455,9 @@ describe("Waku Store", () => {
       }
     );
 
-    const bothMessages: WakuMessage[] = [];
+    const bothMessages: Message[] = [];
     await waku.store.queryOrderedCallback(
-      [],
+      TestDecoder,
       async (msg) => {
         bothMessages.push(msg);
       },
@@ -481,7 +472,7 @@ describe("Waku Store", () => {
 
     expect(firstMessages?.length).eq(1);
 
-    expect(firstMessages[0]?.payloadAsUtf8).eq("Message 0");
+    expect(bytesToUtf8(firstMessages[0].payload!)).eq("Message 0");
 
     expect(bothMessages?.length).eq(2);
   });
@@ -531,9 +522,9 @@ describe("Waku Store, custom pubsub topic", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: WakuMessage[] = [];
+    const messages: Message[] = [];
     let promises: Promise<void>[] = [];
-    for await (const msgPromises of waku.store.queryGenerator([])) {
+    for await (const msgPromises of waku.store.queryGenerator(TestDecoder)) {
       const _promises = msgPromises.map(async (promise) => {
         const msg = await promise;
         if (msg) {
@@ -547,7 +538,7 @@ describe("Waku Store, custom pubsub topic", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return msg.payloadAsUtf8 === "Message 0";
+      return bytesToUtf8(msg.payload!) === "Message 0";
     });
     expect(result).to.not.eq(-1);
   });

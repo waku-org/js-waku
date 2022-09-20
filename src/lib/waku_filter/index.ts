@@ -10,14 +10,14 @@ import type { Libp2p } from "libp2p";
 
 import { WakuMessage as WakuMessageProto } from "../../proto/message";
 import { DefaultPubSubTopic } from "../constants";
+import { groupByContentTopic } from "../group_by";
+import { Decoder, Message } from "../interfaces";
 import { selectConnection } from "../select_connection";
 import {
   getPeersForProtocol,
   selectPeerForProtocol,
   selectRandomPeer,
 } from "../select_peer";
-import { hexToBytes } from "../utils";
-import { DecryptionMethod, WakuMessage } from "../waku_message";
 
 import { ContentFilter, FilterRPC } from "./filter_rpc";
 export { ContentFilter };
@@ -49,7 +49,7 @@ export type FilterSubscriptionOpts = {
   peerId?: PeerId;
 };
 
-export type FilterCallback = (msg: WakuMessage) => void | Promise<void>;
+export type FilterCallback = (msg: Message) => void | Promise<void>;
 
 export type UnsubscribeFunction = () => Promise<void>;
 
@@ -63,14 +63,14 @@ export type UnsubscribeFunction = () => Promise<void>;
 export class WakuFilter {
   pubSubTopic: string;
   private subscriptions: Map<string, FilterCallback>;
-  public decryptionKeys: Map<
-    Uint8Array,
-    { method?: DecryptionMethod; contentTopics?: string[] }
+  public decoders: Map<
+    string, // content topic
+    Set<Decoder>
   >;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
     this.subscriptions = new Map();
-    this.decryptionKeys = new Map();
+    this.decoders = new Map();
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
     this.libp2p
       .handle(FilterCodec, this.onRequest.bind(this))
@@ -78,17 +78,21 @@ export class WakuFilter {
   }
 
   /**
-   * @param contentTopics Array of ContentTopics to subscribe to. If empty, no messages will be returned from the filter.
+   * @param decoders Array of Decoders to use to decode messages, it also specifies the content topics.
    * @param callback A function that will be called on each message returned by the filter.
    * @param opts The FilterSubscriptionOpts used to narrow which messages are returned, and which peer to connect to.
    * @returns Unsubscribe function that can be used to end the subscription.
    */
   async subscribe(
+    decoders: Decoder[],
     callback: FilterCallback,
-    contentTopics: string[],
     opts?: FilterSubscriptionOpts
   ): Promise<UnsubscribeFunction> {
     const topic = opts?.pubsubTopic ?? this.pubSubTopic;
+
+    const groupedDecoders = groupByContentTopic(decoders);
+    const contentTopics = Array.from(groupedDecoders.keys());
+
     const contentFilters = contentTopics.map((contentTopic) => ({
       contentTopic,
     }));
@@ -130,11 +134,13 @@ export class WakuFilter {
       throw e;
     }
 
+    this.addDecoders(groupedDecoders);
     this.addCallback(requestId, callback);
 
     return async () => {
       await this.unsubscribe(topic, contentFilters, requestId, peer);
-      this.removeCallback(requestId);
+      this.deleteDecoders(groupedDecoders);
+      this.deleteCallback(requestId);
     };
   }
 
@@ -171,23 +177,35 @@ export class WakuFilter {
       return;
     }
 
-    const decryptionParams = Array.from(this.decryptionKeys).map(
-      ([key, { method, contentTopics }]) => {
-        return {
-          key,
-          method,
-          contentTopics,
-        };
+    for (const protoMessage of messages) {
+      const contentTopic = protoMessage.contentTopic;
+      if (!contentTopic) {
+        log("Message has no content topic, skipping");
+        return;
       }
-    );
 
-    for (const message of messages) {
-      const decoded = await WakuMessage.decodeProto(message, decryptionParams);
-      if (!decoded) {
-        log("Not able to decode message");
-        continue;
+      const decoders = this.decoders.get(contentTopic);
+      if (!decoders) {
+        log("No decoder for", contentTopic);
+        return;
       }
-      callback(decoded);
+
+      let msg: Message | undefined;
+      // We don't want to wait for decoding failure, just attempt to decode
+      // all messages and do the call back on the one that works
+      // noinspection ES6MissingAwait
+      decoders.forEach(async (dec) => {
+        if (msg) return;
+        const decoded = await dec.decode(protoMessage);
+        if (!decoded) {
+          log("Not able to decode message");
+          return;
+        }
+        // This is just to prevent more decoding attempt
+        // TODO: Could be better if we were to abort promises
+        msg = decoded;
+        await callback(decoded);
+      });
     }
   }
 
@@ -195,8 +213,30 @@ export class WakuFilter {
     this.subscriptions.set(requestId, callback);
   }
 
-  private removeCallback(requestId: string): void {
+  private deleteCallback(requestId: string): void {
     this.subscriptions.delete(requestId);
+  }
+
+  private addDecoders(decoders: Map<string, Array<Decoder>>): void {
+    decoders.forEach((decoders, contentTopic) => {
+      const currDecs = this.decoders.get(contentTopic);
+      if (!currDecs) {
+        this.decoders.set(contentTopic, new Set(decoders));
+      } else {
+        this.decoders.set(contentTopic, new Set([...currDecs, ...decoders]));
+      }
+    });
+  }
+
+  private deleteDecoders(decoders: Map<string, Array<Decoder>>): void {
+    decoders.forEach((decoders, contentTopic) => {
+      const currDecs = this.decoders.get(contentTopic);
+      if (currDecs) {
+        decoders.forEach((dec) => {
+          currDecs.delete(dec);
+        });
+      }
+    });
   }
 
   private async unsubscribe(
@@ -241,30 +281,6 @@ export class WakuFilter {
       throw new Error(`Failed to select peer for ${FilterCodec}`);
     }
     return res.peer;
-  }
-
-  /**
-   * Register a decryption key to attempt decryption of messages received in any
-   * subsequent { @link subscribe } call. This can either be a private key for
-   * asymmetric encryption or a symmetric key. { @link WakuStore } will attempt to
-   * decrypt messages using both methods.
-   *
-   * Strings must be in hex format.
-   */
-  addDecryptionKey(
-    key: Uint8Array | string,
-    options?: { method?: DecryptionMethod; contentTopics?: string[] }
-  ): void {
-    this.decryptionKeys.set(hexToBytes(key), options ?? {});
-  }
-
-  /**
-   * Delete a decryption key so that it cannot be used in future { @link subscribe } calls
-   *
-   * Strings must be in hex format.
-   */
-  deleteDecryptionKey(key: Uint8Array | string): void {
-    this.decryptionKeys.delete(hexToBytes(key));
   }
 
   async peers(): Promise<Peer[]> {
