@@ -9,7 +9,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import { PushResponse } from "../../proto/light_push";
 import { DefaultPubSubTopic } from "../constants";
-import { Encoder, Message } from "../interfaces";
+import { Encoder, Message, SendResult } from "../interfaces";
 import { selectConnection } from "../select_connection";
 import {
   getPeersForProtocol,
@@ -55,7 +55,7 @@ export class WakuLightPush {
     encoder: Encoder,
     message: Message,
     opts?: PushOptions
-  ): Promise<PushResponse | undefined> {
+  ): Promise<SendResult> {
     const pubSubTopic = opts?.pubSubTopic ? opts.pubSubTopic : this.pubSubTopic;
 
     const res = await selectPeerForProtocol(
@@ -75,11 +75,14 @@ export class WakuLightPush {
     if (!connection) throw "Failed to get a connection to the peer";
 
     const stream = await connection.newStream(LightPushCodec);
+
+    const recipients: PeerId[] = [];
+
     try {
       const protoMessage = await encoder.encodeProto(message);
       if (!protoMessage) {
         log("Failed to encode to protoMessage, aborting push");
-        return;
+        return { recipients };
       }
       const query = PushRPC.createRequest(protoMessage, pubSubTopic);
       const res = await pipe(
@@ -99,17 +102,19 @@ export class WakuLightPush {
 
         if (!response) {
           log("No response in PushRPC");
-          return;
+          return { recipients };
         }
 
-        return response;
+        if (response.isSuccess) {
+          recipients.push(peer.id);
+        }
       } catch (err) {
         log("Failed to decode push reply", err);
       }
     } catch (err) {
       log("Failed to send waku light push request", err);
     }
-    return;
+    return { recipients };
   }
 
   /**

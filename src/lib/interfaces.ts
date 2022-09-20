@@ -75,3 +75,7 @@ export interface Decoder<T extends Message> {
   decodeProto: (bytes: Uint8Array) => Promise<ProtoMessage | undefined>;
   decode: (proto: ProtoMessage) => Promise<T | undefined>;
 }
+
+export interface SendResult {
+  recipients: PeerId[];
+}

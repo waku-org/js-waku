@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `WakuRelay.addObserver` now returns a function to delete the observer.
+- `WakuLightPush.push` and `WakuRelay.send` returns `SendResult` with the list of recipients.
 
 ### Changed
 

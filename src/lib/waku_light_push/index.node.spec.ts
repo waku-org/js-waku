@@ -47,7 +47,7 @@ describe("Waku Light Push [node only]", () => {
     const pushResponse = await waku.lightPush.push(TestEncoder, {
       payload: utf8ToBytes(messageText),
     });
-    expect(pushResponse?.isSuccess).to.be.true;
+    expect(pushResponse.recipients.length).to.eq(1);
 
     let msgs: MessageRpcResponse[] = [];
 
@@ -90,7 +90,7 @@ describe("Waku Light Push [node only]", () => {
       }
     );
     log("Ack received", pushResponse);
-    expect(pushResponse?.isSuccess).to.be.true;
+    expect(pushResponse.recipients[0].toString()).to.eq(nimPeerId.toString());
 
     let msgs: MessageRpcResponse[] = [];
 

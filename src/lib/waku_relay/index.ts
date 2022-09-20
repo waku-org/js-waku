@@ -8,11 +8,10 @@ import {
   TopicStr,
 } from "@chainsafe/libp2p-gossipsub/dist/src/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import { PublishResult } from "@libp2p/interface-pubsub";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants";
-import { Decoder, Encoder, Message } from "../interfaces";
+import { Decoder, Encoder, Message, SendResult } from "../interfaces";
 import { pushOrInitMapSet } from "../push_or_init_map";
 import { TopicOnlyDecoder } from "../waku_message/topic_only_message";
 
@@ -93,10 +92,7 @@ export class WakuRelay extends GossipSub {
   /**
    * Send Waku message.
    */
-  public async send(
-    encoder: Encoder,
-    message: Message
-  ): Promise<PublishResult> {
+  public async send(encoder: Encoder, message: Message): Promise<SendResult> {
     const msg = await encoder.encode(message);
     if (!msg) {
       log("Failed to encode message, aborting publish");
