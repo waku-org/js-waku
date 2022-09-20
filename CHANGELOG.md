@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.1] - 2022-09-20
+
 ### Added
 
 - `WakuRelay.addObserver` now returns a function to delete the observer.
@@ -500,7 +502,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.28.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.28.1...HEAD
+[0.28.1]: https://github.com/status-im/js-waku/compare/v0.28.0...v0.28.1
 [0.28.0]: https://github.com/status-im/js-waku/compare/v0.27.0...v0.28.0
 [0.27.0]: https://github.com/status-im/js-waku/compare/v0.26.0...v0.27.0
 [0.26.0]: https://github.com/status-im/js-waku/compare/v0.25.0...v0.26.0
