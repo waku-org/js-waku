@@ -18,6 +18,7 @@ import { EncoderV0 } from "../waku_message/version_0";
 const log = debug("waku:test:lightpush");
 
 const TestContentTopic = "/test/1/waku-light-push/utf8";
+const TestEncoder = new EncoderV0(TestContentTopic);
 
 describe("Waku Light Push [node only]", () => {
   let waku: WakuFull;
@@ -42,9 +43,8 @@ describe("Waku Light Push [node only]", () => {
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const messageText = "Light Push works!";
-    const encoder = new EncoderV0(TestContentTopic);
 
-    const pushResponse = await waku.lightPush.push(encoder, {
+    const pushResponse = await waku.lightPush.push(TestEncoder, {
       payload: utf8ToBytes(messageText),
     });
     expect(pushResponse?.isSuccess).to.be.true;
@@ -79,11 +79,10 @@ describe("Waku Light Push [node only]", () => {
     const nimPeerId = await nwaku.getPeerId();
 
     const messageText = "Light Push works!";
-    const encoder = new EncoderV0(TestContentTopic);
 
     log("Send message via lightpush");
     const pushResponse = await waku.lightPush.push(
-      encoder,
+      TestEncoder,
       { payload: utf8ToBytes(messageText) },
       {
         peerId: nimPeerId,
