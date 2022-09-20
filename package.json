@@ -201,6 +201,9 @@
     ],
     "*.{ts,json,conf*.*js}": [
       "prettier --write"
+    ],
+    "./*.*js": [
+      "prettier --write"
     ]
   }
 }
