@@ -112,9 +112,9 @@ export class WakuStore {
     const abort = false;
     for await (const promises of this.queryGenerator(decoders, options)) {
       if (abort) break;
-      let messages = await Promise.all(promises);
+      const messagesOrUndef: Array<T | undefined> = await Promise.all(promises);
 
-      messages = messages.filter(isWakuMessageDefined);
+      let messages: Array<T> = messagesOrUndef.filter(isDefined);
 
       // Messages in pages are ordered from oldest (first) to most recent (last).
       // https://github.com/vacp2p/rfc/issues/533
@@ -370,8 +370,6 @@ async function* paginate<T extends Message>(
   }
 }
 
-export const isWakuMessageDefined = (
-  msg: Message | undefined
-): msg is Message => {
+export function isDefined<T>(msg: T | undefined): msg is T {
   return !!msg;
-};
+}
