@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+message TopicOnlyMessage {
+  optional string content_topic = 2;
+}

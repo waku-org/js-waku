@@ -7,19 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Waku message encoding and decoding is more generic, to enable upcoming feature such as [RLN](https://rfc.vac.dev/spec/17/) & [Noise](https://rfc.vac.dev/spec/43/);
+  it also enables separating the `version_1` module out to reduce bundle size and improve cross-platform compatibility when not used.
+- Due to the change above, all APIs that handle messages have changed to receive a `Decoder` or `Encoder`.
+
 ## [0.28.1] - 2022-09-20
 
 ### Added
 
 - `WakuRelay.addObserver` now returns a function to delete the observer.
+- `WakuLightPush.push` and `WakuRelay.send` returns `SendResult` with the list of recipients.
 
 ### Changed
 
 - `queryCallbackOnPromise`'s return value has been simplified to `Promise<void>`.
 - doc: clarified behaviour of `WakuStore` query functions.
-- Waku message encoding and decoding is more generic, to enable upcoming feature such as [RLN](https://rfc.vac.dev/spec/17/) & [Noise](https://rfc.vac.dev/spec/43/);
-  it also enables separating the `version_1` module out to reduce bundle size and improve cross-platform compatibility when not used.
-- Due to the change above, all APIs that handle messages have changed to receive a `Decoder` or `Encoder`.
 
 ### Deleted
 

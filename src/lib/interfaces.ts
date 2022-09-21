@@ -70,8 +70,12 @@ export interface Encoder {
   encodeProto: (message: Message) => Promise<ProtoMessage | undefined>;
 }
 
-export interface Decoder {
+export interface Decoder<T extends Message> {
   contentTopic: string;
   decodeProto: (bytes: Uint8Array) => Promise<ProtoMessage | undefined>;
-  decode: (proto: ProtoMessage) => Promise<Message | undefined>;
+  decode: (proto: ProtoMessage) => Promise<T | undefined>;
+}
+
+export interface SendResult {
+  recipients: PeerId[];
 }

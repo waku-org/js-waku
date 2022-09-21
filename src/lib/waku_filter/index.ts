@@ -63,9 +63,9 @@ export type UnsubscribeFunction = () => Promise<void>;
 export class WakuFilter {
   pubSubTopic: string;
   private subscriptions: Map<string, FilterCallback>;
-  public decoders: Map<
+  private decoders: Map<
     string, // content topic
-    Set<Decoder>
+    Set<Decoder<any>>
   >;
 
   constructor(public libp2p: Libp2p, options?: CreateOptions) {
@@ -83,8 +83,8 @@ export class WakuFilter {
    * @param opts The FilterSubscriptionOpts used to narrow which messages are returned, and which peer to connect to.
    * @returns Unsubscribe function that can be used to end the subscription.
    */
-  async subscribe(
-    decoders: Decoder[],
+  async subscribe<T extends Message>(
+    decoders: Decoder<T>[],
     callback: FilterCallback,
     opts?: FilterSubscriptionOpts
   ): Promise<UnsubscribeFunction> {
@@ -217,7 +217,9 @@ export class WakuFilter {
     this.subscriptions.delete(requestId);
   }
 
-  private addDecoders(decoders: Map<string, Array<Decoder>>): void {
+  private addDecoders<T extends Message>(
+    decoders: Map<string, Array<Decoder<T>>>
+  ): void {
     decoders.forEach((decoders, contentTopic) => {
       const currDecs = this.decoders.get(contentTopic);
       if (!currDecs) {
@@ -228,7 +230,9 @@ export class WakuFilter {
     });
   }
 
-  private deleteDecoders(decoders: Map<string, Array<Decoder>>): void {
+  private deleteDecoders<T extends Message>(
+    decoders: Map<string, Array<Decoder<T>>>
+  ): void {
     decoders.forEach((decoders, contentTopic) => {
       const currDecs = this.decoders.get(contentTopic);
       if (currDecs) {

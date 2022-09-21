@@ -110,7 +110,7 @@ export class SymEncoder implements Encoder {
   }
 }
 
-export class AsymDecoder extends DecoderV0 implements Decoder {
+export class AsymDecoder extends DecoderV0 implements Decoder<MessageV1> {
   constructor(contentTopic: string, private privateKey: Uint8Array) {
     super(contentTopic);
   }
@@ -166,7 +166,7 @@ export class AsymDecoder extends DecoderV0 implements Decoder {
   }
 }
 
-export class SymDecoder extends DecoderV0 implements Decoder {
+export class SymDecoder extends DecoderV0 implements Decoder<MessageV1> {
   constructor(contentTopic: string, private symKey: Uint8Array) {
     super(contentTopic);
   }

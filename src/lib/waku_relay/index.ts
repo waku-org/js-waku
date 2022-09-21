@@ -8,19 +8,23 @@ import {
   TopicStr,
 } from "@chainsafe/libp2p-gossipsub/dist/src/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import { PublishResult } from "@libp2p/interface-pubsub";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants";
-import { Decoder, Encoder, Message } from "../interfaces";
+import { Decoder, Encoder, Message, SendResult } from "../interfaces";
 import { pushOrInitMapSet } from "../push_or_init_map";
-import { DecoderV0 } from "../waku_message/version_0";
+import { TopicOnlyDecoder } from "../waku_message/topic_only_message";
 
 import * as constants from "./constants";
 
 const log = debug("waku:relay");
 
-export type Callback = (msg: Message) => void;
+export type Callback<T extends Message> = (msg: T) => void;
+
+export type Observer<T extends Message> = {
+  decoder: Decoder<T>;
+  callback: Callback<T>;
+};
 
 export type CreateOptions = {
   /**
@@ -47,13 +51,14 @@ export type CreateOptions = {
  */
 export class WakuRelay extends GossipSub {
   pubSubTopic: string;
+  defaultDecoder: Decoder<Message>;
   public static multicodec: string = constants.RelayCodecs[0];
 
   /**
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  public observers: Map<string, Set<{ decoder: Decoder; callback: Callback }>>;
+  public observers: Map<string, Set<Observer<any>>>;
 
   constructor(options?: Partial<CreateOptions>) {
     options = Object.assign(options ?? {}, {
@@ -67,6 +72,9 @@ export class WakuRelay extends GossipSub {
     this.observers = new Map();
 
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+
+    // TODO: User might want to decide what decoder should be used (e.g. for RLN)
+    this.defaultDecoder = new TopicOnlyDecoder();
   }
 
   /**
@@ -84,10 +92,7 @@ export class WakuRelay extends GossipSub {
   /**
    * Send Waku message.
    */
-  public async send(
-    encoder: Encoder,
-    message: Message
-  ): Promise<PublishResult> {
+  public async send(encoder: Encoder, message: Message): Promise<SendResult> {
     const msg = await encoder.encode(message);
     if (!msg) {
       log("Failed to encode message, aborting publish");
@@ -101,7 +106,10 @@ export class WakuRelay extends GossipSub {
    *
    * @returns Function to delete the observer
    */
-  addObserver(decoder: Decoder, callback: Callback): () => void {
+  addObserver<T extends Message>(
+    decoder: Decoder<T>,
+    callback: Callback<T>
+  ): () => void {
     const observer = {
       decoder,
       callback,
@@ -128,30 +136,32 @@ export class WakuRelay extends GossipSub {
         if (event.detail.msg.topic !== pubSubTopic) return;
         log(`Message received on ${pubSubTopic}`);
 
-        const decoderV0 = new DecoderV0("");
-        // TODO: User might want to decide what decoder should be used (e.g. for RLN)
-        const protoMsg = await decoderV0.decodeProto(event.detail.msg.data);
-        if (!protoMsg) {
-          return;
-        }
-        const contentTopic = protoMsg.contentTopic;
-
-        if (typeof contentTopic === "undefined") {
+        const topicOnlyMsg = await this.defaultDecoder.decodeProto(
+          event.detail.msg.data
+        );
+        if (!topicOnlyMsg || !topicOnlyMsg.contentTopic) {
           log("Message does not have a content topic, skipping");
           return;
         }
 
-        const observers = this.observers.get(contentTopic);
+        const observers = this.observers.get(topicOnlyMsg.contentTopic);
         if (!observers) {
           return;
         }
         await Promise.all(
           Array.from(observers).map(async ({ decoder, callback }) => {
+            const protoMsg = await decoder.decodeProto(event.detail.msg.data);
+            if (!protoMsg) {
+              log(
+                "Internal error: message previously decoded failed on 2nd pass."
+              );
+              return;
+            }
             const msg = await decoder.decode(protoMsg);
             if (msg) {
               callback(msg);
             } else {
-              log("Failed to decode messages on", contentTopic);
+              log("Failed to decode messages on", topicOnlyMsg.contentTopic);
             }
           })
         );

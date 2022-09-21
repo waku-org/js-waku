@@ -72,7 +72,7 @@ describe("Waku Store", () => {
 
     const messages: Message[] = [];
     let promises: Promise<void>[] = [];
-    for await (const msgPromises of waku.store.queryGenerator(TestDecoder)) {
+    for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
       const _promises = msgPromises.map(async (promise) => {
         const msg = await promise;
         if (msg) {
@@ -103,7 +103,7 @@ describe("Waku Store", () => {
 
     const messages: Message[] = [];
     let promises: Promise<void>[] = [];
-    for await (const msgPromises of waku.store.queryGenerator(TestDecoder)) {
+    for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
       const _promises = msgPromises.map(async (promise) => {
         const msg = await promise;
         if (msg) {
@@ -142,12 +142,15 @@ describe("Waku Store", () => {
     await waitForRemotePeer(waku, [Protocols.Store]);
 
     const messages: Message[] = [];
-    await waku.store.queryCallbackOnPromise(TestDecoder, async (msgPromise) => {
-      const msg = await msgPromise;
-      if (msg) {
-        messages.push(msg);
+    await waku.store.queryCallbackOnPromise(
+      [TestDecoder],
+      async (msgPromise) => {
+        const msg = await msgPromise;
+        if (msg) {
+          messages.push(msg);
+        }
       }
-    });
+    );
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
@@ -182,7 +185,7 @@ describe("Waku Store", () => {
     const desiredMsgs = 14;
     const messages: Message[] = [];
     await waku.store.queryCallbackOnPromise(
-      TestDecoder,
+      [TestDecoder],
       async (msgPromise) => {
         const msg = await msgPromise;
         if (msg) {
@@ -220,7 +223,7 @@ describe("Waku Store", () => {
 
     const messages: Message[] = [];
     await waku.store.queryOrderedCallback(
-      TestDecoder,
+      [TestDecoder],
       async (msg) => {
         messages.push(msg);
       },
@@ -263,7 +266,7 @@ describe("Waku Store", () => {
 
     let messages: Message[] = [];
     await waku.store.queryOrderedCallback(
-      TestDecoder,
+      [TestDecoder],
       async (msg) => {
         messages.push(msg);
       },
@@ -361,25 +364,11 @@ describe("Waku Store", () => {
     const messages: Message[] = [];
     log("Retrieve messages from store");
 
-    for await (const msgPromises of waku2.store.queryGenerator(asymDecoder)) {
-      for (const promise of msgPromises) {
-        const msg = await promise;
-        if (msg) {
-          messages.push(msg);
-        }
-      }
-    }
-
-    for await (const msgPromises of waku2.store.queryGenerator(symDecoder)) {
-      for (const promise of msgPromises) {
-        const msg = await promise;
-        if (msg) {
-          messages.push(msg);
-        }
-      }
-    }
-
-    for await (const msgPromises of waku2.store.queryGenerator(TestDecoder)) {
+    for await (const msgPromises of waku2.store.queryGenerator([
+      asymDecoder,
+      symDecoder,
+      TestDecoder,
+    ])) {
       for (const promise of msgPromises) {
         const msg = await promise;
         if (msg) {
@@ -443,7 +432,7 @@ describe("Waku Store", () => {
 
     const firstMessages: Message[] = [];
     await waku.store.queryOrderedCallback(
-      TestDecoder,
+      [TestDecoder],
       (msg) => {
         if (msg) {
           firstMessages.push(msg);
@@ -457,7 +446,7 @@ describe("Waku Store", () => {
 
     const bothMessages: Message[] = [];
     await waku.store.queryOrderedCallback(
-      TestDecoder,
+      [TestDecoder],
       async (msg) => {
         bothMessages.push(msg);
       },
@@ -524,7 +513,7 @@ describe("Waku Store, custom pubsub topic", () => {
 
     const messages: Message[] = [];
     let promises: Promise<void>[] = [];
-    for await (const msgPromises of waku.store.queryGenerator(TestDecoder)) {
+    for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
       const _promises = msgPromises.map(async (promise) => {
         const msg = await promise;
         if (msg) {

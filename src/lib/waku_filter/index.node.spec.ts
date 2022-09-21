@@ -13,6 +13,8 @@ import { DecoderV0, EncoderV0 } from "../waku_message/version_0";
 const log = debug("waku:test");
 
 const TestContentTopic = "/test/1/waku-filter";
+const TestEncoder = new EncoderV0(TestContentTopic);
+const TestDecoder = new DecoderV0(TestContentTopic);
 
 describe("Waku Filter", () => {
   let waku: WakuFull;
@@ -50,16 +52,13 @@ describe("Waku Filter", () => {
       expect(bytesToUtf8(msg.payload!)).to.eq(messageText);
     };
 
-    const decoder = new DecoderV0(TestContentTopic);
-
-    await waku.filter.subscribe([decoder], callback);
+    await waku.filter.subscribe([TestDecoder], callback);
     // As the filter protocol does not cater for an ack of subscription
     // we cannot know whether the subscription happened. Something we want to
     // correct in future versions of the protocol.
     await delay(200);
 
-    const encoder = new EncoderV0(TestContentTopic);
-    await waku.lightPush.push(encoder, message);
+    await waku.lightPush.push(TestEncoder, message);
     while (messageCount === 0) {
       await delay(250);
     }
@@ -74,15 +73,13 @@ describe("Waku Filter", () => {
       messageCount++;
       expect(msg.contentTopic).to.eq(TestContentTopic);
     };
-    const decoder = new DecoderV0(TestContentTopic);
-    await waku.filter.subscribe([decoder], callback);
+    await waku.filter.subscribe([TestDecoder], callback);
 
     await delay(200);
-    const encoder = new EncoderV0(TestContentTopic);
-    await waku.lightPush.push(encoder, {
+    await waku.lightPush.push(TestEncoder, {
       payload: utf8ToBytes("Filtering works!"),
     });
-    await waku.lightPush.push(encoder, {
+    await waku.lightPush.push(TestEncoder, {
       payload: utf8ToBytes("Filtering still works!"),
     });
     while (messageCount < 2) {
@@ -96,19 +93,16 @@ describe("Waku Filter", () => {
     const callback = (): void => {
       messageCount++;
     };
-    const decoder = new DecoderV0(TestContentTopic);
-    const unsubscribe = await waku.filter.subscribe([decoder], callback);
-
-    const encoder = new EncoderV0(TestContentTopic);
+    const unsubscribe = await waku.filter.subscribe([TestDecoder], callback);
 
     await delay(200);
-    await waku.lightPush.push(encoder, {
+    await waku.lightPush.push(TestEncoder, {
       payload: utf8ToBytes("This should be received"),
     });
     await delay(100);
     await unsubscribe();
     await delay(200);
-    await waku.lightPush.push(encoder, {
+    await waku.lightPush.push(TestEncoder, {
       payload: utf8ToBytes("This should not be received"),
     });
     await delay(100);
