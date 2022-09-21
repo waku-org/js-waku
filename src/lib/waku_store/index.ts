@@ -106,15 +106,15 @@ export class WakuStore {
    */
   async queryOrderedCallback<T extends Message>(
     decoders: Decoder<T>[],
-    callback: (message: Message) => Promise<void | boolean> | boolean | void,
+    callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
     const abort = false;
     for await (const promises of this.queryGenerator(decoders, options)) {
       if (abort) break;
-      let messages = await Promise.all(promises);
+      const messagesOrUndef: Array<T | undefined> = await Promise.all(promises);
 
-      messages = messages.filter(isWakuMessageDefined);
+      let messages: Array<T> = messagesOrUndef.filter(isDefined);
 
       // Messages in pages are ordered from oldest (first) to most recent (last).
       // https://github.com/vacp2p/rfc/issues/533
@@ -156,7 +156,7 @@ export class WakuStore {
   async queryCallbackOnPromise<T extends Message>(
     decoders: Decoder<T>[],
     callback: (
-      message: Promise<Message | undefined>
+      message: Promise<T | undefined>
     ) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
@@ -194,7 +194,7 @@ export class WakuStore {
   async *queryGenerator<T extends Message>(
     decoders: Decoder<T>[],
     options?: QueryOptions
-  ): AsyncGenerator<Promise<Message | undefined>[]> {
+  ): AsyncGenerator<Promise<T | undefined>[]> {
     let startTime, endTime;
 
     if (options?.timeFilter) {
@@ -245,7 +245,7 @@ export class WakuStore {
 
     if (!connection) throw "Failed to get a connection to the peer";
 
-    for await (const messages of paginate(
+    for await (const messages of paginate<T>(
       connection,
       protocol,
       queryOpts,
@@ -370,8 +370,6 @@ async function* paginate<T extends Message>(
   }
 }
 
-export const isWakuMessageDefined = (
-  msg: Message | undefined
-): msg is Message => {
+export function isDefined<T>(msg: T | undefined): msg is T {
   return !!msg;
-};
+}
