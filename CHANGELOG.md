@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.0] - 2022-09-21
+
 ### Changed
 
 - Waku message encoding and decoding is more generic, to enable upcoming feature such as [RLN](https://rfc.vac.dev/spec/17/) & [Noise](https://rfc.vac.dev/spec/43/);
@@ -513,7 +515,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.28.1...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.29.0...HEAD
+[0.29.0]: https://github.com/status-im/js-waku/compare/v0.28.0...v0.29.0
 [0.28.1]: https://github.com/status-im/js-waku/compare/v0.28.0...v0.28.1
 [0.28.0]: https://github.com/status-im/js-waku/compare/v0.27.0...v0.28.0
 [0.27.0]: https://github.com/status-im/js-waku/compare/v0.26.0...v0.27.0
