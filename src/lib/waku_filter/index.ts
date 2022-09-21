@@ -49,7 +49,9 @@ export type FilterSubscriptionOpts = {
   peerId?: PeerId;
 };
 
-export type FilterCallback = (msg: Message) => void | Promise<void>;
+export type FilterCallback<T extends Message> = (
+  msg: T
+) => void | Promise<void>;
 
 export type UnsubscribeFunction = () => Promise<void>;
 
@@ -62,7 +64,7 @@ export type UnsubscribeFunction = () => Promise<void>;
  */
 export class WakuFilter {
   pubSubTopic: string;
-  private subscriptions: Map<string, FilterCallback>;
+  private subscriptions: Map<string, FilterCallback<any>>;
   private decoders: Map<
     string, // content topic
     Set<Decoder<any>>
@@ -85,7 +87,7 @@ export class WakuFilter {
    */
   async subscribe<T extends Message>(
     decoders: Decoder<T>[],
-    callback: FilterCallback,
+    callback: FilterCallback<T>,
     opts?: FilterSubscriptionOpts
   ): Promise<UnsubscribeFunction> {
     const topic = opts?.pubsubTopic ?? this.pubSubTopic;
@@ -209,7 +211,7 @@ export class WakuFilter {
     }
   }
 
-  private addCallback(requestId: string, callback: FilterCallback): void {
+  private addCallback(requestId: string, callback: FilterCallback<any>): void {
     this.subscriptions.set(requestId, callback);
   }
 
