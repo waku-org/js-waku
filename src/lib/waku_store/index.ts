@@ -106,7 +106,7 @@ export class WakuStore {
    */
   async queryOrderedCallback<T extends Message>(
     decoders: Decoder<T>[],
-    callback: (message: Message) => Promise<void | boolean> | boolean | void,
+    callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
     const abort = false;
@@ -156,7 +156,7 @@ export class WakuStore {
   async queryCallbackOnPromise<T extends Message>(
     decoders: Decoder<T>[],
     callback: (
-      message: Promise<Message | undefined>
+      message: Promise<T | undefined>
     ) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
@@ -194,7 +194,7 @@ export class WakuStore {
   async *queryGenerator<T extends Message>(
     decoders: Decoder<T>[],
     options?: QueryOptions
-  ): AsyncGenerator<Promise<Message | undefined>[]> {
+  ): AsyncGenerator<Promise<T | undefined>[]> {
     let startTime, endTime;
 
     if (options?.timeFilter) {
@@ -245,7 +245,7 @@ export class WakuStore {
 
     if (!connection) throw "Failed to get a connection to the peer";
 
-    for await (const messages of paginate(
+    for await (const messages of paginate<T>(
       connection,
       protocol,
       queryOpts,
