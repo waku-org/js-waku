@@ -51,17 +51,28 @@ export interface WakuFull extends Waku {
   lightPush: WakuLightPush;
 }
 
+export interface RateLimitProof {
+  proof: Uint8Array;
+  merkleRoot: Uint8Array;
+  epoch: Uint8Array;
+  shareX: Uint8Array;
+  shareY: Uint8Array;
+  nullifier: Uint8Array;
+}
+
 export interface ProtoMessage {
   payload?: Uint8Array;
   contentTopic?: string;
   version?: number;
   timestamp?: bigint;
+  rateLimitProof?: RateLimitProof;
 }
 
 export interface Message {
   payload?: Uint8Array;
   contentTopic?: string;
   timestamp?: Date;
+  rateLimitProof?: RateLimitProof;
 }
 
 export interface Encoder {
