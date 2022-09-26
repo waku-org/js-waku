@@ -58,6 +58,7 @@ export interface RateLimitProof {
   shareX: Uint8Array;
   shareY: Uint8Array;
   nullifier: Uint8Array;
+  rlnIdentifier: Uint8Array;
 }
 
 export interface ProtoMessage {

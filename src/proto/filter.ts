@@ -310,6 +310,7 @@ export interface RateLimitProof {
   shareX: Uint8Array;
   shareY: Uint8Array;
   nullifier: Uint8Array;
+  rlnIdentifier: Uint8Array;
 }
 
 export namespace RateLimitProof {
@@ -377,6 +378,15 @@ export namespace RateLimitProof {
             );
           }
 
+          if (obj.rlnIdentifier != null) {
+            writer.uint32(58);
+            writer.bytes(obj.rlnIdentifier);
+          } else {
+            throw new Error(
+              'Protocol error: required field "rlnIdentifier" was not found in object'
+            );
+          }
+
           if (opts.lengthDelimited !== false) {
             writer.ldelim();
           }
@@ -389,6 +399,7 @@ export namespace RateLimitProof {
             shareX: new Uint8Array(0),
             shareY: new Uint8Array(0),
             nullifier: new Uint8Array(0),
+            rlnIdentifier: new Uint8Array(0),
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -414,6 +425,9 @@ export namespace RateLimitProof {
                 break;
               case 6:
                 obj.nullifier = reader.bytes();
+                break;
+              case 7:
+                obj.rlnIdentifier = reader.bytes();
                 break;
               default:
                 reader.skipType(tag & 7);
@@ -454,6 +468,12 @@ export namespace RateLimitProof {
           if (obj.nullifier == null) {
             throw new Error(
               'Protocol error: value for required field "nullifier" was not found in protobuf'
+            );
+          }
+
+          if (obj.rlnIdentifier == null) {
+            throw new Error(
+              'Protocol error: value for required field "rlnIdentifier" was not found in protobuf'
             );
           }
 
