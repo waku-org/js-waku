@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `RateLimitProof` field in Waku Message protobuf for RLN.
+
 ## [0.29.0] - 2022-09-21
 
 ### Changed
