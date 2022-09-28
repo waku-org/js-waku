@@ -10,7 +10,7 @@ const OneMillion = BigInt(1_000_000);
 export const Version = 0;
 
 export class MessageV0 implements Message {
-  constructor(private proto: proto.WakuMessage) {}
+  constructor(protected proto: proto.WakuMessage) {}
 
   get _rawPayload(): Uint8Array | undefined {
     if (this.proto.payload) {
