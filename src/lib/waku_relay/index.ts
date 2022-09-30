@@ -96,7 +96,7 @@ export class WakuRelay extends GossipSub {
     encoder: Encoder,
     message: Partial<Message>
   ): Promise<SendResult> {
-    const msg = await encoder.encode(message);
+    const msg = await encoder.toWire(message);
     if (!msg) {
       log("Failed to encode message, aborting publish");
       return { recipients: [] };
@@ -139,7 +139,7 @@ export class WakuRelay extends GossipSub {
         if (event.detail.msg.topic !== pubSubTopic) return;
         log(`Message received on ${pubSubTopic}`);
 
-        const topicOnlyMsg = await this.defaultDecoder.decodeProto(
+        const topicOnlyMsg = await this.defaultDecoder.fromWireToProtoObj(
           event.detail.msg.data
         );
         if (!topicOnlyMsg || !topicOnlyMsg.contentTopic) {
@@ -153,14 +153,16 @@ export class WakuRelay extends GossipSub {
         }
         await Promise.all(
           Array.from(observers).map(async ({ decoder, callback }) => {
-            const protoMsg = await decoder.decodeProto(event.detail.msg.data);
+            const protoMsg = await decoder.fromWireToProtoObj(
+              event.detail.msg.data
+            );
             if (!protoMsg) {
               log(
                 "Internal error: message previously decoded failed on 2nd pass."
               );
               return;
             }
-            const msg = await decoder.decode(protoMsg);
+            const msg = await decoder.fromProtoObj(protoMsg);
             if (msg) {
               callback(msg);
             } else {

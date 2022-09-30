@@ -79,7 +79,7 @@ export class WakuLightPush {
     const recipients: PeerId[] = [];
 
     try {
-      const protoMessage = await encoder.encodeProto(message);
+      const protoMessage = await encoder.toProtoObj(message);
       if (!protoMessage) {
         log("Failed to encode to protoMessage, aborting push");
         return { recipients };

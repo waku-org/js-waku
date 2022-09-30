@@ -10,10 +10,10 @@ describe("Waku Message version 0", function () {
     await fc.assert(
       fc.asyncProperty(fc.uint8Array({ minLength: 1 }), async (payload) => {
         const encoder = new EncoderV0(TestContentTopic);
-        const bytes = await encoder.encode({ payload });
+        const bytes = await encoder.toWire({ payload });
         const decoder = new DecoderV0(TestContentTopic);
-        const protoResult = await decoder.decodeProto(bytes);
-        const result = (await decoder.decode(protoResult!)) as MessageV0;
+        const protoResult = await decoder.fromWireToProtoObj(bytes);
+        const result = (await decoder.fromProtoObj(protoResult!)) as MessageV0;
 
         expect(result.contentTopic).to.eq(TestContentTopic);
         expect(result.version).to.eq(0);

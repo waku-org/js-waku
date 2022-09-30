@@ -78,14 +78,14 @@ export interface Message {
 
 export interface Encoder {
   contentTopic: string;
-  encode: (message: Partial<Message>) => Promise<Uint8Array | undefined>;
-  encodeProto: (message: Partial<Message>) => Promise<ProtoMessage | undefined>;
+  toWire: (message: Partial<Message>) => Promise<Uint8Array | undefined>;
+  toProtoObj: (message: Partial<Message>) => Promise<ProtoMessage | undefined>;
 }
 
 export interface Decoder<T extends Message> {
   contentTopic: string;
-  decodeProto: (bytes: Uint8Array) => Promise<ProtoMessage | undefined>;
-  decode: (proto: ProtoMessage) => Promise<T | undefined>;
+  fromWireToProtoObj: (bytes: Uint8Array) => Promise<ProtoMessage | undefined>;
+  fromProtoObj: (proto: ProtoMessage) => Promise<T | undefined>;
 }
 
 export interface SendResult {

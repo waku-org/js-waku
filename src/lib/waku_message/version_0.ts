@@ -63,11 +63,11 @@ export class MessageV0 implements Message {
 export class EncoderV0 implements Encoder {
   constructor(public contentTopic: string) {}
 
-  async encode(message: Partial<Message>): Promise<Uint8Array> {
-    return proto.WakuMessage.encode(await this.encodeProto(message));
+  async toWire(message: Partial<Message>): Promise<Uint8Array> {
+    return proto.WakuMessage.encode(await this.toProtoObj(message));
   }
 
-  async encodeProto(message: Partial<Message>): Promise<ProtoMessage> {
+  async toProtoObj(message: Partial<Message>): Promise<ProtoMessage> {
     const timestamp = message.timestamp ?? new Date();
 
     return {
@@ -83,7 +83,7 @@ export class EncoderV0 implements Encoder {
 export class DecoderV0 implements Decoder<MessageV0> {
   constructor(public contentTopic: string) {}
 
-  decodeProto(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
+  fromWireToProtoObj(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);
     log("Message decoded", protoMessage);
     return Promise.resolve({
@@ -95,7 +95,7 @@ export class DecoderV0 implements Decoder<MessageV0> {
     });
   }
 
-  async decode(proto: ProtoMessage): Promise<MessageV0 | undefined> {
+  async fromProtoObj(proto: ProtoMessage): Promise<MessageV0 | undefined> {
     // https://github.com/status-im/js-waku/issues/921
     if (proto.version === undefined) {
       proto.version = 0;

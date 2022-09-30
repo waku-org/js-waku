@@ -20,7 +20,7 @@ export class TopicOnlyMessage implements Message {
 export class TopicOnlyDecoder implements Decoder<TopicOnlyMessage> {
   public contentTopic = "";
 
-  decodeProto(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
+  fromWireToProtoObj(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
     const protoMessage = proto.TopicOnlyMessage.decode(bytes);
     log("Message decoded", protoMessage);
     return Promise.resolve({
@@ -32,7 +32,9 @@ export class TopicOnlyDecoder implements Decoder<TopicOnlyMessage> {
     });
   }
 
-  async decode(proto: ProtoMessage): Promise<TopicOnlyMessage | undefined> {
+  async fromProtoObj(
+    proto: ProtoMessage
+  ): Promise<TopicOnlyMessage | undefined> {
     return new TopicOnlyMessage(proto);
   }
 }

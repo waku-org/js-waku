@@ -199,7 +199,7 @@ export class WakuFilter {
       // noinspection ES6MissingAwait
       decoders.forEach(async (dec) => {
         if (msg) return;
-        const decoded = await dec.decode(toProtoMessage(protoMessage));
+        const decoded = await dec.fromProtoObj(toProtoMessage(protoMessage));
         if (!decoded) {
           log("Not able to decode message");
           return;

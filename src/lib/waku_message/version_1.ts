@@ -52,14 +52,14 @@ export class AsymEncoder implements Encoder {
     private sigPrivKey?: Uint8Array
   ) {}
 
-  async encode(message: Partial<Message>): Promise<Uint8Array | undefined> {
-    const protoMessage = await this.encodeProto(message);
+  async toWire(message: Partial<Message>): Promise<Uint8Array | undefined> {
+    const protoMessage = await this.toProtoObj(message);
     if (!protoMessage) return;
 
     return proto.WakuMessage.encode(protoMessage);
   }
 
-  async encodeProto(
+  async toProtoObj(
     message: Partial<Message>
   ): Promise<ProtoMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
@@ -88,14 +88,14 @@ export class SymEncoder implements Encoder {
     private sigPrivKey?: Uint8Array
   ) {}
 
-  async encode(message: Partial<Message>): Promise<Uint8Array | undefined> {
-    const protoMessage = await this.encodeProto(message);
+  async toWire(message: Partial<Message>): Promise<Uint8Array | undefined> {
+    const protoMessage = await this.toProtoObj(message);
     if (!protoMessage) return;
 
     return proto.WakuMessage.encode(protoMessage);
   }
 
-  async encodeProto(
+  async toProtoObj(
     message: Partial<Message>
   ): Promise<ProtoMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
@@ -121,7 +121,9 @@ export class AsymDecoder extends DecoderV0 implements Decoder<MessageV1> {
     super(contentTopic);
   }
 
-  async decode(protoMessage: ProtoMessage): Promise<MessageV1 | undefined> {
+  async fromProtoObj(
+    protoMessage: ProtoMessage
+  ): Promise<MessageV1 | undefined> {
     const cipherPayload = protoMessage.payload;
 
     if (protoMessage.version !== Version) {
@@ -177,7 +179,9 @@ export class SymDecoder extends DecoderV0 implements Decoder<MessageV1> {
     super(contentTopic);
   }
 
-  async decode(protoMessage: ProtoMessage): Promise<MessageV1 | undefined> {
+  async fromProtoObj(
+    protoMessage: ProtoMessage
+  ): Promise<MessageV1 | undefined> {
     const cipherPayload = protoMessage.payload;
 
     if (protoMessage.version !== Version) {
