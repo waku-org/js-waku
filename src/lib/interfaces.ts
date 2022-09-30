@@ -62,30 +62,30 @@ export interface RateLimitProof {
 }
 
 export interface ProtoMessage {
-  payload?: Uint8Array;
-  contentTopic?: string;
-  version?: number;
-  timestamp?: bigint;
-  rateLimitProof?: RateLimitProof;
+  payload: Uint8Array | undefined;
+  contentTopic: string | undefined;
+  version: number | undefined;
+  timestamp: bigint | undefined;
+  rateLimitProof: RateLimitProof | undefined;
 }
 
 export interface Message {
-  payload?: Uint8Array;
-  contentTopic?: string;
-  timestamp?: Date;
-  rateLimitProof?: RateLimitProof;
+  payload: Uint8Array | undefined;
+  contentTopic: string | undefined;
+  timestamp: Date | undefined;
+  rateLimitProof: RateLimitProof | undefined;
 }
 
 export interface Encoder {
   contentTopic: string;
-  encode: (message: Message) => Promise<Uint8Array | undefined>;
-  encodeProto: (message: Message) => Promise<ProtoMessage | undefined>;
+  toWire: (message: Partial<Message>) => Promise<Uint8Array | undefined>;
+  toProtoObj: (message: Partial<Message>) => Promise<ProtoMessage | undefined>;
 }
 
 export interface Decoder<T extends Message> {
   contentTopic: string;
-  decodeProto: (bytes: Uint8Array) => Promise<ProtoMessage | undefined>;
-  decode: (proto: ProtoMessage) => Promise<T | undefined>;
+  fromWireToProtoObj: (bytes: Uint8Array) => Promise<ProtoMessage | undefined>;
+  fromProtoObj: (proto: ProtoMessage) => Promise<T | undefined>;
 }
 
 export interface SendResult {

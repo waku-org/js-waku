@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `RateLimitProof` field in Waku Message protobuf for RLN.
 
+### Changed
+
+- `Message` interface changed to ensure implementations do not omit fields.
+- `Decoder` and `Encoder` interfaces change to better express what the function members do.
+
 ## [0.29.0] - 2022-09-21
 
 ### Changed

@@ -52,14 +52,16 @@ export class AsymEncoder implements Encoder {
     private sigPrivKey?: Uint8Array
   ) {}
 
-  async encode(message: Message): Promise<Uint8Array | undefined> {
-    const protoMessage = await this.encodeProto(message);
+  async toWire(message: Partial<Message>): Promise<Uint8Array | undefined> {
+    const protoMessage = await this.toProtoObj(message);
     if (!protoMessage) return;
 
     return proto.WakuMessage.encode(protoMessage);
   }
 
-  async encodeProto(message: Message): Promise<ProtoMessage | undefined> {
+  async toProtoObj(
+    message: Partial<Message>
+  ): Promise<ProtoMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
     if (!message.payload) {
       log("No payload to encrypt, skipping: ", message);
@@ -74,6 +76,7 @@ export class AsymEncoder implements Encoder {
       version: Version,
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+      rateLimitProof: message.rateLimitProof,
     };
   }
 }
@@ -85,14 +88,16 @@ export class SymEncoder implements Encoder {
     private sigPrivKey?: Uint8Array
   ) {}
 
-  async encode(message: Message): Promise<Uint8Array | undefined> {
-    const protoMessage = await this.encodeProto(message);
+  async toWire(message: Partial<Message>): Promise<Uint8Array | undefined> {
+    const protoMessage = await this.toProtoObj(message);
     if (!protoMessage) return;
 
     return proto.WakuMessage.encode(protoMessage);
   }
 
-  async encodeProto(message: Message): Promise<ProtoMessage | undefined> {
+  async toProtoObj(
+    message: Partial<Message>
+  ): Promise<ProtoMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
     if (!message.payload) {
       log("No payload to encrypt, skipping: ", message);
@@ -106,6 +111,7 @@ export class SymEncoder implements Encoder {
       version: Version,
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+      rateLimitProof: message.rateLimitProof,
     };
   }
 }
@@ -115,7 +121,9 @@ export class AsymDecoder extends DecoderV0 implements Decoder<MessageV1> {
     super(contentTopic);
   }
 
-  async decode(protoMessage: ProtoMessage): Promise<MessageV1 | undefined> {
+  async fromProtoObj(
+    protoMessage: ProtoMessage
+  ): Promise<MessageV1 | undefined> {
     const cipherPayload = protoMessage.payload;
 
     if (protoMessage.version !== Version) {
@@ -171,7 +179,9 @@ export class SymDecoder extends DecoderV0 implements Decoder<MessageV1> {
     super(contentTopic);
   }
 
-  async decode(protoMessage: ProtoMessage): Promise<MessageV1 | undefined> {
+  async fromProtoObj(
+    protoMessage: ProtoMessage
+  ): Promise<MessageV1 | undefined> {
     const cipherPayload = protoMessage.payload;
 
     if (protoMessage.version !== Version) {
