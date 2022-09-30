@@ -1,7 +1,7 @@
 import debug from "debug";
 
 import * as proto from "../../proto/message";
-import { Decoder, Message, ProtoMessage } from "../interfaces";
+import { Decoder, Message, ProtoMessage, RateLimitProof } from "../interfaces";
 import { Encoder } from "../interfaces";
 
 const log = debug("waku:message:version-0");
@@ -54,16 +54,20 @@ export class MessageV0 implements Message {
     // https://github.com/status-im/js-waku/issues/921
     return this.proto.version ?? 0;
   }
+
+  get rateLimitProof(): RateLimitProof | undefined {
+    return this.proto.rateLimitProof;
+  }
 }
 
 export class EncoderV0 implements Encoder {
   constructor(public contentTopic: string) {}
 
-  async encode(message: Message): Promise<Uint8Array> {
+  async encode(message: Partial<Message>): Promise<Uint8Array> {
     return proto.WakuMessage.encode(await this.encodeProto(message));
   }
 
-  async encodeProto(message: Message): Promise<ProtoMessage> {
+  async encodeProto(message: Partial<Message>): Promise<ProtoMessage> {
     const timestamp = message.timestamp ?? new Date();
 
     return {
@@ -71,6 +75,7 @@ export class EncoderV0 implements Encoder {
       version: Version,
       contentTopic: message.contentTopic ?? this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+      rateLimitProof: message.rateLimitProof,
     };
   }
 }
@@ -81,7 +86,13 @@ export class DecoderV0 implements Decoder<MessageV0> {
   decodeProto(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);
     log("Message decoded", protoMessage);
-    return Promise.resolve(protoMessage);
+    return Promise.resolve({
+      payload: protoMessage.payload ?? undefined,
+      contentTopic: protoMessage.contentTopic ?? undefined,
+      version: protoMessage.version ?? undefined,
+      timestamp: protoMessage.timestamp ?? undefined,
+      rateLimitProof: protoMessage.rateLimitProof ?? undefined,
+    });
   }
 
   async decode(proto: ProtoMessage): Promise<MessageV0 | undefined> {

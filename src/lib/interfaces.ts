@@ -62,24 +62,24 @@ export interface RateLimitProof {
 }
 
 export interface ProtoMessage {
-  payload?: Uint8Array;
-  contentTopic?: string;
-  version?: number;
-  timestamp?: bigint;
-  rateLimitProof?: RateLimitProof;
+  payload: Uint8Array | undefined;
+  contentTopic: string | undefined;
+  version: number | undefined;
+  timestamp: bigint | undefined;
+  rateLimitProof: RateLimitProof | undefined;
 }
 
 export interface Message {
-  payload?: Uint8Array;
-  contentTopic?: string;
-  timestamp?: Date;
-  rateLimitProof?: RateLimitProof;
+  payload: Uint8Array | undefined;
+  contentTopic: string | undefined;
+  timestamp: Date | undefined;
+  rateLimitProof: RateLimitProof | undefined;
 }
 
 export interface Encoder {
   contentTopic: string;
-  encode: (message: Message) => Promise<Uint8Array | undefined>;
-  encodeProto: (message: Message) => Promise<ProtoMessage | undefined>;
+  encode: (message: Partial<Message>) => Promise<Uint8Array | undefined>;
+  encodeProto: (message: Partial<Message>) => Promise<ProtoMessage | undefined>;
 }
 
 export interface Decoder<T extends Message> {

@@ -53,7 +53,7 @@ export class WakuLightPush {
 
   async push(
     encoder: Encoder,
-    message: Message,
+    message: Partial<Message>,
     opts?: PushOptions
   ): Promise<SendResult> {
     const pubSubTopic = opts?.pubSubTopic ? opts.pubSubTopic : this.pubSubTopic;

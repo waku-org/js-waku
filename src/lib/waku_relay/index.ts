@@ -92,7 +92,10 @@ export class WakuRelay extends GossipSub {
   /**
    * Send Waku message.
    */
-  public async send(encoder: Encoder, message: Message): Promise<SendResult> {
+  public async send(
+    encoder: Encoder,
+    message: Partial<Message>
+  ): Promise<SendResult> {
     const msg = await encoder.encode(message);
     if (!msg) {
       log("Failed to encode message, aborting publish");

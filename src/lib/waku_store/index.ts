@@ -14,6 +14,7 @@ import { DefaultPubSubTopic, StoreCodecs } from "../constants";
 import { Decoder, Message } from "../interfaces";
 import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer";
+import { toProtoMessage } from "../to_proto_message";
 
 import { HistoryRPC, PageDirection, Params } from "./history_rpc";
 
@@ -341,7 +342,7 @@ async function* paginate<T extends Message>(
       if (typeof contentTopic !== "undefined") {
         const decoder = decoders.get(contentTopic);
         if (decoder) {
-          return decoder.decode(protoMsg);
+          return decoder.decode(toProtoMessage(protoMsg));
         }
       }
       return Promise.resolve(undefined);

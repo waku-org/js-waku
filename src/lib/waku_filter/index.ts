@@ -18,6 +18,7 @@ import {
   selectPeerForProtocol,
   selectRandomPeer,
 } from "../select_peer";
+import { toProtoMessage } from "../to_proto_message";
 
 import { ContentFilter, FilterRPC } from "./filter_rpc";
 export { ContentFilter };
@@ -198,7 +199,7 @@ export class WakuFilter {
       // noinspection ES6MissingAwait
       decoders.forEach(async (dec) => {
         if (msg) return;
-        const decoded = await dec.decode(protoMessage);
+        const decoded = await dec.decode(toProtoMessage(protoMessage));
         if (!decoded) {
           log("Not able to decode message");
           return;
