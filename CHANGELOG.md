@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Message` interface changed to ensure implementations do not omit fields.
 - `Decoder` and `Encoder` interfaces change to better express what the function members do.
 
+### Fixed
+
+- Incorrect cursor encoding in Store queries.
+
+### Removed
+
+- Support for Waku Store 2.0.0-beta4.
+
 ## [0.29.0] - 2022-09-21
 
 ### Changed
@@ -31,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `WakuRelay.addObserver` now returns a function to delete the observer.
 - `WakuLightPush.push` and `WakuRelay.send` returns `SendResult` with the list of recipients.
 
-### Changed
+### Removed
 
 - `queryCallbackOnPromise`'s return value has been simplified to `Promise<void>`.
 - doc: clarified behaviour of `WakuStore` query functions.
