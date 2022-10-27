@@ -112,7 +112,7 @@ export class WakuStore {
     callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
-    const abort = false;
+    let abort = false;
     for await (const promises of this.queryGenerator(decoders, options)) {
       if (abort) break;
       const messagesOrUndef: Array<T | undefined> = await Promise.all(promises);
@@ -129,9 +129,9 @@ export class WakuStore {
       }
 
       await Promise.all(
-        messages.map((msg) => {
-          if (!abort) {
-            if (msg) return callback(msg);
+        messages.map(async (msg) => {
+          if (msg && !abort) {
+            abort = Boolean(await callback(msg));
           }
         })
       );
