@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Support for Waku Store 2.0.0-beta4.
+- Support for Waku Store 2.0.0-beta3.
 
 ## [0.29.0] - 2022-09-21
 

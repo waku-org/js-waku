@@ -1,7 +1,7 @@
 import type { Uint8ArrayList } from "uint8arraylist";
 import { v4 as uuid } from "uuid";
 
-import * as protoV2Beta4 from "../../proto/store_v2beta4";
+import * as proto from "../../proto/store";
 
 const OneMillion = BigInt(1_000_000);
 
@@ -17,17 +17,17 @@ export interface Params {
   pageSize: number;
   startTime?: Date;
   endTime?: Date;
-  cursor?: protoV2Beta4.Index;
+  cursor?: proto.Index;
 }
 
 export class HistoryRPC {
-  private constructor(public readonly proto: protoV2Beta4.HistoryRPC) {}
+  private constructor(public readonly proto: proto.HistoryRPC) {}
 
-  get query(): protoV2Beta4.HistoryQuery | undefined {
+  get query(): proto.HistoryQuery | undefined {
     return this.proto.query;
   }
 
-  get response(): protoV2Beta4.HistoryResponse | undefined {
+  get response(): proto.HistoryResponse | undefined {
     return this.proto.response;
   }
 
@@ -45,7 +45,7 @@ export class HistoryRPC {
       pageSize: BigInt(params.pageSize),
       cursor: params.cursor,
       direction,
-    } as protoV2Beta4.PagingInfo;
+    } as proto.PagingInfo;
 
     let startTime, endTime;
     if (params.startTime) {
@@ -71,24 +71,24 @@ export class HistoryRPC {
   }
 
   decode(bytes: Uint8ArrayList): HistoryRPC {
-    const res = protoV2Beta4.HistoryRPC.decode(bytes);
+    const res = proto.HistoryRPC.decode(bytes);
     return new HistoryRPC(res);
   }
 
   encode(): Uint8Array {
-    return protoV2Beta4.HistoryRPC.encode(this.proto);
+    return proto.HistoryRPC.encode(this.proto);
   }
 }
 
 function directionToProto(
   pageDirection: PageDirection
-): protoV2Beta4.PagingInfo.Direction {
+): proto.PagingInfo.Direction {
   switch (pageDirection) {
     case PageDirection.BACKWARD:
-      return protoV2Beta4.PagingInfo.Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+      return proto.PagingInfo.Direction.DIRECTION_BACKWARD_UNSPECIFIED;
     case PageDirection.FORWARD:
-      return protoV2Beta4.PagingInfo.Direction.DIRECTION_FORWARD;
+      return proto.PagingInfo.Direction.DIRECTION_FORWARD;
     default:
-      return protoV2Beta4.PagingInfo.Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+      return proto.PagingInfo.Direction.DIRECTION_BACKWARD_UNSPECIFIED;
   }
 }
