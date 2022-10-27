@@ -14,7 +14,7 @@ import { EncoderV0 } from "./waku_message/version_0";
 import { WakuRelay } from "./waku_relay";
 import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
 import * as relayConstants from "./waku_relay/constants";
-import { StoreCodecs, WakuStore } from "./waku_store";
+import { StoreCodec, WakuStore } from "./waku_store";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -128,9 +128,7 @@ export class WakuNode implements Waku {
       RelayCodecs.forEach((codec) => codecs.push(codec));
     }
     if (_protocols.includes(Protocols.Store)) {
-      for (const codec of Object.values(StoreCodecs)) {
-        codecs.push(codec);
-      }
+      codecs.push(StoreCodec);
     }
     if (_protocols.includes(Protocols.LightPush)) {
       codecs.push(LightPushCodec);

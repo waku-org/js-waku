@@ -10,7 +10,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import * as protoV2Beta4 from "../../proto/store_v2beta4";
 import { HistoryResponse } from "../../proto/store_v2beta4";
-import { DefaultPubSubTopic, StoreCodecs } from "../constants";
+import { DefaultPubSubTopic } from "../constants";
 import { Decoder, Message } from "../interfaces";
 import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer";
@@ -22,9 +22,11 @@ import HistoryError = HistoryResponse.HistoryError;
 
 const log = debug("waku:store");
 
+export const StoreCodec = "/vac/waku/store/2.0.0-beta4";
+
 export const DefaultPageSize = 10;
 
-export { PageDirection, StoreCodecs };
+export { PageDirection };
 
 export interface CreateOptions {
   /**
@@ -232,7 +234,7 @@ export class WakuStore {
 
     const res = await selectPeerForProtocol(
       this.libp2p.peerStore,
-      Object.values(StoreCodecs),
+      [StoreCodec],
       options?.peerId
     );
 
@@ -261,12 +263,7 @@ export class WakuStore {
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
   async peers(): Promise<Peer[]> {
-    const codecs = [];
-    for (const codec of Object.values(StoreCodecs)) {
-      codecs.push(codec);
-    }
-
-    return getPeersForProtocol(this.libp2p.peerStore, codecs);
+    return getPeersForProtocol(this.libp2p.peerStore, [StoreCodec]);
   }
 }
 
