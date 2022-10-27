@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Incorrect cursor encoding in Store queries.
+- `WakuStore.queryOrderedCallback` not stopping when callback returns true.
 
 ### Removed
 

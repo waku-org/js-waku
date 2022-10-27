@@ -465,6 +465,43 @@ describe("Waku Store", () => {
 
     expect(bothMessages?.length).eq(2);
   });
+
+  it("Ordered callback, aborts when callback returns true", async function () {
+    this.timeout(15_000);
+
+    const totalMsgs = 20;
+
+    for (let i = 0; i < totalMsgs; i++) {
+      expect(
+        await nwaku.sendMessage(
+          Nwaku.toMessageRpcQuery({
+            payload: utf8ToBytes(`Message ${i}`),
+            contentTopic: TestContentTopic,
+          })
+        )
+      ).to.be.true;
+    }
+
+    waku = await createFullNode({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+    await waku.start();
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.Store]);
+
+    const desiredMsgs = 14;
+    const messages: Message[] = [];
+    await waku.store.queryOrderedCallback(
+      [TestDecoder],
+      async (msg) => {
+        messages.push(msg);
+        return messages.length >= desiredMsgs;
+      },
+      { pageSize: 7 }
+    );
+
+    expect(messages?.length).eq(desiredMsgs);
+  });
 });
 
 describe("Waku Store, custom pubsub topic", () => {
