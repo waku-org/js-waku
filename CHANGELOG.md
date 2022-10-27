@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.0] - 2022-10-28
+
 ### Added
 
 - `RateLimitProof` field in Waku Message protobuf for RLN.
@@ -533,7 +535,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.29.0...HEAD
+[Unreleased]: https://github.com/status-im/js-waku/compare/v0.30.0...HEAD
+[0.30.0]: https://github.com/status-im/js-waku/compare/v0.29.0...v0.30.0
 [0.29.0]: https://github.com/status-im/js-waku/compare/v0.28.0...v0.29.0
 [0.28.1]: https://github.com/status-im/js-waku/compare/v0.28.0...v0.28.1
 [0.28.0]: https://github.com/status-im/js-waku/compare/v0.27.0...v0.28.0
