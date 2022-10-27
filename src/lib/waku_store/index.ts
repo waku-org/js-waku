@@ -8,8 +8,7 @@ import { pipe } from "it-pipe";
 import { Libp2p } from "libp2p";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import * as protoV2Beta4 from "../../proto/store_v2beta4";
-import { HistoryResponse } from "../../proto/store_v2beta4";
+import * as proto from "../../proto/store";
 import { DefaultPubSubTopic } from "../constants";
 import { Decoder, Message } from "../interfaces";
 import { selectConnection } from "../select_connection";
@@ -18,7 +17,7 @@ import { toProtoMessage } from "../to_proto_message";
 
 import { HistoryRPC, PageDirection, Params } from "./history_rpc";
 
-import HistoryError = HistoryResponse.HistoryError;
+import HistoryError = proto.HistoryResponse.HistoryError;
 
 const log = debug("waku:store");
 
@@ -316,7 +315,7 @@ async function* paginate<T extends Message>(
       break;
     }
 
-    const response = reply.response as protoV2Beta4.HistoryResponse;
+    const response = reply.response as proto.HistoryResponse;
 
     if (
       response.error &&
