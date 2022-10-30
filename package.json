@@ -5,7 +5,13 @@
     "packages/*"
   ],
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build": "lerna run build",
+    "size": "lerna run size",
+    "fix": "lerna run fix",
+    "test": "lerna run test",
+    "proto": "lerna run proto",
+    "doc": "lerna run doc"
   },
   "devDependencies": {
     "husky": "^8.0.1",
