@@ -9,7 +9,10 @@
     "build": "lerna run build",
     "size": "npm run build && size-limit",
     "fix": "lerna run fix",
+    "check": "lerna run check",
     "test": "lerna run test",
+    "test:browser": "lerna run test:browser",
+    "test:node": "lerna run test:node",
     "proto": "lerna run proto",
     "doc": "lerna run doc"
   },

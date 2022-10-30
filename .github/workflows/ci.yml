@@ -21,11 +21,8 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
-      - run: npm run test:lint
-      - run: npm run test:prettier
-      - run: npm run test:spelling
-      - run: npm run test:tsc
-      - run: npm run doc:html
+      - run: npm run check
+      - run: npm run doc
 
   build:
     runs-on: ubuntu-latest
@@ -102,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GO_WAKU_VERSION: "0.2.2"
-      WAKU_SERVICE_NODE_DIR: ./go-waku
+      WAKU_SERVICE_NODE_DIR: ../../go-waku
       WAKU_SERVICE_NODE_BIN: ./waku
       WAKU_SERVICE_NODE_PARAMS: "--min-relay-peers-to-publish=0" # Can be removed once https://github.com/status-im/nwaku/issues/1004 is done
       DEBUG: "waku*"
@@ -123,6 +120,7 @@ jobs:
         shell: bash
         run: |
           uname -a
+          cd packages/core
           cd "${WAKU_SERVICE_NODE_DIR}"
           "${WAKU_SERVICE_NODE_BIN}" --version
 
