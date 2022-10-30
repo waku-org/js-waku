@@ -1,4 +1,5 @@
-import { Multiaddr } from "@multiformats/multiaddr";
+import { multiaddr } from "@multiformats/multiaddr";
+import type { Multiaddr } from "@multiformats/multiaddr";
 import { convertToString } from "@multiformats/multiaddr/convert";
 
 export function multiaddrFromFields(
@@ -7,14 +8,10 @@ export function multiaddrFromFields(
   ipBytes: Uint8Array,
   protocolBytes: Uint8Array
 ): Multiaddr {
-  let ma = new Multiaddr(
-    "/" + ipFamily + "/" + convertToString(ipFamily, ipBytes)
-  );
+  let ma = multiaddr("/" + ipFamily + "/" + convertToString(ipFamily, ipBytes));
 
   ma = ma.encapsulate(
-    new Multiaddr(
-      "/" + protocol + "/" + convertToString(protocol, protocolBytes)
-    )
+    multiaddr("/" + protocol + "/" + convertToString(protocol, protocolBytes))
   );
 
   return ma;

@@ -1,4 +1,5 @@
-import { Multiaddr } from "@multiformats/multiaddr";
+import type { Multiaddr } from "@multiformats/multiaddr";
+import { multiaddr } from "@multiformats/multiaddr";
 
 import { getPseudoRandomSubset } from "./random_subset";
 
@@ -41,7 +42,7 @@ export function getPredefinedBootstrapNodes(
 
   nodes = Object.values(nodes) as string[];
 
-  nodes = nodes.map((node: string) => new Multiaddr(node));
+  nodes = nodes.map((node: string) => multiaddr(node));
   return getPseudoRandomSubset(nodes, wantedNumber);
 }
 

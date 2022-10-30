@@ -1,4 +1,4 @@
-import { Multiaddr } from "@multiformats/multiaddr";
+import { multiaddr } from "@multiformats/multiaddr";
 import { expect } from "chai";
 
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
@@ -6,13 +6,11 @@ import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
 describe("ENR multiaddrs codec", function () {
   it("Sample", async () => {
     const multiaddrs = [
-      new Multiaddr(
-        "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss"
-      ),
-      new Multiaddr(
+      multiaddr("/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss"),
+      multiaddr(
         "/dns6/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss"
       ),
-      new Multiaddr(
+      multiaddr(
         "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
       ),
     ];
