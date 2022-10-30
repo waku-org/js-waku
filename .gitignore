@@ -1,11 +1,10 @@
 .idea/*
 .angular
 build
+bundle
 dist
 node_modules
 src/**.js
 coverage
 *.log
-/tsconfig.tsbuildinfo
-/tsconfig.dev.tsbuildinfo
-/bundle/
+*.tsbuildinfo
