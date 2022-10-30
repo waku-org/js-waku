@@ -64,7 +64,6 @@
     "dapps"
   ],
   "scripts": {
-    "prepare": "husky install",
     "build": "run-s build:**",
     "build:esm": "tsc && node build-scripts/fix-imports.js",
     "build:bundle": "rollup --config rollup.config.js",
@@ -157,7 +156,6 @@
     "eslint-plugin-prettier": "^4.0.0",
     "fast-check": "^2.14.0",
     "gh-pages": "^3.2.3",
-    "husky": "^7.0.4",
     "ignore-loader": "^0.1.2",
     "isomorphic-fetch": "^3.0.0",
     "jsdom": "^19.0.0",
@@ -166,7 +164,6 @@
     "karma-chrome-launcher": "^3.1.0",
     "karma-mocha": "^2.0.1",
     "karma-webpack": "^5.0.0",
-    "lint-staged": "^13.0.3",
     "mocha": "^9.1.3",
     "npm-run-all": "^4.1.5",
     "p-timeout": "^6.0.0",
@@ -194,16 +191,5 @@
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
-  ],
-  "lint-staged": {
-    "*.ts": [
-      "eslint --fix"
-    ],
-    "*.{ts,json,conf*.*js}": [
-      "prettier --write"
-    ],
-    "./*.*js": [
-      "prettier --write"
-    ]
-  }
+  ]
 }

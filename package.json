@@ -4,7 +4,23 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "prepare": "husky install"
+  },
   "devDependencies": {
-    "lerna": "^6.0.1"
+    "husky": "^8.0.1",
+    "lerna": "^6.0.1",
+    "lint-staged": "^13.0.3"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix"
+    ],
+    "*.{ts,json,conf*.*js}": [
+      "prettier --write"
+    ],
+    "./*.*js": [
+      "prettier --write"
+    ]
   }
 }
