@@ -69,7 +69,7 @@
     "build:bundle": "rollup --config rollup.config.js",
     "size": "npm run build && size-limit",
     "fix": "run-s fix:*",
-    "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.*js\" \".github/**/*.yml\" --write",
+    "fix:prettier": "prettier \"src/**/*.ts\" \"./*.json\" \"*.*js\" --write",
     "fix:lint": "eslint src --ext .ts --ext .cjs --fix",
     "pretest": "run-s pretest:*",
     "pretest:1-init-git-submodules": "[ -f './nwaku/build/wakunode2' ] || git submodule update --init --recursive",
