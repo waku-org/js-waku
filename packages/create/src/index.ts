@@ -3,17 +3,24 @@ import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
 import { Mplex } from "@libp2p/mplex";
 import { WebSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
-import { createLibp2p, Libp2pOptions } from "libp2p";
+import type {
+  Waku,
+  WakuFull,
+  WakuLight,
+  WakuPrivacy,
+} from "@waku/core/lib/interfaces";
+import { PeerDiscoveryStaticPeers } from "@waku/core/lib/peer_discovery_static_list";
+import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
+import { WakuNode, WakuOptions } from "@waku/core/lib/waku.js";
+import { WakuFilter } from "@waku/core/lib/waku_filter";
+import { WakuLightPush } from "@waku/core/lib/waku_light_push";
+import {
+  CreateOptions as RelayCreateOptions,
+  WakuRelay,
+} from "@waku/core/lib/waku_relay";
+import { WakuStore } from "@waku/core/lib/waku_store";
 import type { Libp2p } from "libp2p";
-
-import type { Waku, WakuFull, WakuLight, WakuPrivacy } from "./interfaces";
-import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
-import { getPredefinedBootstrapNodes } from "./predefined_bootstrap_nodes";
-import { WakuNode, WakuOptions } from "./waku";
-import { WakuFilter } from "./waku_filter";
-import { WakuLightPush } from "./waku_light_push";
-import { CreateOptions as RelayCreateOptions, WakuRelay } from "./waku_relay";
-import { WakuStore } from "./waku_store";
+import { createLibp2p, Libp2pOptions } from "libp2p";
 
 export interface CreateOptions {
   /**
