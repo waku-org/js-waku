@@ -1,4 +1,4 @@
-name: "Semantic PR"
+name: "Conventional PR"
 
 on:
   pull_request_target:
@@ -16,9 +16,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          # fix:   bug fix on prod code
+          # feat:  new feature on prod code
+          # test:  only modify test or test utils
+          # doc:   only modify docs/comments
+          # chore: anything else
           types: |
-            fix   # Bug fix on prod code
-            feat  # New feature on prod code
-            test  # Only modify test or test utils
-            doc   # Only modify docs/comments
-            chore # Anything else
+            fix
+            feat
+            test
+            doc
+            chore

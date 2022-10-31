@@ -1,5 +1,5 @@
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
-import { Multiaddr } from "@multiformats/multiaddr";
+import { multiaddr } from "@multiformats/multiaddr";
 import { expect } from "chai";
 
 import { ENR, Waku2 } from "../enr";
@@ -9,11 +9,11 @@ import { fetchNodesUntilCapabilitiesFulfilled } from "./fetch_nodes";
 async function createEnr(waku2: Waku2): Promise<ENR> {
   const peerId = await createSecp256k1PeerId();
   const enr = await ENR.createFromPeerId(peerId);
-  enr.setLocationMultiaddr(new Multiaddr("/ip4/18.223.219.100/udp/9000"));
+  enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
   enr.multiaddrs = [
-    new Multiaddr("/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"),
-    new Multiaddr("/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"),
-    new Multiaddr(
+    multiaddr("/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"),
+    multiaddr("/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"),
+    multiaddr(
       "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
     ),
   ];

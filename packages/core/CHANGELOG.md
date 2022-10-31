@@ -156,7 +156,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support of the `waku2` ENR key: When using DNS Discovery, wanted node capabilities (e.g. relay, store) must be passed. 
+- Support of the `waku2` ENR key: When using DNS Discovery, wanted node capabilities (e.g. relay, store) must be passed.
 
 ### Changed
 
@@ -248,7 +248,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Test: Upgrade nim-waku node to v0.7. 
+- Test: Upgrade nim-waku node to v0.7.
 - Doc: Renamed "DappConnect" to "Waku Connect".
 - Docs: API Docs are now available at https://js-waku.wakuconnect.dev/.
 - **Breaking**: Replace `waitForConnectedPeer` with `waitForRemotePeer`; the new method checks that the peer is ready before resolving the promise.
@@ -292,19 +292,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.14.1] - 2021-10-22
 
 ### Fixed
+
 - Issue when importing the `utils` module.
 
 ## [0.14.0] - 2021-10-13
 
 ### Added
+
 - If the `callback` function passed to`WakuStore.queryHistory` returns `true`, then no further pages are retrieved from the store.
 - Use webpack to build UMD bundle of the library, see [README](./README.md) for usage.
 
 ### Changed
+
 - **Breaking**: Renamed `WakuStore.QueryOptions`'s `direction` to `pageDirection` (and its type) as it only affects the page ordering,
   not the ordering of messages with the page.
 
 ### Fixed
+
 - Docs: Ensure that `WakuStore`'s `QueryOptions` documentation is available [online](https://js-waku.wakuconnect.dev/).
 
 ## [0.13.1] - 2021-09-21
@@ -316,8 +320,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.13.0] - 2021-09-16
 
 ### Changed
+
 - Upgrade libp2p libraries: @chainsafe/libp2p-noise@4.1.1, libp2p@0.32.4, libp2p-gossipsub@0.11.1.
-- Connects to a limited number of bootstrap nodes, defaults to 1. 
+- Connects to a limited number of bootstrap nodes, defaults to 1.
 
 ## [0.12.2] - 2021-09-21
 
@@ -328,12 +333,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.12.1] - 2021-09-16
 
 ### Changed
+
 - **hot fix**: Connects to a limited number of bootstrap nodes, defaults to 1.
 
 ## [0.12.0] - 2021-09-2
 
 ### Added
-- Examples (eth-pm): Encrypt Public Key Messages using symmetric encryption. 
+
+- Examples (eth-pm): Encrypt Public Key Messages using symmetric encryption.
 - Guides: Encrypt messages using Waku Message Version 1.
 - Allow passing decryption keys in hex string format.
 - Allow passing decryption keys to `WakuStore` instance to avoid having to pass them at every `queryHistory` call.
@@ -341,32 +348,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Waku.waitForConnectedPeer` helper to ensure that we are connected to Waku peers when using the bootstrap option.
 
 ### Changed
+
 - **Breaking**: Moved `startTime` and `endTime` for history queries to a `timeFilter` property as both or neither must be passed; passing only one parameter is not supported.
 - Renamed and promote the usage of `generateSymmetricKey()` to generate random symmetric keys.
 - Improved errors thrown by `WakuStore.queryHistory`.
 
 ### Fixed
+
 - Buffer concat error when using symmetric encryption in the browser.
 
 ## [0.11.0] - 2021-08-20
 
 ### Added
+
 - Examples: New [Ethereum Private Message Using Wallet Encryption Web App](./examples/eth-pm-wallet-encryption/README.md)
   example that demonstrates the usage of `eth_encrypt` API (available on Metamask) and EIP-712 for typed structured data signing.
 - New `bootstrap` option for `Waku.create` to easily connect to Waku nodes upon start up.
 - Support for `startTime` and `endTime` in Store queries to filter by time window as per [21/WAKU2-FTSTORE](https://rfc.vac.dev/spec/21/).
 
 ### Changed
-- Renamed `discover.getStatusFleetNodes` to `discovery.getBootstrapNodes`; 
+
+- Renamed `discover.getStatusFleetNodes` to `discovery.getBootstrapNodes`;
   Changed the API to allow retrieval of bootstrap nodes from other sources.
 - Examples: Renamed `eth-dm` to `eth-pm`; "Direct Message" can lead to confusion with "Direct Connection" that
   refers to low latency network connections.
-- Examples (eth-pm): Use sign typed data EIP-712 instead of personal sign. 
+- Examples (eth-pm): Use sign typed data EIP-712 instead of personal sign.
 - Upgraded dependencies to remove warning at installation.
 - **Breaking**: Moved `DefaultPubSubTopic` to `waku.ts` and fixed the casing.
 - **Breaking**: Rename all `pubsubTopic` occurrences to `pubSubTopic`, across all interfaces.
 
 ### Removed
+
 - Examples (cli-chat): The focus of this library is Web environment;
   Several examples now cover usage of Waku Relay and Waku Store making cli-chat example obsolete;
   web-chat POC should be preferred to use the [TOY-CHAT](https://rfc.vac.dev/spec/22/) protocol.
@@ -378,32 +390,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.10.0] - 2021-08-06
 
 ### Added
+
 - Relay and ReactJS guides and examples
   ([#56](https://github.com/status-im/js-waku/issues/56)).
 
 ### Changed
+
 - **Breaking**: The `WakuMessage` APIs have been changed to move `contentTopic` out of the optional parameters.
 - **Breaking**: Move `contentTopics` out the `WakuStore.queryHistory`'s optional parameters.
 - **Breaking**: `WakuStore.queryHistory` throws when encountering an error instead of returning a `null` value.
 
 ### Removed
+
 - Examples (web-chat): Remove broken `/fleet` command.
 - **Breaking**: Removed `DefaultContentTopic` as developers must choose a content topic for their app;
   recommendations for content topic can be found at https://rfc.vac.dev/spec/23/.
 
 ### Fixed
+
 - `WakuMessage.payloadAsUtf8` returning garbage on utf-8 non-ascii characters.
 - `ChatMessage.payloadAsUtf8` returning garbage on utf-8 non-ascii characters.
 
 ## [0.9.0] - 2021-07-26
 
 ### Changed
+
 - **Breaking**: Store Response Protobuf changed to align with nim-waku v0.5
   ([nim-waku#676](https://github.com/status-im/nim-waku/pull/676)).
 
 ## [0.8.1] - 2021-07-16
 
 ### Added
+
 - Examples (web-chat): New `/fleet` command to switch connection between Status prod and test fleets.
 - Export `generatePrivateKey` and `getPublicKey` directly from the root.
 - Usage of the encryption and signature APIs to the readme.
@@ -411,6 +429,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#238](https://github.com/status-im/js-waku/issues/238)).
 
 ### Changed
+
 - **Breaking**: Renamed `WakuRelay.(add|delete)PrivateDecryptionKey` to `WakuRelay.(add|delete)DecryptionKey` to make it clearer that it accepts both symmetric keys and asymmetric private keys.
 - Upgrade libp2p to 0.32.0.
 - **Breaking**: Rename `keepAlive` option to `pingKeepAlive`.
@@ -419,13 +438,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#185](https://github.com/status-im/js-waku/issues/185), [js-libp2p#939](https://github.com/libp2p/js-libp2p/issues/939))
 
 ### Fixed
+
 - Align `WakuMessage` readme example with actual code behaviour.
 - Remove infinite loop when an error with Waku Store is encountered.
 
 ## [0.8.0] - 2021-07-15
 
 ### Added
-- `WakuRelay.deleteObserver` to allow removal of observers, useful when a React component add observers when mounting and needs to delete it when unmounting. 
+
+- `WakuRelay.deleteObserver` to allow removal of observers, useful when a React component add observers when mounting and needs to delete it when unmounting.
 - Keep alive feature that pings host regularly, reducing the chance of connections being dropped due to idle.
   Can be disabled or default frequency (10s) can be changed when calling `Waku.create`.
 - New `lib/utils` module for easy, dependency-less hex/bytes conversions.
@@ -436,6 +457,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support for Waku Message version 1: Asymmetric encryption, symmetric encryption, and signature of the data.
 
 ### Changed
+
 - **Breaking**: Auto select peer if none provided for store and light push protocols.
 - Upgrade to `libp2p@0.31.7` and `libp2p-gossipsub@0.10.0` to avoid `TextEncoder` errors in ReactJS tests.
 - Disable keep alive by default as latest nim-waku release does not support ping protocol.
@@ -448,11 +470,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Examples (eth-dm): Use Protobuf for direct messages instead of JSON ([#214](https://github.com/status-im/js-waku/issues/214)).
 
 ### Fixed
+
 - Disable `keepAlive` if set to `0`.
 
 ## [0.7.0] - 2021-06-15
 
 ### Changed
+
 - Test: Upgrade nim-waku node to v0.4.
 - Waku Light Push upgraded to `2.0.0-beta1`.
 - Examples (web chat): Catch error if chat message decoding fails.
@@ -461,13 +485,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.0] - 2021-06-09
 
 ### Changed
+
 - **Breaking**: Websocket protocol is not automatically added anymore if the user specifies a protocol in `libp2p.modules`
   when using `Waku.create`.
 - **Breaking**: Options passed to `Waku.create` used to be passed to `Libp2p.create`;
   Now, only the `libp2p` property is passed to `Libp2p.create`, allowing for a cleaner interface.
-- Examples (cli chat): Use tcp protocol instead of websocket.  
+- Examples (cli chat): Use tcp protocol instead of websocket.
 
 ### Added
+
 - Enable access to `WakuMessage.timestamp`.
 - Examples (web chat): Use `WakuMessage.timestamp` as unique key for list items.
 - Doc: Link to new [topic guidelines](https://rfc.vac.dev/spec/23/) in README.
@@ -475,11 +501,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Examples (web chat): Persist nick.
 - Support for custom PubSub Topics to `Waku`, `WakuRelay`, `WakuStore` and `WakuLightPush`;
   Passing a PubSub Topic is optional and still defaults to `/waku/2/default-waku/proto`;
-  JS-Waku currently supports one, and only, PubSub topic per instance.  
+  JS-Waku currently supports one, and only, PubSub topic per instance.
 
 ## [0.5.0] - 2021-05-21
 
 ### Added
+
 - Implement [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
 - Expose `Direction` enum from js-waku root (it was only accessible via the proto module).
 - Examples (cli chat): Use light push to send messages if `--lightPush` is passed.
@@ -488,11 +515,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2021-05-18
 
 ### Added
+
 - `callback` argument to `WakuStore.queryHistory()`, called as messages are retrieved
   ; Messages are retrieved using pagination, and it may take some time to retrieve all messages,
-  with the `callback` function, messages are processed as soon as they are received. 
+  with the `callback` function, messages are processed as soon as they are received.
 
 ### Changed
+
 - Testing: Upgrade nim-waku node to v0.3.
 - **Breaking**: Modify `WakuStore.queryHistory()` to accept one `Object` instead of multiple individual arguments.
 - `getStatusFleetNodes` return prod nodes by default, instead of test nodes.
@@ -500,26 +529,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Examples (cli chat): Connect to test fleet by default, use `--prod` to connect to prod fleet.
 
 ### Fixed
+
 - Expose `Enviroment` and `Protocol` enums to pass to `getStatusFleetNodes`.
 
 ## [0.3.0] - 2021-05-15
 
 ### Added
+
 - `getStatusFleetNodes` to connect to Status' nim-waku nodes.
 
 ### Changed
+
 - Clarify content topic format in README.md.
 
 ## Removed
+
 - Unused dependencies.
 
 ## [0.2.0] - 2021-05-14
 
 ### Added
+
 - `WakuRelay.getPeers` method.
 - Use `WakuRelay.getPeers` in web chat app example to disable send button.
 
 ### Changed
+
 - Enable passing `string`s to `addPeerToAddressBook`.
 - Use `addPeerToAddressBook` in examples and usage doc.
 - Settle on `js-waku` name across the board.
@@ -528,6 +563,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2021-05-12
 
 ### Added
+
 - Add usage section to the README.
 - Support of [Waku v2 Relay](https://rfc.vac.dev/spec/11/).
 - Support of [Waku v2 Store](https://rfc.vac.dev/spec/13/).
@@ -535,7 +571,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[Unreleased]: https://github.com/status-im/js-waku/compare/v0.30.0...HEAD
+[unreleased]: https://github.com/status-im/js-waku/compare/v0.30.0...HEAD
 [0.30.0]: https://github.com/status-im/js-waku/compare/v0.29.0...v0.30.0
 [0.29.0]: https://github.com/status-im/js-waku/compare/v0.28.0...v0.29.0
 [0.28.1]: https://github.com/status-im/js-waku/compare/v0.28.0...v0.28.1

@@ -1,0 +1,40 @@
+{
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
+      "options": {
+        "cacheableOperations": [
+          "build",
+          "build:esm",
+          "build:bundle",
+          "fix",
+          "fix:prettier",
+          "fix:lint",
+          "check",
+          "check:lint",
+          "check:prettier",
+          "check:spelling",
+          "check:tsc",
+          "test",
+          "test:node",
+          "test:browser",
+          "proto"
+        ]
+      }
+    }
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["{projectRoot}/dist, {projectRoot}/bundle"]
+    },
+    "build:esm": {
+      "dependsOn": ["^build:esm"],
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "build:bundle": {
+      "dependsOn": ["^build:bundle"],
+      "outputs": ["{projectRoot}/bundle"]
+    }
+  }
+}

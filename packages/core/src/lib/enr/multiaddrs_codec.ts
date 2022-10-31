@@ -1,4 +1,5 @@
-import { Multiaddr } from "@multiformats/multiaddr";
+import { multiaddr } from "@multiformats/multiaddr";
+import type { Multiaddr } from "@multiformats/multiaddr";
 
 import { MULTIADDR_LENGTH_SIZE } from "./constants";
 
@@ -19,8 +20,7 @@ export function decodeMultiaddrs(bytes: Uint8Array): Multiaddr[] {
     const multiaddrBytes = bytes.slice(index, index + size);
     index += size;
 
-    const multiaddr = new Multiaddr(multiaddrBytes);
-    multiaddrs.push(multiaddr);
+    multiaddrs.push(multiaddr(multiaddrBytes));
   }
   return multiaddrs;
 }

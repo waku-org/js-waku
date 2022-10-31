@@ -5,7 +5,8 @@ import type {
 import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
-import { Multiaddr } from "@multiformats/multiaddr";
+import type { Multiaddr } from "@multiformats/multiaddr";
+import { multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
 
 import { multiaddrsToPeerInfo } from "./multiaddr_to_peer_info";
@@ -52,7 +53,7 @@ export class PeerDiscoveryStaticPeers
 
     const peerMas = peers.map((peer: string | Multiaddr) => {
       if (typeof peer === "string") {
-        return new Multiaddr(peer);
+        return multiaddr(peer);
       } else {
         return peer;
       }

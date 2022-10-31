@@ -64,6 +64,9 @@ describe("Waku Relay [node only]", () => {
       log("Instances started, adding waku2 to waku1's address book");
       waku1.addPeerToAddressBook(
         waku2.libp2p.peerId,
+        // TODO: Upgrade libp2p package.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: New multiaddr type but they seem mostly compatible
         waku2.libp2p.getMultiaddrs()
       );
 
@@ -279,10 +282,16 @@ describe("Waku Relay [node only]", () => {
 
       waku1.addPeerToAddressBook(
         waku2.libp2p.peerId,
+        // TODO: Upgrade libp2p package.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: New multiaddr type but they seem mostly compatible
         waku2.libp2p.getMultiaddrs()
       );
       waku3.addPeerToAddressBook(
         waku2.libp2p.peerId,
+        // TODO: Upgrade libp2p package.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: New multiaddr type but they seem mostly compatible
         waku2.libp2p.getMultiaddrs()
       );
 

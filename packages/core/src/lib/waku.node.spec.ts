@@ -141,6 +141,9 @@ describe("Decryption Keys", () => {
 
     waku1.addPeerToAddressBook(
       waku2.libp2p.peerId,
+      // TODO: Upgrade libp2p package.
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore: New multiaddr type but they seem mostly compatible
       waku2.libp2p.getMultiaddrs()
     );
 
