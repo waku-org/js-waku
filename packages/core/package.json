@@ -187,6 +187,7 @@
     "puppeteer": "^13.0.1",
     "rollup": "^2.75.0",
     "semantic-release": "^19.0.5",
+    "semantic-release-monorepo": "^7.0.5",
     "tail": "^2.2.0",
     "ts-loader": "^9.3.1",
     "ts-node": "^10.9.1",
@@ -197,6 +198,7 @@
     "branches": [
       "master"
     ],
+    "extends": "semantic-release-monorepo",
     "plugins": [
       [
         "@semantic-release/commit-analyzer",
