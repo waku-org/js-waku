@@ -53,7 +53,14 @@
     }
   },
   "type": "module",
-  "repository": "https://github.com/status-im/js-waku",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/core#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/waku-org/js-waku.git"
+  },
+  "bugs": {
+    "url": "https://github.com/waku-org/js-waku/issues"
+  },
   "license": "MIT OR Apache-2.0",
   "keywords": [
     "waku",
