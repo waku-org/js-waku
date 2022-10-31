@@ -20,8 +20,7 @@ export function decodeMultiaddrs(bytes: Uint8Array): Multiaddr[] {
     const multiaddrBytes = bytes.slice(index, index + size);
     index += size;
 
-    const ma = multiaddr(multiaddrBytes);
-    multiaddrs.push(ma);
+    multiaddrs.push(multiaddr(multiaddrBytes));
   }
   return multiaddrs;
 }
