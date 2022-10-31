@@ -1,9 +1,11 @@
+[![NPM](https://nodei.co/npm/@waku/core.png)](https://npmjs.org/package/@waku/core)
+
 ![GitHub Action](https://img.shields.io/github/workflow/status/waku-org/js-waku/CI)
 [![Discord chat](https://img.shields.io/discord/864066763682218004.svg?logo=discord&colorB=7289DA)](https://discord.gg/j5pGbn7MHZ)
 
-# js-waku
+# @waku/core
 
-A TypeScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/10/).
+Core components of js-waku, a TypeScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/10/).
 
 ## Documentation
 
@@ -22,6 +24,10 @@ cd js-waku
 npm install
 npm run doc
 ```
+
+## Changelog
+
+Release changelog can be found in [CHANGELOG.md](https://github.com/waku-org/js-waku/blob/master/packages/core/CHANGELOG.md).
 
 ## Bugs, Questions & Features
 
