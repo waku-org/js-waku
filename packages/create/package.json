@@ -1,44 +1,14 @@
 {
-  "name": "@waku/core",
-  "version": "0.0.0-development",
-  "description": "TypeScript implementation of the Waku v2 protocol",
+  "name": "@waku/create",
+  "version": "0.0.1",
+  "description": "Easily create a Waku node",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./lib/interfaces": {
-      "types": "./dist/lib/interfaces.d.ts"
-    },
-    "./lib/peer_discovery_dns": {
-      "types": "./dist/lib/peer_discovery_dns/index.d.ts",
-      "import": "./dist/lib/peer_discovery_dns/index.js"
-    },
-    "./lib/peer_discovery_static_list": {
-      "types": "./dist/lib/peer_discovery_static_list.d.ts",
-      "import": "./dist/lib/peer_discovery_static_list.js"
-    },
-    "./lib/predefined_bootstrap_nodes": {
-      "types": "./dist/lib/predefined_bootstrap_nodes.d.ts",
-      "import": "./dist/lib/predefined_bootstrap_nodes.js"
-    },
-    "./lib/wait_for_remote_peer": {
-      "types": "./dist/lib/wait_for_remote_peer.d.ts",
-      "import": "./dist/lib/wait_for_remote_peer.js"
-    },
-    "./lib/waku_message/version_0": {
-      "types": "./dist/lib/waku_message/version_0.d.ts",
-      "import": "./dist/lib/waku_message/version_0.js"
-    },
-    "./lib/waku_message/version_1": {
-      "types": "./dist/lib/waku_message/version_1.d.ts",
-      "import": "./dist/lib/waku_message/version_1.js"
-    },
-    "./lib/waku_message/topic_only_message": {
-      "types": "./dist/lib/waku_message/topic_only_message.d.ts",
-      "import": "./dist/lib/waku_message/topic_only_message.js"
     }
   },
   "typesVersions": {
@@ -49,7 +19,8 @@
     }
   },
   "type": "module",
-  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/core#readme",
+  "author": "Waku Team",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/create#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/waku-org/js-waku.git"
@@ -60,82 +31,38 @@
   "license": "MIT OR Apache-2.0",
   "keywords": [
     "waku",
-    "decentralised",
+    "decentralized",
+    "secure",
     "communication",
     "web3",
     "ethereum",
-    "dapps"
+    "dapps",
+    "privacy"
   ],
   "scripts": {
     "build": "run-s build:**",
-    "build:esm": "tsc && node build-scripts/fix-imports.js",
+    "build:esm": "tsc",
     "build:bundle": "rollup --config rollup.config.js",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier . --write",
     "fix:lint": "eslint src --ext .ts --ext .cjs --fix",
-    "pretest": "run-s pretest:*",
-    "pretest:1-init-git-submodules": "[ -f '../../nwaku/build/wakunode2' ] || git submodule update --init --recursive",
-    "pretest:2-build-nwaku": "[ -f '../../nwaku/build/wakunode2' ] || run-s nwaku:build",
-    "nwaku:build": "(PROC=$(nproc --all 2>/dev/null || echo 2); cd ../../nwaku; make -j$PROC update; NIMFLAGS=\"-d:chronicles_colors=off -d:chronicles_sinks=textlines -d:chronicles_log_level=TRACE\" make -j$PROC wakunode2)",
-    "nwaku:force-build": "(cd ../../nwaku && rm -rf ./build/ ./vendor) && run-s nwaku:build",
     "check": "run-s check:*",
     "check:lint": "eslint src --ext .ts",
     "check:prettier": "prettier . --list-different",
     "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
-    "test": "run-s test:*",
-    "test:node": "TS_NODE_PROJECT=./tsconfig.dev.json mocha",
-    "test:browser": "karma start karma.conf.cjs",
-    "proto": "rimraf src/proto/*.ts; protons src/proto/*.proto",
-    "watch:build": "tsc -p tsconfig.json -w",
-    "watch:test": "mocha --watch",
+    "test": "exit 0 # Tested in @waku/core",
+    "proto": "exit 0 # no proto",
     "doc": "run-s doc:*",
     "doc:html": "typedoc --treatWarningsAsErrors",
-    "doc:cname": "echo 'js.waku.org' > build/docs/CNAME",
     "prepublish": "npm run build",
-    "deploy": "node ci/deploy.js",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
     "release": "semantic-release"
-  },
-  "browser": {
-    "crypto": false
   },
   "engines": {
     "node": ">=16"
   },
-  "dependencies": {
-    "@chainsafe/libp2p-gossipsub": "^4.1.1",
-    "@chainsafe/libp2p-noise": "^8.0.1",
-    "@ethersproject/rlp": "^5.5.0",
-    "@libp2p/crypto": "^1.0.4",
-    "@libp2p/interface-connection": "3.0.1",
-    "@libp2p/interface-peer-discovery": "^1.0.0",
-    "@libp2p/interface-peer-id": "^1.0.2",
-    "@libp2p/interface-peer-info": "^1.0.1",
-    "@libp2p/interface-peer-store": "^1.0.0",
-    "@libp2p/interface-pubsub": "^2.0.1",
-    "@libp2p/interfaces": "^3.0.2",
-    "@libp2p/mplex": "^5.1.1",
-    "@libp2p/peer-id": "^1.1.10",
-    "@libp2p/websockets": "^3.0.3",
-    "@multiformats/multiaddr": "^11.0.6",
-    "@noble/secp256k1": "^1.3.4",
-    "debug": "^4.3.4",
-    "dns-query": "^0.11.2",
-    "hi-base32": "^0.5.1",
-    "it-all": "^1.0.6",
-    "it-length-prefixed": "^8.0.2",
-    "it-pipe": "^2.0.4",
-    "js-sha3": "^0.8.0",
-    "libp2p": "0.38.0",
-    "p-event": "^5.0.1",
-    "protons-runtime": "^3.1.0",
-    "uint8arraylist": "^2.3.2",
-    "uint8arrays": "^3.0.0",
-    "uuid": "^8.3.2"
-  },
   "devDependencies": {
-    "@libp2p/peer-id-factory": "^1.0.15",
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
@@ -145,17 +72,8 @@
     "@semantic-release/github": "^8.0.6",
     "@semantic-release/npm": "^9.0.1",
     "@semantic-release/release-notes-generator": "^10.0.3",
-    "@types/app-root-path": "^1.2.4",
-    "@types/chai": "^4.2.15",
-    "@types/debug": "^4.1.7",
-    "@types/mocha": "^9.1.0",
-    "@types/node": "^17.0.6",
-    "@types/tail": "^2.0.0",
-    "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",
-    "app-root-path": "^3.0.0",
-    "chai": "^4.3.4",
     "cspell": "^5.14.0",
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
@@ -163,30 +81,11 @@
     "eslint-plugin-functional": "^4.0.2",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-prettier": "^4.0.0",
-    "fast-check": "^2.14.0",
-    "gh-pages": "^3.2.3",
-    "ignore-loader": "^0.1.2",
-    "isomorphic-fetch": "^3.0.0",
-    "jsdom": "^19.0.0",
-    "jsdom-global": "^3.0.2",
-    "karma": "^6.3.12",
-    "karma-chrome-launcher": "^3.1.0",
-    "karma-mocha": "^2.0.1",
-    "karma-webpack": "^5.0.0",
-    "mocha": "^9.1.3",
     "npm-run-all": "^4.1.5",
-    "p-timeout": "^6.0.0",
-    "portfinder": "^1.0.28",
     "prettier": "^2.1.1",
-    "process": "^0.11.10",
-    "protons": "^5.1.0",
-    "puppeteer": "^13.0.1",
     "rollup": "^2.75.0",
     "semantic-release": "^19.0.5",
     "semantic-release-monorepo": "^7.0.5",
-    "tail": "^2.2.0",
-    "ts-loader": "^9.3.1",
-    "ts-node": "^10.9.1",
     "typedoc": "^0.23.10",
     "typescript": "^4.6.3"
   },
