@@ -1,21 +1,15 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
+import { generateSymmetricKey } from "@waku/core";
+import { PeerDiscoveryStaticPeers } from "@waku/core/lib/peer_discovery_static_list";
+import { bytesToUtf8, utf8ToBytes } from "@waku/core/lib/utils";
+import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import { SymDecoder, SymEncoder } from "@waku/core/lib/waku_message/version_1";
 import { createLightNode, createPrivacyNode } from "@waku/create";
 import type { Message, Waku, WakuLight, WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
-import {
-  makeLogFileName,
-  NOISE_KEY_1,
-  NOISE_KEY_2,
-  Nwaku,
-} from "../test_utils/";
-
-import { generateSymmetricKey } from "./crypto";
-import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
-import { bytesToUtf8, utf8ToBytes } from "./utils";
-import { waitForRemotePeer } from "./wait_for_remote_peer";
-import { SymDecoder, SymEncoder } from "./waku_message/version_1.js";
+import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2, Nwaku } from "../src/";
 
 const TestContentTopic = "/test/1/waku/utf8";
 
@@ -44,6 +38,8 @@ describe("Waku Dial [node only]", function () {
         staticNoiseKey: NOISE_KEY_1,
       });
       await waku.start();
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
       await waku.dial(multiAddrWithId);
       await waitForRemotePeer(waku);
 
@@ -70,6 +66,8 @@ describe("Waku Dial [node only]", function () {
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
           peerDiscovery: [new PeerDiscoveryStaticPeers([multiAddrWithId])],
         },
       });
@@ -97,6 +95,8 @@ describe("Waku Dial [node only]", function () {
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
           peerDiscovery: [
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
             new PeerDiscoveryStaticPeers([await nwaku.getMultiaddrWithId()]),
           ],
         },

@@ -1,14 +1,14 @@
+import { bytesToUtf8, utf8ToBytes } from "@waku/core/lib/utils";
+import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
 import { createFullNode } from "@waku/create";
 import type { Message, WakuFull } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import debug from "debug";
 
-import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
-import { delay } from "../../test_utils/delay";
-import { bytesToUtf8, utf8ToBytes } from "../utils";
-import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { DecoderV0, EncoderV0 } from "../waku_message/version_0";
+import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../src";
+import { delay } from "../src/delay";
 
 const log = debug("waku:test");
 
@@ -34,6 +34,8 @@ describe("Waku Filter", () => {
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });

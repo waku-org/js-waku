@@ -1,9 +1,11 @@
 {
   "entryPoints": [
     "./src/index.ts",
+    "./src/lib/enr/index.ts",
     "./src/lib/peer_discovery_dns.ts",
     "./src/lib/peer_discovery_static_list.ts",
     "./src/lib/predefined_bootstrap_nodes.ts",
+    "./src/lib/utils.ts",
     "./src/lib/wait_for_remote_peer.ts",
     "./src/lib/waku_message/version_0.ts",
     "./src/lib/waku_message/version_1.ts",

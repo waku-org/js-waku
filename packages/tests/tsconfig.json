@@ -2,8 +2,6 @@
   "compilerOptions": {
     "incremental": true,
     "target": "es2020",
-    "outDir": "dist/",
-    "rootDir": "tests",
     "noEmit": true,
     "moduleResolution": "node",
     "module": "esnext",
@@ -46,7 +44,7 @@
     "types": ["node", "mocha"],
     "typeRoots": ["node_modules/@types", "src/types"]
   },
-  "include": ["tests"],
+  "include": ["tests", "src"],
   "compileOnSave": false,
   "ts-node": {
     "files": true

@@ -1,3 +1,6 @@
+import { bytesToUtf8, utf8ToBytes } from "@waku/core/lib/utils";
+import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import { EncoderV0 } from "@waku/core/lib/waku_message/version_0";
 import { createFullNode } from "@waku/create";
 import type { WakuFull } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -9,11 +12,8 @@ import {
   MessageRpcResponse,
   NOISE_KEY_1,
   Nwaku,
-} from "../../test_utils";
-import { delay } from "../../test_utils/delay";
-import { bytesToUtf8, utf8ToBytes } from "../utils";
-import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { EncoderV0 } from "../waku_message/version_0";
+} from "../src";
+import { delay } from "../src/delay";
 
 const log = debug("waku:test:lightpush");
 
@@ -39,6 +39,8 @@ describe("Waku Light Push [node only]", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
@@ -73,6 +75,8 @@ describe("Waku Light Push [node only]", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 

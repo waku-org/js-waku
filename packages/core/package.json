@@ -9,6 +9,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./lib/enr": {
+      "types": "./dist/lib/enr/index.d.ts",
+      "import": "./dist/lib/enr/index.js"
+    },
     "./lib/peer_discovery_dns": {
       "types": "./dist/lib/peer_discovery_dns/index.d.ts",
       "import": "./dist/lib/peer_discovery_dns/index.js"
@@ -20,6 +24,10 @@
     "./lib/predefined_bootstrap_nodes": {
       "types": "./dist/lib/predefined_bootstrap_nodes.d.ts",
       "import": "./dist/lib/predefined_bootstrap_nodes.js"
+    },
+    "./lib/utils": {
+      "types": "./dist/lib/utils.d.ts",
+      "import": "./dist/lib/utils.js"
     },
     "./lib/wait_for_remote_peer": {
       "types": "./dist/lib/wait_for_remote_peer.d.ts",
