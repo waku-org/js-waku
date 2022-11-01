@@ -3,9 +3,10 @@
     "incremental": true,
     "target": "es2020",
     "outDir": "dist/",
-    "rootDir": "src",
+    "rootDir": "tests",
+    "noEmit": true,
     "moduleResolution": "node",
-    "module": "es2020",
+    "module": "esnext",
     "declaration": true,
     "sourceMap": true,
     "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
@@ -45,8 +46,7 @@
     "types": ["node", "mocha"],
     "typeRoots": ["node_modules/@types", "src/types"]
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.spec.ts", "src/test_utils"],
+  "include": ["tests"],
   "compileOnSave": false,
   "ts-node": {
     "files": true

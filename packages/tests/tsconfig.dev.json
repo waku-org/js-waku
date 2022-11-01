@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig",
-  "compilerOptions": {
-    "module": "esnext",
-    "noEmit": true
-  },
-  "exclude": []
-}
