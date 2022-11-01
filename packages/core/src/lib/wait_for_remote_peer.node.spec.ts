@@ -1,12 +1,12 @@
 import { createLightNode, createPrivacyNode } from "@waku/create";
+import type { WakuLight, WakuPrivacy } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../test_utils";
 import { delay } from "../test_utils/delay";
 
-import type { WakuLight, WakuPrivacy } from "./interfaces";
 import { waitForRemotePeer } from "./wait_for_remote_peer";
-import { Protocols } from "./waku";
 
 describe("Wait for remote peer", function () {
   let waku1: WakuPrivacy;

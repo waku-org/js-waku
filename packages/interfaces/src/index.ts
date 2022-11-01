@@ -18,7 +18,7 @@ export interface PointToPointProtocol {
 }
 
 export type ProtocolOptions = {
-  pubsubTopic?: string;
+  pubSubTopic?: string;
   /**
    * Optionally specify an PeerId for the protocol request. If not included, will use a random peer.
    */

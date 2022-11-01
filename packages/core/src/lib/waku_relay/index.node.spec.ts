@@ -1,4 +1,7 @@
 import { PeerId } from "@libp2p/interface-peer-id";
+import { createPrivacyNode } from "@waku/create";
+import type { Message, WakuPrivacy } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -12,16 +15,13 @@ import {
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
 import { DefaultPubSubTopic } from "../constants";
-import { createPrivacyNode } from "../create_waku";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
-import type { Message, WakuPrivacy } from "../interfaces";
 import { bytesToUtf8, utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols } from "../waku";
 import { DecoderV0, EncoderV0, MessageV0 } from "../waku_message/version_0.js";
 import {
   AsymDecoder,

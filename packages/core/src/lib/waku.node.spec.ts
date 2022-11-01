@@ -1,5 +1,7 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { createLightNode, createPrivacyNode } from "@waku/create";
+import type { Message, Waku, WakuLight, WakuPrivacy } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
 import {
@@ -10,11 +12,9 @@ import {
 } from "../test_utils/";
 
 import { generateSymmetricKey } from "./crypto";
-import type { Message, Waku, WakuLight, WakuPrivacy } from "./interfaces";
 import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
 import { bytesToUtf8, utf8ToBytes } from "./utils";
 import { waitForRemotePeer } from "./wait_for_remote_peer";
-import { Protocols } from "./waku";
 import { SymDecoder, SymEncoder } from "./waku_message/version_1.js";
 
 const TestContentTopic = "/test/1/waku/utf8";

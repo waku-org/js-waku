@@ -1,3 +1,6 @@
+import { createFullNode } from "@waku/create";
+import type { WakuFull } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -8,11 +11,8 @@ import {
   Nwaku,
 } from "../../test_utils";
 import { delay } from "../../test_utils/delay";
-import { createFullNode } from "../create_waku";
-import type { WakuFull } from "../interfaces";
 import { bytesToUtf8, utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols } from "../waku";
 import { EncoderV0 } from "../waku_message/version_0";
 
 const log = debug("waku:test:lightpush");

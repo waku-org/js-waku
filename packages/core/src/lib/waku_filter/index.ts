@@ -82,7 +82,7 @@ export class WakuFilter implements Filter {
     callback: Callback<T>,
     opts?: ProtocolOptions
   ): Promise<UnsubscribeFunction> {
-    const topic = opts?.pubsubTopic ?? this.pubSubTopic;
+    const topic = opts?.pubSubTopic ?? this.pubSubTopic;
 
     const groupedDecoders = groupByContentTopic(decoders);
     const contentTopics = Array.from(groupedDecoders.keys());

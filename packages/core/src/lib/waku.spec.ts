@@ -1,12 +1,11 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { createWaku } from "@waku/create";
+import { createLightNode } from "@waku/create";
+import type { WakuLight } from "@waku/interfaces";
 import { expect } from "chai";
-
-import type { Waku } from "./interfaces";
 
 describe("Waku Dial", function () {
   describe("Bootstrap [live data]", function () {
-    let waku: Waku;
+    let waku: WakuLight;
 
     afterEach(function () {
       !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
@@ -23,7 +22,7 @@ describe("Waku Dial", function () {
       // This dependence must be removed once DNS discovery is implemented
       this.timeout(20_000);
 
-      waku = await createWaku({
+      waku = await createLightNode({
         defaultBootstrap: true,
       });
       await waku.start();

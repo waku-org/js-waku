@@ -1,10 +1,10 @@
 import { createLightNode } from "@waku/create";
+import type { WakuLight } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
-import type { WakuLight } from "../interfaces";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols } from "../waku";
 
 import { ENR } from "./enr";
 
@@ -92,7 +92,7 @@ describe("ENR Interop: nwaku", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createWaku({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();

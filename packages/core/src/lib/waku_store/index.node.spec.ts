@@ -1,3 +1,6 @@
+import { createFullNode } from "@waku/create";
+import type { Message, WakuFull } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -7,16 +10,13 @@ import {
   NOISE_KEY_2,
   Nwaku,
 } from "../../test_utils";
-import { createFullNode } from "../create_waku";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from "../crypto";
-import type { Message, WakuFull } from "../interfaces";
 import { bytesToUtf8, utf8ToBytes } from "../utils";
 import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols } from "../waku";
 import { DecoderV0, EncoderV0 } from "../waku_message/version_0.js";
 import {
   AsymDecoder,

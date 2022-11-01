@@ -56,7 +56,7 @@ export class WakuLightPush {
     message: Partial<Message>,
     opts?: ProtocolOptions
   ): Promise<SendResult> {
-    const pubSubTopic = opts?.pubsubTopic ? opts.pubsubTopic : this.pubSubTopic;
+    const pubSubTopic = opts?.pubSubTopic ? opts.pubSubTopic : this.pubSubTopic;
 
     const res = await selectPeerForProtocol(
       this.libp2p.peerStore,
