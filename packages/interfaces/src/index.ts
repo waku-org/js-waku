@@ -1,5 +1,7 @@
+import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
+import type { Peer } from "@libp2p/interface-peer-store";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import type { Libp2p } from "libp2p";
 
@@ -8,6 +10,11 @@ export enum Protocols {
   Store = "store",
   LightPush = "lightpush",
   Filter = "filter",
+}
+
+export interface PointToPointProtocol {
+  libp2p: Libp2p;
+  peers: () => Promise<Peer[]>;
 }
 
 export type ProtocolOptions = {
@@ -20,7 +27,7 @@ export type ProtocolOptions = {
 
 export type Callback<T extends Message> = (msg: T) => void | Promise<void>;
 
-export interface Filter {
+export interface Filter extends PointToPointProtocol {
   subscribe: <T extends Message>(
     decoders: Decoder<T>[],
     callback: Callback<T>,
@@ -28,7 +35,7 @@ export interface Filter {
   ) => Promise<() => Promise<void>>;
 }
 
-export interface LightPush {
+export interface LightPush extends PointToPointProtocol {
   push: (
     encoder: Encoder,
     message: Partial<Message>,
@@ -70,7 +77,7 @@ export type StoreQueryOptions = {
   timeFilter?: TimeFilter;
 } & ProtocolOptions;
 
-export interface Store {
+export interface Store extends PointToPointProtocol {
   queryOrderedCallback: <T extends Message>(
     decoders: Decoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
@@ -89,12 +96,13 @@ export interface Store {
   ) => AsyncGenerator<Promise<T | undefined>[]>;
 }
 
-export interface Relay {
+export interface Relay extends GossipSub {
   send: (encoder: Encoder, message: Partial<Message>) => Promise<SendResult>;
   addObserver: <T extends Message>(
     decoder: Decoder<T>,
     callback: Callback<T>
   ) => () => void;
+  getMeshPeers: () => string[];
 }
 
 export interface Waku {

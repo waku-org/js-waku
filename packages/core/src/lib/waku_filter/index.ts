@@ -2,6 +2,13 @@ import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
+import type {
+  Callback,
+  Decoder,
+  Filter,
+  Message,
+  ProtocolOptions,
+} from "@waku/interfaces";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -11,7 +18,6 @@ import type { Libp2p } from "libp2p";
 import { WakuMessage as WakuMessageProto } from "../../proto/message";
 import { DefaultPubSubTopic } from "../constants";
 import { groupByContentTopic } from "../group_by";
-import { Decoder, Message } from "../interfaces";
 import { selectConnection } from "../select_connection";
 import {
   getPeersForProtocol,
@@ -39,21 +45,6 @@ export interface CreateOptions {
   pubSubTopic?: string;
 }
 
-export type FilterSubscriptionOpts = {
-  /**
-   * The Pubsub topic for the subscription
-   */
-  pubsubTopic?: string;
-  /**
-   * Optionally specify a PeerId for the subscription. If not included, will use a random peer.
-   */
-  peerId?: PeerId;
-};
-
-export type FilterCallback<T extends Message> = (
-  msg: T
-) => void | Promise<void>;
-
 export type UnsubscribeFunction = () => Promise<void>;
 
 /**
@@ -63,9 +54,9 @@ export type UnsubscribeFunction = () => Promise<void>;
  * - https://github.com/status-im/go-waku/issues/245
  * - https://github.com/status-im/nwaku/issues/948
  */
-export class WakuFilter {
+export class WakuFilter implements Filter {
   pubSubTopic: string;
-  private subscriptions: Map<string, FilterCallback<any>>;
+  private subscriptions: Map<string, Callback<any>>;
   private decoders: Map<
     string, // content topic
     Set<Decoder<any>>
@@ -88,8 +79,8 @@ export class WakuFilter {
    */
   async subscribe<T extends Message>(
     decoders: Decoder<T>[],
-    callback: FilterCallback<T>,
-    opts?: FilterSubscriptionOpts
+    callback: Callback<T>,
+    opts?: ProtocolOptions
   ): Promise<UnsubscribeFunction> {
     const topic = opts?.pubsubTopic ?? this.pubSubTopic;
 
@@ -212,7 +203,7 @@ export class WakuFilter {
     }
   }
 
-  private addCallback(requestId: string, callback: FilterCallback<any>): void {
+  private addCallback(requestId: string, callback: Callback<any>): void {
     this.subscriptions.set(requestId, callback);
   }
 
