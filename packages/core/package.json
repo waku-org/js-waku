@@ -104,6 +104,7 @@
     "node": ">=16"
   },
   "dependencies": {
+    "@waku/interfaces": "*",
     "@chainsafe/libp2p-gossipsub": "^4.1.1",
     "@chainsafe/libp2p-noise": "^8.0.1",
     "@ethersproject/rlp": "^5.5.0",
@@ -135,8 +136,6 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@waku/create": "*",
-    "@waku/interfaces": "*",
     "@libp2p/peer-id-factory": "^1.0.15",
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-json": "^4.1.0",
@@ -156,6 +155,7 @@
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",
+    "@waku/create": "*",
     "app-root-path": "^3.0.0",
     "chai": "^4.3.4",
     "cspell": "^5.14.0",
