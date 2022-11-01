@@ -1,5 +1,5 @@
-import { createLightNode } from "@waku/create";
-import type { WakuLight } from "@waku/interfaces";
+import { createPrivacyNode } from "@waku/create";
+import type { WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
@@ -9,7 +9,7 @@ import { waitForRemotePeer } from "../wait_for_remote_peer";
 import { ENR } from "./enr";
 
 describe("ENR Interop: nwaku", function () {
-  let waku: WakuLight;
+  let waku: WakuPrivacy;
   let nwaku: Nwaku;
 
   afterEach(async function () {
@@ -28,7 +28,7 @@ describe("ENR Interop: nwaku", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createLightNode({
+    waku = await createPrivacyNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -60,7 +60,7 @@ describe("ENR Interop: nwaku", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createLightNode({
+    waku = await createPrivacyNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -92,7 +92,7 @@ describe("ENR Interop: nwaku", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createLightNode({
+    waku = await createPrivacyNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
