@@ -96,7 +96,7 @@
           "releaseRules": [
             {
               "breaking": true,
-              "release": "major"
+              "release": "patch"
             },
             {
               "revert": true,
@@ -104,7 +104,7 @@
             },
             {
               "type": "feat",
-              "release": "minor"
+              "release": "patch"
             },
             {
               "type": "fix",
