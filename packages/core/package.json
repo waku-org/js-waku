@@ -9,9 +9,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./lib/interfaces": {
-      "types": "./dist/lib/interfaces.d.ts"
-    },
     "./lib/peer_discovery_dns": {
       "types": "./dist/lib/peer_discovery_dns/index.d.ts",
       "import": "./dist/lib/peer_discovery_dns/index.js"

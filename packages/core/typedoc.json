@@ -1,7 +1,6 @@
 {
   "entryPoints": [
     "./src/index.ts",
-    "./src/lib/interfaces.ts",
     "./src/lib/peer_discovery_dns.ts",
     "./src/lib/peer_discovery_static_list.ts",
     "./src/lib/predefined_bootstrap_nodes.ts",
