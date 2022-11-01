@@ -12,14 +12,9 @@ import {
   WakuRelay,
   WakuStore,
 } from "@waku/core";
-import type {
-  Waku,
-  WakuFull,
-  WakuLight,
-  WakuPrivacy,
-} from "@waku/core/lib/interfaces";
 import { PeerDiscoveryStaticPeers } from "@waku/core/lib/peer_discovery_static_list";
 import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
+import type { WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 
@@ -148,35 +143,6 @@ export async function createFullNode(
     wakuLightPush,
     wakuFilter
   ) as WakuFull;
-}
-
-/**
- * @deprecated use { @link createLightNode }, { @link createPrivacyNode } or
- * { @link index.waku.WakuNode.constructor } instead.
- */
-export async function createWaku(
-  options?: CreateOptions & WakuOptions & Partial<RelayCreateOptions>
-): Promise<Waku> {
-  const libp2pOptions = options?.libp2p ?? {};
-  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
-  if (options?.defaultBootstrap) {
-    peerDiscovery.push(defaultPeerDiscovery());
-    Object.assign(libp2pOptions, { peerDiscovery });
-  }
-
-  const libp2p = await defaultLibp2p(new WakuRelay(options), libp2pOptions);
-
-  const wakuStore = new WakuStore(libp2p, options);
-  const wakuLightPush = new WakuLightPush(libp2p, options);
-  const wakuFilter = new WakuFilter(libp2p, options);
-
-  return new WakuNode(
-    options ?? {},
-    libp2p,
-    wakuStore,
-    wakuLightPush,
-    wakuFilter
-  );
 }
 
 export function defaultPeerDiscovery(): PeerDiscovery {

@@ -1,9 +1,9 @@
+import { createLightNode, createPrivacyNode } from "@waku/create";
 import { expect } from "chai";
 
 import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../test_utils";
 import { delay } from "../test_utils/delay";
 
-import { createLightNode, createPrivacyNode } from "./create_waku";
 import type { WakuLight, WakuPrivacy } from "./interfaces";
 import { waitForRemotePeer } from "./wait_for_remote_peer";
 import { Protocols } from "./waku";

@@ -135,6 +135,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@waku/create": "*",
+    "@waku/interfaces": "*",
     "@libp2p/peer-id-factory": "^1.0.15",
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-json": "^4.1.0",

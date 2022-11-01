@@ -1,4 +1,5 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
+import { createLightNode, createPrivacyNode } from "@waku/create";
 import { expect } from "chai";
 
 import {
@@ -8,7 +9,6 @@ import {
   Nwaku,
 } from "../test_utils/";
 
-import { createLightNode, createPrivacyNode } from "./create_waku";
 import { generateSymmetricKey } from "./crypto";
 import type { Message, Waku, WakuLight, WakuPrivacy } from "./interfaces";
 import { PeerDiscoveryStaticPeers } from "./peer_discovery_static_list";
