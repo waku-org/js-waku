@@ -30,7 +30,7 @@
     "privacy"
   ],
   "scripts": {
-    "build": "exit 0",
+    "build": "tsc",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier . --write",
     "fix:lint": "eslint src --ext .ts --ext .cjs --fix",
@@ -166,5 +166,11 @@
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
-  ]
+  ],
+  "dependencies": {
+    "@libp2p/interface-connection": "^3.0.2",
+    "@libp2p/interface-peer-id": "^1.0.5",
+    "@multiformats/multiaddr": "^11.0.6",
+    "libp2p": "^0.40.0"
+  }
 }
