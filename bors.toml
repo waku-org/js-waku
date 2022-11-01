@@ -1,5 +1,4 @@
 status = [
-  "check",
   "build",
   "proto",
   "browser",
