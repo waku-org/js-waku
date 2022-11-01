@@ -41,8 +41,6 @@
     "check:prettier": "prettier . --list-different",
     "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
-    "test": "exit 0 # Tested in @waku/core",
-    "proto": "exit 0 # no proto",
     "doc": "run-s doc:*",
     "doc:html": "typedoc --treatWarningsAsErrors",
     "prepublish": "npm run build",
