@@ -1,5 +1,5 @@
 {
-  "name": "root",
+  "name": "@waku/root",
   "private": true,
   "workspaces": [
     "packages/*"
