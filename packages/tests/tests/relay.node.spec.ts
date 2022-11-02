@@ -1,6 +1,6 @@
 import { PeerId } from "@libp2p/interface-peer-id";
-import { DefaultPubSubTopic } from "@waku/core";
 import {
+  DefaultPubSubTopic,
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
