@@ -32,8 +32,6 @@ export interface CreateOptions {
    *
    * The usage of the default pubsub topic is recommended.
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
-   *
-   * @default {@link index.DefaultPubSubTopic}
    */
   pubSubTopic?: string;
   /**

@@ -55,9 +55,9 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@waku/interfaces": "*",
     "@waku/core": "*",
-    "@waku/create": "*"
+    "@waku/create": "*",
+    "@waku/interfaces": "*"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.8.1",

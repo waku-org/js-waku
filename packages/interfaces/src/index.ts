@@ -67,8 +67,6 @@ export type StoreQueryOptions = {
   pageDirection?: PageDirection;
   /**
    * The number of message per page.
-   *
-   * @default { @link DefaultPageSize }
    */
   pageSize?: number;
   /**

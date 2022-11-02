@@ -8,3 +8,4 @@ src/**.js
 coverage
 *.log
 *.tsbuildinfo
+docs
