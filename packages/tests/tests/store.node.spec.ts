@@ -1,31 +1,25 @@
-import { expect } from "chai";
-import debug from "debug";
-
-import {
-  makeLogFileName,
-  NOISE_KEY_1,
-  NOISE_KEY_2,
-  Nwaku,
-} from "../../test_utils";
-import { createFullNode } from "../create_waku";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
-} from "../crypto";
-import type { Message, WakuFull } from "../interfaces";
-import { bytesToUtf8, utf8ToBytes } from "../utils";
-import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols } from "../waku";
-import { DecoderV0, EncoderV0 } from "../waku_message/version_0.js";
+} from "@waku/core";
+import { PageDirection } from "@waku/core";
+import { bytesToUtf8, utf8ToBytes } from "@waku/core/lib/utils";
+import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
 import {
   AsymDecoder,
   AsymEncoder,
   SymDecoder,
   SymEncoder,
-} from "../waku_message/version_1.js";
+} from "@waku/core/lib/waku_message/version_1";
+import { createFullNode } from "@waku/create";
+import type { Message, WakuFull } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
+import { expect } from "chai";
+import debug from "debug";
 
-import { PageDirection } from "./history_rpc";
+import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2, Nwaku } from "../src";
 
 const log = debug("waku:test:store");
 
@@ -67,6 +61,8 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -98,6 +94,8 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -138,6 +136,8 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -179,6 +179,8 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -218,6 +220,8 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -261,6 +265,8 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -343,7 +349,11 @@ describe("Waku Store", () => {
     log("Waku nodes created");
 
     await Promise.all([
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
       waku1.dial(nimWakuMultiaddr),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
       waku2.dial(nimWakuMultiaddr),
     ]);
 
@@ -425,6 +435,8 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -486,6 +498,8 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -545,6 +559,8 @@ describe("Waku Store, custom pubsub topic", () => {
       pubSubTopic: customPubSubTopic,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 

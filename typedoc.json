@@ -1,0 +1,11 @@
+{
+  "entryPointStrategy": "packages",
+  "entryPoints": ["packages/core", "packages/interfaces", "packages/create"],
+  "out": "docs",
+  "exclude": ["**/*.spec.ts"],
+  "excludeInternal": true,
+  "validation": {
+    "invalidLink": true,
+    "notExported": true
+  }
+}

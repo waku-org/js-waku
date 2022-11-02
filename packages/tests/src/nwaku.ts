@@ -1,23 +1,19 @@
-/**
- * @hidden
- * @module
- */
-
 import { ChildProcess, spawn } from "child_process";
 
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
+import { DefaultPubSubTopic } from "@waku/core";
+import { utils } from "@waku/core";
 import appRoot from "app-root-path";
 import debug from "debug";
 import portfinder from "portfinder";
 
-import { DefaultPubSubTopic } from "../lib/constants";
-import { bytesToHex, hexToBytes } from "../lib/utils";
-
 import { existsAsync, mkdirAsync, openAsync } from "./async_fs";
 import { delay } from "./delay";
 import waitForLine from "./log_file";
+
+const { bytesToHex, hexToBytes } = utils;
 
 const log = debug("waku:nwaku");
 

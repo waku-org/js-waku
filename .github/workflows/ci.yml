@@ -21,18 +21,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
+      - run: npm run build
       - run: npm run check
       - run: npm run doc
-
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_JS }}
-      - uses: bahmutov/npm-install@v1
-      - run: npm run build
 
   proto:
     runs-on: ubuntu-latest
@@ -61,6 +52,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
+      - run: npm run build
       - run: npm run test:browser
 
   node:
@@ -84,6 +76,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
+      - run: npm run build
       - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
@@ -130,7 +123,7 @@ jobs:
           node-version: ${{ env.NODE_JS }}
 
       - uses: bahmutov/npm-install@v1
-
+      - run: npm run build
       - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
@@ -146,7 +139,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [check, build, proto, browser, node]
+    needs: [check, proto, browser, node]
     steps:
       - name: Checkout
         uses: actions/checkout@v2

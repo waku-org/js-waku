@@ -8,18 +8,23 @@ import {
   TopicStr,
 } from "@chainsafe/libp2p-gossipsub/dist/src/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
+import type {
+  Callback,
+  Decoder,
+  Encoder,
+  Message,
+  Relay,
+  SendResult,
+} from "@waku/interfaces";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants";
-import { Decoder, Encoder, Message, SendResult } from "../interfaces";
 import { pushOrInitMapSet } from "../push_or_init_map";
 import { TopicOnlyDecoder } from "../waku_message/topic_only_message";
 
 import * as constants from "./constants";
 
 const log = debug("waku:relay");
-
-export type Callback<T extends Message> = (msg: T) => void;
 
 export type Observer<T extends Message> = {
   decoder: Decoder<T>;
@@ -49,7 +54,7 @@ export type CreateOptions = {
  *
  * @implements {require('libp2p-interfaces/src/pubsub')}
  */
-export class WakuRelay extends GossipSub {
+export class WakuRelay extends GossipSub implements Relay {
   pubSubTopic: string;
   defaultDecoder: Decoder<Message>;
   public static multicodec: string = constants.RelayCodecs[0];

@@ -1,5 +1,11 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
+import type {
+  Encoder,
+  Message,
+  ProtocolOptions,
+  SendResult,
+} from "@waku/interfaces";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -9,7 +15,6 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import { PushResponse } from "../../proto/light_push";
 import { DefaultPubSubTopic } from "../constants";
-import { Encoder, Message, SendResult } from "../interfaces";
 import { selectConnection } from "../select_connection";
 import {
   getPeersForProtocol,
@@ -36,11 +41,6 @@ export interface CreateOptions {
   pubSubTopic?: string;
 }
 
-export interface PushOptions {
-  peerId?: PeerId;
-  pubSubTopic?: string;
-}
-
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
@@ -54,7 +54,7 @@ export class WakuLightPush {
   async push(
     encoder: Encoder,
     message: Partial<Message>,
-    opts?: PushOptions
+    opts?: ProtocolOptions
   ): Promise<SendResult> {
     const pubSubTopic = opts?.pubSubTopic ? opts.pubSubTopic : this.pubSubTopic;
 

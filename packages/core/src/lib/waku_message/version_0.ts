@@ -1,8 +1,13 @@
+import type {
+  Decoder,
+  Encoder,
+  Message,
+  ProtoMessage,
+  RateLimitProof,
+} from "@waku/interfaces";
 import debug from "debug";
 
 import * as proto from "../../proto/message";
-import { Decoder, Message, ProtoMessage, RateLimitProof } from "../interfaces";
-import { Encoder } from "../interfaces";
 
 const log = debug("waku:message:version-0");
 

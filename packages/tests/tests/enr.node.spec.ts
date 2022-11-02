@@ -1,15 +1,14 @@
+import { ENR } from "@waku/core/lib/enr";
+import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import { createPrivacyNode } from "@waku/create";
+import type { WakuPrivacy } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../../test_utils";
-import { createWaku } from "../create_waku";
-import type { Waku } from "../interfaces";
-import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols } from "../waku";
-
-import { ENR } from "./enr";
+import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../src";
 
 describe("ENR Interop: nwaku", function () {
-  let waku: Waku;
+  let waku: WakuPrivacy;
   let nwaku: Nwaku;
 
   afterEach(async function () {
@@ -28,10 +27,12 @@ describe("ENR Interop: nwaku", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createWaku({
+    waku = await createPrivacyNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(multiAddrWithId);
     await waitForRemotePeer(waku, [Protocols.Relay]);
 
@@ -60,10 +61,12 @@ describe("ENR Interop: nwaku", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createWaku({
+    waku = await createPrivacyNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(multiAddrWithId);
     await waitForRemotePeer(waku, [Protocols.Relay]);
 
@@ -92,10 +95,12 @@ describe("ENR Interop: nwaku", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createWaku({
+    waku = await createPrivacyNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(multiAddrWithId);
     await waitForRemotePeer(waku, [Protocols.Relay]);
 

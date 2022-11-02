@@ -1,6 +1,7 @@
 import type { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer } from "@libp2p/interface-peer-store";
+import { Decoder, Message } from "@waku/interfaces";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -10,7 +11,6 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import * as proto from "../../proto/store";
 import { DefaultPubSubTopic } from "../constants";
-import { Decoder, Message } from "../interfaces";
 import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer";
 import { toProtoMessage } from "../to_proto_message";

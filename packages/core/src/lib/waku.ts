@@ -4,10 +4,11 @@ import type { PubSub } from "@libp2p/interface-pubsub";
 import { peerIdFromString } from "@libp2p/peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import { multiaddr } from "@multiformats/multiaddr";
+import type { Waku } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
-import { Waku } from "./interfaces";
 import { FilterCodec, WakuFilter } from "./waku_filter";
 import { LightPushCodec, WakuLightPush } from "./waku_light_push";
 import { EncoderV0 } from "./waku_message/version_0";
@@ -20,13 +21,6 @@ export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 
 const log = debug("waku:waku");
-
-export enum Protocols {
-  Relay = "relay",
-  Store = "store",
-  LightPush = "lightpush",
-  Filter = "filter",
-}
 
 export interface WakuOptions {
   /**

@@ -1,25 +1,14 @@
-import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
-import { Peer, PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
+import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
+import type { PointToPointProtocol, Relay, Waku } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import debug from "debug";
-import type { Libp2p } from "libp2p";
 import { pEvent } from "p-event";
 
-import type { Waku } from "./interfaces";
-import { Protocols } from "./waku";
 import { FilterCodec } from "./waku_filter";
 import { LightPushCodec } from "./waku_light_push";
 import { StoreCodec } from "./waku_store";
 
 const log = debug("waku:wait-for-remote-peer");
-
-interface WakuProtocol {
-  libp2p: Libp2p;
-  peers: () => Promise<Peer[]>;
-}
-
-interface WakuGossipSubProtocol extends GossipSub {
-  getMeshPeers: () => string[];
-}
 
 /**
  * Wait for a remote peer to be ready given the passed protocols.
@@ -90,7 +79,7 @@ export async function waitForRemotePeer(
  * Wait for a peer with the given protocol to be connected.
  */
 async function waitForConnectedPeer(
-  waku: WakuProtocol,
+  waku: PointToPointProtocol,
   codecs: string[]
 ): Promise<void> {
   const peers = await waku.peers();
@@ -119,9 +108,7 @@ async function waitForConnectedPeer(
  * Wait for a peer with the given protocol to be connected and in the gossipsub
  * mesh.
  */
-async function waitForGossipSubPeerInMesh(
-  waku: WakuGossipSubProtocol
-): Promise<void> {
+async function waitForGossipSubPeerInMesh(waku: Relay): Promise<void> {
   let peers = waku.getMeshPeers();
 
   while (peers.length == 0) {

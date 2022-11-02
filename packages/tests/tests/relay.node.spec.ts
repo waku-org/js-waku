@@ -1,4 +1,26 @@
 import { PeerId } from "@libp2p/interface-peer-id";
+import {
+  DefaultPubSubTopic,
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+} from "@waku/core";
+import { bytesToUtf8, utf8ToBytes } from "@waku/core/lib/utils";
+import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import {
+  DecoderV0,
+  EncoderV0,
+  MessageV0,
+} from "@waku/core/lib/waku_message/version_0";
+import {
+  AsymDecoder,
+  AsymEncoder,
+  SymDecoder,
+  SymEncoder,
+} from "@waku/core/lib/waku_message/version_1";
+import { createPrivacyNode } from "@waku/create";
+import type { Message, WakuPrivacy } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -9,26 +31,8 @@ import {
   NOISE_KEY_2,
   NOISE_KEY_3,
   Nwaku,
-} from "../../test_utils";
-import { delay } from "../../test_utils/delay";
-import { DefaultPubSubTopic } from "../constants";
-import { createPrivacyNode } from "../create_waku";
-import {
-  generatePrivateKey,
-  generateSymmetricKey,
-  getPublicKey,
-} from "../crypto";
-import type { Message, WakuPrivacy } from "../interfaces";
-import { bytesToUtf8, utf8ToBytes } from "../utils";
-import { waitForRemotePeer } from "../wait_for_remote_peer";
-import { Protocols } from "../waku";
-import { DecoderV0, EncoderV0, MessageV0 } from "../waku_message/version_0.js";
-import {
-  AsymDecoder,
-  AsymEncoder,
-  SymDecoder,
-  SymEncoder,
-} from "../waku_message/version_1.js";
+} from "../src";
+import { delay } from "../src/delay";
 
 const log = debug("waku:test");
 
@@ -342,6 +346,8 @@ describe("Waku Relay [node only]", () => {
       nwaku = new Nwaku(this.test?.ctx?.currentTest?.title + "");
       await nwaku.start();
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.Relay]);
     });
@@ -439,7 +445,11 @@ describe("Waku Relay [node only]", () => {
 
         const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
         await Promise.all([
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
           waku1.dial(nwakuMultiaddr),
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
           waku2.dial(nwakuMultiaddr),
         ]);
 
