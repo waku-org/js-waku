@@ -1,0 +1,177 @@
+{
+  "name": "@waku/dns-discovery",
+  "version": "0.0.1",
+  "description": "DNS Peer Discovery (EIP-1459)",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "type": "module",
+  "author": "Waku Team",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/dns-discovery#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/waku-org/js-waku.git"
+  },
+  "bugs": {
+    "url": "https://github.com/waku-org/js-waku/issues"
+  },
+  "license": "MIT OR Apache-2.0",
+  "keywords": [
+    "waku",
+    "decentralized",
+    "secure",
+    "communication",
+    "web3",
+    "ethereum",
+    "dapps",
+    "privacy"
+  ],
+  "scripts": {
+    "build": "run-s build:**",
+    "build:esm": "tsc",
+    "build:bundle": "rollup --config rollup.config.js",
+    "fix": "run-s fix:*",
+    "fix:prettier": "prettier . --write",
+    "fix:lint": "eslint src --ext .ts --ext .cjs --fix",
+    "check": "run-s check:*",
+    "check:lint": "eslint src --ext .ts",
+    "check:prettier": "prettier . --list-different",
+    "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
+    "check:tsc": "tsc -p tsconfig.dev.json",
+    "prepublish": "npm run build",
+    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
+    "release": "semantic-release"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@semantic-release/changelog": "^6.0.1",
+    "@semantic-release/commit-analyzer": "^9.0.2",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^8.0.6",
+    "@semantic-release/npm": "^9.0.1",
+    "@semantic-release/release-notes-generator": "^10.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.8.1",
+    "@typescript-eslint/parser": "^5.8.1",
+    "cspell": "^5.14.0",
+    "eslint": "^8.6.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-functional": "^4.0.2",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-prettier": "^4.0.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.1.1",
+    "rollup": "^2.75.0",
+    "semantic-release": "^19.0.5",
+    "semantic-release-monorepo": "^7.0.5",
+    "typescript": "^4.6.3"
+  },
+  "release": {
+    "branches": [
+      "master"
+    ],
+    "extends": "semantic-release-monorepo",
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits",
+          "releaseRules": [
+            {
+              "breaking": true,
+              "release": "patch"
+            },
+            {
+              "revert": true,
+              "release": "patch"
+            },
+            {
+              "type": "feat",
+              "release": "patch"
+            },
+            {
+              "type": "fix",
+              "release": "patch"
+            },
+            {
+              "type": "doc",
+              "release": "patch"
+            },
+            {
+              "type": "test",
+              "release": "patch"
+            },
+            {
+              "scope": "deps",
+              "release": "patch"
+            },
+            {
+              "scope": "no-release",
+              "release": false
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits",
+          "presetConfig": {
+            "types": [
+              {
+                "type": "feat",
+                "section": "Features"
+              },
+              {
+                "type": "fix",
+                "section": "Bug Fixes"
+              },
+              {
+                "type": "chore",
+                "section": "Trivial Changes"
+              },
+              {
+                "type": "doc",
+                "section": "Documentation"
+              },
+              {
+                "type": "test",
+                "section": "Tests"
+              }
+            ]
+          }
+        }
+      ],
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/github",
+      "@semantic-release/git"
+    ]
+  },
+  "typedoc": {
+    "entryPoint": "./src/index.ts"
+  },
+  "files": [
+    "dist",
+    "bundle",
+    "src/*.ts",
+    "src/lib/**/*.ts",
+    "src/proto/**/*.ts",
+    "!**/*.spec.*",
+    "!**/*.json",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ]
+}
