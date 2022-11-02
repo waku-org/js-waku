@@ -7,11 +7,11 @@ module.exports = [
   {
     name: "Waku default setup",
     path: [
-      "packages/core/bundle/index.js",
-      "packages/core/bundle/lib/create_waku.js",
+      "packages/create/bundle/index.js",
+      "packages/core/bundle/lib/wait_for_remote_peer.js"
     ],
     import: {
-      "./packages/core/bundle/lib/create_waku.js": "{ createLightNode }",
+      "./packages/create/bundle/index.js": "{ createLightNode }",
       "./packages/core/bundle/lib/wait_for_remote_peer.js":
         "{ waitForRemotePeer }",
       "./packages/core/bundle/lib/waku_message/version_0.js":
