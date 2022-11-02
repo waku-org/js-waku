@@ -24,7 +24,8 @@
     "husky": "^8.0.1",
     "lerna": "^6.0.1",
     "lint-staged": "^13.0.3",
-    "size-limit": "^8.1.0"
+    "size-limit": "^8.1.0",
+    "typedoc": "^0.23.19"
   },
   "lint-staged": {
     "*.ts": [
