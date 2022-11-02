@@ -1,6 +1,6 @@
 {
   "extension": ["ts"],
-  "spec": "tests/**/*.spec.ts",
+  "spec": "tests/*.spec.ts",
   "require": ["ts-node/register", "isomorphic-fetch", "jsdom-global/register"],
   "loader": "ts-node/esm",
   "node-option": [
