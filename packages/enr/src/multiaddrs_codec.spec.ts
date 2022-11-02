@@ -1,7 +1,7 @@
 import { multiaddr } from "@multiformats/multiaddr";
 import { expect } from "chai";
 
-import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
+import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
 
 describe("ENR multiaddrs codec", function () {
   it("Sample", async () => {

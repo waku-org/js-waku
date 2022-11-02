@@ -5,14 +5,22 @@ import {
   convertToBytes,
   convertToString,
 } from "@multiformats/multiaddr/convert";
+import {
+  bytesToHex,
+  bytesToUtf8,
+  hexToBytes,
+  utf8ToBytes,
+} from "@waku/byte-utils";
 import debug from "debug";
 import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";
 
-import { compressPublicKey, keccak256, verifySignature } from "../crypto";
-import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "../utils";
-
-import { ERR_INVALID_ID, ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
+import {
+  ERR_INVALID_ID,
+  ERR_NO_SIGNATURE,
+  MAX_RECORD_SIZE,
+} from "./constants.js";
+import { compressPublicKey, keccak256, verifySignature } from "./crypto.js";
 import {
   createKeypair,
   createKeypairFromPeerId,

@@ -1,7 +1,7 @@
 import { convertToBytes } from "@multiformats/multiaddr/convert";
 import { expect } from "chai";
 
-import { multiaddrFromFields } from "./multiaddr_from_fields";
+import { multiaddrFromFields } from "./multiaddr_from_fields.js";
 
 describe("Multiaddr from fields", () => {
   it("tcp ip4 address", function () {

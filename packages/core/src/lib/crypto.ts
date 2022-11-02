@@ -74,27 +74,3 @@ export async function sign(
 export function keccak256(input: Uint8Array): Uint8Array {
   return new Uint8Array(sha3.keccak256.arrayBuffer(input));
 }
-
-export function compressPublicKey(publicKey: Uint8Array): Uint8Array {
-  if (publicKey.length === 64) {
-    publicKey = concat([new Uint8Array([4]), publicKey], 65);
-  }
-  const point = secp.Point.fromHex(publicKey);
-  return point.toRawBytes(true);
-}
-
-/**
- * Verify an ECDSA signature.
- */
-export function verifySignature(
-  signature: Uint8Array,
-  message: Uint8Array | string,
-  publicKey: Uint8Array
-): boolean {
-  try {
-    const _signature = secp.Signature.fromCompact(signature.slice(0, 64));
-    return secp.verify(_signature, message, publicKey);
-  } catch {
-    return false;
-  }
-}

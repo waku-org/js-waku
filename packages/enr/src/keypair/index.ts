@@ -3,12 +3,12 @@ import { supportedKeys } from "@libp2p/crypto/keys";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { peerIdFromKeys } from "@libp2p/peer-id";
 
-import { Secp256k1Keypair } from "./secp256k1";
-import { IKeypair, KeypairType } from "./types";
+import { Secp256k1Keypair } from "./secp256k1.js";
+import { IKeypair, KeypairType } from "./types.js";
 
 export const ERR_TYPE_NOT_IMPLEMENTED = "Keypair type not implemented";
-export * from "./types";
-export * from "./secp256k1";
+export * from "./types.js";
+export * from "./secp256k1.js";
 
 export function createKeypair(
   type: KeypairType,

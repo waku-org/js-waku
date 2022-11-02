@@ -1,9 +1,8 @@
 import * as secp from "@noble/secp256k1";
+import { bytesToHex } from "@waku/byte-utils";
 
-import { keccak256 } from "../crypto";
-import { bytesToHex } from "../utils";
-
-import { NodeId } from "./types";
+import { keccak256 } from "./crypto.js";
+import { NodeId } from "./types.js";
 
 export async function sign(
   privKey: Uint8Array,

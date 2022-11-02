@@ -1,8 +1,8 @@
 import * as secp from "@noble/secp256k1";
 
-import { compressPublicKey, randomBytes } from "../../crypto";
+import { compressPublicKey, randomBytes } from "../crypto.js";
 
-import { IKeypair, KeypairType } from "./types";
+import { IKeypair, KeypairType } from "./types.js";
 
 export class Secp256k1Keypair implements IKeypair {
   readonly type: KeypairType;
