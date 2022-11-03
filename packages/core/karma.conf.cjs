@@ -18,24 +18,9 @@ module.exports = function (config) {
       },
     },
     webpack: {
-      mode: "production",
+      mode: "development",
       module: {
-        rules: [
-          {
-            test: /\.(js|tsx?)$/,
-            use: [
-              {
-                loader: "ts-loader",
-                options: { configFile: "tsconfig.karma.json" },
-              },
-            ],
-            exclude: /(node_modules)|(node\.spec\.ts)/,
-          },
-          {
-            test: /node\.spec\.ts$/,
-            use: "ignore-loader",
-          },
-        ],
+        rules: [{ test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }],
       },
       plugins: [
         new webpack.DefinePlugin({
@@ -46,7 +31,12 @@ module.exports = function (config) {
         }),
       ],
       resolve: {
-        extensions: [".ts", ".js"],
+        extensions: [".ts", ".tsx", ".js"],
+        extensionAlias: {
+          ".js": [".js", ".ts"],
+          ".cjs": [".cjs", ".cts"],
+          ".mjs": [".mjs", ".mts"],
+        },
       },
       stats: { warnings: false },
       devtool: "inline-source-map",

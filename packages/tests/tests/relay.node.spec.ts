@@ -1,11 +1,11 @@
 import { PeerId } from "@libp2p/interface-peer-id";
+import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import {
   DefaultPubSubTopic,
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from "@waku/core";
-import { bytesToUtf8, utf8ToBytes } from "@waku/core/lib/utils";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import {
   DecoderV0,
