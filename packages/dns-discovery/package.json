@@ -10,6 +10,13 @@
       "import": "./dist/index.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/*"
+      ]
+    }
+  },
   "type": "module",
   "author": "Waku Team",
   "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/dns-discovery#readme",
@@ -56,7 +63,7 @@
     "hi-base32": "^0.5.1",
     "debug": "^4.3.4",
     "dns-query": "^0.11.2",
-    "uint8arrays": "^3.0.0",
+    "uint8arrays": "^4.0.2",
     "@libp2p/interface-peer-discovery": "^1.0.0",
     "@libp2p/interface-peer-info": "^1.0.1",
     "@libp2p/interfaces": "^3.0.2",

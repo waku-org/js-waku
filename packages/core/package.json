@@ -97,7 +97,6 @@
     "@waku/byte-utils": "*",
     "@chainsafe/libp2p-gossipsub": "^4.1.1",
     "@chainsafe/libp2p-noise": "^8.0.1",
-    "@ethersproject/rlp": "^5.5.0",
     "@libp2p/crypto": "^1.0.4",
     "@libp2p/interface-connection": "3.0.1",
     "@libp2p/interface-peer-discovery": "^1.0.0",
@@ -121,7 +120,7 @@
     "p-event": "^5.0.1",
     "protons-runtime": "^3.1.0",
     "uint8arraylist": "^2.3.2",
-    "uint8arrays": "^3.0.0",
+    "uint8arrays": "^4.0.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

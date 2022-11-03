@@ -9,7 +9,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./crypto": {
+    "./crypt": {
       "types": "./dist/crypto.d.ts",
       "import": "./dist/crypto.js"
     }
@@ -58,12 +58,17 @@
     "node": ">=16"
   },
   "dependencies": {
+    "@ethersproject/rlp": "^5.5.0",
     "@libp2p/crypto": "^1.0.4",
+    "@libp2p/interface-peer-id": "^1.0.2",
+    "@libp2p/peer-id": "^1.1.10",
     "@multiformats/multiaddr": "^11.0.6",
-    "@noble/secp256k1": "^1.7.0",
-    "@waku/byte-utils": "*"
+    "@noble/secp256k1": "^1.3.4",
+    "@waku/byte-utils": "*",
+    "js-sha3": "^0.8.0"
   },
   "devDependencies": {
+    "uint8arrays": "^4.0.2",
     "@libp2p/peer-id-factory": "^1.0.15",
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-json": "^4.1.0",
