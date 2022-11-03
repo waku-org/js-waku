@@ -1,6 +1,6 @@
-import { ENR } from "@waku/core/lib/enr";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { createPrivacyNode } from "@waku/create";
+import { ENR } from "@waku/enr";
 import type { WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";

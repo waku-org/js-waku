@@ -25,7 +25,7 @@ module.exports = [
   },
   {
     name: "DNS discovery",
-    path: "packages/core/bundle/lib/peer_discovery_dns.js",
+    path: "packages/dns-discovery/bundle/index.js",
     import: "{ PeerDiscoveryDns }",
   },
   {

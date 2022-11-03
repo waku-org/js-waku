@@ -1,10 +1,10 @@
+import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
 } from "@waku/core";
 import { PageDirection } from "@waku/core";
-import { bytesToUtf8, utf8ToBytes } from "@waku/core/lib/utils";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
 import {

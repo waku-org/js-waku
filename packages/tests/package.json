@@ -56,8 +56,10 @@
   },
   "dependencies": {
     "@waku/core": "*",
+    "@waku/enr": "*",
     "@waku/create": "*",
-    "@waku/interfaces": "*"
+    "@waku/interfaces": "*",
+    "@waku/byte-utils": "*"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.8.1",

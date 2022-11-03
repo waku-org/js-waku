@@ -4,9 +4,9 @@ const webpack = require("webpack");
 module.exports = function (config) {
   config.set({
     frameworks: ["webpack", "mocha"],
-    files: ["src/lib/**/!(node).spec.ts"],
+    files: ["src/**/*.ts"],
     preprocessors: {
-      "src/lib/**/!(node).spec.ts": ["webpack"],
+      "src/**/*.ts": ["webpack"],
     },
     envPreprocessor: ["CI"],
     reporters: ["progress"],

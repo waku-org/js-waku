@@ -1,6 +1,13 @@
 {
   "entryPointStrategy": "packages",
-  "entryPoints": ["packages/core", "packages/interfaces", "packages/create"],
+  "entryPoints": [
+    "packages/byte-utils",
+    "packages/core",
+    "packages/create",
+    "packages/dns-discovery",
+    "packages/enr",
+    "packages/interfaces"
+  ],
   "out": "docs",
   "exclude": ["**/*.spec.ts"],
   "excludeInternal": true,
