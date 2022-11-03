@@ -1,10 +1,10 @@
 import * as secp from "@noble/secp256k1";
+import { concat, hexToBytes } from "@waku/byte-utils";
 import type { Decoder, Encoder, Message, ProtoMessage } from "@waku/interfaces";
 import debug from "debug";
 
 import * as proto from "../../proto/message";
 import { keccak256, randomBytes, sign } from "../crypto";
-import { concat, hexToBytes } from "../utils";
 
 import { Symmetric } from "./constants";
 import * as ecies from "./ecies";

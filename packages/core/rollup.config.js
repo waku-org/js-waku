@@ -7,7 +7,6 @@ export default {
     index: "dist/index.js",
     "lib/peer_discovery_static_list": "dist/lib/peer_discovery_static_list.js",
     "lib/predefined_bootstrap_nodes": "dist/lib/predefined_bootstrap_nodes.js",
-    "lib/utils": "dist/lib/utils.js",
     "lib/wait_for_remote_peer": "dist/lib/wait_for_remote_peer.js",
     "lib/waku_message/version_0": "dist/lib/waku_message/version_0.js",
     "lib/waku_message/version_1": "dist/lib/waku_message/version_1.js",

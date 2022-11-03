@@ -17,10 +17,6 @@
       "types": "./dist/lib/predefined_bootstrap_nodes.d.ts",
       "import": "./dist/lib/predefined_bootstrap_nodes.js"
     },
-    "./lib/utils": {
-      "types": "./dist/lib/utils.d.ts",
-      "import": "./dist/lib/utils.js"
-    },
     "./lib/wait_for_remote_peer": {
       "types": "./dist/lib/wait_for_remote_peer.d.ts",
       "import": "./dist/lib/wait_for_remote_peer.js"
@@ -98,6 +94,7 @@
     "node": ">=16"
   },
   "dependencies": {
+    "@waku/byte-utils": "*",
     "@chainsafe/libp2p-gossipsub": "^4.1.1",
     "@chainsafe/libp2p-noise": "^8.0.1",
     "@ethersproject/rlp": "^5.5.0",
