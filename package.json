@@ -20,19 +20,20 @@
     "release": "lerna run --concurrency 1 release -- --"
   },
   "devDependencies": {
-    "@size-limit/preset-big-lib": "^8.1.0",
-    "husky": "^8.0.1",
-    "lerna": "^6.0.1",
-    "lint-staged": "^13.0.3",
-    "size-limit": "^8.1.0",
-    "typedoc": "^0.23.19",
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/commit-analyzer": "^9.0.2",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^8.0.6",
     "@semantic-release/npm": "^9.0.1",
     "@semantic-release/release-notes-generator": "^10.0.3",
-    "semantic-release": "^19.0.5"
+    "@size-limit/preset-big-lib": "^8.1.0",
+    "husky": "^8.0.1",
+    "lerna": "^6.0.1",
+    "lint-staged": "^13.0.3",
+    "multi-semantic-release": "^3.0.1",
+    "semantic-release": "^19.0.5",
+    "size-limit": "^8.1.0",
+    "typedoc": "^0.23.19"
   },
   "release": {
     "branches": [
