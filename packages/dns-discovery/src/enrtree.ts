@@ -1,6 +1,6 @@
 import { utf8ToBytes } from "@waku/byte-utils";
 import { ENR } from "@waku/enr";
-import { keccak256, verifySignature } from "@waku/enr/crypt";
+import { keccak256, verifySignature } from "@waku/enr";
 import base32 from "hi-base32";
 import { fromString } from "uint8arrays/from-string";
 

@@ -5,7 +5,6 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 export default {
   input: {
     index: "dist/index.js",
-    crypto: "dist/crypto.js",
   },
   output: {
     dir: "bundle",

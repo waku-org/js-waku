@@ -8,10 +8,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./crypt": {
-      "types": "./dist/crypto.d.ts",
-      "import": "./dist/crypto.js"
     }
   },
   "type": "module",
@@ -185,9 +181,7 @@
   "files": [
     "dist",
     "bundle",
-    "src/*.ts",
-    "src/lib/**/*.ts",
-    "src/proto/**/*.ts",
+    "src/**/*.ts",
     "!**/*.spec.*",
     "!**/*.json",
     "CHANGELOG.md",
