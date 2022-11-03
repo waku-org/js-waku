@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { DnsClient, DnsNodeDiscovery } from "./dns";
+import { DnsClient, DnsNodeDiscovery } from "./dns.js";
 import testData from "./testdata.json" assert { type: "json" };
 
 const mockData = testData.dns;

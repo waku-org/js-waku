@@ -5,12 +5,11 @@ import type {
 import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import { ENR } from "@waku/enr";
 import debug from "debug";
 
-import { ENR } from "../enr";
-import { multiaddrsToPeerInfo } from "../multiaddr_to_peer_info";
-
-import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns";
+import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns.js";
+import { multiaddrsToPeerInfo } from "./multiaddr_to_peer_info.js";
 
 const log = debug("waku:peer-discovery-dns");
 

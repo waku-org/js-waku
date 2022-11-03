@@ -1,9 +1,8 @@
+import { bytesToUtf8 } from "@waku/byte-utils";
 import debug from "debug";
 import { Endpoint, query, toEndpoint } from "dns-query";
 
-import { bytesToUtf8 } from "../utils";
-
-import { DnsClient } from "./dns";
+import { DnsClient } from "./dns.js";
 
 const log = debug("waku:dns-over-https");
 

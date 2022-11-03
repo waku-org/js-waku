@@ -1,10 +1,9 @@
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { multiaddr } from "@multiformats/multiaddr";
+import { ENR, Waku2 } from "@waku/enr";
 import { expect } from "chai";
 
-import { ENR, Waku2 } from "../enr";
-
-import { fetchNodesUntilCapabilitiesFulfilled } from "./fetch_nodes";
+import { fetchNodesUntilCapabilitiesFulfilled } from "./fetch_nodes.js";
 
 async function createEnr(waku2: Waku2): Promise<ENR> {
   const peerId = await createSecp256k1PeerId();

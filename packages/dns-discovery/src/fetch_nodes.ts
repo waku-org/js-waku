@@ -1,8 +1,7 @@
+import { ENR, Waku2 } from "@waku/enr";
 import debug from "debug";
 
-import { ENR, Waku2 } from "../enr";
-
-import { NodeCapabilityCount } from "./dns";
+import { NodeCapabilityCount } from "./dns.js";
 
 const log = debug("waku:discovery:fetch_nodes");
 

@@ -9,14 +9,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./lib/enr": {
-      "types": "./dist/lib/enr/index.d.ts",
-      "import": "./dist/lib/enr/index.js"
-    },
-    "./lib/peer_discovery_dns": {
-      "types": "./dist/lib/peer_discovery_dns/index.d.ts",
-      "import": "./dist/lib/peer_discovery_dns/index.js"
-    },
     "./lib/peer_discovery_static_list": {
       "types": "./dist/lib/peer_discovery_static_list.d.ts",
       "import": "./dist/lib/peer_discovery_static_list.js"
@@ -124,8 +116,6 @@
     "@noble/secp256k1": "^1.3.4",
     "@waku/interfaces": "*",
     "debug": "^4.3.4",
-    "dns-query": "^0.11.2",
-    "hi-base32": "^0.5.1",
     "it-all": "^1.0.6",
     "it-length-prefixed": "^8.0.2",
     "it-pipe": "^2.0.4",
@@ -138,7 +128,6 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@libp2p/peer-id-factory": "^1.0.15",
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",

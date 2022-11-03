@@ -1,9 +1,8 @@
+import { utf8ToBytes } from "@waku/byte-utils";
+import { ENR } from "@waku/enr";
+import { keccak256, verifySignature } from "@waku/enr/crypto";
 import base32 from "hi-base32";
 import { fromString } from "uint8arrays/from-string";
-
-import { keccak256, verifySignature } from "../crypto";
-import { ENR } from "../enr";
-import { utf8ToBytes } from "../utils";
 
 export type ENRRootValues = {
   eRoot: string;

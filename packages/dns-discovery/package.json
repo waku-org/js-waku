@@ -50,8 +50,22 @@
   "engines": {
     "node": ">=16"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@waku/enr": "*",
+    "@waku/byte-utils": "*",
+    "hi-base32": "^0.5.1",
+    "debug": "^4.3.4",
+    "dns-query": "^0.11.2",
+    "uint8arrays": "^3.0.0",
+    "@libp2p/interface-peer-discovery": "^1.0.0",
+    "@libp2p/interface-peer-info": "^1.0.1",
+    "@libp2p/interfaces": "^3.0.2",
+    "@libp2p/peer-id": "^1.1.10"
+  },
   "devDependencies": {
+    "@multiformats/multiaddr": "^11.0.6",
+    "@libp2p/peer-id-factory": "^1.0.15",
+    "chai": "^4.3.4",
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",

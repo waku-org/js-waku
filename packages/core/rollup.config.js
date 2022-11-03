@@ -5,8 +5,6 @@ import json from "@rollup/plugin-json";
 export default {
   input: {
     index: "dist/index.js",
-    "lib/enr": "dist/lib/enr/index.js",
-    "lib/peer_discovery_dns": "dist/lib/peer_discovery_dns/index.js",
     "lib/peer_discovery_static_list": "dist/lib/peer_discovery_static_list.js",
     "lib/predefined_bootstrap_nodes": "dist/lib/predefined_bootstrap_nodes.js",
     "lib/utils": "dist/lib/utils.js",
