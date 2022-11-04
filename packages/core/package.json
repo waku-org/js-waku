@@ -25,10 +25,6 @@
       "types": "./dist/lib/waku_message/version_0.d.ts",
       "import": "./dist/lib/waku_message/version_0.js"
     },
-    "./lib/waku_message/version_1": {
-      "types": "./dist/lib/waku_message/version_1.d.ts",
-      "import": "./dist/lib/waku_message/version_1.js"
-    },
     "./lib/waku_message/topic_only_message": {
       "types": "./dist/lib/waku_message/topic_only_message.d.ts",
       "import": "./dist/lib/waku_message/topic_only_message.js"
@@ -87,9 +83,6 @@
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
     "release": "semantic-release"
   },
-  "browser": {
-    "crypto": false
-  },
   "engines": {
     "node": ">=16"
   },
@@ -97,7 +90,6 @@
     "@waku/byte-utils": "*",
     "@chainsafe/libp2p-gossipsub": "^4.1.1",
     "@chainsafe/libp2p-noise": "^8.0.1",
-    "@libp2p/crypto": "^1.0.4",
     "@libp2p/interface-connection": "3.0.1",
     "@libp2p/interface-peer-discovery": "^1.0.0",
     "@libp2p/interface-peer-id": "^1.0.2",
@@ -109,13 +101,11 @@
     "@libp2p/peer-id": "^1.1.10",
     "@libp2p/websockets": "^3.0.3",
     "@multiformats/multiaddr": "^11.0.6",
-    "@noble/secp256k1": "^1.3.4",
     "@waku/interfaces": "*",
     "debug": "^4.3.4",
     "it-all": "^1.0.6",
     "it-length-prefixed": "^8.0.2",
     "it-pipe": "^2.0.4",
-    "js-sha3": "^0.8.0",
     "libp2p": "0.38.0",
     "p-event": "^5.0.1",
     "protons-runtime": "^3.1.0",

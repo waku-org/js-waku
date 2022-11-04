@@ -1,11 +1,5 @@
 export { DefaultPubSubTopic } from "./lib/constants";
 
-export {
-  generatePrivateKey,
-  generateSymmetricKey,
-  getPublicKey,
-} from "./lib/crypto";
-
 export * as proto_message from "./proto/message";
 export * as proto_topic_only_message from "./proto/topic_only_message";
 

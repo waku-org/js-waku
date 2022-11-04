@@ -9,7 +9,6 @@ export default {
     "lib/predefined_bootstrap_nodes": "dist/lib/predefined_bootstrap_nodes.js",
     "lib/wait_for_remote_peer": "dist/lib/wait_for_remote_peer.js",
     "lib/waku_message/version_0": "dist/lib/waku_message/version_0.js",
-    "lib/waku_message/version_1": "dist/lib/waku_message/version_1.js",
     "lib/waku_message/topic_only_message":
       "dist/lib/waku_message/topic_only_message.js",
   },
