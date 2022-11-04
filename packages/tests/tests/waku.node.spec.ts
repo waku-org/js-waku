@@ -1,12 +1,15 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
-import { generateSymmetricKey } from "@waku/core";
 import { PeerDiscoveryStaticPeers } from "@waku/core/lib/peer_discovery_static_list";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
-import { SymDecoder, SymEncoder } from "@waku/core/lib/waku_message/version_1";
 import { createLightNode, createPrivacyNode } from "@waku/create";
 import type { Message, Waku, WakuLight, WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import {
+  generateSymmetricKey,
+  SymDecoder,
+  SymEncoder,
+} from "@waku/message-encryption";
 import { expect } from "chai";
 
 import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2, Nwaku } from "../src/";

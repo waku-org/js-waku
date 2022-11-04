@@ -9,7 +9,14 @@ import type { Decoder, Encoder, Message, ProtoMessage } from "@waku/interfaces";
 import debug from "debug";
 
 import { Symmetric } from "./constants.js";
-import { keccak256, randomBytes, sign } from "./crypto.js";
+import {
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+  keccak256,
+  randomBytes,
+  sign,
+} from "./crypto.js";
 import * as ecies from "./ecies.js";
 import * as symmetric from "./symmetric.js";
 
@@ -21,6 +28,8 @@ const IsSignedMask = 4; // 0100
 const PaddingTarget = 256;
 const SignatureLength = 65;
 const OneMillion = BigInt(1_000_000);
+
+export { generatePrivateKey, generateSymmetricKey, getPublicKey };
 
 export const Version = 1;
 

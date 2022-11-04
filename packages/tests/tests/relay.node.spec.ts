@@ -1,26 +1,24 @@
 import { PeerId } from "@libp2p/interface-peer-id";
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
-import {
-  DefaultPubSubTopic,
-  generatePrivateKey,
-  generateSymmetricKey,
-  getPublicKey,
-} from "@waku/core";
+import { DefaultPubSubTopic } from "@waku/core";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import {
   DecoderV0,
   EncoderV0,
   MessageV0,
 } from "@waku/core/lib/waku_message/version_0";
-import {
-  AsymDecoder,
-  AsymEncoder,
-  SymDecoder,
-  SymEncoder,
-} from "@waku/core/lib/waku_message/version_1";
 import { createPrivacyNode } from "@waku/create";
 import type { Message, WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import {
+  AsymDecoder,
+  AsymEncoder,
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+  SymDecoder,
+  SymEncoder,
+} from "@waku/message-encryption";
 import { expect } from "chai";
 import debug from "debug";
 
