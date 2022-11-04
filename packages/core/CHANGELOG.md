@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## @waku/core [0.0.2](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.1...@waku/core@0.0.2) (2022-11-04)
+
+### Changed
+
+- extract version-1 from chore
+- extract utils from core
+- extract dns discovery and enr from core ([f7f28f0](https://github.com/waku-org/js-waku/commit/f7f28f03b01fa5bc89eaeb083b68981169b45c39))
+- split outgoing and incoming message interface ([8aa9b43](https://github.com/waku-org/js-waku/commit/8aa9b43f61af356e8faa1859f4844849a7cfa9b1)), closes [#979](https://github.com/waku-org/js-waku/issues/979)
+
 ## [0.30.0] - 2022-10-28
 
 ### Added
