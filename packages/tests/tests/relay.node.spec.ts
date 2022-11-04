@@ -8,7 +8,7 @@ import {
   MessageV0,
 } from "@waku/core/lib/waku_message/version_0";
 import { createPrivacyNode } from "@waku/create";
-import type { Message, WakuPrivacy } from "@waku/interfaces";
+import type { DecodedMessage, WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   AsymDecoder,
@@ -118,9 +118,11 @@ describe("Waku Relay [node only]", () => {
         timestamp: messageTimestamp,
       };
 
-      const receivedMsgPromise: Promise<Message> = new Promise((resolve) => {
-        waku2.relay.addObserver(TestDecoder, resolve);
-      });
+      const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
+        (resolve) => {
+          waku2.relay.addObserver(TestDecoder, resolve);
+        }
+      );
 
       await waku1.relay.send(TestEncoder, message);
 
@@ -148,12 +150,12 @@ describe("Waku Relay [node only]", () => {
       const fooDecoder = new DecoderV0(fooContentTopic);
       const barDecoder = new DecoderV0(barContentTopic);
 
-      const fooMessages: Message[] = [];
+      const fooMessages: DecodedMessage[] = [];
       waku2.relay.addObserver(fooDecoder, (msg) => {
         fooMessages.push(msg);
       });
 
-      const barMessages: Message[] = [];
+      const barMessages: DecodedMessage[] = [];
       waku2.relay.addObserver(barDecoder, (msg) => {
         barMessages.push(msg);
       });
@@ -197,7 +199,7 @@ describe("Waku Relay [node only]", () => {
       const asymDecoder = new AsymDecoder(asymTopic, privateKey);
       const symDecoder = new SymDecoder(symTopic, symKey);
 
-      const msgs: Message[] = [];
+      const msgs: DecodedMessage[] = [];
       waku2.relay.addObserver(asymDecoder, (wakuMsg) => {
         msgs.push(wakuMsg);
       });
@@ -228,7 +230,7 @@ describe("Waku Relay [node only]", () => {
       const contentTopic = "added-then-deleted-observer";
 
       // The promise **fails** if we receive a message on this observer.
-      const receivedMsgPromise: Promise<Message> = new Promise(
+      const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve, reject) => {
           const deleteObserver = waku2.relay.addObserver(
             new DecoderV0(contentTopic),
@@ -304,7 +306,7 @@ describe("Waku Relay [node only]", () => {
 
       const messageText = "Communicating using a custom pubsub topic";
 
-      const waku2ReceivedMsgPromise: Promise<Message> = new Promise(
+      const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
           waku2.relay.addObserver(TestDecoder, resolve);
         }
@@ -312,7 +314,7 @@ describe("Waku Relay [node only]", () => {
 
       // The promise **fails** if we receive a message on the default
       // pubsub topic.
-      const waku3NoMsgPromise: Promise<Message> = new Promise(
+      const waku3NoMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve, reject) => {
           waku3.relay.addObserver(TestDecoder, reject);
           setTimeout(resolve, 1000);
@@ -466,7 +468,7 @@ describe("Waku Relay [node only]", () => {
         const msgStr = "Hello there!";
         const message = { payload: utf8ToBytes(msgStr) };
 
-        const waku2ReceivedMsgPromise: Promise<Message> = new Promise(
+        const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
           (resolve) => {
             waku2.relay.addObserver(TestDecoder, resolve);
           }

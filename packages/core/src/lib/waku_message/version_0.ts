@@ -1,4 +1,5 @@
 import type {
+  DecodedMessage,
   Decoder,
   Encoder,
   Message,
@@ -15,7 +16,7 @@ const OneMillion = BigInt(1_000_000);
 export const Version = 0;
 export { proto };
 
-export class MessageV0 implements Message {
+export class MessageV0 implements DecodedMessage {
   constructor(protected proto: proto.WakuMessage) {}
 
   get _rawPayload(): Uint8Array | undefined {
@@ -79,7 +80,7 @@ export class EncoderV0 implements Encoder {
     return {
       payload: message.payload,
       version: Version,
-      contentTopic: message.contentTopic ?? this.contentTopic,
+      contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
       rateLimitProof: message.rateLimitProof,
     };

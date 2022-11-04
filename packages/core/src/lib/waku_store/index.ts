@@ -1,7 +1,7 @@
 import type { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer } from "@libp2p/interface-peer-store";
-import { Decoder, Message } from "@waku/interfaces";
+import { DecodedMessage, Decoder } from "@waku/interfaces";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -106,7 +106,7 @@ export class WakuStore {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryOrderedCallback<T extends Message>(
+  async queryOrderedCallback<T extends DecodedMessage>(
     decoders: Decoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
@@ -155,7 +155,7 @@ export class WakuStore {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryCallbackOnPromise<T extends Message>(
+  async queryCallbackOnPromise<T extends DecodedMessage>(
     decoders: Decoder<T>[],
     callback: (
       message: Promise<T | undefined>
@@ -193,7 +193,7 @@ export class WakuStore {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async *queryGenerator<T extends Message>(
+  async *queryGenerator<T extends DecodedMessage>(
     decoders: Decoder<T>[],
     options?: QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
@@ -266,7 +266,7 @@ export class WakuStore {
   }
 }
 
-async function* paginate<T extends Message>(
+async function* paginate<T extends DecodedMessage>(
   connection: Connection,
   protocol: string,
   queryOpts: Params,
