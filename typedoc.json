@@ -6,7 +6,8 @@
     "packages/create",
     "packages/dns-discovery",
     "packages/enr",
-    "packages/interfaces"
+    "packages/interfaces",
+    "packages/message-encryption"
   ],
   "out": "docs",
   "exclude": ["**/*.spec.ts"],
