@@ -47,8 +47,7 @@
     "test:node": "TS_NODE_PROJECT=./tsconfig.dev.json mocha",
     "test:browser": "karma start karma.conf.cjs",
     "prepublish": "npm run build",
-    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
-    "release": "semantic-release"
+    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
     "node": ">=16"
