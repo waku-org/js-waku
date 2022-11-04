@@ -20,7 +20,7 @@ module.exports = [
   },
   {
     name: "Asymmetric, symmetric encryption and signature",
-    path: "packages/core/bundle/lib/waku_message/version_1.js",
+    path: "packages/message-encryption/bundle/index.js",
     import: "{ MessageV1, AsymEncoder, AsymDecoder, SymEncoder, SymDecoder }",
   },
   {
