@@ -1,4 +1,4 @@
-import { Symmetric } from "./constants";
+import { Symmetric } from "./constants.js";
 import { getSubtle, randomBytes } from "./crypto.js";
 
 export async function encrypt(

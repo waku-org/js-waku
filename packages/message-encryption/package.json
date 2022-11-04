@@ -59,7 +59,8 @@
     "@noble/secp256k1": "^1.3.4",
     "@waku/byte-utils": "*",
     "@waku/interfaces": "*",
-    "js-sha3": "^0.8.0"
+    "js-sha3": "^0.8.0",
+    "@waku/core": "*"
   },
   "devDependencies": {
     "fast-check": "^2.14.0",
