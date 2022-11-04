@@ -1,6 +1,5 @@
-import { getSubtle, randomBytes } from "../crypto";
-
 import { Symmetric } from "./constants";
+import { getSubtle, randomBytes } from "./crypto.js";
 
 export async function encrypt(
   iv: Uint8Array,

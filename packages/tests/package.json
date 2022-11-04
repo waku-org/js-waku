@@ -59,7 +59,8 @@
     "@waku/enr": "*",
     "@waku/create": "*",
     "@waku/interfaces": "*",
-    "@waku/byte-utils": "*"
+    "@waku/byte-utils": "*",
+    "@waku/message-encryption": "*"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.8.1",

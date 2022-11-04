@@ -17,7 +17,7 @@
     "doc": "run-s doc:*",
     "doc:html": "typedoc # --treatWarningsAsErrors",
     "doc:cname": "echo 'js.waku.org' > docs/CNAME",
-    "release": "lerna run --concurrency 1 release -- --"
+    "release": "multi-semantic-release"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.1",

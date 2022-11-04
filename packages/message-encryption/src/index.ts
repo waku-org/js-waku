@@ -1,15 +1,24 @@
 import * as secp from "@noble/secp256k1";
 import { concat, hexToBytes } from "@waku/byte-utils";
+import {
+  DecoderV0,
+  MessageV0,
+  proto,
+} from "@waku/core/lib/waku_message/version_0";
 import type { Decoder, Encoder, Message, ProtoMessage } from "@waku/interfaces";
 import debug from "debug";
 
-import * as proto from "../../proto/message";
-import { keccak256, randomBytes, sign } from "../crypto";
-
-import { Symmetric } from "./constants";
-import * as ecies from "./ecies";
-import * as symmetric from "./symmetric";
-import { DecoderV0, MessageV0 } from "./version_0";
+import { Symmetric } from "./constants.js";
+import {
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+  keccak256,
+  randomBytes,
+  sign,
+} from "./crypto.js";
+import * as ecies from "./ecies.js";
+import * as symmetric from "./symmetric.js";
 
 const log = debug("waku:message:version-1");
 
@@ -19,6 +28,8 @@ const IsSignedMask = 4; // 0100
 const PaddingTarget = 256;
 const SignatureLength = 65;
 const OneMillion = BigInt(1_000_000);
+
+export { generatePrivateKey, generateSymmetricKey, getPublicKey };
 
 export const Version = 1;
 

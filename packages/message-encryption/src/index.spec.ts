@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { getPublicKey } from "../crypto";
+import { getPublicKey } from "./crypto.js";
 
 import {
   AsymDecoder,
@@ -14,7 +14,7 @@ import {
   preCipher,
   SymDecoder,
   SymEncoder,
-} from "./version_1";
+} from "./index.js";
 
 const TestContentTopic = "/test/1/waku-message/utf8";
 
