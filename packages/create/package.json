@@ -1,6 +1,6 @@
 {
   "name": "@waku/create",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Easily create a Waku node",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
