@@ -4,6 +4,7 @@ import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
   Callback,
+  DecodedMessage,
   Decoder,
   Filter,
   Message,
@@ -77,7 +78,7 @@ export class WakuFilter implements Filter {
    * @param opts The FilterSubscriptionOpts used to narrow which messages are returned, and which peer to connect to.
    * @returns Unsubscribe function that can be used to end the subscription.
    */
-  async subscribe<T extends Message>(
+  async subscribe<T extends DecodedMessage>(
     decoders: Decoder<T>[],
     callback: Callback<T>,
     opts?: ProtocolOptions
@@ -211,7 +212,7 @@ export class WakuFilter implements Filter {
     this.subscriptions.delete(requestId);
   }
 
-  private addDecoders<T extends Message>(
+  private addDecoders<T extends DecodedMessage>(
     decoders: Map<string, Array<Decoder<T>>>
   ): void {
     decoders.forEach((decoders, contentTopic) => {
@@ -224,7 +225,7 @@ export class WakuFilter implements Filter {
     });
   }
 
-  private deleteDecoders<T extends Message>(
+  private deleteDecoders<T extends DecodedMessage>(
     decoders: Map<string, Array<Decoder<T>>>
   ): void {
     decoders.forEach((decoders, contentTopic) => {

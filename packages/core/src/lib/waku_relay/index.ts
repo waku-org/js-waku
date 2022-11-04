@@ -16,6 +16,7 @@ import type {
   Relay,
   SendResult,
 } from "@waku/interfaces";
+import { DecodedMessage } from "@waku/interfaces";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants";
@@ -26,7 +27,7 @@ import * as constants from "./constants";
 
 const log = debug("waku:relay");
 
-export type Observer<T extends Message> = {
+export type Observer<T extends DecodedMessage> = {
   decoder: Decoder<T>;
   callback: Callback<T>;
 };
@@ -56,7 +57,7 @@ export type CreateOptions = {
  */
 export class WakuRelay extends GossipSub implements Relay {
   pubSubTopic: string;
-  defaultDecoder: Decoder<Message>;
+  defaultDecoder: Decoder<DecodedMessage>;
   public static multicodec: string = constants.RelayCodecs[0];
 
   /**
@@ -114,7 +115,7 @@ export class WakuRelay extends GossipSub implements Relay {
    *
    * @returns Function to delete the observer
    */
-  addObserver<T extends Message>(
+  addObserver<T extends DecodedMessage>(
     decoder: Decoder<T>,
     callback: Callback<T>
   ): () => void {

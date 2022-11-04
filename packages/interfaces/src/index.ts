@@ -28,7 +28,7 @@ export type ProtocolOptions = {
 export type Callback<T extends Message> = (msg: T) => void | Promise<void>;
 
 export interface Filter extends PointToPointProtocol {
-  subscribe: <T extends Message>(
+  subscribe: <T extends DecodedMessage>(
     decoders: Decoder<T>[],
     callback: Callback<T>,
     opts?: ProtocolOptions
@@ -38,7 +38,7 @@ export interface Filter extends PointToPointProtocol {
 export interface LightPush extends PointToPointProtocol {
   push: (
     encoder: Encoder,
-    message: Partial<Message>,
+    message: Message,
     opts?: ProtocolOptions
   ) => Promise<SendResult>;
 }
@@ -76,27 +76,27 @@ export type StoreQueryOptions = {
 } & ProtocolOptions;
 
 export interface Store extends PointToPointProtocol {
-  queryOrderedCallback: <T extends Message>(
+  queryOrderedCallback: <T extends DecodedMessage>(
     decoders: Decoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: StoreQueryOptions
   ) => Promise<void>;
-  queryCallbackOnPromise: <T extends Message>(
+  queryCallbackOnPromise: <T extends DecodedMessage>(
     decoders: Decoder<T>[],
     callback: (
       message: Promise<T | undefined>
     ) => Promise<void | boolean> | boolean | void,
     options?: StoreQueryOptions
   ) => Promise<void>;
-  queryGenerator: <T extends Message>(
+  queryGenerator: <T extends DecodedMessage>(
     decoders: Decoder<T>[],
     options?: StoreQueryOptions
   ) => AsyncGenerator<Promise<T | undefined>[]>;
 }
 
 export interface Relay extends GossipSub {
-  send: (encoder: Encoder, message: Partial<Message>) => Promise<SendResult>;
-  addObserver: <T extends Message>(
+  send: (encoder: Encoder, message: Message) => Promise<SendResult>;
+  addObserver: <T extends DecodedMessage>(
     decoder: Decoder<T>,
     callback: Callback<T>
   ) => () => void;
@@ -155,6 +155,10 @@ export interface RateLimitProof {
   rlnIdentifier: Uint8Array;
 }
 
+/**
+ * Interface matching the protobuf library.
+ * Field types matches the protobuf type over the wire
+ */
 export interface ProtoMessage {
   payload: Uint8Array | undefined;
   contentTopic: string | undefined;
@@ -163,20 +167,29 @@ export interface ProtoMessage {
   rateLimitProof: RateLimitProof | undefined;
 }
 
+/**
+ * Interface for messages to encode and send.
+ */
 export interface Message {
+  payload?: Uint8Array;
+  timestamp?: Date;
+  rateLimitProof?: RateLimitProof;
+}
+
+export interface Encoder {
+  contentTopic: string;
+  toWire: (message: Message) => Promise<Uint8Array | undefined>;
+  toProtoObj: (message: Message) => Promise<ProtoMessage | undefined>;
+}
+
+export interface DecodedMessage {
   payload: Uint8Array | undefined;
   contentTopic: string | undefined;
   timestamp: Date | undefined;
   rateLimitProof: RateLimitProof | undefined;
 }
 
-export interface Encoder {
-  contentTopic: string;
-  toWire: (message: Partial<Message>) => Promise<Uint8Array | undefined>;
-  toProtoObj: (message: Partial<Message>) => Promise<ProtoMessage | undefined>;
-}
-
-export interface Decoder<T extends Message> {
+export interface Decoder<T extends DecodedMessage> {
   contentTopic: string;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<ProtoMessage | undefined>;
   fromProtoObj: (proto: ProtoMessage) => Promise<T | undefined>;

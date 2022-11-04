@@ -3,7 +3,12 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { PeerDiscoveryStaticPeers } from "@waku/core/lib/peer_discovery_static_list";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { createLightNode, createPrivacyNode } from "@waku/create";
-import type { Message, Waku, WakuLight, WakuPrivacy } from "@waku/interfaces";
+import type {
+  DecodedMessage,
+  Waku,
+  WakuLight,
+  WakuPrivacy,
+} from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   generateSymmetricKey,
@@ -175,9 +180,11 @@ describe("Decryption Keys", () => {
       timestamp: messageTimestamp,
     };
 
-    const receivedMsgPromise: Promise<Message> = new Promise((resolve) => {
-      waku2.relay.addObserver(decoder, resolve);
-    });
+    const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
+      (resolve) => {
+        waku2.relay.addObserver(decoder, resolve);
+      }
+    );
 
     await waku1.relay.send(encoder, message);
 

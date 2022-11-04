@@ -5,7 +5,13 @@ import {
   MessageV0,
   proto,
 } from "@waku/core/lib/waku_message/version_0";
-import type { Decoder, Encoder, Message, ProtoMessage } from "@waku/interfaces";
+import type {
+  DecodedMessage,
+  Decoder,
+  Encoder,
+  Message,
+  ProtoMessage,
+} from "@waku/interfaces";
 import debug from "debug";
 
 import { Symmetric } from "./constants.js";
@@ -38,7 +44,7 @@ export type Signature = {
   publicKey: Uint8Array | undefined;
 };
 
-export class MessageV1 extends MessageV0 implements Message {
+export class MessageV1 extends MessageV0 implements DecodedMessage {
   private readonly _decodedPayload: Uint8Array;
 
   constructor(
