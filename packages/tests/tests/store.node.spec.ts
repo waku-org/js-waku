@@ -59,8 +59,6 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -92,8 +90,6 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -134,8 +130,6 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -177,8 +171,6 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -218,8 +210,6 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -263,8 +253,6 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -347,11 +335,7 @@ describe("Waku Store", () => {
     log("Waku nodes created");
 
     await Promise.all([
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
       waku1.dial(nimWakuMultiaddr),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
       waku2.dial(nimWakuMultiaddr),
     ]);
 
@@ -433,8 +417,6 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -496,8 +478,6 @@ describe("Waku Store", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
@@ -557,8 +537,6 @@ describe("Waku Store, custom pubsub topic", () => {
       pubSubTopic: customPubSubTopic,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 

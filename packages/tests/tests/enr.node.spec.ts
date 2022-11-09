@@ -31,8 +31,6 @@ describe("ENR Interop: nwaku", function () {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(multiAddrWithId);
     await waitForRemotePeer(waku, [Protocols.Relay]);
 
@@ -65,8 +63,6 @@ describe("ENR Interop: nwaku", function () {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(multiAddrWithId);
     await waitForRemotePeer(waku, [Protocols.Relay]);
 
@@ -99,8 +95,6 @@ describe("ENR Interop: nwaku", function () {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(multiAddrWithId);
     await waitForRemotePeer(waku, [Protocols.Relay]);
 

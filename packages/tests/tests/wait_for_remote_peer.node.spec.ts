@@ -36,8 +36,6 @@ describe("Wait for remote peer", function () {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku1.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku1.dial(multiAddrWithId);
     await delay(1000);
     await waitForRemotePeer(waku1, [Protocols.Relay]);
@@ -66,8 +64,6 @@ describe("Wait for remote peer", function () {
 
     const waitPromise = waitForRemotePeer(waku1, [Protocols.Relay]);
     await delay(1000);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku1.dial(multiAddrWithId);
     await waitPromise;
 
@@ -113,8 +109,6 @@ describe("Wait for remote peer", function () {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku2.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku2.dial(multiAddrWithId);
     await delay(1000);
     await waitForRemotePeer(waku2, [Protocols.Store]);
@@ -144,8 +138,6 @@ describe("Wait for remote peer", function () {
     await waku2.start();
     const waitPromise = waitForRemotePeer(waku2, [Protocols.Store], 2000);
     await delay(1000);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku2.dial(multiAddrWithId);
     await waitPromise;
 
@@ -172,8 +164,6 @@ describe("Wait for remote peer", function () {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku2.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku2.dial(multiAddrWithId);
     await waitForRemotePeer(waku2, [Protocols.LightPush]);
 
@@ -202,8 +192,6 @@ describe("Wait for remote peer", function () {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku2.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku2.dial(multiAddrWithId);
     await waitForRemotePeer(waku2, [Protocols.Filter]);
 
@@ -233,8 +221,6 @@ describe("Wait for remote peer", function () {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku2.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku2.dial(multiAddrWithId);
     await waitForRemotePeer(waku2);
 
@@ -271,8 +257,6 @@ describe("Wait for remote peer", function () {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku1.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku1.dial(multiAddrWithId);
     await waitForRemotePeer(waku1);
 
