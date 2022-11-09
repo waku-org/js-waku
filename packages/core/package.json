@@ -88,7 +88,7 @@
   "dependencies": {
     "@waku/byte-utils": "*",
     "@chainsafe/libp2p-gossipsub": "^4.1.1",
-    "@libp2p/interface-connection": "3.0.1",
+    "@libp2p/interface-connection": "^3.0.3",
     "@libp2p/interface-peer-discovery": "^1.0.0",
     "@libp2p/interface-peer-id": "^1.0.2",
     "@libp2p/interface-peer-info": "^1.0.1",
