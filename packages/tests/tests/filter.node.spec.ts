@@ -34,8 +34,6 @@ describe("Waku Filter", () => {
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });

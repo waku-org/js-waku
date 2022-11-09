@@ -66,9 +66,6 @@ describe("Waku Relay [node only]", () => {
       log("Instances started, adding waku2 to waku1's address book");
       waku1.addPeerToAddressBook(
         waku2.libp2p.peerId,
-        // TODO: Upgrade libp2p package.
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore: New multiaddr type but they seem mostly compatible
         waku2.libp2p.getMultiaddrs()
       );
 
@@ -286,16 +283,10 @@ describe("Waku Relay [node only]", () => {
 
       waku1.addPeerToAddressBook(
         waku2.libp2p.peerId,
-        // TODO: Upgrade libp2p package.
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore: New multiaddr type but they seem mostly compatible
         waku2.libp2p.getMultiaddrs()
       );
       waku3.addPeerToAddressBook(
         waku2.libp2p.peerId,
-        // TODO: Upgrade libp2p package.
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore: New multiaddr type but they seem mostly compatible
         waku2.libp2p.getMultiaddrs()
       );
 
@@ -346,8 +337,6 @@ describe("Waku Relay [node only]", () => {
       nwaku = new Nwaku(this.test?.ctx?.currentTest?.title + "");
       await nwaku.start();
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.Relay]);
     });
@@ -445,11 +434,7 @@ describe("Waku Relay [node only]", () => {
 
         const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
         await Promise.all([
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
           waku1.dial(nwakuMultiaddr),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
           waku2.dial(nwakuMultiaddr),
         ]);
 

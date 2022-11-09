@@ -46,8 +46,6 @@ describe("Waku Dial [node only]", function () {
         staticNoiseKey: NOISE_KEY_1,
       });
       await waku.start();
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
       await waku.dial(multiAddrWithId);
       await waitForRemotePeer(waku);
 
@@ -74,8 +72,6 @@ describe("Waku Dial [node only]", function () {
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
           peerDiscovery: [new PeerDiscoveryStaticPeers([multiAddrWithId])],
         },
       });
@@ -103,8 +99,6 @@ describe("Waku Dial [node only]", function () {
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
           peerDiscovery: [
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
             new PeerDiscoveryStaticPeers([await nwaku.getMultiaddrWithId()]),
           ],
         },
@@ -149,9 +143,6 @@ describe("Decryption Keys", () => {
 
     waku1.addPeerToAddressBook(
       waku2.libp2p.peerId,
-      // TODO: Upgrade libp2p package.
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore: New multiaddr type but they seem mostly compatible
       waku2.libp2p.getMultiaddrs()
     );
 

@@ -39,8 +39,6 @@ describe("Waku Light Push [node only]", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
@@ -75,8 +73,6 @@ describe("Waku Light Push [node only]", () => {
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore TODO: uniformize usage of multiaddr lib across repos
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
