@@ -19,6 +19,7 @@ import { StoreCodec, WakuStore } from "./waku_store";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
+export const DefaultUserAgent = "waku-js";
 
 const log = debug("waku:waku");
 
@@ -37,6 +38,11 @@ export interface WakuOptions {
    * @default {@link DefaultRelayKeepAliveValueSecs}
    */
   relayKeepAlive?: number;
+  /**
+   * Set the user agent string to be used in identification of the node.
+   * @default {@link DefaultUserAgent}
+   */
+  userAgent?: string;
 }
 
 export class WakuNode implements Waku {

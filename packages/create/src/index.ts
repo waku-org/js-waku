@@ -14,6 +14,7 @@ import {
 } from "@waku/core";
 import { PeerDiscoveryStaticPeers } from "@waku/core/lib/peer_discovery_static_list";
 import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
+import { DefaultUserAgent } from "@waku/core/lib/waku";
 import type { WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
@@ -71,7 +72,11 @@ export async function createLightNode(
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
-  const libp2p = await defaultLibp2p(undefined, libp2pOptions);
+  const libp2p = await defaultLibp2p(
+    undefined,
+    libp2pOptions,
+    options?.userAgent
+  );
 
   const wakuStore = new WakuStore(libp2p, options);
   const wakuLightPush = new WakuLightPush(libp2p, options);
@@ -100,7 +105,11 @@ export async function createPrivacyNode(
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
-  const libp2p = await defaultLibp2p(new WakuRelay(options), libp2pOptions);
+  const libp2p = await defaultLibp2p(
+    new WakuRelay(options),
+    libp2pOptions,
+    options?.userAgent
+  );
 
   return new WakuNode(options ?? {}, libp2p) as WakuPrivacy;
 }
@@ -128,7 +137,11 @@ export async function createFullNode(
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
-  const libp2p = await defaultLibp2p(new WakuRelay(options), libp2pOptions);
+  const libp2p = await defaultLibp2p(
+    new WakuRelay(options),
+    libp2pOptions,
+    options?.userAgent
+  );
 
   const wakuStore = new WakuStore(libp2p, options);
   const wakuLightPush = new WakuLightPush(libp2p, options);
@@ -149,14 +162,18 @@ export function defaultPeerDiscovery(): PeerDiscovery {
 
 export async function defaultLibp2p(
   wakuRelay?: WakuRelay,
-  options?: Partial<Libp2pOptions>
+  options?: Partial<Libp2pOptions>,
+  userAgent?: string
 ): Promise<Libp2p> {
   const libp2pOpts = Object.assign(
     {
       transports: [new WebSockets({ filter: filterAll })],
       streamMuxers: [new Mplex()],
       connectionEncryption: [new Noise()],
-    },
+      identify: {
+        host: userAgent || DefaultUserAgent,
+      },
+    } as Libp2pOptions,
     wakuRelay ? { pubsub: wakuRelay } : {},
     options ?? {}
   );
