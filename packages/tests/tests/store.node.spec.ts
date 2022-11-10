@@ -48,7 +48,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -76,11 +76,11 @@ describe("Waku Store", () => {
     }
     await Promise.all(promises);
 
-    expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
+      return msg.payload![0]! === 9;
     });
     expect(result).to.not.eq(-1);
+    expect(messages?.length).eq(totalMsgs);
   });
 
   it("Generator, no message returned", async function () {
