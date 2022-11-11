@@ -149,11 +149,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
 
-      - name: Pull nwaku origin/master
+      - name: Pull nwaku origin/add-rln-flags
         run: |
           cd nwaku
           git fetch
-          git reset --hard origin/master
+          git reset --hard origin/add-rln-flags
 
       - uses: bahmutov/npm-install@v1
 
