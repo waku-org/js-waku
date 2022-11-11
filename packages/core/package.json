@@ -102,7 +102,7 @@
     "it-all": "^1.0.6",
     "it-length-prefixed": "^8.0.2",
     "it-pipe": "^2.0.4",
-    "libp2p": "0.39.2",
+    "libp2p": "0.39.5",
     "p-event": "^5.0.1",
     "protons-runtime": "^3.1.0",
     "uint8arraylist": "^2.3.2",
