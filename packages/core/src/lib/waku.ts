@@ -19,7 +19,7 @@ import { StoreCodec, WakuStore } from "./waku_store";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
-export const DefaultUserAgent = "waku-js";
+export const DefaultUserAgent = "js-waku";
 
 const log = debug("waku:waku");
 
