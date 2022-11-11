@@ -134,3 +134,49 @@ jobs:
         with:
           name: go-waku-logs
           path: log/
+
+  node_with_nwaku_master:
+    runs-on: ubuntu-latest
+    env:
+      DEBUG: "waku*"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+
+      - name: Pull nwaku origin/master
+        run: |
+          cd nwaku
+          git fetch
+          git reset --hard origin/master
+
+      - uses: bahmutov/npm-install@v1
+
+      - name: build nwaku
+        run: |
+          cd packages/tests
+          npm run nwaku:force-build
+
+      - name: Ensure wakunode2 is ready
+        shell: bash
+        run: |
+          uname -a
+          cd nwaku/build
+          ./wakunode2 --help
+
+      - run: npm run build
+      - run: npm run test:node
+        env:
+          DEBUG: "waku:nwaku*,waku:test*"
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: nwaku-master-logs
+          path: log/
