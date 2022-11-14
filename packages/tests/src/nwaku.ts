@@ -36,7 +36,7 @@ BigInt.prototype.toJSON = function toJSON() {
 
 export interface Args {
   staticnode?: string;
-  nat?: "none";
+  nat?: string;
   listenAddress?: string;
   relay?: boolean;
   rpc?: boolean;
@@ -437,7 +437,6 @@ export function argsToArray(args: Args): Array<string> {
 export function defaultArgs(): Args {
   return {
     listenAddress: "127.0.0.1",
-    nat: "none",
     relay: true,
     rpc: true,
     rpcAdmin: true,
