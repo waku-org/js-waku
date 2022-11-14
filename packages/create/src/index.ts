@@ -12,9 +12,9 @@ import {
   WakuRelay,
   WakuStore,
 } from "@waku/core";
+import { DefaultUserAgent } from "@waku/core";
 import { PeerDiscoveryStaticPeers } from "@waku/core/lib/peer_discovery_static_list";
 import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
-import { DefaultUserAgent } from "@waku/core/lib/waku";
 import type { WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
