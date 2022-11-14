@@ -1,5 +1,5 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
-import { PageDirection } from "@waku/core";
+import { createCursor, PageDirection } from "@waku/core";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
 import { createFullNode } from "@waku/create";
@@ -40,8 +40,78 @@ describe("Waku Store", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it("Generator", async function () {
-    this.timeout(15_000);
+  // it("Generator", async function () {
+  //   this.timeout(1000_000);
+  //   const totalMsgs = 20;
+
+  //   for (let i = 0; i < totalMsgs; i++) {
+  //     expect(
+  //       await nwaku.sendMessage(
+  //         Nwaku.toMessageRpcQuery({
+  //           payload: utf8ToBytes(`Message ${i}`),
+  //           contentTopic: TestContentTopic,
+  //         })
+  //       )
+  //     ).to.be.true;
+  //   }
+
+  //   waku = await createFullNode({
+  //     staticNoiseKey: NOISE_KEY_1,
+  //   });
+  //   await waku.start();
+  //   await waku.dial(await nwaku.getMultiaddrWithId());
+  //   await waitForRemotePeer(waku, [Protocols.Store]);
+
+  //   const messages: Message[] = [];
+  //   let promises: Promise<void>[] = [];
+  //   for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
+  //     const _promises = msgPromises.map(async (promise) => {
+  //       const msg = await promise;
+  //       if (msg) {
+  //         messages.push(msg);
+  //       }
+  //     });
+
+  //     promises = promises.concat(_promises);
+  //   }
+  //   await Promise.all(promises);
+
+  //   expect(messages?.length).eq(totalMsgs);
+  //   const result = messages?.findIndex((msg) => {
+  //     return bytesToUtf8(msg.payload!) === "Message 0";
+  //   });
+  //   expect(result).to.not.eq(-1);
+  // });
+
+  // it("Generator, no message returned", async function () {
+  //   this.timeout(15_000);
+
+  //   waku = await createFullNode({
+  //     staticNoiseKey: NOISE_KEY_1,
+  //   });
+  //   await waku.start();
+  //   await waku.dial(await nwaku.getMultiaddrWithId());
+  //   await waitForRemotePeer(waku, [Protocols.Store]);
+
+  //   const messages: Message[] = [];
+  //   let promises: Promise<void>[] = [];
+  //   for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
+  //     const _promises = msgPromises.map(async (promise) => {
+  //       const msg = await promise;
+  //       if (msg) {
+  //         messages.push(msg);
+  //       }
+  //     });
+
+  //     promises = promises.concat(_promises);
+  //   }
+  //   await Promise.all(promises);
+
+  //   expect(messages?.length).eq(0);
+  // });
+
+  it("Passing a cursor", async function () {
+    this.timeout(4_000);
     const totalMsgs = 20;
 
     for (let i = 0; i < totalMsgs; i++) {
@@ -63,51 +133,45 @@ describe("Waku Store", () => {
     await waitForRemotePeer(waku, [Protocols.Store]);
 
     const messages: Message[] = [];
-    let promises: Promise<void>[] = [];
-    for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
-      const _promises = msgPromises.map(async (promise) => {
-        const msg = await promise;
-        if (msg) {
-          messages.push(msg);
-        }
-      });
 
-      promises = promises.concat(_promises);
+    const query = waku.store.queryGenerator([TestDecoder]);
+
+    for await (const page of query) {
+      for await (const msg of page) {
+        messages.push(msg as Message);
+      }
     }
-    await Promise.all(promises);
 
-    expect(messages?.length).eq(totalMsgs);
-    const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
-    });
-    expect(result).to.not.eq(-1);
-  });
+    const cursorIndex = 2;
+    const cursorMessage = messages[cursorIndex];
 
-  it("Generator, no message returned", async function () {
-    this.timeout(15_000);
+    const cursor = await createCursor(
+      bytesToUtf8(cursorMessage.payload!),
+      BigInt(cursorMessage.timestamp!.getTime()) * BigInt(1000000),
+      TestContentTopic
+    );
 
-    waku = await createFullNode({
-      staticNoiseKey: NOISE_KEY_1,
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    const val = await waku.store
+      .queryGenerator([TestDecoder], { cursor })
+      .next();
+    //realIndexOfTest = (cursor-pageSize+test+len)%len
+    // the last message received on this page
+    const testMessage = await val.value[10 - 1];
 
-    const messages: Message[] = [];
-    let promises: Promise<void>[] = [];
-    for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
-      const _promises = msgPromises.map(async (promise) => {
-        const msg = await promise;
-        if (msg) {
-          messages.push(msg);
-        }
-      });
+    // for (const msg of val.value) {
+    //   const _msg = await msg;
+    //   console.log({
+    //     msg: bytesToUtf8(_msg.payload!),
+    //   });
+    // }
+    // console.log({
+    //   cursorMessage: bytesToUtf8(cursorMessage.payload!),
+    //   testMessage: bytesToUtf8(testMessage.payload!),
+    // });
 
-      promises = promises.concat(_promises);
-    }
-    await Promise.all(promises);
+    expect(messages?.length).be.eq(totalMsgs);
 
-    expect(messages?.length).eq(0);
+    expect(testMessage).to.be.eq(messages[cursorIndex + 1]);
   });
 
   it("Callback on promise", async function () {
@@ -496,68 +560,68 @@ describe("Waku Store", () => {
   });
 });
 
-describe("Waku Store, custom pubsub topic", () => {
-  const customPubSubTopic = "/waku/2/custom-dapp/proto";
-  let waku: WakuFull;
-  let nwaku: Nwaku;
+// describe("Waku Store, custom pubsub topic", () => {
+//   const customPubSubTopic = "/waku/2/custom-dapp/proto";
+//   let waku: WakuFull;
+//   let nwaku: Nwaku;
 
-  beforeEach(async function () {
-    this.timeout(15_000);
-    nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({
-      persistMessages: true,
-      store: true,
-      topics: customPubSubTopic,
-    });
-  });
+//   beforeEach(async function () {
+//     this.timeout(15_000);
+//     nwaku = new Nwaku(makeLogFileName(this));
+//     await nwaku.start({
+//       persistMessages: true,
+//       store: true,
+//       topics: customPubSubTopic,
+//     });
+//   });
 
-  afterEach(async function () {
-    !!nwaku && nwaku.stop();
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
-  });
+//   afterEach(async function () {
+//     !!nwaku && nwaku.stop();
+//     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+//   });
 
-  it("Generator, custom pubsub topic", async function () {
-    this.timeout(15_000);
+//   it("Generator, custom pubsub topic", async function () {
+//     this.timeout(15_000);
 
-    const totalMsgs = 20;
-    for (let i = 0; i < totalMsgs; i++) {
-      expect(
-        await nwaku.sendMessage(
-          Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
-            contentTopic: TestContentTopic,
-          }),
-          customPubSubTopic
-        )
-      ).to.be.true;
-    }
+//     const totalMsgs = 20;
+//     for (let i = 0; i < totalMsgs; i++) {
+//       expect(
+//         await nwaku.sendMessage(
+//           Nwaku.toMessageRpcQuery({
+//             payload: utf8ToBytes(`Message ${i}`),
+//             contentTopic: TestContentTopic,
+//           }),
+//           customPubSubTopic
+//         )
+//       ).to.be.true;
+//     }
 
-    waku = await createFullNode({
-      staticNoiseKey: NOISE_KEY_1,
-      pubSubTopic: customPubSubTopic,
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+//     waku = await createFullNode({
+//       staticNoiseKey: NOISE_KEY_1,
+//       pubSubTopic: customPubSubTopic,
+//     });
+//     await waku.start();
+//     await waku.dial(await nwaku.getMultiaddrWithId());
+//     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: Message[] = [];
-    let promises: Promise<void>[] = [];
-    for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
-      const _promises = msgPromises.map(async (promise) => {
-        const msg = await promise;
-        if (msg) {
-          messages.push(msg);
-        }
-      });
+//     const messages: Message[] = [];
+//     let promises: Promise<void>[] = [];
+//     for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
+//       const _promises = msgPromises.map(async (promise) => {
+//         const msg = await promise;
+//         if (msg) {
+//           messages.push(msg);
+//         }
+//       });
 
-      promises = promises.concat(_promises);
-    }
-    await Promise.all(promises);
+//       promises = promises.concat(_promises);
+//     }
+//     await Promise.all(promises);
 
-    expect(messages?.length).eq(totalMsgs);
-    const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
-    });
-    expect(result).to.not.eq(-1);
-  });
-});
+//     expect(messages?.length).eq(totalMsgs);
+//     const result = messages?.findIndex((msg) => {
+//       return bytesToUtf8(msg.payload!) === "Message 0";
+//     });
+//     expect(result).to.not.eq(-1);
+//   });
+// });

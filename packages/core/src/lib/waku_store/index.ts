@@ -1,8 +1,10 @@
 import type { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer } from "@libp2p/interface-peer-store";
+import { utf8ToBytes } from "@waku/byte-utils";
 import { DecodedMessage, Decoder } from "@waku/interfaces";
 import debug from "debug";
+import sha256 from "fast-sha256";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -75,6 +77,10 @@ export interface QueryOptions {
    * Retrieve messages with a timestamp within the provided values.
    */
   timeFilter?: TimeFilter;
+  /**
+   * Cursor as an index to start a query from.
+   */
+  cursor?: proto.Index;
 }
 
 /**
@@ -251,7 +257,8 @@ export class WakuStore {
       connection,
       protocol,
       queryOpts,
-      decodersAsMap
+      decodersAsMap,
+      options?.cursor
     )) {
       yield messages;
     }
@@ -270,7 +277,8 @@ async function* paginate<T extends DecodedMessage>(
   connection: Connection,
   protocol: string,
   queryOpts: Params,
-  decoders: Map<string, Decoder<T>>
+  decoders: Map<string, Decoder<T>>,
+  cursor?: proto.Index
 ): AsyncGenerator<Promise<T | undefined>[]> {
   if (
     queryOpts.contentTopics.toString() !==
@@ -281,7 +289,6 @@ async function* paginate<T extends DecodedMessage>(
     );
   }
 
-  let cursor = undefined;
   while (true) {
     queryOpts = Object.assign(queryOpts, { cursor });
 
@@ -369,4 +376,21 @@ async function* paginate<T extends DecodedMessage>(
 
 export function isDefined<T>(msg: T | undefined): msg is T {
   return !!msg;
+}
+
+export async function createCursor(
+  message: string,
+  messageTimestamp: bigint,
+  contentTopic: string,
+  pubsubTopic: string = DefaultPubSubTopic
+): Promise<proto.Index> {
+  const contentTopicBytes = utf8ToBytes(contentTopic);
+  const messageBytes = utf8ToBytes(message);
+  const digest = sha256(Buffer.concat([contentTopicBytes, messageBytes]));
+
+  return {
+    digest,
+    pubsubTopic,
+    senderTime: messageTimestamp,
+  };
 }

@@ -16,6 +16,12 @@ export interface PointToPointProtocol {
   libp2p: Libp2p;
   peers: () => Promise<Peer[]>;
 }
+export interface Index {
+  digest?: Uint8Array;
+  receivedTime?: bigint;
+  senderTime?: bigint;
+  pubsubTopic?: string;
+}
 
 export type ProtocolOptions = {
   pubSubTopic?: string;
@@ -73,6 +79,10 @@ export type StoreQueryOptions = {
    * Retrieve messages with a timestamp within the provided values.
    */
   timeFilter?: TimeFilter;
+  /**
+   * Cursor as an index to start a query from.
+   */
+  cursor?: Index;
 } & ProtocolOptions;
 
 export interface Store extends PointToPointProtocol {
