@@ -407,7 +407,7 @@ export class Nwaku {
       headers: new Headers({ "Content-Type": "application/json" }),
     });
     const json = await res.json();
-    log(`RPC Response: `, res, JSON.stringify(json));
+    log(`RPC Response: `, JSON.stringify(json));
     return json.result;
   }
 
