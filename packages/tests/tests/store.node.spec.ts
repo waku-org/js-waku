@@ -225,13 +225,8 @@ describe("Waku Store", () => {
     );
 
     expect(messages?.length).eq(totalMsgs);
-    for (let index = 0; index < totalMsgs; index++) {
-      expect(
-        messages?.findIndex((msg) => {
-          return msg.payload![0]! === index;
-        })
-      ).to.eq(index);
-    }
+    const payloads = messages.map((msg) => msg.payload![0]!);
+    expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
   });
 
   it("Ordered Callback - Backward", async function () {
@@ -270,13 +265,8 @@ describe("Waku Store", () => {
     messages = messages.reverse();
 
     expect(messages?.length).eq(totalMsgs);
-    for (let index = 0; index < totalMsgs; index++) {
-      expect(
-        messages?.findIndex((msg) => {
-          return msg.payload![0]! === index;
-        })
-      ).to.eq(index);
-    }
+    const payloads = messages.map((msg) => msg.payload![0]!);
+    expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
   });
 
   it("Generator, with asymmetric & symmetric encrypted messages", async function () {
