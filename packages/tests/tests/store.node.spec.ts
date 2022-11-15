@@ -32,7 +32,7 @@ describe("Waku Store", () => {
   beforeEach(async function () {
     this.timeout(15_000);
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true, store: true, lightpush: true });
+    await nwaku.start({ store: true, lightpush: true });
   });
 
   afterEach(async function () {
@@ -48,7 +48,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -78,7 +78,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
+      return msg.payload![0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
@@ -119,7 +119,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -146,7 +146,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
+      return msg.payload![0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
@@ -160,7 +160,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -199,7 +199,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -225,13 +225,8 @@ describe("Waku Store", () => {
     );
 
     expect(messages?.length).eq(totalMsgs);
-    for (let index = 0; index < totalMsgs; index++) {
-      expect(
-        messages?.findIndex((msg) => {
-          return bytesToUtf8(msg.payload!) === `Message ${index}`;
-        })
-      ).to.eq(index);
-    }
+    const payloads = messages.map((msg) => msg.payload![0]!);
+    expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
   });
 
   it("Ordered Callback - Backward", async function () {
@@ -242,7 +237,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -270,13 +265,8 @@ describe("Waku Store", () => {
     messages = messages.reverse();
 
     expect(messages?.length).eq(totalMsgs);
-    for (let index = 0; index < totalMsgs; index++) {
-      expect(
-        messages?.findIndex((msg) => {
-          return bytesToUtf8(msg.payload!) === `Message ${index}`;
-        })
-      ).to.eq(index);
-    }
+    const payloads = messages.map((msg) => msg.payload![0]!);
+    expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
   });
 
   it("Generator, with asymmetric & symmetric encrypted messages", async function () {
@@ -385,27 +375,27 @@ describe("Waku Store", () => {
     const now = new Date();
 
     const startTime = new Date();
-    // Set start time 5 minutes in the past
-    startTime.setTime(now.getTime() - 5 * 60 * 1000);
+    // Set start time 15 seconds in the past
+    startTime.setTime(now.getTime() - 15 * 1000);
 
     const message1Timestamp = new Date();
-    // Set first message was 4 minutes in the past
-    message1Timestamp.setTime(now.getTime() - 4 * 60 * 1000);
+    // Set first message was 10 seconds in the past
+    message1Timestamp.setTime(now.getTime() - 10 * 1000);
 
     const message2Timestamp = new Date();
-    // Set second message 2 minutes in the past
-    message2Timestamp.setTime(now.getTime() - 2 * 60 * 1000);
+    // Set second message 2 seconds in the past
+    message2Timestamp.setTime(now.getTime() - 2 * 1000);
     const messageTimestamps = [message1Timestamp, message2Timestamp];
 
     const endTime = new Date();
-    // Set end time 1 minute in the past
-    endTime.setTime(now.getTime() - 60 * 1000);
+    // Set end time 1 second in the past
+    endTime.setTime(now.getTime() - 1000);
 
     for (let i = 0; i < 2; i++) {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
             timestamp: messageTimestamps[i],
           })
@@ -453,7 +443,7 @@ describe("Waku Store", () => {
 
     expect(firstMessages?.length).eq(1);
 
-    expect(bytesToUtf8(firstMessages[0].payload!)).eq("Message 0");
+    expect(firstMessages[0].payload![0]!).eq(0);
 
     expect(bothMessages?.length).eq(2);
   });
@@ -467,7 +457,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -505,7 +495,6 @@ describe("Waku Store, custom pubsub topic", () => {
     this.timeout(15_000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({
-      persistMessages: true,
       store: true,
       topics: customPubSubTopic,
     });
@@ -524,7 +513,7 @@ describe("Waku Store, custom pubsub topic", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           }),
           customPubSubTopic
@@ -556,7 +545,7 @@ describe("Waku Store, custom pubsub topic", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
+      return msg.payload![0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
