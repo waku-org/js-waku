@@ -138,8 +138,6 @@ export class WakuNode implements Waku {
       codecs.push(FilterCodec);
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore: new Multiaddr is not backward compatible
     return this.libp2p.dialProtocol(peer, codecs);
   }
 
