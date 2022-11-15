@@ -13,8 +13,8 @@ import { FilterCodec, WakuFilter } from "./waku_filter";
 import { LightPushCodec, WakuLightPush } from "./waku_light_push";
 import { EncoderV0 } from "./waku_message/version_0";
 import { WakuRelay } from "./waku_relay";
-import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
 import * as relayConstants from "./waku_relay/constants";
+import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
 import { StoreCodec, WakuStore } from "./waku_store";
 
 export const DefaultPingKeepAliveValueSecs = 0;
@@ -109,13 +109,20 @@ export class WakuNode implements Waku {
    * Dials to the provided peer.
    *
    * @param peer The peer to dial
-   * @param protocols Waku protocols we expect from the peer; Default to Relay
+   * @param protocols Waku protocols we expect from the peer; Defaults to mounted protocols
    */
   async dial(
     peer: PeerId | Multiaddr,
     protocols?: Protocols[]
   ): Promise<Stream> {
-    const _protocols = protocols ?? [Protocols.Relay];
+    const _protocols = protocols ?? [];
+
+    if (typeof protocols === "undefined") {
+      this.relay && _protocols.push(Protocols.Relay);
+      this.store && _protocols.push(Protocols.Store);
+      this.filter && _protocols.push(Protocols.Filter);
+      this.lightPush && _protocols.push(Protocols.LightPush);
+    }
 
     const codecs: string[] = [];
     if (_protocols.includes(Protocols.Relay)) {
