@@ -44,7 +44,6 @@ export interface Args {
   nodekey?: string;
   portsShift?: number;
   logLevel?: LogLevel;
-  persistMessages?: boolean;
   lightpush?: boolean;
   filter?: boolean;
   store?: boolean;

@@ -32,7 +32,7 @@ describe("Waku Store", () => {
   beforeEach(async function () {
     this.timeout(15_000);
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true, store: true, lightpush: true });
+    await nwaku.start({ store: true, lightpush: true });
   });
 
   afterEach(async function () {
@@ -505,7 +505,6 @@ describe("Waku Store, custom pubsub topic", () => {
     this.timeout(15_000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({
-      persistMessages: true,
       store: true,
       topics: customPubSubTopic,
     });
