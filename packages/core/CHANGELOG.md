@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## @waku/core [0.0.5](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.4...@waku/core@0.0.5) (2022-11-11)
+
+### Changed
+
+- Bumped `libp2p` to 0.39.5.
+
+## @waku/core [0.0.4](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.3...@waku/core@0.0.4) (2022-11-09)
+
+### Changed
+
+- Bumped `libp2p` to 0.39.2.
+
 ## @waku/core [0.0.2](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.1...@waku/core@0.0.2) (2022-11-04)
 
 ### Changed
