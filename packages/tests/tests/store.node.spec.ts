@@ -48,7 +48,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -78,7 +78,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
+      return msg.payload![0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
@@ -119,7 +119,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -146,7 +146,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
+      return msg.payload![0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
@@ -160,7 +160,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -199,7 +199,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -228,7 +228,7 @@ describe("Waku Store", () => {
     for (let index = 0; index < totalMsgs; index++) {
       expect(
         messages?.findIndex((msg) => {
-          return bytesToUtf8(msg.payload!) === `Message ${index}`;
+          return msg.payload![0]! === index;
         })
       ).to.eq(index);
     }
@@ -242,7 +242,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -273,7 +273,7 @@ describe("Waku Store", () => {
     for (let index = 0; index < totalMsgs; index++) {
       expect(
         messages?.findIndex((msg) => {
-          return bytesToUtf8(msg.payload!) === `Message ${index}`;
+          return msg.payload![0]! === index;
         })
       ).to.eq(index);
     }
@@ -405,7 +405,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
             timestamp: messageTimestamps[i],
           })
@@ -453,7 +453,7 @@ describe("Waku Store", () => {
 
     expect(firstMessages?.length).eq(1);
 
-    expect(bytesToUtf8(firstMessages[0].payload!)).eq("Message 0");
+    expect(firstMessages[0].payload![0]!).eq(0);
 
     expect(bothMessages?.length).eq(2);
   });
@@ -467,7 +467,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -523,7 +523,7 @@ describe("Waku Store, custom pubsub topic", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           }),
           customPubSubTopic
@@ -555,7 +555,7 @@ describe("Waku Store, custom pubsub topic", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
+      return msg.payload![0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
