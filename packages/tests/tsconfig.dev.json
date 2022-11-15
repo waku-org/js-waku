@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig",
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "esnext",
     "noEmit": true
   },
   "include": ["src", "tests"]
