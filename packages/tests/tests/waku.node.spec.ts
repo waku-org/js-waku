@@ -186,3 +186,38 @@ describe("Decryption Keys", () => {
     expect(receivedMsg.timestamp?.valueOf()).to.eq(messageTimestamp.valueOf());
   });
 });
+
+describe("User Agent", () => {
+  let waku: Waku;
+  let nwaku: Nwaku;
+
+  afterEach(async function () {
+    !!nwaku && nwaku.stop();
+    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+  });
+
+  it("Sets default value correctly", async function () {
+    this.timeout(20_000);
+    nwaku = new Nwaku(makeLogFileName(this));
+    await nwaku.start({
+      filter: true,
+      store: true,
+      lightpush: true,
+      persistMessages: true,
+    });
+    const multiAddrWithId = await nwaku.getMultiaddrWithId();
+
+    waku = await createLightNode({
+      staticNoiseKey: NOISE_KEY_1,
+      userAgent: "test-user-agent",
+    });
+    await waku.start();
+    await waku.dial(multiAddrWithId);
+    await waitForRemotePeer(waku);
+
+    const peerInfo = await waku.libp2p.peerStore.metadataBook.get(
+      waku.libp2p.peerId
+    );
+    console.log(bytesToUtf8(peerInfo.get("AgentVersion")!));
+  });
+});
