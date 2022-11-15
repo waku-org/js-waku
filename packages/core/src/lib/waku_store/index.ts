@@ -1,10 +1,10 @@
 import type { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer } from "@libp2p/interface-peer-store";
-import { utf8ToBytes } from "@waku/byte-utils";
+import { sha256 } from "@noble/hashes/sha256";
+import { concat, utf8ToBytes } from "@waku/byte-utils";
 import { DecodedMessage, Decoder } from "@waku/interfaces";
 import debug from "debug";
-import sha256 from "fast-sha256";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -386,7 +386,7 @@ export async function createCursor(
 ): Promise<proto.Index> {
   const contentTopicBytes = utf8ToBytes(contentTopic);
   const messageBytes = utf8ToBytes(message);
-  const digest = sha256(Buffer.concat([contentTopicBytes, messageBytes]));
+  const digest = sha256(concat([contentTopicBytes, messageBytes]));
 
   return {
     digest,
