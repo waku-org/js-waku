@@ -47,6 +47,7 @@ export interface Args {
   lightpush?: boolean;
   filter?: boolean;
   store?: boolean;
+  storeMessageDbUrl?: string;
   topics?: string;
   rpcPrivate?: boolean;
   websocketSupport?: boolean;
@@ -422,7 +423,7 @@ export function argsToArray(args: Args): Array<string> {
 
   for (const [key, value] of Object.entries(args)) {
     // Change the key from camelCase to kebab-case
-    const kebabKey = key.replace(/([A-Z])/, (_, capital) => {
+    const kebabKey = key.replace(/([A-Z])/g, (_, capital) => {
       return "-" + capital.toLowerCase();
     });
 
@@ -441,6 +442,7 @@ export function defaultArgs(): Args {
     rpc: true,
     rpcAdmin: true,
     websocketSupport: true,
+    storeMessageDbUrl: "sqlite://:memory:",
     logLevel: LogLevel.Debug,
   };
 }
