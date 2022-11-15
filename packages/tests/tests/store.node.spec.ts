@@ -41,7 +41,7 @@ describe("Waku Store", () => {
   });
 
   it("Generator", async function () {
-    this.timeout(1000_000);
+    this.timeout(15_000);
     const totalMsgs = 20;
 
     for (let i = 0; i < totalMsgs; i++) {
