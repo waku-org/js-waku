@@ -501,6 +501,7 @@ export interface WakuMessage {
   timestampDeprecated?: number;
   timestamp?: bigint;
   rateLimitProof?: RateLimitProof;
+  ephemeral?: boolean;
 }
 
 export namespace WakuMessage {
@@ -544,6 +545,11 @@ export namespace WakuMessage {
             RateLimitProof.codec().encode(obj.rateLimitProof, writer);
           }
 
+          if (obj.ephemeral != null) {
+            writer.uint32(248);
+            writer.bool(obj.ephemeral);
+          }
+
           if (opts.lengthDelimited !== false) {
             writer.ldelim();
           }
@@ -577,6 +583,9 @@ export namespace WakuMessage {
                   reader,
                   reader.uint32()
                 );
+                break;
+              case 31:
+                obj.ephemeral = reader.bool();
                 break;
               default:
                 reader.skipType(tag & 7);

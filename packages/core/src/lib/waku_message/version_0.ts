@@ -26,6 +26,10 @@ export class MessageV0 implements DecodedMessage {
     return;
   }
 
+  get ephemeral(): boolean {
+    return Boolean(this.proto.ephemeral);
+  }
+
   get payload(): Uint8Array | undefined {
     return this._rawPayload;
   }
@@ -68,7 +72,7 @@ export class MessageV0 implements DecodedMessage {
 }
 
 export class EncoderV0 implements Encoder {
-  constructor(public contentTopic: string) {}
+  constructor(public contentTopic: string, public ephemeral: boolean = false) {}
 
   async toWire(message: Partial<Message>): Promise<Uint8Array> {
     return proto.WakuMessage.encode(await this.toProtoObj(message));
@@ -83,12 +87,13 @@ export class EncoderV0 implements Encoder {
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
       rateLimitProof: message.rateLimitProof,
+      ephemeral: this.ephemeral,
     };
   }
 }
 
 export class DecoderV0 implements Decoder<MessageV0> {
-  constructor(public contentTopic: string) {}
+  constructor(public contentTopic: string, public ephemeral: boolean = false) {}
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);
@@ -99,6 +104,7 @@ export class DecoderV0 implements Decoder<MessageV0> {
       version: protoMessage.version ?? undefined,
       timestamp: protoMessage.timestamp ?? undefined,
       rateLimitProof: protoMessage.rateLimitProof ?? undefined,
+      ephemeral: protoMessage.ephemeral ?? false,
     });
   }
 

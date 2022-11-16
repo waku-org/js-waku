@@ -1,14 +1,15 @@
-import type { Decoder, Message, ProtoMessage } from "@waku/interfaces";
+import type { DecodedMessage, Decoder, ProtoMessage } from "@waku/interfaces";
 import debug from "debug";
 
 import * as proto from "../../proto/topic_only_message";
 
 const log = debug("waku:message:topic-only");
 
-export class TopicOnlyMessage implements Message {
+export class TopicOnlyMessage implements DecodedMessage {
   public payload: undefined;
   public rateLimitProof: undefined;
   public timestamp: undefined;
+  public ephemeral: undefined;
 
   constructor(private proto: proto.TopicOnlyMessage) {}
 
@@ -29,6 +30,7 @@ export class TopicOnlyDecoder implements Decoder<TopicOnlyMessage> {
       rateLimitProof: undefined,
       timestamp: undefined,
       version: undefined,
+      ephemeral: undefined,
     });
   }
 

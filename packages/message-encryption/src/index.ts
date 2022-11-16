@@ -68,7 +68,8 @@ export class AsymEncoder implements Encoder {
   constructor(
     public contentTopic: string,
     private publicKey: Uint8Array,
-    private sigPrivKey?: Uint8Array
+    private sigPrivKey?: Uint8Array,
+    public ephemeral: boolean = false
   ) {}
 
   async toWire(message: Partial<Message>): Promise<Uint8Array | undefined> {
@@ -96,6 +97,7 @@ export class AsymEncoder implements Encoder {
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
       rateLimitProof: message.rateLimitProof,
+      ephemeral: this.ephemeral,
     };
   }
 }
@@ -104,7 +106,8 @@ export class SymEncoder implements Encoder {
   constructor(
     public contentTopic: string,
     private symKey: Uint8Array,
-    private sigPrivKey?: Uint8Array
+    private sigPrivKey?: Uint8Array,
+    public ephemeral: boolean = false
   ) {}
 
   async toWire(message: Partial<Message>): Promise<Uint8Array | undefined> {
@@ -131,6 +134,7 @@ export class SymEncoder implements Encoder {
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
       rateLimitProof: message.rateLimitProof,
+      ephemeral: this.ephemeral,
     };
   }
 }

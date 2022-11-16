@@ -17,5 +17,6 @@ message WakuMessage {
   optional double timestamp_deprecated  = 4;
   optional sint64 timestamp  = 10;
   optional RateLimitProof rate_limit_proof = 21;
+  optional bool ephemeral = 31;
 }
 
