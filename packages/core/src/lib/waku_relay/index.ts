@@ -1,5 +1,6 @@
 import {
   GossipSub,
+  GossipSubComponents,
   GossipsubMessage,
   GossipsubOpts,
 } from "@chainsafe/libp2p-gossipsub";
@@ -66,13 +67,16 @@ export class WakuRelay extends GossipSub implements Relay {
    */
   public observers: Map<string, Set<Observer<any>>>;
 
-  constructor(options?: Partial<CreateOptions>) {
+  constructor(
+    components: GossipSubComponents,
+    options?: Partial<CreateOptions>
+  ) {
     options = Object.assign(options ?? {}, {
       // Ensure that no signature is included nor expected in the messages.
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
       fallbackToFloodsub: false,
     });
-    super(options);
+    super(components, options);
     this.multicodecs = constants.RelayCodecs;
 
     this.observers = new Map();
@@ -188,3 +192,9 @@ export class WakuRelay extends GossipSub implements Relay {
 }
 
 WakuRelay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
+
+export function wakuRelay(
+  init: Partial<CreateOptions> = {}
+): (components: GossipSubComponents) => Relay {
+  return (components: GossipSubComponents) => new WakuRelay(components, init);
+}

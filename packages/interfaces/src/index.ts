@@ -112,11 +112,6 @@ export interface Waku {
 
   dial(peer: PeerId | Multiaddr, protocols?: Protocols[]): Promise<Stream>;
 
-  addPeerToAddressBook(
-    peerId: PeerId | string,
-    multiaddrs: Multiaddr[] | string[]
-  ): void;
-
   start(): Promise<void>;
 
   stop(): Promise<void>;

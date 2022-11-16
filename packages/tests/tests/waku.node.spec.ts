@@ -140,10 +140,11 @@ describe("Decryption Keys", () => {
       }).then((waku) => waku.start().then(() => waku)),
     ]);
 
-    waku1.addPeerToAddressBook(
+    await waku1.libp2p.peerStore.addressBook.set(
       waku2.libp2p.peerId,
       waku2.libp2p.getMultiaddrs()
     );
+    await waku1.dial(waku2.libp2p.peerId);
 
     await Promise.all([
       waitForRemotePeer(waku1, [Protocols.Relay]),

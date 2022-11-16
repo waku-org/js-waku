@@ -1,9 +1,7 @@
 import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PubSub } from "@libp2p/interface-pubsub";
-import { peerIdFromString } from "@libp2p/peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
-import { multiaddr } from "@multiformats/multiaddr";
 import type { Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
@@ -103,6 +101,15 @@ export class WakuNode implements Waku {
     libp2p.connectionManager.addEventListener("peer:disconnect", (evt) => {
       this.stopKeepAlive(evt.detail.remotePeer);
     });
+
+    // Trivial handling of discovered peers, to be refined.
+    libp2p.addEventListener("peer:discovery", (evt) => {
+      const peerId = evt.detail.id;
+      log(`Found peer ${peerId.toString()}, dialing.`);
+      libp2p.dial(peerId).catch((err) => {
+        log(`Fail to dial ${peerId}`, err);
+      });
+    });
   }
 
   /**
@@ -139,29 +146,6 @@ export class WakuNode implements Waku {
     }
 
     return this.libp2p.dialProtocol(peer, codecs);
-  }
-
-  /**
-   * Add peer to address book, it will be auto-dialed in the background.
-   */
-  async addPeerToAddressBook(
-    peerId: PeerId | string,
-    multiaddrs: Multiaddr[] | string[]
-  ): Promise<void> {
-    let peer;
-    if (typeof peerId === "string") {
-      peer = peerIdFromString(peerId);
-    } else {
-      peer = peerId;
-    }
-    const addresses = multiaddrs.map((addr: Multiaddr | string) => {
-      if (typeof addr === "string") {
-        return multiaddr(addr);
-      } else {
-        return addr;
-      }
-    });
-    await this.libp2p.peerStore.addressBook.set(peer, addresses);
   }
 
   async start(): Promise<void> {

@@ -17,7 +17,7 @@ export {
 } from "./lib/waku_light_push";
 
 export * as waku_relay from "./lib/waku_relay";
-export { WakuRelay } from "./lib/waku_relay";
+export { WakuRelay, wakuRelay } from "./lib/waku_relay";
 
 export * as waku_store from "./lib/waku_store";
 export { PageDirection, WakuStore, StoreCodec } from "./lib/waku_store";
