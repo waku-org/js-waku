@@ -202,7 +202,6 @@ describe("User Agent", () => {
       filter: true,
       store: true,
       lightpush: true,
-      persistMessages: true,
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
