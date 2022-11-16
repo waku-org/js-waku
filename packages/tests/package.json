@@ -55,14 +55,15 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@waku/core": "*",
-    "@waku/enr": "*",
-    "@waku/create": "*",
-    "@waku/interfaces": "*",
     "@waku/byte-utils": "*",
+    "@waku/core": "*",
+    "@waku/create": "*",
+    "@waku/enr": "*",
+    "@waku/interfaces": "*",
     "@waku/message-encryption": "*"
   },
   "devDependencies": {
+    "@libp2p/bootstrap": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",
     "cspell": "^5.14.0",

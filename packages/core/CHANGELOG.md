@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Waku Message `ephemeral` field to mark messages as do-not-store.
 
+### Changed
+
+- Bumped `libp2p` to 0.40.0.
+
+### Removed
+
+- `PeerDiscoveryStaticPeer` has been removed, use `@libp2p/bootstrap` instead.
+
 ## @waku/core [0.0.5](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.4...@waku/core@0.0.5) (2022-11-11)
 
 ### Changed

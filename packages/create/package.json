@@ -50,12 +50,13 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@waku/core": "*",
-    "@waku/interfaces": "*",
     "@chainsafe/libp2p-noise": "^8.0.1",
+    "@libp2p/bootstrap": "^5.0.0",
     "@libp2p/interface-peer-discovery": "^1.0.0",
     "@libp2p/mplex": "^5.1.1",
-    "@libp2p/websockets": "^3.0.3"
+    "@libp2p/websockets": "^3.0.3",
+    "@waku/core": "*",
+    "@waku/interfaces": "*"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
