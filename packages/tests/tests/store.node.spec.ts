@@ -30,7 +30,7 @@ describe("Waku Store", () => {
   let nwaku: Nwaku;
 
   beforeEach(async function () {
-    this.timeout(15_000);
+    this.timeout(35_000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ store: true, lightpush: true });
   });
@@ -135,30 +135,25 @@ describe("Waku Store", () => {
     const query = waku.store.queryGenerator([TestDecoder]);
 
     // messages in reversed order (first message at last index)
-    const messages: Message[] = [];
+    const messages: DecodedMessage[] = [];
     for await (const page of query) {
       for await (const msg of page.reverse()) {
-        messages.push(msg as Message);
+        messages.push(msg as DecodedMessage);
       }
     }
 
     // index 2 would mean the third last message sent
     const cursorIndex = 2;
-    const cursorMessage = messages[cursorIndex];
 
     // create cursor to extract messages after the 3rd index
-    const cursor = await createCursor(
-      bytesToUtf8(cursorMessage.payload!),
-      BigInt(cursorMessage.timestamp!.getTime()) * BigInt(1000000),
-      TestContentTopic
-    );
+    const cursor = await createCursor(messages[cursorIndex]);
 
-    const messagesAfterCursor: Message[] = [];
+    const messagesAfterCursor: DecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder], {
       cursor,
     })) {
       for await (const msg of page.reverse()) {
-        messagesAfterCursor.push(msg as Message);
+        messagesAfterCursor.push(msg as DecodedMessage);
       }
     }
 

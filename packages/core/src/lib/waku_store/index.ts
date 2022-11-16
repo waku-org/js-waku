@@ -379,18 +379,28 @@ export function isDefined<T>(msg: T | undefined): msg is T {
 }
 
 export async function createCursor(
-  message: string,
-  messageTimestamp: bigint,
-  contentTopic: string,
+  message: DecodedMessage,
   pubsubTopic: string = DefaultPubSubTopic
 ): Promise<proto.Index> {
-  const contentTopicBytes = utf8ToBytes(contentTopic);
-  const messageBytes = utf8ToBytes(message);
-  const digest = sha256(concat([contentTopicBytes, messageBytes]));
+  if (
+    !message ||
+    !message.timestamp ||
+    !message.payload ||
+    !message.contentTopic
+  ) {
+    throw new Error("Message is missing timestamp or payload");
+  }
+
+  const contentTopicBytes = utf8ToBytes(message.contentTopic);
+
+  const digest = sha256(concat([contentTopicBytes, message.payload]));
+
+  const messageTime = BigInt(message.timestamp.getTime()) * BigInt(1000000);
 
   return {
     digest,
     pubsubTopic,
-    senderTime: messageTimestamp,
+    senderTime: messageTime,
+    receivedTime: messageTime,
   };
 }
