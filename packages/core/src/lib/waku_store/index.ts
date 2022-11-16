@@ -388,7 +388,7 @@ export async function createCursor(
     !message.payload ||
     !message.contentTopic
   ) {
-    throw new Error("Message is missing timestamp or payload");
+    throw new Error("Message is missing required fields");
   }
 
   const contentTopicBytes = utf8ToBytes(message.contentTopic);
