@@ -62,8 +62,6 @@ export class MessageV1 extends MessageV0 implements DecodedMessage {
   }
 }
 
-export { sha256 } from "./crypto";
-
 export class AsymEncoder implements Encoder {
   constructor(
     public contentTopic: string,

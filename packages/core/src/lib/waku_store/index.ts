@@ -3,7 +3,7 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer } from "@libp2p/interface-peer-store";
 import { sha256 } from "@noble/hashes/sha256";
 import { concat, utf8ToBytes } from "@waku/byte-utils";
-import { DecodedMessage, Decoder } from "@waku/interfaces";
+import { DecodedMessage, Decoder, Index } from "@waku/interfaces";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -80,7 +80,7 @@ export interface QueryOptions {
   /**
    * Cursor as an index to start a query from.
    */
-  cursor?: proto.Index;
+  cursor?: Index;
 }
 
 /**
@@ -278,7 +278,7 @@ async function* paginate<T extends DecodedMessage>(
   protocol: string,
   queryOpts: Params,
   decoders: Map<string, Decoder<T>>,
-  cursor?: proto.Index
+  cursor?: Index
 ): AsyncGenerator<Promise<T | undefined>[]> {
   if (
     queryOpts.contentTopics.toString() !==
@@ -381,7 +381,7 @@ export function isDefined<T>(msg: T | undefined): msg is T {
 export async function createCursor(
   message: DecodedMessage,
   pubsubTopic: string = DefaultPubSubTopic
-): Promise<proto.Index> {
+): Promise<Index> {
   if (
     !message ||
     !message.timestamp ||
