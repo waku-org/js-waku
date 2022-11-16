@@ -30,7 +30,7 @@ describe("Waku Store", () => {
   let nwaku: Nwaku;
 
   beforeEach(async function () {
-    this.timeout(35_000);
+    this.timeout(15_000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ store: true, lightpush: true });
   });
