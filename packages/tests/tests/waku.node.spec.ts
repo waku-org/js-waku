@@ -38,7 +38,6 @@ describe("Waku Dial [node only]", function () {
         filter: true,
         store: true,
         lightpush: true,
-        persistMessages: true,
       });
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
 

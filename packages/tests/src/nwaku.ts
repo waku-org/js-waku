@@ -44,10 +44,10 @@ export interface Args {
   nodekey?: string;
   portsShift?: number;
   logLevel?: LogLevel;
-  persistMessages?: boolean;
   lightpush?: boolean;
   filter?: boolean;
   store?: boolean;
+  storeMessageDbUrl?: string;
   topics?: string;
   rpcPrivate?: boolean;
   websocketSupport?: boolean;
@@ -407,7 +407,7 @@ export class Nwaku {
       headers: new Headers({ "Content-Type": "application/json" }),
     });
     const json = await res.json();
-    log(`RPC Response: `, res, JSON.stringify(json));
+    log(`RPC Response: `, JSON.stringify(json));
     return json.result;
   }
 
@@ -423,7 +423,7 @@ export function argsToArray(args: Args): Array<string> {
 
   for (const [key, value] of Object.entries(args)) {
     // Change the key from camelCase to kebab-case
-    const kebabKey = key.replace(/([A-Z])/, (_, capital) => {
+    const kebabKey = key.replace(/([A-Z])/g, (_, capital) => {
       return "-" + capital.toLowerCase();
     });
 
@@ -442,6 +442,7 @@ export function defaultArgs(): Args {
     rpc: true,
     rpcAdmin: true,
     websocketSupport: true,
+    storeMessageDbUrl: "sqlite://:memory:",
     logLevel: LogLevel.Debug,
   };
 }

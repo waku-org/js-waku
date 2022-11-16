@@ -3,7 +3,7 @@ import { PageDirection } from "@waku/core";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
 import { createFullNode } from "@waku/create";
-import type { Message, WakuFull } from "@waku/interfaces";
+import { DecodedMessage, Message, WakuFull } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   AsymDecoder,
@@ -32,7 +32,7 @@ describe("Waku Store", () => {
   beforeEach(async function () {
     this.timeout(15_000);
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ persistMessages: true, store: true, lightpush: true });
+    await nwaku.start({ store: true, lightpush: true });
   });
 
   afterEach(async function () {
@@ -48,7 +48,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -78,7 +78,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
+      return msg.payload![0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
@@ -119,7 +119,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -146,7 +146,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
+      return msg.payload![0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
@@ -160,7 +160,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -199,7 +199,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -225,13 +225,8 @@ describe("Waku Store", () => {
     );
 
     expect(messages?.length).eq(totalMsgs);
-    for (let index = 0; index < totalMsgs; index++) {
-      expect(
-        messages?.findIndex((msg) => {
-          return bytesToUtf8(msg.payload!) === `Message ${index}`;
-        })
-      ).to.eq(index);
-    }
+    const payloads = messages.map((msg) => msg.payload![0]!);
+    expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
   });
 
   it("Ordered Callback - Backward", async function () {
@@ -242,7 +237,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -270,13 +265,8 @@ describe("Waku Store", () => {
     messages = messages.reverse();
 
     expect(messages?.length).eq(totalMsgs);
-    for (let index = 0; index < totalMsgs; index++) {
-      expect(
-        messages?.findIndex((msg) => {
-          return bytesToUtf8(msg.payload!) === `Message ${index}`;
-        })
-      ).to.eq(index);
-    }
+    const payloads = messages.map((msg) => msg.payload![0]!);
+    expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
   });
 
   it("Generator, with asymmetric & symmetric encrypted messages", async function () {
@@ -353,7 +343,7 @@ describe("Waku Store", () => {
 
     await waitForRemotePeer(waku2, [Protocols.Store]);
 
-    const messages: Message[] = [];
+    const messages: DecodedMessage[] = [];
     log("Retrieve messages from store");
 
     for await (const msgPromises of waku2.store.queryGenerator([
@@ -379,33 +369,170 @@ describe("Waku Store", () => {
     !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
+  it.skip("Ephemeral support", async function () {
+    this.timeout(15_000);
+
+    const asymText = "This message is encrypted for me using asymmetric";
+    const asymTopic = "/test/1/asymmetric/proto";
+
+    const symText =
+      "This message is encrypted for me using symmetric encryption";
+    const symTopic = "/test/1/symmetric/proto";
+
+    const clearText = "This is a clear text message for everyone to read";
+
+    const storeReadableText = "This message is readable by the store";
+    const storeUnreadableText = "This message is not readable by the store";
+
+    const timestamp = new Date();
+
+    const asymMsg = { payload: utf8ToBytes(asymText), timestamp };
+    const symMsg = {
+      payload: utf8ToBytes(symText),
+      timestamp: new Date(timestamp.valueOf() + 1),
+    };
+    const clearMsg = {
+      payload: utf8ToBytes(clearText),
+      timestamp: new Date(timestamp.valueOf() + 2),
+    };
+
+    const storeReadableMsg = {
+      payload: utf8ToBytes(storeReadableText),
+    };
+    const storeUnreadableMsg = {
+      payload: utf8ToBytes(storeUnreadableText),
+    };
+
+    const privateKey = generatePrivateKey();
+    const symKey = generateSymmetricKey();
+    const publicKey = getPublicKey(privateKey);
+
+    const storeWithAsymEncoder = new AsymEncoder(
+      asymTopic,
+      publicKey,
+      undefined,
+      false
+    );
+    const storeWithSymEncoder = new SymEncoder(
+      symTopic,
+      symKey,
+      undefined,
+      false
+    );
+
+    const dontStoreWithAsymEncoder = new AsymEncoder(
+      asymTopic,
+      publicKey,
+      undefined,
+      true
+    );
+    const dontStoreWithSymEncoder = new SymEncoder(
+      symTopic,
+      symKey,
+      undefined,
+      true
+    );
+
+    const storeEncoder = new EncoderV0(TestContentTopic, false);
+    const storeUnreadableEncoder = new EncoderV0(TestContentTopic, true);
+
+    const asymDecoder = new AsymDecoder(asymTopic, privateKey);
+    const symDecoder = new SymDecoder(symTopic, symKey);
+
+    const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
+      createFullNode({
+        staticNoiseKey: NOISE_KEY_1,
+      }).then((waku) => waku.start().then(() => waku)),
+      createFullNode({
+        staticNoiseKey: NOISE_KEY_2,
+      }).then((waku) => waku.start().then(() => waku)),
+      nwaku.getMultiaddrWithId(),
+    ]);
+
+    log("Waku nodes created");
+
+    await Promise.all([
+      waku1.dial(nimWakuMultiaddr),
+      waku2.dial(nimWakuMultiaddr),
+    ]);
+
+    log("Waku nodes connected to nwaku");
+
+    await waitForRemotePeer(waku1, [Protocols.LightPush]);
+
+    log("Sending messages using light push");
+    await Promise.all([
+      waku1.lightPush.push(storeWithAsymEncoder, asymMsg),
+      waku1.lightPush.push(storeWithSymEncoder, symMsg),
+      waku1.lightPush.push(dontStoreWithAsymEncoder, asymMsg),
+      waku1.lightPush.push(dontStoreWithSymEncoder, symMsg),
+      waku1.lightPush.push(TestEncoder, clearMsg),
+      waku1.lightPush.push(storeEncoder, storeReadableMsg),
+      waku1.lightPush.push(storeUnreadableEncoder, storeUnreadableMsg),
+    ]);
+
+    await waitForRemotePeer(waku2, [Protocols.Store]);
+
+    const messages: DecodedMessage[] = [];
+    log("Retrieve messages from store");
+
+    for await (const msgPromises of waku2.store.queryGenerator([
+      asymDecoder,
+      symDecoder,
+      TestDecoder,
+    ])) {
+      for (const promise of msgPromises) {
+        const msg = await promise;
+        if (msg) {
+          messages.push(msg);
+        }
+      }
+    }
+
+    // Messages are ordered from oldest to latest within a page (1 page query)
+    expect(bytesToUtf8(messages[0].payload!)).to.eq(asymText);
+    expect(bytesToUtf8(messages[1].payload!)).to.eq(symText);
+    expect(bytesToUtf8(messages[2].payload!)).to.eq(clearText);
+    expect(bytesToUtf8(messages[3].payload!)).to.eq(storeReadableText);
+    expect(messages?.length).eq(4);
+
+    // check for ephemeral
+    expect(messages[0].ephemeral).to.be.false;
+    expect(messages[1].ephemeral).to.be.false;
+    expect(messages[2].ephemeral).to.be.false;
+    expect(messages[3].ephemeral).to.be.false;
+
+    !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
+    !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
+  });
+
   it("Ordered callback, using start and end time", async function () {
     this.timeout(20000);
 
     const now = new Date();
 
     const startTime = new Date();
-    // Set start time 5 minutes in the past
-    startTime.setTime(now.getTime() - 5 * 60 * 1000);
+    // Set start time 15 seconds in the past
+    startTime.setTime(now.getTime() - 15 * 1000);
 
     const message1Timestamp = new Date();
-    // Set first message was 4 minutes in the past
-    message1Timestamp.setTime(now.getTime() - 4 * 60 * 1000);
+    // Set first message was 10 seconds in the past
+    message1Timestamp.setTime(now.getTime() - 10 * 1000);
 
     const message2Timestamp = new Date();
-    // Set second message 2 minutes in the past
-    message2Timestamp.setTime(now.getTime() - 2 * 60 * 1000);
+    // Set second message 2 seconds in the past
+    message2Timestamp.setTime(now.getTime() - 2 * 1000);
     const messageTimestamps = [message1Timestamp, message2Timestamp];
 
     const endTime = new Date();
-    // Set end time 1 minute in the past
-    endTime.setTime(now.getTime() - 60 * 1000);
+    // Set end time 1 second in the past
+    endTime.setTime(now.getTime() - 1000);
 
     for (let i = 0; i < 2; i++) {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
             timestamp: messageTimestamps[i],
           })
@@ -453,7 +580,7 @@ describe("Waku Store", () => {
 
     expect(firstMessages?.length).eq(1);
 
-    expect(bytesToUtf8(firstMessages[0].payload!)).eq("Message 0");
+    expect(firstMessages[0].payload![0]!).eq(0);
 
     expect(bothMessages?.length).eq(2);
   });
@@ -467,7 +594,7 @@ describe("Waku Store", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
         )
@@ -505,7 +632,6 @@ describe("Waku Store, custom pubsub topic", () => {
     this.timeout(15_000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({
-      persistMessages: true,
       store: true,
       topics: customPubSubTopic,
     });
@@ -524,7 +650,7 @@ describe("Waku Store, custom pubsub topic", () => {
       expect(
         await nwaku.sendMessage(
           Nwaku.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
+            payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           }),
           customPubSubTopic
@@ -556,7 +682,7 @@ describe("Waku Store, custom pubsub topic", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return bytesToUtf8(msg.payload!) === "Message 0";
+      return msg.payload![0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });

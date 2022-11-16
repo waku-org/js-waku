@@ -227,8 +227,8 @@ export class WakuStore {
     );
 
     log("Querying history with the following options", {
-      peerId: options?.peerId?.toString(),
       ...options,
+      peerId: options?.peerId?.toString(),
     });
 
     const res = await selectPeerForProtocol(

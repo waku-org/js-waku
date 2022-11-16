@@ -20,5 +20,6 @@ describe("to proto message", () => {
     expect(keys).to.contain("version");
     expect(keys).to.contain("timestamp");
     expect(keys).to.contain("rateLimitProof");
+    expect(keys).to.contain("ephemeral");
   });
 });
