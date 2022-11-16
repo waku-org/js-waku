@@ -165,6 +165,7 @@ export interface ProtoMessage {
   version: number | undefined;
   timestamp: bigint | undefined;
   rateLimitProof: RateLimitProof | undefined;
+  ephemeral: boolean | undefined;
 }
 
 /**
@@ -178,6 +179,7 @@ export interface Message {
 
 export interface Encoder {
   contentTopic: string;
+  ephemeral: boolean;
   toWire: (message: Message) => Promise<Uint8Array | undefined>;
   toProtoObj: (message: Message) => Promise<ProtoMessage | undefined>;
 }
@@ -187,6 +189,7 @@ export interface DecodedMessage {
   contentTopic: string | undefined;
   timestamp: Date | undefined;
   rateLimitProof: RateLimitProof | undefined;
+  ephemeral: boolean | undefined;
 }
 
 export interface Decoder<T extends DecodedMessage> {
