@@ -64,10 +64,11 @@ describe("Waku Relay [node only]", () => {
         }).then((waku) => waku.start().then(() => waku)),
       ]);
       log("Instances started, adding waku2 to waku1's address book");
-      waku1.addPeerToAddressBook(
+      await waku1.libp2p.peerStore.addressBook.set(
         waku2.libp2p.peerId,
         waku2.libp2p.getMultiaddrs()
       );
+      await waku1.dial(waku2.libp2p.peerId);
 
       log("Wait for mutual pubsub subscription");
       await Promise.all([
@@ -281,14 +282,18 @@ describe("Waku Relay [node only]", () => {
         }).then((waku) => waku.start().then(() => waku)),
       ]);
 
-      waku1.addPeerToAddressBook(
+      await waku1.libp2p.peerStore.addressBook.set(
         waku2.libp2p.peerId,
         waku2.libp2p.getMultiaddrs()
       );
-      waku3.addPeerToAddressBook(
+      await waku3.libp2p.peerStore.addressBook.set(
         waku2.libp2p.peerId,
         waku2.libp2p.getMultiaddrs()
       );
+      await Promise.all([
+        waku1.dial(waku2.libp2p.peerId),
+        waku3.dial(waku2.libp2p.peerId),
+      ]);
 
       await Promise.all([
         waitForRemotePeer(waku1, [Protocols.Relay]),

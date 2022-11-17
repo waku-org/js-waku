@@ -77,16 +77,23 @@ jobs:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
       - run: npm run build
-      - run: npm run test:node
+      - run: npm run test:node > debug.log
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
-      - name: Upload logs on failure
-        uses: actions/upload-artifact@v2
+      - name: Upload debug logs on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: debug.log
+          path: debug.log
+
+      - name: Upload nwaku logs on failure
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: nwaku-logs
-          path: log/
+          path: packages/tests/log/
 
   node_with_go_waku:
     runs-on: ubuntu-latest
@@ -124,16 +131,23 @@ jobs:
 
       - uses: bahmutov/npm-install@v1
       - run: npm run build
-      - run: npm run test:node
+      - run: npm run test:node > debug.log
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
+      - name: Upload debug logs on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: go-waku-debug.log
+          path: debug.log
+
       - name: Upload logs on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: go-waku-logs
-          path: log/
+          path: packages/tests/log/
 
   node_with_nwaku_master:
     runs-on: ubuntu-latest
@@ -171,13 +185,20 @@ jobs:
           ./build/wakunode2 --help
 
       - run: npm run build
-      - run: npm run test:node
+      - run: npm run test:node > debug.log
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
+      - name: Upload debug logs on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: nwaku-master-debug.log
+          path: debug.log
+
       - name: Upload logs on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: nwaku-master-logs
-          path: log/
+          path: packages/tests/log/

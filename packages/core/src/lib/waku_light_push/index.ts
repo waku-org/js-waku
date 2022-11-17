@@ -1,7 +1,10 @@
+import { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
+import type { PeerStore } from "@libp2p/interface-peer-store";
 import type {
   Encoder,
+  LightPush,
   Message,
   ProtocolOptions,
   SendResult,
@@ -10,7 +13,6 @@ import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
-import { Libp2p } from "libp2p";
 import { Uint8ArrayList } from "uint8arraylist";
 
 import { PushResponse } from "../../proto/light_push";
@@ -29,6 +31,11 @@ const log = debug("waku:light-push");
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 
+export interface LightPushComponents {
+  peerStore: PeerStore;
+  connectionManager: ConnectionManager;
+}
+
 export interface CreateOptions {
   /**
    * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
@@ -44,10 +51,10 @@ export interface CreateOptions {
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
-export class WakuLightPush {
+class WakuLightPush implements LightPush {
   pubSubTopic: string;
 
-  constructor(public libp2p: Libp2p, options?: CreateOptions) {
+  constructor(public components: LightPushComponents, options?: CreateOptions) {
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
   }
 
@@ -59,7 +66,7 @@ export class WakuLightPush {
     const pubSubTopic = opts?.pubSubTopic ? opts.pubSubTopic : this.pubSubTopic;
 
     const res = await selectPeerForProtocol(
-      this.libp2p.peerStore,
+      this.components.peerStore,
       [LightPushCodec],
       opts?.peerId
     );
@@ -69,7 +76,9 @@ export class WakuLightPush {
     }
     const { peer } = res;
 
-    const connections = this.libp2p.connectionManager.getConnections(peer.id);
+    const connections = this.components.connectionManager.getConnections(
+      peer.id
+    );
     const connection = selectConnection(connections);
 
     if (!connection) throw "Failed to get a connection to the peer";
@@ -123,7 +132,7 @@ export class WakuLightPush {
    * peers.
    */
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.libp2p.peerStore, [LightPushCodec]);
+    return getPeersForProtocol(this.components.peerStore, [LightPushCodec]);
   }
 
   /**
@@ -134,4 +143,15 @@ export class WakuLightPush {
   async randomPeer(): Promise<Peer | undefined> {
     return selectRandomPeer(await this.peers());
   }
+
+  get peerStore(): PeerStore {
+    return this.components.peerStore;
+  }
+}
+
+export function wakuLightPush(
+  init: Partial<CreateOptions> = {}
+): (components: LightPushComponents) => LightPush {
+  return (components: LightPushComponents) =>
+    new WakuLightPush(components, init);
 }

@@ -40,7 +40,7 @@
     "pretest": "run-s pretest:*",
     "pretest:1-init-git-submodules": "[ -f '../../nwaku/build/wakunode2' ] || git submodule update --init --recursive",
     "pretest:2-build-nwaku": "[ -f '../../nwaku/build/wakunode2' ] || run-s nwaku:build",
-    "nwaku:build": "(PROC=$(nproc --all 2>/dev/null || echo 2); cd ../../nwaku; make -j$PROC update; NIMFLAGS=\"-d:chronicles_colors=off -d:chronicles_sinks=textlines -d:chronicles_log_level=TRACE\" make -j$PROC wakunode2)",
+    "nwaku:build": "(PROC=$(nproc --all 2>/dev/null || echo 2); cd ../../nwaku; make -j$PROC update; NIMFLAGS=\"-d:chronicles_colors=off -d:chronicles_sinks=textlines\" make -j$PROC wakunode2)",
     "nwaku:force-build": "(cd ../../nwaku && rm -rf ./build/ ./vendor) && run-s nwaku:build",
     "check": "run-s check:*",
     "check:prettier": "prettier . --list-different",
@@ -55,14 +55,15 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@waku/core": "*",
-    "@waku/enr": "*",
-    "@waku/create": "*",
-    "@waku/interfaces": "*",
     "@waku/byte-utils": "*",
+    "@waku/core": "*",
+    "@waku/create": "*",
+    "@waku/enr": "*",
+    "@waku/interfaces": "*",
     "@waku/message-encryption": "*"
   },
   "devDependencies": {
+    "@libp2p/bootstrap": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",
     "cspell": "^5.14.0",

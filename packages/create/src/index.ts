@@ -1,22 +1,23 @@
-import { Noise } from "@chainsafe/libp2p-noise";
+import { noise } from "@chainsafe/libp2p-noise";
+import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
-import { Mplex } from "@libp2p/mplex";
-import { WebSockets } from "@libp2p/websockets";
+import { mplex } from "@libp2p/mplex";
+import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
   waku,
   waku_relay,
-  WakuFilter,
-  WakuLightPush,
+  wakuFilter,
+  wakuLightPush,
   WakuNode,
-  WakuRelay,
-  WakuStore,
+  wakuRelay,
+  wakuStore,
 } from "@waku/core";
-import { PeerDiscoveryStaticPeers } from "@waku/core/lib/peer_discovery_static_list";
 import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
-import type { WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
+import type { Relay, WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
+import type { Components } from "libp2p/components";
 
 type WakuOptions = waku.WakuOptions;
 type RelayCreateOptions = waku_relay.CreateOptions;
@@ -73,16 +74,16 @@ export async function createLightNode(
 
   const libp2p = await defaultLibp2p(undefined, libp2pOptions);
 
-  const wakuStore = new WakuStore(libp2p, options);
-  const wakuLightPush = new WakuLightPush(libp2p, options);
-  const wakuFilter = new WakuFilter(libp2p, options);
+  const store = wakuStore(options);
+  const lightPush = wakuLightPush(options);
+  const filter = wakuFilter(options);
 
   return new WakuNode(
     options ?? {},
     libp2p,
-    wakuStore,
-    wakuLightPush,
-    wakuFilter
+    store,
+    lightPush,
+    filter
   ) as WakuLight;
 }
 
@@ -100,7 +101,7 @@ export async function createPrivacyNode(
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
-  const libp2p = await defaultLibp2p(new WakuRelay(options), libp2pOptions);
+  const libp2p = await defaultLibp2p(wakuRelay(options), libp2pOptions);
 
   return new WakuNode(options ?? {}, libp2p) as WakuPrivacy;
 }
@@ -128,34 +129,36 @@ export async function createFullNode(
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
-  const libp2p = await defaultLibp2p(new WakuRelay(options), libp2pOptions);
+  const libp2p = await defaultLibp2p(wakuRelay(options), libp2pOptions);
 
-  const wakuStore = new WakuStore(libp2p, options);
-  const wakuLightPush = new WakuLightPush(libp2p, options);
-  const wakuFilter = new WakuFilter(libp2p, options);
+  const store = wakuStore(options);
+  const lightPush = wakuLightPush(options);
+  const filter = wakuFilter(options);
 
   return new WakuNode(
     options ?? {},
     libp2p,
-    wakuStore,
-    wakuLightPush,
-    wakuFilter
+    store,
+    lightPush,
+    filter
   ) as WakuFull;
 }
 
-export function defaultPeerDiscovery(): PeerDiscovery {
-  return new PeerDiscoveryStaticPeers(getPredefinedBootstrapNodes());
+export function defaultPeerDiscovery(): (
+  components: Components
+) => PeerDiscovery {
+  return bootstrap({ list: getPredefinedBootstrapNodes() });
 }
 
 export async function defaultLibp2p(
-  wakuRelay?: WakuRelay,
+  wakuRelay?: (components: Components) => Relay,
   options?: Partial<Libp2pOptions>
 ): Promise<Libp2p> {
   const libp2pOpts = Object.assign(
     {
-      transports: [new WebSockets({ filter: filterAll })],
-      streamMuxers: [new Mplex()],
-      connectionEncryption: [new Noise()],
+      transports: [webSockets({ filter: filterAll })],
+      streamMuxers: [mplex()],
+      connectionEncryption: [noise()],
     },
     wakuRelay ? { pubsub: wakuRelay } : {},
     options ?? {}
