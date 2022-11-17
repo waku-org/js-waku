@@ -171,7 +171,9 @@ export async function defaultLibp2p(
       streamMuxers: [new Mplex()],
       connectionEncryption: [new Noise()],
       identify: {
-        host: userAgent ?? DefaultUserAgent,
+        host: {
+          agentVersion: userAgent ?? DefaultUserAgent,
+        },
       },
     } as Libp2pOptions,
     wakuRelay ? { pubsub: wakuRelay } : {},
