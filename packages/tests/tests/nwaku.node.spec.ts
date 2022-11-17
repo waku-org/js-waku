@@ -16,7 +16,6 @@ describe("nwaku", () => {
       "--rpc=true",
       "--rpc-admin=true",
       "--websocket-support=true",
-      "--store-message-db-url=sqlite://:memory:",
       "--log-level=TRACE",
       "--ports-shift=42",
     ];

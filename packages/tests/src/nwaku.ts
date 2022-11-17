@@ -164,6 +164,8 @@ export class Nwaku {
       args
     );
 
+    process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
+
     const argsArray = argsToArray(mergedArgs);
     if (WAKU_SERVICE_NODE_PARAMS) {
       argsArray.push(WAKU_SERVICE_NODE_PARAMS);
@@ -442,7 +444,6 @@ export function defaultArgs(): Args {
     rpc: true,
     rpcAdmin: true,
     websocketSupport: true,
-    storeMessageDbUrl: "sqlite://:memory:",
     logLevel: LogLevel.Trace,
   };
 }
