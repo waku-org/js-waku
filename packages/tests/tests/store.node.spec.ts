@@ -18,6 +18,7 @@ import { expect } from "chai";
 import debug from "debug";
 
 import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2, Nwaku } from "../src";
+import { delay } from "../src/delay";
 
 const log = debug("waku:test:store");
 
@@ -204,6 +205,7 @@ describe("Waku Store", () => {
           })
         )
       ).to.be.true;
+      await delay(1); // to ensure each timestamp is unique.
     }
 
     waku = await createFullNode({
@@ -242,6 +244,7 @@ describe("Waku Store", () => {
           })
         )
       ).to.be.true;
+      await delay(1); // to ensure each timestamp is unique.
     }
 
     waku = await createFullNode({
@@ -599,6 +602,7 @@ describe("Waku Store", () => {
           })
         )
       ).to.be.true;
+      await delay(1); // to ensure each timestamp is unique.
     }
 
     waku = await createFullNode({
