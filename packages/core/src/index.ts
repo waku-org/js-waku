@@ -21,4 +21,9 @@ export * as waku_relay from "./lib/waku_relay";
 export { wakuRelay } from "./lib/waku_relay";
 
 export * as waku_store from "./lib/waku_store";
-export { PageDirection, wakuStore, StoreCodec } from "./lib/waku_store";
+export {
+  PageDirection,
+  wakuStore,
+  StoreCodec,
+  createCursor,
+} from "./lib/waku_store";

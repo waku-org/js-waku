@@ -93,6 +93,7 @@
     "@libp2p/interfaces": "^3.0.4",
     "@libp2p/peer-id": "^1.1.10",
     "@multiformats/multiaddr": "^11.0.6",
+    "@noble/hashes": "^1.1.3",
     "@waku/byte-utils": "*",
     "@waku/interfaces": "*",
     "debug": "^4.3.4",

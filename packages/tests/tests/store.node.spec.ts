@@ -1,5 +1,5 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
-import { PageDirection } from "@waku/core";
+import { createCursor, PageDirection } from "@waku/core";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
 import { createFullNode } from "@waku/create";
@@ -109,6 +109,62 @@ describe("Waku Store", () => {
     await Promise.all(promises);
 
     expect(messages?.length).eq(0);
+  });
+
+  it("Passing a cursor", async function () {
+    this.timeout(4_000);
+    const totalMsgs = 20;
+
+    for (let i = 0; i < totalMsgs; i++) {
+      expect(
+        await nwaku.sendMessage(
+          Nwaku.toMessageRpcQuery({
+            payload: utf8ToBytes(`Message ${i}`),
+            contentTopic: TestContentTopic,
+          })
+        )
+      ).to.be.true;
+    }
+
+    waku = await createFullNode({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+    await waku.start();
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.Store]);
+
+    const query = waku.store.queryGenerator([TestDecoder]);
+
+    // messages in reversed order (first message at last index)
+    const messages: DecodedMessage[] = [];
+    for await (const page of query) {
+      for await (const msg of page.reverse()) {
+        messages.push(msg as DecodedMessage);
+      }
+    }
+
+    // index 2 would mean the third last message sent
+    const cursorIndex = 2;
+
+    // create cursor to extract messages after the 3rd index
+    const cursor = await createCursor(messages[cursorIndex]);
+
+    const messagesAfterCursor: DecodedMessage[] = [];
+    for await (const page of waku.store.queryGenerator([TestDecoder], {
+      cursor,
+    })) {
+      for await (const msg of page.reverse()) {
+        messagesAfterCursor.push(msg as DecodedMessage);
+      }
+    }
+
+    const testMessage = messagesAfterCursor[0];
+
+    expect(messages.length).be.eq(totalMsgs);
+
+    expect(bytesToUtf8(testMessage.payload!)).to.be.eq(
+      bytesToUtf8(messages[cursorIndex + 1].payload!)
+    );
   });
 
   it("Callback on promise", async function () {

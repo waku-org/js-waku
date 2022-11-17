@@ -2,7 +2,9 @@ import type { Connection } from "@libp2p/interface-connection";
 import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
-import { DecodedMessage, Decoder, Store } from "@waku/interfaces";
+import { sha256 } from "@noble/hashes/sha256";
+import { concat, utf8ToBytes } from "@waku/byte-utils";
+import { DecodedMessage, Decoder, Index, Store } from "@waku/interfaces";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -80,6 +82,10 @@ export interface QueryOptions {
    * Retrieve messages with a timestamp within the provided values.
    */
   timeFilter?: TimeFilter;
+  /**
+   * Cursor as an index to start a query from.
+   */
+  cursor?: Index;
 }
 
 /**
@@ -258,7 +264,8 @@ class WakuStore implements Store {
       connection,
       protocol,
       queryOpts,
-      decodersAsMap
+      decodersAsMap,
+      options?.cursor
     )) {
       yield messages;
     }
@@ -281,7 +288,8 @@ async function* paginate<T extends DecodedMessage>(
   connection: Connection,
   protocol: string,
   queryOpts: Params,
-  decoders: Map<string, Decoder<T>>
+  decoders: Map<string, Decoder<T>>,
+  cursor?: Index
 ): AsyncGenerator<Promise<T | undefined>[]> {
   if (
     queryOpts.contentTopics.toString() !==
@@ -292,7 +300,6 @@ async function* paginate<T extends DecodedMessage>(
     );
   }
 
-  let cursor = undefined;
   while (true) {
     queryOpts = Object.assign(queryOpts, { cursor });
 
@@ -380,6 +387,33 @@ async function* paginate<T extends DecodedMessage>(
 
 export function isDefined<T>(msg: T | undefined): msg is T {
   return !!msg;
+}
+
+export async function createCursor(
+  message: DecodedMessage,
+  pubsubTopic: string = DefaultPubSubTopic
+): Promise<Index> {
+  if (
+    !message ||
+    !message.timestamp ||
+    !message.payload ||
+    !message.contentTopic
+  ) {
+    throw new Error("Message is missing required fields");
+  }
+
+  const contentTopicBytes = utf8ToBytes(message.contentTopic);
+
+  const digest = sha256(concat([contentTopicBytes, message.payload]));
+
+  const messageTime = BigInt(message.timestamp.getTime()) * BigInt(1000000);
+
+  return {
+    digest,
+    pubsubTopic,
+    senderTime: messageTime,
+    receivedTime: messageTime,
+  };
 }
 
 export function wakuStore(
