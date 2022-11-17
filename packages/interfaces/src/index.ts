@@ -2,6 +2,7 @@ import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
+import type { PeerStore } from "@libp2p/interface-peer-store";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import type { Libp2p } from "libp2p";
 
@@ -13,7 +14,7 @@ export enum Protocols {
 }
 
 export interface PointToPointProtocol {
-  libp2p: Libp2p;
+  peerStore: PeerStore;
   peers: () => Promise<Peer[]>;
 }
 export interface Index {
@@ -121,11 +122,6 @@ export interface Waku {
   lightPush?: LightPush;
 
   dial(peer: PeerId | Multiaddr, protocols?: Protocols[]): Promise<Stream>;
-
-  addPeerToAddressBook(
-    peerId: PeerId | string,
-    multiaddrs: Multiaddr[] | string[]
-  ): void;
 
   start(): Promise<void>;
 

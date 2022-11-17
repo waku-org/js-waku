@@ -1,7 +1,10 @@
 import type { Stream } from "@libp2p/interface-connection";
+import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerStore } from "@libp2p/interface-peer-store";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
+import type { Registrar } from "@libp2p/interface-registrar";
 import type {
   Callback,
   DecodedMessage,
@@ -14,7 +17,6 @@ import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
-import type { Libp2p } from "libp2p";
 
 import { WakuMessage as WakuMessageProto } from "../../proto/message";
 import { DefaultPubSubTopic } from "../constants";
@@ -28,11 +30,18 @@ import {
 import { toProtoMessage } from "../to_proto_message";
 
 import { ContentFilter, FilterRPC } from "./filter_rpc";
+
 export { ContentFilter };
 
 export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 
 const log = debug("waku:filter");
+
+export interface FilterComponents {
+  peerStore: PeerStore;
+  registrar: Registrar;
+  connectionManager: ConnectionManager;
+}
 
 export interface CreateOptions {
   /**
@@ -55,7 +64,7 @@ export type UnsubscribeFunction = () => Promise<void>;
  * - https://github.com/status-im/go-waku/issues/245
  * - https://github.com/status-im/nwaku/issues/948
  */
-export class WakuFilter implements Filter {
+class WakuFilter implements Filter {
   pubSubTopic: string;
   private subscriptions: Map<string, Callback<any>>;
   private decoders: Map<
@@ -63,11 +72,11 @@ export class WakuFilter implements Filter {
     Set<Decoder<any>>
   >;
 
-  constructor(public libp2p: Libp2p, options?: CreateOptions) {
+  constructor(public components: FilterComponents, options?: CreateOptions) {
     this.subscriptions = new Map();
     this.decoders = new Map();
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
-    this.libp2p
+    this.components.registrar
       .handle(FilterCodec, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
   }
@@ -137,6 +146,10 @@ export class WakuFilter implements Filter {
       this.deleteDecoders(groupedDecoders);
       this.deleteCallback(requestId);
     };
+  }
+
+  get peerStore(): PeerStore {
+    return this.components.peerStore;
   }
 
   private onRequest(streamData: IncomingStreamData): void {
@@ -261,7 +274,9 @@ export class WakuFilter implements Filter {
   }
 
   private async newStream(peer: Peer): Promise<Stream> {
-    const connections = this.libp2p.connectionManager.getConnections(peer.id);
+    const connections = this.components.connectionManager.getConnections(
+      peer.id
+    );
     const connection = selectConnection(connections);
     if (!connection) {
       throw new Error("Failed to get a connection to the peer");
@@ -272,7 +287,7 @@ export class WakuFilter implements Filter {
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {
     const res = await selectPeerForProtocol(
-      this.libp2p.peerStore,
+      this.components.peerStore,
       [FilterCodec],
       peerId
     );
@@ -283,10 +298,16 @@ export class WakuFilter implements Filter {
   }
 
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.libp2p.peerStore, [FilterCodec]);
+    return getPeersForProtocol(this.components.peerStore, [FilterCodec]);
   }
 
   async randomPeer(): Promise<Peer | undefined> {
     return selectRandomPeer(await this.peers());
   }
+}
+
+export function wakuFilter(
+  init: Partial<CreateOptions> = {}
+): (components: FilterComponents) => Filter {
+  return (components: FilterComponents) => new WakuFilter(components, init);
 }

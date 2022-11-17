@@ -1,6 +1,3 @@
-import type { Multiaddr } from "@multiformats/multiaddr";
-import { multiaddr } from "@multiformats/multiaddr";
-
 import { getPseudoRandomSubset } from "./random_subset";
 
 export const DefaultWantedNumber = 1;
@@ -23,7 +20,7 @@ export enum Fleet {
 export function getPredefinedBootstrapNodes(
   fleet: Fleet = Fleet.Prod,
   wantedNumber: number = DefaultWantedNumber
-): Multiaddr[] {
+): string[] {
   if (wantedNumber <= 0) {
     return [];
   }
@@ -42,7 +39,6 @@ export function getPredefinedBootstrapNodes(
 
   nodes = Object.values(nodes) as string[];
 
-  nodes = nodes.map((node: string) => multiaddr(node));
   return getPseudoRandomSubset(nodes, wantedNumber);
 }
 
