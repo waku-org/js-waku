@@ -56,7 +56,7 @@ export type CreateOptions = {
  *
  * @implements {require('libp2p-interfaces/src/pubsub')}
  */
-export class WakuRelay extends GossipSub implements Relay {
+class WakuRelay extends GossipSub implements Relay {
   pubSubTopic: string;
   defaultDecoder: Decoder<DecodedMessage>;
   public static multicodec: string = constants.RelayCodecs[0];

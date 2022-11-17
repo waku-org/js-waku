@@ -1,12 +1,12 @@
 import type { Connection } from "@libp2p/interface-connection";
+import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { Peer } from "@libp2p/interface-peer-store";
-import { DecodedMessage, Decoder } from "@waku/interfaces";
+import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import { DecodedMessage, Decoder, Store } from "@waku/interfaces";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
-import { Libp2p } from "libp2p";
 import { Uint8ArrayList } from "uint8arraylist";
 
 import * as proto from "../../proto/store";
@@ -26,6 +26,11 @@ export const StoreCodec = "/vac/waku/store/2.0.0-beta4";
 export const DefaultPageSize = 10;
 
 export { PageDirection };
+
+export interface StoreComponents {
+  peerStore: PeerStore;
+  connectionManager: ConnectionManager;
+}
 
 export interface CreateOptions {
   /**
@@ -82,10 +87,10 @@ export interface QueryOptions {
  *
  * The Waku Store protocol can be used to retrieved historical messages.
  */
-export class WakuStore {
+class WakuStore implements Store {
   pubSubTopic: string;
 
-  constructor(public libp2p: Libp2p, options?: CreateOptions) {
+  constructor(public components: StoreComponents, options?: CreateOptions) {
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
   }
 
@@ -232,7 +237,7 @@ export class WakuStore {
     });
 
     const res = await selectPeerForProtocol(
-      this.libp2p.peerStore,
+      this.components.peerStore,
       [StoreCodec],
       options?.peerId
     );
@@ -242,7 +247,9 @@ export class WakuStore {
     }
     const { peer, protocol } = res;
 
-    const connections = this.libp2p.connectionManager.getConnections(peer.id);
+    const connections = this.components.connectionManager.getConnections(
+      peer.id
+    );
     const connection = selectConnection(connections);
 
     if (!connection) throw "Failed to get a connection to the peer";
@@ -262,7 +269,11 @@ export class WakuStore {
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.libp2p.peerStore, [StoreCodec]);
+    return getPeersForProtocol(this.components.peerStore, [StoreCodec]);
+  }
+
+  get peerStore(): PeerStore {
+    return this.components.peerStore;
   }
 }
 
@@ -369,4 +380,10 @@ async function* paginate<T extends DecodedMessage>(
 
 export function isDefined<T>(msg: T | undefined): msg is T {
   return !!msg;
+}
+
+export function wakuStore(
+  init: Partial<CreateOptions> = {}
+): (components: StoreComponents) => Store {
+  return (components: StoreComponents) => new WakuStore(components, init);
 }

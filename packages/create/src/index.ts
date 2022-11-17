@@ -7,11 +7,11 @@ import { all as filterAll } from "@libp2p/websockets/filters";
 import {
   waku,
   waku_relay,
-  WakuFilter,
-  WakuLightPush,
+  wakuFilter,
+  wakuLightPush,
   WakuNode,
   wakuRelay,
-  WakuStore,
+  wakuStore,
 } from "@waku/core";
 import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
 import type { Relay, WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
@@ -74,16 +74,16 @@ export async function createLightNode(
 
   const libp2p = await defaultLibp2p(undefined, libp2pOptions);
 
-  const wakuStore = new WakuStore(libp2p, options);
-  const wakuLightPush = new WakuLightPush(libp2p, options);
-  const wakuFilter = new WakuFilter(libp2p, options);
+  const store = wakuStore(options);
+  const lightPush = wakuLightPush(options);
+  const filter = wakuFilter(options);
 
   return new WakuNode(
     options ?? {},
     libp2p,
-    wakuStore,
-    wakuLightPush,
-    wakuFilter
+    store,
+    lightPush,
+    filter
   ) as WakuLight;
 }
 
@@ -131,16 +131,16 @@ export async function createFullNode(
 
   const libp2p = await defaultLibp2p(wakuRelay(options), libp2pOptions);
 
-  const wakuStore = new WakuStore(libp2p, options);
-  const wakuLightPush = new WakuLightPush(libp2p, options);
-  const wakuFilter = new WakuFilter(libp2p, options);
+  const store = wakuStore(options);
+  const lightPush = wakuLightPush(options);
+  const filter = wakuFilter(options);
 
   return new WakuNode(
     options ?? {},
     libp2p,
-    wakuStore,
-    wakuLightPush,
-    wakuFilter
+    store,
+    lightPush,
+    filter
   ) as WakuFull;
 }
 
