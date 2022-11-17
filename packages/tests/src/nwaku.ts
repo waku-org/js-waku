@@ -443,7 +443,7 @@ export function defaultArgs(): Args {
     rpcAdmin: true,
     websocketSupport: true,
     storeMessageDbUrl: "sqlite://:memory:",
-    logLevel: LogLevel.Debug,
+    logLevel: LogLevel.Trace,
   };
 }
 
