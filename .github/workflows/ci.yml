@@ -86,7 +86,7 @@ jobs:
         if: failure()
         with:
           name: nwaku-logs
-          path: log/
+          path: packages/tests/log/
 
   node_with_go_waku:
     runs-on: ubuntu-latest
@@ -133,7 +133,7 @@ jobs:
         if: failure()
         with:
           name: go-waku-logs
-          path: log/
+          path: packages/tests/log/
 
   node_with_nwaku_master:
     runs-on: ubuntu-latest
@@ -180,4 +180,4 @@ jobs:
         if: failure()
         with:
           name: nwaku-master-logs
-          path: log/
+          path: packages/tests/log/
