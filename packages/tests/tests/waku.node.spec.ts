@@ -1,6 +1,7 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
+import { DefaultUserAgent } from "@waku/core";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { createLightNode, createPrivacyNode } from "@waku/create";
 import type {
@@ -184,5 +185,51 @@ describe("Decryption Keys", () => {
     expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
     expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
     expect(receivedMsg.timestamp?.valueOf()).to.eq(messageTimestamp.valueOf());
+  });
+});
+
+describe("User Agent", () => {
+  let waku1: Waku;
+  let waku2: Waku;
+
+  afterEach(async function () {
+    !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
+    !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
+  });
+
+  it("Sets default value correctly", async function () {
+    this.timeout(20_000);
+
+    const waku1UserAgent = "test-user-agent";
+
+    [waku1, waku2] = await Promise.all([
+      createPrivacyNode({
+        staticNoiseKey: NOISE_KEY_1,
+        userAgent: waku1UserAgent,
+      }).then((waku) => waku.start().then(() => waku)),
+      createPrivacyNode({
+        staticNoiseKey: NOISE_KEY_2,
+        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+      }).then((waku) => waku.start().then(() => waku)),
+    ]);
+
+    await waku1.libp2p.peerStore.addressBook.set(
+      waku2.libp2p.peerId,
+      waku2.libp2p.getMultiaddrs()
+    );
+    await waku1.dial(waku2.libp2p.peerId);
+    await waitForRemotePeer(waku1);
+
+    const [waku1PeerInfo, waku2PeerInfo] = await Promise.all([
+      waku2.libp2p.peerStore.metadataBook.get(waku1.libp2p.peerId),
+      waku1.libp2p.peerStore.metadataBook.get(waku2.libp2p.peerId),
+    ]);
+
+    expect(bytesToUtf8(waku1PeerInfo.get("AgentVersion")!)).to.eq(
+      waku1UserAgent
+    );
+    expect(bytesToUtf8(waku2PeerInfo.get("AgentVersion")!)).to.eq(
+      DefaultUserAgent
+    );
   });
 });

@@ -1,4 +1,5 @@
 export { DefaultPubSubTopic } from "./lib/constants";
+export { DefaultUserAgent } from "./lib/waku";
 
 export * as proto_message from "./proto/message";
 export * as proto_topic_only_message from "./proto/topic_only_message";

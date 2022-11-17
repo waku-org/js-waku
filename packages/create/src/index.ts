@@ -13,6 +13,7 @@ import {
   wakuRelay,
   wakuStore,
 } from "@waku/core";
+import { DefaultUserAgent } from "@waku/core";
 import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
 import type { Relay, WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
 import type { Libp2p } from "libp2p";
@@ -72,7 +73,11 @@ export async function createLightNode(
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
-  const libp2p = await defaultLibp2p(undefined, libp2pOptions);
+  const libp2p = await defaultLibp2p(
+    undefined,
+    libp2pOptions,
+    options?.userAgent
+  );
 
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
@@ -101,7 +106,11 @@ export async function createPrivacyNode(
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
-  const libp2p = await defaultLibp2p(wakuRelay(options), libp2pOptions);
+  const libp2p = await defaultLibp2p(
+    wakuRelay(options),
+    libp2pOptions,
+    options?.userAgent
+  );
 
   return new WakuNode(options ?? {}, libp2p) as WakuPrivacy;
 }
@@ -129,7 +138,11 @@ export async function createFullNode(
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
-  const libp2p = await defaultLibp2p(wakuRelay(options), libp2pOptions);
+  const libp2p = await defaultLibp2p(
+    wakuRelay(options),
+    libp2pOptions,
+    options?.userAgent
+  );
 
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
@@ -152,14 +165,20 @@ export function defaultPeerDiscovery(): (
 
 export async function defaultLibp2p(
   wakuRelay?: (components: Components) => Relay,
-  options?: Partial<Libp2pOptions>
+  options?: Partial<Libp2pOptions>,
+  userAgent?: string
 ): Promise<Libp2p> {
   const libp2pOpts = Object.assign(
     {
       transports: [webSockets({ filter: filterAll })],
       streamMuxers: [mplex()],
       connectionEncryption: [noise()],
-    },
+      identify: {
+        host: {
+          agentVersion: userAgent ?? DefaultUserAgent,
+        },
+      },
+    } as Libp2pOptions,
     wakuRelay ? { pubsub: wakuRelay } : {},
     options ?? {}
   );
