@@ -82,14 +82,14 @@ jobs:
           DEBUG: "waku:nwaku*,waku:test*"
 
       - name: Upload debug logs on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: debug.log
           path: debug.log
 
       - name: Upload nwaku logs on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: nwaku-logs
@@ -136,14 +136,14 @@ jobs:
           DEBUG: "waku:nwaku*,waku:test*"
 
       - name: Upload debug logs on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: debug.log
+          name: go-waku-debug.log
           path: debug.log
 
       - name: Upload logs on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: go-waku-logs
@@ -190,14 +190,14 @@ jobs:
           DEBUG: "waku:nwaku*,waku:test*"
 
       - name: Upload debug logs on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: debug.log
+          name: nwaku-master-debug.log
           path: debug.log
 
       - name: Upload logs on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: nwaku-master-logs
