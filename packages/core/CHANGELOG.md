@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Bumped `libp2p` to 0.40.0.
+- Bumped `libp2p` to 0.40.0 and associated libp2p libraries.
 
 ### Removed
 
