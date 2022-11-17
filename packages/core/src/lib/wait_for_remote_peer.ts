@@ -94,13 +94,13 @@ async function waitForConnectedPeer(
       for (const codec of codecs) {
         if (evt.detail.protocols.includes(codec)) {
           log("Resolving for", codec, evt.detail.protocols);
-          waku.libp2p.peerStore.removeEventListener("change:protocols", cb);
+          waku.peerStore.removeEventListener("change:protocols", cb);
           resolve();
           break;
         }
       }
     };
-    waku.libp2p.peerStore.addEventListener("change:protocols", cb);
+    waku.peerStore.addEventListener("change:protocols", cb);
   });
 }
 

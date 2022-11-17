@@ -48,12 +48,12 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@chainsafe/libp2p-gossipsub": "^4.1.1",
+    "@chainsafe/libp2p-gossipsub": "^5.2.1",
     "@libp2p/interface-connection": "^3.0.2",
     "@libp2p/interface-peer-id": "^1.0.5",
-    "@libp2p/interface-peer-store": "^1.2.2",
+    "@libp2p/interface-peer-store": "^1.2.3",
     "@multiformats/multiaddr": "^11.0.6",
-    "libp2p": "0.39.5"
+    "libp2p": "0.40.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.8.1",

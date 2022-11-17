@@ -1,21 +1,18 @@
 import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PubSub } from "@libp2p/interface-pubsub";
-import { peerIdFromString } from "@libp2p/peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
-import { multiaddr } from "@multiformats/multiaddr";
-import type { Waku } from "@waku/interfaces";
+import type { Filter, LightPush, Relay, Store, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
-import { FilterCodec, WakuFilter } from "./waku_filter";
-import { LightPushCodec, WakuLightPush } from "./waku_light_push";
+import { FilterCodec, FilterComponents } from "./waku_filter";
+import { LightPushCodec, LightPushComponents } from "./waku_light_push";
 import { EncoderV0 } from "./waku_message/version_0";
-import { WakuRelay } from "./waku_relay";
 import * as relayConstants from "./waku_relay/constants";
 import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
-import { StoreCodec, WakuStore } from "./waku_store";
+import { StoreCodec, StoreComponents } from "./waku_store";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -47,10 +44,10 @@ export interface WakuOptions {
 
 export class WakuNode implements Waku {
   public libp2p: Libp2p;
-  public relay?: WakuRelay;
-  public store?: WakuStore;
-  public filter?: WakuFilter;
-  public lightPush?: WakuLightPush;
+  public relay?: Relay;
+  public store?: Store;
+  public filter?: Filter;
+  public lightPush?: LightPush;
 
   private pingKeepAliveTimers: {
     [peer: string]: ReturnType<typeof setInterval>;
@@ -62,16 +59,26 @@ export class WakuNode implements Waku {
   constructor(
     options: WakuOptions,
     libp2p: Libp2p,
-    store?: WakuStore,
-    lightPush?: WakuLightPush,
-    filter?: WakuFilter
+    store?: (components: StoreComponents) => Store,
+    lightPush?: (components: LightPushComponents) => LightPush,
+    filter?: (components: FilterComponents) => Filter
   ) {
     this.libp2p = libp2p;
-    this.store = store;
-    this.filter = filter;
-    this.lightPush = lightPush;
 
-    if (isWakuRelay(libp2p.pubsub)) {
+    const { peerStore, connectionManager, registrar } = libp2p;
+    const components = { peerStore, connectionManager, registrar };
+
+    if (store) {
+      this.store = store(components);
+    }
+    if (filter) {
+      this.filter = filter(components);
+    }
+    if (lightPush) {
+      this.lightPush = lightPush(components);
+    }
+
+    if (isRelay(libp2p.pubsub)) {
       this.relay = libp2p.pubsub;
     }
 
@@ -109,6 +116,15 @@ export class WakuNode implements Waku {
     libp2p.connectionManager.addEventListener("peer:disconnect", (evt) => {
       this.stopKeepAlive(evt.detail.remotePeer);
     });
+
+    // Trivial handling of discovered peers, to be refined.
+    libp2p.addEventListener("peer:discovery", (evt) => {
+      const peerId = evt.detail.id;
+      log(`Found peer ${peerId.toString()}, dialing.`);
+      libp2p.dial(peerId).catch((err) => {
+        log(`Fail to dial ${peerId}`, err);
+      });
+    });
   }
 
   /**
@@ -145,29 +161,6 @@ export class WakuNode implements Waku {
     }
 
     return this.libp2p.dialProtocol(peer, codecs);
-  }
-
-  /**
-   * Add peer to address book, it will be auto-dialed in the background.
-   */
-  async addPeerToAddressBook(
-    peerId: PeerId | string,
-    multiaddrs: Multiaddr[] | string[]
-  ): Promise<void> {
-    let peer;
-    if (typeof peerId === "string") {
-      peer = peerIdFromString(peerId);
-    } else {
-      peer = peerId;
-    }
-    const addresses = multiaddrs.map((addr: Multiaddr | string) => {
-      if (typeof addr === "string") {
-        return multiaddr(addr);
-      } else {
-        return addr;
-      }
-    });
-    await this.libp2p.peerStore.addressBook.set(peer, addresses);
   }
 
   async start(): Promise<void> {
@@ -255,7 +248,7 @@ export class WakuNode implements Waku {
   }
 }
 
-function isWakuRelay(pubsub: PubSub): pubsub is WakuRelay {
+function isRelay(pubsub: PubSub): pubsub is Relay {
   if (pubsub) {
     try {
       return pubsub.multicodecs.includes(

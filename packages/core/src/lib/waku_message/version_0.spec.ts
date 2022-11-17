@@ -24,7 +24,7 @@ describe("Waku Message version 0", function () {
     );
   });
 
-  it("Ephemeral", async function () {
+  it("Ephemeral field set to true", async function () {
     await fc.assert(
       fc.asyncProperty(fc.uint8Array({ minLength: 1 }), async (payload) => {
         const encoder = new EncoderV0(TestContentTopic, true);

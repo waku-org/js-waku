@@ -1,7 +1,7 @@
+import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { DefaultUserAgent } from "@waku/core";
-import { PeerDiscoveryStaticPeers } from "@waku/core/lib/peer_discovery_static_list";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { createLightNode, createPrivacyNode } from "@waku/create";
 import type {
@@ -72,7 +72,7 @@ describe("Waku Dial [node only]", function () {
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
-          peerDiscovery: [new PeerDiscoveryStaticPeers([multiAddrWithId])],
+          peerDiscovery: [bootstrap({ list: [multiAddrWithId.toString()] })],
         },
       });
       await waku.start();
@@ -95,12 +95,12 @@ describe("Waku Dial [node only]", function () {
       nwaku = new Nwaku(makeLogFileName(this));
       await nwaku.start();
 
+      const nwakuMa = await nwaku.getMultiaddrWithId();
+
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
-          peerDiscovery: [
-            new PeerDiscoveryStaticPeers([await nwaku.getMultiaddrWithId()]),
-          ],
+          peerDiscovery: [bootstrap({ list: [nwakuMa.toString()] })],
         },
       });
       await waku.start();
@@ -141,10 +141,11 @@ describe("Decryption Keys", () => {
       }).then((waku) => waku.start().then(() => waku)),
     ]);
 
-    waku1.addPeerToAddressBook(
+    await waku1.libp2p.peerStore.addressBook.set(
       waku2.libp2p.peerId,
       waku2.libp2p.getMultiaddrs()
     );
+    await waku1.dial(waku2.libp2p.peerId);
 
     await Promise.all([
       waitForRemotePeer(waku1, [Protocols.Relay]),
@@ -212,7 +213,7 @@ describe("User Agent", () => {
       }).then((waku) => waku.start().then(() => waku)),
     ]);
 
-    waku1.addPeerToAddressBook(
+    await waku1.libp2p.peerStore.addressBook.set(
       waku2.libp2p.peerId,
       waku2.libp2p.getMultiaddrs()
     );
