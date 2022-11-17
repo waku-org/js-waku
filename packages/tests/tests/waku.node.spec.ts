@@ -1,5 +1,6 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
+import { DefaultUserAgent } from "@waku/core";
 import { PeerDiscoveryStaticPeers } from "@waku/core/lib/peer_discovery_static_list";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { createLightNode, createPrivacyNode } from "@waku/create";
@@ -187,35 +188,47 @@ describe("Decryption Keys", () => {
 });
 
 describe("User Agent", () => {
-  let waku: Waku;
-  let nwaku: Nwaku;
+  let waku1: Waku;
+  let waku2: Waku;
 
   afterEach(async function () {
-    !!nwaku && nwaku.stop();
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
+    !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
   it("Sets default value correctly", async function () {
     this.timeout(20_000);
-    nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({
-      filter: true,
-      store: true,
-      lightpush: true,
-    });
-    const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
-      userAgent: "test-user-agent",
-    });
-    await waku.start();
-    await waku.dial(multiAddrWithId);
-    await waitForRemotePeer(waku);
+    const waku1UserAgent = "test-user-agent";
 
-    const peerInfo = await waku.libp2p.peerStore.metadataBook.get(
-      waku.libp2p.peerId
+    [waku1, waku2] = await Promise.all([
+      createPrivacyNode({
+        staticNoiseKey: NOISE_KEY_1,
+        userAgent: waku1UserAgent,
+      }).then((waku) => waku.start().then(() => waku)),
+      createPrivacyNode({
+        staticNoiseKey: NOISE_KEY_2,
+        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+      }).then((waku) => waku.start().then(() => waku)),
+    ]);
+
+    waku1.addPeerToAddressBook(
+      waku2.libp2p.peerId,
+      waku2.libp2p.getMultiaddrs()
     );
-    console.log(bytesToUtf8(peerInfo.get("AgentVersion")!));
+    await waku1.dial(waku2.libp2p.peerId);
+    await waitForRemotePeer(waku1);
+
+    const [waku1PeerInfo, waku2PeerInfo] = await Promise.all([
+      waku2.libp2p.peerStore.metadataBook.get(waku1.libp2p.peerId),
+      waku1.libp2p.peerStore.metadataBook.get(waku2.libp2p.peerId),
+    ]);
+
+    expect(bytesToUtf8(waku1PeerInfo.get("AgentVersion")!)).to.eq(
+      waku1UserAgent
+    );
+    expect(bytesToUtf8(waku2PeerInfo.get("AgentVersion")!)).to.eq(
+      DefaultUserAgent
+    );
   });
 });
