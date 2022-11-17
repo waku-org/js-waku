@@ -77,11 +77,18 @@ jobs:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
       - run: npm run build
-      - run: npm run test:node
+      - run: npm run test:node > debug.log
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
-      - name: Upload logs on failure
+      - name: Upload debug logs on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: debug.log
+          path: debug.log
+
+      - name: Upload nwaku logs on failure
         uses: actions/upload-artifact@v2
         if: failure()
         with:
@@ -124,9 +131,16 @@ jobs:
 
       - uses: bahmutov/npm-install@v1
       - run: npm run build
-      - run: npm run test:node
+      - run: npm run test:node > debug.log
         env:
           DEBUG: "waku:nwaku*,waku:test*"
+
+      - name: Upload debug logs on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: debug.log
+          path: debug.log
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v2
@@ -171,9 +185,16 @@ jobs:
           ./build/wakunode2 --help
 
       - run: npm run build
-      - run: npm run test:node
+      - run: npm run test:node > debug.log
         env:
           DEBUG: "waku:nwaku*,waku:test*"
+
+      - name: Upload debug logs on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: debug.log
+          path: debug.log
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v2
