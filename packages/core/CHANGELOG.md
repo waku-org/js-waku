@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## @waku/core [0.0.6](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.5...@waku/core@0.0.6) (2022-11-18)
+
 ### Added
 
 - Waku Message `ephemeral` field to mark messages as do-not-store.
