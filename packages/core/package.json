@@ -105,7 +105,7 @@
     "protons-runtime": "^3.1.0",
     "uint8arraylist": "^2.3.2",
     "uint8arrays": "^4.0.2",
-    "uuid": "^8.3.2"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
