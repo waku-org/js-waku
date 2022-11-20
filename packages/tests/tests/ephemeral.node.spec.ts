@@ -1,7 +1,7 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
-import { createFullNode, createLightNode } from "@waku/create";
+import { createLightNode } from "@waku/create";
 import { DecodedMessage, Protocols, WakuLight } from "@waku/interfaces";
 import {
   AsymDecoder,
@@ -83,10 +83,10 @@ describe("Waku Message Ephemeral field", () => {
     const symDecoder = new SymDecoder(SymContentTopic, symKey);
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
-      createFullNode({
+      createLightNode({
         staticNoiseKey: NOISE_KEY_1,
       }).then((waku) => waku.start().then(() => waku)),
-      createFullNode({
+      createLightNode({
         staticNoiseKey: NOISE_KEY_2,
       }).then((waku) => waku.start().then(() => waku)),
       nwaku.getMultiaddrWithId(),

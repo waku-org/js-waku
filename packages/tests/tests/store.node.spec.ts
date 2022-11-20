@@ -2,8 +2,8 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { createCursor, PageDirection } from "@waku/core";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
-import { createFullNode } from "@waku/create";
-import { DecodedMessage, Message, WakuFull } from "@waku/interfaces";
+import { createLightNode } from "@waku/create";
+import { DecodedMessage, Message, WakuLight } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   AsymDecoder,
@@ -27,7 +27,7 @@ const TestEncoder = new EncoderV0(TestContentTopic);
 const TestDecoder = new DecoderV0(TestContentTopic);
 
 describe("Waku Store", () => {
-  let waku: WakuFull;
+  let waku: WakuLight;
   let nwaku: Nwaku;
 
   beforeEach(async function () {
@@ -56,7 +56,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -87,7 +87,7 @@ describe("Waku Store", () => {
   it("Generator, no message returned", async function () {
     this.timeout(15_000);
 
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -126,7 +126,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -183,7 +183,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -224,7 +224,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -264,7 +264,7 @@ describe("Waku Store", () => {
       await delay(1); // to ensure each timestamp is unique.
     }
 
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -303,7 +303,7 @@ describe("Waku Store", () => {
       await delay(1); // to ensure each timestamp is unique.
     }
 
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -372,10 +372,10 @@ describe("Waku Store", () => {
     const symDecoder = new SymDecoder(symTopic, symKey);
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
-      createFullNode({
+      createLightNode({
         staticNoiseKey: NOISE_KEY_1,
       }).then((waku) => waku.start().then(() => waku)),
-      createFullNode({
+      createLightNode({
         staticNoiseKey: NOISE_KEY_2,
       }).then((waku) => waku.start().then(() => waku)),
       nwaku.getMultiaddrWithId(),
@@ -462,7 +462,7 @@ describe("Waku Store", () => {
       ).to.be.true;
     }
 
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -524,7 +524,7 @@ describe("Waku Store", () => {
       await delay(1); // to ensure each timestamp is unique.
     }
 
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
@@ -548,7 +548,7 @@ describe("Waku Store", () => {
 
 describe("Waku Store, custom pubsub topic", () => {
   const customPubSubTopic = "/waku/2/custom-dapp/proto";
-  let waku: WakuFull;
+  let waku: WakuLight;
   let nwaku: Nwaku;
 
   beforeEach(async function () {
@@ -581,7 +581,7 @@ describe("Waku Store, custom pubsub topic", () => {
       ).to.be.true;
     }
 
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
       pubSubTopic: customPubSubTopic,
     });
