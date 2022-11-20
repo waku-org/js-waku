@@ -47,6 +47,8 @@ export interface Args {
   lightpush?: boolean;
   filter?: boolean;
   store?: boolean;
+  peerExchange?: boolean;
+  discv5Discovery?: boolean;
   storeMessageDbUrl?: string;
   topics?: string;
   rpcPrivate?: boolean;

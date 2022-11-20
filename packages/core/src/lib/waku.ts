@@ -2,7 +2,14 @@ import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import type { Multiaddr } from "@multiformats/multiaddr";
-import type { Filter, LightPush, Relay, Store, Waku } from "@waku/interfaces";
+import type {
+  Filter,
+  LightPush,
+  PeerExchange,
+  Relay,
+  Store,
+  Waku,
+} from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
@@ -10,6 +17,10 @@ import type { Libp2p } from "libp2p";
 import { FilterCodec, FilterComponents } from "./waku_filter";
 import { LightPushCodec, LightPushComponents } from "./waku_light_push";
 import { EncoderV0 } from "./waku_message/version_0";
+import {
+  PeerExchangeCodec,
+  PeerExchangeComponents,
+} from "./waku_peer_exchange";
 import * as relayConstants from "./waku_relay/constants";
 import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
 import { StoreCodec, StoreComponents } from "./waku_store";
@@ -48,6 +59,7 @@ export class WakuNode implements Waku {
   public store?: Store;
   public filter?: Filter;
   public lightPush?: LightPush;
+  public peerExchange?: PeerExchange;
 
   private pingKeepAliveTimers: {
     [peer: string]: ReturnType<typeof setInterval>;
@@ -61,7 +73,8 @@ export class WakuNode implements Waku {
     libp2p: Libp2p,
     store?: (components: StoreComponents) => Store,
     lightPush?: (components: LightPushComponents) => LightPush,
-    filter?: (components: FilterComponents) => Filter
+    filter?: (components: FilterComponents) => Filter,
+    peerExchange?: (components: PeerExchangeComponents) => PeerExchange
   ) {
     this.libp2p = libp2p;
 
@@ -78,6 +91,10 @@ export class WakuNode implements Waku {
       this.lightPush = lightPush(components);
     }
 
+    if (peerExchange) {
+      this.peerExchange = peerExchange(components);
+    }
+
     if (isRelay(libp2p.pubsub)) {
       this.relay = libp2p.pubsub;
     }
@@ -86,7 +103,8 @@ export class WakuNode implements Waku {
       "Waku node created",
       this.libp2p.peerId.toString(),
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
-        .lightPush}, filter: ${!!this.filter}`
+        .lightPush}, filter: ${!!this.filter}, peer exchange: ${!!this
+        .peerExchange} `
     );
 
     this.pingKeepAliveTimers = {};
@@ -144,6 +162,7 @@ export class WakuNode implements Waku {
       this.store && _protocols.push(Protocols.Store);
       this.filter && _protocols.push(Protocols.Filter);
       this.lightPush && _protocols.push(Protocols.LightPush);
+      this.peerExchange && _protocols.push(Protocols.PeerExchange);
     }
 
     const codecs: string[] = [];
@@ -160,7 +179,15 @@ export class WakuNode implements Waku {
       codecs.push(FilterCodec);
     }
 
-    return this.libp2p.dialProtocol(peer, codecs);
+    if (_protocols.includes(Protocols.PeerExchange)) {
+      codecs.push(PeerExchangeCodec);
+    }
+
+    log(`Dialing to ${peer.toString()} with protocols ${_protocols}`);
+
+    const stream = await this.libp2p.dialProtocol(peer, codecs);
+
+    return stream;
   }
 
   async start(): Promise<void> {

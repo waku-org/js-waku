@@ -12,11 +12,9 @@ export class PeerExchangeRPC {
     const { numPeers } = params;
     return new PeerExchangeRPC({
       query: {
-        numPeers,
+        numPeers: numPeers,
       },
-      response: {
-        peerInfos: [],
-      },
+      response: undefined,
     });
   }
 

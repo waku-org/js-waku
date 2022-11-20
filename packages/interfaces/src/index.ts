@@ -11,6 +11,7 @@ export enum Protocols {
   Store = "store",
   LightPush = "lightpush",
   Filter = "filter",
+  PeerExchange = "peer-exchange",
 }
 
 export interface PointToPointProtocol {
@@ -48,6 +49,22 @@ export interface LightPush extends PointToPointProtocol {
     message: Message,
     opts?: ProtocolOptions
   ) => Promise<SendResult>;
+}
+
+export interface PeerExchange extends PointToPointProtocol {
+  query(params: PeerExchangeQueryParams): Promise<PeerExchangeResponse>;
+}
+
+export interface PeerExchangeQueryParams {
+  numPeers: bigint;
+}
+
+export interface PeerExchangeResponse {
+  peerInfos: PeerInfo[];
+}
+
+export interface PeerInfo {
+  ENR?: Uint8Array;
 }
 
 export enum PageDirection {
@@ -120,6 +137,7 @@ export interface Waku {
   store?: Store;
   filter?: Filter;
   lightPush?: LightPush;
+  peerExchange?: PeerExchange;
 
   dial(peer: PeerId | Multiaddr, protocols?: Protocols[]): Promise<Stream>;
 
@@ -135,6 +153,7 @@ export interface WakuLight extends Waku {
   store: Store;
   filter: Filter;
   lightPush: LightPush;
+  peerExchange: PeerExchange;
 }
 
 export interface WakuPrivacy extends Waku {
@@ -142,6 +161,7 @@ export interface WakuPrivacy extends Waku {
   store: undefined;
   filter: undefined;
   lightPush: undefined;
+  peerExchange: undefined;
 }
 
 export interface WakuFull extends Waku {
@@ -149,6 +169,7 @@ export interface WakuFull extends Waku {
   store: Store;
   filter: Filter;
   lightPush: LightPush;
+  peerExchange: PeerExchange;
 }
 
 export interface RateLimitProof {

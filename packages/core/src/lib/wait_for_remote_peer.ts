@@ -6,6 +6,7 @@ import { pEvent } from "p-event";
 
 import { FilterCodec } from "./waku_filter";
 import { LightPushCodec } from "./waku_light_push";
+import { PeerExchangeCodec } from "./waku_peer_exchange";
 import { StoreCodec } from "./waku_store";
 
 const log = debug("waku:wait-for-remote-peer");
@@ -62,6 +63,14 @@ export async function waitForRemotePeer(
     if (!waku.filter)
       throw new Error("Cannot wait for Filter peer: protocol not mounted");
     promises.push(waitForConnectedPeer(waku.filter, [FilterCodec]));
+  }
+
+  if (protocols.includes(Protocols.PeerExchange)) {
+    if (!waku.peerExchange)
+      throw new Error(
+        "Cannot wait for Peer Exchange peer: protocol not mounted"
+      );
+    promises.push(waitForConnectedPeer(waku.peerExchange, [PeerExchangeCodec]));
   }
 
   if (timeoutMs) {
@@ -145,6 +154,9 @@ function getEnabledProtocols(waku: Waku): Protocols[] {
 
   if (waku.lightPush) {
     protocols.push(Protocols.LightPush);
+  }
+  if (waku.peerExchange) {
+    protocols.push(Protocols.PeerExchange);
   }
 
   return protocols;

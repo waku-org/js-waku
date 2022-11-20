@@ -1,11 +1,11 @@
 syntax = "proto3";
 
 message PeerInfo {
-  bytes ENR = 1;
+  optional bytes ENR = 1;
 }
 
 message PeerExchangeQuery {
-  uint64 numPeers = 1; // number of peers requested
+  optional uint64 numPeers = 1; // number of peers requested
 }
 
 message PeerExchangeResponse {
@@ -13,6 +13,6 @@ message PeerExchangeResponse {
 }
 
 message PeerExchangeRPC {
-  PeerExchangeQuery query = 1;
-  PeerExchangeResponse response = 2;
+  optional PeerExchangeQuery query = 1;
+  optional PeerExchangeResponse response = 2;
 }

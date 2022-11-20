@@ -27,3 +27,6 @@ export {
   StoreCodec,
   createCursor,
 } from "./lib/waku_store";
+
+export * as waku_peer_exchange from "./lib/waku_peer_exchange";
+export { wakuPeerExchange } from "./lib/waku_peer_exchange";

@@ -10,6 +10,7 @@ import {
   wakuFilter,
   wakuLightPush,
   WakuNode,
+  wakuPeerExchange,
   wakuRelay,
   wakuStore,
 } from "@waku/core";
@@ -82,13 +83,15 @@ export async function createLightNode(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
+  const peerExchange = wakuPeerExchange(options);
 
   return new WakuNode(
     options ?? {},
     libp2p,
     store,
     lightPush,
-    filter
+    filter,
+    peerExchange
   ) as WakuLight;
 }
 
@@ -147,13 +150,15 @@ export async function createFullNode(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
+  const peerExchange = wakuPeerExchange(options);
 
   return new WakuNode(
     options ?? {},
     libp2p,
     store,
     lightPush,
-    filter
+    filter,
+    peerExchange
   ) as WakuFull;
 }
 

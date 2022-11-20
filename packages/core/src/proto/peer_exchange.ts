@@ -6,7 +6,7 @@ import type { Uint8ArrayList } from "uint8arraylist";
 import type { Codec } from "protons-runtime";
 
 export interface PeerInfo {
-  ENR: Uint8Array;
+  ENR?: Uint8Array;
 }
 
 export namespace PeerInfo {
@@ -23,10 +23,6 @@ export namespace PeerInfo {
           if (obj.ENR != null) {
             writer.uint32(10);
             writer.bytes(obj.ENR);
-          } else {
-            throw new Error(
-              'Protocol error: required field "ENR" was not found in object'
-            );
           }
 
           if (opts.lengthDelimited !== false) {
@@ -34,9 +30,7 @@ export namespace PeerInfo {
           }
         },
         (reader, length) => {
-          const obj: any = {
-            ENR: new Uint8Array(0),
-          };
+          const obj: any = {};
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -51,12 +45,6 @@ export namespace PeerInfo {
                 reader.skipType(tag & 7);
                 break;
             }
-          }
-
-          if (obj.ENR == null) {
-            throw new Error(
-              'Protocol error: value for required field "ENR" was not found in protobuf'
-            );
           }
 
           return obj;
@@ -77,7 +65,7 @@ export namespace PeerInfo {
 }
 
 export interface PeerExchangeQuery {
-  numPeers: bigint;
+  numPeers?: bigint;
 }
 
 export namespace PeerExchangeQuery {
@@ -94,10 +82,6 @@ export namespace PeerExchangeQuery {
           if (obj.numPeers != null) {
             writer.uint32(8);
             writer.uint64(obj.numPeers);
-          } else {
-            throw new Error(
-              'Protocol error: required field "numPeers" was not found in object'
-            );
           }
 
           if (opts.lengthDelimited !== false) {
@@ -105,9 +89,7 @@ export namespace PeerExchangeQuery {
           }
         },
         (reader, length) => {
-          const obj: any = {
-            numPeers: 0n,
-          };
+          const obj: any = {};
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -122,12 +104,6 @@ export namespace PeerExchangeQuery {
                 reader.skipType(tag & 7);
                 break;
             }
-          }
-
-          if (obj.numPeers == null) {
-            throw new Error(
-              'Protocol error: value for required field "numPeers" was not found in protobuf'
-            );
           }
 
           return obj;
@@ -221,8 +197,8 @@ export namespace PeerExchangeResponse {
 }
 
 export interface PeerExchangeRPC {
-  query: PeerExchangeQuery;
-  response: PeerExchangeResponse;
+  query?: PeerExchangeQuery;
+  response?: PeerExchangeResponse;
 }
 
 export namespace PeerExchangeRPC {
@@ -239,19 +215,11 @@ export namespace PeerExchangeRPC {
           if (obj.query != null) {
             writer.uint32(10);
             PeerExchangeQuery.codec().encode(obj.query, writer);
-          } else {
-            throw new Error(
-              'Protocol error: required field "query" was not found in object'
-            );
           }
 
           if (obj.response != null) {
             writer.uint32(18);
             PeerExchangeResponse.codec().encode(obj.response, writer);
-          } else {
-            throw new Error(
-              'Protocol error: required field "response" was not found in object'
-            );
           }
 
           if (opts.lengthDelimited !== false) {
@@ -259,10 +227,7 @@ export namespace PeerExchangeRPC {
           }
         },
         (reader, length) => {
-          const obj: any = {
-            query: undefined,
-            response: undefined,
-          };
+          const obj: any = {};
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -286,18 +251,6 @@ export namespace PeerExchangeRPC {
                 reader.skipType(tag & 7);
                 break;
             }
-          }
-
-          if (obj.query == null) {
-            throw new Error(
-              'Protocol error: value for required field "query" was not found in protobuf'
-            );
-          }
-
-          if (obj.response == null) {
-            throw new Error(
-              'Protocol error: value for required field "response" was not found in protobuf'
-            );
           }
 
           return obj;
