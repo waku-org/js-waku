@@ -1,8 +1,8 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
-import { createFullNode } from "@waku/create";
-import type { DecodedMessage, WakuFull } from "@waku/interfaces";
+import { createLightNode } from "@waku/create";
+import type { DecodedMessage, WakuLight } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import debug from "debug";
@@ -17,7 +17,7 @@ const TestEncoder = new EncoderV0(TestContentTopic);
 const TestDecoder = new DecoderV0(TestContentTopic);
 
 describe("Waku Filter", () => {
-  let waku: WakuFull;
+  let waku: WakuLight;
   let nwaku: Nwaku;
 
   afterEach(async function () {
@@ -29,7 +29,7 @@ describe("Waku Filter", () => {
     this.timeout(15000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ filter: true, lightpush: true });
-    waku = await createFullNode({
+    waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     });
