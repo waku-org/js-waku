@@ -1,7 +1,7 @@
 import type {
-  DecodedMessage,
-  Decoder,
-  Encoder,
+  DecodedMessage as IDecodedMessage,
+  Decoder as IDecoder,
+  Encoder as IEncoder,
   Message,
   ProtoMessage,
   RateLimitProof,
@@ -16,7 +16,7 @@ const OneMillion = BigInt(1_000_000);
 export const Version = 0;
 export { proto };
 
-export class MessageV0 implements DecodedMessage {
+export class DecodedMessage implements IDecodedMessage {
   constructor(protected proto: proto.WakuMessage) {}
 
   get _rawPayload(): Uint8Array | undefined {
@@ -71,7 +71,7 @@ export class MessageV0 implements DecodedMessage {
   }
 }
 
-export class EncoderV0 implements Encoder {
+class Encoder implements IEncoder {
   constructor(public contentTopic: string, public ephemeral: boolean = false) {}
 
   async toWire(message: Partial<Message>): Promise<Uint8Array> {
@@ -92,7 +92,14 @@ export class EncoderV0 implements Encoder {
   }
 }
 
-export class DecoderV0 implements Decoder<MessageV0> {
+export function createEncoder(
+  contentTopic: string,
+  ephemeral = false
+): Encoder {
+  return new Encoder(contentTopic, ephemeral);
+}
+
+export class Decoder implements IDecoder<DecodedMessage> {
   constructor(public contentTopic: string, public ephemeral: boolean = false) {}
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
@@ -108,7 +115,7 @@ export class DecoderV0 implements Decoder<MessageV0> {
     });
   }
 
-  async fromProtoObj(proto: ProtoMessage): Promise<MessageV0 | undefined> {
+  async fromProtoObj(proto: ProtoMessage): Promise<DecodedMessage | undefined> {
     // https://github.com/status-im/js-waku/issues/921
     if (proto.version === undefined) {
       proto.version = 0;
@@ -124,6 +131,13 @@ export class DecoderV0 implements Decoder<MessageV0> {
       return Promise.resolve(undefined);
     }
 
-    return new MessageV0(proto);
+    return new DecodedMessage(proto);
   }
+}
+
+export function createDecoder(
+  contentTopic: string,
+  ephemeral = false
+): Encoder {
+  return new Decoder(contentTopic, ephemeral);
 }
