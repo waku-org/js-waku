@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `@multiformats/multiaddr` as peer dependency.
+
 ## @waku/core [0.0.6](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.5...@waku/core@0.0.6) (2022-11-18)
 
 ### Added
