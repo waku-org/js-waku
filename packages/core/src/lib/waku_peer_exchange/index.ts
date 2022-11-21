@@ -1,4 +1,6 @@
+import type { Stream } from "@libp2p/interface-connection";
 import { ConnectionManager } from "@libp2p/interface-connection-manager";
+import { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import {
   PeerExchange,
@@ -6,10 +8,10 @@ import {
   PeerExchangeResponse,
   ProtocolOptions,
 } from "@waku/interfaces";
+import all from "it-all";
 // import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
-import { Uint8ArrayList } from "uint8arraylist";
 
 import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer";
@@ -41,64 +43,72 @@ class WakuPeerExchange implements PeerExchange {
     const { numPeers } = params;
 
     try {
-      const peerRes = await selectPeerForProtocol(this.components.peerStore, [
-        PeerExchangeCodec,
-      ]);
-
-      console.log("peer res");
-
-      if (!peerRes) {
-        throw new Error("No peer found");
-      }
-
-      const { peer } = peerRes;
-
-      const connections = this.components.connectionManager.getConnections(
-        peer.id
-      );
-      const connection = selectConnection(connections);
-
-      if (!connection) throw "Failed to get a connection to the peer";
-
-      const stream = await connection.newStream(PeerExchangeCodec);
-
       const rpcQuery = PeerExchangeRPC.createRequest({ numPeers });
 
-      console.log("rpc query", rpcQuery);
+      const peer = await this.getPeer();
 
-      const res = await pipe(
-        [rpcQuery.encode()],
-        lp.encode(),
-        stream,
-        lp.decode(),
-        async (source) => {
-          console.log(source);
-          // await all(source);
-        }
-      );
+      const stream = await this.newStream(peer);
 
-      console.log("pipe", res);
-
-      const bytes = new Uint8ArrayList();
-      // res.forEach((chunk) => {
-      //   bytes.append(chunk);
-      // });
-
-      console.log("bytes");
-
-      const response = PeerExchangeRPC.decode(bytes).response;
-
-      console.log({ response });
-
-      if (!response) {
-        throw new Error("Failed to decode response");
+      try {
+        const pipeResponse = await pipe(
+          [rpcQuery.encode()],
+          lp.encode(),
+          stream,
+          lp.decode(),
+          async (source) => await all(source)
+        );
+        console.log({ pipeResponse });
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
 
-      return response;
+      return { peerInfos: [] };
+
+      // const bytes = new Uint8ArrayList();
+      // // res.forEach((chunk) => {
+      // //   bytes.append(chunk);
+      // // });
+
+      // console.log("bytes");
+
+      // const response = PeerExchangeRPC.decode(bytes).response;
+
+      // console.log({ response });
+
+      // if (!response) {
+      //   throw new Error("Failed to decode response");
+      // }
+
+      // return response;
     } catch (error) {
       console.error({ error });
       throw error;
     }
+  }
+
+  private async getPeer(peerId?: PeerId): Promise<Peer> {
+    const res = await selectPeerForProtocol(
+      this.components.peerStore,
+      [PeerExchangeCodec],
+      peerId
+    );
+    if (!res) {
+      throw new Error(`Failed to select peer for ${PeerExchangeCodec}`);
+    }
+    return res.peer;
+  }
+
+  private async newStream(peer: Peer): Promise<Stream> {
+    const connections = this.components.connectionManager.getConnections(
+      peer.id
+    );
+    const connection = selectConnection(connections);
+    if (!connection) {
+      throw new Error("Failed to get a connection to the peer");
+    }
+
+    return connection.newStream(PeerExchangeCodec);
   }
 }
 
