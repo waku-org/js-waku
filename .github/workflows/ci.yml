@@ -77,7 +77,7 @@ jobs:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
       - run: npm run build
-      - run: npm run test:node > debug.log
+      - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
@@ -131,7 +131,7 @@ jobs:
 
       - uses: bahmutov/npm-install@v1
       - run: npm run build
-      - run: npm run test:node > debug.log
+      - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
@@ -185,7 +185,7 @@ jobs:
           ./build/wakunode2 --help
 
       - run: npm run build
-      - run: npm run test:node > debug.log
+      - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
