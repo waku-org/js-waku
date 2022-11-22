@@ -79,7 +79,7 @@ jobs:
       - run: npm run build
       - run: npm run test:node
         env:
-          DEBUG: "waku:nwaku*,waku:test*"
+          DEBUG: ""
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
