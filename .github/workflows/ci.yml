@@ -77,9 +77,9 @@ jobs:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
       - run: npm run build
-      - run: npm run test:node > debug.log
+      - run: npm run test:node
         env:
-          DEBUG: "waku:nwaku*,waku:test*"
+          DEBUG: ""
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
@@ -131,7 +131,7 @@ jobs:
 
       - uses: bahmutov/npm-install@v1
       - run: npm run build
-      - run: npm run test:node > debug.log
+      - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
@@ -185,7 +185,7 @@ jobs:
           ./build/wakunode2 --help
 
       - run: npm run build
-      - run: npm run test:node > debug.log
+      - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
