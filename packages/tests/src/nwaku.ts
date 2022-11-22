@@ -56,6 +56,7 @@ export interface Args {
   tcpPort?: number;
   rpcPort?: number;
   websocketPort?: number;
+  manualArgs?: string[];
 }
 
 export enum LogLevel {
@@ -166,13 +167,21 @@ export class Nwaku {
       args
     );
 
+    const { manualArgs: manualFlags } = mergedArgs;
+
+    mergedArgs.manualArgs && delete mergedArgs.manualArgs;
+
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
     const argsArray = argsToArray(mergedArgs);
+    if (manualFlags) {
+      argsArray.push(...manualFlags);
+    }
     if (WAKU_SERVICE_NODE_PARAMS) {
       argsArray.push(WAKU_SERVICE_NODE_PARAMS);
     }
     log(`nwaku args: ${argsArray.join(" ")}`);
+
     this.process = spawn(WAKU_SERVICE_NODE_BIN, argsArray, {
       cwd: WAKU_SERVICE_NODE_DIR,
       stdio: [
@@ -442,7 +451,7 @@ export function defaultArgs(): Args {
   return {
     listenAddress: "127.0.0.1",
     nat: "none",
-    relay: true,
+    // relay: true,
     rpc: true,
     rpcAdmin: true,
     websocketSupport: true,
