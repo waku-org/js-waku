@@ -309,9 +309,8 @@ async function* paginate<T extends DecodedMessage>(
   }
 
   let currentCursor = cursor;
-
   while (true) {
-    queryOpts = Object.assign(queryOpts, { currentCursor });
+    queryOpts.cursor = currentCursor;
 
     const stream = await connection.newStream(protocol);
     const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
