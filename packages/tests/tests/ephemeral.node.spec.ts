@@ -1,16 +1,20 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
-import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
-import { createLightNode } from "@waku/create";
-import { DecodedMessage, Protocols, WakuLight } from "@waku/interfaces";
 import {
-  AsymDecoder,
-  AsymEncoder,
+  createDecoder,
+  createEncoder,
+  DecodedMessage,
+} from "@waku/core/lib/waku_message/version_0";
+import { createLightNode } from "@waku/create";
+import { Protocols, WakuLight } from "@waku/interfaces";
+import {
+  createAsymDecoder,
+  createAsymEncoder,
+  createSymDecoder,
+  createSymEncoder,
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
-  SymDecoder,
-  SymEncoder,
 } from "@waku/message-encryption";
 import { expect } from "chai";
 import debug from "debug";
@@ -26,8 +30,8 @@ import {
 const log = debug("waku:test:ephemeral");
 
 const TestContentTopic = "/test/1/ephemeral/utf8";
-const TestEncoder = new EncoderV0(TestContentTopic);
-const TestDecoder = new DecoderV0(TestContentTopic);
+const TestEncoder = createEncoder(TestContentTopic);
+const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Message Ephemeral field", () => {
   let waku: WakuLight;
@@ -75,17 +79,22 @@ describe("Waku Message Ephemeral field", () => {
     const AsymContentTopic = "/test/1/ephemeral-asym/utf8";
     const SymContentTopic = "/test/1/ephemeral-sym/utf8";
 
-    const asymEncoder = new AsymEncoder(
+    const asymEncoder = createAsymEncoder(
       AsymContentTopic,
       publicKey,
       undefined,
       true
     );
-    const symEncoder = new SymEncoder(SymContentTopic, symKey, undefined, true);
-    const clearEncoder = new EncoderV0(TestContentTopic, true);
+    const symEncoder = createSymEncoder(
+      SymContentTopic,
+      symKey,
+      undefined,
+      true
+    );
+    const clearEncoder = createEncoder(TestContentTopic, true);
 
-    const asymDecoder = new AsymDecoder(AsymContentTopic, privateKey);
-    const symDecoder = new SymDecoder(SymContentTopic, symKey);
+    const asymDecoder = createAsymDecoder(AsymContentTopic, privateKey);
+    const symDecoder = createSymDecoder(SymContentTopic, symKey);
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createLightNode({
@@ -142,7 +151,7 @@ describe("Waku Message Ephemeral field", () => {
   it("Ephemeral field is preserved - encoder v0", async function () {
     this.timeout(10000);
 
-    const ephemeralEncoder = new EncoderV0(TestContentTopic, true);
+    const ephemeralEncoder = createEncoder(TestContentTopic, true);
 
     const messages: DecodedMessage[] = [];
     const callback = (msg: DecodedMessage): void => {
@@ -182,14 +191,14 @@ describe("Waku Message Ephemeral field", () => {
 
     const symKey = generateSymmetricKey();
 
-    const ephemeralEncoder = new SymEncoder(
+    const ephemeralEncoder = createSymEncoder(
       TestContentTopic,
       symKey,
       undefined,
       true
     );
-    const encoder = new SymEncoder(TestContentTopic, symKey);
-    const decoder = new SymDecoder(TestContentTopic, symKey);
+    const encoder = createSymEncoder(TestContentTopic, symKey);
+    const decoder = createSymDecoder(TestContentTopic, symKey);
 
     const messages: DecodedMessage[] = [];
     const callback = (msg: DecodedMessage): void => {
@@ -230,14 +239,14 @@ describe("Waku Message Ephemeral field", () => {
     const privKey = generatePrivateKey();
     const pubKey = getPublicKey(privKey);
 
-    const ephemeralEncoder = new AsymEncoder(
+    const ephemeralEncoder = createAsymEncoder(
       TestContentTopic,
       pubKey,
       undefined,
       true
     );
-    const encoder = new AsymEncoder(TestContentTopic, pubKey);
-    const decoder = new AsymDecoder(TestContentTopic, privKey);
+    const encoder = createAsymEncoder(TestContentTopic, pubKey);
+    const decoder = createAsymDecoder(TestContentTopic, privKey);
 
     const messages: DecodedMessage[] = [];
     const callback = (msg: DecodedMessage): void => {

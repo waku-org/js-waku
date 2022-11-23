@@ -71,7 +71,7 @@ export class DecodedMessage implements IDecodedMessage {
   }
 }
 
-class Encoder implements IEncoder {
+export class Encoder implements IEncoder {
   constructor(public contentTopic: string, public ephemeral: boolean = false) {}
 
   async toWire(message: Partial<Message>): Promise<Uint8Array> {
@@ -138,6 +138,6 @@ export class Decoder implements IDecoder<DecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   ephemeral = false
-): Encoder {
+): Decoder {
   return new Decoder(contentTopic, ephemeral);
 }

@@ -1,18 +1,21 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { createCursor, PageDirection } from "@waku/core";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
-import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
+import {
+  createDecoder,
+  createEncoder,
+} from "@waku/core/lib/waku_message/version_0";
 import { createLightNode } from "@waku/create";
 import { DecodedMessage, Message, WakuLight } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
-  AsymDecoder,
-  AsymEncoder,
+  createAsymDecoder,
+  createAsymEncoder,
+  createSymDecoder,
+  createSymEncoder,
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
-  SymDecoder,
-  SymEncoder,
 } from "@waku/message-encryption";
 import { expect } from "chai";
 import debug from "debug";
@@ -28,8 +31,8 @@ import {
 const log = debug("waku:test:store");
 
 const TestContentTopic = "/test/1/waku-store/utf8";
-const TestEncoder = new EncoderV0(TestContentTopic);
-const TestDecoder = new DecoderV0(TestContentTopic);
+const TestEncoder = createEncoder(TestContentTopic);
+const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Store", () => {
   let waku: WakuLight;
@@ -365,16 +368,16 @@ describe("Waku Store", () => {
     const symKey = generateSymmetricKey();
     const publicKey = getPublicKey(privateKey);
 
-    const asymEncoder = new AsymEncoder(asymTopic, publicKey);
-    const symEncoder = new SymEncoder(symTopic, symKey);
+    const asymEncoder = createAsymEncoder(asymTopic, publicKey);
+    const symEncoder = createSymEncoder(symTopic, symKey);
 
-    const otherEncoder = new AsymEncoder(
+    const otherEncoder = createAsymEncoder(
       TestContentTopic,
       getPublicKey(generatePrivateKey())
     );
 
-    const asymDecoder = new AsymDecoder(asymTopic, privateKey);
-    const symDecoder = new SymDecoder(symTopic, symKey);
+    const asymDecoder = createAsymDecoder(asymTopic, privateKey);
+    const symDecoder = createSymDecoder(symTopic, symKey);
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createLightNode({

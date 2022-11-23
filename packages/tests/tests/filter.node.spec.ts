@@ -1,6 +1,9 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
-import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
+import {
+  createDecoder,
+  createEncoder,
+} from "@waku/core/lib/waku_message/version_0";
 import { createLightNode } from "@waku/create";
 import type { DecodedMessage, WakuLight } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -12,8 +15,8 @@ import { delay, makeLogFileName, NOISE_KEY_1, Nwaku } from "../src/index.js";
 const log = debug("waku:test");
 
 const TestContentTopic = "/test/1/waku-filter";
-const TestEncoder = new EncoderV0(TestContentTopic);
-const TestDecoder = new DecoderV0(TestContentTopic);
+const TestEncoder = createEncoder(TestContentTopic);
+const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Filter", () => {
   let waku: WakuLight;

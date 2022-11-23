@@ -1,14 +1,14 @@
 import * as secp from "@noble/secp256k1";
 import { concat, hexToBytes } from "@waku/byte-utils";
 import {
-  DecoderV0,
-  MessageV0,
+  DecodedMessage as DecodedMessageV0,
+  Decoder as DecoderV0,
   proto,
 } from "@waku/core/lib/waku_message/version_0";
 import type {
-  DecodedMessage,
-  Decoder,
-  Encoder,
+  DecodedMessage as IDecodedMessage,
+  Decoder as IDecoder,
+  Encoder as IEncoder,
   Message,
   ProtoMessage,
 } from "@waku/interfaces";
@@ -44,7 +44,10 @@ export type Signature = {
   publicKey: Uint8Array | undefined;
 };
 
-export class MessageV1 extends MessageV0 implements DecodedMessage {
+export class DecodedMessage
+  extends DecodedMessageV0
+  implements IDecodedMessage
+{
   private readonly _decodedPayload: Uint8Array;
 
   constructor(
@@ -62,7 +65,7 @@ export class MessageV1 extends MessageV0 implements DecodedMessage {
   }
 }
 
-export class AsymEncoder implements Encoder {
+class AsymEncoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private publicKey: Uint8Array,
@@ -100,7 +103,16 @@ export class AsymEncoder implements Encoder {
   }
 }
 
-export class SymEncoder implements Encoder {
+export function createAsymEncoder(
+  contentTopic: string,
+  publicKey: Uint8Array,
+  sigPrivKey?: Uint8Array,
+  ephemeral = false
+): AsymEncoder {
+  return new AsymEncoder(contentTopic, publicKey, sigPrivKey, ephemeral);
+}
+
+class SymEncoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private symKey: Uint8Array,
@@ -137,14 +149,23 @@ export class SymEncoder implements Encoder {
   }
 }
 
-export class AsymDecoder extends DecoderV0 implements Decoder<MessageV1> {
+export function createSymEncoder(
+  contentTopic: string,
+  symKey: Uint8Array,
+  sigPrivKey?: Uint8Array,
+  ephemeral = false
+): SymEncoder {
+  return new SymEncoder(contentTopic, symKey, sigPrivKey, ephemeral);
+}
+
+class AsymDecoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private privateKey: Uint8Array) {
     super(contentTopic);
   }
 
   async fromProtoObj(
     protoMessage: ProtoMessage
-  ): Promise<MessageV1 | undefined> {
+  ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 
     if (protoMessage.version !== Version) {
@@ -186,7 +207,7 @@ export class AsymDecoder extends DecoderV0 implements Decoder<MessageV1> {
     }
 
     log("Message decrypted", protoMessage);
-    return new MessageV1(
+    return new DecodedMessage(
       protoMessage,
       res.payload,
       res.sig?.signature,
@@ -195,14 +216,21 @@ export class AsymDecoder extends DecoderV0 implements Decoder<MessageV1> {
   }
 }
 
-export class SymDecoder extends DecoderV0 implements Decoder<MessageV1> {
+export function createAsymDecoder(
+  contentTopic: string,
+  privateKey: Uint8Array
+): AsymDecoder {
+  return new AsymDecoder(contentTopic, privateKey);
+}
+
+class SymDecoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private symKey: Uint8Array) {
     super(contentTopic);
   }
 
   async fromProtoObj(
     protoMessage: ProtoMessage
-  ): Promise<MessageV1 | undefined> {
+  ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 
     if (protoMessage.version !== Version) {
@@ -244,13 +272,20 @@ export class SymDecoder extends DecoderV0 implements Decoder<MessageV1> {
     }
 
     log("Message decrypted", protoMessage);
-    return new MessageV1(
+    return new DecodedMessage(
       protoMessage,
       res.payload,
       res.sig?.signature,
       res.sig?.publicKey
     );
   }
+}
+
+export function createSymDecoder(
+  contentTopic: string,
+  symKey: Uint8Array
+): SymDecoder {
+  return new SymDecoder(contentTopic, symKey);
 }
 
 function getSizeOfPayloadSizeField(message: Uint8Array): number {

@@ -4,16 +4,16 @@ import fc from "fast-check";
 import { getPublicKey } from "./crypto.js";
 
 import {
-  AsymDecoder,
-  AsymEncoder,
+  createAsymDecoder,
+  createAsymEncoder,
+  createSymDecoder,
+  createSymEncoder,
   decryptAsymmetric,
   decryptSymmetric,
   encryptAsymmetric,
   encryptSymmetric,
   postCipher,
   preCipher,
-  SymDecoder,
-  SymEncoder,
 } from "./index.js";
 
 const TestContentTopic = "/test/1/waku-message/utf8";
@@ -27,10 +27,10 @@ describe("Waku Message version 1", function () {
         async (payload, privateKey) => {
           const publicKey = getPublicKey(privateKey);
 
-          const encoder = new AsymEncoder(TestContentTopic, publicKey);
+          const encoder = createAsymEncoder(TestContentTopic, publicKey);
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = new AsymDecoder(TestContentTopic, privateKey);
+          const decoder = createAsymDecoder(TestContentTopic, privateKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(protoResult);
@@ -58,14 +58,14 @@ describe("Waku Message version 1", function () {
           const alicePublicKey = getPublicKey(alicePrivateKey);
           const bobPublicKey = getPublicKey(bobPrivateKey);
 
-          const encoder = new AsymEncoder(
+          const encoder = createAsymEncoder(
             TestContentTopic,
             bobPublicKey,
             alicePrivateKey
           );
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = new AsymDecoder(TestContentTopic, bobPrivateKey);
+          const decoder = createAsymDecoder(TestContentTopic, bobPrivateKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(protoResult);
@@ -87,10 +87,10 @@ describe("Waku Message version 1", function () {
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (payload, symKey) => {
-          const encoder = new SymEncoder(TestContentTopic, symKey);
+          const encoder = createSymEncoder(TestContentTopic, symKey);
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = new SymDecoder(TestContentTopic, symKey);
+          const decoder = createSymDecoder(TestContentTopic, symKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(protoResult);
@@ -115,10 +115,14 @@ describe("Waku Message version 1", function () {
         async (payload, sigPrivKey, symKey) => {
           const sigPubKey = getPublicKey(sigPrivKey);
 
-          const encoder = new SymEncoder(TestContentTopic, symKey, sigPrivKey);
+          const encoder = createSymEncoder(
+            TestContentTopic,
+            symKey,
+            sigPrivKey
+          );
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = new SymDecoder(TestContentTopic, symKey);
+          const decoder = createSymDecoder(TestContentTopic, symKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(protoResult);

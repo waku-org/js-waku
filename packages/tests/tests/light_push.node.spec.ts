@@ -1,6 +1,6 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
-import { EncoderV0 } from "@waku/core/lib/waku_message/version_0";
+import { createEncoder } from "@waku/core/lib/waku_message/version_0";
 import { createLightNode } from "@waku/create";
 import type { WakuLight } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -18,7 +18,7 @@ import {
 const log = debug("waku:test:lightpush");
 
 const TestContentTopic = "/test/1/waku-light-push/utf8";
-const TestEncoder = new EncoderV0(TestContentTopic);
+const TestEncoder = createEncoder(TestContentTopic);
 
 describe("Waku Light Push [node only]", () => {
   let waku: WakuLight;
