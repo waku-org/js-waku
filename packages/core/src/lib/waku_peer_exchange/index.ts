@@ -80,6 +80,7 @@ class WakuPeerExchange implements PeerExchange {
       });
 
       return { peerInfos };
+
     } catch (error) {
       console.error({ error });
       throw error;
