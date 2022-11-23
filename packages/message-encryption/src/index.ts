@@ -15,6 +15,7 @@ import type {
 import debug from "debug";
 
 import { Symmetric } from "./constants.js";
+import * as ecies from "./crypto/ecies.js";
 import {
   generatePrivateKey,
   generateSymmetricKey,
@@ -22,9 +23,8 @@ import {
   keccak256,
   randomBytes,
   sign,
-} from "./crypto.js";
-import * as ecies from "./ecies.js";
-import * as symmetric from "./symmetric.js";
+} from "./crypto/index.js";
+import * as symmetric from "./crypto/symmetric.js";
 
 const log = debug("waku:message:version-1");
 
