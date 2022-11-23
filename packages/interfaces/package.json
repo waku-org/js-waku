@@ -53,6 +53,7 @@
     "@libp2p/interface-peer-id": "^1.0.5",
     "@libp2p/interface-peer-store": "^1.2.3",
     "@multiformats/multiaddr": "^11.0.6",
+    "libp2p/interface-discovery": "^1.0.2",
     "libp2p": "0.40.0"
   },
   "devDependencies": {

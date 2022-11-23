@@ -1,7 +1,9 @@
 import type { Stream } from "@libp2p/interface-connection";
 import { ConnectionManager } from "@libp2p/interface-connection-manager";
+import { PeerDiscoveryEvents, symbol } from "@libp2p/interface-peer-discovery";
 import { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import { EventEmitter } from "@libp2p/interfaces/dist/src/events";
 import {
   PeerExchange,
   PeerExchangeQueryParams,
@@ -25,11 +27,16 @@ export interface PeerExchangeComponents {
   peerStore: PeerStore;
 }
 
-class WakuPeerExchange implements PeerExchange {
+class WakuPeerExchange
+  extends EventEmitter<PeerDiscoveryEvents>
+  implements PeerExchange
+{
   constructor(
     public components: PeerExchangeComponents,
     public createOptions: ProtocolOptions
-  ) {}
+  ) {
+    super();
+  }
 
   async peers(): Promise<Peer[]> {
     return getPeersForProtocol(this.components.peerStore, [PeerExchangeCodec]);
@@ -109,6 +116,14 @@ class WakuPeerExchange implements PeerExchange {
     }
 
     return connection.newStream(PeerExchangeCodec);
+  }
+
+  get [symbol](): true {
+    return true;
+  }
+
+  get [Symbol.toStringTag](): string {
+    return "@waku/peerExchange";
   }
 }
 
