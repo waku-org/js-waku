@@ -1,10 +1,6 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
+import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
-import {
-  createDecoder,
-  createEncoder,
-  DecodedMessage,
-} from "@waku/core/lib/waku_message/version_0";
 import { createLightNode } from "@waku/create";
 import { Protocols, WakuLight } from "@waku/interfaces";
 import {

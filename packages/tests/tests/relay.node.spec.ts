@@ -1,12 +1,8 @@
 import { PeerId } from "@libp2p/interface-peer-id";
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { DefaultPubSubTopic } from "@waku/core";
+import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
-import {
-  createDecoder,
-  createEncoder,
-  DecodedMessage,
-} from "@waku/core/lib/waku_message/version_0";
 import { createPrivacyNode } from "@waku/create";
 import type { WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
