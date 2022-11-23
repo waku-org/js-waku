@@ -31,6 +31,9 @@ class WakuPeerExchange
   extends EventEmitter<PeerDiscoveryEvents>
   implements PeerExchange
 {
+  [Symbol.toStringTag] = "peer-exchange";
+  [symbol] = true as const;
+
   constructor(
     public components: PeerExchangeComponents,
     public createOptions: ProtocolOptions
@@ -116,14 +119,6 @@ class WakuPeerExchange
     }
 
     return connection.newStream(PeerExchangeCodec);
-  }
-
-  get [symbol](): true {
-    return true;
-  }
-
-  get [Symbol.toStringTag](): string {
-    return "@waku/peerExchange";
   }
 }
 
