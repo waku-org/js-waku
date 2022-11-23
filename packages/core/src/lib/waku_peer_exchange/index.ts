@@ -28,7 +28,7 @@ export interface PeerExchangeComponents {
   peerStore: PeerStore;
 }
 
-class WakuPeerExchange implements PeerExchange {
+export class WakuPeerExchange implements PeerExchange {
   constructor(
     public components: PeerExchangeComponents,
     public createOptions: ProtocolOptions
@@ -80,7 +80,6 @@ class WakuPeerExchange implements PeerExchange {
       });
 
       return { peerInfos };
-
     } catch (error) {
       console.error({ error });
       throw error;
