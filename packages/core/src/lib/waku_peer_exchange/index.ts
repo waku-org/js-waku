@@ -2,16 +2,19 @@ import type { Stream } from "@libp2p/interface-connection";
 import { ConnectionManager } from "@libp2p/interface-connection-manager";
 import { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import { ENR } from "@waku/enr";
 import {
   PeerExchange,
   PeerExchangeQueryParams,
   PeerExchangeResponse,
+  PeerInfo,
   ProtocolOptions,
 } from "@waku/interfaces";
 import all from "it-all";
 // import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
+import { Uint8ArrayList } from "uint8arraylist";
 
 import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer";
@@ -49,38 +52,34 @@ class WakuPeerExchange implements PeerExchange {
 
       const stream = await this.newStream(peer);
 
-      try {
-        const pipeResponse = await pipe(
-          [rpcQuery.encode()],
-          lp.encode(),
-          stream,
-          lp.decode(),
-          async (source) => await all(source)
-        );
-        console.log({ pipeResponse });
-      } catch (error) {
-        console.error(error);
-        throw error;
+      const pipeResponse = await pipe(
+        [rpcQuery.encode()],
+        lp.encode(),
+        stream,
+        lp.decode(),
+        async (source) => await all(source)
+      );
+
+      const bytes = new Uint8ArrayList();
+      pipeResponse.forEach((chunk) => {
+        bytes.append(chunk);
+      });
+
+      const decoded = PeerExchangeRPC.decode(bytes).response;
+
+      if (!decoded) {
+        throw new Error("Failed to decode response");
       }
 
-      return { peerInfos: [] };
+      const peerInfos: PeerInfo[] = [];
 
-      // const bytes = new Uint8ArrayList();
-      // // res.forEach((chunk) => {
-      // //   bytes.append(chunk);
-      // // });
+      decoded.peerInfos.forEach(async (peerInfo) => {
+        if (!peerInfo.ENR) return;
+        const enr = await ENR.decode(peerInfo.ENR);
+        peerInfos.push({ ENR: enr });
+      });
 
-      // console.log("bytes");
-
-      // const response = PeerExchangeRPC.decode(bytes).response;
-
-      // console.log({ response });
-
-      // if (!response) {
-      //   throw new Error("Failed to decode response");
-      // }
-
-      // return response;
+      return { peerInfos };
     } catch (error) {
       console.error({ error });
       throw error;
