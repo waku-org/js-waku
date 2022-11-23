@@ -12,6 +12,7 @@ import all from "it-all";
 // import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
+import { Uint8ArrayList } from "uint8arraylist";
 
 import { selectConnection } from "../select_connection";
 import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer";
@@ -49,38 +50,26 @@ class WakuPeerExchange implements PeerExchange {
 
       const stream = await this.newStream(peer);
 
-      try {
-        const pipeResponse = await pipe(
-          [rpcQuery.encode()],
-          lp.encode(),
-          stream,
-          lp.decode(),
-          async (source) => await all(source)
-        );
-        console.log({ pipeResponse });
-      } catch (error) {
-        console.error(error);
-        throw error;
+      const pipeResponse = await pipe(
+        [rpcQuery.encode()],
+        lp.encode(),
+        stream,
+        lp.decode(),
+        async (source) => await all(source)
+      );
+
+      const bytes = new Uint8ArrayList();
+      pipeResponse.forEach((chunk) => {
+        bytes.append(chunk);
+      });
+
+      const response = PeerExchangeRPC.decode(bytes).response;
+
+      if (!response) {
+        throw new Error("Failed to decode response");
       }
 
-      return { peerInfos: [] };
-
-      // const bytes = new Uint8ArrayList();
-      // // res.forEach((chunk) => {
-      // //   bytes.append(chunk);
-      // // });
-
-      // console.log("bytes");
-
-      // const response = PeerExchangeRPC.decode(bytes).response;
-
-      // console.log({ response });
-
-      // if (!response) {
-      //   throw new Error("Failed to decode response");
-      // }
-
-      // return response;
+      return response;
     } catch (error) {
       console.error({ error });
       throw error;
