@@ -7,11 +7,9 @@ import {
   PeerExchange,
   PeerExchangeQueryParams,
   PeerExchangeResponse,
-  PeerInfo,
   ProtocolOptions,
 } from "@waku/interfaces";
 import all from "it-all";
-// import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
@@ -71,16 +69,20 @@ class WakuPeerExchange implements PeerExchange {
         throw new Error("Failed to decode response");
       }
 
-      const peerInfos: PeerInfo[] = [];
+      const enrPromises: Promise<ENR>[] = [];
+      for (const peerInfo of decoded.peerInfos) {
+        if (!peerInfo.ENR) continue;
+        const enr = ENR.decode(peerInfo.ENR);
+        enrPromises.push(enr);
+      }
 
-      decoded.peerInfos.forEach(async (peerInfo) => {
-        if (!peerInfo.ENR) return;
-        const enr = await ENR.decode(peerInfo.ENR);
-        peerInfos.push({ ENR: enr });
+      const peerInfos = (await Promise.all(enrPromises)).map((enr) => {
+        return {
+          ENR: enr,
+        };
       });
 
       return { peerInfos };
-
     } catch (error) {
       console.error({ error });
       throw error;
