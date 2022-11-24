@@ -2,12 +2,15 @@ import type { Stream } from "@libp2p/interface-connection";
 import { ConnectionManager } from "@libp2p/interface-connection-manager";
 import { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import type { IncomingStreamData } from "@libp2p/interface-registrar";
+import type { Registrar } from "@libp2p/interface-registrar";
 import {
   PeerExchange,
   PeerExchangeQueryParams,
   PeerExchangeResponse,
   ProtocolOptions,
 } from "@waku/interfaces";
+import debug from "debug";
 import all from "it-all";
 // import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -21,16 +24,43 @@ import { PeerExchangeRPC } from "./peer_exchange_rpc";
 
 export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
+const log = debug("waku:peer-exchange");
+
 export interface PeerExchangeComponents {
   connectionManager: ConnectionManager;
   peerStore: PeerStore;
+  registrar: Registrar;
 }
 
 class WakuPeerExchange implements PeerExchange {
   constructor(
     public components: PeerExchangeComponents,
     public createOptions: ProtocolOptions
-  ) {}
+  ) {
+    this.components.registrar
+      .handle(PeerExchangeCodec, this.onRequest.bind(this))
+      .catch((e) => log("Failed to register peer exchange protocol", e));
+  }
+
+  private onRequest(streamData: IncomingStreamData): void {
+    log("Receiving message push");
+    try {
+      pipe(streamData.stream, lp.decode(), async (source) => {
+        for await (const bytes of source) {
+          console.log(bytes); // TODO: handle incoming message
+        }
+      }).then(
+        () => {
+          log("Receiving pipe closed.");
+        },
+        (e) => {
+          log("Error with receiving pipe", e);
+        }
+      );
+    } catch (e) {
+      log("Error decoding message", e);
+    }
+  }
 
   async peers(): Promise<Peer[]> {
     return getPeersForProtocol(this.components.peerStore, [PeerExchangeCodec]);
