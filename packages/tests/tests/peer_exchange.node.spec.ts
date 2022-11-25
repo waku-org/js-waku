@@ -19,8 +19,8 @@ describe("Peer Exchange: Node", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it("Queries successfully", async function () {
-    this.timeout(15_000);
+  it.only("Queries successfully", async function () {
+    this.timeout(150_000);
 
     console.log("starting");
     nwaku1 = new Nwaku(makeLogFileName(this));
