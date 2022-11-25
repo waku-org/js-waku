@@ -7,7 +7,6 @@ import {
   selectConnection,
   selectPeerForProtocol,
 } from "@waku/core";
-import { ENR } from "@waku/enr";
 import {
   PeerExchange,
   PeerExchangeComponents,
@@ -34,7 +33,7 @@ export class WakuPeerExchange implements PeerExchange {
     public createOptions: ProtocolOptions
   ) {
     this.components.registrar
-      .handle(PeerExchangeCodec, this.onResponse.bind(this))
+      .handle(PeerExchangeCodec, this.onRequest.bind(this))
       .catch((e) => log("Failed to register peer exchange protocol", e));
   }
 
@@ -65,42 +64,65 @@ export class WakuPeerExchange implements PeerExchange {
 
     console.log({ res });
 
-    while (!this._pxResponse) {
-      console.log("waiting for 1 sec", this._pxResponse);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    return this._pxResponse!;
+
+    // while (!this._pxResponse) {
+    //   console.log("waiting for 1 sec", this._pxResponse);
+    //   await new Promise((resolve) => setTimeout(resolve, 1000));
+    // }
+
+    // return this._pxResponse;
+  }
+
+  private onRequest(streamData: IncomingStreamData): void {
+    log("Receiving message push");
+    try {
+      pipe(streamData.stream, lp.decode(), async (source) => {
+        for await (const bytes of source) {
+          console.log(bytes); // TODO: handle incoming message
+        }
+      }).then(
+        () => {
+          log("Receiving pipe closed.");
+        },
+        (e) => {
+          log("Error with receiving pipe", e);
+        }
+      );
+    } catch (e) {
+      log("Error decoding message", e);
     }
-
-    return this._pxResponse;
   }
 
-  private onResponse(streamData: IncomingStreamData): void {
-    const { stream } = streamData;
-    console.log("received");
-    pipe(stream, lp.decode(), async (source) => {
-      for await (const bytes of source) {
-        console.log({ bytes });
-        const decoded = PeerExchangeRPC.decode(bytes);
-        if (!decoded || !decoded.response) {
-          throw new Error("Failed to decode response");
-        }
+  // private onRequest(streamData: IncomingStreamData): void {
+  //   const { stream } = streamData;
+  //   console.log("received");
+  //   pipe(stream, lp.decode(), async (source) => {
+  //     for await (const bytes of source) {
+  //       console.log({ bytes });
+  //       // const decoded = PeerExchangeRPC.decode(bytes);
+  //       // if (!decoded || !decoded.response) {
+  //       //   throw new Error("Failed to decode response");
+  //       // }
 
-        const enrPromises: Promise<ENR>[] = [];
-        for (const peerInfo of decoded.response.peerInfos) {
-          if (!peerInfo.ENR) continue;
-          const enr = ENR.decode(peerInfo.ENR);
-          enrPromises.push(enr);
-        }
-        const peerInfos = (await Promise.all(enrPromises)).map((enr) => {
-          return {
-            ENR: enr,
-          };
-        });
-        this._pxResponse = {
-          peerInfos,
-        };
-      }
-    });
-  }
+  //       // const enrPromises: Promise<ENR>[] = [];
+  //       // for (const peerInfo of decoded.response.peerInfos) {
+  //       //   if (!peerInfo.ENR) continue;
+  //       //   const enr = ENR.decode(peerInfo.ENR);
+  //       //   enrPromises.push(enr);
+  //       // }
+  //       // const peerInfos = (await Promise.all(enrPromises)).map((enr) => {
+  //       //   return {
+  //       //     ENR: enr,
+  //       //   };
+  //       // });
+
+  //       // this._pxResponse = {
+  //       //   peerInfos,
+  //       // };
+  //     }
+  //   });
+  // }
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {
     const res = await selectPeerForProtocol(
