@@ -6,9 +6,9 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import {
   PeerIdStr,
+  SignaturePolicy,
   TopicStr,
-} from "@chainsafe/libp2p-gossipsub/dist/src/types";
-import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
+} from "@chainsafe/libp2p-gossipsub/types";
 import type {
   Callback,
   Decoder,

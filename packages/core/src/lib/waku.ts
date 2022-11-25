@@ -6,21 +6,19 @@ import type {
   Filter,
   LightPush,
   PeerExchange,
+  PeerExchangeComponents,
   Relay,
   Store,
   Waku,
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import { PeerExchangeCodec } from "@waku/peer-exchange";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
 import { FilterCodec, FilterComponents } from "./waku_filter";
 import { LightPushCodec, LightPushComponents } from "./waku_light_push";
 import { EncoderV0 } from "./waku_message/version_0";
-import {
-  PeerExchangeCodec,
-  PeerExchangeComponents,
-} from "./waku_peer_exchange";
 import * as relayConstants from "./waku_relay/constants";
 import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants";
 import { StoreCodec, StoreComponents } from "./waku_store";

@@ -10,13 +10,13 @@ import {
   wakuFilter,
   wakuLightPush,
   WakuNode,
-  wakuPeerExchange,
   wakuRelay,
   wakuStore,
 } from "@waku/core";
 import { DefaultUserAgent } from "@waku/core";
 import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
 import type { Relay, WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
+import { wakuPeerExchange } from "@waku/peer-exchange";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 import type { Components } from "libp2p/components";

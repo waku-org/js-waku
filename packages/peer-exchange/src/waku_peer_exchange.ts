@@ -1,10 +1,15 @@
 import type { Stream } from "@libp2p/interface-connection";
-import { ConnectionManager } from "@libp2p/interface-connection-manager";
 import { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import {
+  getPeersForProtocol,
+  selectConnection,
+  selectPeerForProtocol,
+} from "@waku/core";
 import { ENR } from "@waku/enr";
 import {
   PeerExchange,
+  PeerExchangeComponents,
   PeerExchangeQueryParams,
   PeerExchangeResponse,
   ProtocolOptions,
@@ -14,14 +19,11 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
+import { PeerExchangeRPC } from "./rpc";
+
 export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
-export interface PeerExchangeComponents {
-  connectionManager: ConnectionManager;
-  peerStore: PeerStore;
-}
-
-class WakuPeerExchange implements PeerExchange {
+export class WakuPeerExchange implements PeerExchange {
   constructor(
     public components: PeerExchangeComponents,
     public createOptions: ProtocolOptions

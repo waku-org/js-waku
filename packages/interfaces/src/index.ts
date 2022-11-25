@@ -1,5 +1,6 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import type { Stream } from "@libp2p/interface-connection";
+import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { PeerStore } from "@libp2p/interface-peer-store";
@@ -76,6 +77,11 @@ export enum PageDirection {
 export interface TimeFilter {
   startTime: Date;
   endTime: Date;
+}
+
+export interface PeerExchangeComponents {
+  connectionManager: ConnectionManager;
+  peerStore: PeerStore;
 }
 
 export type StoreQueryOptions = {

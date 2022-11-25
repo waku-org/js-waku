@@ -1,12 +1,12 @@
 import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import type { PointToPointProtocol, Relay, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import { PeerExchangeCodec } from "@waku/peer-exchange";
 import debug from "debug";
 import { pEvent } from "p-event";
 
 import { FilterCodec } from "./waku_filter";
 import { LightPushCodec } from "./waku_light_push";
-import { PeerExchangeCodec } from "./waku_peer_exchange";
 import { StoreCodec } from "./waku_store";
 
 const log = debug("waku:wait-for-remote-peer");

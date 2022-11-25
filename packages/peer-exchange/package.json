@@ -53,7 +53,19 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@waku/core": "^0.0.6"
+    "@waku/core": "*",
+    "@waku/enr": "*",
+    "@waku/interfaces": "*",
+    "uint8arraylist": "^2.3.2",
+    "@libp2p/interface-peer-discovery": "^1.0.0",
+    "@libp2p/interface-peer-info": "^1.0.4",
+    "debug": "^4.3.4",
+    "@libp2p/interface-peer-id": "^1.0.6",
+    "@libp2p/interface-connection": "^3.0.3",
+    "@libp2p/interface-peer-store": "^1.2.3",
+    "it-all": "^1.0.6",
+    "it-length-prefixed": "^8.0.2",
+    "it-pipe": "^2.0.4"
   },
   "devDependencies": {
     "uint8arrays": "^4.0.2",

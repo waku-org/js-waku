@@ -2,7 +2,7 @@
   "compilerOptions": {
     "incremental": true,
     "target": "es2020",
-    "outDir": "dist/",
+    "outDir": "dist",
     "rootDir": "src",
     "moduleResolution": "node",
     "module": "es2020",
@@ -46,7 +46,7 @@
     "typeRoots": ["node_modules/@types", "src/types"]
   },
   "include": ["src"],
-  "exclude": ["src/**/*.spec.ts", "src/test_utils"],
+  "exclude": ["src/**/*.spec.ts", "src/test_utils", "dist", "bundle"],
   "compileOnSave": false,
   "ts-node": {
     "files": true
