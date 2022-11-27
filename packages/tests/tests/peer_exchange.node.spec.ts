@@ -74,7 +74,7 @@ describe("Peer Exchange: Node", () => {
 
     try {
       const queryResponse = await waku.peerExchange.query({
-        numPeers: BigInt(1),
+        numPeers: 1n,
       });
       console.log({ queryResponse });
     } catch (error) {
