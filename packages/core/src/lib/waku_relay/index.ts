@@ -4,11 +4,8 @@ import {
   GossipsubMessage,
   GossipsubOpts,
 } from "@chainsafe/libp2p-gossipsub";
-import {
-  PeerIdStr,
-  SignaturePolicy,
-  TopicStr,
-} from "@chainsafe/libp2p-gossipsub/types";
+import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
+import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type {
   Callback,
   Decoder,

@@ -19,7 +19,7 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import { PeerExchangeRPC } from "./rpc";
+import { PeerExchangeRPC } from "./rpc.js";
 
 export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
