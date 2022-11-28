@@ -64,7 +64,7 @@ export interface PeerExchangeResponse {
 }
 
 export interface PeerInfo {
-  ENR?: Uint8Array;
+  enr?: Uint8Array;
 }
 
 export enum PageDirection {

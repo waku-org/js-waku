@@ -9,7 +9,6 @@ import {
   ProtocolOptions,
 } from "@waku/interfaces";
 import all from "it-all";
-// import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";

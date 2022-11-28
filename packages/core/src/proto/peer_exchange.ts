@@ -6,7 +6,7 @@ import type { Uint8ArrayList } from "uint8arraylist";
 import type { Codec } from "protons-runtime";
 
 export interface PeerInfo {
-  ENR?: Uint8Array;
+  enr?: Uint8Array;
 }
 
 export namespace PeerInfo {
@@ -20,9 +20,9 @@ export namespace PeerInfo {
             writer.fork();
           }
 
-          if (obj.ENR != null) {
+          if (obj.enr != null) {
             writer.uint32(10);
-            writer.bytes(obj.ENR);
+            writer.bytes(obj.enr);
           }
 
           if (opts.lengthDelimited !== false) {
@@ -39,7 +39,7 @@ export namespace PeerInfo {
 
             switch (tag >>> 3) {
               case 1:
-                obj.ENR = reader.bytes();
+                obj.enr = reader.bytes();
                 break;
               default:
                 reader.skipType(tag & 7);
