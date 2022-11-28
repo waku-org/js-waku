@@ -56,7 +56,7 @@ export interface Args {
   tcpPort?: number;
   rpcPort?: number;
   websocketPort?: number;
-  manualArgs?: string[];
+  discv5BootstrapNode?: string;
 }
 
 export enum LogLevel {
@@ -167,16 +167,10 @@ export class Nwaku {
       args
     );
 
-    const { manualArgs: manualFlags } = mergedArgs;
-
-    mergedArgs.manualArgs && delete mergedArgs.manualArgs;
-
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
     const argsArray = argsToArray(mergedArgs);
-    if (manualFlags) {
-      argsArray.push(...manualFlags);
-    }
+
     if (WAKU_SERVICE_NODE_PARAMS) {
       argsArray.push(WAKU_SERVICE_NODE_PARAMS);
     }

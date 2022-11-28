@@ -30,24 +30,21 @@ describe("Peer Exchange: Node", () => {
     await nwaku2.start({ discv5Discovery: true, peerExchange: true });
     console.log("nwaku2 started");
 
-    const enr = (await nwaku2.info()).enrUri;
-    console.log({ enr });
+    const nwaku2Enr = (await nwaku2.info()).enrUri;
+
+    if (!nwaku2Enr) {
+      throw new Error("No ENR");
+    }
 
     await nwaku1.start({
       discv5Discovery: true,
-      manualArgs: [
-        `--discv5-bootstrap-node:${(await nwaku2.info()).enrUri}`,
-        `--ports-shift=5`,
-      ],
+      discv5BootstrapNode: nwaku2Enr,
     });
     console.log("nwaku1 started");
 
     await nwaku3.start({
       discv5Discovery: true,
-      manualArgs: [
-        `--discv5-bootstrap-node:${(await nwaku2.info()).enrUri}`,
-        `--ports-shift=10`,
-      ],
+      discv5BootstrapNode: nwaku2Enr,
     });
 
     waku = await createLightNode();
@@ -57,9 +54,9 @@ describe("Peer Exchange: Node", () => {
 
     await delay(1000);
 
-    const mulltiaddr = await nwaku2.getMultiaddrWithId();
+    const multiaddr = await nwaku2.getMultiaddrWithId();
 
-    await waku.dial(mulltiaddr, [Protocols.PeerExchange]);
+    await waku.dial(multiaddr, [Protocols.PeerExchange]);
     console.log("dialed");
 
     await waitForRemotePeer(waku, [Protocols.PeerExchange]);
