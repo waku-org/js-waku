@@ -11,7 +11,7 @@ import { multiaddrsToPeerInfo } from "../multiaddr_to_peer_info";
 
 import { WakuPeerExchange } from ".";
 
-const log = debug("waku:peer-discovery-dns");
+const log = debug("waku:peer-exchange-discovery");
 
 export class PeerExchangeDiscovery
   extends EventEmitter<PeerDiscoveryEvents>
