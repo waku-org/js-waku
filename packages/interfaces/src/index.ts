@@ -55,7 +55,10 @@ export interface LightPush extends PointToPointProtocol {
 }
 
 export interface PeerExchange extends PointToPointProtocol {
-  query(params: PeerExchangeQueryParams): Promise<PeerExchangeResponse>;
+  query(
+    params: PeerExchangeQueryParams,
+    callback: (response: PeerExchangeResponse) => Promise<void> | void
+  ): Promise<void>;
 }
 
 export interface PeerExchangeQueryParams {
