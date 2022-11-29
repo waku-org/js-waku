@@ -1,6 +1,6 @@
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { createFullNode } from "@waku/create";
-import type { WakuFull } from "@waku/interfaces";
+import type { PeerExchangeResponse, WakuFull } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 
 import { NOISE_KEY_1, Nwaku } from "../src";
@@ -30,22 +30,23 @@ describe("Peer Exchange: Node", () => {
     await nwaku1.start({
       discv5Discovery: true,
       peerExchange: true,
-      manualArgs: [`--discv5-udp-port:9007`],
     });
     console.log("nwaku1 started");
+
+    await delay(10000);
 
     const enr = (await nwaku1.info()).enrUri;
     console.log({ enr });
 
     await nwaku2.start({
       discv5Discovery: true,
-      manualArgs: [`--discv5-bootstrap-node:${enr}`, `--discv5-udp-port:9043`],
     });
     console.log("nwaku2 started");
 
+    await delay(10000);
+
     await nwaku3.start({
       discv5Discovery: true,
-      manualArgs: [`--discv5-bootstrap-node:${enr}`, `--discv5-udp-port:9062`],
     });
     console.log("nwaku3 started");
 
@@ -73,10 +74,15 @@ describe("Peer Exchange: Node", () => {
     await delay(3000);
 
     try {
-      const queryResponse = await waku.peerExchange.query({
-        numPeers: 1n,
-      });
-      console.log({ queryResponse });
+      const callback = (response: PeerExchangeResponse): void => {
+        console.log("callback", response);
+      };
+      await waku.peerExchange.query(
+        {
+          numPeers: 1n,
+        },
+        callback
+      );
     } catch (error) {
       console.error(error);
     }

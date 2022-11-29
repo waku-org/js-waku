@@ -16,7 +16,6 @@ import {
   ProtocolOptions,
 } from "@waku/interfaces";
 import debug from "debug";
-// import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -26,10 +25,6 @@ import { PeerExchangeRPC } from "./rpc.js";
 export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
 const log = debug("waku:peer-exchange");
-
-const isDefined = (enr: ENR | undefined): enr is ENR => {
-  return !!enr;
-};
 
 export class WakuPeerExchange implements PeerExchange {
   private callback:
