@@ -2,6 +2,7 @@ import type { Stream } from "@libp2p/interface-connection";
 import { ConnectionManager } from "@libp2p/interface-connection-manager";
 import { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import { ENR } from "@waku/enr";
 import {
   PeerExchange,
   PeerExchangeQueryParams,
@@ -62,13 +63,26 @@ class WakuPeerExchange implements PeerExchange {
         bytes.append(chunk);
       });
 
-      const response = PeerExchangeRPC.decode(bytes).response;
+      const decoded = PeerExchangeRPC.decode(bytes).response;
 
-      if (!response) {
+      if (!decoded) {
         throw new Error("Failed to decode response");
       }
 
-      return response;
+      const enrPromises: Promise<ENR>[] = [];
+      for (const peerInfo of decoded.peerInfos) {
+        if (!peerInfo.ENR) continue;
+        const enr = ENR.decode(peerInfo.ENR);
+        enrPromises.push(enr);
+      }
+
+      const peerInfos = (await Promise.all(enrPromises)).map((enr) => {
+        return {
+          ENR: enr,
+        };
+      });
+
+      return { peerInfos };
     } catch (error) {
       console.error({ error });
       throw error;
