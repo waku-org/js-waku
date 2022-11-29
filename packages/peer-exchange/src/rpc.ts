@@ -1,6 +1,5 @@
+import { proto_peer_exchange as proto } from "@waku/core";
 import { Uint8ArrayList } from "uint8arraylist";
-
-import * as proto from "../../proto/peer_exchange";
 
 /**
  * PeerExchangeRPC represents a message conforming to the Waku Peer Exchange protocol
@@ -23,6 +22,7 @@ export class PeerExchangeRPC {
    * @returns Uint8Array
    */
   encode(): Uint8Array {
+    console.log("encoding now", this.proto);
     return proto.PeerExchangeRPC.encode(this.proto);
   }
 
@@ -32,6 +32,7 @@ export class PeerExchangeRPC {
    */
   static decode(bytes: Uint8ArrayList): PeerExchangeRPC {
     const res = proto.PeerExchangeRPC.decode(bytes);
+    console.log("decoded-res", res);
     return new PeerExchangeRPC(res);
   }
 

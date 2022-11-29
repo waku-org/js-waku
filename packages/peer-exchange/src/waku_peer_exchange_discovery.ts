@@ -4,12 +4,11 @@ import {
   symbol,
 } from "@libp2p/interface-peer-discovery";
 import { PeerInfo } from "@libp2p/interface-peer-info";
-import { EventEmitter } from "@libp2p/interfaces/dist/src/events";
+import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import { multiaddrsToPeerInfo } from "@waku/core";
 import debug from "debug";
 
-import { multiaddrsToPeerInfo } from "../multiaddr_to_peer_info";
-
-import { WakuPeerExchange } from ".";
+import { WakuPeerExchange } from "./waku_peer_exchange";
 
 const log = debug("waku:peer-exchange-discovery");
 
