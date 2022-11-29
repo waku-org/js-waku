@@ -3,9 +3,7 @@ import {
   PeerDiscoveryEvents,
   symbol,
 } from "@libp2p/interface-peer-discovery";
-import { PeerInfo } from "@libp2p/interface-peer-info";
-import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
-import { multiaddrsToPeerInfo } from "@waku/core";
+import { EventEmitter } from "@libp2p/interfaces/events";
 import debug from "debug";
 
 import { WakuPeerExchange } from "./waku_peer_exchange";
@@ -16,11 +14,8 @@ export class PeerExchangeDiscovery
   extends EventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery
 {
-  private _started: boolean;
-
   constructor(public peerExchange: WakuPeerExchange, public numPeers: number) {
     super();
-    this._started = false;
   }
 
   /**
@@ -29,31 +24,29 @@ export class PeerExchangeDiscovery
   async start(): Promise<void> {
     log("Starting peer discovery via Waku Peer Exchange");
 
-    this._started = true;
-
-    const response = await this.peerExchange.query({
+    await this.peerExchange.query({
       numPeers: BigInt(this.numPeers),
     });
 
-    response.peerInfos.forEach((peerInfo) => {
-      if (!peerInfo.ENR) return;
+    // response.peerInfos.forEach((peerInfo) => {
+    //   if (!peerInfo.ENR) return;
 
-      const _peerInfos = multiaddrsToPeerInfo(peerInfo.ENR.getFullMultiaddrs());
+    //   const _peerInfos = multiaddrsToPeerInfo(peerInfo.ENR.getFullMultiaddrs());
 
-      _peerInfos.forEach((peerInfo) => {
-        if (!this._started) return;
-        this.dispatchEvent(
-          new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
-        );
-      });
-    });
+    //   _peerInfos.forEach((peerInfo) => {
+    //     if (!this._started) return;
+    //     this.dispatchEvent(
+    //       new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
+    //     );
+    //   });
+    // });
   }
 
   /**
    * Stop emitting events
    */
   stop(): void {
-    this._started = false;
+    throw new Error("Method not implemented.");
   }
 
   get [symbol](): true {
