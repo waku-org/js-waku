@@ -63,9 +63,9 @@ describe("Peer Exchange: Node", () => {
 
     await delay(1000);
 
-    const mulltiaddr = await nwaku1.getMultiaddrWithId();
+    const multiaddr = await nwaku1.getMultiaddrWithId();
 
-    await waku.dial(mulltiaddr, [Protocols.PeerExchange]);
+    await waku.dial(multiaddr, [Protocols.PeerExchange]);
     console.log("dialed");
 
     await waitForRemotePeer(waku, [Protocols.PeerExchange]);
