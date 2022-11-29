@@ -22,6 +22,7 @@ export class PeerExchangeRPC {
    * @returns Uint8Array
    */
   encode(): Uint8Array {
+    console.log("encoding now", this.proto);
     return proto.PeerExchangeRPC.encode(this.proto);
   }
 
@@ -31,6 +32,7 @@ export class PeerExchangeRPC {
    */
   static decode(bytes: Uint8ArrayList): PeerExchangeRPC {
     const res = proto.PeerExchangeRPC.decode(bytes);
+    console.log("decoded-res", res);
     return new PeerExchangeRPC(res);
   }
 
