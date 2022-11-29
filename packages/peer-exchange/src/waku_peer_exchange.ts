@@ -12,6 +12,7 @@ import {
   PeerExchangeComponents,
   PeerExchangeQueryParams,
   PeerExchangeResponse,
+  PeerInfo,
   ProtocolOptions,
 } from "@waku/interfaces";
 import all from "it-all";
@@ -40,50 +41,44 @@ export class WakuPeerExchange implements PeerExchange {
   async query(params: PeerExchangeQueryParams): Promise<PeerExchangeResponse> {
     const { numPeers } = params;
 
-    try {
-      const rpcQuery = PeerExchangeRPC.createRequest({ numPeers });
+    const rpcQuery = PeerExchangeRPC.createRequest({ numPeers });
 
-      const peer = await this.getPeer();
+    const peer = await this.getPeer();
 
-      const stream = await this.newStream(peer);
+    const stream = await this.newStream(peer);
 
-      const pipeResponse = await pipe(
-        [rpcQuery.encode()],
-        lp.encode(),
-        stream,
-        lp.decode(),
-        async (source) => await all(source)
-      );
+    const pipeResponse = await pipe(
+      [rpcQuery.encode()],
+      lp.encode(),
+      stream,
+      lp.decode(),
+      async (source) => await all(source)
+    );
 
-      const bytes = new Uint8ArrayList();
-      pipeResponse.forEach((chunk) => {
-        bytes.append(chunk);
-      });
+    const bytes = new Uint8ArrayList();
+    pipeResponse.forEach((chunk) => {
+      bytes.append(chunk);
+    });
 
-      const decoded = PeerExchangeRPC.decode(bytes).response;
+    const decoded = PeerExchangeRPC.decode(bytes).response;
 
-      if (!decoded) {
-        throw new Error("Failed to decode response");
-      }
-
-      const enrPromises: Promise<ENR>[] = [];
-      for (const peerInfo of decoded.peerInfos) {
-        if (!peerInfo.ENR) continue;
-        const enr = ENR.decode(peerInfo.ENR);
-        enrPromises.push(enr);
-      }
-
-      const peerInfos = (await Promise.all(enrPromises)).map((enr) => {
-        return {
-          ENR: enr,
-        };
-      });
-
-      return { peerInfos };
-    } catch (error) {
-      console.error({ error });
-      throw error;
+    if (!decoded) {
+      throw new Error("Failed to decode response");
     }
+
+    const enrs = await Promise.all(
+      decoded.peerInfos.map(
+        (peerInfo) => peerInfo.ENR && ENR.decode(peerInfo.ENR)
+      )
+    );
+
+    const peerInfos = enrs.map((enr) => {
+      return {
+        ENR: enr,
+      };
+    });
+
+    return { peerInfos };
   }
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {
