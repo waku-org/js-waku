@@ -10,7 +10,7 @@ import debug from "debug";
 
 import { WakuPeerExchange } from "./waku_peer_exchange";
 
-const log = debug("waku:peer-discovery-dns");
+const log = debug("waku:peer-exchange-discovery");
 
 export class PeerExchangeDiscovery
   extends EventEmitter<PeerDiscoveryEvents>
@@ -27,7 +27,7 @@ export class PeerExchangeDiscovery
    * Start discovery process
    */
   async start(): Promise<void> {
-    log("Starting peer discovery via Peer Exchange");
+    log("Starting peer discovery via Waku Peer Exchange");
 
     this._started = true;
 
