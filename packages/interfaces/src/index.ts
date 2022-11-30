@@ -57,7 +57,7 @@ export interface PeerExchange extends PointToPointProtocol {
 }
 
 export interface PeerExchangeQueryParams {
-  numPeers: bigint;
+  numPeers: number;
 }
 
 export interface PeerExchangeResponse {

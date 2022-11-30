@@ -44,7 +44,9 @@ class WakuPeerExchange implements PeerExchange {
     const { numPeers } = params;
 
     try {
-      const rpcQuery = PeerExchangeRPC.createRequest({ numPeers });
+      const rpcQuery = PeerExchangeRPC.createRequest({
+        numPeers: BigInt(numPeers),
+      });
 
       const peer = await this.getPeer();
 
@@ -71,8 +73,8 @@ class WakuPeerExchange implements PeerExchange {
 
       const enrPromises: Promise<ENR>[] = [];
       for (const peerInfo of decoded.peerInfos) {
-        if (!peerInfo.ENR) continue;
-        const enr = ENR.decode(peerInfo.ENR);
+        if (!peerInfo.enr) continue;
+        const enr = ENR.decode(peerInfo.enr);
         enrPromises.push(enr);
       }
 
