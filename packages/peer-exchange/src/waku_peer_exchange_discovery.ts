@@ -41,7 +41,7 @@ export class PeerExchangeDiscovery
   private readonly options: Options;
   private isStarted: boolean;
 
-  constructor(components: PeerExchangeComponents, options: Options) {
+  constructor(components: PeerExchangeComponents, options: Options = {}) {
     super();
     this.components = components;
     this.options = options;
@@ -51,7 +51,7 @@ export class PeerExchangeDiscovery
   /**
    * Start emitting events
    */
-  start(): void {
+  async start(): Promise<void> {
     if (this.isStarted) {
       return;
     }
@@ -89,7 +89,7 @@ export class PeerExchangeDiscovery
   /**
    * Remove event listener
    */
-  stop(): void {
+  async stop(): Promise<void> {
     if (!this.isStarted) return;
     log("Stopping peer exchange node discovery");
     this.components.peerStore.removeEventListener("change:protocols");
