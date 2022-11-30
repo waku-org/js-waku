@@ -74,7 +74,9 @@ export class WakuPeerExchange implements PeerExchange {
         }
 
         const enrs = await Promise.all(
-          decoded.peerInfos.map(({ ENR: _ENR }) => _ENR && ENR.decode(_ENR))
+          decoded.peerInfos.map(
+            (peerInfo) => peerInfo.enr && ENR.decode(peerInfo.enr)
+          )
         );
 
         const peerInfos = enrs.map((enr) => {
