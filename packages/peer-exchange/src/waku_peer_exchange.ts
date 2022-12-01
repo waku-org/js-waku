@@ -1,5 +1,5 @@
 import type { Stream } from "@libp2p/interface-connection";
-import { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import {
