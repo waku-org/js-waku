@@ -3,7 +3,7 @@ import { createFullNode } from "@waku/create";
 import type { PeerExchangeResponse, WakuFull } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 
-import { NOISE_KEY_1, Nwaku } from "../src";
+import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../src";
 import { delay } from "../src/delay";
 
 describe("Peer Exchange: Node", () => {
@@ -23,9 +23,9 @@ describe("Peer Exchange: Node", () => {
     this.timeout(150_000);
 
     console.log("starting");
-    nwaku1 = new Nwaku("node1");
-    nwaku2 = new Nwaku("node2");
-    nwaku3 = new Nwaku("node3");
+    nwaku1 = new Nwaku(`node1_${makeLogFileName(this)}`);
+    nwaku2 = new Nwaku(`node2_${makeLogFileName(this)}`);
+    nwaku3 = new Nwaku(`node3_${makeLogFileName(this)}`);
 
     await nwaku1.start({
       discv5Discovery: true,
@@ -54,7 +54,6 @@ describe("Peer Exchange: Node", () => {
 
     waku = await createFullNode({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     });
 
     console.log("created light node");

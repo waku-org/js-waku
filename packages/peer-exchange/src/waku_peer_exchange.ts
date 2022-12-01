@@ -36,7 +36,7 @@ export class WakuPeerExchange implements PeerExchange {
     public createOptions?: ProtocolOptions
   ) {
     this.components.registrar
-      .handle(PeerExchangeCodec, this.onRequest.bind(this))
+      .handle(PeerExchangeCodec, this.handler.bind(this))
       .catch((e) => log("Failed to register peer exchange protocol", e));
   }
 
@@ -89,7 +89,7 @@ export class WakuPeerExchange implements PeerExchange {
 
         await this.callback({ peerInfos });
       }
-    });
+    }).catch((err) => log("Failed to handle peer exchange request", err));
   }
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {

@@ -45,7 +45,7 @@
     "types": ["node", "mocha"],
     "typeRoots": ["node_modules/@types", "src/types"]
   },
-  "include": ["src"],
+  "include": ["src", ".eslintrc.js"],
   "exclude": ["src/**/*.spec.ts", "src/test_utils", "dist", "bundle"],
   "compileOnSave": false,
   "ts-node": {

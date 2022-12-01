@@ -51,16 +51,15 @@ export class PeerExchangeDiscovery
   /**
    * Start emitting events
    */
-  async start(): Promise<void> {
+  start(): void {
     if (this.isStarted) {
       return;
     }
 
     log("Starting peer exchange node discovery, discovering peers");
 
-    this.components.peerStore.addEventListener(
-      "change:protocols",
-      async (event) => {
+    this.components.peerStore.addEventListener("change:protocols", (event) => {
+      (async () => {
         const { protocols } = event.detail;
         if (!protocols.includes(PeerExchangeCodec)) return;
 
@@ -82,14 +81,14 @@ export class PeerExchangeDiscovery
         this.dispatchEvent(
           new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
         );
-      }
-    );
+      })().catch((err) => log("Failed to handle peer exchange request", err));
+    });
   }
 
   /**
    * Remove event listener
    */
-  async stop(): Promise<void> {
+  stop(): void {
     if (!this.isStarted) return;
     log("Stopping peer exchange node discovery");
     this.components.peerStore.removeEventListener("change:protocols");
