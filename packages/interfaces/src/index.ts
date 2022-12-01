@@ -78,6 +78,12 @@ export interface TimeFilter {
   endTime: Date;
 }
 
+export type Cursor = {
+  digest?: Uint8Array;
+  senderTime?: bigint;
+  pubsubTopic?: string;
+};
+
 export type StoreQueryOptions = {
   /**
    * The direction in which pages are retrieved:
@@ -101,7 +107,7 @@ export type StoreQueryOptions = {
   /**
    * Cursor as an index to start a query from.
    */
-  cursor?: Index;
+  cursor?: Cursor;
 } & ProtocolOptions;
 
 export interface Store extends PointToPointProtocol {
