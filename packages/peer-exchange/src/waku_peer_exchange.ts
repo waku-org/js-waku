@@ -63,7 +63,7 @@ export class WakuPeerExchange implements PeerExchange {
     this.callback = callback;
   }
 
-  private onRequest(streamData: IncomingStreamData): void {
+  private handler(streamData: IncomingStreamData): void {
     const { stream } = streamData;
     pipe(stream, lp.decode(), async (source) => {
       for await (const bytes of source) {
