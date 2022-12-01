@@ -14,29 +14,35 @@ pipeline {
     GIT_AUTHOR_NAME = 'status-im-auto'
     GIT_AUTHOR_EMAIL = 'auto@status.im'
     PUPPETEER_SKIP_DOWNLOAD = 'true'
+    NO_COLOR = 'true'
   }
 
   stages {
     stage('Deps') {
       steps {
-        sh 'npm ci'
+        sh 'npm install'
+      }
+    }
+
+    stage('Packages') {
+      steps {
+        sh 'npm run build'
       }
     }
 
     stage('Build') {
       steps {
-        sh 'npm run build'
         sh 'npm run doc'
       }
     }
 
     stage('Publish') {
       when { expression { GIT_BRANCH.endsWith('master') } }
-      steps { script {
+      steps {
         sshagent(credentials: ['status-im-auto-ssh']) {
           sh 'npm run deploy'
         }
-      } }
+      }
     }
   }
   post {

@@ -75,7 +75,6 @@
     "watch:build": "tsc -p tsconfig.json -w",
     "watch:test": "mocha --watch",
     "prepublish": "npm run build",
-    "deploy": "node ci/deploy.js",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
