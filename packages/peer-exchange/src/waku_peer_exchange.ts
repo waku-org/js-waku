@@ -8,7 +8,7 @@ import {
   selectPeerForProtocol,
 } from "@waku/core";
 import { ENR } from "@waku/enr";
-import {
+import type {
   PeerExchange,
   PeerExchangeComponents,
   PeerExchangeQueryParams,
