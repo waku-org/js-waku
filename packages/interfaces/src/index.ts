@@ -6,7 +6,7 @@ import type { Peer } from "@libp2p/interface-peer-store";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 import type { Registrar } from "@libp2p/interface-registrar";
 import type { Multiaddr } from "@multiformats/multiaddr";
-import type { ENR } from "@waku/enr";
+import { ENR } from "@waku/enr";
 import type { Libp2p } from "libp2p";
 
 export enum Protocols {
@@ -62,7 +62,7 @@ export interface PeerExchange extends PointToPointProtocol {
 }
 
 export interface PeerExchangeQueryParams {
-  numPeers: bigint;
+  numPeers: number;
 }
 
 export interface PeerExchangeResponse {
