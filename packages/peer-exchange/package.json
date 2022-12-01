@@ -12,7 +12,7 @@
   },
   "type": "module",
   "author": "Waku Team",
-  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/enr#readme",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/peer-exchange#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/waku-org/js-waku.git"
