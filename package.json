@@ -1,6 +1,7 @@
 {
   "name": "@waku/root",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/byte-utils",
     "packages/interfaces",
