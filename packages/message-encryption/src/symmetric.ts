@@ -36,16 +36,14 @@ class Encoder implements IEncoder {
     public ephemeral: boolean = false
   ) {}
 
-  async toWire(message: Partial<Message>): Promise<Uint8Array | undefined> {
+  async toWire(message: Message): Promise<Uint8Array | undefined> {
     const protoMessage = await this.toProtoObj(message);
     if (!protoMessage) return;
 
     return proto.WakuMessage.encode(protoMessage);
   }
 
-  async toProtoObj(
-    message: Partial<Message>
-  ): Promise<ProtoMessage | undefined> {
+  async toProtoObj(message: Message): Promise<ProtoMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
     if (!message.payload) {
       log("No payload to encrypt, skipping: ", message);

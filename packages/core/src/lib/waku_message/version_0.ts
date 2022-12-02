@@ -74,11 +74,11 @@ export class DecodedMessage implements IDecodedMessage {
 export class Encoder implements IEncoder {
   constructor(public contentTopic: string, public ephemeral: boolean = false) {}
 
-  async toWire(message: Partial<Message>): Promise<Uint8Array> {
+  async toWire(message: Message): Promise<Uint8Array> {
     return proto.WakuMessage.encode(await this.toProtoObj(message));
   }
 
-  async toProtoObj(message: Partial<Message>): Promise<ProtoMessage> {
+  async toProtoObj(message: Message): Promise<ProtoMessage> {
     const timestamp = message.timestamp ?? new Date();
 
     return {
