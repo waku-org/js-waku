@@ -32,7 +32,7 @@
       "error",
       { "ignoreDeclarationSort": true, "ignoreCase": true }
     ],
-    "no-console": "warn"
+    "no-console": "error"
   },
   "overrides": [
     {
