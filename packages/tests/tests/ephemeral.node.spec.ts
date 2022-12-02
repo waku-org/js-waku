@@ -40,7 +40,6 @@ describe("Waku Message Ephemeral field", () => {
       filter: true,
       lightpush: true,
       store: true,
-      relay: true,
     });
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
