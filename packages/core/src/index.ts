@@ -33,3 +33,5 @@ export {
   StoreCodec,
   createCursor,
 } from "./lib/waku_store/index.js";
+
+export { waitForRemotePeer } from "./lib/wait_for_remote_peer.js";

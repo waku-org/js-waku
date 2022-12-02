@@ -1,8 +1,7 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
-import { DefaultUserAgent } from "@waku/core";
-import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import { DefaultUserAgent, waitForRemotePeer } from "@waku/core";
 import { createLightNode, createPrivacyNode } from "@waku/create";
 import type {
   DecodedMessage,

@@ -1,4 +1,4 @@
-import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import { waitForRemotePeer } from "@waku/core";
 import { createPrivacyNode } from "@waku/create";
 import { ENR } from "@waku/enr";
 import type { WakuPrivacy } from "@waku/interfaces";
