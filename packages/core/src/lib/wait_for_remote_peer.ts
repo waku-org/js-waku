@@ -4,9 +4,9 @@ import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 import { pEvent } from "p-event";
 
-import { FilterCodec } from "./waku_filter";
-import { LightPushCodec } from "./waku_light_push";
-import { StoreCodec } from "./waku_store";
+import { FilterCodec } from "./waku_filter/index.js";
+import { LightPushCodec } from "./waku_light_push/index.js";
+import { StoreCodec } from "./waku_store/index.js";
 
 const log = debug("waku:wait-for-remote-peer");
 

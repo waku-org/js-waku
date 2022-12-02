@@ -18,7 +18,10 @@ import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap
 import type { Relay, WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
-import type { Components } from "libp2p/components";
+
+import type { Libp2pComponents } from "./libp2p_components.js";
+
+export { Libp2pComponents };
 
 type WakuOptions = waku.WakuOptions;
 type RelayCreateOptions = waku_relay.CreateOptions;
@@ -158,13 +161,13 @@ export async function createFullNode(
 }
 
 export function defaultPeerDiscovery(): (
-  components: Components
+  components: Libp2pComponents
 ) => PeerDiscovery {
   return bootstrap({ list: getPredefinedBootstrapNodes() });
 }
 
 export async function defaultLibp2p(
-  wakuRelay?: (components: Components) => Relay,
+  wakuRelay?: (components: Libp2pComponents) => Relay,
   options?: Partial<Libp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {

@@ -8,7 +8,7 @@ import type {
 } from "@waku/interfaces";
 import debug from "debug";
 
-import * as proto from "../../proto/message";
+import * as proto from "../../proto/message.js";
 
 const log = debug("waku:message:version-0");
 const OneMillion = BigInt(1_000_000);

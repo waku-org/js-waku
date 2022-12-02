@@ -8,12 +8,12 @@ import { expect } from "chai";
 import debug from "debug";
 
 import {
+  delay,
   makeLogFileName,
   MessageRpcResponse,
   NOISE_KEY_1,
   Nwaku,
-} from "../src";
-import { delay } from "../src/delay";
+} from "../src/index.js";
 
 const log = debug("waku:test:lightpush");
 

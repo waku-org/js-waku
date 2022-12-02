@@ -1,6 +1,6 @@
 import { ProtoMessage } from "@waku/interfaces";
 
-import { WakuMessage as WakuMessageProto } from "../proto/message";
+import { WakuMessage as WakuMessageProto } from "../proto/message.js";
 
 const EmptyMessage: ProtoMessage = {
   payload: undefined,

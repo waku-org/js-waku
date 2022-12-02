@@ -15,8 +15,13 @@ import {
 import { expect } from "chai";
 import debug from "debug";
 
-import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2, Nwaku } from "../src";
-import { delay } from "../src/delay";
+import {
+  delay,
+  makeLogFileName,
+  NOISE_KEY_1,
+  NOISE_KEY_2,
+  Nwaku,
+} from "../src/index.js";
 
 const log = debug("waku:test:ephemeral");
 

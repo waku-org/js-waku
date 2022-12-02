@@ -4,10 +4,7 @@ import {
   GossipsubMessage,
   GossipsubOpts,
 } from "@chainsafe/libp2p-gossipsub";
-import {
-  PeerIdStr,
-  TopicStr,
-} from "@chainsafe/libp2p-gossipsub/dist/src/types";
+import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type {
   Callback,
@@ -20,11 +17,11 @@ import type {
 import { DecodedMessage } from "@waku/interfaces";
 import debug from "debug";
 
-import { DefaultPubSubTopic } from "../constants";
-import { pushOrInitMapSet } from "../push_or_init_map";
-import { TopicOnlyDecoder } from "../waku_message/topic_only_message";
+import { DefaultPubSubTopic } from "../constants.js";
+import { pushOrInitMapSet } from "../push_or_init_map.js";
+import { TopicOnlyDecoder } from "../waku_message/topic_only_message.js";
 
-import * as constants from "./constants";
+import * as constants from "./constants.js";
 
 const log = debug("waku:relay");
 

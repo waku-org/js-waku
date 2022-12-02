@@ -9,7 +9,7 @@ import { Context } from "mocha";
 import pTimeout from "p-timeout";
 import { Tail } from "tail";
 
-import { waitForFile } from "./async_fs";
+import { waitForFile } from "./async_fs.js";
 
 export default async function waitForLine(
   filepath: string,

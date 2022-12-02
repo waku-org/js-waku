@@ -9,9 +9,9 @@ import appRoot from "app-root-path";
 import debug from "debug";
 import portfinder from "portfinder";
 
-import { existsAsync, mkdirAsync, openAsync } from "./async_fs";
-import { delay } from "./delay";
-import waitForLine from "./log_file";
+import { existsAsync, mkdirAsync, openAsync } from "./async_fs.js";
+import { delay } from "./delay.js";
+import waitForLine from "./log_file.js";
 
 const log = debug("waku:nwaku");
 
