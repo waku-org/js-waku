@@ -53,7 +53,7 @@
   ],
   "scripts": {
     "build": "run-s build:**",
-    "build:esm": "tsc && node build-scripts/fix-imports.js",
+    "build:esm": "tsc",
     "build:bundle": "rollup --config rollup.config.js",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier . --write",

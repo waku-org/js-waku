@@ -18,7 +18,12 @@ import {
 } from "@waku/message-encryption";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2, Nwaku } from "../src/";
+import {
+  makeLogFileName,
+  NOISE_KEY_1,
+  NOISE_KEY_2,
+  Nwaku,
+} from "../src/index.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
 

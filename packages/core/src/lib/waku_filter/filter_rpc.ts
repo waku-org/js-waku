@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 
-import * as proto from "../../proto/filter";
+import * as proto from "../../proto/filter.js";
 
 export type ContentFilter = {
   contentTopic: string;

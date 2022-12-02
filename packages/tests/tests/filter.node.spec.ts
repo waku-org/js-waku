@@ -7,8 +7,7 @@ import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import debug from "debug";
 
-import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../src";
-import { delay } from "../src/delay";
+import { delay, makeLogFileName, NOISE_KEY_1, Nwaku } from "../src/index.js";
 
 const log = debug("waku:test");
 

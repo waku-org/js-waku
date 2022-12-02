@@ -1,7 +1,7 @@
 import type { DecodedMessage, Decoder, ProtoMessage } from "@waku/interfaces";
 import debug from "debug";
 
-import * as proto from "../../proto/topic_only_message";
+import * as proto from "../../proto/topic_only_message.js";
 
 const log = debug("waku:message:topic-only");
 
