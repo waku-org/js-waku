@@ -1,1 +1,1 @@
-export { wakuPeerExchange, PeerExchangeCodec } from "./waku_peer_exchange";
+export { wakuPeerExchange, PeerExchangeCodec } from "./waku_peer_exchange.js";
