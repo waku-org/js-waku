@@ -1,8 +1,15 @@
 export { DefaultPubSubTopic } from "./lib/constants";
 export { DefaultUserAgent } from "./lib/waku";
 
+export { getPeersForProtocol, selectPeerForProtocol } from "./lib/select_peer";
+
+export { selectConnection } from "./lib/select_connection";
+
+export { multiaddrsToPeerInfo } from "./lib/multiaddr_to_peer_info";
+
 export * as proto_message from "./proto/message";
 export * as proto_topic_only_message from "./proto/topic_only_message";
+export * as proto_peer_exchange from "./proto/peer_exchange";
 
 export * as waku from "./lib/waku";
 export { WakuNode } from "./lib/waku";
@@ -27,6 +34,3 @@ export {
   StoreCodec,
   createCursor,
 } from "./lib/waku_store";
-
-export * as waku_peer_exchange from "./lib/waku_peer_exchange";
-export { wakuPeerExchange } from "./lib/waku_peer_exchange";

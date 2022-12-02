@@ -1,8 +1,10 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import type { Stream } from "@libp2p/interface-connection";
+import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { PeerStore } from "@libp2p/interface-peer-store";
+import type { Registrar } from "@libp2p/interface-registrar";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import { ENR } from "@waku/enr";
 import type { Libp2p } from "libp2p";
@@ -53,7 +55,10 @@ export interface LightPush extends PointToPointProtocol {
 }
 
 export interface PeerExchange extends PointToPointProtocol {
-  query(params: PeerExchangeQueryParams): Promise<PeerExchangeResponse>;
+  query(
+    params: PeerExchangeQueryParams,
+    callback: (response: PeerExchangeResponse) => Promise<void> | void
+  ): Promise<void>;
 }
 
 export interface PeerExchangeQueryParams {
@@ -78,6 +83,11 @@ export interface TimeFilter {
   endTime: Date;
 }
 
+export interface PeerExchangeComponents {
+  connectionManager: ConnectionManager;
+  peerStore: PeerStore;
+  registrar: Registrar;
+}
 export type Cursor = {
   digest?: Uint8Array;
   senderTime?: bigint;
