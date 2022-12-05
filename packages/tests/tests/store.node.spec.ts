@@ -6,14 +6,16 @@ import { createLightNode } from "@waku/create";
 import { DecodedMessage, Message, WakuLight } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
-  createAsymDecoder,
-  createAsymEncoder,
-  createSymDecoder,
-  createSymEncoder,
+  createDecoder as createEciesDecoder,
+  createEncoder as createEciesEncoder,
   generatePrivateKey,
-  generateSymmetricKey,
   getPublicKey,
-} from "@waku/message-encryption";
+} from "@waku/message-encryption/ecies";
+import {
+  createDecoder as createSymDecoder,
+  createEncoder as createSymEncoder,
+  generateSymmetricKey,
+} from "@waku/message-encryption/symmetric";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -365,15 +367,15 @@ describe("Waku Store", () => {
     const symKey = generateSymmetricKey();
     const publicKey = getPublicKey(privateKey);
 
-    const asymEncoder = createAsymEncoder(asymTopic, publicKey);
+    const eciesEncoder = createEciesEncoder(asymTopic, publicKey);
     const symEncoder = createSymEncoder(symTopic, symKey);
 
-    const otherEncoder = createAsymEncoder(
+    const otherEncoder = createEciesEncoder(
       TestContentTopic,
       getPublicKey(generatePrivateKey())
     );
 
-    const asymDecoder = createAsymDecoder(asymTopic, privateKey);
+    const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
     const symDecoder = createSymDecoder(symTopic, symKey);
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
@@ -399,7 +401,7 @@ describe("Waku Store", () => {
 
     log("Sending messages using light push");
     await Promise.all([
-      waku1.lightPush.push(asymEncoder, asymMsg),
+      waku1.lightPush.push(eciesEncoder, asymMsg),
       waku1.lightPush.push(symEncoder, symMsg),
       waku1.lightPush.push(otherEncoder, otherMsg),
       waku1.lightPush.push(TestEncoder, clearMsg),
@@ -411,7 +413,7 @@ describe("Waku Store", () => {
     log("Retrieve messages from store");
 
     for await (const msgPromises of waku2.store.queryGenerator([
-      asymDecoder,
+      eciesDecoder,
       symDecoder,
       TestDecoder,
     ])) {

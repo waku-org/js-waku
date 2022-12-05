@@ -6,7 +6,7 @@ import * as ecies from "./crypto/ecies.js";
 import { keccak256, randomBytes, sign } from "./crypto/index.js";
 import * as symmetric from "./crypto/symmetric.js";
 
-import { Signature } from "./index";
+import { Signature } from "./index.js";
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011

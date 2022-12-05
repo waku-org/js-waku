@@ -7,14 +7,16 @@ import { createPrivacyNode } from "@waku/create";
 import type { WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
-  createAsymDecoder,
-  createAsymEncoder,
-  createSymDecoder,
-  createSymEncoder,
+  createDecoder as createEciesDecoder,
+  createEncoder as createEciesEncoder,
   generatePrivateKey,
-  generateSymmetricKey,
   getPublicKey,
-} from "@waku/message-encryption";
+} from "@waku/message-encryption/ecies";
+import {
+  createDecoder as createSymDecoder,
+  createEncoder as createSymEncoder,
+  generateSymmetricKey,
+} from "@waku/message-encryption/symmetric";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -187,21 +189,21 @@ describe("Waku Relay [node only]", () => {
       const symKey = generateSymmetricKey();
       const publicKey = getPublicKey(privateKey);
 
-      const asymEncoder = createAsymEncoder(asymTopic, publicKey);
+      const eciesEncoder = createEciesEncoder(asymTopic, publicKey);
       const symEncoder = createSymEncoder(symTopic, symKey);
 
-      const asymDecoder = createAsymDecoder(asymTopic, privateKey);
+      const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
       const symDecoder = createSymDecoder(symTopic, symKey);
 
       const msgs: DecodedMessage[] = [];
-      waku2.relay.addObserver(asymDecoder, (wakuMsg) => {
+      waku2.relay.addObserver(eciesDecoder, (wakuMsg) => {
         msgs.push(wakuMsg);
       });
       waku2.relay.addObserver(symDecoder, (wakuMsg) => {
         msgs.push(wakuMsg);
       });
 
-      await waku1.relay.send(asymEncoder, { payload: utf8ToBytes(asymText) });
+      await waku1.relay.send(eciesEncoder, { payload: utf8ToBytes(asymText) });
       await delay(200);
       await waku1.relay.send(symEncoder, { payload: utf8ToBytes(symText) });
 

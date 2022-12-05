@@ -12,10 +12,10 @@ import type {
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
-  createSymDecoder,
-  createSymEncoder,
+  createDecoder,
+  createEncoder,
   generateSymmetricKey,
-} from "@waku/message-encryption";
+} from "@waku/message-encryption/symmetric";
 import { expect } from "chai";
 
 import {
@@ -167,9 +167,9 @@ describe("Decryption Keys", () => {
     this.timeout(10000);
 
     const symKey = generateSymmetricKey();
-    const decoder = createSymDecoder(TestContentTopic, symKey);
+    const decoder = createDecoder(TestContentTopic, symKey);
 
-    const encoder = createSymEncoder(TestContentTopic, symKey);
+    const encoder = createEncoder(TestContentTopic, symKey);
     const messageText = "Message is encrypted";
     const messageTimestamp = new Date("1995-12-17T03:24:00");
     const message = {

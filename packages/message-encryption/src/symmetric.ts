@@ -17,11 +17,18 @@ import {
   preCipher,
 } from "./waku_payload.js";
 
-import { DecodedMessage, OneMillion, Version } from "./index.js";
+import {
+  DecodedMessage,
+  generateSymmetricKey,
+  OneMillion,
+  Version,
+} from "./index.js";
+
+export { DecodedMessage, generateSymmetricKey };
 
 const log = debug("waku:message-encryption:symmetric");
 
-class SymEncoder implements IEncoder {
+class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private symKey: Uint8Array,
@@ -58,16 +65,16 @@ class SymEncoder implements IEncoder {
   }
 }
 
-export function createSymEncoder(
+export function createEncoder(
   contentTopic: string,
   symKey: Uint8Array,
   sigPrivKey?: Uint8Array,
   ephemeral = false
-): SymEncoder {
-  return new SymEncoder(contentTopic, symKey, sigPrivKey, ephemeral);
+): Encoder {
+  return new Encoder(contentTopic, symKey, sigPrivKey, ephemeral);
 }
 
-class SymDecoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private symKey: Uint8Array) {
     super(contentTopic);
   }
@@ -125,9 +132,9 @@ class SymDecoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   }
 }
 
-export function createSymDecoder(
+export function createDecoder(
   contentTopic: string,
   symKey: Uint8Array
-): SymDecoder {
-  return new SymDecoder(contentTopic, symKey);
+): Decoder {
+  return new Decoder(contentTopic, symKey);
 }

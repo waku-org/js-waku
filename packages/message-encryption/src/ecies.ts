@@ -17,11 +17,19 @@ import {
   preCipher,
 } from "./waku_payload.js";
 
-import { DecodedMessage, OneMillion, Version } from "./index.js";
+import {
+  DecodedMessage,
+  generatePrivateKey,
+  getPublicKey,
+  OneMillion,
+  Version,
+} from "./index.js";
+
+export { DecodedMessage, generatePrivateKey, getPublicKey };
 
 const log = debug("waku:message-encryption:ecies");
 
-class AsymEncoder implements IEncoder {
+class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private publicKey: Uint8Array,
@@ -59,16 +67,16 @@ class AsymEncoder implements IEncoder {
   }
 }
 
-export function createAsymEncoder(
+export function createEncoder(
   contentTopic: string,
   publicKey: Uint8Array,
   sigPrivKey?: Uint8Array,
   ephemeral = false
-): AsymEncoder {
-  return new AsymEncoder(contentTopic, publicKey, sigPrivKey, ephemeral);
+): Encoder {
+  return new Encoder(contentTopic, publicKey, sigPrivKey, ephemeral);
 }
 
-class AsymDecoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private privateKey: Uint8Array) {
     super(contentTopic);
   }
@@ -126,9 +134,9 @@ class AsymDecoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   }
 }
 
-export function createAsymDecoder(
+export function createDecoder(
   contentTopic: string,
   privateKey: Uint8Array
-): AsymDecoder {
-  return new AsymDecoder(contentTopic, privateKey);
+): Decoder {
+  return new Decoder(contentTopic, privateKey);
 }

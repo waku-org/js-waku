@@ -2,7 +2,7 @@ import { expect } from "chai";
 import fc from "fast-check";
 
 import { getPublicKey } from "./crypto/index.js";
-import { createSymDecoder, createSymEncoder } from "./symmetric.js";
+import { createDecoder, createEncoder } from "./symmetric.js";
 
 const TestContentTopic = "/test/1/waku-message/utf8";
 
@@ -13,10 +13,10 @@ describe("Symmetric Encryption", function () {
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (payload, symKey) => {
-          const encoder = createSymEncoder(TestContentTopic, symKey);
+          const encoder = createEncoder(TestContentTopic, symKey);
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = createSymDecoder(TestContentTopic, symKey);
+          const decoder = createDecoder(TestContentTopic, symKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(protoResult);
@@ -41,14 +41,10 @@ describe("Symmetric Encryption", function () {
         async (payload, sigPrivKey, symKey) => {
           const sigPubKey = getPublicKey(sigPrivKey);
 
-          const encoder = createSymEncoder(
-            TestContentTopic,
-            symKey,
-            sigPrivKey
-          );
+          const encoder = createEncoder(TestContentTopic, symKey, sigPrivKey);
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = createSymDecoder(TestContentTopic, symKey);
+          const decoder = createDecoder(TestContentTopic, symKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(protoResult);

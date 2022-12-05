@@ -2,7 +2,7 @@ import { expect } from "chai";
 import fc from "fast-check";
 
 import { getPublicKey } from "./crypto/index.js";
-import { createAsymDecoder, createAsymEncoder } from "./ecies.js";
+import { createDecoder, createEncoder } from "./ecies.js";
 
 const TestContentTopic = "/test/1/waku-message/utf8";
 
@@ -15,10 +15,10 @@ describe("Ecies Encryption", function () {
         async (payload, privateKey) => {
           const publicKey = getPublicKey(privateKey);
 
-          const encoder = createAsymEncoder(TestContentTopic, publicKey);
+          const encoder = createEncoder(TestContentTopic, publicKey);
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = createAsymDecoder(TestContentTopic, privateKey);
+          const decoder = createDecoder(TestContentTopic, privateKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(protoResult);
@@ -46,14 +46,14 @@ describe("Ecies Encryption", function () {
           const alicePublicKey = getPublicKey(alicePrivateKey);
           const bobPublicKey = getPublicKey(bobPrivateKey);
 
-          const encoder = createAsymEncoder(
+          const encoder = createEncoder(
             TestContentTopic,
             bobPublicKey,
             alicePrivateKey
           );
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = createAsymDecoder(TestContentTopic, bobPrivateKey);
+          const decoder = createDecoder(TestContentTopic, bobPrivateKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(protoResult);
