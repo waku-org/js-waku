@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { DecoderV0, EncoderV0, MessageV0 } from "./version_0";
+import { DecoderV0, EncoderV0, MessageV0 } from "./version_0.js";
 
 const TestContentTopic = "/test/1/waku-message/utf8";
 

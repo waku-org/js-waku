@@ -15,16 +15,16 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import { PushResponse } from "../../proto/light_push";
-import { DefaultPubSubTopic } from "../constants";
-import { selectConnection } from "../select_connection";
+import { PushResponse } from "../../proto/light_push.js";
+import { DefaultPubSubTopic } from "../constants.js";
+import { selectConnection } from "../select_connection.js";
 import {
   getPeersForProtocol,
   selectPeerForProtocol,
   selectRandomPeer,
-} from "../select_peer";
+} from "../select_peer.js";
 
-import { PushRPC } from "./push_rpc";
+import { PushRPC } from "./push_rpc.js";
 
 const log = debug("waku:light-push");
 

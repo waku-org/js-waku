@@ -17,13 +17,13 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import * as proto from "../../proto/store";
-import { DefaultPubSubTopic } from "../constants";
-import { selectConnection } from "../select_connection";
-import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer";
-import { toProtoMessage } from "../to_proto_message";
+import * as proto from "../../proto/store.js";
+import { DefaultPubSubTopic } from "../constants.js";
+import { selectConnection } from "../select_connection.js";
+import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer.js";
+import { toProtoMessage } from "../to_proto_message.js";
 
-import { HistoryRPC, PageDirection, Params } from "./history_rpc";
+import { HistoryRPC, PageDirection, Params } from "./history_rpc.js";
 
 import HistoryError = proto.HistoryResponse.HistoryError;
 

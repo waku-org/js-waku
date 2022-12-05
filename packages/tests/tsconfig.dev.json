@@ -1,8 +1,3 @@
 {
-  "extends": "./tsconfig",
-  "compilerOptions": {
-    "module": "esnext",
-    "noEmit": true
-  },
-  "include": ["src", "tests"]
+  "extends": "../../tsconfig.dev"
 }
