@@ -4,6 +4,12 @@ export { DefaultUserAgent } from "./lib/waku.js";
 export * as proto_message from "./proto/message.js";
 export * as proto_topic_only_message from "./proto/topic_only_message.js";
 
+export {
+  createEncoder,
+  createDecoder,
+  DecodedMessage,
+} from "./lib/waku_message/version_0.js";
+
 export * as waku from "./lib/waku.js";
 export { WakuNode } from "./lib/waku.js";
 
@@ -27,3 +33,5 @@ export {
   StoreCodec,
   createCursor,
 } from "./lib/waku_store/index.js";
+
+export { waitForRemotePeer } from "./lib/wait_for_remote_peer.js";

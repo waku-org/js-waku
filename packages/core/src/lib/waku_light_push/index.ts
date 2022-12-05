@@ -60,7 +60,7 @@ class WakuLightPush implements LightPush {
 
   async push(
     encoder: Encoder,
-    message: Partial<Message>,
+    message: Message,
     opts?: ProtocolOptions
   ): Promise<SendResult> {
     const pubSubTopic = opts?.pubSubTopic ? opts.pubSubTopic : this.pubSubTopic;

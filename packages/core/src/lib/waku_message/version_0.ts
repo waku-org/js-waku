@@ -1,7 +1,7 @@
 import type {
-  DecodedMessage,
-  Decoder,
-  Encoder,
+  DecodedMessage as IDecodedMessage,
+  Decoder as IDecoder,
+  Encoder as IEncoder,
   Message,
   ProtoMessage,
   RateLimitProof,
@@ -16,7 +16,7 @@ const OneMillion = BigInt(1_000_000);
 export const Version = 0;
 export { proto };
 
-export class MessageV0 implements DecodedMessage {
+export class DecodedMessage implements IDecodedMessage {
   constructor(protected proto: proto.WakuMessage) {}
 
   get _rawPayload(): Uint8Array | undefined {
@@ -71,14 +71,14 @@ export class MessageV0 implements DecodedMessage {
   }
 }
 
-export class EncoderV0 implements Encoder {
+export class Encoder implements IEncoder {
   constructor(public contentTopic: string, public ephemeral: boolean = false) {}
 
-  async toWire(message: Partial<Message>): Promise<Uint8Array> {
+  async toWire(message: Message): Promise<Uint8Array> {
     return proto.WakuMessage.encode(await this.toProtoObj(message));
   }
 
-  async toProtoObj(message: Partial<Message>): Promise<ProtoMessage> {
+  async toProtoObj(message: Message): Promise<ProtoMessage> {
     const timestamp = message.timestamp ?? new Date();
 
     return {
@@ -92,8 +92,27 @@ export class EncoderV0 implements Encoder {
   }
 }
 
-export class DecoderV0 implements Decoder<MessageV0> {
-  constructor(public contentTopic: string, public ephemeral: boolean = false) {}
+/**
+ * Creates an encoder that encode messages without Waku level encryption or signature.
+ *
+ * An encoder is used to encode messages in the [`14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
+ * format to be sent over the Waku network. The resulting encoder can then be
+ * pass to { @link @waku/interfaces.LightPush.push } or
+ * { @link @waku/interfaces.Relay.send } to automatically encode outgoing
+ * messages.
+ *
+ * @param contentTopic The content topic to set on outgoing messages.
+ * @param ephemeral An optional flag to mark message as ephemeral, ie, not to be stored by Waku Store nodes.
+ */
+export function createEncoder(
+  contentTopic: string,
+  ephemeral = false
+): Encoder {
+  return new Encoder(contentTopic, ephemeral);
+}
+
+export class Decoder implements IDecoder<DecodedMessage> {
+  constructor(public contentTopic: string) {}
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);
@@ -108,7 +127,7 @@ export class DecoderV0 implements Decoder<MessageV0> {
     });
   }
 
-  async fromProtoObj(proto: ProtoMessage): Promise<MessageV0 | undefined> {
+  async fromProtoObj(proto: ProtoMessage): Promise<DecodedMessage | undefined> {
     // https://github.com/status-im/js-waku/issues/921
     if (proto.version === undefined) {
       proto.version = 0;
@@ -124,6 +143,21 @@ export class DecoderV0 implements Decoder<MessageV0> {
       return Promise.resolve(undefined);
     }
 
-    return new MessageV0(proto);
+    return new DecodedMessage(proto);
   }
+}
+
+/**
+ * Creates an decoder that decode messages without Waku level encryption.
+ *
+ * A decoder is used to decode messages from the [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
+ * format when received from the Waku network. The resulting decoder can then be
+ * pass to { @link @waku/interfaces.Filter.subscribe } or
+ * { @link @waku/interfaces.Relay.subscribe } to automatically decode incoming
+ * messages.
+ *
+ * @param contentTopic The resulting decoder will only decode messages with this content topic.
+ */
+export function createDecoder(contentTopic: string): Decoder {
+  return new Decoder(contentTopic);
 }

@@ -13,10 +13,6 @@
       "types": "./dist/lib/predefined_bootstrap_nodes.d.ts",
       "import": "./dist/lib/predefined_bootstrap_nodes.js"
     },
-    "./lib/wait_for_remote_peer": {
-      "types": "./dist/lib/wait_for_remote_peer.d.ts",
-      "import": "./dist/lib/wait_for_remote_peer.js"
-    },
     "./lib/waku_message/version_0": {
       "types": "./dist/lib/waku_message/version_0.d.ts",
       "import": "./dist/lib/waku_message/version_0.js"
