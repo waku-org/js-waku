@@ -1,9 +1,15 @@
+// import { bootstrap } from "@libp2p/bootstrap";
+// import {
+//   Fleet,
+//   getPredefinedBootstrapNodes,
+// } from "@waku/core/lib/predefined_bootstrap_nodes";
 import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import { createFullNode } from "@waku/create";
 import type { PeerExchangeResponse, WakuFull } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../src";
+import { makeLogFileName, Nwaku } from "../src";
 import { delay } from "../src/delay";
 
 describe("Peer Exchange: Node", () => {
@@ -31,59 +37,67 @@ describe("Peer Exchange: Node", () => {
       discv5Discovery: true,
       peerExchange: true,
     });
-    console.log("nwaku1 started");
 
     await delay(10000);
-
-    const enr = (await nwaku1.info()).enrUri;
-    console.log({ enr });
 
     await nwaku2.start({
       discv5Discovery: true,
     });
-    console.log("nwaku2 started");
 
     await delay(10000);
 
     await nwaku3.start({
       discv5Discovery: true,
     });
-    console.log("nwaku3 started");
 
-    await delay(40000);
+    await delay(10000);
 
-    waku = await createFullNode({
-      staticNoiseKey: NOISE_KEY_1,
-    });
+    // The test works with deployed test fleet nodes:
+    // const waku = await createFullNode({
+    //   libp2p: {
+    //     peerDiscovery: [
+    //       bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
+    //     ],
+    //   },
+    // });
 
-    console.log("created light node");
+    await delay(30000);
+
+    const waku = await createFullNode();
+
     await waku.start();
-    console.log("started light node");
 
     await delay(1000);
 
     const multiaddr = await nwaku1.getMultiaddrWithId();
 
     await waku.dial(multiaddr, [Protocols.PeerExchange]);
-    console.log("dialed");
 
     await waitForRemotePeer(waku, [Protocols.PeerExchange]);
-    console.log("waited");
 
     await delay(3000);
 
-    try {
-      const callback = (response: PeerExchangeResponse): void => {
-        console.log("callback", response);
-      };
-      await waku.peerExchange.query(
-        {
-          numPeers: 1n,
-        },
-        callback
+    let receivedCallback = false;
+    const numPeersToRequest = 3;
+    const callback = (response: PeerExchangeResponse): void => {
+      receivedCallback = true;
+      console.log("callback", response);
+
+      expect(response.peerInfos.length).to.be.greaterThan(0);
+      expect(response.peerInfos.length).to.be.lessThanOrEqual(
+        numPeersToRequest
       );
-    } catch (error) {
-      console.error(error);
-    }
+
+      expect(response.peerInfos[0].ENR).to.not.be.null;
+    };
+
+    await waku.peerExchange.query(
+      {
+        numPeers: numPeersToRequest,
+      },
+      callback
+    );
+
+    expect(receivedCallback).to.be.true;
   });
 });

@@ -44,9 +44,13 @@ export class WakuPeerExchange implements PeerExchange {
     params: PeerExchangeQueryParams,
     callback: (response: PeerExchangeResponse) => Promise<void>
   ): Promise<void> {
+    this.callback = callback;
+
     const { numPeers } = params;
 
-    const rpcQuery = PeerExchangeRPC.createRequest({ numPeers });
+    const rpcQuery = PeerExchangeRPC.createRequest({
+      numPeers: BigInt(numPeers),
+    });
 
     const peer = await this.getPeer();
 
@@ -59,8 +63,6 @@ export class WakuPeerExchange implements PeerExchange {
       lp.decode(),
       async (source) => await all(source)
     );
-
-    this.callback = callback;
   }
 
   private handler(streamData: IncomingStreamData): void {
