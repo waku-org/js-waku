@@ -27,12 +27,12 @@ import {
   createPeerIdFromKeypair,
   IKeypair,
   KeypairType,
-} from "./keypair";
-import { multiaddrFromFields } from "./multiaddr_from_fields";
-import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec";
-import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types";
-import * as v4 from "./v4";
-import { decodeWaku2, encodeWaku2, Waku2 } from "./waku2_codec";
+} from "./keypair/index.js";
+import { multiaddrFromFields } from "./multiaddr_from_fields.js";
+import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
+import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types.js";
+import * as v4 from "./v4.js";
+import { decodeWaku2, encodeWaku2, Waku2 } from "./waku2_codec.js";
 
 const log = debug("waku:enr");
 

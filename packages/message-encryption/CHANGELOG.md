@@ -1,0 +1,33 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Add `@multiformats/multiaddr` as peer dependency.
+- New `createEncoder` and `createDecoder` functions so that the consumer does not deal with Encoder/Decoder classes.
+-
+
+### Changed
+
+- `Asymmetric` renamed to `ECIES` to follow RFC terminology.
+- Split `ECIES` and `symmetric` packages, all items are now export from two different paths: `@waku/message-encryption/ecies` and `@waku/message-encryption/symmetric`.
+- remove `asym` and `sym` prefix from exported items as they are now differentiated from their export path: `createEncoder`, `createDecoder`, `DecodedMessage`.
+- Remove usage for `Partial` with `Message` as `Message`'s field are all optional.
+
+## [0.0.4] - 2022-11-18
+
+### Added
+
+- Alpha version of `@waku/message-encryption`.
+
+[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.4...HEAD
+[0.0.4]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.3...@waku/message-encryption@0.0.4
+[0.0.3]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.2...%40waku/message-encryption@0.0.3
+[0.0.2]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.1...%40waku/message-encryption@0.0.2
+[0.0.1]: https://github.com/status-im/js-waku/compare/a20b7809d61ff9a9732aba82b99bbe99f229b935...%40waku/message-encryption%400.0.2

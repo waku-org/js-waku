@@ -8,6 +8,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./ecies": {
+      "types": "./dist/ecies.d.ts",
+      "import": "./dist/ecies.js"
+    },
+    "./symmetric": {
+      "types": "./dist/symmetric.d.ts",
+      "import": "./dist/symmetric.js"
     }
   },
   "type": "module",

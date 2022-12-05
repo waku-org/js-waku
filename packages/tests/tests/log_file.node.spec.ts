@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { makeLogFileName } from "../src";
+import { makeLogFileName } from "../src/index.js";
 
 describe("This", function () {
   describe("Is", function () {

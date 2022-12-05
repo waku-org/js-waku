@@ -1,11 +1,11 @@
-import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import { waitForRemotePeer } from "@waku/core";
 import { createPrivacyNode } from "@waku/create";
 import { ENR } from "@waku/enr";
 import type { WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../src";
+import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../src/index.js";
 
 describe("ENR Interop: nwaku", function () {
   let waku: WakuPrivacy;

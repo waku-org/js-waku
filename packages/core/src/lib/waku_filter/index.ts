@@ -18,18 +18,18 @@ import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
-import { WakuMessage as WakuMessageProto } from "../../proto/message";
-import { DefaultPubSubTopic } from "../constants";
-import { groupByContentTopic } from "../group_by";
-import { selectConnection } from "../select_connection";
+import { WakuMessage as WakuMessageProto } from "../../proto/message.js";
+import { DefaultPubSubTopic } from "../constants.js";
+import { groupByContentTopic } from "../group_by.js";
+import { selectConnection } from "../select_connection.js";
 import {
   getPeersForProtocol,
   selectPeerForProtocol,
   selectRandomPeer,
-} from "../select_peer";
-import { toProtoMessage } from "../to_proto_message";
+} from "../select_peer.js";
+import { toProtoMessage } from "../to_proto_message.js";
 
-import { ContentFilter, FilterRPC } from "./filter_rpc";
+import { ContentFilter, FilterRPC } from "./filter_rpc.js";
 
 export { ContentFilter };
 

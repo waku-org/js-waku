@@ -1,8 +1,8 @@
 import { expect } from "chai";
 
-import { WakuMessage as WakuMessageProto } from "../proto/message";
+import { WakuMessage as WakuMessageProto } from "../proto/message.js";
 
-import { toProtoMessage } from "./to_proto_message";
+import { toProtoMessage } from "./to_proto_message.js";
 
 describe("to proto message", () => {
   it("Fields are not dropped", () => {

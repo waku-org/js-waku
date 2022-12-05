@@ -1,42 +1,44 @@
 import { PeerId } from "@libp2p/interface-peer-id";
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
-import { DefaultPubSubTopic } from "@waku/core";
-import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
 import {
-  DecoderV0,
-  EncoderV0,
-  MessageV0,
-} from "@waku/core/lib/waku_message/version_0";
+  createDecoder,
+  createEncoder,
+  DecodedMessage,
+  DefaultPubSubTopic,
+  waitForRemotePeer,
+} from "@waku/core";
 import { createPrivacyNode } from "@waku/create";
-import type { DecodedMessage, WakuPrivacy } from "@waku/interfaces";
+import type { WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
-  AsymDecoder,
-  AsymEncoder,
+  createDecoder as createEciesDecoder,
+  createEncoder as createEciesEncoder,
   generatePrivateKey,
-  generateSymmetricKey,
   getPublicKey,
-  SymDecoder,
-  SymEncoder,
-} from "@waku/message-encryption";
+} from "@waku/message-encryption/ecies";
+import {
+  createDecoder as createSymDecoder,
+  createEncoder as createSymEncoder,
+  generateSymmetricKey,
+} from "@waku/message-encryption/symmetric";
 import { expect } from "chai";
 import debug from "debug";
 
 import {
+  delay,
   makeLogFileName,
   MessageRpcResponse,
   NOISE_KEY_1,
   NOISE_KEY_2,
   NOISE_KEY_3,
   Nwaku,
-} from "../src";
-import { delay } from "../src/delay";
+} from "../src/index.js";
 
 const log = debug("waku:test");
 
 const TestContentTopic = "/test/1/waku-relay/utf8";
-const TestEncoder = new EncoderV0(TestContentTopic);
-const TestDecoder = new DecoderV0(TestContentTopic);
+const TestEncoder = createEncoder(TestContentTopic);
+const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Relay [node only]", () => {
   // Node needed as we don't have a way to connect 2 js waku
@@ -142,11 +144,11 @@ describe("Waku Relay [node only]", () => {
       const fooContentTopic = "foo";
       const barContentTopic = "bar";
 
-      const fooEncoder = new EncoderV0(fooContentTopic);
-      const barEncoder = new EncoderV0(barContentTopic);
+      const fooEncoder = createEncoder(fooContentTopic);
+      const barEncoder = createEncoder(barContentTopic);
 
-      const fooDecoder = new DecoderV0(fooContentTopic);
-      const barDecoder = new DecoderV0(barContentTopic);
+      const fooDecoder = createDecoder(fooContentTopic);
+      const barDecoder = createDecoder(barContentTopic);
 
       const fooMessages: DecodedMessage[] = [];
       waku2.relay.addObserver(fooDecoder, (msg) => {
@@ -191,21 +193,21 @@ describe("Waku Relay [node only]", () => {
       const symKey = generateSymmetricKey();
       const publicKey = getPublicKey(privateKey);
 
-      const asymEncoder = new AsymEncoder(asymTopic, publicKey);
-      const symEncoder = new SymEncoder(symTopic, symKey);
+      const eciesEncoder = createEciesEncoder(asymTopic, publicKey);
+      const symEncoder = createSymEncoder(symTopic, symKey);
 
-      const asymDecoder = new AsymDecoder(asymTopic, privateKey);
-      const symDecoder = new SymDecoder(symTopic, symKey);
+      const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
+      const symDecoder = createSymDecoder(symTopic, symKey);
 
       const msgs: DecodedMessage[] = [];
-      waku2.relay.addObserver(asymDecoder, (wakuMsg) => {
+      waku2.relay.addObserver(eciesDecoder, (wakuMsg) => {
         msgs.push(wakuMsg);
       });
       waku2.relay.addObserver(symDecoder, (wakuMsg) => {
         msgs.push(wakuMsg);
       });
 
-      await waku1.relay.send(asymEncoder, { payload: utf8ToBytes(asymText) });
+      await waku1.relay.send(eciesEncoder, { payload: utf8ToBytes(asymText) });
       await delay(200);
       await waku1.relay.send(symEncoder, { payload: utf8ToBytes(symText) });
 
@@ -231,14 +233,14 @@ describe("Waku Relay [node only]", () => {
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve, reject) => {
           const deleteObserver = waku2.relay.addObserver(
-            new DecoderV0(contentTopic),
+            createDecoder(contentTopic),
             reject
           );
           deleteObserver();
           setTimeout(resolve, 500);
         }
       );
-      await waku1.relay.send(new EncoderV0(contentTopic), {
+      await waku1.relay.send(createEncoder(contentTopic), {
         payload: utf8ToBytes(messageText),
       });
 
@@ -391,9 +393,13 @@ describe("Waku Relay [node only]", () => {
 
       const messageText = "Here is another message.";
 
-      const receivedMsgPromise: Promise<MessageV0> = new Promise((resolve) => {
-        waku.relay.addObserver<MessageV0>(TestDecoder, (msg) => resolve(msg));
-      });
+      const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
+        (resolve) => {
+          waku.relay.addObserver<DecodedMessage>(TestDecoder, (msg) =>
+            resolve(msg)
+          );
+        }
+      );
 
       await nwaku.sendMessage(
         Nwaku.toMessageRpcQuery({
@@ -405,7 +411,7 @@ describe("Waku Relay [node only]", () => {
       const receivedMsg = await receivedMsgPromise;
 
       expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
-      expect(receivedMsg.version).to.eq(0);
+      expect(receivedMsg.version!).to.eq(0);
       expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
     });
 

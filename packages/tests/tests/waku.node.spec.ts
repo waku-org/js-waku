@@ -1,8 +1,7 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
-import { DefaultUserAgent } from "@waku/core";
-import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
+import { DefaultUserAgent, waitForRemotePeer } from "@waku/core";
 import { createLightNode, createPrivacyNode } from "@waku/create";
 import type {
   DecodedMessage,
@@ -12,13 +11,18 @@ import type {
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
+  createDecoder,
+  createEncoder,
   generateSymmetricKey,
-  SymDecoder,
-  SymEncoder,
-} from "@waku/message-encryption";
+} from "@waku/message-encryption/symmetric";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2, Nwaku } from "../src/";
+import {
+  makeLogFileName,
+  NOISE_KEY_1,
+  NOISE_KEY_2,
+  Nwaku,
+} from "../src/index.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
 
@@ -162,9 +166,9 @@ describe("Decryption Keys", () => {
     this.timeout(10000);
 
     const symKey = generateSymmetricKey();
-    const decoder = new SymDecoder(TestContentTopic, symKey);
+    const decoder = createDecoder(TestContentTopic, symKey);
 
-    const encoder = new SymEncoder(TestContentTopic, symKey);
+    const encoder = createEncoder(TestContentTopic, symKey);
     const messageText = "Message is encrypted";
     const messageTimestamp = new Date("1995-12-17T03:24:00");
     const message = {

@@ -17,11 +17,11 @@ import type {
 import { DecodedMessage } from "@waku/interfaces";
 import debug from "debug";
 
-import { DefaultPubSubTopic } from "../constants";
-import { pushOrInitMapSet } from "../push_or_init_map";
-import { TopicOnlyDecoder } from "../waku_message/topic_only_message";
+import { DefaultPubSubTopic } from "../constants.js";
+import { pushOrInitMapSet } from "../push_or_init_map.js";
+import { TopicOnlyDecoder } from "../waku_message/topic_only_message.js";
 
-import * as constants from "./constants";
+import * as constants from "./constants.js";
 
 const log = debug("waku:relay");
 
@@ -99,10 +99,7 @@ class WakuRelay extends GossipSub implements Relay {
   /**
    * Send Waku message.
    */
-  public async send(
-    encoder: Encoder,
-    message: Partial<Message>
-  ): Promise<SendResult> {
+  public async send(encoder: Encoder, message: Message): Promise<SendResult> {
     const msg = await encoder.toWire(message);
     if (!msg) {
       log("Failed to encode message, aborting publish");
