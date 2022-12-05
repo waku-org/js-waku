@@ -1,4 +1,4 @@
-export interface RateLimitProof {
+export interface IRateLimitProof {
   proof: Uint8Array;
   merkleRoot: Uint8Array;
   epoch: Uint8Array;
@@ -12,41 +12,41 @@ export interface RateLimitProof {
  * Interface matching the protobuf library.
  * Field types matches the protobuf type over the wire
  */
-export interface ProtoMessage {
+export interface IProtoMessage {
   payload: Uint8Array | undefined;
   contentTopic: string | undefined;
   version: number | undefined;
   timestamp: bigint | undefined;
-  rateLimitProof: RateLimitProof | undefined;
+  rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
 }
 
 /**
  * Interface for messages to encode and send.
  */
-export interface Message {
+export interface IMessage {
   payload?: Uint8Array;
   timestamp?: Date;
-  rateLimitProof?: RateLimitProof;
+  rateLimitProof?: IRateLimitProof;
 }
 
-export interface Encoder {
+export interface IEncoder {
   contentTopic: string;
   ephemeral: boolean;
-  toWire: (message: Message) => Promise<Uint8Array | undefined>;
-  toProtoObj: (message: Message) => Promise<ProtoMessage | undefined>;
+  toWire: (message: IMessage) => Promise<Uint8Array | undefined>;
+  toProtoObj: (message: IMessage) => Promise<IProtoMessage | undefined>;
 }
 
-export interface DecodedMessage {
+export interface IDecodedMessage {
   payload: Uint8Array | undefined;
   contentTopic: string | undefined;
   timestamp: Date | undefined;
-  rateLimitProof: RateLimitProof | undefined;
+  rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
 }
 
-export interface Decoder<T extends DecodedMessage> {
+export interface IDecoder<T extends IDecodedMessage> {
   contentTopic: string;
-  fromWireToProtoObj: (bytes: Uint8Array) => Promise<ProtoMessage | undefined>;
-  fromProtoObj: (proto: ProtoMessage) => Promise<T | undefined>;
+  fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
+  fromProtoObj: (proto: IProtoMessage) => Promise<T | undefined>;
 }

@@ -4,7 +4,7 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { DefaultUserAgent, waitForRemotePeer } from "@waku/core";
 import { createLightNode, createPrivacyNode } from "@waku/create";
 import type {
-  DecodedMessage,
+  IDecodedMessage,
   Waku,
   WakuLight,
   WakuPrivacy,
@@ -180,7 +180,7 @@ describe("Decryption Keys", () => {
       timestamp: messageTimestamp,
     };
 
-    const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
+    const receivedMsgPromise: Promise<IDecodedMessage> = new Promise(
       (resolve) => {
         waku2.relay.addObserver(decoder, resolve);
       }

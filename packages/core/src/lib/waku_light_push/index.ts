@@ -3,9 +3,9 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 import type {
-  Encoder,
+  IEncoder,
+  IMessage,
   LightPush,
-  Message,
   ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
@@ -59,8 +59,8 @@ class WakuLightPush implements LightPush {
   }
 
   async push(
-    encoder: Encoder,
-    message: Message,
+    encoder: IEncoder,
+    message: IMessage,
     opts?: ProtocolOptions
   ): Promise<SendResult> {
     const pubSubTopic = opts?.pubSubTopic ? opts.pubSubTopic : this.pubSubTopic;

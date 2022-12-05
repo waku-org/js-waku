@@ -1,7 +1,7 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import { createLightNode } from "@waku/create";
-import type { DecodedMessage, WakuLight } from "@waku/interfaces";
+import type { IDecodedMessage, WakuLight } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import debug from "debug";
@@ -43,7 +43,7 @@ describe("Waku Filter", () => {
     const messageText = "Filtering works!";
     const message = { payload: utf8ToBytes(messageText) };
 
-    const callback = (msg: DecodedMessage): void => {
+    const callback = (msg: IDecodedMessage): void => {
       log("Got a message");
       messageCount++;
       expect(msg.contentTopic).to.eq(TestContentTopic);
@@ -67,7 +67,7 @@ describe("Waku Filter", () => {
     this.timeout(10000);
 
     let messageCount = 0;
-    const callback = (msg: DecodedMessage): void => {
+    const callback = (msg: IDecodedMessage): void => {
       messageCount++;
       expect(msg.contentTopic).to.eq(TestContentTopic);
     };

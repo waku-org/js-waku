@@ -7,7 +7,7 @@ import {
   waitForRemotePeer,
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
-import type { DecodedMessage, Message, WakuLight } from "@waku/interfaces";
+import type { IDecodedMessage, IMessage, WakuLight } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   createDecoder as createEciesDecoder,
@@ -74,7 +74,7 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: Message[] = [];
+    const messages: IMessage[] = [];
     let promises: Promise<void>[] = [];
     for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
       const _promises = msgPromises.map(async (promise) => {
@@ -105,7 +105,7 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: Message[] = [];
+    const messages: IMessage[] = [];
     let promises: Promise<void>[] = [];
     for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
       const _promises = msgPromises.map(async (promise) => {
@@ -147,10 +147,10 @@ describe("Waku Store", () => {
     const query = waku.store.queryGenerator([TestDecoder]);
 
     // messages in reversed order (first message at last index)
-    const messages: DecodedMessage[] = [];
+    const messages: IDecodedMessage[] = [];
     for await (const page of query) {
       for await (const msg of page.reverse()) {
-        messages.push(msg as DecodedMessage);
+        messages.push(msg as IDecodedMessage);
       }
     }
 
@@ -160,12 +160,12 @@ describe("Waku Store", () => {
     // create cursor to extract messages after the 3rd index
     const cursor = await createCursor(messages[cursorIndex]);
 
-    const messagesAfterCursor: DecodedMessage[] = [];
+    const messagesAfterCursor: IDecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder], {
       cursor,
     })) {
       for await (const msg of page.reverse()) {
-        messagesAfterCursor.push(msg as DecodedMessage);
+        messagesAfterCursor.push(msg as IDecodedMessage);
       }
     }
 
@@ -201,7 +201,7 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: Message[] = [];
+    const messages: IMessage[] = [];
     await waku.store.queryCallbackOnPromise(
       [TestDecoder],
       async (msgPromise) => {
@@ -243,7 +243,7 @@ describe("Waku Store", () => {
     await waitForRemotePeer(waku, [Protocols.Store]);
 
     const desiredMsgs = 14;
-    const messages: Message[] = [];
+    const messages: IMessage[] = [];
     await waku.store.queryCallbackOnPromise(
       [TestDecoder],
       async (msgPromise) => {
@@ -282,7 +282,7 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: Message[] = [];
+    const messages: IMessage[] = [];
     await waku.store.queryOrderedCallback(
       [TestDecoder],
       async (msg) => {
@@ -321,7 +321,7 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    let messages: Message[] = [];
+    let messages: IMessage[] = [];
     await waku.store.queryOrderedCallback(
       [TestDecoder],
       async (msg) => {
@@ -413,7 +413,7 @@ describe("Waku Store", () => {
 
     await waitForRemotePeer(waku2, [Protocols.Store]);
 
-    const messages: DecodedMessage[] = [];
+    const messages: IDecodedMessage[] = [];
     log("Retrieve messages from store");
 
     for await (const msgPromises of waku2.store.queryGenerator([
@@ -482,7 +482,7 @@ describe("Waku Store", () => {
 
     const nwakuPeerId = await nwaku.getPeerId();
 
-    const firstMessages: Message[] = [];
+    const firstMessages: IMessage[] = [];
     await waku.store.queryOrderedCallback(
       [TestDecoder],
       (msg) => {
@@ -496,7 +496,7 @@ describe("Waku Store", () => {
       }
     );
 
-    const bothMessages: Message[] = [];
+    const bothMessages: IMessage[] = [];
     await waku.store.queryOrderedCallback(
       [TestDecoder],
       async (msg) => {
@@ -543,7 +543,7 @@ describe("Waku Store", () => {
     await waitForRemotePeer(waku, [Protocols.Store]);
 
     const desiredMsgs = 14;
-    const messages: Message[] = [];
+    const messages: IMessage[] = [];
     await waku.store.queryOrderedCallback(
       [TestDecoder],
       async (msg) => {
@@ -601,7 +601,7 @@ describe("Waku Store, custom pubsub topic", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const messages: Message[] = [];
+    const messages: IMessage[] = [];
     let promises: Promise<void>[] = [];
     for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
       const _promises = msgPromises.map(async (promise) => {

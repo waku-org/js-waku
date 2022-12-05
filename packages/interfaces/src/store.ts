@@ -1,4 +1,4 @@
-import type { DecodedMessage, Decoder } from "./message.js";
+import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { PointToPointProtocol, ProtocolOptions } from "./protocols.js";
 
 export enum PageDirection {
@@ -51,20 +51,20 @@ export type StoreQueryOptions = {
 } & ProtocolOptions;
 
 export interface Store extends PointToPointProtocol {
-  queryOrderedCallback: <T extends DecodedMessage>(
-    decoders: Decoder<T>[],
+  queryOrderedCallback: <T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: StoreQueryOptions
   ) => Promise<void>;
-  queryCallbackOnPromise: <T extends DecodedMessage>(
-    decoders: Decoder<T>[],
+  queryCallbackOnPromise: <T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     callback: (
       message: Promise<T | undefined>
     ) => Promise<void | boolean> | boolean | void,
     options?: StoreQueryOptions
   ) => Promise<void>;
-  queryGenerator: <T extends DecodedMessage>(
-    decoders: Decoder<T>[],
+  queryGenerator: <T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     options?: StoreQueryOptions
   ) => AsyncGenerator<Promise<T | undefined>[]>;
 }

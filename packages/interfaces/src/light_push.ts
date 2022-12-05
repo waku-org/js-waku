@@ -1,4 +1,4 @@
-import type { Encoder, Message } from "./message.js";
+import type { IEncoder, IMessage } from "./message.js";
 import type {
   PointToPointProtocol,
   ProtocolOptions,
@@ -7,8 +7,8 @@ import type {
 
 export interface LightPush extends PointToPointProtocol {
   push: (
-    encoder: Encoder,
-    message: Message,
+    encoder: IEncoder,
+    message: IMessage,
     opts?: ProtocolOptions
   ) => Promise<SendResult>;
 }
