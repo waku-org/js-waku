@@ -6,22 +6,19 @@ module.exports = [
   },
   {
     name: "Waku default setup",
-    path: [
-      "packages/create/bundle/index.js",
-      "packages/core/bundle/lib/wait_for_remote_peer.js"
-    ],
-    import: {
-      "./packages/create/bundle/index.js": "{ createLightNode }",
-      "./packages/core/bundle/lib/wait_for_remote_peer.js":
-        "{ waitForRemotePeer }",
-      "./packages/core/bundle/lib/waku_message/version_0.js":
-        "{ MessageV0, DecoderV0, EncoderV0 }",
-    },
+    path: "packages/create/bundle/index.js",
+    import:
+      "{ createLightNode, waitForRemotePeer, createEncoder, createDecoder }",
   },
   {
-    name: "Asymmetric, symmetric encryption and signature",
-    path: "packages/message-encryption/bundle/index.js",
-    import: "{ MessageV1, AsymEncoder, AsymDecoder, SymEncoder, SymDecoder }",
+    name: "ECIES encryption",
+    path: "packages/message-encryption/bundle/ecies.js",
+    import: "{ generatePrivateKey, createEncoder, createDecoder, DecodedMessage }",
+  },
+  {
+    name: "Symmetric encryption",
+    path: "packages/message-encryption/bundle/symmetric.js",
+    import: "{ generateSymmetricKey, createEncoder,  createDecoder, DecodedMessage }",
   },
   {
     name: "DNS discovery",

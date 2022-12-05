@@ -1,19 +1,25 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
-import { createCursor, PageDirection } from "@waku/core";
-import { waitForRemotePeer } from "@waku/core/lib/wait_for_remote_peer";
-import { DecoderV0, EncoderV0 } from "@waku/core/lib/waku_message/version_0";
+import {
+  createCursor,
+  createDecoder,
+  createEncoder,
+  PageDirection,
+  waitForRemotePeer,
+} from "@waku/core";
 import { createLightNode } from "@waku/create";
-import { DecodedMessage, Message, WakuLight } from "@waku/interfaces";
+import type { DecodedMessage, Message, WakuLight } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
-  AsymDecoder,
-  AsymEncoder,
+  createDecoder as createEciesDecoder,
+  createEncoder as createEciesEncoder,
   generatePrivateKey,
-  generateSymmetricKey,
   getPublicKey,
-  SymDecoder,
-  SymEncoder,
-} from "@waku/message-encryption";
+} from "@waku/message-encryption/ecies";
+import {
+  createDecoder as createSymDecoder,
+  createEncoder as createSymEncoder,
+  generateSymmetricKey,
+} from "@waku/message-encryption/symmetric";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -28,8 +34,8 @@ import {
 const log = debug("waku:test:store");
 
 const TestContentTopic = "/test/1/waku-store/utf8";
-const TestEncoder = new EncoderV0(TestContentTopic);
-const TestDecoder = new DecoderV0(TestContentTopic);
+const TestEncoder = createEncoder(TestContentTopic);
+const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Store", () => {
   let waku: WakuLight;
@@ -365,16 +371,16 @@ describe("Waku Store", () => {
     const symKey = generateSymmetricKey();
     const publicKey = getPublicKey(privateKey);
 
-    const asymEncoder = new AsymEncoder(asymTopic, publicKey);
-    const symEncoder = new SymEncoder(symTopic, symKey);
+    const eciesEncoder = createEciesEncoder(asymTopic, publicKey);
+    const symEncoder = createSymEncoder(symTopic, symKey);
 
-    const otherEncoder = new AsymEncoder(
+    const otherEncoder = createEciesEncoder(
       TestContentTopic,
       getPublicKey(generatePrivateKey())
     );
 
-    const asymDecoder = new AsymDecoder(asymTopic, privateKey);
-    const symDecoder = new SymDecoder(symTopic, symKey);
+    const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
+    const symDecoder = createSymDecoder(symTopic, symKey);
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createLightNode({
@@ -399,7 +405,7 @@ describe("Waku Store", () => {
 
     log("Sending messages using light push");
     await Promise.all([
-      waku1.lightPush.push(asymEncoder, asymMsg),
+      waku1.lightPush.push(eciesEncoder, asymMsg),
       waku1.lightPush.push(symEncoder, symMsg),
       waku1.lightPush.push(otherEncoder, otherMsg),
       waku1.lightPush.push(TestEncoder, clearMsg),
@@ -411,7 +417,7 @@ describe("Waku Store", () => {
     log("Retrieve messages from store");
 
     for await (const msgPromises of waku2.store.queryGenerator([
-      asymDecoder,
+      eciesDecoder,
       symDecoder,
       TestDecoder,
     ])) {

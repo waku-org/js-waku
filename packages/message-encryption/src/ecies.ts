@@ -1,194 +1,171 @@
-import * as secp from "@noble/secp256k1";
-import { concat, hexToBytes } from "@waku/byte-utils";
+import {
+  Decoder as DecoderV0,
+  proto,
+} from "@waku/core/lib/waku_message/version_0";
+import type {
+  Decoder as IDecoder,
+  Encoder as IEncoder,
+  Message,
+  ProtoMessage,
+} from "@waku/interfaces";
+import debug from "debug";
 
-import { getSubtle, randomBytes, sha256 } from "./crypto.js";
-/**
- * HKDF as implemented in go-ethereum.
- */
-function kdf(secret: Uint8Array, outputLength: number): Promise<Uint8Array> {
-  let ctr = 1;
-  let written = 0;
-  let willBeResult = Promise.resolve(new Uint8Array());
-  while (written < outputLength) {
-    const counters = new Uint8Array([ctr >> 24, ctr >> 16, ctr >> 8, ctr]);
-    const countersSecret = concat(
-      [counters, secret],
-      counters.length + secret.length
-    );
-    const willBeHashResult = sha256(countersSecret);
-    willBeResult = willBeResult.then((result) =>
-      willBeHashResult.then((hashResult) => {
-        const _hashResult = new Uint8Array(hashResult);
-        return concat(
-          [result, _hashResult],
-          result.length + _hashResult.length
-        );
-      })
-    );
-    written += 32;
-    ctr += 1;
+import {
+  decryptAsymmetric,
+  encryptAsymmetric,
+  postCipher,
+  preCipher,
+} from "./waku_payload.js";
+
+import {
+  DecodedMessage,
+  generatePrivateKey,
+  getPublicKey,
+  OneMillion,
+  Version,
+} from "./index.js";
+
+export { DecodedMessage, generatePrivateKey, getPublicKey };
+
+const log = debug("waku:message-encryption:ecies");
+
+class Encoder implements IEncoder {
+  constructor(
+    public contentTopic: string,
+    private publicKey: Uint8Array,
+    private sigPrivKey?: Uint8Array,
+    public ephemeral: boolean = false
+  ) {}
+
+  async toWire(message: Message): Promise<Uint8Array | undefined> {
+    const protoMessage = await this.toProtoObj(message);
+    if (!protoMessage) return;
+
+    return proto.WakuMessage.encode(protoMessage);
   }
-  return willBeResult;
-}
 
-function aesCtrEncrypt(
-  counter: Uint8Array,
-  key: ArrayBufferLike,
-  data: ArrayBufferLike
-): Promise<Uint8Array> {
-  return getSubtle()
-    .importKey("raw", key, "AES-CTR", false, ["encrypt"])
-    .then((cryptoKey) =>
-      getSubtle().encrypt(
-        { name: "AES-CTR", counter: counter, length: 128 },
-        cryptoKey,
-        data
-      )
-    )
-    .then((bytes) => new Uint8Array(bytes));
-}
+  async toProtoObj(message: Message): Promise<ProtoMessage | undefined> {
+    const timestamp = message.timestamp ?? new Date();
+    if (!message.payload) {
+      log("No payload to encrypt, skipping: ", message);
+      return;
+    }
+    const preparedPayload = await preCipher(message.payload, this.sigPrivKey);
 
-function aesCtrDecrypt(
-  counter: Uint8Array,
-  key: ArrayBufferLike,
-  data: ArrayBufferLike
-): Promise<Uint8Array> {
-  return getSubtle()
-    .importKey("raw", key, "AES-CTR", false, ["decrypt"])
-    .then((cryptoKey) =>
-      getSubtle().decrypt(
-        { name: "AES-CTR", counter: counter, length: 128 },
-        cryptoKey,
-        data
-      )
-    )
-    .then((bytes) => new Uint8Array(bytes));
-}
+    const payload = await encryptAsymmetric(preparedPayload, this.publicKey);
 
-function hmacSha256Sign(
-  key: ArrayBufferLike,
-  msg: ArrayBufferLike
-): PromiseLike<Uint8Array> {
-  const algorithm = { name: "HMAC", hash: { name: "SHA-256" } };
-  return getSubtle()
-    .importKey("raw", key, algorithm, false, ["sign"])
-    .then((cryptoKey) => getSubtle().sign(algorithm, cryptoKey, msg))
-    .then((bytes) => new Uint8Array(bytes));
-}
-
-function hmacSha256Verify(
-  key: ArrayBufferLike,
-  msg: ArrayBufferLike,
-  sig: ArrayBufferLike
-): Promise<boolean> {
-  const algorithm = { name: "HMAC", hash: { name: "SHA-256" } };
-  const _key = getSubtle().importKey("raw", key, algorithm, false, ["verify"]);
-  return _key.then((cryptoKey) =>
-    getSubtle().verify(algorithm, cryptoKey, sig, msg)
-  );
-}
-
-/**
- * Derive shared secret for given private and public keys.
- *
- * @param  privateKeyA Sender's private key (32 bytes)
- * @param  publicKeyB Recipient's public key (65 bytes)
- * @returns  A promise that resolves with the derived shared secret (Px, 32 bytes)
- * @throws Error If arguments are invalid
- */
-function derive(privateKeyA: Uint8Array, publicKeyB: Uint8Array): Uint8Array {
-  if (privateKeyA.length !== 32) {
-    throw new Error(
-      `Bad private key, it should be 32 bytes but it's actually ${privateKeyA.length} bytes long`
-    );
-  } else if (publicKeyB.length !== 65) {
-    throw new Error(
-      `Bad public key, it should be 65 bytes but it's actually ${publicKeyB.length} bytes long`
-    );
-  } else if (publicKeyB[0] !== 4) {
-    throw new Error("Bad public key, a valid public key would begin with 4");
-  } else {
-    const px = secp.getSharedSecret(privateKeyA, publicKeyB, true);
-    // Remove the compression prefix
-    return new Uint8Array(hexToBytes(px).slice(1));
+    return {
+      payload,
+      version: Version,
+      contentTopic: this.contentTopic,
+      timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+      rateLimitProof: message.rateLimitProof,
+      ephemeral: this.ephemeral,
+    };
   }
 }
 
 /**
- * Encrypt message for given recipient's public key.
+ * Creates an encoder that encrypts messages using ECIES for the given public,
+ * as defined in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  *
- * @param  publicKeyTo Recipient's public key (65 bytes)
- * @param  msg The message being encrypted
- * @return A promise that resolves with the ECIES structure serialized
+ * An encoder is used to encode messages in the [`14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
+ * format to be sent over the Waku network. The resulting encoder can then be
+ * pass to { @link @waku/interfaces.LightPush.push } or
+ * { @link @waku/interfaces.Relay.send } to automatically encrypt
+ * and encode outgoing messages.
+ *
+ * The payload can optionally be signed with the given private key as defined
+ * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
+ *
+ * @param contentTopic The content topic to set on outgoing messages.
+ * @param publicKey The public key to encrypt the payload for.
+ * @param sigPrivKey An optional private key to used to sign the payload before encryption.
+ * @param ephemeral An optional flag to mark message as ephemeral, ie, not to be stored by Waku Store nodes.
  */
-export async function encrypt(
-  publicKeyTo: Uint8Array,
-  msg: Uint8Array
-): Promise<Uint8Array> {
-  const ephemPrivateKey = randomBytes(32);
-
-  const sharedPx = await derive(ephemPrivateKey, publicKeyTo);
-
-  const hash = await kdf(sharedPx, 32);
-
-  const iv = randomBytes(16);
-  const encryptionKey = hash.slice(0, 16);
-  const cipherText = await aesCtrEncrypt(iv, encryptionKey, msg);
-
-  const ivCipherText = concat([iv, cipherText], iv.length + cipherText.length);
-
-  const macKey = await sha256(hash.slice(16));
-  const hmac = await hmacSha256Sign(macKey, ivCipherText);
-  const ephemPublicKey = secp.getPublicKey(ephemPrivateKey, false);
-
-  return concat(
-    [ephemPublicKey, ivCipherText, hmac],
-    ephemPublicKey.length + ivCipherText.length + hmac.length
-  );
+export function createEncoder(
+  contentTopic: string,
+  publicKey: Uint8Array,
+  sigPrivKey?: Uint8Array,
+  ephemeral = false
+): Encoder {
+  return new Encoder(contentTopic, publicKey, sigPrivKey, ephemeral);
 }
 
-const metaLength = 1 + 64 + 16 + 32;
+class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+  constructor(contentTopic: string, private privateKey: Uint8Array) {
+    super(contentTopic);
+  }
 
-/**
- * Decrypt message using given private key.
- *
- * @param privateKey A 32-byte private key of recipient of the message
- * @param encrypted ECIES serialized structure (result of ECIES encryption)
- * @returns The clear text
- * @throws Error If decryption fails
- */
-export async function decrypt(
-  privateKey: Uint8Array,
-  encrypted: Uint8Array
-): Promise<Uint8Array> {
-  if (encrypted.length <= metaLength) {
-    throw new Error(
-      `Invalid Ciphertext. Data is too small. It should ba at least ${metaLength} bytes`
-    );
-  } else if (encrypted[0] !== 4) {
-    throw new Error(
-      `Not a valid ciphertext. It should begin with 4 but actually begin with ${encrypted[0]}`
-    );
-  } else {
-    // deserialize
-    const ephemPublicKey = encrypted.slice(0, 65);
-    const cipherTextLength = encrypted.length - metaLength;
-    const iv = encrypted.slice(65, 65 + 16);
-    const cipherAndIv = encrypted.slice(65, 65 + 16 + cipherTextLength);
-    const ciphertext = cipherAndIv.slice(16);
-    const msgMac = encrypted.slice(65 + 16 + cipherTextLength);
+  async fromProtoObj(
+    protoMessage: ProtoMessage
+  ): Promise<DecodedMessage | undefined> {
+    const cipherPayload = protoMessage.payload;
 
-    // check HMAC
-    const px = derive(privateKey, ephemPublicKey);
-    const hash = await kdf(px, 32);
-    const [encryptionKey, macKey] = await sha256(hash.slice(16)).then(
-      (macKey) => [hash.slice(0, 16), macKey]
-    );
-
-    if (!(await hmacSha256Verify(macKey, cipherAndIv, msgMac))) {
-      throw new Error("Incorrect MAC");
+    if (protoMessage.version !== Version) {
+      log(
+        "Failed to decrypt due to incorrect version, expected:",
+        Version,
+        ", actual:",
+        protoMessage.version
+      );
+      return;
     }
 
-    return aesCtrDecrypt(iv, encryptionKey, ciphertext);
+    let payload;
+    if (!cipherPayload) {
+      log(`No payload to decrypt for contentTopic ${this.contentTopic}`);
+      return;
+    }
+
+    try {
+      payload = await decryptAsymmetric(cipherPayload, this.privateKey);
+    } catch (e) {
+      log(
+        `Failed to decrypt message using asymmetric decryption for contentTopic: ${this.contentTopic}`,
+        e
+      );
+      return;
+    }
+
+    if (!payload) {
+      log(`Failed to decrypt payload for contentTopic ${this.contentTopic}`);
+      return;
+    }
+
+    const res = await postCipher(payload);
+
+    if (!res) {
+      log(`Failed to decode payload for contentTopic ${this.contentTopic}`);
+      return;
+    }
+
+    log("Message decrypted", protoMessage);
+    return new DecodedMessage(
+      protoMessage,
+      res.payload,
+      res.sig?.signature,
+      res.sig?.publicKey
+    );
   }
+}
+
+/**
+ * Creates a decoder that decrypts messages using ECIES, using the given private
+ * key as defined in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
+ *
+ * A decoder is used to decode messages from the [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
+ * format when received from the Waku network. The resulting decoder can then be
+ * pass to { @link @waku/interfaces.Filter.subscribe } or
+ * { @link @waku/interfaces.Relay.subscribe } to automatically decrypt and
+ * decode incoming messages.
+ *
+ * @param contentTopic The resulting decoder will only decode messages with this content topic.
+ * @param privateKey The private key used to decrypt the message.
+ */
+export function createDecoder(
+  contentTopic: string,
+  privateKey: Uint8Array
+): Decoder {
+  return new Decoder(contentTopic, privateKey);
 }

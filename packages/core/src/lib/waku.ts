@@ -12,7 +12,7 @@ import {
   LightPushCodec,
   LightPushComponents,
 } from "./waku_light_push/index.js";
-import { EncoderV0 } from "./waku_message/version_0.js";
+import { createEncoder } from "./waku_message/version_0.js";
 import * as relayConstants from "./waku_relay/constants.js";
 import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants.js";
 import { StoreCodec, StoreComponents } from "./waku_store/index.js";
@@ -214,7 +214,7 @@ export class WakuNode implements Waku {
 
     const relay = this.relay;
     if (relay && relayPeriodSecs !== 0) {
-      const encoder = new EncoderV0(RelayPingContentTopic);
+      const encoder = createEncoder(RelayPingContentTopic);
       this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
         log("Sending Waku Relay ping message");
         relay

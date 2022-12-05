@@ -10,8 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add `@multiformats/multiaddr` as peer dependency.
+- New `createEncoder` and `createDecoder` functions so that the consumer does not deal with Encoder/Decoder classes.
 
-## @waku/core [0.0.6](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.5...@waku/core@0.0.6) (2022-11-18)
+### Changed
+
+- `waitForRemotePeer` must now be directly imported from `@waku/core`.
+- `V0` suffix removed from the version 0 objects.
+- `createEncoder`/`createDecoder`/`DecodedMessage` for Waku Message Version 0 (no Waku level encryption) can now be imported directly from `@waku/core`.
+
+## [@waku/core@0.0.6] - 2022-11-18
 
 ### Added
 
@@ -25,22 +32,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `PeerDiscoveryStaticPeer` has been removed, use `@libp2p/bootstrap` instead.
 
-## @waku/core [0.0.5](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.4...@waku/core@0.0.5) (2022-11-11)
+## [@waku/core@0.0.5] - 2022-11-11
 
 ### Changed
 
 - Bumped `libp2p` to 0.39.5.
 
-## @waku/core [0.0.4](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.3...@waku/core@0.0.4) (2022-11-09)
+## [@waku/core@0.0.4] - 2022-11-09
 
 ### Changed
 
 - Bumped `libp2p` to 0.39.2.
 
-## @waku/core [0.0.2](https://github.com/waku-org/js-waku/compare/@waku/core@0.0.1...@waku/core@0.0.2) (2022-11-04)
+## [@waku/core@0.0.3] - 2022-11-04
+
+### Fixed
+
+- Missing `.js` extension.
+
+## [@waku/core@0.0.2] - 2022-11-04
 
 ### Changed
 
+- `js-waku` is deprecated, `@waku/core` and other `@waku/*` packages should be used instead.
 - extract version-1 from chore
 - extract utils from core
 - extract dns discovery and enr from core ([f7f28f0](https://github.com/waku-org/js-waku/commit/f7f28f03b01fa5bc89eaeb083b68981169b45c39))
@@ -610,7 +624,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[unreleased]: https://github.com/status-im/js-waku/compare/v0.30.0...HEAD
+[unreleased]: https://github.com/status-im/js-waku/compare/@waku/core@0.0.5...HEAD
+[@waku/core@0.0.5]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.4...@waku/core@0.0.5
+[@waku/core@0.0.4]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.3...@waku/core@0.0.4
+[@waku/core@0.0.3]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.2...@waku/core@0.0.3
+[@waku/core@0.0.2]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.1...@waku/core@0.0.2
+[@waku/core@0.0.1]: https://github.com/waku-org/js-waku/comparev0.30.0...@waku/core@0.0.1
 [0.30.0]: https://github.com/status-im/js-waku/compare/v0.29.0...v0.30.0
 [0.29.0]: https://github.com/status-im/js-waku/compare/v0.28.0...v0.29.0
 [0.28.1]: https://github.com/status-im/js-waku/compare/v0.28.0...v0.28.1
