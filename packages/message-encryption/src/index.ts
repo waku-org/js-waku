@@ -14,6 +14,9 @@ export const OneMillion = BigInt(1_000_000);
 
 export { generatePrivateKey, generateSymmetricKey, getPublicKey };
 
+export * as ecies from "./ecies.js";
+export * as symmetric from "./symmetric.js";
+
 export const Version = 1;
 
 export type Signature = {

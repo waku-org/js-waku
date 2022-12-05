@@ -63,6 +63,24 @@ class Encoder implements IEncoder {
   }
 }
 
+/**
+ * Creates an encoder that encrypts messages using symmetric encryption for the
+ * given key, as defined in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
+ *
+ * An encoder is used to encode messages in the [`14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
+ * format to be sent over the Waku network. The resulting encoder can then be
+ * pass to { @link @waku/interfaces.LightPush.push } or
+ * { @link @waku/interfaces.Relay.send } to automatically encrypt
+ * and encode outgoing messages.
+ *
+ * The payload can optionally be signed with the given private key as defined
+ * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
+ *
+ * @param contentTopic The content topic to set on outgoing messages.
+ * @param symKey The symmetric key to encrypt the payload with.
+ * @param sigPrivKey An optional private key to used to sign the payload before encryption.
+ * @param ephemeral An optional flag to mark message as ephemeral, ie, not to be stored by Waku Store nodes.
+ */
 export function createEncoder(
   contentTopic: string,
   symKey: Uint8Array,
@@ -130,6 +148,19 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   }
 }
 
+/**
+ * Creates a decoder that decrypts messages using symmetric encryption, using
+ * the given key as defined in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
+ *
+ * A decoder is used to decode messages from the [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
+ * format when received from the Waku network. The resulting decoder can then be
+ * pass to { @link @waku/interfaces.Filter.subscribe } or
+ * { @link @waku/interfaces.Relay.subscribe } to automatically decrypt and
+ * decode incoming messages.
+ *
+ * @param contentTopic The resulting decoder will only decode messages with this content topic.
+ * @param symKey The symmetric key used to decrypt the message.
+ */
 export function createDecoder(
   contentTopic: string,
   symKey: Uint8Array

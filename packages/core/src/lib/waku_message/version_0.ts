@@ -92,6 +92,18 @@ export class Encoder implements IEncoder {
   }
 }
 
+/**
+ * Creates an encoder that encode messages without Waku level encryption or signature.
+ *
+ * An encoder is used to encode messages in the [`14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
+ * format to be sent over the Waku network. The resulting encoder can then be
+ * pass to { @link @waku/interfaces.LightPush.push } or
+ * { @link @waku/interfaces.Relay.send } to automatically encode outgoing
+ * messages.
+ *
+ * @param contentTopic The content topic to set on outgoing messages.
+ * @param ephemeral An optional flag to mark message as ephemeral, ie, not to be stored by Waku Store nodes.
+ */
 export function createEncoder(
   contentTopic: string,
   ephemeral = false
@@ -135,6 +147,17 @@ export class Decoder implements IDecoder<DecodedMessage> {
   }
 }
 
+/**
+ * Creates an decoder that decode messages without Waku level encryption.
+ *
+ * A decoder is used to decode messages from the [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
+ * format when received from the Waku network. The resulting decoder can then be
+ * pass to { @link @waku/interfaces.Filter.subscribe } or
+ * { @link @waku/interfaces.Relay.subscribe } to automatically decode incoming
+ * messages.
+ *
+ * @param contentTopic The resulting decoder will only decode messages with this content topic.
+ */
 export function createDecoder(contentTopic: string): Decoder {
   return new Decoder(contentTopic);
 }
