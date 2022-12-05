@@ -100,7 +100,7 @@ export function createEncoder(
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
-  constructor(public contentTopic: string, public ephemeral: boolean = false) {}
+  constructor(public contentTopic: string) {}
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);
@@ -135,9 +135,6 @@ export class Decoder implements IDecoder<DecodedMessage> {
   }
 }
 
-export function createDecoder(
-  contentTopic: string,
-  ephemeral = false
-): Decoder {
-  return new Decoder(contentTopic, ephemeral);
+export function createDecoder(contentTopic: string): Decoder {
+  return new Decoder(contentTopic);
 }
