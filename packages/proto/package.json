@@ -36,7 +36,7 @@
     "build:esm": "tsc",
     "build:bundle": "rollup --config rollup.config.js",
     "fix": "run-s fix:*",
-    "proto": "rimraf src/proto/*.ts; protons src/proto/*.proto",
+    "proto": "rimraf src/lib/*.ts; protons src/lib/*.proto",
     "fix:prettier": "prettier . --write",
     "fix:lint": "eslint src --ext .ts --ext .cjs --fix",
     "check": "run-s check:*",
