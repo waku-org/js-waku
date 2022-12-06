@@ -1,14 +1,13 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
-import { DefaultUserAgent, waitForRemotePeer } from "@waku/core";
+import {
+  DecodedMessage,
+  DefaultUserAgent,
+  waitForRemotePeer,
+} from "@waku/core";
 import { createLightNode, createPrivacyNode } from "@waku/create";
-import type {
-  IDecodedMessage,
-  Waku,
-  WakuLight,
-  WakuPrivacy,
-} from "@waku/interfaces";
+import type { Waku, WakuLight, WakuPrivacy } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   createDecoder,
@@ -180,7 +179,7 @@ describe("Decryption Keys", () => {
       timestamp: messageTimestamp,
     };
 
-    const receivedMsgPromise: Promise<IDecodedMessage> = new Promise(
+    const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
         waku2.relay.addObserver(decoder, resolve);
       }
