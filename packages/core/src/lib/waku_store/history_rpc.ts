@@ -1,7 +1,6 @@
+import { proto_store as proto } from "@waku/proto";
 import type { Uint8ArrayList } from "uint8arraylist";
 import { v4 as uuid } from "uuid";
-
-import * as proto from "../../proto/store.js";
 
 const OneMillion = BigInt(1_000_000);
 
