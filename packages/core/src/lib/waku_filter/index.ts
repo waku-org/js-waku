@@ -13,6 +13,12 @@ import type {
   Message,
   ProtocolOptions,
 } from "@waku/interfaces";
+import {
+  getPeersForProtocol,
+  selectConnection,
+  selectPeerForProtocol,
+  selectRandomPeer,
+} from "@waku/libp2p-utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -21,12 +27,6 @@ import { pipe } from "it-pipe";
 import { WakuMessage as WakuMessageProto } from "../../proto/message.js";
 import { DefaultPubSubTopic } from "../constants.js";
 import { groupByContentTopic } from "../group_by.js";
-import { selectConnection } from "../select_connection.js";
-import {
-  getPeersForProtocol,
-  selectPeerForProtocol,
-  selectRandomPeer,
-} from "../select_peer.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
 import { ContentFilter, FilterRPC } from "./filter_rpc.js";
