@@ -13,6 +13,7 @@ describe("nwaku", () => {
       "--listen-address=127.0.0.1",
       "--nat=none",
       "--rpc=true",
+      "--relay=false",
       "--rpc-admin=true",
       "--websocket-support=true",
       "--log-level=TRACE",

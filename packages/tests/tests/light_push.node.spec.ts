@@ -32,7 +32,7 @@ describe("Waku Light Push [node only]", () => {
     this.timeout(15_000);
 
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ lightpush: true });
+    await nwaku.start({ lightpush: true, relay: true });
 
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
@@ -65,7 +65,11 @@ describe("Waku Light Push [node only]", () => {
     const customPubSubTopic = "/waku/2/custom-dapp/proto";
 
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ lightpush: true, topics: customPubSubTopic });
+    await nwaku.start({
+      lightpush: true,
+      topics: customPubSubTopic,
+      relay: true,
+    });
 
     waku = await createLightNode({
       pubSubTopic: customPubSubTopic,
@@ -76,6 +80,9 @@ describe("Waku Light Push [node only]", () => {
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const nimPeerId = await nwaku.getPeerId();
+    console.log({
+      nimPeerId,
+    });
 
     const messageText = "Light Push works!";
 

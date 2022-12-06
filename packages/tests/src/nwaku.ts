@@ -441,6 +441,7 @@ export function defaultArgs(): Args {
     listenAddress: "127.0.0.1",
     nat: "none",
     rpc: true,
+    relay: false,
     rpcAdmin: true,
     websocketSupport: true,
     logLevel: LogLevel.Trace,

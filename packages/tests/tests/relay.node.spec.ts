@@ -342,7 +342,7 @@ describe("Waku Relay [node only]", () => {
       await waku.start();
 
       nwaku = new Nwaku(this.test?.ctx?.currentTest?.title + "");
-      await nwaku.start();
+      await nwaku.start({ relay: true });
 
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.Relay]);

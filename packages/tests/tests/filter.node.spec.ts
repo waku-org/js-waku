@@ -26,7 +26,7 @@ describe("Waku Filter", () => {
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ filter: true, lightpush: true });
+    await nwaku.start({ filter: true, lightpush: true, relay: true });
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
