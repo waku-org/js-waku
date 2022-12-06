@@ -9,7 +9,8 @@
     "packages/dns-discovery",
     "packages/message-encryption",
     "packages/create",
-    "packages/tests"
+    "packages/tests",
+    "packages/peer-exchange"
   ],
   "scripts": {
     "prepare": "husky install",

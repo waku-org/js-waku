@@ -445,7 +445,7 @@ export function defaultArgs(): Args {
   return {
     listenAddress: "127.0.0.1",
     nat: "none",
-    // relay: true,
+    relay: true,
     rpc: true,
     rpcAdmin: true,
     websocketSupport: true,

@@ -69,6 +69,7 @@
     "@libp2p/websockets": "^5.0.0",
     "@waku/core": "*",
     "@waku/interfaces": "*",
+    "@waku/peer-exchange": "*",
     "interface-datastore": "^7.0.1"
   },
   "devDependencies": {
