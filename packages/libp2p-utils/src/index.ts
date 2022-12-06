@@ -1,8 +1,12 @@
+import { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
+import { PeerInfo } from "@libp2p/interface-peer-info";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import { peerIdFromString } from "@libp2p/peer-id";
+import { Multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
 
-const log = debug("waku:select-peer");
+const log = debug("waku:libp2p-utils");
 
 /**
  * Returns a pseudo-random peer that supports the given protocol.
@@ -74,4 +78,41 @@ export async function selectPeerForProtocol(
   }
 
   return { peer, protocol };
+}
+
+export function multiaddrsToPeerInfo(mas: Multiaddr[]): PeerInfo[] {
+  return mas
+    .map((ma) => {
+      const peerIdStr = ma.getPeerId();
+      const protocols: string[] = [];
+      return {
+        id: peerIdStr ? peerIdFromString(peerIdStr) : null,
+        multiaddrs: [ma.decapsulateCode(421)],
+        protocols,
+      };
+    })
+    .filter((peerInfo): peerInfo is PeerInfo => peerInfo.id !== null);
+}
+
+export function selectConnection(
+  connections: Connection[]
+): Connection | undefined {
+  if (!connections.length) return;
+  if (connections.length === 1) return connections[0];
+
+  let latestConnection: Connection | undefined;
+
+  connections.forEach((connection) => {
+    if (connection.stat.status === "OPEN") {
+      if (!latestConnection) {
+        latestConnection = connection;
+      } else if (
+        connection.stat.timeline.open > latestConnection.stat.timeline.open
+      ) {
+        latestConnection = connection;
+      }
+    }
+  });
+
+  return latestConnection;
 }

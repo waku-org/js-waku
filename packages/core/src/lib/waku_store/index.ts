@@ -11,6 +11,11 @@ import {
   Index,
   Store,
 } from "@waku/interfaces";
+import {
+  getPeersForProtocol,
+  selectConnection,
+  selectPeerForProtocol,
+} from "@waku/libp2p-utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -19,8 +24,6 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import * as proto from "../../proto/store.js";
 import { DefaultPubSubTopic } from "../constants.js";
-import { selectConnection } from "../select_connection.js";
-import { getPeersForProtocol, selectPeerForProtocol } from "../select_peer.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
 import { HistoryRPC, PageDirection, Params } from "./history_rpc.js";
