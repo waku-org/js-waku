@@ -13,6 +13,14 @@ export enum Protocols {
   Filter = "filter",
 }
 
+export enum ECodecs {
+  PeerExchange = "/vac/waku/peer-exchange/2.0.0-alpha1",
+  Relay = "/vac/waku/relay/2.0.0",
+  Store = "/vac/waku/store/2.0.0-beta4",
+  LightPush = "/vac/waku/lightpush/2.0.0-beta1",
+  Filter = "/vac/waku/filter/2.0.0-beta1",
+}
+
 export interface PointToPointProtocol {
   peerStore: PeerStore;
   peers: () => Promise<Peer[]>;

@@ -1,12 +1,8 @@
 import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
-import type { PointToPointProtocol, Relay, Waku } from "@waku/interfaces";
+import { ECodecs, PointToPointProtocol, Relay, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 import { pEvent } from "p-event";
-
-import { FilterCodec } from "./waku_filter/index.js";
-import { LightPushCodec } from "./waku_light_push/index.js";
-import { StoreCodec } from "./waku_store/index.js";
 
 const log = debug("waku:wait-for-remote-peer");
 
@@ -49,19 +45,19 @@ export async function waitForRemotePeer(
   if (protocols.includes(Protocols.Store)) {
     if (!waku.store)
       throw new Error("Cannot wait for Store peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.store, [StoreCodec]));
+    promises.push(waitForConnectedPeer(waku.store, [ECodecs.Store]));
   }
 
   if (protocols.includes(Protocols.LightPush)) {
     if (!waku.lightPush)
       throw new Error("Cannot wait for LightPush peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.lightPush, [LightPushCodec]));
+    promises.push(waitForConnectedPeer(waku.lightPush, [ECodecs.LightPush]));
   }
 
   if (protocols.includes(Protocols.Filter)) {
     if (!waku.filter)
       throw new Error("Cannot wait for Filter peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.filter, [FilterCodec]));
+    promises.push(waitForConnectedPeer(waku.filter, [ECodecs.Filter]));
   }
 
   if (timeoutMs) {

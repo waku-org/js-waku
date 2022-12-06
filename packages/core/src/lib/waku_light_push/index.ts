@@ -2,7 +2,8 @@ import { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { PeerStore } from "@libp2p/interface-peer-store";
-import type {
+import {
+  ECodecs,
   Encoder,
   LightPush,
   Message,
@@ -28,7 +29,6 @@ import { PushRPC } from "./push_rpc.js";
 
 const log = debug("waku:light-push");
 
-export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 
 export interface LightPushComponents {
@@ -67,7 +67,7 @@ class WakuLightPush implements LightPush {
 
     const res = await selectPeerForProtocol(
       this.components.peerStore,
-      [LightPushCodec],
+      [ECodecs.LightPush],
       opts?.peerId
     );
 
@@ -83,7 +83,7 @@ class WakuLightPush implements LightPush {
 
     if (!connection) throw "Failed to get a connection to the peer";
 
-    const stream = await connection.newStream(LightPushCodec);
+    const stream = await connection.newStream(ECodecs.LightPush);
 
     const recipients: PeerId[] = [];
 
@@ -132,7 +132,7 @@ class WakuLightPush implements LightPush {
    * peers.
    */
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.components.peerStore, [LightPushCodec]);
+    return getPeersForProtocol(this.components.peerStore, [ECodecs.LightPush]);
   }
 
   /**

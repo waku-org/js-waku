@@ -8,6 +8,7 @@ import {
   Cursor,
   DecodedMessage,
   Decoder,
+  ECodecs,
   Index,
   Store,
 } from "@waku/interfaces";
@@ -28,8 +29,6 @@ import { HistoryRPC, PageDirection, Params } from "./history_rpc.js";
 import HistoryError = proto.HistoryResponse.HistoryError;
 
 const log = debug("waku:store");
-
-export const StoreCodec = "/vac/waku/store/2.0.0-beta4";
 
 export const DefaultPageSize = 10;
 
@@ -252,7 +251,7 @@ class WakuStore implements Store {
 
     const res = await selectPeerForProtocol(
       this.components.peerStore,
-      [StoreCodec],
+      [ECodecs.Store],
       options?.peerId
     );
 
@@ -284,7 +283,7 @@ class WakuStore implements Store {
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.components.peerStore, [StoreCodec]);
+    return getPeersForProtocol(this.components.peerStore, [ECodecs.Store]);
   }
 
   get peerStore(): PeerStore {

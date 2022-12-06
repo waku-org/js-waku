@@ -2,20 +2,24 @@ import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import type { Multiaddr } from "@multiformats/multiaddr";
-import type { Filter, LightPush, Relay, Store, Waku } from "@waku/interfaces";
+import {
+  ECodecs,
+  Filter,
+  LightPush,
+  Relay,
+  Store,
+  Waku,
+} from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
-import { FilterCodec, FilterComponents } from "./waku_filter/index.js";
-import {
-  LightPushCodec,
-  LightPushComponents,
-} from "./waku_light_push/index.js";
+import { FilterComponents } from "./waku_filter/index.js";
+import { LightPushComponents } from "./waku_light_push/index.js";
 import { createEncoder } from "./waku_message/version_0.js";
 import * as relayConstants from "./waku_relay/constants.js";
 import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants.js";
-import { StoreCodec, StoreComponents } from "./waku_store/index.js";
+import { StoreComponents } from "./waku_store/index.js";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -154,13 +158,13 @@ export class WakuNode implements Waku {
       RelayCodecs.forEach((codec) => codecs.push(codec));
     }
     if (_protocols.includes(Protocols.Store)) {
-      codecs.push(StoreCodec);
+      codecs.push(ECodecs.Store);
     }
     if (_protocols.includes(Protocols.LightPush)) {
-      codecs.push(LightPushCodec);
+      codecs.push(ECodecs.LightPush);
     }
     if (_protocols.includes(Protocols.Filter)) {
-      codecs.push(FilterCodec);
+      codecs.push(ECodecs.Filter);
     }
 
     return this.libp2p.dialProtocol(peer, codecs);

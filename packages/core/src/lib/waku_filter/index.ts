@@ -5,10 +5,11 @@ import type { PeerStore } from "@libp2p/interface-peer-store";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type { Registrar } from "@libp2p/interface-registrar";
-import type {
+import {
   Callback,
   DecodedMessage,
   Decoder,
+  ECodecs,
   Filter,
   Message,
   ProtocolOptions,
@@ -32,8 +33,6 @@ import { toProtoMessage } from "../to_proto_message.js";
 import { ContentFilter, FilterRPC } from "./filter_rpc.js";
 
 export { ContentFilter };
-
-export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 
 const log = debug("waku:filter");
 
@@ -77,7 +76,7 @@ class WakuFilter implements Filter {
     this.decoders = new Map();
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
     this.components.registrar
-      .handle(FilterCodec, this.onRequest.bind(this))
+      .handle(ECodecs.Filter, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
   }
 
@@ -282,23 +281,23 @@ class WakuFilter implements Filter {
       throw new Error("Failed to get a connection to the peer");
     }
 
-    return connection.newStream(FilterCodec);
+    return connection.newStream(ECodecs.Filter);
   }
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {
     const res = await selectPeerForProtocol(
       this.components.peerStore,
-      [FilterCodec],
+      [ECodecs.Filter],
       peerId
     );
     if (!res) {
-      throw new Error(`Failed to select peer for ${FilterCodec}`);
+      throw new Error(`Failed to select peer for ${ECodecs.Filter}`);
     }
     return res.peer;
   }
 
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.components.peerStore, [FilterCodec]);
+    return getPeersForProtocol(this.components.peerStore, [ECodecs.Filter]);
   }
 
   async randomPeer(): Promise<Peer | undefined> {
