@@ -2,11 +2,6 @@ import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
-import {
-  getPeersForProtocol,
-  selectConnection,
-  selectPeerForProtocol,
-} from "@waku/core";
 import { ENR } from "@waku/enr";
 import type {
   PeerExchange,
@@ -15,6 +10,11 @@ import type {
   PeerExchangeResponse,
   ProtocolOptions,
 } from "@waku/interfaces";
+import {
+  getPeersForProtocol,
+  selectConnection,
+  selectPeerForProtocol,
+} from "@waku/libp2p-utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";

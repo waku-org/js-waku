@@ -6,12 +6,6 @@ export * as proto_message from "./proto/message.js";
 export * as proto_topic_only_message from "./proto/topic_only_message.js";
 
 export {
-  getPeersForProtocol,
-  selectPeerForProtocol,
-} from "./lib/select_peer.js";
-export { selectConnection } from "./lib/select_connection.js";
-
-export {
   createEncoder,
   createDecoder,
   DecodedMessage,

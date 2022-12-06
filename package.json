@@ -4,15 +4,15 @@
   "type": "module",
   "workspaces": [
     "packages/byte-utils",
+    "packages/enr",
     "packages/interfaces",
     "packages/libp2p-utils",
+    "packages/peer-exchange",
     "packages/core",
-    "packages/enr",
     "packages/dns-discovery",
     "packages/message-encryption",
     "packages/create",
-    "packages/tests",
-    "packages/peer-exchange"
+    "packages/tests"
   ],
   "scripts": {
     "prepare": "husky install",
