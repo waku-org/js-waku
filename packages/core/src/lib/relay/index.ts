@@ -53,7 +53,7 @@ export type CreateOptions = {
  *
  * @implements {require('libp2p-interfaces/src/pubsub')}
  */
-class WakuRelay extends GossipSub implements IRelay {
+class Relay extends GossipSub implements IRelay {
   pubSubTopic: string;
   defaultDecoder: IDecoder<IDecodedMessage>;
   public static multicodec: string = constants.RelayCodecs[0];
@@ -185,10 +185,10 @@ class WakuRelay extends GossipSub implements IRelay {
   }
 }
 
-WakuRelay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
+Relay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
 
 export function wakuRelay(
   init: Partial<CreateOptions> = {}
 ): (components: GossipSubComponents) => IRelay {
-  return (components: GossipSubComponents) => new WakuRelay(components, init);
+  return (components: GossipSubComponents) => new Relay(components, init);
 }

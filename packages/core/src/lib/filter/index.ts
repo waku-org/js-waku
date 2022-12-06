@@ -64,7 +64,7 @@ export type UnsubscribeFunction = () => Promise<void>;
  * - https://github.com/status-im/go-waku/issues/245
  * - https://github.com/status-im/nwaku/issues/948
  */
-class WakuFilter implements IFilter {
+class Filter implements IFilter {
   pubSubTopic: string;
   private subscriptions: Map<string, Callback<any>>;
   private decoders: Map<
@@ -309,5 +309,5 @@ class WakuFilter implements IFilter {
 export function wakuFilter(
   init: Partial<CreateOptions> = {}
 ): (components: FilterComponents) => IFilter {
-  return (components: FilterComponents) => new WakuFilter(components, init);
+  return (components: FilterComponents) => new Filter(components, init);
 }

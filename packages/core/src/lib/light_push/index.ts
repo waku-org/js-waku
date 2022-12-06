@@ -51,7 +51,7 @@ export interface CreateOptions {
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
-class WakuLightPush implements ILightPush {
+class LightPush implements ILightPush {
   pubSubTopic: string;
 
   constructor(public components: LightPushComponents, options?: CreateOptions) {
@@ -152,6 +152,5 @@ class WakuLightPush implements ILightPush {
 export function wakuLightPush(
   init: Partial<CreateOptions> = {}
 ): (components: LightPushComponents) => ILightPush {
-  return (components: LightPushComponents) =>
-    new WakuLightPush(components, init);
+  return (components: LightPushComponents) => new LightPush(components, init);
 }

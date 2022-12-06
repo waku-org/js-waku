@@ -104,7 +104,7 @@ export interface QueryOptions {
  *
  * The Waku Store protocol can be used to retrieved historical messages.
  */
-class WakuStore implements IStore {
+class Store implements IStore {
   pubSubTopic: string;
 
   constructor(public components: StoreComponents, options?: CreateOptions) {
@@ -433,5 +433,5 @@ export async function createCursor(
 export function wakuStore(
   init: Partial<CreateOptions> = {}
 ): (components: StoreComponents) => IStore {
-  return (components: StoreComponents) => new WakuStore(components, init);
+  return (components: StoreComponents) => new Store(components, init);
 }
