@@ -27,7 +27,7 @@ export interface Waku {
   isStarted(): boolean;
 }
 
-export interface WakuLight extends Waku {
+export interface LightNode extends Waku {
   relay: undefined;
   store: IStore;
   filter: IFilter;
@@ -35,7 +35,7 @@ export interface WakuLight extends Waku {
   peerExchange: IPeerExchange;
 }
 
-export interface WakuPrivacy extends Waku {
+export interface RelayNode extends Waku {
   relay: IRelay;
   store: undefined;
   filter: undefined;
@@ -43,7 +43,7 @@ export interface WakuPrivacy extends Waku {
   peerExchange: undefined;
 }
 
-export interface WakuFull extends Waku {
+export interface FullNode extends Waku {
   relay: IRelay;
   store: IStore;
   filter: IFilter;

@@ -15,12 +15,7 @@ import {
 } from "@waku/core";
 import { DefaultUserAgent } from "@waku/core";
 import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
-import type {
-  IRelay,
-  WakuFull,
-  WakuLight,
-  WakuPrivacy,
-} from "@waku/interfaces";
+import type { FullNode, IRelay, LightNode, RelayNode } from "@waku/interfaces";
 import { wakuPeerExchange } from "@waku/peer-exchange";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
@@ -74,7 +69,7 @@ export interface CreateOptions {
  */
 export async function createLightNode(
   options?: CreateOptions & WakuOptions
-): Promise<WakuLight> {
+): Promise<LightNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -100,16 +95,16 @@ export async function createLightNode(
     lightPush,
     filter,
     peerExchange
-  ) as WakuLight;
+  ) as LightNode;
 }
 
 /**
  * Create a Waku node that uses Waku Relay to send and receive messages,
  * enabling some privacy preserving properties.
  */
-export async function createPrivacyNode(
+export async function createRelayNode(
   options?: CreateOptions & WakuOptions & Partial<RelayCreateOptions>
-): Promise<WakuPrivacy> {
+): Promise<RelayNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -123,7 +118,7 @@ export async function createPrivacyNode(
     options?.userAgent
   );
 
-  return new WakuNode(options ?? {}, libp2p) as WakuPrivacy;
+  return new WakuNode(options ?? {}, libp2p) as RelayNode;
 }
 
 /**
@@ -141,7 +136,7 @@ export async function createPrivacyNode(
  */
 export async function createFullNode(
   options?: CreateOptions & WakuOptions & Partial<RelayCreateOptions>
-): Promise<WakuFull> {
+): Promise<FullNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -167,7 +162,7 @@ export async function createFullNode(
     lightPush,
     filter,
     peerExchange
-  ) as WakuFull;
+  ) as FullNode;
 }
 
 export function defaultPeerDiscovery(): (

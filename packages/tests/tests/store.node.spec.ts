@@ -7,7 +7,7 @@ import {
   waitForRemotePeer,
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
-import type { IDecodedMessage, IMessage, WakuLight } from "@waku/interfaces";
+import type { IDecodedMessage, IMessage, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   createDecoder as createEciesDecoder,
@@ -38,7 +38,7 @@ const TestEncoder = createEncoder(TestContentTopic);
 const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Store", () => {
-  let waku: WakuLight;
+  let waku: LightNode;
   let nwaku: Nwaku;
 
   beforeEach(async function () {
@@ -559,7 +559,7 @@ describe("Waku Store", () => {
 
 describe("Waku Store, custom pubsub topic", () => {
   const customPubSubTopic = "/waku/2/custom-dapp/proto";
-  let waku: WakuLight;
+  let waku: LightNode;
   let nwaku: Nwaku;
 
   beforeEach(async function () {
