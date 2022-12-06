@@ -18,8 +18,8 @@ import { IDecodedMessage } from "@waku/interfaces";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants.js";
+import { TopicOnlyDecoder } from "../message/topic_only_message.js";
 import { pushOrInitMapSet } from "../push_or_init_map.js";
-import { TopicOnlyDecoder } from "../waku_message/topic_only_message.js";
 
 import * as constants from "./constants.js";
 

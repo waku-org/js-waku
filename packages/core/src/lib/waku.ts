@@ -16,15 +16,12 @@ import { PeerExchangeCodec } from "@waku/peer-exchange";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
-import { FilterCodec, FilterComponents } from "./waku_filter/index.js";
-import {
-  LightPushCodec,
-  LightPushComponents,
-} from "./waku_light_push/index.js";
-import { createEncoder } from "./waku_message/version_0.js";
-import * as relayConstants from "./waku_relay/constants.js";
-import { RelayCodecs, RelayPingContentTopic } from "./waku_relay/constants.js";
-import { StoreCodec, StoreComponents } from "./waku_store/index.js";
+import { FilterCodec, FilterComponents } from "./filter/index.js";
+import { LightPushCodec, LightPushComponents } from "./light_push/index.js";
+import { createEncoder } from "./message/version_0.js";
+import * as relayConstants from "./relay/constants.js";
+import { RelayCodecs, RelayPingContentTopic } from "./relay/constants.js";
+import { StoreCodec, StoreComponents } from "./store/index.js";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;

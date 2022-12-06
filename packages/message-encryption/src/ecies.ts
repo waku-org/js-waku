@@ -1,7 +1,4 @@
-import {
-  Decoder as DecoderV0,
-  proto,
-} from "@waku/core/lib/waku_message/version_0";
+import { Decoder as DecoderV0, proto } from "@waku/core/lib/message/version_0";
 import type {
   IDecoder,
   IEncoder,
