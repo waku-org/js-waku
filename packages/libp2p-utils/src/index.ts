@@ -1,9 +1,9 @@
-import { Connection } from "@libp2p/interface-connection";
+import type { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { PeerInfo } from "@libp2p/interface-peer-info";
+import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import { peerIdFromString } from "@libp2p/peer-id";
-import { Multiaddr } from "@multiformats/multiaddr";
+import type { Multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
 
 const log = debug("waku:libp2p-utils");
