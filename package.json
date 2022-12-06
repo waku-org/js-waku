@@ -5,6 +5,7 @@
   "workspaces": [
     "packages/byte-utils",
     "packages/interfaces",
+    "packages/libp2p-utils",
     "packages/core",
     "packages/enr",
     "packages/dns-discovery",
