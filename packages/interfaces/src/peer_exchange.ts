@@ -5,7 +5,7 @@ import { ENR } from "@waku/enr";
 
 import { PointToPointProtocol } from "./protocols.js";
 
-export interface PeerExchange extends PointToPointProtocol {
+export interface IPeerExchange extends PointToPointProtocol {
   query(
     params: PeerExchangeQueryParams,
     callback: (response: PeerExchangeResponse) => Promise<void> | void

@@ -7,9 +7,9 @@ import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type { Registrar } from "@libp2p/interface-registrar";
 import type {
   Callback,
-  Filter,
   IDecodedMessage,
   IDecoder,
+  IFilter,
   IMessage,
   ProtocolOptions,
 } from "@waku/interfaces";
@@ -64,7 +64,7 @@ export type UnsubscribeFunction = () => Promise<void>;
  * - https://github.com/status-im/go-waku/issues/245
  * - https://github.com/status-im/nwaku/issues/948
  */
-class WakuFilter implements Filter {
+class WakuFilter implements IFilter {
   pubSubTopic: string;
   private subscriptions: Map<string, Callback<any>>;
   private decoders: Map<
@@ -308,6 +308,6 @@ class WakuFilter implements Filter {
 
 export function wakuFilter(
   init: Partial<CreateOptions> = {}
-): (components: FilterComponents) => Filter {
+): (components: FilterComponents) => IFilter {
   return (components: FilterComponents) => new WakuFilter(components, init);
 }

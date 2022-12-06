@@ -50,7 +50,7 @@ export type StoreQueryOptions = {
   cursor?: Cursor;
 } & ProtocolOptions;
 
-export interface Store extends PointToPointProtocol {
+export interface IStore extends PointToPointProtocol {
   queryOrderedCallback: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,

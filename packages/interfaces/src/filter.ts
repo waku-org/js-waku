@@ -5,7 +5,7 @@ import type {
   ProtocolOptions,
 } from "./protocols.js";
 
-export interface Filter extends PointToPointProtocol {
+export interface IFilter extends PointToPointProtocol {
   subscribe: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: Callback<T>,

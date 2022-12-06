@@ -15,7 +15,12 @@ import {
 } from "@waku/core";
 import { DefaultUserAgent } from "@waku/core";
 import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
-import type { Relay, WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
+import type {
+  IRelay,
+  WakuFull,
+  WakuLight,
+  WakuPrivacy,
+} from "@waku/interfaces";
 import { wakuPeerExchange } from "@waku/peer-exchange";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
@@ -172,7 +177,7 @@ export function defaultPeerDiscovery(): (
 }
 
 export async function defaultLibp2p(
-  wakuRelay?: (components: Libp2pComponents) => Relay,
+  wakuRelay?: (components: Libp2pComponents) => IRelay,
   options?: Partial<Libp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {

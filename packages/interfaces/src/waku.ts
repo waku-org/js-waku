@@ -3,20 +3,20 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import type { Libp2p } from "libp2p";
 
-import type { Filter } from "./filter.js";
-import type { LightPush } from "./light_push.js";
-import type { PeerExchange } from "./peer_exchange.js";
+import type { IFilter } from "./filter.js";
+import type { ILightPush } from "./light_push.js";
+import type { IPeerExchange } from "./peer_exchange.js";
 import { Protocols } from "./protocols.js";
-import type { Relay } from "./relay.js";
-import type { Store } from "./store.js";
+import type { IRelay } from "./relay.js";
+import type { IStore } from "./store.js";
 
 export interface Waku {
   libp2p: Libp2p;
-  relay?: Relay;
-  store?: Store;
-  filter?: Filter;
-  lightPush?: LightPush;
-  peerExchange?: PeerExchange;
+  relay?: IRelay;
+  store?: IStore;
+  filter?: IFilter;
+  lightPush?: ILightPush;
+  peerExchange?: IPeerExchange;
 
   dial(peer: PeerId | Multiaddr, protocols?: Protocols[]): Promise<Stream>;
 
@@ -29,14 +29,14 @@ export interface Waku {
 
 export interface WakuLight extends Waku {
   relay: undefined;
-  store: Store;
-  filter: Filter;
-  lightPush: LightPush;
-  peerExchange: PeerExchange;
+  store: IStore;
+  filter: IFilter;
+  lightPush: ILightPush;
+  peerExchange: IPeerExchange;
 }
 
 export interface WakuPrivacy extends Waku {
-  relay: Relay;
+  relay: IRelay;
   store: undefined;
   filter: undefined;
   lightPush: undefined;
@@ -44,9 +44,9 @@ export interface WakuPrivacy extends Waku {
 }
 
 export interface WakuFull extends Waku {
-  relay: Relay;
-  store: Store;
-  filter: Filter;
-  lightPush: LightPush;
-  peerExchange: PeerExchange;
+  relay: IRelay;
+  store: IStore;
+  filter: IFilter;
+  lightPush: ILightPush;
+  peerExchange: IPeerExchange;
 }

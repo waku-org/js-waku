@@ -5,7 +5,7 @@ import type {
   SendResult,
 } from "./protocols.js";
 
-export interface LightPush extends PointToPointProtocol {
+export interface ILightPush extends PointToPointProtocol {
   push: (
     encoder: IEncoder,
     message: IMessage,

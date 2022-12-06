@@ -8,7 +8,7 @@ import type {
 } from "./message.js";
 import type { Callback, SendResult } from "./protocols.js";
 
-export interface Relay extends GossipSub {
+export interface IRelay extends GossipSub {
   send: (encoder: IEncoder, message: IMessage) => Promise<SendResult>;
   addObserver: <T extends IDecodedMessage>(
     decoder: IDecoder<T>,

@@ -3,12 +3,12 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import type {
-  Filter,
-  LightPush,
-  PeerExchange,
+  IFilter,
+  ILightPush,
+  IPeerExchange,
+  IRelay,
+  IStore,
   PeerExchangeComponents,
-  Relay,
-  Store,
   Waku,
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -56,11 +56,11 @@ export interface WakuOptions {
 
 export class WakuNode implements Waku {
   public libp2p: Libp2p;
-  public relay?: Relay;
-  public store?: Store;
-  public filter?: Filter;
-  public lightPush?: LightPush;
-  public peerExchange?: PeerExchange;
+  public relay?: IRelay;
+  public store?: IStore;
+  public filter?: IFilter;
+  public lightPush?: ILightPush;
+  public peerExchange?: IPeerExchange;
 
   private pingKeepAliveTimers: {
     [peer: string]: ReturnType<typeof setInterval>;
@@ -72,10 +72,10 @@ export class WakuNode implements Waku {
   constructor(
     options: WakuOptions,
     libp2p: Libp2p,
-    store?: (components: StoreComponents) => Store,
-    lightPush?: (components: LightPushComponents) => LightPush,
-    filter?: (components: FilterComponents) => Filter,
-    peerExchange?: (components: PeerExchangeComponents) => PeerExchange
+    store?: (components: StoreComponents) => IStore,
+    lightPush?: (components: LightPushComponents) => ILightPush,
+    filter?: (components: FilterComponents) => IFilter,
+    peerExchange?: (components: PeerExchangeComponents) => IPeerExchange
   ) {
     this.libp2p = libp2p;
 
@@ -274,7 +274,7 @@ export class WakuNode implements Waku {
   }
 }
 
-function isRelay(pubsub: PubSub): pubsub is Relay {
+function isRelay(pubsub: PubSub): pubsub is IRelay {
   if (pubsub) {
     try {
       return pubsub.multicodecs.includes(
