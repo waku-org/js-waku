@@ -46,7 +46,7 @@ describe("Waku Message Ephemeral field", () => {
   });
 
   beforeEach(async function () {
-    this.timeout(15000);
+    this.timeout(50_000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ filter: true, lightpush: true, store: true });
     waku = await createLightNode({
