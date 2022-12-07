@@ -9,3 +9,5 @@ export * as proto_lightpush from "./lib/light_push.js";
 export { PushResponse } from "./lib/light_push.js";
 
 export * as proto_store from "./lib/store.js";
+
+export * as proto_peer_exchange from "./lib/peer_exchange.js";

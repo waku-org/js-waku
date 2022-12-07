@@ -8,6 +8,7 @@
     "packages/enr",
     "packages/interfaces",
     "packages/libp2p-utils",
+    "packages/peer-exchange",
     "packages/core",
     "packages/dns-discovery",
     "packages/message-encryption",

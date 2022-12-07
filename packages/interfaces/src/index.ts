@@ -1,9 +1,12 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import type { Stream } from "@libp2p/interface-connection";
+import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { PeerStore } from "@libp2p/interface-peer-store";
+import type { Registrar } from "@libp2p/interface-registrar";
 import type { Multiaddr } from "@multiformats/multiaddr";
+import { ENR } from "@waku/enr";
 import type { Libp2p } from "libp2p";
 
 export enum Protocols {
@@ -11,6 +14,7 @@ export enum Protocols {
   Store = "store",
   LightPush = "lightpush",
   Filter = "filter",
+  PeerExchange = "peer-exchange",
 }
 
 export interface PointToPointProtocol {
@@ -50,6 +54,25 @@ export interface LightPush extends PointToPointProtocol {
   ) => Promise<SendResult>;
 }
 
+export interface PeerExchange extends PointToPointProtocol {
+  query(
+    params: PeerExchangeQueryParams,
+    callback: (response: PeerExchangeResponse) => Promise<void> | void
+  ): Promise<void>;
+}
+
+export interface PeerExchangeQueryParams {
+  numPeers: number;
+}
+
+export interface PeerExchangeResponse {
+  peerInfos: PeerInfo[];
+}
+
+export interface PeerInfo {
+  ENR?: ENR;
+}
+
 export enum PageDirection {
   BACKWARD = "backward",
   FORWARD = "forward",
@@ -60,6 +83,11 @@ export interface TimeFilter {
   endTime: Date;
 }
 
+export interface PeerExchangeComponents {
+  connectionManager: ConnectionManager;
+  peerStore: PeerStore;
+  registrar: Registrar;
+}
 export type Cursor = {
   digest?: Uint8Array;
   senderTime?: bigint;
@@ -126,6 +154,7 @@ export interface Waku {
   store?: Store;
   filter?: Filter;
   lightPush?: LightPush;
+  peerExchange?: PeerExchange;
 
   dial(peer: PeerId | Multiaddr, protocols?: Protocols[]): Promise<Stream>;
 
@@ -141,6 +170,7 @@ export interface WakuLight extends Waku {
   store: Store;
   filter: Filter;
   lightPush: LightPush;
+  peerExchange: PeerExchange;
 }
 
 export interface WakuPrivacy extends Waku {
@@ -148,6 +178,7 @@ export interface WakuPrivacy extends Waku {
   store: undefined;
   filter: undefined;
   lightPush: undefined;
+  peerExchange: undefined;
 }
 
 export interface WakuFull extends Waku {
@@ -155,6 +186,7 @@ export interface WakuFull extends Waku {
   store: Store;
   filter: Filter;
   lightPush: LightPush;
+  peerExchange: PeerExchange;
 }
 
 export interface RateLimitProof {

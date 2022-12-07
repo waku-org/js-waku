@@ -1,6 +1,7 @@
 import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import type { PointToPointProtocol, Relay, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import { PeerExchangeCodec } from "@waku/peer-exchange";
 import debug from "debug";
 import { pEvent } from "p-event";
 
@@ -62,6 +63,14 @@ export async function waitForRemotePeer(
     if (!waku.filter)
       throw new Error("Cannot wait for Filter peer: protocol not mounted");
     promises.push(waitForConnectedPeer(waku.filter, [FilterCodec]));
+  }
+
+  if (protocols.includes(Protocols.PeerExchange)) {
+    if (!waku.peerExchange)
+      throw new Error(
+        "Cannot wait for Peer Exchange peer: protocol not mounted"
+      );
+    promises.push(waitForConnectedPeer(waku.peerExchange, [PeerExchangeCodec]));
   }
 
   if (timeoutMs) {
@@ -145,6 +154,9 @@ function getEnabledProtocols(waku: Waku): Protocols[] {
 
   if (waku.lightPush) {
     protocols.push(Protocols.LightPush);
+  }
+  if (waku.peerExchange) {
+    protocols.push(Protocols.PeerExchange);
   }
 
   return protocols;

@@ -16,6 +16,7 @@ import {
 import { DefaultUserAgent } from "@waku/core";
 import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
 import type { Relay, WakuFull, WakuLight, WakuPrivacy } from "@waku/interfaces";
+import { wakuPeerExchange } from "@waku/peer-exchange";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 
@@ -85,13 +86,15 @@ export async function createLightNode(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
+  const peerExchange = wakuPeerExchange(options);
 
   return new WakuNode(
     options ?? {},
     libp2p,
     store,
     lightPush,
-    filter
+    filter,
+    peerExchange
   ) as WakuLight;
 }
 
@@ -150,13 +153,15 @@ export async function createFullNode(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
+  const peerExchange = wakuPeerExchange(options);
 
   return new WakuNode(
     options ?? {},
     libp2p,
     store,
     lightPush,
-    filter
+    filter,
+    peerExchange
   ) as WakuFull;
 }
 

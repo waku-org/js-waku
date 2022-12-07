@@ -47,6 +47,8 @@ export interface Args {
   lightpush?: boolean;
   filter?: boolean;
   store?: boolean;
+  peerExchange?: boolean;
+  discv5Discovery?: boolean;
   storeMessageDbUrl?: string;
   topics?: string;
   rpcPrivate?: boolean;
@@ -54,6 +56,7 @@ export interface Args {
   tcpPort?: number;
   rpcPort?: number;
   websocketPort?: number;
+  discv5BootstrapNode?: string;
 }
 
 export enum LogLevel {
@@ -167,10 +170,12 @@ export class Nwaku {
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
     const argsArray = argsToArray(mergedArgs);
+
     if (WAKU_SERVICE_NODE_PARAMS) {
       argsArray.push(WAKU_SERVICE_NODE_PARAMS);
     }
     log(`nwaku args: ${argsArray.join(" ")}`);
+
     this.process = spawn(WAKU_SERVICE_NODE_BIN, argsArray, {
       cwd: WAKU_SERVICE_NODE_DIR,
       stdio: [
