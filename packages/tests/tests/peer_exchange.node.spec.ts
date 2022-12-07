@@ -4,28 +4,18 @@ import {
   Fleet,
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
-import { createFullNode } from "@waku/create";
+import { createLightNode } from "@waku/create";
 import type { PeerExchangeResponse, WakuFull } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
-import { delay } from "../src/delay.js";
-import { makeLogFileName, Nwaku } from "../src/index.js";
-
 describe("Peer Exchange: Node", () => {
   let waku: WakuFull;
-  let nwaku1: Nwaku;
-  let nwaku2: Nwaku;
-  let nwaku3: Nwaku;
   afterEach(async function () {
-    !!nwaku1 && nwaku1.stop();
-    !!nwaku2 && nwaku2.stop();
-    !!nwaku3 && nwaku3.stop();
-
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it("Test Fleet: Queries successfully", async function () {
+  it("Test Fleet: Queries successfully [Live Data]", async function () {
     this.timeout(150_000);
 
     // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
@@ -34,7 +24,7 @@ describe("Peer Exchange: Node", () => {
       this.skip();
     }
 
-    const waku = await createFullNode({
+    const waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
           bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),

@@ -67,9 +67,6 @@
     "@libp2p/interface-transport": "^2.0.1",
     "@libp2p/mplex": "^7.0.0",
     "@libp2p/websockets": "^5.0.0",
-    "@waku/core": "*",
-    "@waku/interfaces": "*",
-    "@waku/peer-exchange": "*",
     "interface-datastore": "^7.0.1"
   },
   "devDependencies": {
