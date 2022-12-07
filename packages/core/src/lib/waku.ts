@@ -186,7 +186,7 @@ export class WakuNode implements Waku {
 
     log(`Dialing to ${peer.toString()} with protocols ${_protocols}`);
 
-    return await this.libp2p.dialProtocol(peer, codecs);
+    return this.libp2p.dialProtocol(peer, codecs);
   }
 
   async start(): Promise<void> {

@@ -59,7 +59,7 @@ describe("Waku Message Ephemeral field", () => {
   });
 
   it("Ephemeral messages are not stored", async function () {
-    this.timeout(15_000);
+    this.timeout(50_000);
 
     const asymText =
       "This message is encrypted for me using asymmetric encryption";
