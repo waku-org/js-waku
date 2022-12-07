@@ -26,7 +26,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="tsd-signature-type">Waku</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L48">packages/core/src/lib/waku.ts:48</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L57">packages/core/src/lib/waku.ts:57</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -41,6 +41,7 @@
 <div class="tsd-index-list"><a href="_waku_core.waku.WakuNode.html#filter" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-1024-path"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)" id="icon-1024-text"></path></svg><span>filter?</span></a>
 <a href="_waku_core.waku.WakuNode.html#libp2p" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>libp2p</span></a>
 <a href="_waku_core.waku.WakuNode.html#lightPush" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>light<wbr/>Push?</span></a>
+<a href="_waku_core.waku.WakuNode.html#peerExchange" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>peer<wbr/>Exchange?</span></a>
 <a href="_waku_core.waku.WakuNode.html#pingKeepAliveTimers" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>ping<wbr/>Keep<wbr/>Alive<wbr/>Timers</span></a>
 <a href="_waku_core.waku.WakuNode.html#relay" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>relay?</span></a>
 <a href="_waku_core.waku.WakuNode.html#relayKeepAliveTimers" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>relay<wbr/>Keep<wbr/>Alive<wbr/>Timers</span></a>
@@ -62,7 +63,7 @@
 <section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_WakuNode">new <wbr/>Waku<wbr/>Node<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><a href="../interfaces/_waku_core.waku.WakuOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">WakuOptions</a>, libp2p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Libp2p</span>, store<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>components<span class="tsd-signature-symbol">: </span><a href="../interfaces/_waku_core.waku_store.StoreComponents.html" class="tsd-signature-type" data-tsd-kind="Interface">StoreComponents</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Store</span><span class="tsd-signature-symbol">)</span>, lightPush<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>components<span class="tsd-signature-symbol">: </span><a href="../interfaces/_waku_core.waku_light_push.LightPushComponents.html" class="tsd-signature-type" data-tsd-kind="Interface">LightPushComponents</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">LightPush</span><span class="tsd-signature-symbol">)</span>, filter<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>components<span class="tsd-signature-symbol">: </span><a href="../interfaces/_waku_core.waku_filter.FilterComponents.html" class="tsd-signature-type" data-tsd-kind="Interface">FilterComponents</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Filter</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_waku_core.waku.WakuNode.html" class="tsd-signature-type" data-tsd-kind="Class">WakuNode</a><a href="#constructor.new_WakuNode" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_WakuNode">new <wbr/>Waku<wbr/>Node<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">: </span><a href="../interfaces/_waku_core.waku.WakuOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">WakuOptions</a>, libp2p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Libp2p</span>, store<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>components<span class="tsd-signature-symbol">: </span><a href="../interfaces/_waku_core.waku_store.StoreComponents.html" class="tsd-signature-type" data-tsd-kind="Interface">StoreComponents</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Store</span><span class="tsd-signature-symbol">)</span>, lightPush<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>components<span class="tsd-signature-symbol">: </span><a href="../interfaces/_waku_core.waku_light_push.LightPushComponents.html" class="tsd-signature-type" data-tsd-kind="Interface">LightPushComponents</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">LightPush</span><span class="tsd-signature-symbol">)</span>, filter<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>components<span class="tsd-signature-symbol">: </span><a href="../interfaces/_waku_core.waku_filter.FilterComponents.html" class="tsd-signature-type" data-tsd-kind="Interface">FilterComponents</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Filter</span><span class="tsd-signature-symbol">)</span>, peerExchange<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>components<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">PeerExchangeComponents</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">PeerExchange</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_waku_core.waku.WakuNode.html" class="tsd-signature-type" data-tsd-kind="Class">WakuNode</a><a href="#constructor.new_WakuNode" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -109,10 +110,23 @@
 <ul class="tsd-parameter-list">
 <li>
 <h5>components: <a href="../interfaces/_waku_core.waku_filter.FilterComponents.html" class="tsd-signature-type" data-tsd-kind="Interface">FilterComponents</a></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Filter</span></h4></li></ul></li></ul></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Filter</span></h4></li></ul></li></ul></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> peerExchange: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>components<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">PeerExchangeComponents</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">PeerExchange</span><span class="tsd-signature-symbol">)</span></h5>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
+<ul class="tsd-signatures tsd-kind-type-literal">
+<li class="tsd-signature"><span class="tsd-signature-symbol">(</span>components<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">PeerExchangeComponents</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">PeerExchange</span></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>components: <span class="tsd-signature-type">PeerExchangeComponents</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">PeerExchange</span></h4></li></ul></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="_waku_core.waku.WakuNode.html" class="tsd-signature-type" data-tsd-kind="Class">WakuNode</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L62">packages/core/src/lib/waku.ts:62</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L72">packages/core/src/lib/waku.ts:72</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="filter" class="tsd-anchor"></a>
@@ -120,19 +134,25 @@
 <div class="tsd-signature">filter<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Filter</span></div><aside class="tsd-sources">
 <p>Implementation of Waku.filter</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L52">packages/core/src/lib/waku.ts:52</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L61">packages/core/src/lib/waku.ts:61</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="libp2p" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>libp2p</span><a href="#libp2p" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">libp2p<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Libp2p</span></div><aside class="tsd-sources">
 <p>Implementation of Waku.libp2p</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L49">packages/core/src/lib/waku.ts:49</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L58">packages/core/src/lib/waku.ts:58</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="lightPush" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>light<wbr/>Push</span><a href="#lightPush" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">light<wbr/>Push<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">LightPush</span></div><aside class="tsd-sources">
 <p>Implementation of Waku.lightPush</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L53">packages/core/src/lib/waku.ts:53</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L62">packages/core/src/lib/waku.ts:62</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="peerExchange" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>peer<wbr/>Exchange</span><a href="#peerExchange" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">peer<wbr/>Exchange<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PeerExchange</span></div><aside class="tsd-sources">
+<p>Implementation of Waku.peerExchange</p>
+<ul>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L63">packages/core/src/lib/waku.ts:63</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="pingKeepAliveTimers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>ping<wbr/>Keep<wbr/>Alive<wbr/>Timers</span><a href="#pingKeepAliveTimers" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">ping<wbr/>Keep<wbr/>Alive<wbr/>Timers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span>[peer: <span class="tsd-signature-type">string</span>]<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ReturnType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><span class="tsd-signature-type">setInterval</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
@@ -142,13 +162,13 @@
 <li class="tsd-parameter-index-signature">
 <h5><span class="tsd-signature-symbol">[</span>peer: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">ReturnType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><span class="tsd-signature-type">setInterval</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L55">packages/core/src/lib/waku.ts:55</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L65">packages/core/src/lib/waku.ts:65</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="relay" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>relay</span><a href="#relay" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">relay<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Relay</span></div><aside class="tsd-sources">
 <p>Implementation of Waku.relay</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L50">packages/core/src/lib/waku.ts:50</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L59">packages/core/src/lib/waku.ts:59</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="relayKeepAliveTimers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>relay<wbr/>Keep<wbr/>Alive<wbr/>Timers</span><a href="#relayKeepAliveTimers" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">relay<wbr/>Keep<wbr/>Alive<wbr/>Timers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span>[peer: <span class="tsd-signature-type">string</span>]<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ReturnType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><span class="tsd-signature-type">setInterval</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
@@ -158,13 +178,13 @@
 <li class="tsd-parameter-index-signature">
 <h5><span class="tsd-signature-symbol">[</span>peer: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">ReturnType</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">typeof </span><span class="tsd-signature-type">setInterval</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L58">packages/core/src/lib/waku.ts:58</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L68">packages/core/src/lib/waku.ts:68</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="store" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>store</span><a href="#store" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">store<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Store</span></div><aside class="tsd-sources">
 <p>Implementation of Waku.store</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L51">packages/core/src/lib/waku.ts:51</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L60">packages/core/src/lib/waku.ts:60</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="dial" class="tsd-anchor"></a>
@@ -188,7 +208,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Stream</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of Waku.dial</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L139">packages/core/src/lib/waku.ts:139</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L155">packages/core/src/lib/waku.ts:155</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getLocalMultiaddrWithID" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Local<wbr/>Multiaddr<wbr/>WithID</span><a href="#getLocalMultiaddrWithID" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -200,7 +220,7 @@
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L187">packages/core/src/lib/waku.ts:187</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L210">packages/core/src/lib/waku.ts:210</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="isStarted" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>is<wbr/>Started</span><a href="#isStarted" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -209,7 +229,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Implementation of Waku.isStarted</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L178">packages/core/src/lib/waku.ts:178</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L201">packages/core/src/lib/waku.ts:201</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="start" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>start</span><a href="#start" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -218,7 +238,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of Waku.start</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L169">packages/core/src/lib/waku.ts:169</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L192">packages/core/src/lib/waku.ts:192</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="startKeepAlive" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>start<wbr/>Keep<wbr/>Alive</span><a href="#startKeepAlive" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -235,7 +255,7 @@
 <h5>relayPeriodSecs: <span class="tsd-signature-type">number</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L197">packages/core/src/lib/waku.ts:197</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L220">packages/core/src/lib/waku.ts:220</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="stop" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>stop</span><a href="#stop" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -244,7 +264,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of Waku.stop</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L173">packages/core/src/lib/waku.ts:173</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L196">packages/core/src/lib/waku.ts:196</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="stopAllKeepAlives" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>stop<wbr/>All<wbr/>Keep<wbr/>Alives</span><a href="#stopAllKeepAlives" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -252,7 +272,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L241">packages/core/src/lib/waku.ts:241</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L264">packages/core/src/lib/waku.ts:264</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="stopKeepAlive" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>stop<wbr/>Keep<wbr/>Alive</span><a href="#stopKeepAlive" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
@@ -265,7 +285,7 @@
 <h5>peerId: <span class="tsd-signature-type">PeerId</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/56009d3b/packages/core/src/lib/waku.ts#L227">packages/core/src/lib/waku.ts:227</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/0ca7fd79/packages/core/src/lib/waku.ts#L250">packages/core/src/lib/waku.ts:250</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -313,6 +333,7 @@
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_core.waku.WakuNode.html#filter" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>filter?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_core.waku.WakuNode.html#libp2p" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>libp2p</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_core.waku.WakuNode.html#lightPush" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>light<wbr/>Push?</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_core.waku.WakuNode.html#peerExchange" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>peer<wbr/>Exchange?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_waku_core.waku.WakuNode.html#pingKeepAliveTimers" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>ping<wbr/>Keep<wbr/>Alive<wbr/>Timers</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_core.waku.WakuNode.html#relay" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>relay?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="_waku_core.waku.WakuNode.html#relayKeepAliveTimers" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>relay<wbr/>Keep<wbr/>Alive<wbr/>Timers</a></li>
