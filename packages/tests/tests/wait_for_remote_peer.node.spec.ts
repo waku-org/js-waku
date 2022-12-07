@@ -218,7 +218,11 @@ describe("Wait for remote peer", function () {
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
-    await waitForRemotePeer(waku2);
+    await waitForRemotePeer(waku2, [
+      Protocols.Filter,
+      Protocols.Store,
+      Protocols.LightPush,
+    ]);
 
     const filterPeers = (await waku2.filter.peers()).map((peer) =>
       peer.id.toString()
