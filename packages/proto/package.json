@@ -35,7 +35,7 @@
     "build": "run-s build:**",
     "build:esm": "tsc",
     "build:bundle": "rollup --config rollup.config.js",
-    "proto": "rimraf src/*.ts; protons src/lib/*.proto",
+    "proto": "rimraf src/lib/*.ts; protons src/lib/*.proto",
     "check:tsc": "tsc -p tsconfig.dev.json",
     "prepublish": "npm run build",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
