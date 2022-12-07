@@ -1,7 +1,6 @@
+import { proto_lightpush as proto } from "@waku/proto";
 import type { Uint8ArrayList } from "uint8arraylist";
 import { v4 as uuid } from "uuid";
-
-import * as proto from "../../proto/light_push.js";
 
 export class PushRPC {
   public constructor(public proto: proto.PushRPC) {}

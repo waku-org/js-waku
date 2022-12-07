@@ -1,6 +1,5 @@
+import { WakuMessage as WakuMessageProto } from "@waku/proto";
 import { expect } from "chai";
-
-import { WakuMessage as WakuMessageProto } from "../proto/message.js";
 
 import { toProtoMessage } from "./to_proto_message.js";
 

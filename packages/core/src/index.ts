@@ -1,10 +1,6 @@
 export { DefaultPubSubTopic } from "./lib/constants.js";
 export { DefaultUserAgent } from "./lib/waku.js";
 
-export * as proto_peer_exchange from "./proto/peer_exchange.js";
-export * as proto_message from "./proto/message.js";
-export * as proto_topic_only_message from "./proto/topic_only_message.js";
-
 export {
   createEncoder,
   createDecoder,
