@@ -6,9 +6,8 @@ import type {
   ProtoMessage,
   RateLimitProof,
 } from "@waku/interfaces";
+import { proto_message as proto } from "@waku/proto";
 import debug from "debug";
-
-import * as proto from "../../proto/message.js";
 
 const log = debug("waku:message:version-0");
 const OneMillion = BigInt(1_000_000);

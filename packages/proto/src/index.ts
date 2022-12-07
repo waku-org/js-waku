@@ -1,0 +1,11 @@
+export * as proto_message from "./lib/message.js";
+export { WakuMessage } from "./lib/filter.js";
+
+export * as proto_topic_only_message from "./lib/topic_only_message.js";
+
+export * as proto_filter from "./lib/filter.js";
+
+export * as proto_lightpush from "./lib/light_push.js";
+export { PushResponse } from "./lib/light_push.js";
+
+export * as proto_store from "./lib/store.js";

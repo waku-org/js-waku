@@ -19,12 +19,12 @@ import {
   selectPeerForProtocol,
   selectRandomPeer,
 } from "@waku/libp2p-utils";
+import { WakuMessage as WakuMessageProto } from "@waku/proto";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
-import { WakuMessage as WakuMessageProto } from "../../proto/message.js";
 import { DefaultPubSubTopic } from "../constants.js";
 import { groupByContentTopic } from "../group_by.js";
 import { toProtoMessage } from "../to_proto_message.js";
