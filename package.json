@@ -5,10 +5,10 @@
   "workspaces": [
     "packages/proto",
     "packages/byte-utils",
+    "packages/enr",
     "packages/interfaces",
     "packages/libp2p-utils",
     "packages/core",
-    "packages/enr",
     "packages/dns-discovery",
     "packages/message-encryption",
     "packages/create",
