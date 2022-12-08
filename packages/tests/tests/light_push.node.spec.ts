@@ -80,9 +80,6 @@ describe("Waku Light Push [node only]", () => {
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const nimPeerId = await nwaku.getPeerId();
-    console.log({
-      nimPeerId,
-    });
 
     const messageText = "Light Push works!";
 
