@@ -51,7 +51,11 @@ describe("Waku Dial [node only]", function () {
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
-      await waitForRemotePeer(waku);
+      await waitForRemotePeer(waku, [
+        Protocols.Store,
+        Protocols.Filter,
+        Protocols.LightPush,
+      ]);
 
       const nimPeerId = await nwaku.getPeerId();
       expect(await waku.libp2p.peerStore.has(nimPeerId)).to.be.true;

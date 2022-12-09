@@ -46,7 +46,7 @@ describe("Waku Message Ephemeral field", () => {
   });
 
   beforeEach(async function () {
-    this.timeout(15000);
+    this.timeout(15_000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({
       filter: true,
@@ -60,11 +60,16 @@ describe("Waku Message Ephemeral field", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku);
+
+    await waitForRemotePeer(waku, [
+      Protocols.Filter,
+      Protocols.LightPush,
+      Protocols.Store,
+    ]);
   });
 
   it("Ephemeral messages are not stored", async function () {
-    this.timeout(15_000);
+    this.timeout(50_000);
 
     const asymText =
       "This message is encrypted for me using asymmetric encryption";
