@@ -10,7 +10,7 @@ on:
 
 env:
   NWAKU_VERSION: "v0.13.0"
-  NODE_JS: "16"
+  NODE_JS: "18"
 
 jobs:
   check:
