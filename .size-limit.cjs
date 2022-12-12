@@ -6,19 +6,24 @@ module.exports = [
   },
   {
     name: "Waku default setup",
-    path: "packages/create/bundle/index.js",
-    import:
-      "{ createLightNode, waitForRemotePeer, createEncoder, createDecoder }",
+    path: ["packages/create/bundle/index.js", "packages/core/bundle/index.js"],
+    import: {
+      "packages/create/bundle/index.js": "{ createLightNode }",
+      "packages/core/bundle/index.js":
+        "{ waitForRemotePeer, createEncoder, createDecoder }",
+    },
   },
   {
     name: "ECIES encryption",
     path: "packages/message-encryption/bundle/ecies.js",
-    import: "{ generatePrivateKey, createEncoder, createDecoder, DecodedMessage }",
+    import:
+      "{ generatePrivateKey, createEncoder, createDecoder, DecodedMessage }",
   },
   {
     name: "Symmetric encryption",
     path: "packages/message-encryption/bundle/symmetric.js",
-    import: "{ generateSymmetricKey, createEncoder,  createDecoder, DecodedMessage }",
+    import:
+      "{ generateSymmetricKey, createEncoder,  createDecoder, DecodedMessage }",
   },
   {
     name: "DNS discovery",
@@ -28,16 +33,16 @@ module.exports = [
   {
     name: "Privacy preserving protocols",
     path: "packages/core/bundle/index.js",
-    import: "{ WakuRelay }",
+    import: "{ wakuRelay }",
   },
   {
     name: "Light protocols",
     path: "packages/core/bundle/index.js",
-    import: "{ WakuLightPush, WakuFilter }",
+    import: "{ wakuLightPush, wakuFilter }",
   },
   {
     name: "History retrieval protocols",
     path: "packages/core/bundle/index.js",
-    import: "{ WakuStore }",
+    import: "{ wakuStore }",
   },
 ];

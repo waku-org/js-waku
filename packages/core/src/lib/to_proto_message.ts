@@ -1,7 +1,7 @@
-import { ProtoMessage } from "@waku/interfaces";
+import { IProtoMessage } from "@waku/interfaces";
 import { WakuMessage as WakuMessageProto } from "@waku/proto";
 
-const EmptyMessage: ProtoMessage = {
+const EmptyMessage: IProtoMessage = {
   payload: undefined,
   contentTopic: undefined,
   version: undefined,
@@ -10,6 +10,6 @@ const EmptyMessage: ProtoMessage = {
   ephemeral: undefined,
 };
 
-export function toProtoMessage(wire: WakuMessageProto): ProtoMessage {
+export function toProtoMessage(wire: WakuMessageProto): IProtoMessage {
   return { ...EmptyMessage, ...wire };
 }

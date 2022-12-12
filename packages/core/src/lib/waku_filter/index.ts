@@ -7,10 +7,10 @@ import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type { Registrar } from "@libp2p/interface-registrar";
 import type {
   Callback,
-  DecodedMessage,
-  Decoder,
   Filter,
-  Message,
+  IDecodedMessage,
+  IDecoder,
+  IMessage,
   ProtocolOptions,
 } from "@waku/interfaces";
 import {
@@ -69,7 +69,7 @@ class WakuFilter implements Filter {
   private subscriptions: Map<string, Callback<any>>;
   private decoders: Map<
     string, // content topic
-    Set<Decoder<any>>
+    Set<IDecoder<any>>
   >;
 
   constructor(public components: FilterComponents, options?: CreateOptions) {
@@ -87,8 +87,8 @@ class WakuFilter implements Filter {
    * @param opts The FilterSubscriptionOpts used to narrow which messages are returned, and which peer to connect to.
    * @returns Unsubscribe function that can be used to end the subscription.
    */
-  async subscribe<T extends DecodedMessage>(
-    decoders: Decoder<T>[],
+  async subscribe<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     callback: Callback<T>,
     opts?: ProtocolOptions
   ): Promise<UnsubscribeFunction> {
@@ -198,7 +198,7 @@ class WakuFilter implements Filter {
         return;
       }
 
-      let msg: Message | undefined;
+      let msg: IMessage | undefined;
       // We don't want to wait for decoding failure, just attempt to decode
       // all messages and do the call back on the one that works
       // noinspection ES6MissingAwait
@@ -225,8 +225,8 @@ class WakuFilter implements Filter {
     this.subscriptions.delete(requestId);
   }
 
-  private addDecoders<T extends DecodedMessage>(
-    decoders: Map<string, Array<Decoder<T>>>
+  private addDecoders<T extends IDecodedMessage>(
+    decoders: Map<string, Array<IDecoder<T>>>
   ): void {
     decoders.forEach((decoders, contentTopic) => {
       const currDecs = this.decoders.get(contentTopic);
@@ -238,8 +238,8 @@ class WakuFilter implements Filter {
     });
   }
 
-  private deleteDecoders<T extends DecodedMessage>(
-    decoders: Map<string, Array<Decoder<T>>>
+  private deleteDecoders<T extends IDecodedMessage>(
+    decoders: Map<string, Array<IDecoder<T>>>
   ): void {
     decoders.forEach((decoders, contentTopic) => {
       const currDecs = this.decoders.get(contentTopic);

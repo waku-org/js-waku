@@ -6,8 +6,8 @@ import { sha256 } from "@noble/hashes/sha256";
 import { concat, utf8ToBytes } from "@waku/byte-utils";
 import {
   Cursor,
-  DecodedMessage,
-  Decoder,
+  IDecodedMessage,
+  IDecoder,
   Index,
   Store,
 } from "@waku/interfaces";
@@ -128,8 +128,8 @@ class WakuStore implements Store {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryOrderedCallback<T extends DecodedMessage>(
-    decoders: Decoder<T>[],
+  async queryOrderedCallback<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
@@ -177,8 +177,8 @@ class WakuStore implements Store {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryCallbackOnPromise<T extends DecodedMessage>(
-    decoders: Decoder<T>[],
+  async queryCallbackOnPromise<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     callback: (
       message: Promise<T | undefined>
     ) => Promise<void | boolean> | boolean | void,
@@ -215,8 +215,8 @@ class WakuStore implements Store {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async *queryGenerator<T extends DecodedMessage>(
-    decoders: Decoder<T>[],
+  async *queryGenerator<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     options?: QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
     let startTime, endTime;
@@ -295,11 +295,11 @@ class WakuStore implements Store {
   }
 }
 
-async function* paginate<T extends DecodedMessage>(
+async function* paginate<T extends IDecodedMessage>(
   connection: Connection,
   protocol: string,
   queryOpts: Params,
-  decoders: Map<string, Decoder<T>>,
+  decoders: Map<string, IDecoder<T>>,
   cursor?: Cursor
 ): AsyncGenerator<Promise<T | undefined>[]> {
   if (
@@ -404,7 +404,7 @@ export function isDefined<T>(msg: T | undefined): msg is T {
 }
 
 export async function createCursor(
-  message: DecodedMessage,
+  message: IDecodedMessage,
   pubsubTopic: string = DefaultPubSubTopic
 ): Promise<Index> {
   if (
