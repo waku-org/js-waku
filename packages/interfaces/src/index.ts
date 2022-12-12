@@ -88,11 +88,6 @@ export interface PeerExchangeComponents {
   peerStore: PeerStore;
   registrar: Registrar;
 }
-export type Cursor = {
-  digest?: Uint8Array;
-  senderTime?: bigint;
-  pubsubTopic?: string;
-};
 
 export type StoreQueryOptions = {
   /**
@@ -117,7 +112,7 @@ export type StoreQueryOptions = {
   /**
    * Cursor as an index to start a query from.
    */
-  cursor?: Cursor;
+  cursor?: Index;
 } & ProtocolOptions;
 
 export interface Store extends PointToPointProtocol {

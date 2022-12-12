@@ -4,13 +4,7 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import { sha256 } from "@noble/hashes/sha256";
 import { concat, utf8ToBytes } from "@waku/byte-utils";
-import {
-  Cursor,
-  DecodedMessage,
-  Decoder,
-  Index,
-  Store,
-} from "@waku/interfaces";
+import { DecodedMessage, Decoder, Index, Store } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
@@ -96,7 +90,7 @@ export interface QueryOptions {
    * The cursor index will be exclusive (i.e. the message at the cursor index will not be included in the result).
    * If undefined, the query will start from the beginning or end of the history, depending on the page direction.
    */
-  cursor?: Cursor;
+  cursor?: Index;
 }
 
 /**
@@ -300,7 +294,7 @@ async function* paginate<T extends DecodedMessage>(
   protocol: string,
   queryOpts: Params,
   decoders: Map<string, Decoder<T>>,
-  cursor?: Cursor
+  cursor?: Index
 ): AsyncGenerator<Promise<T | undefined>[]> {
   if (
     queryOpts.contentTopics.toString() !==
