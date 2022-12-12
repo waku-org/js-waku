@@ -395,7 +395,7 @@ export class Nwaku {
   }
 
   get rpcUrl(): string {
-    return `http://localhost:${this.rpcPort}/`;
+    return `http://127.0.0.1:${this.rpcPort}/`;
   }
 
   private async rpcCall<T>(
