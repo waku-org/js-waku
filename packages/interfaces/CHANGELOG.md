@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `IPeerExchange` interface.
+- `IEnr` interface.
+
 ## [0.0.6] - 2022-12-15
 
 ### Changed

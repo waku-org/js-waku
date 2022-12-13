@@ -1,4 +1,5 @@
 import { ENR } from "@waku/enr";
+import type { IEnr } from "@waku/interfaces";
 import debug from "debug";
 
 import { DnsOverHttps } from "./dns_over_https.js";
@@ -49,7 +50,7 @@ export class DnsNodeDiscovery {
   async getPeers(
     enrTreeUrls: string[],
     wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
-  ): Promise<ENR[]> {
+  ): Promise<IEnr[]> {
     const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
     const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
     const context: SearchContext = {
@@ -86,7 +87,7 @@ export class DnsNodeDiscovery {
   async *getNextPeer(
     enrTreeUrls: string[],
     wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
-  ): AsyncGenerator<ENR> {
+  ): AsyncGenerator<IEnr> {
     const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
     const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
     const context: SearchContext = {

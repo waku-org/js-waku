@@ -5,7 +5,7 @@ import type {
 import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
-import { ENR } from "@waku/enr";
+import type { IEnr } from "@waku/interfaces";
 import { multiaddrsToPeerInfo } from "@waku/libp2p-utils";
 import debug from "debug";
 
@@ -22,7 +22,7 @@ export class PeerDiscoveryDns
   extends EventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery
 {
-  private readonly nextPeer: () => AsyncGenerator<ENR>;
+  private readonly nextPeer: () => AsyncGenerator<IEnr>;
   private _started: boolean;
 
   /**
