@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `waitForRemotePeer` must now be directly imported from `@waku/core`.
 - `V0` suffix removed from the version 0 objects.
 - `createEncoder`/`createDecoder`/`DecodedMessage` for Waku Message Version 0 (no Waku level encryption) can now be imported directly from `@waku/core`.
+- Removed `Waku` and `waku_` prefixed on protocol implementations.
 
 ## [@waku/core@0.0.6] - 2022-11-18
 

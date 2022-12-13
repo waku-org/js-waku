@@ -6,8 +6,8 @@ import {
   DefaultUserAgent,
   waitForRemotePeer,
 } from "@waku/core";
-import { createLightNode, createPrivacyNode } from "@waku/create";
-import type { Waku, WakuLight, WakuPrivacy } from "@waku/interfaces";
+import { createLightNode, createRelayNode } from "@waku/create";
+import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   createDecoder,
@@ -62,7 +62,7 @@ describe("Waku Dial [node only]", function () {
   });
 
   describe("Bootstrap", function () {
-    let waku: WakuLight;
+    let waku: LightNode;
     let nwaku: Nwaku;
 
     afterEach(async function () {
@@ -134,15 +134,15 @@ describe("Decryption Keys", () => {
     }
   });
 
-  let waku1: WakuPrivacy;
-  let waku2: WakuPrivacy;
+  let waku1: RelayNode;
+  let waku2: RelayNode;
   beforeEach(async function () {
     this.timeout(5000);
     [waku1, waku2] = await Promise.all([
-      createPrivacyNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
+      createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
         waku.start().then(() => waku)
       ),
-      createPrivacyNode({
+      createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
       }).then((waku) => waku.start().then(() => waku)),
@@ -210,11 +210,11 @@ describe("User Agent", () => {
     const waku1UserAgent = "test-user-agent";
 
     [waku1, waku2] = await Promise.all([
-      createPrivacyNode({
+      createRelayNode({
         staticNoiseKey: NOISE_KEY_1,
         userAgent: waku1UserAgent,
       }).then((waku) => waku.start().then(() => waku)),
-      createPrivacyNode({
+      createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
       }).then((waku) => waku.start().then(() => waku)),

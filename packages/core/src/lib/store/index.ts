@@ -9,7 +9,7 @@ import {
   IDecodedMessage,
   IDecoder,
   Index,
-  Store,
+  IStore,
 } from "@waku/interfaces";
 import {
   getPeersForProtocol,
@@ -104,7 +104,7 @@ export interface QueryOptions {
  *
  * The Waku Store protocol can be used to retrieved historical messages.
  */
-class WakuStore implements Store {
+class Store implements IStore {
   pubSubTopic: string;
 
   constructor(public components: StoreComponents, options?: CreateOptions) {
@@ -432,6 +432,6 @@ export async function createCursor(
 
 export function wakuStore(
   init: Partial<CreateOptions> = {}
-): (components: StoreComponents) => Store {
-  return (components: StoreComponents) => new WakuStore(components, init);
+): (components: StoreComponents) => IStore {
+  return (components: StoreComponents) => new Store(components, init);
 }

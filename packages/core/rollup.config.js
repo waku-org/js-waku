@@ -6,9 +6,8 @@ export default {
   input: {
     index: "dist/index.js",
     "lib/predefined_bootstrap_nodes": "dist/lib/predefined_bootstrap_nodes.js",
-    "lib/waku_message/version_0": "dist/lib/waku_message/version_0.js",
-    "lib/waku_message/topic_only_message":
-      "dist/lib/waku_message/topic_only_message.js",
+    "lib/message/version_0": "dist/lib/message/version_0.js",
+    "lib/message/topic_only_message": "dist/lib/message/topic_only_message.js",
   },
   output: {
     dir: "bundle",

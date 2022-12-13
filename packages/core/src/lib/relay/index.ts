@@ -11,15 +11,15 @@ import type {
   IDecoder,
   IEncoder,
   IMessage,
-  Relay,
+  IRelay,
   SendResult,
 } from "@waku/interfaces";
 import { IDecodedMessage } from "@waku/interfaces";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants.js";
+import { TopicOnlyDecoder } from "../message/topic_only_message.js";
 import { pushOrInitMapSet } from "../push_or_init_map.js";
-import { TopicOnlyDecoder } from "../waku_message/topic_only_message.js";
 
 import * as constants from "./constants.js";
 
@@ -53,7 +53,7 @@ export type CreateOptions = {
  *
  * @implements {require('libp2p-interfaces/src/pubsub')}
  */
-class WakuRelay extends GossipSub implements Relay {
+class Relay extends GossipSub implements IRelay {
   pubSubTopic: string;
   defaultDecoder: IDecoder<IDecodedMessage>;
   public static multicodec: string = constants.RelayCodecs[0];
@@ -185,10 +185,10 @@ class WakuRelay extends GossipSub implements Relay {
   }
 }
 
-WakuRelay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
+Relay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
 
 export function wakuRelay(
   init: Partial<CreateOptions> = {}
-): (components: GossipSubComponents) => Relay {
-  return (components: GossipSubComponents) => new WakuRelay(components, init);
+): (components: GossipSubComponents) => IRelay {
+  return (components: GossipSubComponents) => new Relay(components, init);
 }
