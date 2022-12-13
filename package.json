@@ -133,7 +133,7 @@
     "*.ts": [
       "eslint --fix"
     ],
-    "*.{ts,json,js,md}": [
+    "*.{ts,json,js,md,cjs}": [
       "prettier --write"
     ]
   }

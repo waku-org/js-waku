@@ -1,8 +1,8 @@
 import {
   DecodedMessage as DecodedMessageV0,
   proto,
-} from "@waku/core/lib/waku_message/version_0";
-import type { DecodedMessage as IDecodedMessage } from "@waku/interfaces";
+} from "@waku/core/lib/message/version_0";
+import type { IDecodedMessage } from "@waku/interfaces";
 
 import {
   generatePrivateKey,

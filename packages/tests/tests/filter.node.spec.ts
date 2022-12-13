@@ -1,7 +1,12 @@
 import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
-import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
+import {
+  createDecoder,
+  createEncoder,
+  DecodedMessage,
+  waitForRemotePeer,
+} from "@waku/core";
 import { createLightNode } from "@waku/create";
-import type { DecodedMessage, WakuLight } from "@waku/interfaces";
+import type { LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 import debug from "debug";
@@ -15,7 +20,7 @@ const TestEncoder = createEncoder(TestContentTopic);
 const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Filter", () => {
-  let waku: WakuLight;
+  let waku: LightNode;
   let nwaku: Nwaku;
 
   afterEach(async function () {

@@ -4,7 +4,7 @@ import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import { ENR } from "@waku/enr";
 import type {
-  PeerExchange,
+  IPeerExchange,
   PeerExchangeComponents,
   PeerExchangeQueryParams,
   PeerExchangeResponse,
@@ -26,7 +26,7 @@ export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
 const log = debug("waku:peer-exchange");
 
-export class WakuPeerExchange implements PeerExchange {
+export class WakuPeerExchange implements IPeerExchange {
   private callback:
     | ((response: PeerExchangeResponse) => Promise<void>)
     | undefined;

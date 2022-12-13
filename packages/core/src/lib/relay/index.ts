@@ -8,25 +8,25 @@ import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type {
   Callback,
-  Decoder,
-  Encoder,
-  Message,
-  Relay,
+  IDecoder,
+  IEncoder,
+  IMessage,
+  IRelay,
   SendResult,
 } from "@waku/interfaces";
-import { DecodedMessage } from "@waku/interfaces";
+import { IDecodedMessage } from "@waku/interfaces";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants.js";
+import { TopicOnlyDecoder } from "../message/topic_only_message.js";
 import { pushOrInitMapSet } from "../push_or_init_map.js";
-import { TopicOnlyDecoder } from "../waku_message/topic_only_message.js";
 
 import * as constants from "./constants.js";
 
 const log = debug("waku:relay");
 
-export type Observer<T extends DecodedMessage> = {
-  decoder: Decoder<T>;
+export type Observer<T extends IDecodedMessage> = {
+  decoder: IDecoder<T>;
   callback: Callback<T>;
 };
 
@@ -53,9 +53,9 @@ export type CreateOptions = {
  *
  * @implements {require('libp2p-interfaces/src/pubsub')}
  */
-class WakuRelay extends GossipSub implements Relay {
+class Relay extends GossipSub implements IRelay {
   pubSubTopic: string;
-  defaultDecoder: Decoder<DecodedMessage>;
+  defaultDecoder: IDecoder<IDecodedMessage>;
   public static multicodec: string = constants.RelayCodecs[0];
 
   /**
@@ -99,7 +99,7 @@ class WakuRelay extends GossipSub implements Relay {
   /**
    * Send Waku message.
    */
-  public async send(encoder: Encoder, message: Message): Promise<SendResult> {
+  public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
     const msg = await encoder.toWire(message);
     if (!msg) {
       log("Failed to encode message, aborting publish");
@@ -113,8 +113,8 @@ class WakuRelay extends GossipSub implements Relay {
    *
    * @returns Function to delete the observer
    */
-  addObserver<T extends DecodedMessage>(
-    decoder: Decoder<T>,
+  addObserver<T extends IDecodedMessage>(
+    decoder: IDecoder<T>,
     callback: Callback<T>
   ): () => void {
     const observer = {
@@ -185,10 +185,10 @@ class WakuRelay extends GossipSub implements Relay {
   }
 }
 
-WakuRelay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
+Relay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
 
 export function wakuRelay(
   init: Partial<CreateOptions> = {}
-): (components: GossipSubComponents) => Relay {
-  return (components: GossipSubComponents) => new WakuRelay(components, init);
+): (components: GossipSubComponents) => IRelay {
+  return (components: GossipSubComponents) => new Relay(components, init);
 }

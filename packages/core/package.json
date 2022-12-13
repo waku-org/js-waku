@@ -13,13 +13,13 @@
       "types": "./dist/lib/predefined_bootstrap_nodes.d.ts",
       "import": "./dist/lib/predefined_bootstrap_nodes.js"
     },
-    "./lib/waku_message/version_0": {
-      "types": "./dist/lib/waku_message/version_0.d.ts",
-      "import": "./dist/lib/waku_message/version_0.js"
+    "./lib/message/version_0": {
+      "types": "./dist/lib/message/version_0.d.ts",
+      "import": "./dist/lib/message/version_0.js"
     },
-    "./lib/waku_message/topic_only_message": {
-      "types": "./dist/lib/waku_message/topic_only_message.d.ts",
-      "import": "./dist/lib/waku_message/topic_only_message.js"
+    "./lib/message/topic_only_message": {
+      "types": "./dist/lib/message/topic_only_message.d.ts",
+      "import": "./dist/lib/message/topic_only_message.js"
     }
   },
   "typesVersions": {
@@ -115,7 +115,7 @@
     "@typescript-eslint/parser": "^5.8.1",
     "app-root-path": "^3.0.0",
     "chai": "^4.3.4",
-    "cspell": "^5.14.0",
+    "cspell": "^6.17.0",
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-eslint-comments": "^3.2.0",

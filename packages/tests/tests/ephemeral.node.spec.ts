@@ -7,7 +7,7 @@ import {
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
 import { Protocols } from "@waku/interfaces";
-import type { WakuLight } from "@waku/interfaces";
+import type { LightNode } from "@waku/interfaces";
 import {
   createDecoder as eciesDecoder,
   createEncoder as eciesEncoder,
@@ -37,7 +37,7 @@ const TestEncoder = createEncoder(TestContentTopic);
 const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Message Ephemeral field", () => {
-  let waku: WakuLight;
+  let waku: LightNode;
   let nwaku: Nwaku;
 
   afterEach(async function () {

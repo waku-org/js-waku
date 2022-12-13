@@ -1,13 +1,13 @@
 import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
-import type { PointToPointProtocol, Relay, Waku } from "@waku/interfaces";
+import type { IRelay, PointToPointProtocol, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { PeerExchangeCodec } from "@waku/peer-exchange";
 import debug from "debug";
 import { pEvent } from "p-event";
 
-import { FilterCodec } from "./waku_filter/index.js";
-import { LightPushCodec } from "./waku_light_push/index.js";
-import { StoreCodec } from "./waku_store/index.js";
+import { FilterCodec } from "./filter/index.js";
+import { LightPushCodec } from "./light_push/index.js";
+import { StoreCodec } from "./store/index.js";
 
 const log = debug("waku:wait-for-remote-peer");
 
@@ -117,7 +117,7 @@ async function waitForConnectedPeer(
  * Wait for a peer with the given protocol to be connected and in the gossipsub
  * mesh.
  */
-async function waitForGossipSubPeerInMesh(waku: Relay): Promise<void> {
+async function waitForGossipSubPeerInMesh(waku: IRelay): Promise<void> {
   let peers = waku.getMeshPeers();
 
   while (peers.length == 0) {
