@@ -4,13 +4,7 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import { sha256 } from "@noble/hashes/sha256";
 import { concat, utf8ToBytes } from "@waku/byte-utils";
-import {
-  Cursor,
-  IDecodedMessage,
-  IDecoder,
-  Index,
-  IStore,
-} from "@waku/interfaces";
+import { IDecodedMessage, IDecoder, Index, IStore } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
@@ -300,7 +294,7 @@ async function* paginate<T extends IDecodedMessage>(
   protocol: string,
   queryOpts: Params,
   decoders: Map<string, IDecoder<T>>,
-  cursor?: Cursor
+  cursor?: proto.Index
 ): AsyncGenerator<Promise<T | undefined>[]> {
   if (
     queryOpts.contentTopics.toString() !==

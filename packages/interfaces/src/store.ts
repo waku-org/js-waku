@@ -1,3 +1,5 @@
+import { proto_store as proto } from "@waku/proto";
+
 import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { PointToPointProtocol, ProtocolOptions } from "./protocols.js";
 
@@ -17,12 +19,6 @@ export interface Index {
   senderTime?: bigint;
   pubsubTopic?: string;
 }
-
-export type Cursor = {
-  digest?: Uint8Array;
-  senderTime?: bigint;
-  pubsubTopic?: string;
-};
 
 export type StoreQueryOptions = {
   /**
@@ -47,7 +43,7 @@ export type StoreQueryOptions = {
   /**
    * Cursor as an index to start a query from.
    */
-  cursor?: Cursor;
+  cursor?: proto.Index;
 } & ProtocolOptions;
 
 export interface IStore extends PointToPointProtocol {
