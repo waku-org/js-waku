@@ -9,9 +9,12 @@ import { EventEmitter } from "@libp2p/interfaces/events";
 import { PeerExchangeComponents } from "@waku/interfaces";
 import debug from "debug";
 
+import { WakuPeerExchange } from "./waku_peer_exchange";
 import { PeerExchangeCodec } from "./waku_peer_exchange";
 
 const log = debug("waku:peer-exchange-discovery");
+
+const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
 
 interface Options {
   /**
@@ -39,6 +42,7 @@ export class PeerExchangeDiscovery
   implements PeerDiscovery
 {
   private readonly components: PeerExchangeComponents;
+  private readonly peerExchange: WakuPeerExchange;
   private readonly options: Options;
   private isStarted: boolean;
 
@@ -49,26 +53,58 @@ export class PeerExchangeDiscovery
     if (!protocols.includes(PeerExchangeCodec)) return;
 
     const { peerId } = event.detail;
-    const peer = await this.components.peerStore.get(peerId);
-    const peerInfo = {
-      id: peerId,
-      multiaddrs: peer.addresses.map((address) => address.multiaddr),
-      protocols: [],
-    };
-    await this.components.peerStore.tagPeer(
-      peerId,
-      DEFAULT_BOOTSTRAP_TAG_NAME,
+
+    await this.peerExchange.query(
       {
-        value: this.options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-        ttl: this.options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+        numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
+        peerId,
+      },
+      async (response) => {
+        const { peerInfos } = response;
+
+        for (const _peerInfo of peerInfos) {
+          const { ENR } = _peerInfo;
+          if (!ENR) {
+            log("no ENR");
+            continue;
+          }
+          const { peerId, multiaddrs } = ENR;
+          if (!peerId) {
+            log("no peerId");
+            continue;
+          }
+          if (!multiaddrs || multiaddrs.length === 0) {
+            log("no multiaddrs");
+            continue;
+          }
+
+          await this.components.peerStore.tagPeer(
+            peerId,
+            DEFAULT_BOOTSTRAP_TAG_NAME,
+            {
+              value: this.options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
+              ttl: this.options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+            }
+          );
+
+          this.dispatchEvent(
+            new CustomEvent<PeerInfo>("peer", {
+              detail: {
+                id: peerId,
+                multiaddrs,
+                protocols: [],
+              },
+            })
+          );
+        }
       }
     );
-    this.dispatchEvent(new CustomEvent<PeerInfo>("peer", { detail: peerInfo }));
   };
 
   constructor(components: PeerExchangeComponents, options: Options = {}) {
     super();
     this.components = components;
+    this.peerExchange = new WakuPeerExchange(components);
     this.options = options;
     this.isStarted = false;
   }
@@ -109,4 +145,11 @@ export class PeerExchangeDiscovery
   get [Symbol.toStringTag](): string {
     return "@waku/peer-exchange";
   }
+}
+
+export function wakuPeerExchangeDiscovery(): (
+  components: PeerExchangeComponents
+) => PeerExchangeDiscovery {
+  return (components: PeerExchangeComponents) =>
+    new PeerExchangeDiscovery(components);
 }
