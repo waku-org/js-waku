@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
@@ -74,6 +75,10 @@ export class WakuPeerExchange implements IPeerExchange {
         if (!decoded) {
           throw new Error("Failed to decode response");
         }
+
+        decoded.peerInfos.map((info) =>
+          console.log("enr bytes received from peer-exchange: " + info.enr)
+        );
 
         const enrs = await Promise.all(
           decoded.peerInfos.map(

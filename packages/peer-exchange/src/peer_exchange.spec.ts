@@ -18,27 +18,23 @@ describe.only("Peer Exchange Discovery", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
   it("connects to nwaku", async function () {
-    try {
-      this.timeout(120_000);
+    this.timeout(120_000);
 
-      waku = await createLightNode({
-        libp2p: {
-          peerDiscovery: [
-            bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
-            wakuPeerExchangeDiscovery(),
-          ],
-        },
-      });
+    waku = await createLightNode({
+      libp2p: {
+        peerDiscovery: [
+          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
+          wakuPeerExchangeDiscovery(),
+        ],
+      },
+    });
 
-      await waku.start();
-      await delay(1000);
+    await waku.start();
+    await delay(1000);
 
-      while (waku.libp2p.connectionManager.getConnections().length >= 2) {
-        await waitForRemotePeer(waku, [Protocols.PeerExchange]);
-        await delay(3000);
-      }
-    } catch (error) {
-      console.error(error);
+    while (true) {
+      await waitForRemotePeer(waku, [Protocols.PeerExchange]);
+      await delay(3000);
     }
   });
 });
