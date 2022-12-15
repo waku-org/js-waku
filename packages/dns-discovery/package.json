@@ -1,6 +1,6 @@
 {
   "name": "@waku/dns-discovery",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "DNS Peer Discovery (EIP-1459)",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
