@@ -155,9 +155,6 @@ function getEnabledProtocols(waku: Waku): Protocols[] {
   if (waku.lightPush) {
     protocols.push(Protocols.LightPush);
   }
-  if (waku.peerExchange) {
-    protocols.push(Protocols.PeerExchange);
-  }
 
   return protocols;
 }
