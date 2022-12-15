@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2022-12-15
+
 ### Changed
 
 - Renamed `createPrivacyNode` to `createRelayNode`.
@@ -17,7 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Alpha version of `@waku/create`.
 
-[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/create@0.0.4...HEAD
+[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/create@0.0.5...HEAD
+[0.0.5]: https://github.com/waku-org/js-waku/compare/@waku/create@0.0.4...@waku/create@0.0.5
 [0.0.4]: https://github.com/waku-org/js-waku/compare/@waku/create@0.0.3...@waku/create@0.0.4
 [0.0.3]: https://github.com/waku-org/js-waku/compare/@waku/create@0.0.2...%40waku/create@0.0.3
 [0.0.2]: https://github.com/waku-org/js-waku/compare/@waku/create@0.0.1...%40waku/create@0.0.2
