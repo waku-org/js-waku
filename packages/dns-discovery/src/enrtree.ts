@@ -39,11 +39,14 @@ export class ENRTree {
     // of the record content, excluding the `sig=` part, encoded as URL-safe base64 string
     // (Trailing recovery bit must be trimmed to pass `ecdsaVerify` method)
     const signedComponent = root.split(" sig")[0];
+
     const signedComponentBuffer = utf8ToBytes(signedComponent);
     const signatureBuffer = fromString(rootValues.signature, "base64url").slice(
       0,
       64
     );
+
+    return rootValues.eRoot;
 
     const isVerified = verifySignature(
       signatureBuffer,
@@ -52,8 +55,6 @@ export class ENRTree {
     );
 
     if (!isVerified) throw new Error("Unable to verify ENRTree root signature");
-
-    return rootValues.eRoot;
   }
 
   static parseRootValues(txt: string): ENRRootValues {

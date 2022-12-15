@@ -81,3 +81,12 @@ export class PeerDiscoveryDns
     return "@waku/bootstrap";
   }
 }
+
+export function wakuDnsDiscovery(
+  enrUrl: string,
+  wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
+): () => PeerDiscoveryDns {
+  return () => new PeerDiscoveryDns(enrUrl, wantedNodeCapabilityCount);
+}
+
+export { DnsNodeDiscovery } from "./dns.js";
