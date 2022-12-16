@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Missing dependency declarations.
+
 ## [@waku/core@0.0.7] - 2022-12-15
 
 ### Added
