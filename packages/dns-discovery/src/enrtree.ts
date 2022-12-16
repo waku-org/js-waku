@@ -46,8 +46,6 @@ export class ENRTree {
       64
     );
 
-    return rootValues.eRoot;
-
     const isVerified = verifySignature(
       signatureBuffer,
       keccak256(signedComponentBuffer),
@@ -55,6 +53,8 @@ export class ENRTree {
     );
 
     if (!isVerified) throw new Error("Unable to verify ENRTree root signature");
+
+    return rootValues.eRoot;
   }
 
   static parseRootValues(txt: string): ENRRootValues {
