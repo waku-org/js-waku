@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2022-12-16
+
+### Fixed
+
+- Type resolution when using `moduleResolution: node`.
+
 ## [0.0.5] - 2022-12-15
 
 ### Added
@@ -28,7 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Alpha version of `@waku/message-encryption`.
 
-[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.5...HEAD
+[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.6...HEAD
+[0.0.6]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.5...@waku/message-encryption@0.0.6
 [0.0.5]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.4...@waku/message-encryption@0.0.5
 [0.0.4]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.3...@waku/message-encryption@0.0.4
 [0.0.3]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.2...%40waku/message-encryption@0.0.3
