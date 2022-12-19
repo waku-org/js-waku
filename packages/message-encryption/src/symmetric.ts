@@ -1,10 +1,11 @@
-import { Decoder as DecoderV0, proto } from "@waku/core/lib/message/version_0";
+import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import type {
   IDecoder,
   IEncoder,
   IMessage,
   IProtoMessage,
 } from "@waku/interfaces";
+import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
 import {
@@ -37,7 +38,7 @@ class Encoder implements IEncoder {
     const protoMessage = await this.toProtoObj(message);
     if (!protoMessage) return;
 
-    return proto.WakuMessage.encode(protoMessage);
+    return WakuMessage.encode(protoMessage);
   }
 
   async toProtoObj(message: IMessage): Promise<IProtoMessage | undefined> {
