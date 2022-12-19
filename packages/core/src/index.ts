@@ -14,11 +14,7 @@ export * as waku_filter from "./lib/filter/index.js";
 export { wakuFilter } from "./lib/filter/index.js";
 
 export * as waku_light_push from "./lib/light_push/index.js";
-export {
-  wakuLightPush,
-  LightPushCodec,
-  PushResponse,
-} from "./lib/light_push/index.js";
+export { wakuLightPush, LightPushCodec } from "./lib/light_push/index.js";
 
 export * as waku_relay from "./lib/relay/index.js";
 export { wakuRelay } from "./lib/relay/index.js";
