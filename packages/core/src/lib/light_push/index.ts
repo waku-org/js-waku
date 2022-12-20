@@ -3,9 +3,9 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 import type {
-  Encoder,
-  LightPush,
-  Message,
+  IEncoder,
+  ILightPush,
+  IMessage,
   ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
@@ -51,7 +51,7 @@ export interface CreateOptions {
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
-class WakuLightPush implements LightPush {
+class LightPush implements ILightPush {
   pubSubTopic: string;
 
   constructor(public components: LightPushComponents, options?: CreateOptions) {
@@ -59,8 +59,8 @@ class WakuLightPush implements LightPush {
   }
 
   async push(
-    encoder: Encoder,
-    message: Message,
+    encoder: IEncoder,
+    message: IMessage,
     opts?: ProtocolOptions
   ): Promise<SendResult> {
     const pubSubTopic = opts?.pubSubTopic ? opts.pubSubTopic : this.pubSubTopic;
@@ -151,7 +151,6 @@ class WakuLightPush implements LightPush {
 
 export function wakuLightPush(
   init: Partial<CreateOptions> = {}
-): (components: LightPushComponents) => LightPush {
-  return (components: LightPushComponents) =>
-    new WakuLightPush(components, init);
+): (components: LightPushComponents) => ILightPush {
+  return (components: LightPushComponents) => new LightPush(components, init);
 }

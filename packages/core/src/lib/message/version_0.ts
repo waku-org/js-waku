@@ -1,10 +1,10 @@
 import type {
-  DecodedMessage as IDecodedMessage,
-  Decoder as IDecoder,
-  Encoder as IEncoder,
-  Message,
-  ProtoMessage,
-  RateLimitProof,
+  IDecodedMessage,
+  IDecoder,
+  IEncoder,
+  IMessage,
+  IProtoMessage,
+  IRateLimitProof,
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
 import debug from "debug";
@@ -65,7 +65,7 @@ export class DecodedMessage implements IDecodedMessage {
     return this.proto.version ?? 0;
   }
 
-  get rateLimitProof(): RateLimitProof | undefined {
+  get rateLimitProof(): IRateLimitProof | undefined {
     return this.proto.rateLimitProof;
   }
 }
@@ -73,11 +73,11 @@ export class DecodedMessage implements IDecodedMessage {
 export class Encoder implements IEncoder {
   constructor(public contentTopic: string, public ephemeral: boolean = false) {}
 
-  async toWire(message: Message): Promise<Uint8Array> {
+  async toWire(message: IMessage): Promise<Uint8Array> {
     return proto.WakuMessage.encode(await this.toProtoObj(message));
   }
 
-  async toProtoObj(message: Message): Promise<ProtoMessage> {
+  async toProtoObj(message: IMessage): Promise<IProtoMessage> {
     const timestamp = message.timestamp ?? new Date();
 
     return {
@@ -113,7 +113,7 @@ export function createEncoder(
 export class Decoder implements IDecoder<DecodedMessage> {
   constructor(public contentTopic: string) {}
 
-  fromWireToProtoObj(bytes: Uint8Array): Promise<ProtoMessage | undefined> {
+  fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);
     log("Message decoded", protoMessage);
     return Promise.resolve({
@@ -126,7 +126,9 @@ export class Decoder implements IDecoder<DecodedMessage> {
     });
   }
 
-  async fromProtoObj(proto: ProtoMessage): Promise<DecodedMessage | undefined> {
+  async fromProtoObj(
+    proto: IProtoMessage
+  ): Promise<DecodedMessage | undefined> {
     // https://github.com/status-im/js-waku/issues/921
     if (proto.version === undefined) {
       proto.version = 0;

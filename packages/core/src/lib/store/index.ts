@@ -6,10 +6,10 @@ import { sha256 } from "@noble/hashes/sha256";
 import { concat, utf8ToBytes } from "@waku/byte-utils";
 import {
   Cursor,
-  DecodedMessage,
-  Decoder,
+  IDecodedMessage,
+  IDecoder,
   Index,
-  Store,
+  IStore,
 } from "@waku/interfaces";
 import {
   getPeersForProtocol,
@@ -104,7 +104,7 @@ export interface QueryOptions {
  *
  * The Waku Store protocol can be used to retrieved historical messages.
  */
-class WakuStore implements Store {
+class Store implements IStore {
   pubSubTopic: string;
 
   constructor(public components: StoreComponents, options?: CreateOptions) {
@@ -128,8 +128,8 @@ class WakuStore implements Store {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryOrderedCallback<T extends DecodedMessage>(
-    decoders: Decoder<T>[],
+  async queryOrderedCallback<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
@@ -177,8 +177,8 @@ class WakuStore implements Store {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryCallbackOnPromise<T extends DecodedMessage>(
-    decoders: Decoder<T>[],
+  async queryCallbackOnPromise<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     callback: (
       message: Promise<T | undefined>
     ) => Promise<void | boolean> | boolean | void,
@@ -215,8 +215,8 @@ class WakuStore implements Store {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async *queryGenerator<T extends DecodedMessage>(
-    decoders: Decoder<T>[],
+  async *queryGenerator<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     options?: QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
     let startTime, endTime;
@@ -295,11 +295,11 @@ class WakuStore implements Store {
   }
 }
 
-async function* paginate<T extends DecodedMessage>(
+async function* paginate<T extends IDecodedMessage>(
   connection: Connection,
   protocol: string,
   queryOpts: Params,
-  decoders: Map<string, Decoder<T>>,
+  decoders: Map<string, IDecoder<T>>,
   cursor?: Cursor
 ): AsyncGenerator<Promise<T | undefined>[]> {
   if (
@@ -404,7 +404,7 @@ export function isDefined<T>(msg: T | undefined): msg is T {
 }
 
 export async function createCursor(
-  message: DecodedMessage,
+  message: IDecodedMessage,
   pubsubTopic: string = DefaultPubSubTopic
 ): Promise<Index> {
   if (
@@ -432,6 +432,6 @@ export async function createCursor(
 
 export function wakuStore(
   init: Partial<CreateOptions> = {}
-): (components: StoreComponents) => Store {
-  return (components: StoreComponents) => new WakuStore(components, init);
+): (components: StoreComponents) => IStore {
+  return (components: StoreComponents) => new Store(components, init);
 }

@@ -1,14 +1,14 @@
 import { waitForRemotePeer } from "@waku/core";
-import { createLightNode, createPrivacyNode } from "@waku/create";
-import type { WakuLight, WakuPrivacy } from "@waku/interfaces";
+import { createLightNode, createRelayNode } from "@waku/create";
+import type { LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
 import { delay, makeLogFileName, NOISE_KEY_1, Nwaku } from "../src/index.js";
 
 describe("Wait for remote peer", function () {
-  let waku1: WakuPrivacy;
-  let waku2: WakuLight;
+  let waku1: RelayNode;
+  let waku2: LightNode;
   let nwaku: Nwaku | undefined;
 
   afterEach(async function () {
@@ -31,7 +31,7 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku1 = await createPrivacyNode({
+    waku1 = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku1.start();
@@ -56,7 +56,7 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku1 = await createPrivacyNode({
+    waku1 = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku1.start();
@@ -75,7 +75,7 @@ describe("Wait for remote peer", function () {
 
   it("Relay - times out", function (done) {
     this.timeout(5000);
-    createPrivacyNode({
+    createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
     })
       .then((waku1) => waku1.start().then(() => waku1))
@@ -253,7 +253,7 @@ describe("Wait for remote peer", function () {
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku1 = await createPrivacyNode({
+    waku1 = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku1.start();

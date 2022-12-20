@@ -444,7 +444,6 @@ export function argsToArray(args: Args): Array<string> {
 export function defaultArgs(): Args {
   return {
     listenAddress: "127.0.0.1",
-    nat: "none",
     rpc: true,
     relay: false,
     rpcAdmin: true,

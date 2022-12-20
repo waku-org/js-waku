@@ -5,12 +5,12 @@ import {
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import { createLightNode } from "@waku/create";
-import type { PeerExchangeResponse, WakuFull } from "@waku/interfaces";
+import type { LightNode, PeerExchangeResponse } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
 describe("Peer Exchange: Node", () => {
-  let waku: WakuFull;
+  let waku: LightNode;
   afterEach(async function () {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });

@@ -1,13 +1,11 @@
-import {
-  Decoder as DecoderV0,
-  proto,
-} from "@waku/core/lib/waku_message/version_0";
+import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import type {
-  Decoder as IDecoder,
-  Encoder as IEncoder,
-  Message,
-  ProtoMessage,
+  IDecoder,
+  IEncoder,
+  IMessage,
+  IProtoMessage,
 } from "@waku/interfaces";
+import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
 import {
@@ -29,7 +27,7 @@ export { DecodedMessage, generatePrivateKey, getPublicKey };
 
 const log = debug("waku:message-encryption:ecies");
 
-class Encoder implements IEncoder {
+export class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private publicKey: Uint8Array,
@@ -37,14 +35,14 @@ class Encoder implements IEncoder {
     public ephemeral: boolean = false
   ) {}
 
-  async toWire(message: Message): Promise<Uint8Array | undefined> {
+  async toWire(message: IMessage): Promise<Uint8Array | undefined> {
     const protoMessage = await this.toProtoObj(message);
     if (!protoMessage) return;
 
-    return proto.WakuMessage.encode(protoMessage);
+    return WakuMessage.encode(protoMessage);
   }
 
-  async toProtoObj(message: Message): Promise<ProtoMessage | undefined> {
+  async toProtoObj(message: IMessage): Promise<IProtoMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
     if (!message.payload) {
       log("No payload to encrypt, skipping: ", message);
@@ -92,13 +90,13 @@ export function createEncoder(
   return new Encoder(contentTopic, publicKey, sigPrivKey, ephemeral);
 }
 
-class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private privateKey: Uint8Array) {
     super(contentTopic);
   }
 
   async fromProtoObj(
-    protoMessage: ProtoMessage
+    protoMessage: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 

@@ -11,7 +11,6 @@ describe("nwaku", () => {
 
     const expected = [
       "--listen-address=127.0.0.1",
-      "--nat=none",
       "--rpc=true",
       "--relay=false",
       "--rpc-admin=true",
