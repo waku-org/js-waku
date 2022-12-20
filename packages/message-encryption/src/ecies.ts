@@ -27,7 +27,7 @@ export { DecodedMessage, generatePrivateKey, getPublicKey };
 
 const log = debug("waku:message-encryption:ecies");
 
-class Encoder implements IEncoder {
+export class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private publicKey: Uint8Array,
@@ -90,7 +90,7 @@ export function createEncoder(
   return new Encoder(contentTopic, publicKey, sigPrivKey, ephemeral);
 }
 
-class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private privateKey: Uint8Array) {
     super(contentTopic);
   }

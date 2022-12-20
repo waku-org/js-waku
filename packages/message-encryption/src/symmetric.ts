@@ -26,7 +26,7 @@ export { DecodedMessage, generateSymmetricKey };
 
 const log = debug("waku:message-encryption:symmetric");
 
-class Encoder implements IEncoder {
+export class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private symKey: Uint8Array,
@@ -88,7 +88,7 @@ export function createEncoder(
   return new Encoder(contentTopic, symKey, sigPrivKey, ephemeral);
 }
 
-class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private symKey: Uint8Array) {
     super(contentTopic);
   }
