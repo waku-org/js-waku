@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [@waku/core@0.0.8] - 2022-12-19
+
 ### Fixed
 
 - Missing dependency declarations.
@@ -632,7 +634,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[unreleased]: https://github.com/status-im/js-waku/compare/@waku/core@0.0.7...HEAD
+[unreleased]: https://github.com/status-im/js-waku/compare/@waku/core@0.0.8...HEAD
+[@waku/core@0.0.8]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.7...@waku/core@0.0.8
 [@waku/core@0.0.7]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.6...@waku/core@0.0.7
 [@waku/core@0.0.6]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.5...@waku/core@0.0.6
 [@waku/core@0.0.5]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.4...@waku/core@0.0.5
