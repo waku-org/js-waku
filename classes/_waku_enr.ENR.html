@@ -19,11 +19,15 @@
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
-<li><span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/_waku_enr.ENRKey.html" class="tsd-signature-type" data-tsd-kind="Type alias">ENRKey</a><span class="tsd-signature-symbol">, </span><a href="../types/_waku_enr.ENRValue.html" class="tsd-signature-type" data-tsd-kind="Type alias">ENRValue</a><span class="tsd-signature-symbol">&gt;</span>
+<li><span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ENRKey</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">ENRValue</span><span class="tsd-signature-symbol">&gt;</span>
 <ul class="tsd-hierarchy">
-<li><span class="target">ENR</span></li></ul></li></ul></section><aside class="tsd-sources">
+<li><span class="target">ENR</span></li></ul></li></ul></section>
+<section class="tsd-panel">
+<h4>Implements</h4>
+<ul class="tsd-hierarchy">
+<li><span class="tsd-signature-type">IEnr</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L39">packages/enr/src/enr.ts:39</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L46">packages/enr/src/enr.ts:46</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -38,7 +42,7 @@
 <div class="tsd-index-list"><a href="_waku_enr.ENR.html#_toStringTag_" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-1024-path"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)" id="icon-1024-text"></path></svg><span>[to<wbr/>String<wbr/>Tag]</span></a>
 <a href="_waku_enr.ENR.html#peerId" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>peer<wbr/>Id?</span></a>
 <a href="_waku_enr.ENR.html#seq" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>seq</span></a>
-<a href="_waku_enr.ENR.html#signature" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>signature</span></a>
+<a href="_waku_enr.ENR.html#signature" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>signature?</span></a>
 <a href="_waku_enr.ENR.html#size" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>size</span></a>
 <a href="_waku_enr.ENR.html#RECORD_PREFIX" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>RECORD_<wbr/>PREFIX</span></a>
 <a href="_waku_enr.ENR.html#_species_" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>[species]</span></a>
@@ -92,7 +96,7 @@
 <section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-private"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-private">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_ENR">new ENR<span class="tsd-signature-symbol">(</span>kvs<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&gt;</span>, seq<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">bigint</span>, signature<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a><a href="#constructor.new_ENR" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_ENR">new ENR<span class="tsd-signature-symbol">(</span>kvs<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&gt;</span>, seq<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">bigint</span>, signature<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a><a href="#constructor.new_ENR" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -102,40 +106,45 @@
 <li>
 <h5>seq: <span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol"> = ...</span></h5></li>
 <li>
-<h5>signature: <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol"> = null</span></h5></li></ul></div>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> signature: <span class="tsd-signature-type">Uint8Array</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a></h4><aside class="tsd-sources">
 <p>Overrides Map&lt;ENRKey, ENRValue&gt;.constructor</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L45">packages/enr/src/enr.ts:45</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L52">packages/enr/src/enr.ts:52</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="_toStringTag_" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>[to<wbr/>String<wbr/>Tag]</span><a href="#_toStringTag_" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">[to<wbr/>String<wbr/>Tag]<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
-<p>Inherited from Map.__@toStringTag@5377</p>
+<p>Implementation of IEnr.__@toStringTag@5572</p>
+<p>Inherited from Map.__@toStringTag@5572</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts:135</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="peerId" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>peer<wbr/>Id</span><a href="#peerId" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">peer<wbr/>Id<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PeerId</span></div><aside class="tsd-sources">
+<p>Implementation of IEnr.peerId</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L43">packages/enr/src/enr.ts:43</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L50">packages/enr/src/enr.ts:50</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="seq" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>seq</span><a href="#seq" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">seq<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">bigint</span></div><aside class="tsd-sources">
+<p>Implementation of IEnr.seq</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L41">packages/enr/src/enr.ts:41</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L48">packages/enr/src/enr.ts:48</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="signature" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>signature</span><a href="#signature" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">signature<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint8Array</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>signature</span><a href="#signature" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">signature<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Uint8Array</span></div><aside class="tsd-sources">
+<p>Implementation of IEnr.signature</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L42">packages/enr/src/enr.ts:42</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L49">packages/enr/src/enr.ts:49</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="size" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">size<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography">
 <h3>Returns</h3><p>the number of elements in the Map.</p>
 </div><aside class="tsd-sources">
+<p>Implementation of IEnr.size</p>
 <p>Inherited from Map.size</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.collection.d.ts:48</li></ul></aside></section>
@@ -143,11 +152,11 @@
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>RECORD_<wbr/>PREFIX</span><a href="#RECORD_PREFIX" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">RECORD_<wbr/>PREFIX<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;enr:&quot;</span><span class="tsd-signature-symbol"> = &quot;enr:&quot;</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L40">packages/enr/src/enr.ts:40</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L47">packages/enr/src/enr.ts:47</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="_species_" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>[species]</span><a href="#_species_" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">[species]<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">MapConstructor</span></div><aside class="tsd-sources">
-<p>Inherited from Map.__@species@5854</p>
+<p>Inherited from Map.__@species@6180</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts:317</li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
@@ -158,16 +167,18 @@
 <li class="tsd-signature" id="id.id-1"><span class="tsd-signature-symbol">get</span> id<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.id</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L158">packages/enr/src/enr.ts:158</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L165">packages/enr/src/enr.ts:165</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="ip" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>ip</span><a href="#ip" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="ip.ip-1"><span class="tsd-signature-symbol">get</span> ip<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.ip</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L199">packages/enr/src/enr.ts:199</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L206">packages/enr/src/enr.ts:206</a></li></ul></aside></li>
 <li class="tsd-signature" id="ip.ip-2"><span class="tsd-signature-symbol">set</span> ip<span class="tsd-signature-symbol">(</span>ip<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -176,16 +187,18 @@
 <li>
 <h5>ip: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.ip</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L208">packages/enr/src/enr.ts:208</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L215">packages/enr/src/enr.ts:215</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="ip6" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>ip6</span><a href="#ip6" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="ip6.ip6-1"><span class="tsd-signature-symbol">get</span> ip6<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.ip6</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L250">packages/enr/src/enr.ts:250</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L257">packages/enr/src/enr.ts:257</a></li></ul></aside></li>
 <li class="tsd-signature" id="ip6.ip6-2"><span class="tsd-signature-symbol">set</span> ip6<span class="tsd-signature-symbol">(</span>ip<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -194,8 +207,9 @@
 <li>
 <h5>ip: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.ip6</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L259">packages/enr/src/enr.ts:259</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L266">packages/enr/src/enr.ts:266</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="keypair" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>keypair</span><a href="#keypair" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -203,7 +217,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_waku_enr.IKeypair.html" class="tsd-signature-type" data-tsd-kind="Interface">IKeypair</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L182">packages/enr/src/enr.ts:182</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L189">packages/enr/src/enr.ts:189</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="keypairType" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>keypair<wbr/>Type</span><a href="#keypairType" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -211,7 +225,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="../enums/_waku_enr.KeypairType.html" class="tsd-signature-type" data-tsd-kind="Enumeration">KeypairType</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L164">packages/enr/src/enr.ts:164</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L171">packages/enr/src/enr.ts:171</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="multiaddrs" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>multiaddrs</span><a href="#multiaddrs" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
@@ -226,8 +240,9 @@ address (e.g. <code>dns4</code>, <code>dnsaddr</code>, etc)..</p>
 <p>The multiaddresses stored in this field are expected to be location multiaddresses, ie, peer id less.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Multiaddr</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.multiaddrs</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L313">packages/enr/src/enr.ts:313</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L320">packages/enr/src/enr.ts:320</a></li></ul></aside></li>
 <li class="tsd-signature" id="multiaddrs.multiaddrs-2"><span class="tsd-signature-symbol">set</span> multiaddrs<span class="tsd-signature-symbol">(</span>multiaddrs<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Multiaddr</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Set the <code>multiaddrs</code> field on the ENR.</p>
@@ -245,32 +260,36 @@ ie, without a peer id.</p>
 <li>
 <h5>multiaddrs: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Multiaddr</span><span class="tsd-signature-symbol">[]</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.multiaddrs</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L333">packages/enr/src/enr.ts:333</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L340">packages/enr/src/enr.ts:340</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="nodeId" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>node<wbr/>Id</span><a href="#nodeId" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="nodeId.nodeId-1"><span class="tsd-signature-symbol">get</span> nodeId<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.nodeId</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L190">packages/enr/src/enr.ts:190</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L197">packages/enr/src/enr.ts:197</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="publicKey" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>public<wbr/>Key</span><a href="#publicKey" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="publicKey.publicKey-1"><span class="tsd-signature-symbol">get</span> publicKey<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint8Array</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint8Array</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.publicKey</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L173">packages/enr/src/enr.ts:173</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L180">packages/enr/src/enr.ts:180</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="tcp" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>tcp</span><a href="#tcp" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="tcp.tcp-1"><span class="tsd-signature-symbol">get</span> tcp<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.tcp</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L216">packages/enr/src/enr.ts:216</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L223">packages/enr/src/enr.ts:223</a></li></ul></aside></li>
 <li class="tsd-signature" id="tcp.tcp-2"><span class="tsd-signature-symbol">set</span> tcp<span class="tsd-signature-symbol">(</span>port<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -279,16 +298,18 @@ ie, without a peer id.</p>
 <li>
 <h5>port: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.tcp</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L225">packages/enr/src/enr.ts:225</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L232">packages/enr/src/enr.ts:232</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="tcp6" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>tcp6</span><a href="#tcp6" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="tcp6.tcp6-1"><span class="tsd-signature-symbol">get</span> tcp6<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.tcp6</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L267">packages/enr/src/enr.ts:267</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L274">packages/enr/src/enr.ts:274</a></li></ul></aside></li>
 <li class="tsd-signature" id="tcp6.tcp6-2"><span class="tsd-signature-symbol">set</span> tcp6<span class="tsd-signature-symbol">(</span>port<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -297,16 +318,18 @@ ie, without a peer id.</p>
 <li>
 <h5>port: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.tcp6</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L276">packages/enr/src/enr.ts:276</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L283">packages/enr/src/enr.ts:283</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="udp" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>udp</span><a href="#udp" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="udp.udp-1"><span class="tsd-signature-symbol">get</span> udp<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.udp</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L233">packages/enr/src/enr.ts:233</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L240">packages/enr/src/enr.ts:240</a></li></ul></aside></li>
 <li class="tsd-signature" id="udp.udp-2"><span class="tsd-signature-symbol">set</span> udp<span class="tsd-signature-symbol">(</span>port<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -315,16 +338,18 @@ ie, without a peer id.</p>
 <li>
 <h5>port: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.udp</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L242">packages/enr/src/enr.ts:242</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L249">packages/enr/src/enr.ts:249</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="udp6" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>udp6</span><a href="#udp6" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
 <li class="tsd-signature" id="udp6.udp6-1"><span class="tsd-signature-symbol">get</span> udp6<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.udp6</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L284">packages/enr/src/enr.ts:284</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L291">packages/enr/src/enr.ts:291</a></li></ul></aside></li>
 <li class="tsd-signature" id="udp6.udp6-2"><span class="tsd-signature-symbol">set</span> udp6<span class="tsd-signature-symbol">(</span>port<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -333,19 +358,21 @@ ie, without a peer id.</p>
 <li>
 <h5>port: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.udp6</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L293">packages/enr/src/enr.ts:293</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L300">packages/enr/src/enr.ts:300</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class"><a id="waku2" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>waku2</span><a href="#waku2" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
-<li class="tsd-signature" id="waku2.waku2-1"><span class="tsd-signature-symbol">get</span> waku2<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_waku_enr.Waku2.html" class="tsd-signature-type" data-tsd-kind="Interface">Waku2</a></li>
+<li class="tsd-signature" id="waku2.waku2-1"><span class="tsd-signature-symbol">get</span> waku2<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Waku2</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Get the <code>waku2</code> field from ENR.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_waku_enr.Waku2.html" class="tsd-signature-type" data-tsd-kind="Interface">Waku2</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Waku2</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.waku2</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L446">packages/enr/src/enr.ts:446</a></li></ul></aside></li>
-<li class="tsd-signature" id="waku2.waku2-2"><span class="tsd-signature-symbol">set</span> waku2<span class="tsd-signature-symbol">(</span>waku2<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_waku_enr.Waku2.html" class="tsd-signature-type" data-tsd-kind="Interface">Waku2</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L453">packages/enr/src/enr.ts:453</a></li></ul></aside></li>
+<li class="tsd-signature" id="waku2.waku2-2"><span class="tsd-signature-symbol">set</span> waku2<span class="tsd-signature-symbol">(</span>waku2<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Waku2</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Set the <code>waku2</code> field on the ENR.</p>
 </div>
@@ -353,10 +380,11 @@ ie, without a peer id.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>waku2: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="../interfaces/_waku_enr.Waku2.html" class="tsd-signature-type" data-tsd-kind="Interface">Waku2</a></h5></li></ul></div>
+<h5>waku2: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Waku2</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.waku2</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L456">packages/enr/src/enr.ts:456</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L463">packages/enr/src/enr.ts:463</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="_iterator_" class="tsd-anchor"></a>
@@ -367,7 +395,8 @@ ie, without a peer id.</p>
 <div class="tsd-comment tsd-typography"><p>Returns an iterable of entries in the map.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">IterableIterator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from Map.__@iterator@5375</p>
+<p>Implementation of IEnr.__@iterator@5570</p>
+<p>Inherited from Map.__@iterator@5570</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.iterable.d.ts:121</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="clear" class="tsd-anchor"></a>
@@ -376,6 +405,7 @@ ie, without a peer id.</p>
 <li class="tsd-signature tsd-anchor-link" id="clear.clear-1">clear<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#clear.clear-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.clear</p>
 <p>Inherited from Map.clear</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.collection.d.ts:23</li></ul></aside></li></ul></section>
@@ -393,6 +423,7 @@ ie, without a peer id.</p>
 <li>
 <h5>key: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.delete</p>
 <p>Inherited from Map.delete</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.collection.d.ts:27</li></ul></aside></li></ul></section>
@@ -407,8 +438,9 @@ ie, without a peer id.</p>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> privateKey: <span class="tsd-signature-type">Uint8Array</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.encode</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L509">packages/enr/src/enr.ts:509</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L516">packages/enr/src/enr.ts:516</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="encodeToValues" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>encode<wbr/>To<wbr/>Values</span><a href="#encodeToValues" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -421,7 +453,7 @@ ie, without a peer id.</p>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> privateKey: <span class="tsd-signature-type">Uint8Array</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L486">packages/enr/src/enr.ts:486</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L493">packages/enr/src/enr.ts:493</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="encodeTxt" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>encode<wbr/>Txt</span><a href="#encodeTxt" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -434,7 +466,7 @@ ie, without a peer id.</p>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> privateKey: <span class="tsd-signature-type">Uint8Array</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L519">packages/enr/src/enr.ts:519</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L526">packages/enr/src/enr.ts:526</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="entries" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>entries</span><a href="#entries" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
@@ -443,6 +475,7 @@ ie, without a peer id.</p>
 <div class="tsd-comment tsd-typography"><p>Returns an iterable of key, value pairs for every entry in the map.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">IterableIterator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.entries</p>
 <p>Inherited from Map.entries</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.iterable.d.ts:126</li></ul></aside></li></ul></section>
@@ -476,6 +509,7 @@ ie, without a peer id.</p>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> thisArg: <span class="tsd-signature-type">any</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.forEach</p>
 <p>Inherited from Map.forEach</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.collection.d.ts:31</li></ul></aside></li></ul></section>
@@ -494,6 +528,7 @@ ie, without a peer id.</p>
 <li>
 <h5>key: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint8Array</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.get</p>
 <p>Inherited from Map.get</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.collection.d.ts:36</li></ul></aside></li></ul></section>
@@ -514,7 +549,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <h5>protocol: <span class="tsd-signature-type">&quot;tcp&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;udp&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;tcp6&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;udp6&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;udp4&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;tcp4&quot;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Multiaddr</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L418">packages/enr/src/enr.ts:418</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L425">packages/enr/src/enr.ts:425</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getFullMultiaddrs" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Full<wbr/>Multiaddrs</span><a href="#getFullMultiaddrs" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -523,8 +558,9 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <div class="tsd-comment tsd-typography"><p>Returns the full multiaddrs from the <code>multiaddrs</code> ENR field.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Multiaddr</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.getFullMultiaddrs</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L433">packages/enr/src/enr.ts:433</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L440">packages/enr/src/enr.ts:440</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getLocationMultiaddr" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Location<wbr/>Multiaddr</span><a href="#getLocationMultiaddr" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -537,7 +573,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <h5>protocol: <span class="tsd-signature-type">&quot;tcp&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;udp&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;tcp6&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;udp6&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;udp4&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;tcp4&quot;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Multiaddr</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L342">packages/enr/src/enr.ts:342</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L349">packages/enr/src/enr.ts:349</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="has" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>has</span><a href="#has" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
@@ -552,6 +588,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <li>
 <h5>key: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.has</p>
 <p>Inherited from Map.has</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.collection.d.ts:40</li></ul></aside></li></ul></section>
@@ -563,6 +600,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <div class="tsd-comment tsd-typography"><p>Returns an iterable of keys in the map</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">IterableIterator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.keys</p>
 <p>Inherited from Map.keys</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.iterable.d.ts:131</li></ul></aside></li></ul></section>
@@ -579,9 +617,10 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <li>
 <h5>v: <span class="tsd-signature-type">Uint8Array</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.set</p>
 <p>Overrides Map.set</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L152">packages/enr/src/enr.ts:152</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L159">packages/enr/src/enr.ts:159</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="setLocationMultiaddr" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Location<wbr/>Multiaddr</span><a href="#setLocationMultiaddr" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -594,7 +633,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <h5>multiaddr: <span class="tsd-signature-type">Multiaddr</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L386">packages/enr/src/enr.ts:386</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L393">packages/enr/src/enr.ts:393</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="sign" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>sign</span><a href="#sign" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -609,7 +648,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <h5>privateKey: <span class="tsd-signature-type">Uint8Array</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L475">packages/enr/src/enr.ts:475</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L482">packages/enr/src/enr.ts:482</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a id="values" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>values</span><a href="#values" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
@@ -618,6 +657,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <div class="tsd-comment tsd-typography"><p>Returns an iterable of values in the map</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">IterableIterator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Implementation of IEnr.values</p>
 <p>Inherited from Map.values</p>
 <ul>
 <li>Defined in node_modules/typescript/lib/lib.es2015.iterable.d.ts:136</li></ul></aside></li></ul></section>
@@ -635,11 +675,11 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <h5>signature: <span class="tsd-signature-type">Uint8Array</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L465">packages/enr/src/enr.ts:465</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L472">packages/enr/src/enr.ts:472</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="create" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>create</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-<li class="tsd-signature tsd-anchor-link" id="create.create-1">create<span class="tsd-signature-symbol">(</span>kvs<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&gt;</span>, seq<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">bigint</span>, signature<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a><span class="tsd-signature-symbol">&gt;</span><a href="#create.create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="create.create-1">create<span class="tsd-signature-symbol">(</span>kvs<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&gt;</span>, seq<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">bigint</span>, signature<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a><span class="tsd-signature-symbol">&gt;</span><a href="#create.create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -649,10 +689,10 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <li>
 <h5>seq: <span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol"> = ...</span></h5></li>
 <li>
-<h5>signature: <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol"> = null</span></h5></li></ul></div>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> signature: <span class="tsd-signature-type">Uint8Array</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L55">packages/enr/src/enr.ts:55</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L62">packages/enr/src/enr.ts:62</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="createFromPeerId" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>create<wbr/>From<wbr/>Peer<wbr/>Id</span><a href="#createFromPeerId" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -667,7 +707,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <h5>kvs: <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = {}</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L89">packages/enr/src/enr.ts:89</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L96">packages/enr/src/enr.ts:96</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="createV4" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>create<wbr/>V4</span><a href="#createV4" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -682,7 +722,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <h5>kvs: <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = {}</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L74">packages/enr/src/enr.ts:74</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L81">packages/enr/src/enr.ts:81</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="decode" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>decode</span><a href="#decode" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -695,7 +735,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <h5>encoded: <span class="tsd-signature-type">Uint8Array</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L138">packages/enr/src/enr.ts:138</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L145">packages/enr/src/enr.ts:145</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="decodeFromValues" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>decode<wbr/>From<wbr/>Values</span><a href="#decodeFromValues" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -708,7 +748,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <h5>decoded: <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">[]</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L102">packages/enr/src/enr.ts:102</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L109">packages/enr/src/enr.ts:109</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="decodeTxt" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>decode<wbr/>Txt</span><a href="#decodeTxt" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -721,7 +761,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <h5>encoded: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_enr.ENR.html" class="tsd-signature-type" data-tsd-kind="Class">ENR</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/42f07df9/packages/enr/src/enr.ts#L143">packages/enr/src/enr.ts:143</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/49f06989/packages/enr/src/enr.ts#L150">packages/enr/src/enr.ts:150</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -769,7 +809,7 @@ use <a href="_waku_enr.ENR.html#getFullMultiaddrs">getFullMultiaddrs</a>.</p>
 <li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="_waku_enr.ENR.html#_toStringTag_" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>[to<wbr/>String<wbr/>Tag]</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_enr.ENR.html#peerId" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>peer<wbr/>Id?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_enr.ENR.html#seq" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>seq</a></li>
-<li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_enr.ENR.html#signature" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>signature</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_enr.ENR.html#signature" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>signature?</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="_waku_enr.ENR.html#size" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>size</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_enr.ENR.html#RECORD_PREFIX" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>RECORD_<wbr/>PREFIX</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="_waku_enr.ENR.html#_species_" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>[species]</a></li>
