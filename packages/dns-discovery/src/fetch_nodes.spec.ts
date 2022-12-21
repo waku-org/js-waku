@@ -1,6 +1,7 @@
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { multiaddr } from "@multiformats/multiaddr";
-import { ENR, Waku2 } from "@waku/enr";
+import { ENR } from "@waku/enr";
+import type { Waku2 } from "@waku/interfaces";
 import { expect } from "chai";
 
 import { fetchNodesUntilCapabilitiesFulfilled } from "./fetch_nodes.js";

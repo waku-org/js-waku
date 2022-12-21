@@ -1,8 +1,8 @@
 import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 import type { Registrar } from "@libp2p/interface-registrar";
-import { ENR } from "@waku/enr";
 
+import { IEnr } from "./enr.js";
 import { PointToPointProtocol } from "./protocols.js";
 
 export interface IPeerExchange extends PointToPointProtocol {
@@ -21,7 +21,7 @@ export interface PeerExchangeResponse {
 }
 
 export interface PeerInfo {
-  ENR?: ENR;
+  ENR?: IEnr;
 }
 
 export interface PeerExchangeComponents {

@@ -1,9 +1,4 @@
-export interface Waku2 {
-  relay: boolean;
-  store: boolean;
-  filter: boolean;
-  lightPush: boolean;
-}
+import type { Waku2 } from "@waku/interfaces";
 
 export function encodeWaku2(protocols: Waku2): number {
   let byte = 0;
