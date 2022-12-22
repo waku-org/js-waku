@@ -5,11 +5,11 @@ import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
-  waku,
-  waku_relay,
+  RelayCreateOptions,
   wakuFilter,
   wakuLightPush,
   WakuNode,
+  WakuOptions,
   wakuRelay,
   wakuStore,
 } from "@waku/core";
@@ -23,9 +23,6 @@ import { createLibp2p, Libp2pOptions } from "libp2p";
 import type { Libp2pComponents } from "./libp2p_components.js";
 
 export { Libp2pComponents };
-
-type WakuOptions = waku.WakuOptions;
-type RelayCreateOptions = waku_relay.CreateOptions;
 
 export interface CreateOptions {
   /**
@@ -41,11 +38,11 @@ export interface CreateOptions {
    */
   pubSubTopic?: string;
   /**
-   * You can pass options to the `Libp2p` instance used by {@link index.waku.WakuNode} using the {@link CreateOptions.libp2p} property.
-   * This property is the same type than the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
+   * You can pass options to the `Libp2p` instance used by {@link @waku/core.WakuNode} using the {@link CreateOptions.libp2p} property.
+   * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * apart that we made the `modules` property optional and partial,
    * allowing its omission and letting Waku set good defaults.
-   * Notes that some values are overridden by {@link index.waku.WakuNode} to ensure it implements the Waku protocol.
+   * Notes that some values are overridden by {@link @waku/core.WakuNode} to ensure it implements the Waku protocol.
    */
   libp2p?: Partial<Libp2pOptions>;
   /**
