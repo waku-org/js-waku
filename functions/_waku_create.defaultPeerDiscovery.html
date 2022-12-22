@@ -33,7 +33,7 @@
 <h5>components: <a href="../interfaces/_waku_create.Libp2pComponents.html" class="tsd-signature-type" data-tsd-kind="Interface">Libp2pComponents</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">PeerDiscovery</span></h4></li></ul></li></ul><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/9db50cd9/packages/create/src/index.ts#L168">packages/create/src/index.ts:168</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/2cd1ac2e/packages/create/src/index.ts#L165">packages/create/src/index.ts:165</a></li></ul></aside></li></ul></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -58,6 +58,15 @@
 <li class="tsd-kind-module"><a href="../modules/_waku_byte_utils.html">@waku/byte-<wbr/>utils</a></li>
 <li class="tsd-kind-module"><a href="../modules/_waku_core.html">@waku/core</a>
 <ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_core.message.html">message</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_core.message.topic_only_message.html">topic_<wbr/>only_<wbr/>message</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_core.message.version_0.html">version_<wbr/>0</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_core.message.version_0.proto.html">proto</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_core.message.version_0.proto.RateLimitProof.html">Rate<wbr/>Limit<wbr/>Proof</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_core.message.version_0.proto.WakuMessage.html">Waku<wbr/>Message</a></li></ul></li></ul></li></ul></li>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_core.waku.html">waku</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_core.waku_filter.html">waku_<wbr/>filter</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_core.waku_light_push.html">waku_<wbr/>light_<wbr/>push</a>
@@ -69,10 +78,57 @@
 <li class="tsd-kind-module"><a href="../modules/_waku_dns_discovery.html">@waku/dns-<wbr/>discovery</a></li>
 <li class="tsd-kind-module"><a href="../modules/_waku_enr.html">@waku/enr</a></li>
 <li class="tsd-kind-module"><a href="../modules/_waku_interfaces.html">@waku/interfaces</a></li>
+<li class="tsd-kind-module"><a href="../modules/_waku_libp2p_utils.html">@waku/libp2p-<wbr/>utils</a></li>
 <li class="tsd-kind-module"><a href="../modules/_waku_message_encryption.html">@waku/message-<wbr/>encryption</a>
 <ul>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_message_encryption.ecies.html">ecies</a></li>
-<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_message_encryption.symmetric.html">symmetric</a></li></ul></li></ul></li></ul></div></details></nav>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_message_encryption.symmetric.html">symmetric</a></li></ul></li>
+<li class="tsd-kind-module"><a href="../modules/_waku_peer_exchange.html">@waku/peer-<wbr/>exchange</a></li>
+<li class="tsd-kind-module"><a href="../modules/_waku_proto.html">@waku/proto</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_proto.WakuMessage.html">Waku<wbr/>Message</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_proto.proto_filter.html">proto_<wbr/>filter</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_filter.FilterRPC.html">FilterRPC</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_filter.FilterRequest.html">Filter<wbr/>Request</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_filter.FilterRequest.ContentFilter.html">Content<wbr/>Filter</a></li></ul></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_filter.MessagePush.html">Message<wbr/>Push</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_filter.RateLimitProof.html">Rate<wbr/>Limit<wbr/>Proof</a></li></ul></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_proto.proto_lightpush.html">proto_<wbr/>lightpush</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_lightpush.PushRPC.html">PushRPC</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_lightpush.PushRequest.html">Push<wbr/>Request</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_lightpush.PushResponse.html">Push<wbr/>Response</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_lightpush.RateLimitProof.html">Rate<wbr/>Limit<wbr/>Proof</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_lightpush.WakuMessage.html">Waku<wbr/>Message</a></li></ul></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_proto.proto_message.html">proto_<wbr/>message</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_message.RateLimitProof.html">Rate<wbr/>Limit<wbr/>Proof</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_message.WakuMessage.html">Waku<wbr/>Message</a></li></ul></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_proto.proto_peer_exchange.html">proto_<wbr/>peer_<wbr/>exchange</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_peer_exchange.PeerExchangeQuery.html">Peer<wbr/>Exchange<wbr/>Query</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_peer_exchange.PeerExchangeRPC.html">Peer<wbr/>ExchangeRPC</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_peer_exchange.PeerExchangeResponse.html">Peer<wbr/>Exchange<wbr/>Response</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_peer_exchange.PeerInfo.html">Peer<wbr/>Info</a></li></ul></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_proto.proto_store.html">proto_<wbr/>store</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_store.ContentFilter.html">Content<wbr/>Filter</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_store.HistoryQuery.html">History<wbr/>Query</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_store.HistoryRPC.html">HistoryRPC</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_store.HistoryResponse.html">History<wbr/>Response</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_store.HistoryResponse.HistoryError.html">History<wbr/>Error</a></li></ul></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_store.Index.html">Index</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_store.PagingInfo.html">Paging<wbr/>Info</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_store.PagingInfo.Direction.html">Direction</a></li></ul></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_store.RateLimitProof.html">Rate<wbr/>Limit<wbr/>Proof</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_store.WakuMessage.html">Waku<wbr/>Message</a></li></ul></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_proto.proto_topic_only_message.html">proto_<wbr/>topic_<wbr/>only_<wbr/>message</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_proto.proto_topic_only_message.TopicOnlyMessage.html">Topic<wbr/>Only<wbr/>Message</a></li></ul></li></ul></li></ul></li></ul></div></details></nav>
 <nav class="tsd-navigation secondary menu-sticky">
 <ul>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_create.CreateOptions.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-256-path"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)" id="icon-256-text"></path></svg>Create<wbr/>Options</a></li>
