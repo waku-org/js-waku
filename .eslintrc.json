@@ -28,6 +28,10 @@
       { "newlines-between": "always", "alphabetize": { "order": "asc" } }
     ],
     "no-constant-condition": ["error", { "checkLoops": false }],
+    "import/no-extraneous-dependencies": [
+      "error",
+      { "devDependencies": false }
+    ],
     "sort-imports": [
       "error",
       { "ignoreDeclarationSort": true, "ignoreCase": true }
