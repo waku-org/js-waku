@@ -70,6 +70,7 @@
     "@libp2p/peer-id": "^1.1.10"
   },
   "devDependencies": {
+    "@waku/interfaces": "*",
     "@multiformats/multiaddr": "^11.0.6",
     "@libp2p/peer-id-factory": "^1.0.15",
     "chai": "^4.3.4",

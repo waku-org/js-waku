@@ -63,6 +63,7 @@
     "js-sha3": "^0.8.0"
   },
   "devDependencies": {
+    "@waku/interfaces": "*",
     "uint8arrays": "^4.0.2",
     "@libp2p/peer-id-factory": "^1.0.15",
     "@rollup/plugin-commonjs": "^22.0.0",
