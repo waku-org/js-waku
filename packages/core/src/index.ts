@@ -6,9 +6,10 @@ export {
   createDecoder,
   DecodedMessage,
 } from "./lib/message/version_0.js";
+export * as message from "./lib/message/index.js";
 
 export * as waku from "./lib/waku.js";
-export { WakuNode } from "./lib/waku.js";
+export { WakuNode, WakuOptions } from "./lib/waku.js";
 
 export * as waku_filter from "./lib/filter/index.js";
 export { wakuFilter } from "./lib/filter/index.js";
@@ -17,7 +18,7 @@ export * as waku_light_push from "./lib/light_push/index.js";
 export { wakuLightPush, LightPushCodec } from "./lib/light_push/index.js";
 
 export * as waku_relay from "./lib/relay/index.js";
-export { wakuRelay } from "./lib/relay/index.js";
+export { wakuRelay, RelayCreateOptions } from "./lib/relay/index.js";
 
 export * as waku_store from "./lib/store/index.js";
 export {

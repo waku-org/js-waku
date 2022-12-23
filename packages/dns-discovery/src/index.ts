@@ -11,12 +11,12 @@ import debug from "debug";
 
 import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns.js";
 
+export { NodeCapabilityCount };
+
 const log = debug("waku:peer-discovery-dns");
 
 /**
  * Parse options and expose function to return bootstrap peer addresses.
- *
- * @throws if an invalid combination of options is passed, see [[BootstrapOptions]] for details.
  */
 export class PeerDiscoveryDns
   extends EventEmitter<PeerDiscoveryEvents>

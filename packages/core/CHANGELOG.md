@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed `/vac/waku/relay/2.0.0-beta2` from `WakuRelay` protocols.
 
+### Fixed
+
+- Documentation links.
+
 ## [@waku/core@0.0.8] - 2022-12-19
 
 ### Fixed

@@ -30,7 +30,7 @@ export type Observer<T extends IDecodedMessage> = {
   callback: Callback<T>;
 };
 
-export type CreateOptions = {
+export interface RelayCreateOptions extends GossipsubOpts {
   /**
    * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
    *
@@ -45,7 +45,7 @@ export type CreateOptions = {
    * @default {@link DefaultPubSubTopic}
    */
   pubSubTopic?: string;
-} & GossipsubOpts;
+}
 
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
@@ -66,7 +66,7 @@ class Relay extends GossipSub implements IRelay {
 
   constructor(
     components: GossipSubComponents,
-    options?: Partial<CreateOptions>
+    options?: Partial<RelayCreateOptions>
   ) {
     options = Object.assign(options ?? {}, {
       // Ensure that no signature is included nor expected in the messages.
@@ -188,7 +188,7 @@ class Relay extends GossipSub implements IRelay {
 Relay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
 
 export function wakuRelay(
-  init: Partial<CreateOptions> = {}
+  init: Partial<RelayCreateOptions> = {}
 ): (components: GossipSubComponents) => IRelay {
   return (components: GossipSubComponents) => new Relay(components, init);
 }
