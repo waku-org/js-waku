@@ -12,7 +12,7 @@ import { expect } from "chai";
 
 import { delay } from "../src/delay.js";
 
-describe.only("Peer Exchange", () => {
+describe("Peer Exchange", () => {
   let waku: LightNode;
   afterEach(async function () {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
