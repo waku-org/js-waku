@@ -48,7 +48,7 @@
     "check:spelling": "cspell \"{README.md,{tests,src}/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
     "test": "run-s test:*",
-    "test:node": "TS_NODE_PROJECT=./tsconfig.dev.json mocha",
+    "test:node": "TS_NODE_PROJECT=./tsconfig.dev.json mocha --timeout 5000",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {

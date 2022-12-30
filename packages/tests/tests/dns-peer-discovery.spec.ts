@@ -1,12 +1,31 @@
+import tests from "@libp2p/interface-peer-discovery-compliance-tests";
 import { createLightNode } from "@waku/create";
 import { DnsNodeDiscovery, wakuDnsDiscovery } from "@waku/dns-discovery";
 import { expect } from "chai";
 
-describe.only("DNS Node Discovery [live data]", function () {
-  const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
-  const fqdn = "prod.nodes.status.im";
-  const enrTree = `enrtree://${publicKey}@${fqdn}`;
+const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
+//TODO: replace with the test domain once ref issue is resolved (https://github.com/waku-org/nwaku/issues/1464)
+const fqdn = "prod.nodes.status.im";
+const enrTree = `enrtree://${publicKey}@${fqdn}`;
+const maxQuantity = 3;
 
+describe.only("DNS Discovery: Compliance Test", async () => {
+  tests({
+    async setup() {
+      const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
+      const fqdn = "prod.nodes.status.im";
+      const enrTree = `enrtree://${publicKey}@${fqdn}`;
+      return wakuDnsDiscovery(enrTree, {
+        filter: 1,
+      })();
+    },
+    async teardown() {
+      //
+    },
+  });
+});
+
+describe("DNS Node Discovery [live data]", function () {
   before(function () {
     if (process.env.CI) {
       this.skip();
@@ -31,22 +50,12 @@ describe.only("DNS Node Discovery [live data]", function () {
     });
 
     await waku.start();
-  });
-});
 
-describe("Manual: DNS Node Discovery [live data]", function () {
-  const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
-  const fqdn = "prod.nodes.status.im";
-  const enrTree = `enrtree://${publicKey}@${fqdn}`;
-  const maxQuantity = 3;
-
-  before(function () {
-    if (process.env.CI) {
-      this.skip();
-    }
+    const peersFound = await waku.libp2p.peerStore.all();
+    expect(peersFound.length).to.eq(maxQuantity);
   });
 
-  it(`should retrieve ${maxQuantity} multiaddrs for test.waku.nodes.status.im`, async function () {
+  it(`should retrieve ${maxQuantity} multiaddrs for prod.nodes.status.im`, async function () {
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
     const dnsNodeDiscovery = DnsNodeDiscovery.dnsOverHttp();
@@ -58,13 +67,9 @@ describe("Manual: DNS Node Discovery [live data]", function () {
       lightPush: maxQuantity,
     });
 
-    console.log(peers.length);
-
     expect(peers.length).to.eq(maxQuantity);
 
     const multiaddrs = peers.map((peer) => peer.multiaddrs).flat();
-
-    console.log(`received ${multiaddrs.length} multiaddrs`);
 
     const seen: string[] = [];
     for (const ma of multiaddrs) {
