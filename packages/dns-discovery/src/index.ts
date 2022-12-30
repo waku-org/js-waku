@@ -42,7 +42,7 @@ export class PeerDiscoveryDns
     const dns = DnsNodeDiscovery.dnsOverHttp();
 
     this.nextPeer = dns.getNextPeer.bind(
-      {},
+      dns,
       [enrUrl],
       wantedNodeCapabilityCount
     );
