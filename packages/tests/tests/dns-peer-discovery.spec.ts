@@ -1,12 +1,10 @@
-import { waitForRemotePeer } from "@waku/core";
 import { createLightNode } from "@waku/create";
 import { DnsNodeDiscovery, wakuDnsDiscovery } from "@waku/dns-discovery";
-import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
-describe("DNS Node Discovery [live data]", function () {
+describe.only("DNS Node Discovery [live data]", function () {
   const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
-  const fqdn = "test.waku.nodes.status.im";
+  const fqdn = "prod.nodes.status.im";
   const enrTree = `enrtree://${publicKey}@${fqdn}`;
 
   before(function () {
@@ -17,10 +15,13 @@ describe("DNS Node Discovery [live data]", function () {
 
   it(`should use DNS peer discovery with light client`, async function () {
     this.timeout(100000);
+    const maxQuantity = 3;
+
     const nodeRequirements = {
-      filter: 1,
-      lightPush: 1,
-      store: 1,
+      relay: maxQuantity,
+      store: maxQuantity,
+      filter: maxQuantity,
+      lightPush: maxQuantity,
     };
 
     const waku = await createLightNode({
@@ -30,21 +31,12 @@ describe("DNS Node Discovery [live data]", function () {
     });
 
     await waku.start();
-
-    while (true) {
-      console.log(waku.libp2p.getPeers());
-      await waitForRemotePeer(waku, [
-        Protocols.Filter,
-        Protocols.LightPush,
-        Protocols.Store,
-      ]);
-    }
   });
 });
 
-describe.only("HELLOOO: DNS Node Discovery [live data]", function () {
+describe("Manual: DNS Node Discovery [live data]", function () {
   const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
-  const fqdn = "test.waku.nodes.status.im";
+  const fqdn = "prod.nodes.status.im";
   const enrTree = `enrtree://${publicKey}@${fqdn}`;
   const maxQuantity = 3;
 
@@ -70,11 +62,9 @@ describe.only("HELLOOO: DNS Node Discovery [live data]", function () {
 
     expect(peers.length).to.eq(maxQuantity);
 
-    console.log({ peer: peers[0] });
-
     const multiaddrs = peers.map((peer) => peer.multiaddrs).flat();
 
-    console.log({ multiaddrs });
+    console.log(`received ${multiaddrs.length} multiaddrs`);
 
     const seen: string[] = [];
     for (const ma of multiaddrs) {
