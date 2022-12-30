@@ -11,6 +11,14 @@ import {
   hexToBytes,
   utf8ToBytes,
 } from "@waku/byte-utils";
+import type {
+  ENRKey,
+  ENRValue,
+  IEnr,
+  NodeId,
+  SequenceNumber,
+  Waku2,
+} from "@waku/interfaces";
 import debug from "debug";
 import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";
@@ -30,22 +38,21 @@ import {
 } from "./keypair/index.js";
 import { multiaddrFromFields } from "./multiaddr_from_fields.js";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
-import { ENRKey, ENRValue, NodeId, SequenceNumber } from "./types.js";
 import * as v4 from "./v4.js";
-import { decodeWaku2, encodeWaku2, Waku2 } from "./waku2_codec.js";
+import { decodeWaku2, encodeWaku2 } from "./waku2_codec.js";
 
 const log = debug("waku:enr");
 
-export class ENR extends Map<ENRKey, ENRValue> {
+export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
   public static readonly RECORD_PREFIX = "enr:";
   public seq: SequenceNumber;
-  public signature: Uint8Array | null;
+  public signature?: Uint8Array;
   public peerId?: PeerId;
 
   private constructor(
     kvs: Record<ENRKey, ENRValue> = {},
     seq: SequenceNumber = BigInt(1),
-    signature: Uint8Array | null = null
+    signature?: Uint8Array
   ) {
     super(Object.entries(kvs));
     this.seq = seq;
@@ -55,7 +62,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   static async create(
     kvs: Record<ENRKey, ENRValue> = {},
     seq: SequenceNumber = BigInt(1),
-    signature: Uint8Array | null = null
+    signature?: Uint8Array
   ): Promise<ENR> {
     const enr = new ENR(kvs, seq, signature);
     try {
@@ -150,7 +157,7 @@ export class ENR extends Map<ENRKey, ENRValue> {
   }
 
   set(k: ENRKey, v: ENRValue): this {
-    this.signature = null;
+    this.signature = undefined;
     this.seq++;
     return super.set(k, v);
   }

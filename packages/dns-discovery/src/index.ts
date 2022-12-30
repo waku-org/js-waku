@@ -5,24 +5,24 @@ import type {
 import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
-import { ENR } from "@waku/enr";
+import type { IEnr } from "@waku/interfaces";
 import { multiaddrsToPeerInfo } from "@waku/libp2p-utils";
 import debug from "debug";
 
 import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns.js";
 
+export { NodeCapabilityCount };
+
 const log = debug("waku:peer-discovery-dns");
 
 /**
  * Parse options and expose function to return bootstrap peer addresses.
- *
- * @throws if an invalid combination of options is passed, see [[BootstrapOptions]] for details.
  */
 export class PeerDiscoveryDns
   extends EventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery
 {
-  private readonly nextPeer: () => AsyncGenerator<ENR>;
+  private readonly nextPeer: () => AsyncGenerator<IEnr>;
   private _started: boolean;
 
   /**

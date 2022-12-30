@@ -9,7 +9,7 @@ const fqdn = "prod.nodes.status.im";
 const enrTree = `enrtree://${publicKey}@${fqdn}`;
 const maxQuantity = 3;
 
-describe.only("DNS Discovery: Compliance Test", async () => {
+describe("DNS Discovery: Compliance Test", async () => {
   tests({
     async setup() {
       const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";

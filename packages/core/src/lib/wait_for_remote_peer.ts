@@ -14,8 +14,8 @@ const log = debug("waku:wait-for-remote-peer");
 /**
  * Wait for a remote peer to be ready given the passed protocols.
  * Must be used after attempting to connect to nodes, using
- * {@link index.waku.WakuNode.dial} or a bootstrap method with
- * {@link lib/create_waku.createLightNode}.
+ * {@link @waku/core.WakuNode.dial} or a bootstrap method with
+ * {@link @waku/create.createLightNode}.
  *
  * If the passed protocols is a GossipSub protocol, then it resolves only once
  * a peer is in a mesh, to help ensure that other peers will send and receive
@@ -154,9 +154,6 @@ function getEnabledProtocols(waku: Waku): Protocols[] {
 
   if (waku.lightPush) {
     protocols.push(Protocols.LightPush);
-  }
-  if (waku.peerExchange) {
-    protocols.push(Protocols.PeerExchange);
   }
 
   return protocols;

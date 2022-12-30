@@ -1,6 +1,6 @@
 {
   "name": "@waku/libp2p-utils",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "Utilities to help with libp2p",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
