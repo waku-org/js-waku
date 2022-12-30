@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   PeerDiscovery,
   PeerDiscoveryEvents,
@@ -71,19 +70,13 @@ export class PeerExchangeDiscovery
           }
 
           const { peerId, multiaddrs } = ENR;
-          console.log("received a new peer in peer-exchange response");
 
-          console.log("decoded bytes", {
-            peerId: peerId?.toString(),
-            multiaddrs,
-          });
           if (!peerId) {
             log("no peerId");
             continue;
           }
           if (!multiaddrs || multiaddrs.length === 0) {
             log("no multiaddrs");
-            console.log("missing multiaddrs");
             continue;
           }
 
@@ -127,7 +120,6 @@ export class PeerExchangeDiscovery
     }
 
     log("Starting peer exchange node discovery, discovering peers");
-    console.log("Starting peer exchange node discovery, discovering peers");
 
     this.components.peerStore.addEventListener(
       "change:protocols",
