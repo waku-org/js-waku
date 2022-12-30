@@ -1,4 +1,4 @@
-import { ENR, Waku2 } from "@waku/enr";
+import type { IEnr, Waku2 } from "@waku/interfaces";
 import debug from "debug";
 
 import { NodeCapabilityCount } from "./dns.js";
@@ -13,8 +13,8 @@ const log = debug("waku:discovery:fetch_nodes");
 export async function fetchNodesUntilCapabilitiesFulfilled(
   wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
   errorTolerance: number,
-  getNode: () => Promise<ENR | null>
-): Promise<ENR[]> {
+  getNode: () => Promise<IEnr | null>
+): Promise<IEnr[]> {
   const wanted = {
     relay: wantedNodeCapabilityCount.relay ?? 0,
     store: wantedNodeCapabilityCount.store ?? 0,
@@ -33,7 +33,7 @@ export async function fetchNodesUntilCapabilitiesFulfilled(
   };
 
   let totalSearches = 0;
-  const peers: ENR[] = [];
+  const peers: IEnr[] = [];
 
   while (
     !isSatisfied(wanted, actual) &&
@@ -64,8 +64,8 @@ export async function fetchNodesUntilCapabilitiesFulfilled(
 export async function* yieldNodesUntilCapabilitiesFulfilled(
   wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
   errorTolerance: number,
-  getNode: () => Promise<ENR | null>
-): AsyncGenerator<ENR> {
+  getNode: () => Promise<IEnr | null>
+): AsyncGenerator<IEnr> {
   const wanted = {
     relay: wantedNodeCapabilityCount.relay ?? 0,
     store: wantedNodeCapabilityCount.store ?? 0,
@@ -118,7 +118,7 @@ function isSatisfied(
   );
 }
 
-function isNewPeer(peer: ENR, peers: ENR[]): boolean {
+function isNewPeer(peer: IEnr, peers: IEnr[]): boolean {
   if (!peer.nodeId) return false;
 
   for (const existingPeer of peers) {

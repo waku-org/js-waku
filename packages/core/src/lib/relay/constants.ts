@@ -4,10 +4,7 @@ export const minute = 60 * second;
 /**
  * RelayCodec is the libp2p identifier for the waku relay protocol
  */
-export const RelayCodecs = [
-  "/vac/waku/relay/2.0.0-beta2",
-  "/vac/waku/relay/2.0.0",
-];
+export const RelayCodecs = ["/vac/waku/relay/2.0.0"];
 
 export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 

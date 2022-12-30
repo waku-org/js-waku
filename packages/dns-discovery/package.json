@@ -1,6 +1,6 @@
 {
   "name": "@waku/dns-discovery",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "DNS Peer Discovery (EIP-1459)",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -59,6 +59,7 @@
   "dependencies": {
     "@waku/enr": "*",
     "@waku/byte-utils": "*",
+    "@waku/libp2p-utils": "*",
     "hi-base32": "^0.5.1",
     "debug": "^4.3.4",
     "dns-query": "^0.11.2",
@@ -69,6 +70,7 @@
     "@libp2p/peer-id": "^1.1.10"
   },
   "devDependencies": {
+    "@waku/interfaces": "*",
     "@multiformats/multiaddr": "^11.0.6",
     "@libp2p/peer-id-factory": "^1.0.15",
     "chai": "^4.3.4",

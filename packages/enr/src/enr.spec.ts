@@ -1,6 +1,7 @@
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { multiaddr } from "@multiformats/multiaddr";
 import { bytesToHex, hexToBytes, utf8ToBytes } from "@waku/byte-utils";
+import type { Waku2 } from "@waku/interfaces";
 import { assert, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
@@ -8,7 +9,6 @@ import { ERR_INVALID_ID } from "./constants.js";
 import { getPublicKey } from "./crypto.js";
 import { ENR } from "./enr.js";
 import { createKeypairFromPeerId, IKeypair } from "./keypair/index.js";
-import { Waku2 } from "./waku2_codec.js";
 
 describe("ENR", function () {
   describe("Txt codec", () => {

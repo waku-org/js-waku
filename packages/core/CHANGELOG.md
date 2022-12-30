@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Removed `/vac/waku/relay/2.0.0-beta2` from `WakuRelay` protocols.
+
+### Fixed
+
+- Documentation links.
+
+## [@waku/core@0.0.8] - 2022-12-19
+
+### Fixed
+
+- Missing dependency declarations.
+- Invalid re-export.
+
+## [@waku/core@0.0.7] - 2022-12-15
+
 ### Added
 
 - Add `@multiformats/multiaddr` as peer dependency.
@@ -625,7 +642,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[unreleased]: https://github.com/status-im/js-waku/compare/@waku/core@0.0.5...HEAD
+[unreleased]: https://github.com/status-im/js-waku/compare/@waku/core@0.0.8...HEAD
+[@waku/core@0.0.8]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.7...@waku/core@0.0.8
+[@waku/core@0.0.7]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.6...@waku/core@0.0.7
+[@waku/core@0.0.6]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.5...@waku/core@0.0.6
 [@waku/core@0.0.5]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.4...@waku/core@0.0.5
 [@waku/core@0.0.4]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.3...@waku/core@0.0.4
 [@waku/core@0.0.3]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.2...@waku/core@0.0.3

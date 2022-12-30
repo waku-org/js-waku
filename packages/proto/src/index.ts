@@ -2,6 +2,7 @@ export * as proto_message from "./lib/message.js";
 export { WakuMessage } from "./lib/filter.js";
 
 export * as proto_topic_only_message from "./lib/topic_only_message.js";
+export { TopicOnlyMessage } from "./lib/topic_only_message.js";
 
 export * as proto_filter from "./lib/filter.js";
 

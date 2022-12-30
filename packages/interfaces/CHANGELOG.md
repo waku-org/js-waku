@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `IPeerExchange` interface.
+- `IEnr` interface.
+
+## [0.0.6] - 2022-12-15
+
 ### Changed
 
 - Add `I` prefix to protocol and messages interfaces.
@@ -19,7 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Alpha version of `@waku/interfaces`.
 
-[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.5...HEAD
+[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.6...HEAD
+[0.0.6]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.5...@waku/interfaces@0.0.6
 [0.0.5]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.4...@waku/interfaces@0.0.5
 [0.0.4]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.3...@waku/interfaces@0.0.4
 [0.0.3]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.2...%40waku/create@0.0.3

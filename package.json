@@ -3,11 +3,11 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "packages/proto",
     "packages/byte-utils",
-    "packages/enr",
-    "packages/interfaces",
     "packages/libp2p-utils",
+    "packages/proto",
+    "packages/interfaces",
+    "packages/enr",
     "packages/peer-exchange",
     "packages/core",
     "packages/dns-discovery",
@@ -28,7 +28,7 @@
     "proto": "npm run proto --workspaces --if-present",
     "deploy": "node ci/deploy.js",
     "doc": "run-s doc:*",
-    "doc:html": "typedoc # --treatWarningsAsErrors",
+    "doc:html": "typedoc --options typedoc.cjs --treatWarningsAsErrors",
     "doc:cname": "echo 'js.waku.org' > docs/CNAME",
     "release": "multi-semantic-release"
   },
@@ -46,7 +46,8 @@
     "multi-semantic-release": "^3.0.1",
     "semantic-release": "^19.0.5",
     "size-limit": "^8.1.0",
-    "typedoc": "^0.23.19"
+    "typedoc": "^0.23.23",
+    "typedoc-plugin-resolve-crossmodule-references": "^0.3.3"
   },
   "release": {
     "branches": [
