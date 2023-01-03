@@ -3,7 +3,7 @@ import {
   PeerDiscoveryEvents,
   symbol,
 } from "@libp2p/interface-peer-discovery";
-import { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface-peer-id";
 import { PeerInfo } from "@libp2p/interface-peer-info";
 import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { EventEmitter } from "@libp2p/interfaces/events";
@@ -16,6 +16,7 @@ import { PeerExchangeCodec } from "./waku_peer_exchange";
 const log = debug("waku:peer-exchange-discovery");
 
 const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
+const PEER_EXCHANGE_QUERY_INTERVAL = 5 * 60 * 1000;
 
 interface Options {
   /**
@@ -52,7 +53,8 @@ export class PeerExchangeDiscovery
     event: CustomEvent<PeerProtocolsChangeData>
   ): Promise<void> => {
     const { protocols, peerId } = event.detail;
-    if (!protocols.includes(PeerExchangeCodec)) return;
+    if (!protocols.includes(PeerExchangeCodec) || this.intervals.get(peerId))
+      return;
 
     const interval = setInterval(async () => {
       await this.peerExchange.query(
@@ -109,7 +111,7 @@ export class PeerExchangeDiscovery
           }
         }
       );
-    }, 5 * 60 * 1000);
+    }, PEER_EXCHANGE_QUERY_INTERVAL);
 
     this.intervals.set(peerId, interval);
   };

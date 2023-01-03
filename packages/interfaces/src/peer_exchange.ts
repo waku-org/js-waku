@@ -1,5 +1,5 @@
 import type { ConnectionManager } from "@libp2p/interface-connection-manager";
-import { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 import type { Registrar } from "@libp2p/interface-registrar";
 
