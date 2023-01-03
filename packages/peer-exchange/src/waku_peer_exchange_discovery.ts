@@ -10,8 +10,7 @@ import { EventEmitter } from "@libp2p/interfaces/events";
 import { PeerExchangeComponents } from "@waku/interfaces";
 import debug from "debug";
 
-import { WakuPeerExchange } from "./waku_peer_exchange";
-import { PeerExchangeCodec } from "./waku_peer_exchange";
+import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
 
 const log = debug("waku:peer-exchange-discovery");
 
