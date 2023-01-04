@@ -4,8 +4,7 @@ import { DnsNodeDiscovery, wakuDnsDiscovery } from "@waku/dns-discovery";
 import { expect } from "chai";
 
 const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
-//TODO: replace with the test domain once ref issue is resolved (https://github.com/waku-org/nwaku/issues/1464)
-const fqdn = "prod.nodes.status.im";
+const fqdn = "test.waku.nodes.status.im";
 const enrTree = `enrtree://${publicKey}@${fqdn}`;
 const maxQuantity = 3;
 
@@ -13,9 +12,6 @@ describe("DNS Discovery: Compliance Test", async function () {
   this.timeout(5000);
   tests({
     async setup() {
-      const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
-      const fqdn = "prod.nodes.status.im";
-      const enrTree = `enrtree://${publicKey}@${fqdn}`;
       return wakuDnsDiscovery(enrTree, {
         filter: 1,
       })();
