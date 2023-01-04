@@ -89,4 +89,4 @@ export function wakuDnsDiscovery(
   return () => new PeerDiscoveryDns(enrUrl, wantedNodeCapabilityCount);
 }
 
-export { DnsNodeDiscovery } from "./dns.js";
+export { DnsNodeDiscovery, SearchContext, DnsClient } from "./dns.js";
