@@ -3,17 +3,21 @@ import {
   PeerDiscoveryEvents,
   symbol,
 } from "@libp2p/interface-peer-discovery";
+import type { PeerId } from "@libp2p/interface-peer-id";
 import { PeerInfo } from "@libp2p/interface-peer-info";
 import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { EventEmitter } from "@libp2p/interfaces/events";
 import { PeerExchangeComponents } from "@waku/interfaces";
 import debug from "debug";
 
-import { PeerExchangeCodec } from "./waku_peer_exchange";
+import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
 
 const log = debug("waku:peer-exchange-discovery");
 
-interface Options {
+const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
+const PEER_EXCHANGE_QUERY_INTERVAL = 5 * 60 * 1000;
+
+export interface Options {
   /**
    * Tag a bootstrap peer with this name before "discovering" it (default: 'bootstrap')
    */
@@ -39,36 +43,82 @@ export class PeerExchangeDiscovery
   implements PeerDiscovery
 {
   private readonly components: PeerExchangeComponents;
+  private readonly peerExchange: WakuPeerExchange;
   private readonly options: Options;
   private isStarted: boolean;
+  private intervals: Map<PeerId, NodeJS.Timeout> = new Map();
 
   private readonly eventHandler = async (
     event: CustomEvent<PeerProtocolsChangeData>
   ): Promise<void> => {
-    const { protocols } = event.detail;
-    if (!protocols.includes(PeerExchangeCodec)) return;
+    const { protocols, peerId } = event.detail;
+    if (!protocols.includes(PeerExchangeCodec) || this.intervals.get(peerId))
+      return;
 
-    const { peerId } = event.detail;
-    const peer = await this.components.peerStore.get(peerId);
-    const peerInfo = {
-      id: peerId,
-      multiaddrs: peer.addresses.map((address) => address.multiaddr),
-      protocols: [],
-    };
-    await this.components.peerStore.tagPeer(
-      peerId,
-      DEFAULT_BOOTSTRAP_TAG_NAME,
-      {
-        value: this.options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-        ttl: this.options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-      }
-    );
-    this.dispatchEvent(new CustomEvent<PeerInfo>("peer", { detail: peerInfo }));
+    const interval = setInterval(async () => {
+      await this.peerExchange.query(
+        {
+          numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
+          peerId,
+        },
+        async (response) => {
+          const { peerInfos } = response;
+
+          for (const _peerInfo of peerInfos) {
+            const { ENR } = _peerInfo;
+            if (!ENR) {
+              log("no ENR");
+              continue;
+            }
+
+            const { peerId, multiaddrs } = ENR;
+
+            if (!peerId) {
+              log("no peerId");
+              continue;
+            }
+            if (!multiaddrs || multiaddrs.length === 0) {
+              log("no multiaddrs");
+              continue;
+            }
+
+            // check if peer is already in peerStore
+            const existingPeer = await this.components.peerStore.get(peerId);
+            if (existingPeer) {
+              log("peer already in peerStore");
+              continue;
+            }
+
+            await this.components.peerStore.tagPeer(
+              peerId,
+              DEFAULT_BOOTSTRAP_TAG_NAME,
+              {
+                value: this.options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
+                ttl: this.options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+              }
+            );
+
+            this.dispatchEvent(
+              new CustomEvent<PeerInfo>("peer", {
+                detail: {
+                  id: peerId,
+                  multiaddrs,
+                  protocols: [],
+                },
+              })
+            );
+          }
+        }
+      );
+    }, PEER_EXCHANGE_QUERY_INTERVAL);
+
+    this.intervals.set(peerId, interval);
   };
 
   constructor(components: PeerExchangeComponents, options: Options = {}) {
     super();
     this.components = components;
+    this.peerExchange = new WakuPeerExchange(components);
     this.options = options;
     this.isStarted = false;
   }
@@ -96,6 +146,7 @@ export class PeerExchangeDiscovery
     if (!this.isStarted) return;
     log("Stopping peer exchange node discovery");
     this.isStarted = false;
+    this.intervals.forEach((interval) => clearInterval(interval));
     this.components.peerStore.removeEventListener(
       "change:protocols",
       this.eventHandler
@@ -109,4 +160,11 @@ export class PeerExchangeDiscovery
   get [Symbol.toStringTag](): string {
     return "@waku/peer-exchange";
   }
+}
+
+export function wakuPeerExchangeDiscovery(): (
+  components: PeerExchangeComponents
+) => PeerExchangeDiscovery {
+  return (components: PeerExchangeComponents) =>
+    new PeerExchangeDiscovery(components);
 }
