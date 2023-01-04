@@ -26,11 +26,18 @@ export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
 const log = debug("waku:peer-exchange");
 
+/**
+ * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
+ */
 export class WakuPeerExchange implements IPeerExchange {
   private callback:
     | ((response: PeerExchangeResponse) => Promise<void>)
     | undefined;
 
+  /**
+   * @param components - libp2p components
+   * @param createOptions - Options for the protocol
+   */
   constructor(
     public components: PeerExchangeComponents,
     public createOptions?: ProtocolOptions
@@ -40,6 +47,9 @@ export class WakuPeerExchange implements IPeerExchange {
       .catch((e) => log("Failed to register peer exchange protocol", e));
   }
 
+  /**
+   * Make a peer exchange query to a peer
+   */
   async query(
     params: PeerExchangeQueryParams,
     callback: (response: PeerExchangeResponse) => Promise<void>
@@ -65,6 +75,9 @@ export class WakuPeerExchange implements IPeerExchange {
     );
   }
 
+  /**
+   * Handle a peer exchange query response
+   */
   private handler(streamData: IncomingStreamData): void {
     const { stream } = streamData;
     pipe(stream, lp.decode(), async (source) => {
@@ -94,6 +107,11 @@ export class WakuPeerExchange implements IPeerExchange {
     }).catch((err) => log("Failed to handle peer exchange request", err));
   }
 
+  /**
+   *
+   * @param peerId - Optional peer ID to select a peer
+   * @returns A peer to query
+   */
   private async getPeer(peerId?: PeerId): Promise<Peer> {
     const res = await selectPeerForProtocol(
       this.components.peerStore,
@@ -106,6 +124,10 @@ export class WakuPeerExchange implements IPeerExchange {
     return res.peer;
   }
 
+  /**
+   * @param peer - Peer to open a stream with
+   * @returns A new stream
+   */
   private async newStream(peer: Peer): Promise<Stream> {
     const connections = this.components.connectionManager.getConnections(
       peer.id
@@ -118,15 +140,26 @@ export class WakuPeerExchange implements IPeerExchange {
     return connection.newStream(PeerExchangeCodec);
   }
 
+  /**
+   * @returns All peers that support the peer exchange protocol
+   */
   async peers(): Promise<Peer[]> {
     return getPeersForProtocol(this.components.peerStore, [PeerExchangeCodec]);
   }
 
+  /**
+   * @returns The libp2p peer store
+   */
   get peerStore(): PeerStore {
     return this.components.peerStore;
   }
 }
 
+/**
+ *
+ * @param init - Options for the protocol
+ * @returns A function that creates a new peer exchange protocol
+ */
 export function wakuPeerExchange(
   init: Partial<ProtocolOptions> = {}
 ): (components: PeerExchangeComponents) => WakuPeerExchange {

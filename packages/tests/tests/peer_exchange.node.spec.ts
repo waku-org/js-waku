@@ -34,6 +34,8 @@ describe("Peer Exchange", () => {
     await delay(1000);
 
     await waitForRemotePeer(waku, [Protocols.PeerExchange]);
+    const pxPeers = await waku.peerExchange.peers();
+    expect(pxPeers.length).to.be.greaterThan(0);
   });
 
   it("Manual query on test fleet", async function () {

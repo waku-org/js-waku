@@ -17,7 +17,7 @@ const log = debug("waku:peer-exchange-discovery");
 const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
 const PEER_EXCHANGE_QUERY_INTERVAL = 5 * 60 * 1000;
 
-interface Options {
+export interface Options {
   /**
    * Tag a bootstrap peer with this name before "discovering" it (default: 'bootstrap')
    */
