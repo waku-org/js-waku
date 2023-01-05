@@ -67,7 +67,8 @@
     "@waku/create": "*",
     "@waku/enr": "*",
     "@waku/interfaces": "*",
-    "@waku/message-encryption": "*"
+    "@waku/message-encryption": "*",
+    "@waku/peer-exchange": "*"
   },
   "devDependencies": {
     "@libp2p/bootstrap": "^5.0.0",
