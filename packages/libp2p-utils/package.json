@@ -55,7 +55,8 @@
     "@libp2p/peer-id": "^1.1.10",
     "@libp2p/interface-connection": "^3.0.3",
     "@libp2p/interface-peer-id": "^1.0.6",
-    "@libp2p/interface-peer-store": "^1.2.3"
+    "@libp2p/interface-peer-store": "^1.2.3",
+    "debug": "^4.3.4"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
