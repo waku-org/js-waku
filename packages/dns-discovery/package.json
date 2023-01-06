@@ -82,6 +82,7 @@
     "cspell": "^6.17.0",
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
+    "@libp2p/interface-peer-discovery-compliance-tests": "^2.0.4",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-functional": "^4.0.2",
     "eslint-plugin-import": "^2.25.3",

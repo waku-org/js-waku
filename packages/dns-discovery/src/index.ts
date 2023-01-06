@@ -42,7 +42,7 @@ export class PeerDiscoveryDns
     const dns = DnsNodeDiscovery.dnsOverHttp();
 
     this.nextPeer = dns.getNextPeer.bind(
-      {},
+      dns,
       [enrUrl],
       wantedNodeCapabilityCount
     );
@@ -81,3 +81,12 @@ export class PeerDiscoveryDns
     return "@waku/bootstrap";
   }
 }
+
+export function wakuDnsDiscovery(
+  enrUrl: string,
+  wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
+): () => PeerDiscoveryDns {
+  return () => new PeerDiscoveryDns(enrUrl, wantedNodeCapabilityCount);
+}
+
+export { DnsNodeDiscovery, SearchContext, DnsClient } from "./dns.js";

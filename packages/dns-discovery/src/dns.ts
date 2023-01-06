@@ -42,10 +42,10 @@ export class DnsNodeDiscovery {
 
   /**
    * Returns a list of verified peers listed in an EIP-1459 DNS tree. Method may
-   * return fewer peers than requested if [[wantedNodeCapabilityCount]] requires
+   * return fewer peers than requested if @link wantedNodeCapabilityCount requires
    * larger quantity of peers than available or the number of errors/duplicate
    * peers encountered by randomized search exceeds the sum of the fields of
-   * [[wantedNodeCapabilityCount]] plus the [[_errorTolerance]] factor.
+   * @link wantedNodeCapabilityCount plus the @link _errorTolerance factor.
    */
   async getPeers(
     enrTreeUrls: string[],
@@ -82,7 +82,7 @@ export class DnsNodeDiscovery {
   }
 
   /**
-   * {@docInherit getPeers}
+   * {@inheritDoc getPeers}
    */
   async *getNextPeer(
     enrTreeUrls: string[],
