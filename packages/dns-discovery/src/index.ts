@@ -15,6 +15,10 @@ export { NodeCapabilityCount };
 
 const log = debug("waku:peer-discovery-dns");
 
+const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
+const fqdn = "test.waku.nodes.status.im";
+export const enrTree = `enrtree://${publicKey}@${fqdn}`;
+
 /**
  * Parse options and expose function to return bootstrap peer addresses.
  */

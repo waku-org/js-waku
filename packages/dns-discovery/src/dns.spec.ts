@@ -260,9 +260,6 @@ describe("DNS Node Discovery w/ capabilities", () => {
 });
 
 describe("DNS Node Discovery [live data]", function () {
-  const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
-  const fqdn = "test.waku.nodes.status.im";
-  const enrTree = `enrtree://${publicKey}@${fqdn}`;
   const maxQuantity = 3;
 
   before(function () {

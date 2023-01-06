@@ -1,5 +1,4 @@
 import { noise } from "@chainsafe/libp2p-noise";
-import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
 import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
@@ -14,13 +13,23 @@ import {
   wakuStore,
 } from "@waku/core";
 import { DefaultUserAgent } from "@waku/core";
-import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
+import {
+  enrTree,
+  NodeCapabilityCount,
+  wakuDnsDiscovery,
+} from "@waku/dns-discovery";
 import type { FullNode, IRelay, LightNode, RelayNode } from "@waku/interfaces";
 import { wakuPeerExchange } from "@waku/peer-exchange";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 
 import type { Libp2pComponents } from "./libp2p_components.js";
+
+const DEFAULT_NODE_REQUIREMENTS = {
+  lightPush: 2,
+  filter: 2,
+  store: 1,
+};
 
 export { Libp2pComponents };
 
@@ -55,6 +64,11 @@ export interface CreateOptions {
    * Use recommended bootstrap method to discovery and connect to new nodes.
    */
   defaultBootstrap?: boolean;
+
+  /**
+   * Node requirements to setup discovery with
+   */
+  nodeRequirements?: Partial<NodeCapabilityCount>;
 }
 
 /**
@@ -70,7 +84,7 @@ export async function createLightNode(
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
-    peerDiscovery.push(defaultPeerDiscovery());
+    peerDiscovery.push(defaultPeerDiscovery(options.nodeRequirements));
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
@@ -162,10 +176,10 @@ export async function createFullNode(
   ) as FullNode;
 }
 
-export function defaultPeerDiscovery(): (
-  components: Libp2pComponents
-) => PeerDiscovery {
-  return bootstrap({ list: getPredefinedBootstrapNodes() });
+export function defaultPeerDiscovery(
+  nodeRequirements: Partial<NodeCapabilityCount> = DEFAULT_NODE_REQUIREMENTS
+): (components: Libp2pComponents) => PeerDiscovery {
+  return wakuDnsDiscovery(enrTree, nodeRequirements);
 }
 
 export async function defaultLibp2p(

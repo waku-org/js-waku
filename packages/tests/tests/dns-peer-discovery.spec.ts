@@ -1,11 +1,12 @@
 import tests from "@libp2p/interface-peer-discovery-compliance-tests";
 import { createLightNode } from "@waku/create";
-import { DnsNodeDiscovery, wakuDnsDiscovery } from "@waku/dns-discovery";
+import {
+  DnsNodeDiscovery,
+  enrTree,
+  wakuDnsDiscovery,
+} from "@waku/dns-discovery";
 import { expect } from "chai";
 
-const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
-const fqdn = "test.waku.nodes.status.im";
-const enrTree = `enrtree://${publicKey}@${fqdn}`;
 const maxQuantity = 3;
 
 describe("DNS Discovery: Compliance Test", async function () {
