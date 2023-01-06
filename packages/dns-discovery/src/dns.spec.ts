@@ -3,6 +3,8 @@ import { expect } from "chai";
 import { DnsClient, DnsNodeDiscovery } from "./dns.js";
 import testData from "./testdata.json" assert { type: "json" };
 
+import { enrTree } from "./index.js";
+
 const mockData = testData.dns;
 
 const host = "nodes.example.org";
