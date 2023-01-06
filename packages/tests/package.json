@@ -68,7 +68,8 @@
     "@waku/enr": "*",
     "@waku/interfaces": "*",
     "@waku/message-encryption": "*",
-    "@waku/peer-exchange": "*"
+    "@waku/peer-exchange": "*",
+    "@waku/dns-discovery": "*"
   },
   "devDependencies": {
     "@libp2p/bootstrap": "^5.0.0",
