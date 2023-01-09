@@ -53,7 +53,7 @@ describe("DNS Node Discovery [live data]", function () {
     expect(peersFound.length).to.eq(maxQuantity);
   });
 
-  it(`should retrieve ${maxQuantity} multiaddrs for prod.nodes.status.im`, async function () {
+  it(`should retrieve ${maxQuantity} multiaddrs for test.waku.nodes.status.im`, async function () {
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
     const dnsNodeDiscovery = DnsNodeDiscovery.dnsOverHttp();
