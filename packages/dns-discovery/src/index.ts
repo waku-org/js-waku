@@ -23,7 +23,7 @@ const DEFAULT_BOOTSTRAP_TAG_NAME = "dns-discovery";
 const DEFAULT_BOOTSTRAP_TAG_VALUE = 50;
 const DEFAULT_BOOTSTRAP_TAG_TTL = 120000;
 
-interface Options {
+export interface Options {
   /**
    * ENR URL to use for DNS discovery
    */
