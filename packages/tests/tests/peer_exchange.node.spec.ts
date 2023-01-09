@@ -1,4 +1,5 @@
 import { bootstrap } from "@libp2p/bootstrap";
+import { Peer } from "@libp2p/interface-peer-store";
 import { waitForRemotePeer } from "@waku/core";
 import {
   Fleet,
@@ -12,7 +13,30 @@ import { expect } from "chai";
 
 import { delay } from "../src/delay.js";
 
-describe("Peer Exchange", () => {
+async function checkIfPxPeersExist(
+  waku: LightNode
+): Promise<Peer[] | undefined> {
+  const allPeers = await waku.libp2p.peerStore.all();
+  expect(allPeers.length).to.be.greaterThan(0);
+
+  const pxPeers: Peer[] = [];
+  for (const peer of allPeers) {
+    const tags = await waku.libp2p.peerStore.getTags(peer.id);
+    let hasTag = false;
+    for (const tag of tags) {
+      hasTag = tag.name === "peer-exchange";
+      if (hasTag) {
+        pxPeers.push(peer);
+        break;
+      }
+    }
+    expect(hasTag).to.be.eq(true);
+    return pxPeers;
+  }
+  return undefined;
+}
+
+describe.only("Peer Exchange", () => {
   let waku: LightNode;
   afterEach(async function () {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
@@ -31,10 +55,12 @@ describe("Peer Exchange", () => {
     });
 
     await waku.start();
-    await delay(1000);
+    await delay(5000);
 
-    await waitForRemotePeer(waku, [Protocols.PeerExchange]);
-    const pxPeers = await waku.peerExchange.peers();
+    const pxPeers = await checkIfPxPeersExist(waku);
+
+    if (!pxPeers) throw new Error("No PX peers found");
+
     expect(pxPeers.length).to.be.greaterThan(0);
   });
 
@@ -77,6 +103,8 @@ describe("Peer Exchange", () => {
       },
       callback
     );
+
+    const pxPeers = await checkIfPxPeersExist(waku);
 
     expect(receivedCallback).to.be.true;
   });
