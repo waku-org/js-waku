@@ -50,7 +50,6 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@libp2p/components": "^3.1.1",
     "@libp2p/interface-connection": "^3.0.3",
     "@libp2p/interface-peer-discovery": "^1.0.0",
     "@libp2p/interface-peer-discovery-compliance-tests": "^2.0.1",
@@ -58,7 +57,6 @@
     "@libp2p/interface-peer-info": "^1.0.4",
     "@libp2p/interface-peer-store": "^1.2.3",
     "@waku/core": "*",
-    "@waku/dns-discovery": "^0.0.3",
     "@waku/enr": "*",
     "@waku/interfaces": "*",
     "@waku/libp2p-utils": "*",
