@@ -55,61 +55,9 @@ export class PeerExchangeDiscovery
     if (!protocols.includes(PeerExchangeCodec) || this.intervals.get(peerId))
       return;
 
+    await this.query(peerId);
     const interval = setInterval(async () => {
-      await this.peerExchange.query(
-        {
-          numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
-          peerId,
-        },
-        async (response) => {
-          const { peerInfos } = response;
-
-          for (const _peerInfo of peerInfos) {
-            const { ENR } = _peerInfo;
-            if (!ENR) {
-              log("no ENR");
-              continue;
-            }
-
-            const { peerId, multiaddrs } = ENR;
-
-            if (!peerId) {
-              log("no peerId");
-              continue;
-            }
-            if (!multiaddrs || multiaddrs.length === 0) {
-              log("no multiaddrs");
-              continue;
-            }
-
-            // check if peer is already in peerStore
-            const existingPeer = await this.components.peerStore.get(peerId);
-            if (existingPeer) {
-              log("peer already in peerStore");
-              continue;
-            }
-
-            await this.components.peerStore.tagPeer(
-              peerId,
-              DEFAULT_BOOTSTRAP_TAG_NAME,
-              {
-                value: this.options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-                ttl: this.options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-              }
-            );
-
-            this.dispatchEvent(
-              new CustomEvent<PeerInfo>("peer", {
-                detail: {
-                  id: peerId,
-                  multiaddrs,
-                  protocols: [],
-                },
-              })
-            );
-          }
-        }
-      );
+      await this.query(peerId);
     }, PEER_EXCHANGE_QUERY_INTERVAL);
 
     this.intervals.set(peerId, interval);
@@ -159,6 +107,63 @@ export class PeerExchangeDiscovery
 
   get [Symbol.toStringTag](): string {
     return "@waku/peer-exchange";
+  }
+
+  private query(peerId: PeerId): Promise<void> {
+    return this.peerExchange.query(
+      {
+        numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
+        peerId,
+      },
+      async (response) => {
+        const { peerInfos } = response;
+
+        for (const _peerInfo of peerInfos) {
+          const { ENR } = _peerInfo;
+          if (!ENR) {
+            log("no ENR");
+            continue;
+          }
+
+          const { peerId, multiaddrs } = ENR;
+
+          if (!peerId) {
+            log("no peerId");
+            continue;
+          }
+          if (!multiaddrs || multiaddrs.length === 0) {
+            log("no multiaddrs");
+            continue;
+          }
+
+          // check if peer is already in peerStore
+          const existingPeer = await this.components.peerStore.get(peerId);
+          if (existingPeer) {
+            log("peer already in peerStore");
+            continue;
+          }
+
+          await this.components.peerStore.tagPeer(
+            peerId,
+            DEFAULT_BOOTSTRAP_TAG_NAME,
+            {
+              value: this.options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
+              ttl: this.options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+            }
+          );
+
+          this.dispatchEvent(
+            new CustomEvent<PeerInfo>("peer", {
+              detail: {
+                id: peerId,
+                multiaddrs,
+                protocols: [],
+              },
+            })
+          );
+        }
+      }
+    );
   }
 }
 
