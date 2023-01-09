@@ -1,11 +1,17 @@
+import { Components } from "@libp2p/components";
 import tests from "@libp2p/interface-peer-discovery-compliance-tests";
+import { Peer } from "@libp2p/interface-peer-store";
+import { createEd25519PeerId } from "@libp2p/peer-id-factory";
+import { PersistentPeerStore } from "@libp2p/peer-store";
 import { createLightNode } from "@waku/create";
 import {
   DnsNodeDiscovery,
   enrTree,
+  PeerDiscoveryDns,
   wakuDnsDiscovery,
 } from "@waku/dns-discovery";
 import { expect } from "chai";
+import { MemoryDatastore } from "datastore-core";
 
 const maxQuantity = 3;
 
@@ -13,9 +19,20 @@ describe("DNS Discovery: Compliance Test", async function () {
   this.timeout(5000);
   tests({
     async setup() {
-      return wakuDnsDiscovery(enrTree, {
-        filter: 1,
-      })();
+      // create libp2p mock peerStore
+      const components = new Components({
+        peerStore: new PersistentPeerStore({
+          peerId: await createEd25519PeerId(),
+          datastore: new MemoryDatastore(),
+        }),
+      });
+
+      return new PeerDiscoveryDns(components, {
+        enrUrl: enrTree,
+        wantedNodeCapabilityCount: {
+          filter: 1,
+        },
+      });
     },
     async teardown() {
       //
@@ -49,8 +66,23 @@ describe("DNS Node Discovery [live data]", function () {
 
     await waku.start();
 
-    const peersFound = await waku.libp2p.peerStore.all();
-    expect(peersFound.length).to.eq(maxQuantity);
+    const allPeers = await waku.libp2p.peerStore.all();
+
+    const dnsPeers: Peer[] = [];
+
+    for (const peer of allPeers) {
+      const tags = await waku.libp2p.peerStore.getTags(peer.id);
+      let hasTag = false;
+      for (const tag of tags) {
+        hasTag = tag.name === "dns-discovery";
+        if (hasTag) {
+          dnsPeers.push(peer);
+          break;
+        }
+      }
+      expect(hasTag).to.be.eq(true);
+    }
+    expect(dnsPeers.length).to.eq(maxQuantity);
   });
 
   it(`should retrieve ${maxQuantity} multiaddrs for test.waku.nodes.status.im`, async function () {
