@@ -69,6 +69,11 @@ export interface CreateOptions {
    * Node requirements to setup discovery with
    */
   nodeRequirements?: Partial<NodeCapabilityCount>;
+  /**
+   * Set autodial
+   * @default false
+   */
+  autoDial?: boolean;
 }
 
 /**
@@ -196,6 +201,9 @@ export async function defaultLibp2p(
         host: {
           agentVersion: userAgent ?? DefaultUserAgent,
         },
+      },
+      connectionManager: {
+        autoDial: false,
       },
     } as Libp2pOptions,
     wakuRelay ? { pubsub: wakuRelay } : {},

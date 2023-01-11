@@ -3,6 +3,7 @@ import tests from "@libp2p/interface-peer-discovery-compliance-tests";
 import { Peer } from "@libp2p/interface-peer-store";
 import { createEd25519PeerId } from "@libp2p/peer-id-factory";
 import { PersistentPeerStore } from "@libp2p/peer-store";
+import { multiaddr } from "@multiformats/multiaddr";
 import { createLightNode } from "@waku/create";
 import {
   DnsNodeDiscovery,
@@ -12,6 +13,8 @@ import {
 } from "@waku/dns-discovery";
 import { expect } from "chai";
 import { MemoryDatastore } from "datastore-core";
+
+import { delay } from "../src/delay.js";
 
 const maxQuantity = 3;
 
@@ -40,11 +43,29 @@ describe("DNS Discovery: Compliance Test", async function () {
   });
 });
 
-describe("DNS Node Discovery [live data]", function () {
+describe.only("DNS Node Discovery [live data]", function () {
   before(function () {
     if (process.env.CI) {
       this.skip();
     }
+  });
+
+  it.skip("test dialing", async function () {
+    this.timeout(200000);
+    const waku = await createLightNode({
+      libp2p: {
+        connectionManager: {
+          autoDial: false,
+        },
+      },
+    });
+    await waku.start();
+
+    await waku.dial(
+      multiaddr(
+        "/dns4/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAkvWiyFsgRhuJEb9JfjYxEkoHLgnUQmr1N5mKWnYjxYRVm"
+      )
+    );
   });
 
   it(`should use DNS peer discovery with light client`, async function () {
@@ -67,6 +88,7 @@ describe("DNS Node Discovery [live data]", function () {
     await waku.start();
 
     const allPeers = await waku.libp2p.peerStore.all();
+    console.log({ allPeers });
 
     const dnsPeers: Peer[] = [];
 
@@ -80,8 +102,15 @@ describe("DNS Node Discovery [live data]", function () {
           break;
         }
       }
+
+      await delay(15000);
+
+      const conns = waku.libp2p.connectionManager.getConnections();
+
       expect(hasTag).to.be.eq(true);
+      expect(conns.length).to.be.eq(dnsPeers.length);
     }
+
     expect(dnsPeers.length).to.eq(maxQuantity);
   });
 

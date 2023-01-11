@@ -36,7 +36,7 @@ async function checkIfPxPeersExist(
   return undefined;
 }
 
-describe.only("Peer Exchange", () => {
+describe("Peer Exchange", () => {
   let waku: LightNode;
   afterEach(async function () {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
@@ -104,7 +104,7 @@ describe.only("Peer Exchange", () => {
       callback
     );
 
-    const pxPeers = await checkIfPxPeersExist(waku);
+    await checkIfPxPeersExist(waku);
 
     expect(receivedCallback).to.be.true;
   });
