@@ -1,6 +1,6 @@
 export {};
 import { PeerId } from "@libp2p/interface-peer-id";
-import { IRelay } from "@waku/interfaces";
+import { IRelay, Tags } from "@waku/interfaces";
 import debug from "debug";
 import { Libp2p } from "libp2p";
 
@@ -10,9 +10,13 @@ import { RelayPingContentTopic } from "./relay/constants.js";
 
 const log = debug("waku:connection-manager");
 
+const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL = 5000;
+const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
+
 export interface Options {
   relayKeepAlive: number;
   pingKeepAlive: number;
+  maxBootstrapPeersAllowed?: number;
 }
 
 /**
@@ -30,7 +34,9 @@ export class ConnectionManager {
     [peer: string]: ReturnType<typeof setInterval>;
   };
 
-  public static get(libp2p: Libp2p, options: Options): ConnectionManager {
+  public isConnectionServiceStarted = false;
+
+  public static create(libp2p: Libp2p, options: Options): ConnectionManager {
     if (!ConnectionManager.instance) {
       ConnectionManager.instance = new ConnectionManager(libp2p, options);
     }
@@ -43,6 +49,7 @@ export class ConnectionManager {
     this.relayKeepAliveTimers = {};
     this.relay = relay;
 
+    this.startDiscoveryConnectionService(options.maxBootstrapPeersAllowed);
     this.attachEventListeners(options.pingKeepAlive, options.relayKeepAlive);
   }
 
@@ -80,27 +87,67 @@ export class ConnectionManager {
     this.libp2p.connectionManager.addEventListener("peer:disconnect", (evt) => {
       this.stopKeepAlive(evt.detail.remotePeer);
     });
+  }
 
-    // Trivial handling of discovered peers, to be refined.
-    this.libp2p.addEventListener("peer:discovery", async (evt) => {
-      const peerId = evt.detail.id;
-      log(`Found peer ${peerId.toString()}, dialing.`);
+  public startDiscoveryConnectionService(
+    maxBootstrapPeersAllowed = DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
+    interval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL
+  ): NodeJS.Timer {
+    if (this.isConnectionServiceStarted) {
+      throw new Error("Connection service already started");
+    }
 
-      const tags = (await this.libp2p.peerStore.getTags(peerId)).map(
-        ({ name }) => name
+    this.isConnectionServiceStarted = true;
+    return setInterval(
+      this.dialDiscoveredPeers.bind(this, maxBootstrapPeersAllowed),
+      interval
+    );
+  }
+
+  private async dialDiscoveredPeers(
+    maxBootstrapPeersAllowed: number
+  ): Promise<void> {
+    const connectedBootstrapPeers = this.libp2p.connectionManager
+      .getConnections()
+      .filter((conn) =>
+        conn.tags.includes(Tags.DNS_DISCOVERY) ? true : false
       );
-      // console.log(`Peer ${peerId.toString()} has tags ${JSON.stringify(tags)}`);
 
-      if (tags.includes("dns-discovery" || "bootstrap")) {
+    if (connectedBootstrapPeers.length < maxBootstrapPeersAllowed) {
+      const availableDiscoveredPeers = await this.libp2p.peerStore.all();
+
+      const unconnectedDiscoveredBootstrapPeers =
+        availableDiscoveredPeers.filter(async (peer) =>
+          (await this.libp2p.peerStore.getTags(peer.id))
+            .map(({ name }) => name)
+            .includes(Tags.DNS_DISCOVERY)
+        );
+
+      for (let i = 0; i < maxBootstrapPeersAllowed; i++) {
+        const peer = unconnectedDiscoveredBootstrapPeers[i];
+
+        const peerId = peer.id;
         try {
+          log(`Dialing peer ${peerId.toString()}`);
           await this.libp2p.dial(peerId);
-          // console.log("Dial successful");
+
+          const tags = (await this.libp2p.peerStore.getTags(peer.id)).map(
+            ({ name }) => name
+          );
+
+          // add tag to connection describing discovery mechanism
+          this.libp2p.connectionManager
+            .getConnections(peerId)
+            .forEach((conn) => {
+              conn.tags.push(...tags);
+            });
+
+          log(`Dial successful`);
         } catch (error) {
-          // console.error(`Failed to dial ${peerId.toString()}`, error);
           log(`Failed to dial ${peerId.toString()}`, error);
         }
       }
-    });
+    }
   }
 
   private startKeepAlive(

@@ -88,7 +88,7 @@ describe.only("DNS Node Discovery [live data]", function () {
     await waku.start();
 
     const allPeers = await waku.libp2p.peerStore.all();
-    console.log({ allPeers });
+    // console.log({ allPeers });
 
     const dnsPeers: Peer[] = [];
 
@@ -108,7 +108,7 @@ describe.only("DNS Node Discovery [live data]", function () {
       const conns = waku.libp2p.connectionManager.getConnections();
 
       expect(hasTag).to.be.eq(true);
-      expect(conns.length).to.be.eq(dnsPeers.length);
+      expect(conns.length).to.be.eq(1);
     }
 
     expect(dnsPeers.length).to.eq(maxQuantity);
