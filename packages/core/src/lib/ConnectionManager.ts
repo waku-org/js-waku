@@ -123,19 +123,19 @@ export class ConnectionManager {
       .filter((conn) => conn.tags.includes(Tags.DNS_DISCOVERY));
 
     // find & dial peers found via `dns-discovery`
-    for (
-      let i = 0;
-      i < maxBootstrapPeersAllowed &&
-      connectedBootstrapPeers.length < maxBootstrapPeersAllowed;
-      i++
+    if (
+      connectedBootstrapPeers.length < maxBootstrapPeersAllowed &&
+      availableBootstrapPeers.length > 0
     ) {
-      const peer = availableBootstrapPeers[i];
-      try {
-        log(`Dialing peer ${peer.id.toString()}`);
-        await this.dialPeer(peer);
-        log(`Dial successful`);
-      } catch (error) {
-        log(`Failed to dial ${peer.id.toString()}`, error);
+      for (let i = 0; i < maxBootstrapPeersAllowed; i++) {
+        const peer = availableBootstrapPeers[i];
+        try {
+          log(`Dialing peer ${peer.id.toString()}`);
+          await this.dialPeer(peer);
+          log(`Dial successful`);
+        } catch (error) {
+          log(`Failed to dial ${peer.id.toString()}`, error);
+        }
       }
     }
 

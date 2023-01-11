@@ -43,7 +43,7 @@ describe("DNS Discovery: Compliance Test", async function () {
   });
 });
 
-describe.only("DNS Node Discovery [live data]", function () {
+describe("DNS Node Discovery [live data]", function () {
   before(function () {
     if (process.env.CI) {
       this.skip();
