@@ -63,7 +63,7 @@ describe("DNS Node Discovery [live data]", function () {
 
     await waku.dial(
       multiaddr(
-        "/dns4/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAkvWiyFsgRhuJEb9JfjYxEkoHLgnUQmr1N5mKWnYjxYRVm"
+        "/dns4/node-01.gc-us-central1-a.status.prod.statusim.net/tcp/8000/wss/p2p/16Uiu2HAkxJ57V5iVeQfcP2KrBbxUxx5BFUL3XVkmbo1zmxYnGHTg"
       )
     );
   });

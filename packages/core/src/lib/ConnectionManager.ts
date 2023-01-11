@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { PeerId } from "@libp2p/interface-peer-id";
 import { Peer } from "@libp2p/interface-peer-store";
 import { IRelay, Tags } from "@waku/interfaces";
@@ -10,7 +11,7 @@ import { RelayPingContentTopic } from "./relay/constants.js";
 
 const log = debug("waku:connection-manager");
 
-const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL = 5000;
+const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL = 15000;
 const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 
 export interface Options {
@@ -107,6 +108,7 @@ export class ConnectionManager {
     maxBootstrapPeersAllowed: number
   ): Promise<void> {
     const availablePeers = await this.libp2p.peerStore.all();
+    console.log({ available: availablePeers.length });
 
     const availableBootstrapPeers: Peer[] = [];
     const availableNonBootstrapPeers: Peer[] = [];
@@ -117,6 +119,16 @@ export class ConnectionManager {
         ? availableBootstrapPeers.push(peer)
         : availableNonBootstrapPeers.push(peer);
     }
+
+    console.log({ availableNon: availableNonBootstrapPeers.length });
+    console.log(
+      availableNonBootstrapPeers.map((p) => {
+        return {
+          id: p.id.toString(),
+          ma: p.addresses.map((a) => a.multiaddr.toString()),
+        };
+      })
+    );
 
     const connectedBootstrapPeers = this.libp2p.connectionManager
       .getConnections()

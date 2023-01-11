@@ -8,6 +8,7 @@ import { PeerInfo } from "@libp2p/interface-peer-info";
 import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { EventEmitter } from "@libp2p/interfaces/events";
 import { PeerExchangeComponents } from "@waku/interfaces";
+import { multiaddrsToPeerInfo } from "@waku/libp2p-utils";
 import debug from "debug";
 
 import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
@@ -125,42 +126,39 @@ export class PeerExchangeDiscovery
             continue;
           }
 
-          const { peerId, multiaddrs } = ENR;
+          const { peerId } = ENR;
 
           if (!peerId) {
             log("no peerId");
             continue;
           }
-          if (!multiaddrs || multiaddrs.length === 0) {
-            log("no multiaddrs");
-            continue;
-          }
+
+          const peerInfos = multiaddrsToPeerInfo(ENR.getFullMultiaddrs());
 
           // check if peer is already in peerStore
-          const existingPeer = await this.components.peerStore.get(peerId);
-          if (existingPeer) {
-            log("peer already in peerStore");
-            continue;
+          // const existingPeer = await this.components.peerStore.get(peerId);
+          // if (existingPeer) {
+          //   log("peer already in peerStore");
+          //   continue;
+          // }
+
+          for (const peerInfo of peerInfos) {
+            log("tagging peer");
+            await this.components.peerStore.tagPeer(
+              peerId,
+              DEFAULT_BOOTSTRAP_TAG_NAME,
+              {
+                value: this.options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
+                ttl: this.options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+              }
+            );
+
+            this.dispatchEvent(
+              new CustomEvent<PeerInfo>("peer", {
+                detail: peerInfo,
+              })
+            );
           }
-
-          await this.components.peerStore.tagPeer(
-            peerId,
-            DEFAULT_BOOTSTRAP_TAG_NAME,
-            {
-              value: this.options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-              ttl: this.options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-            }
-          );
-
-          this.dispatchEvent(
-            new CustomEvent<PeerInfo>("peer", {
-              detail: {
-                id: peerId,
-                multiaddrs,
-                protocols: [],
-              },
-            })
-          );
         }
       }
     );

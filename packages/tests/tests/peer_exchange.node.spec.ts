@@ -6,6 +6,12 @@ import {
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import { createLightNode } from "@waku/create";
+import {
+  // DnsNodeDiscovery,
+  enrTree,
+  // PeerDiscoveryDns,
+  wakuDnsDiscovery,
+} from "@waku/dns-discovery";
 import type { LightNode, PeerExchangeResponse } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
@@ -42,20 +48,29 @@ describe("Peer Exchange", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it("Auto discovery", async function () {
+  it.only("Auto discovery", async function () {
     this.timeout(120_000);
+
+    const maxQuantity = 3;
+
+    const nodeRequirements = {
+      relay: maxQuantity,
+      store: maxQuantity,
+      filter: maxQuantity,
+      lightPush: maxQuantity,
+    };
 
     waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
+          wakuDnsDiscovery(enrTree, nodeRequirements),
           wakuPeerExchangeDiscovery(),
         ],
       },
     });
 
     await waku.start();
-    await delay(5000);
+    await delay(150000);
 
     const pxPeers = await checkIfPxPeersExist(waku);
 
