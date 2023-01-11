@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Export `Encoder` and `Decoder` types.
+- Moved `@chai` and `@fast-check` to `dependencies` list.
+- Added missing `@js-sha3` and `@debug` to `dependencies` list.
 
 ## [0.0.7] - 2022-12-19
 
