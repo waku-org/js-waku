@@ -1,5 +1,5 @@
-export {};
 import { PeerId } from "@libp2p/interface-peer-id";
+import { Peer } from "@libp2p/interface-peer-store";
 import { IRelay, Tags } from "@waku/interfaces";
 import debug from "debug";
 import { Libp2p } from "libp2p";
@@ -24,7 +24,6 @@ export interface Options {
  */
 export class ConnectionManager {
   private static instance: ConnectionManager;
-
   private libp2p: Libp2p;
   private relay?: IRelay;
   private pingKeepAliveTimers: {
@@ -53,7 +52,22 @@ export class ConnectionManager {
     this.attachEventListeners(options.pingKeepAlive, options.relayKeepAlive);
   }
 
-  stopAllKeepAlives(): void {
+  public startDiscoveryConnectionService(
+    maxBootstrapPeersAllowed = DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
+    interval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL
+  ): NodeJS.Timer {
+    if (this.isConnectionServiceStarted) {
+      throw new Error("Connection service already started");
+    }
+
+    this.isConnectionServiceStarted = true;
+    return setInterval(
+      this.dialDiscoveredPeers.bind(this, maxBootstrapPeersAllowed),
+      interval
+    );
+  }
+
+  public stopAllKeepAlives(): void {
     for (const timer of [
       ...Object.values(this.pingKeepAliveTimers),
       ...Object.values(this.relayKeepAliveTimers),
@@ -89,65 +103,67 @@ export class ConnectionManager {
     });
   }
 
-  public startDiscoveryConnectionService(
-    maxBootstrapPeersAllowed = DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
-    interval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL
-  ): NodeJS.Timer {
-    if (this.isConnectionServiceStarted) {
-      throw new Error("Connection service already started");
-    }
-
-    this.isConnectionServiceStarted = true;
-    return setInterval(
-      this.dialDiscoveredPeers.bind(this, maxBootstrapPeersAllowed),
-      interval
-    );
-  }
-
   private async dialDiscoveredPeers(
     maxBootstrapPeersAllowed: number
   ): Promise<void> {
+    const availablePeers = await this.libp2p.peerStore.all();
+
+    const availableBootstrapPeers: Peer[] = [];
+    const availableNonBootstrapPeers: Peer[] = [];
+    for (const peer of availablePeers) {
+      (await this.libp2p.peerStore.getTags(peer.id)).some(
+        ({ name }) => name === Tags.DNS_DISCOVERY
+      )
+        ? availableBootstrapPeers.push(peer)
+        : availableNonBootstrapPeers.push(peer);
+    }
+
     const connectedBootstrapPeers = this.libp2p.connectionManager
       .getConnections()
-      .filter((conn) =>
-        conn.tags.includes(Tags.DNS_DISCOVERY) ? true : false
-      );
+      .filter((conn) => conn.tags.includes(Tags.DNS_DISCOVERY));
 
-    if (connectedBootstrapPeers.length < maxBootstrapPeersAllowed) {
-      const availableDiscoveredPeers = await this.libp2p.peerStore.all();
-
-      const unconnectedDiscoveredBootstrapPeers =
-        availableDiscoveredPeers.filter(async (peer) =>
-          (await this.libp2p.peerStore.getTags(peer.id))
-            .map(({ name }) => name)
-            .includes(Tags.DNS_DISCOVERY)
-        );
-
-      for (let i = 0; i < maxBootstrapPeersAllowed; i++) {
-        const peer = unconnectedDiscoveredBootstrapPeers[i];
-
-        const peerId = peer.id;
-        try {
-          log(`Dialing peer ${peerId.toString()}`);
-          await this.libp2p.dial(peerId);
-
-          const tags = (await this.libp2p.peerStore.getTags(peer.id)).map(
-            ({ name }) => name
-          );
-
-          // add tag to connection describing discovery mechanism
-          this.libp2p.connectionManager
-            .getConnections(peerId)
-            .forEach((conn) => {
-              conn.tags.push(...tags);
-            });
-
-          log(`Dial successful`);
-        } catch (error) {
-          log(`Failed to dial ${peerId.toString()}`, error);
-        }
+    // find & dial peers found via `dns-discovery`
+    for (
+      let i = 0;
+      i < maxBootstrapPeersAllowed &&
+      connectedBootstrapPeers.length < maxBootstrapPeersAllowed;
+      i++
+    ) {
+      const peer = availableBootstrapPeers[i];
+      try {
+        log(`Dialing peer ${peer.id.toString()}`);
+        await this.dialPeer(peer);
+        log(`Dial successful`);
+      } catch (error) {
+        log(`Failed to dial ${peer.id.toString()}`, error);
       }
     }
+
+    //find & dial peers found via discovery mechanisms other than `dns-discovery`
+    for (const peer of availableNonBootstrapPeers) {
+      try {
+        log(`Dialing peer ${peer.id.toString()}`);
+        await this.dialPeer(peer);
+        log(`Dial successful`);
+      } catch (error) {
+        log(`Failed to dial ${peer.id.toString()}`, error);
+      }
+    }
+  }
+
+  private async dialPeer(peer: Peer): Promise<void> {
+    const peerId = peer.id;
+    log(`Dialing peer ${peerId.toString()}`);
+
+    await this.libp2p.dial(peerId);
+
+    const tags = (await this.libp2p.peerStore.getTags(peer.id)).map(
+      ({ name }) => name
+    );
+    // add tag to connection describing discovery mechanism
+    this.libp2p.connectionManager.getConnections(peerId).forEach((conn) => {
+      conn.tags.push(...tags);
+    });
   }
 
   private startKeepAlive(
