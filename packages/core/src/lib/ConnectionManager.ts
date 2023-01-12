@@ -10,13 +10,16 @@ import { RelayPingContentTopic } from "./relay/constants.js";
 
 const log = debug("waku:connection-manager");
 
-const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL = 10000;
+const DEFAULT_INTERVAL_INCREASE_FACTOR = 3;
+
+const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL = 10 * 1000;
 const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 
 export interface Options {
   relayKeepAlive: number;
   pingKeepAlive: number;
   maxBootstrapPeersAllowed?: number;
+  defaultPeerDiscoveryIntervalFactor?: number;
 }
 
 /**
@@ -48,22 +51,30 @@ export class ConnectionManager {
     this.relayKeepAliveTimers = {};
     this.relay = relay;
 
-    this.startDiscoveryConnectionService(options.maxBootstrapPeersAllowed);
+    this.startDiscoveryConnectionService(
+      options.maxBootstrapPeersAllowed,
+      options.defaultPeerDiscoveryIntervalFactor
+    );
     this.attachEventListeners(options.pingKeepAlive, options.relayKeepAlive);
   }
 
   public startDiscoveryConnectionService(
     maxBootstrapPeersAllowed = DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
-    interval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL
+    interval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL,
+    increaseFactor = DEFAULT_INTERVAL_INCREASE_FACTOR
   ): NodeJS.Timer {
     if (this.isConnectionServiceStarted) {
       throw new Error("Connection service already started");
     }
 
     this.isConnectionServiceStarted = true;
+    //increase interval after every attempt
+    // 1st interval: 10 seconds x 3 = 30 seconds
+    // 2nd interval: 30 seconds x 3 = 90 seconds
+    // and so on
     return setInterval(
       this.dialDiscoveredPeers.bind(this, maxBootstrapPeersAllowed),
-      interval
+      interval * increaseFactor
     );
   }
 
