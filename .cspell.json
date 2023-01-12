@@ -5,6 +5,7 @@
   "words": [
     "abortable",
     "Alives",
+    "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM",
     "asym",
     "backoff",
     "backoffs",
@@ -95,6 +96,7 @@
     "supercrypto",
     "transpiled",
     "typedoc",
+    "undialable",
     "unencrypted",
     "unmarshal",
     "unmount",
@@ -110,8 +112,7 @@
     "webfonts",
     "websockets",
     "wifi",
-    "xsalsa20",
-    "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM"
+    "xsalsa20"
   ],
   "flagWords": [],
   "ignorePaths": [

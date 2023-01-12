@@ -10,7 +10,7 @@ import { RelayPingContentTopic } from "./relay/constants.js";
 
 const log = debug("waku:connection-manager");
 
-const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL = 5000;
+const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL = 10000;
 const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 
 export interface Options {
@@ -112,7 +112,7 @@ export class ConnectionManager {
     const availableNonBootstrapPeers: Peer[] = [];
     for (const peer of availablePeers) {
       (await this.libp2p.peerStore.getTags(peer.id)).some(
-        ({ name }) => name === Tags.DNS_DISCOVERY
+        ({ name }) => name === Tags.BOOTSTRAP
       )
         ? availableBootstrapPeers.push(peer)
         : availableNonBootstrapPeers.push(peer);
@@ -120,7 +120,7 @@ export class ConnectionManager {
 
     const connectedBootstrapPeers = this.libp2p.connectionManager
       .getConnections()
-      .filter((conn) => conn.tags.includes(Tags.DNS_DISCOVERY));
+      .filter((conn) => conn.tags.includes(Tags.BOOTSTRAP));
 
     // find & dial peers found via `dns-discovery`
     if (
@@ -129,41 +129,45 @@ export class ConnectionManager {
     ) {
       for (let i = 0; i < maxBootstrapPeersAllowed; i++) {
         const peer = availableBootstrapPeers[i];
-        try {
-          log(`Dialing peer ${peer.id.toString()}`);
-          await this.dialPeer(peer);
-          log(`Dial successful`);
-        } catch (error) {
-          log(`Failed to dial ${peer.id.toString()}`, error);
-        }
+        this.dialPeer(peer)
+          .then(() => log(`Dial successful`))
+          .catch((error) => log(error));
       }
     }
 
     //find & dial peers found via discovery mechanisms other than `dns-discovery`
     for (const peer of availableNonBootstrapPeers) {
-      try {
-        log(`Dialing peer ${peer.id.toString()}`);
-        await this.dialPeer(peer);
-        log(`Dial successful`);
-      } catch (error) {
-        log(`Failed to dial ${peer.id.toString()}`, error);
-      }
+      this.dialPeer(peer)
+        .then(() => log(`Dial successful`))
+        .catch((error) => log(error));
     }
   }
 
   private async dialPeer(peer: Peer): Promise<void> {
-    const peerId = peer.id;
-    log(`Dialing peer ${peerId.toString()}`);
+    try {
+      const peerId = peer.id;
 
-    await this.libp2p.dial(peerId);
+      log(
+        `Dialing peer ${peer.id.toString()} with multiaddrs ${peer.addresses.map(
+          (addr) => addr.multiaddr
+        )}`
+      );
 
-    const tags = (await this.libp2p.peerStore.getTags(peer.id)).map(
-      ({ name }) => name
-    );
-    // add tag to connection describing discovery mechanism
-    this.libp2p.connectionManager.getConnections(peerId).forEach((conn) => {
-      conn.tags.push(...tags);
-    });
+      await this.libp2p.dial(peerId);
+
+      const tags = (await this.libp2p.peerStore.getTags(peer.id)).map(
+        ({ name }) => name
+      );
+      // add tag to connection describing discovery mechanism
+      this.libp2p.connectionManager.getConnections(peerId).forEach((conn) => {
+        conn.tags.push(...tags);
+      });
+    } catch (error) {
+      //remove peer from peerStore if dial fails
+      log("Deleting undialable peer from peerStore");
+      this.libp2p.peerStore.delete(peer.id);
+      throw new Error(`Failed to dial ${peer.id.toString()}: ${error}`);
+    }
   }
 
   private startKeepAlive(

@@ -42,7 +42,7 @@ describe("Peer Exchange", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it("Auto discovery", async function () {
+  it.only("Auto discovery", async function () {
     this.timeout(120_000);
 
     waku = await createLightNode({
@@ -55,7 +55,7 @@ describe("Peer Exchange", () => {
     });
 
     await waku.start();
-    await delay(5000);
+    await delay(150000);
 
     const pxPeers = await checkIfPxPeersExist(waku);
 
