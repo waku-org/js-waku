@@ -74,7 +74,7 @@ describe("DNS Node Discovery [live data]", function () {
       const tags = await waku.libp2p.peerStore.getTags(peer.id);
       let hasTag = false;
       for (const tag of tags) {
-        hasTag = tag.name === "dns-discovery";
+        hasTag = tag.name === "bootstrap";
         if (hasTag) {
           dnsPeers.push(peer);
           break;
