@@ -19,7 +19,7 @@ const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
 const fqdn = "test.waku.nodes.status.im";
 export const enrTree = `enrtree://${publicKey}@${fqdn}`;
 
-const DEFAULT_BOOTSTRAP_TAG_NAME = "dns-discovery";
+const DEFAULT_BOOTSTRAP_TAG_NAME = "bootstrap";
 const DEFAULT_BOOTSTRAP_TAG_VALUE = 50;
 const DEFAULT_BOOTSTRAP_TAG_TTL = 120000;
 
