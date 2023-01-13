@@ -12,6 +12,7 @@
     "bitauth",
     "bitjson",
     "bufbuild",
+    "centralisation",
     "chainsafe",
     "cimg",
     "ciphertext",
@@ -19,6 +20,7 @@
     "codecov",
     "commitlint",
     "dependabot",
+    "dialable",
     "dingpu",
     "discv",
     "Dlazy",
@@ -112,7 +114,8 @@
     "webfonts",
     "websockets",
     "wifi",
-    "xsalsa20"
+    "xsalsa20",
+    "yeild"
   ],
   "flagWords": [],
   "ignorePaths": [
