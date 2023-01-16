@@ -17,7 +17,6 @@ import {
 import { expect } from "chai";
 
 import {
-  delay,
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
