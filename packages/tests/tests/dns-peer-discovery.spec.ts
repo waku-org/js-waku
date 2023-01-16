@@ -3,7 +3,6 @@ import tests from "@libp2p/interface-peer-discovery-compliance-tests";
 import { Peer } from "@libp2p/interface-peer-store";
 import { createEd25519PeerId } from "@libp2p/peer-id-factory";
 import { PersistentPeerStore } from "@libp2p/peer-store";
-import { multiaddr } from "@multiformats/multiaddr";
 import { createLightNode } from "@waku/create";
 import {
   DnsNodeDiscovery,
@@ -48,24 +47,6 @@ describe("DNS Node Discovery [live data]", function () {
     if (process.env.CI) {
       this.skip();
     }
-  });
-
-  it.skip("test dialing", async function () {
-    this.timeout(200000);
-    const waku = await createLightNode({
-      libp2p: {
-        connectionManager: {
-          autoDial: false,
-        },
-      },
-    });
-    await waku.start();
-
-    await waku.dial(
-      multiaddr(
-        "/dns4/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAkvWiyFsgRhuJEb9JfjYxEkoHLgnUQmr1N5mKWnYjxYRVm"
-      )
-    );
   });
 
   it(`should use DNS peer discovery with light client`, async function () {

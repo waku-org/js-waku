@@ -13,7 +13,7 @@ import { expect } from "chai";
 
 import { delay } from "../src/delay.js";
 
-async function checkIfPxPeersExist(
+async function assertPxPeersExist(
   waku: LightNode
 ): Promise<Peer[] | undefined> {
   const allPeers = await waku.libp2p.peerStore.all();
@@ -36,40 +36,18 @@ async function checkIfPxPeersExist(
   return undefined;
 }
 
-describe("Peer Exchange", () => {
+describe("Peer Exchange", async function () {
   let waku: LightNode;
   afterEach(async function () {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it.only("Auto discovery", async function () {
-    this.timeout(120_000);
-
-    waku = await createLightNode({
-      libp2p: {
-        peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
-          wakuPeerExchangeDiscovery(),
-        ],
-      },
-    });
-
-    await waku.start();
-    await delay(150000);
-
-    const pxPeers = await checkIfPxPeersExist(waku);
-
-    if (!pxPeers) throw new Error("No PX peers found");
-
-    expect(pxPeers.length).to.be.greaterThan(0);
-  });
-
-  it("Manual query on test fleet", async function () {
-    this.timeout(150_000);
+  it("Manual query on the Test Fleet returns a PX node", async function () {
+    this.timeout(25_000);
 
     // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
     // but not with locally run nwaku nodes
-    if (process.env.ci) {
+    if (process.env.CI) {
       this.skip();
     }
 
@@ -104,7 +82,81 @@ describe("Peer Exchange", () => {
       callback
     );
 
-    await checkIfPxPeersExist(waku);
+    expect(receivedCallback).to.be.true;
+  });
+});
+
+//There's currently no way to be sure if a discvoered PX peer is dialable
+// ref: https://github.com/waku-org/nwaku/issues/1484#issuecomment-1379955087
+describe.skip("Peer Exchange Dials", () => {
+  let waku: LightNode;
+  afterEach(async function () {
+    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+  });
+
+  it("Auto discovery", async function () {
+    this.timeout(15_000);
+
+    waku = await createLightNode({
+      libp2p: {
+        peerDiscovery: [
+          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
+          wakuPeerExchangeDiscovery(),
+        ],
+      },
+    });
+
+    await waku.start();
+    await delay(12000);
+
+    const pxPeers = await assertPxPeersExist(waku);
+
+    if (!pxPeers) throw new Error("No PX peers found");
+
+    expect(pxPeers.length).to.be.greaterThan(0);
+  });
+
+  it("Manual query on test fleet", async function () {
+    this.timeout(50_000);
+
+    // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
+    // but not with locally run nwaku nodes
+    if (process.env.CI) {
+      this.skip();
+    }
+
+    const waku = await createLightNode({
+      libp2p: {
+        peerDiscovery: [
+          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
+        ],
+      },
+    });
+
+    await waku.start();
+
+    await waitForRemotePeer(waku, [Protocols.PeerExchange]);
+
+    let receivedCallback = false;
+    const numPeersToRequest = 3;
+    const callback = (response: PeerExchangeResponse): void => {
+      receivedCallback = true;
+      expect(response.peerInfos.length).to.be.greaterThan(0);
+      expect(response.peerInfos.length).to.be.lessThanOrEqual(
+        numPeersToRequest
+      );
+
+      expect(response.peerInfos[0].ENR).to.not.be.null;
+    };
+
+    await waku.peerExchange.query(
+      {
+        numPeers: numPeersToRequest,
+      },
+      callback
+    );
+
+    await assertPxPeersExist(waku);
 
     expect(receivedCallback).to.be.true;
   });

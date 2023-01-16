@@ -37,7 +37,7 @@ export interface Options {
   dialAttemptsBeforeBootstrapConnection?: number;
 }
 
-interface UpdatedStates {
+export interface UpdatedStates {
   allPeers: Peer[];
   allDialablePeers: Peer[];
   bootstrapPeers: Peer[];
@@ -78,6 +78,7 @@ export class ConnectionManager {
     this.pingKeepAliveTimers = {};
     this.relayKeepAliveTimers = {};
     this.relay = relay;
+    this.dialAttempt = 1;
 
     this.startDiscoveryConnectionService(
       options.maxBootstrapPeersAllowed,
@@ -95,8 +96,6 @@ export class ConnectionManager {
     }
 
     this.isConnectionServiceStarted = true;
-
-    this.dialAttempt = 1;
 
     this.dialPeersInInterval(maxBootstrapPeersAllowed, interval);
   }
@@ -149,16 +148,16 @@ export class ConnectionManager {
     log(`Dialing next set of discovered peers in ${newInterval} ms`);
 
     // recursively run this function with increase in time
-    setTimeout(() => {
-      this.dialDiscoveredPeers(maxBootstrapPeersAllowed)
-        .then(() => {
+    this.dialDiscoveredPeers(maxBootstrapPeersAllowed)
+      .then(() => {
+        setTimeout(() => {
           this.dialPeersInInterval(maxBootstrapPeersAllowed, interval);
-        })
-        .catch((err) => {
-          log("Error dialing discovered peers", err);
-        });
-      this.dialAttempt++;
-    }, newInterval);
+        }, newInterval);
+        this.dialAttempt++;
+      })
+      .catch((err) => {
+        log("Error dialing discovered peers", err);
+      });
   }
 
   private async dialDiscoveredPeers(

@@ -20,6 +20,12 @@ export { wakuLightPush, LightPushCodec } from "./lib/light_push/index.js";
 export * as waku_relay from "./lib/relay/index.js";
 export { wakuRelay, RelayCreateOptions } from "./lib/relay/index.js";
 
+export {
+  ConnectionManager,
+  Options,
+  UpdatedStates,
+} from "./lib/ConnectionManager.js";
+
 export * as waku_store from "./lib/store/index.js";
 export {
   PageDirection,

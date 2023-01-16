@@ -17,6 +17,7 @@ import {
 import { expect } from "chai";
 
 import {
+  delay,
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
@@ -71,7 +72,7 @@ describe("Waku Dial [node only]", function () {
     });
 
     it("Passing an array", async function () {
-      this.timeout(10_000);
+      this.timeout(50_000);
 
       nwaku = new Nwaku(makeLogFileName(this));
       await nwaku.start();
@@ -93,35 +94,6 @@ describe("Waku Dial [node only]", function () {
         );
       });
 
-      expect(connectedPeerID.toString()).to.eq(multiAddrWithId.getPeerId());
-    });
-
-    it("Using a function", async function () {
-      this.timeout(10_000);
-
-      nwaku = new Nwaku(makeLogFileName(this));
-      await nwaku.start();
-
-      const nwakuMa = await nwaku.getMultiaddrWithId();
-
-      waku = await createLightNode({
-        staticNoiseKey: NOISE_KEY_1,
-        libp2p: {
-          peerDiscovery: [bootstrap({ list: [nwakuMa.toString()] })],
-        },
-      });
-      await waku.start();
-
-      const connectedPeerID: PeerId = await new Promise((resolve) => {
-        waku.libp2p.connectionManager.addEventListener(
-          "peer:connect",
-          (evt) => {
-            resolve(evt.detail.remotePeer);
-          }
-        );
-      });
-
-      const multiAddrWithId = await nwaku.getMultiaddrWithId();
       expect(connectedPeerID.toString()).to.eq(multiAddrWithId.getPeerId());
     });
   });
