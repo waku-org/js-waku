@@ -15,7 +15,7 @@ import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
 const log = debug("waku:peer-exchange-discovery");
 
 const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
-const PEER_EXCHANGE_QUERY_INTERVAL = 5 * 60 * 1000;
+const PEER_EXCHANGE_QUERY_INTERVAL = 10 * 1000;
 
 export interface Options {
   /**
@@ -47,6 +47,7 @@ export class PeerExchangeDiscovery
   private readonly options: Options;
   private isStarted: boolean;
   private intervals: Map<PeerId, NodeJS.Timeout> = new Map();
+  private queryAttempt = 0;
 
   private readonly eventHandler = async (
     event: CustomEvent<PeerProtocolsChangeData>
@@ -55,10 +56,13 @@ export class PeerExchangeDiscovery
     if (!protocols.includes(PeerExchangeCodec) || this.intervals.get(peerId))
       return;
 
-    await this.query(peerId);
-    const interval = setInterval(async () => {
+    setTimeout(async () => {
       await this.query(peerId);
-    }, PEER_EXCHANGE_QUERY_INTERVAL);
+    }, 5000);
+    const interval = setInterval(async () => {
+      this.queryAttempt++;
+      await this.query(peerId);
+    }, PEER_EXCHANGE_QUERY_INTERVAL * this.queryAttempt);
 
     this.intervals.set(peerId, interval);
   };
@@ -125,7 +129,8 @@ export class PeerExchangeDiscovery
             continue;
           }
 
-          const { peerId, multiaddrs } = ENR;
+          const { peerId } = ENR;
+          const multiaddrs = ENR.getFullMultiaddrs();
 
           if (!peerId) {
             log("no peerId");
@@ -136,12 +141,21 @@ export class PeerExchangeDiscovery
             continue;
           }
 
-          // check if peer is already in peerStore
-          const existingPeer = await this.components.peerStore.get(peerId);
-          if (existingPeer) {
-            log("peer already in peerStore");
+          // weird hack as peerStore.get() throws an error if peer is not in peerStore
+          try {
+            // check if peer is already in peerStore
+            // continue if already exists
+            await this.components.peerStore.get(peerId);
             continue;
+          } catch (e) {
+            // peer is not in peerStore and thus we proceed
           }
+
+          const tags = (await this.components.peerStore.getTags(peerId)).map(
+            ({ name }) => name
+          );
+
+          if (tags.includes(DEFAULT_BOOTSTRAP_TAG_NAME)) continue;
 
           await this.components.peerStore.tagPeer(
             peerId,
