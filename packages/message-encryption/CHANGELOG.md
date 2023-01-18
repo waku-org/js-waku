@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.8] - 2023-01-18
+
 ### Changed
 
 - Export `Encoder` and `Decoder` types.
@@ -46,7 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Alpha version of `@waku/message-encryption`.
 
-[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.7...HEAD
+[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.8...HEAD
+[0.0.8]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.7...@waku/message-encryption@0.0.8
 [0.0.7]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.6...@waku/message-encryption@0.0.7
 [0.0.6]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.5...@waku/message-encryption@0.0.6
 [0.0.5]: https://github.com/waku-org/js-waku/compare/@waku/message-encryption@0.0.4...@waku/message-encryption@0.0.5
