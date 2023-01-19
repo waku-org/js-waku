@@ -11,12 +11,13 @@ const log = debug("waku:connection-manager");
 const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL = 10 * 1000;
 const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 const DEFAULT_DIAL_ATTEMPTS_BEFORE_BOOTSTRAP_CONNECTION = 5;
+const DEFAULT_DIAL_MAX_ATTEMPTS_BEFORE_BACKOFF_PEER = 3;
 
 export interface Options {
   /**
    * Max number of bootstrap peers allowed to be connected to, initially
    * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange)
-   * Is overridden by @link dialAttemptsBeforeBootstrapConnection
+   * Is overridden by @link dialCountersBeforeBootstrapConnection
    */
   maxBootstrapPeersAllowed?: number;
   /**
@@ -29,7 +30,12 @@ export interface Options {
    * This is only used when other discovery mechanisms haven't yeild peers that are dialable
    * This increases relative centralisation of the network
    */
-  dialAttemptsBeforeBootstrapConnection?: number;
+  dialCountersBeforeBootstrapConnection?: number;
+  /**
+   * Number of attempts before a peer is backoffed
+   * This is used to not spam a peer with dial attempts when it is not dialable
+   */
+  dialAttemptsBeforeBackoffPeer?: number;
 }
 
 export interface UpdatedStates {
@@ -51,7 +57,8 @@ export class ConnectionManager extends KeepAliveManager {
   private static instance: ConnectionManager;
   private libp2p: Libp2p;
   private keepAliveOptions: KeepAliveOptions;
-  private dialAttempt: number;
+  private dialCounter: number;
+  private dialAttemptsForPeer: Map<string, number> = new Map();
 
   public isConnectionServiceStarted = false;
 
@@ -82,21 +89,26 @@ export class ConnectionManager extends KeepAliveManager {
     this.libp2p = libp2p;
     this.keepAliveOptions = keepAliveOptions;
 
-    this.dialAttempt = 1;
+    this.dialCounter = 1;
 
-    const { maxBootstrapPeersAllowed, peerDiscoveryIntervalFactor } =
-      options || {};
+    const {
+      maxBootstrapPeersAllowed,
+      peerDiscoveryIntervalFactor,
+      dialAttemptsBeforeBackoffPeer,
+    } = options || {};
 
     this.startDiscoveryConnectionService(
       maxBootstrapPeersAllowed,
-      peerDiscoveryIntervalFactor
+      peerDiscoveryIntervalFactor,
+      dialAttemptsBeforeBackoffPeer
     );
     this.attachEventListeners(relay);
   }
 
   public startDiscoveryConnectionService(
     maxBootstrapPeersAllowed = DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
-    interval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL
+    interval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL,
+    dialAttemptsBeforeBackoffPeer = DEFAULT_DIAL_MAX_ATTEMPTS_BEFORE_BACKOFF_PEER
   ): void {
     if (this.isConnectionServiceStarted) {
       throw new Error("Connection service already started");
@@ -104,7 +116,11 @@ export class ConnectionManager extends KeepAliveManager {
 
     this.isConnectionServiceStarted = true;
 
-    this.dialPeersInInterval(maxBootstrapPeersAllowed, interval);
+    this.dialPeersInInterval(
+      maxBootstrapPeersAllowed,
+      interval,
+      dialAttemptsBeforeBackoffPeer
+    );
   }
 
   private attachEventListeners(relay?: IRelay): void {
@@ -135,22 +151,31 @@ export class ConnectionManager extends KeepAliveManager {
 
   private dialPeersInInterval(
     maxBootstrapPeersAllowed: number,
-    interval: number
+    interval: number,
+    dialAttemptsBeforeBackoffPeer: number
   ): void {
     // increase interval after every attempt
     // -> 1st interval: 10 seconds x 2 = 20 seconds
     // -> 2nd interval: 10 seconds x 3 = 40 seconds
     // and so on
-    const newInterval = this.dialAttempt * interval;
+    const newInterval = this.dialCounter * interval;
+
     log(`Dialing next set of discovered peers in ${newInterval} ms`);
 
     // recursively run this function with increase in time
-    this.dialDiscoveredPeers(maxBootstrapPeersAllowed)
+    this.dialDiscoveredPeers(
+      maxBootstrapPeersAllowed,
+      dialAttemptsBeforeBackoffPeer
+    )
       .then(() => {
         setTimeout(() => {
-          this.dialPeersInInterval(maxBootstrapPeersAllowed, interval);
+          this.dialPeersInInterval(
+            maxBootstrapPeersAllowed,
+            interval,
+            dialAttemptsBeforeBackoffPeer
+          );
         }, newInterval);
-        this.dialAttempt++;
+        this.dialCounter++;
       })
       .catch((err) => {
         log("Error dialing discovered peers", err);
@@ -158,7 +183,8 @@ export class ConnectionManager extends KeepAliveManager {
   }
 
   private async dialDiscoveredPeers(
-    maxBootstrapPeersAllowed: number
+    maxBootstrapPeersAllowed: number,
+    dialAttemptsBeforeBackoffPeer: number
   ): Promise<void> {
     const {
       dialableBootstrapPeers,
@@ -170,13 +196,13 @@ export class ConnectionManager extends KeepAliveManager {
     if (
       (bootstrapConnections.length < maxBootstrapPeersAllowed &&
         dialableBootstrapPeers.length > 0) ||
-      this.dialAttempt >= DEFAULT_DIAL_ATTEMPTS_BEFORE_BOOTSTRAP_CONNECTION
+      this.dialCounter >= DEFAULT_DIAL_ATTEMPTS_BEFORE_BOOTSTRAP_CONNECTION
     ) {
       for (let i = 0; i < maxBootstrapPeersAllowed; i++) {
         const peer = dialableBootstrapPeers[i];
         if (!peer) break;
 
-        this.dialPeer(peer)
+        this.dialPeer(peer, dialAttemptsBeforeBackoffPeer)
           .then(() => log(`Dial successful`))
           .catch((error) => log(error));
       }
@@ -184,7 +210,7 @@ export class ConnectionManager extends KeepAliveManager {
 
     //find & dial peers found via discovery mechanisms other than `dns-discovery`
     for (const peer of dialableNonBootstrapPeers) {
-      this.dialPeer(peer)
+      this.dialPeer(peer, dialAttemptsBeforeBackoffPeer)
         .then(() => log(`Dial successful`))
         .catch((error) => log(error));
     }
@@ -231,7 +257,7 @@ export class ConnectionManager extends KeepAliveManager {
     });
 
     const nextAttempt =
-      (DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL * this.dialAttempt) / 1000;
+      (DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL * this.dialCounter) / 1000;
 
     log(
       `
@@ -242,7 +268,7 @@ export class ConnectionManager extends KeepAliveManager {
       Current dialable peers in Peer Store: ${allDialablePeers.length}.
         Bootstrap: ${dialableBootstrapPeers.length}.
         Others: ${dialableNonBootstrapPeers.length}.
-      Dial attempt #${this.dialAttempt} - next attempt in ${nextAttempt} seconds.
+      Dial attempt #${this.dialCounter} - next attempt in ${nextAttempt} seconds.
       ====================
       `
     );
@@ -260,10 +286,10 @@ export class ConnectionManager extends KeepAliveManager {
     };
   }
 
-  private async dialPeer(peer: Peer): Promise<void> {
-    try {
-      const peerId = peer.id;
+  private async dialPeer(peer: Peer, maxAttempts: number): Promise<void> {
+    const peerId = peer.id;
 
+    try {
       log(
         `Dialing peer ${peer.id.toString()} with multiaddrs ${peer.addresses.map(
           (addr) => addr.multiaddr
@@ -280,10 +306,15 @@ export class ConnectionManager extends KeepAliveManager {
         conn.tags.push(...tags);
       });
     } catch (error) {
-      //remove peer from peerStore if dial fails
-      log("Deleting undialable peer" + peer.id.toString() + "from peerStore");
-      this.libp2p.peerStore.delete(peer.id);
-      throw `Failed to dial ${peer.id.toString()} - ${error}`;
+      //remove peer from peerStore if dial fails after max attempts
+      const dialAttempt = this.dialAttemptsForPeer.get(peerId.toString()) ?? 0;
+      this.dialAttemptsForPeer.set(peerId.toString(), dialAttempt + 1);
+
+      if (dialAttempt >= maxAttempts) {
+        log("Deleting undialable peer" + peer.id.toString() + "from peerStore");
+        this.libp2p.peerStore.delete(peer.id);
+        throw `Failed to dial ${peer.id.toString()} - ${error}`;
+      }
     }
   }
 }
