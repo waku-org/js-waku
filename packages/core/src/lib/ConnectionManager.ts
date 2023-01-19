@@ -1,13 +1,10 @@
 import { Connection } from "@libp2p/interface-connection";
-import { PeerId } from "@libp2p/interface-peer-id";
 import { Peer } from "@libp2p/interface-peer-store";
 import { IRelay, Tags } from "@waku/interfaces";
 import debug from "debug";
 import { Libp2p } from "libp2p";
 
-import { createEncoder } from "../index.js";
-
-import { RelayPingContentTopic } from "./relay/constants.js";
+import KeepAliveManager, { KeepAliveOptions } from "./keep_alive_manager.js";
 
 const log = debug("waku:connection-manager");
 
@@ -16,8 +13,6 @@ const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 const DEFAULT_DIAL_ATTEMPTS_BEFORE_BOOTSTRAP_CONNECTION = 5;
 
 export interface Options {
-  relayKeepAlive: number;
-  pingKeepAlive: number;
   /**
    * Max number of bootstrap peers allowed to be connected to, initially
    * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange)
@@ -52,35 +47,51 @@ export interface UpdatedStates {
 /**
  * ConnectionManager is a singleton class that manages different steps in a libp2p connection lifecycle
  */
-export class ConnectionManager {
+export class ConnectionManager extends KeepAliveManager {
   private static instance: ConnectionManager;
   private libp2p: Libp2p;
-  private relay?: IRelay;
-  private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>>;
-  private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>>;
+  private keepAliveOptions: KeepAliveOptions;
   private dialAttempt: number;
 
   public isConnectionServiceStarted = false;
 
-  public static create(libp2p: Libp2p, options: Options): ConnectionManager {
+  public static create(
+    libp2p: Libp2p,
+    keepAliveOptions: KeepAliveOptions,
+    relay?: IRelay,
+    options?: Options
+  ): ConnectionManager {
     if (!ConnectionManager.instance) {
-      ConnectionManager.instance = new ConnectionManager(libp2p, options);
+      ConnectionManager.instance = new ConnectionManager(
+        libp2p,
+        keepAliveOptions,
+        relay,
+        options
+      );
     }
     return ConnectionManager.instance;
   }
 
-  private constructor(libp2p: Libp2p, options: Options, relay?: IRelay) {
+  private constructor(
+    libp2p: Libp2p,
+    keepAliveOptions: KeepAliveOptions,
+    relay?: IRelay,
+    options?: Options
+  ) {
+    super();
     this.libp2p = libp2p;
-    this.pingKeepAliveTimers = new Map();
-    this.relayKeepAliveTimers = new Map();
-    this.relay = relay;
+    this.keepAliveOptions = keepAliveOptions;
+
     this.dialAttempt = 1;
 
+    const { maxBootstrapPeersAllowed, peerDiscoveryIntervalFactor } =
+      options || {};
+
     this.startDiscoveryConnectionService(
-      options.maxBootstrapPeersAllowed,
-      options.peerDiscoveryIntervalFactor
+      maxBootstrapPeersAllowed,
+      peerDiscoveryIntervalFactor
     );
-    this.attachEventListeners(options.pingKeepAlive, options.relayKeepAlive);
+    this.attachEventListeners(relay);
   }
 
   public startDiscoveryConnectionService(
@@ -96,24 +107,14 @@ export class ConnectionManager {
     this.dialPeersInInterval(maxBootstrapPeersAllowed, interval);
   }
 
-  public stopAllKeepAlives(): void {
-    for (const timer of [
-      ...Object.values(this.pingKeepAliveTimers),
-      ...Object.values(this.relayKeepAliveTimers),
-    ]) {
-      clearInterval(timer);
-    }
-
-    this.pingKeepAliveTimers.clear();
-    this.relayKeepAliveTimers.clear();
-  }
-
-  private attachEventListeners(
-    pingKeepAlive: number,
-    relayKeepAlive: number
-  ): void {
+  private attachEventListeners(relay?: IRelay): void {
     this.libp2p.connectionManager.addEventListener("peer:connect", (evt) => {
-      this.startKeepAlive(evt.detail.remotePeer, pingKeepAlive, relayKeepAlive);
+      this.startKeepAlive(
+        evt.detail.remotePeer,
+        this.libp2p.ping.bind(this),
+        this.keepAliveOptions,
+        relay
+      );
     });
 
     /**
@@ -283,52 +284,6 @@ export class ConnectionManager {
       log("Deleting undialable peer" + peer.id.toString() + "from peerStore");
       this.libp2p.peerStore.delete(peer.id);
       throw `Failed to dial ${peer.id.toString()} - ${error}`;
-    }
-  }
-
-  private startKeepAlive(
-    peerId: PeerId,
-    pingPeriodSecs: number,
-    relayPeriodSecs: number
-  ): void {
-    // Just in case a timer already exist for this peer
-    this.stopKeepAlive(peerId);
-
-    const peerIdStr = peerId.toString();
-
-    if (pingPeriodSecs !== 0) {
-      const interval = setInterval(() => {
-        this.libp2p.ping(peerId).catch((e) => {
-          log(`Ping failed (${peerIdStr})`, e);
-        });
-      }, pingPeriodSecs * 1000);
-      this.pingKeepAliveTimers.set(peerIdStr, interval);
-    }
-
-    const relay = this.relay;
-    if (relay && relayPeriodSecs !== 0) {
-      const encoder = createEncoder(RelayPingContentTopic);
-      const interval = setInterval(() => {
-        log("Sending Waku Relay ping message");
-        relay
-          .send(encoder, { payload: new Uint8Array() })
-          .catch((e) => log("Failed to send relay ping", e));
-      }, relayPeriodSecs * 1000);
-      this.relayKeepAliveTimers.set(peerId, interval);
-    }
-  }
-
-  private stopKeepAlive(peerId: PeerId): void {
-    const peerIdStr = peerId.toString();
-
-    if (this.pingKeepAliveTimers.has(peerIdStr)) {
-      clearInterval(this.pingKeepAliveTimers.get(peerIdStr));
-      this.pingKeepAliveTimers.delete(peerIdStr);
-    }
-
-    if (this.relayKeepAliveTimers.has(peerId)) {
-      clearInterval(this.relayKeepAliveTimers.get(peerId));
-      this.relayKeepAliveTimers.delete(peerId);
     }
   }
 }

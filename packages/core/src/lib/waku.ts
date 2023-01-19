@@ -97,10 +97,11 @@ export class WakuNode implements Waku {
       ? options.relayKeepAlive || DefaultRelayKeepAliveValueSecs
       : 0;
 
-    this.connectionManager = ConnectionManager.create(libp2p, {
-      relayKeepAlive,
-      pingKeepAlive,
-    });
+    this.connectionManager = ConnectionManager.create(
+      libp2p,
+      { pingKeepAlive, relayKeepAlive },
+      this.relay
+    );
 
     log(
       "Waku node created",
