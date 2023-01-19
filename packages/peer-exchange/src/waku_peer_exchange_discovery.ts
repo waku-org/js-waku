@@ -186,15 +186,10 @@ export class PeerExchangeDiscovery
             continue;
           }
 
-          // weird hack as peerStore.get() throws an error if peer is not in peerStore
-          try {
-            // check if peer is already in peerStore
-            // continue if already exists
-            await this.components.peerStore.get(peerId);
-            continue;
-          } catch (e) {
-            // peer is not in peerStore and thus we proceed
-          }
+          const isKnown = await this.components.peerStore.has(peerId);
+          //  if already exists, skip
+          if (isKnown) continue;
+          // if not, add to peerStore
 
           const tags = (await this.components.peerStore.getTags(peerId)).map(
             ({ name }) => name
