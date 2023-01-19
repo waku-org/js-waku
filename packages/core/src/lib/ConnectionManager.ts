@@ -56,12 +56,8 @@ export class ConnectionManager {
   private static instance: ConnectionManager;
   private libp2p: Libp2p;
   private relay?: IRelay;
-  private pingKeepAliveTimers: {
-    [peer: string]: ReturnType<typeof setInterval>;
-  };
-  private relayKeepAliveTimers: {
-    [peer: string]: ReturnType<typeof setInterval>;
-  };
+  private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>>;
+  private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>>;
   private dialAttempt: number;
 
   public isConnectionServiceStarted = false;
@@ -75,8 +71,8 @@ export class ConnectionManager {
 
   private constructor(libp2p: Libp2p, options: Options, relay?: IRelay) {
     this.libp2p = libp2p;
-    this.pingKeepAliveTimers = {};
-    this.relayKeepAliveTimers = {};
+    this.pingKeepAliveTimers = new Map();
+    this.relayKeepAliveTimers = new Map();
     this.relay = relay;
     this.dialAttempt = 1;
 
@@ -108,8 +104,8 @@ export class ConnectionManager {
       clearInterval(timer);
     }
 
-    this.pingKeepAliveTimers = {};
-    this.relayKeepAliveTimers = {};
+    this.pingKeepAliveTimers.clear();
+    this.relayKeepAliveTimers.clear();
   }
 
   private attachEventListeners(
@@ -301,36 +297,38 @@ export class ConnectionManager {
     const peerIdStr = peerId.toString();
 
     if (pingPeriodSecs !== 0) {
-      this.pingKeepAliveTimers[peerIdStr] = setInterval(() => {
+      const interval = setInterval(() => {
         this.libp2p.ping(peerId).catch((e) => {
           log(`Ping failed (${peerIdStr})`, e);
         });
       }, pingPeriodSecs * 1000);
+      this.pingKeepAliveTimers.set(peerIdStr, interval);
     }
 
     const relay = this.relay;
     if (relay && relayPeriodSecs !== 0) {
       const encoder = createEncoder(RelayPingContentTopic);
-      this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
+      const interval = setInterval(() => {
         log("Sending Waku Relay ping message");
         relay
           .send(encoder, { payload: new Uint8Array() })
           .catch((e) => log("Failed to send relay ping", e));
       }, relayPeriodSecs * 1000);
+      this.relayKeepAliveTimers.set(peerId, interval);
     }
   }
 
   private stopKeepAlive(peerId: PeerId): void {
     const peerIdStr = peerId.toString();
 
-    if (this.pingKeepAliveTimers[peerIdStr]) {
-      clearInterval(this.pingKeepAliveTimers[peerIdStr]);
-      delete this.pingKeepAliveTimers[peerIdStr];
+    if (this.pingKeepAliveTimers.has(peerIdStr)) {
+      clearInterval(this.pingKeepAliveTimers.get(peerIdStr));
+      this.pingKeepAliveTimers.delete(peerIdStr);
     }
 
-    if (this.relayKeepAliveTimers[peerIdStr]) {
-      clearInterval(this.relayKeepAliveTimers[peerIdStr]);
-      delete this.relayKeepAliveTimers[peerIdStr];
+    if (this.relayKeepAliveTimers.has(peerId)) {
+      clearInterval(this.relayKeepAliveTimers.get(peerId));
+      this.relayKeepAliveTimers.delete(peerId);
     }
   }
 }
