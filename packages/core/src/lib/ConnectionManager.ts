@@ -180,6 +180,8 @@ export class ConnectionManager extends KeepAliveManager {
       bootstrapConnections,
     } = await this.fetchUpdatedState();
 
+    const dialPromises: Promise<void>[] = [];
+
     // find & dial peers found via `dns-discovery`
     if (
       (bootstrapConnections.length < maxBootstrapPeersAllowed &&
@@ -190,18 +192,24 @@ export class ConnectionManager extends KeepAliveManager {
         const peer = dialableBootstrapPeers[i];
         if (!peer) break;
 
-        this.dialPeer(peer)
-          .then(() => log(`Dial successful`))
-          .catch((error) => log(error));
+        dialPromises.push(this.dialPeer(peer));
       }
     }
 
     //find & dial peers found via discovery mechanisms other than `dns-discovery`
     for (const peer of dialableNonBootstrapPeers) {
-      this.dialPeer(peer)
-        .then(() => log(`Dial successful`))
-        .catch((error) => log(error));
+      dialPromises.push(this.dialPeer(peer));
     }
+
+    log(`Dialing ${dialPromises.length} peers`);
+    const results = await Promise.allSettled(dialPromises);
+
+    const success = results.filter((result) => result.status === "fulfilled");
+    if (success.length > 0) log(`Successfully dialed ${success.length} peers`);
+
+    const errors = results.filter((result) => result.status === "rejected");
+    if (errors.length > 0)
+      log(`Failed to dial ${errors.length} peers -- might retry`);
   }
 
   private async fetchUpdatedState(): Promise<UpdatedStates> {
@@ -282,12 +290,6 @@ export class ConnectionManager extends KeepAliveManager {
     } = this.options ?? {};
 
     try {
-      log(
-        `Dialing peer ${peer.id.toString()} with multiaddrs ${peer.addresses.map(
-          (addr) => addr.multiaddr
-        )}`
-      );
-
       await this.libp2p.dial(peerId);
 
       const tags = (await this.libp2p.peerStore.getTags(peer.id)).map(
