@@ -78,6 +78,7 @@
     "@waku/core": "*",
     "@waku/interfaces": "*",
     "@waku/proto": "*",
+    "debug": "^4.3.4",
     "js-sha3": "^0.8.0"
   },
   "devDependencies": {
@@ -99,7 +100,6 @@
     "ts-loader": "^9.4.1",
     "typescript": "^4.6.3",
     "chai": "^4.3.6",
-    "debug": "^4.3.4",
     "fast-check": "^2.14.0"
   },
   "typedoc": {
