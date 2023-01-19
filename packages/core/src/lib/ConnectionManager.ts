@@ -12,6 +12,7 @@ const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL = 10 * 1000;
 const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 const DEFAULT_DIAL_ATTEMPTS_BEFORE_BOOTSTRAP_CONNECTION = 5;
 const DEFAULT_DIAL_MAX_ATTEMPTS_BEFORE_BACKOFF_PEER = 3;
+const DEFAULT_MAX_DISCOVERY_INTERVAL_MS = 5 * 60 * 1000;
 
 export interface Options {
   /**
@@ -36,6 +37,10 @@ export interface Options {
    * This is used to not spam a peer with dial attempts when it is not dialable
    */
   dialAttemptsBeforeBackoffPeer?: number;
+  /**
+   * Acts as a ceiling for the discovery interval
+   */
+  maxDiscoveryInterval?: number;
 }
 
 export interface UpdatedStates {
@@ -95,12 +100,14 @@ export class ConnectionManager extends KeepAliveManager {
       maxBootstrapPeersAllowed,
       peerDiscoveryIntervalFactor,
       dialAttemptsBeforeBackoffPeer,
+      maxDiscoveryInterval,
     } = options || {};
 
     this.startDiscoveryConnectionService(
       maxBootstrapPeersAllowed,
       peerDiscoveryIntervalFactor,
-      dialAttemptsBeforeBackoffPeer
+      dialAttemptsBeforeBackoffPeer,
+      maxDiscoveryInterval
     );
     this.attachEventListeners(relay);
   }
@@ -108,7 +115,8 @@ export class ConnectionManager extends KeepAliveManager {
   public startDiscoveryConnectionService(
     maxBootstrapPeersAllowed = DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
     interval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL,
-    dialAttemptsBeforeBackoffPeer = DEFAULT_DIAL_MAX_ATTEMPTS_BEFORE_BACKOFF_PEER
+    dialAttemptsBeforeBackoffPeer = DEFAULT_DIAL_MAX_ATTEMPTS_BEFORE_BACKOFF_PEER,
+    maxDiscoveryInterval = DEFAULT_MAX_DISCOVERY_INTERVAL_MS
   ): void {
     if (this.isConnectionServiceStarted) {
       throw new Error("Connection service already started");
@@ -119,7 +127,8 @@ export class ConnectionManager extends KeepAliveManager {
     this.dialPeersInInterval(
       maxBootstrapPeersAllowed,
       interval,
-      dialAttemptsBeforeBackoffPeer
+      dialAttemptsBeforeBackoffPeer,
+      maxDiscoveryInterval
     );
   }
 
@@ -152,13 +161,18 @@ export class ConnectionManager extends KeepAliveManager {
   private dialPeersInInterval(
     maxBootstrapPeersAllowed: number,
     interval: number,
-    dialAttemptsBeforeBackoffPeer: number
+    dialAttemptsBeforeBackoffPeer: number,
+    maxDiscoveryInterval: number = DEFAULT_MAX_DISCOVERY_INTERVAL_MS
   ): void {
     // increase interval after every attempt
     // -> 1st interval: 10 seconds x 2 = 20 seconds
     // -> 2nd interval: 10 seconds x 3 = 40 seconds
     // and so on
-    const newInterval = this.dialCounter * interval;
+    // once interval reaches >= , it will stay at 5 minutes
+    const newInterval = Math.min(
+      interval * this.dialCounter,
+      maxDiscoveryInterval
+    );
 
     log(`Dialing next set of discovered peers in ${newInterval} ms`);
 
@@ -172,7 +186,8 @@ export class ConnectionManager extends KeepAliveManager {
           this.dialPeersInInterval(
             maxBootstrapPeersAllowed,
             interval,
-            dialAttemptsBeforeBackoffPeer
+            dialAttemptsBeforeBackoffPeer,
+            maxDiscoveryInterval
           );
         }, newInterval);
         this.dialCounter++;
