@@ -11,6 +11,8 @@ import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { expect } from "chai";
 
 import { delay } from "../src/delay.js";
+import { makeLogFileName } from "../src/log_file.js";
+import { Nwaku } from "../src/nwaku.js";
 
 describe("Peer Exchange", () => {
   let waku: LightNode;
@@ -79,5 +81,90 @@ describe("Peer Exchange", () => {
     );
 
     expect(receivedCallback).to.be.true;
+  });
+
+  describe("Locally run nodes", () => {
+    let waku: LightNode;
+    let nwaku1: Nwaku;
+    let nwaku2: Nwaku;
+
+    beforeEach(async function () {
+      this.timeout(50_000);
+      nwaku1 = new Nwaku(makeLogFileName(this) + "1");
+      nwaku2 = new Nwaku(makeLogFileName(this) + "2");
+    });
+
+    afterEach(async function () {
+      !!nwaku1 && nwaku1.stop();
+      !!nwaku2 && nwaku2.stop();
+      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    });
+
+    it("nwaku interop", async function () {
+      this.timeout(50_000);
+
+      await nwaku1.start({
+        discv5Discovery: true,
+        peerExchange: true,
+        discv5UdpPort: 9007,
+      });
+
+      const enr = (await nwaku1.info()).enrUri;
+
+      await nwaku2.start({
+        discv5Discovery: true,
+        peerExchange: true,
+        discv5BootstrapNode: enr,
+        discv5UdpPort: 9043,
+      });
+
+      const nwaku1Ma = await nwaku1.getMultiaddrWithId();
+      const nwaku2Ma = await nwaku2.getMultiaddrWithId();
+
+      waku = await createLightNode();
+      await waku.start();
+      await waku.dial(nwaku2Ma);
+
+      await waitForRemotePeer(waku, [Protocols.PeerExchange]);
+
+      await delay(20000);
+
+      const numPeersToRequest = 1;
+      const callback = async (
+        response: PeerExchangeResponse
+      ): Promise<void> => {
+        const multiaddrsArr = response.peerInfos.map(
+          (peerInfo) => peerInfo.ENR && peerInfo.ENR.getFullMultiaddrs()
+        );
+
+        let isMultiaddrMatch = false;
+
+        multiaddrsArr.forEach((multiaddrs) => {
+          if (!multiaddrs) return;
+          multiaddrs.forEach((multiaddr) => {
+            if (!multiaddr || !multiaddr.equals(nwaku1Ma)) return;
+            isMultiaddrMatch = true;
+          });
+        });
+
+        expect(response.peerInfos.length).to.be.greaterThan(0);
+        expect(response.peerInfos.length).to.be.lessThanOrEqual(
+          numPeersToRequest
+        );
+        expect(response.peerInfos[0].ENR).to.not.be.null;
+
+        expect(isMultiaddrMatch).to.be.equal(true);
+
+        const peersInPeerstore = (await waku.libp2p.peerStore.all()).length;
+        expect(peersInPeerstore).to.be.greaterThan(1);
+      };
+
+      await waku.peerExchange.query(
+        {
+          numPeers: numPeersToRequest,
+        },
+        callback
+      );
+    });
   });
 });
