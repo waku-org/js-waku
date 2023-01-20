@@ -10,7 +10,6 @@ describe("nwaku", () => {
     const actual = argsToArray(args);
 
     const expected = [
-      "--listen-address=127.0.0.1",
       "--rpc=true",
       "--relay=false",
       "--rpc-admin=true",

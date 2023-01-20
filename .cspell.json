@@ -10,6 +10,7 @@
     "backoffs",
     "bitauth",
     "bitjson",
+    "extip",
     "bufbuild",
     "chainsafe",
     "cimg",

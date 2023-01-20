@@ -170,8 +170,11 @@ export class Nwaku {
 
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
+    // TODO: standardize a way to insert flags like these into the args
     const argsArray = argsToArray(mergedArgs);
-    argsArray.push("--nat:extip:127.0.0.1");
+
+    const natExtIp = "--nat:extip:127.0.0.1";
+    argsArray.push(natExtIp);
 
     if (WAKU_SERVICE_NODE_PARAMS) {
       argsArray.push(WAKU_SERVICE_NODE_PARAMS);
@@ -445,7 +448,6 @@ export function argsToArray(args: Args): Array<string> {
 
 export function defaultArgs(): Args {
   return {
-    // listenAddress: "127.0.0.1",
     rpc: true,
     relay: false,
     rpcAdmin: true,
