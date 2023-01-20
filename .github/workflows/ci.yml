@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  NWAKU_VERSION: "v0.13.0"
+  NWAKU_VERSION: "v0.14.0"
   NODE_JS: "18"
 
 jobs:
