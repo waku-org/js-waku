@@ -147,8 +147,12 @@ export class Nwaku {
 
     const mergedArgs = defaultArgs();
 
+    // nwaku takes some time to bind port so to decrease chances of conflict
+    // we also randomize the first port that portfinder will try
+    const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
+
     const ports: number[] = await new Promise((resolve, reject) => {
-      portfinder.getPorts(3, {}, (err, ports) => {
+      portfinder.getPorts(3, { port: startPort }, (err, ports) => {
         if (err) reject(err);
         resolve(ports);
       });
