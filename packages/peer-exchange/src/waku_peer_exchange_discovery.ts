@@ -17,7 +17,7 @@ const log = debug("waku:peer-exchange-discovery");
 const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
 const DEFAULT_PEER_EXCHANGE_INITIAL_QUERY_TIMEOUT_MS = 5 * 1000;
 const DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS = 10 * 1000;
-const DEFAULT_ATTEMPTS_BEFORE_BACKOFF = 3;
+const DEFAULT_ATTEMPTS_BEFORE_ABORT = 3;
 
 export interface Options {
   /**
@@ -47,7 +47,7 @@ export interface Options {
   /**
    * The number of attempts before the queries to a peer are backed off (default: 3)
    */
-  attemptsBeforeBackOff?: number;
+  attemptsBeforeAbort?: number;
 }
 
 const DEFAULT_BOOTSTRAP_TAG_NAME = "peer-exchange";
@@ -133,7 +133,7 @@ export class PeerExchangeDiscovery
     const {
       initialQueryTimeout = DEFAULT_PEER_EXCHANGE_INITIAL_QUERY_TIMEOUT_MS,
       queryInterval = DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS,
-      attemptsBeforeBackOff = DEFAULT_ATTEMPTS_BEFORE_BACKOFF,
+      attemptsBeforeAbort = DEFAULT_ATTEMPTS_BEFORE_ABORT,
     } = this.options;
 
     setTimeout(async () => {
@@ -143,7 +143,7 @@ export class PeerExchangeDiscovery
     const interval = setInterval(async () => {
       const currentAttempt = this.queryAttempts.get(peerIdStr) ?? 1;
 
-      if (currentAttempt > attemptsBeforeBackOff) {
+      if (currentAttempt > attemptsBeforeAbort) {
         this.abortQueriesForPeer(peerIdStr, interval);
         return;
       }
