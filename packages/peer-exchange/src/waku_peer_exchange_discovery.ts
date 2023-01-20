@@ -75,12 +75,9 @@ export class PeerExchangeDiscovery
     )
       return;
 
-    this.startRecurringQueries(
-      peerId,
-      this.options.initialQueryTimeout,
-      this.options.attemptsBeforeBackOff,
-      this.options.queryInterval
-    ).catch((error) => log(`Error querying peer ${error}`));
+    this.startRecurringQueries(peerId).catch((error) =>
+      log(`Error querying peer ${error}`)
+    );
   };
 
   constructor(components: PeerExchangeComponents, options: Options = {}) {
@@ -130,23 +127,24 @@ export class PeerExchangeDiscovery
   }
 
   private readonly startRecurringQueries = async (
-    peerId: PeerId,
-    firstQueryTimeout: number = DEFAULT_PEER_EXCHANGE_INITIAL_QUERY_TIMEOUT_MS,
-    attemptsBeforeBackoff: number = DEFAULT_ATTEMPTS_BEFORE_BACKOFF,
-    queryInterval: number = DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS
+    peerId: PeerId
   ): Promise<void> => {
     const peerIdStr = peerId.toString();
-    if (!this.queryAttempts.has(peerIdStr))
-      this.queryAttempts.set(peerIdStr, 1);
+    const {
+      initialQueryTimeout = DEFAULT_PEER_EXCHANGE_INITIAL_QUERY_TIMEOUT_MS,
+      queryInterval = DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS,
+      attemptsBeforeBackOff = DEFAULT_ATTEMPTS_BEFORE_BACKOFF,
+    } = this.options;
 
     setTimeout(async () => {
       await this.query(peerId);
-    }, firstQueryTimeout);
+    }, initialQueryTimeout);
 
     const interval = setInterval(async () => {
-      const currentAttempt = this.queryAttempts.get(peerIdStr) as number;
-      if (currentAttempt > attemptsBeforeBackoff) {
-        this.backOffPeer(peerIdStr, interval);
+      const currentAttempt = this.queryAttempts.get(peerIdStr) ?? 1;
+
+      if (currentAttempt > attemptsBeforeBackOff) {
+        this.abortQueriesForPeer(peerIdStr, interval);
         return;
       }
 
@@ -177,25 +175,16 @@ export class PeerExchangeDiscovery
           const { peerId } = ENR;
           const multiaddrs = ENR.getFullMultiaddrs();
 
-          if (!peerId) {
-            log("no peerId");
+          if (!peerId || !multiaddrs || multiaddrs.length === 0) continue;
+
+          if (await this.components.peerStore.has(peerId)) continue;
+
+          if (
+            (await this.components.peerStore.getTags(peerId)).find(
+              ({ name }) => name === DEFAULT_BOOTSTRAP_TAG_NAME
+            )
+          )
             continue;
-          }
-          if (!multiaddrs || multiaddrs.length === 0) {
-            log("no multiaddrs");
-            continue;
-          }
-
-          const isKnown = await this.components.peerStore.has(peerId);
-          //  if already exists, skip
-          if (isKnown) continue;
-          // if not, add to peerStore
-
-          const tags = (await this.components.peerStore.getTags(peerId)).map(
-            ({ name }) => name
-          );
-
-          if (tags.includes(DEFAULT_BOOTSTRAP_TAG_NAME)) continue;
 
           await this.components.peerStore.tagPeer(
             peerId,
@@ -220,8 +209,8 @@ export class PeerExchangeDiscovery
     );
   }
 
-  private backOffPeer(peerIdStr: string, interval: NodeJS.Timer): void {
-    log(`Backing off peer ${peerIdStr}`);
+  private abortQueriesForPeer(peerIdStr: string, interval: NodeJS.Timer): void {
+    log(`Aborting queries for peer: ${peerIdStr}`);
     clearInterval(interval);
     this.intervals.delete(peerIdStr);
     this.queryAttempts.delete(peerIdStr);
