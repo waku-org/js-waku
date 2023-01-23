@@ -12,7 +12,7 @@
     "bitauth",
     "bitjson",
     "bufbuild",
-    "centralisation",
+    "centralization",
     "chainsafe",
     "cimg",
     "ciphertext",
@@ -114,8 +114,7 @@
     "webfonts",
     "websockets",
     "wifi",
-    "xsalsa20",
-    "yeild"
+    "xsalsa20"
   ],
   "flagWords": [],
   "ignorePaths": [

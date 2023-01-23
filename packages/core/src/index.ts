@@ -24,7 +24,7 @@ export {
   ConnectionManager,
   Options,
   UpdatedStates,
-} from "./lib/ConnectionManager.js";
+} from "./lib/connection-manager.js";
 
 export * as waku_store from "./lib/store/index.js";
 export {

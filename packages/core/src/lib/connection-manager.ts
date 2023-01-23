@@ -1,14 +1,15 @@
-import { Connection } from "@libp2p/interface-connection";
-import { Peer } from "@libp2p/interface-peer-store";
+import type { Connection } from "@libp2p/interface-connection";
+import type { Peer } from "@libp2p/interface-peer-store";
 import { IRelay, Tags } from "@waku/interfaces";
+import { PeerExchangeDiscovery } from "@waku/peer-exchange";
 import debug from "debug";
-import { Libp2p } from "libp2p";
+import type { Libp2p } from "libp2p";
 
 import KeepAliveManager, { KeepAliveOptions } from "./keep_alive_manager.js";
 
 const log = debug("waku:connection-manager");
 
-const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL = 5 * 1000;
+const DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL_MS = 5 * 1000;
 const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 2;
 const DEFAULT_DIAL_ATTEMPTS_BEFORE_BOOTSTRAP_CONNECTION = 5;
 const DEFAULT_DIAL_MAX_ATTEMPTS_BEFORE_BACKOFF_PEER = 3;
@@ -18,7 +19,7 @@ export interface Options {
   /**
    * Max number of bootstrap peers allowed to be connected to, initially
    * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange)
-   * Is overridden by @link dialCountersBeforeBootstrapConnection
+   * Is overridden by {@link maxDialCountersBeforeBootstrapConnection}
    */
   maxBootstrapPeersAllowed?: number;
   /**
@@ -26,9 +27,9 @@ export interface Options {
    */
   basePeerDiscoveryInterval?: number;
   /**
-   * Number of attempts before dialing all available bootstrap nodes
-   * This is only used when other discovery mechanisms haven't yeild peers that are dialable
-   * This increases relative centralisation of the network
+   *  Number of attempts before dialling bootstrap nodes over the {@link maxBootstrapPeersAllowed} value.
+   * This is only used when other discovery mechanisms haven't yield peers that are dialable
+   * This increases relative centralization of the network
    */
   maxDialCountersBeforeBootstrapConnection?: number;
   /**
@@ -139,7 +140,7 @@ export class ConnectionManager extends KeepAliveManager {
 
   private dialPeersInInterval(): void {
     const {
-      basePeerDiscoveryInterval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL,
+      basePeerDiscoveryInterval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL_MS,
       maxPeerDiscoveryInterval = DEFAULT_MAX_DISCOVERY_INTERVAL_MS,
     } = this.options ?? {};
 
@@ -196,7 +197,7 @@ export class ConnectionManager extends KeepAliveManager {
       }
     }
 
-    //find & dial peers found via discovery mechanisms other than `dns-discovery`
+    // find & dial peers found via non-bootstrap discovery mechanisms such as `peer-exchange`
     for (const peer of dialableNonBootstrapPeers) {
       dialPromises.push(this.dialPeer(peer));
     }
@@ -252,8 +253,11 @@ export class ConnectionManager extends KeepAliveManager {
       }
     });
 
-    const nextAttempt =
-      (DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL * this.dialCounter) / 1000;
+    const {
+      basePeerDiscoveryInterval = DEFAULT_PEER_DISCOVERY_CONNECTION_INTERVAL_MS,
+    } = this.options ?? {};
+
+    const nextAttempt = (basePeerDiscoveryInterval * this.dialCounter) / 1000;
 
     log(
       `

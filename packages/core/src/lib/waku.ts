@@ -16,7 +16,7 @@ import { PeerExchangeCodec } from "@waku/peer-exchange";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
-import { ConnectionManager } from "./ConnectionManager.js";
+import { ConnectionManager } from "./connection-manager.js";
 import { FilterCodec, FilterComponents } from "./filter/index.js";
 import { LightPushCodec, LightPushComponents } from "./light_push/index.js";
 import * as relayConstants from "./relay/constants.js";
