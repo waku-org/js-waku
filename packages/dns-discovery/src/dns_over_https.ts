@@ -18,7 +18,7 @@ export class DnsOverHttps implements DnsClient {
     toEndpoint({
       name: "AhaDNS",
       protocol: "https:",
-      host: "https://doh.la.ahadns.net/dns-query",
+      host: "doh.la.ahadns.net",
       ipv4: "45.67.219.208",
     }),
     toEndpoint({
