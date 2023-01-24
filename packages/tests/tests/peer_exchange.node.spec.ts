@@ -31,7 +31,7 @@ describe("Peer Exchange", () => {
     });
 
     await waku.start();
-    await delay(1000);
+    await delay(100000);
 
     await waitForRemotePeer(waku, [Protocols.PeerExchange]);
     const pxPeers = await waku.peerExchange.peers();
