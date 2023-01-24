@@ -9,7 +9,7 @@ const enrTree = `enrtree://${publicKey}@${fqdn}`;
 const maxQuantity = 3;
 
 describe("DNS Discovery: Compliance Test", async function () {
-  this.timeout(5000);
+  this.timeout(10000);
   tests({
     async setup() {
       return wakuDnsDiscovery(enrTree, {
