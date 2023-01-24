@@ -57,7 +57,7 @@ export class PeerExchangeDiscovery
   private readonly peerExchange: WakuPeerExchange;
   private readonly options: Options;
   private isStarted: boolean;
-  private intervals: Map<string, NodeJS.Timeout> = new Map();
+  private queryingPeers: Set<string> = new Set();
   private queryAttempts: Map<string, number> = new Map();
 
   private readonly eventHandler = async (
@@ -66,10 +66,11 @@ export class PeerExchangeDiscovery
     const { protocols, peerId } = event.detail;
     if (
       !protocols.includes(PeerExchangeCodec) ||
-      this.intervals.get(peerId.toString())
+      this.queryingPeers.has(peerId.toString())
     )
       return;
 
+    this.queryingPeers.add(peerId.toString());
     this.startRecurringQueries(peerId).catch((error) =>
       log(`Error querying peer ${error}`)
     );
@@ -106,7 +107,7 @@ export class PeerExchangeDiscovery
     if (!this.isStarted) return;
     log("Stopping peer exchange node discovery");
     this.isStarted = false;
-    this.intervals.forEach((interval) => clearInterval(interval));
+    this.queryingPeers.clear();
     this.components.peerStore.removeEventListener(
       "change:protocols",
       this.eventHandler
@@ -132,19 +133,17 @@ export class PeerExchangeDiscovery
 
     await this.query(peerId);
 
-    const interval = setInterval(async () => {
-      const currentAttempt = this.queryAttempts.get(peerIdStr) ?? 1;
-      if (currentAttempt > maxRetries) {
-        this.abortQueriesForPeer(peerIdStr, interval);
-        return;
-      }
+    const currentAttempt = this.queryAttempts.get(peerIdStr) ?? 1;
 
+    if (currentAttempt > maxRetries) {
+      this.abortQueriesForPeer(peerIdStr);
+      return;
+    }
+
+    setTimeout(async () => {
       this.queryAttempts.set(peerIdStr, currentAttempt + 1);
-
-      await this.query(peerId);
-    }, queryInterval * (this.queryAttempts.get(peerIdStr) as number));
-
-    this.intervals.set(peerIdStr, interval);
+      await this.startRecurringQueries(peerId);
+    }, queryInterval * currentAttempt);
   };
 
   private query(peerId: PeerId): Promise<void> {
@@ -200,10 +199,9 @@ export class PeerExchangeDiscovery
     );
   }
 
-  private abortQueriesForPeer(peerIdStr: string, interval: NodeJS.Timer): void {
+  private abortQueriesForPeer(peerIdStr: string): void {
     log(`Aborting queries for peer: ${peerIdStr}`);
-    clearInterval(interval);
-    this.intervals.delete(peerIdStr);
+    this.queryingPeers.delete(peerIdStr);
     this.queryAttempts.delete(peerIdStr);
   }
 }
