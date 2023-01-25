@@ -30,6 +30,7 @@ const log = debug("waku:peer-exchange");
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
  */
 export class WakuPeerExchange implements IPeerExchange {
+  multicodec: string;
   private callback:
     | ((response: PeerExchangeResponse) => Promise<void>)
     | undefined;
@@ -42,6 +43,7 @@ export class WakuPeerExchange implements IPeerExchange {
     public components: PeerExchangeComponents,
     public createOptions?: ProtocolOptions
   ) {
+    this.multicodec = PeerExchangeCodec;
     this.components.registrar
       .handle(PeerExchangeCodec, this.handler.bind(this))
       .catch((e) => log("Failed to register peer exchange protocol", e));

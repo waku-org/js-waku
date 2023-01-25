@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `multicodec` property from protocol interfaces.
+
+### Removed
+
+- Dependency on `@waku/peer-exchange`.
+
 ## [@waku/core@0.0.10] - 2023-01-25
 
 ### Changed
