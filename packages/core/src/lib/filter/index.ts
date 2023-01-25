@@ -268,15 +268,12 @@ class Filter implements IFilter {
   }
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {
-    const res = await selectPeerForProtocol(
+    const { peer } = await selectPeerForProtocol(
       this.peerStore,
       [this.multicodec],
       peerId
     );
-    if (!res) {
-      throw new Error(`Failed to select peer for ${this.multicodec}`);
-    }
-    return res.peer;
+    return peer;
   }
 
   async peers(): Promise<Peer[]> {
