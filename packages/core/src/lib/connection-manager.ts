@@ -129,6 +129,7 @@ export class ConnectionManager extends KeepAliveManager {
       );
     });
 
+    // TODO: ensure that these following issues are updated and confirmed
     /**
      * NOTE: Event is not being emitted on closing nor losing a connection.
      * @see https://github.com/libp2p/js-libp2p/issues/939
