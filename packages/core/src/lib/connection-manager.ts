@@ -1,7 +1,6 @@
 import type { Connection } from "@libp2p/interface-connection";
 import type { Peer } from "@libp2p/interface-peer-store";
 import { IRelay, Tags } from "@waku/interfaces";
-import { PeerExchangeDiscovery } from "@waku/peer-exchange";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
@@ -27,7 +26,8 @@ export interface Options {
    */
   basePeerDiscoveryInterval?: number;
   /**
-   *  Number of attempts before dialling bootstrap nodes over the {@link maxBootstrapPeersAllowed} value.
+   * Number of attempts before dialling bootstrap nodes over the {@link maxBootstrapPeersAllowed} value.
+   * Dialing is the process of opening an outgoing connection to a listening peer with a transport that is supported by both peers.
    * This is only used when other discovery mechanisms haven't yield peers that are dialable
    * This increases relative centralization of the network
    */
@@ -55,12 +55,19 @@ export interface UpdatedStates {
   nonBootstrapConnections: Connection[];
 }
 
+export interface Libp2pComponents {
+  connectionManager: Libp2p["connectionManager"];
+  peerStore: Libp2p["peerStore"];
+  ping: Libp2p["ping"];
+  dial: Libp2p["dial"];
+}
+
 /**
  * ConnectionManager is a singleton class that manages different steps in a libp2p connection lifecycle
  */
 export class ConnectionManager extends KeepAliveManager {
   private static instance: ConnectionManager;
-  private libp2p: Libp2p;
+  private libp2p: Libp2pComponents;
   private options?: Options;
   private keepAliveOptions: KeepAliveOptions;
   private dialCounter: number;
@@ -69,7 +76,7 @@ export class ConnectionManager extends KeepAliveManager {
   public isConnectionServiceStarted = false;
 
   public static create(
-    libp2p: Libp2p,
+    libp2p: Libp2pComponents,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
     options?: Options
@@ -86,7 +93,7 @@ export class ConnectionManager extends KeepAliveManager {
   }
 
   private constructor(
-    libp2p: Libp2p,
+    libp2p: Libp2pComponents,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
     options?: Options
@@ -183,7 +190,7 @@ export class ConnectionManager extends KeepAliveManager {
 
     const dialPromises: Promise<void>[] = [];
 
-    // find & dial peers found via `dns-discovery`
+    // find & dial peers found via `dns-discovery` or other bootstrap discovery method
     if (
       (bootstrapConnections.length < maxBootstrapPeersAllowed &&
         dialableBootstrapPeers.length > 0) ||
