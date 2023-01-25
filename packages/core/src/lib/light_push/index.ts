@@ -67,7 +67,7 @@ class LightPush implements ILightPush {
 
     if (!connection) throw "Failed to get a connection to the peer";
 
-    const stream = await connection.newStream(LightPushCodec);
+    const stream = await connection.newStream(this.multicodec);
 
     const recipients: PeerId[] = [];
 
@@ -116,7 +116,7 @@ class LightPush implements ILightPush {
    * peers.
    */
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.peerStore, [LightPushCodec]);
+    return getPeersForProtocol(this.peerStore, [this.multicodec]);
   }
 
   /**

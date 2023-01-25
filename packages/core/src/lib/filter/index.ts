@@ -61,7 +61,7 @@ class Filter implements IFilter {
     this.subscriptions = new Map();
     this.decoders = new Map();
     this.libp2p
-      .handle(FilterCodec, this.onRequest.bind(this))
+      .handle(this.multicodec, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
   }
 
@@ -264,23 +264,23 @@ class Filter implements IFilter {
       throw new Error("Failed to get a connection to the peer");
     }
 
-    return connection.newStream(FilterCodec);
+    return connection.newStream(this.multicodec);
   }
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {
     const res = await selectPeerForProtocol(
       this.peerStore,
-      [FilterCodec],
+      [this.multicodec],
       peerId
     );
     if (!res) {
-      throw new Error(`Failed to select peer for ${FilterCodec}`);
+      throw new Error(`Failed to select peer for ${this.multicodec}`);
     }
     return res.peer;
   }
 
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.peerStore, [FilterCodec]);
+    return getPeersForProtocol(this.peerStore, [this.multicodec]);
   }
 
   async randomPeer(): Promise<Peer | undefined> {

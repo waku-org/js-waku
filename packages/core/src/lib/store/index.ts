@@ -239,7 +239,7 @@ class Store implements IStore {
 
     const res = await selectPeerForProtocol(
       this.peerStore,
-      [StoreCodec],
+      [this.multicodec],
       options?.peerId
     );
 
@@ -269,7 +269,7 @@ class Store implements IStore {
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.peerStore, [StoreCodec]);
+    return getPeersForProtocol(this.peerStore, [this.multicodec]);
   }
 
   get peerStore(): PeerStore {
