@@ -68,7 +68,7 @@
     "@libp2p/mplex": "^7.0.0",
     "@libp2p/websockets": "^5.0.0",
     "@waku/core": "*",
-    "@waku/dns-discovery": "^0.0.3",
+    "@waku/dns-discovery": "*",
     "@waku/peer-exchange": "*",
     "interface-datastore": "^7.0.1"
   },
