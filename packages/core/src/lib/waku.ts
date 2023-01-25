@@ -12,16 +12,15 @@ import type {
   Waku,
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { PeerExchangeCodec } from "@waku/peer-exchange";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
-import { FilterCodec, FilterComponents } from "./filter/index.js";
-import { LightPushCodec, LightPushComponents } from "./light_push/index.js";
+import { FilterComponents } from "./filter/index.js";
+import { LightPushComponents } from "./light_push/index.js";
 import { createEncoder } from "./message/version_0.js";
 import * as relayConstants from "./relay/constants.js";
-import { RelayCodecs, RelayPingContentTopic } from "./relay/constants.js";
-import { StoreCodec, StoreComponents } from "./store/index.js";
+import { RelayPingContentTopic } from "./relay/constants.js";
+import { StoreComponents } from "./store/index.js";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -165,20 +164,50 @@ export class WakuNode implements Waku {
 
     const codecs: string[] = [];
     if (_protocols.includes(Protocols.Relay)) {
-      RelayCodecs.forEach((codec) => codecs.push(codec));
+      if (this.relay) {
+        this.relay.multicodecs.forEach((codec) => codecs.push(codec));
+      } else {
+        log(
+          "Relay codec not included in dial codec: protocol not mounted locally"
+        );
+      }
     }
     if (_protocols.includes(Protocols.Store)) {
-      codecs.push(StoreCodec);
+      if (this.store) {
+        codecs.push(this.store.multicodec);
+      } else {
+        log(
+          "Store codec not included in dial codec: protocol not mounted locally"
+        );
+      }
     }
     if (_protocols.includes(Protocols.LightPush)) {
-      codecs.push(LightPushCodec);
+      if (this.lightPush) {
+        codecs.push(this.lightPush.multicodec);
+      } else {
+        log(
+          "Light Push codec not included in dial codec: protocol not mounted locally"
+        );
+      }
     }
     if (_protocols.includes(Protocols.Filter)) {
-      codecs.push(FilterCodec);
+      if (this.filter) {
+        codecs.push(this.filter.multicodec);
+      } else {
+        log(
+          "Filter codec not included in dial codec: protocol not mounted locally"
+        );
+      }
     }
 
     if (_protocols.includes(Protocols.PeerExchange)) {
-      codecs.push(PeerExchangeCodec);
+      if (this.peerExchange) {
+        codecs.push(this.peerExchange.multicodec);
+      } else {
+        log(
+          "Peer Exchange codec not included in dial codec: protocol not mounted locally"
+        );
+      }
     }
 
     log(`Dialing to ${peer.toString()} with protocols ${_protocols}`);
