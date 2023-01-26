@@ -91,7 +91,6 @@
     "@waku/byte-utils": "*",
     "@waku/interfaces": "*",
     "@waku/libp2p-utils": "*",
-    "@waku/peer-exchange": "*",
     "@waku/proto": "*",
     "debug": "^4.3.4",
     "it-all": "^1.0.6",

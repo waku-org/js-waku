@@ -105,9 +105,11 @@ export interface QueryOptions {
  * The Waku Store protocol can be used to retrieved historical messages.
  */
 class Store implements IStore {
+  multicodec: string;
   pubSubTopic: string;
 
   constructor(public components: StoreComponents, options?: CreateOptions) {
+    this.multicodec = StoreCodec;
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
   }
 

@@ -12,6 +12,7 @@ export enum Protocols {
 }
 
 export interface PointToPointProtocol {
+  multicodec: string;
   peerStore: PeerStore;
   peers: () => Promise<Peer[]>;
 }
