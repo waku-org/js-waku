@@ -13,12 +13,12 @@ export interface IRateLimitProof {
  * Field types matches the protobuf type over the wire
  */
 export interface IProtoMessage {
-  payload: Uint8Array | undefined;
-  contentTopic: string | undefined;
-  version: number | undefined;
-  timestamp: bigint | undefined;
-  rateLimitProof: IRateLimitProof | undefined;
-  ephemeral: boolean | undefined;
+  payload?: Uint8Array;
+  contentTopic?: string;
+  version?: number;
+  timestamp?: bigint;
+  rateLimitProof?: IRateLimitProof;
+  ephemeral?: boolean;
 }
 
 /**
