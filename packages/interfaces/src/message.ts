@@ -38,11 +38,11 @@ export interface IEncoder {
 }
 
 export interface IDecodedMessage {
-  payload: Uint8Array | undefined;
-  contentTopic: string | undefined;
-  timestamp: Date | undefined;
-  rateLimitProof: IRateLimitProof | undefined;
-  ephemeral: boolean | undefined;
+  payload?: Uint8Array;
+  contentTopic?: string;
+  timestamp?: Date;
+  rateLimitProof?: IRateLimitProof;
+  ephemeral?: boolean;
 }
 
 export interface IDecoder<T extends IDecodedMessage> {
