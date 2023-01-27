@@ -99,6 +99,7 @@ export class Nwaku {
   private pid?: number;
   private peerId?: PeerId;
   private multiaddrWithId?: Multiaddr;
+  private websocketPort?: number;
   private readonly logPath: string;
   private rpcPort?: number;
 
@@ -170,6 +171,8 @@ export class Nwaku {
       },
       args
     );
+
+    this.websocketPort = mergedArgs.websocketPort;
 
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
@@ -373,29 +376,40 @@ export class Nwaku {
   }
 
   async getPeerId(): Promise<PeerId> {
-    return await this._getPeerId().then((res) => res.peerId);
+    if (this.peerId) return this.peerId;
+    this.peerId = await this._getPeerId();
+    return this.peerId;
   }
 
   async getMultiaddrWithId(): Promise<Multiaddr> {
-    return await this._getPeerId().then((res) => res.multiaddrWithId);
+    if (this.multiaddrWithId) return this.multiaddrWithId;
+
+    if (!this.websocketPort) {
+      return Promise.reject("No websocket port defined.");
+    }
+
+    const peerId = await this.getPeerId();
+
+    this.multiaddrWithId = multiaddr(
+      `/ip4/127.0.0.1/tcp/${this.websocketPort}/ws/p2p/${peerId.toString()}`
+    );
+    return this.multiaddrWithId;
   }
 
-  private async _getPeerId(): Promise<{
-    peerId: PeerId;
-    multiaddrWithId: Multiaddr;
-  }> {
-    if (this.peerId && this.multiaddrWithId) {
-      return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
+  private async _getPeerId(): Promise<PeerId> {
+    if (this.peerId) {
+      return this.peerId;
     }
     const res = await this.info();
-    this.multiaddrWithId = res.listenAddresses
+    const multiaddrWithId = res.listenAddresses
       .map((ma) => multiaddr(ma))
       .find((ma) => ma.protoNames().includes("ws"));
-    if (!this.multiaddrWithId) throw "Nwaku did not return a ws multiaddr";
-    const peerIdStr = this.multiaddrWithId.getPeerId();
+    if (!multiaddrWithId) throw "Nwaku did not return a ws multiaddr";
+    const peerIdStr = multiaddrWithId.getPeerId();
     if (!peerIdStr) throw "Nwaku multiaddr does not contain peerId";
     this.peerId = peerIdFromString(peerIdStr);
-    return { peerId: this.peerId, multiaddrWithId: this.multiaddrWithId };
+
+    return this.peerId;
   }
 
   get rpcUrl(): string {
