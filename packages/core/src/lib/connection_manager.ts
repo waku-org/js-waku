@@ -62,8 +62,9 @@ export interface Options {
   loggingIntervalMs?: number;
 }
 
-export class ConnectionManager extends KeepAliveManager {
+export class ConnectionManager {
   private static instances = new Map<string, ConnectionManager>();
+  private keepAliveManager = new KeepAliveManager();
   private options: Options;
   private libp2pComponents: Libp2pComponents;
   private dialAttemptsForPeer: Map<string, number> = new Map();
@@ -94,7 +95,6 @@ export class ConnectionManager extends KeepAliveManager {
     relay?: IRelay,
     options?: Options
   ) {
-    super();
     this.libp2pComponents = libp2pComponents;
     this.options = options ?? {};
 
@@ -121,7 +121,7 @@ export class ConnectionManager extends KeepAliveManager {
   }
 
   stopService(): void {
-    this.stopAllKeepAlives();
+    this.keepAliveManager.stopAll();
     this.libp2pComponents.connectionManager.removeEventListener("peer:connect");
     this.libp2pComponents.connectionManager.removeEventListener(
       "peer:disconnect"
@@ -200,7 +200,7 @@ export class ConnectionManager extends KeepAliveManager {
     ) => {
       return (evt: CustomEvent<Connection>): void => {
         {
-          this.startKeepAlive(
+          this.keepAliveManager.start(
             evt.detail.remotePeer,
             this.libp2pComponents.ping.bind(this),
             keepAliveOptions,
@@ -219,7 +219,7 @@ export class ConnectionManager extends KeepAliveManager {
   private startPeerDisconnectionListener(): void {
     const onPeerDisconnect = () => {
       return (evt: CustomEvent<Connection>): void => {
-        this.stopKeepAlive(evt.detail.remotePeer);
+        this.keepAliveManager.stop(evt.detail.remotePeer);
       };
     };
 

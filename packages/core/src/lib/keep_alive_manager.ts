@@ -23,7 +23,7 @@ export default class KeepAliveManager {
     this.relayKeepAliveTimers = new Map();
   }
 
-  public startKeepAlive(
+  public start(
     peerId: PeerId,
     libp2pPing: Libp2p["ping"],
     options: KeepAliveOptions,
@@ -58,7 +58,7 @@ export default class KeepAliveManager {
     }
   }
 
-  public stopKeepAlive(peerId: PeerId): void {
+  public stop(peerId: PeerId): void {
     const peerIdStr = peerId.toString();
 
     if (this.pingKeepAliveTimers.has(peerIdStr)) {
@@ -72,7 +72,7 @@ export default class KeepAliveManager {
     }
   }
 
-  public stopAllKeepAlives(): void {
+  public stopAll(): void {
     for (const timer of [
       ...Object.values(this.pingKeepAliveTimers),
       ...Object.values(this.relayKeepAliveTimers),
