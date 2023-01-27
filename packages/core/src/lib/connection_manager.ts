@@ -7,13 +7,13 @@ import { Tags } from "@waku/interfaces";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
-import KeepAliveManager, { KeepAliveOptions } from "./keep_alive_manager.js";
+import { KeepAliveManager, KeepAliveOptions } from "./keep_alive_manager.js";
 
-const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
+export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 // TODO: add this functionality back
 // const DEFAULT_APPROX_TIME_BEFORE_BOOTSTRAP_FALLBACK_MS = 5000;
-const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
-const DEFAULT_LOGGING_INTERVAL_MS = 10_000;
+export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
+export const DEFAULT_LOGGING_INTERVAL_MS = 10_000;
 
 const log = debug("waku:connection-manager");
 
@@ -45,7 +45,6 @@ export interface Options {
   /**
    * Max number of bootstrap peers allowed to be connected to, initially
    * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange)
-   * Is overridden by {@link maxDialAttemptsBeforeBootstrapFallback}
    */
   maxBootstrapPeersAllowed?: number;
   // TODO: add this functionality back
@@ -347,6 +346,9 @@ export class ConnectionManager {
     };
   }
 
+  /**
+   * Fetches the tag names for a given peer
+   */
   private async getTagNamesForPeer(peerId: PeerId): Promise<string[]> {
     const tags = (await this.libp2pComponents.peerStore.getTags(peerId)).map(
       (tag) => tag.name
@@ -376,8 +378,4 @@ export class ConnectionManager {
   //   if (errors.length > 0)
   //     log(`Failed to dial ${errors.length} peers -- might retry`);
   // }
-
-  /**
-   * Fetches the tag names for a given peer
-   */
 }

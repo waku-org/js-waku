@@ -14,7 +14,7 @@ export interface KeepAliveOptions {
   relayKeepAlive: number;
 }
 
-export default class KeepAliveManager {
+export class KeepAliveManager {
   private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>>;
   private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>>;
 
