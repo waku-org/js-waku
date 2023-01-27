@@ -18,8 +18,8 @@ describe("Peer Exchange", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it.only("Auto discovery", async function () {
-    this.timeout(120_000);
+  it("Auto discovery", async function () {
+    this.timeout(50_000);
 
     waku = await createLightNode({
       libp2p: {
@@ -31,7 +31,7 @@ describe("Peer Exchange", () => {
     });
 
     await waku.start();
-    await delay(100000);
+    await delay(40_000);
 
     await waitForRemotePeer(waku, [Protocols.PeerExchange]);
     const pxPeers = await waku.peerExchange.peers();

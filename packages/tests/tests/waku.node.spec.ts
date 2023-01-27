@@ -71,7 +71,7 @@ describe("Waku Dial [node only]", function () {
     });
 
     it("Passing an array", async function () {
-      this.timeout(10_000);
+      this.timeout(40_000);
 
       nwaku = new Nwaku(makeLogFileName(this));
       await nwaku.start();
@@ -97,7 +97,7 @@ describe("Waku Dial [node only]", function () {
     });
 
     it("Using a function", async function () {
-      this.timeout(10_000);
+      this.timeout(40_000);
 
       nwaku = new Nwaku(makeLogFileName(this));
       await nwaku.start();

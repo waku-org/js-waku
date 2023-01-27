@@ -30,7 +30,7 @@ export default class KeepAliveManager {
     relay?: IRelay
   ): void {
     // Just in case a timer already exist for this peer
-    this.stopKeepAlive(peerId);
+    this.stop(peerId);
 
     const { pingKeepAlive: pingPeriodSecs, relayKeepAlive: relayPeriodSecs } =
       options;
