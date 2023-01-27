@@ -97,7 +97,10 @@ export class WakuNode implements Waku {
       ? options.relayKeepAlive || DefaultRelayKeepAliveValueSecs
       : 0;
 
+    const peerId = this.libp2p.peerId.toString();
+
     this.connectionManager = ConnectionManager.create(
+      peerId,
       {
         connectionManager: libp2p.connectionManager,
         peerStore: libp2p.peerStore,
@@ -110,7 +113,7 @@ export class WakuNode implements Waku {
 
     log(
       "Waku node created",
-      this.libp2p.peerId.toString(),
+      peerId,
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
         .lightPush}, filter: ${!!this.filter}, peer exchange: ${!!this
         .peerExchange} `

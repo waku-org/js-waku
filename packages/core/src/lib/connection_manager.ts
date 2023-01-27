@@ -59,26 +59,29 @@ export interface Options {
 }
 
 export class ConnectionManager extends KeepAliveManager {
-  private static instance: ConnectionManager;
+  private static instances: Map<string, ConnectionManager>;
   private options: Options;
   private libp2pComponents: Libp2pComponents;
   private dialAttemptsForPeer: Map<string, number> = new Map();
 
   public static create(
+    peerId: string,
     libp2p: Libp2pComponents,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
     options?: Options
   ): ConnectionManager {
-    if (!ConnectionManager.instance) {
-      ConnectionManager.instance = new ConnectionManager(
+    let instance = ConnectionManager.instances.get(peerId);
+    if (!instance) {
+      instance = new ConnectionManager(
         libp2p,
         keepAliveOptions,
         relay,
         options
       );
+      ConnectionManager.instances.set(peerId, instance);
     }
-    return ConnectionManager.instance;
+    return instance;
   }
 
   constructor(
