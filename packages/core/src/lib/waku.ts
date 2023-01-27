@@ -168,7 +168,7 @@ export class WakuNode implements Waku {
   }
 
   async stop(): Promise<void> {
-    this.connectionManager.stopAllKeepAlives();
+    this.connectionManager.stopService();
     await this.libp2p.stop();
   }
 

@@ -114,6 +114,15 @@ export class ConnectionManager extends KeepAliveManager {
     this.startPeerDisconnectionListener();
   }
 
+  stopService(): void {
+    this.stopAllKeepAlives();
+    this.libp2pComponents.connectionManager.removeEventListener("peer:connect");
+    this.libp2pComponents.connectionManager.removeEventListener(
+      "peer:disconnect"
+    );
+    this.libp2pComponents.peerStore.removeEventListener("peer");
+  }
+
   private async dialPeer(peerId: PeerId): Promise<void> {
     const { maxDialAttemptsForPeer = DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER } =
       this.options;
@@ -158,25 +167,22 @@ export class ConnectionManager extends KeepAliveManager {
     }
   }
 
-  private startPeerDiscoveryListener(): void {
-    const onDiscovery = async (evt: CustomEvent<PeerInfo>): Promise<void> => {
+  private onPeerDiscovery = () => {
+    return async (evt: CustomEvent<PeerInfo>): Promise<void> => {
       const { id: peerId } = evt.detail;
-
       if (!(await this.shouldDialPeer(peerId))) return;
 
       this.dialPeer(peerId).catch((err) =>
         log(`Error dialing peer ${peerId.toString()} : ${err}`)
       );
     };
+  };
 
-    this.libp2pComponents.peerStore.addEventListener("peer", onDiscovery);
-  }
-
-  private startPeerConnectionListener(
+  private onPeerConnect = (
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay
-  ): void {
-    const onConnect = (evt: CustomEvent<Connection>): void => {
+  ) => {
+    return (evt: CustomEvent<Connection>): void => {
       {
         this.startKeepAlive(
           evt.detail.remotePeer,
@@ -186,10 +192,28 @@ export class ConnectionManager extends KeepAliveManager {
         );
       }
     };
+  };
 
+  private onPeerDisconnect = () => {
+    return (evt: CustomEvent<Connection>): void => {
+      this.stopKeepAlive(evt.detail.remotePeer);
+    };
+  };
+
+  private startPeerDiscoveryListener(): void {
+    this.libp2pComponents.peerStore.addEventListener(
+      "peer",
+      this.onPeerDiscovery
+    );
+  }
+
+  private startPeerConnectionListener(
+    keepAliveOptions: KeepAliveOptions,
+    relay?: IRelay
+  ): void {
     this.libp2pComponents.connectionManager.addEventListener(
       "peer:connect",
-      onConnect
+      this.onPeerConnect(keepAliveOptions, relay)
     );
   }
 
@@ -208,9 +232,7 @@ export class ConnectionManager extends KeepAliveManager {
      */
     this.libp2pComponents.connectionManager.addEventListener(
       "peer:disconnect",
-      (evt) => {
-        this.stopKeepAlive(evt.detail.remotePeer);
-      }
+      this.onPeerDisconnect
     );
   }
 
