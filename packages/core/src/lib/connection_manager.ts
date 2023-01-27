@@ -59,7 +59,7 @@ export interface Options {
 }
 
 export class ConnectionManager extends KeepAliveManager {
-  private static instances: Map<string, ConnectionManager>;
+  private static instances = new Map<string, ConnectionManager>();
   private options: Options;
   private libp2pComponents: Libp2pComponents;
   private dialAttemptsForPeer: Map<string, number> = new Map();
