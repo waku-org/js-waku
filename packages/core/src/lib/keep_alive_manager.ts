@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { IRelay } from "@waku/interfaces";
+import type { IRelay } from "@waku/interfaces";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
@@ -47,7 +47,7 @@ export default class KeepAliveManager {
     }
 
     if (relay && relayPeriodSecs !== 0) {
-      const encoder = createEncoder(RelayPingContentTopic);
+      const encoder = createEncoder(RelayPingContentTopic, true);
       const interval = setInterval(() => {
         log("Sending Waku Relay ping message");
         relay

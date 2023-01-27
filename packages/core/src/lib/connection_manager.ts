@@ -1,15 +1,17 @@
 import { Connection } from "@libp2p/interface-connection";
-import { PeerId } from "@libp2p/interface-peer-id";
-import { PeerInfo } from "@libp2p/interface-peer-info";
-import { Peer } from "@libp2p/interface-peer-store";
-import { IRelay, Tags } from "@waku/interfaces";
+import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerInfo } from "@libp2p/interface-peer-info";
+import type { Peer } from "@libp2p/interface-peer-store";
+import type { IRelay } from "@waku/interfaces";
+import { Tags } from "@waku/interfaces";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
 import KeepAliveManager, { KeepAliveOptions } from "./keep_alive_manager.js";
 
 const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 2;
-const DEFAULT_APPROX_TIME_BEFORE_BOOTSTRAP_FALLBACK_MS = 5000;
+// TODO: add this functionality back
+// const DEFAULT_APPROX_TIME_BEFORE_BOOTSTRAP_FALLBACK_MS = 5000;
 const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
 const DEFAULT_LOGGING_INTERVAL = 10_000;
 
@@ -46,13 +48,14 @@ export interface Options {
    * Is overridden by {@link maxDialAttemptsBeforeBootstrapFallback}
    */
   maxBootstrapPeersAllowed?: number;
-  /**
-   * Number of attempts before dialling bootstrap nodes over the {@link maxBootstrapPeersAllowed} value.
-   * Dialing is the process of opening an outgoing connection to a listening peer with a transport that is supported by both peers.
-   * This is only used when other discovery mechanisms haven't yield peers that are dialable
-   * This increases relative centralization of the network
-   */
-  maxTimeBeforeBootstrapFallbackMs?: number;
+  // TODO: add this functionality back
+  // /**
+  //  * Number of attempts before dialling bootstrap nodes over the {@link maxBootstrapPeersAllowed} value.
+  //  * Dialing is the process of opening an outgoing connection to a listening peer with a transport that is supported by both peers.
+  //  * This is only used when other discovery mechanisms haven't yield peers that are dialable
+  //  * This increases relative centralization of the network
+  //  */
+  // maxTimeBeforeBootstrapFallbackMs?: number;
 }
 
 export class ConnectionManager extends KeepAliveManager {
@@ -60,7 +63,6 @@ export class ConnectionManager extends KeepAliveManager {
   private options: Options;
   private libp2pComponents: Libp2pComponents;
   private dialAttemptsForPeer: Map<string, number> = new Map();
-  private loggingCounter = 0;
 
   public static create(
     libp2p: Libp2pComponents,
@@ -91,36 +93,22 @@ export class ConnectionManager extends KeepAliveManager {
 
     this.runService(keepAliveOptions, relay)
       .then(() => log(`Connection Manager is now running`))
-      .catch((error) =>
-        log(`Unexpected error while running service: ${error}`)
-      );
+      .catch((error) => log(`Unexpected error while running service`, error));
   }
 
   private async runService(
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay
   ): Promise<void> {
-    const {
-      maxTimeBeforeBootstrapFallbackMs = DEFAULT_APPROX_TIME_BEFORE_BOOTSTRAP_FALLBACK_MS,
-    } = this.options;
-    // run an incrementing timer to check if we should dial all bootstrap nodes if no other peers are found/are dialable
+    // log state every N seconds
     setInterval(async () => {
       this.fetchUpdatedState();
-
-      //TODO: fix this counter
-      if (
-        (maxTimeBeforeBootstrapFallbackMs / (DEFAULT_LOGGING_INTERVAL * 1000)) %
-          this.loggingCounter ===
-        0
-      )
-        await this.dialAllAvailableBootstrapPeers();
     }, DEFAULT_LOGGING_INTERVAL);
 
     // start event listeners
     this.startPeerDiscoveryListener();
     this.startPeerConnectionListener(keepAliveOptions, relay);
     this.startPeerDisconnectionListener();
-    this.loggingCounter += 1;
   }
 
   private async dialPeer(peerId: PeerId): Promise<void> {
@@ -171,7 +159,7 @@ export class ConnectionManager extends KeepAliveManager {
     const onDiscovery = async (evt: CustomEvent<PeerInfo>): Promise<void> => {
       const { id: peerId } = evt.detail;
 
-      if (!(await this.isPeerDialable(peerId))) return;
+      if (!(await this.shouldDialPeer(peerId))) return;
 
       this.dialPeer(peerId).catch((err) =>
         log(`Error dialing peer ${peerId.toString()} : ${err}`)
@@ -228,26 +216,29 @@ export class ConnectionManager extends KeepAliveManager {
    * 1. If the peer is a bootstrap peer, it is only dialable if the number of current bootstrap connections is less than the max allowed.
    * 2. If the peer is not a bootstrap peer
    */
-  private async isPeerDialable(peerId: PeerId): Promise<boolean> {
+  private async shouldDialPeer(peerId: PeerId): Promise<boolean> {
     const { maxBootstrapPeersAllowed = DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED } =
       this.options;
 
-    const currentBootstrapConnections = this.libp2pComponents.connectionManager
-      .getConnections()
-      .filter((conn) => {
-        conn.tags.find((name) => name === Tags.BOOTSTRAP);
-      }).length;
+    const isConnected =
+      this.libp2pComponents.connectionManager.getConnections(peerId).length > 0;
+
+    if (isConnected) return false;
 
     const isBootstrap = (await this.getTagNamesForPeer(peerId)).some(
       (tagName) => tagName === Tags.BOOTSTRAP
     );
-    const isConnected =
-      this.libp2pComponents.connectionManager.getConnections(peerId).length > 0;
 
-    if (isBootstrap && !isConnected) {
+    if (isBootstrap) {
+      const currentBootstrapConnections =
+        this.libp2pComponents.connectionManager
+          .getConnections()
+          .filter((conn) => {
+            conn.tags.find((name) => name === Tags.BOOTSTRAP);
+          }).length;
       if (currentBootstrapConnections < maxBootstrapPeersAllowed) return true;
-    } else if (!isBootstrap) {
-      if (!isConnected) return true;
+    } else {
+      return true;
     }
 
     return false;
@@ -326,27 +317,28 @@ export class ConnectionManager extends KeepAliveManager {
     };
   }
 
-  /**
-   * Dials all available bootstrap peers in the peerStore
-   */
-  private async dialAllAvailableBootstrapPeers(): Promise<void> {
-    const { dialableBootstrapPeers } = await this.fetchUpdatedState();
+  //TODO: add this functionality back in
+  // /**
+  //  * Dials all available bootstrap peers in the peerStore
+  //  */
+  // private async dialAllAvailableBootstrapPeers(): Promise<void> {
+  //   const { dialableBootstrapPeers } = await this.fetchUpdatedState();
 
-    log(`Dialing ${dialableBootstrapPeers.length} bootstrap peers`);
+  //   log(`Dialing ${dialableBootstrapPeers.length} bootstrap peers`);
 
-    const promises = [];
-    for (const peer of dialableBootstrapPeers)
-      promises.push(this.dialPeer(peer.id));
+  //   const promises = [];
+  //   for (const peer of dialableBootstrapPeers)
+  //     promises.push(this.dialPeer(peer.id));
 
-    const results = await Promise.allSettled(promises);
+  //   const results = await Promise.allSettled(promises);
 
-    const success = results.filter((result) => result.status === "fulfilled");
-    if (success.length > 0) log(`Successfully dialed ${success.length} peers`);
+  //   const success = results.filter((result) => result.status === "fulfilled");
+  //   if (success.length > 0) log(`Successfully dialed ${success.length} peers`);
 
-    const errors = results.filter((result) => result.status === "rejected");
-    if (errors.length > 0)
-      log(`Failed to dial ${errors.length} peers -- might retry`);
-  }
+  //   const errors = results.filter((result) => result.status === "rejected");
+  //   if (errors.length > 0)
+  //     log(`Failed to dial ${errors.length} peers -- might retry`);
+  // }
 
   /**
    * Fetches the tag names for a given peer
