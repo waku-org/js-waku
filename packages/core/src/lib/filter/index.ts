@@ -65,6 +65,7 @@ export type UnsubscribeFunction = () => Promise<void>;
  * - https://github.com/status-im/nwaku/issues/948
  */
 class Filter implements IFilter {
+  multicodec: string;
   pubSubTopic: string;
   private subscriptions: Map<string, Callback<any>>;
   private decoders: Map<
@@ -73,6 +74,7 @@ class Filter implements IFilter {
   >;
 
   constructor(public components: FilterComponents, options?: CreateOptions) {
+    this.multicodec = FilterCodec;
     this.subscriptions = new Map();
     this.decoders = new Map();
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
