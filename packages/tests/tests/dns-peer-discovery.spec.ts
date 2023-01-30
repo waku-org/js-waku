@@ -16,7 +16,7 @@ import { MemoryDatastore } from "datastore-core";
 const maxQuantity = 3;
 
 describe("DNS Discovery: Compliance Test", async function () {
-  this.timeout(5000);
+  this.timeout(10000);
   tests({
     async setup() {
       // create libp2p mock peerStore

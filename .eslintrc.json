@@ -30,7 +30,7 @@
     "no-constant-condition": ["error", { "checkLoops": false }],
     "import/no-extraneous-dependencies": [
       "error",
-      { "devDependencies": false }
+      { "devDependencies": ["**/*.test.ts", "**/*.spec.ts", "**/tests/**"] }
     ],
     "sort-imports": [
       "error",

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `multicodec` property on protocol interfaces.
+
+## [0.0.7] - 2023-01-18
+
+### Added
+
 - `IPeerExchange` interface.
 - `IEnr` interface.
 
@@ -26,7 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Alpha version of `@waku/interfaces`.
 
-[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.6...HEAD
+[unreleased]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.7...HEAD
+[0.0.7]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.6...@waku/interfaces@0.0.7
 [0.0.6]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.5...@waku/interfaces@0.0.6
 [0.0.5]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.4...@waku/interfaces@0.0.5
 [0.0.4]: https://github.com/waku-org/js-waku/compare/@waku/interfaces@0.0.3...@waku/interfaces@0.0.4

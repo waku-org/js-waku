@@ -16,10 +16,10 @@ export class DnsOverHttps implements DnsClient {
    */
   static DefaultEndpoints: Endpoint[] = [
     toEndpoint({
-      name: "cisco-doh",
+      name: "AhaDNS",
       protocol: "https:",
-      host: "doh.opendns.com",
-      ipv4: "146.112.41.2",
+      host: "doh.la.ahadns.net",
+      ipv4: "45.67.219.208",
     }),
     toEndpoint({
       name: "cloudflare",

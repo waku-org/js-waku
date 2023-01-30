@@ -52,9 +52,11 @@ export interface CreateOptions {
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 class LightPush implements ILightPush {
+  multicodec: string;
   pubSubTopic: string;
 
   constructor(public components: LightPushComponents, options?: CreateOptions) {
+    this.multicodec = LightPushCodec;
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
   }
 
