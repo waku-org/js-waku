@@ -76,19 +76,20 @@ export class ConnectionManager {
     options?: Options
   ): ConnectionManager {
     let instance = ConnectionManager.instances.get(peerId);
-    if (!instance)
+    if (!instance) {
       instance = new ConnectionManager(
         libp2p,
         keepAliveOptions,
         relay,
         options
       );
+    }
     ConnectionManager.instances.set(peerId, instance);
 
     return instance;
   }
 
-  constructor(
+  private constructor(
     libp2pComponents: Libp2pComponents,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
@@ -144,33 +145,22 @@ export class ConnectionManager {
 
       this.dialAttemptsForPeer.delete(peerId.toString());
     } catch (error) {
+      log(`
+        Error dialing peer ${peerId.toString()}`);
       const dialAttempt = this.dialAttemptsForPeer.get(peerId.toString()) ?? 1;
       this.dialAttemptsForPeer.set(peerId.toString(), dialAttempt + 1);
 
-      //remove peer from peerStore if dial fails after max attempts
-      if (dialAttempt > maxDialAttemptsForPeer) {
-        try {
-          log(
-            "Deleting undialable peer " +
-              peerId.toString() +
-              " from peer store as max dial attempts reached"
-          );
-          await this.libp2pComponents.peerStore.delete(peerId);
-          return;
-        } catch (error) {
-          throw (
-            "Error deleting undialable peer" +
-            peerId.toString() +
-            " from peerStore"
-          );
-        }
+      if (dialAttempt <= maxDialAttemptsForPeer) {
+        log(`Reattempting dial (${dialAttempt})`);
+        this.dialPeer(peerId);
       }
 
-      log(
-        `Failed to dial ${peerId.toString()} - reattempting (${dialAttempt})`
-      );
-
-      this.dialPeer(peerId);
+      try {
+        log(`Deleting undialable peer ${peerId.toString()} from peer store`);
+        return await this.libp2pComponents.peerStore.delete(peerId);
+      } catch (error) {
+        throw `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`;
+      }
     }
   }
 
