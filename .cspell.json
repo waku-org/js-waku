@@ -111,8 +111,7 @@
     "webfonts",
     "websockets",
     "wifi",
-    "xsalsa20",
-    "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM"
+    "xsalsa20"
   ],
   "flagWords": [],
   "ignorePaths": [

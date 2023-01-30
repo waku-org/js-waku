@@ -13,11 +13,7 @@ import {
   wakuStore,
 } from "@waku/core";
 import { DefaultUserAgent } from "@waku/core";
-import {
-  enrTree,
-  NodeCapabilityCount,
-  wakuDnsDiscovery,
-} from "@waku/dns-discovery";
+import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type { FullNode, IRelay, LightNode, RelayNode } from "@waku/interfaces";
 import { wakuPeerExchange } from "@waku/peer-exchange";
 import type { Libp2p } from "libp2p";
@@ -26,8 +22,8 @@ import { createLibp2p, Libp2pOptions } from "libp2p";
 import type { Libp2pComponents } from "./libp2p_components.js";
 
 const DEFAULT_NODE_REQUIREMENTS = {
-  lightPush: 2,
-  filter: 2,
+  lightPush: 1,
+  filter: 1,
   store: 1,
 };
 
@@ -64,11 +60,6 @@ export interface CreateOptions {
    * Use recommended bootstrap method to discovery and connect to new nodes.
    */
   defaultBootstrap?: boolean;
-
-  /**
-   * Node requirements to setup discovery with
-   */
-  nodeRequirements?: Partial<NodeCapabilityCount>;
 }
 
 /**
@@ -84,7 +75,7 @@ export async function createLightNode(
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
-    peerDiscovery.push(defaultPeerDiscovery(options.nodeRequirements));
+    peerDiscovery.push(defaultPeerDiscovery());
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
@@ -176,10 +167,10 @@ export async function createFullNode(
   ) as FullNode;
 }
 
-export function defaultPeerDiscovery(
-  nodeRequirements: Partial<NodeCapabilityCount> = DEFAULT_NODE_REQUIREMENTS
-): (components: Libp2pComponents) => PeerDiscovery {
-  return wakuDnsDiscovery(enrTree, nodeRequirements);
+export function defaultPeerDiscovery(): (
+  components: Libp2pComponents
+) => PeerDiscovery {
+  return wakuDnsDiscovery(enrTree, DEFAULT_NODE_REQUIREMENTS);
 }
 
 export async function defaultLibp2p(

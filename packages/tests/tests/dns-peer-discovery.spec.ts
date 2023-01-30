@@ -1,7 +1,7 @@
 import { Components } from "@libp2p/components";
 import tests from "@libp2p/interface-peer-discovery-compliance-tests";
 import { Peer } from "@libp2p/interface-peer-store";
-import { createEd25519PeerId } from "@libp2p/peer-id-factory";
+import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { PersistentPeerStore } from "@libp2p/peer-store";
 import { createLightNode } from "@waku/create";
 import {
@@ -22,7 +22,7 @@ describe("DNS Discovery: Compliance Test", async function () {
       // create libp2p mock peerStore
       const components = new Components({
         peerStore: new PersistentPeerStore({
-          peerId: await createEd25519PeerId(),
+          peerId: await createSecp256k1PeerId(),
           datastore: new MemoryDatastore(),
         }),
       });

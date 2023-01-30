@@ -15,9 +15,7 @@ export { NodeCapabilityCount };
 
 const log = debug("waku:peer-discovery-dns");
 
-const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
-const fqdn = "test.waku.nodes.status.im";
-const enrTree = `enrtree://${publicKey}@${fqdn}`;
+const enrTree = `enrtree://AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM@test.waku.nodes.status.im`;
 
 const DEFAULT_BOOTSTRAP_TAG_NAME = "bootstrap";
 const DEFAULT_BOOTSTRAP_TAG_VALUE = 50;
