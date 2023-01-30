@@ -96,6 +96,7 @@ jobs:
           path: packages/tests/log/
 
   node_with_go_waku:
+    if: false # Can be removed when upgrading go-waku to 0.4.0 or later
     runs-on: ubuntu-latest
     env:
       GO_WAKU_VERSION: "0.2.2"
@@ -150,6 +151,7 @@ jobs:
           path: packages/tests/log/
 
   node_with_nwaku_master:
+    if: false # Can be removed when nwaku in regular CI is bumped to v0.15.0
     runs-on: ubuntu-latest
     env:
       DEBUG: "waku*"
