@@ -52,7 +52,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
-      - run: npm run build
+      - run: npm run build:esm
       - run: npm run test:browser
 
   node:
@@ -76,7 +76,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
-      - run: npm run build
+      - run: npm run build:esm
       - run: npm run test:node
         env:
           DEBUG: ""
@@ -130,7 +130,7 @@ jobs:
           node-version: ${{ env.NODE_JS }}
 
       - uses: bahmutov/npm-install@v1
-      - run: npm run build
+      - run: npm run build:esm
       - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
@@ -184,7 +184,7 @@ jobs:
           cd nwaku
           ./build/wakunode2 --help
 
-      - run: npm run build
+      - run: npm run build:esm
       - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
