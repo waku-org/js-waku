@@ -18,6 +18,7 @@
   "scripts": {
     "prepare": "husky install",
     "build": "npm run build --workspaces --if-present",
+    "build:esm": "npm run build:esm --workspaces --if-present",
     "size": "npm run build && size-limit",
     "fix": "npm run fix --workspaces --if-present",
     "check": "npm run check --workspaces --if-present",
