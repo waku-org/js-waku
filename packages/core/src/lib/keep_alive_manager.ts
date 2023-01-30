@@ -17,23 +17,22 @@ export interface KeepAliveOptions {
 export class KeepAliveManager {
   private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>>;
   private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>>;
+  private options: KeepAliveOptions;
+  private relay?: IRelay;
 
-  constructor() {
+  constructor(options: KeepAliveOptions, relay?: IRelay) {
     this.pingKeepAliveTimers = new Map();
     this.relayKeepAliveTimers = new Map();
+    this.options = options;
+    this.relay = relay;
   }
 
-  public start(
-    peerId: PeerId,
-    libp2pPing: Libp2p["ping"],
-    options: KeepAliveOptions,
-    relay?: IRelay
-  ): void {
+  public start(peerId: PeerId, libp2pPing: Libp2p["ping"]): void {
     // Just in case a timer already exist for this peer
     this.stop(peerId);
 
     const { pingKeepAlive: pingPeriodSecs, relayKeepAlive: relayPeriodSecs } =
-      options;
+      this.options;
 
     const peerIdStr = peerId.toString();
 
@@ -46,6 +45,7 @@ export class KeepAliveManager {
       this.pingKeepAliveTimers.set(peerIdStr, interval);
     }
 
+    const relay = this.relay;
     if (relay && relayPeriodSecs !== 0) {
       const encoder = createEncoder(RelayPingContentTopic, true);
       const interval = setInterval(() => {

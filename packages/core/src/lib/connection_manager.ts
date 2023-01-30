@@ -63,7 +63,7 @@ export interface Options {
 
 export class ConnectionManager {
   private static instances = new Map<string, ConnectionManager>();
-  private keepAliveManager = new KeepAliveManager();
+  private keepAliveManager: KeepAliveManager;
   private options: Options;
   private libp2pComponents: Libp2pComponents;
   private dialAttemptsForPeer: Map<string, number> = new Map();
@@ -98,15 +98,14 @@ export class ConnectionManager {
     this.libp2pComponents = libp2pComponents;
     this.options = options ?? {};
 
-    this.runService(keepAliveOptions, relay)
+    this.keepAliveManager = new KeepAliveManager(keepAliveOptions, relay);
+
+    this.runService()
       .then(() => log(`Connection Manager is now running`))
       .catch((error) => log(`Unexpected error while running service`, error));
   }
 
-  private async runService(
-    keepAliveOptions: KeepAliveOptions,
-    relay?: IRelay
-  ): Promise<void> {
+  private async runService(): Promise<void> {
     const { loggingIntervalMs = DEFAULT_LOGGING_INTERVAL_MS } = this.options;
 
     // log state every N seconds
@@ -116,17 +115,24 @@ export class ConnectionManager {
 
     // start event listeners
     this.startPeerDiscoveryListener();
-    this.startPeerConnectionListener(keepAliveOptions, relay);
+    this.startPeerConnectionListener();
     this.startPeerDisconnectionListener();
   }
 
   stopService(): void {
     this.keepAliveManager.stopAll();
-    this.libp2pComponents.connectionManager.removeEventListener("peer:connect");
     this.libp2pComponents.connectionManager.removeEventListener(
-      "peer:disconnect"
+      "peer:connect",
+      this.onEventHandlers["peer:connect"]
     );
-    this.libp2pComponents.peerStore.removeEventListener("peer");
+    this.libp2pComponents.connectionManager.removeEventListener(
+      "peer:disconnect",
+      this.onEventHandlers["peer:disconnect"]
+    );
+    this.libp2pComponents.peerStore.removeEventListener(
+      "peer",
+      this.onEventHandlers["peer:discovery"]
+    );
   }
 
   private async dialPeer(peerId: PeerId): Promise<void> {
@@ -165,52 +171,20 @@ export class ConnectionManager {
   }
 
   private startPeerDiscoveryListener(): void {
-    const onPeerDiscovery = async (
-      evt: CustomEvent<PeerInfo>
-    ): Promise<void> => {
-      const { id: peerId } = evt.detail;
-      if (!(await this.shouldDialPeer(peerId))) return;
-
-      this.dialPeer(peerId).catch((err) =>
-        log(`Error dialing peer ${peerId.toString()} : ${err}`)
-      );
-    };
-
-    this.libp2pComponents.peerStore.addEventListener("peer", onPeerDiscovery);
+    this.libp2pComponents.peerStore.addEventListener(
+      "peer",
+      this.onEventHandlers["peer:discovery"]
+    );
   }
 
-  private startPeerConnectionListener(
-    keepAliveOptions: KeepAliveOptions,
-    relay?: IRelay
-  ): void {
-    const onPeerConnect = (
-      evt: CustomEvent<Connection>,
-      keepAliveOptions: KeepAliveOptions,
-      relay?: IRelay
-    ): void => {
-      {
-        this.keepAliveManager.start(
-          evt.detail.remotePeer,
-          this.libp2pComponents.ping.bind(this),
-          keepAliveOptions,
-          relay
-        );
-      }
-    };
-
+  private startPeerConnectionListener(): void {
     this.libp2pComponents.connectionManager.addEventListener(
       "peer:connect",
-      (evt) => onPeerConnect(evt, keepAliveOptions, relay)
+      this.onEventHandlers["peer:connect"]
     );
   }
 
   private startPeerDisconnectionListener(): void {
-    const onPeerDisconnect = () => {
-      return (evt: CustomEvent<Connection>): void => {
-        this.keepAliveManager.stop(evt.detail.remotePeer);
-      };
-    };
-
     // TODO: ensure that these following issues are updated and confirmed
     /**
      * NOTE: Event is not being emitted on closing nor losing a connection.
@@ -225,9 +199,33 @@ export class ConnectionManager {
      */
     this.libp2pComponents.connectionManager.addEventListener(
       "peer:disconnect",
-      onPeerDisconnect
+      this.onEventHandlers["peer:disconnect"]
     );
   }
+
+  private onEventHandlers = {
+    "peer:discovery": async (evt: CustomEvent<PeerInfo>): Promise<void> => {
+      const { id: peerId } = evt.detail;
+      if (!(await this.shouldDialPeer(peerId))) return;
+
+      this.dialPeer(peerId).catch((err) =>
+        log(`Error dialing peer ${peerId.toString()} : ${err}`)
+      );
+    },
+    "peer:connect": (evt: CustomEvent<Connection>): void => {
+      {
+        this.keepAliveManager.start(
+          evt.detail.remotePeer,
+          this.libp2pComponents.ping.bind(this)
+        );
+      }
+    },
+    "peer:disconnect": () => {
+      return (evt: CustomEvent<Connection>): void => {
+        this.keepAliveManager.stop(evt.detail.remotePeer);
+      };
+    },
+  };
 
   /**
    * Checks if the peer is dialable based on the following conditions:
