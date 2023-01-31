@@ -170,7 +170,7 @@ export async function createFullNode(
 export function defaultPeerDiscovery(): (
   components: Libp2pComponents
 ) => PeerDiscovery {
-  return wakuDnsDiscovery(enrTree, DEFAULT_NODE_REQUIREMENTS);
+  return wakuDnsDiscovery(enrTree["PROD"], DEFAULT_NODE_REQUIREMENTS);
 }
 
 export async function defaultLibp2p(
