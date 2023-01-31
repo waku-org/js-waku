@@ -1,5 +1,4 @@
 import { noise } from "@chainsafe/libp2p-noise";
-import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
 import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
@@ -14,13 +13,19 @@ import {
   wakuStore,
 } from "@waku/core";
 import { DefaultUserAgent } from "@waku/core";
-import { getPredefinedBootstrapNodes } from "@waku/core/lib/predefined_bootstrap_nodes";
+import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type { FullNode, IRelay, LightNode, RelayNode } from "@waku/interfaces";
 import { wakuPeerExchange } from "@waku/peer-exchange";
 import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 
 import type { Libp2pComponents } from "./libp2p_components.js";
+
+const DEFAULT_NODE_REQUIREMENTS = {
+  lightPush: 1,
+  filter: 1,
+  store: 1,
+};
 
 export { Libp2pComponents };
 
@@ -165,7 +170,7 @@ export async function createFullNode(
 export function defaultPeerDiscovery(): (
   components: Libp2pComponents
 ) => PeerDiscovery {
-  return bootstrap({ list: getPredefinedBootstrapNodes() });
+  return wakuDnsDiscovery(enrTree["PROD"], DEFAULT_NODE_REQUIREMENTS);
 }
 
 export async function defaultLibp2p(
