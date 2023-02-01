@@ -17,8 +17,26 @@ export interface PointToPointProtocol {
   peers: () => Promise<Peer[]>;
 }
 
-export type ProtocolOptions = {
+export type ProtocolCreateOptions = {
+  /**
+   * The PubSub Topic to use. Defaults to {@link @waku/core/DefaultPubSubTopic }.
+   *
+   * One and only one pubsub topic is used by Waku. This is used by:
+   * - WakuRelay to receive, route and send messages,
+   * - WakuLightPush to send messages,
+   * - WakuStore to retrieve messages.
+   *
+   * The usage of the default pubsub topic is recommended.
+   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
+   *
+   */
   pubSubTopic?: string;
+};
+
+//TODO
+// we can probably move `peerId` into `ProtocolCreateOptions` and remove `ProtocolOptions` and pass it in the constructor
+// however, filter protocol can use multiple peers, so we need to think about this
+export type ProtocolOptions = {
   /**
    * Optionally specify an PeerId for the protocol request. If not included, will use a random peer.
    */

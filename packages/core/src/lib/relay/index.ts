@@ -12,6 +12,7 @@ import type {
   IEncoder,
   IMessage,
   IRelay,
+  ProtocolCreateOptions,
   SendResult,
 } from "@waku/interfaces";
 import { IDecodedMessage } from "@waku/interfaces";
@@ -30,22 +31,7 @@ export type Observer<T extends IDecodedMessage> = {
   callback: Callback<T>;
 };
 
-export interface RelayCreateOptions extends GossipsubOpts {
-  /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
-   *
-   * One and only one pubsub topic is used by Waku. This is used by:
-   * - WakuRelay to receive, route and send messages,
-   * - WakuLightPush to send messages,
-   * - WakuStore to retrieve messages.
-   *
-   * The usage of the default pubsub topic is recommended.
-   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
-   *
-   * @default {@link DefaultPubSubTopic}
-   */
-  pubSubTopic?: string;
-}
+export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
 
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
@@ -54,7 +40,7 @@ export interface RelayCreateOptions extends GossipsubOpts {
  * @implements {require('libp2p-interfaces/src/pubsub')}
  */
 class Relay extends GossipSub implements IRelay {
-  pubSubTopic: string;
+  options: Partial<RelayCreateOptions>;
   defaultDecoder: IDecoder<IDecodedMessage>;
   public static multicodec: string = constants.RelayCodecs[0];
 
@@ -73,12 +59,13 @@ class Relay extends GossipSub implements IRelay {
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
       fallbackToFloodsub: false,
     });
+
     super(components, options);
     this.multicodecs = constants.RelayCodecs;
 
     this.observers = new Map();
 
-    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+    this.options = options ?? {};
 
     // TODO: User might want to decide what decoder should be used (e.g. for RLN)
     this.defaultDecoder = new TopicOnlyDecoder();
@@ -92,20 +79,24 @@ class Relay extends GossipSub implements IRelay {
    * @returns {void}
    */
   public async start(): Promise<void> {
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
     await super.start();
-    this.subscribe(this.pubSubTopic);
+    this.subscribe(pubSubTopic);
   }
 
   /**
    * Send Waku message.
    */
   public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+
     const msg = await encoder.toWire(message);
     if (!msg) {
       log("Failed to encode message, aborting publish");
       return { recipients: [] };
     }
-    return this.publish(this.pubSubTopic, msg);
+
+    return this.publish(pubSubTopic, msg);
   }
 
   /**
@@ -181,7 +172,8 @@ class Relay extends GossipSub implements IRelay {
   }
 
   getMeshPeers(topic?: TopicStr): PeerIdStr[] {
-    return super.getMeshPeers(topic ?? this.pubSubTopic);
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+    return super.getMeshPeers(topic ?? pubSubTopic);
   }
 }
 
