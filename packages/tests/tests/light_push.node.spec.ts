@@ -17,7 +17,9 @@ import {
 const log = debug("waku:test:lightpush");
 
 const TestContentTopic = "/test/1/waku-light-push/utf8";
-const TestEncoder = createEncoder(TestContentTopic);
+const TestEncoder = createEncoder({
+  contentTopic: TestContentTopic,
+});
 
 describe("Waku Light Push [node only]", () => {
   let waku: LightNode;
@@ -89,7 +91,6 @@ describe("Waku Light Push [node only]", () => {
       { payload: utf8ToBytes(messageText) },
       {
         peerId: nimPeerId,
-        pubSubTopic: customPubSubTopic,
       }
     );
     log("Ack received", pushResponse);

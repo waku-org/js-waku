@@ -34,7 +34,7 @@ import {
 const log = debug("waku:test:store");
 
 const TestContentTopic = "/test/1/waku-store/utf8";
-const TestEncoder = createEncoder(TestContentTopic);
+const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Store", () => {
@@ -371,13 +371,19 @@ describe("Waku Store", () => {
     const symKey = generateSymmetricKey();
     const publicKey = getPublicKey(privateKey);
 
-    const eciesEncoder = createEciesEncoder(asymTopic, publicKey);
-    const symEncoder = createSymEncoder(symTopic, symKey);
+    const eciesEncoder = createEciesEncoder({
+      contentTopic: asymTopic,
+      publicKey,
+    });
+    const symEncoder = createSymEncoder({
+      contentTopic: symTopic,
+      symKey,
+    });
 
-    const otherEncoder = createEciesEncoder(
-      TestContentTopic,
-      getPublicKey(generatePrivateKey())
-    );
+    const otherEncoder = createEciesEncoder({
+      contentTopic: TestContentTopic,
+      publicKey: getPublicKey(generatePrivateKey()),
+    });
 
     const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
     const symDecoder = createSymDecoder(symTopic, symKey);

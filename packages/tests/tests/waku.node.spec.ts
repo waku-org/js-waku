@@ -171,7 +171,10 @@ describe("Decryption Keys", () => {
     const symKey = generateSymmetricKey();
     const decoder = createDecoder(TestContentTopic, symKey);
 
-    const encoder = createEncoder(TestContentTopic, symKey);
+    const encoder = createEncoder({
+      contentTopic: TestContentTopic,
+      symKey,
+    });
     const messageText = "Message is encrypted";
     const messageTimestamp = new Date("1995-12-17T03:24:00");
     const message = {

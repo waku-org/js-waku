@@ -33,7 +33,9 @@ import {
 const log = debug("waku:test:ephemeral");
 
 const TestContentTopic = "/test/1/ephemeral/utf8";
-const TestEncoder = createEncoder(TestContentTopic);
+const TestEncoder = createEncoder({
+  contentTopic: TestContentTopic,
+});
 const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Message Ephemeral field", () => {
@@ -92,14 +94,20 @@ describe("Waku Message Ephemeral field", () => {
     const AsymContentTopic = "/test/1/ephemeral-asym/utf8";
     const SymContentTopic = "/test/1/ephemeral-sym/utf8";
 
-    const asymEncoder = eciesEncoder(
-      AsymContentTopic,
+    const asymEncoder = eciesEncoder({
+      contentTopic: AsymContentTopic,
       publicKey,
-      undefined,
-      true
-    );
-    const symEncoder = eciesEncoder(SymContentTopic, symKey, undefined, true);
-    const clearEncoder = createEncoder(TestContentTopic, true);
+      ephemeral: true,
+    });
+    const symEncoder = eciesEncoder({
+      contentTopic: SymContentTopic,
+      publicKey: symKey,
+      ephemeral: true,
+    });
+    const clearEncoder = createEncoder({
+      contentTopic: TestContentTopic,
+      ephemeral: true,
+    });
 
     const asymDecoder = eciesDecoder(AsymContentTopic, privateKey);
     const symDecoder = eciesDecoder(SymContentTopic, symKey);
@@ -159,7 +167,10 @@ describe("Waku Message Ephemeral field", () => {
   it("Ephemeral field is preserved - encoder v0", async function () {
     this.timeout(10000);
 
-    const ephemeralEncoder = createEncoder(TestContentTopic, true);
+    const ephemeralEncoder = createEncoder({
+      contentTopic: TestContentTopic,
+      ephemeral: true,
+    });
 
     const messages: DecodedMessage[] = [];
     const callback = (msg: DecodedMessage): void => {
@@ -199,13 +210,15 @@ describe("Waku Message Ephemeral field", () => {
 
     const symKey = generateSymmetricKey();
 
-    const ephemeralEncoder = symEncoder(
-      TestContentTopic,
+    const ephemeralEncoder = symEncoder({
+      contentTopic: TestContentTopic,
       symKey,
-      undefined,
-      true
-    );
-    const encoder = symEncoder(TestContentTopic, symKey);
+      ephemeral: true,
+    });
+    const encoder = symEncoder({
+      contentTopic: TestContentTopic,
+      symKey,
+    });
     const decoder = symDecoder(TestContentTopic, symKey);
 
     const messages: DecodedMessage[] = [];
@@ -247,13 +260,15 @@ describe("Waku Message Ephemeral field", () => {
     const privKey = generatePrivateKey();
     const pubKey = getPublicKey(privKey);
 
-    const ephemeralEncoder = eciesEncoder(
-      TestContentTopic,
-      pubKey,
-      undefined,
-      true
-    );
-    const encoder = eciesEncoder(TestContentTopic, pubKey);
+    const ephemeralEncoder = eciesEncoder({
+      contentTopic: TestContentTopic,
+      publicKey: pubKey,
+      ephemeral: true,
+    });
+    const encoder = eciesEncoder({
+      contentTopic: TestContentTopic,
+      publicKey: pubKey,
+    });
     const decoder = eciesDecoder(TestContentTopic, privKey);
 
     const messages: DecodedMessage[] = [];
