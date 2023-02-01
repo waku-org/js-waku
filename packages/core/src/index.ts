@@ -34,7 +34,7 @@ export {
   ConnectionManager,
   Libp2pComponents,
   UpdatedStates,
-  Options,
+  ConnectionManagerOptions,
 } from "./lib/connection_manager.js";
 
 export {

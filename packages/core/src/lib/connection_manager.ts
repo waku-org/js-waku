@@ -36,7 +36,7 @@ export interface UpdatedStates {
   nonBootstrapConnections: Connection[];
 }
 
-export interface Options {
+export interface ConnectionManagerOptions {
   /**
    * Number of attempts before a peer is considered non-dialable
    * This is used to not spam a peer with dial attempts when it is not dialable
@@ -64,7 +64,7 @@ export interface Options {
 export class ConnectionManager {
   private static instances = new Map<string, ConnectionManager>();
   private keepAliveManager: KeepAliveManager;
-  private options: Options;
+  private options: ConnectionManagerOptions;
   private libp2pComponents: Libp2pComponents;
   private dialAttemptsForPeer: Map<string, number> = new Map();
 
@@ -73,7 +73,7 @@ export class ConnectionManager {
     libp2p: Libp2pComponents,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
-    options?: Options
+    options?: ConnectionManagerOptions
   ): ConnectionManager {
     let instance = ConnectionManager.instances.get(peerId);
     if (!instance) {
@@ -93,7 +93,7 @@ export class ConnectionManager {
     libp2pComponents: Libp2pComponents,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
-    options?: Options
+    options?: ConnectionManagerOptions
   ) {
     this.libp2pComponents = libp2pComponents;
     this.options = options ?? {};
