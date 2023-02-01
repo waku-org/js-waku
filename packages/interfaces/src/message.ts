@@ -30,6 +30,16 @@ export interface IMessage {
   rateLimitProof?: IRateLimitProof;
 }
 
+export interface EncoderOptions {
+  /** The content topic to set on outgoing messages. */
+  contentTopic: string;
+  /**
+   * An optional flag to mark message as ephemeral, i.e., not to be stored by Waku Store nodes.
+   * @defaultValue `false`
+   */
+  ephemeral?: boolean;
+}
+
 export interface IEncoder {
   contentTopic: string;
   ephemeral: boolean;
