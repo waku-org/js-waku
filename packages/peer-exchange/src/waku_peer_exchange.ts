@@ -8,7 +8,6 @@ import type {
   PeerExchangeComponents,
   PeerExchangeQueryParams,
   PeerExchangeResponse,
-  ProtocolOptions,
 } from "@waku/interfaces";
 import {
   getPeersForProtocol,
@@ -37,12 +36,8 @@ export class WakuPeerExchange implements IPeerExchange {
 
   /**
    * @param components - libp2p components
-   * @param createOptions - Options for the protocol
    */
-  constructor(
-    public components: PeerExchangeComponents,
-    public createOptions?: ProtocolOptions
-  ) {
+  constructor(public components: PeerExchangeComponents) {
     this.multicodec = PeerExchangeCodec;
     this.components.registrar
       .handle(PeerExchangeCodec, this.handler.bind(this))
@@ -159,12 +154,11 @@ export class WakuPeerExchange implements IPeerExchange {
 
 /**
  *
- * @param init - Options for the protocol
  * @returns A function that creates a new peer exchange protocol
  */
-export function wakuPeerExchange(
-  init: Partial<ProtocolOptions> = {}
-): (components: PeerExchangeComponents) => WakuPeerExchange {
+export function wakuPeerExchange(): (
+  components: PeerExchangeComponents
+) => WakuPeerExchange {
   return (components: PeerExchangeComponents) =>
-    new WakuPeerExchange(components, init);
+    new WakuPeerExchange(components);
 }
