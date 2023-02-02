@@ -10,6 +10,7 @@ import {
   IDecoder,
   Index,
   IStore,
+  ProtocolCreateOptions,
 } from "@waku/interfaces";
 import {
   getPeersForProtocol,
@@ -43,18 +44,6 @@ export interface StoreComponents {
   connectionManager: ConnectionManager;
 }
 
-export interface CreateOptions {
-  /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
-   *
-   * The usage of the default pubsub topic is recommended.
-   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
-   *
-   * @default {@link DefaultPubSubTopic}
-   */
-  pubSubTopic?: string;
-}
-
 export interface TimeFilter {
   startTime: Date;
   endTime: Date;
@@ -65,11 +54,6 @@ export interface QueryOptions {
    * The peer to query. If undefined, a pseudo-random peer is selected from the connected Waku Store peers.
    */
   peerId?: PeerId;
-  /**
-   * The pubsub topic to pass to the query.
-   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/).
-   */
-  pubSubTopic?: string;
   /**
    * The direction in which pages are retrieved:
    * - { @link PageDirection.BACKWARD }: Most recent page first.
@@ -106,11 +90,14 @@ export interface QueryOptions {
  */
 class Store implements IStore {
   multicodec: string;
-  pubSubTopic: string;
+  options: ProtocolCreateOptions;
 
-  constructor(public components: StoreComponents, options?: CreateOptions) {
+  constructor(
+    public components: StoreComponents,
+    options?: ProtocolCreateOptions
+  ) {
     this.multicodec = StoreCodec;
-    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+    this.options = options ?? {};
   }
 
   /**
@@ -221,6 +208,8 @@ class Store implements IStore {
     decoders: IDecoder<T>[],
     options?: QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+
     let startTime, endTime;
 
     if (options?.timeFilter) {
@@ -242,7 +231,7 @@ class Store implements IStore {
 
     const queryOpts = Object.assign(
       {
-        pubSubTopic: this.pubSubTopic,
+        pubSubTopic: pubSubTopic,
         pageDirection: PageDirection.BACKWARD,
         pageSize: DefaultPageSize,
       },
@@ -433,7 +422,7 @@ export async function createCursor(
 }
 
 export function wakuStore(
-  init: Partial<CreateOptions> = {}
+  init: Partial<ProtocolCreateOptions> = {}
 ): (components: StoreComponents) => IStore {
   return (components: StoreComponents) => new Store(components, init);
 }

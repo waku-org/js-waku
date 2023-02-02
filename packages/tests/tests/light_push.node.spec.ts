@@ -89,7 +89,6 @@ describe("Waku Light Push [node only]", () => {
       { payload: utf8ToBytes(messageText) },
       {
         peerId: nimPeerId,
-        pubSubTopic: customPubSubTopic,
       }
     );
     log("Ack received", pushResponse);

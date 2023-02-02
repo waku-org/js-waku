@@ -88,7 +88,8 @@ export async function createLightNode(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
-  const peerExchange = wakuPeerExchange(options);
+
+  const peerExchange = wakuPeerExchange();
 
   return new WakuNode(
     options ?? {},
@@ -155,7 +156,8 @@ export async function createFullNode(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
-  const peerExchange = wakuPeerExchange(options);
+
+  const peerExchange = wakuPeerExchange();
 
   return new WakuNode(
     options ?? {},
