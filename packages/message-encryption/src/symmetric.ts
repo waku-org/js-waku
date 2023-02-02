@@ -1,5 +1,6 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import type {
+  EncoderOptions,
   IDecoder,
   IEncoder,
   IMessage,
@@ -61,6 +62,13 @@ export class Encoder implements IEncoder {
   }
 }
 
+export interface SymmetricEncoderOptions extends EncoderOptions {
+  /** The symmetric key to encrypt the payload with. */
+  symKey: Uint8Array;
+  /** An optional private key to be used to sign the payload before encryption. */
+  sigPrivKey?: Uint8Array;
+}
+
 /**
  * Creates an encoder that encrypts messages using symmetric encryption for the
  * given key, as defined in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
@@ -73,18 +81,13 @@ export class Encoder implements IEncoder {
  *
  * The payload can optionally be signed with the given private key as defined
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
- *
- * @param contentTopic The content topic to set on outgoing messages.
- * @param symKey The symmetric key to encrypt the payload with.
- * @param sigPrivKey An optional private key to used to sign the payload before encryption.
- * @param ephemeral An optional flag to mark message as ephemeral, ie, not to be stored by Waku Store nodes.
  */
-export function createEncoder(
-  contentTopic: string,
-  symKey: Uint8Array,
-  sigPrivKey?: Uint8Array,
-  ephemeral = false
-): Encoder {
+export function createEncoder({
+  contentTopic,
+  symKey,
+  sigPrivKey,
+  ephemeral = false,
+}: SymmetricEncoderOptions): Encoder {
   return new Encoder(contentTopic, symKey, sigPrivKey, ephemeral);
 }
 

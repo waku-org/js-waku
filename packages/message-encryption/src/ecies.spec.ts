@@ -15,7 +15,10 @@ describe("Ecies Encryption", function () {
         async (payload, privateKey) => {
           const publicKey = getPublicKey(privateKey);
 
-          const encoder = createEncoder(TestContentTopic, publicKey);
+          const encoder = createEncoder({
+            contentTopic: TestContentTopic,
+            publicKey,
+          });
           const bytes = await encoder.toWire({ payload });
 
           const decoder = createDecoder(TestContentTopic, privateKey);
@@ -46,11 +49,11 @@ describe("Ecies Encryption", function () {
           const alicePublicKey = getPublicKey(alicePrivateKey);
           const bobPublicKey = getPublicKey(bobPrivateKey);
 
-          const encoder = createEncoder(
-            TestContentTopic,
-            bobPublicKey,
-            alicePrivateKey
-          );
+          const encoder = createEncoder({
+            contentTopic: TestContentTopic,
+            publicKey: bobPublicKey,
+            sigPrivKey: alicePrivateKey,
+          });
           const bytes = await encoder.toWire({ payload });
 
           const decoder = createDecoder(TestContentTopic, bobPrivateKey);

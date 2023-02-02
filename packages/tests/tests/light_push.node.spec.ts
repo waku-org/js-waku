@@ -17,7 +17,9 @@ import {
 const log = debug("waku:test:lightpush");
 
 const TestContentTopic = "/test/1/waku-light-push/utf8";
-const TestEncoder = createEncoder(TestContentTopic);
+const TestEncoder = createEncoder({
+  contentTopic: TestContentTopic,
+});
 
 describe("Waku Light Push [node only]", () => {
   let waku: LightNode;
