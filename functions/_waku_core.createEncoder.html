@@ -18,7 +18,7 @@
 <h1>Function createEncoder</h1></div>
 <section class="tsd-panel">
 <ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-<li class="tsd-signature tsd-anchor-link" id="createEncoder">create<wbr/>Encoder<span class="tsd-signature-symbol">(</span>contentTopic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, ephemeral<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_waku_core.message.html" class="tsd-signature-type" data-tsd-kind="Namespace">message</a><span class="tsd-signature-symbol">.</span><a href="../modules/_waku_core.message.version_0.html" class="tsd-signature-type" data-tsd-kind="Namespace">version_0</a><span class="tsd-signature-symbol">.</span><a href="../classes/_waku_core.message.version_0.Encoder.html" class="tsd-signature-type" data-tsd-kind="Class">Encoder</a><a href="#createEncoder" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="createEncoder">create<wbr/>Encoder<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><a href="../interfaces/_waku_interfaces.EncoderOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">EncoderOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_waku_core.message.html" class="tsd-signature-type" data-tsd-kind="Namespace">message</a><span class="tsd-signature-symbol">.</span><a href="../modules/_waku_core.message.version_0.html" class="tsd-signature-type" data-tsd-kind="Namespace">version_0</a><span class="tsd-signature-symbol">.</span><a href="../classes/_waku_core.message.version_0.Encoder.html" class="tsd-signature-type" data-tsd-kind="Class">Encoder</a><a href="#createEncoder" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Creates an encoder that encode messages without Waku level encryption or signature.</p>
 <p>An encoder is used to encode messages in the [`14/WAKU2-MESSAGE](<a href="https://rfc.vac.dev/spec/14/">https://rfc.vac.dev/spec/14/</a>)
@@ -31,16 +31,10 @@ messages.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>contentTopic: <span class="tsd-signature-type">string</span></h5>
-<div class="tsd-comment tsd-typography"><p>The content topic to set on outgoing messages.</p>
-</div></li>
-<li>
-<h5>ephemeral: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
-<div class="tsd-comment tsd-typography"><p>An optional flag to mark message as ephemeral, ie, not to be stored by Waku Store nodes.</p>
-</div></li></ul></div>
+<h5>__namedParameters: <a href="../interfaces/_waku_interfaces.EncoderOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">EncoderOptions</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../modules/_waku_core.message.html" class="tsd-signature-type" data-tsd-kind="Namespace">message</a><span class="tsd-signature-symbol">.</span><a href="../modules/_waku_core.message.version_0.html" class="tsd-signature-type" data-tsd-kind="Namespace">version_0</a><span class="tsd-signature-symbol">.</span><a href="../classes/_waku_core.message.version_0.Encoder.html" class="tsd-signature-type" data-tsd-kind="Class">Encoder</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/10b38987/packages/core/src/lib/message/version_0.ts#L106">packages/core/src/lib/message/version_0.ts:106</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/8910a6d7/packages/core/src/lib/message/version_0.ts#L104">packages/core/src/lib/message/version_0.ts:104</a></li></ul></aside></li></ul></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
