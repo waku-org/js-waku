@@ -10,13 +10,13 @@ import type {
   ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
+import { PushResponse } from "@waku/proto";
 import {
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol,
   selectRandomPeer,
-} from "@waku/libp2p-utils";
-import { PushResponse } from "@waku/proto";
+} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";

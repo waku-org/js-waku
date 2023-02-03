@@ -1,5 +1,5 @@
 import * as secp from "@noble/secp256k1";
-import { concat } from "@waku/byte-utils";
+import { concat } from "@waku/utils";
 import sha3 from "js-sha3";
 
 export const randomBytes = secp.utils.randomBytes;

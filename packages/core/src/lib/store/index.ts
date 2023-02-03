@@ -3,7 +3,6 @@ import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import { sha256 } from "@noble/hashes/sha256";
-import { concat, utf8ToBytes } from "@waku/byte-utils";
 import {
   Cursor,
   IDecodedMessage,
@@ -12,12 +11,14 @@ import {
   IStore,
   ProtocolCreateOptions,
 } from "@waku/interfaces";
+import { proto_store as proto } from "@waku/proto";
 import {
+  concat,
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol,
-} from "@waku/libp2p-utils";
-import { proto_store as proto } from "@waku/proto";
+  utf8ToBytes,
+} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";

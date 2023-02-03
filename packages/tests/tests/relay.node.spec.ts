@@ -1,5 +1,4 @@
 import { PeerId } from "@libp2p/interface-peer-id";
-import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import {
   createDecoder,
   createEncoder,
@@ -21,6 +20,7 @@ import {
   createEncoder as createSymEncoder,
   generateSymmetricKey,
 } from "@waku/message-encryption/symmetric";
+import { bytesToUtf8, utf8ToBytes } from "@waku/utils";
 import { expect } from "chai";
 import debug from "debug";
 

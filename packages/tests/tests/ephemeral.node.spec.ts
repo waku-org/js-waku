@@ -1,4 +1,3 @@
-import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import {
   createDecoder,
   createEncoder,
@@ -19,6 +18,7 @@ import {
   createDecoder as symDecoder,
   createEncoder as symEncoder,
 } from "@waku/message-encryption/symmetric";
+import { bytesToUtf8, utf8ToBytes } from "@waku/utils";
 import { expect } from "chai";
 import debug from "debug";
 

@@ -1,6 +1,5 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import {
   DecodedMessage,
   DefaultUserAgent,
@@ -14,6 +13,7 @@ import {
   createEncoder,
   generateSymmetricKey,
 } from "@waku/message-encryption/symmetric";
+import { bytesToUtf8, utf8ToBytes } from "@waku/utils";
 import { expect } from "chai";
 
 import {

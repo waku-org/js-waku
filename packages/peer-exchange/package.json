@@ -58,7 +58,7 @@
     "@waku/core": "*",
     "@waku/enr": "*",
     "@waku/interfaces": "*",
-    "@waku/libp2p-utils": "*",
+    "@waku/utils": "*",
     "@waku/proto": "*",
     "debug": "^4.3.4",
     "it-all": "^1.0.6",

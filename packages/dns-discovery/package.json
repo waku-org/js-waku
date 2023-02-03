@@ -58,8 +58,7 @@
   },
   "dependencies": {
     "@waku/enr": "*",
-    "@waku/byte-utils": "*",
-    "@waku/libp2p-utils": "*",
+    "@waku/utils": "*",
     "hi-base32": "^0.5.1",
     "debug": "^4.3.4",
     "dns-query": "^0.11.2",

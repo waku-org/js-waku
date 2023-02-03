@@ -6,7 +6,7 @@ import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
 import type { IEnr, PeerExchangeComponents } from "@waku/interfaces";
-import { multiaddrsToPeerInfo } from "@waku/libp2p-utils";
+import { multiaddrsToPeerInfo } from "@waku/utils";
 import debug from "debug";
 
 import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns.js";
