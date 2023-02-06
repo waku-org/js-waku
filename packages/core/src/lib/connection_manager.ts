@@ -139,34 +139,38 @@ export class ConnectionManager {
     const { maxDialAttemptsForPeer = DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER } =
       this.options;
 
-    try {
-      log(`Dialing peer ${peerId.toString()}`);
-      await this.libp2pComponents.dial(peerId);
-
-      const tags = await this.getTagNamesForPeer(peerId);
-      // add tag to connection describing discovery mechanism
-      this.libp2pComponents.connectionManager
-        .getConnections(peerId)
-        .forEach((conn) => conn.tags.push(...tags));
-
-      this.dialAttemptsForPeer.delete(peerId.toString());
-    } catch (error) {
-      log(`
-        Error dialing peer ${peerId.toString()}`);
-      const dialAttempt = this.dialAttemptsForPeer.get(peerId.toString()) ?? 1;
-      this.dialAttemptsForPeer.set(peerId.toString(), dialAttempt + 1);
-
-      if (dialAttempt <= maxDialAttemptsForPeer) {
-        log(`Reattempting dial (${dialAttempt})`);
-        this.dialPeer(peerId);
-      }
-
+    let dialAttempt = 0;
+    while (dialAttempt <= maxDialAttemptsForPeer) {
       try {
-        log(`Deleting undialable peer ${peerId.toString()} from peer store`);
-        return await this.libp2pComponents.peerStore.delete(peerId);
+        log(`Dialing peer ${peerId.toString()}`);
+        await this.libp2pComponents.dial(peerId);
+
+        const tags = await this.getTagNamesForPeer(peerId);
+        // add tag to connection describing discovery mechanism
+        // don't add duplicate tags
+        this.libp2pComponents.connectionManager
+          .getConnections(peerId)
+          .forEach((conn) => conn.tags.push(...tags));
+
+        this.dialAttemptsForPeer.delete(peerId.toString());
+        return;
       } catch (error) {
-        throw `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`;
+        log(`
+          Error dialing peer ${peerId.toString()}`);
+        dialAttempt = this.dialAttemptsForPeer.get(peerId.toString()) ?? 1;
+        this.dialAttemptsForPeer.set(peerId.toString(), dialAttempt + 1);
+
+        if (dialAttempt <= maxDialAttemptsForPeer) {
+          log(`Reattempting dial (${dialAttempt})`);
+        }
       }
+    }
+
+    try {
+      log(`Deleting undialable peer ${peerId.toString()} from peer store`);
+      return await this.libp2pComponents.peerStore.delete(peerId);
+    } catch (error) {
+      throw `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`;
     }
   }
 
