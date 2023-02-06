@@ -1,6 +1,6 @@
 import * as secp from "@noble/secp256k1";
-import { bytesToHex } from "@waku/byte-utils";
 import type { NodeId } from "@waku/interfaces";
+import { bytesToHex } from "@waku/utils";
 
 import { keccak256 } from "./crypto.js";
 

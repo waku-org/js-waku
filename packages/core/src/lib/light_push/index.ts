@@ -6,16 +6,17 @@ import type {
   IEncoder,
   ILightPush,
   IMessage,
+  ProtocolCreateOptions,
   ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
+import { PushResponse } from "@waku/proto";
 import {
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol,
   selectRandomPeer,
-} from "@waku/libp2p-utils";
-import { PushResponse } from "@waku/proto";
+} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -36,28 +37,19 @@ export interface LightPushComponents {
   connectionManager: ConnectionManager;
 }
 
-export interface CreateOptions {
-  /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
-   *
-   * The usage of the default pubsub topic is recommended.
-   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
-   *
-   * @default {@link DefaultPubSubTopic}
-   */
-  pubSubTopic?: string;
-}
-
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 class LightPush implements ILightPush {
   multicodec: string;
-  pubSubTopic: string;
+  options: ProtocolCreateOptions;
 
-  constructor(public components: LightPushComponents, options?: CreateOptions) {
+  constructor(
+    public components: LightPushComponents,
+    options?: ProtocolCreateOptions
+  ) {
     this.multicodec = LightPushCodec;
-    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+    this.options = options || {};
   }
 
   async push(
@@ -65,11 +57,11 @@ class LightPush implements ILightPush {
     message: IMessage,
     opts?: ProtocolOptions
   ): Promise<SendResult> {
-    const pubSubTopic = opts?.pubSubTopic ? opts.pubSubTopic : this.pubSubTopic;
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
     const res = await selectPeerForProtocol(
       this.components.peerStore,
-      [LightPushCodec],
+      [this.multicodec],
       opts?.peerId
     );
 
@@ -152,7 +144,7 @@ class LightPush implements ILightPush {
 }
 
 export function wakuLightPush(
-  init: Partial<CreateOptions> = {}
+  init: Partial<ProtocolCreateOptions> = {}
 ): (components: LightPushComponents) => ILightPush {
   return (components: LightPushComponents) => new LightPush(components, init);
 }

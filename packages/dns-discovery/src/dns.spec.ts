@@ -3,6 +3,8 @@ import { expect } from "chai";
 import { DnsClient, DnsNodeDiscovery } from "./dns.js";
 import testData from "./testdata.json" assert { type: "json" };
 
+import { enrTree } from "./index.js";
+
 const mockData = testData.dns;
 
 const host = "nodes.example.org";
@@ -260,9 +262,6 @@ describe("DNS Node Discovery w/ capabilities", () => {
 });
 
 describe("DNS Node Discovery [live data]", function () {
-  const publicKey = "AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM";
-  const fqdn = "test.waku.nodes.status.im";
-  const enrTree = `enrtree://${publicKey}@${fqdn}`;
   const maxQuantity = 3;
 
   before(function () {
@@ -275,7 +274,30 @@ describe("DNS Node Discovery [live data]", function () {
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
     const dnsNodeDiscovery = DnsNodeDiscovery.dnsOverHttp();
-    const peers = await dnsNodeDiscovery.getPeers([enrTree], {
+    const peers = await dnsNodeDiscovery.getPeers([enrTree.TEST], {
+      relay: maxQuantity,
+      store: maxQuantity,
+      filter: maxQuantity,
+      lightPush: maxQuantity,
+    });
+
+    expect(peers.length).to.eq(maxQuantity);
+
+    const multiaddrs = peers.map((peer) => peer.multiaddrs).flat();
+
+    const seen: string[] = [];
+    for (const ma of multiaddrs) {
+      expect(ma).to.not.be.undefined;
+      expect(seen).to.not.include(ma!.toString());
+      seen.push(ma!.toString());
+    }
+  });
+
+  it(`should retrieve ${maxQuantity} multiaddrs for prod.waku.nodes.status.im`, async function () {
+    this.timeout(10000);
+    // Google's dns server address. Needs to be set explicitly to run in CI
+    const dnsNodeDiscovery = DnsNodeDiscovery.dnsOverHttp();
+    const peers = await dnsNodeDiscovery.getPeers([enrTree.PROD], {
       relay: maxQuantity,
       store: maxQuantity,
       filter: maxQuantity,

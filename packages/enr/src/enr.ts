@@ -5,12 +5,6 @@ import {
   convertToBytes,
   convertToString,
 } from "@multiformats/multiaddr/convert";
-import {
-  bytesToHex,
-  bytesToUtf8,
-  hexToBytes,
-  utf8ToBytes,
-} from "@waku/byte-utils";
 import type {
   ENRKey,
   ENRValue,
@@ -19,6 +13,7 @@ import type {
   SequenceNumber,
   Waku2,
 } from "@waku/interfaces";
+import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "@waku/utils";
 import debug from "debug";
 import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";

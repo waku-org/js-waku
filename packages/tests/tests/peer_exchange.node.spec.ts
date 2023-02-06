@@ -14,6 +14,15 @@ import { delay } from "../src/delay.js";
 
 describe("Peer Exchange", () => {
   let waku: LightNode;
+
+  before(async function () {
+    // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
+    // but not with locally run nwaku nodes
+    if (process.env.CI) {
+      this.skip();
+    }
+  });
+
   afterEach(async function () {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
@@ -40,12 +49,6 @@ describe("Peer Exchange", () => {
 
   it("Manual query on test fleet", async function () {
     this.timeout(150_000);
-
-    // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
-    // but not with locally run nwaku nodes
-    if (process.env.ci) {
-      this.skip();
-    }
 
     const waku = await createLightNode({
       libp2p: {

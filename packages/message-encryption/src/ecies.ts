@@ -1,5 +1,6 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import type {
+  EncoderOptions,
   IDecoder,
   IEncoder,
   IMessage,
@@ -63,6 +64,13 @@ export class Encoder implements IEncoder {
   }
 }
 
+export interface EciesEncoderOptions extends EncoderOptions {
+  /** The public key to encrypt the payload for. */
+  publicKey: Uint8Array;
+  /**  An optional private key to be used to sign the payload before encryption. */
+  sigPrivKey?: Uint8Array;
+}
+
 /**
  * Creates an encoder that encrypts messages using ECIES for the given public,
  * as defined in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
@@ -72,21 +80,15 @@ export class Encoder implements IEncoder {
  * pass to { @link @waku/interfaces.LightPush.push } or
  * { @link @waku/interfaces.Relay.send } to automatically encrypt
  * and encode outgoing messages.
- *
  * The payload can optionally be signed with the given private key as defined
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
- *
- * @param contentTopic The content topic to set on outgoing messages.
- * @param publicKey The public key to encrypt the payload for.
- * @param sigPrivKey An optional private key to used to sign the payload before encryption.
- * @param ephemeral An optional flag to mark message as ephemeral, ie, not to be stored by Waku Store nodes.
  */
-export function createEncoder(
-  contentTopic: string,
-  publicKey: Uint8Array,
-  sigPrivKey?: Uint8Array,
-  ephemeral = false
-): Encoder {
+export function createEncoder({
+  contentTopic,
+  publicKey,
+  sigPrivKey,
+  ephemeral = false,
+}: EciesEncoderOptions): Encoder {
   return new Encoder(contentTopic, publicKey, sigPrivKey, ephemeral);
 }
 

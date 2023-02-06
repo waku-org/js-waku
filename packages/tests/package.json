@@ -40,7 +40,7 @@
     "pretest": "run-s pretest:*",
     "pretest:1-init-git-submodules": "[ -f '../../nwaku/build/wakunode2' ] || git submodule update --init --recursive",
     "pretest:2-build-nwaku": "[ -f '../../nwaku/build/wakunode2' ] || run-s nwaku:build",
-    "nwaku:build": "(PROC=$(nproc --all 2>/dev/null || echo 2); cd ../../nwaku; make -j$PROC update; NIMFLAGS=\"-d:chronicles_colors=off -d:chronicles_sinks=textlines\" make -j$PROC wakunode2)",
+    "nwaku:build": "(PROC=$(nproc --all 2>/dev/null || echo 2); cd ../../nwaku; make -j$PROC update; NIMFLAGS=\"-d:chronicles_colors=off\" make -j$PROC wakunode2)",
     "nwaku:force-build": "(cd ../../nwaku && rm -rf ./build/ ./vendor) && run-s nwaku:build",
     "check": "run-s check:*",
     "check:prettier": "prettier . --list-different",
@@ -55,18 +55,22 @@
     "node": ">=16"
   },
   "dependencies": {
-    "app-root-path": "^3.0.0",
-    "portfinder": "^1.0.28",
-    "p-timeout": "^6.0.0",
-    "tail": "^2.2.0",
-    "@waku/byte-utils": "*",
+    "@libp2p/components": "^3.1.1",
+    "@waku/utils": "*",
     "@waku/core": "*",
     "@waku/create": "*",
+    "@waku/dns-discovery": "*",
     "@waku/enr": "*",
     "@waku/interfaces": "*",
     "@waku/message-encryption": "*",
     "@waku/peer-exchange": "*",
-    "@waku/dns-discovery": "*"
+    "app-root-path": "^3.0.0",
+    "chai": "^4.3.6",
+    "debug": "^4.3.4",
+    "mocha": "^9.1.3",
+    "p-timeout": "^6.0.0",
+    "portfinder": "^1.0.28",
+    "tail": "^2.2.0"
   },
   "devDependencies": {
     "mocha": "^9.1.3",
