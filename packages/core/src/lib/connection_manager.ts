@@ -150,7 +150,9 @@ export class ConnectionManager {
         // don't add duplicate tags
         this.libp2pComponents.connectionManager
           .getConnections(peerId)
-          .forEach((conn) => conn.tags.push(...tags));
+          .forEach(
+            (conn) => (conn.tags = Array.from(new Set([...conn.tags, ...tags])))
+          );
 
         this.dialAttemptsForPeer.delete(peerId.toString());
         return;
