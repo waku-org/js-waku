@@ -14,13 +14,13 @@ import type {
   ProtocolCreateOptions,
   ProtocolOptions,
 } from "@waku/interfaces";
+import { WakuMessage as WakuMessageProto } from "@waku/proto";
 import {
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol,
   selectRandomPeer,
-} from "@waku/libp2p-utils";
-import { WakuMessage as WakuMessageProto } from "@waku/proto";
+} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";

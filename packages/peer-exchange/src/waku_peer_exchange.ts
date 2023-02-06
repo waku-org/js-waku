@@ -13,7 +13,7 @@ import {
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol,
-} from "@waku/libp2p-utils";
+} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
