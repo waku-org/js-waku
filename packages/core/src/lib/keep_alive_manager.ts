@@ -47,7 +47,10 @@ export class KeepAliveManager {
 
     const relay = this.relay;
     if (relay && relayPeriodSecs !== 0) {
-      const encoder = createEncoder(RelayPingContentTopic, true);
+      const encoder = createEncoder({
+        contentTopic: RelayPingContentTopic,
+        ephemeral: true,
+      });
       const interval = setInterval(() => {
         log("Sending Waku Relay ping message");
         relay
