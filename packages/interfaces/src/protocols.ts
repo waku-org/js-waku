@@ -1,5 +1,6 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import type { Libp2pOptions } from "libp2p";
 
 import type { IMessage } from "./message.js";
 
@@ -31,11 +32,26 @@ export type ProtocolCreateOptions = {
    *
    */
   pubSubTopic?: string;
+  /**
+   * You can pass options to the `Libp2p` instance used by {@link @waku/core.WakuNode} using the {@link CreateOptions.libp2p} property.
+   * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
+   * apart that we made the `modules` property optional and partial,
+   * allowing its omission and letting Waku set good defaults.
+   * Notes that some values are overridden by {@link @waku/core.WakuNode} to ensure it implements the Waku protocol.
+   */
+  libp2p?: Partial<Libp2pOptions>;
+  /**
+   * Byte array used as key for the noise protocol used for connection encryption
+   * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
+   * This is only used for test purposes to not run out of entropy during CI runs.
+   */
+  staticNoiseKey?: Uint8Array;
+  /**
+   * Use recommended bootstrap method to discovery and connect to new nodes.
+   */
+  defaultBootstrap?: boolean;
 };
 
-//TODO
-// we can probably move `peerId` into `ProtocolCreateOptions` and remove `ProtocolOptions` and pass it in the constructor
-// however, filter protocol can use multiple peers, so we need to think about this
 export type ProtocolOptions = {
   /**
    * Optionally specify an PeerId for the protocol request. If not included, will use a random peer.
