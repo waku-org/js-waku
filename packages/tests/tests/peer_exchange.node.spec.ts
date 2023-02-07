@@ -92,7 +92,6 @@ describe("Peer Exchange", () => {
     let nwaku2: Nwaku;
 
     beforeEach(async function () {
-      this.timeout(50_000);
       nwaku1 = new Nwaku(makeLogFileName(this) + "1");
       nwaku2 = new Nwaku(makeLogFileName(this) + "2");
     });
@@ -104,12 +103,11 @@ describe("Peer Exchange", () => {
     });
 
     it("nwaku interop", async function () {
-      this.timeout(50_000);
+      this.timeout(25_000);
 
       await nwaku1.start({
         discv5Discovery: true,
         peerExchange: true,
-        discv5UdpPort: 9007,
       });
 
       const enr = (await nwaku1.info()).enrUri;
@@ -118,7 +116,6 @@ describe("Peer Exchange", () => {
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr,
-        discv5UdpPort: 9043,
       });
 
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
@@ -130,25 +127,20 @@ describe("Peer Exchange", () => {
 
       await waitForRemotePeer(waku, [Protocols.PeerExchange]);
 
-      await delay(20000);
+      await nwaku2.waitForLog("Discovered px peers via discv5", 1);
+
+      let receivedCallback = false;
 
       const numPeersToRequest = 1;
       const callback = async (
         response: PeerExchangeResponse
       ): Promise<void> => {
-        const multiaddrsArr = response.peerInfos.map(
-          (peerInfo) => peerInfo.ENR && peerInfo.ENR.getFullMultiaddrs()
+        const doesMultiaddrExist = response.peerInfos.find(
+          (peerInfo) =>
+            peerInfo.ENR?.getFullMultiaddrs()?.find((multiaddr) =>
+              multiaddr.equals(nwaku1Ma)
+            ) !== undefined
         );
-
-        let isMultiaddrMatch = false;
-
-        multiaddrsArr.forEach((multiaddrs) => {
-          if (!multiaddrs) return;
-          multiaddrs.forEach((multiaddr) => {
-            if (!multiaddr || !multiaddr.equals(nwaku1Ma)) return;
-            isMultiaddrMatch = true;
-          });
-        });
 
         expect(response.peerInfos.length).to.be.greaterThan(0);
         expect(response.peerInfos.length).to.be.lessThanOrEqual(
@@ -156,10 +148,11 @@ describe("Peer Exchange", () => {
         );
         expect(response.peerInfos[0].ENR).to.not.be.null;
 
-        expect(isMultiaddrMatch).to.be.equal(true);
+        expect(doesMultiaddrExist).to.be.equal(true);
 
-        const peersInPeerstore = (await waku.libp2p.peerStore.all()).length;
-        expect(peersInPeerstore).to.be.greaterThan(1);
+        expect(waku.libp2p.peerStore.has(await nwaku2.getPeerId())).to.be.true;
+
+        receivedCallback = true;
       };
 
       await waku.peerExchange.query(
@@ -168,6 +161,8 @@ describe("Peer Exchange", () => {
         },
         callback
       );
+
+      expect(receivedCallback).to.be.true;
     });
   });
 });

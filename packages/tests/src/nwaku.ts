@@ -154,7 +154,7 @@ export class Nwaku {
     const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
 
     const ports: number[] = await new Promise((resolve, reject) => {
-      portfinder.getPorts(3, { port: startPort }, (err, ports) => {
+      portfinder.getPorts(4, { port: startPort }, (err, ports) => {
         if (err) reject(err);
         resolve(ports);
       });
@@ -169,6 +169,7 @@ export class Nwaku {
         tcpPort: ports[1],
         rpcPort: this.rpcPort,
         websocketPort: ports[2],
+        ...(args?.peerExchange && { discv5UdpPort: ports[3] }),
       },
       args
     );
@@ -177,7 +178,6 @@ export class Nwaku {
 
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
-    // TODO: standardize a way to insert flags like these into the args
     const argsArray = argsToArray(mergedArgs);
 
     const natExtIp = "--nat:extip:127.0.0.1";
@@ -466,6 +466,7 @@ export function argsToArray(args: Args): Array<string> {
 
 export function defaultArgs(): Args {
   return {
+    listenAddress: "127.0.0.1",
     rpc: true,
     relay: false,
     rpcAdmin: true,
