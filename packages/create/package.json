@@ -51,7 +51,6 @@
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^10.1.0",
-    "@libp2p/bootstrap": "^5.0.0",
     "@libp2p/interface-address-manager": "^2.0.1",
     "@libp2p/interface-connection": "^3.0.3",
     "@libp2p/interface-connection-manager": "^1.3.1",
@@ -68,6 +67,7 @@
     "@libp2p/mplex": "^7.0.0",
     "@libp2p/websockets": "^5.0.0",
     "@waku/core": "*",
+    "@waku/dns-discovery": "*",
     "@waku/peer-exchange": "*",
     "interface-datastore": "^7.0.1"
   },

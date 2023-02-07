@@ -151,7 +151,6 @@ jobs:
           path: packages/tests/log/
 
   node_with_nwaku_master:
-    if: false # Can be removed when nwaku in regular CI is bumped to v0.15.0
     runs-on: ubuntu-latest
     env:
       DEBUG: "waku*"

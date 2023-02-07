@@ -1,4 +1,4 @@
-import { bytesToUtf8 } from "@waku/byte-utils";
+import { bytesToUtf8 } from "@waku/utils";
 import debug from "debug";
 import { Endpoint, query, toEndpoint } from "dns-query";
 

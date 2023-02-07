@@ -1,5 +1,4 @@
 import { PeerId } from "@libp2p/interface-peer-id";
-import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import {
   createDecoder,
   createEncoder,
@@ -21,6 +20,7 @@ import {
   createEncoder as createSymEncoder,
   generateSymmetricKey,
 } from "@waku/message-encryption/symmetric";
+import { bytesToUtf8, utf8ToBytes } from "@waku/utils";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -37,7 +37,7 @@ import {
 const log = debug("waku:test");
 
 const TestContentTopic = "/test/1/waku-relay/utf8";
-const TestEncoder = createEncoder(TestContentTopic);
+const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Relay [node only]", () => {
@@ -144,8 +144,8 @@ describe("Waku Relay [node only]", () => {
       const fooContentTopic = "foo";
       const barContentTopic = "bar";
 
-      const fooEncoder = createEncoder(fooContentTopic);
-      const barEncoder = createEncoder(barContentTopic);
+      const fooEncoder = createEncoder({ contentTopic: fooContentTopic });
+      const barEncoder = createEncoder({ contentTopic: barContentTopic });
 
       const fooDecoder = createDecoder(fooContentTopic);
       const barDecoder = createDecoder(barContentTopic);
@@ -193,8 +193,14 @@ describe("Waku Relay [node only]", () => {
       const symKey = generateSymmetricKey();
       const publicKey = getPublicKey(privateKey);
 
-      const eciesEncoder = createEciesEncoder(asymTopic, publicKey);
-      const symEncoder = createSymEncoder(symTopic, symKey);
+      const eciesEncoder = createEciesEncoder({
+        contentTopic: asymTopic,
+        publicKey,
+      });
+      const symEncoder = createSymEncoder({
+        contentTopic: symTopic,
+        symKey,
+      });
 
       const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
       const symDecoder = createSymDecoder(symTopic, symKey);
@@ -240,7 +246,7 @@ describe("Waku Relay [node only]", () => {
           setTimeout(resolve, 500);
         }
       );
-      await waku1.relay.send(createEncoder(contentTopic), {
+      await waku1.relay.send(createEncoder({ contentTopic }), {
         payload: utf8ToBytes(messageText),
       });
 

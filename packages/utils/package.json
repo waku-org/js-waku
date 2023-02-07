@@ -1,7 +1,7 @@
 {
-  "name": "@waku/libp2p-utils",
-  "version": "0.0.3",
-  "description": "Utilities to help with libp2p",
+  "name": "@waku/utils",
+  "version": "0.0.1",
+  "description": "Different utilities for Waku",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "exports": {
@@ -12,7 +12,7 @@
   },
   "type": "module",
   "author": "Waku Team",
-  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/libp2p-utils#readme",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/utils#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/waku-org/js-waku.git"
@@ -50,13 +50,8 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@multiformats/multiaddr": "^11.0.6",
-    "@libp2p/interface-peer-info": "^1.0.1",
-    "@libp2p/peer-id": "^1.1.10",
-    "@libp2p/interface-connection": "^3.0.3",
-    "@libp2p/interface-peer-id": "^1.0.6",
-    "@libp2p/interface-peer-store": "^1.2.3",
-    "debug": "^4.3.4"
+    "debug": "^4.3.4",
+    "uint8arrays": "^4.0.2"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
