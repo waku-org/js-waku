@@ -13,7 +13,10 @@ describe("Symmetric Encryption", function () {
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (payload, symKey) => {
-          const encoder = createEncoder(TestContentTopic, symKey);
+          const encoder = createEncoder({
+            contentTopic: TestContentTopic,
+            symKey,
+          });
           const bytes = await encoder.toWire({ payload });
 
           const decoder = createDecoder(TestContentTopic, symKey);
@@ -41,7 +44,11 @@ describe("Symmetric Encryption", function () {
         async (payload, sigPrivKey, symKey) => {
           const sigPubKey = getPublicKey(sigPrivKey);
 
-          const encoder = createEncoder(TestContentTopic, symKey, sigPrivKey);
+          const encoder = createEncoder({
+            contentTopic: TestContentTopic,
+            symKey,
+            sigPrivKey,
+          });
           const bytes = await encoder.toWire({ payload });
 
           const decoder = createDecoder(TestContentTopic, symKey);

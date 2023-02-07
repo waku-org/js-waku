@@ -1,4 +1,5 @@
 import type {
+  EncoderOptions,
   IDecodedMessage,
   IDecoder,
   IEncoder,
@@ -99,14 +100,11 @@ export class Encoder implements IEncoder {
  * pass to { @link @waku/interfaces.LightPush.push } or
  * { @link @waku/interfaces.Relay.send } to automatically encode outgoing
  * messages.
- *
- * @param contentTopic The content topic to set on outgoing messages.
- * @param ephemeral An optional flag to mark message as ephemeral, ie, not to be stored by Waku Store nodes.
  */
-export function createEncoder(
-  contentTopic: string,
-  ephemeral = false
-): Encoder {
+export function createEncoder({
+  contentTopic,
+  ephemeral,
+}: EncoderOptions): Encoder {
   return new Encoder(contentTopic, ephemeral);
 }
 

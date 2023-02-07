@@ -1,13 +1,8 @@
 import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import type { IRelay, PointToPointProtocol, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { PeerExchangeCodec } from "@waku/peer-exchange";
 import debug from "debug";
 import { pEvent } from "p-event";
-
-import { FilterCodec } from "./filter/index.js";
-import { LightPushCodec } from "./light_push/index.js";
-import { StoreCodec } from "./store/index.js";
 
 const log = debug("waku:wait-for-remote-peer");
 
@@ -50,19 +45,19 @@ export async function waitForRemotePeer(
   if (protocols.includes(Protocols.Store)) {
     if (!waku.store)
       throw new Error("Cannot wait for Store peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.store, [StoreCodec]));
+    promises.push(waitForConnectedPeer(waku.store));
   }
 
   if (protocols.includes(Protocols.LightPush)) {
     if (!waku.lightPush)
       throw new Error("Cannot wait for LightPush peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.lightPush, [LightPushCodec]));
+    promises.push(waitForConnectedPeer(waku.lightPush));
   }
 
   if (protocols.includes(Protocols.Filter)) {
     if (!waku.filter)
       throw new Error("Cannot wait for Filter peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.filter, [FilterCodec]));
+    promises.push(waitForConnectedPeer(waku.filter));
   }
 
   if (protocols.includes(Protocols.PeerExchange)) {
@@ -70,7 +65,7 @@ export async function waitForRemotePeer(
       throw new Error(
         "Cannot wait for Peer Exchange peer: protocol not mounted"
       );
-    promises.push(waitForConnectedPeer(waku.peerExchange, [PeerExchangeCodec]));
+    promises.push(waitForConnectedPeer(waku.peerExchange));
   }
 
   if (timeoutMs) {
@@ -88,28 +83,25 @@ export async function waitForRemotePeer(
  * Wait for a peer with the given protocol to be connected.
  */
 async function waitForConnectedPeer(
-  waku: PointToPointProtocol,
-  codecs: string[]
+  protocol: PointToPointProtocol
 ): Promise<void> {
-  const peers = await waku.peers();
+  const codec = protocol.multicodec;
+  const peers = await protocol.peers();
 
   if (peers.length) {
-    log(`${codecs} peer found: `, peers[0].id.toString());
+    log(`${codec} peer found: `, peers[0].id.toString());
     return;
   }
 
   await new Promise<void>((resolve) => {
     const cb = (evt: CustomEvent<PeerProtocolsChangeData>): void => {
-      for (const codec of codecs) {
-        if (evt.detail.protocols.includes(codec)) {
-          log("Resolving for", codec, evt.detail.protocols);
-          waku.peerStore.removeEventListener("change:protocols", cb);
-          resolve();
-          break;
-        }
+      if (evt.detail.protocols.includes(codec)) {
+        log("Resolving for", codec, evt.detail.protocols);
+        protocol.peerStore.removeEventListener("change:protocols", cb);
+        resolve();
       }
     };
-    waku.peerStore.addEventListener("change:protocols", cb);
+    protocol.peerStore.addEventListener("change:protocols", cb);
   });
 }
 

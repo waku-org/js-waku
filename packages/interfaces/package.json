@@ -32,7 +32,8 @@
     "privacy"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "run-s build:**",
+    "build:esm": "tsc",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier . --write",
     "fix:lint": "eslint src --ext .ts --ext .cjs --fix",

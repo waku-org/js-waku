@@ -3,20 +3,22 @@ import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import { sha256 } from "@noble/hashes/sha256";
-import { concat, utf8ToBytes } from "@waku/byte-utils";
 import {
   Cursor,
   IDecodedMessage,
   IDecoder,
   Index,
   IStore,
+  ProtocolCreateOptions,
 } from "@waku/interfaces";
+import { proto_store as proto } from "@waku/proto";
 import {
+  concat,
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol,
-} from "@waku/libp2p-utils";
-import { proto_store as proto } from "@waku/proto";
+  utf8ToBytes,
+} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -43,18 +45,6 @@ export interface StoreComponents {
   connectionManager: ConnectionManager;
 }
 
-export interface CreateOptions {
-  /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
-   *
-   * The usage of the default pubsub topic is recommended.
-   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
-   *
-   * @default {@link DefaultPubSubTopic}
-   */
-  pubSubTopic?: string;
-}
-
 export interface TimeFilter {
   startTime: Date;
   endTime: Date;
@@ -65,11 +55,6 @@ export interface QueryOptions {
    * The peer to query. If undefined, a pseudo-random peer is selected from the connected Waku Store peers.
    */
   peerId?: PeerId;
-  /**
-   * The pubsub topic to pass to the query.
-   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/).
-   */
-  pubSubTopic?: string;
   /**
    * The direction in which pages are retrieved:
    * - { @link PageDirection.BACKWARD }: Most recent page first.
@@ -105,10 +90,15 @@ export interface QueryOptions {
  * The Waku Store protocol can be used to retrieved historical messages.
  */
 class Store implements IStore {
-  pubSubTopic: string;
+  multicodec: string;
+  options: ProtocolCreateOptions;
 
-  constructor(public components: StoreComponents, options?: CreateOptions) {
-    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+  constructor(
+    public components: StoreComponents,
+    options?: ProtocolCreateOptions
+  ) {
+    this.multicodec = StoreCodec;
+    this.options = options ?? {};
   }
 
   /**
@@ -219,6 +209,8 @@ class Store implements IStore {
     decoders: IDecoder<T>[],
     options?: QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+
     let startTime, endTime;
 
     if (options?.timeFilter) {
@@ -240,7 +232,7 @@ class Store implements IStore {
 
     const queryOpts = Object.assign(
       {
-        pubSubTopic: this.pubSubTopic,
+        pubSubTopic: pubSubTopic,
         pageDirection: PageDirection.BACKWARD,
         pageSize: DefaultPageSize,
       },
@@ -431,7 +423,7 @@ export async function createCursor(
 }
 
 export function wakuStore(
-  init: Partial<CreateOptions> = {}
+  init: Partial<ProtocolCreateOptions> = {}
 ): (components: StoreComponents) => IStore {
   return (components: StoreComponents) => new Store(components, init);
 }

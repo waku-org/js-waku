@@ -9,7 +9,9 @@ describe("Waku Message version 0", function () {
   it("Round trip binary serialization", async function () {
     await fc.assert(
       fc.asyncProperty(fc.uint8Array({ minLength: 1 }), async (payload) => {
-        const encoder = createEncoder(TestContentTopic);
+        const encoder = createEncoder({
+          contentTopic: TestContentTopic,
+        });
         const bytes = await encoder.toWire({ payload });
         const decoder = createDecoder(TestContentTopic);
         const protoResult = await decoder.fromWireToProtoObj(bytes);
@@ -29,7 +31,10 @@ describe("Waku Message version 0", function () {
   it("Ephemeral field set to true", async function () {
     await fc.assert(
       fc.asyncProperty(fc.uint8Array({ minLength: 1 }), async (payload) => {
-        const encoder = createEncoder(TestContentTopic, true);
+        const encoder = createEncoder({
+          contentTopic: TestContentTopic,
+          ephemeral: true,
+        });
         const bytes = await encoder.toWire({ payload });
         const decoder = createDecoder(TestContentTopic);
         const protoResult = await decoder.fromWireToProtoObj(bytes);

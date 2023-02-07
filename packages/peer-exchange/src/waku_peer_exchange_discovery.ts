@@ -15,9 +15,8 @@ import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
 const log = debug("waku:peer-exchange-discovery");
 
 const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
-const DEFAULT_PEER_EXCHANGE_INITIAL_QUERY_TIMEOUT_MS = 5 * 1000;
 const DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS = 10 * 1000;
-const DEFAULT_ATTEMPTS_BEFORE_ABORT = 3;
+const DEFAULT_MAX_RETRIES = 3;
 
 export interface Options {
   /**
@@ -35,19 +34,15 @@ export interface Options {
    */
   tagTTL?: number;
   /**
-   * The initial timeout before querying a peer for the first time (default: 5 seconds)
-   */
-  initialQueryTimeout?: number;
-  /**
    * The interval between queries to a peer (default: 10 seconds)
    * The interval will increase by a factor of an incrementing number (starting at 1)
    * until it reaches the maximum attempts before backoff
    */
   queryInterval?: number;
   /**
-   * The number of attempts before the queries to a peer are backed off (default: 3)
+   * The number of attempts before the queries to a peer are aborted (default: 3)
    */
-  attemptsBeforeAbort?: number;
+  maxRetries?: number;
 }
 
 const DEFAULT_BOOTSTRAP_TAG_NAME = "peer-exchange";
@@ -62,7 +57,7 @@ export class PeerExchangeDiscovery
   private readonly peerExchange: WakuPeerExchange;
   private readonly options: Options;
   private isStarted: boolean;
-  private intervals: Map<string, NodeJS.Timeout> = new Map();
+  private queryingPeers: Set<string> = new Set();
   private queryAttempts: Map<string, number> = new Map();
 
   private readonly eventHandler = async (
@@ -71,10 +66,11 @@ export class PeerExchangeDiscovery
     const { protocols, peerId } = event.detail;
     if (
       !protocols.includes(PeerExchangeCodec) ||
-      this.intervals.get(peerId.toString())
+      this.queryingPeers.has(peerId.toString())
     )
       return;
 
+    this.queryingPeers.add(peerId.toString());
     this.startRecurringQueries(peerId).catch((error) =>
       log(`Error querying peer ${error}`)
     );
@@ -111,7 +107,7 @@ export class PeerExchangeDiscovery
     if (!this.isStarted) return;
     log("Stopping peer exchange node discovery");
     this.isStarted = false;
-    this.intervals.forEach((interval) => clearInterval(interval));
+    this.queryingPeers.clear();
     this.components.peerStore.removeEventListener(
       "change:protocols",
       this.eventHandler
@@ -131,29 +127,23 @@ export class PeerExchangeDiscovery
   ): Promise<void> => {
     const peerIdStr = peerId.toString();
     const {
-      initialQueryTimeout = DEFAULT_PEER_EXCHANGE_INITIAL_QUERY_TIMEOUT_MS,
       queryInterval = DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS,
-      attemptsBeforeAbort = DEFAULT_ATTEMPTS_BEFORE_ABORT,
+      maxRetries = DEFAULT_MAX_RETRIES,
     } = this.options;
 
+    await this.query(peerId);
+
+    const currentAttempt = this.queryAttempts.get(peerIdStr) ?? 1;
+
+    if (currentAttempt > maxRetries) {
+      this.abortQueriesForPeer(peerIdStr);
+      return;
+    }
+
     setTimeout(async () => {
-      await this.query(peerId);
-    }, initialQueryTimeout);
-
-    const interval = setInterval(async () => {
-      const currentAttempt = this.queryAttempts.get(peerIdStr) ?? 1;
-
-      if (currentAttempt > attemptsBeforeAbort) {
-        this.abortQueriesForPeer(peerIdStr, interval);
-        return;
-      }
-
       this.queryAttempts.set(peerIdStr, currentAttempt + 1);
-
-      await this.query(peerId);
-    }, queryInterval * (this.queryAttempts.get(peerIdStr) as number));
-
-    this.intervals.set(peerIdStr, interval);
+      await this.startRecurringQueries(peerId);
+    }, queryInterval * currentAttempt);
   };
 
   private query(peerId: PeerId): Promise<void> {
@@ -209,10 +199,9 @@ export class PeerExchangeDiscovery
     );
   }
 
-  private abortQueriesForPeer(peerIdStr: string, interval: NodeJS.Timer): void {
+  private abortQueriesForPeer(peerIdStr: string): void {
     log(`Aborting queries for peer: ${peerIdStr}`);
-    clearInterval(interval);
-    this.intervals.delete(peerIdStr);
+    this.queryingPeers.delete(peerIdStr);
     this.queryAttempts.delete(peerIdStr);
   }
 }

@@ -1,4 +1,3 @@
-import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import {
   createDecoder,
   createEncoder,
@@ -8,6 +7,7 @@ import {
 import { createLightNode } from "@waku/create";
 import type { LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import { bytesToUtf8, utf8ToBytes } from "@waku/utils";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -16,7 +16,7 @@ import { delay, makeLogFileName, NOISE_KEY_1, Nwaku } from "../src/index.js";
 const log = debug("waku:test");
 
 const TestContentTopic = "/test/1/waku-filter";
-const TestEncoder = createEncoder(TestContentTopic);
+const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Filter", () => {

@@ -1,6 +1,5 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { bytesToUtf8, utf8ToBytes } from "@waku/byte-utils";
 import {
   DecodedMessage,
   DefaultUserAgent,
@@ -14,6 +13,7 @@ import {
   createEncoder,
   generateSymmetricKey,
 } from "@waku/message-encryption/symmetric";
+import { bytesToUtf8, utf8ToBytes } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -171,7 +171,10 @@ describe("Decryption Keys", () => {
     const symKey = generateSymmetricKey();
     const decoder = createDecoder(TestContentTopic, symKey);
 
-    const encoder = createEncoder(TestContentTopic, symKey);
+    const encoder = createEncoder({
+      contentTopic: TestContentTopic,
+      symKey,
+    });
     const messageText = "Message is encrypted";
     const messageTimestamp = new Date("1995-12-17T03:24:00");
     const message = {

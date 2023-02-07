@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `multicodec` property from protocol interfaces.
+
+### Removed
+
+- Dependency on `@waku/peer-exchange`.
+
+## [@waku/core@0.0.10] - 2023-01-25
+
+### Changed
+
+- Ping Relay messages are now set as ephemeral.
+
+### Fixed
+
+- Moved `@chai` and `@fast-check` to `devDependencies` list.
+
 ## [@waku/core@0.0.9] - 2023-01-18
 
 ### Changed
@@ -646,7 +664,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ReactJS Chat App example](./examples/web-chat).
 - [Typedoc Documentation](https://js-waku.wakuconnect.dev/).
 
-[unreleased]: https://github.com/status-im/js-waku/compare/@waku/core@0.0.9...HEAD
+[unreleased]: https://github.com/status-im/js-waku/compare/@waku/core@0.0.10...HEAD
+[@waku/core@0.0.10]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.9...@waku/core@0.0.10
 [@waku/core@0.0.9]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.8...@waku/core@0.0.9
 [@waku/core@0.0.8]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.7...@waku/core@0.0.8
 [@waku/core@0.0.7]: https://github.com/waku-org/js-waku/compare/@waku/core@0.0.6...@waku/core@0.0.7

@@ -52,7 +52,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
-      - run: npm run build
+      - run: npm run build:esm
       - run: npm run test:browser
 
   node:
@@ -76,7 +76,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: bahmutov/npm-install@v1
-      - run: npm run build
+      - run: npm run build:esm
       - run: npm run test:node
         env:
           DEBUG: ""
@@ -96,6 +96,7 @@ jobs:
           path: packages/tests/log/
 
   node_with_go_waku:
+    if: false # Can be removed when upgrading go-waku to 0.4.0 or later
     runs-on: ubuntu-latest
     env:
       GO_WAKU_VERSION: "0.2.2"
@@ -130,7 +131,7 @@ jobs:
           node-version: ${{ env.NODE_JS }}
 
       - uses: bahmutov/npm-install@v1
-      - run: npm run build
+      - run: npm run build:esm
       - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
@@ -184,7 +185,7 @@ jobs:
           cd nwaku
           ./build/wakunode2 --help
 
-      - run: npm run build
+      - run: npm run build:esm
       - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"

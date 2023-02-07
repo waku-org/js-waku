@@ -11,15 +11,16 @@ import type {
   IDecoder,
   IFilter,
   IMessage,
+  ProtocolCreateOptions,
   ProtocolOptions,
 } from "@waku/interfaces";
+import { WakuMessage as WakuMessageProto } from "@waku/proto";
 import {
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol,
   selectRandomPeer,
-} from "@waku/libp2p-utils";
-import { WakuMessage as WakuMessageProto } from "@waku/proto";
+} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -43,18 +44,6 @@ export interface FilterComponents {
   connectionManager: ConnectionManager;
 }
 
-export interface CreateOptions {
-  /**
-   * The PubSub Topic to use. Defaults to {@link DefaultPubSubTopic}.
-   *
-   * The usage of the default pubsub topic is recommended.
-   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
-   *
-   * @default {@link DefaultPubSubTopic}
-   */
-  pubSubTopic?: string;
-}
-
 export type UnsubscribeFunction = () => Promise<void>;
 
 /**
@@ -65,17 +54,22 @@ export type UnsubscribeFunction = () => Promise<void>;
  * - https://github.com/status-im/nwaku/issues/948
  */
 class Filter implements IFilter {
-  pubSubTopic: string;
+  multicodec: string;
+  options: ProtocolCreateOptions;
   private subscriptions: Map<string, Callback<any>>;
   private decoders: Map<
     string, // content topic
     Set<IDecoder<any>>
   >;
 
-  constructor(public components: FilterComponents, options?: CreateOptions) {
+  constructor(
+    public components: FilterComponents,
+    options?: ProtocolCreateOptions
+  ) {
+    this.options = options ?? {};
+    this.multicodec = FilterCodec;
     this.subscriptions = new Map();
     this.decoders = new Map();
-    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
     this.components.registrar
       .handle(FilterCodec, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
@@ -92,7 +86,7 @@ class Filter implements IFilter {
     callback: Callback<T>,
     opts?: ProtocolOptions
   ): Promise<UnsubscribeFunction> {
-    const topic = opts?.pubSubTopic ?? this.pubSubTopic;
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
     const groupedDecoders = groupByContentTopic(decoders);
     const contentTopics = Array.from(groupedDecoders.keys());
@@ -101,7 +95,7 @@ class Filter implements IFilter {
       contentTopic,
     }));
     const request = FilterRPC.createRequest(
-      topic,
+      pubSubTopic,
       contentFilters,
       undefined,
       true
@@ -142,7 +136,7 @@ class Filter implements IFilter {
     this.addCallback(requestId, callback);
 
     return async () => {
-      await this.unsubscribe(topic, contentFilters, requestId, peer);
+      await this.unsubscribe(pubSubTopic, contentFilters, requestId, peer);
       this.deleteDecoders(groupedDecoders);
       this.deleteCallback(requestId);
     };
@@ -307,7 +301,7 @@ class Filter implements IFilter {
 }
 
 export function wakuFilter(
-  init: Partial<CreateOptions> = {}
+  init: Partial<ProtocolCreateOptions> = {}
 ): (components: FilterComponents) => IFilter {
   return (components: FilterComponents) => new Filter(components, init);
 }

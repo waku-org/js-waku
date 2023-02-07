@@ -8,13 +8,12 @@ import type {
   PeerExchangeComponents,
   PeerExchangeQueryParams,
   PeerExchangeResponse,
-  ProtocolOptions,
 } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol,
-} from "@waku/libp2p-utils";
+} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -30,18 +29,16 @@ const log = debug("waku:peer-exchange");
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
  */
 export class WakuPeerExchange implements IPeerExchange {
+  multicodec: string;
   private callback:
     | ((response: PeerExchangeResponse) => Promise<void>)
     | undefined;
 
   /**
    * @param components - libp2p components
-   * @param createOptions - Options for the protocol
    */
-  constructor(
-    public components: PeerExchangeComponents,
-    public createOptions?: ProtocolOptions
-  ) {
+  constructor(public components: PeerExchangeComponents) {
+    this.multicodec = PeerExchangeCodec;
     this.components.registrar
       .handle(PeerExchangeCodec, this.handler.bind(this))
       .catch((e) => log("Failed to register peer exchange protocol", e));
@@ -157,12 +154,11 @@ export class WakuPeerExchange implements IPeerExchange {
 
 /**
  *
- * @param init - Options for the protocol
  * @returns A function that creates a new peer exchange protocol
  */
-export function wakuPeerExchange(
-  init: Partial<ProtocolOptions> = {}
-): (components: PeerExchangeComponents) => WakuPeerExchange {
+export function wakuPeerExchange(): (
+  components: PeerExchangeComponents
+) => WakuPeerExchange {
   return (components: PeerExchangeComponents) =>
-    new WakuPeerExchange(components, init);
+    new WakuPeerExchange(components);
 }
