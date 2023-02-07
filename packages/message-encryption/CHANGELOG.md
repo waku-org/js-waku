@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `createEncoder` now take an object of type `EncoderOptions` instead of `contentTopic` and `ephemeral`
+- For Ecies, `createEncoder` now take an object of type `EncoderOptions` instead of `contentTopic`, `ephemeral`, `publicKey` and `sigPrivKey`
+- For Symmetric, `createEncoder` now take an object of type `EncoderOptions` instead of `contentTopic`, `ephemeral`, `symKey` and `sigPrivKey`
+
 ## [0.0.9] - 2023-01-25
 
 ### Fixed
