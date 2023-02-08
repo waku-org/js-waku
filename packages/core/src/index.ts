@@ -33,7 +33,6 @@ export { waitForRemotePeer } from "./lib/wait_for_remote_peer.js";
 export {
   ConnectionManager,
   Libp2pComponents,
-  UpdatedStates,
   ConnectionManagerOptions,
 } from "./lib/connection_manager.js";
 

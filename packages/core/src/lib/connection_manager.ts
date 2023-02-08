@@ -83,19 +83,19 @@ export class ConnectionManager {
 
     this.keepAliveManager = new KeepAliveManager(keepAliveOptions, relay);
 
-    this.runService()
+    this.run()
       .then(() => log(`Connection Manager is now running`))
       .catch((error) => log(`Unexpected error while running service`, error));
   }
 
-  private async runService(): Promise<void> {
+  private async run(): Promise<void> {
     // start event listeners
     this.startPeerDiscoveryListener();
     this.startPeerConnectionListener();
     this.startPeerDisconnectionListener();
   }
 
-  stopService(): void {
+  stop(): void {
     this.keepAliveManager.stopAll();
     this.libp2pComponents.connectionManager.removeEventListener(
       "peer:connect",
