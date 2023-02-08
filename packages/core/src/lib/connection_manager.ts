@@ -9,10 +9,7 @@ import type { Libp2p } from "libp2p";
 import { KeepAliveManager, KeepAliveOptions } from "./keep_alive_manager.js";
 
 export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
-// TODO: add this functionality back
-// const DEFAULT_APPROX_TIME_BEFORE_BOOTSTRAP_FALLBACK_MS = 5000;
 export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
-export const DEFAULT_LOGGING_INTERVAL_MS = 10_000;
 
 const log = debug("waku:connection-manager");
 
@@ -34,14 +31,6 @@ export interface ConnectionManagerOptions {
    * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange)
    */
   maxBootstrapPeersAllowed?: number;
-  // TODO: add this functionality back
-  // /**
-  //  * Number of attempts before dialling bootstrap nodes over the {@link maxBootstrapPeersAllowed} value.
-  //  * Dialing is the process of opening an outgoing connection to a listening peer with a transport that is supported by both peers.
-  //  * This is only used when other discovery mechanisms haven't yield peers that are dialable
-  //  * This increases relative centralization of the network
-  //  */
-  // maxTimeBeforeBootstrapFallbackMs?: number;
 }
 
 export class ConnectionManager {
@@ -251,27 +240,4 @@ export class ConnectionManager {
     );
     return tags;
   }
-
-  //TODO: add this functionality back in
-  // /**
-  //  * Dials all available bootstrap peers in the peerStore
-  //  */
-  // private async dialAllAvailableBootstrapPeers(): Promise<void> {
-  //   const { dialableBootstrapPeers } = await this.fetchUpdatedState();
-
-  //   log(`Dialing ${dialableBootstrapPeers.length} bootstrap peers`);
-
-  //   const promises = [];
-  //   for (const peer of dialableBootstrapPeers)
-  //     promises.push(this.dialPeer(peer.id));
-
-  //   const results = await Promise.allSettled(promises);
-
-  //   const success = results.filter((result) => result.status === "fulfilled");
-  //   if (success.length > 0) log(`Successfully dialed ${success.length} peers`);
-
-  //   const errors = results.filter((result) => result.status === "rejected");
-  //   if (errors.length > 0)
-  //     log(`Failed to dial ${errors.length} peers -- might retry`);
-  // }
 }
