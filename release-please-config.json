@@ -1,0 +1,18 @@
+{
+  "bootstrap-sha": "13183350fac680be8c0e89ca3dc3951330b8b7c0",
+  "plugins": ["node-workspace", "sentence-case"],
+  "release-type": "node",
+  "separate-pull-requests": false,
+  "group-pull-request-title-pattern": "chore: release ${branch}",
+  "packages": {
+    "packages/utils": {},
+    "packages/proto": {},
+    "packages/interfaces": {},
+    "packages/enr": {},
+    "packages/peer-exchange": {},
+    "packages/core": {},
+    "packages/dns-discovery": {},
+    "packages/message-encryption": {},
+    "packages/create": {}
+  }
+}
