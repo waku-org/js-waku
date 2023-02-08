@@ -1,7 +1,6 @@
 import type { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { Peer } from "@libp2p/interface-peer-store";
 import type { IRelay } from "@waku/interfaces";
 import { Tags } from "@waku/interfaces";
 import debug from "debug";
@@ -24,18 +23,6 @@ export interface Libp2pComponents {
   dial: Libp2p["dial"];
 }
 
-export interface UpdatedStates {
-  allPeers: Peer[];
-  allDialablePeers: Peer[];
-  bootstrapPeers: Peer[];
-  nonBootstrapPeers: Peer[];
-  dialableBootstrapPeers: Peer[];
-  dialableNonBootstrapPeers: Peer[];
-  allConnections: Connection[];
-  bootstrapConnections: Connection[];
-  nonBootstrapConnections: Connection[];
-}
-
 export interface ConnectionManagerOptions {
   /**
    * Number of attempts before a peer is considered non-dialable
@@ -55,10 +42,6 @@ export interface ConnectionManagerOptions {
   //  * This increases relative centralization of the network
   //  */
   // maxTimeBeforeBootstrapFallbackMs?: number;
-  /**
-   * Interval at which to log the state of the connection manager
-   */
-  loggingIntervalMs?: number;
 }
 
 export class ConnectionManager {
@@ -106,13 +89,6 @@ export class ConnectionManager {
   }
 
   private async runService(): Promise<void> {
-    const { loggingIntervalMs = DEFAULT_LOGGING_INTERVAL_MS } = this.options;
-
-    // log state every N seconds
-    setInterval(async () => {
-      this.fetchUpdatedState();
-    }, loggingIntervalMs);
-
     // start event listeners
     this.startPeerDiscoveryListener();
     this.startPeerConnectionListener();
@@ -264,80 +240,6 @@ export class ConnectionManager {
     }
 
     return false;
-  }
-
-  /**
-   * Fetches the updated state of the libp2p peerStore and connectionManager
-   * Also logs the updated state
-   * @returns UpdatedStates
-   */
-  private async fetchUpdatedState(): Promise<UpdatedStates> {
-    const allPeers = await this.libp2pComponents.peerStore.all();
-
-    const allDialablePeers: Peer[] = [];
-    const bootstrapPeers: Peer[] = [];
-    const nonBootstrapPeers: Peer[] = [];
-    const dialableBootstrapPeers: Peer[] = [];
-    const dialableNonBootstrapPeers: Peer[] = [];
-    for (const peer of allPeers) {
-      const isConnected =
-        this.libp2pComponents.connectionManager.getConnections(peer.id).length >
-        0;
-
-      if (!isConnected) {
-        allDialablePeers.push(peer);
-      }
-
-      const isBootstrap = (await this.getTagNamesForPeer(peer.id)).some(
-        (name) => name === Tags.BOOTSTRAP
-      );
-
-      if (isBootstrap) {
-        bootstrapPeers.push(peer);
-        if (!isConnected) dialableBootstrapPeers.push(peer);
-      } else {
-        nonBootstrapPeers.push(peer);
-        if (!isConnected) dialableNonBootstrapPeers.push(peer);
-      }
-    }
-
-    const allConnections =
-      this.libp2pComponents.connectionManager.getConnections();
-
-    const bootstrapConnections: Connection[] = [];
-    const nonBootstrapConnections: Connection[] = [];
-    allConnections.forEach((connection) => {
-      if (connection.tags.includes(Tags.BOOTSTRAP)) {
-        bootstrapConnections.push(connection);
-      } else {
-        nonBootstrapConnections.push(connection);
-      }
-    });
-
-    log(
-      `
-      ====================
-      Connected peers: ${allConnections.length}. 
-        Bootstrap: ${bootstrapConnections.length}. 
-        Others: ${nonBootstrapConnections.length}.
-      Current dialable peers in Peer Store: ${allDialablePeers.length}.
-        Bootstrap: ${dialableBootstrapPeers.length}.
-        Others: ${dialableNonBootstrapPeers.length}.
-      ====================
-      `
-    );
-
-    return {
-      allPeers,
-      allDialablePeers,
-      bootstrapPeers,
-      nonBootstrapPeers,
-      dialableBootstrapPeers,
-      dialableNonBootstrapPeers,
-      allConnections,
-      bootstrapConnections,
-      nonBootstrapConnections,
-    };
   }
 
   /**
