@@ -89,15 +89,12 @@ export async function createLightNode(
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
 
-  const peerExchange = wakuPeerExchange();
-
   return new WakuNode(
     options ?? {},
     libp2p,
     store,
     lightPush,
-    filter,
-    peerExchange
+    filter
   ) as LightNode;
 }
 

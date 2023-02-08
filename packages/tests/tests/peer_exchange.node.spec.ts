@@ -1,4 +1,5 @@
 import { bootstrap } from "@libp2p/bootstrap";
+import tests from "@libp2p/interface-peer-discovery-compliance-tests";
 import { waitForRemotePeer } from "@waku/core";
 import {
   Fleet,
@@ -7,7 +8,10 @@ import {
 import { createLightNode } from "@waku/create";
 import type { LightNode, PeerExchangeResponse } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
+import {
+  PeerExchangeDiscovery,
+  wakuPeerExchangeDiscovery,
+} from "@waku/peer-exchange";
 import { expect } from "chai";
 
 import { delay } from "../src/delay.js";
@@ -163,6 +167,50 @@ describe("Peer Exchange", () => {
       );
 
       expect(receivedCallback).to.be.true;
+    });
+  });
+
+  describe.only("compliance test", async function () {
+    this.timeout(25_000);
+
+    let waku: LightNode;
+    let nwaku1: Nwaku;
+    let nwaku2: Nwaku;
+
+    tests({
+      async setup() {
+        nwaku1 = new Nwaku("1");
+        nwaku2 = new Nwaku("2");
+        await nwaku1.start({
+          discv5Discovery: true,
+          peerExchange: true,
+        });
+
+        const enr = (await nwaku1.info()).enrUri;
+
+        await nwaku2.start({
+          discv5Discovery: true,
+          peerExchange: true,
+          discv5BootstrapNode: enr,
+        });
+
+        waku = await createLightNode();
+
+        await waku.start();
+        const nwaku2Ma = await nwaku2.getMultiaddrWithId();
+
+        setTimeout(async () => {
+          await waku.dial(nwaku2Ma);
+          await waitForRemotePeer(waku, [Protocols.PeerExchange]);
+        }, 1000);
+
+        return new PeerExchangeDiscovery(waku.libp2p);
+      },
+      teardown: async () => {
+        !!nwaku1 && nwaku1.stop();
+        !!nwaku2 && nwaku2.stop();
+        !!waku && (await waku.stop());
+      },
     });
   });
 });
