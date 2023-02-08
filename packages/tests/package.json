@@ -73,6 +73,7 @@
   },
   "devDependencies": {
     "@libp2p/bootstrap": "^5.0.0",
+    "@libp2p/components": "^3.1.1",
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",
     "chai": "^4.3.6",
