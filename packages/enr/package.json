@@ -1,6 +1,6 @@
 {
   "name": "@waku/enr",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "ENR (EIP-778) for Waku",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -64,7 +64,7 @@
     "js-sha3": "^0.8.0"
   },
   "devDependencies": {
-    "@waku/interfaces": "*",
+    "@waku/interfaces": "0.1.0",
     "uint8arrays": "^4.0.2",
     "@libp2p/peer-id-factory": "^1.0.15",
     "@rollup/plugin-commonjs": "^22.0.0",
