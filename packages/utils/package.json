@@ -52,7 +52,7 @@
   "dependencies": {
     "@libp2p/peer-id": "^2.0.1",
     "debug": "^4.3.4",
-    "uint8arrays": "^4.0.2"
+    "uint8arrays": "^4.0.3"
   },
   "devDependencies": {
     "@libp2p/interface-connection": "^3.0.8",
