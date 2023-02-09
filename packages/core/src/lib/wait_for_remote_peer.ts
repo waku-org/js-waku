@@ -1,4 +1,4 @@
-import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
+import type { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import type { IRelay, PointToPointProtocol, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
