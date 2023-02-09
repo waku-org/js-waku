@@ -220,10 +220,10 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
 
       - uses: actions/setup-node@v3
+        if: ${{ steps.release.outputs.release_created }}
         with:
           node-version: ${{ env.NODE_JS }}
           registry-url: "https://registry.npmjs.org"
-        if: ${{ steps.release.outputs.release_created }}
 
       - run: npm install
         if: ${{ steps.release.outputs.release_created }}
