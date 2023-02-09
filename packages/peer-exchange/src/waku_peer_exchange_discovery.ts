@@ -1,16 +1,19 @@
-import {
+import type {
   PeerDiscovery,
   PeerDiscoveryEvents,
-  symbol,
 } from "@libp2p/interface-peer-discovery";
+import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { PeerInfo } from "@libp2p/interface-peer-info";
-import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
+import type { PeerInfo } from "@libp2p/interface-peer-info";
+import type { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { EventEmitter } from "@libp2p/interfaces/events";
-import { PeerExchangeComponents } from "@waku/interfaces";
 import debug from "debug";
 
-import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
+import {
+  PeerExchangeCodec,
+  PeerExchangeComponents,
+  WakuPeerExchange,
+} from "./waku_peer_exchange.js";
 
 const log = debug("waku:peer-exchange-discovery");
 

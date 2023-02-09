@@ -1,4 +1,5 @@
 import type { Stream } from "@libp2p/interface-connection";
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import type { Multiaddr } from "@multiformats/multiaddr";
@@ -13,14 +14,10 @@ import type {
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
-import type { Libp2p } from "libp2p";
 
-import { FilterComponents } from "./filter/index.js";
-import { LightPushComponents } from "./light_push/index.js";
 import { createEncoder } from "./message/version_0.js";
 import * as relayConstants from "./relay/constants.js";
 import { RelayPingContentTopic } from "./relay/constants.js";
-import { StoreComponents } from "./store/index.js";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -68,28 +65,28 @@ export class WakuNode implements Waku {
   constructor(
     options: WakuOptions,
     libp2p: Libp2p,
-    store?: (components: StoreComponents) => IStore,
-    lightPush?: (components: LightPushComponents) => ILightPush,
-    filter?: (components: FilterComponents) => IFilter,
+    store?: (libp2p: Libp2p) => IStore,
+    lightPush?: (libp2p: Libp2p) => ILightPush,
+    filter?: (libp2p: Libp2p) => IFilter,
     peerExchange?: (components: PeerExchangeComponents) => IPeerExchange
   ) {
     this.libp2p = libp2p;
 
-    const { peerStore, connectionManager, registrar } = libp2p;
-    const components = { peerStore, connectionManager, registrar };
-
     if (store) {
-      this.store = store(components);
+      this.store = store(libp2p);
     }
     if (filter) {
-      this.filter = filter(components);
+      this.filter = filter(libp2p);
     }
     if (lightPush) {
-      this.lightPush = lightPush(components);
+      this.lightPush = lightPush(libp2p);
     }
 
     if (peerExchange) {
-      this.peerExchange = peerExchange(components);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore: Libp2p is now hiding internal components but peer discovery
+      // implementation still expect to receive said components.
+      this.peerExchange = peerExchange(libp2p.components);
     }
 
     if (isRelay(libp2p.pubsub)) {
@@ -113,7 +110,7 @@ export class WakuNode implements Waku {
       ? options.relayKeepAlive || DefaultRelayKeepAliveValueSecs
       : 0;
 
-    libp2p.connectionManager.addEventListener("peer:connect", (evt) => {
+    libp2p.addEventListener("peer:connect", (evt) => {
       this.startKeepAlive(evt.detail.remotePeer, pingKeepAlive, relayKeepAlive);
     });
 
@@ -128,7 +125,7 @@ export class WakuNode implements Waku {
      * >this event will **only** be triggered when the last connection is closed.
      * @see https://github.com/libp2p/js-libp2p/blob/bad9e8c0ff58d60a78314077720c82ae331cc55b/doc/API.md?plain=1#L2100
      */
-    libp2p.connectionManager.addEventListener("peer:disconnect", (evt) => {
+    libp2p.addEventListener("peer:disconnect", (evt) => {
       this.stopKeepAlive(evt.detail.remotePeer);
     });
 
