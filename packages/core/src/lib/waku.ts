@@ -30,19 +30,19 @@ export interface WakuOptions {
    * Set keep alive frequency in seconds: Waku will send a `/ipfs/ping/1.0.0`
    * request to each peer after the set number of seconds. Set to 0 to disable.
    *
-   * @default {@link DefaultPingKeepAliveValueSecs}
+   * @default {@link @waku/core.DefaultPingKeepAliveValueSecs}
    */
   pingKeepAlive?: number;
   /**
    * Set keep alive frequency in seconds: Waku will send a ping message over
    * relay to each peer after the set number of seconds. Set to 0 to disable.
    *
-   * @default {@link DefaultRelayKeepAliveValueSecs}
+   * @default {@link @waku/core.DefaultRelayKeepAliveValueSecs}
    */
   relayKeepAlive?: number;
   /**
    * Set the user agent string to be used in identification of the node.
-   * @default {@link DefaultUserAgent}
+   * @default {@link @waku/core.DefaultUserAgent}
    */
   userAgent?: string;
 }
