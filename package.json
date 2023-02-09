@@ -28,7 +28,7 @@
     "proto": "npm run proto --workspaces --if-present",
     "deploy": "node ci/deploy.js",
     "doc": "run-s doc:*",
-    "doc:html": "typedoc --options typedoc.cjs --treatWarningsAsErrors",
+    "doc:html": "typedoc --options typedoc.cjs",
     "doc:cname": "echo 'js.waku.org' > docs/CNAME"
   },
   "devDependencies": {

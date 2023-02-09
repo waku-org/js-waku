@@ -1,4 +1,5 @@
 import { noise } from "@chainsafe/libp2p-noise";
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
 import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
@@ -22,7 +23,6 @@ import type {
   RelayNode,
 } from "@waku/interfaces";
 import { wakuPeerExchange } from "@waku/peer-exchange";
-import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 
 import type { Libp2pComponents } from "./libp2p_components.js";

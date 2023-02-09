@@ -1,10 +1,9 @@
 import type { Stream } from "@libp2p/interface-connection";
-import type { ConnectionManager } from "@libp2p/interface-connection-manager";
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
-import type { Registrar } from "@libp2p/interface-registrar";
 import type {
   Callback,
   IDecodedMessage,
@@ -38,12 +37,6 @@ export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 
 const log = debug("waku:filter");
 
-export interface FilterComponents {
-  peerStore: PeerStore;
-  registrar: Registrar;
-  connectionManager: ConnectionManager;
-}
-
 export type UnsubscribeFunction = () => Promise<void>;
 
 /**
@@ -62,15 +55,12 @@ class Filter implements IFilter {
     Set<IDecoder<any>>
   >;
 
-  constructor(
-    public components: FilterComponents,
-    options?: ProtocolCreateOptions
-  ) {
+  constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
     this.options = options ?? {};
     this.multicodec = FilterCodec;
     this.subscriptions = new Map();
     this.decoders = new Map();
-    this.components.registrar
+    this.libp2p
       .handle(FilterCodec, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
   }
@@ -143,7 +133,7 @@ class Filter implements IFilter {
   }
 
   get peerStore(): PeerStore {
-    return this.components.peerStore;
+    return this.libp2p.peerStore;
   }
 
   private onRequest(streamData: IncomingStreamData): void {
@@ -268,9 +258,7 @@ class Filter implements IFilter {
   }
 
   private async newStream(peer: Peer): Promise<Stream> {
-    const connections = this.components.connectionManager.getConnections(
-      peer.id
-    );
+    const connections = this.libp2p.getConnections(peer.id);
     const connection = selectConnection(connections);
     if (!connection) {
       throw new Error("Failed to get a connection to the peer");
@@ -281,7 +269,7 @@ class Filter implements IFilter {
 
   private async getPeer(peerId?: PeerId): Promise<Peer> {
     const res = await selectPeerForProtocol(
-      this.components.peerStore,
+      this.peerStore,
       [FilterCodec],
       peerId
     );
@@ -292,7 +280,7 @@ class Filter implements IFilter {
   }
 
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.components.peerStore, [FilterCodec]);
+    return getPeersForProtocol(this.peerStore, [FilterCodec]);
   }
 
   async randomPeer(): Promise<Peer | undefined> {
@@ -302,6 +290,6 @@ class Filter implements IFilter {
 
 export function wakuFilter(
   init: Partial<ProtocolCreateOptions> = {}
-): (components: FilterComponents) => IFilter {
-  return (components: FilterComponents) => new Filter(components, init);
+): (libp2p: Libp2p) => IFilter {
+  return (libp2p: Libp2p) => new Filter(libp2p, init);
 }
