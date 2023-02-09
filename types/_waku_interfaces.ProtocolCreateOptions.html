@@ -16,13 +16,25 @@
 <li><a href="../modules/_waku_interfaces.html">@waku/interfaces</a></li>
 <li><a href="_waku_interfaces.ProtocolCreateOptions.html">ProtocolCreateOptions</a></li></ul>
 <h1>Type alias ProtocolCreateOptions</h1></div>
-<div class="tsd-signature">Protocol<wbr/>Create<wbr/>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span>pubSubTopic<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature">Protocol<wbr/>Create<wbr/>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span>defaultBootstrap<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>libp2p<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Libp2pOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>pubSubTopic<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>staticNoiseKey<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> default<wbr/>Bootstrap<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
+<div class="tsd-comment tsd-typography"><p>Use recommended bootstrap method to discovery and connect to new nodes.</p>
+</div></li>
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> libp2p<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Libp2pOptions</span><span class="tsd-signature-symbol">&gt;</span></h5>
+<div class="tsd-comment tsd-typography"><p>You can pass options to the <code>Libp2p</code> instance used by <a href="../modules/_waku_interfaces.html">@waku/core.WakuNode</a> using the <code>libp2p</code> property.
+This property is the same type as the one passed to <a href="https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create"><code>Libp2p.create</code></a>
+apart that we made the <code>modules</code> property optional and partial,
+allowing its omission and letting Waku set good defaults.
+Notes that some values are overridden by <a href="../modules/_waku_interfaces.html">@waku/core.WakuNode</a> to ensure it implements the Waku protocol.</p>
+</div></li>
+<li class="tsd-parameter">
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> pub<wbr/>Sub<wbr/>Topic<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5>
-<div class="tsd-comment tsd-typography"><p>The PubSub Topic to use. Defaults to <a href="../modules/_waku_interfaces.html">@waku/core/DefaultPubSubTopic</a>.</p>
+<div class="tsd-comment tsd-typography"><p>The PubSub Topic to use. Defaults to <a href="../modules/_waku_interfaces.html">@waku/core.DefaultPubSubTopic</a>.</p>
 <p>One and only one pubsub topic is used by Waku. This is used by:</p>
 <ul>
 <li>WakuRelay to receive, route and send messages,</li>
@@ -31,9 +43,15 @@
 </ul>
 <p>The usage of the default pubsub topic is recommended.
 See <a href="https://rfc.vac.dev/spec/23/">Waku v2 Topic Usage Recommendations</a> for details.</p>
+</div></li>
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> static<wbr/>Noise<wbr/>Key<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Uint8Array</span></h5>
+<div class="tsd-comment tsd-typography"><p>Byte array used as key for the noise protocol used for connection encryption
+by <a href="https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create"><code>Libp2p.create</code></a>
+This is only used for test purposes to not run out of entropy during CI runs.</p>
 </div></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/598c8d3b/packages/interfaces/src/protocols.ts#L20">packages/interfaces/src/protocols.ts:20</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/3b4bc8b2/packages/interfaces/src/protocols.ts#L21">packages/interfaces/src/protocols.ts:21</a></li></ul></aside></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
