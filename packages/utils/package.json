@@ -50,10 +50,16 @@
     "node": ">=16"
   },
   "dependencies": {
+    "@libp2p/peer-id": "^2.0.1",
     "debug": "^4.3.4",
-    "uint8arrays": "^4.0.2"
+    "uint8arrays": "^4.0.3"
   },
   "devDependencies": {
+    "@libp2p/interface-connection": "^3.0.8",
+    "@libp2p/interface-peer-id": "^2.0.1",
+    "@libp2p/interface-peer-info": "^1.0.8",
+    "@libp2p/interface-peer-store": "^1.2.8",
+    "@multiformats/multiaddr": "^11.4.0",
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
