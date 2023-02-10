@@ -73,7 +73,7 @@
     "crypto": false
   },
   "dependencies": {
-    "@noble/secp256k1": "^1.3.4",
+    "@noble/secp256k1": "^1.7.1",
     "@waku/core": "*",
     "@waku/interfaces": "*",
     "@waku/proto": "*",
