@@ -78,7 +78,7 @@
     "@waku/dns-discovery": "*",
     "@waku/message-encryption": "*",
     "@waku/peer-exchange": "*",
-    "chai": "^4.3.6",
+    "chai": "^4.3.7",
     "cspell": "^6.17.0",
     "debug": "^4.3.4",
     "eslint": "^8.6.0",
