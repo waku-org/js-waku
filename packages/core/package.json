@@ -115,7 +115,6 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
     "fast-check": "^3.6.3",
-    "gh-pages": "^3.2.3",
     "ignore-loader": "^0.1.2",
     "isomorphic-fetch": "^3.0.0",
     "karma": "^6.4.1",
