@@ -1,7 +1,7 @@
 {
   "extension": ["ts"],
   "spec": "src/**/*.spec.ts",
-  "require": ["ts-node/register", "isomorphic-fetch", "jsdom-global/register"],
+  "require": ["ts-node/register", "isomorphic-fetch"],
   "loader": "ts-node/esm",
   "node-option": [
     "experimental-specifier-resolution=node",
