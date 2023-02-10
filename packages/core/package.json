@@ -102,7 +102,7 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@types/chai": "^4.2.15",
     "@types/debug": "^4.1.7",
-    "@types/mocha": "^9.1.0",
+    "@types/mocha": "^10.0.1",
     "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
