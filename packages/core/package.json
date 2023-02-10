@@ -82,9 +82,9 @@
     "@waku/proto": "*",
     "@waku/utils": "*",
     "debug": "^4.3.4",
-    "it-all": "^1.0.6",
-    "it-length-prefixed": "^8.0.2",
-    "it-pipe": "^2.0.4",
+    "it-all": "^2.0.0",
+    "it-length-prefixed": "^8.0.4",
+    "it-pipe": "^2.0.5",
     "p-event": "^5.0.1",
     "uint8arraylist": "^2.4.3",
     "uuid": "^9.0.0"

@@ -56,9 +56,9 @@
     "@waku/proto": "*",
     "@waku/utils": "*",
     "debug": "^4.3.4",
-    "it-all": "^1.0.6",
-    "it-length-prefixed": "^8.0.2",
-    "it-pipe": "^2.0.4"
+    "it-all": "^2.0.0",
+    "it-length-prefixed": "^8.0.4",
+    "it-pipe": "^2.0.5"
   },
   "devDependencies": {
     "@libp2p/interface-connection": "^3.0.8",

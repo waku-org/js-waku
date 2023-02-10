@@ -47,7 +47,7 @@
     "node": ">=16"
   },
   "dependencies": {
-    "protons-runtime": "^3.1.0"
+    "protons-runtime": "^5.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
