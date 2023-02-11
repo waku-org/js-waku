@@ -102,7 +102,7 @@ describe("Waku Relay [node only]", () => {
     });
 
     it("Register correct protocols", async function () {
-      const protocols = waku1.libp2p.registrar.getProtocols();
+      const protocols = waku1.libp2p.getProtocols();
 
       expect(protocols).to.contain("/vac/waku/relay/2.0.0");
       expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);

@@ -1,9 +1,12 @@
 /* eslint-disable import/export */
+/* eslint-disable complexity */
 /* eslint-disable @typescript-eslint/no-namespace */
+/* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
+/* eslint-disable @typescript-eslint/no-empty-interface */
 
 import { encodeMessage, decodeMessage, message } from "protons-runtime";
-import type { Uint8ArrayList } from "uint8arraylist";
 import type { Codec } from "protons-runtime";
+import type { Uint8ArrayList } from "uint8arraylist";
 
 export interface PeerInfo {
   enr?: Uint8Array;
@@ -15,18 +18,18 @@ export namespace PeerInfo {
   export const codec = (): Codec<PeerInfo> => {
     if (_codec == null) {
       _codec = message<PeerInfo>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.enr != null) {
-            writer.uint32(10);
-            writer.bytes(obj.enr);
+            w.uint32(10);
+            w.bytes(obj.enr);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -55,7 +58,7 @@ export namespace PeerInfo {
     return _codec;
   };
 
-  export const encode = (obj: PeerInfo): Uint8Array => {
+  export const encode = (obj: Partial<PeerInfo>): Uint8Array => {
     return encodeMessage(obj, PeerInfo.codec());
   };
 
@@ -74,18 +77,18 @@ export namespace PeerExchangeQuery {
   export const codec = (): Codec<PeerExchangeQuery> => {
     if (_codec == null) {
       _codec = message<PeerExchangeQuery>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.numPeers != null) {
-            writer.uint32(8);
-            writer.uint64(obj.numPeers);
+            w.uint32(8);
+            w.uint64(obj.numPeers);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -114,7 +117,7 @@ export namespace PeerExchangeQuery {
     return _codec;
   };
 
-  export const encode = (obj: PeerExchangeQuery): Uint8Array => {
+  export const encode = (obj: Partial<PeerExchangeQuery>): Uint8Array => {
     return encodeMessage(obj, PeerExchangeQuery.codec());
   };
 
@@ -135,24 +138,20 @@ export namespace PeerExchangeResponse {
   export const codec = (): Codec<PeerExchangeResponse> => {
     if (_codec == null) {
       _codec = message<PeerExchangeResponse>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.peerInfos != null) {
             for (const value of obj.peerInfos) {
-              writer.uint32(10);
-              PeerInfo.codec().encode(value, writer);
+              w.uint32(10);
+              PeerInfo.codec().encode(value, w);
             }
-          } else {
-            throw new Error(
-              'Protocol error: required field "peerInfos" was not found in object'
-            );
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -185,7 +184,7 @@ export namespace PeerExchangeResponse {
     return _codec;
   };
 
-  export const encode = (obj: PeerExchangeResponse): Uint8Array => {
+  export const encode = (obj: Partial<PeerExchangeResponse>): Uint8Array => {
     return encodeMessage(obj, PeerExchangeResponse.codec());
   };
 
@@ -207,23 +206,23 @@ export namespace PeerExchangeRPC {
   export const codec = (): Codec<PeerExchangeRPC> => {
     if (_codec == null) {
       _codec = message<PeerExchangeRPC>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.query != null) {
-            writer.uint32(10);
-            PeerExchangeQuery.codec().encode(obj.query, writer);
+            w.uint32(10);
+            PeerExchangeQuery.codec().encode(obj.query, w);
           }
 
           if (obj.response != null) {
-            writer.uint32(18);
-            PeerExchangeResponse.codec().encode(obj.response, writer);
+            w.uint32(18);
+            PeerExchangeResponse.codec().encode(obj.response, w);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -261,7 +260,7 @@ export namespace PeerExchangeRPC {
     return _codec;
   };
 
-  export const encode = (obj: PeerExchangeRPC): Uint8Array => {
+  export const encode = (obj: Partial<PeerExchangeRPC>): Uint8Array => {
     return encodeMessage(obj, PeerExchangeRPC.codec());
   };
 

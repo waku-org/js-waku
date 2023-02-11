@@ -1,5 +1,5 @@
 import type { Connection } from "@libp2p/interface-connection";
-import type { ConnectionManager } from "@libp2p/interface-connection-manager";
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import { sha256 } from "@noble/hashes/sha256";
@@ -39,11 +39,6 @@ export const StoreCodec = "/vac/waku/store/2.0.0-beta4";
 export const DefaultPageSize = 10;
 
 export { PageDirection };
-
-export interface StoreComponents {
-  peerStore: PeerStore;
-  connectionManager: ConnectionManager;
-}
 
 export interface TimeFilter {
   startTime: Date;
@@ -93,10 +88,7 @@ class Store implements IStore {
   multicodec: string;
   options: ProtocolCreateOptions;
 
-  constructor(
-    public components: StoreComponents,
-    options?: ProtocolCreateOptions
-  ) {
+  constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
     this.multicodec = StoreCodec;
     this.options = options ?? {};
   }
@@ -246,7 +238,7 @@ class Store implements IStore {
     });
 
     const res = await selectPeerForProtocol(
-      this.components.peerStore,
+      this.peerStore,
       [StoreCodec],
       options?.peerId
     );
@@ -256,9 +248,7 @@ class Store implements IStore {
     }
     const { peer, protocol } = res;
 
-    const connections = this.components.connectionManager.getConnections(
-      peer.id
-    );
+    const connections = this.libp2p.getConnections(peer.id);
     const connection = selectConnection(connections);
 
     if (!connection) throw "Failed to get a connection to the peer";
@@ -279,11 +269,11 @@ class Store implements IStore {
    * store protocol. Waku may or  may not be currently connected to these peers.
    */
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.components.peerStore, [StoreCodec]);
+    return getPeersForProtocol(this.peerStore, [StoreCodec]);
   }
 
   get peerStore(): PeerStore {
-    return this.components.peerStore;
+    return this.libp2p.peerStore;
   }
 }
 
@@ -424,6 +414,6 @@ export async function createCursor(
 
 export function wakuStore(
   init: Partial<ProtocolCreateOptions> = {}
-): (components: StoreComponents) => IStore {
-  return (components: StoreComponents) => new Store(components, init);
+): (libp2p: Libp2p) => IStore {
+  return (libp2p: Libp2p) => new Store(libp2p, init);
 }
