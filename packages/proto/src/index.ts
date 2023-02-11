@@ -11,4 +11,5 @@ export { PushResponse } from "./lib/light_push.js";
 
 export * as proto_store from "./lib/store.js";
 
+// junk comment
 export * as proto_peer_exchange from "./lib/peer_exchange.js";
