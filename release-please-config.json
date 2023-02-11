@@ -3,8 +3,7 @@
   "plugins": ["node-workspace", "sentence-case"],
   "release-type": "node",
   "separate-pull-requests": false,
-  "bump-minor-pre-major": true,
-  "bump-patch-for-minor-pre-major": true,
+  "versioning": "always-bump-patch",
   "group-pull-request-title-pattern": "chore: release ${branch}",
   "packages": {
     "packages/utils": {},
