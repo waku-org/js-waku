@@ -1,6 +1,6 @@
 {
   "name": "@waku/core",
-  "version": "0.0.10",
+  "version": "1.0.0",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -78,9 +78,9 @@
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^6.1.0",
     "@noble/hashes": "^1.2.0",
-    "@waku/interfaces": "*",
-    "@waku/proto": "*",
-    "@waku/utils": "*",
+    "@waku/interfaces": "1.0.0",
+    "@waku/proto": "1.0.0",
+    "@waku/utils": "1.0.0",
     "debug": "^4.3.4",
     "it-all": "^2.0.0",
     "it-length-prefixed": "^8.0.4",

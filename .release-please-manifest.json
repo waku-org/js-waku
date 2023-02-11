@@ -1,11 +1,11 @@
 {
-  "packages/utils": "0.0.1",
-  "packages/proto": "0.0.2",
-  "packages/interfaces": "0.0.7",
-  "packages/enr": "0.0.5",
-  "packages/peer-exchange": "0.0.3",
-  "packages/core": "0.0.10",
-  "packages/dns-discovery": "0.0.5",
-  "packages/message-encryption": "0.0.9",
-  "packages/create": "0.0.6"
+  "packages/utils": "1.0.0",
+  "packages/proto": "1.0.0",
+  "packages/interfaces": "1.0.0",
+  "packages/enr": "1.0.0",
+  "packages/peer-exchange": "1.0.0",
+  "packages/core": "1.0.0",
+  "packages/dns-discovery": "1.0.0",
+  "packages/message-encryption": "1.0.0",
+  "packages/create": "1.0.0"
 }
