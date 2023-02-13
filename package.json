@@ -32,7 +32,7 @@
     "doc:cname": "echo 'js.waku.org' > docs/CNAME"
   },
   "devDependencies": {
-    "@size-limit/preset-big-lib": "^8.1.2",
+    "@size-limit/preset-big-lib": "^8.2.4",
     "gh-pages": "^5.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.1.1",
