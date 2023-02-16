@@ -5,6 +5,7 @@ import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
+  DefaultUserAgent,
   RelayCreateOptions,
   wakuFilter,
   wakuLightPush,
@@ -13,7 +14,6 @@ import {
   wakuRelay,
   wakuStore,
 } from "@waku/core";
-import { DefaultUserAgent } from "@waku/core";
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
   FullNode,
@@ -22,7 +22,6 @@ import type {
   ProtocolCreateOptions,
   RelayNode,
 } from "@waku/interfaces";
-import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 
 import type { Libp2pComponents } from "./libp2p_components.js";
