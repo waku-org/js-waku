@@ -2,11 +2,12 @@ import { createEncoder, waitForRemotePeer } from "@waku/core";
 import { createLightNode } from "@waku/create";
 import type { LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { bytesToUtf8, utf8ToBytes } from "@waku/utils";
+import { utf8ToBytes } from "@waku/utils";
 import { expect } from "chai";
 import debug from "debug";
 
 import {
+  base64ToUtf8,
   delay,
   makeLogFileName,
   MessageRpcResponse,
@@ -58,7 +59,7 @@ describe("Waku Light Push [node only]", () => {
     }
 
     expect(msgs[0].contentTopic).to.equal(TestContentTopic);
-    expect(bytesToUtf8(new Uint8Array(msgs[0].payload))).to.equal(messageText);
+    expect(base64ToUtf8(msgs[0].payload)).to.equal(messageText);
   });
 
   it("Push on custom pubsub topic", async function () {
@@ -105,6 +106,6 @@ describe("Waku Light Push [node only]", () => {
     }
 
     expect(msgs[0].contentTopic).to.equal(TestContentTopic);
-    expect(bytesToUtf8(new Uint8Array(msgs[0].payload))!).to.equal(messageText);
+    expect(base64ToUtf8(msgs[0].payload!)).to.equal(messageText);
   });
 });

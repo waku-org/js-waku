@@ -82,13 +82,6 @@ export interface MessageRpcQuery {
 }
 
 export interface MessageRpcResponse {
-  payload: number[];
-  contentTopic?: string;
-  version?: number;
-  timestamp?: bigint; // Unix epoch time in nanoseconds as a 64-bits integer value.
-}
-
-export interface MessageRpcResponseHex {
   payload: string;
   contentTopic?: string;
   version?: number;
@@ -123,7 +116,7 @@ export class Nwaku {
     }
 
     return {
-      payload: bytesToHex(message.payload),
+      payload: Buffer.from(message.payload).toString("base64url"),
       contentTopic: message.contentTopic,
       timestamp,
     };
@@ -326,10 +319,10 @@ export class Nwaku {
   async getAsymmetricMessages(
     privateKey: Uint8Array,
     pubSubTopic?: string
-  ): Promise<MessageRpcResponseHex[]> {
+  ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
-    return await this.rpcCall<MessageRpcResponseHex[]>(
+    return await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_private_v1_asymmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
@@ -368,10 +361,10 @@ export class Nwaku {
   async getSymmetricMessages(
     symKey: Uint8Array,
     pubSubTopic?: string
-  ): Promise<MessageRpcResponseHex[]> {
+  ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
-    return await this.rpcCall<MessageRpcResponseHex[]>(
+    return await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_private_v1_symmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
@@ -479,4 +472,8 @@ interface RpcInfoResponse {
   // multiaddrs including peer id.
   listenAddresses: string[];
   enrUri?: string;
+}
+
+export function base64ToUtf8(b64: string): string {
+  return Buffer.from(b64, "base64").toString("utf-8");
 }

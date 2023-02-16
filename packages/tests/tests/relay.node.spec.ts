@@ -25,6 +25,7 @@ import { expect } from "chai";
 import debug from "debug";
 
 import {
+  base64ToUtf8,
   delay,
   makeLogFileName,
   MessageRpcResponse,
@@ -389,9 +390,7 @@ describe("Waku Relay [node only]", () => {
 
       expect(msgs[0].contentTopic).to.equal(TestContentTopic);
       expect(msgs[0].version).to.equal(0);
-      expect(bytesToUtf8(new Uint8Array(msgs[0].payload))).to.equal(
-        messageText
-      );
+      expect(base64ToUtf8(msgs[0].payload)).to.equal(messageText);
     });
 
     it("Nwaku publishes", async function () {
