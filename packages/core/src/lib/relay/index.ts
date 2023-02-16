@@ -40,7 +40,7 @@ export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
  * @implements {require('libp2p-interfaces/src/pubsub')}
  */
 class Relay extends GossipSub implements IRelay {
-  options: Partial<RelayCreateOptions>;
+  private pubSubTopic: string;
   defaultDecoder: IDecoder<IDecodedMessage>;
   public static multicodec: string = constants.RelayCodecs[0];
 
@@ -63,9 +63,9 @@ class Relay extends GossipSub implements IRelay {
     super(components, options);
     this.multicodecs = constants.RelayCodecs;
 
-    this.observers = new Map();
+    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
 
-    this.options = options ?? {};
+    this.observers = new Map();
 
     // TODO: User might want to decide what decoder should be used (e.g. for RLN)
     this.defaultDecoder = new TopicOnlyDecoder();
@@ -79,24 +79,21 @@ class Relay extends GossipSub implements IRelay {
    * @returns {void}
    */
   public async start(): Promise<void> {
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
     await super.start();
-    this.subscribe(pubSubTopic);
+    this.subscribe(this.pubSubTopic);
   }
 
   /**
    * Send Waku message.
    */
   public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
-
     const msg = await encoder.toWire(message);
     if (!msg) {
       log("Failed to encode message, aborting publish");
       return { recipients: [] };
     }
 
-    return this.publish(pubSubTopic, msg);
+    return this.publish(this.pubSubTopic, msg);
   }
 
   /**
@@ -172,8 +169,7 @@ class Relay extends GossipSub implements IRelay {
   }
 
   getMeshPeers(topic?: TopicStr): PeerIdStr[] {
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
-    return super.getMeshPeers(topic ?? pubSubTopic);
+    return super.getMeshPeers(topic ?? this.pubSubTopic);
   }
 }
 

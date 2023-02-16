@@ -1,4 +1,5 @@
 import { noise } from "@chainsafe/libp2p-noise";
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
 import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
@@ -14,9 +15,14 @@ import {
 } from "@waku/core";
 import { DefaultUserAgent } from "@waku/core";
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
-import type { FullNode, IRelay, LightNode, RelayNode } from "@waku/interfaces";
+import type {
+  FullNode,
+  IRelay,
+  LightNode,
+  ProtocolCreateOptions,
+  RelayNode,
+} from "@waku/interfaces";
 import { wakuPeerExchange } from "@waku/peer-exchange";
-import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 
 import type { Libp2pComponents } from "./libp2p_components.js";
@@ -29,39 +35,6 @@ const DEFAULT_NODE_REQUIREMENTS = {
 
 export { Libp2pComponents };
 
-export interface CreateOptions {
-  /**
-   * The PubSub Topic to use.
-   *
-   * One and only one pubsub topic is used by Waku. This is used by:
-   * - WakuRelay to receive, route and send messages,
-   * - WakuLightPush to send messages,
-   * - WakuStore to retrieve messages.
-   *
-   * The usage of the default pubsub topic is recommended.
-   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
-   */
-  pubSubTopic?: string;
-  /**
-   * You can pass options to the `Libp2p` instance used by {@link @waku/core.WakuNode} using the {@link CreateOptions.libp2p} property.
-   * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
-   * apart that we made the `modules` property optional and partial,
-   * allowing its omission and letting Waku set good defaults.
-   * Notes that some values are overridden by {@link @waku/core.WakuNode} to ensure it implements the Waku protocol.
-   */
-  libp2p?: Partial<Libp2pOptions>;
-  /**
-   * Byte array used as key for the noise protocol used for connection encryption
-   * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
-   * This is only used for test purposes to not run out of entropy during CI runs.
-   */
-  staticNoiseKey?: Uint8Array;
-  /**
-   * Use recommended bootstrap method to discovery and connect to new nodes.
-   */
-  defaultBootstrap?: boolean;
-}
-
 /**
  * Create a Waku node that uses Waku Light Push, Filter and Store to send and
  * receive messages, enabling low resource consumption.
@@ -70,7 +43,7 @@ export interface CreateOptions {
  * @see https://github.com/status-im/nwaku/issues/1085
  */
 export async function createLightNode(
-  options?: CreateOptions & WakuOptions
+  options?: ProtocolCreateOptions & WakuOptions
 ): Promise<LightNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -106,7 +79,7 @@ export async function createLightNode(
  * enabling some privacy preserving properties.
  */
 export async function createRelayNode(
-  options?: CreateOptions & WakuOptions & Partial<RelayCreateOptions>
+  options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<RelayNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -138,7 +111,7 @@ export async function createRelayNode(
  * @internal
  */
 export async function createFullNode(
-  options?: CreateOptions & WakuOptions & Partial<RelayCreateOptions>
+  options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<FullNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];

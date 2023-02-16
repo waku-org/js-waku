@@ -1,5 +1,5 @@
 import { proto_peer_exchange as proto } from "@waku/proto";
-import { Uint8ArrayList } from "uint8arraylist";
+import type { Uint8ArrayList } from "uint8arraylist";
 
 /**
  * PeerExchangeRPC represents a message conforming to the Waku Peer Exchange protocol

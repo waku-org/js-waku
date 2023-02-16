@@ -30,7 +30,7 @@ describe("Peer Exchange", () => {
   });
 
   it("Auto discovery", async function () {
-    this.timeout(120_000);
+    this.timeout(60_000);
 
     waku = await createLightNode({
       libp2p: {
@@ -42,7 +42,8 @@ describe("Peer Exchange", () => {
     });
 
     await waku.start();
-    await delay(100000);
+    // we want to ensure that there is enough time for discv5 to discover peers
+    await delay(40000);
 
     await waitForRemotePeer(waku, [Protocols.PeerExchange]);
     const pxPeers = await waku.peerExchange.peers();
@@ -50,7 +51,7 @@ describe("Peer Exchange", () => {
   });
 
   it("Manual query on test fleet", async function () {
-    this.timeout(150_000);
+    this.timeout(60_000);
 
     const waku = await createLightNode({
       libp2p: {

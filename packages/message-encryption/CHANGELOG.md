@@ -2,10 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Changed
+
+- `createEncoder` now take an object of type `EncoderOptions` instead of `contentTopic` and `ephemeral`
+- For Ecies, `createEncoder` now take an object of type `EncoderOptions` instead of `contentTopic`, `ephemeral`, `publicKey` and `sigPrivKey`
+- For Symmetric, `createEncoder` now take an object of type `EncoderOptions` instead of `contentTopic`, `ephemeral`, `symKey` and `sigPrivKey`
 
 ## [0.0.9] - 2023-01-25
 

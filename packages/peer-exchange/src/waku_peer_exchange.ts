@@ -1,11 +1,14 @@
 import type { Stream } from "@libp2p/interface-connection";
+import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
-import type { IncomingStreamData } from "@libp2p/interface-registrar";
+import type {
+  IncomingStreamData,
+  Registrar,
+} from "@libp2p/interface-registrar";
 import { ENR } from "@waku/enr";
 import type {
   IPeerExchange,
-  PeerExchangeComponents,
   PeerExchangeQueryParams,
   PeerExchangeResponse,
 } from "@waku/interfaces";
@@ -24,6 +27,12 @@ import { PeerExchangeRPC } from "./rpc.js";
 export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
 const log = debug("waku:peer-exchange");
+
+export interface PeerExchangeComponents {
+  peerStore: PeerStore;
+  registrar: Registrar;
+  connectionManager: ConnectionManager;
+}
 
 /**
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
@@ -111,7 +120,7 @@ export class WakuPeerExchange implements IPeerExchange {
    */
   private async getPeer(peerId?: PeerId): Promise<Peer> {
     const res = await selectPeerForProtocol(
-      this.components.peerStore,
+      this.peerStore,
       [PeerExchangeCodec],
       peerId
     );
