@@ -6,10 +6,8 @@ import type { Multiaddr } from "@multiformats/multiaddr";
 import type {
   IFilter,
   ILightPush,
-  IPeerExchange,
   IRelay,
   IStore,
-  PeerExchangeComponents,
   Waku,
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -53,7 +51,6 @@ export class WakuNode implements Waku {
   public store?: IStore;
   public filter?: IFilter;
   public lightPush?: ILightPush;
-  public peerExchange?: IPeerExchange;
 
   private pingKeepAliveTimers: {
     [peer: string]: ReturnType<typeof setInterval>;
@@ -67,8 +64,7 @@ export class WakuNode implements Waku {
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
-    filter?: (libp2p: Libp2p) => IFilter,
-    peerExchange?: (components: PeerExchangeComponents) => IPeerExchange
+    filter?: (libp2p: Libp2p) => IFilter
   ) {
     this.libp2p = libp2p;
 
@@ -82,13 +78,6 @@ export class WakuNode implements Waku {
       this.lightPush = lightPush(libp2p);
     }
 
-    if (peerExchange) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore: Libp2p is now hiding internal components but peer discovery
-      // implementation still expect to receive said components.
-      this.peerExchange = peerExchange(libp2p.components);
-    }
-
     if (isRelay(libp2p.pubsub)) {
       this.relay = libp2p.pubsub;
     }
@@ -97,8 +86,7 @@ export class WakuNode implements Waku {
       "Waku node created",
       this.libp2p.peerId.toString(),
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
-        .lightPush}, filter: ${!!this.filter}, peer exchange: ${!!this
-        .peerExchange} `
+        .lightPush}, filter: ${!!this.filter}} `
     );
 
     this.pingKeepAliveTimers = {};
@@ -156,7 +144,6 @@ export class WakuNode implements Waku {
       this.store && _protocols.push(Protocols.Store);
       this.filter && _protocols.push(Protocols.Filter);
       this.lightPush && _protocols.push(Protocols.LightPush);
-      this.peerExchange && _protocols.push(Protocols.PeerExchange);
     }
 
     const codecs: string[] = [];
@@ -193,16 +180,6 @@ export class WakuNode implements Waku {
       } else {
         log(
           "Filter codec not included in dial codec: protocol not mounted locally"
-        );
-      }
-    }
-
-    if (_protocols.includes(Protocols.PeerExchange)) {
-      if (this.peerExchange) {
-        codecs.push(this.peerExchange.multicodec);
-      } else {
-        log(
-          "Peer Exchange codec not included in dial codec: protocol not mounted locally"
         );
       }
     }

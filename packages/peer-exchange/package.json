@@ -55,6 +55,7 @@
     "@waku/enr": "*",
     "@waku/proto": "*",
     "@waku/utils": "*",
+    "@waku/interfaces": "*",
     "debug": "^4.3.4",
     "it-all": "^2.0.0",
     "it-length-prefixed": "^8.0.4",

@@ -22,7 +22,7 @@ import type {
   ProtocolCreateOptions,
   RelayNode,
 } from "@waku/interfaces";
-import { wakuPeerExchange } from "@waku/peer-exchange";
+import type { Libp2p } from "libp2p";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 
 import type { Libp2pComponents } from "./libp2p_components.js";
@@ -62,15 +62,12 @@ export async function createLightNode(
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
 
-  const peerExchange = wakuPeerExchange();
-
   return new WakuNode(
     options ?? {},
     libp2p,
     store,
     lightPush,
-    filter,
-    peerExchange
+    filter
   ) as LightNode;
 }
 
@@ -130,15 +127,12 @@ export async function createFullNode(
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
 
-  const peerExchange = wakuPeerExchange();
-
   return new WakuNode(
     options ?? {},
     libp2p,
     store,
     lightPush,
-    filter,
-    peerExchange
+    filter
   ) as FullNode;
 }
 

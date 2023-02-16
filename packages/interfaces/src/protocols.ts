@@ -9,7 +9,6 @@ export enum Protocols {
   Store = "store",
   LightPush = "lightpush",
   Filter = "filter",
-  PeerExchange = "peer-exchange",
 }
 
 export interface PointToPointProtocol {

@@ -1,13 +1,12 @@
 import { bootstrap } from "@libp2p/bootstrap";
-import { waitForRemotePeer } from "@waku/core";
 import {
   Fleet,
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import { createLightNode } from "@waku/create";
-import type { LightNode, PeerExchangeResponse } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
+import type { LightNode } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
+import { DEFAULT_PEER_EXCHANGE_TAG_NAME } from "@waku/peer-exchange";
 import { expect } from "chai";
 
 import { delay } from "../src/delay.js";
@@ -43,45 +42,9 @@ describe("Peer Exchange", () => {
     // we want to ensure that there is enough time for discv5 to discover peers
     await delay(40000);
 
-    await waitForRemotePeer(waku, [Protocols.PeerExchange]);
-    const pxPeers = await waku.peerExchange.peers();
-    expect(pxPeers.length).to.be.greaterThan(0);
-  });
-
-  it("Manual query on test fleet", async function () {
-    this.timeout(60_000);
-
-    const waku = await createLightNode({
-      libp2p: {
-        peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
-        ],
-      },
-    });
-
-    await waku.start();
-
-    await waitForRemotePeer(waku, [Protocols.PeerExchange]);
-
-    let receivedCallback = false;
-    const numPeersToRequest = 3;
-    const callback = (response: PeerExchangeResponse): void => {
-      receivedCallback = true;
-      expect(response.peerInfos.length).to.be.greaterThan(0);
-      expect(response.peerInfos.length).to.be.lessThanOrEqual(
-        numPeersToRequest
-      );
-
-      expect(response.peerInfos[0].ENR).to.not.be.null;
-    };
-
-    await waku.peerExchange.query(
-      {
-        numPeers: numPeersToRequest,
-      },
-      callback
-    );
-
-    expect(receivedCallback).to.be.true;
+    const pxPeers = waku.libp2p
+      .getConnections()
+      .map((c) => c.tags.includes(DEFAULT_PEER_EXCHANGE_TAG_NAME)).length;
+    expect(pxPeers).to.be.greaterThan(0);
   });
 });
