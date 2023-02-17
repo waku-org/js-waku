@@ -18,19 +18,17 @@ import { Nwaku } from "../src/nwaku.js";
 describe("Peer Exchange", () => {
   let waku: LightNode;
 
-  before(async function () {
-    // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
-    // but not with locally run nwaku nodes
-    if (process.env.CI) {
-      this.skip();
-    }
-  });
-
   afterEach(async function () {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
   it("Auto discovery", async function () {
+    // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
+    // but not with locally run nwaku nodes
+    if (process.env.CI) {
+      this.skip();
+    }
+
     this.timeout(60_000);
 
     waku = await createLightNode({
