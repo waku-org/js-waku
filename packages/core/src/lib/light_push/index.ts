@@ -1,4 +1,4 @@
-import { ConnectionManager } from "@libp2p/interface-connection-manager";
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { PeerStore } from "@libp2p/interface-peer-store";
@@ -32,11 +32,6 @@ const log = debug("waku:light-push");
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 
-export interface LightPushComponents {
-  peerStore: PeerStore;
-  connectionManager: ConnectionManager;
-}
-
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
@@ -44,10 +39,7 @@ class LightPush implements ILightPush {
   multicodec: string;
   options: ProtocolCreateOptions;
 
-  constructor(
-    public components: LightPushComponents,
-    options?: ProtocolCreateOptions
-  ) {
+  constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
     this.multicodec = LightPushCodec;
     this.options = options || {};
   }
@@ -60,7 +52,7 @@ class LightPush implements ILightPush {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
     const res = await selectPeerForProtocol(
-      this.components.peerStore,
+      this.peerStore,
       [this.multicodec],
       opts?.peerId
     );
@@ -70,9 +62,7 @@ class LightPush implements ILightPush {
     }
     const { peer } = res;
 
-    const connections = this.components.connectionManager.getConnections(
-      peer.id
-    );
+    const connections = this.libp2p.getConnections(peer.id);
     const connection = selectConnection(connections);
 
     if (!connection) throw "Failed to get a connection to the peer";
@@ -126,7 +116,7 @@ class LightPush implements ILightPush {
    * peers.
    */
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.components.peerStore, [LightPushCodec]);
+    return getPeersForProtocol(this.peerStore, [LightPushCodec]);
   }
 
   /**
@@ -139,12 +129,12 @@ class LightPush implements ILightPush {
   }
 
   get peerStore(): PeerStore {
-    return this.components.peerStore;
+    return this.libp2p.peerStore;
   }
 }
 
 export function wakuLightPush(
   init: Partial<ProtocolCreateOptions> = {}
-): (components: LightPushComponents) => ILightPush {
-  return (components: LightPushComponents) => new LightPush(components, init);
+): (libp2p: Libp2p) => ILightPush {
+  return (libp2p: Libp2p) => new LightPush(libp2p, init);
 }

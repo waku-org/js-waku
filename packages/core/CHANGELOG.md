@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Dependency on `@waku/peer-exchange`.
+
+### Changed
+
+- `Filter`, `LightPush` and `Store` classes now takes in `options` of type `ProtocolCreateOptions` as the second argument, instead of `pubSubTopic`
+- `Relay` class now takes in `options` of type `Partial<RealyCreateOptions>` as the second argument, instead of `pubSubTopic`
 
 ## [@waku/core@0.0.10] - 2023-01-25
 

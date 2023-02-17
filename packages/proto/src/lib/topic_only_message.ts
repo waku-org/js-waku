@@ -1,9 +1,12 @@
 /* eslint-disable import/export */
+/* eslint-disable complexity */
 /* eslint-disable @typescript-eslint/no-namespace */
+/* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
+/* eslint-disable @typescript-eslint/no-empty-interface */
 
 import { encodeMessage, decodeMessage, message } from "protons-runtime";
-import type { Uint8ArrayList } from "uint8arraylist";
 import type { Codec } from "protons-runtime";
+import type { Uint8ArrayList } from "uint8arraylist";
 
 export interface TopicOnlyMessage {
   contentTopic?: string;
@@ -15,18 +18,18 @@ export namespace TopicOnlyMessage {
   export const codec = (): Codec<TopicOnlyMessage> => {
     if (_codec == null) {
       _codec = message<TopicOnlyMessage>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.contentTopic != null) {
-            writer.uint32(18);
-            writer.string(obj.contentTopic);
+            w.uint32(18);
+            w.string(obj.contentTopic);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -55,7 +58,7 @@ export namespace TopicOnlyMessage {
     return _codec;
   };
 
-  export const encode = (obj: TopicOnlyMessage): Uint8Array => {
+  export const encode = (obj: Partial<TopicOnlyMessage>): Uint8Array => {
     return encodeMessage(obj, TopicOnlyMessage.codec());
   };
 

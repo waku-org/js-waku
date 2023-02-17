@@ -1,6 +1,6 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import type {
-  EncoderOptions,
+  EncoderOptions as BaseEncoderOptions,
   IDecoder,
   IEncoder,
   IMessage,
@@ -62,7 +62,7 @@ export class Encoder implements IEncoder {
   }
 }
 
-export interface SymmetricEncoderOptions extends EncoderOptions {
+export interface EncoderOptions extends BaseEncoderOptions {
   /** The symmetric key to encrypt the payload with. */
   symKey: Uint8Array;
   /** An optional private key to be used to sign the payload before encryption. */
@@ -87,7 +87,7 @@ export function createEncoder({
   symKey,
   sigPrivKey,
   ephemeral = false,
-}: SymmetricEncoderOptions): Encoder {
+}: EncoderOptions): Encoder {
   return new Encoder(contentTopic, symKey, sigPrivKey, ephemeral);
 }
 

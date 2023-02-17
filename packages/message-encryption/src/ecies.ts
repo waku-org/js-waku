@@ -1,6 +1,6 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import type {
-  EncoderOptions,
+  EncoderOptions as BaseEncoderOptions,
   IDecoder,
   IEncoder,
   IMessage,
@@ -64,7 +64,7 @@ export class Encoder implements IEncoder {
   }
 }
 
-export interface EciesEncoderOptions extends EncoderOptions {
+export interface EncoderOptions extends BaseEncoderOptions {
   /** The public key to encrypt the payload for. */
   publicKey: Uint8Array;
   /**  An optional private key to be used to sign the payload before encryption. */
@@ -88,7 +88,7 @@ export function createEncoder({
   publicKey,
   sigPrivKey,
   ephemeral = false,
-}: EciesEncoderOptions): Encoder {
+}: EncoderOptions): Encoder {
   return new Encoder(contentTopic, publicKey, sigPrivKey, ephemeral);
 }
 

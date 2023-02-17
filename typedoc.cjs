@@ -8,9 +8,10 @@ module.exports = {
   out: "docs",
   exclude: ["**/*.spec.ts"],
   excludeInternal: true,
+  treatWarningsAsErrors: true,
+  excludeExternals: true,
   validation: {
     invalidLink: true,
     notExported: true,
   },
 };
-packageJson.workspaces;

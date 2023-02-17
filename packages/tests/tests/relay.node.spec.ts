@@ -25,6 +25,7 @@ import { expect } from "chai";
 import debug from "debug";
 
 import {
+  base64ToUtf8,
   delay,
   makeLogFileName,
   MessageRpcResponse,
@@ -102,7 +103,7 @@ describe("Waku Relay [node only]", () => {
     });
 
     it("Register correct protocols", async function () {
-      const protocols = waku1.libp2p.registrar.getProtocols();
+      const protocols = waku1.libp2p.getProtocols();
 
       expect(protocols).to.contain("/vac/waku/relay/2.0.0");
       expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
@@ -389,9 +390,7 @@ describe("Waku Relay [node only]", () => {
 
       expect(msgs[0].contentTopic).to.equal(TestContentTopic);
       expect(msgs[0].version).to.equal(0);
-      expect(bytesToUtf8(new Uint8Array(msgs[0].payload))).to.equal(
-        messageText
-      );
+      expect(base64ToUtf8(msgs[0].payload)).to.equal(messageText);
     });
 
     it("Nwaku publishes", async function () {

@@ -1,16 +1,19 @@
-import {
+import type {
   PeerDiscovery,
   PeerDiscoveryEvents,
-  symbol,
 } from "@libp2p/interface-peer-discovery";
+import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { PeerInfo } from "@libp2p/interface-peer-info";
-import { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
+import type { PeerInfo } from "@libp2p/interface-peer-info";
+import type { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { EventEmitter } from "@libp2p/interfaces/events";
-import { PeerExchangeComponents } from "@waku/interfaces";
 import debug from "debug";
 
-import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
+import {
+  PeerExchangeCodec,
+  PeerExchangeComponents,
+  WakuPeerExchange,
+} from "./waku_peer_exchange.js";
 
 const log = debug("waku:peer-exchange-discovery");
 
@@ -45,9 +48,9 @@ export interface Options {
   maxRetries?: number;
 }
 
-const DEFAULT_BOOTSTRAP_TAG_NAME = "peer-exchange";
-const DEFAULT_BOOTSTRAP_TAG_VALUE = 50;
-const DEFAULT_BOOTSTRAP_TAG_TTL = 120000;
+export const DEFAULT_PEER_EXCHANGE_TAG_NAME = "peer-exchange";
+const DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_VALUE = 50;
+const DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_TTL = 120000;
 
 export class PeerExchangeDiscovery
   extends EventEmitter<PeerDiscoveryEvents>
@@ -171,17 +174,20 @@ export class PeerExchangeDiscovery
 
           if (
             (await this.components.peerStore.getTags(peerId)).find(
-              ({ name }) => name === DEFAULT_BOOTSTRAP_TAG_NAME
+              ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
             )
           )
             continue;
 
           await this.components.peerStore.tagPeer(
             peerId,
-            DEFAULT_BOOTSTRAP_TAG_NAME,
+            DEFAULT_PEER_EXCHANGE_TAG_NAME,
             {
-              value: this.options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-              ttl: this.options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+              value:
+                this.options.tagValue ??
+                DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_VALUE,
+              ttl:
+                this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_TTL,
             }
           );
 

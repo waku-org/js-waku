@@ -1,6 +1,6 @@
 import * as RLP from "@ethersproject/rlp";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { Multiaddr } from "@multiformats/multiaddr";
+import type { Multiaddr } from "@multiformats/multiaddr";
 import {
   convertToBytes,
   convertToString,
