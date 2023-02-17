@@ -30,7 +30,7 @@ describe("Peer Exchange", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it.only("Auto discovery", async function () {
+  it("Auto discovery", async function () {
     this.timeout(60_000);
 
     waku = await createLightNode({
@@ -79,7 +79,7 @@ describe("Peer Exchange", () => {
       !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
     });
 
-    it.only("nwaku interop", async function () {
+    it("nwaku interop", async function () {
       this.timeout(25_000);
 
       await nwaku1.start({
