@@ -10,10 +10,8 @@ import {
   WakuPeerExchange,
   wakuPeerExchangeDiscovery,
 } from "@waku/peer-exchange";
-import { DEFAULT_PEER_EXCHANGE_TAG_NAME } from "@waku/peer-exchange";
 import { expect } from "chai";
 
-import { delay } from "../src/delay.js";
 import { makeLogFileName } from "../src/log_file.js";
 import { Nwaku } from "../src/nwaku.js";
 
@@ -32,26 +30,37 @@ describe("Peer Exchange", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it("Auto discovery", async function () {
+  it.only("Auto discovery", async function () {
     this.timeout(60_000);
 
     waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
+          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
           wakuPeerExchangeDiscovery(),
         ],
       },
     });
 
     await waku.start();
-    // we want to ensure that there is enough time for discv5 to discover peers
-    await delay(40000);
 
-    const pxPeers = waku.libp2p
-      .getConnections()
-      .map((c) => c.tags.includes(DEFAULT_PEER_EXCHANGE_TAG_NAME)).length;
-    expect(pxPeers).to.be.greaterThan(0);
+    let foundPxPeer = false;
+
+    await new Promise((resolve) => {
+      const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
+      waku.libp2p.addEventListener("peer:discovery", (evt) => {
+        const { multiaddrs } = evt.detail;
+        multiaddrs.forEach((ma) => {
+          const isBootstrapNode = testNodes.find((n) => n === ma.toString());
+          if (!isBootstrapNode) {
+            foundPxPeer = true;
+            resolve(evt.detail.id);
+          }
+        });
+      });
+    });
+
+    expect(foundPxPeer).to.be.true;
   });
 
   describe("Locally run nodes", () => {
