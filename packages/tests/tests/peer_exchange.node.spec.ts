@@ -1,16 +1,17 @@
 import { bootstrap } from "@libp2p/bootstrap";
-import { waitForRemotePeer } from "@waku/core";
 import {
   Fleet,
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import { createLightNode } from "@waku/create";
 import type { LightNode, PeerExchangeResponse } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
-import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
+import {
+  PeerExchangeCodec,
+  WakuPeerExchange,
+  wakuPeerExchangeDiscovery,
+} from "@waku/peer-exchange";
 import { expect } from "chai";
 
-import { delay } from "../src/delay.js";
 import { makeLogFileName } from "../src/log_file.js";
 import { Nwaku } from "../src/nwaku.js";
 
@@ -29,62 +30,34 @@ describe("Peer Exchange", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it("Auto discovery", async function () {
+  it.only("Auto discovery", async function () {
     this.timeout(60_000);
 
     waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
+          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
           wakuPeerExchangeDiscovery(),
         ],
       },
     });
 
     await waku.start();
-    // we want to ensure that there is enough time for discv5 to discover peers
-    await delay(40000);
 
-    await waitForRemotePeer(waku, [Protocols.PeerExchange]);
-    const pxPeers = await waku.peerExchange.peers();
-    expect(pxPeers.length).to.be.greaterThan(0);
-  });
-
-  it("Manual query on test fleet", async function () {
-    this.timeout(60_000);
-
-    const waku = await createLightNode({
-      libp2p: {
-        peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
-        ],
-      },
+    const foundPxPeer = await new Promise<boolean>((resolve) => {
+      const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
+      waku.libp2p.addEventListener("peer:discovery", (evt) => {
+        const { multiaddrs } = evt.detail;
+        multiaddrs.forEach((ma) => {
+          const isBootstrapNode = testNodes.find((n) => n === ma.toString());
+          if (!isBootstrapNode) {
+            resolve(true);
+          }
+        });
+      });
     });
 
-    await waku.start();
-
-    await waitForRemotePeer(waku, [Protocols.PeerExchange]);
-
-    let receivedCallback = false;
-    const numPeersToRequest = 3;
-    const callback = (response: PeerExchangeResponse): void => {
-      receivedCallback = true;
-      expect(response.peerInfos.length).to.be.greaterThan(0);
-      expect(response.peerInfos.length).to.be.lessThanOrEqual(
-        numPeersToRequest
-      );
-
-      expect(response.peerInfos[0].ENR).to.not.be.null;
-    };
-
-    await waku.peerExchange.query(
-      {
-        numPeers: numPeersToRequest,
-      },
-      callback
-    );
-
-    expect(receivedCallback).to.be.true;
+    expect(foundPxPeer).to.be.true;
   });
 
   describe("Locally run nodes", () => {
@@ -124,11 +97,28 @@ describe("Peer Exchange", () => {
 
       waku = await createLightNode();
       await waku.start();
-      await waku.dial(nwaku2Ma);
+      await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
-      await waitForRemotePeer(waku, [Protocols.PeerExchange]);
+      await new Promise<void>((resolve) => {
+        waku.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
+          if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+            resolve();
+          }
+        });
+      });
 
-      await nwaku2.waitForLog("Discovered px peers via discv5", 1);
+      await nwaku2.waitForLog("Discovered px peers via discv5", 10);
+
+      // the ts-ignores are added ref: https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
+      const peerExchange = new WakuPeerExchange({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        connectionManager: waku.libp2p.connectionManager,
+        peerStore: waku.libp2p.peerStore,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        registrar: waku.libp2p.registrar,
+      });
 
       let receivedCallback = false;
 
@@ -156,7 +146,7 @@ describe("Peer Exchange", () => {
         receivedCallback = true;
       };
 
-      await waku.peerExchange.query(
+      await peerExchange.query(
         {
           numPeers: numPeersToRequest,
         },

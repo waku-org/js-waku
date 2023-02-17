@@ -48,9 +48,9 @@ export interface Options {
   maxRetries?: number;
 }
 
-const DEFAULT_BOOTSTRAP_TAG_NAME = "peer-exchange";
-const DEFAULT_BOOTSTRAP_TAG_VALUE = 50;
-const DEFAULT_BOOTSTRAP_TAG_TTL = 120000;
+export const DEFAULT_PEER_EXCHANGE_TAG_NAME = "peer-exchange";
+const DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_VALUE = 50;
+const DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_TTL = 120000;
 
 export class PeerExchangeDiscovery
   extends EventEmitter<PeerDiscoveryEvents>
@@ -174,17 +174,20 @@ export class PeerExchangeDiscovery
 
           if (
             (await this.components.peerStore.getTags(peerId)).find(
-              ({ name }) => name === DEFAULT_BOOTSTRAP_TAG_NAME
+              ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
             )
           )
             continue;
 
           await this.components.peerStore.tagPeer(
             peerId,
-            DEFAULT_BOOTSTRAP_TAG_NAME,
+            DEFAULT_PEER_EXCHANGE_TAG_NAME,
             {
-              value: this.options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-              ttl: this.options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+              value:
+                this.options.tagValue ??
+                DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_VALUE,
+              ttl:
+                this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_TTL,
             }
           );
 

@@ -60,14 +60,6 @@ export async function waitForRemotePeer(
     promises.push(waitForConnectedPeer(waku.filter));
   }
 
-  if (protocols.includes(Protocols.PeerExchange)) {
-    if (!waku.peerExchange)
-      throw new Error(
-        "Cannot wait for Peer Exchange peer: protocol not mounted"
-      );
-    promises.push(waitForConnectedPeer(waku.peerExchange));
-  }
-
   if (timeoutMs) {
     await rejectOnTimeout(
       Promise.all(promises),
