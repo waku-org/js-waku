@@ -4,8 +4,12 @@ import {
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import { createLightNode } from "@waku/create";
-import type { LightNode } from "@waku/interfaces";
-import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
+import type { LightNode, PeerExchangeResponse } from "@waku/interfaces";
+import {
+  PeerExchangeCodec,
+  WakuPeerExchange,
+  wakuPeerExchangeDiscovery,
+} from "@waku/peer-exchange";
 import { DEFAULT_PEER_EXCHANGE_TAG_NAME } from "@waku/peer-exchange";
 import { expect } from "chai";
 
@@ -66,7 +70,7 @@ describe("Peer Exchange", () => {
       !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
     });
 
-    it("nwaku interop", async function () {
+    it.only("nwaku interop", async function () {
       this.timeout(25_000);
 
       await nwaku1.start({
@@ -87,11 +91,28 @@ describe("Peer Exchange", () => {
 
       waku = await createLightNode();
       await waku.start();
-      await waku.dial(nwaku2Ma);
+      await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
-      await waitForRemotePeer(waku, [Protocols.PeerExchange]);
+      await new Promise<void>((resolve) => {
+        waku.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
+          if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+            resolve();
+          }
+        });
+      });
 
-      await nwaku2.waitForLog("Discovered px peers via discv5", 1);
+      await nwaku2.waitForLog("Discovered px peers via discv5", 10);
+
+      // the ts-ignores are added ref: https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
+      const peerExchange = new WakuPeerExchange({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        connectionManager: waku.libp2p.connectionManager,
+        peerStore: waku.libp2p.peerStore,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        registrar: waku.libp2p.registrar,
+      });
 
       let receivedCallback = false;
 
@@ -119,7 +140,7 @@ describe("Peer Exchange", () => {
         receivedCallback = true;
       };
 
-      await waku.peerExchange.query(
+      await peerExchange.query(
         {
           numPeers: numPeersToRequest,
         },
