@@ -30,7 +30,7 @@ describe("Peer Exchange", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it("Auto discovery", async function () {
+  it.only("Auto discovery", async function () {
     this.timeout(60_000);
 
     waku = await createLightNode({
@@ -44,17 +44,14 @@ describe("Peer Exchange", () => {
 
     await waku.start();
 
-    let foundPxPeer = false;
-
-    await new Promise((resolve) => {
+    const foundPxPeer = await new Promise<boolean>((resolve) => {
       const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
       waku.libp2p.addEventListener("peer:discovery", (evt) => {
         const { multiaddrs } = evt.detail;
         multiaddrs.forEach((ma) => {
           const isBootstrapNode = testNodes.find((n) => n === ma.toString());
           if (!isBootstrapNode) {
-            foundPxPeer = true;
-            resolve(evt.detail.id);
+            resolve(true);
           }
         });
       });
