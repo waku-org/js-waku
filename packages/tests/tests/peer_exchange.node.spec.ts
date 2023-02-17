@@ -1,4 +1,5 @@
 import { bootstrap } from "@libp2p/bootstrap";
+import tests from "@libp2p/interface-peer-discovery-compliance-tests";
 import {
   Fleet,
   getPredefinedBootstrapNodes,
@@ -7,6 +8,7 @@ import { createLightNode } from "@waku/create";
 import type { LightNode, PeerExchangeResponse } from "@waku/interfaces";
 import {
   PeerExchangeCodec,
+  PeerExchangeDiscovery,
   WakuPeerExchange,
   wakuPeerExchangeDiscovery,
 } from "@waku/peer-exchange";
@@ -30,7 +32,7 @@ describe("Peer Exchange", () => {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
-  it.only("Auto discovery", async function () {
+  it("Auto discovery", async function () {
     this.timeout(60_000);
 
     waku = await createLightNode({
@@ -154,6 +156,70 @@ describe("Peer Exchange", () => {
       );
 
       expect(receivedCallback).to.be.true;
+    });
+  });
+
+  describe("compliance test", async function () {
+    this.timeout(25_000);
+
+    let waku: LightNode;
+    let nwaku1: Nwaku;
+    let nwaku2: Nwaku;
+
+    tests({
+      async setup() {
+        nwaku1 = new Nwaku("1");
+        nwaku2 = new Nwaku("2");
+        await nwaku1.start({
+          discv5Discovery: true,
+          peerExchange: true,
+        });
+
+        const enr = (await nwaku1.info()).enrUri;
+
+        await nwaku2.start({
+          discv5Discovery: true,
+          peerExchange: true,
+          discv5BootstrapNode: enr,
+        });
+
+        waku = await createLightNode();
+
+        await waku.start();
+        const nwaku2Ma = await nwaku2.getMultiaddrWithId();
+
+        setTimeout(async () => {
+          await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
+          await new Promise<void>((resolve) => {
+            waku.libp2p.peerStore.addEventListener(
+              "change:protocols",
+              (evt) => {
+                if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+                  resolve();
+                }
+              }
+            );
+          });
+        }, 1000);
+
+        // the ts-ignores are added ref: https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
+        const components = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          connectionManager: waku.libp2p.connectionManager,
+          peerStore: waku.libp2p.peerStore,
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          registrar: waku.libp2p.registrar,
+        };
+
+        return new PeerExchangeDiscovery(components);
+      },
+      teardown: async () => {
+        !!nwaku1 && nwaku1.stop();
+        !!nwaku2 && nwaku2.stop();
+        !!waku && (await waku.stop());
+      },
     });
   });
 });
