@@ -2,29 +2,16 @@ import type { Connection } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { IRelay } from "@waku/interfaces";
+import type { ConnectionManagerOptions, IRelay } from "@waku/interfaces";
 import { Tags } from "@waku/interfaces";
 import debug from "debug";
 
 import { KeepAliveManager, KeepAliveOptions } from "./keep_alive_manager.js";
 
-export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
-export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
-
 const log = debug("waku:connection-manager");
 
-export interface ConnectionManagerOptions {
-  /**
-   * Number of attempts before a peer is considered non-dialable
-   * This is used to not spam a peer with dial attempts when it is not dialable
-   */
-  maxDialAttemptsForPeer: number;
-  /**
-   * Max number of bootstrap peers allowed to be connected to, initially
-   * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange)
-   */
-  maxBootstrapPeersAllowed: number;
-}
+export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
+export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
 
 export class ConnectionManager {
   private static instances = new Map<string, ConnectionManager>();
@@ -48,8 +35,8 @@ export class ConnectionManager {
         relay,
         options
       );
+      ConnectionManager.instances.set(peerId, instance);
     }
-    ConnectionManager.instances.set(peerId, instance);
 
     return instance;
   }
