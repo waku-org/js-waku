@@ -1,10 +1,10 @@
 import type { Connection } from "@libp2p/interface-connection";
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { IRelay } from "@waku/interfaces";
 import { Tags } from "@waku/interfaces";
 import debug from "debug";
-import type { Libp2p } from "libp2p";
 
 import { KeepAliveManager, KeepAliveOptions } from "./keep_alive_manager.js";
 
@@ -12,13 +12,6 @@ export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
 
 const log = debug("waku:connection-manager");
-
-export interface Libp2pComponents {
-  connectionManager: Libp2p["connectionManager"];
-  peerStore: Libp2p["peerStore"];
-  ping: Libp2p["ping"];
-  dial: Libp2p["dial"];
-}
 
 export interface ConnectionManagerOptions {
   /**
@@ -37,12 +30,12 @@ export class ConnectionManager {
   private static instances = new Map<string, ConnectionManager>();
   private keepAliveManager: KeepAliveManager;
   private options: ConnectionManagerOptions;
-  private libp2pComponents: Libp2pComponents;
+  private libp2pComponents: Libp2p;
   private dialAttemptsForPeer: Map<string, number> = new Map();
 
   public static create(
     peerId: string,
-    libp2p: Libp2pComponents,
+    libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
     options?: ConnectionManagerOptions
@@ -62,7 +55,7 @@ export class ConnectionManager {
   }
 
   private constructor(
-    libp2pComponents: Libp2pComponents,
+    libp2pComponents: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
     options?: ConnectionManagerOptions
@@ -86,16 +79,16 @@ export class ConnectionManager {
 
   stop(): void {
     this.keepAliveManager.stopAll();
-    this.libp2pComponents.connectionManager.removeEventListener(
+    this.libp2pComponents.removeEventListener(
       "peer:connect",
       this.onEventHandlers["peer:connect"]
     );
-    this.libp2pComponents.connectionManager.removeEventListener(
+    this.libp2pComponents.removeEventListener(
       "peer:disconnect",
       this.onEventHandlers["peer:disconnect"]
     );
-    this.libp2pComponents.peerStore.removeEventListener(
-      "peer",
+    this.libp2pComponents.removeEventListener(
+      "peer:discovery",
       this.onEventHandlers["peer:discovery"]
     );
   }
@@ -113,7 +106,7 @@ export class ConnectionManager {
         const tags = await this.getTagNamesForPeer(peerId);
         // add tag to connection describing discovery mechanism
         // don't add duplicate tags
-        this.libp2pComponents.connectionManager
+        this.libp2pComponents
           .getConnections(peerId)
           .forEach(
             (conn) => (conn.tags = Array.from(new Set([...conn.tags, ...tags])))
@@ -149,7 +142,7 @@ export class ConnectionManager {
   }
 
   private startPeerConnectionListener(): void {
-    this.libp2pComponents.connectionManager.addEventListener(
+    this.libp2pComponents.addEventListener(
       "peer:connect",
       this.onEventHandlers["peer:connect"]
     );
@@ -168,7 +161,7 @@ export class ConnectionManager {
      * >this event will **only** be triggered when the last connection is closed.
      * @see https://github.com/libp2p/js-libp2p/blob/bad9e8c0ff58d60a78314077720c82ae331cc55b/doc/API.md?plain=1#L2100
      */
-    this.libp2pComponents.connectionManager.addEventListener(
+    this.libp2pComponents.addEventListener(
       "peer:disconnect",
       this.onEventHandlers["peer:disconnect"]
     );
@@ -207,8 +200,7 @@ export class ConnectionManager {
     const { maxBootstrapPeersAllowed = DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED } =
       this.options;
 
-    const isConnected =
-      this.libp2pComponents.connectionManager.getConnections(peerId).length > 0;
+    const isConnected = this.libp2pComponents.getConnections(peerId).length > 0;
 
     if (isConnected) return false;
 
@@ -217,12 +209,11 @@ export class ConnectionManager {
     );
 
     if (isBootstrap) {
-      const currentBootstrapConnections =
-        this.libp2pComponents.connectionManager
-          .getConnections()
-          .filter((conn) => {
-            conn.tags.find((name) => name === Tags.BOOTSTRAP);
-          }).length;
+      const currentBootstrapConnections = this.libp2pComponents
+        .getConnections()
+        .filter((conn) => {
+          conn.tags.find((name) => name === Tags.BOOTSTRAP);
+        }).length;
       if (currentBootstrapConnections < maxBootstrapPeersAllowed) return true;
     } else {
       return true;

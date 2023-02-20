@@ -85,12 +85,7 @@ export class WakuNode implements Waku {
 
     this.connectionManager = ConnectionManager.create(
       peerId,
-      {
-        connectionManager: libp2p.connectionManager,
-        peerStore: libp2p.peerStore,
-        ping: libp2p.ping.bind(libp2p),
-        dial: libp2p.dial.bind(libp2p),
-      },
+      libp2p,
       { pingKeepAlive, relayKeepAlive },
       this.relay
     );
