@@ -18,12 +18,12 @@ export interface ConnectionManagerOptions {
    * Number of attempts before a peer is considered non-dialable
    * This is used to not spam a peer with dial attempts when it is not dialable
    */
-  maxDialAttemptsForPeer?: number;
+  maxDialAttemptsForPeer: number;
   /**
    * Max number of bootstrap peers allowed to be connected to, initially
    * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange)
    */
-  maxBootstrapPeersAllowed?: number;
+  maxBootstrapPeersAllowed: number;
 }
 
 export class ConnectionManager {
@@ -58,10 +58,14 @@ export class ConnectionManager {
     libp2pComponents: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
-    options?: ConnectionManagerOptions
+    options?: Partial<ConnectionManagerOptions>
   ) {
     this.libp2pComponents = libp2pComponents;
-    this.options = options ?? {};
+    this.options = {
+      maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
+      maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
+      ...options,
+    };
 
     this.keepAliveManager = new KeepAliveManager(keepAliveOptions, relay);
 
@@ -94,11 +98,8 @@ export class ConnectionManager {
   }
 
   private async dialPeer(peerId: PeerId): Promise<void> {
-    const { maxDialAttemptsForPeer = DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER } =
-      this.options;
-
     let dialAttempt = 0;
-    while (dialAttempt <= maxDialAttemptsForPeer) {
+    while (dialAttempt <= this.options.maxDialAttemptsForPeer) {
       try {
         log(`Dialing peer ${peerId.toString()}`);
         await this.libp2pComponents.dial(peerId);
@@ -120,7 +121,7 @@ export class ConnectionManager {
         dialAttempt = this.dialAttemptsForPeer.get(peerId.toString()) ?? 1;
         this.dialAttemptsForPeer.set(peerId.toString(), dialAttempt + 1);
 
-        if (dialAttempt <= maxDialAttemptsForPeer) {
+        if (dialAttempt <= this.options.maxDialAttemptsForPeer) {
           log(`Reattempting dial (${dialAttempt})`);
         }
       }
@@ -197,9 +198,6 @@ export class ConnectionManager {
    * 2. If the peer is not a bootstrap peer
    */
   private async shouldDialPeer(peerId: PeerId): Promise<boolean> {
-    const { maxBootstrapPeersAllowed = DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED } =
-      this.options;
-
     const isConnected = this.libp2pComponents.getConnections(peerId).length > 0;
 
     if (isConnected) return false;
@@ -214,7 +212,8 @@ export class ConnectionManager {
         .filter((conn) => {
           conn.tags.find((name) => name === Tags.BOOTSTRAP);
         }).length;
-      if (currentBootstrapConnections < maxBootstrapPeersAllowed) return true;
+      if (currentBootstrapConnections < this.options.maxBootstrapPeersAllowed)
+        return true;
     } else {
       return true;
     }
