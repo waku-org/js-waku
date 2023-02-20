@@ -1,11 +1,10 @@
 import type { Stream } from "@libp2p/interface-connection";
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
-import type { Libp2p } from "libp2p";
 
 import type { IFilter } from "./filter.js";
 import type { ILightPush } from "./light_push.js";
-import type { IPeerExchange } from "./peer_exchange.js";
 import { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { IStore } from "./store.js";
@@ -16,7 +15,6 @@ export interface Waku {
   store?: IStore;
   filter?: IFilter;
   lightPush?: ILightPush;
-  peerExchange?: IPeerExchange;
 
   dial(peer: PeerId | Multiaddr, protocols?: Protocols[]): Promise<Stream>;
 
@@ -32,7 +30,6 @@ export interface LightNode extends Waku {
   store: IStore;
   filter: IFilter;
   lightPush: ILightPush;
-  peerExchange: IPeerExchange;
 }
 
 export interface RelayNode extends Waku {
@@ -40,7 +37,6 @@ export interface RelayNode extends Waku {
   store: undefined;
   filter: undefined;
   lightPush: undefined;
-  peerExchange: undefined;
 }
 
 export interface FullNode extends Waku {
@@ -48,5 +44,4 @@ export interface FullNode extends Waku {
   store: IStore;
   filter: IFilter;
   lightPush: ILightPush;
-  peerExchange: IPeerExchange;
 }

@@ -1,5 +1,8 @@
 /* eslint-disable import/export */
+/* eslint-disable complexity */
 /* eslint-disable @typescript-eslint/no-namespace */
+/* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
+/* eslint-disable @typescript-eslint/no-empty-interface */
 
 import {
   encodeMessage,
@@ -7,8 +10,8 @@ import {
   message,
   enumeration,
 } from "protons-runtime";
-import type { Uint8ArrayList } from "uint8arraylist";
 import type { Codec } from "protons-runtime";
+import type { Uint8ArrayList } from "uint8arraylist";
 
 export interface Index {
   digest?: Uint8Array;
@@ -23,33 +26,33 @@ export namespace Index {
   export const codec = (): Codec<Index> => {
     if (_codec == null) {
       _codec = message<Index>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.digest != null) {
-            writer.uint32(10);
-            writer.bytes(obj.digest);
+            w.uint32(10);
+            w.bytes(obj.digest);
           }
 
           if (obj.receivedTime != null) {
-            writer.uint32(16);
-            writer.sint64(obj.receivedTime);
+            w.uint32(16);
+            w.sint64(obj.receivedTime);
           }
 
           if (obj.senderTime != null) {
-            writer.uint32(24);
-            writer.sint64(obj.senderTime);
+            w.uint32(24);
+            w.sint64(obj.senderTime);
           }
 
           if (obj.pubsubTopic != null) {
-            writer.uint32(34);
-            writer.string(obj.pubsubTopic);
+            w.uint32(34);
+            w.string(obj.pubsubTopic);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -87,7 +90,7 @@ export namespace Index {
     return _codec;
   };
 
-  export const encode = (obj: Index): Uint8Array => {
+  export const encode = (obj: Partial<Index>): Uint8Array => {
     return encodeMessage(obj, Index.codec());
   };
 
@@ -114,7 +117,7 @@ export namespace PagingInfo {
   }
 
   export namespace Direction {
-    export const codec = () => {
+    export const codec = (): Codec<Direction> => {
       return enumeration<Direction>(__DirectionValues);
     };
   }
@@ -124,28 +127,28 @@ export namespace PagingInfo {
   export const codec = (): Codec<PagingInfo> => {
     if (_codec == null) {
       _codec = message<PagingInfo>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.pageSize != null) {
-            writer.uint32(8);
-            writer.uint64(obj.pageSize);
+            w.uint32(8);
+            w.uint64(obj.pageSize);
           }
 
           if (obj.cursor != null) {
-            writer.uint32(18);
-            Index.codec().encode(obj.cursor, writer);
+            w.uint32(18);
+            Index.codec().encode(obj.cursor, w);
           }
 
           if (obj.direction != null) {
-            writer.uint32(24);
-            PagingInfo.Direction.codec().encode(obj.direction, writer);
+            w.uint32(24);
+            PagingInfo.Direction.codec().encode(obj.direction, w);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -180,7 +183,7 @@ export namespace PagingInfo {
     return _codec;
   };
 
-  export const encode = (obj: PagingInfo): Uint8Array => {
+  export const encode = (obj: Partial<PagingInfo>): Uint8Array => {
     return encodeMessage(obj, PagingInfo.codec());
   };
 
@@ -199,18 +202,18 @@ export namespace ContentFilter {
   export const codec = (): Codec<ContentFilter> => {
     if (_codec == null) {
       _codec = message<ContentFilter>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.contentTopic != null) {
-            writer.uint32(10);
-            writer.string(obj.contentTopic);
+            w.uint32(10);
+            w.string(obj.contentTopic);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -239,7 +242,7 @@ export namespace ContentFilter {
     return _codec;
   };
 
-  export const encode = (obj: ContentFilter): Uint8Array => {
+  export const encode = (obj: Partial<ContentFilter>): Uint8Array => {
     return encodeMessage(obj, ContentFilter.codec());
   };
 
@@ -262,44 +265,40 @@ export namespace HistoryQuery {
   export const codec = (): Codec<HistoryQuery> => {
     if (_codec == null) {
       _codec = message<HistoryQuery>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.pubSubTopic != null) {
-            writer.uint32(18);
-            writer.string(obj.pubSubTopic);
+            w.uint32(18);
+            w.string(obj.pubSubTopic);
           }
 
           if (obj.contentFilters != null) {
             for (const value of obj.contentFilters) {
-              writer.uint32(26);
-              ContentFilter.codec().encode(value, writer);
+              w.uint32(26);
+              ContentFilter.codec().encode(value, w);
             }
-          } else {
-            throw new Error(
-              'Protocol error: required field "contentFilters" was not found in object'
-            );
           }
 
           if (obj.pagingInfo != null) {
-            writer.uint32(34);
-            PagingInfo.codec().encode(obj.pagingInfo, writer);
+            w.uint32(34);
+            PagingInfo.codec().encode(obj.pagingInfo, w);
           }
 
           if (obj.startTime != null) {
-            writer.uint32(40);
-            writer.sint64(obj.startTime);
+            w.uint32(40);
+            w.sint64(obj.startTime);
           }
 
           if (obj.endTime != null) {
-            writer.uint32(48);
-            writer.sint64(obj.endTime);
+            w.uint32(48);
+            w.sint64(obj.endTime);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -347,7 +346,7 @@ export namespace HistoryQuery {
     return _codec;
   };
 
-  export const encode = (obj: HistoryQuery): Uint8Array => {
+  export const encode = (obj: Partial<HistoryQuery>): Uint8Array => {
     return encodeMessage(obj, HistoryQuery.codec());
   };
 
@@ -374,7 +373,7 @@ export namespace HistoryResponse {
   }
 
   export namespace HistoryError {
-    export const codec = () => {
+    export const codec = (): Codec<HistoryError> => {
       return enumeration<HistoryError>(__HistoryErrorValues);
     };
   }
@@ -384,34 +383,30 @@ export namespace HistoryResponse {
   export const codec = (): Codec<HistoryResponse> => {
     if (_codec == null) {
       _codec = message<HistoryResponse>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.messages != null) {
             for (const value of obj.messages) {
-              writer.uint32(18);
-              WakuMessage.codec().encode(value, writer);
+              w.uint32(18);
+              WakuMessage.codec().encode(value, w);
             }
-          } else {
-            throw new Error(
-              'Protocol error: required field "messages" was not found in object'
-            );
           }
 
           if (obj.pagingInfo != null) {
-            writer.uint32(26);
-            PagingInfo.codec().encode(obj.pagingInfo, writer);
+            w.uint32(26);
+            PagingInfo.codec().encode(obj.pagingInfo, w);
           }
 
           if (obj.error != null) {
-            writer.uint32(32);
-            HistoryResponse.HistoryError.codec().encode(obj.error, writer);
+            w.uint32(32);
+            HistoryResponse.HistoryError.codec().encode(obj.error, w);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -453,7 +448,7 @@ export namespace HistoryResponse {
     return _codec;
   };
 
-  export const encode = (obj: HistoryResponse): Uint8Array => {
+  export const encode = (obj: Partial<HistoryResponse>): Uint8Array => {
     return encodeMessage(obj, HistoryResponse.codec());
   };
 
@@ -474,28 +469,28 @@ export namespace HistoryRPC {
   export const codec = (): Codec<HistoryRPC> => {
     if (_codec == null) {
       _codec = message<HistoryRPC>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.requestId != null) {
-            writer.uint32(10);
-            writer.string(obj.requestId);
+            w.uint32(10);
+            w.string(obj.requestId);
           }
 
           if (obj.query != null) {
-            writer.uint32(18);
-            HistoryQuery.codec().encode(obj.query, writer);
+            w.uint32(18);
+            HistoryQuery.codec().encode(obj.query, w);
           }
 
           if (obj.response != null) {
-            writer.uint32(26);
-            HistoryResponse.codec().encode(obj.response, writer);
+            w.uint32(26);
+            HistoryResponse.codec().encode(obj.response, w);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -536,7 +531,7 @@ export namespace HistoryRPC {
     return _codec;
   };
 
-  export const encode = (obj: HistoryRPC): Uint8Array => {
+  export const encode = (obj: Partial<HistoryRPC>): Uint8Array => {
     return encodeMessage(obj, HistoryRPC.codec());
   };
 
@@ -561,76 +556,48 @@ export namespace RateLimitProof {
   export const codec = (): Codec<RateLimitProof> => {
     if (_codec == null) {
       _codec = message<RateLimitProof>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
-          if (obj.proof != null) {
-            writer.uint32(10);
-            writer.bytes(obj.proof);
-          } else {
-            throw new Error(
-              'Protocol error: required field "proof" was not found in object'
-            );
+          if (obj.proof != null && obj.proof.byteLength > 0) {
+            w.uint32(10);
+            w.bytes(obj.proof);
           }
 
-          if (obj.merkleRoot != null) {
-            writer.uint32(18);
-            writer.bytes(obj.merkleRoot);
-          } else {
-            throw new Error(
-              'Protocol error: required field "merkleRoot" was not found in object'
-            );
+          if (obj.merkleRoot != null && obj.merkleRoot.byteLength > 0) {
+            w.uint32(18);
+            w.bytes(obj.merkleRoot);
           }
 
-          if (obj.epoch != null) {
-            writer.uint32(26);
-            writer.bytes(obj.epoch);
-          } else {
-            throw new Error(
-              'Protocol error: required field "epoch" was not found in object'
-            );
+          if (obj.epoch != null && obj.epoch.byteLength > 0) {
+            w.uint32(26);
+            w.bytes(obj.epoch);
           }
 
-          if (obj.shareX != null) {
-            writer.uint32(34);
-            writer.bytes(obj.shareX);
-          } else {
-            throw new Error(
-              'Protocol error: required field "shareX" was not found in object'
-            );
+          if (obj.shareX != null && obj.shareX.byteLength > 0) {
+            w.uint32(34);
+            w.bytes(obj.shareX);
           }
 
-          if (obj.shareY != null) {
-            writer.uint32(42);
-            writer.bytes(obj.shareY);
-          } else {
-            throw new Error(
-              'Protocol error: required field "shareY" was not found in object'
-            );
+          if (obj.shareY != null && obj.shareY.byteLength > 0) {
+            w.uint32(42);
+            w.bytes(obj.shareY);
           }
 
-          if (obj.nullifier != null) {
-            writer.uint32(50);
-            writer.bytes(obj.nullifier);
-          } else {
-            throw new Error(
-              'Protocol error: required field "nullifier" was not found in object'
-            );
+          if (obj.nullifier != null && obj.nullifier.byteLength > 0) {
+            w.uint32(50);
+            w.bytes(obj.nullifier);
           }
 
-          if (obj.rlnIdentifier != null) {
-            writer.uint32(58);
-            writer.bytes(obj.rlnIdentifier);
-          } else {
-            throw new Error(
-              'Protocol error: required field "rlnIdentifier" was not found in object'
-            );
+          if (obj.rlnIdentifier != null && obj.rlnIdentifier.byteLength > 0) {
+            w.uint32(58);
+            w.bytes(obj.rlnIdentifier);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -677,48 +644,6 @@ export namespace RateLimitProof {
             }
           }
 
-          if (obj.proof == null) {
-            throw new Error(
-              'Protocol error: value for required field "proof" was not found in protobuf'
-            );
-          }
-
-          if (obj.merkleRoot == null) {
-            throw new Error(
-              'Protocol error: value for required field "merkleRoot" was not found in protobuf'
-            );
-          }
-
-          if (obj.epoch == null) {
-            throw new Error(
-              'Protocol error: value for required field "epoch" was not found in protobuf'
-            );
-          }
-
-          if (obj.shareX == null) {
-            throw new Error(
-              'Protocol error: value for required field "shareX" was not found in protobuf'
-            );
-          }
-
-          if (obj.shareY == null) {
-            throw new Error(
-              'Protocol error: value for required field "shareY" was not found in protobuf'
-            );
-          }
-
-          if (obj.nullifier == null) {
-            throw new Error(
-              'Protocol error: value for required field "nullifier" was not found in protobuf'
-            );
-          }
-
-          if (obj.rlnIdentifier == null) {
-            throw new Error(
-              'Protocol error: value for required field "rlnIdentifier" was not found in protobuf'
-            );
-          }
-
           return obj;
         }
       );
@@ -727,7 +652,7 @@ export namespace RateLimitProof {
     return _codec;
   };
 
-  export const encode = (obj: RateLimitProof): Uint8Array => {
+  export const encode = (obj: Partial<RateLimitProof>): Uint8Array => {
     return encodeMessage(obj, RateLimitProof.codec());
   };
 
@@ -752,48 +677,48 @@ export namespace WakuMessage {
   export const codec = (): Codec<WakuMessage> => {
     if (_codec == null) {
       _codec = message<WakuMessage>(
-        (obj, writer, opts = {}) => {
+        (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
-            writer.fork();
+            w.fork();
           }
 
           if (obj.payload != null) {
-            writer.uint32(10);
-            writer.bytes(obj.payload);
+            w.uint32(10);
+            w.bytes(obj.payload);
           }
 
           if (obj.contentTopic != null) {
-            writer.uint32(18);
-            writer.string(obj.contentTopic);
+            w.uint32(18);
+            w.string(obj.contentTopic);
           }
 
           if (obj.version != null) {
-            writer.uint32(24);
-            writer.uint32(obj.version);
+            w.uint32(24);
+            w.uint32(obj.version);
           }
 
           if (obj.timestampDeprecated != null) {
-            writer.uint32(33);
-            writer.double(obj.timestampDeprecated);
+            w.uint32(33);
+            w.double(obj.timestampDeprecated);
           }
 
           if (obj.timestamp != null) {
-            writer.uint32(80);
-            writer.sint64(obj.timestamp);
+            w.uint32(80);
+            w.sint64(obj.timestamp);
           }
 
           if (obj.rateLimitProof != null) {
-            writer.uint32(170);
-            RateLimitProof.codec().encode(obj.rateLimitProof, writer);
+            w.uint32(170);
+            RateLimitProof.codec().encode(obj.rateLimitProof, w);
           }
 
           if (obj.ephemeral != null) {
-            writer.uint32(248);
-            writer.bool(obj.ephemeral);
+            w.uint32(248);
+            w.bool(obj.ephemeral);
           }
 
           if (opts.lengthDelimited !== false) {
-            writer.ldelim();
+            w.ldelim();
           }
         },
         (reader, length) => {
@@ -843,7 +768,7 @@ export namespace WakuMessage {
     return _codec;
   };
 
-  export const encode = (obj: WakuMessage): Uint8Array => {
+  export const encode = (obj: Partial<WakuMessage>): Uint8Array => {
     return encodeMessage(obj, WakuMessage.codec());
   };
 

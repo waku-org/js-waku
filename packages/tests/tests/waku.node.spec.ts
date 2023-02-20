@@ -85,12 +85,9 @@ describe("Waku Dial [node only]", function () {
       await waku.start();
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
-        waku.libp2p.connectionManager.addEventListener(
-          "peer:connect",
-          (evt) => {
-            resolve(evt.detail.remotePeer);
-          }
-        );
+        waku.libp2p.addEventListener("peer:connect", (evt) => {
+          resolve(evt.detail.remotePeer);
+        });
       });
 
       expect(connectedPeerID.toString()).to.eq(multiAddrWithId.getPeerId());
@@ -113,12 +110,9 @@ describe("Waku Dial [node only]", function () {
       await waku.start();
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
-        waku.libp2p.connectionManager.addEventListener(
-          "peer:connect",
-          (evt) => {
-            resolve(evt.detail.remotePeer);
-          }
-        );
+        waku.libp2p.addEventListener("peer:connect", (evt) => {
+          resolve(evt.detail.remotePeer);
+        });
       });
 
       const multiAddrWithId = await nwaku.getMultiaddrWithId();

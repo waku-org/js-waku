@@ -57,6 +57,7 @@ export interface Args {
   rpcPort?: number;
   websocketPort?: number;
   discv5BootstrapNode?: string;
+  discv5UdpPort?: number;
 }
 
 export enum LogLevel {
@@ -81,13 +82,6 @@ export interface MessageRpcQuery {
 }
 
 export interface MessageRpcResponse {
-  payload: number[];
-  contentTopic?: string;
-  version?: number;
-  timestamp?: bigint; // Unix epoch time in nanoseconds as a 64-bits integer value.
-}
-
-export interface MessageRpcResponseHex {
   payload: string;
   contentTopic?: string;
   version?: number;
@@ -122,7 +116,7 @@ export class Nwaku {
     }
 
     return {
-      payload: bytesToHex(message.payload),
+      payload: Buffer.from(message.payload).toString("base64url"),
       contentTopic: message.contentTopic,
       timestamp,
     };
@@ -153,7 +147,7 @@ export class Nwaku {
     const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
 
     const ports: number[] = await new Promise((resolve, reject) => {
-      portfinder.getPorts(3, { port: startPort }, (err, ports) => {
+      portfinder.getPorts(4, { port: startPort }, (err, ports) => {
         if (err) reject(err);
         resolve(ports);
       });
@@ -168,6 +162,7 @@ export class Nwaku {
         tcpPort: ports[1],
         rpcPort: this.rpcPort,
         websocketPort: ports[2],
+        ...(args?.peerExchange && { discv5UdpPort: ports[3] }),
       },
       args
     );
@@ -177,6 +172,9 @@ export class Nwaku {
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
     const argsArray = argsToArray(mergedArgs);
+
+    const natExtIp = "--nat:extip:127.0.0.1";
+    argsArray.push(natExtIp);
 
     if (WAKU_SERVICE_NODE_PARAMS) {
       argsArray.push(WAKU_SERVICE_NODE_PARAMS);
@@ -321,10 +319,10 @@ export class Nwaku {
   async getAsymmetricMessages(
     privateKey: Uint8Array,
     pubSubTopic?: string
-  ): Promise<MessageRpcResponseHex[]> {
+  ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
-    return await this.rpcCall<MessageRpcResponseHex[]>(
+    return await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_private_v1_asymmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
@@ -363,10 +361,10 @@ export class Nwaku {
   async getSymmetricMessages(
     symKey: Uint8Array,
     pubSubTopic?: string
-  ): Promise<MessageRpcResponseHex[]> {
+  ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
-    return await this.rpcCall<MessageRpcResponseHex[]>(
+    return await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_private_v1_symmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
@@ -474,4 +472,8 @@ interface RpcInfoResponse {
   // multiaddrs including peer id.
   listenAddresses: string[];
   enrUri?: string;
+}
+
+export function base64ToUtf8(b64: string): string {
+  return Buffer.from(b64, "base64").toString("utf-8");
 }

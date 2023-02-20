@@ -4,8 +4,9 @@ import type {
 } from "@libp2p/interface-peer-discovery";
 import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
+import type { PeerStore } from "@libp2p/interface-peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
-import type { IEnr, PeerExchangeComponents } from "@waku/interfaces";
+import type { IEnr } from "@waku/interfaces";
 import { multiaddrsToPeerInfo } from "@waku/utils";
 import debug from "debug";
 
@@ -23,6 +24,10 @@ const enrTree = {
 const DEFAULT_BOOTSTRAP_TAG_NAME = "bootstrap";
 const DEFAULT_BOOTSTRAP_TAG_VALUE = 50;
 const DEFAULT_BOOTSTRAP_TAG_TTL = 120000;
+
+export interface DnsDiscoveryComponents {
+  peerStore: PeerStore;
+}
 
 export interface Options {
   /**
@@ -58,10 +63,10 @@ export class PeerDiscoveryDns
 {
   private readonly nextPeer: () => AsyncGenerator<IEnr>;
   private _started: boolean;
-  private _components: PeerExchangeComponents;
+  private _components: DnsDiscoveryComponents;
   private _options: Options;
 
-  constructor(components: PeerExchangeComponents, options: Options) {
+  constructor(components: DnsDiscoveryComponents, options: Options) {
     super();
     this._started = false;
     this._components = components;
@@ -125,8 +130,8 @@ export class PeerDiscoveryDns
 export function wakuDnsDiscovery(
   enrUrl: string,
   wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
-): (components: PeerExchangeComponents) => PeerDiscoveryDns {
-  return (components: PeerExchangeComponents) =>
+): (components: DnsDiscoveryComponents) => PeerDiscoveryDns {
+  return (components: DnsDiscoveryComponents) =>
     new PeerDiscoveryDns(components, { enrUrl, wantedNodeCapabilityCount });
 }
 

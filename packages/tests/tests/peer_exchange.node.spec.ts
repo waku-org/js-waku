@@ -1,16 +1,19 @@
 import { bootstrap } from "@libp2p/bootstrap";
-import { waitForRemotePeer } from "@waku/core";
 import {
   Fleet,
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import { createLightNode } from "@waku/create";
 import type { LightNode, PeerExchangeResponse } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
-import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
+import {
+  PeerExchangeCodec,
+  WakuPeerExchange,
+  wakuPeerExchangeDiscovery,
+} from "@waku/peer-exchange";
 import { expect } from "chai";
 
-import { delay } from "../src/delay.js";
+import { makeLogFileName } from "../src/log_file.js";
+import { Nwaku } from "../src/nwaku.js";
 
 describe("Peer Exchange", () => {
   let waku: LightNode;
@@ -33,56 +36,124 @@ describe("Peer Exchange", () => {
     waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
+          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
           wakuPeerExchangeDiscovery(),
         ],
       },
     });
 
     await waku.start();
-    
-    // we want to ensure that there is enough time for discv5 to discover peers
-    await delay(40_000);
 
-    await waitForRemotePeer(waku, [Protocols.PeerExchange]);
-    const pxPeers = await waku.peerExchange.peers();
-    expect(pxPeers.length).to.be.greaterThan(0);
-  });
-
-  it("Manual query on test fleet", async function () {
-    this.timeout(60_000);
-
-    const waku = await createLightNode({
-      libp2p: {
-        peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test) }),
-        ],
-      },
+    const foundPxPeer = await new Promise<boolean>((resolve) => {
+      const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
+      waku.libp2p.addEventListener("peer:discovery", (evt) => {
+        const { multiaddrs } = evt.detail;
+        multiaddrs.forEach((ma) => {
+          const isBootstrapNode = testNodes.find((n) => n === ma.toString());
+          if (!isBootstrapNode) {
+            resolve(true);
+          }
+        });
+      });
     });
 
-    await waku.start();
+    expect(foundPxPeer).to.be.true;
+  });
 
-    await waitForRemotePeer(waku, [Protocols.PeerExchange]);
+  describe("Locally run nodes", () => {
+    let waku: LightNode;
+    let nwaku1: Nwaku;
+    let nwaku2: Nwaku;
 
-    let receivedCallback = false;
-    const numPeersToRequest = 3;
-    const callback = (response: PeerExchangeResponse): void => {
-      receivedCallback = true;
-      expect(response.peerInfos.length).to.be.greaterThan(0);
-      expect(response.peerInfos.length).to.be.lessThanOrEqual(
-        numPeersToRequest
+    beforeEach(async function () {
+      nwaku1 = new Nwaku(makeLogFileName(this) + "1");
+      nwaku2 = new Nwaku(makeLogFileName(this) + "2");
+    });
+
+    afterEach(async function () {
+      !!nwaku1 && nwaku1.stop();
+      !!nwaku2 && nwaku2.stop();
+      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    });
+
+    it("nwaku interop", async function () {
+      this.timeout(25_000);
+
+      await nwaku1.start({
+        discv5Discovery: true,
+        peerExchange: true,
+      });
+
+      const enr = (await nwaku1.info()).enrUri;
+
+      await nwaku2.start({
+        discv5Discovery: true,
+        peerExchange: true,
+        discv5BootstrapNode: enr,
+      });
+
+      const nwaku1Ma = await nwaku1.getMultiaddrWithId();
+      const nwaku2Ma = await nwaku2.getMultiaddrWithId();
+
+      waku = await createLightNode();
+      await waku.start();
+      await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
+
+      await new Promise<void>((resolve) => {
+        waku.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
+          if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+            resolve();
+          }
+        });
+      });
+
+      await nwaku2.waitForLog("Discovered px peers via discv5", 10);
+
+      // the ts-ignores are added ref: https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
+      const peerExchange = new WakuPeerExchange({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        connectionManager: waku.libp2p.connectionManager,
+        peerStore: waku.libp2p.peerStore,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        registrar: waku.libp2p.registrar,
+      });
+
+      let receivedCallback = false;
+
+      const numPeersToRequest = 1;
+      const callback = async (
+        response: PeerExchangeResponse
+      ): Promise<void> => {
+        const doesMultiaddrExist = response.peerInfos.find(
+          (peerInfo) =>
+            peerInfo.ENR?.getFullMultiaddrs()?.find((multiaddr) =>
+              multiaddr.equals(nwaku1Ma)
+            ) !== undefined
+        );
+
+        expect(response.peerInfos.length).to.be.greaterThan(0);
+        expect(response.peerInfos.length).to.be.lessThanOrEqual(
+          numPeersToRequest
+        );
+        expect(response.peerInfos[0].ENR).to.not.be.null;
+
+        expect(doesMultiaddrExist).to.be.equal(true);
+
+        expect(waku.libp2p.peerStore.has(await nwaku2.getPeerId())).to.be.true;
+
+        receivedCallback = true;
+      };
+
+      await peerExchange.query(
+        {
+          numPeers: numPeersToRequest,
+        },
+        callback
       );
 
-      expect(response.peerInfos[0].ENR).to.not.be.null;
-    };
-
-    await waku.peerExchange.query(
-      {
-        numPeers: numPeersToRequest,
-      },
-      callback
-    );
-
-    expect(receivedCallback).to.be.true;
+      expect(receivedCallback).to.be.true;
+    });
   });
 });
