@@ -126,7 +126,7 @@ export class Nwaku {
     this.logPath = `${LOG_DIR}/nwaku_${logName}.log`;
   }
 
-  async start(args?: Args): Promise<void> {
+  async start(args: Args = {}): Promise<void> {
     try {
       await existsAsync(LOG_DIR);
     } catch (e) {
@@ -155,6 +155,12 @@ export class Nwaku {
 
     this.rpcPort = ports[0];
 
+    const isGoWaku = WAKU_SERVICE_NODE_BIN.endsWith("/waku");
+
+    if (isGoWaku && !args.logLevel) {
+      args.logLevel = LogLevel.Debug;
+    }
+
     // Object.assign overrides the properties with the source (if there are conflicts)
     Object.assign(
       mergedArgs,
@@ -173,7 +179,7 @@ export class Nwaku {
 
     const argsArray = argsToArray(mergedArgs);
 
-    const natExtIp = "--nat:extip:127.0.0.1";
+    const natExtIp = "--nat=extip:127.0.0.1";
     argsArray.push(natExtIp);
 
     if (WAKU_SERVICE_NODE_PARAMS) {
