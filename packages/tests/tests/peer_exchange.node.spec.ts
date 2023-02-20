@@ -31,7 +31,7 @@ describe("Peer Exchange", () => {
   });
 
   it("Auto discovery", async function () {
-    this.timeout(60_000);
+    this.timeout(50_000);
 
     waku = await createLightNode({
       libp2p: {
