@@ -1,6 +1,5 @@
+import { getPseudoRandomSubset } from "@waku/utils";
 import { expect } from "chai";
-
-import { getPseudoRandomSubset } from "./random_subset.js";
 
 describe("Discovery", () => {
   it("returns all values when wanted number matches available values", function () {
