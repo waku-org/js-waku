@@ -15,7 +15,7 @@ import type {
   ProtocolCreateOptions,
   SendResult,
 } from "@waku/interfaces";
-import { IDecodedMessage } from "@waku/interfaces";
+import { IDecodedMessage, Observer } from "@waku/interfaces";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants.js";
@@ -25,11 +25,6 @@ import { pushOrInitMapSet } from "../push_or_init_map.js";
 import * as constants from "./constants.js";
 
 const log = debug("waku:relay");
-
-export type Observer<T extends IDecodedMessage> = {
-  decoder: IDecoder<T>;
-  callback: Callback<T>;
-};
 
 export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
 
