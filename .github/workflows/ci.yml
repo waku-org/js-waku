@@ -170,7 +170,7 @@ jobs:
           git fetch origin
           git checkout origin/master
 
-      - uses: bahmutov/npm-install@v1
+      - run: npm i
 
       - name: build nwaku
         run: |
