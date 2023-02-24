@@ -19,7 +19,7 @@ export interface Params {
   cursor?: proto.Index;
 }
 
-export class HistoryRPC {
+export class HistoryRpc {
   private constructor(public readonly proto: proto.HistoryRpc) {}
 
   get query(): proto.HistoryQuery | undefined {
@@ -33,7 +33,7 @@ export class HistoryRPC {
   /**
    * Create History Query.
    */
-  static createQuery(params: Params): HistoryRPC {
+  static createQuery(params: Params): HistoryRpc {
     const contentFilters = params.contentTopics.map((contentTopic) => {
       return { contentTopic };
     });
@@ -56,7 +56,7 @@ export class HistoryRPC {
       // milliseconds 10^-3 to nanoseconds 10^-9
       endTime = BigInt(params.endTime.valueOf()) * OneMillion;
     }
-    return new HistoryRPC({
+    return new HistoryRpc({
       requestId: uuid(),
       query: {
         pubsubTopic: params.pubSubTopic,
@@ -69,9 +69,9 @@ export class HistoryRPC {
     });
   }
 
-  decode(bytes: Uint8ArrayList): HistoryRPC {
+  decode(bytes: Uint8ArrayList): HistoryRpc {
     const res = proto.HistoryRpc.decode(bytes);
-    return new HistoryRPC(res);
+    return new HistoryRpc(res);
   }
 
   encode(): Uint8Array {

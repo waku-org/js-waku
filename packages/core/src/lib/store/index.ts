@@ -21,7 +21,7 @@ import { BaseProtocol } from "../base_protocol.js";
 import { DefaultPubSubTopic } from "../constants.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
-import { HistoryRPC, PageDirection, Params } from "./history_rpc.js";
+import { HistoryRpc, PageDirection, Params } from "./history_rpc.js";
 
 import HistoryError = proto.HistoryResponse.HistoryError;
 
@@ -261,7 +261,7 @@ async function* paginate<T extends IDecodedMessage>(
   while (true) {
     queryOpts.cursor = currentCursor;
 
-    const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
+    const historyRpcQuery = HistoryRpc.createQuery(queryOpts);
 
     log(
       "Querying store peer",
