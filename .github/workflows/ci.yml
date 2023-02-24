@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
-      - uses: bahmutov/npm-install@v1
+      - uses: ./.github/actions/npm
       - run: npm run build
       - run: npm run check
       - run: npm run doc
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
-      - uses: bahmutov/npm-install@v1
+      - uses: ./.github/actions/npm
       - name: Generate protobuf code
         run: |
           npm run proto
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
-      - uses: bahmutov/npm-install@v1
+      - uses: ./.github/actions/npm
       - run: npm run build:esm
       - run: npm run test:browser
 
@@ -75,7 +75,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
-      - uses: bahmutov/npm-install@v1
+      - uses: ./.github/actions/npm
       - run: npm run build:esm
       - run: npm run test:node
         env:
@@ -129,7 +129,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
 
-      - uses: bahmutov/npm-install@v1
+      - uses: ./.github/actions/npm
       - run: npm run build:esm
       - run: npm run test:node
         env:
@@ -170,7 +170,7 @@ jobs:
           git fetch origin
           git checkout origin/master
 
-      - uses: bahmutov/npm-install@v1
+      - uses: ./.github/actions/npm
 
       - name: build nwaku
         run: |
