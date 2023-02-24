@@ -74,10 +74,10 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.7.1",
-    "@waku/core": "*",
-    "@waku/interfaces": "*",
-    "@waku/proto": "*",
-    "@waku/utils": "*",
+    "@waku/core": "file:core",
+    "@waku/interfaces": "file:interfaces",
+    "@waku/proto": "file:proto",
+    "@waku/utils": "file:utils",
     "debug": "^4.3.4",
     "js-sha3": "^0.8.0"
   },

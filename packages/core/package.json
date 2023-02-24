@@ -78,9 +78,9 @@
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^6.1.0",
     "@noble/hashes": "^1.2.0",
-    "@waku/interfaces": "*",
-    "@waku/proto": "*",
-    "@waku/utils": "*",
+    "@waku/interfaces": "file:interfaces",
+    "@waku/proto": "file:proto",
+    "@waku/utils": "file:utils",
     "debug": "^4.3.4",
     "it-all": "^2.0.0",
     "it-length-prefixed": "^8.0.4",

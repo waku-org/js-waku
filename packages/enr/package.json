@@ -58,7 +58,7 @@
     "@libp2p/peer-id": "^2.0.1",
     "@multiformats/multiaddr": "^11.4.0",
     "@noble/secp256k1": "^1.7.1",
-    "@waku/utils": "*",
+    "@waku/utils": "file:utils",
     "debug": "^4.3.4",
     "js-sha3": "^0.8.0"
   },
@@ -72,7 +72,7 @@
     "@types/mocha": "^10.0.1",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.51.0",
-    "@waku/interfaces": "*",
+    "@waku/interfaces": "file:interfaces",
     "chai": "^4.3.7",
     "cspell": "^6.26.3",
     "eslint": "^8.34.0",
