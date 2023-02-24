@@ -21,7 +21,7 @@ import { DefaultPubSubTopic } from "../constants.js";
 import { groupByContentTopic } from "../group_by.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
-import { ContentFilter, FilterRPC } from "./filter_rpc.js";
+import { ContentFilter, FilterRpc } from "./filter_rpc.js";
 
 export { ContentFilter };
 
@@ -75,7 +75,7 @@ class Filter extends BaseProtocol implements IFilter {
     const contentFilters = contentTopics.map((contentTopic) => ({
       contentTopic,
     }));
-    const request = FilterRPC.createRequest(
+    const request = FilterRpc.createRequest(
       pubSubTopic,
       contentFilters,
       undefined,
@@ -128,7 +128,7 @@ class Filter extends BaseProtocol implements IFilter {
     try {
       pipe(streamData.stream, lp.decode(), async (source) => {
         for await (const bytes of source) {
-          const res = FilterRPC.decode(bytes.slice());
+          const res = FilterRpc.decode(bytes.slice());
           if (res.requestId && res.push?.messages?.length) {
             await this.pushMessages(res.requestId, res.push.messages);
           }
@@ -228,7 +228,7 @@ class Filter extends BaseProtocol implements IFilter {
     requestId: string,
     peer: Peer
   ): Promise<void> {
-    const unsubscribeRequest = FilterRPC.createRequest(
+    const unsubscribeRequest = FilterRpc.createRequest(
       topic,
       contentFilters,
       requestId,
