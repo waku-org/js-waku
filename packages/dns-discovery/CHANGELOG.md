@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.6](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.5...dns-discovery-v0.0.6) (2023-02-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* bump typescript
+* bump libp2p dependencies
+
+### Features
+
+* Add mocha to dns-discovery ([#1154](https://github.com/waku-org/js-waku/issues/1154)) ([f945eb9](https://github.com/waku-org/js-waku/commit/f945eb90c49bb54322c4cb58c20cfdeee72ff4f2))
+* DNS discovery as default bootstrap discovery ([#1114](https://github.com/waku-org/js-waku/issues/1114)) ([11819fc](https://github.com/waku-org/js-waku/commit/11819fc7b14e18385d421facaf2af0832cad1da8))
+
+
+### Miscellaneous Chores
+
+* Bump libp2p dependencies ([803ae7b](https://github.com/waku-org/js-waku/commit/803ae7bd8ed3de665026446c23cde90e7eba9d36))
+* Bump typescript ([12d86e6](https://github.com/waku-org/js-waku/commit/12d86e6abcc68e27c39ca86b4f0dc2b68cdd6000))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from * to 0.0.6
+    * @waku/utils bumped from * to 0.0.2
+  * devDependencies
+    * @waku/interfaces bumped from * to 0.0.8
+
 ## [Unreleased]
 
 ## [0.0.5] - 2023-01-25
