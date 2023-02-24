@@ -9,7 +9,7 @@ import type { Codec } from "protons-runtime";
 import type { Uint8ArrayList } from "uint8arraylist";
 
 export interface PushRequest {
-  pubSubTopic?: string;
+  pubsubTopic: string;
   message?: WakuMessage;
 }
 
@@ -24,9 +24,9 @@ export namespace PushRequest {
             w.fork();
           }
 
-          if (obj.pubSubTopic != null) {
+          if (obj.pubsubTopic != null && obj.pubsubTopic !== "") {
             w.uint32(10);
-            w.string(obj.pubSubTopic);
+            w.string(obj.pubsubTopic);
           }
 
           if (obj.message != null) {
@@ -39,7 +39,9 @@ export namespace PushRequest {
           }
         },
         (reader, length) => {
-          const obj: any = {};
+          const obj: any = {
+            pubsubTopic: "",
+          };
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -48,7 +50,7 @@ export namespace PushRequest {
 
             switch (tag >>> 3) {
               case 1:
-                obj.pubSubTopic = reader.string();
+                obj.pubsubTopic = reader.string();
                 break;
               case 2:
                 obj.message = WakuMessage.codec().decode(
@@ -80,7 +82,7 @@ export namespace PushRequest {
 }
 
 export interface PushResponse {
-  isSuccess?: boolean;
+  isSuccess: boolean;
   info?: string;
 }
 
@@ -95,7 +97,7 @@ export namespace PushResponse {
             w.fork();
           }
 
-          if (obj.isSuccess != null) {
+          if (obj.isSuccess != null && obj.isSuccess !== false) {
             w.uint32(8);
             w.bool(obj.isSuccess);
           }
@@ -110,7 +112,9 @@ export namespace PushResponse {
           }
         },
         (reader, length) => {
-          const obj: any = {};
+          const obj: any = {
+            isSuccess: false,
+          };
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -147,24 +151,24 @@ export namespace PushResponse {
   };
 }
 
-export interface PushRPC {
-  requestId?: string;
+export interface PushRpc {
+  requestId: string;
   request?: PushRequest;
   response?: PushResponse;
 }
 
-export namespace PushRPC {
-  let _codec: Codec<PushRPC>;
+export namespace PushRpc {
+  let _codec: Codec<PushRpc>;
 
-  export const codec = (): Codec<PushRPC> => {
+  export const codec = (): Codec<PushRpc> => {
     if (_codec == null) {
-      _codec = message<PushRPC>(
+      _codec = message<PushRpc>(
         (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
             w.fork();
           }
 
-          if (obj.requestId != null) {
+          if (obj.requestId != null && obj.requestId !== "") {
             w.uint32(10);
             w.string(obj.requestId);
           }
@@ -184,7 +188,9 @@ export namespace PushRPC {
           }
         },
         (reader, length) => {
-          const obj: any = {};
+          const obj: any = {
+            requestId: "",
+          };
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -221,12 +227,12 @@ export namespace PushRPC {
     return _codec;
   };
 
-  export const encode = (obj: Partial<PushRPC>): Uint8Array => {
-    return encodeMessage(obj, PushRPC.codec());
+  export const encode = (obj: Partial<PushRpc>): Uint8Array => {
+    return encodeMessage(obj, PushRpc.codec());
   };
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): PushRPC => {
-    return decodeMessage(buf, PushRPC.codec());
+  export const decode = (buf: Uint8Array | Uint8ArrayList): PushRpc => {
+    return decodeMessage(buf, PushRpc.codec());
   };
 }
 
