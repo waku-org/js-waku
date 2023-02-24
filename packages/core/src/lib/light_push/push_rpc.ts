@@ -2,14 +2,14 @@ import { proto_lightpush as proto } from "@waku/proto";
 import type { Uint8ArrayList } from "uint8arraylist";
 import { v4 as uuid } from "uuid";
 
-export class PushRPC {
+export class PushRpc {
   public constructor(public proto: proto.PushRpc) {}
 
   static createRequest(
     message: proto.WakuMessage,
     pubSubTopic: string
-  ): PushRPC {
-    return new PushRPC({
+  ): PushRpc {
+    return new PushRpc({
       requestId: uuid(),
       request: {
         message: message,
@@ -19,9 +19,9 @@ export class PushRPC {
     });
   }
 
-  static decode(bytes: Uint8ArrayList): PushRPC {
+  static decode(bytes: Uint8ArrayList): PushRpc {
     const res = proto.PushRpc.decode(bytes);
-    return new PushRPC(res);
+    return new PushRpc(res);
   }
 
   encode(): Uint8Array {

@@ -18,7 +18,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 import { BaseProtocol } from "../base_protocol.js";
 import { DefaultPubSubTopic } from "../constants.js";
 
-import { PushRPC } from "./push_rpc.js";
+import { PushRpc } from "./push_rpc.js";
 
 const log = debug("waku:light-push");
 
@@ -54,7 +54,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         log("Failed to encode to protoMessage, aborting push");
         return { recipients };
       }
-      const query = PushRPC.createRequest(protoMessage, pubSubTopic);
+      const query = PushRpc.createRequest(protoMessage, pubSubTopic);
       const res = await pipe(
         [query.encode()],
         lp.encode(),
@@ -68,7 +68,7 @@ class LightPush extends BaseProtocol implements ILightPush {
           bytes.append(chunk);
         });
 
-        const response = PushRPC.decode(bytes).response;
+        const response = PushRpc.decode(bytes).response;
 
         if (!response) {
           log("No response in PushRPC");
