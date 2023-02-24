@@ -426,10 +426,9 @@ export namespace RateLimitProof {
 }
 
 export interface WakuMessage {
-  payload?: Uint8Array;
-  contentTopic?: string;
+  payload: Uint8Array;
+  contentTopic: string;
   version?: number;
-  timestampDeprecated?: number;
   timestamp?: bigint;
   rateLimitProof?: RateLimitProof;
   ephemeral?: boolean;
@@ -446,12 +445,12 @@ export namespace WakuMessage {
             w.fork();
           }
 
-          if (obj.payload != null) {
+          if (obj.payload != null && obj.payload.byteLength > 0) {
             w.uint32(10);
             w.bytes(obj.payload);
           }
 
-          if (obj.contentTopic != null) {
+          if (obj.contentTopic != null && obj.contentTopic !== "") {
             w.uint32(18);
             w.string(obj.contentTopic);
           }
@@ -459,11 +458,6 @@ export namespace WakuMessage {
           if (obj.version != null) {
             w.uint32(24);
             w.uint32(obj.version);
-          }
-
-          if (obj.timestampDeprecated != null) {
-            w.uint32(33);
-            w.double(obj.timestampDeprecated);
           }
 
           if (obj.timestamp != null) {
@@ -486,7 +480,10 @@ export namespace WakuMessage {
           }
         },
         (reader, length) => {
-          const obj: any = {};
+          const obj: any = {
+            payload: new Uint8Array(0),
+            contentTopic: "",
+          };
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -502,9 +499,6 @@ export namespace WakuMessage {
                 break;
               case 3:
                 obj.version = reader.uint32();
-                break;
-              case 4:
-                obj.timestampDeprecated = reader.double();
                 break;
               case 10:
                 obj.timestamp = reader.sint64();
