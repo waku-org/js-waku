@@ -83,10 +83,6 @@ class Filter extends BaseProtocol implements IFilter {
     );
 
     const requestId = request.requestId;
-    if (!requestId)
-      throw new Error(
-        "Internal error: createRequest expected to set `requestId`"
-      );
 
     const peer = await this.getPeer(opts?.peerId);
     const stream = await this.newStream(peer);
