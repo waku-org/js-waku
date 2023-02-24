@@ -11,18 +11,12 @@ export interface TimeFilter {
   endTime: Date;
 }
 
-export interface Index {
-  digest?: Uint8Array;
-  receivedTime?: bigint;
-  senderTime?: bigint;
-  pubsubTopic?: string;
+export interface Cursor {
+  digest: Uint8Array;
+  receiverTime: bigint;
+  senderTime: bigint;
+  pubsubTopic: string;
 }
-
-export type Cursor = {
-  digest?: Uint8Array;
-  senderTime?: bigint;
-  pubsubTopic?: string;
-};
 
 export type StoreQueryOptions = {
   /**
@@ -45,7 +39,8 @@ export type StoreQueryOptions = {
    */
   timeFilter?: TimeFilter;
   /**
-   * Cursor as an index to start a query from.
+   * Cursor as an index to start a query from. Must be generated from a Waku
+   * Message.
    */
   cursor?: Cursor;
 } & ProtocolOptions;

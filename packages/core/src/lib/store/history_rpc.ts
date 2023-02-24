@@ -20,7 +20,7 @@ export interface Params {
 }
 
 export class HistoryRPC {
-  private constructor(public readonly proto: proto.HistoryRPC) {}
+  private constructor(public readonly proto: proto.HistoryRpc) {}
 
   get query(): proto.HistoryQuery | undefined {
     return this.proto.query;
@@ -59,7 +59,7 @@ export class HistoryRPC {
     return new HistoryRPC({
       requestId: uuid(),
       query: {
-        pubSubTopic: params.pubSubTopic,
+        pubsubTopic: params.pubSubTopic,
         contentFilters,
         pagingInfo,
         startTime,
@@ -70,12 +70,12 @@ export class HistoryRPC {
   }
 
   decode(bytes: Uint8ArrayList): HistoryRPC {
-    const res = proto.HistoryRPC.decode(bytes);
+    const res = proto.HistoryRpc.decode(bytes);
     return new HistoryRPC(res);
   }
 
   encode(): Uint8Array {
-    return proto.HistoryRPC.encode(this.proto);
+    return proto.HistoryRpc.encode(this.proto);
   }
 }
 
@@ -84,10 +84,10 @@ function directionToProto(
 ): proto.PagingInfo.Direction {
   switch (pageDirection) {
     case PageDirection.BACKWARD:
-      return proto.PagingInfo.Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+      return proto.PagingInfo.Direction.BACKWARD;
     case PageDirection.FORWARD:
-      return proto.PagingInfo.Direction.DIRECTION_FORWARD;
+      return proto.PagingInfo.Direction.FORWARD;
     default:
-      return proto.PagingInfo.Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+      return proto.PagingInfo.Direction.BACKWARD;
   }
 }

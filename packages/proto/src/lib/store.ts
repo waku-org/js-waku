@@ -14,10 +14,10 @@ import type { Codec } from "protons-runtime";
 import type { Uint8ArrayList } from "uint8arraylist";
 
 export interface Index {
-  digest?: Uint8Array;
-  receivedTime?: bigint;
-  senderTime?: bigint;
-  pubsubTopic?: string;
+  digest: Uint8Array;
+  receiverTime: bigint;
+  senderTime: bigint;
+  pubsubTopic: string;
 }
 
 export namespace Index {
@@ -31,22 +31,22 @@ export namespace Index {
             w.fork();
           }
 
-          if (obj.digest != null) {
+          if (obj.digest != null && obj.digest.byteLength > 0) {
             w.uint32(10);
             w.bytes(obj.digest);
           }
 
-          if (obj.receivedTime != null) {
+          if (obj.receiverTime != null && obj.receiverTime !== 0n) {
             w.uint32(16);
-            w.sint64(obj.receivedTime);
+            w.sint64(obj.receiverTime);
           }
 
-          if (obj.senderTime != null) {
+          if (obj.senderTime != null && obj.senderTime !== 0n) {
             w.uint32(24);
             w.sint64(obj.senderTime);
           }
 
-          if (obj.pubsubTopic != null) {
+          if (obj.pubsubTopic != null && obj.pubsubTopic !== "") {
             w.uint32(34);
             w.string(obj.pubsubTopic);
           }
@@ -56,7 +56,12 @@ export namespace Index {
           }
         },
         (reader, length) => {
-          const obj: any = {};
+          const obj: any = {
+            digest: new Uint8Array(0),
+            receiverTime: 0n,
+            senderTime: 0n,
+            pubsubTopic: "",
+          };
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -68,7 +73,7 @@ export namespace Index {
                 obj.digest = reader.bytes();
                 break;
               case 2:
-                obj.receivedTime = reader.sint64();
+                obj.receiverTime = reader.sint64();
                 break;
               case 3:
                 obj.senderTime = reader.sint64();
@@ -107,13 +112,13 @@ export interface PagingInfo {
 
 export namespace PagingInfo {
   export enum Direction {
-    DIRECTION_BACKWARD_UNSPECIFIED = "DIRECTION_BACKWARD_UNSPECIFIED",
-    DIRECTION_FORWARD = "DIRECTION_FORWARD",
+    BACKWARD = "BACKWARD",
+    FORWARD = "FORWARD",
   }
 
   enum __DirectionValues {
-    DIRECTION_BACKWARD_UNSPECIFIED = 0,
-    DIRECTION_FORWARD = 1,
+    BACKWARD = 0,
+    FORWARD = 1,
   }
 
   export namespace Direction {
@@ -193,7 +198,7 @@ export namespace PagingInfo {
 }
 
 export interface ContentFilter {
-  contentTopic?: string;
+  contentTopic: string;
 }
 
 export namespace ContentFilter {
@@ -207,7 +212,7 @@ export namespace ContentFilter {
             w.fork();
           }
 
-          if (obj.contentTopic != null) {
+          if (obj.contentTopic != null && obj.contentTopic !== "") {
             w.uint32(10);
             w.string(obj.contentTopic);
           }
@@ -217,7 +222,9 @@ export namespace ContentFilter {
           }
         },
         (reader, length) => {
-          const obj: any = {};
+          const obj: any = {
+            contentTopic: "",
+          };
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -252,7 +259,7 @@ export namespace ContentFilter {
 }
 
 export interface HistoryQuery {
-  pubSubTopic?: string;
+  pubsubTopic?: string;
   contentFilters: ContentFilter[];
   pagingInfo?: PagingInfo;
   startTime?: bigint;
@@ -270,9 +277,9 @@ export namespace HistoryQuery {
             w.fork();
           }
 
-          if (obj.pubSubTopic != null) {
+          if (obj.pubsubTopic != null) {
             w.uint32(18);
-            w.string(obj.pubSubTopic);
+            w.string(obj.pubsubTopic);
           }
 
           if (obj.contentFilters != null) {
@@ -313,7 +320,7 @@ export namespace HistoryQuery {
 
             switch (tag >>> 3) {
               case 2:
-                obj.pubSubTopic = reader.string();
+                obj.pubsubTopic = reader.string();
                 break;
               case 3:
                 obj.contentFilters.push(
@@ -358,18 +365,18 @@ export namespace HistoryQuery {
 export interface HistoryResponse {
   messages: WakuMessage[];
   pagingInfo?: PagingInfo;
-  error?: HistoryResponse.HistoryError;
+  error: HistoryResponse.HistoryError;
 }
 
 export namespace HistoryResponse {
   export enum HistoryError {
-    ERROR_NONE_UNSPECIFIED = "ERROR_NONE_UNSPECIFIED",
-    ERROR_INVALID_CURSOR = "ERROR_INVALID_CURSOR",
+    NONE = "NONE",
+    INVALID_CURSOR = "INVALID_CURSOR",
   }
 
   enum __HistoryErrorValues {
-    ERROR_NONE_UNSPECIFIED = 0,
-    ERROR_INVALID_CURSOR = 1,
+    NONE = 0,
+    INVALID_CURSOR = 1,
   }
 
   export namespace HistoryError {
@@ -400,7 +407,7 @@ export namespace HistoryResponse {
             PagingInfo.codec().encode(obj.pagingInfo, w);
           }
 
-          if (obj.error != null) {
+          if (obj.error != null && __HistoryErrorValues[obj.error] !== 0) {
             w.uint32(32);
             HistoryResponse.HistoryError.codec().encode(obj.error, w);
           }
@@ -412,6 +419,7 @@ export namespace HistoryResponse {
         (reader, length) => {
           const obj: any = {
             messages: [],
+            error: HistoryError.NONE,
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -457,24 +465,24 @@ export namespace HistoryResponse {
   };
 }
 
-export interface HistoryRPC {
-  requestId?: string;
+export interface HistoryRpc {
+  requestId: string;
   query?: HistoryQuery;
   response?: HistoryResponse;
 }
 
-export namespace HistoryRPC {
-  let _codec: Codec<HistoryRPC>;
+export namespace HistoryRpc {
+  let _codec: Codec<HistoryRpc>;
 
-  export const codec = (): Codec<HistoryRPC> => {
+  export const codec = (): Codec<HistoryRpc> => {
     if (_codec == null) {
-      _codec = message<HistoryRPC>(
+      _codec = message<HistoryRpc>(
         (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
             w.fork();
           }
 
-          if (obj.requestId != null) {
+          if (obj.requestId != null && obj.requestId !== "") {
             w.uint32(10);
             w.string(obj.requestId);
           }
@@ -494,7 +502,9 @@ export namespace HistoryRPC {
           }
         },
         (reader, length) => {
-          const obj: any = {};
+          const obj: any = {
+            requestId: "",
+          };
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -531,12 +541,12 @@ export namespace HistoryRPC {
     return _codec;
   };
 
-  export const encode = (obj: Partial<HistoryRPC>): Uint8Array => {
-    return encodeMessage(obj, HistoryRPC.codec());
+  export const encode = (obj: Partial<HistoryRpc>): Uint8Array => {
+    return encodeMessage(obj, HistoryRpc.codec());
   };
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): HistoryRPC => {
-    return decodeMessage(buf, HistoryRPC.codec());
+  export const decode = (buf: Uint8Array | Uint8ArrayList): HistoryRpc => {
+    return decodeMessage(buf, HistoryRpc.codec());
   };
 }
 

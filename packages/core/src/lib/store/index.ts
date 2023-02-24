@@ -6,7 +6,6 @@ import {
   Cursor,
   IDecodedMessage,
   IDecoder,
-  Index,
   IStore,
   ProtocolCreateOptions,
 } from "@waku/interfaces";
@@ -294,10 +293,7 @@ async function* paginate<T extends IDecodedMessage>(
 
     const response = reply.response as proto.HistoryResponse;
 
-    if (
-      response.error &&
-      response.error !== HistoryError.ERROR_NONE_UNSPECIFIED
-    ) {
+    if (response.error && response.error !== HistoryError.NONE) {
       throw "History response contains an Error: " + response.error;
     }
 
@@ -353,7 +349,7 @@ export function isDefined<T>(msg: T | undefined): msg is T {
 export async function createCursor(
   message: IDecodedMessage,
   pubsubTopic: string = DefaultPubSubTopic
-): Promise<Index> {
+): Promise<Cursor> {
   if (
     !message ||
     !message.timestamp ||
@@ -373,7 +369,7 @@ export async function createCursor(
     digest,
     pubsubTopic,
     senderTime: messageTime,
-    receivedTime: messageTime,
+    receiverTime: messageTime,
   };
 }
 
