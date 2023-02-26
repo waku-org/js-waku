@@ -2,7 +2,7 @@ import { createEncoder, waitForRemotePeer } from "@waku/core";
 import { createLightNode } from "@waku/create";
 import type { LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils";
+import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import debug from "debug";
 

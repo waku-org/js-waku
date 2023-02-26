@@ -7,7 +7,7 @@ import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
 import type { IEnr } from "@waku/interfaces";
-import { multiaddrsToPeerInfo } from "@waku/utils";
+import { multiaddrsToPeerInfo } from "@waku/utils/libp2p";
 import debug from "debug";
 
 import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns.js";

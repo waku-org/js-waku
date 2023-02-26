@@ -5,9 +5,17 @@
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+    "./libp2p": {
+      "types": "./dist/libp2p/index.d.ts",
+      "import": "./dist/libp2p/index.js"
+    },
+    "./bytes": {
+      "types": "./dist/bytes/index.d.ts",
+      "import": "./dist/bytes/index.js"
+    },
+    "./common": {
+      "types": "./dist/common/index.d.ts",
+      "import": "./dist/common/index.js"
     }
   },
   "type": "module",

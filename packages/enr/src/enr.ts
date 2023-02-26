@@ -13,7 +13,12 @@ import type {
   SequenceNumber,
   Waku2,
 } from "@waku/interfaces";
-import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "@waku/utils";
+import {
+  bytesToHex,
+  bytesToUtf8,
+  hexToBytes,
+  utf8ToBytes,
+} from "@waku/utils/bytes";
 import debug from "debug";
 import { fromString } from "uint8arrays/from-string";
 import { toString } from "uint8arrays/to-string";

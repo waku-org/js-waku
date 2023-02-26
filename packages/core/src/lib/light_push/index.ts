@@ -16,7 +16,7 @@ import {
   selectConnection,
   selectPeerForProtocol,
   selectRandomPeer,
-} from "@waku/utils";
+} from "@waku/utils/libp2p";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";

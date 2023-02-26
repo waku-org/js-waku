@@ -1,7 +1,7 @@
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { multiaddr } from "@multiformats/multiaddr";
 import type { Waku2 } from "@waku/interfaces";
-import { bytesToHex, hexToBytes, utf8ToBytes } from "@waku/utils";
+import { bytesToHex, hexToBytes, utf8ToBytes } from "@waku/utils/bytes";
 import { assert, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
