@@ -119,15 +119,12 @@ export class WakuPeerExchange implements IPeerExchange {
    * @returns A peer to query
    */
   private async getPeer(peerId?: PeerId): Promise<Peer> {
-    const res = await selectPeerForProtocol(
+    const { peer } = await selectPeerForProtocol(
       this.peerStore,
       [PeerExchangeCodec],
       peerId
     );
-    if (!res) {
-      throw new Error(`Failed to select peer for ${PeerExchangeCodec}`);
-    }
-    return res.peer;
+    return peer;
   }
 
   /**

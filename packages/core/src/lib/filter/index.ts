@@ -1,7 +1,4 @@
-import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { PeerStore } from "@libp2p/interface-peer-store";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
@@ -14,17 +11,12 @@ import type {
   ProtocolOptions,
 } from "@waku/interfaces";
 import { WakuMessage as WakuMessageProto } from "@waku/proto";
-import {
-  getPeersForProtocol,
-  selectConnection,
-  selectPeerForProtocol,
-  selectRandomPeer,
-} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
+import { BaseProtocol } from "../base_protocol.js";
 import { DefaultPubSubTopic } from "../constants.js";
 import { groupByContentTopic } from "../group_by.js";
 import { toProtoMessage } from "../to_proto_message.js";
@@ -46,8 +38,7 @@ export type UnsubscribeFunction = () => Promise<void>;
  * - https://github.com/status-im/go-waku/issues/245
  * - https://github.com/status-im/nwaku/issues/948
  */
-class Filter implements IFilter {
-  multicodec: string;
+class Filter extends BaseProtocol implements IFilter {
   options: ProtocolCreateOptions;
   private subscriptions: Map<string, Callback<any>>;
   private decoders: Map<
@@ -56,12 +47,12 @@ class Filter implements IFilter {
   >;
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
+    super(FilterCodec, libp2p);
     this.options = options ?? {};
-    this.multicodec = FilterCodec;
     this.subscriptions = new Map();
     this.decoders = new Map();
     this.libp2p
-      .handle(FilterCodec, this.onRequest.bind(this))
+      .handle(this.multicodec, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
   }
 
@@ -130,10 +121,6 @@ class Filter implements IFilter {
       this.deleteDecoders(groupedDecoders);
       this.deleteCallback(requestId);
     };
-  }
-
-  get peerStore(): PeerStore {
-    return this.libp2p.peerStore;
   }
 
   private onRequest(streamData: IncomingStreamData): void {
@@ -255,36 +242,6 @@ class Filter implements IFilter {
       log("Error unsubscribing", e);
       throw e;
     }
-  }
-
-  private async newStream(peer: Peer): Promise<Stream> {
-    const connections = this.libp2p.getConnections(peer.id);
-    const connection = selectConnection(connections);
-    if (!connection) {
-      throw new Error("Failed to get a connection to the peer");
-    }
-
-    return connection.newStream(FilterCodec);
-  }
-
-  private async getPeer(peerId?: PeerId): Promise<Peer> {
-    const res = await selectPeerForProtocol(
-      this.peerStore,
-      [FilterCodec],
-      peerId
-    );
-    if (!res) {
-      throw new Error(`Failed to select peer for ${FilterCodec}`);
-    }
-    return res.peer;
-  }
-
-  async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.peerStore, [FilterCodec]);
-  }
-
-  async randomPeer(): Promise<Peer | undefined> {
-    return selectRandomPeer(await this.peers());
   }
 }
 

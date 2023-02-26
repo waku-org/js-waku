@@ -30,7 +30,16 @@
     "no-constant-condition": ["error", { "checkLoops": false }],
     "import/no-extraneous-dependencies": [
       "error",
-      { "devDependencies": ["**/*.test.ts", "**/*.spec.ts", "**/tests/**"] }
+      {
+        "devDependencies": [
+          "**/*.test.ts",
+          "**/*.spec.ts",
+          "**/tests/**",
+          "**/rollup.config.js",
+          "**/.eslintrc.cjs",
+          "**/karma.conf.cjs"
+        ]
+      }
     ],
     "sort-imports": [
       "error",
