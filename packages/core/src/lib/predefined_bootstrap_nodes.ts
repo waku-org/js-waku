@@ -1,4 +1,4 @@
-import { getPseudoRandomSubset } from "@waku/utils/common";
+import { getPseudoRandomSubset } from "@waku/utils";
 
 export const DefaultWantedNumber = 1;
 
