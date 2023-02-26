@@ -104,7 +104,7 @@
     "@types/debug": "^4.1.7",
     "@types/mocha": "^10.0.1",
     "@types/uuid": "^9.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.51.0",
+    "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.51.0",
     "chai": "^4.3.7",
     "cspell": "^6.26.3",
