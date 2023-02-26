@@ -8,6 +8,7 @@ export default {
     "lib/predefined_bootstrap_nodes": "dist/lib/predefined_bootstrap_nodes.js",
     "lib/message/version_0": "dist/lib/message/version_0.js",
     "lib/message/topic_only_message": "dist/lib/message/topic_only_message.js",
+    "lib/base_protocol": "dist/lib/base_protocol.js",
   },
   output: {
     dir: "bundle",

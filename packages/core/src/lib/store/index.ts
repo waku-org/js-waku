@@ -81,7 +81,7 @@ class Store extends BaseProtocol implements IStore {
   options: ProtocolCreateOptions;
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(StoreCodec, libp2p);
+    super(StoreCodec, libp2p.peerStore, libp2p.getConnections.bind(libp2p));
     this.options = options ?? {};
   }
 
