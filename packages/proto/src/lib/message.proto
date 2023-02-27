@@ -1,3 +1,5 @@
+// 14/WAKU2-MESSAGE rfc: https://rfc.vac.dev/spec/14/
+
 syntax = "proto3";
 
 message RateLimitProof {
@@ -7,16 +9,14 @@ message RateLimitProof {
   bytes share_x = 4;
   bytes share_y = 5;
   bytes nullifier = 6;
-  bytes rlnIdentifier = 7;
+  bytes rln_identifier = 7;
 }
 
 message WakuMessage {
-  optional bytes payload = 1;
-  optional string content_topic = 2;
+  bytes payload = 1;
+  string content_topic = 2;
   optional uint32 version = 3;
-  optional double timestamp_deprecated  = 4;
-  optional sint64 timestamp  = 10;
+  optional sint64 timestamp = 10;
   optional RateLimitProof rate_limit_proof = 21;
   optional bool ephemeral = 31;
 }
-
