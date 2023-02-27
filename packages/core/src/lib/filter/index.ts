@@ -6,7 +6,6 @@ import type {
   IDecodedMessage,
   IDecoder,
   IFilter,
-  IMessage,
   ProtocolCreateOptions,
   ProtocolOptions,
 } from "@waku/interfaces";
@@ -165,12 +164,12 @@ class Filter extends BaseProtocol implements IFilter {
         return;
       }
 
-      let msg: IMessage | undefined;
+      let didDecodeMsg = false;
       // We don't want to wait for decoding failure, just attempt to decode
       // all messages and do the call back on the one that works
       // noinspection ES6MissingAwait
       decoders.forEach(async (dec) => {
-        if (msg) return;
+        if (didDecodeMsg) return;
         const decoded = await dec.fromProtoObj(toProtoMessage(protoMessage));
         if (!decoded) {
           log("Not able to decode message");
@@ -178,7 +177,7 @@ class Filter extends BaseProtocol implements IFilter {
         }
         // This is just to prevent more decoding attempt
         // TODO: Could be better if we were to abort promises
-        msg = decoded;
+        didDecodeMsg = Boolean(decoded);
         await callback(decoded);
       });
     }
