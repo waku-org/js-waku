@@ -20,6 +20,10 @@
     "./lib/message/topic_only_message": {
       "types": "./dist/lib/message/topic_only_message.d.ts",
       "import": "./dist/lib/message/topic_only_message.js"
+    },
+    "./lib/base_protocol": {
+      "types": "./dist/lib/base_protocol.d.ts",
+      "import": "./dist/lib/base_protocol.js"
     }
   },
   "typesVersions": {
