@@ -40,8 +40,7 @@
     "prepublish": "npm run build",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
     "fix": "run-s fix:*",
-    "fix:prettier": "prettier . --write",
-    "fix:lint": "eslint src/*.ts --fix"
+    "fix:prettier": "prettier . --write"
   },
   "engines": {
     "node": ">=16"
@@ -55,6 +54,7 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.51.0",
+    "build-utils": "*",
     "cspell": "^6.26.3",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.6.0",

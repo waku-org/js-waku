@@ -1,0 +1,30 @@
+{
+  "name": "build-utils",
+  "version": "1.0.0",
+  "description": "Build utilities for js-waku",
+  "main": "index.js",
+  "module": "index.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "fix": "run-s fix:*",
+    "fix:lint": "eslint . --fix",
+    "fix:prettier": "prettier . --write",
+    "check": "run-s check:*",
+    "check:lint": "eslint .",
+    "check:prettier": "prettier . --list-different"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/waku-org/js-waku.git"
+  },
+  "author": "Waku Team",
+  "license": "MIT OR Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/waku-org/js-waku/issues"
+  },
+  "homepage": "https://github.com/waku-org/js-waku#readme",
+  "devDependencies": {
+    "prettier": "^2.8.4"
+  }
+}
