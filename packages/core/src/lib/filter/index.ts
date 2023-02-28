@@ -6,7 +6,6 @@ import type {
   IDecodedMessage,
   IDecoder,
   IFilter,
-  IMessage,
   ProtocolCreateOptions,
   ProtocolOptions,
 } from "@waku/interfaces";
@@ -30,6 +29,12 @@ export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 const log = debug("waku:filter");
 
 export type UnsubscribeFunction = () => Promise<void>;
+export type RequestID = string;
+
+type Subscription<T extends IDecodedMessage> = {
+  decoders: IDecoder<T>[];
+  callback: Callback<T>;
+};
 
 /**
  * Implements client side of the [Waku v2 Filter protocol](https://rfc.vac.dev/spec/12/).
@@ -40,17 +45,12 @@ export type UnsubscribeFunction = () => Promise<void>;
  */
 class Filter extends BaseProtocol implements IFilter {
   options: ProtocolCreateOptions;
-  private subscriptions: Map<string, Callback<any>>;
-  private decoders: Map<
-    string, // content topic
-    Set<IDecoder<any>>
-  >;
+  private subscriptions: Map<RequestID, unknown>;
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(FilterCodec, libp2p);
     this.options = options ?? {};
     this.subscriptions = new Map();
-    this.decoders = new Map();
     this.libp2p
       .handle(this.multicodec, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
@@ -69,8 +69,7 @@ class Filter extends BaseProtocol implements IFilter {
   ): Promise<UnsubscribeFunction> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
-    const groupedDecoders = groupByContentTopic(decoders);
-    const contentTopics = Array.from(groupedDecoders.keys());
+    const contentTopics = Array.from(groupByContentTopic(decoders).keys());
 
     const contentFilters = contentTopics.map((contentTopic) => ({
       contentTopic,
@@ -109,13 +108,11 @@ class Filter extends BaseProtocol implements IFilter {
       throw e;
     }
 
-    this.addDecoders(groupedDecoders);
-    this.addCallback(requestId, callback);
+    this.subscriptions.set(requestId, { callback, decoders });
 
     return async () => {
       await this.unsubscribe(pubSubTopic, contentFilters, requestId, peer);
-      this.deleteDecoders(groupedDecoders);
-      this.deleteCallback(requestId);
+      this.subscriptions.delete(requestId);
     };
   }
 
@@ -142,13 +139,21 @@ class Filter extends BaseProtocol implements IFilter {
     }
   }
 
-  private async pushMessages(
+  private async pushMessages<T extends IDecodedMessage>(
     requestId: string,
     messages: WakuMessageProto[]
   ): Promise<void> {
-    const callback = this.subscriptions.get(requestId);
-    if (!callback) {
-      log(`No callback registered for request ID ${requestId}`);
+    const subscription = this.subscriptions.get(requestId) as
+      | Subscription<T>
+      | undefined;
+    if (!subscription) {
+      log(`No subscription locally registered for request ID ${requestId}`);
+      return;
+    }
+    const { decoders, callback } = subscription;
+
+    if (!decoders || !decoders.length) {
+      log(`No decoder registered for request ID ${requestId}`);
       return;
     }
 
@@ -159,18 +164,12 @@ class Filter extends BaseProtocol implements IFilter {
         return;
       }
 
-      const decoders = this.decoders.get(contentTopic);
-      if (!decoders) {
-        log("No decoder for", contentTopic);
-        return;
-      }
-
-      let msg: IMessage | undefined;
+      let didDecodeMsg = false;
       // We don't want to wait for decoding failure, just attempt to decode
       // all messages and do the call back on the one that works
       // noinspection ES6MissingAwait
-      decoders.forEach(async (dec) => {
-        if (msg) return;
+      decoders.forEach(async (dec: IDecoder<T>) => {
+        if (didDecodeMsg) return;
         const decoded = await dec.fromProtoObj(toProtoMessage(protoMessage));
         if (!decoded) {
           log("Not able to decode message");
@@ -178,44 +177,10 @@ class Filter extends BaseProtocol implements IFilter {
         }
         // This is just to prevent more decoding attempt
         // TODO: Could be better if we were to abort promises
-        msg = decoded;
+        didDecodeMsg = Boolean(decoded);
         await callback(decoded);
       });
     }
-  }
-
-  private addCallback(requestId: string, callback: Callback<any>): void {
-    this.subscriptions.set(requestId, callback);
-  }
-
-  private deleteCallback(requestId: string): void {
-    this.subscriptions.delete(requestId);
-  }
-
-  private addDecoders<T extends IDecodedMessage>(
-    decoders: Map<string, Array<IDecoder<T>>>
-  ): void {
-    decoders.forEach((decoders, contentTopic) => {
-      const currDecs = this.decoders.get(contentTopic);
-      if (!currDecs) {
-        this.decoders.set(contentTopic, new Set(decoders));
-      } else {
-        this.decoders.set(contentTopic, new Set([...currDecs, ...decoders]));
-      }
-    });
-  }
-
-  private deleteDecoders<T extends IDecodedMessage>(
-    decoders: Map<string, Array<IDecoder<T>>>
-  ): void {
-    decoders.forEach((decoders, contentTopic) => {
-      const currDecs = this.decoders.get(contentTopic);
-      if (currDecs) {
-        decoders.forEach((dec) => {
-          currDecs.delete(dec);
-        });
-      }
-    });
   }
 
   private async unsubscribe(
