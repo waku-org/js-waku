@@ -37,7 +37,7 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.1.1",
     "size-limit": "^8.1.2",
-    "typedoc": "^0.23.24",
+    "typedoc": "^0.23.26",
     "typedoc-plugin-resolve-crossmodule-references": "^0.3.3"
   },
   "lint-staged": {
