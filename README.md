@@ -7,11 +7,10 @@ A TypeScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/1
 
 ## Documentation
 
-- [Quick start](https://docs.wakuconnect.dev/docs/quick_start/)
-- [Full documentation](https://docs.wakuconnect.dev/)
+- [Quick start](https://js.waku.guide/docs/quick_start/)
+- [Full documentation](https://js.waku.guide/)
 - [API documentation (`master` branch)](https://js.waku.org/)
-- [Waku Connect](https://wakuconnect.dev/)
-- [Waku](https://wakunetwork.com/)
+- [Waku](https://waku.org/)
 - [Vac](https://vac.dev/)
 
 API Documentation can also be generated locally:
@@ -27,7 +26,7 @@ npm run doc
 
 If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/waku-org/js-waku/issues/new/).
 
-For general discussion, get help or latest news, join **#js-waku** on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or the [Waku Telegram Group](https://t.me/waku_org).
+For general discussion, get help or latest news, join us on [Vac Discord](https://discord.gg/Nrac59MfSX) or the [Waku Telegram Group](https://t.me/waku_org).
 
 ## Roadmap
 
