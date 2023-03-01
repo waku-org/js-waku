@@ -55,7 +55,7 @@
   "dependencies": {
     "@ethersproject/rlp": "^5.7.0",
     "@libp2p/crypto": "^1.0.12",
-    "@libp2p/peer-id": "^2.0.1",
+    "@libp2p/peer-id": "^2.0.2",
     "@multiformats/multiaddr": "^11.4.0",
     "@noble/secp256k1": "^1.7.1",
     "@waku/utils": "*",

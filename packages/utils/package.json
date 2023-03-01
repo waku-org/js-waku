@@ -50,7 +50,7 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@libp2p/peer-id": "^2.0.1",
+    "@libp2p/peer-id": "^2.0.2",
     "debug": "^4.3.4",
     "uint8arrays": "^4.0.3"
   },
