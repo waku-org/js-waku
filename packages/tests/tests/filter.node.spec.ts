@@ -52,7 +52,7 @@ describe("Waku Filter", () => {
       log("Got a message");
       messageCount++;
       expect(msg.contentTopic).to.eq(TestContentTopic);
-      expect(bytesToUtf8(msg.payload!)).to.eq(messageText);
+      expect(bytesToUtf8(msg.payload)).to.eq(messageText);
     };
 
     await waku.filter.subscribe([TestDecoder], callback);

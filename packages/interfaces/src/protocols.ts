@@ -2,7 +2,7 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import type { Libp2pOptions } from "libp2p";
 
-import type { IMessage } from "./message.js";
+import type { IDecodedMessage } from "./message.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -58,7 +58,9 @@ export type ProtocolOptions = {
   peerId?: PeerId;
 };
 
-export type Callback<T extends IMessage> = (msg: T) => void | Promise<void>;
+export type Callback<T extends IDecodedMessage> = (
+  msg: T
+) => void | Promise<void>;
 
 export interface SendResult {
   recipients: PeerId[];

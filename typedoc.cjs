@@ -1,10 +1,14 @@
 const packageJson = require("./package.json");
-// Pop last value out: packages/tests
-packageJson.workspaces.pop();
+
+let entryPoints = [];
+for (const entryPoint of packageJson.workspaces) {
+  if (!["packages/tests", "packages/build-utils"].includes(entryPoint))
+    entryPoints.push(entryPoint);
+}
 
 module.exports = {
   entryPointStrategy: "packages",
-  entryPoints: packageJson.workspaces,
+  entryPoints,
   out: "docs",
   exclude: ["**/*.spec.ts"],
   excludeInternal: true,

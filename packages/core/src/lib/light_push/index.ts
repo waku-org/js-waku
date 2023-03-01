@@ -1,7 +1,5 @@
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer } from "@libp2p/interface-peer-store";
-import type { PeerStore } from "@libp2p/interface-peer-store";
 import type {
   IEncoder,
   ILightPush,
@@ -11,21 +9,16 @@ import type {
   SendResult,
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
-import {
-  getPeersForProtocol,
-  selectConnection,
-  selectPeerForProtocol,
-  selectRandomPeer,
-} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
+import { BaseProtocol } from "../base_protocol.js";
 import { DefaultPubSubTopic } from "../constants.js";
 
-import { PushRPC } from "./push_rpc.js";
+import { PushRpc } from "./push_rpc.js";
 
 const log = debug("waku:light-push");
 
@@ -35,12 +28,11 @@ export { PushResponse };
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
-class LightPush implements ILightPush {
-  multicodec: string;
+class LightPush extends BaseProtocol implements ILightPush {
   options: ProtocolCreateOptions;
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    this.multicodec = LightPushCodec;
+    super(LightPushCodec, libp2p.peerStore, libp2p.getConnections.bind(libp2p));
     this.options = options || {};
   }
 
@@ -51,23 +43,8 @@ class LightPush implements ILightPush {
   ): Promise<SendResult> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
-    const res = await selectPeerForProtocol(
-      this.peerStore,
-      [this.multicodec],
-      opts?.peerId
-    );
-
-    if (!res) {
-      throw new Error("Failed to get a peer");
-    }
-    const { peer } = res;
-
-    const connections = this.libp2p.getConnections(peer.id);
-    const connection = selectConnection(connections);
-
-    if (!connection) throw "Failed to get a connection to the peer";
-
-    const stream = await connection.newStream(LightPushCodec);
+    const peer = await this.getPeer(opts?.peerId);
+    const stream = await this.newStream(peer);
 
     const recipients: PeerId[] = [];
 
@@ -77,7 +54,7 @@ class LightPush implements ILightPush {
         log("Failed to encode to protoMessage, aborting push");
         return { recipients };
       }
-      const query = PushRPC.createRequest(protoMessage, pubSubTopic);
+      const query = PushRpc.createRequest(protoMessage, pubSubTopic);
       const res = await pipe(
         [query.encode()],
         lp.encode(),
@@ -91,7 +68,7 @@ class LightPush implements ILightPush {
           bytes.append(chunk);
         });
 
-        const response = PushRPC.decode(bytes).response;
+        const response = PushRpc.decode(bytes).response;
 
         if (!response) {
           log("No response in PushRPC");
@@ -108,28 +85,6 @@ class LightPush implements ILightPush {
       log("Failed to send waku light push request", err);
     }
     return { recipients };
-  }
-
-  /**
-   * Returns known peers from the address book (`libp2p.peerStore`) that support
-   * light push protocol. Waku may or may not be currently connected to these
-   * peers.
-   */
-  async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.peerStore, [LightPushCodec]);
-  }
-
-  /**
-   * Returns a random peer that supports light push protocol from the address
-   * book (`libp2p.peerStore`). Waku may or  may not be currently connected to
-   * this peer.
-   */
-  async randomPeer(): Promise<Peer | undefined> {
-    return selectRandomPeer(await this.peers());
-  }
-
-  get peerStore(): PeerStore {
-    return this.libp2p.peerStore;
   }
 }
 

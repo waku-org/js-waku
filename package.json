@@ -7,12 +7,13 @@
     "packages/proto",
     "packages/interfaces",
     "packages/enr",
-    "packages/peer-exchange",
     "packages/core",
+    "packages/peer-exchange",
     "packages/dns-discovery",
     "packages/message-encryption",
     "packages/create",
-    "packages/tests"
+    "packages/tests",
+    "packages/build-utils"
   ],
   "scripts": {
     "prepare": "husky install",
@@ -20,6 +21,7 @@
     "build:esm": "npm run build:esm --workspaces --if-present",
     "size": "npm run build && size-limit",
     "fix": "npm run fix --workspaces --if-present",
+    "fix:lint": "npm run fix:lint --workspaces --if-present",
     "check": "npm run check --workspaces --if-present",
     "check:ws": "[ $(ls -1 ./packages|wc -l) -eq $(cat package.json | jq '.workspaces | length') ] || exit 1 # check no packages left behind",
     "test": "npm run test --workspaces --if-present",
@@ -37,11 +39,11 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.1.1",
     "size-limit": "^8.1.2",
-    "typedoc": "^0.23.24",
+    "typedoc": "^0.23.26",
     "typedoc-plugin-resolve-crossmodule-references": "^0.3.3"
   },
   "lint-staged": {
-    "*.ts": [
+    "*.{ts,js}": [
       "eslint --fix"
     ],
     "*.{ts,json,js,md,cjs}": [

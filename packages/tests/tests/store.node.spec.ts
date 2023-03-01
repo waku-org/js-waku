@@ -90,7 +90,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return msg.payload![0]! === 0;
+      return msg.payload[0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
@@ -173,8 +173,8 @@ describe("Waku Store", () => {
 
     expect(messages.length).be.eq(totalMsgs);
 
-    expect(bytesToUtf8(testMessage.payload!)).to.be.eq(
-      bytesToUtf8(messages[cursorIndex + 1].payload!)
+    expect(bytesToUtf8(testMessage.payload)).to.be.eq(
+      bytesToUtf8(messages[cursorIndex + 1].payload)
     );
   });
 
@@ -214,7 +214,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return msg.payload![0]! === 0;
+      return msg.payload[0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
@@ -294,7 +294,7 @@ describe("Waku Store", () => {
     );
 
     expect(messages?.length).eq(totalMsgs);
-    const payloads = messages.map((msg) => msg.payload![0]!);
+    const payloads = messages.map((msg) => msg.payload[0]!);
     expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
   });
 

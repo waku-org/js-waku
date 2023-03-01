@@ -13,24 +13,37 @@
   ],
   "globals": { "BigInt": true, "console": true, "WebAssembly": true },
   "rules": {
-    "@typescript-eslint/explicit-function-return-type": [
-      "error",
-      { "allowExpressions": true }
-    ],
+    "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "eslint-comments/disable-enable-pair": [
       "error",
-      { "allowWholeFile": true }
+      {
+        "allowWholeFile": true
+      }
     ],
     "eslint-comments/no-unused-disable": "error",
     "import/order": [
       "error",
-      { "newlines-between": "always", "alphabetize": { "order": "asc" } }
+      {
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc"
+        }
+      }
     ],
     "no-constant-condition": ["error", { "checkLoops": false }],
     "import/no-extraneous-dependencies": [
       "error",
-      { "devDependencies": ["**/*.test.ts", "**/*.spec.ts", "**/tests/**"] }
+      {
+        "devDependencies": [
+          "**/*.test.ts",
+          "**/*.spec.ts",
+          "**/tests/**",
+          "**/rollup.config.js",
+          "**/.eslintrc.cjs",
+          "**/karma.conf.cjs"
+        ]
+      }
     ],
     "sort-imports": [
       "error",
@@ -44,6 +57,17 @@
       "rules": {
         "@typescript-eslint/no-non-null-assertion": "off",
         "no-console": "off"
+      }
+    },
+    {
+      "files": ["*.ts", "*.mts", "*.cts", "*.tsx"],
+      "rules": {
+        "@typescript-eslint/explicit-function-return-type": [
+          "error",
+          {
+            "allowExpressions": true
+          }
+        ]
       }
     }
   ]

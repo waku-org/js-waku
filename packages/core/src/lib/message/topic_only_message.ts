@@ -9,7 +9,7 @@ import debug from "debug";
 const log = debug("waku:message:topic-only");
 
 export class TopicOnlyMessage implements IDecodedMessage {
-  public payload: undefined;
+  public payload: Uint8Array = new Uint8Array();
   public rateLimitProof: undefined;
   public timestamp: undefined;
   public ephemeral: undefined;
@@ -17,7 +17,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
   constructor(private proto: ProtoTopicOnlyMessage) {}
 
   get contentTopic(): string {
-    return this.proto.contentTopic ?? "";
+    return this.proto.contentTopic;
   }
 }
 
@@ -29,7 +29,7 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
     log("Message decoded", protoMessage);
     return Promise.resolve({
       contentTopic: protoMessage.contentTopic,
-      payload: undefined,
+      payload: new Uint8Array(),
       rateLimitProof: undefined,
       timestamp: undefined,
       version: undefined,

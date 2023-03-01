@@ -1,23 +1,26 @@
+// 12/WAKU2-FILTER rfc: https://rfc.vac.dev/spec/12/
+// Protocol identifier: /vac/waku/filter/2.0.0-beta1
+
 syntax = "proto3";
 
 import "message.proto";
 
 message FilterRequest {
-  optional bool subscribe = 1;
-  optional string topic = 2;
-  repeated ContentFilter content_filters = 3;
-
   message ContentFilter {
-    optional string content_topic = 1;
+    string content_topic = 1;
   }
+
+  bool subscribe = 1;
+  string topic = 2;
+  repeated ContentFilter content_filters = 3;
 }
 
 message MessagePush {
   repeated WakuMessage messages = 1;
 }
 
-message FilterRPC {
-  optional string request_id = 1;
+message FilterRpc {
+  string request_id = 1;
   optional FilterRequest request = 2;
   optional MessagePush push = 3;
 }

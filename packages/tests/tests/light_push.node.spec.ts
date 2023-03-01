@@ -106,6 +106,6 @@ describe("Waku Light Push [node only]", () => {
     }
 
     expect(msgs[0].contentTopic).to.equal(TestContentTopic);
-    expect(base64ToUtf8(msgs[0].payload!)).to.equal(messageText);
+    expect(base64ToUtf8(msgs[0].payload)).to.equal(messageText);
   });
 });

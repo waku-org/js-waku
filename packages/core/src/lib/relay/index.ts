@@ -32,6 +32,7 @@ export type Observer<T extends IDecodedMessage> = {
 };
 
 export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
+export type ContentTopic = string;
 
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
@@ -40,7 +41,7 @@ export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
  * @implements {require('libp2p-interfaces/src/pubsub')}
  */
 class Relay extends GossipSub implements IRelay {
-  private pubSubTopic: string;
+  private readonly pubSubTopic: string;
   defaultDecoder: IDecoder<IDecodedMessage>;
   public static multicodec: string = constants.RelayCodecs[0];
 
@@ -48,7 +49,7 @@ class Relay extends GossipSub implements IRelay {
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  public observers: Map<string, Set<Observer<any>>>;
+  public observers: Map<ContentTopic, Set<unknown>>;
 
   constructor(
     components: GossipSubComponents,
@@ -119,6 +120,38 @@ class Relay extends GossipSub implements IRelay {
     };
   }
 
+  private async processIncomingMessage<T extends IDecodedMessage>(
+    bytes: Uint8Array
+  ): Promise<void> {
+    const topicOnlyMsg = await this.defaultDecoder.fromWireToProtoObj(bytes);
+    if (!topicOnlyMsg || !topicOnlyMsg.contentTopic) {
+      log("Message does not have a content topic, skipping");
+      return;
+    }
+
+    const observers = this.observers.get(topicOnlyMsg.contentTopic) as Set<
+      Observer<T>
+    >;
+    if (!observers) {
+      return;
+    }
+    await Promise.all(
+      Array.from(observers).map(async ({ decoder, callback }) => {
+        const protoMsg = await decoder.fromWireToProtoObj(bytes);
+        if (!protoMsg) {
+          log("Internal error: message previously decoded failed on 2nd pass.");
+          return;
+        }
+        const msg = await decoder.fromProtoObj(protoMsg);
+        if (msg) {
+          callback(msg);
+        } else {
+          log("Failed to decode messages on", topicOnlyMsg.contentTopic);
+        }
+      })
+    );
+  }
+
   /**
    * Subscribe to a pubsub topic and start emitting Waku messages to observers.
    *
@@ -131,36 +164,8 @@ class Relay extends GossipSub implements IRelay {
         if (event.detail.msg.topic !== pubSubTopic) return;
         log(`Message received on ${pubSubTopic}`);
 
-        const topicOnlyMsg = await this.defaultDecoder.fromWireToProtoObj(
-          event.detail.msg.data
-        );
-        if (!topicOnlyMsg || !topicOnlyMsg.contentTopic) {
-          log("Message does not have a content topic, skipping");
-          return;
-        }
-
-        const observers = this.observers.get(topicOnlyMsg.contentTopic);
-        if (!observers) {
-          return;
-        }
-        await Promise.all(
-          Array.from(observers).map(async ({ decoder, callback }) => {
-            const protoMsg = await decoder.fromWireToProtoObj(
-              event.detail.msg.data
-            );
-            if (!protoMsg) {
-              log(
-                "Internal error: message previously decoded failed on 2nd pass."
-              );
-              return;
-            }
-            const msg = await decoder.fromProtoObj(protoMsg);
-            if (msg) {
-              callback(msg);
-            } else {
-              log("Failed to decode messages on", topicOnlyMsg.contentTopic);
-            }
-          })
+        this.processIncomingMessage(event.detail.msg.data).catch((e) =>
+          log("Failed to process incoming message", e)
         );
       }
     );
