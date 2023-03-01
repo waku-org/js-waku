@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.6](https://github.com/waku-org/js-waku/compare/enr-v0.0.5...enr-v0.0.6) (2023-03-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* bump typescript
+* bump all prod dependencies
+* bump libp2p dependencies
+
+### Miscellaneous Chores
+
+* Bump all prod dependencies ([88cc76d](https://github.com/waku-org/js-waku/commit/88cc76d2b811e1fa4460207f38704ecfe18fb260))
+* Bump libp2p dependencies ([803ae7b](https://github.com/waku-org/js-waku/commit/803ae7bd8ed3de665026446c23cde90e7eba9d36))
+* Bump typescript ([12d86e6](https://github.com/waku-org/js-waku/commit/12d86e6abcc68e27c39ca86b4f0dc2b68cdd6000))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from * to 0.0.2
+  * devDependencies
+    * @waku/interfaces bumped from * to 0.0.8
+
 ## [Unreleased]
 
 ## [0.0.5] - 2023-01-25
