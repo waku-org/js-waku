@@ -6,7 +6,8 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import type {
+import { CustomEvent } from "@libp2p/interfaces/events";
+import {
   Callback,
   IDecoder,
   IEncoder,
@@ -33,6 +34,10 @@ export type Observer<T extends IDecodedMessage> = {
 
 export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
 export type ContentTopic = string;
+
+type BasicEventPayload = {
+  contentTopic: Pick<IDecoder, "contentTopic">;
+};
 
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
@@ -110,12 +115,30 @@ class Relay extends GossipSub implements IRelay {
       decoder,
       callback,
     };
-    pushOrInitMapSet(this.observers, decoder.contentTopic, observer);
+    const contentTopic = decoder.contentTopic;
+
+    pushOrInitMapSet(this.observers, contentTopic, observer);
+
+    this.dispatchEvent(
+      new CustomEvent<BasicEventPayload>("observer:added", {
+        detail: {
+          contentTopic,
+        },
+      })
+    );
 
     return () => {
-      const observers = this.observers.get(decoder.contentTopic);
+      const observers = this.observers.get(contentTopic);
       if (observers) {
         observers.delete(observer);
+
+        this.dispatchEvent(
+          new CustomEvent<BasicEventPayload>("observer:removed", {
+            detail: {
+              contentTopic,
+            },
+          })
+        );
       }
     };
   }
