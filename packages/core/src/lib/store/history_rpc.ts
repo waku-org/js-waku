@@ -19,8 +19,8 @@ export interface Params {
   cursor?: proto.Index;
 }
 
-export class HistoryRPC {
-  private constructor(public readonly proto: proto.HistoryRPC) {}
+export class HistoryRpc {
+  private constructor(public readonly proto: proto.HistoryRpc) {}
 
   get query(): proto.HistoryQuery | undefined {
     return this.proto.query;
@@ -33,7 +33,7 @@ export class HistoryRPC {
   /**
    * Create History Query.
    */
-  static createQuery(params: Params): HistoryRPC {
+  static createQuery(params: Params): HistoryRpc {
     const contentFilters = params.contentTopics.map((contentTopic) => {
       return { contentTopic };
     });
@@ -56,10 +56,10 @@ export class HistoryRPC {
       // milliseconds 10^-3 to nanoseconds 10^-9
       endTime = BigInt(params.endTime.valueOf()) * OneMillion;
     }
-    return new HistoryRPC({
+    return new HistoryRpc({
       requestId: uuid(),
       query: {
-        pubSubTopic: params.pubSubTopic,
+        pubsubTopic: params.pubSubTopic,
         contentFilters,
         pagingInfo,
         startTime,
@@ -69,13 +69,13 @@ export class HistoryRPC {
     });
   }
 
-  decode(bytes: Uint8ArrayList): HistoryRPC {
-    const res = proto.HistoryRPC.decode(bytes);
-    return new HistoryRPC(res);
+  decode(bytes: Uint8ArrayList): HistoryRpc {
+    const res = proto.HistoryRpc.decode(bytes);
+    return new HistoryRpc(res);
   }
 
   encode(): Uint8Array {
-    return proto.HistoryRPC.encode(this.proto);
+    return proto.HistoryRpc.encode(this.proto);
   }
 }
 
@@ -84,10 +84,10 @@ function directionToProto(
 ): proto.PagingInfo.Direction {
   switch (pageDirection) {
     case PageDirection.BACKWARD:
-      return proto.PagingInfo.Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+      return proto.PagingInfo.Direction.BACKWARD;
     case PageDirection.FORWARD:
-      return proto.PagingInfo.Direction.DIRECTION_FORWARD;
+      return proto.PagingInfo.Direction.FORWARD;
     default:
-      return proto.PagingInfo.Direction.DIRECTION_BACKWARD_UNSPECIFIED;
+      return proto.PagingInfo.Direction.BACKWARD;
   }
 }

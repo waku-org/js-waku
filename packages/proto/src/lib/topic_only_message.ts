@@ -9,7 +9,7 @@ import type { Codec } from "protons-runtime";
 import type { Uint8ArrayList } from "uint8arraylist";
 
 export interface TopicOnlyMessage {
-  contentTopic?: string;
+  contentTopic: string;
 }
 
 export namespace TopicOnlyMessage {
@@ -23,7 +23,7 @@ export namespace TopicOnlyMessage {
             w.fork();
           }
 
-          if (obj.contentTopic != null) {
+          if (obj.contentTopic != null && obj.contentTopic !== "") {
             w.uint32(18);
             w.string(obj.contentTopic);
           }
@@ -33,7 +33,9 @@ export namespace TopicOnlyMessage {
           }
         },
         (reader, length) => {
-          const obj: any = {};
+          const obj: any = {
+            contentTopic: "",
+          };
 
           const end = length == null ? reader.len : reader.pos + length;
 

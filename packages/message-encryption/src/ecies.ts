@@ -45,10 +45,6 @@ export class Encoder implements IEncoder {
 
   async toProtoObj(message: IMessage): Promise<IProtoMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
-    if (!message.payload) {
-      log("No payload to encrypt, skipping: ", message);
-      return;
-    }
     const preparedPayload = await preCipher(message.payload, this.sigPrivKey);
 
     const payload = await encryptAsymmetric(preparedPayload, this.publicKey);
@@ -113,10 +109,6 @@ export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
     }
 
     let payload;
-    if (!cipherPayload) {
-      log(`No payload to decrypt for contentTopic ${this.contentTopic}`);
-      return;
-    }
 
     try {
       payload = await decryptAsymmetric(cipherPayload, this.privateKey);

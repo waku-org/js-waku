@@ -187,7 +187,7 @@ describe("Decryption Keys", () => {
     const receivedMsg = await receivedMsgPromise;
 
     expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
-    expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
+    expect(bytesToUtf8(receivedMsg.payload)).to.eq(messageText);
     expect(receivedMsg.timestamp?.valueOf()).to.eq(messageTimestamp.valueOf());
   });
 });

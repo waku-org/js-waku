@@ -1,22 +1,16 @@
-import type { Stream } from "@libp2p/interface-connection";
 import type { ConnectionManager } from "@libp2p/interface-connection-manager";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import type { PeerStore } from "@libp2p/interface-peer-store";
 import type {
   IncomingStreamData,
   Registrar,
 } from "@libp2p/interface-registrar";
+import { BaseProtocol } from "@waku/core/lib/base_protocol";
 import { ENR } from "@waku/enr";
 import type {
   IPeerExchange,
   PeerExchangeQueryParams,
   PeerExchangeResponse,
 } from "@waku/interfaces";
-import {
-  getPeersForProtocol,
-  selectConnection,
-  selectPeerForProtocol,
-} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -37,8 +31,7 @@ export interface PeerExchangeComponents {
 /**
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
  */
-export class WakuPeerExchange implements IPeerExchange {
-  multicodec: string;
+export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
   private callback:
     | ((response: PeerExchangeResponse) => Promise<void>)
     | undefined;
@@ -47,7 +40,13 @@ export class WakuPeerExchange implements IPeerExchange {
    * @param components - libp2p components
    */
   constructor(public components: PeerExchangeComponents) {
-    this.multicodec = PeerExchangeCodec;
+    super(
+      PeerExchangeCodec,
+      components.peerStore,
+      components.connectionManager.getConnections.bind(
+        components.connectionManager
+      )
+    );
     this.components.registrar
       .handle(PeerExchangeCodec, this.handler.bind(this))
       .catch((e) => log("Failed to register peer exchange protocol", e));
@@ -111,53 +110,6 @@ export class WakuPeerExchange implements IPeerExchange {
         await this.callback({ peerInfos });
       }
     }).catch((err) => log("Failed to handle peer exchange request", err));
-  }
-
-  /**
-   *
-   * @param peerId - Optional peer ID to select a peer
-   * @returns A peer to query
-   */
-  private async getPeer(peerId?: PeerId): Promise<Peer> {
-    const res = await selectPeerForProtocol(
-      this.peerStore,
-      [PeerExchangeCodec],
-      peerId
-    );
-    if (!res) {
-      throw new Error(`Failed to select peer for ${PeerExchangeCodec}`);
-    }
-    return res.peer;
-  }
-
-  /**
-   * @param peer - Peer to open a stream with
-   * @returns A new stream
-   */
-  private async newStream(peer: Peer): Promise<Stream> {
-    const connections = this.components.connectionManager.getConnections(
-      peer.id
-    );
-    const connection = selectConnection(connections);
-    if (!connection) {
-      throw new Error("Failed to get a connection to the peer");
-    }
-
-    return connection.newStream(PeerExchangeCodec);
-  }
-
-  /**
-   * @returns All peers that support the peer exchange protocol
-   */
-  async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.components.peerStore, [PeerExchangeCodec]);
-  }
-
-  /**
-   * @returns The libp2p peer store
-   */
-  get peerStore(): PeerStore {
-    return this.components.peerStore;
   }
 }
 

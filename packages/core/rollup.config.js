@@ -1,14 +1,14 @@
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
+import { extractExports } from "build-utils";
+
+import * as packageJson from "./package.json" assert { type: "json" };
+
+const input = extractExports(packageJson);
 
 export default {
-  input: {
-    index: "dist/index.js",
-    "lib/predefined_bootstrap_nodes": "dist/lib/predefined_bootstrap_nodes.js",
-    "lib/message/version_0": "dist/lib/message/version_0.js",
-    "lib/message/topic_only_message": "dist/lib/message/topic_only_message.js",
-  },
+  input,
   output: {
     dir: "bundle",
     format: "esm",
