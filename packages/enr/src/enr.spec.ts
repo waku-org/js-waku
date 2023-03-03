@@ -194,7 +194,7 @@ describe("ENR", function () {
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
-      record = await ENR.createV4(secp.getPublicKey(privateKey));
+      record = await ENR.createFromPublicKey(secp.getPublicKey(privateKey));
       record.setLocationMultiaddr(multiaddr("/ip4/127.0.0.1/udp/30303"));
       record.seq = seq;
       await record.encodeTxt(privateKey);
@@ -239,7 +239,7 @@ describe("ENR", function () {
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
-      record = await ENR.createV4(secp.getPublicKey(privateKey));
+      record = await ENR.createFromPublicKey(secp.getPublicKey(privateKey));
     });
 
     it("should get / set UDP multiaddr", () => {

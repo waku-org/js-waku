@@ -69,7 +69,7 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
     return enr;
   }
 
-  static createV4(
+  static createFromPublicKey(
     publicKey: Uint8Array,
     kvs: Record<ENRKey, ENRValue> = {}
   ): Promise<ENR> {
@@ -90,7 +90,7 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
   ): Promise<ENR> {
     switch (peerId.type) {
       case "secp256k1":
-        return ENR.createV4(getPublicKeyFromPeerId(peerId), kvs);
+        return ENR.createFromPublicKey(getPublicKeyFromPeerId(peerId), kvs);
       default:
         throw new Error();
     }
