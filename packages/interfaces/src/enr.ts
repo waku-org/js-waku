@@ -33,6 +33,5 @@ export interface IEnr extends Map<ENRKey, ENRValue> {
   multiaddrs?: Multiaddr[];
   waku2?: Waku2;
 
-  encode(privateKey?: Uint8Array): Promise<Uint8Array>;
   getFullMultiaddrs(): Multiaddr[];
 }

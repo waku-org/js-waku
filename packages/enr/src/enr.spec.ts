@@ -9,6 +9,7 @@ import { equals } from "uint8arrays/equals";
 import { ERR_INVALID_ID } from "./constants.js";
 import { EnrCreator } from "./creator.js";
 import { EnrDecoder } from "./decoder.js";
+import { EnrEncoder } from "./encoder.js";
 import { ENR } from "./enr.js";
 import { getPrivateKeyFromPeerId } from "./peer_id.js";
 
@@ -34,7 +35,7 @@ describe("ENR", function () {
         lightPush: false,
       };
 
-      const txt = await enr.encodeTxt(privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKey);
       const enr2 = await EnrDecoder.fromString(txt);
 
       if (!enr.signature) throw "enr.signature is undefined";
@@ -113,7 +114,7 @@ describe("ENR", function () {
         enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
 
         enr.set("id", new Uint8Array([0]));
-        const txt = await enr.encodeTxt(privateKey);
+        const txt = await EnrEncoder.toString(enr, privateKey);
 
         await EnrDecoder.fromString(txt);
         assert.fail("Expect error here");
@@ -199,7 +200,7 @@ describe("ENR", function () {
       record = await EnrCreator.fromPublicKey(secp.getPublicKey(privateKey));
       record.setLocationMultiaddr(multiaddr("/ip4/127.0.0.1/udp/30303"));
       record.seq = seq;
-      await record.encodeTxt(privateKey);
+      await EnrEncoder.toString(record, privateKey);
     });
 
     it("should properly compute the node id", () => {
@@ -209,7 +210,7 @@ describe("ENR", function () {
     });
 
     it("should encode/decode to RLP encoding", async function () {
-      const encoded = await record.encode(privateKey);
+      const encoded = await EnrEncoder.toBytes(record, privateKey);
       const decoded = await EnrDecoder.fromRLP(encoded);
 
       record.forEach((value, key) => {
@@ -403,7 +404,7 @@ describe("ENR", function () {
     it("should set field with all protocols disabled", async () => {
       enr.waku2 = waku2Protocols;
 
-      const txt = await enr.encodeTxt(privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKey);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -419,7 +420,7 @@ describe("ENR", function () {
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKey);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
@@ -432,7 +433,7 @@ describe("ENR", function () {
       waku2Protocols.relay = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKey);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
@@ -445,7 +446,7 @@ describe("ENR", function () {
       waku2Protocols.store = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKey);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -458,7 +459,7 @@ describe("ENR", function () {
       waku2Protocols.filter = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKey);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -471,7 +472,7 @@ describe("ENR", function () {
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKey);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);

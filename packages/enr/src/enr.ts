@@ -1,4 +1,3 @@
-import * as RLP from "@ethersproject/rlp";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import {
@@ -13,15 +12,10 @@ import type {
   SequenceNumber,
   Waku2,
 } from "@waku/interfaces";
-import { bytesToUtf8, hexToBytes, utf8ToBytes } from "@waku/utils";
+import { bytesToUtf8 } from "@waku/utils";
 import debug from "debug";
-import { toString } from "uint8arrays/to-string";
 
-import {
-  ERR_INVALID_ID,
-  ERR_NO_SIGNATURE,
-  MAX_RECORD_SIZE,
-} from "./constants.js";
+import { ERR_INVALID_ID } from "./constants.js";
 import { keccak256, verifySignature } from "./crypto.js";
 import { multiaddrFromFields } from "./multiaddr_from_fields.js";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
@@ -379,44 +373,5 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
         throw new Error(ERR_INVALID_ID);
     }
     return this.signature;
-  }
-
-  async encodeToValues(
-    privateKey?: Uint8Array
-  ): Promise<(ENRKey | ENRValue | number[])[]> {
-    // sort keys and flatten into [k, v, k, v, ...]
-    const content: Array<ENRKey | ENRValue | number[]> = Array.from(this.keys())
-      .sort((a, b) => a.localeCompare(b))
-      .map((k) => [k, this.get(k)] as [ENRKey, ENRValue])
-      .map(([k, v]) => [utf8ToBytes(k), v])
-      .flat();
-    content.unshift(new Uint8Array([Number(this.seq)]));
-    if (privateKey) {
-      content.unshift(
-        await this.sign(hexToBytes(RLP.encode(content)), privateKey)
-      );
-    } else {
-      if (!this.signature) {
-        throw new Error(ERR_NO_SIGNATURE);
-      }
-      content.unshift(this.signature);
-    }
-    return content;
-  }
-
-  async encode(privateKey?: Uint8Array): Promise<Uint8Array> {
-    const encoded = hexToBytes(
-      RLP.encode(await this.encodeToValues(privateKey))
-    );
-    if (encoded.length >= MAX_RECORD_SIZE) {
-      throw new Error("ENR must be less than 300 bytes");
-    }
-    return encoded;
-  }
-
-  async encodeTxt(privateKey?: Uint8Array): Promise<string> {
-    return (
-      ENR.RECORD_PREFIX + toString(await this.encode(privateKey), "base64url")
-    );
   }
 }
