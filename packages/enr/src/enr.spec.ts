@@ -8,7 +8,7 @@ import { equals } from "uint8arrays/equals";
 import { ERR_INVALID_ID } from "./constants.js";
 import { getPublicKey } from "./crypto.js";
 import { ENR } from "./enr.js";
-import { getPrivateKeyFromPeerId } from "./keypair/index.js";
+import { getPrivateKeyFromPeerId } from "./peer_id.js";
 
 describe("ENR", function () {
   describe("Txt codec", () => {

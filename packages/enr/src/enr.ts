@@ -24,15 +24,12 @@ import {
   MAX_RECORD_SIZE,
 } from "./constants.js";
 import { compressPublicKey, keccak256, verifySignature } from "./crypto.js";
-import {
-  createKeypair,
-  createPeerIdFromPublicKey,
-  getPublicKeyFromPeerId,
-  IKeypair,
-  KeypairType,
-} from "./keypair/index.js";
 import { multiaddrFromFields } from "./multiaddr_from_fields.js";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
+import {
+  createPeerIdFromPublicKey,
+  getPublicKeyFromPeerId,
+} from "./peer_id.js";
 import * as v4 from "./v4.js";
 import { decodeWaku2, encodeWaku2 } from "./waku2_codec.js";
 
@@ -161,15 +158,6 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
     return bytesToUtf8(id);
   }
 
-  get keypairType(): KeypairType {
-    switch (this.id) {
-      case "v4":
-        return KeypairType.secp256k1;
-      default:
-        throw new Error(ERR_INVALID_ID);
-    }
-  }
-
   get publicKey(): Uint8Array | undefined {
     switch (this.id) {
       case "v4":
@@ -177,14 +165,6 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
       default:
         throw new Error(ERR_INVALID_ID);
     }
-  }
-
-  get keypair(): IKeypair | undefined {
-    if (this.publicKey) {
-      const publicKey = this.publicKey;
-      return createKeypair(this.keypairType, undefined, publicKey);
-    }
-    return;
   }
 
   get nodeId(): NodeId | undefined {
