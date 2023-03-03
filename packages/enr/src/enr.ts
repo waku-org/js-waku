@@ -27,7 +27,7 @@ import { compressPublicKey, keccak256, verifySignature } from "./crypto.js";
 import {
   createKeypair,
   createKeypairFromPeerId,
-  createPeerIdFromKeypair,
+  createPeerIdFromPublicKey,
   IKeypair,
   KeypairType,
 } from "./keypair/index.js";
@@ -63,8 +63,7 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
     try {
       const publicKey = enr.publicKey;
       if (publicKey) {
-        const keypair = createKeypair(enr.keypairType, undefined, publicKey);
-        enr.peerId = await createPeerIdFromKeypair(keypair);
+        enr.peerId = await createPeerIdFromPublicKey(publicKey);
       }
     } catch (e) {
       log("Could not calculate peer id for ENR", e);
