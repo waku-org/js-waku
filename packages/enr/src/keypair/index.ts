@@ -30,34 +30,25 @@ export function createKeypair(
   }
 }
 
-export async function createKeypairFromPeerId(
-  peerId: PeerId
-): Promise<IKeypair> {
-  let keypairType;
-  switch (peerId.type) {
-    case "RSA":
-      keypairType = KeypairType.rsa;
-      break;
-    case "Ed25519":
-      keypairType = KeypairType.ed25519;
-      break;
-    case "secp256k1":
-      keypairType = KeypairType.secp256k1;
-      break;
-    default:
-      throw new Error("Unsupported peer id type");
+export function getPublicKeyFromPeerId(peerId: PeerId): Uint8Array {
+  if (peerId.type !== "secp256k1") {
+    throw new Error("Unsupported peer id type");
   }
 
-  const publicKey = peerId.publicKey
-    ? unmarshalPublicKey(peerId.publicKey)
-    : undefined;
-  const privateKey = peerId.privateKey
-    ? await unmarshalPrivateKey(peerId.privateKey)
-    : undefined;
+  return unmarshalPublicKey(peerId.publicKey).marshal();
+}
 
-  return createKeypair(
-    keypairType,
-    privateKey?.marshal(),
-    publicKey?.marshal()
-  );
+// Only used in tests
+export async function getPrivateKeyFromPeerId(
+  peerId: PeerId
+): Promise<Uint8Array> {
+  if (peerId.type !== "secp256k1") {
+    throw new Error("Unsupported peer id type");
+  }
+  if (!peerId.privateKey) {
+    throw new Error("Private key not present on peer id");
+  }
+
+  const privateKey = await unmarshalPrivateKey(peerId.privateKey);
+  return privateKey.marshal();
 }

@@ -26,8 +26,8 @@ import {
 import { compressPublicKey, keccak256, verifySignature } from "./crypto.js";
 import {
   createKeypair,
-  createKeypairFromPeerId,
   createPeerIdFromPublicKey,
+  getPublicKeyFromPeerId,
   IKeypair,
   KeypairType,
 } from "./keypair/index.js";
@@ -91,10 +91,9 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
     peerId: PeerId,
     kvs: Record<ENRKey, ENRValue> = {}
   ): Promise<ENR> {
-    const keypair = await createKeypairFromPeerId(peerId);
-    switch (keypair.type) {
-      case KeypairType.secp256k1:
-        return ENR.createV4(keypair.publicKey, kvs);
+    switch (peerId.type) {
+      case "secp256k1":
+        return ENR.createV4(getPublicKeyFromPeerId(peerId), kvs);
       default:
         throw new Error();
     }

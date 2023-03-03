@@ -8,14 +8,14 @@ import { equals } from "uint8arrays/equals";
 import { ERR_INVALID_ID } from "./constants.js";
 import { getPublicKey } from "./crypto.js";
 import { ENR } from "./enr.js";
-import { createKeypairFromPeerId, IKeypair } from "./keypair/index.js";
+import { getPrivateKeyFromPeerId } from "./keypair/index.js";
 
 describe("ENR", function () {
   describe("Txt codec", () => {
     it("should encodeTxt and decodeTxt", async () => {
       const peerId = await createSecp256k1PeerId();
       const enr = await ENR.createFromPeerId(peerId);
-      const keypair = await createKeypairFromPeerId(peerId);
+      const privateKey = await getPrivateKeyFromPeerId(peerId);
       enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
       enr.multiaddrs = [
         multiaddr("/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"),
@@ -32,7 +32,7 @@ describe("ENR", function () {
         lightPush: false,
       };
 
-      const txt = await enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(privateKey);
       const enr2 = await ENR.decodeTxt(txt);
 
       if (!enr.signature) throw "enr.signature is undefined";
@@ -107,11 +107,11 @@ describe("ENR", function () {
       try {
         const peerId = await createSecp256k1PeerId();
         const enr = await ENR.createFromPeerId(peerId);
-        const keypair = await createKeypairFromPeerId(peerId);
+        const privateKey = await getPrivateKeyFromPeerId(peerId);
         enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
 
         enr.set("id", new Uint8Array([0]));
-        const txt = await enr.encodeTxt(keypair.privateKey);
+        const txt = await enr.encodeTxt(privateKey);
 
         await ENR.decodeTxt(txt);
         assert.fail("Expect error here");
@@ -384,12 +384,12 @@ describe("ENR", function () {
     let peerId;
     let enr: ENR;
     let waku2Protocols: Waku2;
-    let keypair: IKeypair;
+    let privateKey: Uint8Array;
 
     beforeEach(async function () {
       peerId = await createSecp256k1PeerId();
       enr = await ENR.createFromPeerId(peerId);
-      keypair = await createKeypairFromPeerId(peerId);
+      privateKey = await getPrivateKeyFromPeerId(peerId);
       waku2Protocols = {
         relay: false,
         store: false,
@@ -401,7 +401,7 @@ describe("ENR", function () {
     it("should set field with all protocols disabled", async () => {
       enr.waku2 = waku2Protocols;
 
-      const txt = await enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(privateKey);
       const decoded = (await ENR.decodeTxt(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -417,7 +417,7 @@ describe("ENR", function () {
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(privateKey);
       const decoded = (await ENR.decodeTxt(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
@@ -430,7 +430,7 @@ describe("ENR", function () {
       waku2Protocols.relay = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(privateKey);
       const decoded = (await ENR.decodeTxt(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
@@ -443,7 +443,7 @@ describe("ENR", function () {
       waku2Protocols.store = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(privateKey);
       const decoded = (await ENR.decodeTxt(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -456,7 +456,7 @@ describe("ENR", function () {
       waku2Protocols.filter = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(privateKey);
       const decoded = (await ENR.decodeTxt(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -469,7 +469,7 @@ describe("ENR", function () {
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(keypair.privateKey);
+      const txt = await enr.encodeTxt(privateKey);
       const decoded = (await ENR.decodeTxt(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
