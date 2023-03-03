@@ -1,12 +1,12 @@
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { multiaddr } from "@multiformats/multiaddr";
+import * as secp from "@noble/secp256k1";
 import type { Waku2 } from "@waku/interfaces";
 import { bytesToHex, hexToBytes, utf8ToBytes } from "@waku/utils";
 import { assert, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
 import { ERR_INVALID_ID } from "./constants.js";
-import { getPublicKey } from "./crypto.js";
 import { ENR } from "./enr.js";
 import { getPrivateKeyFromPeerId } from "./peer_id.js";
 
@@ -194,7 +194,7 @@ describe("ENR", function () {
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
-      record = await ENR.createV4(getPublicKey(privateKey));
+      record = await ENR.createV4(secp.getPublicKey(privateKey));
       record.setLocationMultiaddr(multiaddr("/ip4/127.0.0.1/udp/30303"));
       record.seq = seq;
       await record.encodeTxt(privateKey);
@@ -239,7 +239,7 @@ describe("ENR", function () {
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
-      record = await ENR.createV4(getPublicKey(privateKey));
+      record = await ENR.createV4(secp.getPublicKey(privateKey));
     });
 
     it("should get / set UDP multiaddr", () => {

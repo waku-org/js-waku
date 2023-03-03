@@ -3,7 +3,6 @@ import type { NodeId } from "@waku/interfaces";
 import { bytesToHex } from "@waku/utils";
 
 import { keccak256 } from "./crypto.js";
-
 export async function sign(
   privKey: Uint8Array,
   msg: Uint8Array
