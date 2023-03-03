@@ -7,6 +7,7 @@ import { assert, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
 import { ERR_INVALID_ID } from "./constants.js";
+import { EnrCreator } from "./creator.js";
 import { ENR } from "./enr.js";
 import { getPrivateKeyFromPeerId } from "./peer_id.js";
 
@@ -14,7 +15,7 @@ describe("ENR", function () {
   describe("Txt codec", () => {
     it("should encodeTxt and decodeTxt", async () => {
       const peerId = await createSecp256k1PeerId();
-      const enr = await ENR.createFromPeerId(peerId);
+      const enr = await EnrCreator.fromPeerId(peerId);
       const privateKey = await getPrivateKeyFromPeerId(peerId);
       enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
       enr.multiaddrs = [
@@ -106,7 +107,7 @@ describe("ENR", function () {
     it("should throw error - no id", async () => {
       try {
         const peerId = await createSecp256k1PeerId();
-        const enr = await ENR.createFromPeerId(peerId);
+        const enr = await EnrCreator.fromPeerId(peerId);
         const privateKey = await getPrivateKeyFromPeerId(peerId);
         enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
 
@@ -194,7 +195,7 @@ describe("ENR", function () {
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
-      record = await ENR.createFromPublicKey(secp.getPublicKey(privateKey));
+      record = await EnrCreator.fromPublicKey(secp.getPublicKey(privateKey));
       record.setLocationMultiaddr(multiaddr("/ip4/127.0.0.1/udp/30303"));
       record.seq = seq;
       await record.encodeTxt(privateKey);
@@ -239,7 +240,7 @@ describe("ENR", function () {
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
-      record = await ENR.createFromPublicKey(secp.getPublicKey(privateKey));
+      record = await EnrCreator.fromPublicKey(secp.getPublicKey(privateKey));
     });
 
     it("should get / set UDP multiaddr", () => {
@@ -308,7 +309,7 @@ describe("ENR", function () {
 
     before(async function () {
       peerId = await createSecp256k1PeerId();
-      enr = await ENR.createFromPeerId(peerId);
+      enr = await EnrCreator.fromPeerId(peerId);
       enr.ip = ip4;
       enr.ip6 = ip6;
       enr.tcp = tcp;
@@ -388,7 +389,7 @@ describe("ENR", function () {
 
     beforeEach(async function () {
       peerId = await createSecp256k1PeerId();
-      enr = await ENR.createFromPeerId(peerId);
+      enr = await EnrCreator.fromPeerId(peerId);
       privateKey = await getPrivateKeyFromPeerId(peerId);
       waku2Protocols = {
         relay: false,

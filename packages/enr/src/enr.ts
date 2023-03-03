@@ -23,13 +23,10 @@ import {
   ERR_NO_SIGNATURE,
   MAX_RECORD_SIZE,
 } from "./constants.js";
-import { compressPublicKey, keccak256, verifySignature } from "./crypto.js";
+import { keccak256, verifySignature } from "./crypto.js";
 import { multiaddrFromFields } from "./multiaddr_from_fields.js";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
-import {
-  createPeerIdFromPublicKey,
-  getPublicKeyFromPeerId,
-} from "./peer_id.js";
+import { createPeerIdFromPublicKey } from "./peer_id.js";
 import * as v4 from "./v4.js";
 import { decodeWaku2, encodeWaku2 } from "./waku2_codec.js";
 
@@ -67,33 +64,6 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
     }
 
     return enr;
-  }
-
-  static createFromPublicKey(
-    publicKey: Uint8Array,
-    kvs: Record<ENRKey, ENRValue> = {}
-  ): Promise<ENR> {
-    // EIP-778 specifies that the key must be in compressed format, 33 bytes
-    if (publicKey.length !== 33) {
-      publicKey = compressPublicKey(publicKey);
-    }
-    return ENR.create({
-      ...kvs,
-      id: utf8ToBytes("v4"),
-      secp256k1: publicKey,
-    });
-  }
-
-  static async createFromPeerId(
-    peerId: PeerId,
-    kvs: Record<ENRKey, ENRValue> = {}
-  ): Promise<ENR> {
-    switch (peerId.type) {
-      case "secp256k1":
-        return ENR.createFromPublicKey(getPublicKeyFromPeerId(peerId), kvs);
-      default:
-        throw new Error();
-    }
   }
 
   static async decodeFromValues(decoded: Uint8Array[]): Promise<ENR> {
