@@ -5,7 +5,7 @@ import type {
   Registrar,
 } from "@libp2p/interface-registrar";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
-import { ENR } from "@waku/enr";
+import { EnrDecoder } from "@waku/enr";
 import type {
   IPeerExchange,
   PeerExchangeQueryParams,
@@ -95,7 +95,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
 
         const enrs = await Promise.all(
           decoded.peerInfos.map(
-            (peerInfo) => peerInfo.enr && ENR.decode(peerInfo.enr)
+            (peerInfo) => peerInfo.enr && EnrDecoder.fromRLP(peerInfo.enr)
           )
         );
 

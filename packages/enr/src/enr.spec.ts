@@ -8,6 +8,7 @@ import { equals } from "uint8arrays/equals";
 
 import { ERR_INVALID_ID } from "./constants.js";
 import { EnrCreator } from "./creator.js";
+import { EnrDecoder } from "./decoder.js";
 import { ENR } from "./enr.js";
 import { getPrivateKeyFromPeerId } from "./peer_id.js";
 
@@ -34,7 +35,7 @@ describe("ENR", function () {
       };
 
       const txt = await enr.encodeTxt(privateKey);
-      const enr2 = await ENR.decodeTxt(txt);
+      const enr2 = await EnrDecoder.fromString(txt);
 
       if (!enr.signature) throw "enr.signature is undefined";
       if (!enr2.signature) throw "enr.signature is undefined";
@@ -65,7 +66,7 @@ describe("ENR", function () {
     it("should decode valid enr successfully", async () => {
       const txt =
         "enr:-Ku4QMh15cIjmnq-co5S3tYaNXxDzKTgj0ufusA-QfZ66EWHNsULt2kb0eTHoo1Dkjvvf6CAHDS1Di-htjiPFZzaIPcLh2F0dG5ldHOIAAAAAAAAAACEZXRoMpD2d10HAAABE________x8AgmlkgnY0gmlwhHZFkMSJc2VjcDI1NmsxoQIWSDEWdHwdEA3Lw2B_byeFQOINTZ0GdtF9DBjes6JqtIN1ZHCCIyg";
-      const enr = await ENR.decodeTxt(txt);
+      const enr = await EnrDecoder.fromString(txt);
       const eth2 = enr.get("eth2");
       if (!eth2) throw "eth2 is undefined";
       expect(bytesToHex(eth2)).to.be.equal("f6775d0700000113ffffffffffff1f00");
@@ -74,7 +75,7 @@ describe("ENR", function () {
     it("should decode valid ENR with multiaddrs successfully [shared test vector]", async () => {
       const txt =
         "enr:-QEnuEBEAyErHEfhiQxAVQoWowGTCuEF9fKZtXSd7H_PymHFhGJA3rGAYDVSHKCyJDGRLBGsloNbS8AZF33IVuefjOO6BIJpZIJ2NIJpcIQS39tkim11bHRpYWRkcnO4lgAvNihub2RlLTAxLmRvLWFtczMud2FrdXYyLnRlc3Quc3RhdHVzaW0ubmV0BgG73gMAODcxbm9kZS0wMS5hYy1jbi1ob25na29uZy1jLndha3V2Mi50ZXN0LnN0YXR1c2ltLm5ldAYBu94DACm9A62t7AQL4Ef5ZYZosRpQTzFVAB8jGjf1TER2wH-0zBOe1-MDBNLeA4lzZWNwMjU2azGhAzfsxbxyCkgCqq8WwYsVWH7YkpMLnU2Bw5xJSimxKav-g3VkcIIjKA";
-      const enr = await ENR.decodeTxt(txt);
+      const enr = await EnrDecoder.fromString(txt);
 
       expect(enr.multiaddrs).to.not.be.undefined;
       expect(enr.multiaddrs!.length).to.be.equal(3);
@@ -93,7 +94,7 @@ describe("ENR", function () {
     it("should decode valid enr with tcp successfully", async () => {
       const txt =
         "enr:-IS4QAmC_o1PMi5DbR4Bh4oHVyQunZblg4bTaottPtBodAhJZvxVlWW-4rXITPNg4mwJ8cW__D9FBDc9N4mdhyMqB-EBgmlkgnY0gmlwhIbRi9KJc2VjcDI1NmsxoQOevTdO6jvv3fRruxguKR-3Ge4bcFsLeAIWEDjrfaigNoN0Y3CCdl8";
-      const enr = await ENR.decodeTxt(txt);
+      const enr = await EnrDecoder.fromString(txt);
       expect(enr.tcp).to.not.be.undefined;
       expect(enr.tcp).to.be.equal(30303);
       expect(enr.ip).to.not.be.undefined;
@@ -114,7 +115,7 @@ describe("ENR", function () {
         enr.set("id", new Uint8Array([0]));
         const txt = await enr.encodeTxt(privateKey);
 
-        await ENR.decodeTxt(txt);
+        await EnrDecoder.fromString(txt);
         assert.fail("Expect error here");
       } catch (err: unknown) {
         const e = err as Error;
@@ -126,7 +127,7 @@ describe("ENR", function () {
       try {
         const txt =
           "enr:-IS4QJ2d11eu6dC7E7LoXeLMgMP3kom1u3SE8esFSWvaHoo0dP1jg8O3-nx9ht-EO3CmG7L6OkHcMmoIh00IYWB92QABgmlkgnY0gmlwhH8AAAGJc2d11eu6dCsxoQIB_c-jQMOXsbjWkbN-kj99H57gfId5pfb4wa1qxwV4CIN1ZHCCIyk";
-        ENR.decodeTxt(txt);
+        EnrDecoder.fromString(txt);
         assert.fail("Expect error here");
       } catch (err: unknown) {
         const e = err as Error;
@@ -180,7 +181,7 @@ describe("ENR", function () {
     it("should return false", async () => {
       const txt =
         "enr:-Ku4QMh15cIjmnq-co5S3tYaNXxDzKTgj0ufusA-QfZ66EWHNsULt2kb0eTHoo1Dkjvvf6CAHDS1Di-htjiPFZzaIPcLh2F0dG5ldHOIAAAAAAAAAACEZXRoMpD2d10HAAABE________x8AgmlkgnY0gmlwhHZFkMSJc2VjcDI1NmsxoQIWSDEWdHwdEA3Lw2B_byeFQOINTZ0GdtF9DBjes6JqtIN1ZHCCIyg";
-      const enr = await ENR.decodeTxt(txt);
+      const enr = await EnrDecoder.fromString(txt);
       // should have id and public key inside ENR
       expect(enr.verify(new Uint8Array(32), new Uint8Array(64))).to.be.false;
     });
@@ -209,7 +210,7 @@ describe("ENR", function () {
 
     it("should encode/decode to RLP encoding", async function () {
       const encoded = await record.encode(privateKey);
-      const decoded = await ENR.decode(encoded);
+      const decoded = await EnrDecoder.fromRLP(encoded);
 
       record.forEach((value, key) => {
         expect(equals(decoded.get(key)!, value)).to.be.true;
@@ -220,7 +221,7 @@ describe("ENR", function () {
       // spec enr https://eips.ethereum.org/EIPS/eip-778
       const testTxt =
         "enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjzCBOonrkTfj499SZuOh8R33Ls8RRcy5wBgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQPKY0yuDUmstAHYpMa2_oxVtw0RW_QAdpzBQA8yWM0xOIN1ZHCCdl8";
-      const decoded = await ENR.decodeTxt(testTxt);
+      const decoded = await EnrDecoder.fromString(testTxt);
       // Note: Signatures are different due to the extra entropy added
       // by @noble/secp256k1:
       // https://github.com/paulmillr/noble-secp256k1#signmsghash-privatekey
@@ -403,7 +404,7 @@ describe("ENR", function () {
       enr.waku2 = waku2Protocols;
 
       const txt = await enr.encodeTxt(privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
       expect(decoded.store).to.equal(false);
@@ -419,7 +420,7 @@ describe("ENR", function () {
 
       enr.waku2 = waku2Protocols;
       const txt = await enr.encodeTxt(privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
       expect(decoded.store).to.equal(true);
@@ -432,7 +433,7 @@ describe("ENR", function () {
 
       enr.waku2 = waku2Protocols;
       const txt = await enr.encodeTxt(privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
       expect(decoded.store).to.equal(false);
@@ -445,7 +446,7 @@ describe("ENR", function () {
 
       enr.waku2 = waku2Protocols;
       const txt = await enr.encodeTxt(privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
       expect(decoded.store).to.equal(true);
@@ -458,7 +459,7 @@ describe("ENR", function () {
 
       enr.waku2 = waku2Protocols;
       const txt = await enr.encodeTxt(privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
       expect(decoded.store).to.equal(false);
@@ -471,7 +472,7 @@ describe("ENR", function () {
 
       enr.waku2 = waku2Protocols;
       const txt = await enr.encodeTxt(privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
       expect(decoded.store).to.equal(false);
@@ -485,7 +486,7 @@ describe("ENR", function () {
       const txt =
         "enr:-Iu4QADPfXNCM6iYyte0pIdbMirIw_AsKR7J1DeJBysXDWz4DZvyjgIwpMt-sXTVUzLJdE9FaStVy2ZKtHUVQAH61-KAgmlkgnY0gmlwhMCosvuJc2VjcDI1NmsxoQI0OCNtPJtBayNgvFvKp-0YyCozcvE1rqm_V1W51nHVv4N0Y3CC6mCFd2FrdTIH";
 
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
       expect(decoded.store).to.equal(true);
