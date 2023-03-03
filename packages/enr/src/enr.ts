@@ -17,7 +17,7 @@ import debug from "debug";
 
 import { ERR_INVALID_ID } from "./constants.js";
 import { keccak256, verifySignature } from "./crypto.js";
-import { multiaddrFromFields } from "./multiaddr_from_fields.js";
+import { locationMultiaddrFromEnrFields } from "./get_multiaddr.js";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
 import { createPeerIdFromPublicKey } from "./peer_id.js";
 import * as v4 from "./v4.js";
@@ -231,49 +231,9 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
     }
   }
 
-  getLocationMultiaddr(
+  getLocationMultiaddr: (
     protocol: "udp" | "udp4" | "udp6" | "tcp" | "tcp4" | "tcp6"
-  ): Multiaddr | undefined {
-    if (protocol === "udp") {
-      return (
-        this.getLocationMultiaddr("udp4") || this.getLocationMultiaddr("udp6")
-      );
-    }
-    if (protocol === "tcp") {
-      return (
-        this.getLocationMultiaddr("tcp4") || this.getLocationMultiaddr("tcp6")
-      );
-    }
-    const isIpv6 = protocol.endsWith("6");
-    const ipVal = this.get(isIpv6 ? "ip6" : "ip");
-    if (!ipVal) {
-      return;
-    }
-
-    const isUdp = protocol.startsWith("udp");
-    const isTcp = protocol.startsWith("tcp");
-    let protoName, protoVal;
-    if (isUdp) {
-      protoName = "udp";
-      protoVal = isIpv6 ? this.get("udp6") : this.get("udp");
-    } else if (isTcp) {
-      protoName = "tcp";
-      protoVal = isIpv6 ? this.get("tcp6") : this.get("tcp");
-    } else {
-      return;
-    }
-
-    if (!protoVal) {
-      return;
-    }
-
-    return multiaddrFromFields(
-      isIpv6 ? "ip6" : "ip4",
-      protoName,
-      ipVal,
-      protoVal
-    );
-  }
+  ) => Multiaddr | undefined = locationMultiaddrFromEnrFields.bind({}, this);
 
   setLocationMultiaddr(multiaddr: Multiaddr): void {
     const protoNames = multiaddr.protoNames();
