@@ -155,7 +155,7 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
    * address (e.g. `dns4`, `dnsaddr`, etc)..
    *
    * If the peer information only contains information that can be represented with the ENR pre-defined keys
-   * (ip, tcp, etc) then the usage of { @link getLocationMultiaddr } should be preferred.
+   * (ip, tcp, etc) then the usage of { @link ENR.getLocationMultiaddr } should be preferred.
    *
    * The multiaddresses stored in this field are expected to be location multiaddresses, ie, peer id less.
    */
@@ -175,7 +175,7 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
    * address (e.g. `dns4`, `dnsaddr`, etc)..
    *
    * If the peer information only contains information that can be represented with the ENR pre-defined keys
-   * (ip, tcp, etc) then the usage of { @link setLocationMultiaddr } should be preferred.
+   * (ip, tcp, etc) then the usage of { @link ENR.setLocationMultiaddr } should be preferred.
    * The multiaddresses stored in this field must be location multiaddresses,
    * ie, without a peer id.
    */
