@@ -9,6 +9,7 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
+import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptAsymmetric,
   encryptAsymmetric,
@@ -17,18 +18,18 @@ import {
 } from "./waku_payload.js";
 
 import {
-  DecodedMessage,
   generatePrivateKey,
   getPublicKey,
   OneMillion,
   Version,
 } from "./index.js";
 
-export { DecodedMessage, generatePrivateKey, getPublicKey };
+export { generatePrivateKey, getPublicKey };
+export type { Encoder, Decoder, DecodedMessage };
 
 const log = debug("waku:message-encryption:ecies");
 
-export class Encoder implements IEncoder {
+class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private publicKey: Uint8Array,
@@ -88,7 +89,7 @@ export function createEncoder({
   return new Encoder(contentTopic, publicKey, sigPrivKey, ephemeral);
 }
 
-export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private privateKey: Uint8Array) {
     super(contentTopic);
   }
