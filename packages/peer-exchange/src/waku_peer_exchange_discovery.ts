@@ -170,8 +170,6 @@ export class PeerExchangeDiscovery
 
           if (!peerId || !multiaddrs || multiaddrs.length === 0) continue;
 
-          if (await this.components.peerStore.has(peerId)) continue;
-
           if (
             (await this.components.peerStore.getTags(peerId)).find(
               ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
