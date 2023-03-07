@@ -165,20 +165,25 @@ export class PeerExchangeDiscovery
             continue;
           }
 
-          const { peerId } = ENR;
-          const multiaddrs = ENR.getFullMultiaddrs();
-
-          if (!peerId || !multiaddrs || multiaddrs.length === 0) continue;
+          const peerInfo = ENR.peerInfo;
 
           if (
-            (await this.components.peerStore.getTags(peerId)).find(
+            !peerInfo ||
+            !peerInfo.id ||
+            !peerInfo.multiaddrs ||
+            !peerInfo.multiaddrs.length
+          )
+            continue;
+
+          if (
+            (await this.components.peerStore.getTags(peerInfo.id)).find(
               ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
             )
           )
             continue;
 
           await this.components.peerStore.tagPeer(
-            peerId,
+            peerInfo.id,
             DEFAULT_PEER_EXCHANGE_TAG_NAME,
             {
               value:
@@ -191,11 +196,7 @@ export class PeerExchangeDiscovery
 
           this.dispatchEvent(
             new CustomEvent<PeerInfo>("peer", {
-              detail: {
-                id: peerId,
-                multiaddrs,
-                protocols: [],
-              },
+              detail: peerInfo,
             })
           );
         }

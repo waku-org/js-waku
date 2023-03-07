@@ -1,4 +1,5 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import {
   convertToBytes,
@@ -24,6 +25,17 @@ import * as v4 from "./v4.js";
 import { decodeWaku2, encodeWaku2 } from "./waku2_codec.js";
 
 const log = debug("waku:enr");
+
+export enum TransportProtocol {
+  TCP = "tcp",
+  UDP = "udp",
+}
+export enum TransportProtocolPerIpVersion {
+  TCP4 = "tcp4",
+  UDP4 = "udp4",
+  TCP6 = "tcp6",
+  UDP6 = "udp6",
+}
 
 export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
   public static readonly RECORD_PREFIX = "enr:";
@@ -232,7 +244,7 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
   }
 
   getLocationMultiaddr: (
-    protocol: "udp" | "udp4" | "udp6" | "tcp" | "tcp4" | "tcp6"
+    protocol: TransportProtocol | TransportProtocolPerIpVersion
   ) => Multiaddr | undefined = locationMultiaddrFromEnrFields.bind({}, this);
 
   setLocationMultiaddr(multiaddr: Multiaddr): void {
@@ -259,6 +271,32 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
     }
   }
 
+  getAllLocationMultiaddrs(): Multiaddr[] {
+    const multiaddrs = [];
+
+    for (const protocol of Object.values(TransportProtocolPerIpVersion)) {
+      const ma = this.getLocationMultiaddr(
+        protocol as TransportProtocolPerIpVersion
+      );
+      if (ma) multiaddrs.push(ma);
+    }
+
+    const _multiaddrs = this.multiaddrs ?? [];
+    multiaddrs.concat(_multiaddrs);
+
+    return multiaddrs;
+  }
+
+  get peerInfo(): PeerInfo | undefined {
+    const id = this.peerId;
+    if (!id) return;
+    return {
+      id,
+      multiaddrs: this.getAllLocationMultiaddrs(),
+      protocols: [],
+    };
+  }
+
   /**
    * Returns the full multiaddr from the ENR fields matching the provided
    * `protocol` parameter.
@@ -268,7 +306,7 @@ export class ENR extends Map<ENRKey, ENRValue> implements IEnr {
    * @param protocol
    */
   getFullMultiaddr(
-    protocol: "udp" | "udp4" | "udp6" | "tcp" | "tcp4" | "tcp6"
+    protocol: TransportProtocol | TransportProtocolPerIpVersion
   ): Multiaddr | undefined {
     if (this.peerId) {
       const locationMultiaddr = this.getLocationMultiaddr(protocol);

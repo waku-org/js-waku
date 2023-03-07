@@ -1,4 +1,5 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { Multiaddr } from "@multiformats/multiaddr";
 
 export type ENRKey = string;
@@ -32,6 +33,10 @@ export interface IEnr extends Map<ENRKey, ENRValue> {
   udp6?: number;
   multiaddrs?: Multiaddr[];
   waku2?: Waku2;
+  peerInfo: PeerInfo | undefined;
 
+  /**
+   * @deprecated: use { @link IEnr.peerInfo } instead.
+   */
   getFullMultiaddrs(): Multiaddr[];
 }
