@@ -96,6 +96,13 @@ export class PeerDiscoveryDns
       if (!this._started) return;
       const peerInfos = multiaddrsToPeerInfo(peer.getFullMultiaddrs());
       peerInfos.forEach(async (peerInfo) => {
+        if (
+          (await this._components.peerStore.getTags(peerInfo.id)).find(
+            ({ name }) => name === DEFAULT_BOOTSTRAP_TAG_NAME
+          )
+        )
+          return;
+
         await this._components.peerStore.tagPeer(
           peerInfo.id,
           DEFAULT_BOOTSTRAP_TAG_NAME,
