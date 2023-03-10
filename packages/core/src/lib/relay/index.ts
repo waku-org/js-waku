@@ -23,6 +23,7 @@ import { TopicOnlyDecoder } from "../message/topic_only_message.js";
 import { pushOrInitMapSet } from "../push_or_init_map.js";
 
 import * as constants from "./constants.js";
+import { messageValidator } from "./message_validator.js";
 
 const log = debug("waku:relay");
 
@@ -170,7 +171,13 @@ class Relay extends GossipSub implements IRelay {
       }
     );
 
+    this.topicValidators.set(pubSubTopic, messageValidator);
     super.subscribe(pubSubTopic);
+  }
+
+  unsubscribe(pubSubTopic: TopicStr): void {
+    super.unsubscribe(pubSubTopic);
+    this.topicValidators.delete(pubSubTopic);
   }
 
   getMeshPeers(topic?: TopicStr): PeerIdStr[] {
