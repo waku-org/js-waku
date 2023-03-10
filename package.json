@@ -8,6 +8,7 @@
     "packages/interfaces",
     "packages/enr",
     "packages/core",
+    "packages/message-hash",
     "packages/peer-exchange",
     "packages/dns-discovery",
     "packages/message-encryption",

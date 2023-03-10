@@ -11,6 +11,7 @@
     "packages/interfaces": {},
     "packages/enr": {},
     "packages/peer-exchange": {},
+    "packages/message-hash": {},
     "packages/core": {},
     "packages/dns-discovery": {},
     "packages/message-encryption": {},
