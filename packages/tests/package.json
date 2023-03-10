@@ -82,7 +82,7 @@
     "@waku/message-encryption": "*",
     "@waku/peer-exchange": "*",
     "chai": "^4.3.7",
-    "cspell": "^6.26.3",
+    "cspell": "^6.28.0",
     "debug": "^4.3.4",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.6.0",
