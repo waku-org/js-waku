@@ -122,6 +122,7 @@ class Relay extends GossipSub implements IRelay {
   }
 
   private async processIncomingMessage<T extends IDecodedMessage>(
+    pubSubTopic: string,
     bytes: Uint8Array
   ): Promise<void> {
     const topicOnlyMsg = await this.defaultDecoder.fromWireToProtoObj(bytes);
@@ -143,7 +144,7 @@ class Relay extends GossipSub implements IRelay {
           log("Internal error: message previously decoded failed on 2nd pass.");
           return;
         }
-        const msg = await decoder.fromProtoObj(protoMsg);
+        const msg = await decoder.fromProtoObj(pubSubTopic, protoMsg);
         if (msg) {
           callback(msg);
         } else {
@@ -165,9 +166,10 @@ class Relay extends GossipSub implements IRelay {
         if (event.detail.msg.topic !== pubSubTopic) return;
         log(`Message received on ${pubSubTopic}`);
 
-        this.processIncomingMessage(event.detail.msg.data).catch((e) =>
-          log("Failed to process incoming message", e)
-        );
+        this.processIncomingMessage(
+          event.detail.msg.topic,
+          event.detail.msg.data
+        ).catch((e) => log("Failed to process incoming message", e));
       }
     );
 

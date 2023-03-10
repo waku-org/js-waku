@@ -615,6 +615,7 @@ describe("Waku Store, custom pubsub topic", () => {
         const msg = await promise;
         if (msg) {
           messages.push(msg);
+          expect(msg.pubSubTopic).to.eq(customPubSubTopic);
         }
       });
 

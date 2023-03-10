@@ -50,6 +50,7 @@ export interface IEncoder {
 export interface IDecodedMessage {
   payload: Uint8Array;
   contentTopic: string;
+  pubSubTopic: string;
   timestamp: Date | undefined;
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
@@ -58,5 +59,8 @@ export interface IDecodedMessage {
 export interface IDecoder<T extends IDecodedMessage> {
   contentTopic: string;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
-  fromProtoObj: (proto: IProtoMessage) => Promise<T | undefined>;
+  fromProtoObj: (
+    pubSubTopic: string,
+    proto: IProtoMessage
+  ) => Promise<T | undefined>;
 }

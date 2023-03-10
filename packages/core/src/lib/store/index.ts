@@ -311,7 +311,10 @@ async function* paginate<T extends IDecodedMessage>(
       if (typeof contentTopic !== "undefined") {
         const decoder = decoders.get(contentTopic);
         if (decoder) {
-          return decoder.fromProtoObj(toProtoMessage(protoMsg));
+          return decoder.fromProtoObj(
+            queryOpts.pubSubTopic,
+            toProtoMessage(protoMsg)
+          );
         }
       }
       return Promise.resolve(undefined);
