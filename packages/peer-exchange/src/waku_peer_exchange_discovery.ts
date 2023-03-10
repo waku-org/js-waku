@@ -49,8 +49,8 @@ export interface Options {
 }
 
 export const DEFAULT_PEER_EXCHANGE_TAG_NAME = "peer-exchange";
-const DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_VALUE = 50;
-const DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_TTL = 120000;
+const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
+const DEFAULT_PEER_EXCHANGE_TAG_TTL = 120000;
 
 export class PeerExchangeDiscovery
   extends EventEmitter<PeerDiscoveryEvents>
@@ -165,37 +165,35 @@ export class PeerExchangeDiscovery
             continue;
           }
 
-          const { peerId } = ENR;
-          const multiaddrs = ENR.getFullMultiaddrs();
-
-          if (!peerId || !multiaddrs || multiaddrs.length === 0) continue;
+          const peerInfo = ENR.peerInfo;
 
           if (
-            (await this.components.peerStore.getTags(peerId)).find(
+            !peerInfo ||
+            !peerInfo.id ||
+            !peerInfo.multiaddrs ||
+            !peerInfo.multiaddrs.length
+          )
+            continue;
+
+          if (
+            (await this.components.peerStore.getTags(peerInfo.id)).find(
               ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
             )
           )
             continue;
 
           await this.components.peerStore.tagPeer(
-            peerId,
+            peerInfo.id,
             DEFAULT_PEER_EXCHANGE_TAG_NAME,
             {
-              value:
-                this.options.tagValue ??
-                DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_VALUE,
-              ttl:
-                this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_BOOTSTRAP_TAG_TTL,
+              value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
+              ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
             }
           );
 
           this.dispatchEvent(
             new CustomEvent<PeerInfo>("peer", {
-              detail: {
-                id: peerId,
-                multiaddrs,
-                protocols: [],
-              },
+              detail: peerInfo,
             })
           );
         }
