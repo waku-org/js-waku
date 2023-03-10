@@ -6,6 +6,7 @@ const EmptyMessage: IProtoMessage = {
   contentTopic: "",
   version: undefined,
   timestamp: undefined,
+  meta: undefined,
   rateLimitProof: undefined,
   ephemeral: undefined,
 };
