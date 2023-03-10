@@ -4,6 +4,7 @@ import type {
   IDecoder,
   IEncoder,
   IMessage,
+  IMetaSetter,
   IProtoMessage,
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
@@ -29,7 +30,8 @@ class Encoder implements IEncoder {
     public contentTopic: string,
     private symKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
-    public ephemeral: boolean = false
+    public ephemeral: boolean = false,
+    public metaSetter?: IMetaSetter
   ) {}
 
   async toWire(message: IMessage): Promise<Uint8Array | undefined> {
@@ -44,14 +46,23 @@ class Encoder implements IEncoder {
     const preparedPayload = await preCipher(message.payload, this.sigPrivKey);
 
     const payload = await encryptSymmetric(preparedPayload, this.symKey);
-    return {
+
+    const protoMessage = {
       payload,
       version: Version,
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+      meta: undefined,
       rateLimitProof: message.rateLimitProof,
       ephemeral: this.ephemeral,
     };
+
+    if (this.metaSetter) {
+      const meta = this.metaSetter(protoMessage);
+      return { ...protoMessage, meta };
+    }
+
+    return protoMessage;
   }
 }
 
@@ -80,8 +91,9 @@ export function createEncoder({
   symKey,
   sigPrivKey,
   ephemeral = false,
+  metaSetter,
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, symKey, sigPrivKey, ephemeral);
+  return new Encoder(contentTopic, symKey, sigPrivKey, ephemeral, metaSetter);
 }
 
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {

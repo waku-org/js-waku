@@ -1,3 +1,4 @@
+import { IProtoMessage } from "@waku/interfaces";
 import { expect } from "chai";
 import fc from "fast-check";
 
@@ -77,6 +78,53 @@ describe("Ecies Encryption", function () {
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.not.be.undefined;
           expect(result.signaturePublicKey).to.deep.eq(alicePublicKey);
+        }
+      )
+    );
+  });
+
+  it("Check meta is set [ecies]", async function () {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.string(),
+        fc.string(),
+        fc.uint8Array({ minLength: 1 }),
+        fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
+        async (pubSubTopic, contentTopic, payload, privateKey) => {
+          const publicKey = getPublicKey(privateKey);
+          const metaSetter = (
+            msg: IProtoMessage & { meta: undefined }
+          ): Uint8Array => {
+            const buffer = new ArrayBuffer(4);
+            const view = new DataView(buffer);
+            view.setUint32(0, msg.payload.length, false);
+            return new Uint8Array(buffer);
+          };
+
+          const encoder = createEncoder({
+            contentTopic,
+            publicKey,
+            metaSetter,
+          });
+          const bytes = await encoder.toWire({ payload });
+
+          const decoder = createDecoder(contentTopic, privateKey);
+          const protoResult = await decoder.fromWireToProtoObj(bytes!);
+          if (!protoResult) throw "Failed to proto decode";
+          const result = await decoder.fromProtoObj(pubSubTopic, protoResult);
+          if (!result) throw "Failed to decode";
+
+          const expectedMeta = metaSetter({
+            payload: protoResult.payload,
+            timestamp: undefined,
+            contentTopic: "",
+            ephemeral: undefined,
+            meta: undefined,
+            rateLimitProof: undefined,
+            version: undefined,
+          });
+
+          expect(result.meta).to.deep.equal(expectedMeta);
         }
       )
     );
