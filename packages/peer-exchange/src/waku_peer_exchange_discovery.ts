@@ -149,56 +149,51 @@ export class PeerExchangeDiscovery
     }, queryInterval * currentAttempt);
   };
 
-  private query(peerId: PeerId): Promise<void> {
-    return this.peerExchange.query(
-      {
-        numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
-        peerId,
-      },
-      async (response) => {
-        const { peerInfos } = response;
+  private async query(peerId: PeerId): Promise<void> {
+    const peerInfos = await this.peerExchange.query({
+      numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
+      peerId,
+    });
 
-        for (const _peerInfo of peerInfos) {
-          const { ENR } = _peerInfo;
-          if (!ENR) {
-            log("no ENR");
-            continue;
-          }
-
-          const peerInfo = ENR.peerInfo;
-
-          if (
-            !peerInfo ||
-            !peerInfo.id ||
-            !peerInfo.multiaddrs ||
-            !peerInfo.multiaddrs.length
-          )
-            continue;
-
-          if (
-            (await this.components.peerStore.getTags(peerInfo.id)).find(
-              ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
-            )
-          )
-            continue;
-
-          await this.components.peerStore.tagPeer(
-            peerInfo.id,
-            DEFAULT_PEER_EXCHANGE_TAG_NAME,
-            {
-              value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
-              ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
-            }
-          );
-
-          this.dispatchEvent(
-            new CustomEvent<PeerInfo>("peer", {
-              detail: peerInfo,
-            })
-          );
-        }
+    for (const _peerInfo of peerInfos) {
+      const { ENR } = _peerInfo;
+      if (!ENR) {
+        log("no ENR");
+        continue;
       }
-    );
+
+      const { peerId, peerInfo } = ENR;
+
+      if (!peerId || !peerInfo) continue;
+
+      const { multiaddrs } = peerInfo;
+
+      if (
+        (await this.components.peerStore.getTags(peerId)).find(
+          ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
+        )
+      )
+        continue;
+
+      await this.components.peerStore.tagPeer(
+        peerId,
+        DEFAULT_PEER_EXCHANGE_TAG_NAME,
+        {
+          value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
+          ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
+        }
+      );
+
+      this.dispatchEvent(
+        new CustomEvent<PeerInfo>("peer", {
+          detail: {
+            id: peerId,
+            multiaddrs,
+            protocols: [],
+          },
+        })
+      );
+    }
   }
 
   private abortQueriesForPeer(peerIdStr: string): void {
