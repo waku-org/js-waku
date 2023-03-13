@@ -9,12 +9,12 @@ import type {
 } from "./message.js";
 import type { Callback, SendResult } from "./protocols.js";
 
-export interface WakuEvents {
+export interface RelayEvents {
   "observer:added": CustomEvent;
   "observer:removed": CustomEvent;
 }
 
-type IRelayEmitter = EventEmitter<WakuEvents>;
+type IRelayEmitter = EventEmitter<RelayEvents>;
 
 interface IRelayAPI extends GossipSub {
   send: (encoder: IEncoder, message: IMessage) => Promise<SendResult>;
