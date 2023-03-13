@@ -126,7 +126,8 @@
     "build",
     "gen",
     "proto",
-    "*.spec.ts"
+    "*.spec.ts",
+    "CHANGELOG.md"
   ],
   "patterns": [
     {

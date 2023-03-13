@@ -17,7 +17,7 @@ export const Version = 0;
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
-  constructor(protected proto: proto.WakuMessage) {}
+  constructor(public pubSubTopic: string, protected proto: proto.WakuMessage) {}
 
   get ephemeral(): boolean {
     return Boolean(this.proto.ephemeral);
@@ -115,6 +115,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
   }
 
   async fromProtoObj(
+    pubSubTopic: string,
     proto: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
     // https://rfc.vac.dev/spec/14/
@@ -129,7 +130,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
       return Promise.resolve(undefined);
     }
 
-    return new DecodedMessage(proto);
+    return new DecodedMessage(pubSubTopic, proto);
   }
 }
 

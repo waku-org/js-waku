@@ -334,6 +334,7 @@ describe("Waku Relay [node only]", () => {
       await waku3NoMsgPromise;
 
       expect(bytesToUtf8(waku2ReceivedMsg.payload!)).to.eq(messageText);
+      expect(waku2ReceivedMsg.pubSubTopic).to.eq(pubSubTopic);
     });
   });
 

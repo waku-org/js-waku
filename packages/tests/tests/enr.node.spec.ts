@@ -1,6 +1,6 @@
 import { waitForRemotePeer } from "@waku/core";
 import { createRelayNode } from "@waku/create";
-import { ENR } from "@waku/enr";
+import { EnrDecoder } from "@waku/enr";
 import type { RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
@@ -38,7 +38,7 @@ describe("ENR Interop: nwaku", function () {
     const nimPeerId = await nwaku.getPeerId();
 
     expect(nwakuInfo.enrUri).to.not.be.undefined;
-    const dec = await ENR.decodeTxt(nwakuInfo.enrUri ?? "");
+    const dec = await EnrDecoder.fromString(nwakuInfo.enrUri ?? "");
     expect(dec.peerId?.toString()).to.eq(nimPeerId.toString());
     expect(dec.waku2).to.deep.eq({
       relay: true,
@@ -70,7 +70,7 @@ describe("ENR Interop: nwaku", function () {
     const nimPeerId = await nwaku.getPeerId();
 
     expect(nwakuInfo.enrUri).to.not.be.undefined;
-    const dec = await ENR.decodeTxt(nwakuInfo.enrUri ?? "");
+    const dec = await EnrDecoder.fromString(nwakuInfo.enrUri ?? "");
     expect(dec.peerId?.toString()).to.eq(nimPeerId.toString());
     expect(dec.waku2).to.deep.eq({
       relay: true,
@@ -102,7 +102,7 @@ describe("ENR Interop: nwaku", function () {
     const nimPeerId = await nwaku.getPeerId();
 
     expect(nwakuInfo.enrUri).to.not.be.undefined;
-    const dec = await ENR.decodeTxt(nwakuInfo.enrUri ?? "");
+    const dec = await EnrDecoder.fromString(nwakuInfo.enrUri ?? "");
     expect(dec.peerId?.toString()).to.eq(nimPeerId.toString());
     expect(dec.waku2).to.deep.eq({
       relay: true,

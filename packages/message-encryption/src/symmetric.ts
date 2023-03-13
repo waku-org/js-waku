@@ -9,6 +9,7 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
+import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptSymmetric,
   encryptSymmetric,
@@ -16,18 +17,14 @@ import {
   preCipher,
 } from "./waku_payload.js";
 
-import {
-  DecodedMessage,
-  generateSymmetricKey,
-  OneMillion,
-  Version,
-} from "./index.js";
+import { generateSymmetricKey, OneMillion, Version } from "./index.js";
 
-export { DecodedMessage, generateSymmetricKey };
+export { generateSymmetricKey };
+export type { DecodedMessage, Encoder, Decoder };
 
 const log = debug("waku:message-encryption:symmetric");
 
-export class Encoder implements IEncoder {
+class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private symKey: Uint8Array,
@@ -87,12 +84,13 @@ export function createEncoder({
   return new Encoder(contentTopic, symKey, sigPrivKey, ephemeral);
 }
 
-export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private symKey: Uint8Array) {
     super(contentTopic);
   }
 
   async fromProtoObj(
+    pubSubTopic: string,
     protoMessage: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
@@ -133,6 +131,7 @@ export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 
     log("Message decrypted", protoMessage);
     return new DecodedMessage(
+      pubSubTopic,
       protoMessage,
       res.payload,
       res.sig?.signature,

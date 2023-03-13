@@ -1,4 +1,4 @@
-import { ENR } from "@waku/enr";
+import { ENR, EnrDecoder } from "@waku/enr";
 import type { IEnr } from "@waku/interfaces";
 import debug from "debug";
 
@@ -131,7 +131,7 @@ export class DnsNodeDiscovery {
             next = selectRandomPath(branches, context);
             return await this._search(next, context);
           case ENRTree.RECORD_PREFIX:
-            return ENR.decodeTxt(entry);
+            return EnrDecoder.fromString(entry);
           default:
             return null;
         }
