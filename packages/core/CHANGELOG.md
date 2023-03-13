@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.11](https://github.com/waku-org/js-waku/compare/core-v0.0.10...core-v0.0.11) (2023-03-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* expose pubsub topic in `IDecodedMessage`
+* update store.proto
+* update message.proto: payload and content topic are always defined
+* ConnectionManager and KeepAliveManager ([#1135](https://github.com/waku-org/js-waku/issues/1135))
+* bump typescript
+* bump all prod dependencies
+* bump libp2p dependencies
+
+### Features
+
+* Codec as a property of the protocol implementations ([a5ff788](https://github.com/waku-org/js-waku/commit/a5ff788eed419556e11319f22ca9e3109c81df92))
+* ConnectionManager and KeepAliveManager ([#1135](https://github.com/waku-org/js-waku/issues/1135)) ([24c24cc](https://github.com/waku-org/js-waku/commit/24c24cc27d83ec12de45ef3cf3d00f6eb817e4ca))
+* Export `Decoder`, `Encoder` and `DecodedMessage` types from root ([da1b18d](https://github.com/waku-org/js-waku/commit/da1b18d9956259af4cb2e6f7c1f06de52b6ec3ac)), closes [#1010](https://github.com/waku-org/js-waku/issues/1010)
+* Expose pubsub topic in `IDecodedMessage` ([628ac50](https://github.com/waku-org/js-waku/commit/628ac50d7104ec3c1dff44db58077a85db6b6aa1)), closes [#1208](https://github.com/waku-org/js-waku/issues/1208)
+* **relay:** Validate waku message at gossip layer ([9684737](https://github.com/waku-org/js-waku/commit/96847374d6c61f3372a16185d9fff93e582505bb))
+
+
+### Bug Fixes
+
+* Prettier and cspell ignore CHANGELOG ([#1235](https://github.com/waku-org/js-waku/issues/1235)) ([4d7b3e3](https://github.com/waku-org/js-waku/commit/4d7b3e39e6761afaf5d05a13cc4b3c23e15f9bd5))
+* Remove initialising peer-exchange while creating a node ([#1158](https://github.com/waku-org/js-waku/issues/1158)) ([1b41569](https://github.com/waku-org/js-waku/commit/1b4156902387ea35b24b3d6f5d22e4635ea8cf18))
+
+
+### Miscellaneous Chores
+
+* Bump all prod dependencies ([88cc76d](https://github.com/waku-org/js-waku/commit/88cc76d2b811e1fa4460207f38704ecfe18fb260))
+* Bump libp2p dependencies ([803ae7b](https://github.com/waku-org/js-waku/commit/803ae7bd8ed3de665026446c23cde90e7eba9d36))
+* Bump typescript ([12d86e6](https://github.com/waku-org/js-waku/commit/12d86e6abcc68e27c39ca86b4f0dc2b68cdd6000))
+* Update message.proto: payload and content topic are always defined ([5cf8ed2](https://github.com/waku-org/js-waku/commit/5cf8ed2030c9efbc4c4b66aa801827482c1e4249))
+* Update store.proto ([967e6ff](https://github.com/waku-org/js-waku/commit/967e6ffc7ec6f780094e29599c47b723fa222dcc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from * to 0.0.8
+    * @waku/proto bumped from * to 0.0.3
+    * @waku/utils bumped from * to 0.0.2
+
 ## [Unreleased]
 
 ### Added
