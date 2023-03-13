@@ -58,6 +58,13 @@ export interface IEncoder {
   toProtoObj: (message: IMessage) => Promise<IProtoMessage | undefined>;
 }
 
+export interface IMetaValidator {
+  /**
+   * Used to validate the `meta` field of a message.
+   */
+  (pubSubTopic: string, message: IProtoMessage): boolean;
+}
+
 export interface IDecodedMessage {
   payload: Uint8Array;
   contentTopic: string;
@@ -65,6 +72,11 @@ export interface IDecodedMessage {
   timestamp: Date | undefined;
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
+  /**
+   * Calls the { @link @waku/interface.message.IMetaValidator } passed on the
+   * decoder. Returns true if no meta validator is passed.
+   */
+  isMetaValid: () => boolean;
 }
 
 export interface IDecoder<T extends IDecodedMessage> {

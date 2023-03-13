@@ -1,4 +1,5 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
+import { IMetaValidator } from "@waku/interfaces";
 import type {
   EncoderOptions as BaseEncoderOptions,
   IDecoder,
@@ -97,8 +98,12 @@ export function createEncoder({
 }
 
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
-  constructor(contentTopic: string, private symKey: Uint8Array) {
-    super(contentTopic);
+  constructor(
+    contentTopic: string,
+    private symKey: Uint8Array,
+    metaValidator?: IMetaValidator
+  ) {
+    super(contentTopic, metaValidator);
   }
 
   async fromProtoObj(
@@ -142,10 +147,14 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
     }
 
     log("Message decrypted", protoMessage);
+
+    const metaValidator = this.metaValidator ?? (() => true);
+
     return new DecodedMessage(
       pubSubTopic,
       protoMessage,
       res.payload,
+      metaValidator,
       res.sig?.signature,
       res.sig?.publicKey
     );
@@ -164,10 +173,13 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
  *
  * @param contentTopic The resulting decoder will only decode messages with this content topic.
  * @param symKey The symmetric key used to decrypt the message.
+ * @param metaValidator function to validate the meta field. Available via
+ * { @link DecodedMessage.isMetaValid }.
  */
 export function createDecoder(
   contentTopic: string,
-  symKey: Uint8Array
+  symKey: Uint8Array,
+  metaValidator?: IMetaValidator
 ): Decoder {
-  return new Decoder(contentTopic, symKey);
+  return new Decoder(contentTopic, symKey, metaValidator);
 }

@@ -2,7 +2,7 @@ import {
   DecodedMessage as DecodedMessageV0,
   proto,
 } from "@waku/core/lib/message/version_0";
-import type { IDecodedMessage } from "@waku/interfaces";
+import type { IDecodedMessage, IMetaValidator } from "@waku/interfaces";
 
 export class DecodedMessage
   extends DecodedMessageV0
@@ -14,10 +14,11 @@ export class DecodedMessage
     pubSubTopic: string,
     proto: proto.WakuMessage,
     decodedPayload: Uint8Array,
+    metaValidator: IMetaValidator,
     public signature?: Uint8Array,
     public signaturePublicKey?: Uint8Array
   ) {
-    super(pubSubTopic, proto);
+    super(pubSubTopic, proto, metaValidator);
     this._decodedPayload = decodedPayload;
   }
 

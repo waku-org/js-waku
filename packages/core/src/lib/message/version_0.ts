@@ -1,4 +1,4 @@
-import { IMetaSetter } from "@waku/interfaces";
+import { IMetaSetter, IMetaValidator } from "@waku/interfaces";
 import type {
   EncoderOptions,
   IDecodedMessage,
@@ -11,6 +11,8 @@ import type {
 import { proto_message as proto } from "@waku/proto";
 import debug from "debug";
 
+import { toProtoMessage } from "../to_proto_message.js";
+
 const log = debug("waku:message:version-0");
 const OneMillion = BigInt(1_000_000);
 
@@ -18,7 +20,11 @@ export const Version = 0;
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
-  constructor(public pubSubTopic: string, protected proto: proto.WakuMessage) {}
+  constructor(
+    public pubSubTopic: string,
+    protected proto: proto.WakuMessage,
+    private metaValidator: IMetaValidator
+  ) {}
 
   get ephemeral(): boolean {
     return Boolean(this.proto.ephemeral);
@@ -63,6 +69,10 @@ export class DecodedMessage implements IDecodedMessage {
 
   get rateLimitProof(): IRateLimitProof | undefined {
     return this.proto.rateLimitProof;
+  }
+
+  isMetaValid(): boolean {
+    return this.metaValidator(this.pubSubTopic, toProtoMessage(this.proto));
   }
 }
 
@@ -117,7 +127,10 @@ export function createEncoder({
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
-  constructor(public contentTopic: string) {}
+  constructor(
+    public contentTopic: string,
+    protected metaValidator?: IMetaValidator
+  ) {}
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);
@@ -149,7 +162,8 @@ export class Decoder implements IDecoder<DecodedMessage> {
       return Promise.resolve(undefined);
     }
 
-    return new DecodedMessage(pubSubTopic, proto);
+    const metaValidator = this.metaValidator ?? (() => true);
+    return new DecodedMessage(pubSubTopic, proto, metaValidator);
   }
 }
 
@@ -163,7 +177,11 @@ export class Decoder implements IDecoder<DecodedMessage> {
  * messages.
  *
  * @param contentTopic The resulting decoder will only decode messages with this content topic.
+ * @param metaValidator Validator to use to verify meta field.
  */
-export function createDecoder(contentTopic: string): Decoder {
-  return new Decoder(contentTopic);
+export function createDecoder(
+  contentTopic: string,
+  metaValidator?: IMetaValidator
+): Decoder {
+  return new Decoder(contentTopic, metaValidator);
 }

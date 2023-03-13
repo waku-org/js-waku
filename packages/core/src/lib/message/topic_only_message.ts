@@ -23,6 +23,10 @@ export class TopicOnlyMessage implements IDecodedMessage {
   get contentTopic(): string {
     return this.proto.contentTopic;
   }
+
+  isMetaValid(): boolean {
+    return true;
+  }
 }
 
 export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
