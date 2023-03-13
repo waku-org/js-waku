@@ -1,6 +1,6 @@
 import * as RLP from "@ethersproject/rlp";
 import type { ENRKey, ENRValue } from "@waku/interfaces";
-import { hexToBytes, utf8ToBytes } from "@waku/utils";
+import { hexToBytes, utf8ToBytes } from "@waku/utils/bytes";
 import { toString } from "uint8arrays/to-string";
 
 import { ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants.js";

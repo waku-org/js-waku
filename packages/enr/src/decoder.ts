@@ -1,6 +1,6 @@
 import * as RLP from "@ethersproject/rlp";
 import type { ENRKey, ENRValue } from "@waku/interfaces";
-import { bytesToHex, bytesToUtf8, hexToBytes } from "@waku/utils";
+import { bytesToHex, bytesToUtf8, hexToBytes } from "@waku/utils/bytes";
 import { log } from "debug";
 import { fromString } from "uint8arrays/from-string";
 
