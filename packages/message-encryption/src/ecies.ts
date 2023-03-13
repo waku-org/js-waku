@@ -95,6 +95,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   }
 
   async fromProtoObj(
+    pubSubTopic: string,
     protoMessage: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
@@ -135,6 +136,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 
     log("Message decrypted", protoMessage);
     return new DecodedMessage(
+      pubSubTopic,
       protoMessage,
       res.payload,
       res.sig?.signature,

@@ -34,6 +34,7 @@ export type RequestID = string;
 type Subscription<T extends IDecodedMessage> = {
   decoders: IDecoder<T>[];
   callback: Callback<T>;
+  pubSubTopic: string;
 };
 
 /**
@@ -108,7 +109,8 @@ class Filter extends BaseProtocol implements IFilter {
       throw e;
     }
 
-    this.subscriptions.set(requestId, { callback, decoders });
+    const subscription: Subscription<T> = { callback, decoders, pubSubTopic };
+    this.subscriptions.set(requestId, subscription);
 
     return async () => {
       await this.unsubscribe(pubSubTopic, contentFilters, requestId, peer);
@@ -150,7 +152,7 @@ class Filter extends BaseProtocol implements IFilter {
       log(`No subscription locally registered for request ID ${requestId}`);
       return;
     }
-    const { decoders, callback } = subscription;
+    const { decoders, callback, pubSubTopic } = subscription;
 
     if (!decoders || !decoders.length) {
       log(`No decoder registered for request ID ${requestId}`);
@@ -170,7 +172,10 @@ class Filter extends BaseProtocol implements IFilter {
       // noinspection ES6MissingAwait
       decoders.forEach(async (dec: IDecoder<T>) => {
         if (didDecodeMsg) return;
-        const decoded = await dec.fromProtoObj(toProtoMessage(protoMessage));
+        const decoded = await dec.fromProtoObj(
+          pubSubTopic,
+          toProtoMessage(protoMessage)
+        );
         if (!decoded) {
           log("Not able to decode message");
           return;
