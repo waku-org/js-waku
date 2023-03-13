@@ -6,6 +6,7 @@ import { toProtoMessage } from "./to_proto_message.js";
 describe("to proto message", () => {
   it("Fields are not dropped", () => {
     const wire: WakuMessageProto = {
+      payload: new Uint8Array(),
       contentTopic: "foo",
     };
 

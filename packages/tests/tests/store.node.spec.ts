@@ -2,11 +2,12 @@ import {
   createCursor,
   createDecoder,
   createEncoder,
+  DecodedMessage,
   PageDirection,
   waitForRemotePeer,
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
-import type { IDecodedMessage, IMessage, LightNode } from "@waku/interfaces";
+import type { IMessage, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   createDecoder as createEciesDecoder,
@@ -90,7 +91,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return msg.payload![0]! === 0;
+      return msg.payload[0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
@@ -147,10 +148,10 @@ describe("Waku Store", () => {
     const query = waku.store.queryGenerator([TestDecoder]);
 
     // messages in reversed order (first message at last index)
-    const messages: IDecodedMessage[] = [];
+    const messages: DecodedMessage[] = [];
     for await (const page of query) {
       for await (const msg of page.reverse()) {
-        messages.push(msg as IDecodedMessage);
+        messages.push(msg as DecodedMessage);
       }
     }
 
@@ -160,12 +161,12 @@ describe("Waku Store", () => {
     // create cursor to extract messages after the 3rd index
     const cursor = await createCursor(messages[cursorIndex]);
 
-    const messagesAfterCursor: IDecodedMessage[] = [];
+    const messagesAfterCursor: DecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder], {
       cursor,
     })) {
       for await (const msg of page.reverse()) {
-        messagesAfterCursor.push(msg as IDecodedMessage);
+        messagesAfterCursor.push(msg as DecodedMessage);
       }
     }
 
@@ -173,8 +174,8 @@ describe("Waku Store", () => {
 
     expect(messages.length).be.eq(totalMsgs);
 
-    expect(bytesToUtf8(testMessage.payload!)).to.be.eq(
-      bytesToUtf8(messages[cursorIndex + 1].payload!)
+    expect(bytesToUtf8(testMessage.payload)).to.be.eq(
+      bytesToUtf8(messages[cursorIndex + 1].payload)
     );
   });
 
@@ -214,7 +215,7 @@ describe("Waku Store", () => {
 
     expect(messages?.length).eq(totalMsgs);
     const result = messages?.findIndex((msg) => {
-      return msg.payload![0]! === 0;
+      return msg.payload[0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
@@ -294,7 +295,7 @@ describe("Waku Store", () => {
     );
 
     expect(messages?.length).eq(totalMsgs);
-    const payloads = messages.map((msg) => msg.payload![0]!);
+    const payloads = messages.map((msg) => msg.payload[0]!);
     expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
   });
 
@@ -419,7 +420,7 @@ describe("Waku Store", () => {
 
     await waitForRemotePeer(waku2, [Protocols.Store]);
 
-    const messages: IDecodedMessage[] = [];
+    const messages: DecodedMessage[] = [];
     log("Retrieve messages from store");
 
     for await (const msgPromises of waku2.store.queryGenerator([
@@ -614,6 +615,7 @@ describe("Waku Store, custom pubsub topic", () => {
         const msg = await promise;
         if (msg) {
           messages.push(msg);
+          expect(msg.pubSubTopic).to.eq(customPubSubTopic);
         }
       });
 

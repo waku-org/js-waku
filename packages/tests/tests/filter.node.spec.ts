@@ -2,6 +2,7 @@ import {
   createDecoder,
   createEncoder,
   DecodedMessage,
+  DefaultPubSubTopic,
   waitForRemotePeer,
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
@@ -52,7 +53,8 @@ describe("Waku Filter", () => {
       log("Got a message");
       messageCount++;
       expect(msg.contentTopic).to.eq(TestContentTopic);
-      expect(bytesToUtf8(msg.payload!)).to.eq(messageText);
+      expect(msg.pubSubTopic).to.eq(DefaultPubSubTopic);
+      expect(bytesToUtf8(msg.payload)).to.eq(messageText);
     };
 
     await waku.filter.subscribe([TestDecoder], callback);

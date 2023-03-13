@@ -5,6 +5,7 @@ import { getPublicKey } from "./crypto/index.js";
 import { createDecoder, createEncoder } from "./ecies.js";
 
 const TestContentTopic = "/test/1/waku-message/utf8";
+const TestPubSubTopic = "/test/pubsub/topic";
 
 describe("Ecies Encryption", function () {
   it("Round trip binary encryption [ecies, no signature]", async function () {
@@ -24,10 +25,14 @@ describe("Ecies Encryption", function () {
           const decoder = createDecoder(TestContentTopic, privateKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(protoResult);
+          const result = await decoder.fromProtoObj(
+            TestPubSubTopic,
+            protoResult
+          );
           if (!result) throw "Failed to decode";
 
           expect(result.contentTopic).to.equal(TestContentTopic);
+          expect(result.pubSubTopic).to.equal(TestPubSubTopic);
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.be.undefined;
@@ -59,10 +64,14 @@ describe("Ecies Encryption", function () {
           const decoder = createDecoder(TestContentTopic, bobPrivateKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(protoResult);
+          const result = await decoder.fromProtoObj(
+            TestPubSubTopic,
+            protoResult
+          );
           if (!result) throw "Failed to decode";
 
           expect(result.contentTopic).to.equal(TestContentTopic);
+          expect(result.pubSubTopic).to.equal(TestPubSubTopic);
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.not.be.undefined;

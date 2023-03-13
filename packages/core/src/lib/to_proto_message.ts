@@ -2,8 +2,8 @@ import { IProtoMessage } from "@waku/interfaces";
 import { WakuMessage as WakuMessageProto } from "@waku/proto";
 
 const EmptyMessage: IProtoMessage = {
-  payload: undefined,
-  contentTopic: undefined,
+  payload: new Uint8Array(),
+  contentTopic: "",
   version: undefined,
   timestamp: undefined,
   rateLimitProof: undefined,

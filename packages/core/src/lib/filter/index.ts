@@ -1,7 +1,4 @@
-import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { PeerStore } from "@libp2p/interface-peer-store";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
@@ -9,27 +6,21 @@ import type {
   IDecodedMessage,
   IDecoder,
   IFilter,
-  IMessage,
   ProtocolCreateOptions,
   ProtocolOptions,
 } from "@waku/interfaces";
 import { WakuMessage as WakuMessageProto } from "@waku/proto";
-import {
-  getPeersForProtocol,
-  selectConnection,
-  selectPeerForProtocol,
-  selectRandomPeer,
-} from "@waku/utils/libp2p";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
+import { BaseProtocol } from "../base_protocol.js";
 import { DefaultPubSubTopic } from "../constants.js";
 import { groupByContentTopic } from "../group_by.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
-import { ContentFilter, FilterRPC } from "./filter_rpc.js";
+import { ContentFilter, FilterRpc } from "./filter_rpc.js";
 
 export { ContentFilter };
 
@@ -38,6 +29,13 @@ export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 const log = debug("waku:filter");
 
 export type UnsubscribeFunction = () => Promise<void>;
+export type RequestID = string;
+
+type Subscription<T extends IDecodedMessage> = {
+  decoders: IDecoder<T>[];
+  callback: Callback<T>;
+  pubSubTopic: string;
+};
 
 /**
  * Implements client side of the [Waku v2 Filter protocol](https://rfc.vac.dev/spec/12/).
@@ -46,22 +44,16 @@ export type UnsubscribeFunction = () => Promise<void>;
  * - https://github.com/status-im/go-waku/issues/245
  * - https://github.com/status-im/nwaku/issues/948
  */
-class Filter implements IFilter {
-  multicodec: string;
+class Filter extends BaseProtocol implements IFilter {
   options: ProtocolCreateOptions;
-  private subscriptions: Map<string, Callback<any>>;
-  private decoders: Map<
-    string, // content topic
-    Set<IDecoder<any>>
-  >;
+  private subscriptions: Map<RequestID, unknown>;
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
+    super(FilterCodec, libp2p.peerStore, libp2p.getConnections.bind(libp2p));
     this.options = options ?? {};
-    this.multicodec = FilterCodec;
     this.subscriptions = new Map();
-    this.decoders = new Map();
     this.libp2p
-      .handle(FilterCodec, this.onRequest.bind(this))
+      .handle(this.multicodec, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
   }
 
@@ -78,13 +70,12 @@ class Filter implements IFilter {
   ): Promise<UnsubscribeFunction> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
-    const groupedDecoders = groupByContentTopic(decoders);
-    const contentTopics = Array.from(groupedDecoders.keys());
+    const contentTopics = Array.from(groupByContentTopic(decoders).keys());
 
     const contentFilters = contentTopics.map((contentTopic) => ({
       contentTopic,
     }));
-    const request = FilterRPC.createRequest(
+    const request = FilterRpc.createRequest(
       pubSubTopic,
       contentFilters,
       undefined,
@@ -92,10 +83,6 @@ class Filter implements IFilter {
     );
 
     const requestId = request.requestId;
-    if (!requestId)
-      throw new Error(
-        "Internal error: createRequest expected to set `requestId`"
-      );
 
     const peer = await this.getPeer(opts?.peerId);
     const stream = await this.newStream(peer);
@@ -122,18 +109,13 @@ class Filter implements IFilter {
       throw e;
     }
 
-    this.addDecoders(groupedDecoders);
-    this.addCallback(requestId, callback);
+    const subscription: Subscription<T> = { callback, decoders, pubSubTopic };
+    this.subscriptions.set(requestId, subscription);
 
     return async () => {
       await this.unsubscribe(pubSubTopic, contentFilters, requestId, peer);
-      this.deleteDecoders(groupedDecoders);
-      this.deleteCallback(requestId);
+      this.subscriptions.delete(requestId);
     };
-  }
-
-  get peerStore(): PeerStore {
-    return this.libp2p.peerStore;
   }
 
   private onRequest(streamData: IncomingStreamData): void {
@@ -141,7 +123,7 @@ class Filter implements IFilter {
     try {
       pipe(streamData.stream, lp.decode(), async (source) => {
         for await (const bytes of source) {
-          const res = FilterRPC.decode(bytes.slice());
+          const res = FilterRpc.decode(bytes.slice());
           if (res.requestId && res.push?.messages?.length) {
             await this.pushMessages(res.requestId, res.push.messages);
           }
@@ -159,13 +141,21 @@ class Filter implements IFilter {
     }
   }
 
-  private async pushMessages(
+  private async pushMessages<T extends IDecodedMessage>(
     requestId: string,
     messages: WakuMessageProto[]
   ): Promise<void> {
-    const callback = this.subscriptions.get(requestId);
-    if (!callback) {
-      log(`No callback registered for request ID ${requestId}`);
+    const subscription = this.subscriptions.get(requestId) as
+      | Subscription<T>
+      | undefined;
+    if (!subscription) {
+      log(`No subscription locally registered for request ID ${requestId}`);
+      return;
+    }
+    const { decoders, callback, pubSubTopic } = subscription;
+
+    if (!decoders || !decoders.length) {
+      log(`No decoder registered for request ID ${requestId}`);
       return;
     }
 
@@ -176,63 +166,26 @@ class Filter implements IFilter {
         return;
       }
 
-      const decoders = this.decoders.get(contentTopic);
-      if (!decoders) {
-        log("No decoder for", contentTopic);
-        return;
-      }
-
-      let msg: IMessage | undefined;
+      let didDecodeMsg = false;
       // We don't want to wait for decoding failure, just attempt to decode
       // all messages and do the call back on the one that works
       // noinspection ES6MissingAwait
-      decoders.forEach(async (dec) => {
-        if (msg) return;
-        const decoded = await dec.fromProtoObj(toProtoMessage(protoMessage));
+      decoders.forEach(async (dec: IDecoder<T>) => {
+        if (didDecodeMsg) return;
+        const decoded = await dec.fromProtoObj(
+          pubSubTopic,
+          toProtoMessage(protoMessage)
+        );
         if (!decoded) {
           log("Not able to decode message");
           return;
         }
         // This is just to prevent more decoding attempt
         // TODO: Could be better if we were to abort promises
-        msg = decoded;
+        didDecodeMsg = Boolean(decoded);
         await callback(decoded);
       });
     }
-  }
-
-  private addCallback(requestId: string, callback: Callback<any>): void {
-    this.subscriptions.set(requestId, callback);
-  }
-
-  private deleteCallback(requestId: string): void {
-    this.subscriptions.delete(requestId);
-  }
-
-  private addDecoders<T extends IDecodedMessage>(
-    decoders: Map<string, Array<IDecoder<T>>>
-  ): void {
-    decoders.forEach((decoders, contentTopic) => {
-      const currDecs = this.decoders.get(contentTopic);
-      if (!currDecs) {
-        this.decoders.set(contentTopic, new Set(decoders));
-      } else {
-        this.decoders.set(contentTopic, new Set([...currDecs, ...decoders]));
-      }
-    });
-  }
-
-  private deleteDecoders<T extends IDecodedMessage>(
-    decoders: Map<string, Array<IDecoder<T>>>
-  ): void {
-    decoders.forEach((decoders, contentTopic) => {
-      const currDecs = this.decoders.get(contentTopic);
-      if (currDecs) {
-        decoders.forEach((dec) => {
-          currDecs.delete(dec);
-        });
-      }
-    });
   }
 
   private async unsubscribe(
@@ -241,7 +194,7 @@ class Filter implements IFilter {
     requestId: string,
     peer: Peer
   ): Promise<void> {
-    const unsubscribeRequest = FilterRPC.createRequest(
+    const unsubscribeRequest = FilterRpc.createRequest(
       topic,
       contentFilters,
       requestId,
@@ -255,36 +208,6 @@ class Filter implements IFilter {
       log("Error unsubscribing", e);
       throw e;
     }
-  }
-
-  private async newStream(peer: Peer): Promise<Stream> {
-    const connections = this.libp2p.getConnections(peer.id);
-    const connection = selectConnection(connections);
-    if (!connection) {
-      throw new Error("Failed to get a connection to the peer");
-    }
-
-    return connection.newStream(FilterCodec);
-  }
-
-  private async getPeer(peerId?: PeerId): Promise<Peer> {
-    const res = await selectPeerForProtocol(
-      this.peerStore,
-      [FilterCodec],
-      peerId
-    );
-    if (!res) {
-      throw new Error(`Failed to select peer for ${FilterCodec}`);
-    }
-    return res.peer;
-  }
-
-  async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.peerStore, [FilterCodec]);
-  }
-
-  async randomPeer(): Promise<Peer | undefined> {
-    return selectRandomPeer(await this.peers());
   }
 }
 

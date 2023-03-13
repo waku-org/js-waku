@@ -9,6 +9,7 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
+import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptAsymmetric,
   encryptAsymmetric,
@@ -17,18 +18,18 @@ import {
 } from "./waku_payload.js";
 
 import {
-  DecodedMessage,
   generatePrivateKey,
   getPublicKey,
   OneMillion,
   Version,
 } from "./index.js";
 
-export { DecodedMessage, generatePrivateKey, getPublicKey };
+export { generatePrivateKey, getPublicKey };
+export type { Encoder, Decoder, DecodedMessage };
 
 const log = debug("waku:message-encryption:ecies");
 
-export class Encoder implements IEncoder {
+class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private publicKey: Uint8Array,
@@ -45,10 +46,6 @@ export class Encoder implements IEncoder {
 
   async toProtoObj(message: IMessage): Promise<IProtoMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
-    if (!message.payload) {
-      log("No payload to encrypt, skipping: ", message);
-      return;
-    }
     const preparedPayload = await preCipher(message.payload, this.sigPrivKey);
 
     const payload = await encryptAsymmetric(preparedPayload, this.publicKey);
@@ -92,12 +89,13 @@ export function createEncoder({
   return new Encoder(contentTopic, publicKey, sigPrivKey, ephemeral);
 }
 
-export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private privateKey: Uint8Array) {
     super(contentTopic);
   }
 
   async fromProtoObj(
+    pubSubTopic: string,
     protoMessage: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
@@ -113,10 +111,6 @@ export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
     }
 
     let payload;
-    if (!cipherPayload) {
-      log(`No payload to decrypt for contentTopic ${this.contentTopic}`);
-      return;
-    }
 
     try {
       payload = await decryptAsymmetric(cipherPayload, this.privateKey);
@@ -142,6 +136,7 @@ export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 
     log("Message decrypted", protoMessage);
     return new DecodedMessage(
+      pubSubTopic,
       protoMessage,
       res.payload,
       res.sig?.signature,

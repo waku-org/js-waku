@@ -1,21 +1,29 @@
+import type { PeerId } from "@libp2p/interface-peer-id";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { multiaddr } from "@multiformats/multiaddr";
+import * as secp from "@noble/secp256k1";
 import type { Waku2 } from "@waku/interfaces";
 import { bytesToHex, hexToBytes, utf8ToBytes } from "@waku/utils/bytes";
 import { assert, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
 import { ERR_INVALID_ID } from "./constants.js";
-import { getPublicKey } from "./crypto.js";
-import { ENR } from "./enr.js";
-import { createKeypairFromPeerId, IKeypair } from "./keypair/index.js";
+import { EnrCreator } from "./creator.js";
+import { EnrDecoder } from "./decoder.js";
+import { EnrEncoder } from "./encoder.js";
+import {
+  ENR,
+  TransportProtocol,
+  TransportProtocolPerIpVersion,
+} from "./enr.js";
+import { getPrivateKeyFromPeerId } from "./peer_id.js";
 
 describe("ENR", function () {
   describe("Txt codec", () => {
     it("should encodeTxt and decodeTxt", async () => {
       const peerId = await createSecp256k1PeerId();
-      const enr = await ENR.createFromPeerId(peerId);
-      const keypair = await createKeypairFromPeerId(peerId);
+      const enr = await EnrCreator.fromPeerId(peerId);
+      const privateKey = await getPrivateKeyFromPeerId(peerId);
       enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
       enr.multiaddrs = [
         multiaddr("/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"),
@@ -32,14 +40,14 @@ describe("ENR", function () {
         lightPush: false,
       };
 
-      const txt = await enr.encodeTxt(keypair.privateKey);
-      const enr2 = await ENR.decodeTxt(txt);
+      const txt = await EnrEncoder.toString(enr, privateKey);
+      const enr2 = await EnrDecoder.fromString(txt);
 
       if (!enr.signature) throw "enr.signature is undefined";
       if (!enr2.signature) throw "enr.signature is undefined";
 
       expect(bytesToHex(enr2.signature)).to.be.equal(bytesToHex(enr.signature));
-      const ma = enr2.getLocationMultiaddr("udp")!;
+      const ma = enr2.getLocationMultiaddr(TransportProtocol.UDP)!;
       expect(ma.toString()).to.be.equal("/ip4/18.223.219.100/udp/9000");
       expect(enr2.multiaddrs).to.not.be.undefined;
       expect(enr2.multiaddrs!.length).to.be.equal(3);
@@ -64,7 +72,7 @@ describe("ENR", function () {
     it("should decode valid enr successfully", async () => {
       const txt =
         "enr:-Ku4QMh15cIjmnq-co5S3tYaNXxDzKTgj0ufusA-QfZ66EWHNsULt2kb0eTHoo1Dkjvvf6CAHDS1Di-htjiPFZzaIPcLh2F0dG5ldHOIAAAAAAAAAACEZXRoMpD2d10HAAABE________x8AgmlkgnY0gmlwhHZFkMSJc2VjcDI1NmsxoQIWSDEWdHwdEA3Lw2B_byeFQOINTZ0GdtF9DBjes6JqtIN1ZHCCIyg";
-      const enr = await ENR.decodeTxt(txt);
+      const enr = await EnrDecoder.fromString(txt);
       const eth2 = enr.get("eth2");
       if (!eth2) throw "eth2 is undefined";
       expect(bytesToHex(eth2)).to.be.equal("f6775d0700000113ffffffffffff1f00");
@@ -73,7 +81,7 @@ describe("ENR", function () {
     it("should decode valid ENR with multiaddrs successfully [shared test vector]", async () => {
       const txt =
         "enr:-QEnuEBEAyErHEfhiQxAVQoWowGTCuEF9fKZtXSd7H_PymHFhGJA3rGAYDVSHKCyJDGRLBGsloNbS8AZF33IVuefjOO6BIJpZIJ2NIJpcIQS39tkim11bHRpYWRkcnO4lgAvNihub2RlLTAxLmRvLWFtczMud2FrdXYyLnRlc3Quc3RhdHVzaW0ubmV0BgG73gMAODcxbm9kZS0wMS5hYy1jbi1ob25na29uZy1jLndha3V2Mi50ZXN0LnN0YXR1c2ltLm5ldAYBu94DACm9A62t7AQL4Ef5ZYZosRpQTzFVAB8jGjf1TER2wH-0zBOe1-MDBNLeA4lzZWNwMjU2azGhAzfsxbxyCkgCqq8WwYsVWH7YkpMLnU2Bw5xJSimxKav-g3VkcIIjKA";
-      const enr = await ENR.decodeTxt(txt);
+      const enr = await EnrDecoder.fromString(txt);
 
       expect(enr.multiaddrs).to.not.be.undefined;
       expect(enr.multiaddrs!.length).to.be.equal(3);
@@ -92,7 +100,7 @@ describe("ENR", function () {
     it("should decode valid enr with tcp successfully", async () => {
       const txt =
         "enr:-IS4QAmC_o1PMi5DbR4Bh4oHVyQunZblg4bTaottPtBodAhJZvxVlWW-4rXITPNg4mwJ8cW__D9FBDc9N4mdhyMqB-EBgmlkgnY0gmlwhIbRi9KJc2VjcDI1NmsxoQOevTdO6jvv3fRruxguKR-3Ge4bcFsLeAIWEDjrfaigNoN0Y3CCdl8";
-      const enr = await ENR.decodeTxt(txt);
+      const enr = await EnrDecoder.fromString(txt);
       expect(enr.tcp).to.not.be.undefined;
       expect(enr.tcp).to.be.equal(30303);
       expect(enr.ip).to.not.be.undefined;
@@ -106,14 +114,14 @@ describe("ENR", function () {
     it("should throw error - no id", async () => {
       try {
         const peerId = await createSecp256k1PeerId();
-        const enr = await ENR.createFromPeerId(peerId);
-        const keypair = await createKeypairFromPeerId(peerId);
+        const enr = await EnrCreator.fromPeerId(peerId);
+        const privateKey = await getPrivateKeyFromPeerId(peerId);
         enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
 
         enr.set("id", new Uint8Array([0]));
-        const txt = await enr.encodeTxt(keypair.privateKey);
+        const txt = await EnrEncoder.toString(enr, privateKey);
 
-        await ENR.decodeTxt(txt);
+        await EnrDecoder.fromString(txt);
         assert.fail("Expect error here");
       } catch (err: unknown) {
         const e = err as Error;
@@ -125,7 +133,7 @@ describe("ENR", function () {
       try {
         const txt =
           "enr:-IS4QJ2d11eu6dC7E7LoXeLMgMP3kom1u3SE8esFSWvaHoo0dP1jg8O3-nx9ht-EO3CmG7L6OkHcMmoIh00IYWB92QABgmlkgnY0gmlwhH8AAAGJc2d11eu6dCsxoQIB_c-jQMOXsbjWkbN-kj99H57gfId5pfb4wa1qxwV4CIN1ZHCCIyk";
-        ENR.decodeTxt(txt);
+        EnrDecoder.fromString(txt);
         assert.fail("Expect error here");
       } catch (err: unknown) {
         const e = err as Error;
@@ -179,7 +187,7 @@ describe("ENR", function () {
     it("should return false", async () => {
       const txt =
         "enr:-Ku4QMh15cIjmnq-co5S3tYaNXxDzKTgj0ufusA-QfZ66EWHNsULt2kb0eTHoo1Dkjvvf6CAHDS1Di-htjiPFZzaIPcLh2F0dG5ldHOIAAAAAAAAAACEZXRoMpD2d10HAAABE________x8AgmlkgnY0gmlwhHZFkMSJc2VjcDI1NmsxoQIWSDEWdHwdEA3Lw2B_byeFQOINTZ0GdtF9DBjes6JqtIN1ZHCCIyg";
-      const enr = await ENR.decodeTxt(txt);
+      const enr = await EnrDecoder.fromString(txt);
       // should have id and public key inside ENR
       expect(enr.verify(new Uint8Array(32), new Uint8Array(64))).to.be.false;
     });
@@ -194,10 +202,10 @@ describe("ENR", function () {
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
-      record = await ENR.createV4(getPublicKey(privateKey));
+      record = await EnrCreator.fromPublicKey(secp.getPublicKey(privateKey));
       record.setLocationMultiaddr(multiaddr("/ip4/127.0.0.1/udp/30303"));
       record.seq = seq;
-      await record.encodeTxt(privateKey);
+      await EnrEncoder.toString(record, privateKey);
     });
 
     it("should properly compute the node id", () => {
@@ -207,8 +215,8 @@ describe("ENR", function () {
     });
 
     it("should encode/decode to RLP encoding", async function () {
-      const encoded = await record.encode(privateKey);
-      const decoded = await ENR.decode(encoded);
+      const encoded = await EnrEncoder.toBytes(record, privateKey);
+      const decoded = await EnrDecoder.fromRLP(encoded);
 
       record.forEach((value, key) => {
         expect(equals(decoded.get(key)!, value)).to.be.true;
@@ -219,7 +227,7 @@ describe("ENR", function () {
       // spec enr https://eips.ethereum.org/EIPS/eip-778
       const testTxt =
         "enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjzCBOonrkTfj499SZuOh8R33Ls8RRcy5wBgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQPKY0yuDUmstAHYpMa2_oxVtw0RW_QAdpzBQA8yWM0xOIN1ZHCCdl8";
-      const decoded = await ENR.decodeTxt(testTxt);
+      const decoded = await EnrDecoder.fromString(testTxt);
       // Note: Signatures are different due to the extra entropy added
       // by @noble/secp256k1:
       // https://github.com/paulmillr/noble-secp256k1#signmsghash-privatekey
@@ -239,7 +247,7 @@ describe("ENR", function () {
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
       );
-      record = await ENR.createV4(getPublicKey(privateKey));
+      record = await EnrCreator.fromPublicKey(secp.getPublicKey(privateKey));
     });
 
     it("should get / set UDP multiaddr", () => {
@@ -253,16 +261,16 @@ describe("ENR", function () {
       record.set("ip", tuples0[0][1]);
       record.set("udp", tuples0[1][1]);
       // and get the multiaddr
-      expect(record.getLocationMultiaddr("udp")!.toString()).to.equal(
-        multi0.toString()
-      );
+      expect(
+        record.getLocationMultiaddr(TransportProtocol.UDP)!.toString()
+      ).to.equal(multi0.toString());
       // set the multiaddr
       const multi1 = multiaddr("/ip4/0.0.0.0/udp/30300");
       record.setLocationMultiaddr(multi1);
       // and get the multiaddr
-      expect(record.getLocationMultiaddr("udp")!.toString()).to.equal(
-        multi1.toString()
-      );
+      expect(
+        record.getLocationMultiaddr(TransportProtocol.UDP)!.toString()
+      ).to.equal(multi1.toString());
       // and get the underlying records
       const tuples1 = multi1.tuples();
       expect(record.get("ip")).to.deep.equal(tuples1[0][1]);
@@ -281,16 +289,16 @@ describe("ENR", function () {
       record.set("ip", tuples0[0][1]);
       record.set("tcp", tuples0[1][1]);
       // and get the multiaddr
-      expect(record.getLocationMultiaddr("tcp")!.toString()).to.equal(
-        multi0.toString()
-      );
+      expect(
+        record.getLocationMultiaddr(TransportProtocol.TCP)!.toString()
+      ).to.equal(multi0.toString());
       // set the multiaddr
       const multi1 = multiaddr("/ip4/0.0.0.0/tcp/30300");
       record.setLocationMultiaddr(multi1);
       // and get the multiaddr
-      expect(record.getLocationMultiaddr("tcp")!.toString()).to.equal(
-        multi1.toString()
-      );
+      expect(
+        record.getLocationMultiaddr(TransportProtocol.TCP)!.toString()
+      ).to.equal(multi1.toString());
       // and get the underlying records
       const tuples1 = multi1.tuples();
       expect(record.get("ip")).to.deep.equal(tuples1[0][1]);
@@ -303,12 +311,12 @@ describe("ENR", function () {
     const ip6 = "::1";
     const tcp = 8080;
     const udp = 8080;
-    let peerId;
+    let peerId: PeerId;
     let enr: ENR;
 
     before(async function () {
       peerId = await createSecp256k1PeerId();
-      enr = await ENR.createFromPeerId(peerId);
+      enr = await EnrCreator.fromPeerId(peerId);
       enr.ip = ip4;
       enr.ip6 = ip6;
       enr.tcp = tcp;
@@ -318,43 +326,43 @@ describe("ENR", function () {
     });
 
     it("should properly create location multiaddrs - udp4", () => {
-      expect(enr.getLocationMultiaddr("udp4")).to.deep.equal(
-        multiaddr(`/ip4/${ip4}/udp/${udp}`)
-      );
+      expect(
+        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.UDP4)
+      ).to.deep.equal(multiaddr(`/ip4/${ip4}/udp/${udp}`));
     });
 
     it("should properly create location multiaddrs - tcp4", () => {
-      expect(enr.getLocationMultiaddr("tcp4")).to.deep.equal(
-        multiaddr(`/ip4/${ip4}/tcp/${tcp}`)
-      );
+      expect(
+        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.TCP4)
+      ).to.deep.equal(multiaddr(`/ip4/${ip4}/tcp/${tcp}`));
     });
 
     it("should properly create location multiaddrs - udp6", () => {
-      expect(enr.getLocationMultiaddr("udp6")).to.deep.equal(
-        multiaddr(`/ip6/${ip6}/udp/${udp}`)
-      );
+      expect(
+        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.UDP6)
+      ).to.deep.equal(multiaddr(`/ip6/${ip6}/udp/${udp}`));
     });
 
     it("should properly create location multiaddrs - tcp6", () => {
-      expect(enr.getLocationMultiaddr("tcp6")).to.deep.equal(
-        multiaddr(`/ip6/${ip6}/tcp/${tcp}`)
-      );
+      expect(
+        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.TCP6)
+      ).to.deep.equal(multiaddr(`/ip6/${ip6}/tcp/${tcp}`));
     });
 
     it("should properly create location multiaddrs - udp", () => {
       // default to ip4
-      expect(enr.getLocationMultiaddr("udp")).to.deep.equal(
+      expect(enr.getLocationMultiaddr(TransportProtocol.UDP)).to.deep.equal(
         multiaddr(`/ip4/${ip4}/udp/${udp}`)
       );
       // if ip6 is set, use it
       enr.ip = undefined;
-      expect(enr.getLocationMultiaddr("udp")).to.deep.equal(
+      expect(enr.getLocationMultiaddr(TransportProtocol.UDP)).to.deep.equal(
         multiaddr(`/ip6/${ip6}/udp/${udp}`)
       );
       // if ip6 does not exist, use ip4
       enr.ip6 = undefined;
       enr.ip = ip4;
-      expect(enr.getLocationMultiaddr("udp")).to.deep.equal(
+      expect(enr.getLocationMultiaddr(TransportProtocol.UDP)).to.deep.equal(
         multiaddr(`/ip4/${ip4}/udp/${udp}`)
       );
       enr.ip6 = ip6;
@@ -362,21 +370,40 @@ describe("ENR", function () {
 
     it("should properly create location multiaddrs - tcp", () => {
       // default to ip4
-      expect(enr.getLocationMultiaddr("tcp")).to.deep.equal(
+      expect(enr.getLocationMultiaddr(TransportProtocol.TCP)).to.deep.equal(
         multiaddr(`/ip4/${ip4}/tcp/${tcp}`)
       );
       // if ip6 is set, use it
       enr.ip = undefined;
-      expect(enr.getLocationMultiaddr("tcp")).to.deep.equal(
+      expect(enr.getLocationMultiaddr(TransportProtocol.TCP)).to.deep.equal(
         multiaddr(`/ip6/${ip6}/tcp/${tcp}`)
       );
       // if ip6 does not exist, use ip4
       enr.ip6 = undefined;
       enr.ip = ip4;
-      expect(enr.getLocationMultiaddr("tcp")).to.deep.equal(
+      expect(enr.getLocationMultiaddr(TransportProtocol.TCP)).to.deep.equal(
         multiaddr(`/ip4/${ip4}/tcp/${tcp}`)
       );
       enr.ip6 = ip6;
+    });
+
+    it("should properly create peer info with all multiaddrs", () => {
+      const peerInfo = enr.peerInfo!;
+      console.log(peerInfo);
+      expect(peerInfo.id.toString()).to.equal(peerId.toString());
+      expect(peerInfo.multiaddrs.length).to.equal(4);
+      expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
+        multiaddr(`/ip4/${ip4}/tcp/${tcp}`).toString()
+      );
+      expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
+        multiaddr(`/ip6/${ip6}/tcp/${tcp}`).toString()
+      );
+      expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
+        multiaddr(`/ip4/${ip4}/udp/${udp}`).toString()
+      );
+      expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
+        multiaddr(`/ip6/${ip6}/udp/${udp}`).toString()
+      );
     });
   });
 
@@ -384,12 +411,12 @@ describe("ENR", function () {
     let peerId;
     let enr: ENR;
     let waku2Protocols: Waku2;
-    let keypair: IKeypair;
+    let privateKey: Uint8Array;
 
     beforeEach(async function () {
       peerId = await createSecp256k1PeerId();
-      enr = await ENR.createFromPeerId(peerId);
-      keypair = await createKeypairFromPeerId(peerId);
+      enr = await EnrCreator.fromPeerId(peerId);
+      privateKey = await getPrivateKeyFromPeerId(peerId);
       waku2Protocols = {
         relay: false,
         store: false,
@@ -401,8 +428,8 @@ describe("ENR", function () {
     it("should set field with all protocols disabled", async () => {
       enr.waku2 = waku2Protocols;
 
-      const txt = await enr.encodeTxt(keypair.privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const txt = await EnrEncoder.toString(enr, privateKey);
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
       expect(decoded.store).to.equal(false);
@@ -417,8 +444,8 @@ describe("ENR", function () {
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(keypair.privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const txt = await EnrEncoder.toString(enr, privateKey);
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
       expect(decoded.store).to.equal(true);
@@ -430,8 +457,8 @@ describe("ENR", function () {
       waku2Protocols.relay = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(keypair.privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const txt = await EnrEncoder.toString(enr, privateKey);
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
       expect(decoded.store).to.equal(false);
@@ -443,8 +470,8 @@ describe("ENR", function () {
       waku2Protocols.store = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(keypair.privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const txt = await EnrEncoder.toString(enr, privateKey);
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
       expect(decoded.store).to.equal(true);
@@ -456,8 +483,8 @@ describe("ENR", function () {
       waku2Protocols.filter = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(keypair.privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const txt = await EnrEncoder.toString(enr, privateKey);
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
       expect(decoded.store).to.equal(false);
@@ -469,8 +496,8 @@ describe("ENR", function () {
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await enr.encodeTxt(keypair.privateKey);
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const txt = await EnrEncoder.toString(enr, privateKey);
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
       expect(decoded.store).to.equal(false);
@@ -484,7 +511,7 @@ describe("ENR", function () {
       const txt =
         "enr:-Iu4QADPfXNCM6iYyte0pIdbMirIw_AsKR7J1DeJBysXDWz4DZvyjgIwpMt-sXTVUzLJdE9FaStVy2ZKtHUVQAH61-KAgmlkgnY0gmlwhMCosvuJc2VjcDI1NmsxoQI0OCNtPJtBayNgvFvKp-0YyCozcvE1rqm_V1W51nHVv4N0Y3CC6mCFd2FrdTIH";
 
-      const decoded = (await ENR.decodeTxt(txt)).waku2!;
+      const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
       expect(decoded.store).to.equal(true);

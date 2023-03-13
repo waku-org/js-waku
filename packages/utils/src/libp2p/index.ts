@@ -1,9 +1,6 @@
 import type { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
-import { peerIdFromString } from "@libp2p/peer-id";
-import type { Multiaddr } from "@multiformats/multiaddr";
 import debug from "debug";
 
 const log = debug("waku:libp2p-utils");
@@ -42,22 +39,22 @@ export async function selectPeerForProtocol(
   peerStore: PeerStore,
   protocols: string[],
   peerId?: PeerId
-): Promise<{ peer: Peer; protocol: string } | undefined> {
+): Promise<{ peer: Peer; protocol: string }> {
   let peer;
   if (peerId) {
     peer = await peerStore.get(peerId);
     if (!peer) {
-      log(
+      throw new Error(
         `Failed to retrieve connection details for provided peer in peer store: ${peerId.toString()}`
       );
-      return;
     }
   } else {
     const peers = await getPeersForProtocol(peerStore, protocols);
     peer = selectRandomPeer(peers);
     if (!peer) {
-      log("Failed to find known peer that registers protocols", protocols);
-      return;
+      throw new Error(
+        `Failed to find known peer that registers protocols: ${protocols}`
+      );
     }
   }
 
@@ -70,28 +67,12 @@ export async function selectPeerForProtocol(
   }
   log(`Using codec ${protocol}`);
   if (!protocol) {
-    log(
-      `Peer does not register required protocols: ${peer.id.toString()}`,
-      protocols
+    throw new Error(
+      `Peer does not register required protocols (${peer.id.toString()}): ${protocols}`
     );
-    return;
   }
 
   return { peer, protocol };
-}
-
-export function multiaddrsToPeerInfo(mas: Multiaddr[]): PeerInfo[] {
-  return mas
-    .map((ma) => {
-      const peerIdStr = ma.getPeerId();
-      const protocols: string[] = [];
-      return {
-        id: peerIdStr ? peerIdFromString(peerIdStr) : null,
-        multiaddrs: [ma.decapsulateCode(421)],
-        protocols,
-      };
-    })
-    .filter((peerInfo): peerInfo is PeerInfo => peerInfo.id !== null);
 }
 
 export function selectConnection(

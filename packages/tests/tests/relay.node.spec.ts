@@ -130,7 +130,7 @@ describe("Waku Relay [node only]", () => {
       const receivedMsg = await receivedMsgPromise;
 
       expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
-      expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
+      expect(bytesToUtf8(receivedMsg.payload)).to.eq(messageText);
       expect(receivedMsg.timestamp?.valueOf()).to.eq(
         messageTimestamp.valueOf()
       );
@@ -173,10 +173,10 @@ describe("Waku Relay [node only]", () => {
       }
 
       expect(fooMessages[0].contentTopic).to.eq(fooContentTopic);
-      expect(bytesToUtf8(fooMessages[0].payload!)).to.eq(fooMessageText);
+      expect(bytesToUtf8(fooMessages[0].payload)).to.eq(fooMessageText);
 
       expect(barMessages[0].contentTopic).to.eq(barContentTopic);
-      expect(bytesToUtf8(barMessages[0].payload!)).to.eq(barMessageText);
+      expect(bytesToUtf8(barMessages[0].payload)).to.eq(barMessageText);
 
       expect(fooMessages.length).to.eq(1);
       expect(barMessages.length).to.eq(1);
@@ -334,6 +334,7 @@ describe("Waku Relay [node only]", () => {
       await waku3NoMsgPromise;
 
       expect(bytesToUtf8(waku2ReceivedMsg.payload!)).to.eq(messageText);
+      expect(waku2ReceivedMsg.pubSubTopic).to.eq(pubSubTopic);
     });
   });
 

@@ -17,24 +17,17 @@ export const Version = 0;
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
-  constructor(protected proto: proto.WakuMessage) {}
-
-  get _rawPayload(): Uint8Array | undefined {
-    if (this.proto.payload) {
-      return new Uint8Array(this.proto.payload);
-    }
-    return;
-  }
+  constructor(public pubSubTopic: string, protected proto: proto.WakuMessage) {}
 
   get ephemeral(): boolean {
     return Boolean(this.proto.ephemeral);
   }
 
-  get payload(): Uint8Array | undefined {
-    return this._rawPayload;
+  get payload(): Uint8Array {
+    return this.proto.payload;
   }
 
-  get contentTopic(): string | undefined {
+  get contentTopic(): string {
     return this.proto.contentTopic;
   }
 
@@ -51,18 +44,15 @@ export class DecodedMessage implements IDecodedMessage {
         const timestamp = this.proto.timestamp / OneMillion;
         return new Date(Number(timestamp));
       }
-
-      if (this.proto.timestampDeprecated) {
-        return new Date(this.proto.timestampDeprecated * 1000);
-      }
+      return;
     } catch (e) {
       return;
     }
-    return;
   }
 
   get version(): number {
-    // https://github.com/status-im/js-waku/issues/921
+    // https://rfc.vac.dev/spec/14/
+    // > If omitted, the value SHOULD be interpreted as version 0.
     return this.proto.version ?? 0;
   }
 
@@ -115,8 +105,8 @@ export class Decoder implements IDecoder<DecodedMessage> {
     const protoMessage = proto.WakuMessage.decode(bytes);
     log("Message decoded", protoMessage);
     return Promise.resolve({
-      payload: protoMessage.payload ?? undefined,
-      contentTopic: protoMessage.contentTopic ?? undefined,
+      payload: protoMessage.payload,
+      contentTopic: protoMessage.contentTopic,
       version: protoMessage.version ?? undefined,
       timestamp: protoMessage.timestamp ?? undefined,
       rateLimitProof: protoMessage.rateLimitProof ?? undefined,
@@ -125,14 +115,12 @@ export class Decoder implements IDecoder<DecodedMessage> {
   }
 
   async fromProtoObj(
+    pubSubTopic: string,
     proto: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
-    // https://github.com/status-im/js-waku/issues/921
-    if (proto.version === undefined) {
-      proto.version = 0;
-    }
-
-    if (proto.version !== Version) {
+    // https://rfc.vac.dev/spec/14/
+    // > If omitted, the value SHOULD be interpreted as version 0.
+    if (proto.version ?? 0 !== Version) {
       log(
         "Failed to decode due to incorrect version, expected:",
         Version,
@@ -142,7 +130,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
       return Promise.resolve(undefined);
     }
 
-    return new DecodedMessage(proto);
+    return new DecodedMessage(pubSubTopic, proto);
   }
 }
 
