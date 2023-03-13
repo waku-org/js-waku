@@ -37,7 +37,7 @@ export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
 export type ContentTopic = string;
 
 type BasicEventPayload = {
-  contentTopic: Pick<IDecoder, "contentTopic">;
+  contentTopic: string;
 };
 
 /**
