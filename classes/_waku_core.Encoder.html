@@ -25,7 +25,7 @@
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/_waku_core._internal_.IEncoder.html" class="tsd-signature-type" data-tsd-kind="Interface">IEncoder</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/dbaf8983/packages/core/src/lib/message/version_0.ts#L64">packages/core/src/lib/message/version_0.ts:64</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/09407d7b/packages/core/src/lib/message/version_0.ts#L69">packages/core/src/lib/message/version_0.ts:69</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -39,6 +39,7 @@
 <h3 class="tsd-index-heading">Properties</h3>
 <div class="tsd-index-list"><a href="_waku_core.Encoder.html#contentTopic" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-1024-path"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)" id="icon-1024-text"></path></svg><span>content<wbr/>Topic</span></a>
 <a href="_waku_core.Encoder.html#ephemeral" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>ephemeral</span></a>
+<a href="_waku_core.Encoder.html#metaSetter" class="tsd-index-link tsd-kind-property tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>meta<wbr/>Setter?</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Methods</h3>
@@ -50,7 +51,7 @@
 <section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_Encoder">new <wbr/>Encoder<span class="tsd-signature-symbol">(</span>contentTopic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, ephemeral<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_waku_core.Encoder.html" class="tsd-signature-type" data-tsd-kind="Class">Encoder</a><a href="#constructor.new_Encoder" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_Encoder">new <wbr/>Encoder<span class="tsd-signature-symbol">(</span>contentTopic<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, ephemeral<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, metaSetter<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_waku_core._internal_.IMetaSetter.html" class="tsd-signature-type" data-tsd-kind="Interface">IMetaSetter</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_waku_core.Encoder.html" class="tsd-signature-type" data-tsd-kind="Class">Encoder</a><a href="#constructor.new_Encoder" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -58,10 +59,12 @@
 <li>
 <h5>contentTopic: <span class="tsd-signature-type">string</span></h5></li>
 <li>
-<h5>ephemeral: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5></li></ul></div>
+<h5>ephemeral: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> metaSetter: <a href="../interfaces/_waku_core._internal_.IMetaSetter.html" class="tsd-signature-type" data-tsd-kind="Interface">IMetaSetter</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="_waku_core.Encoder.html" class="tsd-signature-type" data-tsd-kind="Class">Encoder</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/dbaf8983/packages/core/src/lib/message/version_0.ts#L65">packages/core/src/lib/message/version_0.ts:65</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/09407d7b/packages/core/src/lib/message/version_0.ts#L70">packages/core/src/lib/message/version_0.ts:70</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="contentTopic" class="tsd-anchor"></a>
@@ -69,13 +72,18 @@
 <div class="tsd-signature">content<wbr/>Topic<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/_waku_core._internal_.IEncoder.html">IEncoder</a>.<a href="../interfaces/_waku_core._internal_.IEncoder.html#contentTopic">contentTopic</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/dbaf8983/packages/core/src/lib/message/version_0.ts#L65">packages/core/src/lib/message/version_0.ts:65</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/09407d7b/packages/core/src/lib/message/version_0.ts#L71">packages/core/src/lib/message/version_0.ts:71</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="ephemeral" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>ephemeral</span><a href="#ephemeral" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">ephemeral<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/_waku_core._internal_.IEncoder.html">IEncoder</a>.<a href="../interfaces/_waku_core._internal_.IEncoder.html#ephemeral">ephemeral</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/dbaf8983/packages/core/src/lib/message/version_0.ts#L65">packages/core/src/lib/message/version_0.ts:65</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/09407d7b/packages/core/src/lib/message/version_0.ts#L72">packages/core/src/lib/message/version_0.ts:72</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="metaSetter" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>meta<wbr/>Setter</span><a href="#metaSetter" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">meta<wbr/>Setter<span class="tsd-signature-symbol">?:</span> <a href="../interfaces/_waku_core._internal_.IMetaSetter.html" class="tsd-signature-type" data-tsd-kind="Interface">IMetaSetter</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/09407d7b/packages/core/src/lib/message/version_0.ts#L73">packages/core/src/lib/message/version_0.ts:73</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="toProtoObj" class="tsd-anchor"></a>
@@ -91,7 +99,7 @@
 <h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_waku_core._internal_.IProtoMessage.html" class="tsd-signature-type" data-tsd-kind="Interface">IProtoMessage</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of IEncoder.toProtoObj</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/dbaf8983/packages/core/src/lib/message/version_0.ts#L71">packages/core/src/lib/message/version_0.ts:71</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/09407d7b/packages/core/src/lib/message/version_0.ts#L80">packages/core/src/lib/message/version_0.ts:80</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="toWire" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>to<wbr/>Wire</span><a href="#toWire" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -105,7 +113,7 @@
 <h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="tsd-signature-type external" target="_blank">Uint8Array</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of IEncoder.toWire</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/dbaf8983/packages/core/src/lib/message/version_0.ts#L67">packages/core/src/lib/message/version_0.ts:67</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/09407d7b/packages/core/src/lib/message/version_0.ts#L76">packages/core/src/lib/message/version_0.ts:76</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -221,6 +229,7 @@
 <li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_waku_core.Encoder.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-512-path"></use><use href="#icon-512-text"></use></svg>constructor</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_core.Encoder.html#contentTopic" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>content<wbr/>Topic</a></li>
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_core.Encoder.html#ephemeral" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>ephemeral</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class"><a href="_waku_core.Encoder.html#metaSetter" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>meta<wbr/>Setter?</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="_waku_core.Encoder.html#toProtoObj" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>to<wbr/>Proto<wbr/>Obj</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="_waku_core.Encoder.html#toWire" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>to<wbr/>Wire</a></li></ul></li></ul></nav></div></div>
 <div class="container tsd-generator">
