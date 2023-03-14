@@ -68,7 +68,7 @@
     "@libp2p/interface-metrics": "^4.0.5",
     "@libp2p/interface-peer-discovery": "^1.0.5",
     "@libp2p/interface-peer-id": "^2.0.1",
-    "@libp2p/interface-peer-routing": "^1.0.7",
+    "@libp2p/interface-peer-routing": "^1.0.8",
     "@libp2p/interface-peer-store": "^1.2.8",
     "@libp2p/interface-pubsub": "^3.0.6",
     "@libp2p/interface-registrar": "^2.0.8",
