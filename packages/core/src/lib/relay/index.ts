@@ -6,7 +6,7 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import type { CustomEvent } from "@libp2p/interfaces/events";
+import { CustomEvent } from "@libp2p/interfaces/events";
 import type {
   Callback,
   IDecoder,
