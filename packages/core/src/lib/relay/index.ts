@@ -7,7 +7,7 @@ import {
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { CustomEvent } from "@libp2p/interfaces/events";
-import {
+import type {
   Callback,
   IDecoder,
   IEncoder,
@@ -55,7 +55,7 @@ class Relay extends GossipSub implements IRelay {
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  public observers: Map<ContentTopic, Set<unknown>>;
+  private observers: Map<ContentTopic, Set<unknown>>;
 
   constructor(
     components: GossipSubComponents,
