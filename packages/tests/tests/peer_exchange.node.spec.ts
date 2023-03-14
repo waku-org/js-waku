@@ -30,7 +30,7 @@ describe("Peer Exchange", () => {
     if (process.env.CI) {
       this.skip();
     }
-    
+
     this.timeout(50_000);
 
     waku = await createLightNode({
