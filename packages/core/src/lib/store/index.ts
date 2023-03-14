@@ -10,7 +10,7 @@ import {
   ProtocolCreateOptions,
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
-import { concat, utf8ToBytes } from "@waku/utils";
+import { concat, utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";

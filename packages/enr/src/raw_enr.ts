@@ -4,7 +4,7 @@ import {
   convertToString,
 } from "@multiformats/multiaddr/convert";
 import type { ENRKey, ENRValue, SequenceNumber, Waku2 } from "@waku/interfaces";
-import { bytesToUtf8 } from "@waku/utils";
+import { bytesToUtf8 } from "@waku/utils/bytes";
 
 import { ERR_INVALID_ID } from "./constants.js";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
@@ -46,105 +46,51 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
   }
 
   get ip(): string | undefined {
-    const raw = this.get("ip");
-    if (raw) {
-      return convertToString("ip4", raw) as string;
-    } else {
-      return undefined;
-    }
+    return getStringValue(this, "ip", "ip4");
   }
 
   set ip(ip: string | undefined) {
-    if (ip) {
-      this.set("ip", convertToBytes("ip4", ip));
-    } else {
-      this.delete("ip");
-    }
+    setStringValue(this, "ip", "ip4", ip);
   }
 
   get tcp(): number | undefined {
-    const raw = this.get("tcp");
-    if (raw) {
-      return Number(convertToString("tcp", raw));
-    } else {
-      return undefined;
-    }
+    return getNumberAsStringValue(this, "tcp", "tcp");
   }
 
   set tcp(port: number | undefined) {
-    if (port === undefined) {
-      this.delete("tcp");
-    } else {
-      this.set("tcp", convertToBytes("tcp", port.toString(10)));
-    }
+    setNumberAsStringValue(this, "tcp", "tcp", port);
   }
 
   get udp(): number | undefined {
-    const raw = this.get("udp");
-    if (raw) {
-      return Number(convertToString("udp", raw));
-    } else {
-      return undefined;
-    }
+    return getNumberAsStringValue(this, "udp", "udp");
   }
 
   set udp(port: number | undefined) {
-    if (port === undefined) {
-      this.delete("udp");
-    } else {
-      this.set("udp", convertToBytes("udp", port.toString(10)));
-    }
+    setNumberAsStringValue(this, "udp", "udp", port);
   }
 
   get ip6(): string | undefined {
-    const raw = this.get("ip6");
-    if (raw) {
-      return convertToString("ip6", raw) as string;
-    } else {
-      return undefined;
-    }
+    return getStringValue(this, "ip6", "ip6");
   }
 
   set ip6(ip: string | undefined) {
-    if (ip) {
-      this.set("ip6", convertToBytes("ip6", ip));
-    } else {
-      this.delete("ip6");
-    }
+    setStringValue(this, "ip6", "ip6", ip);
   }
 
   get tcp6(): number | undefined {
-    const raw = this.get("tcp6");
-    if (raw) {
-      return Number(convertToString("tcp", raw));
-    } else {
-      return undefined;
-    }
+    return getNumberAsStringValue(this, "tcp6", "tcp");
   }
 
   set tcp6(port: number | undefined) {
-    if (port === undefined) {
-      this.delete("tcp6");
-    } else {
-      this.set("tcp6", convertToBytes("tcp", port.toString(10)));
-    }
+    setNumberAsStringValue(this, "tcp6", "tcp", port);
   }
 
   get udp6(): number | undefined {
-    const raw = this.get("udp6");
-    if (raw) {
-      return Number(convertToString("udp", raw));
-    } else {
-      return undefined;
-    }
+    return getNumberAsStringValue(this, "udp6", "udp");
   }
 
   set udp6(port: number | undefined) {
-    if (port === undefined) {
-      this.delete("udp6");
-    } else {
-      this.set("udp6", convertToBytes("udp", port.toString(10)));
-    }
+    setNumberAsStringValue(this, "udp6", "udp", port);
   }
 
   /**
@@ -180,12 +126,7 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
    * ie, without a peer id.
    */
   set multiaddrs(multiaddrs: Multiaddr[] | undefined) {
-    if (multiaddrs === undefined) {
-      this.delete("multiaddrs");
-    } else {
-      const multiaddrsBuf = encodeMultiaddrs(multiaddrs);
-      this.set("multiaddrs", multiaddrsBuf);
-    }
+    deleteUndefined(this, "multiaddrs", multiaddrs, encodeMultiaddrs);
   }
 
   /**
@@ -202,11 +143,62 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
    * Set the `waku2` field on the ENR.
    */
   set waku2(waku2: Waku2 | undefined) {
-    if (waku2 === undefined) {
-      this.delete("waku2");
-    } else {
-      const byte = encodeWaku2(waku2);
-      this.set("waku2", new Uint8Array([byte]));
-    }
+    deleteUndefined(
+      this,
+      "waku2",
+      waku2,
+      (w) => new Uint8Array([encodeWaku2(w)])
+    );
+  }
+}
+
+function getStringValue(
+  map: Map<ENRKey, ENRValue>,
+  key: ENRKey,
+  proto: string
+): string | undefined {
+  const raw = map.get(key);
+  if (!raw) return;
+  return convertToString(proto, raw);
+}
+
+function getNumberAsStringValue(
+  map: Map<ENRKey, ENRValue>,
+  key: ENRKey,
+  proto: string
+): number | undefined {
+  const raw = map.get(key);
+  if (!raw) return;
+  return Number(convertToString(proto, raw));
+}
+
+function setStringValue(
+  map: Map<ENRKey, ENRValue>,
+  key: ENRKey,
+  proto: string,
+  value: string | undefined
+): void {
+  deleteUndefined(map, key, value, convertToBytes.bind({}, proto));
+}
+
+function setNumberAsStringValue(
+  map: Map<ENRKey, ENRValue>,
+  key: ENRKey,
+  proto: string,
+  value: number | undefined
+): void {
+  setStringValue(map, key, proto, value?.toString(10));
+}
+
+function deleteUndefined<K, V, W>(
+  map: Map<K, W>,
+  key: K,
+  value: V | undefined,
+  transform: (v: V) => W
+): void {
+  if (value !== undefined) {
+    map.set(key, transform(value));
+  } else {
+    map.delete(key);
   }
 }

@@ -4,7 +4,7 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import { DefaultPubSubTopic } from "@waku/core";
-import { bytesToHex, hexToBytes } from "@waku/utils";
+import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import appRoot from "app-root-path";
 import debug from "debug";
 import portfinder from "portfinder";
