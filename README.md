@@ -1,4 +1,5 @@
 ![GitHub Action](https://img.shields.io/github/actions/workflow/status/waku-org/js-waku/ci.yml?branch=master)
+![Code Climate](https://img.shields.io/codeclimate/maintainability/waku-org/js-waku)
 [![Discord chat](https://img.shields.io/discord/864066763682218004.svg?logo=discord&colorB=7289DA)](https://discord.gg/Nrac59MfSX)
 
 # js-waku
