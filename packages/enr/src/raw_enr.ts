@@ -126,12 +126,7 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
    * ie, without a peer id.
    */
   set multiaddrs(multiaddrs: Multiaddr[] | undefined) {
-    if (multiaddrs === undefined) {
-      this.delete("multiaddrs");
-    } else {
-      const multiaddrsBuf = encodeMultiaddrs(multiaddrs);
-      this.set("multiaddrs", multiaddrsBuf);
-    }
+    deleteUndefined(this, "multiaddrs", multiaddrs, encodeMultiaddrs);
   }
 
   /**
@@ -148,12 +143,12 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
    * Set the `waku2` field on the ENR.
    */
   set waku2(waku2: Waku2 | undefined) {
-    if (waku2 === undefined) {
-      this.delete("waku2");
-    } else {
-      const byte = encodeWaku2(waku2);
-      this.set("waku2", new Uint8Array([byte]));
-    }
+    deleteUndefined(
+      this,
+      "waku2",
+      waku2,
+      (w) => new Uint8Array([encodeWaku2(w)])
+    );
   }
 }
 
@@ -183,11 +178,7 @@ function setStringValue(
   proto: string,
   value: string | undefined
 ): void {
-  if (value !== undefined) {
-    map.set(key, convertToBytes(proto, value));
-  } else {
-    map.delete(key);
-  }
+  deleteUndefined(map, key, value, convertToBytes.bind({}, proto));
 }
 
 function setNumberAsStringValue(
@@ -197,4 +188,17 @@ function setNumberAsStringValue(
   value: number | undefined
 ): void {
   setStringValue(map, key, proto, value?.toString(10));
+}
+
+function deleteUndefined<K, V, W>(
+  map: Map<K, W>,
+  key: K,
+  value: V | undefined,
+  transform: (v: V) => W
+): void {
+  if (value !== undefined) {
+    map.set(key, transform(value));
+  } else {
+    map.delete(key);
+  }
 }
