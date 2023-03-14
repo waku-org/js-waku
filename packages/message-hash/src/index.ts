@@ -13,21 +13,17 @@ export function messageHash(
   const pubsubTopicBytes = utf8ToBytes(pubsubTopic);
   const contentTopicBytes = utf8ToBytes(message.contentTopic);
 
-  let bytesToHash;
+  let bytes;
 
   if (message.meta) {
-    bytesToHash = concat([
+    bytes = concat([
       pubsubTopicBytes,
       message.payload,
       contentTopicBytes,
       message.meta,
     ]);
   } else {
-    bytesToHash = concat([
-      pubsubTopicBytes,
-      message.payload,
-      contentTopicBytes,
-    ]);
+    bytes = concat([pubsubTopicBytes, message.payload, contentTopicBytes]);
   }
-  return sha256(bytesToHash);
+  return sha256(bytes);
 }
