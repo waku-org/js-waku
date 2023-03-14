@@ -4,7 +4,7 @@ import {
   convertToString,
 } from "@multiformats/multiaddr/convert";
 import type { ENRKey, ENRValue, SequenceNumber, Waku2 } from "@waku/interfaces";
-import { bytesToUtf8 } from "@waku/utils";
+import { bytesToUtf8 } from "@waku/utils/bytes";
 
 import { ERR_INVALID_ID } from "./constants.js";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
