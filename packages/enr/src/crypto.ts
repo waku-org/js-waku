@@ -1,14 +1,6 @@
 import * as secp from "@noble/secp256k1";
-import { concat } from "@waku/utils";
+import { concat } from "@waku/utils/bytes";
 import sha3 from "js-sha3";
-
-export const randomBytes = secp.utils.randomBytes;
-
-/**
- * Return the public key for the given private key, to be used for asymmetric
- * encryption.
- */
-export const getPublicKey = secp.getPublicKey;
 
 /**
  * ECDSA Sign a message with the given private key.

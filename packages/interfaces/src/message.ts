@@ -13,10 +13,11 @@ export interface IRateLimitProof {
  * Field types matches the protobuf type over the wire
  */
 export interface IProtoMessage {
-  payload: Uint8Array | undefined;
-  contentTopic: string | undefined;
+  payload: Uint8Array;
+  contentTopic: string;
   version: number | undefined;
   timestamp: bigint | undefined;
+  meta: Uint8Array | undefined;
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
 }
@@ -25,9 +26,13 @@ export interface IProtoMessage {
  * Interface for messages to encode and send.
  */
 export interface IMessage {
-  payload?: Uint8Array;
+  payload: Uint8Array;
   timestamp?: Date;
   rateLimitProof?: IRateLimitProof;
+}
+
+export interface IMetaSetter {
+  (message: IProtoMessage & { meta: undefined }): Uint8Array;
 }
 
 export interface EncoderOptions {
@@ -38,6 +43,12 @@ export interface EncoderOptions {
    * @defaultValue `false`
    */
   ephemeral?: boolean;
+  /**
+   * A function called when encoding messages to set the meta field.
+   * @param IProtoMessage The message encoded for wire, without the meta field.
+   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
+   */
+  metaSetter?: IMetaSetter;
 }
 
 export interface IEncoder {
@@ -48,8 +59,9 @@ export interface IEncoder {
 }
 
 export interface IDecodedMessage {
-  payload: Uint8Array | undefined;
-  contentTopic: string | undefined;
+  payload: Uint8Array;
+  contentTopic: string;
+  pubSubTopic: string;
   timestamp: Date | undefined;
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
@@ -58,5 +70,8 @@ export interface IDecodedMessage {
 export interface IDecoder<T extends IDecodedMessage> {
   contentTopic: string;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
-  fromProtoObj: (proto: IProtoMessage) => Promise<T | undefined>;
+  fromProtoObj: (
+    pubSubTopic: string,
+    proto: IProtoMessage
+  ) => Promise<T | undefined>;
 }

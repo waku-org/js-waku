@@ -1,5 +1,5 @@
 import * as secp from "@noble/secp256k1";
-import { concat, hexToBytes } from "@waku/utils";
+import { concat, hexToBytes } from "@waku/utils/bytes";
 
 import { Symmetric } from "./constants.js";
 import * as ecies from "./crypto/ecies.js";

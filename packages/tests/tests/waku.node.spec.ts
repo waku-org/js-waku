@@ -13,7 +13,7 @@ import {
   createEncoder,
   generateSymmetricKey,
 } from "@waku/message-encryption/symmetric";
-import { bytesToUtf8, utf8ToBytes } from "@waku/utils";
+import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
@@ -187,7 +187,7 @@ describe("Decryption Keys", () => {
     const receivedMsg = await receivedMsgPromise;
 
     expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
-    expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
+    expect(bytesToUtf8(receivedMsg.payload)).to.eq(messageText);
     expect(receivedMsg.timestamp?.valueOf()).to.eq(messageTimestamp.valueOf());
   });
 });

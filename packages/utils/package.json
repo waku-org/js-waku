@@ -8,6 +8,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./libp2p": {
+      "types": "./dist/libp2p/index.d.ts",
+      "import": "./dist/libp2p/index.js"
+    },
+    "./bytes": {
+      "types": "./dist/bytes/index.d.ts",
+      "import": "./dist/bytes/index.js"
     }
   },
   "type": "module",
@@ -37,9 +45,9 @@
     "build:bundle": "rollup --config rollup.config.js",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier . --write",
-    "fix:lint": "eslint src --ext .ts --ext .cjs --fix",
+    "fix:lint": "eslint src *.js --fix",
     "check": "run-s check:*",
-    "check:lint": "eslint src --ext .ts",
+    "check:lint": "eslint src *.js",
     "check:prettier": "prettier . --list-different",
     "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
@@ -50,23 +58,21 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@libp2p/peer-id": "^2.0.1",
     "debug": "^4.3.4",
     "uint8arrays": "^4.0.3"
   },
   "devDependencies": {
     "@libp2p/interface-connection": "^3.0.8",
     "@libp2p/interface-peer-id": "^2.0.1",
-    "@libp2p/interface-peer-info": "^1.0.8",
     "@libp2p/interface-peer-store": "^1.2.8",
-    "@multiformats/multiaddr": "^11.4.0",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.51.0",
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.51.0",
-    "cspell": "^6.26.3",
-    "eslint": "^8.33.0",
+    "@waku/build-utils": "*",
+    "cspell": "^6.28.0",
+    "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-functional": "^5.0.4",

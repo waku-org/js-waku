@@ -1,34 +1,27 @@
-import type { Connection } from "@libp2p/interface-connection";
+import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import { sha256 } from "@noble/hashes/sha256";
 import {
   Cursor,
   IDecodedMessage,
   IDecoder,
-  Index,
   IStore,
   ProtocolCreateOptions,
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
-import {
-  concat,
-  getPeersForProtocol,
-  selectConnection,
-  selectPeerForProtocol,
-  utf8ToBytes,
-} from "@waku/utils";
+import { concat, utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
+import { BaseProtocol } from "../base_protocol.js";
 import { DefaultPubSubTopic } from "../constants.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
-import { HistoryRPC, PageDirection, Params } from "./history_rpc.js";
+import { HistoryRpc, PageDirection, Params } from "./history_rpc.js";
 
 import HistoryError = proto.HistoryResponse.HistoryError;
 
@@ -84,12 +77,11 @@ export interface QueryOptions {
  *
  * The Waku Store protocol can be used to retrieved historical messages.
  */
-class Store implements IStore {
-  multicodec: string;
+class Store extends BaseProtocol implements IStore {
   options: ProtocolCreateOptions;
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    this.multicodec = StoreCodec;
+    super(StoreCodec, libp2p.peerStore, libp2p.getConnections.bind(libp2p));
     this.options = options ?? {};
   }
 
@@ -237,25 +229,10 @@ class Store implements IStore {
       peerId: options?.peerId?.toString(),
     });
 
-    const res = await selectPeerForProtocol(
-      this.peerStore,
-      [StoreCodec],
-      options?.peerId
-    );
-
-    if (!res) {
-      throw new Error("Failed to get a peer");
-    }
-    const { peer, protocol } = res;
-
-    const connections = this.libp2p.getConnections(peer.id);
-    const connection = selectConnection(connections);
-
-    if (!connection) throw "Failed to get a connection to the peer";
+    const peer = await this.getPeer(options?.peerId);
 
     for await (const messages of paginate<T>(
-      connection,
-      protocol,
+      this.newStream.bind(this, peer),
       queryOpts,
       decodersAsMap,
       options?.cursor
@@ -263,23 +240,10 @@ class Store implements IStore {
       yield messages;
     }
   }
-
-  /**
-   * Returns known peers from the address book (`libp2p.peerStore`) that support
-   * store protocol. Waku may or  may not be currently connected to these peers.
-   */
-  async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.peerStore, [StoreCodec]);
-  }
-
-  get peerStore(): PeerStore {
-    return this.libp2p.peerStore;
-  }
 }
 
 async function* paginate<T extends IDecodedMessage>(
-  connection: Connection,
-  protocol: string,
+  streamFactory: () => Promise<Stream>,
   queryOpts: Params,
   decoders: Map<string, IDecoder<T>>,
   cursor?: Cursor
@@ -297,15 +261,15 @@ async function* paginate<T extends IDecodedMessage>(
   while (true) {
     queryOpts.cursor = currentCursor;
 
-    const stream = await connection.newStream(protocol);
-    const historyRpcQuery = HistoryRPC.createQuery(queryOpts);
+    const historyRpcQuery = HistoryRpc.createQuery(queryOpts);
 
     log(
       "Querying store peer",
-      connection.remoteAddr.toString(),
       `for (${queryOpts.pubSubTopic})`,
       queryOpts.contentTopics
     );
+
+    const stream = await streamFactory();
 
     const res = await pipe(
       [historyRpcQuery.encode()],
@@ -329,10 +293,7 @@ async function* paginate<T extends IDecodedMessage>(
 
     const response = reply.response as proto.HistoryResponse;
 
-    if (
-      response.error &&
-      response.error !== HistoryError.ERROR_NONE_UNSPECIFIED
-    ) {
+    if (response.error && response.error !== HistoryError.NONE) {
       throw "History response contains an Error: " + response.error;
     }
 
@@ -350,7 +311,10 @@ async function* paginate<T extends IDecodedMessage>(
       if (typeof contentTopic !== "undefined") {
         const decoder = decoders.get(contentTopic);
         if (decoder) {
-          return decoder.fromProtoObj(toProtoMessage(protoMsg));
+          return decoder.fromProtoObj(
+            queryOpts.pubSubTopic,
+            toProtoMessage(protoMsg)
+          );
         }
       }
       return Promise.resolve(undefined);
@@ -388,7 +352,7 @@ export function isDefined<T>(msg: T | undefined): msg is T {
 export async function createCursor(
   message: IDecodedMessage,
   pubsubTopic: string = DefaultPubSubTopic
-): Promise<Index> {
+): Promise<Cursor> {
   if (
     !message ||
     !message.timestamp ||
@@ -408,7 +372,7 @@ export async function createCursor(
     digest,
     pubsubTopic,
     senderTime: messageTime,
-    receivedTime: messageTime,
+    receiverTime: messageTime,
   };
 }
 

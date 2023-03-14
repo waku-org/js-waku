@@ -13,9 +13,8 @@ import type {
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 
-import { createEncoder } from "./message/version_0.js";
+import { ConnectionManager } from "./connection_manager.js";
 import * as relayConstants from "./relay/constants.js";
-import { RelayPingContentTopic } from "./relay/constants.js";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -51,13 +50,7 @@ export class WakuNode implements Waku {
   public store?: IStore;
   public filter?: IFilter;
   public lightPush?: ILightPush;
-
-  private pingKeepAliveTimers: {
-    [peer: string]: ReturnType<typeof setInterval>;
-  };
-  private relayKeepAliveTimers: {
-    [peer: string]: ReturnType<typeof setInterval>;
-  };
+  public connectionManager: ConnectionManager;
 
   constructor(
     options: WakuOptions,
@@ -82,49 +75,27 @@ export class WakuNode implements Waku {
       this.relay = libp2p.pubsub;
     }
 
-    log(
-      "Waku node created",
-      this.libp2p.peerId.toString(),
-      `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
-        .lightPush}, filter: ${!!this.filter}} `
-    );
-
-    this.pingKeepAliveTimers = {};
-    this.relayKeepAliveTimers = {};
-
     const pingKeepAlive =
       options.pingKeepAlive || DefaultPingKeepAliveValueSecs;
     const relayKeepAlive = this.relay
       ? options.relayKeepAlive || DefaultRelayKeepAliveValueSecs
       : 0;
 
-    libp2p.addEventListener("peer:connect", (evt) => {
-      this.startKeepAlive(evt.detail.remotePeer, pingKeepAlive, relayKeepAlive);
-    });
+    const peerId = this.libp2p.peerId.toString();
 
-    /**
-     * NOTE: Event is not being emitted on closing nor losing a connection.
-     * @see https://github.com/libp2p/js-libp2p/issues/939
-     * @see https://github.com/status-im/js-waku/issues/252
-     *
-     * >This event will be triggered anytime we are disconnected from another peer,
-     * >regardless of the circumstances of that disconnection.
-     * >If we happen to have multiple connections to a peer,
-     * >this event will **only** be triggered when the last connection is closed.
-     * @see https://github.com/libp2p/js-libp2p/blob/bad9e8c0ff58d60a78314077720c82ae331cc55b/doc/API.md?plain=1#L2100
-     */
-    libp2p.addEventListener("peer:disconnect", (evt) => {
-      this.stopKeepAlive(evt.detail.remotePeer);
-    });
+    this.connectionManager = ConnectionManager.create(
+      peerId,
+      libp2p,
+      { pingKeepAlive, relayKeepAlive },
+      this.relay
+    );
 
-    // Trivial handling of discovered peers, to be refined.
-    libp2p.addEventListener("peer:discovery", (evt) => {
-      const peerId = evt.detail.id;
-      log(`Found peer ${peerId.toString()}, dialing.`);
-      libp2p.dial(peerId).catch((err) => {
-        log(`Fail to dial ${peerId}`, err);
-      });
-    });
+    log(
+      "Waku node created",
+      peerId,
+      `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
+        .lightPush}, filter: ${!!this.filter}`
+    );
   }
 
   /**
@@ -194,7 +165,7 @@ export class WakuNode implements Waku {
   }
 
   async stop(): Promise<void> {
-    this.stopAllKeepAlives();
+    this.connectionManager.stop();
     await this.libp2p.stop();
   }
 
@@ -215,65 +186,6 @@ export class WakuNode implements Waku {
       throw "Not listening on localhost";
     }
     return localMultiaddr + "/p2p/" + this.libp2p.peerId.toString();
-  }
-
-  private startKeepAlive(
-    peerId: PeerId,
-    pingPeriodSecs: number,
-    relayPeriodSecs: number
-  ): void {
-    // Just in case a timer already exist for this peer
-    this.stopKeepAlive(peerId);
-
-    const peerIdStr = peerId.toString();
-
-    if (pingPeriodSecs !== 0) {
-      this.pingKeepAliveTimers[peerIdStr] = setInterval(() => {
-        this.libp2p.ping(peerId).catch((e) => {
-          log(`Ping failed (${peerIdStr})`, e);
-        });
-      }, pingPeriodSecs * 1000);
-    }
-
-    const relay = this.relay;
-    if (relay && relayPeriodSecs !== 0) {
-      const encoder = createEncoder({
-        contentTopic: RelayPingContentTopic,
-        ephemeral: true,
-      });
-      this.relayKeepAliveTimers[peerIdStr] = setInterval(() => {
-        log("Sending Waku Relay ping message");
-        relay
-          .send(encoder, { payload: new Uint8Array() })
-          .catch((e) => log("Failed to send relay ping", e));
-      }, relayPeriodSecs * 1000);
-    }
-  }
-
-  private stopKeepAlive(peerId: PeerId): void {
-    const peerIdStr = peerId.toString();
-
-    if (this.pingKeepAliveTimers[peerIdStr]) {
-      clearInterval(this.pingKeepAliveTimers[peerIdStr]);
-      delete this.pingKeepAliveTimers[peerIdStr];
-    }
-
-    if (this.relayKeepAliveTimers[peerIdStr]) {
-      clearInterval(this.relayKeepAliveTimers[peerIdStr]);
-      delete this.relayKeepAliveTimers[peerIdStr];
-    }
-  }
-
-  private stopAllKeepAlives(): void {
-    for (const timer of [
-      ...Object.values(this.pingKeepAliveTimers),
-      ...Object.values(this.relayKeepAliveTimers),
-    ]) {
-      clearInterval(timer);
-    }
-
-    this.pingKeepAliveTimers = {};
-    this.relayKeepAliveTimers = {};
   }
 }
 

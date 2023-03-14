@@ -8,16 +8,16 @@ export type ContentFilter = {
 /**
  * FilterRPC represents a message conforming to the Waku Filter protocol
  */
-export class FilterRPC {
-  public constructor(public proto: proto.FilterRPC) {}
+export class FilterRpc {
+  public constructor(public proto: proto.FilterRpc) {}
 
   static createRequest(
     topic: string,
     contentFilters: ContentFilter[],
     requestId?: string,
     subscribe = true
-  ): FilterRPC {
-    return new FilterRPC({
+  ): FilterRpc {
+    return new FilterRpc({
       requestId: requestId || uuid(),
       request: {
         subscribe,
@@ -31,11 +31,11 @@ export class FilterRPC {
   /**
    *
    * @param bytes Uint8Array of bytes from a FilterRPC message
-   * @returns FilterRPC
+   * @returns FilterRpc
    */
-  static decode(bytes: Uint8Array): FilterRPC {
-    const res = proto.FilterRPC.decode(bytes);
-    return new FilterRPC(res);
+  static decode(bytes: Uint8Array): FilterRpc {
+    const res = proto.FilterRpc.decode(bytes);
+    return new FilterRpc(res);
   }
 
   /**
@@ -43,14 +43,14 @@ export class FilterRPC {
    * @returns Uint8Array
    */
   encode(): Uint8Array {
-    return proto.FilterRPC.encode(this.proto);
+    return proto.FilterRpc.encode(this.proto);
   }
 
   get push(): proto.MessagePush | undefined {
     return this.proto.push;
   }
 
-  get requestId(): string | undefined {
+  get requestId(): string {
     return this.proto.requestId;
   }
 }

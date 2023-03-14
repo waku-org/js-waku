@@ -1,4 +1,5 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
+import { IMetaSetter } from "@waku/interfaces";
 import type {
   EncoderOptions as BaseEncoderOptions,
   IDecoder,
@@ -9,6 +10,7 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
+import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptAsymmetric,
   encryptAsymmetric,
@@ -17,23 +19,24 @@ import {
 } from "./waku_payload.js";
 
 import {
-  DecodedMessage,
   generatePrivateKey,
   getPublicKey,
   OneMillion,
   Version,
 } from "./index.js";
 
-export { DecodedMessage, generatePrivateKey, getPublicKey };
+export { generatePrivateKey, getPublicKey };
+export type { Encoder, Decoder, DecodedMessage };
 
 const log = debug("waku:message-encryption:ecies");
 
-export class Encoder implements IEncoder {
+class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     private publicKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
-    public ephemeral: boolean = false
+    public ephemeral: boolean = false,
+    public metaSetter?: IMetaSetter
   ) {}
 
   async toWire(message: IMessage): Promise<Uint8Array | undefined> {
@@ -45,22 +48,26 @@ export class Encoder implements IEncoder {
 
   async toProtoObj(message: IMessage): Promise<IProtoMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
-    if (!message.payload) {
-      log("No payload to encrypt, skipping: ", message);
-      return;
-    }
     const preparedPayload = await preCipher(message.payload, this.sigPrivKey);
 
     const payload = await encryptAsymmetric(preparedPayload, this.publicKey);
 
-    return {
+    const protoMessage = {
       payload,
       version: Version,
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+      meta: undefined,
       rateLimitProof: message.rateLimitProof,
       ephemeral: this.ephemeral,
     };
+
+    if (this.metaSetter) {
+      const meta = this.metaSetter(protoMessage);
+      return { ...protoMessage, meta };
+    }
+
+    return protoMessage;
   }
 }
 
@@ -88,16 +95,24 @@ export function createEncoder({
   publicKey,
   sigPrivKey,
   ephemeral = false,
+  metaSetter,
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, publicKey, sigPrivKey, ephemeral);
+  return new Encoder(
+    contentTopic,
+    publicKey,
+    sigPrivKey,
+    ephemeral,
+    metaSetter
+  );
 }
 
-export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
+class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(contentTopic: string, private privateKey: Uint8Array) {
     super(contentTopic);
   }
 
   async fromProtoObj(
+    pubSubTopic: string,
     protoMessage: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
@@ -113,10 +128,6 @@ export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
     }
 
     let payload;
-    if (!cipherPayload) {
-      log(`No payload to decrypt for contentTopic ${this.contentTopic}`);
-      return;
-    }
 
     try {
       payload = await decryptAsymmetric(cipherPayload, this.privateKey);
@@ -142,6 +153,7 @@ export class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 
     log("Message decrypted", protoMessage);
     return new DecodedMessage(
+      pubSubTopic,
       protoMessage,
       res.payload,
       res.sig?.signature,

@@ -2,7 +2,7 @@ import { createEncoder, waitForRemotePeer } from "@waku/core";
 import { createLightNode } from "@waku/create";
 import type { LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils";
+import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import debug from "debug";
 
@@ -106,6 +106,6 @@ describe("Waku Light Push [node only]", () => {
     }
 
     expect(msgs[0].contentTopic).to.equal(TestContentTopic);
-    expect(base64ToUtf8(msgs[0].payload!)).to.equal(messageText);
+    expect(base64ToUtf8(msgs[0].payload)).to.equal(messageText);
   });
 });

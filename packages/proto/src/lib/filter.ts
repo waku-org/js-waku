@@ -9,14 +9,14 @@ import type { Codec } from "protons-runtime";
 import type { Uint8ArrayList } from "uint8arraylist";
 
 export interface FilterRequest {
-  subscribe?: boolean;
-  topic?: string;
+  subscribe: boolean;
+  topic: string;
   contentFilters: FilterRequest.ContentFilter[];
 }
 
 export namespace FilterRequest {
   export interface ContentFilter {
-    contentTopic?: string;
+    contentTopic: string;
   }
 
   export namespace ContentFilter {
@@ -30,7 +30,7 @@ export namespace FilterRequest {
               w.fork();
             }
 
-            if (obj.contentTopic != null) {
+            if (obj.contentTopic != null && obj.contentTopic !== "") {
               w.uint32(10);
               w.string(obj.contentTopic);
             }
@@ -40,7 +40,9 @@ export namespace FilterRequest {
             }
           },
           (reader, length) => {
-            const obj: any = {};
+            const obj: any = {
+              contentTopic: "",
+            };
 
             const end = length == null ? reader.len : reader.pos + length;
 
@@ -84,12 +86,12 @@ export namespace FilterRequest {
             w.fork();
           }
 
-          if (obj.subscribe != null) {
+          if (obj.subscribe != null && obj.subscribe !== false) {
             w.uint32(8);
             w.bool(obj.subscribe);
           }
 
-          if (obj.topic != null) {
+          if (obj.topic != null && obj.topic !== "") {
             w.uint32(18);
             w.string(obj.topic);
           }
@@ -107,6 +109,8 @@ export namespace FilterRequest {
         },
         (reader, length) => {
           const obj: any = {
+            subscribe: false,
+            topic: "",
             contentFilters: [],
           };
 
@@ -218,24 +222,24 @@ export namespace MessagePush {
   };
 }
 
-export interface FilterRPC {
-  requestId?: string;
+export interface FilterRpc {
+  requestId: string;
   request?: FilterRequest;
   push?: MessagePush;
 }
 
-export namespace FilterRPC {
-  let _codec: Codec<FilterRPC>;
+export namespace FilterRpc {
+  let _codec: Codec<FilterRpc>;
 
-  export const codec = (): Codec<FilterRPC> => {
+  export const codec = (): Codec<FilterRpc> => {
     if (_codec == null) {
-      _codec = message<FilterRPC>(
+      _codec = message<FilterRpc>(
         (obj, w, opts = {}) => {
           if (opts.lengthDelimited !== false) {
             w.fork();
           }
 
-          if (obj.requestId != null) {
+          if (obj.requestId != null && obj.requestId !== "") {
             w.uint32(10);
             w.string(obj.requestId);
           }
@@ -255,7 +259,9 @@ export namespace FilterRPC {
           }
         },
         (reader, length) => {
-          const obj: any = {};
+          const obj: any = {
+            requestId: "",
+          };
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -289,12 +295,12 @@ export namespace FilterRPC {
     return _codec;
   };
 
-  export const encode = (obj: Partial<FilterRPC>): Uint8Array => {
-    return encodeMessage(obj, FilterRPC.codec());
+  export const encode = (obj: Partial<FilterRpc>): Uint8Array => {
+    return encodeMessage(obj, FilterRpc.codec());
   };
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): FilterRPC => {
-    return decodeMessage(buf, FilterRPC.codec());
+  export const decode = (buf: Uint8Array | Uint8ArrayList): FilterRpc => {
+    return decodeMessage(buf, FilterRpc.codec());
   };
 }
 
@@ -420,11 +426,11 @@ export namespace RateLimitProof {
 }
 
 export interface WakuMessage {
-  payload?: Uint8Array;
-  contentTopic?: string;
+  payload: Uint8Array;
+  contentTopic: string;
   version?: number;
-  timestampDeprecated?: number;
   timestamp?: bigint;
+  meta?: Uint8Array;
   rateLimitProof?: RateLimitProof;
   ephemeral?: boolean;
 }
@@ -440,12 +446,12 @@ export namespace WakuMessage {
             w.fork();
           }
 
-          if (obj.payload != null) {
+          if (obj.payload != null && obj.payload.byteLength > 0) {
             w.uint32(10);
             w.bytes(obj.payload);
           }
 
-          if (obj.contentTopic != null) {
+          if (obj.contentTopic != null && obj.contentTopic !== "") {
             w.uint32(18);
             w.string(obj.contentTopic);
           }
@@ -455,14 +461,14 @@ export namespace WakuMessage {
             w.uint32(obj.version);
           }
 
-          if (obj.timestampDeprecated != null) {
-            w.uint32(33);
-            w.double(obj.timestampDeprecated);
-          }
-
           if (obj.timestamp != null) {
             w.uint32(80);
             w.sint64(obj.timestamp);
+          }
+
+          if (obj.meta != null) {
+            w.uint32(90);
+            w.bytes(obj.meta);
           }
 
           if (obj.rateLimitProof != null) {
@@ -480,7 +486,10 @@ export namespace WakuMessage {
           }
         },
         (reader, length) => {
-          const obj: any = {};
+          const obj: any = {
+            payload: new Uint8Array(0),
+            contentTopic: "",
+          };
 
           const end = length == null ? reader.len : reader.pos + length;
 
@@ -497,11 +506,11 @@ export namespace WakuMessage {
               case 3:
                 obj.version = reader.uint32();
                 break;
-              case 4:
-                obj.timestampDeprecated = reader.double();
-                break;
               case 10:
                 obj.timestamp = reader.sint64();
+                break;
+              case 11:
+                obj.meta = reader.bytes();
                 break;
               case 21:
                 obj.rateLimitProof = RateLimitProof.codec().decode(

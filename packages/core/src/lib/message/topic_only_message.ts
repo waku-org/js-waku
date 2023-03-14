@@ -9,15 +9,19 @@ import debug from "debug";
 const log = debug("waku:message:topic-only");
 
 export class TopicOnlyMessage implements IDecodedMessage {
-  public payload: undefined;
+  public payload: Uint8Array = new Uint8Array();
   public rateLimitProof: undefined;
   public timestamp: undefined;
+  public meta: undefined;
   public ephemeral: undefined;
 
-  constructor(private proto: ProtoTopicOnlyMessage) {}
+  constructor(
+    public pubSubTopic: string,
+    private proto: ProtoTopicOnlyMessage
+  ) {}
 
   get contentTopic(): string {
-    return this.proto.contentTopic ?? "";
+    return this.proto.contentTopic;
   }
 }
 
@@ -29,17 +33,19 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
     log("Message decoded", protoMessage);
     return Promise.resolve({
       contentTopic: protoMessage.contentTopic,
-      payload: undefined,
+      payload: new Uint8Array(),
       rateLimitProof: undefined,
       timestamp: undefined,
+      meta: undefined,
       version: undefined,
       ephemeral: undefined,
     });
   }
 
   async fromProtoObj(
+    pubSubTopic: string,
     proto: IProtoMessage
   ): Promise<TopicOnlyMessage | undefined> {
-    return new TopicOnlyMessage(proto);
+    return new TopicOnlyMessage(pubSubTopic, proto);
   }
 }

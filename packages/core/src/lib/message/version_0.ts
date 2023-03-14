@@ -1,3 +1,4 @@
+import { IMetaSetter } from "@waku/interfaces";
 import type {
   EncoderOptions,
   IDecodedMessage,
@@ -17,24 +18,17 @@ export const Version = 0;
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
-  constructor(protected proto: proto.WakuMessage) {}
-
-  get _rawPayload(): Uint8Array | undefined {
-    if (this.proto.payload) {
-      return new Uint8Array(this.proto.payload);
-    }
-    return;
-  }
+  constructor(public pubSubTopic: string, protected proto: proto.WakuMessage) {}
 
   get ephemeral(): boolean {
     return Boolean(this.proto.ephemeral);
   }
 
-  get payload(): Uint8Array | undefined {
-    return this._rawPayload;
+  get payload(): Uint8Array {
+    return this.proto.payload;
   }
 
-  get contentTopic(): string | undefined {
+  get contentTopic(): string {
     return this.proto.contentTopic;
   }
 
@@ -51,18 +45,19 @@ export class DecodedMessage implements IDecodedMessage {
         const timestamp = this.proto.timestamp / OneMillion;
         return new Date(Number(timestamp));
       }
-
-      if (this.proto.timestampDeprecated) {
-        return new Date(this.proto.timestampDeprecated * 1000);
-      }
+      return;
     } catch (e) {
       return;
     }
-    return;
+  }
+
+  get meta(): Uint8Array | undefined {
+    return this.proto.meta;
   }
 
   get version(): number {
-    // https://github.com/status-im/js-waku/issues/921
+    // https://rfc.vac.dev/spec/14/
+    // > If omitted, the value SHOULD be interpreted as version 0.
     return this.proto.version ?? 0;
   }
 
@@ -72,7 +67,11 @@ export class DecodedMessage implements IDecodedMessage {
 }
 
 export class Encoder implements IEncoder {
-  constructor(public contentTopic: string, public ephemeral: boolean = false) {}
+  constructor(
+    public contentTopic: string,
+    public ephemeral: boolean = false,
+    public metaSetter?: IMetaSetter
+  ) {}
 
   async toWire(message: IMessage): Promise<Uint8Array> {
     return proto.WakuMessage.encode(await this.toProtoObj(message));
@@ -81,14 +80,22 @@ export class Encoder implements IEncoder {
   async toProtoObj(message: IMessage): Promise<IProtoMessage> {
     const timestamp = message.timestamp ?? new Date();
 
-    return {
+    const protoMessage = {
       payload: message.payload,
       version: Version,
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+      meta: undefined,
       rateLimitProof: message.rateLimitProof,
       ephemeral: this.ephemeral,
     };
+
+    if (this.metaSetter) {
+      const meta = this.metaSetter(protoMessage);
+      return { ...protoMessage, meta };
+    }
+
+    return protoMessage;
   }
 }
 
@@ -104,8 +111,9 @@ export class Encoder implements IEncoder {
 export function createEncoder({
   contentTopic,
   ephemeral,
+  metaSetter,
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, ephemeral);
+  return new Encoder(contentTopic, ephemeral, metaSetter);
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
@@ -115,24 +123,23 @@ export class Decoder implements IDecoder<DecodedMessage> {
     const protoMessage = proto.WakuMessage.decode(bytes);
     log("Message decoded", protoMessage);
     return Promise.resolve({
-      payload: protoMessage.payload ?? undefined,
-      contentTopic: protoMessage.contentTopic ?? undefined,
+      payload: protoMessage.payload,
+      contentTopic: protoMessage.contentTopic,
       version: protoMessage.version ?? undefined,
       timestamp: protoMessage.timestamp ?? undefined,
+      meta: protoMessage.meta ?? undefined,
       rateLimitProof: protoMessage.rateLimitProof ?? undefined,
       ephemeral: protoMessage.ephemeral ?? false,
     });
   }
 
   async fromProtoObj(
+    pubSubTopic: string,
     proto: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
-    // https://github.com/status-im/js-waku/issues/921
-    if (proto.version === undefined) {
-      proto.version = 0;
-    }
-
-    if (proto.version !== Version) {
+    // https://rfc.vac.dev/spec/14/
+    // > If omitted, the value SHOULD be interpreted as version 0.
+    if (proto.version ?? 0 !== Version) {
       log(
         "Failed to decode due to incorrect version, expected:",
         Version,
@@ -142,12 +149,12 @@ export class Decoder implements IDecoder<DecodedMessage> {
       return Promise.resolve(undefined);
     }
 
-    return new DecodedMessage(proto);
+    return new DecodedMessage(pubSubTopic, proto);
   }
 }
 
 /**
- * Creates an decoder that decode messages without Waku level encryption.
+ * Creates a decoder that decode messages without Waku level encryption.
  *
  * A decoder is used to decode messages from the [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
  * format when received from the Waku network. The resulting decoder can then be

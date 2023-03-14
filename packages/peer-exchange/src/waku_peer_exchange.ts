@@ -1,26 +1,17 @@
-import type { Stream } from "@libp2p/interface-connection";
 import type { ConnectionManager } from "@libp2p/interface-connection-manager";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
-import type {
-  IncomingStreamData,
-  Registrar,
-} from "@libp2p/interface-registrar";
-import { ENR } from "@waku/enr";
+import type { PeerStore } from "@libp2p/interface-peer-store";
+import { BaseProtocol } from "@waku/core/lib/base_protocol";
+import { EnrDecoder } from "@waku/enr";
 import type {
   IPeerExchange,
   PeerExchangeQueryParams,
-  PeerExchangeResponse,
+  PeerInfo,
 } from "@waku/interfaces";
-import {
-  getPeersForProtocol,
-  selectConnection,
-  selectPeerForProtocol,
-} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
+import { Uint8ArrayList } from "uint8arraylist";
 
 import { PeerExchangeRPC } from "./rpc.js";
 
@@ -30,38 +21,33 @@ const log = debug("waku:peer-exchange");
 
 export interface PeerExchangeComponents {
   peerStore: PeerStore;
-  registrar: Registrar;
   connectionManager: ConnectionManager;
 }
 
 /**
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
  */
-export class WakuPeerExchange implements IPeerExchange {
+export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
   multicodec: string;
-  private callback:
-    | ((response: PeerExchangeResponse) => Promise<void>)
-    | undefined;
 
   /**
    * @param components - libp2p components
    */
   constructor(public components: PeerExchangeComponents) {
+    super(
+      PeerExchangeCodec,
+      components.peerStore,
+      components.connectionManager.getConnections.bind(
+        components.connectionManager
+      )
+    );
     this.multicodec = PeerExchangeCodec;
-    this.components.registrar
-      .handle(PeerExchangeCodec, this.handler.bind(this))
-      .catch((e) => log("Failed to register peer exchange protocol", e));
   }
 
   /**
    * Make a peer exchange query to a peer
    */
-  async query(
-    params: PeerExchangeQueryParams,
-    callback: (response: PeerExchangeResponse) => Promise<void>
-  ): Promise<void> {
-    this.callback = callback;
-
+  async query(params: PeerExchangeQueryParams): Promise<PeerInfo[]> {
     const { numPeers } = params;
 
     const rpcQuery = PeerExchangeRPC.createRequest({
@@ -72,92 +58,43 @@ export class WakuPeerExchange implements IPeerExchange {
 
     const stream = await this.newStream(peer);
 
-    await pipe(
+    const res = await pipe(
       [rpcQuery.encode()],
       lp.encode(),
       stream,
       lp.decode(),
       async (source) => await all(source)
     );
-  }
 
-  /**
-   * Handle a peer exchange query response
-   */
-  private handler(streamData: IncomingStreamData): void {
-    const { stream } = streamData;
-    pipe(stream, lp.decode(), async (source) => {
-      for await (const bytes of source) {
-        const decoded = PeerExchangeRPC.decode(bytes).response;
+    try {
+      const bytes = new Uint8ArrayList();
+      res.forEach((chunk) => {
+        bytes.append(chunk);
+      });
 
-        if (!decoded) {
-          throw new Error("Failed to decode response");
-        }
+      const decoded = PeerExchangeRPC.decode(bytes).response;
 
-        const enrs = await Promise.all(
-          decoded.peerInfos.map(
-            (peerInfo) => peerInfo.enr && ENR.decode(peerInfo.enr)
-          )
-        );
-
-        const peerInfos = enrs.map((enr) => {
-          return {
-            ENR: enr,
-          };
-        });
-
-        if (!this.callback) throw new Error("Callback not set");
-
-        await this.callback({ peerInfos });
+      if (!decoded) {
+        throw new Error("Failed to decode response");
       }
-    }).catch((err) => log("Failed to handle peer exchange request", err));
-  }
 
-  /**
-   *
-   * @param peerId - Optional peer ID to select a peer
-   * @returns A peer to query
-   */
-  private async getPeer(peerId?: PeerId): Promise<Peer> {
-    const res = await selectPeerForProtocol(
-      this.peerStore,
-      [PeerExchangeCodec],
-      peerId
-    );
-    if (!res) {
-      throw new Error(`Failed to select peer for ${PeerExchangeCodec}`);
+      const enrs = await Promise.all(
+        decoded.peerInfos.map(
+          (peerInfo) => peerInfo.enr && EnrDecoder.fromRLP(peerInfo.enr)
+        )
+      );
+
+      const peerInfos = enrs.map((enr) => {
+        return {
+          ENR: enr,
+        };
+      });
+
+      return peerInfos;
+    } catch (err) {
+      log("Failed to decode push reply", err);
+      throw new Error("Failed to decode push reply");
     }
-    return res.peer;
-  }
-
-  /**
-   * @param peer - Peer to open a stream with
-   * @returns A new stream
-   */
-  private async newStream(peer: Peer): Promise<Stream> {
-    const connections = this.components.connectionManager.getConnections(
-      peer.id
-    );
-    const connection = selectConnection(connections);
-    if (!connection) {
-      throw new Error("Failed to get a connection to the peer");
-    }
-
-    return connection.newStream(PeerExchangeCodec);
-  }
-
-  /**
-   * @returns All peers that support the peer exchange protocol
-   */
-  async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.components.peerStore, [PeerExchangeCodec]);
-  }
-
-  /**
-   * @returns The libp2p peer store
-   */
-  get peerStore(): PeerStore {
-    return this.components.peerStore;
   }
 }
 
