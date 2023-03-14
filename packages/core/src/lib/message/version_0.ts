@@ -1,3 +1,4 @@
+import { IMetaSetter } from "@waku/interfaces";
 import type {
   EncoderOptions,
   IDecodedMessage,
@@ -50,6 +51,10 @@ export class DecodedMessage implements IDecodedMessage {
     }
   }
 
+  get meta(): Uint8Array | undefined {
+    return this.proto.meta;
+  }
+
   get version(): number {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
@@ -62,7 +67,11 @@ export class DecodedMessage implements IDecodedMessage {
 }
 
 export class Encoder implements IEncoder {
-  constructor(public contentTopic: string, public ephemeral: boolean = false) {}
+  constructor(
+    public contentTopic: string,
+    public ephemeral: boolean = false,
+    public metaSetter?: IMetaSetter
+  ) {}
 
   async toWire(message: IMessage): Promise<Uint8Array> {
     return proto.WakuMessage.encode(await this.toProtoObj(message));
@@ -71,14 +80,22 @@ export class Encoder implements IEncoder {
   async toProtoObj(message: IMessage): Promise<IProtoMessage> {
     const timestamp = message.timestamp ?? new Date();
 
-    return {
+    const protoMessage = {
       payload: message.payload,
       version: Version,
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+      meta: undefined,
       rateLimitProof: message.rateLimitProof,
       ephemeral: this.ephemeral,
     };
+
+    if (this.metaSetter) {
+      const meta = this.metaSetter(protoMessage);
+      return { ...protoMessage, meta };
+    }
+
+    return protoMessage;
   }
 }
 
@@ -94,8 +111,9 @@ export class Encoder implements IEncoder {
 export function createEncoder({
   contentTopic,
   ephemeral,
+  metaSetter,
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, ephemeral);
+  return new Encoder(contentTopic, ephemeral, metaSetter);
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
@@ -109,6 +127,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
       contentTopic: protoMessage.contentTopic,
       version: protoMessage.version ?? undefined,
       timestamp: protoMessage.timestamp ?? undefined,
+      meta: protoMessage.meta ?? undefined,
       rateLimitProof: protoMessage.rateLimitProof ?? undefined,
       ephemeral: protoMessage.ephemeral ?? false,
     });
@@ -135,7 +154,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
 }
 
 /**
- * Creates an decoder that decode messages without Waku level encryption.
+ * Creates a decoder that decode messages without Waku level encryption.
  *
  * A decoder is used to decode messages from the [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
  * format when received from the Waku network. The resulting decoder can then be
