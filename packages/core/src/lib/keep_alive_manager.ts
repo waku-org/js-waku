@@ -54,7 +54,7 @@ export class KeepAliveManager {
       const interval = setInterval(() => {
         log("Sending Waku Relay ping message");
         relay
-          .send(encoder, { payload: new Uint8Array() })
+          .send(encoder, { payload: new Uint8Array([1]) })
           .catch((e) => log("Failed to send relay ping", e));
       }, relayPeriodSecs * 1000);
       this.relayKeepAliveTimers.set(peerId, interval);
