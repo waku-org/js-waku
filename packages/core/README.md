@@ -1,7 +1,6 @@
 [![NPM](https://nodei.co/npm/@waku/core.png)](https://npmjs.org/package/@waku/core)
 
-![GitHub Action](https://img.shields.io/github/workflow/status/waku-org/js-waku/CI)
-[![Discord chat](https://img.shields.io/discord/864066763682218004.svg?logo=discord&colorB=7289DA)](https://discord.gg/j5pGbn7MHZ)
+[![Discord chat](https://img.shields.io/discord/864066763682218004.svg?logo=discord&colorB=7289DA)](https://discord.gg/Nrac59MfSX)
 
 # @waku/core
 
@@ -33,7 +32,7 @@ Release changelog can be found in [CHANGELOG.md](https://github.com/waku-org/js-
 
 If you encounter any bug or would like to propose new features, feel free to [open an issue](https://github.com/waku-org/js-waku/issues/new/).
 
-For general discussion, get help or latest news, join **#js-waku** on [Vac Discord](https://discord.gg/j5pGbn7MHZ) or the [Waku Telegram Group](https://t.me/waku_org).
+For general discussion, get help or latest news, join **#js-waku** on [Vac Discord](https://discord.gg/Nrac59MfSX) or the [Waku Telegram Group](https://t.me/waku_org).
 
 ## Roadmap
 
