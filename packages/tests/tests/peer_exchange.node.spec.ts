@@ -4,7 +4,7 @@ import {
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import { createLightNode } from "@waku/create";
-import type { LightNode, PeerExchangeResponse } from "@waku/interfaces";
+import type { LightNode } from "@waku/interfaces";
 import {
   PeerExchangeCodec,
   WakuPeerExchange,
@@ -18,19 +18,17 @@ import { Nwaku } from "../src/nwaku.js";
 describe("Peer Exchange", () => {
   let waku: LightNode;
 
-  before(async function () {
-    // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
-    // but not with locally run nwaku nodes
-    if (process.env.CI) {
-      this.skip();
-    }
-  });
-
   afterEach(async function () {
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
   it("Auto discovery", async function () {
+    // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
+    // but not with locally run nwaku nodes
+    if (process.env.CI) {
+      this.skip();
+    }
+
     this.timeout(50_000);
 
     waku = await createLightNode({
@@ -77,7 +75,7 @@ describe("Peer Exchange", () => {
     });
 
     it("nwaku interop", async function () {
-      this.timeout(25_000);
+      this.timeout(15_000);
 
       await nwaku1.start({
         discv5Discovery: true,
@@ -115,45 +113,28 @@ describe("Peer Exchange", () => {
         // @ts-ignore
         connectionManager: waku.libp2p.connectionManager,
         peerStore: waku.libp2p.peerStore,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        registrar: waku.libp2p.registrar,
       });
 
-      let receivedCallback = false;
-
       const numPeersToRequest = 1;
-      const callback = async (
-        response: PeerExchangeResponse
-      ): Promise<void> => {
-        const doesMultiaddrExist = response.peerInfos.find(
+
+      const peerInfos = await peerExchange.query({
+        numPeers: numPeersToRequest,
+      });
+
+      expect(peerInfos.length).to.be.greaterThan(0);
+      expect(peerInfos.length).to.be.lessThanOrEqual(numPeersToRequest);
+      expect(peerInfos[0].ENR).to.not.be.null;
+
+      const doesMultiaddrExist =
+        peerInfos.find(
           (peerInfo) =>
             peerInfo.ENR?.getFullMultiaddrs()?.find((multiaddr) =>
               multiaddr.equals(nwaku1Ma)
             ) !== undefined
-        );
+        ) !== undefined;
+      expect(doesMultiaddrExist).to.be.equal(true);
 
-        expect(response.peerInfos.length).to.be.greaterThan(0);
-        expect(response.peerInfos.length).to.be.lessThanOrEqual(
-          numPeersToRequest
-        );
-        expect(response.peerInfos[0].ENR).to.not.be.null;
-
-        expect(doesMultiaddrExist).to.be.equal(true);
-
-        expect(waku.libp2p.peerStore.has(await nwaku2.getPeerId())).to.be.true;
-
-        receivedCallback = true;
-      };
-
-      await peerExchange.query(
-        {
-          numPeers: numPeersToRequest,
-        },
-        callback
-      );
-
-      expect(receivedCallback).to.be.true;
+      expect(waku.libp2p.peerStore.has(await nwaku2.getPeerId())).to.be.true;
     });
   });
 });
