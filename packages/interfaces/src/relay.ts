@@ -1,5 +1,5 @@
 import type { GossipSub, GossipsubEvents } from "@chainsafe/libp2p-gossipsub";
-import type { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import type { EventEmitter } from "@libp2p/interfaces/events";
 
 import type {
   IDecodedMessage,
