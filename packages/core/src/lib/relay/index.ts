@@ -6,6 +6,7 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
+import { CustomEvent } from "@libp2p/interfaces/events";
 import type {
   Callback,
   IDecoder,
@@ -35,6 +36,10 @@ export type Observer<T extends IDecodedMessage> = {
 export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
 export type ContentTopic = string;
 
+type BasicEventPayload = {
+  contentTopic: string;
+};
+
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
  * Must be passed as a `pubsub` module to a `Libp2p` instance.
@@ -50,7 +55,7 @@ class Relay extends GossipSub implements IRelay {
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  public observers: Map<ContentTopic, Set<unknown>>;
+  private observers: Map<ContentTopic, Set<unknown>>;
 
   constructor(
     components: GossipSubComponents,
@@ -111,12 +116,30 @@ class Relay extends GossipSub implements IRelay {
       decoder,
       callback,
     };
-    pushOrInitMapSet(this.observers, decoder.contentTopic, observer);
+    const contentTopic = decoder.contentTopic;
+
+    pushOrInitMapSet(this.observers, contentTopic, observer);
+
+    this.dispatchEvent(
+      new CustomEvent<BasicEventPayload>("observer:added", {
+        detail: {
+          contentTopic,
+        },
+      })
+    );
 
     return () => {
-      const observers = this.observers.get(decoder.contentTopic);
+      const observers = this.observers.get(contentTopic);
       if (observers) {
         observers.delete(observer);
+
+        this.dispatchEvent(
+          new CustomEvent<BasicEventPayload>("observer:removed", {
+            detail: {
+              contentTopic,
+            },
+          })
+        );
       }
     };
   }
