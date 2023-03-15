@@ -1,4 +1,5 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
+import { IMetaSetter } from "@waku/interfaces";
 import type {
   EncoderOptions as BaseEncoderOptions,
   IDecoder,
@@ -34,7 +35,8 @@ class Encoder implements IEncoder {
     public contentTopic: string,
     private publicKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
-    public ephemeral: boolean = false
+    public ephemeral: boolean = false,
+    public metaSetter?: IMetaSetter
   ) {}
 
   async toWire(message: IMessage): Promise<Uint8Array | undefined> {
@@ -50,14 +52,22 @@ class Encoder implements IEncoder {
 
     const payload = await encryptAsymmetric(preparedPayload, this.publicKey);
 
-    return {
+    const protoMessage = {
       payload,
       version: Version,
       contentTopic: this.contentTopic,
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
+      meta: undefined,
       rateLimitProof: message.rateLimitProof,
       ephemeral: this.ephemeral,
     };
+
+    if (this.metaSetter) {
+      const meta = this.metaSetter(protoMessage);
+      return { ...protoMessage, meta };
+    }
+
+    return protoMessage;
   }
 }
 
@@ -85,8 +95,15 @@ export function createEncoder({
   publicKey,
   sigPrivKey,
   ephemeral = false,
+  metaSetter,
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, publicKey, sigPrivKey, ephemeral);
+  return new Encoder(
+    contentTopic,
+    publicKey,
+    sigPrivKey,
+    ephemeral,
+    metaSetter
+  );
 }
 
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {

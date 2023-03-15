@@ -17,6 +17,7 @@ export interface IProtoMessage {
   contentTopic: string;
   version: number | undefined;
   timestamp: bigint | undefined;
+  meta: Uint8Array | undefined;
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
 }
@@ -30,6 +31,10 @@ export interface IMessage {
   rateLimitProof?: IRateLimitProof;
 }
 
+export interface IMetaSetter {
+  (message: IProtoMessage & { meta: undefined }): Uint8Array;
+}
+
 export interface EncoderOptions {
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
@@ -38,6 +43,12 @@ export interface EncoderOptions {
    * @defaultValue `false`
    */
   ephemeral?: boolean;
+  /**
+   * A function called when encoding messages to set the meta field.
+   * @param IProtoMessage The message encoded for wire, without the meta field.
+   * If encryption is used, `metaSetter` only accesses _encrypted_ payload.
+   */
+  metaSetter?: IMetaSetter;
 }
 
 export interface IEncoder {

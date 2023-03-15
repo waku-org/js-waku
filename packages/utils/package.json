@@ -8,6 +8,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./libp2p": {
+      "types": "./dist/libp2p/index.d.ts",
+      "import": "./dist/libp2p/index.js"
+    },
+    "./bytes": {
+      "types": "./dist/bytes/index.d.ts",
+      "import": "./dist/bytes/index.js"
     }
   },
   "type": "module",

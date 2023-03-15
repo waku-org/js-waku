@@ -676,6 +676,7 @@ export interface WakuMessage {
   contentTopic: string;
   version?: number;
   timestamp?: bigint;
+  meta?: Uint8Array;
   rateLimitProof?: RateLimitProof;
   ephemeral?: boolean;
 }
@@ -709,6 +710,11 @@ export namespace WakuMessage {
           if (obj.timestamp != null) {
             w.uint32(80);
             w.sint64(obj.timestamp);
+          }
+
+          if (obj.meta != null) {
+            w.uint32(90);
+            w.bytes(obj.meta);
           }
 
           if (obj.rateLimitProof != null) {
@@ -748,6 +754,9 @@ export namespace WakuMessage {
                 break;
               case 10:
                 obj.timestamp = reader.sint64();
+                break;
+              case 11:
+                obj.meta = reader.bytes();
                 break;
               case 21:
                 obj.rateLimitProof = RateLimitProof.codec().decode(

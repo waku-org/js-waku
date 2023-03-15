@@ -12,6 +12,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
   public payload: Uint8Array = new Uint8Array();
   public rateLimitProof: undefined;
   public timestamp: undefined;
+  public meta: undefined;
   public ephemeral: undefined;
 
   constructor(
@@ -35,6 +36,7 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
       payload: new Uint8Array(),
       rateLimitProof: undefined,
       timestamp: undefined,
+      meta: undefined,
       version: undefined,
       ephemeral: undefined,
     });

@@ -5,7 +5,7 @@ import {
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol,
-} from "@waku/utils";
+} from "@waku/utils/libp2p";
 
 /**
  * A class with predefined helpers, to be used as a base to implement Waku
