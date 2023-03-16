@@ -46,6 +46,9 @@
     "node": ">=16"
   },
   "dependencies": {
+    "@bufbuild/buf": "^1.15.0-1",
+    "@bufbuild/protobuf": "^1.1.1",
+    "@bufbuild/protoc-gen-es": "^1.1.1",
     "protons-runtime": "^5.0.0"
   },
   "devDependencies": {
