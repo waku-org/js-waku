@@ -54,6 +54,7 @@
     "@libp2p/interfaces": "^3.3.1",
     "@waku/enr": "0.0.6",
     "@waku/proto": "0.0.3",
+    "@waku/utils": "*",
     "debug": "^4.3.4",
     "it-all": "^2.0.0",
     "it-length-prefixed": "^8.0.4",
