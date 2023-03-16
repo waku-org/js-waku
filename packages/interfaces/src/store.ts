@@ -1,3 +1,5 @@
+import type { proto_store } from "@waku/proto";
+
 import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { PointToPointProtocol, ProtocolOptions } from "./protocols.js";
 
@@ -9,13 +11,6 @@ export enum PageDirection {
 export interface TimeFilter {
   startTime: Date;
   endTime: Date;
-}
-
-export interface Cursor {
-  digest: Uint8Array;
-  receiverTime: bigint;
-  senderTime: bigint;
-  pubsubTopic: string;
 }
 
 export type StoreQueryOptions = {
@@ -42,7 +37,7 @@ export type StoreQueryOptions = {
    * Cursor as an index to start a query from. Must be generated from a Waku
    * Message.
    */
-  cursor?: Cursor;
+  cursor?: proto_store.Index;
 } & ProtocolOptions;
 
 export interface IStore extends PointToPointProtocol {

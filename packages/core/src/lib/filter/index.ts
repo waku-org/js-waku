@@ -9,7 +9,7 @@ import type {
   ProtocolCreateOptions,
   ProtocolOptions,
 } from "@waku/interfaces";
-import { WakuMessage as WakuMessageProto } from "@waku/proto";
+import { proto_message } from "@waku/proto";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -89,7 +89,7 @@ class Filter extends BaseProtocol implements IFilter {
 
     try {
       const res = await pipe(
-        [request.encode()],
+        [request.toBinary()],
         lp.encode(),
         stream,
         lp.decode(),
@@ -143,7 +143,7 @@ class Filter extends BaseProtocol implements IFilter {
 
   private async pushMessages<T extends IDecodedMessage>(
     requestId: string,
-    messages: WakuMessageProto[]
+    messages: proto_message.WakuMessage[]
   ): Promise<void> {
     const subscription = this.subscriptions.get(requestId) as
       | Subscription<T>
@@ -203,7 +203,7 @@ class Filter extends BaseProtocol implements IFilter {
 
     const stream = await this.newStream(peer);
     try {
-      await pipe([unsubscribeRequest.encode()], lp.encode(), stream.sink);
+      await pipe([unsubscribeRequest.toBinary()], lp.encode(), stream.sink);
     } catch (e) {
       log("Error unsubscribing", e);
       throw e;

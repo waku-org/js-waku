@@ -8,7 +8,7 @@ import type {
   ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
-import { PushResponse } from "@waku/proto";
+import { proto_lightpush } from "@waku/proto";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -23,6 +23,7 @@ import { PushRpc } from "./push_rpc.js";
 const log = debug("waku:light-push");
 
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
+const { PushResponse } = proto_lightpush;
 export { PushResponse };
 
 /**
@@ -56,7 +57,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       }
       const query = PushRpc.createRequest(protoMessage, pubSubTopic);
       const res = await pipe(
-        [query.encode()],
+        [query.toBinary()],
         lp.encode(),
         stream,
         lp.decode(),

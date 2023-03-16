@@ -5,9 +5,8 @@ import type {
   IDecoder,
   IEncoder,
   IMessage,
-  IProtoMessage,
 } from "@waku/interfaces";
-import { WakuMessage } from "@waku/proto";
+import { proto_message } from "@waku/proto";
 import debug from "debug";
 
 import { DecodedMessage } from "./decoded_message.js";
@@ -43,16 +42,18 @@ class Encoder implements IEncoder {
     const protoMessage = await this.toProtoObj(message);
     if (!protoMessage) return;
 
-    return WakuMessage.encode(protoMessage);
+    return new proto_message.WakuMessage(protoMessage).toBinary();
   }
 
-  async toProtoObj(message: IMessage): Promise<IProtoMessage | undefined> {
+  async toProtoObj(
+    message: IMessage
+  ): Promise<proto_message.WakuMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
     const preparedPayload = await preCipher(message.payload, this.sigPrivKey);
 
     const payload = await encryptAsymmetric(preparedPayload, this.publicKey);
 
-    const protoMessage = {
+    const protoMessageWithoutMeta = new proto_message.WakuMessage({
       payload,
       version: Version,
       contentTopic: this.contentTopic,
@@ -60,14 +61,18 @@ class Encoder implements IEncoder {
       meta: undefined,
       rateLimitProof: message.rateLimitProof,
       ephemeral: this.ephemeral,
-    };
+    }) as proto_message.WakuMessage & { meta: undefined };
 
     if (this.metaSetter) {
-      const meta = this.metaSetter(protoMessage);
-      return { ...protoMessage, meta };
+      const meta = this.metaSetter(protoMessageWithoutMeta);
+      const protoMessageWithMeta = new proto_message.WakuMessage({
+        ...protoMessageWithoutMeta,
+        meta,
+      });
+      return protoMessageWithMeta;
     }
 
-    return protoMessage;
+    return protoMessageWithoutMeta;
   }
 }
 
@@ -113,7 +118,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 
   async fromProtoObj(
     pubSubTopic: string,
-    protoMessage: IProtoMessage
+    protoMessage: proto_message.WakuMessage
   ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 

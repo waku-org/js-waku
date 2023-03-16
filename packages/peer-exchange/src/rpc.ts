@@ -1,3 +1,4 @@
+import { PeerExchangeQueryParams } from "@waku/interfaces";
 import { proto_peer_exchange as proto } from "@waku/proto";
 import type { Uint8ArrayList } from "uint8arraylist";
 
@@ -7,13 +8,14 @@ import type { Uint8ArrayList } from "uint8arraylist";
 export class PeerExchangeRPC {
   public constructor(public proto: proto.PeerExchangeRPC) {}
 
-  static createRequest(params: proto.PeerExchangeQuery): PeerExchangeRPC {
+  static createRequest(params: PeerExchangeQueryParams): proto.PeerExchangeRPC {
     const { numPeers } = params;
-    return new PeerExchangeRPC({
-      query: {
-        numPeers: numPeers,
-      },
-      response: undefined,
+
+    const query = new proto.PeerExchangeQuery({
+      numPeers: BigInt(numPeers),
+    });
+    return new proto.PeerExchangeRPC({
+      query,
     });
   }
 
@@ -22,7 +24,7 @@ export class PeerExchangeRPC {
    * @returns Uint8Array
    */
   encode(): Uint8Array {
-    return proto.PeerExchangeRPC.encode(this.proto);
+    return new proto.PeerExchangeRPC(this.proto).toBinary();
   }
 
   /**
@@ -30,7 +32,8 @@ export class PeerExchangeRPC {
    * @returns Uint8Array
    */
   static decode(bytes: Uint8ArrayList): PeerExchangeRPC {
-    const res = proto.PeerExchangeRPC.decode(bytes);
+    const uint8array = bytes.slice();
+    const res = proto.PeerExchangeRPC.fromBinary(uint8array);
     return new PeerExchangeRPC(res);
   }
 

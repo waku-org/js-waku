@@ -3,7 +3,6 @@ import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { sha256 } from "@noble/hashes/sha256";
 import {
-  Cursor,
   IDecodedMessage,
   IDecoder,
   IStore,
@@ -22,8 +21,6 @@ import { DefaultPubSubTopic } from "../constants.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
 import { HistoryRpc, PageDirection, Params } from "./history_rpc.js";
-
-import HistoryError = proto.HistoryResponse.HistoryError;
 
 const log = debug("waku:store");
 
@@ -69,7 +66,7 @@ export interface QueryOptions {
    * The cursor index will be exclusive (i.e. the message at the cursor index will not be included in the result).
    * If undefined, the query will start from the beginning or end of the history, depending on the page direction.
    */
-  cursor?: Cursor;
+  cursor?: proto.Index;
 }
 
 /**
@@ -246,7 +243,7 @@ async function* paginate<T extends IDecodedMessage>(
   streamFactory: () => Promise<Stream>,
   queryOpts: Params,
   decoders: Map<string, IDecoder<T>>,
-  cursor?: Cursor
+  cursor?: proto.Index
 ): AsyncGenerator<Promise<T | undefined>[]> {
   if (
     queryOpts.contentTopics.toString() !==
@@ -272,7 +269,7 @@ async function* paginate<T extends IDecodedMessage>(
     const stream = await streamFactory();
 
     const res = await pipe(
-      [historyRpcQuery.encode()],
+      [historyRpcQuery.toBinary()],
       lp.encode(),
       stream,
       lp.decode(),
@@ -284,7 +281,8 @@ async function* paginate<T extends IDecodedMessage>(
       bytes.append(chunk);
     });
 
-    const reply = historyRpcQuery.decode(bytes);
+    const bytesToUint8Arr = bytes.slice();
+    const reply = historyRpcQuery.fromBinary(bytesToUint8Arr);
 
     if (!reply.response) {
       log("Stopping pagination due to store `response` field missing");
@@ -293,7 +291,7 @@ async function* paginate<T extends IDecodedMessage>(
 
     const response = reply.response as proto.HistoryResponse;
 
-    if (response.error && response.error !== HistoryError.NONE) {
+    if (response.error) {
       throw "History response contains an Error: " + response.error;
     }
 
@@ -352,7 +350,7 @@ export function isDefined<T>(msg: T | undefined): msg is T {
 export async function createCursor(
   message: IDecodedMessage,
   pubsubTopic: string = DefaultPubSubTopic
-): Promise<Cursor> {
+): Promise<proto.Index> {
   if (
     !message ||
     !message.timestamp ||
@@ -368,12 +366,12 @@ export async function createCursor(
 
   const messageTime = BigInt(message.timestamp.getTime()) * BigInt(1000000);
 
-  return {
+  return new proto.Index({
     digest,
     pubsubTopic,
     senderTime: messageTime,
     receiverTime: messageTime,
-  };
+  });
 }
 
 export function wakuStore(

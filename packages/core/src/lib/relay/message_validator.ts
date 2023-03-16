@@ -15,7 +15,7 @@ export function messageValidator(
   let result = TopicValidatorResult.Accept;
 
   try {
-    const protoMessage = proto.WakuMessage.decode(message.data);
+    const protoMessage = proto.WakuMessage.fromBinary(message.data);
 
     if (
       !protoMessage.contentTopic ||

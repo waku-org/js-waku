@@ -1,16 +1,9 @@
-import { IProtoMessage } from "@waku/interfaces";
-import { WakuMessage as WakuMessageProto } from "@waku/proto";
+import { proto_message } from "@waku/proto";
 
-const EmptyMessage: IProtoMessage = {
-  payload: new Uint8Array(),
-  contentTopic: "",
-  version: undefined,
-  timestamp: undefined,
-  meta: undefined,
-  rateLimitProof: undefined,
-  ephemeral: undefined,
-};
+const EmptyMessage: proto_message.WakuMessage = new proto_message.WakuMessage();
 
-export function toProtoMessage(wire: WakuMessageProto): IProtoMessage {
-  return { ...EmptyMessage, ...wire };
+export function toProtoMessage(
+  wire: proto_message.WakuMessage
+): proto_message.WakuMessage {
+  return new proto_message.WakuMessage({ ...EmptyMessage, ...wire });
 }

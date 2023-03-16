@@ -51,7 +51,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
     const { numPeers } = params;
 
     const rpcQuery = PeerExchangeRPC.createRequest({
-      numPeers: BigInt(numPeers),
+      numPeers,
     });
 
     const peer = await this.getPeer(params.peerId);
@@ -59,7 +59,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
     const stream = await this.newStream(peer);
 
     const res = await pipe(
-      [rpcQuery.encode()],
+      [rpcQuery.toBinary()],
       lp.encode(),
       stream,
       lp.decode(),

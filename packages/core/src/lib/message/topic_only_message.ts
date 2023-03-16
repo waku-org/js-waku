@@ -1,9 +1,5 @@
-import type {
-  IDecodedMessage,
-  IDecoder,
-  IProtoMessage,
-} from "@waku/interfaces";
-import { TopicOnlyMessage as ProtoTopicOnlyMessage } from "@waku/proto";
+import type { IDecodedMessage, IDecoder } from "@waku/interfaces";
+import { proto_message, proto_topic_only_message } from "@waku/proto";
 import debug from "debug";
 
 const log = debug("waku:message:topic-only");
@@ -17,7 +13,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
 
   constructor(
     public pubSubTopic: string,
-    private proto: ProtoTopicOnlyMessage
+    private proto: proto_topic_only_message.TopicOnlyMessage
   ) {}
 
   get contentTopic(): string {
@@ -28,23 +24,29 @@ export class TopicOnlyMessage implements IDecodedMessage {
 export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
   public contentTopic = "";
 
-  fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
-    const protoMessage = ProtoTopicOnlyMessage.decode(bytes);
+  fromWireToProtoObj(
+    bytes: Uint8Array
+  ): Promise<proto_message.WakuMessage | undefined> {
+    const protoMessage =
+      proto_topic_only_message.TopicOnlyMessage.fromBinary(bytes);
     log("Message decoded", protoMessage);
-    return Promise.resolve({
-      contentTopic: protoMessage.contentTopic,
-      payload: new Uint8Array(),
-      rateLimitProof: undefined,
-      timestamp: undefined,
-      meta: undefined,
-      version: undefined,
-      ephemeral: undefined,
-    });
+
+    return Promise.resolve(
+      new proto_message.WakuMessage({
+        ...protoMessage,
+        payload: new Uint8Array(),
+        rateLimitProof: undefined,
+        timestamp: undefined,
+        meta: undefined,
+        version: undefined,
+        ephemeral: undefined,
+      })
+    );
   }
 
   async fromProtoObj(
     pubSubTopic: string,
-    proto: IProtoMessage
+    proto: proto_message.WakuMessage
   ): Promise<TopicOnlyMessage | undefined> {
     return new TopicOnlyMessage(pubSubTopic, proto);
   }

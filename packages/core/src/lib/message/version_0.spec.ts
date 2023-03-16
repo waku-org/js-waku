@@ -1,4 +1,4 @@
-import type { IProtoMessage } from "@waku/interfaces";
+import { proto_message } from "@waku/proto";
 import { expect } from "chai";
 import fc from "fast-check";
 
@@ -69,7 +69,7 @@ describe("Waku Message version 0", function () {
           // Encode the length of the payload
           // Not a relevant real life example
           const metaSetter = (
-            msg: IProtoMessage & { meta: undefined }
+            msg: proto_message.WakuMessage & { meta: undefined }
           ): Uint8Array => {
             const buffer = new ArrayBuffer(4);
             const view = new DataView(buffer);
@@ -90,15 +90,17 @@ describe("Waku Message version 0", function () {
             protoResult!
           )) as DecodedMessage;
 
-          const expectedMeta = metaSetter({
-            payload,
-            timestamp: undefined,
-            contentTopic: "",
-            ephemeral: undefined,
-            meta: undefined,
-            rateLimitProof: undefined,
-            version: undefined,
-          });
+          const expectedMeta = metaSetter(
+            new proto_message.WakuMessage({
+              payload,
+              timestamp: undefined,
+              contentTopic: "",
+              ephemeral: undefined,
+              meta: undefined,
+              rateLimitProof: undefined,
+              version: undefined,
+            }) as proto_message.WakuMessage & { meta: undefined }
+          );
 
           expect(result.meta).to.deep.eq(expectedMeta);
         }

@@ -33,7 +33,7 @@ export class HistoryRpc {
   /**
    * Create History Query.
    */
-  static createQuery(params: Params): HistoryRpc {
+  static createQuery(params: Params): proto.HistoryRpc {
     const contentFilters = params.contentTopics.map((contentTopic) => {
       return { contentTopic };
     });
@@ -56,38 +56,41 @@ export class HistoryRpc {
       // milliseconds 10^-3 to nanoseconds 10^-9
       endTime = BigInt(params.endTime.valueOf()) * OneMillion;
     }
-    return new HistoryRpc({
+
+    const query = new proto.HistoryQuery({
+      pubsubTopic: params.pubSubTopic,
+      contentFilters,
+      pagingInfo,
+      startTime,
+      endTime,
+    });
+
+    return new proto.HistoryRpc({
       requestId: uuid(),
-      query: {
-        pubsubTopic: params.pubSubTopic,
-        contentFilters,
-        pagingInfo,
-        startTime,
-        endTime,
-      },
-      response: undefined,
+      query,
     });
   }
 
   decode(bytes: Uint8ArrayList): HistoryRpc {
-    const res = proto.HistoryRpc.decode(bytes);
+    const uint8array = bytes.slice();
+    const res = proto.HistoryRpc.fromBinary(uint8array);
     return new HistoryRpc(res);
   }
 
   encode(): Uint8Array {
-    return proto.HistoryRpc.encode(this.proto);
+    return new proto.HistoryRpc(this.proto).toBinary();
   }
 }
 
 function directionToProto(
   pageDirection: PageDirection
-): proto.PagingInfo.Direction {
+): proto.PagingInfo_Direction {
   switch (pageDirection) {
     case PageDirection.BACKWARD:
-      return proto.PagingInfo.Direction.BACKWARD;
+      return proto.PagingInfo_Direction.BACKWARD;
     case PageDirection.FORWARD:
-      return proto.PagingInfo.Direction.FORWARD;
+      return proto.PagingInfo_Direction.FORWARD;
     default:
-      return proto.PagingInfo.Direction.BACKWARD;
+      return proto.PagingInfo_Direction.BACKWARD;
   }
 }

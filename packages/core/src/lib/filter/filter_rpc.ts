@@ -16,15 +16,17 @@ export class FilterRpc {
     contentFilters: ContentFilter[],
     requestId?: string,
     subscribe = true
-  ): FilterRpc {
-    return new FilterRpc({
+  ): proto.FilterRpc {
+    const request = new proto.FilterRequest({
+      subscribe,
+      topic,
+      contentFilters: contentFilters.map(
+        (f) => new proto.FilterRequest_ContentFilter(f)
+      ),
+    });
+    return new proto.FilterRpc({
       requestId: requestId || uuid(),
-      request: {
-        subscribe,
-        topic,
-        contentFilters,
-      },
-      push: undefined,
+      request,
     });
   }
 
@@ -34,7 +36,7 @@ export class FilterRpc {
    * @returns FilterRpc
    */
   static decode(bytes: Uint8Array): FilterRpc {
-    const res = proto.FilterRpc.decode(bytes);
+    const res = proto.FilterRpc.fromBinary(bytes);
     return new FilterRpc(res);
   }
 
@@ -43,7 +45,7 @@ export class FilterRpc {
    * @returns Uint8Array
    */
   encode(): Uint8Array {
-    return proto.FilterRpc.encode(this.proto);
+    return new proto.FilterRpc(this.proto).toBinary();
   }
 
   get push(): proto.MessagePush | undefined {
