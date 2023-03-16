@@ -35,7 +35,7 @@
     "build": "run-s build:**",
     "build:esm": "tsc",
     "build:bundle": "rollup --config rollup.config.js",
-    "proto": "rimraf src/lib/*.ts; protons src/lib/*.proto",
+    "proto": "buf generate src/lib",
     "check:tsc": "tsc -p tsconfig.dev.json",
     "prepublish": "npm run build",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
@@ -48,8 +48,7 @@
   "dependencies": {
     "@bufbuild/buf": "^1.15.0-1",
     "@bufbuild/protobuf": "^1.1.1",
-    "@bufbuild/protoc-gen-es": "^1.1.1",
-    "protons-runtime": "^5.0.0"
+    "@bufbuild/protoc-gen-es": "^1.1.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",
@@ -67,7 +66,6 @@
     "eslint-plugin-prettier": "^4.2.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.4",
-    "protons": "^7.0.2",
     "rollup": "^3.15.0",
     "typescript": "^4.9.5",
     "uint8arraylist": "^2.4.3"
