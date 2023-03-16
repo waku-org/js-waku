@@ -9,7 +9,7 @@ import type {
   ProtocolCreateOptions,
   ProtocolOptions,
 } from "@waku/interfaces";
-import { proto_message } from "@waku/proto";
+import { proto_filter, proto_message } from "@waku/proto";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -20,7 +20,7 @@ import { DefaultPubSubTopic } from "../constants.js";
 import { groupByContentTopic } from "../group_by.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
-import { ContentFilter, FilterRpc } from "./filter_rpc.js";
+import { ContentFilter, createRequest } from "./filter_rpc.js";
 
 export { ContentFilter };
 
@@ -75,12 +75,7 @@ class Filter extends BaseProtocol implements IFilter {
     const contentFilters = contentTopics.map((contentTopic) => ({
       contentTopic,
     }));
-    const request = FilterRpc.createRequest(
-      pubSubTopic,
-      contentFilters,
-      undefined,
-      true
-    );
+    const request = createRequest(pubSubTopic, contentFilters, undefined, true);
 
     const requestId = request.requestId;
 
@@ -123,7 +118,7 @@ class Filter extends BaseProtocol implements IFilter {
     try {
       pipe(streamData.stream, lp.decode(), async (source) => {
         for await (const bytes of source) {
-          const res = FilterRpc.decode(bytes.slice());
+          const res = proto_filter.FilterRpc.fromBinary(bytes.slice());
           if (res.requestId && res.push?.messages?.length) {
             await this.pushMessages(res.requestId, res.push.messages);
           }
@@ -194,7 +189,7 @@ class Filter extends BaseProtocol implements IFilter {
     requestId: string,
     peer: Peer
   ): Promise<void> {
-    const unsubscribeRequest = FilterRpc.createRequest(
+    const unsubscribeRequest = createRequest(
       topic,
       contentFilters,
       requestId,

@@ -20,7 +20,7 @@ import { BaseProtocol } from "../base_protocol.js";
 import { DefaultPubSubTopic } from "../constants.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
-import { HistoryRpc, PageDirection, Params } from "./history_rpc.js";
+import { createQuery, PageDirection, Params } from "./history_rpc.js";
 
 const log = debug("waku:store");
 
@@ -258,7 +258,7 @@ async function* paginate<T extends IDecodedMessage>(
   while (true) {
     queryOpts.cursor = currentCursor;
 
-    const historyRpcQuery = HistoryRpc.createQuery(queryOpts);
+    const historyRpcQuery = createQuery(queryOpts);
 
     log(
       "Querying store peer",
