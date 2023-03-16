@@ -1,5 +1,4 @@
-import type { GossipSub, GossipsubEvents } from "@chainsafe/libp2p-gossipsub";
-import type { EventEmitter } from "@libp2p/interfaces/events";
+import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 
 import type {
   IDecodedMessage,
@@ -9,20 +8,19 @@ import type {
 } from "./message.js";
 import type { Callback, SendResult } from "./protocols.js";
 
-export interface RelayEvents {
-  "observer:added": CustomEvent;
-  "observer:removed": CustomEvent;
-}
+export type Observer<T extends IDecodedMessage> = {
+  decoder: IDecoder<T>;
+  callback: Callback<T>;
+};
 
-type IRelayEmitter = EventEmitter<RelayEvents & GossipsubEvents>;
-
-interface IRelayAPI extends GossipSub {
+export interface IRelay extends GossipSub {
   send: (encoder: IEncoder, message: IMessage) => Promise<SendResult>;
   addObserver: <T extends IDecodedMessage>(
     decoder: IDecoder<T>,
     callback: Callback<T>
   ) => () => void;
   getMeshPeers: () => string[];
+  getObservers: <T extends IDecodedMessage>(
+    contentTopic: string
+  ) => Set<Observer<T>>;
 }
-
-export type IRelay = IRelayAPI & IRelayEmitter;

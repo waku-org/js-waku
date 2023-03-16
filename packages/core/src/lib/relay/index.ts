@@ -6,13 +6,13 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import { CustomEvent } from "@libp2p/interfaces/events";
 import type {
   Callback,
   IDecoder,
   IEncoder,
   IMessage,
   IRelay,
+  Observers,
   ProtocolCreateOptions,
   SendResult,
 } from "@waku/interfaces";
@@ -28,17 +28,8 @@ import { messageValidator } from "./message_validator.js";
 
 const log = debug("waku:relay");
 
-export type Observer<T extends IDecodedMessage> = {
-  decoder: IDecoder<T>;
-  callback: Callback<T>;
-};
-
 export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
 export type ContentTopic = string;
-
-type BasicEventPayload = {
-  contentTopic: string;
-};
 
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
@@ -55,7 +46,7 @@ class Relay extends GossipSub implements IRelay {
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  private observers: Map<ContentTopic, Set<unknown>>;
+  private observers: Map<ContentTopic, Set<Observer<unknown>>>;
 
   constructor(
     components: GossipSubComponents,
@@ -120,26 +111,10 @@ class Relay extends GossipSub implements IRelay {
 
     pushOrInitMapSet(this.observers, contentTopic, observer);
 
-    this.dispatchEvent(
-      new CustomEvent<BasicEventPayload>("observer:added", {
-        detail: {
-          contentTopic,
-        },
-      })
-    );
-
     return () => {
       const observers = this.observers.get(contentTopic);
       if (observers) {
         observers.delete(observer);
-
-        this.dispatchEvent(
-          new CustomEvent<BasicEventPayload>("observer:removed", {
-            detail: {
-              contentTopic,
-            },
-          })
-        );
       }
     };
   }
@@ -207,6 +182,12 @@ class Relay extends GossipSub implements IRelay {
 
   getMeshPeers(topic?: TopicStr): PeerIdStr[] {
     return super.getMeshPeers(topic ?? this.pubSubTopic);
+  }
+
+  public getObservers<T extends IDecodedMessage>(
+    contentTopic: string
+  ): Set<Observer<T>> {
+    return this.observers.get(contentTopic) as Set<Observer<T>>;
   }
 }
 
