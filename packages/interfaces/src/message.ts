@@ -1,3 +1,5 @@
+import type { proto_message } from "@waku/proto";
+
 export interface IRateLimitProof {
   proof: Uint8Array;
   merkleRoot: Uint8Array;
@@ -6,20 +8,6 @@ export interface IRateLimitProof {
   shareY: Uint8Array;
   nullifier: Uint8Array;
   rlnIdentifier: Uint8Array;
-}
-
-/**
- * Interface matching the protobuf library.
- * Field types matches the protobuf type over the wire
- */
-export interface IProtoMessage {
-  payload: Uint8Array;
-  contentTopic: string;
-  version: number | undefined;
-  timestamp: bigint | undefined;
-  meta: Uint8Array | undefined;
-  rateLimitProof: IRateLimitProof | undefined;
-  ephemeral: boolean | undefined;
 }
 
 /**
@@ -32,7 +20,7 @@ export interface IMessage {
 }
 
 export interface IMetaSetter {
-  (message: IProtoMessage & { meta: undefined }): Uint8Array;
+  (message: proto_message.WakuMessage & { meta: undefined }): Uint8Array;
 }
 
 export interface EncoderOptions {
@@ -55,7 +43,9 @@ export interface IEncoder {
   contentTopic: string;
   ephemeral: boolean;
   toWire: (message: IMessage) => Promise<Uint8Array | undefined>;
-  toProtoObj: (message: IMessage) => Promise<IProtoMessage | undefined>;
+  toProtoObj: (
+    message: IMessage
+  ) => Promise<proto_message.WakuMessage | undefined>;
 }
 
 export interface IDecodedMessage {
@@ -69,9 +59,11 @@ export interface IDecodedMessage {
 
 export interface IDecoder<T extends IDecodedMessage> {
   contentTopic: string;
-  fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
+  fromWireToProtoObj: (
+    bytes: Uint8Array
+  ) => Promise<proto_message.WakuMessage | undefined>;
   fromProtoObj: (
     pubSubTopic: string,
-    proto: IProtoMessage
+    proto: proto_message.WakuMessage
   ) => Promise<T | undefined>;
 }
