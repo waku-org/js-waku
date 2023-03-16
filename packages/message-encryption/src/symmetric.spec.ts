@@ -1,4 +1,4 @@
-import { proto_message } from "@waku/proto";
+import { WakuMessage } from "@waku/proto";
 import { expect } from "chai";
 import fc from "fast-check";
 
@@ -81,7 +81,7 @@ describe("Symmetric Encryption", function () {
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (pubSubTopic, contentTopic, payload, symKey) => {
           const metaSetter = (
-            msg: proto_message.WakuMessage & { meta: undefined }
+            msg: WakuMessage & { meta: undefined }
           ): Uint8Array => {
             const buffer = new ArrayBuffer(4);
             const view = new DataView(buffer);
@@ -103,7 +103,7 @@ describe("Symmetric Encryption", function () {
           if (!result) throw "Failed to decode";
 
           const expectedMeta = metaSetter(
-            new proto_message.WakuMessage({
+            new WakuMessage({
               payload: protoResult.payload,
               timestamp: undefined,
               contentTopic: "",
@@ -111,7 +111,7 @@ describe("Symmetric Encryption", function () {
               meta: undefined,
               rateLimitProof: undefined,
               version: undefined,
-            }) as proto_message.WakuMessage & { meta: undefined }
+            }) as WakuMessage & { meta: undefined }
           );
 
           expect(result.meta).to.deep.equal(expectedMeta);

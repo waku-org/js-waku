@@ -1,9 +1,7 @@
-import { proto_message } from "@waku/proto";
+import { WakuMessage } from "@waku/proto";
 
-const EmptyMessage: proto_message.WakuMessage = new proto_message.WakuMessage();
+const EmptyMessage: WakuMessage = new WakuMessage();
 
-export function toProtoMessage(
-  wire: proto_message.WakuMessage
-): proto_message.WakuMessage {
-  return new proto_message.WakuMessage({ ...EmptyMessage, ...wire });
+export function toProtoMessage(wire: WakuMessage): WakuMessage {
+  return new WakuMessage({ ...EmptyMessage, ...wire });
 }

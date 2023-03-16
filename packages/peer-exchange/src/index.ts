@@ -1,3 +1,19 @@
+import type { PeerExchangeQueryParams } from "@waku/interfaces";
+import { proto_peer_exchange as proto } from "@waku/proto";
+
+export function createRequest(
+  params: PeerExchangeQueryParams
+): proto.PeerExchangeRPC {
+  const { numPeers } = params;
+
+  const query = new proto.PeerExchangeQuery({
+    numPeers: BigInt(numPeers),
+  });
+  return new proto.PeerExchangeRPC({
+    query,
+  });
+}
+
 export {
   wakuPeerExchange,
   PeerExchangeCodec,

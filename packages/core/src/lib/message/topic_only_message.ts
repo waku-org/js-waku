@@ -1,5 +1,5 @@
 import type { IDecodedMessage, IDecoder } from "@waku/interfaces";
-import { proto_message, proto_topic_only_message } from "@waku/proto";
+import { proto_topic_only_message, WakuMessage } from "@waku/proto";
 import debug from "debug";
 
 const log = debug("waku:message:topic-only");
@@ -24,15 +24,13 @@ export class TopicOnlyMessage implements IDecodedMessage {
 export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
   public contentTopic = "";
 
-  fromWireToProtoObj(
-    bytes: Uint8Array
-  ): Promise<proto_message.WakuMessage | undefined> {
+  fromWireToProtoObj(bytes: Uint8Array): Promise<WakuMessage | undefined> {
     const protoMessage =
       proto_topic_only_message.TopicOnlyMessage.fromBinary(bytes);
     log("Message decoded", protoMessage);
 
     return Promise.resolve(
-      new proto_message.WakuMessage({
+      new WakuMessage({
         ...protoMessage,
         payload: new Uint8Array(),
         rateLimitProof: undefined,
@@ -46,7 +44,7 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
 
   async fromProtoObj(
     pubSubTopic: string,
-    proto: proto_message.WakuMessage
+    proto: WakuMessage
   ): Promise<TopicOnlyMessage | undefined> {
     return new TopicOnlyMessage(pubSubTopic, proto);
   }

@@ -8,17 +8,16 @@ import type {
   ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
-import { proto_lightpush as proto } from "@waku/proto";
+import { proto_lightpush as proto, WakuMessage } from "@waku/proto";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
+import { v4 as uuid } from "uuid";
 
 import { BaseProtocol } from "../base_protocol.js";
 import { DefaultPubSubTopic } from "../constants.js";
-
-import { createRequest } from "./push_rpc.js";
 
 const log = debug("waku:light-push");
 
@@ -93,4 +92,18 @@ export function wakuLightPush(
   init: Partial<ProtocolCreateOptions> = {}
 ): (libp2p: Libp2p) => ILightPush {
   return (libp2p: Libp2p) => new LightPush(libp2p, init);
+}
+
+export function createRequest(
+  message: WakuMessage,
+  pubSubTopic: string
+): proto.PushRpc {
+  const request = new proto.PushRequest({
+    message,
+    pubsubTopic: pubSubTopic,
+  });
+  return new proto.PushRpc({
+    requestId: uuid(),
+    request,
+  });
 }

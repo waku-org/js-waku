@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Message } from "@libp2p/interface-pubsub";
 import { TopicValidatorResult } from "@libp2p/interface-pubsub";
-import { proto_message as proto } from "@waku/proto";
+import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
 const log = debug("waku:relay");
@@ -15,7 +15,7 @@ export function messageValidator(
   let result = TopicValidatorResult.Accept;
 
   try {
-    const protoMessage = proto.WakuMessage.fromBinary(message.data);
+    const protoMessage = WakuMessage.fromBinary(message.data);
 
     if (
       !protoMessage.contentTopic ||

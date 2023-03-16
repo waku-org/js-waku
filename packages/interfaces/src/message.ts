@@ -1,4 +1,4 @@
-import type { proto_message } from "@waku/proto";
+import type { WakuMessage } from "@waku/proto";
 
 export interface IRateLimitProof {
   proof: Uint8Array;
@@ -20,7 +20,7 @@ export interface IMessage {
 }
 
 export interface IMetaSetter {
-  (message: proto_message.WakuMessage & { meta: undefined }): Uint8Array;
+  (message: WakuMessage & { meta: undefined }): Uint8Array;
 }
 
 export interface EncoderOptions {
@@ -43,9 +43,7 @@ export interface IEncoder {
   contentTopic: string;
   ephemeral: boolean;
   toWire: (message: IMessage) => Promise<Uint8Array | undefined>;
-  toProtoObj: (
-    message: IMessage
-  ) => Promise<proto_message.WakuMessage | undefined>;
+  toProtoObj: (message: IMessage) => Promise<WakuMessage | undefined>;
 }
 
 export interface IDecodedMessage {
@@ -59,11 +57,9 @@ export interface IDecodedMessage {
 
 export interface IDecoder<T extends IDecodedMessage> {
   contentTopic: string;
-  fromWireToProtoObj: (
-    bytes: Uint8Array
-  ) => Promise<proto_message.WakuMessage | undefined>;
+  fromWireToProtoObj: (bytes: Uint8Array) => Promise<WakuMessage | undefined>;
   fromProtoObj: (
     pubSubTopic: string,
-    proto: proto_message.WakuMessage
+    proto: WakuMessage
   ) => Promise<T | undefined>;
 }

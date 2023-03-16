@@ -53,7 +53,6 @@
     "@libp2p/interface-peer-discovery": "^1.0.5",
     "@libp2p/interfaces": "^3.3.1",
     "@waku/enr": "*",
-    "@waku/interfaces": "*",
     "@waku/proto": "*",
     "debug": "^4.3.4",
     "it-all": "^2.0.0",
@@ -85,6 +84,7 @@
     "rollup": "^3.15.0",
     "ts-loader": "^9.4.2",
     "typescript": "^4.9.5",
+    "@waku/interfaces": "*",
     "uint8arraylist": "^2.4.3"
   },
   "typedoc": {

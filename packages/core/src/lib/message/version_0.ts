@@ -7,17 +7,16 @@ import type {
   IMessage,
   IRateLimitProof,
 } from "@waku/interfaces";
-import { proto_message as proto, proto_message } from "@waku/proto";
+import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
 const log = debug("waku:message:version-0");
 const OneMillion = BigInt(1_000_000);
 
 export const Version = 0;
-export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
-  constructor(public pubSubTopic: string, protected proto: proto.WakuMessage) {}
+  constructor(public pubSubTopic: string, protected proto: WakuMessage) {}
 
   get ephemeral(): boolean {
     return Boolean(this.proto.ephemeral);
@@ -73,13 +72,13 @@ export class Encoder implements IEncoder {
   ) {}
 
   async toWire(message: IMessage): Promise<Uint8Array> {
-    return new proto.WakuMessage(await this.toProtoObj(message)).toBinary();
+    return new WakuMessage(await this.toProtoObj(message)).toBinary();
   }
 
-  async toProtoObj(message: IMessage): Promise<proto_message.WakuMessage> {
+  async toProtoObj(message: IMessage): Promise<WakuMessage> {
     const timestamp = message.timestamp ?? new Date();
 
-    const protoMessageWithoutMeta = new proto_message.WakuMessage({
+    const protoMessageWithoutMeta = new WakuMessage({
       payload: message.payload,
       version: Version,
       contentTopic: this.contentTopic,
@@ -87,11 +86,11 @@ export class Encoder implements IEncoder {
       meta: undefined,
       rateLimitProof: message.rateLimitProof,
       ephemeral: this.ephemeral,
-    }) as proto_message.WakuMessage & { meta: undefined };
+    }) as WakuMessage & { meta: undefined };
 
     if (this.metaSetter) {
       const meta = this.metaSetter(protoMessageWithoutMeta);
-      const protoMessageWithMeta = new proto_message.WakuMessage({
+      const protoMessageWithMeta = new WakuMessage({
         ...protoMessageWithoutMeta,
         meta,
       });
@@ -122,17 +121,15 @@ export function createEncoder({
 export class Decoder implements IDecoder<DecodedMessage> {
   constructor(public contentTopic: string) {}
 
-  fromWireToProtoObj(
-    bytes: Uint8Array
-  ): Promise<proto_message.WakuMessage | undefined> {
-    const protoMessage = proto.WakuMessage.fromBinary(bytes);
+  fromWireToProtoObj(bytes: Uint8Array): Promise<WakuMessage | undefined> {
+    const protoMessage = WakuMessage.fromBinary(bytes);
     log("Message decoded", protoMessage);
     return Promise.resolve(protoMessage);
   }
 
   async fromProtoObj(
     pubSubTopic: string,
-    proto: proto_message.WakuMessage
+    proto: WakuMessage
   ): Promise<DecodedMessage | undefined> {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.

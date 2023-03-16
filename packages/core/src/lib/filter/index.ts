@@ -9,20 +9,22 @@ import type {
   ProtocolCreateOptions,
   ProtocolOptions,
 } from "@waku/interfaces";
-import { proto_filter, proto_message } from "@waku/proto";
+import { proto_filter, WakuMessage } from "@waku/proto";
+import { proto_filter as proto } from "@waku/proto";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
+import { v4 as uuid } from "uuid";
 
 import { BaseProtocol } from "../base_protocol.js";
 import { DefaultPubSubTopic } from "../constants.js";
 import { groupByContentTopic } from "../group_by.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
-import { ContentFilter, createRequest } from "./filter_rpc.js";
-
-export { ContentFilter };
+export type ContentFilter = {
+  contentTopic: string;
+};
 
 export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 
@@ -138,7 +140,7 @@ class Filter extends BaseProtocol implements IFilter {
 
   private async pushMessages<T extends IDecodedMessage>(
     requestId: string,
-    messages: proto_message.WakuMessage[]
+    messages: WakuMessage[]
   ): Promise<void> {
     const subscription = this.subscriptions.get(requestId) as
       | Subscription<T>
@@ -210,4 +212,23 @@ export function wakuFilter(
   init: Partial<ProtocolCreateOptions> = {}
 ): (libp2p: Libp2p) => IFilter {
   return (libp2p: Libp2p) => new Filter(libp2p, init);
+}
+
+export function createRequest(
+  topic: string,
+  contentFilters: ContentFilter[],
+  requestId?: string,
+  subscribe = true
+): proto.FilterRpc {
+  const request = new proto.FilterRequest({
+    subscribe,
+    topic,
+    contentFilters: contentFilters.map(
+      (f) => new proto.FilterRequest_ContentFilter(f)
+    ),
+  });
+  return new proto.FilterRpc({
+    requestId: requestId || uuid(),
+    request,
+  });
 }

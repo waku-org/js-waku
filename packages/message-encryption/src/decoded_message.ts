@@ -1,8 +1,6 @@
-import {
-  DecodedMessage as DecodedMessageV0,
-  proto,
-} from "@waku/core/lib/message/version_0";
+import { DecodedMessage as DecodedMessageV0 } from "@waku/core/lib/message/version_0";
 import type { IDecodedMessage } from "@waku/interfaces";
+import { WakuMessage } from "@waku/proto";
 
 export class DecodedMessage
   extends DecodedMessageV0
@@ -12,7 +10,7 @@ export class DecodedMessage
 
   constructor(
     pubSubTopic: string,
-    proto: proto.WakuMessage,
+    proto: WakuMessage,
     decodedPayload: Uint8Array,
     public signature?: Uint8Array,
     public signaturePublicKey?: Uint8Array

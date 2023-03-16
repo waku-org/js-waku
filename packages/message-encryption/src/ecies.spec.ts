@@ -1,4 +1,4 @@
-import { proto_message } from "@waku/proto";
+import { WakuMessage } from "@waku/proto";
 import { expect } from "chai";
 import fc from "fast-check";
 
@@ -93,7 +93,7 @@ describe("Ecies Encryption", function () {
         async (pubSubTopic, contentTopic, payload, privateKey) => {
           const publicKey = getPublicKey(privateKey);
           const metaSetter = (
-            msg: proto_message.WakuMessage & { meta: undefined }
+            msg: WakuMessage & { meta: undefined }
           ): Uint8Array => {
             const buffer = new ArrayBuffer(4);
             const view = new DataView(buffer);
@@ -115,7 +115,7 @@ describe("Ecies Encryption", function () {
           if (!result) throw "Failed to decode";
 
           const expectedMeta = metaSetter(
-            new proto_message.WakuMessage({
+            new WakuMessage({
               payload: protoResult.payload,
               timestamp: undefined,
               contentTopic: "",
@@ -123,7 +123,7 @@ describe("Ecies Encryption", function () {
               meta: undefined,
               rateLimitProof: undefined,
               version: undefined,
-            }) as proto_message.WakuMessage & { meta: undefined }
+            }) as WakuMessage & { meta: undefined }
           );
 
           expect(result.meta).to.deep.equal(expectedMeta);

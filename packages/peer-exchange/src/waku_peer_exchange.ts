@@ -7,13 +7,14 @@ import type {
   PeerExchangeQueryParams,
   PeerInfo,
 } from "@waku/interfaces";
+import { proto_peer_exchange } from "@waku/proto";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import { PeerExchangeRPC } from "./rpc.js";
+import { createRequest } from "./index.js";
 
 export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
@@ -50,7 +51,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
   async query(params: PeerExchangeQueryParams): Promise<PeerInfo[]> {
     const { numPeers } = params;
 
-    const rpcQuery = PeerExchangeRPC.createRequest({
+    const rpcQuery = createRequest({
       numPeers,
     });
 
@@ -72,14 +73,16 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
         bytes.append(chunk);
       });
 
-      const decoded = PeerExchangeRPC.decode(bytes).response;
+      const { response } = proto_peer_exchange.PeerExchangeRPC.fromBinary(
+        bytes.slice()
+      );
 
-      if (!decoded) {
+      if (!response) {
         throw new Error("Failed to decode response");
       }
 
       const enrs = await Promise.all(
-        decoded.peerInfos.map(
+        response.peerInfos.map(
           (peerInfo) => peerInfo.enr && EnrDecoder.fromRLP(peerInfo.enr)
         )
       );

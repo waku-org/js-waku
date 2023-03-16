@@ -6,7 +6,7 @@ import type {
   IEncoder,
   IMessage,
 } from "@waku/interfaces";
-import { proto_message } from "@waku/proto";
+import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
 import { DecodedMessage } from "./decoded_message.js";
@@ -42,18 +42,16 @@ class Encoder implements IEncoder {
     const protoMessage = await this.toProtoObj(message);
     if (!protoMessage) return;
 
-    return new proto_message.WakuMessage(protoMessage).toBinary();
+    return new WakuMessage(protoMessage).toBinary();
   }
 
-  async toProtoObj(
-    message: IMessage
-  ): Promise<proto_message.WakuMessage | undefined> {
+  async toProtoObj(message: IMessage): Promise<WakuMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
     const preparedPayload = await preCipher(message.payload, this.sigPrivKey);
 
     const payload = await encryptAsymmetric(preparedPayload, this.publicKey);
 
-    const protoMessageWithoutMeta = new proto_message.WakuMessage({
+    const protoMessageWithoutMeta = new WakuMessage({
       payload,
       version: Version,
       contentTopic: this.contentTopic,
@@ -61,11 +59,11 @@ class Encoder implements IEncoder {
       meta: undefined,
       rateLimitProof: message.rateLimitProof,
       ephemeral: this.ephemeral,
-    }) as proto_message.WakuMessage & { meta: undefined };
+    }) as WakuMessage & { meta: undefined };
 
     if (this.metaSetter) {
       const meta = this.metaSetter(protoMessageWithoutMeta);
-      const protoMessageWithMeta = new proto_message.WakuMessage({
+      const protoMessageWithMeta = new WakuMessage({
         ...protoMessageWithoutMeta,
         meta,
       });
@@ -118,7 +116,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 
   async fromProtoObj(
     pubSubTopic: string,
-    protoMessage: proto_message.WakuMessage
+    protoMessage: WakuMessage
   ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 
