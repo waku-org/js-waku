@@ -8,15 +8,15 @@ import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type {
   Callback,
+  IDecodedMessage,
   IDecoder,
   IEncoder,
   IMessage,
   IRelay,
-  Observers,
+  Observer,
   ProtocolCreateOptions,
   SendResult,
 } from "@waku/interfaces";
-import { IDecodedMessage } from "@waku/interfaces";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants.js";
