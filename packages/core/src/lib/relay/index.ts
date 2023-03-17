@@ -46,7 +46,7 @@ class Relay extends GossipSub implements IRelay {
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  private observers: Map<ContentTopic, Set<Observer<unknown>>>;
+  private observers: Map<ContentTopic, Set<unknown>>;
 
   constructor(
     components: GossipSubComponents,
