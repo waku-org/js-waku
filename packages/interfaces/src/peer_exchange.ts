@@ -6,7 +6,7 @@ import { IEnr } from "./enr.js";
 import { PointToPointProtocol } from "./protocols.js";
 
 export interface IPeerExchange extends PointToPointProtocol {
-  query(params: PeerExchangeQueryParams): Promise<PeerInfo[]>;
+  query(params: PeerExchangeQueryParams): Promise<PeerInfo[] | undefined>;
 }
 
 export interface PeerExchangeQueryParams {

@@ -4,6 +4,7 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import { DefaultPubSubTopic } from "@waku/core";
+import { isDefined } from "@waku/utils";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import appRoot from "app-root-path";
 import debug from "debug";
@@ -271,12 +272,6 @@ export class Nwaku {
     pubsubTopic: string = DefaultPubSubTopic
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
-
-    const isDefined = (
-      msg: MessageRpcResponse | undefined
-    ): msg is MessageRpcResponse => {
-      return !!msg;
-    };
 
     const msgs = await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_relay_v1_messages",
