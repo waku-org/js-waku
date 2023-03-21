@@ -140,17 +140,20 @@ describe("Peer Exchange", () => {
     });
   });
 
-  describe("compliance test", async function () {
+  describe.only("compliance test", async function () {
     this.timeout(25_000);
 
     let waku: LightNode;
     let nwaku1: Nwaku;
     let nwaku2: Nwaku;
 
+    beforeEach(async function () {
+      nwaku1 = new Nwaku(makeLogFileName(this) + "1");
+      nwaku2 = new Nwaku(makeLogFileName(this) + "2");
+    });
+
     tests({
       async setup() {
-        nwaku1 = new Nwaku("1");
-        nwaku2 = new Nwaku("2");
         await nwaku1.start({
           discv5Discovery: true,
           peerExchange: true,
@@ -169,19 +172,16 @@ describe("Peer Exchange", () => {
         await waku.start();
         const nwaku2Ma = await nwaku2.getMultiaddrWithId();
 
-        setTimeout(async () => {
-          await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
-          await new Promise<void>((resolve) => {
-            waku.libp2p.peerStore.addEventListener(
-              "change:protocols",
-              (evt) => {
-                if (evt.detail.protocols.includes(PeerExchangeCodec)) {
-                  resolve();
-                }
-              }
-            );
+        // setTimeout(async () => {
+        await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
+        await new Promise<void>((resolve) => {
+          waku.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
+            if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+              resolve();
+            }
           });
-        }, 1000);
+        });
+        // }, 1000);
 
         // the ts-ignores are added ref: https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
         const components = {
