@@ -46,7 +46,7 @@ describe("Waku Light Push [node only]", () => {
 
     const messageText = "Light Push works!";
 
-    const pushResponse = await waku.lightPush.push(TestEncoder, {
+    const pushResponse = await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes(messageText),
     });
     expect(pushResponse.recipients.length).to.eq(1);
@@ -87,7 +87,7 @@ describe("Waku Light Push [node only]", () => {
     const messageText = "Light Push works!";
 
     log("Send message via lightpush");
-    const pushResponse = await waku.lightPush.push(
+    const pushResponse = await waku.lightPush.send(
       TestEncoder,
       { payload: utf8ToBytes(messageText) },
       {

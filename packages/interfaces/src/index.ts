@@ -8,3 +8,4 @@ export * from "./relay.js";
 export * from "./store.js";
 export * from "./waku.js";
 export * from "./connection_manager.js";
+export * from "./sender.js";

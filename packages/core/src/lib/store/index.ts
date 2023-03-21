@@ -10,6 +10,7 @@ import {
   ProtocolCreateOptions,
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
+import { isDefined } from "@waku/utils";
 import { concat, utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 import all from "it-all";
@@ -343,10 +344,6 @@ async function* paginate<T extends IDecodedMessage>(
       break;
     }
   }
-}
-
-export function isDefined<T>(msg: T | undefined): msg is T {
-  return !!msg;
 }
 
 export async function createCursor(
