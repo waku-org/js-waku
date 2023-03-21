@@ -9,7 +9,7 @@ type ContentTopic = string;
 
 export type ActiveSubscriptions = Map<PubSubTopic, ContentTopic[]>;
 
-export interface IRelayAPI {
+interface IRelayAPI {
   addObserver: <T extends IDecodedMessage>(
     decoder: IDecoder<T>,
     callback: Callback<T>
