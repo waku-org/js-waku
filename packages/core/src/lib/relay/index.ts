@@ -6,9 +6,10 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import { CustomEvent } from "@libp2p/interfaces/events";
 import type {
+  ActiveSubscriptions,
   Callback,
+  IDecodedMessage,
   IDecoder,
   IEncoder,
   IMessage,
@@ -16,7 +17,6 @@ import type {
   ProtocolCreateOptions,
   SendResult,
 } from "@waku/interfaces";
-import { IDecodedMessage } from "@waku/interfaces";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants.js";
@@ -35,10 +35,6 @@ export type Observer<T extends IDecodedMessage> = {
 
 export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
 export type ContentTopic = string;
-
-type BasicEventPayload = {
-  contentTopic: string;
-};
 
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
@@ -120,28 +116,18 @@ class Relay extends GossipSub implements IRelay {
 
     pushOrInitMapSet(this.observers, contentTopic, observer);
 
-    this.dispatchEvent(
-      new CustomEvent<BasicEventPayload>("observer:added", {
-        detail: {
-          contentTopic,
-        },
-      })
-    );
-
     return () => {
       const observers = this.observers.get(contentTopic);
       if (observers) {
         observers.delete(observer);
-
-        this.dispatchEvent(
-          new CustomEvent<BasicEventPayload>("observer:removed", {
-            detail: {
-              contentTopic,
-            },
-          })
-        );
       }
     };
+  }
+
+  public getActiveSubscriptions(): ActiveSubscriptions {
+    const map = new Map();
+    map.set(this.pubSubTopic, this.observers.keys());
+    return map;
   }
 
   private async processIncomingMessage<T extends IDecodedMessage>(
