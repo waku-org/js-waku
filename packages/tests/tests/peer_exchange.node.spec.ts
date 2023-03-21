@@ -142,7 +142,7 @@ describe("Peer Exchange", () => {
     });
   });
 
-  describe.only("compliance test", async function () {
+  describe("compliance test", async function () {
     this.timeout(25_000);
 
     let waku: LightNode;
