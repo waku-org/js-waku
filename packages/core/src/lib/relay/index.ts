@@ -124,7 +124,7 @@ class Relay extends GossipSub implements IRelay {
     };
   }
 
-  public getActiveSubscriptions(): ActiveSubscriptions | undefined {
+  public getActiveSubscriptions(): ActiveSubscriptions {
     const map = new Map();
     map.set(this.pubSubTopic, this.observers.keys());
     return map;
