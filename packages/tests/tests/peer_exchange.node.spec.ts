@@ -4,9 +4,8 @@ import {
   Fleet,
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
-import { createLightNode } from "@waku/create";
-import { PeerInfo } from "@waku/interfaces";
-import type { LightNode } from "@waku/interfaces";
+import { createLightNode, Libp2pComponents } from "@waku/create";
+import type { LightNode, PeerInfo } from "@waku/interfaces";
 import {
   PeerExchangeCodec,
   PeerExchangeDiscovery,
@@ -110,13 +109,15 @@ describe("Peer Exchange", () => {
 
       await nwaku2.waitForLog("Discovered px peers via discv5", 10);
 
-      // the ts-ignores are added ref: https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
-      const peerExchange = new WakuPeerExchange({
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        connectionManager: waku.libp2p.connectionManager,
+      // the forced type casting is done in ref to https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
+      const components = {
+        connectionManager: (waku.libp2p as unknown as Libp2pComponents)
+          .connectionManager,
+        registrar: (waku.libp2p as unknown as Libp2pComponents).registrar,
         peerStore: waku.libp2p.peerStore,
-      });
+      };
+
+      const peerExchange = new WakuPeerExchange(components);
 
       const numPeersToRequest = 1;
 
@@ -182,15 +183,12 @@ describe("Peer Exchange", () => {
           });
         });
 
-        // the ts-ignores are added ref: https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
+        // the forced type casting is done in ref to https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
         const components = {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          connectionManager: waku.libp2p.connectionManager,
+          connectionManager: (waku.libp2p as unknown as Libp2pComponents)
+            .connectionManager,
+          registrar: (waku.libp2p as unknown as Libp2pComponents).registrar,
           peerStore: waku.libp2p.peerStore,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          registrar: waku.libp2p.registrar,
         };
 
         return new PeerExchangeDiscovery(components);
