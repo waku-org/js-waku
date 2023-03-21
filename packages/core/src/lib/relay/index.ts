@@ -7,13 +7,13 @@ import {
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type {
+  ActiveSubscriptions,
   Callback,
   IDecodedMessage,
   IDecoder,
   IEncoder,
   IMessage,
   IRelay,
-  Observer,
   ProtocolCreateOptions,
   SendResult,
 } from "@waku/interfaces";
@@ -27,6 +27,11 @@ import * as constants from "./constants.js";
 import { messageValidator } from "./message_validator.js";
 
 const log = debug("waku:relay");
+
+export type Observer<T extends IDecodedMessage> = {
+  decoder: IDecoder<T>;
+  callback: Callback<T>;
+};
 
 export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
 export type ContentTopic = string;
@@ -117,6 +122,12 @@ class Relay extends GossipSub implements IRelay {
         observers.delete(observer);
       }
     };
+  }
+
+  public getActiveSubscriptions(): ActiveSubscriptions | undefined {
+    const map = new Map();
+    map.set(this.pubSubTopic, this.observers.keys());
+    return map;
   }
 
   private async processIncomingMessage<T extends IDecodedMessage>(

@@ -8,10 +8,10 @@ import type {
 } from "./message.js";
 import type { Callback, SendResult } from "./protocols.js";
 
-export type Observer<T extends IDecodedMessage> = {
-  decoder: IDecoder<T>;
-  callback: Callback<T>;
-};
+type PubSubTopic = string;
+type ContentTopic = string;
+
+export type ActiveSubscriptions = Map<PubSubTopic, ContentTopic[]>;
 
 export interface IRelay extends GossipSub {
   send: (encoder: IEncoder, message: IMessage) => Promise<SendResult>;
@@ -20,7 +20,5 @@ export interface IRelay extends GossipSub {
     callback: Callback<T>
   ) => () => void;
   getMeshPeers: () => string[];
-  getObservers: <T extends IDecodedMessage>(
-    contentTopic: string
-  ) => Set<Observer<T>>;
+  getActiveSubscriptions: () => ActiveSubscriptions | undefined;
 }
