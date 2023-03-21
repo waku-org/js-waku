@@ -194,12 +194,6 @@ class Relay extends GossipSub implements IRelay {
   getMeshPeers(topic?: TopicStr): PeerIdStr[] {
     return super.getMeshPeers(topic ?? this.pubSubTopic);
   }
-
-  public getObservers<T extends IDecodedMessage>(
-    contentTopic: string
-  ): Set<Observer<T>> {
-    return this.observers.get(contentTopic) as Set<Observer<T>>;
-  }
 }
 
 Relay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
