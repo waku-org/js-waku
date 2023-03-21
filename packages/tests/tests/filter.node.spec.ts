@@ -63,7 +63,7 @@ describe("Waku Filter", () => {
     // correct in future versions of the protocol.
     await delay(200);
 
-    await waku.lightPush.push(TestEncoder, message);
+    await waku.lightPush.send(TestEncoder, message);
     while (messageCount === 0) {
       await delay(250);
     }
@@ -81,10 +81,10 @@ describe("Waku Filter", () => {
     await waku.filter.subscribe([TestDecoder], callback);
 
     await delay(200);
-    await waku.lightPush.push(TestEncoder, {
+    await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("Filtering works!"),
     });
-    await waku.lightPush.push(TestEncoder, {
+    await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("Filtering still works!"),
     });
     while (messageCount < 2) {
@@ -101,13 +101,13 @@ describe("Waku Filter", () => {
     const unsubscribe = await waku.filter.subscribe([TestDecoder], callback);
 
     await delay(200);
-    await waku.lightPush.push(TestEncoder, {
+    await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received"),
     });
     await delay(100);
     await unsubscribe();
     await delay(200);
-    await waku.lightPush.push(TestEncoder, {
+    await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should not be received"),
     });
     await delay(100);

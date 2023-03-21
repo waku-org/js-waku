@@ -135,9 +135,9 @@ describe("Waku Message Ephemeral field", () => {
 
     log("Sending messages using light push");
     await Promise.all([
-      waku1.lightPush.push(asymEncoder, asymMsg),
-      waku1.lightPush.push(symEncoder, symMsg),
-      waku1.lightPush.push(clearEncoder, clearMsg),
+      waku1.lightPush.send(asymEncoder, asymMsg),
+      waku1.lightPush.send(symEncoder, symMsg),
+      waku1.lightPush.send(clearEncoder, clearMsg),
     ]);
 
     await waitForRemotePeer(waku2, [Protocols.Store]);
@@ -181,10 +181,10 @@ describe("Waku Message Ephemeral field", () => {
     await delay(200);
     const normalTxt = "Normal message";
     const ephemeralTxt = "Ephemeral Message";
-    await waku.lightPush.push(TestEncoder, {
+    await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes(normalTxt),
     });
-    await waku.lightPush.push(ephemeralEncoder, {
+    await waku.lightPush.send(ephemeralEncoder, {
       payload: utf8ToBytes(ephemeralTxt),
     });
     while (messages.length < 2) {
@@ -230,10 +230,10 @@ describe("Waku Message Ephemeral field", () => {
     await delay(200);
     const normalTxt = "Normal message";
     const ephemeralTxt = "Ephemeral Message";
-    await waku.lightPush.push(encoder, {
+    await waku.lightPush.send(encoder, {
       payload: utf8ToBytes(normalTxt),
     });
-    await waku.lightPush.push(ephemeralEncoder, {
+    await waku.lightPush.send(ephemeralEncoder, {
       payload: utf8ToBytes(ephemeralTxt),
     });
     while (messages.length < 2) {
@@ -280,10 +280,10 @@ describe("Waku Message Ephemeral field", () => {
     await delay(200);
     const normalTxt = "Normal message";
     const ephemeralTxt = "Ephemeral Message";
-    await waku.lightPush.push(encoder, {
+    await waku.lightPush.send(encoder, {
       payload: utf8ToBytes(normalTxt),
     });
-    await waku.lightPush.push(ephemeralEncoder, {
+    await waku.lightPush.send(ephemeralEncoder, {
       payload: utf8ToBytes(ephemeralTxt),
     });
     while (messages.length < 2) {

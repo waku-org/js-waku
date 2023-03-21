@@ -36,7 +36,7 @@ class LightPush extends BaseProtocol implements ILightPush {
     this.options = options || {};
   }
 
-  async push(
+  async send(
     encoder: IEncoder,
     message: IMessage,
     opts?: ProtocolOptions

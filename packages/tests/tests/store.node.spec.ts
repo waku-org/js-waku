@@ -412,10 +412,10 @@ describe("Waku Store", () => {
 
     log("Sending messages using light push");
     await Promise.all([
-      waku1.lightPush.push(eciesEncoder, asymMsg),
-      waku1.lightPush.push(symEncoder, symMsg),
-      waku1.lightPush.push(otherEncoder, otherMsg),
-      waku1.lightPush.push(TestEncoder, clearMsg),
+      waku1.lightPush.send(eciesEncoder, asymMsg),
+      waku1.lightPush.send(symEncoder, symMsg),
+      waku1.lightPush.send(otherEncoder, otherMsg),
+      waku1.lightPush.send(TestEncoder, clearMsg),
     ]);
 
     await waitForRemotePeer(waku2, [Protocols.Store]);
