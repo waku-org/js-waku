@@ -1,14 +1,4 @@
-import type { IEncoder, IMessage } from "./message.js";
-import type {
-  PointToPointProtocol,
-  ProtocolOptions,
-  SendResult,
-} from "./protocols.js";
+import type { PointToPointProtocol } from "./protocols.js";
+import type { ISender } from "./sender.js";
 
-export interface ILightPush extends PointToPointProtocol {
-  push: (
-    encoder: IEncoder,
-    message: IMessage,
-    opts?: ProtocolOptions
-  ) => Promise<SendResult>;
-}
+export type ILightPush = ISender & PointToPointProtocol;

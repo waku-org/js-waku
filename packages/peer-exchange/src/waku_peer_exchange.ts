@@ -7,6 +7,7 @@ import type {
   PeerExchangeQueryParams,
   PeerInfo,
 } from "@waku/interfaces";
+import { isDefined } from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -47,7 +48,9 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
   /**
    * Make a peer exchange query to a peer
    */
-  async query(params: PeerExchangeQueryParams): Promise<PeerInfo[]> {
+  async query(
+    params: PeerExchangeQueryParams
+  ): Promise<PeerInfo[] | undefined> {
     const { numPeers } = params;
 
     const rpcQuery = PeerExchangeRPC.createRequest({
@@ -72,28 +75,24 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
         bytes.append(chunk);
       });
 
-      const decoded = PeerExchangeRPC.decode(bytes).response;
+      const { response } = PeerExchangeRPC.decode(bytes);
 
-      if (!decoded) {
-        throw new Error("Failed to decode response");
+      if (!response) {
+        log("PeerExchangeRPC message did not contains a `response` field");
+        return;
       }
 
-      const enrs = await Promise.all(
-        decoded.peerInfos.map(
-          (peerInfo) => peerInfo.enr && EnrDecoder.fromRLP(peerInfo.enr)
-        )
+      return Promise.all(
+        response.peerInfos
+          .map((peerInfo) => peerInfo.enr)
+          .filter(isDefined)
+          .map(async (enr) => {
+            return { ENR: await EnrDecoder.fromRLP(enr) };
+          })
       );
-
-      const peerInfos = enrs.map((enr) => {
-        return {
-          ENR: enr,
-        };
-      });
-
-      return peerInfos;
     } catch (err) {
       log("Failed to decode push reply", err);
-      throw new Error("Failed to decode push reply");
+      return;
     }
   }
 }

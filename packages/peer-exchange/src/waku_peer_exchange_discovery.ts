@@ -155,10 +155,15 @@ export class PeerExchangeDiscovery
       peerId,
     });
 
+    if (!peerInfos) {
+      log("Peer exchange query failed, no peer info returned");
+      return;
+    }
+
     for (const _peerInfo of peerInfos) {
       const { ENR } = _peerInfo;
       if (!ENR) {
-        log("no ENR");
+        log("No ENR in peerInfo object, skipping");
         continue;
       }
 

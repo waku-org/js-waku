@@ -5,6 +5,7 @@ import {
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import { createLightNode } from "@waku/create";
+import { PeerInfo } from "@waku/interfaces";
 import type { LightNode } from "@waku/interfaces";
 import {
   PeerExchangeCodec,
@@ -119,9 +120,9 @@ describe("Peer Exchange", () => {
 
       const numPeersToRequest = 1;
 
-      const peerInfos = await peerExchange.query({
+      const peerInfos = (await peerExchange.query({
         numPeers: numPeersToRequest,
-      });
+      })) as PeerInfo[];
 
       expect(peerInfos.length).to.be.greaterThan(0);
       expect(peerInfos.length).to.be.lessThanOrEqual(numPeersToRequest);

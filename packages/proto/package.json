@@ -1,6 +1,6 @@
 {
   "name": "@waku/proto",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Protobuf definitions for Waku",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -52,7 +52,7 @@
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.51.0",
     "@waku/build-utils": "*",
     "cspell": "^6.28.0",
