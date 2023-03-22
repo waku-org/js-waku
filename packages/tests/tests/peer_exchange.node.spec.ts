@@ -110,11 +110,12 @@ describe("Peer Exchange", () => {
       await nwaku2.waitForLog("Discovered px peers via discv5", 10);
 
       // the forced type casting is done in ref to https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
+      const { connectionManager, registrar, peerStore } =
+        waku.libp2p as unknown as Libp2pComponents;
       const components = {
-        connectionManager: (waku.libp2p as unknown as Libp2pComponents)
-          .connectionManager,
-        registrar: (waku.libp2p as unknown as Libp2pComponents).registrar,
-        peerStore: waku.libp2p.peerStore,
+        connectionManager: connectionManager,
+        registrar: registrar,
+        peerStore: peerStore,
       };
 
       const peerExchange = new WakuPeerExchange(components);
@@ -184,11 +185,12 @@ describe("Peer Exchange", () => {
         });
 
         // the forced type casting is done in ref to https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
+        const { connectionManager, registrar, peerStore } =
+          waku.libp2p as unknown as Libp2pComponents;
         const components = {
-          connectionManager: (waku.libp2p as unknown as Libp2pComponents)
-            .connectionManager,
-          registrar: (waku.libp2p as unknown as Libp2pComponents).registrar,
-          peerStore: waku.libp2p.peerStore,
+          connectionManager: connectionManager,
+          registrar: registrar,
+          peerStore: peerStore,
         };
 
         return new PeerExchangeDiscovery(components);
