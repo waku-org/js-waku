@@ -2,6 +2,7 @@ import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
+  ActiveSubscriptions,
   Callback,
   IDecodedMessage,
   IDecoder,
@@ -116,6 +117,22 @@ class Filter extends BaseProtocol implements IFilter {
       await this.unsubscribe(pubSubTopic, contentFilters, requestId, peer);
       this.subscriptions.delete(requestId);
     };
+  }
+
+  public getActiveSubscriptions(): ActiveSubscriptions {
+    const map: ActiveSubscriptions = new Map();
+    const subscriptions = this.subscriptions as Map<
+      RequestID,
+      Subscription<IDecodedMessage>
+    >;
+
+    for (const item of subscriptions.values()) {
+      const values = map.get(item.pubSubTopic) || [];
+      const nextValues = item.decoders.map((decoder) => decoder.contentTopic);
+      map.set(item.pubSubTopic, [...values, ...nextValues]);
+    }
+
+    return map;
   }
 
   private onRequest(streamData: IncomingStreamData): void {

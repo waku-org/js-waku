@@ -20,8 +20,8 @@ import type {
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants.js";
+import { groupByContentTopic } from "../group_by.js";
 import { TopicOnlyDecoder } from "../message/topic_only_message.js";
-import { pushOrInitMapSet } from "../push_or_init_map.js";
 
 import * as constants from "./constants.js";
 import { messageValidator } from "./message_validator.js";
@@ -42,10 +42,12 @@ export type ContentTopic = string;
  *
  * @implements {require('libp2p-interfaces/src/pubsub')}
  */
-class Relay extends GossipSub implements IRelay {
+class Relay implements IRelay {
   private readonly pubSubTopic: string;
-  defaultDecoder: IDecoder<IDecodedMessage>;
+  private defaultDecoder: IDecoder<IDecodedMessage>;
+
   public static multicodec: string = constants.RelayCodecs[0];
+  public readonly gossipSub: GossipSub;
 
   /**
    * observers called when receiving new message.
@@ -63,8 +65,8 @@ class Relay extends GossipSub implements IRelay {
       fallbackToFloodsub: false,
     });
 
-    super(components, options);
-    this.multicodecs = constants.RelayCodecs;
+    this.gossipSub = new GossipSub(components, options);
+    this.gossipSub.multicodecs = constants.RelayCodecs;
 
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
 
@@ -82,8 +84,8 @@ class Relay extends GossipSub implements IRelay {
    * @returns {void}
    */
   public async start(): Promise<void> {
-    await super.start();
-    this.subscribe(this.pubSubTopic);
+    await this.gossipSub.start();
+    this.gossipSubSubscribe(this.pubSubTopic);
   }
 
   /**
@@ -96,7 +98,7 @@ class Relay extends GossipSub implements IRelay {
       return { recipients: [] };
     }
 
-    return this.publish(this.pubSubTopic, msg);
+    return this.gossipSub.publish(this.pubSubTopic, msg);
   }
 
   /**
@@ -104,30 +106,47 @@ class Relay extends GossipSub implements IRelay {
    *
    * @returns Function to delete the observer
    */
-  addObserver<T extends IDecodedMessage>(
-    decoder: IDecoder<T>,
+  public subscribe<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
-    const observer = {
-      decoder,
-      callback,
-    };
-    const contentTopic = decoder.contentTopic;
+    const contentTopicToObservers = toObservers(decoders, callback);
 
-    pushOrInitMapSet(this.observers, contentTopic, observer);
+    for (const contentTopic of contentTopicToObservers.keys()) {
+      const currObservers = this.observers.get(contentTopic) || new Set();
+      const newObservers =
+        contentTopicToObservers.get(contentTopic) || new Set();
+
+      this.observers.set(contentTopic, union(currObservers, newObservers));
+    }
 
     return () => {
-      const observers = this.observers.get(contentTopic);
-      if (observers) {
-        observers.delete(observer);
+      for (const contentTopic of contentTopicToObservers.keys()) {
+        const currentObservers = this.observers.get(contentTopic) || new Set();
+        const observersToRemove =
+          contentTopicToObservers.get(contentTopic) || new Set();
+
+        this.observers.set(
+          contentTopic,
+          leftMinusJoin(currentObservers, observersToRemove)
+        );
       }
     };
+  }
+
+  public unsubscribe(pubSubTopic: TopicStr): void {
+    this.gossipSub.unsubscribe(pubSubTopic);
+    this.gossipSub.topicValidators.delete(pubSubTopic);
   }
 
   public getActiveSubscriptions(): ActiveSubscriptions {
     const map = new Map();
     map.set(this.pubSubTopic, this.observers.keys());
     return map;
+  }
+
+  public getMeshPeers(topic?: TopicStr): PeerIdStr[] {
+    return this.gossipSub.getMeshPeers(topic ?? this.pubSubTopic);
   }
 
   private async processIncomingMessage<T extends IDecodedMessage>(
@@ -168,8 +187,8 @@ class Relay extends GossipSub implements IRelay {
    *
    * @override
    */
-  subscribe(pubSubTopic: string): void {
-    this.addEventListener(
+  private gossipSubSubscribe(pubSubTopic: string): void {
+    this.gossipSub.addEventListener(
       "gossipsub:message",
       async (event: CustomEvent<GossipsubMessage>) => {
         if (event.detail.msg.topic !== pubSubTopic) return;
@@ -182,17 +201,8 @@ class Relay extends GossipSub implements IRelay {
       }
     );
 
-    this.topicValidators.set(pubSubTopic, messageValidator);
-    super.subscribe(pubSubTopic);
-  }
-
-  unsubscribe(pubSubTopic: TopicStr): void {
-    super.unsubscribe(pubSubTopic);
-    this.topicValidators.delete(pubSubTopic);
-  }
-
-  getMeshPeers(topic?: TopicStr): PeerIdStr[] {
-    return super.getMeshPeers(topic ?? this.pubSubTopic);
+    this.gossipSub.topicValidators.set(pubSubTopic, messageValidator);
+    this.gossipSub.subscribe(pubSubTopic);
   }
 }
 
@@ -202,4 +212,47 @@ export function wakuRelay(
   init: Partial<RelayCreateOptions> = {}
 ): (components: GossipSubComponents) => IRelay {
   return (components: GossipSubComponents) => new Relay(components, init);
+}
+
+function toObservers<T extends IDecodedMessage>(
+  decoders: IDecoder<T>[],
+  callback: Callback<T>
+): Map<ContentTopic, Set<Observer<T>>> {
+  const contentTopicToDecoders = Array.from(
+    groupByContentTopic(decoders).entries()
+  );
+
+  const contentTopicToObserversEntries = contentTopicToDecoders.map(
+    ([contentTopic, decoders]) =>
+      [
+        contentTopic,
+        new Set(
+          decoders.map(
+            (decoder) =>
+              ({
+                decoder,
+                callback,
+              } as Observer<T>)
+          )
+        ),
+      ] as [ContentTopic, Set<Observer<T>>]
+  );
+
+  return new Map(contentTopicToObserversEntries);
+}
+
+function union(left: Set<unknown>, right: Set<unknown>): Set<unknown> {
+  for (const val of right.values()) {
+    left.add(val);
+  }
+  return left;
+}
+
+function leftMinusJoin(left: Set<unknown>, right: Set<unknown>): Set<unknown> {
+  for (const val of right.values()) {
+    if (left.has(val)) {
+      left.delete(val);
+    }
+  }
+  return left;
 }

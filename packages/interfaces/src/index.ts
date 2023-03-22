@@ -9,3 +9,4 @@ export * from "./store.js";
 export * from "./waku.js";
 export * from "./connection_manager.js";
 export * from "./sender.js";
+export * from "./receiver.js";

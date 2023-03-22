@@ -1,21 +1,14 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
+import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 
-import type { IDecodedMessage, IDecoder } from "./message.js";
-import type { Callback } from "./protocols.js";
+import { IReceiver } from "./receiver.js";
 import type { ISender } from "./sender.js";
 
-type PubSubTopic = string;
-type ContentTopic = string;
-
-export type ActiveSubscriptions = Map<PubSubTopic, ContentTopic[]>;
-
 interface IRelayAPI {
-  addObserver: <T extends IDecodedMessage>(
-    decoder: IDecoder<T>,
-    callback: Callback<T>
-  ) => () => void;
-  getMeshPeers: () => string[];
-  getActiveSubscriptions: () => ActiveSubscriptions | undefined;
+  readonly gossipSub: GossipSub;
+  start: () => Promise<void>;
+  unsubscribe: (pubSubTopic: string) => void;
+  getMeshPeers: (topic?: TopicStr) => PeerIdStr[];
 }
 
-export type IRelay = IRelayAPI & GossipSub & ISender;
+export type IRelay = IRelayAPI & ISender & IReceiver;
