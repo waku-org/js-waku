@@ -242,7 +242,7 @@ describe("Waku Relay [node only]", () => {
           const deleteObserver = waku2.relay.subscribe(
             [createDecoder(contentTopic)],
             reject
-          );
+          ) as () => void;
           deleteObserver();
           setTimeout(resolve, 500);
         }
