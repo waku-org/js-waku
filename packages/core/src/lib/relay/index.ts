@@ -126,10 +126,16 @@ class Relay implements IRelay {
         const observersToRemove =
           contentTopicToObservers.get(contentTopic) || new Set();
 
-        this.observers.set(
-          contentTopic,
-          leftMinusJoin(currentObservers, observersToRemove)
+        const nextObservers = leftMinusJoin(
+          currentObservers,
+          observersToRemove
         );
+
+        if (nextObservers.size) {
+          this.observers.set(contentTopic, nextObservers);
+        } else {
+          this.observers.delete(contentTopic);
+        }
       }
     };
   }
