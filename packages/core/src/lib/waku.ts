@@ -1,7 +1,6 @@
 import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import type { PubSub } from "@libp2p/interface-pubsub";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import type {
   IFilter,
@@ -71,8 +70,10 @@ export class WakuNode implements Waku {
       this.lightPush = lightPush(libp2p);
     }
 
-    if (isRelay(libp2p.pubsub)) {
-      this.relay = libp2p.pubsub;
+    // since wakuRelay function will make it IRelay and not PubSub
+    const maybeRelay = libp2p.pubsub as unknown as IRelay;
+    if (isRelay(maybeRelay)) {
+      this.relay = maybeRelay;
     }
 
     const pingKeepAlive =
@@ -120,7 +121,9 @@ export class WakuNode implements Waku {
     const codecs: string[] = [];
     if (_protocols.includes(Protocols.Relay)) {
       if (this.relay) {
-        this.relay.multicodecs.forEach((codec) => codecs.push(codec));
+        this.relay.gossipSub.multicodecs.forEach((codec: string) =>
+          codecs.push(codec)
+        );
       } else {
         log(
           "Relay codec not included in dial codec: protocol not mounted locally"
@@ -189,10 +192,10 @@ export class WakuNode implements Waku {
   }
 }
 
-function isRelay(pubsub: PubSub): pubsub is IRelay {
-  if (pubsub) {
+function isRelay(maybeRelay: IRelay): boolean {
+  if (maybeRelay) {
     try {
-      return pubsub.multicodecs.includes(
+      return maybeRelay.gossipSub.multicodecs.includes(
         relayConstants.RelayCodecs[relayConstants.RelayCodecs.length - 1]
       );
       // Exception is expected if `libp2p` was not instantiated with pubsub
