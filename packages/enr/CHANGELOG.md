@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.8 to 0.0.9
+
 ## [0.0.6](https://github.com/waku-org/js-waku/compare/enr-v0.0.5...enr-v0.0.6) (2023-03-16)
 
 

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.0.5](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.4...peer-exchange-v0.0.5) (2023-03-23)
+
+
+### Features
+
+* Compliance test for peer-exchange discovery ([#1186](https://github.com/waku-org/js-waku/issues/1186)) ([5b0c3c3](https://github.com/waku-org/js-waku/commit/5b0c3c3cac3ddb5687d8f59457d6056527a8666c))
+
+
+### Bug Fixes
+
+* @waku/peer-exchange uses @waku/core and should depend on it ([e922ed4](https://github.com/waku-org/js-waku/commit/e922ed49ec70553227751518251152c765efd07c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from * to 0.0.12
+    * @waku/enr bumped from 0.0.6 to 0.0.7
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.8 to 0.0.9
+
 ## [0.0.4](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.3...peer-exchange-v0.0.4) (2023-03-16)
 
 
