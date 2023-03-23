@@ -206,7 +206,7 @@ jobs:
   maybe-release:
     name: release
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/weboko/tmp'
     needs: [check, proto, browser, node]
     steps:
       - uses: google-github-actions/release-please-action@v3
@@ -215,6 +215,7 @@ jobs:
           command: manifest
           monorepo-tags: true
           token: ${{ secrets.CI_TOKEN }}
+          default-branch: weboko/tmp
 
       - uses: actions/checkout@v3
         if: ${{ steps.release.outputs.releases_created }}
@@ -230,8 +231,3 @@ jobs:
 
       - run: npm run build
         if: ${{ steps.release.outputs.releases_created }}
-
-      - run: npm publish --workspaces --next --access public
-        if: ${{ steps.release.outputs.releases_created }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
