@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.9](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.8...interfaces-v0.0.9) (2023-03-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* use ISender and deprecate Light Push .push ([#1217](https://github.com/waku-org/js-waku/issues/1217))
+
+### Features
+
+* Add getActiveSubscriptions method ([#1249](https://github.com/waku-org/js-waku/issues/1249)) ([45284db](https://github.com/waku-org/js-waku/commit/45284db963d6d4c90a014391551604c236906b88))
+* Use ISender and deprecate Light Push .push ([#1217](https://github.com/waku-org/js-waku/issues/1217)) ([0f6a594](https://github.com/waku-org/js-waku/commit/0f6a59464426b94dd14841de075ff10a4ad52e33))
+
 ## [0.0.8](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.7...interfaces-v0.0.8) (2023-03-16)
 
 
