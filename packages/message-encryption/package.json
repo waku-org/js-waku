@@ -104,7 +104,7 @@
     "eslint-plugin-functional": "^5.0.4",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
-    "fast-check": "^3.7.0",
+    "fast-check": "^3.7.1",
     "karma": "^6.4.1",
     "karma-chrome-launcher": "^3.1.1",
     "karma-mocha": "^2.0.1",
