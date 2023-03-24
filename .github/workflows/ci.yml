@@ -231,7 +231,9 @@ jobs:
       - run: npm run build
         if: ${{ steps.release.outputs.releases_created }}
 
+      - name: Authenticate with registry
+        if: ${{ steps.release.outputs.releases_created }}
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ./.npmrc
+
       - run: npm publish --workspaces --tag latest --access public
         if: ${{ steps.release.outputs.releases_created }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
