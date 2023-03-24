@@ -75,7 +75,6 @@
   "files": [
     "dist",
     "bundle",
-    "src/*.ts",
     "src/**/*.ts",
     "!**/*.spec.*",
     "!**/*.json",
