@@ -1,7 +1,7 @@
 import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { Callback, ProtocolOptions } from "./protocols.js";
 
-type Unsubscribe<T> = () => T;
+type Unsubscribe = () => void | Promise<void>;
 type PubSubTopic = string;
 type ContentTopic = string;
 
@@ -12,6 +12,6 @@ export interface IReceiver {
     decoders: IDecoder<T>[],
     callback: Callback<T>,
     opts?: ProtocolOptions
-  ) => Unsubscribe<void> | Promise<Unsubscribe<Promise<void>>>;
+  ) => Unsubscribe | Promise<Unsubscribe>;
   getActiveSubscriptions: () => ActiveSubscriptions;
 }
