@@ -151,8 +151,7 @@
   "files": [
     "dist",
     "bundle",
-    "src/*.ts",
-    "src/lib/**/*.ts",
+    "src/**/*.ts",
     "!**/*.spec.*",
     "!**/*.json",
     "CHANGELOG.md",
