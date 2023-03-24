@@ -7,7 +7,6 @@ import type { ISender } from "./sender.js";
 interface IRelayAPI {
   readonly gossipSub: GossipSub;
   start: () => Promise<void>;
-  unsubscribe: (pubSubTopic: string) => void;
   getMeshPeers: (topic?: TopicStr) => PeerIdStr[];
 }
 

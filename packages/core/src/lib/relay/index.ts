@@ -140,11 +140,6 @@ class Relay implements IRelay {
     };
   }
 
-  public unsubscribe(pubSubTopic: TopicStr): void {
-    this.gossipSub.unsubscribe(pubSubTopic);
-    this.gossipSub.topicValidators.delete(pubSubTopic);
-  }
-
   public getActiveSubscriptions(): ActiveSubscriptions {
     const map = new Map();
     map.set(this.pubSubTopic, this.observers.keys());
