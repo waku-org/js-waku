@@ -59,19 +59,20 @@ class Filter extends BaseProtocol implements IFilter {
   }
 
   /**
-   * @param decoders Array of Decoders to use to decode messages, it also specifies the content topics.
+   * @param decoders Decoder or array of Decoders to use to decode messages, it also specifies the content topics.
    * @param callback A function that will be called on each message returned by the filter.
    * @param opts The FilterSubscriptionOpts used to narrow which messages are returned, and which peer to connect to.
    * @returns Unsubscribe function that can be used to end the subscription.
    */
   async subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
+    decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
     opts?: ProtocolOptions
   ): Promise<UnsubscribeFunction> {
+    const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
-    const contentTopics = Array.from(groupByContentTopic(decoders).keys());
+    const contentTopics = Array.from(groupByContentTopic(decodersArray).keys());
 
     const contentFilters = contentTopics.map((contentTopic) => ({
       contentTopic,
@@ -110,7 +111,11 @@ class Filter extends BaseProtocol implements IFilter {
       throw e;
     }
 
-    const subscription: Subscription<T> = { callback, decoders, pubSubTopic };
+    const subscription: Subscription<T> = {
+      callback,
+      decoders: decodersArray,
+      pubSubTopic,
+    };
     this.subscriptions.set(requestId, subscription);
 
     return async () => {

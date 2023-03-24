@@ -107,10 +107,12 @@ class Relay implements IRelay {
    * @returns Function to delete the observer
    */
   public subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
+    decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
-    const contentTopicToObservers = toObservers(decoders, callback);
+    const contentTopicToObservers = Array.isArray(decoders)
+      ? toObservers(decoders, callback)
+      : toObservers([decoders], callback);
 
     for (const contentTopic of contentTopicToObservers.keys()) {
       const currObservers = this.observers.get(contentTopic) || new Set();

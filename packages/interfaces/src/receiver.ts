@@ -9,7 +9,7 @@ export type ActiveSubscriptions = Map<PubSubTopic, ContentTopic[]>;
 
 export interface IReceiver {
   subscribe: <T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
+    decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
     opts?: ProtocolOptions
   ) => Unsubscribe | Promise<Unsubscribe>;
