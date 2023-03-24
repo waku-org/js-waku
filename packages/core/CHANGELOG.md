@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.13](https://github.com/waku-org/js-waku/compare/core-v0.0.12...core-v0.0.13) (2023-03-24)
+
+
+### Bug Fixes
+
+* **utils:** Include all ts files ([#1267](https://github.com/waku-org/js-waku/issues/1267)) ([c284159](https://github.com/waku-org/js-waku/commit/c284159ac8eab5bed2313fa5bc7fbea0e83d390f))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.9 to 0.0.10
+    * @waku/proto bumped from 0.0.3 to 0.0.4
+    * @waku/utils bumped from 0.0.2 to 0.0.3
+
 ## [0.0.12](https://github.com/waku-org/js-waku/compare/core-v0.0.11...core-v0.0.12) (2023-03-23)
 
 
