@@ -1,6 +1,6 @@
 {
   "name": "@waku/core",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -82,7 +82,7 @@
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^6.1.0",
     "@noble/hashes": "^1.3.0",
-    "@waku/interfaces": "0.0.8",
+    "@waku/interfaces": "0.0.9",
     "@waku/proto": "0.0.3",
     "@waku/utils": "0.0.2",
     "debug": "^4.3.4",
@@ -119,7 +119,7 @@
     "eslint-plugin-functional": "^5.0.4",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
-    "fast-check": "^3.7.0",
+    "fast-check": "^3.7.1",
     "ignore-loader": "^0.1.2",
     "isomorphic-fetch": "^3.0.0",
     "karma": "^6.4.1",

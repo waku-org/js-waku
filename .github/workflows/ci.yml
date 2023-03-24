@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  NWAKU_VERSION: "v0.15.0"
+  NWAKU_VERSION: "v0.16.0"
   NODE_JS: "18"
 
 jobs:
@@ -231,7 +231,9 @@ jobs:
       - run: npm run build
         if: ${{ steps.release.outputs.releases_created }}
 
-      - run: npm publish --workspaces --next --access public
+      - name: Authenticate with registry
         if: ${{ steps.release.outputs.releases_created }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ./.npmrc
+
+      - run: npm publish --workspaces --tag latest --access public
+        if: ${{ steps.release.outputs.releases_created }}

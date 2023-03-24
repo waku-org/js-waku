@@ -1,6 +1,6 @@
 {
   "name": "@waku/message-encryption",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Waku Message Payload Encryption",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -74,8 +74,8 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.7.1",
-    "@waku/core": "0.0.11",
-    "@waku/interfaces": "0.0.8",
+    "@waku/core": "0.0.12",
+    "@waku/interfaces": "0.0.9",
     "@waku/proto": "0.0.3",
     "@waku/utils": "0.0.2",
     "debug": "^4.3.4",
@@ -104,7 +104,7 @@
     "eslint-plugin-functional": "^5.0.4",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
-    "fast-check": "^3.7.0",
+    "fast-check": "^3.7.1",
     "karma": "^6.4.1",
     "karma-chrome-launcher": "^3.1.1",
     "karma-mocha": "^2.0.1",

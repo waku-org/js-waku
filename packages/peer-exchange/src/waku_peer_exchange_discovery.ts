@@ -6,7 +6,7 @@ import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
-import { EventEmitter } from "@libp2p/interfaces/events";
+import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
 import debug from "debug";
 
 import {

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8](https://github.com/waku-org/js-waku/compare/create-v0.0.7...create-v0.0.8) (2023-03-23)
+
+
+### Bug Fixes
+
+* @waku/create should not depend on @waku/peer-exchange ([f0ac886](https://github.com/waku-org/js-waku/commit/f0ac886593a96a7d63f75b481d0c2419c1084cda))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.11 to 0.0.12
+    * @waku/dns-discovery bumped from 0.0.6 to 0.0.7
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.8 to 0.0.9
+
 ## [0.0.7](https://github.com/waku-org/js-waku/compare/create-v0.0.6...create-v0.0.7) (2023-03-16)
 
 
