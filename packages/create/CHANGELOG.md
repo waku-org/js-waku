@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.9](https://github.com/waku-org/js-waku/compare/create-v0.0.8...create-v0.0.9) (2023-03-24)
+
+
+### Bug Fixes
+
+* **utils:** Include all ts files ([#1267](https://github.com/waku-org/js-waku/issues/1267)) ([c284159](https://github.com/waku-org/js-waku/commit/c284159ac8eab5bed2313fa5bc7fbea0e83d390f))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.12 to 0.0.13
+    * @waku/dns-discovery bumped from 0.0.7 to 0.0.8
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.9 to 0.0.10
+
 ## [0.0.8](https://github.com/waku-org/js-waku/compare/create-v0.0.7...create-v0.0.8) (2023-03-23)
 
 
