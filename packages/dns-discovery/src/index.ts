@@ -7,6 +7,7 @@ import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
 import type { IEnr } from "@waku/interfaces";
+import { multiaddrsToPeerInfo } from "@waku/utils/libp2p";
 import debug from "debug";
 
 import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns.js";
@@ -93,28 +94,27 @@ export class PeerDiscoveryDns
     this._started = true;
     for await (const peer of this.nextPeer()) {
       if (!this._started) return;
-
-      const peerInfo = peer.peerInfo;
-      if (!peerInfo) continue;
-
-      if (
-        (await this._components.peerStore.getTags(peerInfo.id)).find(
-          ({ name }) => name === DEFAULT_BOOTSTRAP_TAG_NAME
+      const peerInfos = multiaddrsToPeerInfo(peer.getFullMultiaddrs());
+      peerInfos.forEach(async (peerInfo) => {
+        if (
+          (await this._components.peerStore.getTags(peerInfo.id)).find(
+            ({ name }) => name === DEFAULT_BOOTSTRAP_TAG_NAME
+          )
         )
-      )
-        continue;
+          return;
 
-      await this._components.peerStore.tagPeer(
-        peerInfo.id,
-        DEFAULT_BOOTSTRAP_TAG_NAME,
-        {
-          value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-          ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-        }
-      );
-      this.dispatchEvent(
-        new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
-      );
+        await this._components.peerStore.tagPeer(
+          peerInfo.id,
+          DEFAULT_BOOTSTRAP_TAG_NAME,
+          {
+            value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
+            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+          }
+        );
+        this.dispatchEvent(
+          new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
+        );
+      });
     }
   }
 

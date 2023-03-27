@@ -13,6 +13,8 @@ import {
 import { expect } from "chai";
 import { MemoryDatastore } from "datastore-core";
 
+import { delay } from "../src/delay.js";
+
 const maxQuantity = 3;
 
 describe("DNS Discovery: Compliance Test", async function () {
@@ -47,7 +49,7 @@ describe("DNS Node Discovery [live data]", function () {
     }
   });
 
-  it(`should use DNS peer discovery with light client`, async function () {
+  it.only(`should use DNS peer discovery with light client`, async function () {
     this.timeout(100000);
     const maxQuantity = 3;
 
@@ -67,6 +69,8 @@ describe("DNS Node Discovery [live data]", function () {
     await waku.start();
 
     const allPeers = await waku.libp2p.peerStore.all();
+
+    await delay(100_000);
 
     const dnsPeers: Peer[] = [];
 

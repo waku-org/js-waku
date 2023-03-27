@@ -90,6 +90,7 @@ export class ConnectionManager {
       try {
         log(`Dialing peer ${peerId.toString()}`);
         await this.libp2pComponents.dial(peerId);
+        log(`Successfully dialed peer ${peerId.toString()}`);
 
         const tags = await this.getTagNamesForPeer(peerId);
         // add tag to connection describing discovery mechanism
