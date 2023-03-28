@@ -6,6 +6,7 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type {
   ActiveSubscriptions,
   Callback,
@@ -55,19 +56,14 @@ class Relay implements IRelay {
    */
   private observers: Map<ContentTopic, Set<unknown>>;
 
-  constructor(
-    components: GossipSubComponents,
-    options?: Partial<RelayCreateOptions>
-  ) {
+  constructor(libp2p: Libp2p, options?: Partial<RelayCreateOptions>) {
     options = Object.assign(options ?? {}, {
       // Ensure that no signature is included nor expected in the messages.
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
       fallbackToFloodsub: false,
     });
 
-    this.gossipSub = new GossipSub(components, options);
-    this.gossipSub.multicodecs = constants.RelayCodecs;
-
+    this.gossipSub = libp2p.pubsub as GossipSub;
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
 
     this.observers = new Map();
@@ -212,9 +208,19 @@ class Relay implements IRelay {
 Relay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
 
 export function wakuRelay(
+  init: Partial<ProtocolCreateOptions> = {}
+): (libp2p: Libp2p) => IRelay {
+  return (libp2p: Libp2p) => new Relay(libp2p, init);
+}
+
+export function wakuPubSub(
   init: Partial<RelayCreateOptions> = {}
-): (components: GossipSubComponents) => IRelay {
-  return (components: GossipSubComponents) => new Relay(components, init);
+): (components: GossipSubComponents) => GossipSub {
+  return (components: GossipSubComponents) => {
+    const pubsub = new GossipSub(components, init);
+    pubsub.multicodecs = constants.RelayCodecs;
+    return pubsub;
+  };
 }
 
 function toObservers<T extends IDecodedMessage>(

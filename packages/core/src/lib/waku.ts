@@ -13,7 +13,6 @@ import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 
 import { ConnectionManager } from "./connection_manager.js";
-import * as relayConstants from "./relay/constants.js";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -56,7 +55,8 @@ export class WakuNode implements Waku {
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
-    filter?: (libp2p: Libp2p) => IFilter
+    filter?: (libp2p: Libp2p) => IFilter,
+    relay?: (libp2p: Libp2p) => IRelay
   ) {
     this.libp2p = libp2p;
 
@@ -70,10 +70,8 @@ export class WakuNode implements Waku {
       this.lightPush = lightPush(libp2p);
     }
 
-    // since wakuRelay function will make it IRelay and not PubSub
-    const maybeRelay = libp2p.pubsub as unknown as IRelay;
-    if (isRelay(maybeRelay)) {
-      this.relay = maybeRelay;
+    if (relay) {
+      this.relay = relay(libp2p);
     }
 
     const pingKeepAlive =
@@ -190,17 +188,4 @@ export class WakuNode implements Waku {
     }
     return localMultiaddr + "/p2p/" + this.libp2p.peerId.toString();
   }
-}
-
-function isRelay(maybeRelay: IRelay): boolean {
-  if (maybeRelay) {
-    try {
-      return maybeRelay.gossipSub.multicodecs.includes(
-        relayConstants.RelayCodecs[relayConstants.RelayCodecs.length - 1]
-      );
-      // Exception is expected if `libp2p` was not instantiated with pubsub
-      // eslint-disable-next-line no-empty
-    } catch (e) {}
-  }
-  return false;
 }
