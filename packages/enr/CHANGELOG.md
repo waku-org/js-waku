@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.9 to 0.0.10
 
+## [0.0.9](https://github.com/waku-org/js-waku/compare/enr-v0.0.8...enr-v0.0.9) (2023-03-28)
+
+
+### Bug Fixes
+
+* Ensure that websocket multiaddrs are returned from ENR ([#1275](https://github.com/waku-org/js-waku/issues/1275)) ([9494041](https://github.com/waku-org/js-waku/commit/94940411b0fd525044765b9068068ddf274eba2f)), closes [#1271](https://github.com/waku-org/js-waku/issues/1271)
+
 ## [0.0.6](https://github.com/waku-org/js-waku/compare/enr-v0.0.5...enr-v0.0.6) (2023-03-16)
 
 
