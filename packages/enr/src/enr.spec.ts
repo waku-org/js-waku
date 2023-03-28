@@ -311,6 +311,9 @@ describe("ENR", function () {
     const ip6 = "::1";
     const tcp = 8080;
     const udp = 8080;
+    const wsMultiaddr = multiaddr(
+      "/dns4/node-01.do-ams3.wakuv2.prod.statusim.net/tcp/8000/wss"
+    );
     let peerId: PeerId;
     let enr: ENR;
 
@@ -323,6 +326,7 @@ describe("ENR", function () {
       enr.udp = udp;
       enr.tcp6 = tcp;
       enr.udp6 = udp;
+      enr.multiaddrs = [wsMultiaddr];
     });
 
     it("should properly create location multiaddrs - udp4", () => {
@@ -391,7 +395,7 @@ describe("ENR", function () {
       const peerInfo = enr.peerInfo!;
       console.log(peerInfo);
       expect(peerInfo.id.toString()).to.equal(peerId.toString());
-      expect(peerInfo.multiaddrs.length).to.equal(4);
+      expect(peerInfo.multiaddrs.length).to.equal(5);
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
         multiaddr(`/ip4/${ip4}/tcp/${tcp}`).toString()
       );
@@ -403,6 +407,9 @@ describe("ENR", function () {
       );
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
         multiaddr(`/ip6/${ip6}/udp/${udp}`).toString()
+      );
+      expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
+        wsMultiaddr.toString()
       );
     });
   });
