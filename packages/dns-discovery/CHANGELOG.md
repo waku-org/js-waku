@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.9 to 0.0.10
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from 0.0.8 to 0.0.9
+
 ## [0.0.6](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.5...dns-discovery-v0.0.6) (2023-03-16)
 
 
