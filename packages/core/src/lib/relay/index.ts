@@ -228,7 +228,7 @@ export function wakuRelay(
   return (libp2p: Libp2p) => new Relay(libp2p, init);
 }
 
-export function wakuPubSub(
+export function wakuGossipSub(
   init: Partial<RelayCreateOptions> = {}
 ): (components: GossipSubComponents) => GossipSub {
   return (components: GossipSubComponents) => {

@@ -9,10 +9,10 @@ import {
   DefaultUserAgent,
   RelayCreateOptions,
   wakuFilter,
+  wakuGossipSub,
   wakuLightPush,
   WakuNode,
   WakuOptions,
-  wakuPubSub,
   wakuRelay,
   wakuStore,
 } from "@waku/core";
@@ -86,7 +86,7 @@ export async function createRelayNode(
   }
 
   const libp2p = await defaultLibp2p(
-    wakuPubSub(options),
+    wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
   );
@@ -127,7 +127,7 @@ export async function createFullNode(
   }
 
   const libp2p = await defaultLibp2p(
-    wakuPubSub(options),
+    wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
   );
@@ -154,7 +154,7 @@ export function defaultPeerDiscovery(): (
 }
 
 export async function defaultLibp2p(
-  wakuPubSub?: (components: Libp2pComponents) => GossipSub,
+  wakuGossipSub?: (components: Libp2pComponents) => GossipSub,
   options?: Partial<Libp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
@@ -169,7 +169,7 @@ export async function defaultLibp2p(
         },
       },
     } as Libp2pOptions,
-    wakuPubSub ? { pubsub: wakuPubSub } : {},
+    wakuGossipSub ? { pubsub: wakuGossipSub } : {},
     options ?? {}
   );
 

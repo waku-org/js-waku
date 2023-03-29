@@ -22,7 +22,7 @@ export * as waku_relay from "./lib/relay/index.js";
 export {
   wakuRelay,
   RelayCreateOptions,
-  wakuPubSub,
+  wakuGossipSub,
 } from "./lib/relay/index.js";
 
 export * as waku_store from "./lib/store/index.js";
