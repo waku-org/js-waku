@@ -1,8 +1,12 @@
+import cp from "child_process";
 import fs from "fs";
 import path from "path";
-import cp from "child_process";
-import { promisify } from "util";
 import { fileURLToPath } from "url";
+import { promisify } from "util";
+
+import debug from "debug";
+
+const log = debug("waku:ci:publish");
 
 const PACKAGE_JSON = "package.json";
 // hack to get __dirname
@@ -13,10 +17,10 @@ const readFile = promisify(fs.readFile);
 
 run()
   .then(() => {
-    console.info("Successfully published packages.");
+    log("Successfully published packages.");
   })
   .catch((err) => {
-    console.error("Failed at publishing packages with ", err.message);
+    log("Failed at publishing packages with ", err.message);
   });
 
 async function run() {
@@ -44,11 +48,11 @@ async function run() {
           await exec(
             `npm publish --workspace ${info.workspace} --tag latest --access public`
           );
-          console.info(
+          log(
             `Successfully published ${info.name} with version ${info.version}.`
           );
         } catch (err) {
-          console.error(
+          log(
             `Cannot publish ${info.workspace} with version ${info.version}. Error: ${err.message}`
           );
         }
@@ -76,7 +80,7 @@ async function readWorkspace(packagePath) {
 
 async function shouldBePublished(info) {
   if (info.private) {
-    console.info(`Skipping ${info.path} because it is private.`);
+    log(`Skipping ${info.path} because it is private.`);
     return false;
   }
 
@@ -88,13 +92,13 @@ async function shouldBePublished(info) {
       return true;
     }
 
-    console.info(`Workspace ${info.path} is already published.`);
+    log(`Workspace ${info.path} is already published.`);
   } catch (err) {
     if (err.message.includes("code E404")) {
       return true;
     }
 
-    console.error(
+    log(
       `Cannot check published version of ${info.path}. Received error: ${err.message}`
     );
   }

@@ -50,5 +50,8 @@
     "*.{ts,json,js,md,cjs}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "debug": "^4.3.4"
   }
 }
