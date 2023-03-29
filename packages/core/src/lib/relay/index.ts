@@ -7,6 +7,7 @@ import {
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { Libp2p } from "@libp2p/interface-libp2p";
+import type { PubSub } from "@libp2p/interface-pubsub";
 import type {
   ActiveSubscriptions,
   Callback,
@@ -39,9 +40,7 @@ export type ContentTopic = string;
 
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
- * Must be passed as a `pubsub` module to a `Libp2p` instance.
- *
- * @implements {require('libp2p-interfaces/src/pubsub')}
+ * Throws if libp2p.pubsub does not support Waku Relay
  */
 class Relay implements IRelay {
   private readonly pubSubTopic: string;
@@ -63,8 +62,18 @@ class Relay implements IRelay {
       fallbackToFloodsub: false,
     });
 
+    if (!this.isRelayPubSub(libp2p.pubsub)) {
+      throw Error(
+        `Failed to initialize Relay. libp2p.pubsub does not support ${Relay.multicodec}`
+      );
+    }
+
     this.gossipSub = libp2p.pubsub as GossipSub;
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+
+    if (this.gossipSub.isStarted()) {
+      this.gossipSubSubscribe(this.pubSubTopic);
+    }
 
     this.observers = new Map();
 
@@ -80,6 +89,10 @@ class Relay implements IRelay {
    * @returns {void}
    */
   public async start(): Promise<void> {
+    if (this.gossipSub.isStarted()) {
+      throw Error("GossipSub already started.");
+    }
+
     await this.gossipSub.start();
     this.gossipSubSubscribe(this.pubSubTopic);
   }
@@ -203,9 +216,11 @@ class Relay implements IRelay {
     this.gossipSub.topicValidators.set(pubSubTopic, messageValidator);
     this.gossipSub.subscribe(pubSubTopic);
   }
-}
 
-Relay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
+  private isRelayPubSub(pubsub: PubSub): boolean {
+    return pubsub?.multicodecs?.includes(Relay.multicodec) || false;
+  }
+}
 
 export function wakuRelay(
   init: Partial<ProtocolCreateOptions> = {}
