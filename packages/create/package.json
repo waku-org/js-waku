@@ -1,6 +1,6 @@
 {
   "name": "@waku/create",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Easily create a Waku node",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -54,7 +54,7 @@
     "@libp2p/mplex": "^7.1.1",
     "@libp2p/websockets": "^5.0.3",
     "@waku/core": "0.0.13",
-    "@waku/dns-discovery": "0.0.8",
+    "@waku/dns-discovery": "0.0.9",
     "libp2p": "^0.42.2"
   },
   "devDependencies": {
@@ -75,11 +75,11 @@
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.55.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.51.0",
     "@waku/build-utils": "*",
     "@waku/interfaces": "0.0.10",
-    "cspell": "^6.28.0",
+    "cspell": "^6.31.1",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
