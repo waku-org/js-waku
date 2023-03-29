@@ -83,7 +83,7 @@
     "@waku/build-utils": "*",
     "@waku/interfaces": "0.0.10",
     "chai": "^4.3.7",
-    "cspell": "^6.28.0",
+    "cspell": "^6.31.1",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
