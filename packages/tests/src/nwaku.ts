@@ -117,7 +117,7 @@ export class Nwaku {
     }
 
     return {
-      payload: Buffer.from(message.payload).toString("base64"),
+      payload: Buffer.from(message.payload).toString("hex"),
       contentTopic: message.contentTopic,
       timestamp,
     };
