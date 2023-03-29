@@ -58,7 +58,7 @@
     "@libp2p/interface-peer-store": "^1.2.8",
     "@libp2p/interface-registrar": "^2.0.8",
     "@multiformats/multiaddr": "^12.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.55.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.51.0",
     "cspell": "^6.28.0",
     "eslint": "^8.35.0",
