@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@libp2p/peer-id": "^2.0.2",
-    "@waku/core": "0.0.14",
+    "@waku/core": "*",
     "@waku/enr": "*",
     "@waku/interfaces": "*",
     "@waku/utils": "*",
