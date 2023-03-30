@@ -52,7 +52,7 @@
   "dependencies": {
     "@libp2p/interface-peer-discovery": "^1.0.5",
     "@libp2p/interfaces": "^3.3.1",
-    "@waku/core": "0.0.13",
+    "@waku/core": "0.0.14",
     "@waku/enr": "0.0.9",
     "@waku/proto": "0.0.4",
     "@waku/utils": "0.0.3",

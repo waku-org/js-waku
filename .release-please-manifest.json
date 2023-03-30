@@ -4,7 +4,7 @@
   "packages/interfaces": "0.0.10",
   "packages/enr": "0.0.9",
   "packages/peer-exchange": "0.0.7",
-  "packages/core": "0.0.15",
+  "packages/core": "0.0.14",
   "packages/dns-discovery": "0.0.9",
   "packages/message-encryption": "0.0.12",
   "packages/create": "0.0.10"
