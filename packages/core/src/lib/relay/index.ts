@@ -56,12 +56,6 @@ class Relay implements IRelay {
   private observers: Map<ContentTopic, Set<unknown>>;
 
   constructor(libp2p: Libp2p, options?: Partial<RelayCreateOptions>) {
-    options = Object.assign(options ?? {}, {
-      // Ensure that no signature is included nor expected in the messages.
-      globalSignaturePolicy: SignaturePolicy.StrictNoSign,
-      fallbackToFloodsub: false,
-    });
-
     if (!this.isRelayPubSub(libp2p.pubsub)) {
       throw Error(
         `Failed to initialize Relay. libp2p.pubsub does not support ${Relay.multicodec}`
@@ -232,6 +226,12 @@ export function wakuGossipSub(
   init: Partial<RelayCreateOptions> = {}
 ): (components: GossipSubComponents) => GossipSub {
   return (components: GossipSubComponents) => {
+    init = {
+      ...init,
+      // Ensure that no signature is included nor expected in the messages.
+      globalSignaturePolicy: SignaturePolicy.StrictNoSign,
+      fallbackToFloodsub: false,
+    };
     const pubsub = new GossipSub(components, init);
     pubsub.multicodecs = constants.RelayCodecs;
     return pubsub;
