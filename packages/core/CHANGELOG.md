@@ -5,9 +5,10 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.14](https://www.npmjs.com/package/@waku/core/v/0.0.14) (2023-03-29)
+## [0.0.14](https://github.com/waku-org/js-waku/compare/core-v0.0.12...core-v0.0.13) (2023-03-29)
 
-Was published by mistake and does not contain valid code.
+### Features
+Nothing. Was published by mistake and does not contain valid code. Same as 0.0.13
 
 ## [0.0.13](https://github.com/waku-org/js-waku/compare/core-v0.0.12...core-v0.0.13) (2023-03-24)
 
