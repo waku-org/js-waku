@@ -1,3 +1,4 @@
+import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
@@ -8,6 +9,7 @@ import {
   DefaultUserAgent,
   RelayCreateOptions,
   wakuFilter,
+  wakuGossipSub,
   wakuLightPush,
   WakuNode,
   WakuOptions,
@@ -17,7 +19,6 @@ import {
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
   FullNode,
-  IRelay,
   LightNode,
   ProtocolCreateOptions,
   RelayNode,
@@ -85,12 +86,21 @@ export async function createRelayNode(
   }
 
   const libp2p = await defaultLibp2p(
-    wakuRelay(options),
+    wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
   );
 
-  return new WakuNode(options ?? {}, libp2p) as RelayNode;
+  const relay = wakuRelay(options);
+
+  return new WakuNode(
+    options ?? {},
+    libp2p,
+    undefined,
+    undefined,
+    undefined,
+    relay
+  ) as RelayNode;
 }
 
 /**
@@ -117,7 +127,7 @@ export async function createFullNode(
   }
 
   const libp2p = await defaultLibp2p(
-    wakuRelay(options),
+    wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
   );
@@ -125,13 +135,15 @@ export async function createFullNode(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
+  const relay = wakuRelay(options);
 
   return new WakuNode(
     options ?? {},
     libp2p,
     store,
     lightPush,
-    filter
+    filter,
+    relay
   ) as FullNode;
 }
 
@@ -142,7 +154,7 @@ export function defaultPeerDiscovery(): (
 }
 
 export async function defaultLibp2p(
-  wakuRelay?: (components: Libp2pComponents) => IRelay,
+  wakuGossipSub?: (components: Libp2pComponents) => GossipSub,
   options?: Partial<Libp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
@@ -157,7 +169,7 @@ export async function defaultLibp2p(
         },
       },
     } as Libp2pOptions,
-    wakuRelay ? { pubsub: wakuRelay } : {},
+    wakuGossipSub ? { pubsub: wakuGossipSub } : {},
     options ?? {}
   );
 

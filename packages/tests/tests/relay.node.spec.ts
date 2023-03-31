@@ -121,7 +121,7 @@ describe("Waku Relay [node only]", () => {
 
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku2.relay.addObserver(TestDecoder, resolve);
+          waku2.relay.subscribe([TestDecoder], resolve);
         }
       );
 
@@ -152,12 +152,12 @@ describe("Waku Relay [node only]", () => {
       const barDecoder = createDecoder(barContentTopic);
 
       const fooMessages: DecodedMessage[] = [];
-      waku2.relay.addObserver(fooDecoder, (msg) => {
+      waku2.relay.subscribe([fooDecoder], (msg) => {
         fooMessages.push(msg);
       });
 
       const barMessages: DecodedMessage[] = [];
-      waku2.relay.addObserver(barDecoder, (msg) => {
+      waku2.relay.subscribe([barDecoder], (msg) => {
         barMessages.push(msg);
       });
 
@@ -207,10 +207,10 @@ describe("Waku Relay [node only]", () => {
       const symDecoder = createSymDecoder(symTopic, symKey);
 
       const msgs: DecodedMessage[] = [];
-      waku2.relay.addObserver(eciesDecoder, (wakuMsg) => {
+      waku2.relay.subscribe([eciesDecoder], (wakuMsg) => {
         msgs.push(wakuMsg);
       });
-      waku2.relay.addObserver(symDecoder, (wakuMsg) => {
+      waku2.relay.subscribe([symDecoder], (wakuMsg) => {
         msgs.push(wakuMsg);
       });
 
@@ -239,10 +239,10 @@ describe("Waku Relay [node only]", () => {
       // The promise **fails** if we receive a message on this observer.
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve, reject) => {
-          const deleteObserver = waku2.relay.addObserver(
-            createDecoder(contentTopic),
+          const deleteObserver = waku2.relay.subscribe(
+            [createDecoder(contentTopic)],
             reject
-          );
+          ) as () => void;
           deleteObserver();
           setTimeout(resolve, 500);
         }
@@ -313,7 +313,7 @@ describe("Waku Relay [node only]", () => {
 
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku2.relay.addObserver(TestDecoder, resolve);
+          waku2.relay.subscribe([TestDecoder], resolve);
         }
       );
 
@@ -321,7 +321,7 @@ describe("Waku Relay [node only]", () => {
       // pubsub topic.
       const waku3NoMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve, reject) => {
-          waku3.relay.addObserver(TestDecoder, reject);
+          waku3.relay.subscribe([TestDecoder], reject);
           setTimeout(resolve, 1000);
         }
       );
@@ -401,7 +401,7 @@ describe("Waku Relay [node only]", () => {
 
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku.relay.addObserver<DecodedMessage>(TestDecoder, (msg) =>
+          waku.relay.subscribe<DecodedMessage>(TestDecoder, (msg) =>
             resolve(msg)
           );
         }
@@ -472,7 +472,7 @@ describe("Waku Relay [node only]", () => {
 
         const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
           (resolve) => {
-            waku2.relay.addObserver(TestDecoder, resolve);
+            waku2.relay.subscribe(TestDecoder, resolve);
           }
         );
 

@@ -105,7 +105,7 @@ async function waitForGossipSubPeerInMesh(waku: IRelay): Promise<void> {
   let peers = waku.getMeshPeers();
 
   while (peers.length == 0) {
-    await pEvent(waku, "gossipsub:heartbeat");
+    await pEvent(waku.gossipSub, "gossipsub:heartbeat");
     peers = waku.getMeshPeers();
   }
 }

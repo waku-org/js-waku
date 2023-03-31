@@ -178,7 +178,7 @@ describe("Decryption Keys", () => {
 
     const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
-        waku2.relay.addObserver(decoder, resolve);
+        waku2.relay.subscribe([decoder], resolve);
       }
     );
 

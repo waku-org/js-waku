@@ -1,14 +1,4 @@
-import type { IDecodedMessage, IDecoder } from "./message.js";
-import type {
-  Callback,
-  PointToPointProtocol,
-  ProtocolOptions,
-} from "./protocols.js";
+import type { PointToPointProtocol } from "./protocols.js";
+import type { IReceiver } from "./receiver.js";
 
-export interface IFilter extends PointToPointProtocol {
-  subscribe: <T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
-    callback: Callback<T>,
-    opts?: ProtocolOptions
-  ) => Promise<() => Promise<void>>;
-}
+export type IFilter = IReceiver & PointToPointProtocol;
