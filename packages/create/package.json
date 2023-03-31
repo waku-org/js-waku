@@ -1,6 +1,6 @@
 {
   "name": "@waku/create",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Easily create a Waku node",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -53,7 +53,7 @@
     "@chainsafe/libp2p-noise": "^11.0.0",
     "@libp2p/mplex": "^7.1.1",
     "@libp2p/websockets": "^5.0.3",
-    "@waku/core": "0.0.13",
+    "@waku/core": "0.0.15",
     "@waku/dns-discovery": "0.0.9",
     "libp2p": "^0.42.2"
   },

@@ -6,6 +6,8 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
+import type { Libp2p } from "@libp2p/interface-libp2p";
+import type { PubSub } from "@libp2p/interface-pubsub";
 import type {
   ActiveSubscriptions,
   Callback,
@@ -20,8 +22,8 @@ import type {
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants.js";
+import { groupByContentTopic } from "../group_by.js";
 import { TopicOnlyDecoder } from "../message/topic_only_message.js";
-import { pushOrInitMapSet } from "../push_or_init_map.js";
 
 import * as constants from "./constants.js";
 import { messageValidator } from "./message_validator.js";
@@ -38,14 +40,14 @@ export type ContentTopic = string;
 
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
- * Must be passed as a `pubsub` module to a `Libp2p` instance.
- *
- * @implements {require('libp2p-interfaces/src/pubsub')}
+ * Throws if libp2p.pubsub does not support Waku Relay
  */
-class Relay extends GossipSub implements IRelay {
+class Relay implements IRelay {
   private readonly pubSubTopic: string;
-  defaultDecoder: IDecoder<IDecodedMessage>;
+  private defaultDecoder: IDecoder<IDecodedMessage>;
+
   public static multicodec: string = constants.RelayCodecs[0];
+  public readonly gossipSub: GossipSub;
 
   /**
    * observers called when receiving new message.
@@ -53,20 +55,19 @@ class Relay extends GossipSub implements IRelay {
    */
   private observers: Map<ContentTopic, Set<unknown>>;
 
-  constructor(
-    components: GossipSubComponents,
-    options?: Partial<RelayCreateOptions>
-  ) {
-    options = Object.assign(options ?? {}, {
-      // Ensure that no signature is included nor expected in the messages.
-      globalSignaturePolicy: SignaturePolicy.StrictNoSign,
-      fallbackToFloodsub: false,
-    });
+  constructor(libp2p: Libp2p, options?: Partial<RelayCreateOptions>) {
+    if (!this.isRelayPubSub(libp2p.pubsub)) {
+      throw Error(
+        `Failed to initialize Relay. libp2p.pubsub does not support ${Relay.multicodec}`
+      );
+    }
 
-    super(components, options);
-    this.multicodecs = constants.RelayCodecs;
-
+    this.gossipSub = libp2p.pubsub as GossipSub;
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+
+    if (this.gossipSub.isStarted()) {
+      this.gossipSubSubscribe(this.pubSubTopic);
+    }
 
     this.observers = new Map();
 
@@ -82,8 +83,12 @@ class Relay extends GossipSub implements IRelay {
    * @returns {void}
    */
   public async start(): Promise<void> {
-    await super.start();
-    this.subscribe(this.pubSubTopic);
+    if (this.gossipSub.isStarted()) {
+      throw Error("GossipSub already started.");
+    }
+
+    await this.gossipSub.start();
+    this.gossipSubSubscribe(this.pubSubTopic);
   }
 
   /**
@@ -96,7 +101,7 @@ class Relay extends GossipSub implements IRelay {
       return { recipients: [] };
     }
 
-    return this.publish(this.pubSubTopic, msg);
+    return this.gossipSub.publish(this.pubSubTopic, msg);
   }
 
   /**
@@ -104,22 +109,38 @@ class Relay extends GossipSub implements IRelay {
    *
    * @returns Function to delete the observer
    */
-  addObserver<T extends IDecodedMessage>(
-    decoder: IDecoder<T>,
+  public subscribe<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
-    const observer = {
-      decoder,
-      callback,
-    };
-    const contentTopic = decoder.contentTopic;
+    const contentTopicToObservers = Array.isArray(decoders)
+      ? toObservers(decoders, callback)
+      : toObservers([decoders], callback);
 
-    pushOrInitMapSet(this.observers, contentTopic, observer);
+    for (const contentTopic of contentTopicToObservers.keys()) {
+      const currObservers = this.observers.get(contentTopic) || new Set();
+      const newObservers =
+        contentTopicToObservers.get(contentTopic) || new Set();
+
+      this.observers.set(contentTopic, union(currObservers, newObservers));
+    }
 
     return () => {
-      const observers = this.observers.get(contentTopic);
-      if (observers) {
-        observers.delete(observer);
+      for (const contentTopic of contentTopicToObservers.keys()) {
+        const currentObservers = this.observers.get(contentTopic) || new Set();
+        const observersToRemove =
+          contentTopicToObservers.get(contentTopic) || new Set();
+
+        const nextObservers = leftMinusJoin(
+          currentObservers,
+          observersToRemove
+        );
+
+        if (nextObservers.size) {
+          this.observers.set(contentTopic, nextObservers);
+        } else {
+          this.observers.delete(contentTopic);
+        }
       }
     };
   }
@@ -128,6 +149,10 @@ class Relay extends GossipSub implements IRelay {
     const map = new Map();
     map.set(this.pubSubTopic, this.observers.keys());
     return map;
+  }
+
+  public getMeshPeers(topic?: TopicStr): PeerIdStr[] {
+    return this.gossipSub.getMeshPeers(topic ?? this.pubSubTopic);
   }
 
   private async processIncomingMessage<T extends IDecodedMessage>(
@@ -168,8 +193,8 @@ class Relay extends GossipSub implements IRelay {
    *
    * @override
    */
-  subscribe(pubSubTopic: string): void {
-    this.addEventListener(
+  private gossipSubSubscribe(pubSubTopic: string): void {
+    this.gossipSub.addEventListener(
       "gossipsub:message",
       async (event: CustomEvent<GossipsubMessage>) => {
         if (event.detail.msg.topic !== pubSubTopic) return;
@@ -182,24 +207,76 @@ class Relay extends GossipSub implements IRelay {
       }
     );
 
-    this.topicValidators.set(pubSubTopic, messageValidator);
-    super.subscribe(pubSubTopic);
+    this.gossipSub.topicValidators.set(pubSubTopic, messageValidator);
+    this.gossipSub.subscribe(pubSubTopic);
   }
 
-  unsubscribe(pubSubTopic: TopicStr): void {
-    super.unsubscribe(pubSubTopic);
-    this.topicValidators.delete(pubSubTopic);
-  }
-
-  getMeshPeers(topic?: TopicStr): PeerIdStr[] {
-    return super.getMeshPeers(topic ?? this.pubSubTopic);
+  private isRelayPubSub(pubsub: PubSub): boolean {
+    return pubsub?.multicodecs?.includes(Relay.multicodec) || false;
   }
 }
 
-Relay.multicodec = constants.RelayCodecs[constants.RelayCodecs.length - 1];
-
 export function wakuRelay(
+  init: Partial<ProtocolCreateOptions> = {}
+): (libp2p: Libp2p) => IRelay {
+  return (libp2p: Libp2p) => new Relay(libp2p, init);
+}
+
+export function wakuGossipSub(
   init: Partial<RelayCreateOptions> = {}
-): (components: GossipSubComponents) => IRelay {
-  return (components: GossipSubComponents) => new Relay(components, init);
+): (components: GossipSubComponents) => GossipSub {
+  return (components: GossipSubComponents) => {
+    init = {
+      ...init,
+      // Ensure that no signature is included nor expected in the messages.
+      globalSignaturePolicy: SignaturePolicy.StrictNoSign,
+      fallbackToFloodsub: false,
+    };
+    const pubsub = new GossipSub(components, init);
+    pubsub.multicodecs = constants.RelayCodecs;
+    return pubsub;
+  };
+}
+
+function toObservers<T extends IDecodedMessage>(
+  decoders: IDecoder<T>[],
+  callback: Callback<T>
+): Map<ContentTopic, Set<Observer<T>>> {
+  const contentTopicToDecoders = Array.from(
+    groupByContentTopic(decoders).entries()
+  );
+
+  const contentTopicToObserversEntries = contentTopicToDecoders.map(
+    ([contentTopic, decoders]) =>
+      [
+        contentTopic,
+        new Set(
+          decoders.map(
+            (decoder) =>
+              ({
+                decoder,
+                callback,
+              } as Observer<T>)
+          )
+        ),
+      ] as [ContentTopic, Set<Observer<T>>]
+  );
+
+  return new Map(contentTopicToObserversEntries);
+}
+
+function union(left: Set<unknown>, right: Set<unknown>): Set<unknown> {
+  for (const val of right.values()) {
+    left.add(val);
+  }
+  return left;
+}
+
+function leftMinusJoin(left: Set<unknown>, right: Set<unknown>): Set<unknown> {
+  for (const val of right.values()) {
+    if (left.has(val)) {
+      left.delete(val);
+    }
+  }
+  return left;
 }

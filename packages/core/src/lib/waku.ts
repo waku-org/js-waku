@@ -1,7 +1,6 @@
 import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import type { PubSub } from "@libp2p/interface-pubsub";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import type {
   IFilter,
@@ -14,7 +13,6 @@ import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 
 import { ConnectionManager } from "./connection_manager.js";
-import * as relayConstants from "./relay/constants.js";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -57,7 +55,8 @@ export class WakuNode implements Waku {
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
-    filter?: (libp2p: Libp2p) => IFilter
+    filter?: (libp2p: Libp2p) => IFilter,
+    relay?: (libp2p: Libp2p) => IRelay
   ) {
     this.libp2p = libp2p;
 
@@ -71,8 +70,8 @@ export class WakuNode implements Waku {
       this.lightPush = lightPush(libp2p);
     }
 
-    if (isRelay(libp2p.pubsub)) {
-      this.relay = libp2p.pubsub;
+    if (relay) {
+      this.relay = relay(libp2p);
     }
 
     const pingKeepAlive =
@@ -120,7 +119,9 @@ export class WakuNode implements Waku {
     const codecs: string[] = [];
     if (_protocols.includes(Protocols.Relay)) {
       if (this.relay) {
-        this.relay.multicodecs.forEach((codec) => codecs.push(codec));
+        this.relay.gossipSub.multicodecs.forEach((codec: string) =>
+          codecs.push(codec)
+        );
       } else {
         log(
           "Relay codec not included in dial codec: protocol not mounted locally"
@@ -187,17 +188,4 @@ export class WakuNode implements Waku {
     }
     return localMultiaddr + "/p2p/" + this.libp2p.peerId.toString();
   }
-}
-
-function isRelay(pubsub: PubSub): pubsub is IRelay {
-  if (pubsub) {
-    try {
-      return pubsub.multicodecs.includes(
-        relayConstants.RelayCodecs[relayConstants.RelayCodecs.length - 1]
-      );
-      // Exception is expected if `libp2p` was not instantiated with pubsub
-      // eslint-disable-next-line no-empty
-    } catch (e) {}
-  }
-  return false;
 }

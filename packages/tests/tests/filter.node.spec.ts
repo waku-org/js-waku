@@ -78,7 +78,7 @@ describe("Waku Filter", () => {
       messageCount++;
       expect(msg.contentTopic).to.eq(TestContentTopic);
     };
-    await waku.filter.subscribe([TestDecoder], callback);
+    await waku.filter.subscribe(TestDecoder, callback);
 
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
