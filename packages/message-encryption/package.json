@@ -1,6 +1,6 @@
 {
   "name": "@waku/message-encryption",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Waku Message Payload Encryption",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -74,7 +74,7 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.7.1",
-    "@waku/core": "0.0.14",
+    "@waku/core": "0.0.15",
     "@waku/interfaces": "0.0.10",
     "@waku/proto": "0.0.4",
     "@waku/utils": "0.0.3",

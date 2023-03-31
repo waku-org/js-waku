@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.15](https://github.com/waku-org/js-waku/compare/core-v0.0.14...core-v0.0.15) (2023-03-31)
+
+
+### Bug Fixes
+
+* Update @waku/core changelog ([#1287](https://github.com/waku-org/js-waku/issues/1287)) ([5def8dd](https://github.com/waku-org/js-waku/commit/5def8ddb4d9a43424bf2124a521d618368ffa9dc))
+
 ## [0.0.14](https://github.com/waku-org/js-waku/compare/core-v0.0.12...core-v0.0.13) (2023-03-29)
 
 ### Features
