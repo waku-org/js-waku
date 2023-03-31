@@ -74,7 +74,7 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.7.1",
-    "@waku/core": "0.0.13",
+    "@waku/core": "0.0.14",
     "@waku/interfaces": "0.0.10",
     "@waku/proto": "0.0.4",
     "@waku/utils": "0.0.3",

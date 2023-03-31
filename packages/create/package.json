@@ -53,7 +53,7 @@
     "@chainsafe/libp2p-noise": "^11.0.0",
     "@libp2p/mplex": "^7.1.1",
     "@libp2p/websockets": "^5.0.3",
-    "@waku/core": "0.0.13",
+    "@waku/core": "0.0.14",
     "@waku/dns-discovery": "0.0.9",
     "libp2p": "^0.42.2"
   },
