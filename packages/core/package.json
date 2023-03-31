@@ -66,7 +66,6 @@
     "check": "run-s check:*",
     "check:tsc": "tsc -p tsconfig.dev.json",
     "check:lint": "eslint src *.js",
-    "check:prettier": "prettier . --list-different",
     "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
     "test": "run-s test:*",
     "test:node": "TS_NODE_PROJECT=./tsconfig.dev.json mocha",

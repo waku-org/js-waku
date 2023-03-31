@@ -11,8 +11,7 @@
     "fix:lint": "eslint . --fix",
     "fix:prettier": "prettier . --write",
     "check": "run-s check:*",
-    "check:lint": "eslint .",
-    "check:prettier": "prettier . --list-different"
+    "check:lint": "eslint ."
   },
   "repository": {
     "type": "git",
