@@ -23,7 +23,6 @@
     "fix": "run-s check:*",
     "fix:workspaces": "npm run fix --workspaces --if-present",
     "fix:prettier": "prettier . --write",
-    "fix:lint": "npm run fix:lint --workspaces --if-present",
     "check": "run-s check:*",
     "check:workspaces": "npm run check --workspaces --if-present",
     "check:prettier": "prettier ./packages --list-different",
