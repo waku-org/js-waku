@@ -53,7 +53,8 @@
     "prepublish": "npm run build",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
     "test": "run-s test:*",
-    "test:node": "TS_NODE_PROJECT=./tsconfig.dev.json mocha"
+    "test:node": "TS_NODE_PROJECT=./tsconfig.dev.json mocha",
+    "test:browser": "karma start karma.conf.cjs"
   },
   "engines": {
     "node": ">=16"
@@ -90,6 +91,10 @@
     "eslint-plugin-functional": "^5.0.4",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
+    "karma": "^6.4.1",
+    "karma-chrome-launcher": "^3.1.1",
+    "karma-mocha": "^2.0.1",
+    "karma-webpack": "^5.0.0",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.4",

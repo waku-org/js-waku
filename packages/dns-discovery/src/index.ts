@@ -60,7 +60,7 @@ export class PeerDiscoveryDns
   extends EventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery
 {
-  private readonly nextPeer: () => AsyncGenerator<IEnr>;
+  private nextPeer: (() => AsyncGenerator<IEnr>) | undefined;
   private _started: boolean;
   private _components: DnsDiscoveryComponents;
   private _options: Options;
@@ -71,17 +71,8 @@ export class PeerDiscoveryDns
     this._components = components;
     this._options = options;
 
-    const { enrUrl, wantedNodeCapabilityCount } = options;
-
+    const { enrUrl } = options;
     log("Use following EIP-1459 ENR Tree URL: ", enrUrl);
-
-    const dns = DnsNodeDiscovery.dnsOverHttp();
-
-    this.nextPeer = dns.getNextPeer.bind(
-      dns,
-      [enrUrl],
-      wantedNodeCapabilityCount
-    );
   }
 
   /**
@@ -91,6 +82,18 @@ export class PeerDiscoveryDns
     log("Starting peer discovery via dns");
 
     this._started = true;
+
+    if (this.nextPeer === undefined) {
+      const { enrUrl, wantedNodeCapabilityCount } = this._options;
+      const dns = await DnsNodeDiscovery.dnsOverHttp();
+
+      this.nextPeer = dns.getNextPeer.bind(
+        dns,
+        [enrUrl],
+        wantedNodeCapabilityCount
+      );
+    }
+
     for await (const peer of this.nextPeer()) {
       if (!this._started) return;
 
