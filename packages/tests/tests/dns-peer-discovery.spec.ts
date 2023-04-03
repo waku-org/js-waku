@@ -90,7 +90,7 @@ describe("DNS Node Discovery [live data]", function () {
 
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
-    const dnsNodeDiscovery = DnsNodeDiscovery.dnsOverHttp();
+    const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
 
     const peers = await dnsNodeDiscovery.getPeers([enrTree["PROD"]], {
       relay: maxQuantity,

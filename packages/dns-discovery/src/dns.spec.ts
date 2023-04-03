@@ -273,7 +273,7 @@ describe("DNS Node Discovery [live data]", function () {
   it(`should retrieve ${maxQuantity} multiaddrs for test.waku.nodes.status.im`, async function () {
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
-    const dnsNodeDiscovery = DnsNodeDiscovery.dnsOverHttp();
+    const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
     const peers = await dnsNodeDiscovery.getPeers([enrTree.TEST], {
       relay: maxQuantity,
       store: maxQuantity,
@@ -296,7 +296,7 @@ describe("DNS Node Discovery [live data]", function () {
   it(`should retrieve ${maxQuantity} multiaddrs for prod.waku.nodes.status.im`, async function () {
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
-    const dnsNodeDiscovery = DnsNodeDiscovery.dnsOverHttp();
+    const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
     const peers = await dnsNodeDiscovery.getPeers([enrTree.PROD], {
       relay: maxQuantity,
       store: maxQuantity,
