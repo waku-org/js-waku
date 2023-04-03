@@ -53,7 +53,7 @@
     "@libp2p/websockets": "^5.0.3",
     "@waku/core": "0.0.16",
     "@waku/dns-discovery": "0.0.10",
-    "libp2p": "^0.42.2"
+    "libp2p": "^0.43.3"
   },
   "devDependencies": {
     "@libp2p/interface-address-manager": "^2.0.4",
