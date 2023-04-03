@@ -8,8 +8,8 @@ describe("Waku Message version 0", function () {
   it("Round trip binary serialization", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string(),
-        fc.string(),
+        fc.string({ minLength: 1 }),
+        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         async (contentTopic, pubSubTopic, payload) => {
           const encoder = createEncoder({
@@ -37,8 +37,8 @@ describe("Waku Message version 0", function () {
   it("Ephemeral field set to true", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string(),
-        fc.string(),
+        fc.string({ minLength: 1 }),
+        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         async (contentTopic, pubSubTopic, payload) => {
           const encoder = createEncoder({
@@ -62,8 +62,8 @@ describe("Waku Message version 0", function () {
   it("Meta field set when metaSetter is specified", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string(),
-        fc.string(),
+        fc.string({ minLength: 1 }),
+        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         async (contentTopic, pubSubTopic, payload) => {
           // Encode the length of the payload
@@ -104,5 +104,36 @@ describe("Waku Message version 0", function () {
         }
       )
     );
+  });
+});
+
+describe("Ensures content topic is defined", () => {
+  it("Encoder throws on undefined content topic", () => {
+    const wrapper = function (): void {
+      createEncoder({ contentTopic: undefined as unknown as string });
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
+  });
+  it("Encoder throws on empty string content topic", () => {
+    const wrapper = function (): void {
+      createEncoder({ contentTopic: "" });
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
+  });
+  it("Decoder throws on undefined content topic", () => {
+    const wrapper = function (): void {
+      createDecoder(undefined as unknown as string);
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
+  });
+  it("Decoder throws on empty string content topic", () => {
+    const wrapper = function (): void {
+      createDecoder("");
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
   });
 });
