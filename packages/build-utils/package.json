@@ -9,7 +9,6 @@
   "scripts": {
     "fix": "run-s fix:*",
     "fix:lint": "eslint . --fix",
-    "fix:prettier": "prettier . --write",
     "check": "run-s check:*",
     "check:lint": "eslint ."
   },

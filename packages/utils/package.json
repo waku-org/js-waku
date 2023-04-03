@@ -53,7 +53,6 @@
     "build:esm": "tsc",
     "build:bundle": "rollup --config rollup.config.js",
     "fix": "run-s fix:*",
-    "fix:prettier": "prettier . --write",
     "fix:lint": "eslint src *.js --fix",
     "check": "run-s check:*",
     "check:lint": "eslint src *.js",
