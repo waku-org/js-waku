@@ -18,6 +18,15 @@
       "import": "./dist/bytes/index.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "*",
+        "dist/*",
+        "dist/*/index"
+      ]
+    }
+  },
   "type": "module",
   "author": "Waku Team",
   "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/utils#readme",
