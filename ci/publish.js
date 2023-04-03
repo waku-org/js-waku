@@ -1,8 +1,8 @@
+import cp from "child_process";
 import fs from "fs";
 import path from "path";
-import cp from "child_process";
-import { promisify } from "util";
 import { fileURLToPath } from "url";
+import { promisify } from "util";
 
 const PACKAGE_JSON = "package.json";
 // hack to get __dirname
@@ -45,7 +45,7 @@ async function run() {
             `npm publish --workspace ${info.workspace} --tag latest --access public`
           );
           console.info(
-            `Successfully published ${info.name} with version ${info.version}.`
+            `Successfully published ${info.workspace} with version ${info.version}.`
           );
         } catch (err) {
           console.error(
