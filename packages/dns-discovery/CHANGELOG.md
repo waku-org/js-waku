@@ -28,6 +28,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * dependencies
     * @waku/enr bumped from 0.0.8 to 0.0.9
 
+## [0.0.10](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.9...dns-discovery-v0.0.10) (2023-04-03)
+
+
+### Bug Fixes
+
+* **dns-discovery:** Use DOH list from dns-query ([1dd3210](https://github.com/waku-org/js-waku/commit/1dd32101baf2750527369f7f25981882aa1f9527))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from 0.0.9 to 0.0.10
+    * @waku/utils bumped from 0.0.3 to 0.0.4
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.10 to 0.0.11
+
 ## [0.0.6](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.5...dns-discovery-v0.0.6) (2023-03-16)
 
 

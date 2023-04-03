@@ -1,6 +1,6 @@
 {
   "name": "@waku/utils",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Different utilities for Waku",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -16,6 +16,15 @@
     "./bytes": {
       "types": "./dist/bytes/index.d.ts",
       "import": "./dist/bytes/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "*",
+        "dist/*",
+        "dist/*/index"
+      ]
     }
   },
   "type": "module",
