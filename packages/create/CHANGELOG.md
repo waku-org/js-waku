@@ -17,6 +17,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * dependencies
     * @waku/core bumped from 0.0.14 to 0.0.15
 
+## [0.0.12](https://github.com/waku-org/js-waku/compare/create-v0.0.11...create-v0.0.12) (2023-04-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* add and implement IReceiver ([#1219](https://github.com/waku-org/js-waku/issues/1219))
+
+### Features
+
+* Add and implement IReceiver ([#1219](https://github.com/waku-org/js-waku/issues/1219)) ([e11e5b4](https://github.com/waku-org/js-waku/commit/e11e5b4870aede7813b3ee4b60f5e625f6eac5a2))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.15 to 0.0.16
+    * @waku/dns-discovery bumped from 0.0.9 to 0.0.10
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.10 to 0.0.11
+
 ## [0.0.9](https://github.com/waku-org/js-waku/compare/create-v0.0.8...create-v0.0.9) (2023-03-24)
 
 
