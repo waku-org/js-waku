@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.9 to 0.0.10
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.3 to 0.0.4
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.10 to 0.0.11
+
 ## [0.0.9](https://github.com/waku-org/js-waku/compare/enr-v0.0.8...enr-v0.0.9) (2023-03-28)
 
 

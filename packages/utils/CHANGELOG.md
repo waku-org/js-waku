@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.4](https://github.com/waku-org/js-waku/compare/utils-v0.0.3...utils-v0.0.4) (2023-04-03)
+
+
+### Bug Fixes
+
+* **utils:** Typescript to able to find types ([03c9cac](https://github.com/waku-org/js-waku/commit/03c9cac3d0f0167dee3b99d3945d96648bdb8685))
+
 ## [0.0.3](https://github.com/waku-org/js-waku/compare/utils-v0.0.2...utils-v0.0.3) (2023-03-24)
 
 
