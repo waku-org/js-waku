@@ -38,8 +38,7 @@
     "proto": "rimraf src/lib/*.ts; protons src/lib/*.proto",
     "check:tsc": "tsc -p tsconfig.dev.json",
     "prepublish": "npm run build",
-    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
-    "fix": "run-s fix:*"
+    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
     "node": ">=16"
