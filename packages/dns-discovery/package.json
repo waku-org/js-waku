@@ -1,6 +1,6 @@
 {
   "name": "@waku/dns-discovery",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "DNS Peer Discovery (EIP-1459)",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -52,7 +52,8 @@
     "prepublish": "npm run build",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
     "test": "run-s test:*",
-    "test:node": "TS_NODE_PROJECT=./tsconfig.dev.json mocha"
+    "test:node": "TS_NODE_PROJECT=./tsconfig.dev.json mocha",
+    "test:browser": "karma start karma.conf.cjs"
   },
   "engines": {
     "node": ">=16"
@@ -60,8 +61,8 @@
   "dependencies": {
     "@libp2p/interface-peer-discovery": "^1.0.5",
     "@libp2p/interfaces": "^3.3.1",
-    "@waku/enr": "0.0.9",
-    "@waku/utils": "0.0.3",
+    "@waku/enr": "0.0.10",
+    "@waku/utils": "0.0.4",
     "debug": "^4.3.4",
     "dns-query": "^0.11.2",
     "hi-base32": "^0.5.1",
@@ -80,7 +81,7 @@
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.51.0",
     "@waku/build-utils": "*",
-    "@waku/interfaces": "0.0.10",
+    "@waku/interfaces": "0.0.11",
     "chai": "^4.3.7",
     "cspell": "^6.31.1",
     "eslint": "^8.35.0",
@@ -89,6 +90,10 @@
     "eslint-plugin-functional": "^5.0.4",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
+    "karma": "^6.4.1",
+    "karma-chrome-launcher": "^3.1.1",
+    "karma-mocha": "^2.0.1",
+    "karma-webpack": "^5.0.0",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.4",

@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.16](https://github.com/waku-org/js-waku/compare/core-v0.0.15...core-v0.0.16) (2023-04-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* add and implement IReceiver ([#1219](https://github.com/waku-org/js-waku/issues/1219))
+
+### Features
+
+* Add and implement IReceiver ([#1219](https://github.com/waku-org/js-waku/issues/1219)) ([e11e5b4](https://github.com/waku-org/js-waku/commit/e11e5b4870aede7813b3ee4b60f5e625f6eac5a2))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.10 to 0.0.11
+    * @waku/utils bumped from 0.0.3 to 0.0.4
+
 ## [0.0.15](https://github.com/waku-org/js-waku/compare/core-v0.0.14...core-v0.0.15) (2023-03-31)
 
 

@@ -4,9 +4,9 @@ const webpack = require("webpack");
 module.exports = function (config) {
   config.set({
     frameworks: ["webpack", "mocha"],
-    files: ["src/**/*.ts"],
+    files: ["src/**/!(node).spec.ts"],
     preprocessors: {
-      "src/**/*.ts": ["webpack"],
+      "src/**/!(node).spec.ts": ["webpack"],
     },
     envPreprocessor: ["CI"],
     reporters: ["progress"],
@@ -20,7 +20,19 @@ module.exports = function (config) {
     webpack: {
       mode: "development",
       module: {
-        rules: [{ test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }],
+        rules: [
+          {
+            test: /\.([cm]?ts|tsx)$/,
+            use: [
+              {
+                loader: "ts-loader",
+                options: {
+                  configFile: "tsconfig.karma.json",
+                },
+              },
+            ],
+          },
+        ],
       },
       plugins: [
         new webpack.DefinePlugin({

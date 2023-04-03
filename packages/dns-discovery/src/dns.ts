@@ -33,9 +33,11 @@ export class DnsNodeDiscovery {
   private readonly _DNSTreeCache: { [key: string]: string };
   private readonly _errorTolerance: number = 10;
 
-  public static dnsOverHttp(dnsClient?: DnsClient): DnsNodeDiscovery {
+  public static async dnsOverHttp(
+    dnsClient?: DnsClient
+  ): Promise<DnsNodeDiscovery> {
     if (!dnsClient) {
-      dnsClient = new DnsOverHttps();
+      dnsClient = await DnsOverHttps.create();
     }
     return new DnsNodeDiscovery(dnsClient);
   }
