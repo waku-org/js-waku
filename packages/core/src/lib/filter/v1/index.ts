@@ -16,10 +16,10 @@ import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
-import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
-import { groupByContentTopic } from "../group_by.js";
-import { toProtoMessage } from "../to_proto_message.js";
+import { BaseProtocol } from "../../base_protocol.js";
+import { DefaultPubSubTopic } from "../../constants.js";
+import { groupByContentTopic } from "../../group_by.js";
+import { toProtoMessage } from "../../to_proto_message.js";
 
 import { ContentFilter, FilterRpc } from "./filter_rpc.js";
 
@@ -50,11 +50,11 @@ class Filter extends BaseProtocol implements IFilter {
   private subscriptions: Map<RequestID, unknown>;
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(FilterCodec, libp2p.peerStore, libp2p.getConnections.bind(libp2p));
+    super([FilterCodec], libp2p.peerStore, libp2p.getConnections.bind(libp2p));
     this.options = options ?? {};
     this.subscriptions = new Map();
     this.libp2p
-      .handle(this.multicodec, this.onRequest.bind(this))
+      .handle(this.multicodecs, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
   }
 
