@@ -9,8 +9,8 @@ describe("Ecies Encryption", function () {
   it("Round trip binary encryption [ecies, no signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string(),
-        fc.string(),
+        fc.string({ minLength: 1 }),
+        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (pubSubTopic, contentTopic, payload, privateKey) => {
@@ -44,8 +44,8 @@ describe("Ecies Encryption", function () {
 
     await fc.assert(
       fc.asyncProperty(
-        fc.string(),
-        fc.string(),
+        fc.string({ minLength: 1 }),
+        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
@@ -86,8 +86,8 @@ describe("Ecies Encryption", function () {
   it("Check meta is set [ecies]", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string(),
-        fc.string(),
+        fc.string({ minLength: 1 }),
+        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (pubSubTopic, contentTopic, payload, privateKey) => {
@@ -128,5 +128,39 @@ describe("Ecies Encryption", function () {
         }
       )
     );
+  });
+});
+
+describe("Ensures content topic is defined", () => {
+  it("Encoder throws on undefined content topic", () => {
+    const wrapper = function (): void {
+      createEncoder({
+        contentTopic: undefined as unknown as string,
+        publicKey: new Uint8Array(),
+      });
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
+  });
+  it("Encoder throws on empty string content topic", () => {
+    const wrapper = function (): void {
+      createEncoder({ contentTopic: "", publicKey: new Uint8Array() });
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
+  });
+  it("Decoder throws on undefined content topic", () => {
+    const wrapper = function (): void {
+      createDecoder(undefined as unknown as string, new Uint8Array());
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
+  });
+  it("Decoder throws on empty string content topic", () => {
+    const wrapper = function (): void {
+      createDecoder("", new Uint8Array());
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
   });
 });

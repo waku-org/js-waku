@@ -71,7 +71,11 @@ export class Encoder implements IEncoder {
     public contentTopic: string,
     public ephemeral: boolean = false,
     public metaSetter?: IMetaSetter
-  ) {}
+  ) {
+    if (!contentTopic || contentTopic === "") {
+      throw new Error("Content topic must be specified");
+    }
+  }
 
   async toWire(message: IMessage): Promise<Uint8Array> {
     return proto.WakuMessage.encode(await this.toProtoObj(message));
@@ -117,7 +121,11 @@ export function createEncoder({
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
-  constructor(public contentTopic: string) {}
+  constructor(public contentTopic: string) {
+    if (!contentTopic || contentTopic === "") {
+      throw new Error("Content topic must be specified");
+    }
+  }
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);

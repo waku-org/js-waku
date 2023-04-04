@@ -37,7 +37,11 @@ class Encoder implements IEncoder {
     private sigPrivKey?: Uint8Array,
     public ephemeral: boolean = false,
     public metaSetter?: IMetaSetter
-  ) {}
+  ) {
+    if (!contentTopic || contentTopic === "") {
+      throw new Error("Content topic must be specified");
+    }
+  }
 
   async toWire(message: IMessage): Promise<Uint8Array | undefined> {
     const protoMessage = await this.toProtoObj(message);
