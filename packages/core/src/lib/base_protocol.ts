@@ -13,7 +13,7 @@ import {
  */
 export class BaseProtocol {
   constructor(
-    public multicodec: string,
+    public multicodecs: string[],
     public peerStore: PeerStore,
     protected getConnections: (peerId?: PeerId) => Connection[]
   ) {}
@@ -24,13 +24,13 @@ export class BaseProtocol {
    * peers.
    */
   async peers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.peerStore, [this.multicodec]);
+    return getPeersForProtocol(this.peerStore, this.multicodecs);
   }
 
   protected async getPeer(peerId?: PeerId): Promise<Peer> {
     const { peer } = await selectPeerForProtocol(
       this.peerStore,
-      [this.multicodec],
+      this.multicodecs,
       peerId
     );
     return peer;
@@ -42,6 +42,6 @@ export class BaseProtocol {
       throw new Error("Failed to get a connection to the peer");
     }
 
-    return connection.newStream(this.multicodec);
+    return connection.newStream(this.multicodecs);
   }
 }
