@@ -1,0 +1,9 @@
+.github
+.husky
+.vscode
+nwaku
+*/**/build
+*/**/bundle
+*/**/dist
+*/**/node_modules
+*/**/CHANGELOG.md

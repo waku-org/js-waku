@@ -38,9 +38,7 @@
     "proto": "rimraf src/lib/*.ts; protons src/lib/*.proto",
     "check:tsc": "tsc -p tsconfig.dev.json",
     "prepublish": "npm run build",
-    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
-    "fix": "run-s fix:*",
-    "fix:prettier": "prettier . --write"
+    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
     "node": ">=16"
@@ -63,7 +61,7 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.8.4",
+    "prettier": "^2.8.7",
     "protons": "^7.0.2",
     "rollup": "^3.15.0",
     "typescript": "^4.9.5",

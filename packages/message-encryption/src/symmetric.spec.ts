@@ -9,8 +9,8 @@ describe("Symmetric Encryption", function () {
   it("Round trip binary encryption [symmetric, no signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string(),
-        fc.string(),
+        fc.string({ minLength: 1 }),
+        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (pubSubTopic, contentTopic, payload, symKey) => {
@@ -40,8 +40,8 @@ describe("Symmetric Encryption", function () {
   it("Round trip binary encryption [symmetric, signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string(),
-        fc.string(),
+        fc.string({ minLength: 1 }),
+        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
@@ -75,8 +75,8 @@ describe("Symmetric Encryption", function () {
   it("Check meta is set [symmetric]", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string(),
-        fc.string(),
+        fc.string({ minLength: 1 }),
+        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (pubSubTopic, contentTopic, payload, symKey) => {
@@ -116,5 +116,39 @@ describe("Symmetric Encryption", function () {
         }
       )
     );
+  });
+});
+
+describe("Ensures content topic is defined", () => {
+  it("Encoder throws on undefined content topic", () => {
+    const wrapper = function (): void {
+      createEncoder({
+        contentTopic: undefined as unknown as string,
+        symKey: new Uint8Array(),
+      });
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
+  });
+  it("Encoder throws on empty string content topic", () => {
+    const wrapper = function (): void {
+      createEncoder({ contentTopic: "", symKey: new Uint8Array() });
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
+  });
+  it("Decoder throws on undefined content topic", () => {
+    const wrapper = function (): void {
+      createDecoder(undefined as unknown as string, new Uint8Array());
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
+  });
+  it("Decoder throws on empty string content topic", () => {
+    const wrapper = function (): void {
+      createDecoder("", new Uint8Array());
+    };
+
+    expect(wrapper).to.throw("Content topic must be specified");
   });
 });

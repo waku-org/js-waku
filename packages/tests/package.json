@@ -36,10 +36,8 @@
     "build": "run-s build:**",
     "build:esm": "tsc",
     "fix": "run-s fix:*",
-    "fix:prettier": "prettier . --write",
     "fix:lint": "eslint src tests --fix",
     "check": "run-s check:*",
-    "check:prettier": "prettier . --list-different",
     "check:lint": "eslint src tests",
     "check:spelling": "cspell \"{README.md,{tests,src}/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
@@ -89,7 +87,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.8.4",
+    "prettier": "^2.8.7",
     "typescript": "^4.9.5"
   }
 }

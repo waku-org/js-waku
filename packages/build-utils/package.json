@@ -9,10 +9,8 @@
   "scripts": {
     "fix": "run-s fix:*",
     "fix:lint": "eslint . --fix",
-    "fix:prettier": "prettier . --write",
     "check": "run-s check:*",
-    "check:lint": "eslint .",
-    "check:prettier": "prettier . --list-different"
+    "check:lint": "eslint ."
   },
   "repository": {
     "type": "git",
@@ -25,6 +23,6 @@
   },
   "homepage": "https://github.com/waku-org/js-waku#readme",
   "devDependencies": {
-    "prettier": "^2.8.4"
+    "prettier": "^2.8.7"
   }
 }
