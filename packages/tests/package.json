@@ -41,9 +41,8 @@
     "check:lint": "eslint src tests",
     "check:spelling": "cspell \"{README.md,{tests,src}/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
-    "pretest": "if docker inspect ${WAKUNODE_IMAGE} > /dev/null 2>&1; then echo 'Using local image'; else docker pull ${WAKUNODE_IMAGE:-statusteam/nim-waku:v0.16.0} && echo 'Image pulled'; fi",
     "test": "run-s test:*",
-    "test:node": "npm run pretest && TS_NODE_PROJECT=./tsconfig.dev.json mocha",
+    "test:node": "node ./src/run-tests.js",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
@@ -57,18 +56,18 @@
     "@waku/utils": "*",
     "app-root-path": "^3.1.0",
     "debug": "^4.3.4",
+    "dockerode": "^3.3.5",
     "p-timeout": "^6.1.0",
     "portfinder": "^1.0.32",
-    "tail": "^2.2.6",
-    "dockerode": "^3.3.5"
+    "tail": "^2.2.6"
   },
   "devDependencies": {
-    "@types/dockerode": "^3.3.15",
     "@libp2p/bootstrap": "^6.0.3",
     "@libp2p/components": "^3.1.1",
     "@libp2p/interface-peer-discovery-compliance-tests": "^2.0.5",
     "@libp2p/interface-peer-id": "^2.0.1",
     "@types/chai": "^4.3.4",
+    "@types/dockerode": "^3.3.15",
     "@types/mocha": "^10.0.1",
     "@types/tail": "^2.2.1",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
