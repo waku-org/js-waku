@@ -47,7 +47,7 @@ export interface Args {
   logLevel?: LogLevel;
   lightpush?: boolean;
   filter?: boolean;
-  useFilterV2?: boolean;
+  useFilterv2?: boolean;
   store?: boolean;
   peerExchange?: boolean;
   discv5Discovery?: boolean;
@@ -129,6 +129,10 @@ export class Nwaku {
     this.logPath = `${LOG_DIR}/nwaku_${logName}.log`;
   }
 
+  get nodeType(): "go-waku" | "nwaku" {
+    return isGoWaku ? "go-waku" : "nwaku";
+  }
+
   async start(args: Args = {}): Promise<void> {
     try {
       await existsAsync(LOG_DIR);
@@ -172,6 +176,8 @@ export class Nwaku {
         tcpPort,
         websocketPort,
         ...(args?.peerExchange && { discv5UdpPort }),
+        ...(args?.useFilterv2 &&
+          isGoWaku && { lightClient: true, minRelayPeersToPublish: 0 }),
       },
       args
     );
@@ -183,18 +189,6 @@ export class Nwaku {
     const natExtIp = "--nat=extip:127.0.0.1";
     const rpcAddress = "--rpc-address=0.0.0.0";
     argsArray.push(natExtIp, rpcAddress);
-
-    if (isGoWaku) {
-      if (mergedArgs.useFilterV2) {
-        argsArray.push(
-          "--use-filterv2",
-          "--light-client",
-          "--min-relay-peers-to-publish=0"
-        );
-      } else {
-        throw new Error("FilterV2 is only supported by go-waku currently");
-      }
-    }
 
     if (WAKU_SERVICE_NODE_PARAMS) {
       argsArray.push(WAKU_SERVICE_NODE_PARAMS);
@@ -535,7 +529,7 @@ export function defaultArgs(): Args {
     relay: false,
     rpcAdmin: true,
     websocketSupport: true,
-    // logLevel: LogLevel.Trace,
+    logLevel: LogLevel.Trace,
   };
 }
 

@@ -115,7 +115,8 @@
     "websockets",
     "wifi",
     "xsalsa20",
-    "statusteam"
+    "statusteam",
+    "Filterv2"
   ],
   "flagWords": [],
   "ignorePaths": [
