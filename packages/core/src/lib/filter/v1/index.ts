@@ -16,10 +16,10 @@ import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
-import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
-import { groupByContentTopic } from "../group_by.js";
-import { toProtoMessage } from "../to_proto_message.js";
+import { BaseProtocol } from "../../base_protocol.js";
+import { DefaultPubSubTopic } from "../../constants.js";
+import { groupByContentTopic } from "../../group_by.js";
+import { toProtoMessage } from "../../to_proto_message.js";
 
 import { ContentFilter, FilterRpc } from "./filter_rpc.js";
 
