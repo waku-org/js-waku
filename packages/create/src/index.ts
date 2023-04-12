@@ -142,7 +142,14 @@ export async function createFullNode(
 
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
-  const filter = wakuFilter(options);
+
+  let filter: (libp2p: Libp2p) => IFilter;
+  if (!options?.useFilterV2) {
+    filter = wakuFilter(options);
+  } else {
+    filter = wakuFilterV2(options);
+  }
+
   const relay = wakuRelay(options);
 
   return new WakuNode(
