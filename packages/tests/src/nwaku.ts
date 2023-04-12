@@ -47,6 +47,7 @@ export interface Args {
   logLevel?: LogLevel;
   lightpush?: boolean;
   filter?: boolean;
+  useFilterV2?: boolean;
   store?: boolean;
   peerExchange?: boolean;
   discv5Discovery?: boolean;
@@ -182,6 +183,18 @@ export class Nwaku {
     const natExtIp = "--nat=extip:127.0.0.1";
     const rpcAddress = "--rpc-address=0.0.0.0";
     argsArray.push(natExtIp, rpcAddress);
+
+    if (isGoWaku) {
+      if (mergedArgs.useFilterV2) {
+        argsArray.push(
+          "--use-filterv2",
+          "--light-client",
+          "--min-relay-peers-to-publish=0"
+        );
+      } else {
+        throw new Error("FilterV2 is only supported by go-waku currently");
+      }
+    }
 
     if (WAKU_SERVICE_NODE_PARAMS) {
       argsArray.push(WAKU_SERVICE_NODE_PARAMS);
@@ -522,7 +535,7 @@ export function defaultArgs(): Args {
     relay: false,
     rpcAdmin: true,
     websocketSupport: true,
-    logLevel: LogLevel.Trace,
+    // logLevel: LogLevel.Trace,
   };
 }
 
