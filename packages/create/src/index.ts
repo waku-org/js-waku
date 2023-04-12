@@ -9,6 +9,7 @@ import {
   DefaultUserAgent,
   RelayCreateOptions,
   wakuFilter,
+  wakuFilterV2,
   wakuGossipSub,
   wakuLightPush,
   WakuNode,
@@ -19,6 +20,7 @@ import {
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
   FullNode,
+  IFilter,
   LightNode,
   ProtocolCreateOptions,
   RelayNode,
@@ -60,7 +62,13 @@ export async function createLightNode(
 
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
-  const filter = wakuFilter(options);
+
+  let filter: (libp2p: Libp2p) => IFilter;
+  if (!options?.useFilterV2) {
+    filter = wakuFilter(options);
+  } else {
+    filter = wakuFilterV2(options);
+  }
 
   return new WakuNode(
     options ?? {},

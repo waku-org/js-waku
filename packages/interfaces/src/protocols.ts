@@ -49,6 +49,11 @@ export type ProtocolCreateOptions = {
    * Use recommended bootstrap method to discovery and connect to new nodes.
    */
   defaultBootstrap?: boolean;
+  /**
+   * Use the new refactored Filter protocol
+   * See [Improved Filter protocol specifications](https://github.com/vacp2p/rfc/pull/562)
+   */
+  useFilterV2?: boolean;
 };
 
 export type ProtocolOptions = {
