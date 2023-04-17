@@ -1,18 +1,12 @@
 import type { Connection, Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import {
-  Peer,
-  PeerProtocolsChangeData,
-  PeerStore,
-} from "@libp2p/interface-peer-store";
+import { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import {
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol,
 } from "@waku/utils/libp2p";
-import debug from "debug";
-
-const log = debug("waku:base-protocol");
+import { waitForRemotePeer } from "@waku/utils/libp2p";
 
 /**
  * A class with predefined helpers, to be used as a base to implement Waku
@@ -37,16 +31,7 @@ export class BaseProtocol {
   protected async getPeer(peerId?: PeerId): Promise<Peer> {
     let peer = await this._getPeer(peerId);
     if (!peer) {
-      await new Promise<void>((resolve) => {
-        const cb = (evt: CustomEvent<PeerProtocolsChangeData>): void => {
-          if (evt.detail.protocols.includes(this.multicodec)) {
-            log("Resolving for", this.multicodec, evt.detail.protocols);
-            this.peerStore.removeEventListener("change:protocols", cb);
-            resolve();
-          }
-        };
-        this.peerStore.addEventListener("change:protocols", cb);
-      });
+      await waitForRemotePeer(this.multicodec, this.peerStore);
       peer = (await this._getPeer(peerId)) as Peer;
     }
     return peer;

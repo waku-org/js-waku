@@ -1,6 +1,10 @@
 import type { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import type {
+  Peer,
+  PeerProtocolsChangeData,
+  PeerStore,
+} from "@libp2p/interface-peer-store";
 import debug from "debug";
 
 const log = debug("waku:libp2p-utils");
@@ -14,6 +18,22 @@ export function selectRandomPeer(peers: Peer[]): Peer | undefined {
 
   const index = Math.round(Math.random() * (peers.length - 1));
   return peers[index];
+}
+
+export async function waitForRemotePeer(
+  codec: string,
+  peerStore: PeerStore
+): Promise<void> {
+  await new Promise<void>((resolve) => {
+    const cb = (evt: CustomEvent<PeerProtocolsChangeData>): void => {
+      if (evt.detail.protocols.includes(codec)) {
+        log("Resolving for", codec, evt.detail.protocols);
+        peerStore.removeEventListener("change:protocols", cb);
+        resolve();
+      }
+    };
+    peerStore.addEventListener("change:protocols", cb);
+  });
 }
 
 /**
