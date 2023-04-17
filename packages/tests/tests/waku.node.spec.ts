@@ -1,8 +1,13 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { DecodedMessage, DefaultUserAgent } from "@waku/core";
+import {
+  DecodedMessage,
+  DefaultUserAgent,
+  waitForRemotePeer,
+} from "@waku/core";
 import { createLightNode, createRelayNode } from "@waku/create";
 import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import {
   createDecoder,
   createEncoder,
@@ -138,6 +143,11 @@ describe("Decryption Keys", () => {
       waku2.libp2p.getMultiaddrs()
     );
     await waku1.dial(waku2.libp2p.peerId);
+
+    await Promise.all([
+      waitForRemotePeer(waku1, [Protocols.Relay]),
+      waitForRemotePeer(waku2, [Protocols.Relay]),
+    ]);
   });
 
   afterEach(async function () {
@@ -208,7 +218,7 @@ describe("User Agent", () => {
       waku2.libp2p.getMultiaddrs()
     );
     await waku1.dial(waku2.libp2p.peerId);
-    waku1;
+    await waitForRemotePeer(waku1);
 
     const [waku1PeerInfo, waku2PeerInfo] = await Promise.all([
       waku2.libp2p.peerStore.metadataBook.get(waku1.libp2p.peerId),
