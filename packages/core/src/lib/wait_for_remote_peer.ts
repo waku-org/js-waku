@@ -24,6 +24,7 @@ const log = debug("waku:wait-for-remote-peer");
  * remote nodes, **rejects** if the timeoutMs is reached.
  * @throws If passing a protocol that is not mounted
  * @default Wait for remote peers with protocols enabled locally and no time out is applied.
+ * @deprecated: this does not need to be called explicitly anymore, and is safe to completely remove from your implementation. The waiting for peer  logic is now built into the protocols themselves.
  */
 export async function waitForRemotePeer(
   waku: Waku,
@@ -73,6 +74,7 @@ export async function waitForRemotePeer(
 
 /**
  * Wait for a peer with the given protocol to be connected.
+ * @deprecated: this does not need to be called explicitly anymore, and the logic is now built into the protocols themselves.
  */
 async function waitForConnectedPeer(
   protocol: PointToPointProtocol
