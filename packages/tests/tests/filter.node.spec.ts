@@ -3,11 +3,9 @@ import {
   createEncoder,
   DecodedMessage,
   DefaultPubSubTopic,
-  waitForRemotePeer,
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
 import type { LightNode } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import debug from "debug";
@@ -40,7 +38,6 @@ describe("Waku Filter", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });
 
   it("creates a subscription", async function () {

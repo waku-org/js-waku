@@ -1,11 +1,5 @@
-import {
-  createDecoder,
-  createEncoder,
-  DecodedMessage,
-  waitForRemotePeer,
-} from "@waku/core";
+import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
 import { createLightNode } from "@waku/create";
-import { Protocols } from "@waku/interfaces";
 import type { LightNode } from "@waku/interfaces";
 import {
   createDecoder as eciesDecoder,
@@ -63,12 +57,6 @@ describe("Waku Message Ephemeral field", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-
-    await waitForRemotePeer(waku, [
-      Protocols.Filter,
-      Protocols.LightPush,
-      Protocols.Store,
-    ]);
   });
 
   it("Ephemeral messages are not stored", async function () {
@@ -132,16 +120,12 @@ describe("Waku Message Ephemeral field", () => {
 
     log("Waku nodes connected to nwaku");
 
-    await waitForRemotePeer(waku1, [Protocols.LightPush]);
-
     log("Sending messages using light push");
     await Promise.all([
       waku1.lightPush.send(asymEncoder, asymMsg),
       waku1.lightPush.send(symEncoder, symMsg),
       waku1.lightPush.send(clearEncoder, clearMsg),
     ]);
-
-    await waitForRemotePeer(waku2, [Protocols.Store]);
 
     const messages: DecodedMessage[] = [];
     log("Retrieve messages from store");

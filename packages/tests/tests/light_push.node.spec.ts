@@ -1,7 +1,6 @@
-import { createEncoder, waitForRemotePeer } from "@waku/core";
+import { createEncoder } from "@waku/core";
 import { createLightNode } from "@waku/create";
 import type { LightNode } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import debug from "debug";
@@ -43,7 +42,6 @@ describe("Waku Light Push [node only]", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const messageText = "Light Push works!";
 
@@ -81,7 +79,6 @@ describe("Waku Light Push [node only]", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const nimPeerId = await nwaku.getPeerId();
 

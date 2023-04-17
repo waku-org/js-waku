@@ -4,11 +4,9 @@ import {
   createEncoder,
   DecodedMessage,
   PageDirection,
-  waitForRemotePeer,
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
 import type { IMessage, LightNode } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
 import {
   createDecoder as createEciesDecoder,
   createEncoder as createEciesEncoder,
@@ -74,7 +72,6 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const messages: IMessage[] = [];
     let promises: Promise<void>[] = [];
@@ -105,7 +102,6 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const messages: IMessage[] = [];
     let promises: Promise<void>[] = [];
@@ -144,7 +140,6 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const query = waku.store.queryGenerator([TestDecoder]);
 
@@ -201,7 +196,6 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const messages: IMessage[] = [];
     await waku.store.queryCallbackOnPromise(
@@ -242,7 +236,6 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const desiredMsgs = 14;
     const messages: IMessage[] = [];
@@ -282,7 +275,6 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const messages: IMessage[] = [];
     await waku.store.queryOrderedCallback(
@@ -321,7 +313,6 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
 
     let messages: IMessage[] = [];
     await waku.store.queryOrderedCallback(
@@ -409,8 +400,6 @@ describe("Waku Store", () => {
 
     log("Waku nodes connected to nwaku");
 
-    await waitForRemotePeer(waku1, [Protocols.LightPush]);
-
     log("Sending messages using light push");
     await Promise.all([
       waku1.lightPush.send(eciesEncoder, asymMsg),
@@ -418,8 +407,6 @@ describe("Waku Store", () => {
       waku1.lightPush.send(otherEncoder, otherMsg),
       waku1.lightPush.send(TestEncoder, clearMsg),
     ]);
-
-    await waitForRemotePeer(waku2, [Protocols.Store]);
 
     const messages: DecodedMessage[] = [];
     log("Retrieve messages from store");
@@ -486,7 +473,6 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const nwakuPeerId = await nwaku.getPeerId();
 
@@ -548,7 +534,6 @@ describe("Waku Store", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const desiredMsgs = 14;
     const messages: IMessage[] = [];
@@ -608,7 +593,6 @@ describe("Waku Store, custom pubsub topic", () => {
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
 
     const messages: IMessage[] = [];
     let promises: Promise<void>[] = [];
