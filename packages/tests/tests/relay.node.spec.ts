@@ -4,11 +4,9 @@ import {
   createEncoder,
   DecodedMessage,
   DefaultPubSubTopic,
-  waitForRemotePeer,
 } from "@waku/core";
 import { createRelayNode } from "@waku/create";
 import type { RelayNode } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
 import {
   createDecoder as createEciesDecoder,
   createEncoder as createEciesEncoder,
@@ -75,8 +73,8 @@ describe("Waku Relay [node only]", () => {
 
       log("Wait for mutual pubsub subscription");
       await Promise.all([
-        waitForRemotePeer(waku1, [Protocols.Relay]),
-        waitForRemotePeer(waku2, [Protocols.Relay]),
+        waku1.relay.waitForMeshPeers(),
+        waku2.relay.waitForMeshPeers(),
       ]);
       log("before each hook done");
     });
@@ -305,8 +303,8 @@ describe("Waku Relay [node only]", () => {
       ]);
 
       await Promise.all([
-        waitForRemotePeer(waku1, [Protocols.Relay]),
-        waitForRemotePeer(waku2, [Protocols.Relay]),
+        waku1.relay.waitForMeshPeers(),
+        waku2.relay.waitForMeshPeers(),
       ]);
 
       const messageText = "Communicating using a custom pubsub topic";
@@ -353,7 +351,7 @@ describe("Waku Relay [node only]", () => {
       await nwaku.start({ relay: true });
 
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.Relay]);
+      await waku.relay.waitForMeshPeers();
     });
 
     afterEach(async function () {
@@ -459,8 +457,8 @@ describe("Waku Relay [node only]", () => {
 
         // Wait for identify protocol to finish
         await Promise.all([
-          waitForRemotePeer(waku1, [Protocols.Relay]),
-          waitForRemotePeer(waku2, [Protocols.Relay]),
+          waku1.relay.waitForMeshPeers(),
+          waku2.relay.waitForMeshPeers(),
         ]);
 
         await delay(2000);

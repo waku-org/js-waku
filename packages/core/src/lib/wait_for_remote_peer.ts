@@ -102,6 +102,7 @@ async function waitForConnectedPeer(
 /**
  * Wait for a peer with the given protocol to be connected and in the gossipsub
  * mesh.
+ * @deprecated: this function has been exported as a helper to the Relay protocol, and can be imported from there if needed.
  */
 async function waitForGossipSubPeerInMesh(waku: IRelay): Promise<void> {
   let peers = waku.getMeshPeers();

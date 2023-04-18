@@ -20,6 +20,7 @@ import type {
   SendResult,
 } from "@waku/interfaces";
 import debug from "debug";
+import { pEvent } from "p-event";
 
 import { DefaultPubSubTopic } from "../constants.js";
 import { groupByContentTopic } from "../group_by.js";
@@ -153,6 +154,19 @@ class Relay implements IRelay {
 
   public getMeshPeers(topic?: TopicStr): PeerIdStr[] {
     return this.gossipSub.getMeshPeers(topic ?? this.pubSubTopic);
+  }
+
+  /**
+   * Wait for a peer with the given protocol to be connected and in the gossipsub
+   * mesh.
+   */
+  public async waitForMeshPeers(): Promise<void> {
+    let peers = this.getMeshPeers();
+
+    while (peers.length == 0) {
+      await pEvent(this.gossipSub, "gossipsub:heartbeat");
+      peers = this.getMeshPeers();
+    }
   }
 
   private async processIncomingMessage<T extends IDecodedMessage>(
