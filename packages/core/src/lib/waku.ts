@@ -1,4 +1,3 @@
-import { multicodec } from "@chainsafe/libp2p-gossipsub";
 import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
