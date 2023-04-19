@@ -20,7 +20,8 @@ import {
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
   FullNode,
-  IFilter,
+  IFilterV1,
+  IFilterV2,
   LightNode,
   ProtocolCreateOptions,
   RelayNode,
@@ -63,7 +64,7 @@ export async function createLightNode(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
 
-  let filter: (libp2p: Libp2p) => IFilter;
+  let filter: (libp2p: Libp2p) => IFilterV1 | IFilterV2;
   if (!options?.useFilterV2) {
     filter = wakuFilter(options);
   } else {
@@ -143,7 +144,7 @@ export async function createFullNode(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
 
-  let filter: (libp2p: Libp2p) => IFilter;
+  let filter: (libp2p: Libp2p) => IFilterV1 | IFilterV2;
   if (!options?.useFilterV2) {
     filter = wakuFilter(options);
   } else {

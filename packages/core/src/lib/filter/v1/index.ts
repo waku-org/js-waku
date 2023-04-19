@@ -6,7 +6,7 @@ import type {
   Callback,
   IDecodedMessage,
   IDecoder,
-  IFilter,
+  IFilterV1,
   ProtocolCreateOptions,
   ProtocolOptions,
 } from "@waku/interfaces";
@@ -45,7 +45,7 @@ type Subscription<T extends IDecodedMessage> = {
  * - https://github.com/status-im/go-waku/issues/245
  * - https://github.com/status-im/nwaku/issues/948
  */
-class Filter extends BaseProtocol implements IFilter {
+class Filter extends BaseProtocol implements IFilterV1 {
   options: ProtocolCreateOptions;
   private subscriptions: Map<RequestID, unknown>;
 
@@ -235,6 +235,6 @@ class Filter extends BaseProtocol implements IFilter {
 
 export function wakuFilter(
   init: Partial<ProtocolCreateOptions> = {}
-): (libp2p: Libp2p) => IFilter {
+): (libp2p: Libp2p) => IFilterV1 {
   return (libp2p: Libp2p) => new Filter(libp2p, init);
 }

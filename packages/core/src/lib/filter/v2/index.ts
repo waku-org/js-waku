@@ -6,7 +6,7 @@ import type {
   Callback,
   IDecodedMessage,
   IDecoder,
-  IFilter,
+  IFilterV2,
   IProtoMessage,
   ProtocolCreateOptions,
   ProtocolOptions,
@@ -50,7 +50,7 @@ const FilterV2Codecs = {
  * - https://github.com/status-im/go-waku/issues/245
  * - https://github.com/status-im/nwaku/issues/948
  */
-class FilterV2 extends BaseProtocol implements IFilter {
+class FilterV2 extends BaseProtocol implements IFilterV2 {
   options: ProtocolCreateOptions;
   private subscriptions: Map<RequestID, unknown>;
 
@@ -141,6 +141,74 @@ class FilterV2 extends BaseProtocol implements IFilter {
       await this.unsubscribe(pubSubTopic, contentTopics, requestId, peer);
       this.subscriptions.delete(requestId);
     };
+  }
+
+  public async unsubscribeAll(): Promise<void> {
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+
+    const request = FilterSubscribeRpc.createUnsubscribeAllRequest(pubSubTopic);
+
+    const peer = await this.getPeer();
+    const stream = await this.newStream(peer);
+
+    try {
+      const res = await pipe(
+        [request.encode()],
+        lp.encode(),
+        stream,
+        lp.decode(),
+        async (source) => await all(source)
+      );
+
+      const { statusCode, requestId } = FilterSubscribeResponse.decode(
+        res[0].slice()
+      );
+
+      if (statusCode < 200 || statusCode >= 300) {
+        throw new Error(
+          `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}`
+        );
+      }
+
+      log("Unsubscribed from all content topics");
+    } catch (error) {
+      log("Error unsubscribing from all content topics: ", error);
+      throw error;
+    }
+  }
+
+  public async ping(): Promise<void> {
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+
+    const request = FilterSubscribeRpc.createSubscriberPingRequest(pubSubTopic);
+
+    const peer = await this.getPeer();
+    const stream = await this.newStream(peer);
+
+    try {
+      const res = await pipe(
+        [request.encode()],
+        lp.encode(),
+        stream,
+        lp.decode(),
+        async (source) => await all(source)
+      );
+
+      const { statusCode, requestId } = FilterSubscribeResponse.decode(
+        res[0].slice()
+      );
+
+      if (statusCode < 200 || statusCode >= 300) {
+        throw new Error(
+          `Filter ping request ${requestId} failed with status code ${statusCode}`
+        );
+      }
+
+      log("Ping successful");
+    } catch (error) {
+      log("Error pinging: ", error);
+      throw error;
+    }
   }
 
   public getActiveSubscriptions(): ActiveSubscriptions {
@@ -261,6 +329,6 @@ class FilterV2 extends BaseProtocol implements IFilter {
 
 export function wakuFilterV2(
   init: Partial<ProtocolCreateOptions> = {}
-): (libp2p: Libp2p) => IFilter {
+): (libp2p: Libp2p) => IFilterV2 {
   return (libp2p: Libp2p) => new FilterV2(libp2p, init);
 }
