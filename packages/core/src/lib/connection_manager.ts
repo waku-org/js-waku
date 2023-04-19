@@ -19,6 +19,7 @@ export class ConnectionManager {
   private options: ConnectionManagerOptions;
   private libp2pComponents: Libp2p;
   private dialAttemptsForPeer: Map<string, number> = new Map();
+  private dialErrorsForPeer: Map<string, any> = new Map();
 
   public static create(
     peerId: string,
@@ -86,7 +87,6 @@ export class ConnectionManager {
 
   private async dialPeer(peerId: PeerId): Promise<void> {
     let dialAttempt = 0;
-    let lastErrorRecorded: any;
     while (dialAttempt <= this.options.maxDialAttemptsForPeer) {
       try {
         log(`Dialing peer ${peerId.toString()}`);
@@ -104,7 +104,7 @@ export class ConnectionManager {
         this.dialAttemptsForPeer.delete(peerId.toString());
         return;
       } catch (error: any) {
-        lastErrorRecorded = error;
+        this.dialErrorsForPeer.set(peerId.toString(), error);
         log(`Error dialing peer ${peerId.toString()} - ${error.errors}`);
 
         dialAttempt = this.dialAttemptsForPeer.get(peerId.toString()) ?? 1;
@@ -119,10 +119,11 @@ export class ConnectionManager {
     try {
       log(
         `Deleting undialable peer ${peerId.toString()} from peer store. Error: ${JSON.stringify(
-          lastErrorRecorded.errors[0]
+          this.dialErrorsForPeer.get(peerId.toString()).errors[0]
         )}
         }`
       );
+      this.dialErrorsForPeer.delete(peerId.toString());
       return await this.libp2pComponents.peerStore.delete(peerId);
     } catch (error) {
       throw `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`;
