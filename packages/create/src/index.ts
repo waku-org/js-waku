@@ -41,13 +41,17 @@ export { Libp2pComponents };
 /**
  * Create a Waku node that uses Waku Light Push, Filter and Store to send and
  * receive messages, enabling low resource consumption.
+ * Implements generics to allow for conditional type checking for Filter V1 and V2 protocols.
+ * If useFilterV2 is set to true, the node will use Filter V2 protocol and the return type on `LightNode` will be set to `true`.
+ * If useFilterV2 is set to false or undefined, the node will use Filter V1 protocol and the return type on `LightNode` will be set to `false`.
+ *
  * **Note: This is NOT compatible with nwaku v0.11**
  *
  * @see https://github.com/status-im/nwaku/issues/1085
  */
-export async function createLightNode(
-  options?: ProtocolCreateOptions & WakuOptions
-): Promise<LightNode> {
+export async function createLightNode<FilterV2 extends boolean = false>(
+  options?: ProtocolCreateOptions & WakuOptions & { useFilterV2?: FilterV2 }
+): Promise<LightNode<FilterV2 extends true ? true : false>> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -65,10 +69,11 @@ export async function createLightNode(
   const lightPush = wakuLightPush(options);
 
   let filter: (libp2p: Libp2p) => IFilterV1 | IFilterV2;
-  if (!options?.useFilterV2) {
-    filter = wakuFilter(options);
+
+  if (options?.useFilterV2) {
+    filter = wakuFilterV2(options) as (libp2p: Libp2p) => IFilterV2;
   } else {
-    filter = wakuFilterV2(options);
+    filter = wakuFilter(options) as (libp2p: Libp2p) => IFilterV1;
   }
 
   return new WakuNode(
@@ -77,7 +82,7 @@ export async function createLightNode(
     store,
     lightPush,
     filter
-  ) as LightNode;
+  ) as LightNode<FilterV2 extends true ? true : false>;
 }
 
 /**
@@ -114,6 +119,9 @@ export async function createRelayNode(
 
 /**
  * Create a Waku node that uses all Waku protocols.
+ * Implements generics to allow for conditional type checking for Filter V1 and V2 protocols.
+ * If useFilterV2 is set to true, the node will use Filter V2 protocol and the return type on `LightNode` will be set to `true`.
+ * If useFilterV2 is set to false or undefined, the node will use Filter V1 protocol and the return type on `LightNode` will be set to `false`.
  *
  * This helper is not recommended except if:
  * - you are interfacing with nwaku v0.11 or below
@@ -125,9 +133,9 @@ export async function createRelayNode(
  * @see https://github.com/status-im/nwaku/issues/1085
  * @internal
  */
-export async function createFullNode(
+export async function createFullNode<FilterV2 extends boolean = false>(
   options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
-): Promise<FullNode> {
+): Promise<FullNode<FilterV2 extends true ? true : false>> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -160,7 +168,7 @@ export async function createFullNode(
     lightPush,
     filter,
     relay
-  ) as FullNode;
+  ) as FullNode<FilterV2 extends true ? true : false>;
 }
 
 export function defaultPeerDiscovery(): (

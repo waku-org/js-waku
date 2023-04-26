@@ -25,10 +25,10 @@ export interface Waku {
   isStarted(): boolean;
 }
 
-export interface LightNode extends Waku {
+export interface LightNode<FilterV2 extends boolean = false> extends Waku {
   relay: undefined;
   store: IStore;
-  filter: IFilterV1 | IFilterV2;
+  filter: FilterV2 extends true ? IFilterV2 : IFilterV1;
   lightPush: ILightPush;
 }
 
@@ -39,9 +39,9 @@ export interface RelayNode extends Waku {
   lightPush: undefined;
 }
 
-export interface FullNode extends Waku {
+export interface FullNode<FilterV2 extends boolean = false> extends Waku {
   relay: IRelay;
   store: IStore;
-  filter: IFilterV1 | IFilterV2;
+  filter: FilterV2 extends true ? IFilterV2 : IFilterV1;
   lightPush: ILightPush;
 }
