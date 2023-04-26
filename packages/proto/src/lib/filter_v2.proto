@@ -18,18 +18,18 @@ message FilterSubscribeRequest {
   FilterSubscribeType filter_subscribe_type = 2;
 
   // Filter criteria
-  string pubsub_topic = 10;
+  optional string pubsub_topic = 10;
   repeated string content_topics = 11;
 }
 
 message FilterSubscribeResponse {
   string request_id = 1;
   uint32 status_code = 10;
-  string status_desc = 11;
+  optional string status_desc = 11;
 }
 
 // Protocol identifier: /vac/waku/filter-push/2.0.0-beta1
-message MessagePushV2 {
+message MessagePush {
   WakuMessage waku_message = 1;
-  string pubsub_topic = 2;
+  optional string pubsub_topic = 2;
 }
