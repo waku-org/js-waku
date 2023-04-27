@@ -9,6 +9,7 @@ import type {
   SendResult,
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
+import { DefaultPubSubTopic } from "@waku/utils/constants";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -16,7 +17,6 @@ import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
 import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
 
 import { PushRpc } from "./push_rpc.js";
 

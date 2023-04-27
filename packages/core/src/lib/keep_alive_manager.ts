@@ -1,11 +1,10 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { IRelay } from "@waku/interfaces";
+import { RelayPingContentTopic } from "@waku/utils/constants";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
 import { createEncoder } from "../index.js";
-
-import { RelayPingContentTopic } from "./relay/constants.js";
 
 const log = debug("waku:keep-alive");
 

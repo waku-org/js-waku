@@ -11,14 +11,14 @@ import type {
   ProtocolOptions,
 } from "@waku/interfaces";
 import { WakuMessage as WakuMessageProto } from "@waku/proto";
+import { groupByContentTopic } from "@waku/utils";
+import { DefaultPubSubTopic } from "@waku/utils/constants";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
 import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
-import { groupByContentTopic } from "../group_by.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
 import { ContentFilter, FilterRpc } from "./filter_rpc.js";
