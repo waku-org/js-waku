@@ -4,7 +4,7 @@ import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { createEncoder } from "../message/version_0.js";
+import { createEncoder } from "../../core/src/lib/message/version_0.js";
 
 import { messageValidator } from "./message_validator.js";
 
