@@ -30,7 +30,7 @@ module.exports = [
   },
   {
     name: "Privacy preserving protocols",
-    path: "packages/core/bundle/index.js",
+    path: "packages/relay/bundle/index.js",
     import: "{ wakuRelay }",
   },
   {
