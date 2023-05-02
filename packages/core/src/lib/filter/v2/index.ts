@@ -54,6 +54,7 @@ const FilterV2Codecs = {
 class FilterV2 extends BaseProtocol implements IFilterV2 {
   options: ProtocolCreateOptions;
   private subscriptions: Map<RequestID, unknown>;
+  public pubSubTopic: string;
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(
@@ -66,6 +67,9 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
 
     this.options = options ?? {};
     this.subscriptions = new Map();
+
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+    this.pubSubTopic = pubSubTopic;
   }
 
   /**
@@ -80,12 +84,11 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
     opts?: ProtocolOptions
   ): Promise<UnsubscribeFunction> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
     const contentTopics = Array.from(groupByContentTopic(decodersArray).keys());
 
     const request = FilterSubscribeRpc.createSubscribeRequest(
-      pubSubTopic,
+      this.pubSubTopic,
       contentTopics
     );
 
@@ -134,12 +137,12 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
     const subscription: Subscription<T> = {
       callback,
       decoders: decodersArray,
-      pubSubTopic,
+      pubSubTopic: this.pubSubTopic,
     };
     this.subscriptions.set(requestId, subscription);
 
     return async () => {
-      await this.unsubscribe(pubSubTopic, contentTopics, requestId, peer);
+      await this.unsubscribe(this.pubSubTopic, contentTopics, requestId, peer);
       this.subscriptions.delete(requestId);
     };
   }
