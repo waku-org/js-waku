@@ -1,7 +1,7 @@
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
-import { IncomingStreamData } from "@libp2p/interface-registrar";
+import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
   ActiveSubscriptions,
   Callback,
@@ -106,13 +106,12 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
         async (source) => await all(source)
       );
 
-      const { statusCode, requestId } = FilterSubscribeResponse.decode(
-        res[0].slice()
-      );
+      const { statusCode, requestId, statusDesc } =
+        FilterSubscribeResponse.decode(res[0].slice());
 
       if (statusCode < 200 || statusCode >= 300) {
         throw new Error(
-          `Filter subscribe request ${requestId} failed with status code ${statusCode}`
+          `Filter subscribe request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
         );
       }
 
@@ -123,15 +122,14 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
         contentTopics
       );
     } catch (e) {
-      log(
-        "Error subscribing to peer ",
-        peer.id.toString(),
-        "for content topics",
-        contentTopics,
-        ": ",
-        e
+      throw new Error(
+        "Error subscribing to peer: " +
+          peer.id.toString() +
+          " for content topics: " +
+          contentTopics +
+          ": " +
+          e
       );
-      throw e;
     }
 
     const subscription: Subscription<T> = {
@@ -164,20 +162,18 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
         async (source) => await all(source)
       );
 
-      const { statusCode, requestId } = FilterSubscribeResponse.decode(
-        res[0].slice()
-      );
+      const { statusCode, requestId, statusDesc } =
+        FilterSubscribeResponse.decode(res[0].slice());
 
       if (statusCode < 200 || statusCode >= 300) {
         throw new Error(
-          `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}`
+          `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
         );
       }
 
       log("Unsubscribed from all content topics");
     } catch (error) {
-      log("Error unsubscribing from all content topics: ", error);
-      throw error;
+      throw new Error("Error unsubscribing from all content topics: " + error);
     }
   }
 
@@ -198,13 +194,12 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
         async (source) => await all(source)
       );
 
-      const { statusCode, requestId } = FilterSubscribeResponse.decode(
-        res[0].slice()
-      );
+      const { statusCode, requestId, statusDesc } =
+        FilterSubscribeResponse.decode(res[0].slice());
 
       if (statusCode < 200 || statusCode >= 300) {
         throw new Error(
-          `Filter ping request ${requestId} failed with status code ${statusCode}`
+          `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
         );
       }
 
@@ -324,9 +319,8 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
     const stream = await this.newStream(peer);
     try {
       await pipe([unsubscribeRequest.encode()], lp.encode(), stream.sink);
-    } catch (e) {
-      log("Error unsubscribing", e);
-      throw e;
+    } catch (error) {
+      throw new Error("Error subscribing: " + error);
     }
   }
 }
