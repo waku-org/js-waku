@@ -1,4 +1,5 @@
 import type { Libp2p } from "@libp2p/interface-libp2p";
+import { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
@@ -143,12 +144,12 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
     };
   }
 
-  public async unsubscribeAll(): Promise<void> {
+  public async unsubscribeAll(peerId: PeerId): Promise<void> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(pubSubTopic);
 
-    const peer = await this.getPeer();
+    const peer = await this.getPeer(peerId);
     const stream = await this.newStream(peer);
 
     try {
@@ -177,12 +178,12 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
     }
   }
 
-  public async ping(): Promise<void> {
+  public async ping(peerId: PeerId): Promise<void> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
     const request = FilterSubscribeRpc.createSubscriberPingRequest(pubSubTopic);
 
-    const peer = await this.getPeer();
+    const peer = await this.getPeer(peerId);
     const stream = await this.newStream(peer);
 
     try {

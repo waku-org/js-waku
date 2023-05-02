@@ -1,3 +1,5 @@
+import { PeerId } from "@libp2p/interface-peer-id";
+
 import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { Callback, ProtocolOptions } from "./protocols.js";
 
@@ -17,6 +19,6 @@ export interface IReceiverV1 {
 }
 
 export interface IReceiverV2 extends IReceiverV1 {
-  ping: () => Promise<void>;
-  unsubscribeAll: () => Promise<void>;
+  ping: (peerId: PeerId) => Promise<void>;
+  unsubscribeAll: (peerId: PeerId) => Promise<void>;
 }

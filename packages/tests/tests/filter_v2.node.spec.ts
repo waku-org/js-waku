@@ -172,14 +172,14 @@ describe("Waku Filter: V2", () => {
     const callback = (): void => {
       messageCount++;
     };
-    await waku.filter.subscribe([TestDecoder], callback);
+    const peerId = await waku.filter.subscribe([TestDecoder], callback);
 
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received"),
     });
     await delay(100);
-    await waku.filter.ping();
+    await waku.filter.ping(peerId);
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received"),
     });
