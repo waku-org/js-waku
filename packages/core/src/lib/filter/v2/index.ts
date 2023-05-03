@@ -32,6 +32,8 @@ import {
 
 const log = debug("waku:filter:v2");
 
+type PeerIdStr = string;
+
 type Subscription<T extends IDecodedMessage> = {
   decoders: IDecoder<T>[];
   callback: Callback<T>;
@@ -52,7 +54,7 @@ const FilterV2Codecs = {
  */
 class FilterV2 extends BaseProtocol implements IFilterV2 {
   options: ProtocolCreateOptions;
-  private subscriptions: Map<PeerId, unknown[]>;
+  private subscriptions: Map<PeerIdStr, unknown[]>;
   public pubSubTopic: string;
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
@@ -134,7 +136,12 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
       decoders: decodersArray,
       pubSubTopic: this.pubSubTopic,
     };
-    this.subscriptions.get(peer.id)?.push(subscription) ?? [subscription];
+    this.subscriptions.set(
+      peer.id.toString(),
+      [...(this.subscriptions.get(peer.id.toString()) ?? []), subscription] ?? [
+        subscription,
+      ]
+    );
 
     return {
       ping: async () => {
@@ -173,11 +180,14 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
     }
 
     const subs = this.subscriptions.set(
-      peer.id,
-      removeItemFromArray(this.subscriptions.get(peer.id) ?? [], subscription)
+      peer.id.toString(),
+      removeItemFromArray(
+        this.subscriptions.get(peer.id.toString()) ?? [],
+        subscription
+      )
     );
-    if (!subs.get(peer.id)?.length) {
-      this.subscriptions.delete(peer.id);
+    if (!subs.get(peer.id.toString())?.length) {
+      this.subscriptions.delete(peer.id.toString());
     }
   }
 
@@ -246,7 +256,7 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
   public getActiveSubscriptions(): ActiveSubscriptions {
     const map: ActiveSubscriptions = new Map();
     const subscriptions = this.subscriptions as Map<
-      PeerId,
+      PeerIdStr,
       Subscription<IDecodedMessage>[]
     >;
 
@@ -276,15 +286,13 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
           }
 
           const subs = this.subscriptions as Map<
-            PeerId,
+            PeerIdStr,
             Subscription<IDecodedMessage>[]
           >;
 
           const subscription = subs
-            .get(streamData.connection.remotePeer)
-            ?.find((s) => {
-              s.pubSubTopic === pubsubTopic;
-            });
+            .get(streamData.connection.remotePeer.toString())
+            ?.find((s) => s.pubSubTopic === pubsubTopic);
 
           if (!subscription) {
             log(`No subscription locally registered for topic ${pubsubTopic}`);
