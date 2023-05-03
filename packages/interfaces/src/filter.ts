@@ -1,5 +1,9 @@
-import type { PointToPointProtocol } from "./protocols.js";
-import type { IReceiverV1, IReceiverV2 } from "./receiver.js";
+import { PeerId } from "@libp2p/interface-peer-id";
 
-export type IFilterV1 = IReceiverV1 & PointToPointProtocol;
-export type IFilterV2 = IReceiverV2 & PointToPointProtocol;
+import type { PointToPointProtocol } from "./protocols.js";
+import { IReceiver } from "./receiver.js";
+
+export type IFilterV1 = IReceiver<"v1"> & PointToPointProtocol;
+export type IFilterV2 = IReceiver<"v2"> & {
+  ping: (peerId: PeerId) => Promise<void>;
+} & PointToPointProtocol;

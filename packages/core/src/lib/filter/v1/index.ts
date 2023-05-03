@@ -9,6 +9,7 @@ import type {
   IFilterV1,
   ProtocolCreateOptions,
   ProtocolOptions,
+  SubscriptionReturn,
 } from "@waku/interfaces";
 import { WakuMessage as WakuMessageProto } from "@waku/proto";
 import debug from "debug";
@@ -29,7 +30,6 @@ export const FilterCodec = "/vac/waku/filter/2.0.0-beta1";
 
 const log = debug("waku:filter");
 
-export type UnsubscribeFunction = () => Promise<void>;
 export type RequestID = string;
 
 type Subscription<T extends IDecodedMessage> = {
@@ -48,6 +48,7 @@ type Subscription<T extends IDecodedMessage> = {
 class Filter extends BaseProtocol implements IFilterV1 {
   options: ProtocolCreateOptions;
   private subscriptions: Map<RequestID, unknown>;
+  public pubSubTopic: string;
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(FilterCodec, libp2p.peerStore, libp2p.getConnections.bind(libp2p));
@@ -56,6 +57,8 @@ class Filter extends BaseProtocol implements IFilterV1 {
     this.libp2p
       .handle(this.multicodec, this.onRequest.bind(this))
       .catch((e) => log("Failed to register filter protocol", e));
+
+    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
   }
 
   /**
@@ -68,9 +71,8 @@ class Filter extends BaseProtocol implements IFilterV1 {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
     opts?: ProtocolOptions
-  ): Promise<UnsubscribeFunction> {
+  ): Promise<SubscriptionReturn<"v1">> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
     const contentTopics = Array.from(groupByContentTopic(decodersArray).keys());
 
@@ -78,7 +80,7 @@ class Filter extends BaseProtocol implements IFilterV1 {
       contentTopic,
     }));
     const request = FilterRpc.createRequest(
-      pubSubTopic,
+      this.pubSubTopic,
       contentFilters,
       undefined,
       true
@@ -114,14 +116,68 @@ class Filter extends BaseProtocol implements IFilterV1 {
     const subscription: Subscription<T> = {
       callback,
       decoders: decodersArray,
-      pubSubTopic,
+      pubSubTopic: this.pubSubTopic,
     };
     this.subscriptions.set(requestId, subscription);
 
-    return async () => {
-      await this.unsubscribe(pubSubTopic, contentFilters, requestId, peer);
-      this.subscriptions.delete(requestId);
+    return {
+      unsubscribe: async () => {
+        await this.unsubscribe(
+          this.pubSubTopic,
+          contentFilters,
+          requestId,
+          peer
+        );
+        this.subscriptions.delete(requestId);
+      },
+      unsubscribeAll: async () => {
+        await this.unsubscribeAll(peer);
+        this.subscriptions.clear();
+      },
     };
+  }
+
+  private async unsubscribe(
+    topic: string,
+    contentFilters: ContentFilter[],
+    requestId: string,
+    peer: Peer
+  ): Promise<void> {
+    const unsubscribeRequest = FilterRpc.createRequest(
+      topic,
+      contentFilters,
+      requestId,
+      false
+    );
+
+    const stream = await this.newStream(peer);
+    try {
+      await pipe([unsubscribeRequest.encode()], lp.encode(), stream.sink);
+    } catch (e) {
+      log("Error unsubscribing", e);
+      throw e;
+    }
+  }
+
+  async unsubscribeAll(peer: Peer): Promise<void> {
+    const subscriptions = this.subscriptions as Map<
+      RequestID,
+      Subscription<IDecodedMessage>
+    >;
+
+    for (const subscription of subscriptions) {
+      const { pubSubTopic, decoders } = subscription[1];
+      const contentTopics = decoders.map((decoder) => decoder.contentTopic);
+      const contentFilters = contentTopics.map((contentTopic) => ({
+        contentTopic,
+      }));
+      await this.unsubscribe(
+        pubSubTopic,
+        contentFilters,
+        subscription[0],
+        peer
+      );
+    }
   }
 
   public getActiveSubscriptions(): ActiveSubscriptions {
@@ -207,28 +263,6 @@ class Filter extends BaseProtocol implements IFilterV1 {
         didDecodeMsg = Boolean(decoded);
         await callback(decoded);
       });
-    }
-  }
-
-  private async unsubscribe(
-    topic: string,
-    contentFilters: ContentFilter[],
-    requestId: string,
-    peer: Peer
-  ): Promise<void> {
-    const unsubscribeRequest = FilterRpc.createRequest(
-      topic,
-      contentFilters,
-      requestId,
-      false
-    );
-
-    const stream = await this.newStream(peer);
-    try {
-      await pipe([unsubscribeRequest.encode()], lp.encode(), stream.sink);
-    } catch (e) {
-      log("Error unsubscribing", e);
-      throw e;
     }
   }
 }

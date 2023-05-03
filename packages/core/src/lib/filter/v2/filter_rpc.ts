@@ -65,11 +65,10 @@ export class FilterSubscribeRpc {
 
   static createSubscribeRequest(
     pubsubTopic: string,
-    contentTopics: string[],
-    requestId?: string
+    contentTopics: string[]
   ): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
-      requestId: requestId || uuid(),
+      requestId: uuid(),
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.SUBSCRIBE,
       pubsubTopic,
@@ -79,11 +78,10 @@ export class FilterSubscribeRpc {
 
   static createUnsubscribeRequest(
     pubsubTopic: string,
-    contentTopics: string[],
-    requestId?: string
+    contentTopics: string[]
   ): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
-      requestId: requestId || uuid(),
+      requestId: uuid(),
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.UNSUBSCRIBE,
       pubsubTopic,
@@ -91,12 +89,9 @@ export class FilterSubscribeRpc {
     });
   }
 
-  static createUnsubscribeAllRequest(
-    pubsubTopic: string,
-    requestId?: string
-  ): FilterSubscribeRpc {
+  static createUnsubscribeAllRequest(pubsubTopic: string): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
-      requestId: requestId || uuid(),
+      requestId: uuid(),
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.UNSUBSCRIBE_ALL,
       pubsubTopic,
@@ -104,9 +99,9 @@ export class FilterSubscribeRpc {
     });
   }
 
-  static createSubscriberPingRequest(requestId?: string): FilterSubscribeRpc {
+  static createSubscriberPingRequest(): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
-      requestId: requestId || uuid(),
+      requestId: uuid(),
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.SUBSCRIBER_PING,
       pubsubTopic: "",
