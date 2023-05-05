@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/waku-org/js-waku#readme",
   "devDependencies": {
-    "prettier": "^2.8.7"
+    "prettier": "^2.8.8"
   }
 }
