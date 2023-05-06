@@ -92,9 +92,9 @@ class Filter extends BaseProtocol implements IFilter {
     try {
       const res = await pipe(
         [request.encode()],
-        lp.encode(),
+        lp.encode,
         stream,
-        lp.decode(),
+        lp.decode,
         async (source) => await all(source)
       );
 
@@ -143,7 +143,7 @@ class Filter extends BaseProtocol implements IFilter {
   private onRequest(streamData: IncomingStreamData): void {
     log("Receiving message push");
     try {
-      pipe(streamData.stream, lp.decode(), async (source) => {
+      pipe(streamData.stream, lp.decode, async (source) => {
         for await (const bytes of source) {
           const res = FilterRpc.decode(bytes.slice());
           if (res.requestId && res.push?.messages?.length) {
@@ -225,7 +225,7 @@ class Filter extends BaseProtocol implements IFilter {
 
     const stream = await this.newStream(peer);
     try {
-      await pipe([unsubscribeRequest.encode()], lp.encode(), stream.sink);
+      await pipe([unsubscribeRequest.encode()], lp.encode, stream.sink);
     } catch (e) {
       log("Error unsubscribing", e);
       throw e;

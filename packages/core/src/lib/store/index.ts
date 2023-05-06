@@ -274,9 +274,9 @@ async function* paginate<T extends IDecodedMessage>(
 
     const res = await pipe(
       [historyRpcQuery.encode()],
-      lp.encode(),
+      lp.encode,
       stream,
-      lp.decode(),
+      lp.decode,
       async (source) => await all(source)
     );
 
