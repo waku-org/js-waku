@@ -1,11 +1,10 @@
 import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import { isPeerId } from "@libp2p/interface-peer-id";
-import type { Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
-import { multiaddr } from "@multiformats/multiaddr";
+import type { Multiaddr } from "@multiformats/multiaddr";
 import type {
-  IFilter,
+  IFilterV1,
+  IFilterV2,
   ILightPush,
   IRelay,
   IStore,
@@ -48,7 +47,7 @@ export class WakuNode implements Waku {
   public libp2p: Libp2p;
   public relay?: IRelay;
   public store?: IStore;
-  public filter?: IFilter;
+  public filter?: IFilterV1 | IFilterV2;
   public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
 
@@ -57,7 +56,7 @@ export class WakuNode implements Waku {
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
-    filter?: (libp2p: Libp2p) => IFilter,
+    filter?: (libp2p: Libp2p) => IFilterV1 | IFilterV2,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
     this.libp2p = libp2p;
@@ -106,11 +105,10 @@ export class WakuNode implements Waku {
    * @param protocols Waku protocols we expect from the peer; Defaults to mounted protocols
    */
   async dial(
-    peer: PeerId | MultiaddrInput,
+    peer: PeerId | Multiaddr,
     protocols?: Protocols[]
   ): Promise<Stream> {
     const _protocols = protocols ?? [];
-    const peerId = mapToPeerIdOrMultiaddr(peer);
 
     if (typeof protocols === "undefined") {
       this.relay && _protocols.push(Protocols.Relay);
@@ -159,9 +157,9 @@ export class WakuNode implements Waku {
       }
     }
 
-    log(`Dialing to ${peerId.toString()} with protocols ${_protocols}`);
+    log(`Dialing to ${peer.toString()} with protocols ${_protocols}`);
 
-    return this.libp2p.dialProtocol(peerId, codecs);
+    return this.libp2p.dialProtocol(peer, codecs);
   }
 
   async start(): Promise<void> {
@@ -191,10 +189,4 @@ export class WakuNode implements Waku {
     }
     return localMultiaddr + "/p2p/" + this.libp2p.peerId.toString();
   }
-}
-
-function mapToPeerIdOrMultiaddr(
-  peerId: PeerId | MultiaddrInput
-): PeerId | Multiaddr {
-  return isPeerId(peerId) ? peerId : multiaddr(peerId);
 }

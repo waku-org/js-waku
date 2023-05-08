@@ -1,17 +1,26 @@
+import { Peer } from "@libp2p/interface-peer-store";
+
 import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { Callback, ProtocolOptions } from "./protocols.js";
 
-type Unsubscribe = () => void | Promise<void>;
 type PubSubTopic = string;
 type ContentTopic = string;
 
+export type SubscriptionReturn<FilterVersion extends "v1" | "v2"> = {
+  unsubscribe: () => Promise<void>;
+  unsubscribeAll: () => Promise<void>;
+} & (FilterVersion extends "v1" ? object : { ping: () => Promise<void> });
+
 export type ActiveSubscriptions = Map<PubSubTopic, ContentTopic[]>;
 
-export interface IReceiver {
+export interface IReceiver<FilterVersion extends "v1" | "v2"> {
   subscribe: <T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
     opts?: ProtocolOptions
-  ) => Unsubscribe | Promise<Unsubscribe>;
+  ) =>
+    | SubscriptionReturn<FilterVersion>
+    | Promise<SubscriptionReturn<FilterVersion>>;
   getActiveSubscriptions: () => ActiveSubscriptions;
+  unsubscribeAll: (peerId: Peer) => Promise<void>;
 }
