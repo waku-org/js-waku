@@ -8,6 +8,7 @@ import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PubSub } from "@libp2p/interface-pubsub";
+import { sha256 } from "@noble/hashes/sha256";
 import type {
   ActiveSubscriptions,
   Callback,
@@ -228,6 +229,7 @@ export function wakuGossipSub(
   return (components: GossipSubComponents) => {
     init = {
       ...init,
+      msgIdFn: ({ data }) => sha256(data),
       // Ensure that no signature is included nor expected in the messages.
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
       fallbackToFloodsub: false,

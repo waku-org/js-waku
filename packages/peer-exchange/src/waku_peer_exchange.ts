@@ -63,9 +63,9 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
 
     const res = await pipe(
       [rpcQuery.encode()],
-      lp.encode(),
+      lp.encode,
       stream,
-      lp.decode(),
+      lp.decode,
       async (source) => await all(source)
     );
 
