@@ -33,13 +33,11 @@ describe("Waku Filter: V2", () => {
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new Nwaku(makeLogFileName(this));
-    // New Filter protocol only works on go-waku right now
-    if (nwaku.nodeType !== "go-waku") this.skip();
     await nwaku.start({
       filter: true,
       lightpush: true,
       relay: true,
-      useFilterv2: true,
+      ...(nwaku.nodeType === "go-waku" && { useFilterv2: true }),
     });
     waku = await createLightNode({
       useFilterV2: true,
