@@ -149,7 +149,7 @@ class Relay implements IRelay {
     };
   }
 
-  async toAsyncIterator<T extends IDecodedMessage>(
+  public toAsyncIterator<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     opts?: ProtocolOptions | undefined
   ): Promise<IAsyncIterator<T>> {
