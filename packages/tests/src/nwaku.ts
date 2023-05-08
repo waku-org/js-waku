@@ -47,6 +47,7 @@ export interface Args {
   logLevel?: LogLevel;
   lightpush?: boolean;
   filter?: boolean;
+  useFilterv2?: boolean;
   store?: boolean;
   peerExchange?: boolean;
   discv5Discovery?: boolean;
@@ -128,6 +129,10 @@ export class Nwaku {
     this.logPath = `${LOG_DIR}/nwaku_${logName}.log`;
   }
 
+  get nodeType(): "go-waku" | "nwaku" {
+    return isGoWaku ? "go-waku" : "nwaku";
+  }
+
   async start(args: Args = {}): Promise<void> {
     try {
       await existsAsync(LOG_DIR);
@@ -171,6 +176,8 @@ export class Nwaku {
         tcpPort,
         websocketPort,
         ...(args?.peerExchange && { discv5UdpPort }),
+        ...(isGoWaku && { minRelayPeersToPublish: 0 }),
+        ...(args?.useFilterv2 && isGoWaku && { lightClient: true }),
       },
       args
     );
