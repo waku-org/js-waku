@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.17](https://github.com/waku-org/js-waku/compare/core-v0.0.16...core-v0.0.17) (2023-05-09)
+
+
+### Features
+
+* Add mapping function to multiaddr of peerid ([#1306](https://github.com/waku-org/js-waku/issues/1306)) ([763dc01](https://github.com/waku-org/js-waku/commit/763dc0125dae8a675aa25e9116831f15748c2f9d))
+* Ensure content topic is defined ([bd9d073](https://github.com/waku-org/js-waku/commit/bd9d07394fc2dcad573dd7f3b44ee692d0ea93e8))
+* ToSubscriptionIterator impl for IReceiver ([#1307](https://github.com/waku-org/js-waku/issues/1307)) ([7daa9d0](https://github.com/waku-org/js-waku/commit/7daa9d05bf44b33296b56df214f5d5901887a129))
+* Use nwaku/go-waku docker images instead of building binaries  ([#1259](https://github.com/waku-org/js-waku/issues/1259)) ([dc3774c](https://github.com/waku-org/js-waku/commit/dc3774c0ede6c76956fb02fda4dbe9f9fb218e91))
+
+
+### Bug Fixes
+
+* Enum used from this dependency ([c9e7af4](https://github.com/waku-org/js-waku/commit/c9e7af470dfb92fc3e5b02935b243ce350153641))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.11 to 0.0.12
+    * @waku/utils bumped from 0.0.4 to 0.0.5
+
 ## [0.0.16](https://github.com/waku-org/js-waku/compare/core-v0.0.15...core-v0.0.16) (2023-04-03)
 
 
