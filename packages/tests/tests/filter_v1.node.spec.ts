@@ -24,7 +24,7 @@ const TestContentTopic2 = "/test/1/waku-filter2";
 const TestEncoder2 = createEncoder({ contentTopic: TestContentTopic2 });
 const TestDecoder2 = createDecoder(TestContentTopic2);
 
-describe.only("Waku Filter: V1", () => {
+describe("Waku Filter: V1", () => {
   let waku: LightNode;
   let nwaku: Nwaku;
 

@@ -159,7 +159,7 @@ class Filter extends BaseProtocol implements IFilterV1 {
     }
   }
 
-  async unsubscribeAll(peer: Peer): Promise<void> {
+  private async unsubscribeAll(peer: Peer): Promise<void> {
     const subscriptions = this.subscriptions as Map<
       RequestID,
       Subscription<IDecodedMessage>

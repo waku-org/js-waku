@@ -20,7 +20,7 @@ const TestContentTopic = "/test/1/waku-filter";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
-describe.only("Waku Filter: V2", () => {
+describe("Waku Filter: V2", () => {
   let waku: LightNode<true>;
   let nwaku: Nwaku;
 
@@ -168,7 +168,7 @@ describe.only("Waku Filter: V2", () => {
     expect(messageCount).to.eq(1);
   });
 
-  it("tests ping", async function () {
+  it.only("tests ping", async function () {
     let messageCount = 0;
     const callback = (): void => {
       messageCount++;
@@ -182,7 +182,7 @@ describe.only("Waku Filter: V2", () => {
     await delay(100);
     await ping();
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should be received"),
+      payload: utf8ToBytes("This should also be received"),
     });
     await delay(100);
     expect(messageCount).to.eq(2);

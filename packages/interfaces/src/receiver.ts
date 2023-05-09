@@ -1,5 +1,3 @@
-import { Peer } from "@libp2p/interface-peer-store";
-
 import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { Callback, ProtocolOptions } from "./protocols.js";
 
@@ -22,5 +20,4 @@ export interface IReceiver<FilterVersion extends "v1" | "v2"> {
     | SubscriptionReturn<FilterVersion>
     | Promise<SubscriptionReturn<FilterVersion>>;
   getActiveSubscriptions: () => ActiveSubscriptions;
-  unsubscribeAll: (peerId: Peer) => Promise<void>;
 }
