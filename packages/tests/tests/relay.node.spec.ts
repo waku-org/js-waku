@@ -3,9 +3,9 @@ import {
   createDecoder,
   createEncoder,
   DecodedMessage,
-  DefaultPubSubTopic,
   waitForRemotePeer,
 } from "@waku/core";
+import { DefaultPubSubTopic } from "@waku/core/constants";
 import { createRelayNode } from "@waku/create";
 import type { RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
