@@ -24,12 +24,19 @@
     "./lib/base_protocol": {
       "types": "./dist/lib/base_protocol.d.ts",
       "import": "./dist/lib/base_protocol.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "import": "./dist/constants/index.js"
     }
   },
   "typesVersions": {
     "*": {
       "lib/*": [
         "dist/lib/*"
+      ],
+      "constants/*": [
+        "dist/constants/*"
       ]
     }
   },

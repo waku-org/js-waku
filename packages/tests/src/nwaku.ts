@@ -3,7 +3,7 @@ import fs from "fs";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
-import { DefaultPubSubTopic } from "@waku/core";
+import { DefaultPubSubTopic } from "@waku/core/constants";
 import { isDefined } from "@waku/utils";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import debug from "debug";

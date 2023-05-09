@@ -1,4 +1,3 @@
-export { DefaultPubSubTopic } from "@waku/utils/constants";
 export { DefaultUserAgent } from "./lib/waku.js";
 
 export { createEncoder, createDecoder } from "./lib/message/version_0.js";

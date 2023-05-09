@@ -1,3 +1,5 @@
+export * as Relay from "./relay.js";
+
 /**
  * DefaultPubSubTopic is the default gossipsub topic to use for Waku.
  */

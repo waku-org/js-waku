@@ -9,6 +9,10 @@ import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import { TopicOnlyDecoder } from "@waku/core";
+import {
+  DefaultPubSubTopic,
+  Relay as RelayConstants,
+} from "@waku/core/constants";
 import type {
   ActiveSubscriptions,
   Callback,
@@ -21,7 +25,6 @@ import type {
   SendResult,
 } from "@waku/interfaces";
 import { groupByContentTopic } from "@waku/utils";
-import { DefaultPubSubTopic, RelayCodecs } from "@waku/utils/constants";
 import debug from "debug";
 
 import { messageValidator } from "./message_validator.js";
@@ -44,7 +47,7 @@ class Relay implements IRelay {
   private readonly pubSubTopic: string;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
-  public static multicodec: string = RelayCodecs[0];
+  public static multicodec: string = RelayConstants.RelayCodecs[0];
   public readonly gossipSub: GossipSub;
 
   /**
@@ -231,7 +234,7 @@ export function wakuGossipSub(
       fallbackToFloodsub: false,
     };
     const pubsub = new GossipSub(components, init);
-    pubsub.multicodecs = RelayCodecs;
+    pubsub.multicodecs = RelayConstants.RelayCodecs;
     return pubsub;
   };
 }
