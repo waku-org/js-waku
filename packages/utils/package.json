@@ -69,7 +69,7 @@
     "uint8arrays": "^4.0.3"
   },
   "devDependencies": {
-    "@libp2p/interface-connection": "^3.0.8",
+    "@libp2p/interface-connection": "^5.0.2",
     "@libp2p/interface-peer-id": "^2.0.1",
     "@libp2p/interface-peer-store": "^1.2.8",
     "@rollup/plugin-commonjs": "^24.0.1",
