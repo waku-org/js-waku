@@ -6,7 +6,6 @@ export type {
   Decoder,
   DecodedMessage,
 } from "./lib/message/version_0.js";
-export { TopicOnlyDecoder } from "./lib/message/topic_only_message.js";
 export * as message from "./lib/message/index.js";
 
 export * as waku from "./lib/waku.js";

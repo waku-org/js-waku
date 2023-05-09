@@ -8,7 +8,6 @@ import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PubSub } from "@libp2p/interface-pubsub";
-import { TopicOnlyDecoder } from "@waku/core";
 import {
   DefaultPubSubTopic,
   Relay as RelayConstants,
@@ -28,6 +27,7 @@ import { groupByContentTopic } from "@waku/utils";
 import debug from "debug";
 
 import { messageValidator } from "./message_validator.js";
+import { TopicOnlyDecoder } from "./topic_only_message.js";
 
 const log = debug("waku:relay");
 
