@@ -126,7 +126,7 @@ class Filter extends BaseProtocol implements IFilter {
     };
   }
 
-  public toAsyncIterator<T extends IDecodedMessage>(
+  public toSubscriptionIterator<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     opts?: ProtocolOptions | undefined
   ): Promise<IAsyncIterator<T>> {

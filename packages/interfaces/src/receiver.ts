@@ -10,7 +10,7 @@ import type { Callback, ProtocolOptions } from "./protocols.js";
 export type ActiveSubscriptions = Map<PubSubTopic, ContentTopic[]>;
 
 export interface IReceiver {
-  toAsyncIterator: <T extends IDecodedMessage>(
+  toSubscriptionIterator: <T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     opts?: ProtocolOptions
   ) => Promise<IAsyncIterator<T>>;
