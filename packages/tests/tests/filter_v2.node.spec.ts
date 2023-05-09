@@ -168,7 +168,7 @@ describe("Waku Filter: V2", () => {
     expect(messageCount).to.eq(1);
   });
 
-  it.only("tests ping", async function () {
+  it("tests ping", async function () {
     let messageCount = 0;
     const callback = (): void => {
       messageCount++;
