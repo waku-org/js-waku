@@ -4,6 +4,7 @@ import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
   ActiveSubscriptions,
   Callback,
+  IAsyncIterator,
   IDecodedMessage,
   IDecoder,
   IFilter,
@@ -11,6 +12,7 @@ import type {
   ProtocolOptions,
 } from "@waku/interfaces";
 import { WakuMessage as WakuMessageProto } from "@waku/proto";
+import { toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -92,9 +94,9 @@ class Filter extends BaseProtocol implements IFilter {
     try {
       const res = await pipe(
         [request.encode()],
-        lp.encode(),
+        lp.encode,
         stream,
-        lp.decode(),
+        lp.decode,
         async (source) => await all(source)
       );
 
@@ -124,6 +126,13 @@ class Filter extends BaseProtocol implements IFilter {
     };
   }
 
+  public toSubscriptionIterator<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    opts?: ProtocolOptions | undefined
+  ): Promise<IAsyncIterator<T>> {
+    return toAsyncIterator(this, decoders, opts);
+  }
+
   public getActiveSubscriptions(): ActiveSubscriptions {
     const map: ActiveSubscriptions = new Map();
     const subscriptions = this.subscriptions as Map<
@@ -143,7 +152,7 @@ class Filter extends BaseProtocol implements IFilter {
   private onRequest(streamData: IncomingStreamData): void {
     log("Receiving message push");
     try {
-      pipe(streamData.stream, lp.decode(), async (source) => {
+      pipe(streamData.stream, lp.decode, async (source) => {
         for await (const bytes of source) {
           const res = FilterRpc.decode(bytes.slice());
           if (res.requestId && res.push?.messages?.length) {
@@ -225,7 +234,7 @@ class Filter extends BaseProtocol implements IFilter {
 
     const stream = await this.newStream(peer);
     try {
-      await pipe([unsubscribeRequest.encode()], lp.encode(), stream.sink);
+      await pipe([unsubscribeRequest.encode()], lp.encode, stream.sink);
     } catch (e) {
       log("Error unsubscribing", e);
       throw e;

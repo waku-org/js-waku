@@ -1,0 +1,5 @@
+build
+bundle
+dist
+node_modules
+CHANGELOG.md
