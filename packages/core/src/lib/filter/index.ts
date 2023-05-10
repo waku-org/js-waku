@@ -4,6 +4,7 @@ import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
   ActiveSubscriptions,
   Callback,
+  IAsyncIterator,
   IDecodedMessage,
   IDecoder,
   IFilter,
@@ -12,6 +13,7 @@ import type {
 } from "@waku/interfaces";
 import { WakuMessage as WakuMessageProto } from "@waku/proto";
 import { groupByContentTopic } from "@waku/utils";
+import { toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -122,6 +124,13 @@ class Filter extends BaseProtocol implements IFilter {
       await this.unsubscribe(pubSubTopic, contentFilters, requestId, peer);
       this.subscriptions.delete(requestId);
     };
+  }
+
+  public toSubscriptionIterator<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    opts?: ProtocolOptions | undefined
+  ): Promise<IAsyncIterator<T>> {
+    return toAsyncIterator(this, decoders, opts);
   }
 
   public getActiveSubscriptions(): ActiveSubscriptions {

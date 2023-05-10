@@ -13,15 +13,17 @@ import { DefaultPubSubTopic } from "@waku/core/constants";
 import type {
   ActiveSubscriptions,
   Callback,
+  IAsyncIterator,
   IDecodedMessage,
   IDecoder,
   IEncoder,
   IMessage,
   IRelay,
   ProtocolCreateOptions,
+  ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
-import { groupByContentTopic } from "@waku/utils";
+import { groupByContentTopic, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
 import { RelayCodecs } from "./constants.js";
@@ -143,6 +145,13 @@ class Relay implements IRelay {
         }
       }
     };
+  }
+
+  public toSubscriptionIterator<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    opts?: ProtocolOptions | undefined
+  ): Promise<IAsyncIterator<T>> {
+    return toAsyncIterator(this, decoders, opts);
   }
 
   public getActiveSubscriptions(): ActiveSubscriptions {

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.5](https://github.com/waku-org/js-waku/compare/utils-v0.0.4...utils-v0.0.5) (2023-05-09)
+
+
+### Features
+
+* ToSubscriptionIterator impl for IReceiver ([#1307](https://github.com/waku-org/js-waku/issues/1307)) ([7daa9d0](https://github.com/waku-org/js-waku/commit/7daa9d05bf44b33296b56df214f5d5901887a129))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @waku/interfaces bumped from * to 0.0.12
+
 ## [0.0.4](https://github.com/waku-org/js-waku/compare/utils-v0.0.3...utils-v0.0.4) (2023-04-03)
 
 

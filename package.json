@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "packages/interfaces",
     "packages/utils",
     "packages/proto",
-    "packages/interfaces",
     "packages/enr",
     "packages/core",
     "packages/relay",
