@@ -4,6 +4,7 @@ import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
   ActiveSubscriptions,
   Callback,
+  ContentFilter,
   IDecodedMessage,
   IDecoder,
   IFilterV2,
@@ -146,10 +147,10 @@ class FilterV2 extends BaseProtocol implements IFilterV2 {
       ping: async () => {
         await this.ping(peer);
       },
-      unsubscribe: async () => {
+      unsubscribe: async (contentFilters: ContentFilter[]) => {
         await this.unsubscribe(
           this.pubSubTopic,
-          contentTopics,
+          contentFilters.map((cf) => cf.contentTopic),
           peer,
           subscription
         );

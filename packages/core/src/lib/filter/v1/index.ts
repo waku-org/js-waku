@@ -4,6 +4,7 @@ import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
   ActiveSubscriptions,
   Callback,
+  ContentFilter,
   IDecodedMessage,
   IDecoder,
   IFilterV1,
@@ -22,7 +23,7 @@ import { DefaultPubSubTopic } from "../../constants.js";
 import { groupByContentTopic } from "../../group_by.js";
 import { toProtoMessage } from "../../to_proto_message.js";
 
-import { ContentFilter, FilterRpc } from "./filter_rpc.js";
+import { FilterRpc } from "./filter_rpc.js";
 
 export { ContentFilter };
 

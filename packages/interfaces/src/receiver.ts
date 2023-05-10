@@ -1,3 +1,4 @@
+import { ContentFilter } from "./filter.js";
 import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { Callback, ProtocolOptions } from "./protocols.js";
 
@@ -5,7 +6,7 @@ type PubSubTopic = string;
 type ContentTopic = string;
 
 export type SubscriptionReturn<FilterVersion extends "v1" | "v2"> = {
-  unsubscribe: () => Promise<void>;
+  unsubscribe: (contentFilters: ContentFilter[]) => Promise<void>;
   unsubscribeAll: () => Promise<void>;
 } & (FilterVersion extends "v1" ? object : { ping: () => Promise<void> });
 
