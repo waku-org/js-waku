@@ -8,45 +8,15 @@ import { v4 as uuid } from "uuid";
 export class FilterPushRpc {
   public constructor(public proto: proto.MessagePush) {}
 
-  /**
-   * Create a FilterPushRPC object with the provided parameters.
-   * @param wakuMessage The WakuMessage to be pushed.
-   * @param pubsubTopic The pubsub topic on which the message was published.
-   * @returns FilterPushRpc
-   */
-  static create(wakuMessage: Uint8Array, pubsubTopic: string): FilterPushRpc {
-    const message = proto.WakuMessage.decode(wakuMessage);
-    return new FilterPushRpc({
-      wakuMessage: {
-        payload: wakuMessage,
-        contentTopic: message.contentTopic,
-      },
-      pubsubTopic: pubsubTopic,
-    });
-  }
-
-  /**
-   * Decode the given bytes into a FilterPushRpc object.
-   * @param bytes Uint8Array of bytes from a FilterPushRPC message.
-   * @returns FilterPushRpc
-   */
   static decode(bytes: Uint8Array): FilterPushRpc {
     const res = proto.MessagePush.decode(bytes);
     return new FilterPushRpc(res);
   }
 
-  /**
-   * Encode the current FilterPushRpc object to bytes.
-   * @returns Uint8Array
-   */
   encode(): Uint8Array {
     return proto.MessagePush.encode(this.proto);
   }
 
-  /**
-   * Get the WakuMessage from the FilterPushRpc object.
-   * @returns WakuMessage as a Uint8Array
-   */
   get wakuMessage(): WakuMessage | undefined {
     return this.proto.wakuMessage;
   }
