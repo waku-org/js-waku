@@ -1,7 +1,6 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import type { Libp2p } from "@libp2p/interface-libp2p";
-import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
 import { mplex } from "@libp2p/mplex";
 import { webRTC } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
@@ -25,6 +24,7 @@ import type {
   RelayNode,
 } from "@waku/interfaces";
 import { createLibp2p, Libp2pOptions } from "libp2p";
+import { circuitRelayTransport } from "libp2p/circuit-relay";
 
 import type { Libp2pComponents } from "./libp2p_components.js";
 
@@ -148,9 +148,7 @@ export async function createFullNode(
   ) as FullNode;
 }
 
-export function defaultPeerDiscovery(): (
-  components: Libp2pComponents
-) => PeerDiscovery {
+export function defaultPeerDiscovery(): any {
   return wakuDnsDiscovery(enrTree["PROD"], DEFAULT_NODE_REQUIREMENTS);
 }
 
@@ -161,16 +159,19 @@ export async function defaultLibp2p(
 ): Promise<Libp2p> {
   const libp2pOpts = Object.assign(
     {
-      transports: [webSockets({ filter: filterAll }), webRTC({})],
+      transports: [
+        webSockets({ filter: filterAll }),
+        webRTC({}),
+        circuitRelayTransport({
+          discoverRelays: 1,
+        }),
+      ],
       streamMuxers: [mplex()],
       connectionEncryption: [noise()],
       identify: {
         host: {
           agentVersion: userAgent ?? DefaultUserAgent,
         },
-      },
-      relay: {
-        enabled: true,
       },
     } as Libp2pOptions,
     wakuGossipSub ? { pubsub: wakuGossipSub } : {},
