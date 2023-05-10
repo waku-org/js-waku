@@ -12,14 +12,17 @@ import { sha256 } from "@noble/hashes/sha256";
 import type {
   ActiveSubscriptions,
   Callback,
+  IAsyncIterator,
   IDecodedMessage,
   IDecoder,
   IEncoder,
   IMessage,
   IRelay,
   ProtocolCreateOptions,
+  ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
+import { toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
 import { DefaultPubSubTopic } from "../constants.js";
@@ -144,6 +147,13 @@ class Relay implements IRelay {
         }
       }
     };
+  }
+
+  public toSubscriptionIterator<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    opts?: ProtocolOptions | undefined
+  ): Promise<IAsyncIterator<T>> {
+    return toAsyncIterator(this, decoders, opts);
   }
 
   public getActiveSubscriptions(): ActiveSubscriptions {
