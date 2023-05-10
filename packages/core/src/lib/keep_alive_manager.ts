@@ -3,9 +3,9 @@ import type { IRelay } from "@waku/interfaces";
 import debug from "debug";
 import type { Libp2p } from "libp2p";
 
-import { RelayPingContentTopic } from "../constants/relay.js";
 import { createEncoder } from "../index.js";
 
+export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 const log = debug("waku:keep-alive");
 
 export interface KeepAliveOptions {
