@@ -22,8 +22,8 @@
       "import": "./dist/lib/base_protocol.js"
     },
     "./constants": {
-      "types": "./dist/constants/index.d.ts",
-      "import": "./dist/constants/index.js"
+      "types": "./dist/constants.d.ts",
+      "import": "./dist/constants.js"
     }
   },
   "typesVersions": {
@@ -78,9 +78,9 @@
   },
   "dependencies": {
     "@noble/hashes": "^1.3.0",
-    "@waku/interfaces": "0.0.12",
-    "@waku/proto": "0.0.4",
-    "@waku/utils": "0.0.5",
+    "@waku/interfaces": "*",
+    "@waku/proto": "*",
+    "@waku/utils": "*",
     "debug": "^4.3.4",
     "it-all": "^3.0.1",
     "it-length-prefixed": "^9.0.1",

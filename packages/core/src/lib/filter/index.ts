@@ -19,7 +19,7 @@ import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
-import { DefaultPubSubTopic } from "../../constants/index.js";
+import { DefaultPubSubTopic } from "../../constants.js";
 import { BaseProtocol } from "../base_protocol.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
