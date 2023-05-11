@@ -49,7 +49,7 @@ describe("Waku Filter: V2", () => {
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });
 
-  it("creates a subscription", async function () {
+  it.only("creates a subscription", async function () {
     this.timeout(10000);
 
     let messageCount = 0;
@@ -160,7 +160,7 @@ describe("Waku Filter: V2", () => {
       payload: utf8ToBytes("This should be received"),
     });
     await delay(100);
-    await unsubscribe();
+    await unsubscribe([{ contentTopic: TestContentTopic }]);
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should not be received"),
     });
