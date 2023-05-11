@@ -65,6 +65,7 @@ export interface IDecodedMessage {
   timestamp: Date | undefined;
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
+  meta: Uint8Array | undefined;
 }
 
 export interface IDecoder<T extends IDecodedMessage> {
