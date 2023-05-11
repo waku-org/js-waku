@@ -2,9 +2,9 @@ import {
   createDecoder,
   createEncoder,
   DecodedMessage,
+  DefaultPubSubTopic,
   waitForRemotePeer,
 } from "@waku/core";
-import { DefaultPubSubTopic } from "@waku/core/constants";
 import { createLightNode } from "@waku/create";
 import type { LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";

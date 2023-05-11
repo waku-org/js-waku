@@ -9,7 +9,7 @@ import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import { sha256 } from "@noble/hashes/sha256";
-import { DefaultPubSubTopic } from "@waku/core/constants";
+import { DefaultPubSubTopic } from "@waku/core";
 import type {
   ActiveSubscriptions,
   Callback,

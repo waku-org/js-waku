@@ -20,10 +20,6 @@
     "./lib/base_protocol": {
       "types": "./dist/lib/base_protocol.d.ts",
       "import": "./dist/lib/base_protocol.js"
-    },
-    "./constants": {
-      "types": "./dist/constants.d.ts",
-      "import": "./dist/constants.js"
     }
   },
   "typesVersions": {
