@@ -70,7 +70,7 @@
     "@libp2p/interface-peer-store": "^1.2.8",
     "@libp2p/interface-pubsub": "^3.0.6",
     "@libp2p/interface-registrar": "^2.0.8",
-    "@libp2p/interface-transport": "^2.1.1",
+    "@libp2p/interface-transport": "^4.0.2",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.2",
