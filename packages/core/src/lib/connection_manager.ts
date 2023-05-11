@@ -19,6 +19,7 @@ export class ConnectionManager {
   private options: ConnectionManagerOptions;
   private libp2pComponents: Libp2p;
   private dialAttemptsForPeer: Map<string, number> = new Map();
+  private dialErrorsForPeer: Map<string, any> = new Map();
 
   public static create(
     peerId: string,
@@ -102,9 +103,10 @@ export class ConnectionManager {
 
         this.dialAttemptsForPeer.delete(peerId.toString());
         return;
-      } catch (error) {
-        log(`
-          Error dialing peer ${peerId.toString()}`);
+      } catch (error: any) {
+        this.dialErrorsForPeer.set(peerId.toString(), error);
+        log(`Error dialing peer ${peerId.toString()} - ${error.errors}`);
+
         dialAttempt = this.dialAttemptsForPeer.get(peerId.toString()) ?? 1;
         this.dialAttemptsForPeer.set(peerId.toString(), dialAttempt + 1);
 
@@ -115,7 +117,13 @@ export class ConnectionManager {
     }
 
     try {
-      log(`Deleting undialable peer ${peerId.toString()} from peer store`);
+      log(
+        `Deleting undialable peer ${peerId.toString()} from peer store. Error: ${JSON.stringify(
+          this.dialErrorsForPeer.get(peerId.toString()).errors[0]
+        )}
+        }`
+      );
+      this.dialErrorsForPeer.delete(peerId.toString());
       return await this.libp2pComponents.peerStore.delete(peerId);
     } catch (error) {
       throw `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`;

@@ -9,6 +9,7 @@
     "packages/utils": {},
     "packages/proto": {},
     "packages/interfaces": {},
+    "packages/message-hash": {},
     "packages/enr": {},
     "packages/peer-exchange": {},
     "packages/core": {},

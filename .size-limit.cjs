@@ -43,4 +43,9 @@ module.exports = [
     path: "packages/core/bundle/index.js",
     import: "{ wakuStore }",
   },
+  {
+    name: "Deterministic Message Hashing",
+    path: "packages/message-hash/bundle/index.js",
+    import: "{ messageHash }",
+  },
 ];

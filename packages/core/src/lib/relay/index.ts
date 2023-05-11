@@ -8,17 +8,21 @@ import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PubSub } from "@libp2p/interface-pubsub";
+import { sha256 } from "@noble/hashes/sha256";
 import type {
   ActiveSubscriptions,
   Callback,
+  IAsyncIterator,
   IDecodedMessage,
   IDecoder,
   IEncoder,
   IMessage,
   IRelay,
   ProtocolCreateOptions,
+  ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
+import { toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 import { pEvent } from "p-event";
 
@@ -146,6 +150,13 @@ class Relay implements IRelay {
     };
   }
 
+  public toSubscriptionIterator<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    opts?: ProtocolOptions | undefined
+  ): Promise<IAsyncIterator<T>> {
+    return toAsyncIterator(this, decoders, opts);
+  }
+
   public getActiveSubscriptions(): ActiveSubscriptions {
     const map = new Map();
     map.set(this.pubSubTopic, this.observers.keys());
@@ -242,6 +253,7 @@ export function wakuGossipSub(
   return (components: GossipSubComponents) => {
     init = {
       ...init,
+      msgIdFn: ({ data }) => sha256(data),
       // Ensure that no signature is included nor expected in the messages.
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
       fallbackToFloodsub: false,

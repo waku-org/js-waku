@@ -92,7 +92,7 @@ describe("Peer Exchange", () => {
         discv5BootstrapNode: enr,
       });
 
-      const nwaku1Ma = await nwaku1.getMultiaddrWithId();
+      const nwaku1PeerId = await nwaku1.getPeerId();
       const nwaku2Ma = await nwaku2.getMultiaddrWithId();
 
       waku = await createLightNode();
@@ -130,14 +130,12 @@ describe("Peer Exchange", () => {
       expect(peerInfos.length).to.be.lessThanOrEqual(numPeersToRequest);
       expect(peerInfos[0].ENR).to.not.be.null;
 
-      const doesMultiaddrExist =
+      const doesPeerIdExistInResponse =
         peerInfos.find(
-          (peerInfo) =>
-            peerInfo.ENR?.getFullMultiaddrs()?.find((multiaddr) =>
-              multiaddr.equals(nwaku1Ma)
-            ) !== undefined
+          ({ ENR }) => ENR?.peerInfo?.id.toString() === nwaku1PeerId.toString()
         ) !== undefined;
-      expect(doesMultiaddrExist).to.be.equal(true);
+
+      expect(doesPeerIdExistInResponse).to.be.equal(true);
 
       expect(waku.libp2p.peerStore.has(await nwaku2.getPeerId())).to.be.true;
     });

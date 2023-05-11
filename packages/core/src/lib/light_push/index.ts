@@ -57,9 +57,9 @@ class LightPush extends BaseProtocol implements ILightPush {
       const query = PushRpc.createRequest(protoMessage, pubSubTopic);
       const res = await pipe(
         [query.encode()],
-        lp.encode(),
+        lp.encode,
         stream,
-        lp.decode(),
+        lp.decode,
         async (source) => await all(source)
       );
       try {

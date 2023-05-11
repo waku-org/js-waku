@@ -33,6 +33,16 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.10 to 0.0.11
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.16 to 0.0.17
+    * @waku/enr bumped from 0.0.10 to 0.0.11
+    * @waku/utils bumped from 0.0.4 to 0.0.5
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.11 to 0.0.12
+
 ## [0.0.5](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.4...peer-exchange-v0.0.5) (2023-03-23)
 
 
