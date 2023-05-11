@@ -1,10 +1,10 @@
-import { IMetaSetter } from "@waku/interfaces";
 import type {
   EncoderOptions,
   IDecodedMessage,
   IDecoder,
   IEncoder,
   IMessage,
+  IMetaSetter,
   IProtoMessage,
   IRateLimitProof,
 } from "@waku/interfaces";
