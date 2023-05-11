@@ -8,6 +8,7 @@
     "packages/proto",
     "packages/enr",
     "packages/core",
+    "packages/relay",
     "packages/message-hash",
     "packages/peer-exchange",
     "packages/dns-discovery",

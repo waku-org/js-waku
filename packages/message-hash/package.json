@@ -53,7 +53,7 @@
   },
   "dependencies": {
     "@noble/hashes": "^1.2.0",
-    "@waku/utils": "0.0.5"
+    "@waku/utils": "*"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",
@@ -65,7 +65,7 @@
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.51.0",
     "@waku/build-utils": "*",
-    "@waku/interfaces": "0.0.12",
+    "@waku/interfaces": "*",
     "chai": "^4.3.7",
     "cspell": "^6.28.0",
     "eslint": "^8.35.0",

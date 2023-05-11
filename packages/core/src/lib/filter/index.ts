@@ -12,6 +12,7 @@ import type {
   ProtocolOptions,
 } from "@waku/interfaces";
 import { WakuMessage as WakuMessageProto } from "@waku/proto";
+import { groupByContentTopic } from "@waku/utils";
 import { toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
@@ -20,7 +21,6 @@ import { pipe } from "it-pipe";
 
 import { BaseProtocol } from "../base_protocol.js";
 import { DefaultPubSubTopic } from "../constants.js";
-import { groupByContentTopic } from "../group_by.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
 import { ContentFilter, FilterRpc } from "./filter_rpc.js";
