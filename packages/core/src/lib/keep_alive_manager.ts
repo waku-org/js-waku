@@ -5,8 +5,7 @@ import type { Libp2p } from "libp2p";
 
 import { createEncoder } from "../index.js";
 
-import { RelayPingContentTopic } from "./relay/constants.js";
-
+export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 const log = debug("waku:keep-alive");
 
 export interface KeepAliveOptions {

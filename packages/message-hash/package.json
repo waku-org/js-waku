@@ -1,6 +1,6 @@
 {
   "name": "@waku/message-hash",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript implementation of the Deterministic Message Hashing as specified in 14/WAKU2-MESSAGE",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",

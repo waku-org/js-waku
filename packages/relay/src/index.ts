@@ -9,25 +9,26 @@ import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import { sha256 } from "@noble/hashes/sha256";
+import { DefaultPubSubTopic } from "@waku/core";
 import type {
   ActiveSubscriptions,
   Callback,
+  IAsyncIterator,
   IDecodedMessage,
   IDecoder,
   IEncoder,
   IMessage,
   IRelay,
   ProtocolCreateOptions,
+  ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
+import { groupByContentTopic, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
-import { DefaultPubSubTopic } from "../constants.js";
-import { groupByContentTopic } from "../group_by.js";
-import { TopicOnlyDecoder } from "../message/topic_only_message.js";
-
-import * as constants from "./constants.js";
+import { RelayCodecs } from "./constants.js";
 import { messageValidator } from "./message_validator.js";
+import { TopicOnlyDecoder } from "./topic_only_message.js";
 
 const log = debug("waku:relay");
 
@@ -47,7 +48,7 @@ class Relay implements IRelay {
   private readonly pubSubTopic: string;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
-  public static multicodec: string = constants.RelayCodecs[0];
+  public static multicodec: string = RelayCodecs[0];
   public readonly gossipSub: GossipSub;
 
   /**
@@ -146,6 +147,13 @@ class Relay implements IRelay {
     };
   }
 
+  public toSubscriptionIterator<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    opts?: ProtocolOptions | undefined
+  ): Promise<IAsyncIterator<T>> {
+    return toAsyncIterator(this, decoders, opts);
+  }
+
   public getActiveSubscriptions(): ActiveSubscriptions {
     const map = new Map();
     map.set(this.pubSubTopic, this.observers.keys());
@@ -235,7 +243,7 @@ export function wakuGossipSub(
       fallbackToFloodsub: false,
     };
     const pubsub = new GossipSub(components, init);
-    pubsub.multicodecs = constants.RelayCodecs;
+    pubsub.multicodecs = RelayCodecs;
     return pubsub;
   };
 }

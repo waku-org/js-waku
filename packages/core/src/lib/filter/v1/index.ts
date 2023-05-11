@@ -5,6 +5,7 @@ import type {
   ActiveSubscriptions,
   Callback,
   ContentFilter,
+  IAsyncIterator,
   IDecodedMessage,
   IDecoder,
   IFilterV1,
@@ -13,6 +14,7 @@ import type {
   SubscriptionReturn,
 } from "@waku/interfaces";
 import { WakuMessage as WakuMessageProto } from "@waku/proto";
+import { groupByContentTopic, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -20,7 +22,6 @@ import { pipe } from "it-pipe";
 
 import { BaseProtocol } from "../../base_protocol.js";
 import { DefaultPubSubTopic } from "../../constants.js";
-import { groupByContentTopic } from "../../group_by.js";
 import { toProtoMessage } from "../../to_proto_message.js";
 
 import { FilterRpc } from "./filter_rpc.js";
@@ -179,6 +180,13 @@ class Filter extends BaseProtocol implements IFilterV1 {
         peer
       );
     }
+  }
+
+  public toSubscriptionIterator<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    opts?: ProtocolOptions | undefined
+  ): Promise<IAsyncIterator<T>> {
+    return toAsyncIterator(this, decoders, opts);
   }
 
   public getActiveSubscriptions(): ActiveSubscriptions {

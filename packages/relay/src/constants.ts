@@ -6,8 +6,6 @@ export const minute = 60 * second;
  */
 export const RelayCodecs = ["/vac/waku/relay/2.0.0"];
 
-export const RelayPingContentTopic = "/relay-ping/1/ping/null";
-
 /**
  * RelayGossipFactor affects how many peers we will emit gossip to at each heartbeat.
  * We will send gossip to RelayGossipFactor * (total number of non-mesh peers), or

@@ -7,14 +7,11 @@ import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
   DefaultUserAgent,
-  RelayCreateOptions,
   wakuFilter,
   wakuFilterV2,
-  wakuGossipSub,
   wakuLightPush,
   WakuNode,
   WakuOptions,
-  wakuRelay,
   wakuStore,
 } from "@waku/core";
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
@@ -26,6 +23,7 @@ import type {
   ProtocolCreateOptions,
   RelayNode,
 } from "@waku/interfaces";
+import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 
 import type { Libp2pComponents } from "./libp2p_components.js";
