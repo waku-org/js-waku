@@ -116,13 +116,15 @@ describe("DNS Node Discovery [live data]", function () {
     if (process.env.CI) this.skip();
     this.timeout(30_000);
 
-    const nodesToConnect = 2;
+    const nodesToConnect = 3;
 
     const waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
           wakuDnsDiscovery([enrTree["PROD"], enrTree["TEST"]], {
             filter: nodesToConnect,
+            store: nodesToConnect,
+            lightPush: nodesToConnect,
           }),
         ],
       },
@@ -130,7 +132,7 @@ describe("DNS Node Discovery [live data]", function () {
 
     await waku.start();
 
-    const allPeers = await waku.libp2p.peerStore.all();
+    const allPeers = waku.libp2p.getConnections();
     while (allPeers.length < nodesToConnect) {
       await delay(2000);
     }
