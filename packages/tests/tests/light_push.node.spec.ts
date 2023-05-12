@@ -9,6 +9,7 @@ import debug from "debug";
 import {
   base64ToUtf8,
   delay,
+  generateRandomUint8Array,
   makeLogFileName,
   MessageRpcResponse,
   NOISE_KEY_1,
@@ -61,6 +62,33 @@ describe("Waku Light Push [node only]", () => {
 
     expect(msgs[0].contentTopic).to.equal(TestContentTopic);
     expect(base64ToUtf8(msgs[0].payload)).to.equal(messageText);
+  });
+
+  it("Fails to push message bigger that 1MB", async function () {
+    this.timeout(15_000);
+    const MB = 1024 ** 2;
+
+    waku = await createLightNode({
+      staticNoiseKey: NOISE_KEY_1,
+    });
+    await waku.start();
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.LightPush]);
+
+    let pushResponse = await waku.lightPush.send(TestEncoder, {
+      payload: generateRandomUint8Array(MB),
+    });
+    expect(pushResponse.recipients.length).to.eq(0);
+
+    pushResponse = await waku.lightPush.send(TestEncoder, {
+      payload: generateRandomUint8Array(MB + 500),
+    });
+    expect(pushResponse.recipients.length).to.eq(0);
+
+    pushResponse = await waku.lightPush.send(TestEncoder, {
+      payload: generateRandomUint8Array(2 * MB),
+    });
+    expect(pushResponse.recipients.length).to.eq(0);
   });
 
   it("Push on custom pubsub topic", async function () {

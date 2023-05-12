@@ -23,7 +23,7 @@ import type {
   ProtocolOptions,
   SendResult,
 } from "@waku/interfaces";
-import { groupByContentTopic, toAsyncIterator } from "@waku/utils";
+import { groupByContentTopic, isSizeValid, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
 import { RelayCodecs } from "./constants.js";
@@ -97,10 +97,17 @@ class Relay implements IRelay {
    * Send Waku message.
    */
   public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
+    const emptySendResult = { recipients: [] };
+
+    if (!isSizeValid(message.payload)) {
+      log("Failed to send waku relay: message is bigger that 1MB");
+      return emptySendResult;
+    }
+
     const msg = await encoder.toWire(message);
     if (!msg) {
       log("Failed to encode message, aborting publish");
-      return { recipients: [] };
+      return emptySendResult;
     }
 
     return this.gossipSub.publish(this.pubSubTopic, msg);

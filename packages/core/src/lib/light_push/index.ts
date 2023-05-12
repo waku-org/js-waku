@@ -9,6 +9,7 @@ import type {
   SendResult,
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
+import { isSizeValid } from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -49,6 +50,11 @@ class LightPush extends BaseProtocol implements ILightPush {
     const recipients: PeerId[] = [];
 
     try {
+      if (!isSizeValid(message.payload)) {
+        log("Failed to send waku light push: message is bigger that 1MB");
+        return { recipients };
+      }
+
       const protoMessage = await encoder.toProtoObj(message);
       if (!protoMessage) {
         log("Failed to encode to protoMessage, aborting push");
