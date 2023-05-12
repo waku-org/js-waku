@@ -13,6 +13,8 @@ import {
 import { expect } from "chai";
 import { MemoryDatastore } from "datastore-core";
 
+import { delay } from "../src/delay.js";
+
 const maxQuantity = 3;
 
 describe("DNS Discovery: Compliance Test", async function () {
@@ -109,5 +111,29 @@ describe("DNS Node Discovery [live data]", function () {
       expect(seen).to.not.include(ma!.toString());
       seen.push(ma!.toString());
     }
+  });
+  it("passes more than one ENR URLs and attempts connection", async function () {
+    if (process.env.CI) this.skip();
+    this.timeout(30_000);
+
+    const nodesToConnect = 2;
+
+    const waku = await createLightNode({
+      libp2p: {
+        peerDiscovery: [
+          wakuDnsDiscovery([enrTree["PROD"], enrTree["TEST"]], {
+            filter: nodesToConnect,
+          }),
+        ],
+      },
+    });
+
+    await waku.start();
+
+    const allPeers = await waku.libp2p.peerStore.all();
+    while (allPeers.length < nodesToConnect) {
+      await delay(2000);
+    }
+    expect(allPeers.length).to.be.eq(nodesToConnect);
   });
 });
