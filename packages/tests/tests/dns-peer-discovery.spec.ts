@@ -28,7 +28,7 @@ describe("DNS Discovery: Compliance Test", async function () {
       });
 
       return new PeerDiscoveryDns(components, {
-        enrUrl: enrTree["PROD"],
+        enrUrls: [enrTree["PROD"]],
         wantedNodeCapabilityCount: {
           filter: 1,
         },
@@ -60,7 +60,7 @@ describe("DNS Node Discovery [live data]", function () {
 
     const waku = await createLightNode({
       libp2p: {
-        peerDiscovery: [wakuDnsDiscovery(enrTree["PROD"], nodeRequirements)],
+        peerDiscovery: [wakuDnsDiscovery([enrTree["PROD"]], nodeRequirements)],
       },
     });
 
