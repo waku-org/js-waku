@@ -103,8 +103,10 @@ export class ConnectionManager {
 
         this.dialAttemptsForPeer.delete(peerId.toString());
         return;
-      } catch (error: any) {
+      } catch (e) {
+        const error = e as AggregateError;
         this.dialErrorsForPeer.set(peerId.toString(), error);
+
         log(`Error dialing peer ${peerId.toString()} - ${error.errors}`);
 
         dialAttempt = this.dialAttemptsForPeer.get(peerId.toString()) ?? 1;
