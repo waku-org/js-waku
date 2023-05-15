@@ -1,5 +1,3 @@
-import fs from "fs";
-
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
@@ -7,12 +5,19 @@ import { DefaultPubSubTopic } from "@waku/core";
 import { isDefined } from "@waku/utils";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import debug from "debug";
-import Docker from "dockerode";
 import portfinder from "portfinder";
 
+import Dockerode from "./Docker.js";
 import { existsAsync, mkdirAsync, openAsync } from "./async_fs.js";
 import { delay } from "./delay.js";
 import waitForLine from "./log_file.js";
+import {
+  Args,
+  KeyPair,
+  LogLevel,
+  MessageRpcQuery,
+  MessageRpcResponse,
+} from "./types.js";
 
 const log = debug("waku:nwaku");
 
@@ -35,63 +40,8 @@ BigInt.prototype.toJSON = function toJSON() {
   return Number(this);
 };
 
-export interface Args {
-  staticnode?: string;
-  nat?: "none";
-  listenAddress?: string;
-  relay?: boolean;
-  rpc?: boolean;
-  rpcAdmin?: boolean;
-  nodekey?: string;
-  portsShift?: number;
-  logLevel?: LogLevel;
-  lightpush?: boolean;
-  filter?: boolean;
-  store?: boolean;
-  peerExchange?: boolean;
-  discv5Discovery?: boolean;
-  storeMessageDbUrl?: string;
-  topics?: string;
-  rpcPrivate?: boolean;
-  websocketSupport?: boolean;
-  tcpPort?: number;
-  rpcPort?: number;
-  websocketPort?: number;
-  discv5BootstrapNode?: string;
-  discv5UdpPort?: number;
-}
-
-export enum LogLevel {
-  Error = "ERROR",
-  Info = "INFO",
-  Warn = "WARN",
-  Debug = "DEBUG",
-  Trace = "TRACE",
-  Notice = "NOTICE",
-  Fatal = "FATAL",
-}
-
-export interface KeyPair {
-  privateKey: string;
-  publicKey: string;
-}
-
-export interface MessageRpcQuery {
-  payload: string; // Hex encoded data string without `0x` prefix.
-  contentTopic?: string;
-  timestamp?: bigint; // Unix epoch time in nanoseconds as a 64-bits integer value.
-}
-
-export interface MessageRpcResponse {
-  payload: string;
-  contentTopic?: string;
-  version?: number;
-  timestamp?: bigint; // Unix epoch time in nanoseconds as a 64-bits integer value.
-}
-
 export class Nwaku {
-  private docker: Docker;
-  private containerId?: string;
+  private docker: Dockerode;
   private peerId?: PeerId;
   private multiaddrWithId?: Multiaddr;
   private websocketPort?: number;
@@ -124,7 +74,7 @@ export class Nwaku {
   }
 
   constructor(logName: string) {
-    this.docker = new Docker();
+    this.docker = new Dockerode(DOCKER_IMAGE_NAME);
     this.logPath = `${LOG_DIR}/nwaku_${logName}.log`;
   }
 
@@ -188,85 +138,26 @@ export class Nwaku {
     }
     log(`nwaku args: ${argsArray.join(" ")}`);
 
-    if (this.containerId) {
-      this.stop();
+    if (this.docker.container) {
+      this.docker.stop();
     }
 
+    await this.docker.startContainer(ports, args, argsArray, this.logPath);
+
     try {
-      await this.confirmImageExistsOrPull();
-      const container = await this.docker.createContainer({
-        Image: DOCKER_IMAGE_NAME,
-        HostConfig: {
-          PortBindings: {
-            [`${rpcPort}/tcp`]: [{ HostPort: rpcPort.toString() }],
-            [`${tcpPort}/tcp`]: [{ HostPort: tcpPort.toString() }],
-            [`${websocketPort}/tcp`]: [{ HostPort: websocketPort.toString() }],
-            ...(args?.peerExchange && {
-              [`${discv5UdpPort}/udp`]: [
-                { HostPort: discv5UdpPort.toString() },
-              ],
-            }),
-          },
-        },
-        ExposedPorts: {
-          [`${rpcPort}/tcp`]: {},
-          [`${tcpPort}/tcp`]: {},
-          [`${websocketPort}/tcp`]: {},
-          ...(args?.peerExchange && {
-            [`${discv5UdpPort}/udp`]: {},
-          }),
-        },
-        Cmd: argsArray,
-      });
-      await container.start();
-
-      const logStream = fs.createWriteStream(this.logPath);
-
-      container.logs(
-        { follow: true, stdout: true, stderr: true },
-        (err, stream) => {
-          if (err) {
-            throw err;
-          }
-          if (stream) {
-            stream.pipe(logStream);
-          }
-        }
-      );
-
-      this.containerId = container.id;
-
-      log(
-        `nwaku ${
-          this.containerId
-        } started at ${new Date().toLocaleTimeString()}`
-      );
-
       log(`Waiting to see '${NODE_READY_LOG_LINE}' in nwaku logs`);
       await this.waitForLog(NODE_READY_LOG_LINE, 15000);
       if (process.env.CI) await delay(100);
       log("nwaku node has been started");
     } catch (error) {
       log(`Error starting nwaku: ${error}`);
-      if (this.containerId) await this.stop();
+      if (this.docker.container) await this.docker.stop();
       throw error;
     }
   }
 
   public async stop(): Promise<void> {
-    if (!this.containerId) throw "nwaku containerId not set";
-
-    const container = this.docker.getContainer(this.containerId);
-
-    log(
-      `Shutting down nwaku container ID ${
-        this.containerId
-      } at ${new Date().toLocaleTimeString()}`
-    );
-
-    await container.remove({ force: true });
-
-    this.containerId = undefined;
+    this.docker.stop();
   }
 
   async waitForLog(msg: string, timeout: number): Promise<void> {
@@ -469,33 +360,9 @@ export class Nwaku {
   }
 
   private checkProcess(): void {
-    if (!this.containerId || !this.docker.getContainer(this.containerId)) {
+    if (!this.docker.container) {
       throw "Nwaku container hasn't started";
     }
-  }
-
-  async confirmImageExistsOrPull(): Promise<void> {
-    log(`Confirming that image ${DOCKER_IMAGE_NAME} exists`);
-
-    const doesImageExist = this.docker.getImage(DOCKER_IMAGE_NAME);
-    if (!doesImageExist) {
-      await new Promise<void>((resolve, reject) => {
-        this.docker.pull(DOCKER_IMAGE_NAME, {}, (err, stream) => {
-          if (err) {
-            reject(err);
-          }
-          this.docker.modem.followProgress(stream, (err, result) => {
-            if (err) {
-              reject(err);
-            }
-            if (result) {
-              resolve();
-            }
-          });
-        });
-      });
-    }
-    log(`Image ${DOCKER_IMAGE_NAME} successfully found`);
   }
 }
 

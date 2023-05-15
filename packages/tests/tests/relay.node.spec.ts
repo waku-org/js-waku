@@ -28,12 +28,12 @@ import {
   base64ToUtf8,
   delay,
   makeLogFileName,
-  MessageRpcResponse,
   NOISE_KEY_1,
   NOISE_KEY_2,
   NOISE_KEY_3,
   Nwaku,
 } from "../src/index.js";
+import { MessageRpcResponse } from "../src/types.js";
 
 const log = debug("waku:test");
 

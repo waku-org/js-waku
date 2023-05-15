@@ -10,10 +10,10 @@ import {
   base64ToUtf8,
   delay,
   makeLogFileName,
-  MessageRpcResponse,
   NOISE_KEY_1,
   Nwaku,
 } from "../src/index.js";
+import { MessageRpcResponse } from "../src/types.js";
 
 const log = debug("waku:test:lightpush");
 
