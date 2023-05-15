@@ -7,13 +7,78 @@ import { Args } from "./interfaces.js";
 
 const log = debug("waku:docker");
 
+const NETWORK_NAME = "waku";
+const SUBNET = "172.18.0.0/16";
+const IP_RANGE = "172.18.0.0/24";
+const GATEWAY = "172.18.0.1";
+
 export default class Dockerode {
   public docker: Docker;
   private readonly IMAGE_NAME: string;
   public containerId?: string;
-  constructor(imageName: string) {
+
+  private static network: Docker.Network;
+  private static lastUsedIp = "172.18.0.1";
+  private containerIp: string;
+
+  private constructor(imageName: string, containerIp: string) {
     this.docker = new Docker();
     this.IMAGE_NAME = imageName;
+    this.containerIp = containerIp;
+  }
+
+  public static async createInstance(imageName: string): Promise<Dockerode> {
+    if (!Dockerode.network) {
+      Dockerode.network = await Dockerode.createNetwork(NETWORK_NAME);
+    }
+
+    const instance = new Dockerode(imageName, Dockerode.getNextIp());
+    return instance;
+  }
+
+  private static async createNetwork(
+    networkName: string = NETWORK_NAME
+  ): Promise<Docker.Network> {
+    const docker = new Docker();
+    const networks = await docker.listNetworks();
+    const existingNetwork = networks.find(
+      (network) => network.Name === networkName
+    );
+
+    let network: Docker.Network;
+
+    if (existingNetwork) {
+      network = docker.getNetwork(existingNetwork.Id);
+    } else {
+      network = await docker.createNetwork({
+        Name: networkName,
+        Driver: "bridge",
+        IPAM: {
+          Driver: "default",
+          Config: [
+            {
+              Subnet: SUBNET,
+              IPRange: IP_RANGE,
+              Gateway: GATEWAY,
+            },
+          ],
+        },
+      });
+    }
+
+    return network;
+  }
+
+  private static getNextIp(): string {
+    const ipFragments = Dockerode.lastUsedIp.split(".");
+    let lastFragment = Number(ipFragments[3]);
+    lastFragment++;
+    if (lastFragment > 254) {
+      throw new Error("IP Address Range Exhausted");
+    }
+    ipFragments[3] = lastFragment.toString();
+    Dockerode.lastUsedIp = ipFragments.join(".");
+    return Dockerode.lastUsedIp;
   }
 
   get container(): Docker.Container | undefined {
@@ -26,11 +91,21 @@ export default class Dockerode {
   async startContainer(
     ports: number[],
     args: Args,
-    argsArray: string[],
-    logPath: string
+    logPath: string,
+    wakuServiceNodeParams?: string
   ): Promise<Docker.Container> {
     const [rpcPort, tcpPort, websocketPort, discv5UdpPort] = ports;
+
     await this.confirmImageExistsOrPull();
+
+    const argsArray = argsToArray(args);
+    if (wakuServiceNodeParams) {
+      argsArray.push(wakuServiceNodeParams);
+    }
+
+    const argsArrayWithIP = [...argsArray, `--nat=extip:${this.containerIp}`];
+    log(`Args: ${argsArray.join(" ")}`);
+
     const container = await this.docker.createContainer({
       Image: this.IMAGE_NAME,
       HostConfig: {
@@ -42,6 +117,7 @@ export default class Dockerode {
             [`${discv5UdpPort}/udp`]: [{ HostPort: discv5UdpPort.toString() }],
           }),
         },
+        NetworkMode: NETWORK_NAME,
       },
       ExposedPorts: {
         [`${rpcPort}/tcp`]: {},
@@ -51,10 +127,20 @@ export default class Dockerode {
           [`${discv5UdpPort}/udp`]: {},
         }),
       },
-      Cmd: argsArray,
+      Cmd: argsArrayWithIP,
     });
     await container.start();
 
+    const containerInfo = await container.inspect();
+    if (
+      containerInfo.NetworkSettings.Networks[NETWORK_NAME].IPAddress !==
+      this.containerIp
+    ) {
+      throw new Error(
+        `Container ran on wrong IP. Expected ${this.containerIp} but got ${containerInfo.NetworkSettings.Networks[NETWORK_NAME].IPAddress}
+        Ensure that all containers are stopped before trying again.`
+      );
+    }
     const logStream = fs.createWriteStream(logPath);
 
     container.logs(
@@ -70,11 +156,7 @@ export default class Dockerode {
     );
 
     this.containerId = container.id;
-
-    log(
-      `nwaku ${this.containerId} started at ${new Date().toLocaleTimeString()}`
-    );
-
+    log(`${this.containerId} started at ${new Date().toLocaleTimeString()}`);
     return container;
   }
 
@@ -82,17 +164,18 @@ export default class Dockerode {
     if (!this.container) throw "containerId not set";
 
     log(
-      `Shutting down nwaku container ID ${
-        this.container
+      `Shutting down container ID ${
+        this.containerId
       } at ${new Date().toLocaleTimeString()}`
     );
 
-    await this.container.remove({ force: true });
+    await this.container.stop();
+    await this.container.remove();
 
     this.containerId = undefined;
   }
 
-  async confirmImageExistsOrPull(): Promise<void> {
+  private async confirmImageExistsOrPull(): Promise<void> {
     log(`Confirming that image ${this.IMAGE_NAME} exists`);
 
     const doesImageExist = this.docker.getImage(this.IMAGE_NAME);
@@ -115,4 +198,20 @@ export default class Dockerode {
     }
     log(`Image ${this.IMAGE_NAME} successfully found`);
   }
+}
+
+export function argsToArray(args: Args): Array<string> {
+  const array = [];
+
+  for (const [key, value] of Object.entries(args)) {
+    // Change the key from camelCase to kebab-case
+    const kebabKey = key.replace(/([A-Z])/g, (_, capital) => {
+      return "-" + capital.toLowerCase();
+    });
+
+    const arg = `--${kebabKey}=${value}`;
+    array.push(arg);
+  }
+
+  return array;
 }

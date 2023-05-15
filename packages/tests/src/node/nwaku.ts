@@ -42,7 +42,7 @@ BigInt.prototype.toJSON = function toJSON() {
 };
 
 export class NimGoNode {
-  private docker: Dockerode;
+  private docker?: Dockerode;
   private peerId?: PeerId;
   private multiaddrWithId?: Multiaddr;
   private websocketPort?: number;
@@ -75,7 +75,6 @@ export class NimGoNode {
   }
 
   constructor(logName: string) {
-    this.docker = new Dockerode(DOCKER_IMAGE_NAME);
     this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
   }
 
@@ -84,6 +83,7 @@ export class NimGoNode {
   }
 
   async start(args: Args = {}): Promise<void> {
+    this.docker = await Dockerode.createInstance(DOCKER_IMAGE_NAME);
     try {
       await existsAsync(LOG_DIR);
     } catch (e) {
@@ -127,27 +127,22 @@ export class NimGoNode {
         websocketPort,
         ...(args?.peerExchange && { discv5UdpPort }),
       },
+      { rpcAddress: "0.0.0.0" },
       args
     );
 
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
-    const argsArray = argsToArray(mergedArgs);
-
-    const natExtIp = "--nat=extip:127.0.0.1";
-    const rpcAddress = "--rpc-address=0.0.0.0";
-    argsArray.push(natExtIp, rpcAddress);
-
-    if (WAKU_SERVICE_NODE_PARAMS) {
-      argsArray.push(WAKU_SERVICE_NODE_PARAMS);
-    }
-    log(`${this.type} args: ${argsArray.join(" ")}`);
-
     if (this.docker.container) {
       this.docker.stop();
     }
 
-    await this.docker.startContainer(ports, args, argsArray, this.logPath);
+    await this.docker.startContainer(
+      ports,
+      mergedArgs,
+      this.logPath,
+      WAKU_SERVICE_NODE_PARAMS
+    );
 
     try {
       log(`Waiting to see '${NODE_READY_LOG_LINE}' in ${this.type} logs`);
@@ -162,7 +157,7 @@ export class NimGoNode {
   }
 
   public async stop(): Promise<void> {
-    this.docker.stop();
+    this.docker?.stop();
   }
 
   async waitForLog(msg: string, timeout: number): Promise<void> {
@@ -365,26 +360,10 @@ export class NimGoNode {
   }
 
   private checkProcess(): void {
-    if (!this.docker.container) {
+    if (!this.docker?.container) {
       throw `${this.type} container hasn't started`;
     }
   }
-}
-
-export function argsToArray(args: Args): Array<string> {
-  const array = [];
-
-  for (const [key, value] of Object.entries(args)) {
-    // Change the key from camelCase to kebab-case
-    const kebabKey = key.replace(/([A-Z])/g, (_, capital) => {
-      return "-" + capital.toLowerCase();
-    });
-
-    const arg = `--${kebabKey}=${value}`;
-    array.push(arg);
-  }
-
-  return array;
 }
 
 export function defaultArgs(): Args {
