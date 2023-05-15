@@ -7,17 +7,17 @@ import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 import portfinder from "portfinder";
 
-import Dockerode from "./Docker.js";
 import { existsAsync, mkdirAsync, openAsync } from "./async_fs.js";
 import { delay } from "./delay.js";
-import waitForLine from "./log_file.js";
+import Dockerode from "./dockerode.js";
 import {
   Args,
   KeyPair,
   LogLevel,
   MessageRpcQuery,
   MessageRpcResponse,
-} from "./types.js";
+} from "./interfaces.js";
+import waitForLine from "./log_file.js";
 
 const log = debug("waku:node");
 
