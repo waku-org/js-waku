@@ -1,7 +1,7 @@
 {
   "extension": ["ts"],
   "spec": "tests/*.spec.ts",
-  "require": ["ts-node/register", "isomorphic-fetch"],
+  "require": ["ts-node/register", "isomorphic-fetch", "isomorphic-webcrypto"],
   "loader": "ts-node/esm",
   "node-option": [
     "experimental-specifier-resolution=node",
