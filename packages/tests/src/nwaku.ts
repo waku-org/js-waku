@@ -19,7 +19,7 @@ import {
   MessageRpcResponse,
 } from "./types.js";
 
-const log = debug("waku:nwaku");
+const log = debug("waku:node");
 
 const WAKU_SERVICE_NODE_PARAMS =
   process.env.WAKU_SERVICE_NODE_PARAMS ?? undefined;
@@ -40,7 +40,7 @@ BigInt.prototype.toJSON = function toJSON() {
   return Number(this);
 };
 
-export class Nwaku {
+export class WakuNode {
   private docker: Dockerode;
   private peerId?: PeerId;
   private multiaddrWithId?: Multiaddr;
@@ -75,7 +75,11 @@ export class Nwaku {
 
   constructor(logName: string) {
     this.docker = new Dockerode(DOCKER_IMAGE_NAME);
-    this.logPath = `${LOG_DIR}/nwaku_${logName}.log`;
+    this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
+  }
+
+  type(): "go-waku" | "nwaku" {
+    return isGoWaku ? "go-waku" : "nwaku";
   }
 
   async start(args: Args = {}): Promise<void> {
@@ -94,7 +98,7 @@ export class Nwaku {
 
     const mergedArgs = defaultArgs();
 
-    // nwaku takes some time to bind port so to decrease chances of conflict
+    // waku nodes takes some time to bind port so to decrease chances of conflict
     // we also randomize the first port that portfinder will try
     const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
 
@@ -136,7 +140,7 @@ export class Nwaku {
     if (WAKU_SERVICE_NODE_PARAMS) {
       argsArray.push(WAKU_SERVICE_NODE_PARAMS);
     }
-    log(`nwaku args: ${argsArray.join(" ")}`);
+    log(`${this.type} args: ${argsArray.join(" ")}`);
 
     if (this.docker.container) {
       this.docker.stop();
@@ -145,12 +149,12 @@ export class Nwaku {
     await this.docker.startContainer(ports, args, argsArray, this.logPath);
 
     try {
-      log(`Waiting to see '${NODE_READY_LOG_LINE}' in nwaku logs`);
+      log(`Waiting to see '${NODE_READY_LOG_LINE}' in ${this.type} logs`);
       await this.waitForLog(NODE_READY_LOG_LINE, 15000);
       if (process.env.CI) await delay(100);
-      log("nwaku node has been started");
+      log(`${this.type} node has been started`);
     } catch (error) {
-      log(`Error starting nwaku: ${error}`);
+      log(`Error starting ${this.type}: ${error}`);
       if (this.docker.container) await this.docker.stop();
       throw error;
     }
@@ -166,7 +170,7 @@ export class Nwaku {
 
   /** Calls nwaku JSON-RPC API `get_waku_v2_admin_v1_peers` to check
    * for known peers
-   * @throws if nwaku isn't started.
+   * @throws if WakuNode isn't started.
    */
   async peers(): Promise<string[]> {
     this.checkProcess();
@@ -327,9 +331,9 @@ export class Nwaku {
     const multiaddrWithId = res.listenAddresses
       .map((ma) => multiaddr(ma))
       .find((ma) => ma.protoNames().includes("ws"));
-    if (!multiaddrWithId) throw "Nwaku did not return a ws multiaddr";
+    if (!multiaddrWithId) throw `${this.type} did not return a ws multiaddr`;
     const peerIdStr = multiaddrWithId.getPeerId();
-    if (!peerIdStr) throw "Nwaku multiaddr does not contain peerId";
+    if (!peerIdStr) throw `${this.type} multiaddr does not contain peerId`;
     this.peerId = peerIdFromString(peerIdStr);
 
     return this.peerId;
@@ -361,7 +365,7 @@ export class Nwaku {
 
   private checkProcess(): void {
     if (!this.docker.container) {
-      throw "Nwaku container hasn't started";
+      throw `${this.type} container hasn't started`;
     }
   }
 }
