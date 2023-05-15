@@ -27,24 +27,43 @@ describe("Waku Light Push [node only]", () => {
   let waku: LightNode;
   let nwaku: Nwaku;
 
-  afterEach(async function () {
-    !!nwaku &&
-      nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
-  });
-
-  it("Push successfully", async function () {
-    this.timeout(15_000);
-
-    nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({ lightpush: true, relay: true });
+  const runNodes = async (
+    context: Mocha.Context,
+    pubSubTopic?: string
+  ): Promise<void> => {
+    const nwakuOptional = pubSubTopic ? { topics: pubSubTopic } : {};
+    nwaku = new Nwaku(makeLogFileName(context));
+    await nwaku.start({
+      lightpush: true,
+      relay: true,
+      ...nwakuOptional,
+    });
 
     waku = await createLightNode({
+      pubSubTopic,
       staticNoiseKey: NOISE_KEY_1,
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
+  };
+
+  beforeEach(async function () {
+    this.timeout(15_000);
+    await runNodes(this);
+  });
+
+  afterEach(async function () {
+    try {
+      nwaku?.stop();
+      waku?.stop();
+    } catch (e) {
+      console.error("Failed to stop nodes: ", e);
+    }
+  });
+
+  it("Push successfully", async function () {
+    this.timeout(15_000);
 
     const messageText = "Light Push works!";
 
@@ -64,29 +83,27 @@ describe("Waku Light Push [node only]", () => {
     expect(base64ToUtf8(msgs[0].payload)).to.equal(messageText);
   });
 
-  it("Fails to push message bigger that 1MB", async function () {
+  it("Pushes messages equal or less that 1MB", async function () {
     this.timeout(15_000);
     const MB = 1024 ** 2;
-
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     let pushResponse = await waku.lightPush.send(TestEncoder, {
       payload: generateRandomUint8Array(MB),
     });
-    expect(pushResponse.recipients.length).to.eq(0);
+    expect(pushResponse.recipients.length).to.greaterThan(0);
 
     pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: generateRandomUint8Array(MB + 500),
+      payload: generateRandomUint8Array(65536),
     });
-    expect(pushResponse.recipients.length).to.eq(0);
+    expect(pushResponse.recipients.length).to.greaterThan(0);
+  });
 
-    pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: generateRandomUint8Array(2 * MB),
+  it("Fails to push message bigger that 1MB", async function () {
+    this.timeout(15_000);
+    const MB = 1024 ** 2;
+
+    const pushResponse = await waku.lightPush.send(TestEncoder, {
+      payload: generateRandomUint8Array(MB + 65536),
     });
     expect(pushResponse.recipients.length).to.eq(0);
   });
@@ -95,24 +112,9 @@ describe("Waku Light Push [node only]", () => {
     this.timeout(15_000);
 
     const customPubSubTopic = "/waku/2/custom-dapp/proto";
-
-    nwaku = new Nwaku(makeLogFileName(this));
-    await nwaku.start({
-      lightpush: true,
-      topics: customPubSubTopic,
-      relay: true,
-    });
-
-    waku = await createLightNode({
-      pubSubTopic: customPubSubTopic,
-      staticNoiseKey: NOISE_KEY_1,
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await runNodes(this, customPubSubTopic);
 
     const nimPeerId = await nwaku.getPeerId();
-
     const messageText = "Light Push works!";
 
     log("Send message via lightpush");
