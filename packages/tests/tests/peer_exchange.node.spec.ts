@@ -15,7 +15,7 @@ import {
 import { expect } from "chai";
 
 import { makeLogFileName } from "../src/log_file.js";
-import { Nwaku } from "../src/nwaku.js";
+import { NimGoNode } from "../src/node/nwaku.js";
 
 describe("Peer Exchange", () => {
   let waku: LightNode;
@@ -62,12 +62,12 @@ describe("Peer Exchange", () => {
 
   describe("Locally run nodes", () => {
     let waku: LightNode;
-    let nwaku1: Nwaku;
-    let nwaku2: Nwaku;
+    let nwaku1: NimGoNode;
+    let nwaku2: NimGoNode;
 
     beforeEach(async function () {
-      nwaku1 = new Nwaku(makeLogFileName(this) + "1");
-      nwaku2 = new Nwaku(makeLogFileName(this) + "2");
+      nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
+      nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     });
 
     afterEach(async function () {
@@ -145,12 +145,12 @@ describe("Peer Exchange", () => {
     this.timeout(25_000);
 
     let waku: LightNode;
-    let nwaku1: Nwaku;
-    let nwaku2: Nwaku;
+    let nwaku1: NimGoNode;
+    let nwaku2: NimGoNode;
 
     beforeEach(async function () {
-      nwaku1 = new Nwaku(makeLogFileName(this) + "1");
-      nwaku2 = new Nwaku(makeLogFileName(this) + "2");
+      nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
+      nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     });
 
     tests({

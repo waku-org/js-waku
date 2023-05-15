@@ -16,19 +16,15 @@ import {
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import {
-  makeLogFileName,
-  NOISE_KEY_1,
-  NOISE_KEY_2,
-  Nwaku,
-} from "../src/index.js";
+import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2 } from "../src/index.js";
+import { NimGoNode } from "../src/node/nwaku.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
 
 describe("Waku Dial [node only]", function () {
-  describe("Interop: nwaku", function () {
+  describe("Interop: NimGoNode", function () {
     let waku: Waku;
-    let nwaku: Nwaku;
+    let nwaku: NimGoNode;
 
     afterEach(async function () {
       !!nwaku &&
@@ -38,7 +34,7 @@ describe("Waku Dial [node only]", function () {
 
     it("connects to nwaku", async function () {
       this.timeout(20_000);
-      nwaku = new Nwaku(makeLogFileName(this));
+      nwaku = new NimGoNode(makeLogFileName(this));
       await nwaku.start({
         filter: true,
         store: true,
@@ -64,7 +60,7 @@ describe("Waku Dial [node only]", function () {
 
   describe("Bootstrap", function () {
     let waku: LightNode;
-    let nwaku: Nwaku;
+    let nwaku: NimGoNode;
 
     afterEach(async function () {
       !!nwaku && nwaku.stop();
@@ -74,7 +70,7 @@ describe("Waku Dial [node only]", function () {
     it("Passing an array", async function () {
       this.timeout(10_000);
 
-      nwaku = new Nwaku(makeLogFileName(this));
+      nwaku = new NimGoNode(makeLogFileName(this));
       await nwaku.start();
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
       waku = await createLightNode({
@@ -97,7 +93,7 @@ describe("Waku Dial [node only]", function () {
     it("Using a function", async function () {
       this.timeout(10_000);
 
-      nwaku = new Nwaku(makeLogFileName(this));
+      nwaku = new NimGoNode(makeLogFileName(this));
       await nwaku.start();
 
       const nwakuMa = await nwaku.getMultiaddrWithId();

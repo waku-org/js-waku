@@ -27,8 +27,8 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
-  Nwaku,
 } from "../src/index.js";
+import { NimGoNode } from "../src/node/nwaku.js";
 
 const log = debug("waku:test:ephemeral");
 
@@ -40,7 +40,7 @@ const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Message Ephemeral field", () => {
   let waku: LightNode;
-  let nwaku: Nwaku;
+  let nwaku: NimGoNode;
 
   afterEach(async function () {
     !!nwaku &&
@@ -50,7 +50,7 @@ describe("Waku Message Ephemeral field", () => {
 
   beforeEach(async function () {
     this.timeout(15_000);
-    nwaku = new Nwaku(makeLogFileName(this));
+    nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       filter: true,
       lightpush: true,

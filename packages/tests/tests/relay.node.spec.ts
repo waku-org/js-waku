@@ -25,15 +25,14 @@ import { expect } from "chai";
 import debug from "debug";
 
 import {
-  base64ToUtf8,
   delay,
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
   NOISE_KEY_3,
-  Nwaku,
 } from "../src/index.js";
-import { MessageRpcResponse } from "../src/types.js";
+import { MessageRpcResponse } from "../src/node/interfaces.js";
+import { base64ToUtf8, NimGoNode } from "../src/node/nwaku.js";
 
 const log = debug("waku:test");
 
@@ -338,9 +337,9 @@ describe("Waku Relay [node only]", () => {
     });
   });
 
-  describe("Interop: nwaku", function () {
+  describe("Interop: NimGoNode", function () {
     let waku: RelayNode;
-    let nwaku: Nwaku;
+    let nwaku: NimGoNode;
 
     beforeEach(async function () {
       this.timeout(30_000);
@@ -349,7 +348,7 @@ describe("Waku Relay [node only]", () => {
       });
       await waku.start();
 
-      nwaku = new Nwaku(this.test?.ctx?.currentTest?.title + "");
+      nwaku = new NimGoNode(this.test?.ctx?.currentTest?.title + "");
       await nwaku.start({ relay: true });
 
       await waku.dial(await nwaku.getMultiaddrWithId());
@@ -409,7 +408,7 @@ describe("Waku Relay [node only]", () => {
       );
 
       await nwaku.sendMessage(
-        Nwaku.toMessageRpcQuery({
+        NimGoNode.toMessageRpcQuery({
           contentTopic: TestContentTopic,
           payload: utf8ToBytes(messageText),
         })
@@ -425,7 +424,7 @@ describe("Waku Relay [node only]", () => {
     describe.skip("Two nodes connected to nwaku", function () {
       let waku1: RelayNode;
       let waku2: RelayNode;
-      let nwaku: Nwaku;
+      let nwaku: NimGoNode;
 
       afterEach(async function () {
         !!nwaku &&
@@ -448,7 +447,7 @@ describe("Waku Relay [node only]", () => {
           }).then((waku) => waku.start().then(() => waku)),
         ]);
 
-        nwaku = new Nwaku(makeLogFileName(this));
+        nwaku = new NimGoNode(makeLogFileName(this));
         await nwaku.start();
 
         const nwakuMultiaddr = await nwaku.getMultiaddrWithId();

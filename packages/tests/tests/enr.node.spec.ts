@@ -5,11 +5,12 @@ import type { RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../src/index.js";
+import { makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
+import { NimGoNode } from "../src/node/nwaku.js";
 
-describe("ENR Interop: nwaku", function () {
+describe("ENR Interop: NimGoNode", function () {
   let waku: RelayNode;
-  let nwaku: Nwaku;
+  let nwaku: NimGoNode;
 
   afterEach(async function () {
     !!nwaku &&
@@ -19,7 +20,7 @@ describe("ENR Interop: nwaku", function () {
 
   it("Relay", async function () {
     this.timeout(20_000);
-    nwaku = new Nwaku(makeLogFileName(this));
+    nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: false,
@@ -51,7 +52,7 @@ describe("ENR Interop: nwaku", function () {
 
   it("Relay + Store", async function () {
     this.timeout(20_000);
-    nwaku = new Nwaku(makeLogFileName(this));
+    nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: true,
@@ -83,7 +84,7 @@ describe("ENR Interop: nwaku", function () {
 
   it("All", async function () {
     this.timeout(20_000);
-    nwaku = new Nwaku(makeLogFileName(this));
+    nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: true,

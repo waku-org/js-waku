@@ -6,14 +6,9 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import debug from "debug";
 
-import {
-  base64ToUtf8,
-  delay,
-  makeLogFileName,
-  NOISE_KEY_1,
-  Nwaku,
-} from "../src/index.js";
-import { MessageRpcResponse } from "../src/types.js";
+import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
+import { MessageRpcResponse } from "../src/node/interfaces.js";
+import { base64ToUtf8, NimGoNode } from "../src/node/nwaku.js";
 
 const log = debug("waku:test:lightpush");
 
@@ -24,7 +19,7 @@ const TestEncoder = createEncoder({
 
 describe("Waku Light Push [node only]", () => {
   let waku: LightNode;
-  let nwaku: Nwaku;
+  let nwaku: NimGoNode;
 
   afterEach(async function () {
     !!nwaku &&
@@ -35,7 +30,7 @@ describe("Waku Light Push [node only]", () => {
   it("Push successfully", async function () {
     this.timeout(15_000);
 
-    nwaku = new Nwaku(makeLogFileName(this));
+    nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({ lightpush: true, relay: true });
 
     waku = await createLightNode({
@@ -68,7 +63,7 @@ describe("Waku Light Push [node only]", () => {
 
     const customPubSubTopic = "/waku/2/custom-dapp/proto";
 
-    nwaku = new Nwaku(makeLogFileName(this));
+    nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       lightpush: true,
       topics: customPubSubTopic,
