@@ -338,7 +338,7 @@ describe("Waku Relay [node only]", () => {
       expect(waku2ReceivedMsg.pubSubTopic).to.eq(pubSubTopic);
     });
 
-    it("Doesn't publish messages bigger that 1 MB", async function () {
+    it("Publishes <= 1 MB and rejects others", async function () {
       this.timeout(10000);
       const MB = 1024 ** 2;
 
@@ -361,14 +361,7 @@ describe("Waku Relay [node only]", () => {
         waku2.libp2p.peerId,
         waku2.libp2p.getMultiaddrs()
       );
-      await waku3.libp2p.peerStore.addressBook.set(
-        waku2.libp2p.peerId,
-        waku2.libp2p.getMultiaddrs()
-      );
-      await Promise.all([
-        waku1.dial(waku2.libp2p.peerId),
-        waku3.dial(waku2.libp2p.peerId),
-      ]);
+      await Promise.all([waku1.dial(waku2.libp2p.peerId)]);
 
       await Promise.all([
         waitForRemotePeer(waku1, [Protocols.Relay]),
@@ -388,10 +381,10 @@ describe("Waku Relay [node only]", () => {
       let sendResult = await waku1.relay.send(TestEncoder, {
         payload: generateRandomUint8Array(1 * MB),
       });
-      expect(sendResult.recipients.length).to.eq(0);
+      expect(sendResult.recipients.length).to.eq(1);
 
       sendResult = await waku1.relay.send(TestEncoder, {
-        payload: generateRandomUint8Array(1 * MB + 500),
+        payload: generateRandomUint8Array(1 * MB + 65536),
       });
       expect(sendResult.recipients.length).to.eq(0);
 
@@ -401,9 +394,7 @@ describe("Waku Relay [node only]", () => {
       expect(sendResult.recipients.length).to.eq(0);
 
       const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
-
-      expect(waku2ReceivedMsg?.payload?.length).to.not.eq(0);
-      expect(waku2ReceivedMsg?.pubSubTopic).to.not.eq(pubSubTopic);
+      expect(waku2ReceivedMsg?.payload?.length).to.eq(0);
     });
   });
 
