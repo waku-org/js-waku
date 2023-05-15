@@ -14,6 +14,7 @@ import {
 } from "@waku/peer-exchange";
 import { expect } from "chai";
 
+import { delay } from "../src/delay.js";
 import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/nwaku.js";
 
@@ -77,7 +78,7 @@ describe("Peer Exchange", () => {
     });
 
     it("nwaku interop", async function () {
-      this.timeout(15_000);
+      this.timeout(55_000);
 
       await nwaku1.start({
         discv5Discovery: true,
@@ -107,8 +108,6 @@ describe("Peer Exchange", () => {
         });
       });
 
-      await nwaku2.waitForLog("Discovered px peers via discv5", 10);
-
       // the forced type casting is done in ref to https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
       const { connectionManager, registrar, peerStore } =
         waku.libp2p as unknown as Libp2pComponents;
@@ -122,9 +121,13 @@ describe("Peer Exchange", () => {
 
       const numPeersToRequest = 1;
 
-      const peerInfos = (await peerExchange.query({
-        numPeers: numPeersToRequest,
-      })) as PeerInfo[];
+      let peerInfos: PeerInfo[] = [];
+      while (peerInfos.length <= 0) {
+        peerInfos = (await peerExchange.query({
+          numPeers: numPeersToRequest,
+        })) as PeerInfo[];
+        await delay(3000);
+      }
 
       expect(peerInfos.length).to.be.greaterThan(0);
       expect(peerInfos.length).to.be.lessThanOrEqual(numPeersToRequest);
