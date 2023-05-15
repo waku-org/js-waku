@@ -134,7 +134,7 @@ export class NimGoNode {
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
     if (this.docker.container) {
-      this.docker.stop();
+      await this.docker.stop();
     }
 
     await this.docker.startContainer(

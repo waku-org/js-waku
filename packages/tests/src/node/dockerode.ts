@@ -109,6 +109,7 @@ export default class Dockerode {
     const container = await this.docker.createContainer({
       Image: this.IMAGE_NAME,
       HostConfig: {
+        AutoRemove: true,
         PortBindings: {
           [`${rpcPort}/tcp`]: [{ HostPort: rpcPort.toString() }],
           [`${tcpPort}/tcp`]: [{ HostPort: tcpPort.toString() }],
@@ -117,7 +118,6 @@ export default class Dockerode {
             [`${discv5UdpPort}/udp`]: [{ HostPort: discv5UdpPort.toString() }],
           }),
         },
-        NetworkMode: NETWORK_NAME,
       },
       ExposedPorts: {
         [`${rpcPort}/tcp`]: {},
@@ -131,16 +131,14 @@ export default class Dockerode {
     });
     await container.start();
 
-    const containerInfo = await container.inspect();
-    if (
-      containerInfo.NetworkSettings.Networks[NETWORK_NAME].IPAddress !==
-      this.containerIp
-    ) {
-      throw new Error(
-        `Container ran on wrong IP. Expected ${this.containerIp} but got ${containerInfo.NetworkSettings.Networks[NETWORK_NAME].IPAddress}
-        Ensure that all containers are stopped before trying again.`
-      );
-    }
+    await Dockerode.network.connect({
+      Container: container.id,
+      EndpointConfig: {
+        IPAMConfig: {
+          IPv4Address: this.containerIp,
+        },
+      },
+    });
     const logStream = fs.createWriteStream(logPath);
 
     container.logs(
