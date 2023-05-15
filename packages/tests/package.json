@@ -67,7 +67,7 @@
     "@libp2p/interface-peer-discovery-compliance-tests": "^2.0.5",
     "@libp2p/interface-peer-id": "^2.0.1",
     "@types/chai": "^4.3.4",
-    "@types/dockerode": "^3.3.15",
+    "@types/dockerode": "^3.3.17",
     "@types/mocha": "^10.0.1",
     "@types/tail": "^2.2.1",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
