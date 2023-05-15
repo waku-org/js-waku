@@ -38,6 +38,8 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
         return;
       }
 
+      await wait(60);
+
       const message = messages.shift() as T;
 
       if (!unsubscribe && messages.length === 0) {
@@ -61,4 +63,10 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
       }
     },
   };
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
