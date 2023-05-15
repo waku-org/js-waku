@@ -81,6 +81,7 @@ describe("Peer Exchange", () => {
       this.timeout(55_000);
 
       await nwaku1.start({
+        relay: true,
         discv5Discovery: true,
         peerExchange: true,
       });
@@ -88,6 +89,7 @@ describe("Peer Exchange", () => {
       const enr = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
+        relay: true,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr,
