@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target": "es2020",
+    "target": "ES2022",
     "moduleResolution": "node16",
-    "module": "es2020",
+    "module": "ES2022",
     "declaration": true,
     "sourceMap": true,
     "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
@@ -38,7 +38,7 @@
     // "experimentalDecorators": true /* Enables experimental support for ES7 decorators. */,
     // "emitDecoratorMetadata": true /* Enables experimental support for emitting type metadata for decorators. */,
 
-    "lib": ["es2020", "dom"],
+    "lib": ["es2022", "dom"],
     "types": ["node", "mocha"],
     "typeRoots": ["node_modules/@types"]
   },
