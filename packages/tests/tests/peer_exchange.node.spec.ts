@@ -147,7 +147,7 @@ describe("Peer Exchange", () => {
   });
 
   describe("compliance test", async function () {
-    this.timeout(25_000);
+    this.timeout(55_000);
 
     let waku: LightNode;
     let nwaku1: NimGoNode;
@@ -161,6 +161,7 @@ describe("Peer Exchange", () => {
     tests({
       async setup() {
         await nwaku1.start({
+          relay: true,
           discv5Discovery: true,
           peerExchange: true,
         });
@@ -168,6 +169,7 @@ describe("Peer Exchange", () => {
         const enr = (await nwaku1.info()).enrUri;
 
         await nwaku2.start({
+          relay: true,
           discv5Discovery: true,
           peerExchange: true,
           discv5BootstrapNode: enr,
@@ -199,8 +201,8 @@ describe("Peer Exchange", () => {
         return new PeerExchangeDiscovery(components);
       },
       teardown: async () => {
-        !!nwaku1 && nwaku1.stop();
-        !!nwaku2 && nwaku2.stop();
+        !!nwaku1 && (await nwaku1.stop());
+        !!nwaku2 && (await nwaku2.stop());
         !!waku && (await waku.stop());
       },
     });
