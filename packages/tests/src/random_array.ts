@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 export function generateRandomUint8Array(sizeInBytes: number): Uint8Array {
   const chunkSize = 65536; // Maximum entropy available
   const chunks = Math.ceil(sizeInBytes / chunkSize);
