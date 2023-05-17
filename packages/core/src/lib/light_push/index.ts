@@ -48,8 +48,8 @@ class LightPush extends BaseProtocol implements ILightPush {
     const peer = await this.getPeer(opts?.peerId);
     const stream = await this.newStream(peer);
 
-    let error: SendError;
     const recipients: PeerId[] = [];
+    let error: undefined | SendError = undefined;
 
     try {
       if (!isSizeValid(message.payload)) {
