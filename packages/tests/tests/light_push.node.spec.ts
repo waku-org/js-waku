@@ -1,6 +1,6 @@
 import { createEncoder, waitForRemotePeer } from "@waku/core";
 import { createLightNode } from "@waku/create";
-import type { LightNode } from "@waku/interfaces";
+import { LightNode, SendError } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -106,6 +106,7 @@ describe("Waku Light Push [node only]", () => {
       payload: generateRandomUint8Array(MB + 65536),
     });
     expect(pushResponse.recipients.length).to.eq(0);
+    expect(pushResponse.error).to.eq(SendError.SIZE_TOO_BIG);
   });
 
   it("Push on custom pubsub topic", async function () {

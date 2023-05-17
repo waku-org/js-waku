@@ -1,11 +1,12 @@
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
-import type {
+import {
   IEncoder,
   ILightPush,
   IMessage,
   ProtocolCreateOptions,
   ProtocolOptions,
+  SendError,
   SendResult,
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
@@ -47,18 +48,25 @@ class LightPush extends BaseProtocol implements ILightPush {
     const peer = await this.getPeer(opts?.peerId);
     const stream = await this.newStream(peer);
 
+    let error: SendError;
     const recipients: PeerId[] = [];
 
     try {
       if (!isSizeValid(message.payload)) {
         log("Failed to send waku light push: message is bigger that 1MB");
-        return { recipients };
+        return {
+          recipients,
+          error: SendError.SIZE_TOO_BIG,
+        };
       }
 
       const protoMessage = await encoder.toProtoObj(message);
       if (!protoMessage) {
         log("Failed to encode to protoMessage, aborting push");
-        return { recipients };
+        return {
+          recipients,
+          error: SendError.ENCODE_FAILED,
+        };
       }
       const query = PushRpc.createRequest(protoMessage, pubSubTopic);
       const res = await pipe(
@@ -76,21 +84,24 @@ class LightPush extends BaseProtocol implements ILightPush {
 
         const response = PushRpc.decode(bytes).response;
 
-        if (!response) {
-          log("No response in PushRPC");
-          return { recipients };
-        }
-
-        if (response.isSuccess) {
+        if (response?.isSuccess) {
           recipients.push(peer.id);
+        } else {
+          log("No response in PushRPC");
+          error = SendError.NO_RPC_RESPONSE;
         }
       } catch (err) {
         log("Failed to decode push reply", err);
+        error = SendError.DECODE_FAILED;
       }
     } catch (err) {
       log("Failed to send waku light push request", err);
+      error = SendError.GENERIC_FAIL;
     }
-    return { recipients };
+    return {
+      error,
+      recipients,
+    };
   }
 }
 

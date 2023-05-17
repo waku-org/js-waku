@@ -7,7 +7,7 @@ import {
   waitForRemotePeer,
 } from "@waku/core";
 import { createRelayNode } from "@waku/create";
-import type { RelayNode } from "@waku/interfaces";
+import { RelayNode, SendError } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   createDecoder as createEciesDecoder,
@@ -387,11 +387,13 @@ describe("Waku Relay [node only]", () => {
         payload: generateRandomUint8Array(1 * MB + 65536),
       });
       expect(sendResult.recipients.length).to.eq(0);
+      expect(sendResult.error).to.eq(SendError.SIZE_TOO_BIG);
 
       sendResult = await waku1.relay.send(TestEncoder, {
         payload: generateRandomUint8Array(2 * MB),
       });
       expect(sendResult.recipients.length).to.eq(0);
+      expect(sendResult.error).to.eq(SendError.SIZE_TOO_BIG);
 
       const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
       expect(waku2ReceivedMsg?.payload?.length).to.eq(0);
