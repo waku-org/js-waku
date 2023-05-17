@@ -128,17 +128,9 @@ export class Decoder implements IDecoder<DecodedMessage> {
   }
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
-    const protoMessage = proto.WakuMessage.decode(bytes);
+    const protoMessage = fromBytesToProtoMessage(bytes);
     log("Message decoded", protoMessage);
-    return Promise.resolve({
-      payload: protoMessage.payload,
-      contentTopic: protoMessage.contentTopic,
-      version: protoMessage.version ?? undefined,
-      timestamp: protoMessage.timestamp ?? undefined,
-      meta: protoMessage.meta ?? undefined,
-      rateLimitProof: protoMessage.rateLimitProof ?? undefined,
-      ephemeral: protoMessage.ephemeral ?? false,
-    });
+    return Promise.resolve(protoMessage);
   }
 
   async fromProtoObj(
@@ -159,6 +151,24 @@ export class Decoder implements IDecoder<DecodedMessage> {
 
     return new DecodedMessage(pubSubTopic, proto);
   }
+}
+
+/**
+ * Tries to decode bytes into IProtoMessage.
+ * @param bytes Uint8Array
+ * @returns IProtoMessage
+ */
+export function fromBytesToProtoMessage(bytes: Uint8Array): IProtoMessage {
+  const protoMessage = proto.WakuMessage.decode(bytes);
+  return {
+    payload: protoMessage.payload,
+    contentTopic: protoMessage.contentTopic,
+    version: protoMessage.version ?? undefined,
+    timestamp: protoMessage.timestamp ?? undefined,
+    meta: protoMessage.meta ?? undefined,
+    rateLimitProof: protoMessage.rateLimitProof ?? undefined,
+    ephemeral: protoMessage.ephemeral ?? false,
+  };
 }
 
 /**

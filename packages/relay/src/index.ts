@@ -9,7 +9,7 @@ import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import { sha256 } from "@noble/hashes/sha256";
-import { DefaultPubSubTopic } from "@waku/core";
+import { DefaultPubSubTopic, message } from "@waku/core";
 import {
   ActiveSubscriptions,
   Callback,
@@ -24,6 +24,7 @@ import {
   SendError,
   SendResult,
 } from "@waku/interfaces";
+import { messageHash } from "@waku/message-hash";
 import { groupByContentTopic, isSizeValid, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
@@ -249,7 +250,17 @@ export function wakuGossipSub(
   return (components: GossipSubComponents) => {
     init = {
       ...init,
-      msgIdFn: ({ data }) => sha256(data),
+      msgIdFn: ({ topic, data }) => {
+        try {
+          const protoMessage = message.fromBytesToProtoMessage(data);
+          return messageHash(topic, protoMessage);
+        } catch (e) {
+          log(
+            "Failed to hash as ProtoMessage, falling back to sha256 from data."
+          );
+          return sha256(data);
+        }
+      },
       // Ensure that no signature is included nor expected in the messages.
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
       fallbackToFloodsub: false,
