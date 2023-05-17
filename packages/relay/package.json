@@ -10,13 +10,6 @@
       "import": "./dist/index.js"
     }
   },
-  "typesVersions": {
-    "*": {
-      "lib/*": [
-        "dist/lib/*"
-      ]
-    }
-  },
   "type": "module",
   "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/relay#readme",
   "repository": {
