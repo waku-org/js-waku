@@ -48,7 +48,12 @@ describe("Util: toAsyncIterator", () => {
     const messageText = "hey, what's up?";
     const sent = { payload: utf8ToBytes(messageText) };
 
-    const { iterator } = await toAsyncIterator(waku.filter, TestDecoder);
+    const { iterator } = await toAsyncIterator(
+      waku.filter,
+      TestDecoder,
+      {},
+      { timeoutMs: 1000 }
+    );
 
     await waku.lightPush.send(TestEncoder, sent);
     const { value } = await iterator.next();
@@ -60,7 +65,12 @@ describe("Util: toAsyncIterator", () => {
 
   it("handles multiple messages", async function () {
     this.timeout(10000);
-    const { iterator } = await toAsyncIterator(waku.filter, TestDecoder);
+    const { iterator } = await toAsyncIterator(
+      waku.filter,
+      TestDecoder,
+      {},
+      { timeoutMs: 1000 }
+    );
 
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("Filtering works!"),
@@ -78,7 +88,12 @@ describe("Util: toAsyncIterator", () => {
 
   it("unsubscribes", async function () {
     this.timeout(10000);
-    const { iterator, stop } = await toAsyncIterator(waku.filter, TestDecoder);
+    const { iterator, stop } = await toAsyncIterator(
+      waku.filter,
+      TestDecoder,
+      {},
+      { timeoutMs: 1000 }
+    );
 
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received"),
