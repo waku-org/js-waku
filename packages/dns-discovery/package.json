@@ -10,13 +10,6 @@
       "import": "./dist/index.js"
     }
   },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "dist/*.d.ts"
-      ]
-    }
-  },
   "type": "module",
   "author": "Waku Team",
   "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/dns-discovery#readme",
