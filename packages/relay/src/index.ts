@@ -10,7 +10,7 @@ import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import { sha256 } from "@noble/hashes/sha256";
 import { DefaultPubSubTopic } from "@waku/core";
-import type {
+import {
   ActiveSubscriptions,
   Callback,
   IAsyncIterator,
@@ -21,9 +21,10 @@ import type {
   IRelay,
   ProtocolCreateOptions,
   ProtocolOptions,
+  SendError,
   SendResult,
 } from "@waku/interfaces";
-import { groupByContentTopic, toAsyncIterator } from "@waku/utils";
+import { groupByContentTopic, isSizeValid, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
 import { RelayCodecs } from "./constants.js";
@@ -97,10 +98,21 @@ class Relay implements IRelay {
    * Send Waku message.
    */
   public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
+    if (!isSizeValid(message.payload)) {
+      log("Failed to send waku relay: message is bigger that 1MB");
+      return {
+        recipients: [],
+        error: SendError.SIZE_TOO_BIG,
+      };
+    }
+
     const msg = await encoder.toWire(message);
     if (!msg) {
       log("Failed to encode message, aborting publish");
-      return { recipients: [] };
+      return {
+        recipients: [],
+        error: SendError.ENCODE_FAILED,
+      };
     }
 
     return this.gossipSub.publish(this.pubSubTopic, msg);
