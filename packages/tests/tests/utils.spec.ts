@@ -5,7 +5,7 @@ import {
   waitForRemotePeer,
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
-import type { LightNode } from "@waku/interfaces";
+import type { IFilter, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { toAsyncIterator } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
@@ -17,21 +17,25 @@ const TestContentTopic = "/test/1/waku-filter";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
-describe("Util: toAsyncIterator", () => {
+describe("Util: toAsyncIterator: FilterV1", () => {
   let waku: LightNode;
   let nwaku: Nwaku;
+
+  let filter: IFilter;
 
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ filter: true, lightpush: true, relay: true });
     waku = await createLightNode({
+      useFilterV1: true,
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+    filter = waku.filter as IFilter;
   });
 
   afterEach(async () => {
@@ -48,7 +52,7 @@ describe("Util: toAsyncIterator", () => {
     const messageText = "hey, what's up?";
     const sent = { payload: utf8ToBytes(messageText) };
 
-    const { iterator } = await toAsyncIterator(waku.filter, TestDecoder);
+    const { iterator } = await toAsyncIterator(filter, TestDecoder);
 
     await waku.lightPush.send(TestEncoder, sent);
     const { value } = await iterator.next();
@@ -60,7 +64,7 @@ describe("Util: toAsyncIterator", () => {
 
   it("handles multiple messages", async function () {
     this.timeout(10000);
-    const { iterator } = await toAsyncIterator(waku.filter, TestDecoder);
+    const { iterator } = await toAsyncIterator(filter, TestDecoder);
 
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("Filtering works!"),
@@ -78,7 +82,7 @@ describe("Util: toAsyncIterator", () => {
 
   it("unsubscribes", async function () {
     this.timeout(10000);
-    const { iterator, stop } = await toAsyncIterator(waku.filter, TestDecoder);
+    const { iterator, stop } = await toAsyncIterator(filter, TestDecoder);
 
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received"),
@@ -99,3 +103,5 @@ describe("Util: toAsyncIterator", () => {
     expect(result.done).to.eq(true);
   });
 });
+
+//TODO: add functionality for FilterV2
