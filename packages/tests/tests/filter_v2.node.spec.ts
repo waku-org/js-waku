@@ -16,7 +16,12 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import debug from "debug";
 
-import { delay, makeLogFileName, NOISE_KEY_1, Nwaku } from "../src/index.js";
+import {
+  delay,
+  makeLogFileName,
+  NimGoNode,
+  NOISE_KEY_1,
+} from "../src/index.js";
 
 const log = debug("waku:test");
 
@@ -26,7 +31,7 @@ const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Filter: V2", () => {
   let waku: LightNode;
-  let nwaku: Nwaku;
+  let nwaku: NimGoNode;
 
   let subscription: IFilterV2Subscription;
 
@@ -38,7 +43,7 @@ describe("Waku Filter: V2", () => {
 
   beforeEach(async function () {
     this.timeout(15000);
-    nwaku = new Nwaku(makeLogFileName(this));
+    nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       filter: true,
       lightpush: true,
