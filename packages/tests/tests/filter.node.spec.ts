@@ -13,7 +13,7 @@ import { expect } from "chai";
 import debug from "debug";
 
 import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
-import { NimGoNode } from "../src/node/nwaku.js";
+import { NimGoNode } from "../src/node/node.js";
 
 const log = debug("waku:test");
 

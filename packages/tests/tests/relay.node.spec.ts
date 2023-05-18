@@ -32,7 +32,7 @@ import {
   NOISE_KEY_3,
 } from "../src/index.js";
 import { MessageRpcResponse } from "../src/node/interfaces.js";
-import { base64ToUtf8, NimGoNode } from "../src/node/nwaku.js";
+import { base64ToUtf8, NimGoNode } from "../src/node/node.js";
 import { generateRandomUint8Array } from "../src/random_array.js";
 
 const log = debug("waku:test");
