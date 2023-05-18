@@ -37,6 +37,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.11 to 0.0.12
 
+## [0.0.12](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.11...dns-discovery-v0.0.12) (2023-05-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316))
+
+### Features
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316)) ([50c2c25](https://github.com/waku-org/js-waku/commit/50c2c2540f3c5ff78d93f3fea646da0eee246e17))
+
+
+### Bug Fixes
+
+* Remove typesVersions ([#1359](https://github.com/waku-org/js-waku/issues/1359)) ([0ad1954](https://github.com/waku-org/js-waku/commit/0ad19540d527309e0174afa7e9fff2924570d361))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from * to 0.0.12
+    * @waku/utils bumped from * to 0.0.6
+  * devDependencies
+    * @waku/interfaces bumped from * to 0.0.13
+
 ## [0.0.10](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.9...dns-discovery-v0.0.10) (2023-04-03)
 
 
