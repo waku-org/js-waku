@@ -8,6 +8,5 @@
   "packages/core": "0.0.17",
   "packages/dns-discovery": "0.0.11",
   "packages/message-encryption": "0.0.15",
-  "packages/create": "0.0.13",
-  "packages/relay": "0.0.1"
+  "packages/create": "0.0.13"
 }
