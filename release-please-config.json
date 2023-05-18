@@ -16,6 +16,8 @@
     "packages/dns-discovery": {},
     "packages/message-encryption": {},
     "packages/create": {},
-    "packages/relay": {}
+    "packages/relay": {
+      "release-as": "0.0.1"
+    }
   }
 }
