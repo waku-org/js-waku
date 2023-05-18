@@ -16,7 +16,7 @@ import { expect } from "chai";
 
 import { delay } from "../src/delay.js";
 import { makeLogFileName } from "../src/log_file.js";
-import { NimGoNode } from "../src/node/nwaku.js";
+import { NimGoNode } from "../src/node/node.js";
 
 describe("Peer Exchange", () => {
   let waku: LightNode;

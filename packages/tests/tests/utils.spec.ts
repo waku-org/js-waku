@@ -12,7 +12,7 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import { makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
-import { NimGoNode } from "../src/node/nwaku.js";
+import { NimGoNode } from "../src/node/node.js";
 
 const TestContentTopic = "/test/1/waku-filter";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });

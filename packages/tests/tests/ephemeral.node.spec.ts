@@ -28,7 +28,7 @@ import {
   NOISE_KEY_1,
   NOISE_KEY_2,
 } from "../src/index.js";
-import { NimGoNode } from "../src/node/nwaku.js";
+import { NimGoNode } from "../src/node/node.js";
 
 const log = debug("waku:test:ephemeral");
 
