@@ -50,10 +50,11 @@ export type ProtocolCreateOptions = {
    */
   defaultBootstrap?: boolean;
   /**
-   * Use the new refactored Filter protocol
+   * FilterV2 has been set to default
+   * Use this flag to enable the previous version of the filter protocol
    * See [Improved Filter protocol specifications](https://github.com/vacp2p/rfc/pull/562)
    */
-  useFilterV2?: boolean;
+  useFilterV1?: boolean;
 };
 
 export type ProtocolOptions = {
