@@ -4,6 +4,7 @@ import { isPeerId, PeerId } from "@libp2p/interface-peer-id";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import type {
   IFilter,
+  IFilterV2,
   ILightPush,
   IRelay,
   IStore,
@@ -46,7 +47,7 @@ export class WakuNode implements Waku {
   public libp2p: Libp2p;
   public relay?: IRelay;
   public store?: IStore;
-  public filter?: IFilter;
+  public filter?: IFilter | IFilterV2;
   public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
 
@@ -55,7 +56,7 @@ export class WakuNode implements Waku {
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
-    filter?: (libp2p: Libp2p) => IFilter,
+    filter?: (libp2p: Libp2p) => IFilter | IFilterV2,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
     this.libp2p = libp2p;

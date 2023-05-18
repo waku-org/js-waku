@@ -17,7 +17,7 @@ import {
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
   FullNode,
-  IFilterV1,
+  IFilter,
   IFilterV2,
   LightNode,
   ProtocolCreateOptions,
@@ -47,9 +47,9 @@ export { Libp2pComponents };
  *
  * @see https://github.com/status-im/nwaku/issues/1085
  */
-export async function createLightNode<FilterV2 extends boolean = false>(
-  options?: ProtocolCreateOptions & WakuOptions & { useFilterV2?: FilterV2 }
-): Promise<LightNode<FilterV2 extends true ? true : false>> {
+export async function createLightNode(
+  options?: ProtocolCreateOptions & WakuOptions
+): Promise<LightNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -66,12 +66,12 @@ export async function createLightNode<FilterV2 extends boolean = false>(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
 
-  let filter: (libp2p: Libp2p) => IFilterV1 | IFilterV2;
+  let filter: (libp2p: Libp2p) => IFilter | IFilterV2;
 
-  if (options?.useFilterV2) {
-    filter = wakuFilterV2(options) as (libp2p: Libp2p) => IFilterV2;
+  if (options?.useFilterV1) {
+    filter = wakuFilter(options) as (libp2p: Libp2p) => IFilter;
   } else {
-    filter = wakuFilter(options) as (libp2p: Libp2p) => IFilterV1;
+    filter = wakuFilterV2() as (libp2p: Libp2p) => IFilterV2;
   }
 
   return new WakuNode(
@@ -80,7 +80,7 @@ export async function createLightNode<FilterV2 extends boolean = false>(
     store,
     lightPush,
     filter
-  ) as LightNode<FilterV2 extends true ? true : false>;
+  ) as LightNode;
 }
 
 /**
@@ -131,9 +131,9 @@ export async function createRelayNode(
  * @see https://github.com/status-im/nwaku/issues/1085
  * @internal
  */
-export async function createFullNode<FilterV2 extends boolean = false>(
+export async function createFullNode(
   options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
-): Promise<FullNode<FilterV2 extends true ? true : false>> {
+): Promise<FullNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -150,11 +150,11 @@ export async function createFullNode<FilterV2 extends boolean = false>(
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
 
-  let filter: (libp2p: Libp2p) => IFilterV1 | IFilterV2;
-  if (!options?.useFilterV2) {
-    filter = wakuFilter(options);
+  let filter: (libp2p: Libp2p) => IFilter | IFilterV2;
+  if (!options?.useFilterV1) {
+    filter = wakuFilterV2();
   } else {
-    filter = wakuFilterV2(options);
+    filter = wakuFilter(options);
   }
 
   const relay = wakuRelay(options);
@@ -166,7 +166,7 @@ export async function createFullNode<FilterV2 extends boolean = false>(
     lightPush,
     filter,
     relay
-  ) as FullNode<FilterV2 extends true ? true : false>;
+  ) as FullNode;
 }
 
 export function defaultPeerDiscovery(): (
