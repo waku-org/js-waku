@@ -6,6 +6,7 @@ import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
   Callback,
   ContentTopic,
+  ErrorResult,
   IDecodedMessage,
   IDecoder,
   IFilterV2,
@@ -13,7 +14,6 @@ import type {
   PeerIdStr,
   PeerSubscription,
   ProtocolCreateOptions,
-  Result,
   SubscriptionsLog,
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
@@ -59,7 +59,7 @@ class Subscription {
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
-  ): Promise<Result> {
+  ): Promise<ErrorResult> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
     const contentTopics = Array.from(groupByContentTopic(decodersArray).keys());
 
@@ -122,7 +122,7 @@ class Subscription {
   }
 
   //TODO: fix return value
-  async unsubscribe(contentTopics: ContentTopic[]): Promise<Result> {
+  async unsubscribe(contentTopics: ContentTopic[]): Promise<ErrorResult> {
     const stream = await this.newStream(this.peer);
     const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
       this.pubSubTopic,
@@ -139,7 +139,7 @@ class Subscription {
   }
 
   //TODO: fix return value
-  async ping(): Promise<Result> {
+  async ping(): Promise<ErrorResult> {
     const stream = await this.newStream(this.peer);
 
     const request = FilterSubscribeRpc.createSubscriberPingRequest();
@@ -171,7 +171,7 @@ class Subscription {
     return { error: false };
   }
 
-  async unsubscribeAll(): Promise<Result> {
+  async unsubscribeAll(): Promise<ErrorResult> {
     const stream = await this.newStream(this.peer);
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(

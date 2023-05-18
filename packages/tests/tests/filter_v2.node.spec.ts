@@ -6,7 +6,11 @@ import {
   waitForRemotePeer,
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
-import type { LightNode } from "@waku/interfaces";
+import type {
+  IFilterV2,
+  IFilterV2Subscription,
+  LightNode,
+} from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -21,8 +25,10 @@ const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Filter: V2", () => {
-  let waku: LightNode<true>;
+  let waku: LightNode;
   let nwaku: Nwaku;
+
+  let subscription: IFilterV2Subscription;
 
   afterEach(async function () {
     !!nwaku &&
@@ -40,16 +46,16 @@ describe("Waku Filter: V2", () => {
       ...(nwaku.nodeType === "go-waku" && { useFilterv2: true }),
     });
     waku = await createLightNode({
-      useFilterV2: true,
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+    subscription = await (waku.filter as IFilterV2).createSubscription();
   });
 
-  it.only("creates a subscription", async function () {
+  it("creates a subscription", async function () {
     this.timeout(10000);
 
     let messageCount = 0;
@@ -64,7 +70,7 @@ describe("Waku Filter: V2", () => {
       expect(bytesToUtf8(msg.payload)).to.eq(messageText);
     };
 
-    await waku.filter.subscribe([TestDecoder], callback);
+    await subscription.subscribe([TestDecoder], callback);
 
     await waku.lightPush.send(TestEncoder, message);
     while (messageCount === 0) {
@@ -88,7 +94,7 @@ describe("Waku Filter: V2", () => {
       expect(bytesToUtf8(msg.payload)).to.eq(messageText);
     };
 
-    await waku.filter.subscribe([TestDecoder], callback);
+    await subscription.subscribe([TestDecoder], callback);
 
     await delay(200);
 
@@ -114,7 +120,7 @@ describe("Waku Filter: V2", () => {
       expect(bytesToUtf8(msg.payload)).to.eq(newMessageText);
     };
 
-    await waku.filter.subscribe([newDecoder], newCallback);
+    await subscription.subscribe([newDecoder], newCallback);
 
     await waku.lightPush.send(newEncoder, newMessage);
     while (messageCount === 0) {
@@ -131,7 +137,7 @@ describe("Waku Filter: V2", () => {
       messageCount++;
       expect(msg.contentTopic).to.eq(TestContentTopic);
     };
-    await waku.filter.subscribe(TestDecoder, callback);
+    await subscription.subscribe(TestDecoder, callback);
 
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("Filtering works!"),
@@ -150,17 +156,14 @@ describe("Waku Filter: V2", () => {
     const callback = (): void => {
       messageCount++;
     };
-    const { unsubscribe } = await waku.filter.subscribe(
-      [TestDecoder],
-      callback
-    );
+    await subscription.subscribe([TestDecoder], callback);
 
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received"),
     });
     await delay(100);
-    await unsubscribe([{ contentTopic: TestContentTopic }]);
+    await subscription.unsubscribe([TestContentTopic]);
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should not be received"),
     });
@@ -173,14 +176,14 @@ describe("Waku Filter: V2", () => {
     const callback = (): void => {
       messageCount++;
     };
-    const { ping } = await waku.filter.subscribe([TestDecoder], callback);
+    await subscription.subscribe([TestDecoder], callback);
 
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received"),
     });
     await delay(100);
-    await ping();
+    await subscription.ping();
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should also be received"),
     });
@@ -193,17 +196,14 @@ describe("Waku Filter: V2", () => {
     const callback = (): void => {
       messageCount++;
     };
-    const { unsubscribeAll } = await waku.filter.subscribe(
-      [TestDecoder],
-      callback
-    );
+    await subscription.subscribe([TestDecoder], callback);
 
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received"),
     });
     await delay(100);
-    await unsubscribeAll();
+    await subscription.unsubscribeAll();
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should not be received"),
     });

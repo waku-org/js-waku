@@ -6,7 +6,7 @@ import {
   waitForRemotePeer,
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
-import type { LightNode } from "@waku/interfaces";
+import type { IFilter, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -20,13 +20,11 @@ const TestContentTopic = "/test/1/waku-filter";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
-const TestContentTopic2 = "/test/1/waku-filter2";
-const TestEncoder2 = createEncoder({ contentTopic: TestContentTopic2 });
-const TestDecoder2 = createDecoder(TestContentTopic2);
-
 describe("Waku Filter: V1", () => {
   let waku: LightNode;
   let nwaku: Nwaku;
+
+  let filter: IFilter;
 
   afterEach(async function () {
     !!nwaku &&
@@ -39,15 +37,18 @@ describe("Waku Filter: V1", () => {
     nwaku = new Nwaku(makeLogFileName(this));
     await nwaku.start({ filter: true, lightpush: true, relay: true });
     waku = await createLightNode({
+      useFilterV1: true,
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+
+    filter = waku.filter as IFilter;
   });
 
-  it.only("creates a subscription", async function () {
+  it("creates a subscription", async function () {
     this.timeout(10000);
 
     let messageCount = 0;
@@ -62,7 +63,7 @@ describe("Waku Filter: V1", () => {
       expect(bytesToUtf8(msg.payload)).to.eq(messageText);
     };
 
-    await waku.filter.subscribe([TestDecoder], callback);
+    await filter.subscribe([TestDecoder], callback);
     // As the filter protocol does not cater for an ack of subscription
     // we cannot know whether the subscription happened. Something we want to
     // correct in future versions of the protocol.
@@ -83,7 +84,7 @@ describe("Waku Filter: V1", () => {
       messageCount++;
       expect(msg.contentTopic).to.eq(TestContentTopic);
     };
-    await waku.filter.subscribe(TestDecoder, callback);
+    await filter.subscribe(TestDecoder, callback);
 
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
@@ -103,55 +104,19 @@ describe("Waku Filter: V1", () => {
     const callback = (): void => {
       messageCount++;
     };
-    const { unsubscribe } = await waku.filter.subscribe(
-      [TestDecoder],
-      callback
-    );
+    const unsubscribe = await filter.subscribe([TestDecoder], callback);
 
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received"),
     });
     await delay(100);
-    await unsubscribe([{ contentTopic: TestContentTopic }]);
+    await unsubscribe();
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should not be received"),
     });
     await delay(100);
     expect(messageCount).to.eq(1);
-  });
-  it("unsubscribes all", async function () {
-    let messageCount = 0;
-    const callback = (): void => {
-      messageCount++;
-    };
-    const callback2 = (): void => {
-      messageCount++;
-    };
-    await waku.filter.subscribe([TestDecoder], callback);
-    const { unsubscribeAll } = await waku.filter.subscribe(
-      [TestDecoder2],
-      callback2
-    );
-
-    await delay(200);
-    await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should be received"),
-    });
-    await waku.lightPush.send(TestEncoder2, {
-      payload: utf8ToBytes("This should be received"),
-    });
-    await delay(100);
-    await unsubscribeAll();
-    await delay(200);
-    await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should not be received"),
-    });
-    await waku.lightPush.send(TestEncoder2, {
-      payload: utf8ToBytes("This should not be received"),
-    });
-    await delay(100);
-    expect(messageCount).to.eq(2);
   });
 });
