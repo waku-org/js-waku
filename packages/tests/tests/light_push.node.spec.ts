@@ -9,12 +9,12 @@ import debug from "debug";
 import {
   base64ToUtf8,
   delay,
-  generateRandomUint8Array,
   makeLogFileName,
-  MessageRpcResponse,
+  NimGoNode,
   NOISE_KEY_1,
-  Nwaku,
 } from "../src/index.js";
+import { MessageRpcResponse } from "../src/node/interfaces.js";
+import { generateRandomUint8Array } from "../src/random_array.js";
 
 const log = debug("waku:test:lightpush");
 
@@ -25,14 +25,14 @@ const TestEncoder = createEncoder({
 
 describe("Waku Light Push [node only]", () => {
   let waku: LightNode;
-  let nwaku: Nwaku;
+  let nwaku: NimGoNode;
 
   const runNodes = async (
     context: Mocha.Context,
     pubSubTopic?: string
   ): Promise<void> => {
     const nwakuOptional = pubSubTopic ? { topics: pubSubTopic } : {};
-    nwaku = new Nwaku(makeLogFileName(context));
+    nwaku = new NimGoNode(makeLogFileName(context));
     await nwaku.start({
       lightpush: true,
       relay: true,

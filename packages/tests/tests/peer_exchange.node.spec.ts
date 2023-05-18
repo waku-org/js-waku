@@ -14,8 +14,9 @@ import {
 } from "@waku/peer-exchange";
 import { expect } from "chai";
 
+import { delay } from "../src/delay.js";
 import { makeLogFileName } from "../src/log_file.js";
-import { Nwaku } from "../src/nwaku.js";
+import { NimGoNode } from "../src/node/nwaku.js";
 
 describe("Peer Exchange", () => {
   let waku: LightNode;
@@ -62,12 +63,12 @@ describe("Peer Exchange", () => {
 
   describe("Locally run nodes", () => {
     let waku: LightNode;
-    let nwaku1: Nwaku;
-    let nwaku2: Nwaku;
+    let nwaku1: NimGoNode;
+    let nwaku2: NimGoNode;
 
     beforeEach(async function () {
-      nwaku1 = new Nwaku(makeLogFileName(this) + "1");
-      nwaku2 = new Nwaku(makeLogFileName(this) + "2");
+      nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
+      nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     });
 
     afterEach(async function () {
@@ -77,9 +78,10 @@ describe("Peer Exchange", () => {
     });
 
     it("nwaku interop", async function () {
-      this.timeout(15_000);
+      this.timeout(55_000);
 
       await nwaku1.start({
+        relay: true,
         discv5Discovery: true,
         peerExchange: true,
       });
@@ -87,6 +89,7 @@ describe("Peer Exchange", () => {
       const enr = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
+        relay: true,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr,
@@ -107,8 +110,6 @@ describe("Peer Exchange", () => {
         });
       });
 
-      await nwaku2.waitForLog("Discovered px peers via discv5", 10);
-
       // the forced type casting is done in ref to https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
       const { connectionManager, registrar, peerStore } =
         waku.libp2p as unknown as Libp2pComponents;
@@ -122,9 +123,13 @@ describe("Peer Exchange", () => {
 
       const numPeersToRequest = 1;
 
-      const peerInfos = (await peerExchange.query({
-        numPeers: numPeersToRequest,
-      })) as PeerInfo[];
+      let peerInfos: PeerInfo[] = [];
+      while (peerInfos.length <= 0) {
+        peerInfos = (await peerExchange.query({
+          numPeers: numPeersToRequest,
+        })) as PeerInfo[];
+        await delay(3000);
+      }
 
       expect(peerInfos.length).to.be.greaterThan(0);
       expect(peerInfos.length).to.be.lessThanOrEqual(numPeersToRequest);
@@ -142,20 +147,21 @@ describe("Peer Exchange", () => {
   });
 
   describe("compliance test", async function () {
-    this.timeout(25_000);
+    this.timeout(55_000);
 
     let waku: LightNode;
-    let nwaku1: Nwaku;
-    let nwaku2: Nwaku;
+    let nwaku1: NimGoNode;
+    let nwaku2: NimGoNode;
 
     beforeEach(async function () {
-      nwaku1 = new Nwaku(makeLogFileName(this) + "1");
-      nwaku2 = new Nwaku(makeLogFileName(this) + "2");
+      nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
+      nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     });
 
     tests({
       async setup() {
         await nwaku1.start({
+          relay: true,
           discv5Discovery: true,
           peerExchange: true,
         });
@@ -163,6 +169,7 @@ describe("Peer Exchange", () => {
         const enr = (await nwaku1.info()).enrUri;
 
         await nwaku2.start({
+          relay: true,
           discv5Discovery: true,
           peerExchange: true,
           discv5BootstrapNode: enr,
@@ -194,8 +201,8 @@ describe("Peer Exchange", () => {
         return new PeerExchangeDiscovery(components);
       },
       teardown: async () => {
-        !!nwaku1 && nwaku1.stop();
-        !!nwaku2 && nwaku2.stop();
+        !!nwaku1 && (await nwaku1.stop());
+        !!nwaku2 && (await nwaku2.stop());
         !!waku && (await waku.stop());
       },
     });

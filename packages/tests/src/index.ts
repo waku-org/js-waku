@@ -9,5 +9,4 @@ export * from "./async_fs.js";
 export * from "./constants.js";
 export * from "./delay.js";
 export * from "./log_file.js";
-export * from "./nwaku.js";
-export * from "./random_array.js";
+export * from "./node/nwaku.js";
