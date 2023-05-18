@@ -29,8 +29,8 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
-  Nwaku,
 } from "../src/index.js";
+import { NimGoNode } from "../src/node/node.js";
 
 const log = debug("waku:test:store");
 
@@ -40,11 +40,11 @@ const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Store", () => {
   let waku: LightNode;
-  let nwaku: Nwaku;
+  let nwaku: NimGoNode;
 
   beforeEach(async function () {
     this.timeout(15_000);
-    nwaku = new Nwaku(makeLogFileName(this));
+    nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({ store: true, lightpush: true, relay: true });
   });
 
@@ -61,7 +61,7 @@ describe("Waku Store", () => {
     for (let i = 0; i < totalMsgs; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toMessageRpcQuery({
+          NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
@@ -131,7 +131,7 @@ describe("Waku Store", () => {
     for (let i = 0; i < totalMsgs; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toMessageRpcQuery({
+          NimGoNode.toMessageRpcQuery({
             payload: utf8ToBytes(`Message ${i}`),
             contentTopic: TestContentTopic,
           })
@@ -188,7 +188,7 @@ describe("Waku Store", () => {
     for (let i = 0; i < totalMsgs; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toMessageRpcQuery({
+          NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
@@ -229,7 +229,7 @@ describe("Waku Store", () => {
     for (let i = 0; i < totalMsgs; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toMessageRpcQuery({
+          NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
@@ -268,7 +268,7 @@ describe("Waku Store", () => {
     for (let i = 0; i < totalMsgs; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toMessageRpcQuery({
+          NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
@@ -307,7 +307,7 @@ describe("Waku Store", () => {
     for (let i = 0; i < totalMsgs; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toMessageRpcQuery({
+          NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
@@ -472,7 +472,7 @@ describe("Waku Store", () => {
     for (let i = 0; i < 2; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toMessageRpcQuery({
+          NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
             timestamp: messageTimestamps[i],
@@ -534,7 +534,7 @@ describe("Waku Store", () => {
     for (let i = 0; i < totalMsgs; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toMessageRpcQuery({
+          NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           })
@@ -568,11 +568,11 @@ describe("Waku Store", () => {
 describe("Waku Store, custom pubsub topic", () => {
   const customPubSubTopic = "/waku/2/custom-dapp/proto";
   let waku: LightNode;
-  let nwaku: Nwaku;
+  let nwaku: NimGoNode;
 
   beforeEach(async function () {
     this.timeout(15_000);
-    nwaku = new Nwaku(makeLogFileName(this));
+    nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
       topics: customPubSubTopic,
@@ -593,7 +593,7 @@ describe("Waku Store, custom pubsub topic", () => {
     for (let i = 0; i < totalMsgs; i++) {
       expect(
         await nwaku.sendMessage(
-          Nwaku.toMessageRpcQuery({
+          NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           }),
