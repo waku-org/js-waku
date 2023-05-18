@@ -26,7 +26,6 @@ import debug from "debug";
 
 import {
   delay,
-  generateRandomUint8Array,
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
@@ -34,6 +33,7 @@ import {
 } from "../src/index.js";
 import { MessageRpcResponse } from "../src/node/interfaces.js";
 import { base64ToUtf8, NimGoNode } from "../src/node/nwaku.js";
+import { generateRandomUint8Array } from "../src/random_array.js";
 
 const log = debug("waku:test");
 
