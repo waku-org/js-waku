@@ -10,3 +10,4 @@ export * from "./constants.js";
 export * from "./delay.js";
 export * from "./log_file.js";
 export * from "./nwaku.js";
+export * from "./random_array.js";
