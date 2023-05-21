@@ -33,9 +33,10 @@ export interface IFilterV2Subscription {
   unsubscribeAll(): Promise<void>;
 }
 
-export type IFilterV2 = PointToPointProtocol & {
-  createSubscription(
-    pubSubTopic?: string,
-    peerId?: PeerId
-  ): Promise<IFilterV2Subscription>;
-};
+export type IFilterV2 = IReceiver &
+  PointToPointProtocol & {
+    createSubscription(
+      pubSubTopic?: string,
+      peerId?: PeerId
+    ): Promise<IFilterV2Subscription>;
+  };
