@@ -1,13 +1,13 @@
 {
-  "packages/utils": "0.0.5",
+  "packages/utils": "0.0.6",
   "packages/proto": "0.0.4",
-  "packages/interfaces": "0.0.12",
-  "packages/message-hash": "0.1.1",
-  "packages/enr": "0.0.11",
-  "packages/peer-exchange": "0.0.10",
-  "packages/core": "0.0.17",
-  "packages/dns-discovery": "0.0.11",
-  "packages/message-encryption": "0.0.15",
-  "packages/create": "0.0.13",
+  "packages/interfaces": "0.0.13",
+  "packages/message-hash": "0.1.2",
+  "packages/enr": "0.0.12",
+  "packages/peer-exchange": "0.0.11",
+  "packages/core": "0.0.18",
+  "packages/dns-discovery": "0.0.12",
+  "packages/message-encryption": "0.0.16",
+  "packages/create": "0.0.14",
   "packages/relay": "0.0.1"
 }

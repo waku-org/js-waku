@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.0.6](https://github.com/waku-org/js-waku/compare/utils-v0.0.5...utils-v0.0.6) (2023-05-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316))
+
+### Features
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316)) ([50c2c25](https://github.com/waku-org/js-waku/commit/50c2c2540f3c5ff78d93f3fea646da0eee246e17))
+* Add 1MB restriction to LightPush and Relay ([#1351](https://github.com/waku-org/js-waku/issues/1351)) ([72f97d4](https://github.com/waku-org/js-waku/commit/72f97d4545512f92936b1a9b50fa0b53f8603f9d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @waku/interfaces bumped from * to 0.0.13
+
 ## [0.0.5](https://github.com/waku-org/js-waku/compare/utils-v0.0.4...utils-v0.0.5) (2023-05-09)
 
 
