@@ -17,5 +17,4 @@ export interface IReceiver {
     callback: Callback<T>,
     opts?: ProtocolOptions
   ) => Unsubscribe | Promise<Unsubscribe>;
-  getActiveSubscriptions: () => ActiveSubscriptions;
 }

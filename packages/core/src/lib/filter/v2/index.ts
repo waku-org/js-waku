@@ -7,17 +7,21 @@ import type {
   Callback,
   ContentTopic,
   ErrorResult,
+  IAsyncIterator,
   IDecodedMessage,
   IDecoder,
   IFilterV2,
   IProtoMessage,
+  IReceiver,
   PeerIdStr,
   PeerSubscription,
   ProtocolCreateOptions,
+  ProtocolOptions,
   SubscriptionsLog,
+  Unsubscribe,
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { groupByContentTopic } from "@waku/utils";
+import { groupByContentTopic, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -205,7 +209,7 @@ class Subscription {
   }
 }
 
-class FilterV2 extends BaseProtocol {
+class FilterV2 extends BaseProtocol implements IReceiver {
   private readonly options: ProtocolCreateOptions;
   static subscriptionsLog: SubscriptionsLog = new Map();
 
@@ -219,6 +223,25 @@ class FilterV2 extends BaseProtocol {
     this.libp2p.handle(FilterV2Codecs.PUSH, this.onRequest.bind(this));
 
     this.options = options ?? {};
+  }
+
+  async createSubscription(
+    _pubSubTopic?: string,
+    peerId?: PeerId
+  ): Promise<Subscription> {
+    const pubSubTopic =
+      _pubSubTopic ?? this.options.pubSubTopic ?? DefaultPubSubTopic;
+
+    const peer = await this.getPeer(peerId);
+
+    return new Subscription(pubSubTopic, peer, this.newStream.bind(this, peer));
+  }
+
+  public toSubscriptionIterator<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    opts?: ProtocolOptions | undefined
+  ): Promise<IAsyncIterator<T>> {
+    return toAsyncIterator(this, decoders, opts);
   }
 
   private onRequest(streamData: IncomingStreamData): void {
@@ -297,16 +320,26 @@ class FilterV2 extends BaseProtocol {
     });
   }
 
-  async createSubscription(
-    _pubSubTopic?: string,
-    peerId?: PeerId
-  ): Promise<Subscription> {
-    const pubSubTopic =
-      _pubSubTopic ?? this.options.pubSubTopic ?? DefaultPubSubTopic;
+  // This is to satisfy the `IReceiver` interface, do not use.
+  // instead, use `createSubscription` to create a new subscription.
+  async subscribe<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    callback: Callback<T>,
+    opts?: ProtocolOptions
+  ): Promise<Unsubscribe> {
+    const subscription = await this.createSubscription(undefined, opts?.peerId);
 
-    const peer = await this.getPeer(peerId);
+    subscription.subscribe(decoders, callback);
 
-    return new Subscription(pubSubTopic, peer, this.newStream.bind(this, peer));
+    const contentTopics = Array.from(
+      groupByContentTopic(
+        Array.isArray(decoders) ? decoders : [decoders]
+      ).keys()
+    );
+
+    return async () => {
+      await subscription.unsubscribe(contentTopics);
+    };
   }
 }
 
