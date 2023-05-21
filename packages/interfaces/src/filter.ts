@@ -20,23 +20,17 @@ export type PeerSubscription<T extends IDecodedMessage> = {
 
 export type SubscriptionsLog = Map<PeerIdStr, unknown[]>;
 
-export interface ErrorResult {
-  error: boolean;
-  errorCode?: number;
-  errorString?: string;
-}
-
 export interface IFilterV2Subscription {
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
-  ): Promise<ErrorResult>;
+  ): Promise<void>;
 
-  unsubscribe(contentTopics: ContentTopic[]): Promise<ErrorResult>;
+  unsubscribe(contentTopics: ContentTopic[]): Promise<void>;
 
-  ping(): Promise<ErrorResult>;
+  ping(): Promise<void>;
 
-  unsubscribeAll(): Promise<ErrorResult>;
+  unsubscribeAll(): Promise<void>;
 }
 
 export type IFilterV2 = PointToPointProtocol & {

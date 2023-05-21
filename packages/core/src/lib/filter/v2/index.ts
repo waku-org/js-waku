@@ -6,7 +6,6 @@ import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
   Callback,
   ContentTopic,
-  ErrorResult,
   IAsyncIterator,
   IDecodedMessage,
   IDecoder,
@@ -59,11 +58,10 @@ class Subscription {
     this.newStream = newStream;
   }
 
-  //TODO: fix return value
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
-  ): Promise<ErrorResult> {
+  ): Promise<void> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
     const contentTopics = Array.from(groupByContentTopic(decodersArray).keys());
 
@@ -121,12 +119,9 @@ class Subscription {
         subscription,
       ] ?? [subscription]
     );
-
-    return { error: false };
   }
 
-  //TODO: fix return value
-  async unsubscribe(contentTopics: ContentTopic[]): Promise<ErrorResult> {
+  async unsubscribe(contentTopics: ContentTopic[]): Promise<void> {
     const stream = await this.newStream(this.peer);
     const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
       this.pubSubTopic,
@@ -138,12 +133,9 @@ class Subscription {
     } catch (error) {
       throw new Error("Error subscribing: " + error);
     }
-
-    return { error: false };
   }
 
-  //TODO: fix return value
-  async ping(): Promise<ErrorResult> {
+  async ping(): Promise<void> {
     const stream = await this.newStream(this.peer);
 
     const request = FilterSubscribeRpc.createSubscriberPingRequest();
@@ -171,11 +163,9 @@ class Subscription {
       log("Error pinging: ", error);
       throw new Error("Error pinging: " + error);
     }
-
-    return { error: false };
   }
 
-  async unsubscribeAll(): Promise<ErrorResult> {
+  async unsubscribeAll(): Promise<void> {
     const stream = await this.newStream(this.peer);
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(
@@ -204,8 +194,6 @@ class Subscription {
     } catch (error) {
       throw new Error("Error unsubscribing from all content topics: " + error);
     }
-
-    return { error: false };
   }
 }
 
