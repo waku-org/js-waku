@@ -1,5 +1,3 @@
-import fs from "fs";
-
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
@@ -7,21 +5,29 @@ import { DefaultPubSubTopic } from "@waku/core";
 import { isDefined } from "@waku/utils";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import debug from "debug";
-import Docker from "dockerode";
 import portfinder from "portfinder";
 
-import { existsAsync, mkdirAsync, openAsync } from "./async_fs.js";
-import { delay } from "./delay.js";
-import waitForLine from "./log_file.js";
+import { existsAsync, mkdirAsync, openAsync } from "../async_fs.js";
+import { delay } from "../delay.js";
+import waitForLine from "../log_file.js";
 
-const log = debug("waku:nwaku");
+import Dockerode from "./dockerode.js";
+import {
+  Args,
+  KeyPair,
+  LogLevel,
+  MessageRpcQuery,
+  MessageRpcResponse,
+} from "./interfaces.js";
+
+const log = debug("waku:node");
 
 const WAKU_SERVICE_NODE_PARAMS =
   process.env.WAKU_SERVICE_NODE_PARAMS ?? undefined;
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 const DOCKER_IMAGE_NAME =
-  process.env.WAKUNODE_IMAGE || "statusteam/nim-waku:v0.16.0";
+  process.env.WAKUNODE_IMAGE || "statusteam/nim-waku:v0.17.0";
 
 const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
 
@@ -35,63 +41,8 @@ BigInt.prototype.toJSON = function toJSON() {
   return Number(this);
 };
 
-export interface Args {
-  staticnode?: string;
-  nat?: "none";
-  listenAddress?: string;
-  relay?: boolean;
-  rpc?: boolean;
-  rpcAdmin?: boolean;
-  nodekey?: string;
-  portsShift?: number;
-  logLevel?: LogLevel;
-  lightpush?: boolean;
-  filter?: boolean;
-  store?: boolean;
-  peerExchange?: boolean;
-  discv5Discovery?: boolean;
-  storeMessageDbUrl?: string;
-  topics?: string;
-  rpcPrivate?: boolean;
-  websocketSupport?: boolean;
-  tcpPort?: number;
-  rpcPort?: number;
-  websocketPort?: number;
-  discv5BootstrapNode?: string;
-  discv5UdpPort?: number;
-}
-
-export enum LogLevel {
-  Error = "ERROR",
-  Info = "INFO",
-  Warn = "WARN",
-  Debug = "DEBUG",
-  Trace = "TRACE",
-  Notice = "NOTICE",
-  Fatal = "FATAL",
-}
-
-export interface KeyPair {
-  privateKey: string;
-  publicKey: string;
-}
-
-export interface MessageRpcQuery {
-  payload: string; // Hex encoded data string without `0x` prefix.
-  contentTopic?: string;
-  timestamp?: bigint; // Unix epoch time in nanoseconds as a 64-bits integer value.
-}
-
-export interface MessageRpcResponse {
-  payload: string;
-  contentTopic?: string;
-  version?: number;
-  timestamp?: bigint; // Unix epoch time in nanoseconds as a 64-bits integer value.
-}
-
-export class Nwaku {
-  private docker: Docker;
-  private containerId?: string;
+export class NimGoNode {
+  private docker?: Dockerode;
   private peerId?: PeerId;
   private multiaddrWithId?: Multiaddr;
   private websocketPort?: number;
@@ -124,11 +75,15 @@ export class Nwaku {
   }
 
   constructor(logName: string) {
-    this.docker = new Docker();
-    this.logPath = `${LOG_DIR}/nwaku_${logName}.log`;
+    this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
+  }
+
+  type(): "go-waku" | "nwaku" {
+    return isGoWaku ? "go-waku" : "nwaku";
   }
 
   async start(args: Args = {}): Promise<void> {
+    this.docker = await Dockerode.createInstance(DOCKER_IMAGE_NAME);
     try {
       await existsAsync(LOG_DIR);
     } catch (e) {
@@ -144,7 +99,7 @@ export class Nwaku {
 
     const mergedArgs = defaultArgs();
 
-    // nwaku takes some time to bind port so to decrease chances of conflict
+    // waku nodes takes some time to bind port so to decrease chances of conflict
     // we also randomize the first port that portfinder will try
     const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
 
@@ -172,101 +127,37 @@ export class Nwaku {
         websocketPort,
         ...(args?.peerExchange && { discv5UdpPort }),
       },
+      { rpcAddress: "0.0.0.0" },
       args
     );
 
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
 
-    const argsArray = argsToArray(mergedArgs);
-
-    const natExtIp = "--nat=extip:127.0.0.1";
-    const rpcAddress = "--rpc-address=0.0.0.0";
-    argsArray.push(natExtIp, rpcAddress);
-
-    if (WAKU_SERVICE_NODE_PARAMS) {
-      argsArray.push(WAKU_SERVICE_NODE_PARAMS);
+    if (this.docker.container) {
+      await this.docker.stop();
     }
-    log(`nwaku args: ${argsArray.join(" ")}`);
 
-    if (this.containerId) {
-      this.stop();
-    }
+    await this.docker.startContainer(
+      ports,
+      mergedArgs,
+      this.logPath,
+      WAKU_SERVICE_NODE_PARAMS
+    );
 
     try {
-      await this.confirmImageExistsOrPull();
-      const container = await this.docker.createContainer({
-        Image: DOCKER_IMAGE_NAME,
-        HostConfig: {
-          PortBindings: {
-            [`${rpcPort}/tcp`]: [{ HostPort: rpcPort.toString() }],
-            [`${tcpPort}/tcp`]: [{ HostPort: tcpPort.toString() }],
-            [`${websocketPort}/tcp`]: [{ HostPort: websocketPort.toString() }],
-            ...(args?.peerExchange && {
-              [`${discv5UdpPort}/udp`]: [
-                { HostPort: discv5UdpPort.toString() },
-              ],
-            }),
-          },
-        },
-        ExposedPorts: {
-          [`${rpcPort}/tcp`]: {},
-          [`${tcpPort}/tcp`]: {},
-          [`${websocketPort}/tcp`]: {},
-          ...(args?.peerExchange && {
-            [`${discv5UdpPort}/udp`]: {},
-          }),
-        },
-        Cmd: argsArray,
-      });
-      await container.start();
-
-      const logStream = fs.createWriteStream(this.logPath);
-
-      container.logs(
-        { follow: true, stdout: true, stderr: true },
-        (err, stream) => {
-          if (err) {
-            throw err;
-          }
-          if (stream) {
-            stream.pipe(logStream);
-          }
-        }
-      );
-
-      this.containerId = container.id;
-
-      log(
-        `nwaku ${
-          this.containerId
-        } started at ${new Date().toLocaleTimeString()}`
-      );
-
-      log(`Waiting to see '${NODE_READY_LOG_LINE}' in nwaku logs`);
+      log(`Waiting to see '${NODE_READY_LOG_LINE}' in ${this.type} logs`);
       await this.waitForLog(NODE_READY_LOG_LINE, 15000);
       if (process.env.CI) await delay(100);
-      log("nwaku node has been started");
+      log(`${this.type} node has been started`);
     } catch (error) {
-      log(`Error starting nwaku: ${error}`);
-      if (this.containerId) await this.stop();
+      log(`Error starting ${this.type}: ${error}`);
+      if (this.docker.container) await this.docker.stop();
       throw error;
     }
   }
 
   public async stop(): Promise<void> {
-    if (!this.containerId) throw "nwaku containerId not set";
-
-    const container = this.docker.getContainer(this.containerId);
-
-    log(
-      `Shutting down nwaku container ID ${
-        this.containerId
-      } at ${new Date().toLocaleTimeString()}`
-    );
-
-    await container.remove({ force: true });
-
-    this.containerId = undefined;
+    this.docker?.stop();
   }
 
   async waitForLog(msg: string, timeout: number): Promise<void> {
@@ -275,7 +166,7 @@ export class Nwaku {
 
   /** Calls nwaku JSON-RPC API `get_waku_v2_admin_v1_peers` to check
    * for known peers
-   * @throws if nwaku isn't started.
+   * @throws if WakuNode isn't started.
    */
   async peers(): Promise<string[]> {
     this.checkProcess();
@@ -436,9 +327,9 @@ export class Nwaku {
     const multiaddrWithId = res.listenAddresses
       .map((ma) => multiaddr(ma))
       .find((ma) => ma.protoNames().includes("ws"));
-    if (!multiaddrWithId) throw "Nwaku did not return a ws multiaddr";
+    if (!multiaddrWithId) throw `${this.type} did not return a ws multiaddr`;
     const peerIdStr = multiaddrWithId.getPeerId();
-    if (!peerIdStr) throw "Nwaku multiaddr does not contain peerId";
+    if (!peerIdStr) throw `${this.type} multiaddr does not contain peerId`;
     this.peerId = peerIdFromString(peerIdStr);
 
     return this.peerId;
@@ -469,50 +360,10 @@ export class Nwaku {
   }
 
   private checkProcess(): void {
-    if (!this.containerId || !this.docker.getContainer(this.containerId)) {
-      throw "Nwaku container hasn't started";
+    if (!this.docker?.container) {
+      throw `${this.type} container hasn't started`;
     }
   }
-
-  async confirmImageExistsOrPull(): Promise<void> {
-    log(`Confirming that image ${DOCKER_IMAGE_NAME} exists`);
-
-    const doesImageExist = this.docker.getImage(DOCKER_IMAGE_NAME);
-    if (!doesImageExist) {
-      await new Promise<void>((resolve, reject) => {
-        this.docker.pull(DOCKER_IMAGE_NAME, {}, (err, stream) => {
-          if (err) {
-            reject(err);
-          }
-          this.docker.modem.followProgress(stream, (err, result) => {
-            if (err) {
-              reject(err);
-            }
-            if (result) {
-              resolve();
-            }
-          });
-        });
-      });
-    }
-    log(`Image ${DOCKER_IMAGE_NAME} successfully found`);
-  }
-}
-
-export function argsToArray(args: Args): Array<string> {
-  const array = [];
-
-  for (const [key, value] of Object.entries(args)) {
-    // Change the key from camelCase to kebab-case
-    const kebabKey = key.replace(/([A-Z])/g, (_, capital) => {
-      return "-" + capital.toLowerCase();
-    });
-
-    const arg = `--${kebabKey}=${value}`;
-    array.push(arg);
-  }
-
-  return array;
 }
 
 export function defaultArgs(): Args {

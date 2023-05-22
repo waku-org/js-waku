@@ -35,6 +35,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.11 to 0.0.12
 
+## [0.0.12](https://github.com/waku-org/js-waku/compare/enr-v0.0.11...enr-v0.0.12) (2023-05-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316))
+
+### Features
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316)) ([50c2c25](https://github.com/waku-org/js-waku/commit/50c2c2540f3c5ff78d93f3fea646da0eee246e17))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from * to 0.0.6
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.12 to 0.0.13
+
 ## [0.0.9](https://github.com/waku-org/js-waku/compare/enr-v0.0.8...enr-v0.0.9) (2023-03-28)
 
 
