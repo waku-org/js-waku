@@ -160,6 +160,17 @@ export class ConnectionManager {
     }
   }
 
+  async dropConnection(peerId: PeerId): Promise<void> {
+    try {
+      await this.libp2pComponents.hangUp(peerId);
+      log(`Dropped connection with peer ${peerId.toString()}`);
+    } catch (error) {
+      log(
+        `Error dropping connection with peer ${peerId.toString()} - ${error}`
+      );
+    }
+  }
+
   private async processDialQueue(): Promise<void> {
     if (
       this.pendingPeerDialQueue.length > 0 &&
@@ -225,12 +236,29 @@ export class ConnectionManager {
         log(`Error dialing peer ${peerId.toString()} : ${err}`)
       );
     },
-    "peer:connect": (evt: CustomEvent<Connection>): void => {
-      {
-        this.keepAliveManager.start(
-          evt.detail.remotePeer,
-          this.libp2pComponents.ping.bind(this)
-        );
+    "peer:connect": async (evt: CustomEvent<Connection>): Promise<void> => {
+      const { remotePeer: peerId } = evt.detail;
+
+      this.keepAliveManager.start(
+        peerId,
+        this.libp2pComponents.ping.bind(this)
+      );
+
+      const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
+        Tags.BOOTSTRAP
+      );
+
+      if (isBootstrap) {
+        const bootstrapConnections = this.libp2pComponents
+          .getConnections()
+          .filter((conn) => conn.tags.includes(Tags.BOOTSTRAP));
+
+        // If we have too many bootstrap connections, drop one
+        if (
+          bootstrapConnections.length > this.options.maxBootstrapPeersAllowed
+        ) {
+          await this.dropConnection(peerId);
+        }
       }
     },
     "peer:disconnect": () => {
