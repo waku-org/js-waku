@@ -14,4 +14,8 @@ export interface ConnectionManagerOptions {
    * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange)
    */
   maxBootstrapPeersAllowed: number;
+  /**
+   * Max number of parallel dials allowed
+   */
+  maxParallelDials: number;
 }

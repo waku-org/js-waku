@@ -12,6 +12,7 @@ const log = debug("waku:connection-manager");
 
 export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
+export const DEFAULT_MAX_PARALLEL_DIALS = 3;
 
 export class ConnectionManager {
   private static instances = new Map<string, ConnectionManager>();
@@ -20,6 +21,9 @@ export class ConnectionManager {
   private libp2pComponents: Libp2p;
   private dialAttemptsForPeer: Map<string, number> = new Map();
   private dialErrorsForPeer: Map<string, any> = new Map();
+
+  private currentActiveDialCount = 0;
+  private pendingPeerDialQueue: Array<PeerId> = [];
 
   public static create(
     peerId: string,
@@ -52,6 +56,7 @@ export class ConnectionManager {
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
+      maxParallelDials: DEFAULT_MAX_PARALLEL_DIALS,
       ...options,
     };
 
@@ -107,6 +112,7 @@ export class ConnectionManager {
   }
 
   private async dialPeer(peerId: PeerId): Promise<void> {
+    this.currentActiveDialCount += 1;
     let dialAttempt = 0;
     while (dialAttempt <= this.options.maxDialAttemptsForPeer) {
       try {
@@ -148,6 +154,20 @@ export class ConnectionManager {
       return await this.libp2pComponents.peerStore.delete(peerId);
     } catch (error) {
       throw `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`;
+    } finally {
+      this.currentActiveDialCount -= 1;
+      this.processDialQueue();
+    }
+  }
+
+  private async processDialQueue(): Promise<void> {
+    if (
+      this.pendingPeerDialQueue.length > 0 &&
+      this.currentActiveDialCount < this.options.maxParallelDials
+    ) {
+      const peerId = this.pendingPeerDialQueue.shift();
+      if (!peerId) return;
+      this.attemptDial(peerId);
     }
   }
 
@@ -185,6 +205,11 @@ export class ConnectionManager {
   }
 
   private async attemptDial(peerId: PeerId): Promise<void> {
+    if (this.currentActiveDialCount >= this.options.maxParallelDials) {
+      this.pendingPeerDialQueue.push(peerId);
+      return;
+    }
+
     if (!(await this.shouldDialPeer(peerId))) return;
 
     this.dialPeer(peerId).catch((err) =>
