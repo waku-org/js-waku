@@ -16,6 +16,7 @@ import type {
   PeerSubscription,
   ProtocolCreateOptions,
   ProtocolOptions,
+  PubSubTopic,
   SubscriptionsLog,
   Unsubscribe,
 } from "@waku/interfaces";
@@ -44,18 +45,22 @@ const FilterV2Codecs = {
 
 class Subscription {
   private readonly peer: Peer;
-  private readonly pubSubTopic: string;
-
+  private readonly pubSubTopic: PubSubTopic;
   private newStream: (peer: Peer) => Promise<Stream>;
 
+  static instances = new Map<[PubSubTopic, PeerIdStr], Subscription>();
+  static activeSubscriptions: SubscriptionsLog = new Map();
+
   constructor(
-    pubSubTopic: string,
+    pubSubTopic: PubSubTopic,
     remotePeer: Peer,
     newStream: (peer: Peer) => Promise<Stream>
   ) {
     this.peer = remotePeer;
     this.pubSubTopic = pubSubTopic;
     this.newStream = newStream;
+
+    Subscription.instances.set([pubSubTopic, remotePeer.id.toString()], this);
   }
 
   async subscribe<T extends IDecodedMessage>(
@@ -112,10 +117,11 @@ class Subscription {
       decoders: decodersArray,
       pubSubTopic: this.pubSubTopic,
     };
-    FilterV2.subscriptionsLog.set(
+    Subscription.activeSubscriptions.set(
       this.peer.id.toString(),
       [
-        ...(FilterV2.subscriptionsLog.get(this.peer.id.toString()) ?? []),
+        ...(Subscription.activeSubscriptions.get(this.peer.id.toString()) ??
+          []),
         subscription,
       ] ?? [subscription]
     );
@@ -199,7 +205,6 @@ class Subscription {
 
 class FilterV2 extends BaseProtocol implements IReceiver {
   private readonly options: ProtocolCreateOptions;
-  static subscriptionsLog: SubscriptionsLog = new Map();
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(
@@ -222,10 +227,14 @@ class FilterV2 extends BaseProtocol implements IReceiver {
 
     const peer = await this.getPeer(peerId);
 
-    return new Subscription(
+    const existingSubscription = Subscription.instances.get([
       _pubSubTopic,
-      peer,
-      this.newStream.bind(this, peer)
+      peer.id.toString(),
+    ]);
+
+    return (
+      existingSubscription ??
+      new Subscription(_pubSubTopic, peer, this.newStream.bind(this, peer))
     );
   }
 
@@ -292,7 +301,7 @@ function onRequest(streamData: IncomingStreamData): void {
           return;
         }
 
-        const subs = FilterV2.subscriptionsLog as Map<
+        const subs = Subscription.activeSubscriptions as Map<
           PeerIdStr,
           PeerSubscription<IDecodedMessage>[]
         >;
