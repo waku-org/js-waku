@@ -39,8 +39,8 @@ export { Libp2pComponents };
 /**
  * Create a Waku node that uses Waku Light Push, Filter and Store to send and
  * receive messages, enabling low resource consumption.
- * If useFilterV2 is set to true, the node will use Filter V2 protocol and the return type on `LightNode` will be set to `true`.
- * If useFilterV2 is set to false or undefined, the node will use Filter V1 protocol and the return type on `LightNode` will be set to `false`.
+ * If `useFilterV1` is set to true, the node will use Filter V1 protocol.
+ * If `useFilterV1` is set to false or undefined, the node will use Filter V2 protocol. (default behavior)
  *
  * **Note: This is NOT compatible with nwaku v0.11**
  *
@@ -117,8 +117,8 @@ export async function createRelayNode(
 /**
  * Create a Waku node that uses all Waku protocols.
  * Implements generics to allow for conditional type checking for Filter V1 and V2 protocols.
- * If useFilterV2 is set to true, the node will use Filter V2 protocol and the return type on `LightNode` will be set to `true`.
- * If useFilterV2 is set to false or undefined, the node will use Filter V1 protocol and the return type on `LightNode` will be set to `false`.
+ * If `useFilterV1` is set to true, the node will use Filter V1 protocol.
+ * If `useFilterV1` is set to false or undefined, the node will use Filter V2 protocol. (default behavior)
  *
  * This helper is not recommended except if:
  * - you are interfacing with nwaku v0.11 or below

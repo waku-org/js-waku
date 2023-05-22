@@ -48,7 +48,6 @@ describe("Waku Filter: V2", () => {
       filter: true,
       lightpush: true,
       relay: true,
-      ...(nwaku.nodeType === "go-waku" && { useFilterv2: true }),
     });
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,

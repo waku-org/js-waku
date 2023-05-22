@@ -131,7 +131,6 @@ export class NimGoNode {
         websocketPort,
         ...(args?.peerExchange && { discv5UdpPort }),
         ...(isGoWaku && { minRelayPeersToPublish: 0 }),
-        ...(args?.useFilterv2 && isGoWaku && { lightClient: true }),
       },
       { rpcAddress: "0.0.0.0" },
       args

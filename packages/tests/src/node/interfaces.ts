@@ -22,7 +22,6 @@ export interface Args {
   websocketPort?: number;
   discv5BootstrapNode?: string;
   discv5UdpPort?: number;
-  useFilterv2?: boolean;
 }
 
 export enum LogLevel {
