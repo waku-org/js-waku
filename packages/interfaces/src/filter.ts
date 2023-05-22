@@ -1,7 +1,7 @@
-import { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface-peer-id";
 
-import { IDecodedMessage, IDecoder } from "./message.js";
-import { ContentTopic } from "./misc.js";
+import type { IDecodedMessage, IDecoder } from "./message.js";
+import type { ContentTopic } from "./misc.js";
 import type { Callback, PointToPointProtocol } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
 
