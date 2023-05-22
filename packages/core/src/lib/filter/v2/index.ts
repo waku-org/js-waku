@@ -214,15 +214,19 @@ class FilterV2 extends BaseProtocol implements IReceiver {
   }
 
   async createSubscription(
-    _pubSubTopic?: string,
+    pubSubTopic?: string,
     peerId?: PeerId
   ): Promise<Subscription> {
-    const pubSubTopic =
-      _pubSubTopic ?? this.options.pubSubTopic ?? DefaultPubSubTopic;
+    const _pubSubTopic =
+      pubSubTopic ?? this.options.pubSubTopic ?? DefaultPubSubTopic;
 
     const peer = await this.getPeer(peerId);
 
-    return new Subscription(pubSubTopic, peer, this.newStream.bind(this, peer));
+    return new Subscription(
+      _pubSubTopic,
+      peer,
+      this.newStream.bind(this, peer)
+    );
   }
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
