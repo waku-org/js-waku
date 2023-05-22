@@ -312,8 +312,21 @@ class FilterV2 extends BaseProtocol implements IReceiver {
     });
   }
 
-  // This is to satisfy the `IReceiver` interface, do not use.
-  // instead, use `createSubscription` to create a new subscription.
+  /**
+   * This method is used to satisfy the `IReceiver` interface.
+   *
+   * @hidden
+   *
+   * @param decoders The decoders to use for the subscription.
+   * @param callback The callback function to use for the subscription.
+   * @param opts Optional protocol options for the subscription.
+   *
+   * @returns A Promise that resolves to a function that unsubscribes from the subscription.
+   *
+   * @remarks
+   * This method should not be used directly.
+   * Instead, use `createSubscription` to create a new subscription.
+   */
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
