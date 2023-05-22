@@ -62,6 +62,15 @@ export type Callback<T extends IDecodedMessage> = (
   msg: T
 ) => void | Promise<void>;
 
+export enum SendError {
+  GENERIC_FAIL = "Generic error",
+  ENCODE_FAILED = "Failed to encode",
+  DECODE_FAILED = "Failed to decode",
+  SIZE_TOO_BIG = "Size is too big",
+  NO_RPC_RESPONSE = "No RPC response",
+}
+
 export interface SendResult {
+  error?: SendError;
   recipients: PeerId[];
 }

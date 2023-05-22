@@ -15,6 +15,7 @@
     "packages/core": {},
     "packages/dns-discovery": {},
     "packages/message-encryption": {},
-    "packages/create": {}
+    "packages/create": {},
+    "packages/relay": {}
   }
 }

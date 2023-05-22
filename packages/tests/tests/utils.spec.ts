@@ -11,7 +11,8 @@ import { toAsyncIterator } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, Nwaku } from "../src/index.js";
+import { makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
+import { NimGoNode } from "../src/node/node.js";
 
 const TestContentTopic = "/test/1/waku-filter";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
@@ -19,11 +20,11 @@ const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Util: toAsyncIterator", () => {
   let waku: LightNode;
-  let nwaku: Nwaku;
+  let nwaku: NimGoNode;
 
   beforeEach(async function () {
     this.timeout(15000);
-    nwaku = new Nwaku(makeLogFileName(this));
+    nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({ filter: true, lightpush: true, relay: true });
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
@@ -44,10 +45,16 @@ describe("Util: toAsyncIterator", () => {
   });
 
   it("creates an iterator", async function () {
+    this.timeout(10000);
     const messageText = "hey, what's up?";
     const sent = { payload: utf8ToBytes(messageText) };
 
-    const { iterator } = await toAsyncIterator(waku.filter, TestDecoder);
+    const { iterator } = await toAsyncIterator(
+      waku.filter,
+      TestDecoder,
+      {},
+      { timeoutMs: 1000 }
+    );
 
     await waku.lightPush.send(TestEncoder, sent);
     const { value } = await iterator.next();
@@ -58,7 +65,13 @@ describe("Util: toAsyncIterator", () => {
   });
 
   it("handles multiple messages", async function () {
-    const { iterator } = await toAsyncIterator(waku.filter, TestDecoder);
+    this.timeout(10000);
+    const { iterator } = await toAsyncIterator(
+      waku.filter,
+      TestDecoder,
+      {},
+      { timeoutMs: 1000 }
+    );
 
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("Filtering works!"),
@@ -75,7 +88,13 @@ describe("Util: toAsyncIterator", () => {
   });
 
   it("unsubscribes", async function () {
-    const { iterator, stop } = await toAsyncIterator(waku.filter, TestDecoder);
+    this.timeout(10000);
+    const { iterator, stop } = await toAsyncIterator(
+      waku.filter,
+      TestDecoder,
+      {},
+      { timeoutMs: 1000 }
+    );
 
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received"),

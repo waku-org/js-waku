@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.18](https://github.com/waku-org/js-waku/compare/core-v0.0.17...core-v0.0.18) (2023-05-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316))
+
+### Features
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316)) ([50c2c25](https://github.com/waku-org/js-waku/commit/50c2c2540f3c5ff78d93f3fea646da0eee246e17))
+* Add 1MB restriction to LightPush and Relay ([#1351](https://github.com/waku-org/js-waku/issues/1351)) ([72f97d4](https://github.com/waku-org/js-waku/commit/72f97d4545512f92936b1a9b50fa0b53f8603f9d))
+
+
+### Bug Fixes
+
+* Improve logging for connection manager ([#1303](https://github.com/waku-org/js-waku/issues/1303)) ([f4e3101](https://github.com/waku-org/js-waku/commit/f4e31019e115de0fffef01bb51a8f8e22c6cc8af))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from * to 0.0.13
+    * @waku/utils bumped from * to 0.0.6
+
 ## [0.0.17](https://github.com/waku-org/js-waku/compare/core-v0.0.16...core-v0.0.17) (2023-05-09)
 
 
