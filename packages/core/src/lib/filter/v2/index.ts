@@ -229,14 +229,14 @@ class FilterV2 extends BaseProtocol implements IReceiver {
   private readonly options: ProtocolCreateOptions;
   private activeSubscriptions = new Map<string, Subscription>();
 
-  getActiveSubscription(
+  private getActiveSubscription(
     pubSubTopic: PubSubTopic,
     peerIdStr: PeerIdStr
   ): Subscription | undefined {
     return this.activeSubscriptions.get(`${pubSubTopic}_${peerIdStr}`);
   }
 
-  setActiveSubscription(
+  private setActiveSubscription(
     pubSubTopic: PubSubTopic,
     peerIdStr: PeerIdStr,
     subscription: Subscription
