@@ -122,6 +122,9 @@ export class NimGoNode {
     this.rpcPort = rpcPort;
     this.websocketPort = websocketPort;
 
+    // `legacyFilter` is required to enable filter v1 with go-waku
+    const { legacyFilter = false, ..._args } = args;
+
     // Object.assign overrides the properties with the source (if there are conflicts)
     Object.assign(
       mergedArgs,
@@ -130,10 +133,10 @@ export class NimGoNode {
         tcpPort,
         websocketPort,
         ...(args?.peerExchange && { discv5UdpPort }),
-        ...(isGoWaku && { minRelayPeersToPublish: 0 }),
+        ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter }),
       },
       { rpcAddress: "0.0.0.0" },
-      args
+      _args
     );
 
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
