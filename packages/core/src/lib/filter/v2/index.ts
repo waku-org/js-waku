@@ -13,11 +13,9 @@ import type {
   IProtoMessage,
   IReceiver,
   PeerIdStr,
-  PeerSubscription,
   ProtocolCreateOptions,
   ProtocolOptions,
   PubSubTopic,
-  SubscriptionsLog,
   Unsubscribe,
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
@@ -38,6 +36,11 @@ import {
 
 const log = debug("waku:filter:v2");
 
+type SubscriptionCallback<T extends IDecodedMessage> = {
+  decoders: IDecoder<T>[];
+  callback: Callback<T>;
+};
+
 const FilterV2Codecs = {
   SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
   PUSH: "/vac/waku/filter-push/2.0.0-beta1",
@@ -48,8 +51,10 @@ class Subscription {
   private readonly pubSubTopic: PubSubTopic;
   private newStream: (peer: Peer) => Promise<Stream>;
 
-  static instances = new Map<[PubSubTopic, PeerIdStr], Subscription>();
-  static activeSubscriptions: SubscriptionsLog = new Map();
+  private subscriptionCallbacks: Map<
+    ContentTopic,
+    SubscriptionCallback<IDecodedMessage>
+  >;
 
   constructor(
     pubSubTopic: PubSubTopic,
@@ -59,8 +64,7 @@ class Subscription {
     this.peer = remotePeer;
     this.pubSubTopic = pubSubTopic;
     this.newStream = newStream;
-
-    Subscription.instances.set([pubSubTopic, remotePeer.id.toString()], this);
+    this.subscriptionCallbacks = new Map();
   }
 
   async subscribe<T extends IDecodedMessage>(
@@ -68,7 +72,8 @@ class Subscription {
     callback: Callback<T>
   ): Promise<void> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
-    const contentTopics = Array.from(groupByContentTopic(decodersArray).keys());
+    const decodersGroupedByCT = groupByContentTopic(decodersArray);
+    const contentTopics = Array.from(decodersGroupedByCT.keys());
 
     const stream = await this.newStream(this.peer);
 
@@ -112,19 +117,21 @@ class Subscription {
       );
     }
 
-    const subscription: PeerSubscription<T> = {
-      callback,
-      decoders: decodersArray,
-      pubSubTopic: this.pubSubTopic,
-    };
-    Subscription.activeSubscriptions.set(
-      this.peer.id.toString(),
-      [
-        ...(Subscription.activeSubscriptions.get(this.peer.id.toString()) ??
-          []),
-        subscription,
-      ] ?? [subscription]
-    );
+    // Save the callback functions by content topics so they
+    // can easily be removed (reciprocally replaced) if `unsubscribe` (reciprocally `subscribe`)
+    // is called for those content topics
+    decodersGroupedByCT.forEach((decoders, contentTopic) => {
+      // Cast the type because a given `subscriptionCallbacks` map may hold
+      // Decoder that decode to different implementations of `IDecodedMessage`
+      const subscriptionCallback = {
+        decoders,
+        callback,
+      } as unknown as SubscriptionCallback<IDecodedMessage>;
+
+      // The callback and decoder may override previous values, this is on
+      // purpose as the user may call `subscribe` to refresh the subscription
+      this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
+    });
   }
 
   async unsubscribe(contentTopics: ContentTopic[]): Promise<void> {
@@ -139,6 +146,10 @@ class Subscription {
     } catch (error) {
       throw new Error("Error subscribing: " + error);
     }
+
+    contentTopics.forEach((contentTopic: string) => {
+      this.subscriptionCallbacks.delete(contentTopic);
+    });
   }
 
   async ping(): Promise<void> {
@@ -196,15 +207,43 @@ class Subscription {
         );
       }
 
+      this.subscriptionCallbacks.clear();
       log("Unsubscribed from all content topics");
     } catch (error) {
       throw new Error("Error unsubscribing from all content topics: " + error);
     }
   }
+
+  async processMessage(message: WakuMessage): Promise<void> {
+    const contentTopic = message.contentTopic;
+    const subscriptionCallback = this.subscriptionCallbacks.get(contentTopic);
+    if (!subscriptionCallback) {
+      log("No subscription callback available for ", contentTopic);
+      return;
+    }
+    await pushMessage(subscriptionCallback, this.pubSubTopic, message);
+  }
 }
 
 class FilterV2 extends BaseProtocol implements IReceiver {
   private readonly options: ProtocolCreateOptions;
+  private activeSubscriptions = new Map<string, Subscription>();
+
+  getActiveSubscription(
+    pubSubTopic: PubSubTopic,
+    peerIdStr: PeerIdStr
+  ): Subscription | undefined {
+    return this.activeSubscriptions.get(`${pubSubTopic}_${peerIdStr}`);
+  }
+
+  setActiveSubscription(
+    pubSubTopic: PubSubTopic,
+    peerIdStr: PeerIdStr,
+    subscription: Subscription
+  ): Subscription {
+    this.activeSubscriptions.set(`${pubSubTopic}_${peerIdStr}`, subscription);
+    return subscription;
+  }
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(
@@ -213,7 +252,13 @@ class FilterV2 extends BaseProtocol implements IReceiver {
       libp2p.getConnections.bind(libp2p)
     );
 
-    this.libp2p.handle(FilterV2Codecs.PUSH, onRequest.bind(this));
+    this.libp2p
+      .handle(FilterV2Codecs.PUSH, this.onRequest.bind(this))
+      .catch((e) => {
+        log("Failed to register ", FilterV2Codecs.PUSH, e);
+      });
+
+    this.activeSubscriptions = new Map();
 
     this.options = options ?? {};
   }
@@ -227,15 +272,15 @@ class FilterV2 extends BaseProtocol implements IReceiver {
 
     const peer = await this.getPeer(peerId);
 
-    const existingSubscription = Subscription.instances.get([
-      _pubSubTopic,
-      peer.id.toString(),
-    ]);
+    const subscription =
+      this.getActiveSubscription(_pubSubTopic, peer.id.toString()) ??
+      this.setActiveSubscription(
+        _pubSubTopic,
+        peer.id.toString(),
+        new Subscription(_pubSubTopic, peer, this.newStream.bind(this, peer))
+      );
 
-    return (
-      existingSubscription ??
-      new Subscription(_pubSubTopic, peer, this.newStream.bind(this, peer))
-    );
+    return subscription;
   }
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
@@ -279,6 +324,51 @@ class FilterV2 extends BaseProtocol implements IReceiver {
       await subscription.unsubscribe(contentTopics);
     };
   }
+
+  private onRequest(streamData: IncomingStreamData): void {
+    log("Receiving message push");
+    try {
+      pipe(streamData.stream, lp.decode, async (source) => {
+        for await (const bytes of source) {
+          const response = FilterPushRpc.decode(bytes.slice());
+
+          const { pubsubTopic, wakuMessage } = response;
+
+          if (!wakuMessage) {
+            log("Received empty message");
+            return;
+          }
+
+          if (!pubsubTopic) {
+            log("PubSub topic missing from push message");
+            return;
+          }
+
+          const peerIdStr = streamData.connection.remotePeer.toString();
+          const subscription = this.getActiveSubscription(
+            pubsubTopic,
+            peerIdStr
+          );
+
+          if (!subscription) {
+            log(`No subscription locally registered for topic ${pubsubTopic}`);
+            return;
+          }
+
+          await subscription.processMessage(wakuMessage);
+        }
+      }).then(
+        () => {
+          log("Receiving pipe closed.");
+        },
+        (e) => {
+          log("Error with receiving pipe", e);
+        }
+      );
+    } catch (e) {
+      log("Error decoding message", e);
+    }
+  }
 }
 
 export function wakuFilterV2(
@@ -287,53 +377,12 @@ export function wakuFilterV2(
   return (libp2p: Libp2p) => new FilterV2(libp2p, init);
 }
 
-function onRequest(streamData: IncomingStreamData): void {
-  log("Receiving message push");
-  try {
-    pipe(streamData.stream, lp.decode, async (source) => {
-      for await (const bytes of source) {
-        const response = FilterPushRpc.decode(bytes.slice());
-
-        const { pubsubTopic, wakuMessage } = response;
-
-        if (!wakuMessage) {
-          log("Received empty message");
-          return;
-        }
-
-        const subs = Subscription.activeSubscriptions as Map<
-          PeerIdStr,
-          PeerSubscription<IDecodedMessage>[]
-        >;
-        const subscription = subs
-          .get(streamData.connection.remotePeer.toString())
-          ?.find((s) => s.pubSubTopic === pubsubTopic);
-
-        if (!subscription) {
-          log(`No subscription locally registered for topic ${pubsubTopic}`);
-          return;
-        }
-
-        await pushMessage(subscription, wakuMessage);
-      }
-    }).then(
-      () => {
-        log("Receiving pipe closed.");
-      },
-      (e) => {
-        log("Error with receiving pipe", e);
-      }
-    );
-  } catch (e) {
-    log("Error decoding message", e);
-  }
-}
-
 async function pushMessage<T extends IDecodedMessage>(
-  peerSubscription: PeerSubscription<T>,
+  subscriptionCallback: SubscriptionCallback<T>,
+  pubSubTopic: PubSubTopic,
   message: WakuMessage
 ): Promise<void> {
-  const { decoders, callback, pubSubTopic } = peerSubscription;
+  const { decoders, callback } = subscriptionCallback;
 
   const { contentTopic } = message;
   if (!contentTopic) {
