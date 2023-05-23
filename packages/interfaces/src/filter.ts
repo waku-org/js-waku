@@ -11,15 +11,6 @@ export type ContentFilter = {
 
 export type IFilter = IReceiver & PointToPointProtocol;
 
-export type PeerIdStr = string;
-export type PeerSubscription<T extends IDecodedMessage> = {
-  decoders: IDecoder<T>[];
-  callback: Callback<T>;
-  pubSubTopic: string;
-};
-
-export type SubscriptionsLog = Map<PeerIdStr, unknown[]>;
-
 export interface IFilterV2Subscription {
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
