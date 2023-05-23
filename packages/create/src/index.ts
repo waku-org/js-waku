@@ -7,7 +7,8 @@ import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
   DefaultUserAgent,
-  wakuFilter,
+  wakuFilterV1,
+  wakuFilterV2,
   wakuLightPush,
   WakuNode,
   WakuOptions,
@@ -16,6 +17,8 @@ import {
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
   FullNode,
+  IFilter,
+  IFilterV2,
   LightNode,
   ProtocolCreateOptions,
   RelayNode,
@@ -36,6 +39,9 @@ export { Libp2pComponents };
 /**
  * Create a Waku node that uses Waku Light Push, Filter and Store to send and
  * receive messages, enabling low resource consumption.
+ * If `useFilterV1` is set to true, the node will use Filter V1 protocol.
+ * If `useFilterV1` is set to false or undefined, the node will use Filter V2 protocol. (default behavior)
+ *
  * **Note: This is NOT compatible with nwaku v0.11**
  *
  * @see https://github.com/status-im/nwaku/issues/1085
@@ -58,7 +64,14 @@ export async function createLightNode(
 
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
-  const filter = wakuFilter(options);
+
+  let filter: (libp2p: Libp2p) => IFilter | IFilterV2;
+
+  if (options?.useFilterV1) {
+    filter = wakuFilterV1(options) as (libp2p: Libp2p) => IFilter;
+  } else {
+    filter = wakuFilterV2() as (libp2p: Libp2p) => IFilterV2;
+  }
 
   return new WakuNode(
     options ?? {},
@@ -103,6 +116,9 @@ export async function createRelayNode(
 
 /**
  * Create a Waku node that uses all Waku protocols.
+ * Implements generics to allow for conditional type checking for Filter V1 and V2 protocols.
+ * If `useFilterV1` is set to true, the node will use Filter V1 protocol.
+ * If `useFilterV1` is set to false or undefined, the node will use Filter V2 protocol. (default behavior)
  *
  * This helper is not recommended except if:
  * - you are interfacing with nwaku v0.11 or below
@@ -132,7 +148,14 @@ export async function createFullNode(
 
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
-  const filter = wakuFilter(options);
+
+  let filter: (libp2p: Libp2p) => IFilter | IFilterV2;
+  if (!options?.useFilterV1) {
+    filter = wakuFilterV2();
+  } else {
+    filter = wakuFilterV1(options);
+  }
+
   const relay = wakuRelay(options);
 
   return new WakuNode(

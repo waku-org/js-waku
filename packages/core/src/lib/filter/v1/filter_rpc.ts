@@ -1,9 +1,6 @@
+import { ContentFilter } from "@waku/interfaces";
 import { proto_filter as proto } from "@waku/proto";
 import { v4 as uuid } from "uuid";
-
-export type ContentFilter = {
-  contentTopic: string;
-};
 
 /**
  * FilterRPC represents a message conforming to the Waku Filter protocol
