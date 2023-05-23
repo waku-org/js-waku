@@ -27,7 +27,12 @@ describe("Util: toAsyncIterator: FilterV1", () => {
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.start({ filter: true, lightpush: true, relay: true });
+    await nwaku.start({
+      filter: true,
+      lightpush: true,
+      relay: true,
+      legacyFilter: true,
+    });
     waku = await createLightNode({
       useFilterV1: true,
       staticNoiseKey: NOISE_KEY_1,

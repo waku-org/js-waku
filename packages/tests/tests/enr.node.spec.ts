@@ -90,6 +90,7 @@ describe("ENR Interop: NimGoNode", function () {
       store: true,
       filter: true,
       lightpush: true,
+      legacyFilter: true,
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
