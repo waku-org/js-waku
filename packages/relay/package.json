@@ -34,7 +34,6 @@
     "build:bundle": "rollup --config rollup.config.js",
     "fix": "run-s fix:*",
     "fix:lint": "eslint src *.js --fix",
-    "pretest": "run-s pretest:*",
     "check": "run-s check:*",
     "check:tsc": "tsc -p tsconfig.dev.json",
     "check:lint": "eslint src *.js",
