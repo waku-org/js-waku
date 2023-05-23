@@ -36,7 +36,7 @@ module.exports = [
   {
     name: "Light protocols",
     path: "packages/core/bundle/index.js",
-    import: "{ wakuLightPush, wakuFilter }",
+    import: "{ wakuLightPush, wakuFilterV1, wakuFilterV2 }",
   },
   {
     name: "History retrieval protocols",

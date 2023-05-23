@@ -82,6 +82,10 @@ export class NimGoNode {
     return isGoWaku ? "go-waku" : "nwaku";
   }
 
+  get nodeType(): "go-waku" | "nwaku" {
+    return isGoWaku ? "go-waku" : "nwaku";
+  }
+
   async start(args: Args = {}): Promise<void> {
     this.docker = await Dockerode.createInstance(DOCKER_IMAGE_NAME);
     try {
@@ -126,6 +130,7 @@ export class NimGoNode {
         tcpPort,
         websocketPort,
         ...(args?.peerExchange && { discv5UdpPort }),
+        ...(isGoWaku && { minRelayPeersToPublish: 0 }),
       },
       { rpcAddress: "0.0.0.0" },
       args

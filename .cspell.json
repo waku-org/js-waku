@@ -39,6 +39,8 @@
     "exponentiate",
     "extip",
     "fanout",
+    "Filterv1",
+    "Filterv2",
     "floodsub",
     "fontsource",
     "globby",

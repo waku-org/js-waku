@@ -5,7 +5,7 @@ import {
   waitForRemotePeer,
 } from "@waku/core";
 import { createLightNode } from "@waku/create";
-import { Protocols } from "@waku/interfaces";
+import { IFilterV2, IFilterV2Subscription, Protocols } from "@waku/interfaces";
 import type { LightNode } from "@waku/interfaces";
 import {
   createDecoder as eciesDecoder,
@@ -42,6 +42,8 @@ describe("Waku Message Ephemeral field", () => {
   let waku: LightNode;
   let nwaku: NimGoNode;
 
+  let subscription: IFilterV2Subscription;
+
   afterEach(async function () {
     !!nwaku &&
       nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
@@ -69,6 +71,8 @@ describe("Waku Message Ephemeral field", () => {
       Protocols.LightPush,
       Protocols.Store,
     ]);
+
+    subscription = await (waku.filter as IFilterV2).createSubscription();
   });
 
   it("Ephemeral messages are not stored", async function () {
@@ -177,7 +181,7 @@ describe("Waku Message Ephemeral field", () => {
     const callback = (msg: DecodedMessage): void => {
       messages.push(msg);
     };
-    await waku.filter.subscribe([TestDecoder], callback);
+    await subscription.subscribe([TestDecoder], callback);
 
     await delay(200);
     const normalTxt = "Normal message";
@@ -226,7 +230,7 @@ describe("Waku Message Ephemeral field", () => {
     const callback = (msg: DecodedMessage): void => {
       messages.push(msg);
     };
-    await waku.filter.subscribe([decoder], callback);
+    await subscription.subscribe([decoder], callback);
 
     await delay(200);
     const normalTxt = "Normal message";
@@ -276,7 +280,7 @@ describe("Waku Message Ephemeral field", () => {
     const callback = (msg: DecodedMessage): void => {
       messages.push(msg);
     };
-    await waku.filter.subscribe([decoder], callback);
+    await subscription.subscribe([decoder], callback);
 
     await delay(200);
     const normalTxt = "Normal message";
