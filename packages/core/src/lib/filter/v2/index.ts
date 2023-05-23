@@ -227,10 +227,23 @@ class Subscription {
 
 class FilterV2 extends BaseProtocol implements IReceiver {
   private readonly options: ProtocolCreateOptions;
-  private activeSubscriptions = new Map<
-    [PubSubTopic, PeerIdStr],
-    Subscription
-  >();
+  private activeSubscriptions = new Map<string, Subscription>();
+
+  getActiveSubscription(
+    pubSubTopic: PubSubTopic,
+    peerIdStr: PeerIdStr
+  ): Subscription | undefined {
+    return this.activeSubscriptions.get(`${pubSubTopic}_${peerIdStr}`);
+  }
+
+  setActiveSubscription(
+    pubSubTopic: PubSubTopic,
+    peerIdStr: PeerIdStr,
+    subscription: Subscription
+  ): Subscription {
+    this.activeSubscriptions.set(`${pubSubTopic}_${peerIdStr}`, subscription);
+    return subscription;
+  }
 
   constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(
@@ -259,15 +272,15 @@ class FilterV2 extends BaseProtocol implements IReceiver {
 
     const peer = await this.getPeer(peerId);
 
-    const existingSubscription = this.activeSubscriptions.get([
-      _pubSubTopic,
-      peer.id.toString(),
-    ]);
+    const subscription =
+      this.getActiveSubscription(_pubSubTopic, peer.id.toString()) ??
+      this.setActiveSubscription(
+        _pubSubTopic,
+        peer.id.toString(),
+        new Subscription(_pubSubTopic, peer, this.newStream.bind(this, peer))
+      );
 
-    return (
-      existingSubscription ??
-      new Subscription(_pubSubTopic, peer, this.newStream.bind(this, peer))
-    );
+    return subscription;
   }
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
@@ -332,10 +345,10 @@ class FilterV2 extends BaseProtocol implements IReceiver {
           }
 
           const peerIdStr = streamData.connection.remotePeer.toString();
-          const subscription = this.activeSubscriptions.get([
-            peerIdStr,
+          const subscription = this.getActiveSubscription(
             pubsubTopic,
-          ]);
+            peerIdStr
+          );
 
           if (!subscription) {
             log(`No subscription locally registered for topic ${pubsubTopic}`);
