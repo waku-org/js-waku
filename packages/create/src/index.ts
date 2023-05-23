@@ -7,7 +7,7 @@ import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
   DefaultUserAgent,
-  wakuFilter,
+  wakuFilterV1,
   wakuFilterV2,
   wakuLightPush,
   WakuNode,
@@ -68,7 +68,7 @@ export async function createLightNode(
   let filter: (libp2p: Libp2p) => IFilter | IFilterV2;
 
   if (options?.useFilterV1) {
-    filter = wakuFilter(options) as (libp2p: Libp2p) => IFilter;
+    filter = wakuFilterV1(options) as (libp2p: Libp2p) => IFilter;
   } else {
     filter = wakuFilterV2() as (libp2p: Libp2p) => IFilterV2;
   }
@@ -153,7 +153,7 @@ export async function createFullNode(
   if (!options?.useFilterV1) {
     filter = wakuFilterV2();
   } else {
-    filter = wakuFilter(options);
+    filter = wakuFilterV1(options);
   }
 
   const relay = wakuRelay(options);

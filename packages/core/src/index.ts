@@ -11,8 +11,8 @@ export * as message from "./lib/message/index.js";
 export * as waku from "./lib/waku.js";
 export { WakuNode, WakuOptions } from "./lib/waku.js";
 
-export * as waku_filter from "./lib/filter/v1/index.js";
-export { wakuFilter } from "./lib/filter/v1/index.js";
+export * as waku_filter_v1 from "./lib/filter/v1/index.js";
+export { wakuFilter as wakuFilterV1 } from "./lib/filter/v1/index.js";
 
 export * as waku_filter_v2 from "./lib/filter/v2/index.js";
 export { wakuFilterV2 } from "./lib/filter/v2/index.js";
