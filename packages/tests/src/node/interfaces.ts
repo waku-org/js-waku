@@ -22,7 +22,7 @@ export interface Args {
   websocketPort?: number;
   discv5BootstrapNode?: string;
   discv5UdpPort?: number;
-  //filter v1 terminology in go-waku
+  // `legacyFilter` is required to enable filter v1 with go-waku
   legacyFilter?: boolean;
 }
 
