@@ -60,6 +60,27 @@ export class ConnectionManager {
     this.run()
       .then(() => log(`Connection Manager is now running`))
       .catch((error) => log(`Unexpected error while running service`, error));
+
+    // libp2p emits `peer:discovery` events during its initialisation
+    // which means that before the ConnectionManager is initalised, some peers may have been discovered
+    // we will dial the peers in peerStore ONCE before we start to listen to the `peer:discovery` events within the ConnectionManager
+    this.dialPeerStorePeers();
+  }
+
+  private async dialPeerStorePeers(): Promise<void> {
+    const peerInfos = await this.libp2pComponents.peerStore.all();
+    for (const peerInfo of peerInfos) {
+      if (
+        this.libp2pComponents
+          .getConnections()
+          .find((c) => c.remotePeer === peerInfo.id)
+      )
+        continue;
+
+      this.attemptDial(peerInfo.id).catch((error) => {
+        log(`Unexpected error while dialing peer ${peerInfo.id}`, error);
+      });
+    }
   }
 
   private async run(): Promise<void> {
@@ -103,8 +124,7 @@ export class ConnectionManager {
 
         this.dialAttemptsForPeer.delete(peerId.toString());
         return;
-      } catch (e) {
-        const error = e as AggregateError;
+      } catch (error: any) {
         this.dialErrorsForPeer.set(peerId.toString(), error);
         log(`Error dialing peer ${peerId.toString()} - ${error.errors}`);
 
@@ -164,12 +184,19 @@ export class ConnectionManager {
     );
   }
 
+  private async attemptDial(peerId: PeerId): Promise<void> {
+    if (!(await this.shouldDialPeer(peerId))) return;
+
+    this.dialPeer(peerId).catch((err) =>
+      log(`Error dialing peer ${peerId.toString()} : ${err}`)
+    );
+  }
+
   private onEventHandlers = {
     "peer:discovery": async (evt: CustomEvent<PeerInfo>): Promise<void> => {
       const { id: peerId } = evt.detail;
-      if (!(await this.shouldDialPeer(peerId))) return;
 
-      this.dialPeer(peerId).catch((err) =>
+      this.attemptDial(peerId).catch((err) =>
         log(`Error dialing peer ${peerId.toString()} : ${err}`)
       );
     },
