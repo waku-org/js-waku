@@ -5,6 +5,7 @@ export * as proto_topic_only_message from "./lib/topic_only_message.js";
 export { TopicOnlyMessage } from "./lib/topic_only_message.js";
 
 export * as proto_filter from "./lib/filter.js";
+export * as proto_filter_v2 from "./lib/filter_v2.js";
 
 export * as proto_lightpush from "./lib/light_push.js";
 export { PushResponse } from "./lib/light_push.js";

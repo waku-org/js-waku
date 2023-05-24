@@ -64,7 +64,7 @@
   "devDependencies": {
     "@libp2p/bootstrap": "^6.0.3",
     "@libp2p/components": "^3.1.1",
-    "@libp2p/interface-peer-discovery-compliance-tests": "^2.0.5",
+    "@libp2p/interface-peer-discovery-compliance-tests": "^2.0.8",
     "@libp2p/interface-peer-id": "^2.0.1",
     "@types/chai": "^4.3.4",
     "@types/dockerode": "^3.3.17",

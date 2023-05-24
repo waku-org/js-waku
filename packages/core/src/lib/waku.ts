@@ -1,11 +1,10 @@
 import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import { isPeerId } from "@libp2p/interface-peer-id";
-import type { Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
-import { multiaddr } from "@multiformats/multiaddr";
+import { isPeerId, PeerId } from "@libp2p/interface-peer-id";
+import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import type {
   IFilter,
+  IFilterV2,
   ILightPush,
   IRelay,
   IStore,
@@ -48,7 +47,7 @@ export class WakuNode implements Waku {
   public libp2p: Libp2p;
   public relay?: IRelay;
   public store?: IStore;
-  public filter?: IFilter;
+  public filter?: IFilter | IFilterV2;
   public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
 
@@ -57,7 +56,7 @@ export class WakuNode implements Waku {
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
-    filter?: (libp2p: Libp2p) => IFilter,
+    filter?: (libp2p: Libp2p) => IFilter | IFilterV2,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
     this.libp2p = libp2p;
@@ -192,7 +191,6 @@ export class WakuNode implements Waku {
     return localMultiaddr + "/p2p/" + this.libp2p.peerId.toString();
   }
 }
-
 function mapToPeerIdOrMultiaddr(
   peerId: PeerId | MultiaddrInput
 ): PeerId | Multiaddr {
