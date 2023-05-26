@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.0.7](https://github.com/waku-org/js-waku/compare/utils-v0.0.6...utils-v0.0.7) (2023-05-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* filter v2 ([#1332](https://github.com/waku-org/js-waku/issues/1332))
+
+### Features
+
+* Filter v2 ([#1332](https://github.com/waku-org/js-waku/issues/1332)) ([8d0e647](https://github.com/waku-org/js-waku/commit/8d0e64796695fbafad0a033552eb4412bdff3d78))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.13 to 0.0.14
+
 ## [0.0.6](https://github.com/waku-org/js-waku/compare/utils-v0.0.5...utils-v0.0.6) (2023-05-18)
 
 
