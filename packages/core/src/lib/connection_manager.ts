@@ -66,8 +66,8 @@ export class ConnectionManager {
       .then(() => log(`Connection Manager is now running`))
       .catch((error) => log(`Unexpected error while running service`, error));
 
-    // libp2p emits `peer:discovery` events during its initialisation
-    // which means that before the ConnectionManager is initalised, some peers may have been discovered
+    // libp2p emits `peer:discovery` events during its initialization
+    // which means that before the ConnectionManager is initialized, some peers may have been discovered
     // we will dial the peers in peerStore ONCE before we start to listen to the `peer:discovery` events within the ConnectionManager
     this.dialPeerStorePeers();
   }
