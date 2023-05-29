@@ -1,8 +1,6 @@
 import type { AddressManager } from "@libp2p/interface-address-manager";
-import type {
-  ConnectionGater,
-  ConnectionProtector,
-} from "@libp2p/interface-connection";
+import type { ConnectionProtector } from "@libp2p/interface-connection";
+import type { ConnectionGater } from "@libp2p/interface-connection-gater";
 import type {
   ConnectionManager,
   Dialer,
