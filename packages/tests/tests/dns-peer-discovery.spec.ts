@@ -3,13 +3,13 @@ import tests from "@libp2p/interface-peer-discovery-compliance-tests";
 import { Peer } from "@libp2p/interface-peer-store";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { PersistentPeerStore } from "@libp2p/peer-store";
-import { createLightNode } from "@waku/create";
 import {
   DnsNodeDiscovery,
   enrTree,
   PeerDiscoveryDns,
   wakuDnsDiscovery,
 } from "@waku/dns-discovery";
+import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import { MemoryDatastore } from "datastore-core";
 

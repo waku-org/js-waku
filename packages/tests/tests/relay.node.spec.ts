@@ -6,7 +6,6 @@ import {
   DefaultPubSubTopic,
   waitForRemotePeer,
 } from "@waku/core";
-import { createRelayNode } from "@waku/create";
 import { RelayNode, SendError } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
@@ -20,6 +19,7 @@ import {
   createEncoder as createSymEncoder,
   generateSymmetricKey,
 } from "@waku/message-encryption/symmetric";
+import { createRelayNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import debug from "debug";

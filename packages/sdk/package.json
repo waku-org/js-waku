@@ -1,7 +1,7 @@
 {
-  "name": "@waku/create",
-  "version": "0.0.14",
-  "description": "Easily create a Waku node",
+  "name": "@waku/sdk",
+  "version": "0.0.15",
+  "description": "A unified SDK for easy creation and management of js-waku nodes.",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "exports": {
@@ -12,7 +12,7 @@
   },
   "type": "module",
   "author": "Waku Team",
-  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/create#readme",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/sdk#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/waku-org/js-waku.git"

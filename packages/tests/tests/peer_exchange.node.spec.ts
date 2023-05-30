@@ -4,7 +4,6 @@ import {
   Fleet,
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
-import { createLightNode, Libp2pComponents } from "@waku/create";
 import type { LightNode, PeerInfo } from "@waku/interfaces";
 import {
   PeerExchangeCodec,
@@ -12,6 +11,7 @@ import {
   WakuPeerExchange,
   wakuPeerExchangeDiscovery,
 } from "@waku/peer-exchange";
+import { createLightNode, Libp2pComponents } from "@waku/sdk";
 import { expect } from "chai";
 
 import { delay } from "../src/delay.js";

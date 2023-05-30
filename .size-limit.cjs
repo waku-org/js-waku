@@ -6,9 +6,9 @@ module.exports = [
   },
   {
     name: "Waku default setup",
-    path: ["packages/create/bundle/index.js", "packages/core/bundle/index.js"],
+    path: ["packages/sdk/bundle/index.js", "packages/core/bundle/index.js"],
     import: {
-      "packages/create/bundle/index.js": "{ createLightNode }",
+      "packages/sdk/bundle/index.js": "{ createLightNode }",
       "packages/core/bundle/index.js":
         "{ waitForRemotePeer, createEncoder, createDecoder }",
     },
