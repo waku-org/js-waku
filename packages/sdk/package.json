@@ -53,6 +53,7 @@
     "@libp2p/websockets": "^5.0.3",
     "@waku/relay": "0.0.1",
     "@waku/core": "0.0.18",
+    "@waku/utils": "*",
     "@waku/dns-discovery": "0.0.12",
     "libp2p": "^0.42.2"
   },
