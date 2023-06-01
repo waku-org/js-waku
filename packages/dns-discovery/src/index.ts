@@ -100,21 +100,24 @@ export class PeerDiscoveryDns
       const peerInfo = peer.peerInfo;
       if (!peerInfo) continue;
 
+      const { id: peerId } = peerInfo;
+
       if (
-        (await this._components.peerStore.getTags(peerInfo.id)).find(
-          ({ name }) => name === DEFAULT_BOOTSTRAP_TAG_NAME
+        (await this._components.peerStore.get(peerId)).tags.has(
+          DEFAULT_BOOTSTRAP_TAG_NAME
         )
       )
         continue;
 
-      await this._components.peerStore.tagPeer(
-        peerInfo.id,
-        DEFAULT_BOOTSTRAP_TAG_NAME,
-        {
-          value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-          ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-        }
-      );
+      await this._components.peerStore.patch(peerId, {
+        tags: {
+          [DEFAULT_BOOTSTRAP_TAG_NAME]: {
+            value: DEFAULT_BOOTSTRAP_TAG_VALUE,
+            ttl: DEFAULT_BOOTSTRAP_TAG_TTL,
+          },
+        },
+      });
+
       this.dispatchEvent(
         new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
       );

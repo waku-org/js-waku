@@ -1,8 +1,11 @@
 import type { Connection } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { ConnectionManagerOptions, IRelay } from "@waku/interfaces";
+import type {
+  ConnectionManagerOptions,
+  IRelay,
+  Libp2p,
+} from "@waku/interfaces";
 import { Tags } from "@waku/interfaces";
 import debug from "debug";
 
@@ -92,14 +95,7 @@ export class ConnectionManager {
         log(`Dialing peer ${peerId.toString()}`);
         await this.libp2pComponents.dial(peerId);
 
-        const tags = await this.getTagNamesForPeer(peerId);
-        // add tag to connection describing discovery mechanism
-        // don't add duplicate tags
-        this.libp2pComponents
-          .getConnections(peerId)
-          .forEach(
-            (conn) => (conn.tags = Array.from(new Set([...conn.tags, ...tags])))
-          );
+        //TODO: check if adding tags for the `connection` object is even necessary with 0.45+?
 
         this.dialAttemptsForPeer.delete(peerId.toString());
         return;
@@ -198,9 +194,9 @@ export class ConnectionManager {
 
     if (isConnected) return false;
 
-    const isBootstrap = (await this.getTagNamesForPeer(peerId)).some(
-      (tagName) => tagName === Tags.BOOTSTRAP
-    );
+    const isBootstrap = (
+      await this.libp2pComponents.peerStore.get(peerId)
+    ).tags.get(Tags.BOOTSTRAP);
 
     if (isBootstrap) {
       const currentBootstrapConnections = this.libp2pComponents
@@ -215,15 +211,5 @@ export class ConnectionManager {
     }
 
     return false;
-  }
-
-  /**
-   * Fetches the tag names for a given peer
-   */
-  private async getTagNamesForPeer(peerId: PeerId): Promise<string[]> {
-    const tags = (await this.libp2pComponents.peerStore.getTags(peerId)).map(
-      (tag) => tag.name
-    );
-    return tags;
   }
 }

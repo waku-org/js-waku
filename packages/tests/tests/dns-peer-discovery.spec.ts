@@ -71,14 +71,12 @@ describe("DNS Node Discovery [live data]", function () {
     const dnsPeers: Peer[] = [];
 
     for (const peer of allPeers) {
-      const tags = await waku.libp2p.peerStore.getTags(peer.id);
-      let hasTag = false;
-      for (const tag of tags) {
-        hasTag = tag.name === "bootstrap";
-        if (hasTag) {
-          dnsPeers.push(peer);
-          break;
-        }
+      const hasTag = (await waku.libp2p.peerStore.get(peer.id)).tags.has(
+        "bootstrap"
+      );
+      if (hasTag) {
+        dnsPeers.push(peer);
+        break;
       }
       expect(hasTag).to.be.eq(true);
     }

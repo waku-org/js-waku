@@ -174,20 +174,21 @@ export class PeerExchangeDiscovery
       const { multiaddrs } = peerInfo;
 
       if (
-        (await this.components.peerStore.getTags(peerId)).find(
-          ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
+        (await this.components.peerStore.get(peerId)).tags.has(
+          DEFAULT_PEER_EXCHANGE_TAG_NAME
         )
       )
         continue;
 
-      await this.components.peerStore.tagPeer(
-        peerId,
-        DEFAULT_PEER_EXCHANGE_TAG_NAME,
-        {
-          value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
-          ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
-        }
-      );
+      // update the tags for the peer
+      await this.components.peerStore.patch(peerId, {
+        tags: {
+          [DEFAULT_PEER_EXCHANGE_TAG_NAME]: {
+            value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
+            ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
+          },
+        },
+      });
 
       this.dispatchEvent(
         new CustomEvent<PeerInfo>("peer", {
