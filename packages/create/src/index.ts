@@ -1,6 +1,5 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
 import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
@@ -19,22 +18,23 @@ import type {
   FullNode,
   IFilter,
   IFilterV2,
+  Libp2p,
+  Libp2pComponents,
   LightNode,
   ProtocolCreateOptions,
   RelayNode,
+  Services,
 } from "@waku/interfaces";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
-import { createLibp2p, Libp2pOptions } from "libp2p";
-
-import type { Libp2pComponents } from "./libp2p_components.js";
+import { Libp2pOptions as BaseLibp2pOptions, createLibp2p } from "libp2p";
+import { identifyService } from "libp2p/identify";
+import { pingService } from "libp2p/ping";
 
 const DEFAULT_NODE_REQUIREMENTS = {
   lightPush: 1,
   filter: 1,
   store: 1,
 };
-
-export { Libp2pComponents };
 
 /**
  * Create a Waku node that uses Waku Light Push, Filter and Store to send and
@@ -176,23 +176,21 @@ export function defaultPeerDiscovery(): (
 
 export async function defaultLibp2p(
   wakuGossipSub?: (components: Libp2pComponents) => GossipSub,
-  options?: Partial<Libp2pOptions>,
+  options?: Partial<BaseLibp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
-  const libp2pOpts = Object.assign(
-    {
-      transports: [webSockets({ filter: filterAll })],
-      streamMuxers: [mplex()],
-      connectionEncryption: [noise()],
-      identify: {
-        host: {
-          agentVersion: userAgent ?? DefaultUserAgent,
-        },
-      },
-    } as Libp2pOptions,
-    wakuGossipSub ? { pubsub: wakuGossipSub } : {},
-    options ?? {}
-  );
-
-  return createLibp2p(libp2pOpts);
+  const node = await createLibp2p<Services>({
+    transports: [webSockets({ filter: filterAll })],
+    streamMuxers: [mplex()],
+    connectionEncryption: [noise()],
+    services: {
+      identify: identifyService({
+        agentVersion: userAgent ?? DefaultUserAgent,
+      }),
+      ping: pingService(),
+      pubsub: wakuGossipSub,
+    },
+    ...options,
+  });
+  return node;
 }

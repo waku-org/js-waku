@@ -19,7 +19,7 @@ import type { Libp2pOptions as BaseLibp2pOptions } from "libp2p";
 import { identifyService } from "libp2p/identify";
 import type { PingService } from "libp2p/ping";
 
-type Services = {
+export type Services = {
   ping: PingService;
   identify: typeof identifyService;
   pubsub?: GossipSub;

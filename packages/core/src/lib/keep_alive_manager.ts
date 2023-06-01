@@ -1,7 +1,6 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
-import type { IRelay } from "@waku/interfaces";
+import type { IRelay, Libp2p } from "@waku/interfaces";
 import debug from "debug";
-import type { Libp2p } from "libp2p";
 
 import { createEncoder } from "../index.js";
 
@@ -26,7 +25,10 @@ export class KeepAliveManager {
     this.relay = relay;
   }
 
-  public start(peerId: PeerId, libp2pPing: Libp2p["ping"]): void {
+  public start(
+    peerId: PeerId,
+    libp2pPing: Libp2p["services"]["ping"]["ping"]
+  ): void {
     // Just in case a timer already exist for this peer
     this.stop(peerId);
 

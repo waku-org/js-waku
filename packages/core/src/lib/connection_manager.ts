@@ -173,7 +173,7 @@ export class ConnectionManager {
       {
         this.keepAliveManager.start(
           evt.detail.remotePeer,
-          this.libp2pComponents.ping.bind(this)
+          this.libp2pComponents.services.ping.ping.bind(this)
         );
       }
     },
