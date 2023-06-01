@@ -95,6 +95,7 @@
     "seckey",
     "secp",
     "sscanf",
+    "Startable",
     "staticnode",
     "statusim",
     "statusteam",
