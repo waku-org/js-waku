@@ -4,8 +4,8 @@ import {
   Fleet,
   getPredefinedBootstrapNodes,
 } from "@waku/core/lib/predefined_bootstrap_nodes";
-import { createLightNode, Libp2pComponents } from "@waku/create";
-import type { LightNode, PeerInfo } from "@waku/interfaces";
+import { createLightNode } from "@waku/create";
+import type { Libp2pComponents, LightNode, PeerInfo } from "@waku/interfaces";
 import {
   PeerExchangeCodec,
   PeerExchangeDiscovery,
@@ -103,8 +103,8 @@ describe("Peer Exchange", () => {
       await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
       await new Promise<void>((resolve) => {
-        waku.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
-          if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+        waku.libp2p.addEventListener("peer:update", (evt) => {
+          if (evt.detail.peer.protocols.includes(PeerExchangeCodec)) {
             resolve();
           }
         });
@@ -117,6 +117,8 @@ describe("Peer Exchange", () => {
         connectionManager: connectionManager,
         registrar: registrar,
         peerStore: peerStore,
+        addEventListener: waku.libp2p.addEventListener.bind(waku.libp2p),
+        removeEventListener: waku.libp2p.removeEventListener.bind(waku.libp2p),
       };
 
       const peerExchange = new WakuPeerExchange(components);
@@ -182,8 +184,8 @@ describe("Peer Exchange", () => {
 
         await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
         await new Promise<void>((resolve) => {
-          waku.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
-            if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+          waku.libp2p.addEventListener("peer:update", (evt) => {
+            if (evt.detail.peer.protocols.includes(PeerExchangeCodec)) {
               resolve();
             }
           });
@@ -196,6 +198,10 @@ describe("Peer Exchange", () => {
           connectionManager: connectionManager,
           registrar: registrar,
           peerStore: peerStore,
+          addEventListener: waku.libp2p.addEventListener.bind(waku.libp2p),
+          removeEventListener: waku.libp2p.removeEventListener.bind(
+            waku.libp2p
+          ),
         };
 
         return new PeerExchangeDiscovery(components);

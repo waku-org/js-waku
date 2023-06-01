@@ -7,7 +7,7 @@ import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
-import { PeerExchangeComponents } from "@waku/interfaces";
+import { Libp2pComponents, PeerExchangeComponents } from "@waku/interfaces";
 import debug from "debug";
 
 import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
@@ -202,8 +202,15 @@ export class PeerExchangeDiscovery
 }
 
 export function wakuPeerExchangeDiscovery(): (
-  components: PeerExchangeComponents
+  components: Libp2pComponents
 ) => PeerExchangeDiscovery {
-  return (components: PeerExchangeComponents) =>
-    new PeerExchangeDiscovery(components);
+  return (components: Libp2pComponents) => {
+    const peerExchangeComponents = {
+      connectionManager: components.connectionManager,
+      peerStore: components.peerStore,
+      addEventListener: components.addEventListener,
+      removeEventListener: components.removeEventListener,
+    };
+    return new PeerExchangeDiscovery(peerExchangeComponents);
+  };
 }
