@@ -1,5 +1,14 @@
 # Changelog
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.18 to 0.0.19
+    * @waku/interfaces bumped from 0.0.13 to 0.0.14
+    * @waku/proto bumped from * to 0.0.5
+    * @waku/utils bumped from 0.0.6 to 0.0.7
+
 ## 0.0.1 (2023-05-18)
 
 
