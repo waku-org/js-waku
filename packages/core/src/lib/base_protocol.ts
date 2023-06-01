@@ -1,6 +1,7 @@
 import type { Connection, Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import type { Libp2p } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
@@ -15,7 +16,9 @@ export class BaseProtocol {
   constructor(
     public multicodec: string,
     public peerStore: PeerStore,
-    protected getConnections: (peerId?: PeerId) => Connection[]
+    protected getConnections: (peerId?: PeerId) => Connection[],
+    public addPeerEventListener: Libp2p["addEventListener"],
+    public removePeerEventListener: Libp2p["removeEventListener"]
   ) {}
 
   /**

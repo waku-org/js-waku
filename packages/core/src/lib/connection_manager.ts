@@ -128,8 +128,8 @@ export class ConnectionManager {
   }
 
   private startPeerDiscoveryListener(): void {
-    this.libp2pComponents.peerStore.addEventListener(
-      "peer",
+    this.libp2pComponents.addEventListener(
+      "peer:discovery",
       this.onEventHandlers["peer:discovery"]
     );
   }
@@ -169,13 +169,15 @@ export class ConnectionManager {
         log(`Error dialing peer ${peerId.toString()} : ${err}`)
       );
     },
-    "peer:connect": (evt: CustomEvent<Connection>): void => {
-      {
-        this.keepAliveManager.start(
-          evt.detail.remotePeer,
-          this.libp2pComponents.services.ping.ping.bind(this)
-        );
-      }
+    "peer:connect": () => {
+      return (evt: CustomEvent<Connection>): void => {
+        {
+          this.keepAliveManager.start(
+            evt.detail.remotePeer,
+            this.libp2pComponents.services.ping.ping.bind(this)
+          );
+        }
+      };
     },
     "peer:disconnect": () => {
       return (evt: CustomEvent<Connection>): void => {

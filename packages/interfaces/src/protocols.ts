@@ -2,6 +2,7 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import type { Libp2pOptions } from "libp2p";
 
+import { Libp2p } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
 
 export enum Protocols {
@@ -15,6 +16,8 @@ export interface PointToPointProtocol {
   multicodec: string;
   peerStore: PeerStore;
   peers: () => Promise<Peer[]>;
+  addPeerEventListener: Libp2p["addEventListener"];
+  removePeerEventListener: Libp2p["removeEventListener"];
 }
 
 export type ProtocolCreateOptions = {

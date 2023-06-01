@@ -1,9 +1,8 @@
-import type { ConnectionManager } from "@libp2p/interface-connection-manager";
-import type { PeerStore } from "@libp2p/interface-peer-store";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
 import { EnrDecoder } from "@waku/enr";
 import type {
   IPeerExchange,
+  PeerExchangeComponents,
   PeerExchangeQueryParams,
   PeerInfo,
 } from "@waku/interfaces";
@@ -20,11 +19,6 @@ export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
 const log = debug("waku:peer-exchange");
 
-export interface PeerExchangeComponents {
-  peerStore: PeerStore;
-  connectionManager: ConnectionManager;
-}
-
 /**
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
  */
@@ -40,7 +34,9 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
       components.peerStore,
       components.connectionManager.getConnections.bind(
         components.connectionManager
-      )
+      ),
+      components.addEventListener.bind(components),
+      components.removeEventListener.bind(components)
     );
     this.multicodec = PeerExchangeCodec;
   }

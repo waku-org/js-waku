@@ -1,3 +1,4 @@
+import { PeerUpdate } from "@libp2p/interface-libp2p";
 import type {
   PeerDiscovery,
   PeerDiscoveryEvents,
@@ -5,15 +6,11 @@ import type {
 import { symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import { PeerExchangeComponents } from "@waku/interfaces";
 import debug from "debug";
 
-import {
-  PeerExchangeCodec,
-  PeerExchangeComponents,
-  WakuPeerExchange,
-} from "./waku_peer_exchange.js";
+import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
 
 const log = debug("waku:peer-exchange-discovery");
 
@@ -64,9 +61,10 @@ export class PeerExchangeDiscovery
   private queryAttempts: Map<string, number> = new Map();
 
   private readonly eventHandler = async (
-    event: CustomEvent<PeerProtocolsChangeData>
+    event: CustomEvent<PeerUpdate>
   ): Promise<void> => {
-    const { protocols, peerId } = event.detail;
+    const { peer } = event.detail;
+    const { id: peerId, protocols } = peer;
     if (
       !protocols.includes(PeerExchangeCodec) ||
       this.queryingPeers.has(peerId.toString())
@@ -97,10 +95,7 @@ export class PeerExchangeDiscovery
 
     log("Starting peer exchange node discovery, discovering peers");
 
-    this.components.peerStore.addEventListener(
-      "change:protocols",
-      this.eventHandler
-    );
+    this.components.addEventListener("peer:update", this.eventHandler);
   }
 
   /**
@@ -111,10 +106,7 @@ export class PeerExchangeDiscovery
     log("Stopping peer exchange node discovery");
     this.isStarted = false;
     this.queryingPeers.clear();
-    this.components.peerStore.removeEventListener(
-      "change:protocols",
-      this.eventHandler
-    );
+    this.components.removeEventListener("peer:update", this.eventHandler);
   }
 
   get [symbol](): true {

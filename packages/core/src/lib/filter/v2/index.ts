@@ -249,7 +249,9 @@ class FilterV2 extends BaseProtocol implements IReceiver {
     super(
       FilterV2Codecs.SUBSCRIBE,
       libp2p.peerStore,
-      libp2p.getConnections.bind(libp2p)
+      libp2p.getConnections.bind(libp2p),
+      libp2p.addEventListener.bind(libp2p),
+      libp2p.removeEventListener.bind(libp2p)
     );
 
     this.libp2p
