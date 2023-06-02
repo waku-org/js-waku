@@ -1,4 +1,4 @@
-import { PeerUpdate } from "@libp2p/interface-libp2p";
+import { IdentifyResult } from "@libp2p/interface-libp2p";
 import type { IRelay, PointToPointProtocol, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
@@ -86,14 +86,14 @@ async function waitForConnectedPeer(
   }
 
   await new Promise<void>((resolve) => {
-    const cb = (evt: CustomEvent<PeerUpdate>): void => {
-      if (evt.detail.peer.protocols.includes(codec)) {
-        log("Resolving for", codec, evt.detail.peer.protocols);
-        protocol.removePeerEventListener("peer:update", cb);
+    const cb = (evt: CustomEvent<IdentifyResult>): void => {
+      if (evt.detail.protocols.includes(codec)) {
+        log("Resolving for", codec, evt.detail.protocols);
+        protocol.removePeerEventListener("peer:identify", cb);
         resolve();
       }
     };
-    protocol.addPeerEventListener("peer:update", cb);
+    protocol.addPeerEventListener("peer:identify", cb);
   });
 }
 
