@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.19](https://github.com/waku-org/js-waku/compare/core-v0.0.18...core-v0.0.19) (2023-05-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* filter v2 ([#1332](https://github.com/waku-org/js-waku/issues/1332))
+
+### Features
+
+* Filter v2 ([#1332](https://github.com/waku-org/js-waku/issues/1332)) ([8d0e647](https://github.com/waku-org/js-waku/commit/8d0e64796695fbafad0a033552eb4412bdff3d78))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.13 to 0.0.14
+    * @waku/proto bumped from * to 0.0.5
+    * @waku/utils bumped from 0.0.6 to 0.0.7
+
 ## [0.0.18](https://github.com/waku-org/js-waku/compare/core-v0.0.17...core-v0.0.18) (2023-05-18)
 
 

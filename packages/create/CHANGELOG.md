@@ -26,6 +26,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.11 to 0.0.12
 
+## [0.0.15](https://github.com/waku-org/js-waku/compare/create-v0.0.14...create-v0.0.15) (2023-05-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* filter v2 ([#1332](https://github.com/waku-org/js-waku/issues/1332))
+
+### Features
+
+* Filter v2 ([#1332](https://github.com/waku-org/js-waku/issues/1332)) ([8d0e647](https://github.com/waku-org/js-waku/commit/8d0e64796695fbafad0a033552eb4412bdff3d78))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/relay bumped from 0.0.1 to 0.0.2
+    * @waku/core bumped from 0.0.18 to 0.0.19
+    * @waku/dns-discovery bumped from 0.0.12 to 0.0.13
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.13 to 0.0.14
+
 ## [0.0.14](https://github.com/waku-org/js-waku/compare/create-v0.0.13...create-v0.0.14) (2023-05-18)
 
 
