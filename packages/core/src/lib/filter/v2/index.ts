@@ -1,8 +1,8 @@
 import { Stream } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
+import type { Libp2p } from "@waku/interfaces";
 import type {
   Callback,
   ContentTopic,

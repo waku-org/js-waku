@@ -1,7 +1,7 @@
 import type { Stream } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { sha256 } from "@noble/hashes/sha256";
+import type { Libp2p } from "@waku/interfaces";
 import {
   Cursor,
   IDecodedMessage,
