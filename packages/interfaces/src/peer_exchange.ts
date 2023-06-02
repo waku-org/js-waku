@@ -1,4 +1,3 @@
-import type { ConnectionManager } from "@libp2p/interface-connection-manager";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 
@@ -24,7 +23,7 @@ export interface PeerInfo {
 }
 
 export interface PeerExchangeComponents {
-  connectionManager: ConnectionManager;
+  getConnections: Libp2p["getConnections"];
   peerStore: PeerStore;
   addEventListener: Libp2p["addEventListener"];
   removeEventListener: Libp2p["removeEventListener"];

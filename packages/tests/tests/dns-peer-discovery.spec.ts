@@ -1,8 +1,5 @@
-import { Components } from "@libp2p/components";
 import tests from "@libp2p/interface-peer-discovery-compliance-tests";
 import { Peer } from "@libp2p/interface-peer-store";
-import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
-import { PersistentPeerStore } from "@libp2p/peer-store";
 import { createLightNode } from "@waku/create";
 import {
   DnsNodeDiscovery,
@@ -11,7 +8,6 @@ import {
   wakuDnsDiscovery,
 } from "@waku/dns-discovery";
 import { expect } from "chai";
-import { MemoryDatastore } from "datastore-core";
 
 const maxQuantity = 3;
 
@@ -19,15 +15,9 @@ describe("DNS Discovery: Compliance Test", async function () {
   this.timeout(10000);
   tests({
     async setup() {
-      // create libp2p mock peerStore
-      const components = new Components({
-        peerStore: new PersistentPeerStore({
-          peerId: await createSecp256k1PeerId(),
-          datastore: new MemoryDatastore(),
-        }),
-      });
+      const node = await createLightNode();
 
-      return new PeerDiscoveryDns(components, {
+      return new PeerDiscoveryDns(node.libp2p, {
         enrUrl: enrTree["PROD"],
         wantedNodeCapabilityCount: {
           filter: 1,
@@ -76,7 +66,6 @@ describe("DNS Node Discovery [live data]", function () {
       );
       if (hasTag) {
         dnsPeers.push(peer);
-        break;
       }
       expect(hasTag).to.be.eq(true);
     }

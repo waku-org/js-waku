@@ -102,12 +102,7 @@ export class PeerDiscoveryDns
 
       const { id: peerId } = peerInfo;
 
-      if (
-        (await this._components.peerStore.get(peerId)).tags.has(
-          DEFAULT_BOOTSTRAP_TAG_NAME
-        )
-      )
-        continue;
+      if (await this._components.peerStore.has(peerId)) continue;
 
       await this._components.peerStore.patch(peerId, {
         tags: {

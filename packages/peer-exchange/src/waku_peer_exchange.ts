@@ -32,9 +32,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
     super(
       PeerExchangeCodec,
       components.peerStore,
-      components.connectionManager.getConnections.bind(
-        components.connectionManager
-      ),
+      components.getConnections.bind(components),
       components.addEventListener.bind(components),
       components.removeEventListener.bind(components)
     );

@@ -206,10 +206,16 @@ export function wakuPeerExchangeDiscovery(): (
 ) => PeerExchangeDiscovery {
   return (components: Libp2pComponents) => {
     const peerExchangeComponents = {
-      connectionManager: components.connectionManager,
+      getConnections: components.connectionManager.getConnections.bind(
+        components.connectionManager
+      ),
       peerStore: components.peerStore,
-      addEventListener: components.addEventListener,
-      removeEventListener: components.removeEventListener,
+      addEventListener: components.events.addEventListener.bind(
+        components.events
+      ),
+      removeEventListener: components.events.removeEventListener.bind(
+        components.events
+      ),
     };
     return new PeerExchangeDiscovery(peerExchangeComponents);
   };

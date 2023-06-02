@@ -37,7 +37,7 @@ describe("Peer Exchange", () => {
     waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
+          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Prod, 3) }),
           wakuPeerExchangeDiscovery(),
         ],
       },
@@ -45,20 +45,21 @@ describe("Peer Exchange", () => {
 
     await waku.start();
 
-    const foundPxPeer = await new Promise<boolean>((resolve) => {
-      const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
-      waku.libp2p.addEventListener("peer:discovery", (evt) => {
-        const { multiaddrs } = evt.detail;
-        multiaddrs.forEach((ma) => {
-          const isBootstrapNode = testNodes.find((n) => n === ma.toString());
-          if (!isBootstrapNode) {
-            resolve(true);
-          }
-        });
-      });
-    });
+    const testNodes = getPredefinedBootstrapNodes(Fleet.Prod, 3);
 
-    expect(foundPxPeer).to.be.true;
+    let foundPxPeer = false;
+    foundPxPeer = await new Promise<boolean>((resolve) => {
+      waku.libp2p.addEventListener("peer:discovery", (evt) => {
+        const peerId = evt.detail.id.toString();
+        const foundPxPeer =
+          testNodes.find((ma) => ma.includes(peerId)) === undefined;
+        if (foundPxPeer) {
+          resolve(true);
+        }
+      });
+
+      expect(foundPxPeer).to.be.true;
+    });
   });
 
   describe("Locally run nodes", () => {
@@ -103,18 +104,18 @@ describe("Peer Exchange", () => {
       await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
       await new Promise<void>((resolve) => {
-        waku.libp2p.addEventListener("peer:update", (evt) => {
-          if (evt.detail.peer.protocols.includes(PeerExchangeCodec)) {
+        waku.libp2p.addEventListener("peer:identify", (evt) => {
+          if (evt.detail.protocols.includes(PeerExchangeCodec)) {
             resolve();
           }
         });
       });
 
       // the forced type casting is done in ref to https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
-      const { connectionManager, registrar, peerStore } =
+      const { registrar, peerStore } =
         waku.libp2p as unknown as Libp2pComponents;
       const components = {
-        connectionManager: connectionManager,
+        getConnections: waku.libp2p.getConnections.bind(waku.libp2p),
         registrar: registrar,
         peerStore: peerStore,
         addEventListener: waku.libp2p.addEventListener.bind(waku.libp2p),
@@ -184,20 +185,20 @@ describe("Peer Exchange", () => {
 
         await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
         await new Promise<void>((resolve) => {
-          waku.libp2p.addEventListener("peer:update", (evt) => {
-            if (evt.detail.peer.protocols.includes(PeerExchangeCodec)) {
+          waku.libp2p.addEventListener("peer:identify", (evt) => {
+            if (evt.detail.protocols.includes(PeerExchangeCodec)) {
               resolve();
             }
           });
         });
 
         // the forced type casting is done in ref to https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
-        const { connectionManager, registrar, peerStore } =
+        const { registrar, peerStore } =
           waku.libp2p as unknown as Libp2pComponents;
         const components = {
-          connectionManager: connectionManager,
           registrar: registrar,
           peerStore: peerStore,
+          getConnections: waku.libp2p.getConnections.bind(waku.libp2p),
           addEventListener: waku.libp2p.addEventListener.bind(waku.libp2p),
           removeEventListener: waku.libp2p.removeEventListener.bind(
             waku.libp2p
