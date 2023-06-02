@@ -54,7 +54,7 @@
     "@waku/core": "0.0.18",
     "@waku/dns-discovery": "0.0.12",
     "@waku/relay": "0.0.1",
-    "libp2p": "^0.45.0"
+    "libp2p": "^0.45.4"
   },
   "devDependencies": {
     "@libp2p/interface-address-manager": "^3.0.1",
