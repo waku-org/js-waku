@@ -21,7 +21,7 @@ import type { PingService } from "libp2p/ping";
 
 export type Services = {
   ping: PingService;
-  identify: typeof identifyService;
+  identify: ReturnType<ReturnType<typeof identifyService>>;
   pubsub?: GossipSub;
 };
 

@@ -83,7 +83,8 @@ describe("Waku Dial [node only]", function () {
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
         waku.libp2p.addEventListener("peer:connect", (evt) => {
-          resolve(evt.detail.remotePeer);
+          const peer = evt.detail;
+          resolve(peer);
         });
       });
 
@@ -108,7 +109,8 @@ describe("Waku Dial [node only]", function () {
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
         waku.libp2p.addEventListener("peer:connect", (evt) => {
-          resolve(evt.detail.remotePeer);
+          const peer = evt.detail;
+          resolve(peer);
         });
       });
 
@@ -139,10 +141,9 @@ describe("Decryption Keys", () => {
       }).then((waku) => waku.start().then(() => waku)),
     ]);
 
-    await waku1.libp2p.peerStore.addressBook.set(
-      waku2.libp2p.peerId,
-      waku2.libp2p.getMultiaddrs()
-    );
+    await waku1.libp2p.peerStore.patch(waku2.libp2p.peerId, {
+      multiaddrs: waku2.libp2p.getMultiaddrs(),
+    });
     await waku1.dial(waku2.libp2p.peerId);
 
     await Promise.all([
@@ -214,22 +215,17 @@ describe("User Agent", () => {
       }).then((waku) => waku.start().then(() => waku)),
     ]);
 
-    await waku1.libp2p.peerStore.addressBook.set(
-      waku2.libp2p.peerId,
-      waku2.libp2p.getMultiaddrs()
-    );
+    await waku1.libp2p.peerStore.patch(waku2.libp2p.peerId, {
+      multiaddrs: waku2.libp2p.getMultiaddrs(),
+    });
+
     await waku1.dial(waku2.libp2p.peerId);
     await waitForRemotePeer(waku1);
 
-    const [waku1PeerInfo, waku2PeerInfo] = await Promise.all([
-      waku2.libp2p.peerStore.metadataBook.get(waku1.libp2p.peerId),
-      waku1.libp2p.peerStore.metadataBook.get(waku2.libp2p.peerId),
-    ]);
-
-    expect(bytesToUtf8(waku1PeerInfo.get("AgentVersion")!)).to.eq(
+    expect(waku1.libp2p.services.identify.host.agentVersion).to.eq(
       waku1UserAgent
     );
-    expect(bytesToUtf8(waku2PeerInfo.get("AgentVersion")!)).to.eq(
+    expect(waku2.libp2p.services.identify.host.agentVersion).to.eq(
       DefaultUserAgent
     );
   });
