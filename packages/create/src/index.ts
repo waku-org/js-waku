@@ -188,7 +188,7 @@ export async function defaultLibp2p(
         agentVersion: userAgent ?? DefaultUserAgent,
       }),
       ping: pingService(),
-      pubsub: wakuGossipSub,
+      ...(wakuGossipSub && { pubsub: wakuGossipSub }),
     },
     ...options,
   });
