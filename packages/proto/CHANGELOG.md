@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.5](https://github.com/waku-org/js-waku/compare/proto-v0.0.4...proto-v0.0.5) (2023-05-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* filter v2 ([#1332](https://github.com/waku-org/js-waku/issues/1332))
+
+### Features
+
+* Filter v2 ([#1332](https://github.com/waku-org/js-waku/issues/1332)) ([8d0e647](https://github.com/waku-org/js-waku/commit/8d0e64796695fbafad0a033552eb4412bdff3d78))
+
 ## [0.0.4](https://github.com/waku-org/js-waku/compare/proto-v0.0.3...proto-v0.0.4) (2023-03-24)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@waku/sdk",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "A unified SDK for easy creation and management of js-waku nodes.",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -51,10 +51,10 @@
     "@chainsafe/libp2p-noise": "^11.0.0",
     "@libp2p/mplex": "^7.1.1",
     "@libp2p/websockets": "^5.0.3",
-    "@waku/relay": "0.0.1",
-    "@waku/core": "0.0.18",
     "@waku/utils": "*",
-    "@waku/dns-discovery": "0.0.12",
+    "@waku/relay": "0.0.2",
+    "@waku/core": "0.0.19",
+    "@waku/dns-discovery": "0.0.13",
     "libp2p": "^0.42.2"
   },
   "devDependencies": {
@@ -76,9 +76,9 @@
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.2",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^5.51.0",
+    "@typescript-eslint/parser": "^5.59.8",
     "@waku/build-utils": "*",
-    "@waku/interfaces": "0.0.13",
+    "@waku/interfaces": "0.0.14",
     "cspell": "^6.31.1",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.6.0",

@@ -1,6 +1,6 @@
 {
   "name": "@waku/enr",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "ENR (EIP-778) for Waku",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -56,7 +56,7 @@
     "@libp2p/peer-id": "^2.0.3",
     "@multiformats/multiaddr": "^12.0.0",
     "@noble/secp256k1": "^1.7.1",
-    "@waku/utils": "0.0.6",
+    "@waku/utils": "0.0.7",
     "debug": "^4.3.4",
     "js-sha3": "^0.8.0"
   },
@@ -70,9 +70,9 @@
     "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.1",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^5.51.0",
+    "@typescript-eslint/parser": "^5.59.8",
     "@waku/build-utils": "*",
-    "@waku/interfaces": "0.0.13",
+    "@waku/interfaces": "0.0.14",
     "chai": "^4.3.7",
     "cspell": "^6.31.1",
     "eslint": "^8.35.0",
