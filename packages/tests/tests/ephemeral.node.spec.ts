@@ -38,7 +38,7 @@ const TestEncoder = createEncoder({
 });
 const TestDecoder = createDecoder(TestContentTopic);
 
-describe("Waku Message Ephemeral field", () => {
+describe.only("Waku Message Ephemeral field", () => {
   let waku: LightNode;
   let nwaku: NimGoNode;
 
@@ -71,6 +71,8 @@ describe("Waku Message Ephemeral field", () => {
       Protocols.LightPush,
       Protocols.Store,
     ]);
+
+    console.log((await waku.libp2p.peerStore.all()).map((p) => p.protocols));
 
     subscription = await (waku.filter as IFilterV2).createSubscription();
   });
