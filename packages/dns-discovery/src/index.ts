@@ -32,7 +32,7 @@ export interface Options {
   /**
    * ENR URL to use for DNS discovery
    */
-  enrUrls: string[];
+  enrUrls: string | string[];
   /**
    * Specifies what type of nodes are wanted from the discovery process
    */
@@ -84,7 +84,10 @@ export class PeerDiscoveryDns
     this._started = true;
 
     if (this.nextPeer === undefined) {
-      const { enrUrls, wantedNodeCapabilityCount } = this._options;
+      let { enrUrls } = this._options;
+      if (!Array.isArray(enrUrls)) enrUrls = [enrUrls];
+
+      const { wantedNodeCapabilityCount } = this._options;
       const dns = await DnsNodeDiscovery.dnsOverHttp();
 
       this.nextPeer = dns.getNextPeer.bind(
