@@ -74,6 +74,7 @@ export class ConnectionManager {
 
   private async dialPeerStorePeers(): Promise<void> {
     const peerInfos = await this.libp2pComponents.peerStore.all();
+    const dialPromises = [];
     for (const peerInfo of peerInfos) {
       if (
         this.libp2pComponents
@@ -82,9 +83,12 @@ export class ConnectionManager {
       )
         continue;
 
-      this.attemptDial(peerInfo.id).catch((error) => {
-        log(`Unexpected error while dialing peer ${peerInfo.id}`, error);
-      });
+      dialPromises.push(this.attemptDial(peerInfo.id));
+    }
+    try {
+      await Promise.all(dialPromises);
+    } catch (error) {
+      log(`Unexpected error while dialing peer store peers`, error);
     }
   }
 
@@ -180,7 +184,9 @@ export class ConnectionManager {
     ) {
       const peerId = this.pendingPeerDialQueue.shift();
       if (!peerId) return;
-      this.attemptDial(peerId);
+      this.attemptDial(peerId).catch((error) => {
+        log(error);
+      });
     }
   }
 
@@ -225,9 +231,9 @@ export class ConnectionManager {
 
     if (!(await this.shouldDialPeer(peerId))) return;
 
-    this.dialPeer(peerId).catch((err) =>
-      log(`Error dialing peer ${peerId.toString()} : ${err}`)
-    );
+    this.dialPeer(peerId).catch((err) => {
+      throw `Error dialing peer ${peerId.toString()} : ${err}`;
+    });
   }
 
   private onEventHandlers = {
