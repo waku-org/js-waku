@@ -1,7 +1,7 @@
 import { waitForRemotePeer } from "@waku/core";
-import { createLightNode, createRelayNode } from "@waku/create";
 import type { LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import { createLightNode, createRelayNode } from "@waku/sdk";
 import { expect } from "chai";
 
 import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";

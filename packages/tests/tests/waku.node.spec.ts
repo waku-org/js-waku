@@ -5,7 +5,6 @@ import {
   DefaultUserAgent,
   waitForRemotePeer,
 } from "@waku/core";
-import { createLightNode, createRelayNode } from "@waku/create";
 import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
@@ -13,6 +12,7 @@ import {
   createEncoder,
   generateSymmetricKey,
 } from "@waku/message-encryption/symmetric";
+import { createLightNode, createRelayNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 

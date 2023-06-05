@@ -6,7 +6,6 @@ import {
   PageDirection,
   waitForRemotePeer,
 } from "@waku/core";
-import { createLightNode } from "@waku/create";
 import type { IMessage, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
@@ -20,6 +19,7 @@ import {
   createEncoder as createSymEncoder,
   generateSymmetricKey,
 } from "@waku/message-encryption/symmetric";
+import { createLightNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import debug from "debug";

@@ -13,7 +13,7 @@
     "packages/peer-exchange",
     "packages/dns-discovery",
     "packages/message-encryption",
-    "packages/create",
+    "packages/sdk",
     "packages/tests",
     "packages/build-utils"
   ],

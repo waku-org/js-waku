@@ -5,9 +5,9 @@ import {
   DefaultPubSubTopic,
   waitForRemotePeer,
 } from "@waku/core";
-import { createLightNode } from "@waku/create";
 import type { IFilter, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import { createLightNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import debug from "debug";
