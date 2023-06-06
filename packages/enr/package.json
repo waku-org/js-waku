@@ -54,7 +54,7 @@
     "@ethersproject/rlp": "^5.7.0",
     "@libp2p/crypto": "^1.0.17",
     "@libp2p/peer-id": "^2.0.3",
-    "@multiformats/multiaddr": "^12.0.0",
+    "@multiformats/multiaddr": "^12.1.3",
     "@noble/secp256k1": "^1.7.1",
     "@waku/utils": "0.0.7",
     "debug": "^4.3.4",
