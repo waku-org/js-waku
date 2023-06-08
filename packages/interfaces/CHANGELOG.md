@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.15](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.14...interfaces-v0.0.15) (2023-06-08)
+
+
+### Features
+
+* Allow passing of multiple ENR URLs to DNS Discovery & dial multiple peers in parallel ([#1379](https://github.com/waku-org/js-waku/issues/1379)) ([f32d7d9](https://github.com/waku-org/js-waku/commit/f32d7d9fe0b930b4fa9c46b8644e6d21be45d5c1))
+
 ## [0.0.14](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.13...interfaces-v0.0.14) (2023-05-26)
 
 

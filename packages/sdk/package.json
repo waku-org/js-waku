@@ -51,10 +51,10 @@
     "@chainsafe/libp2p-noise": "^11.0.0",
     "@libp2p/mplex": "^7.1.1",
     "@libp2p/websockets": "^5.0.3",
-    "@waku/utils": "*",
-    "@waku/relay": "0.0.2",
-    "@waku/core": "0.0.19",
-    "@waku/dns-discovery": "0.0.13",
+    "@waku/utils": "0.0.8",
+    "@waku/relay": "0.0.3",
+    "@waku/core": "0.0.20",
+    "@waku/dns-discovery": "0.0.14",
     "libp2p": "^0.42.2"
   },
   "devDependencies": {
@@ -78,7 +78,7 @@
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.59.8",
     "@waku/build-utils": "*",
-    "@waku/interfaces": "0.0.14",
+    "@waku/interfaces": "0.0.15",
     "cspell": "^6.31.1",
     "eslint": "^8.41.0",
     "eslint-config-prettier": "^8.6.0",
