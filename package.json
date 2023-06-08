@@ -27,7 +27,6 @@
     "fix:prettier": "prettier ./packages --write",
     "check": "run-s check:*",
     "check:workspaces": "npm run check --workspaces --if-present",
-    "install:workspaces": "npm install --workspaces",
     "check:prettier": "prettier ./packages --list-different",
     "check:ws": "[ $(ls -1 ./packages|wc -l) -eq $(cat package.json | jq '.workspaces | length') ] || exit 1 # check no packages left behind",
     "test": "npm run test --workspaces --if-present",
