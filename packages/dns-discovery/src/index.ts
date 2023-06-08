@@ -32,7 +32,7 @@ export interface Options {
   /**
    * ENR URL to use for DNS discovery
    */
-  enrUrl: string;
+  enrUrls: string | string[];
   /**
    * Specifies what type of nodes are wanted from the discovery process
    */
@@ -71,8 +71,8 @@ export class PeerDiscoveryDns
     this._components = components;
     this._options = options;
 
-    const { enrUrl } = options;
-    log("Use following EIP-1459 ENR Tree URL: ", enrUrl);
+    const { enrUrls } = options;
+    log("Use following EIP-1459 ENR Tree URLs: ", enrUrls);
   }
 
   /**
@@ -84,12 +84,15 @@ export class PeerDiscoveryDns
     this._started = true;
 
     if (this.nextPeer === undefined) {
-      const { enrUrl, wantedNodeCapabilityCount } = this._options;
+      let { enrUrls } = this._options;
+      if (!Array.isArray(enrUrls)) enrUrls = [enrUrls];
+
+      const { wantedNodeCapabilityCount } = this._options;
       const dns = await DnsNodeDiscovery.dnsOverHttp();
 
       this.nextPeer = dns.getNextPeer.bind(
         dns,
-        [enrUrl],
+        enrUrls,
         wantedNodeCapabilityCount
       );
     }
@@ -138,11 +141,11 @@ export class PeerDiscoveryDns
 }
 
 export function wakuDnsDiscovery(
-  enrUrl: string,
+  enrUrls: string[],
   wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
 ): (components: DnsDiscoveryComponents) => PeerDiscoveryDns {
   return (components: DnsDiscoveryComponents) =>
-    new PeerDiscoveryDns(components, { enrUrl, wantedNodeCapabilityCount });
+    new PeerDiscoveryDns(components, { enrUrls, wantedNodeCapabilityCount });
 }
 
 export { DnsNodeDiscovery, SearchContext, DnsClient } from "./dns.js";
