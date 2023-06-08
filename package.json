@@ -29,6 +29,7 @@
     "check:workspaces": "npm run check --workspaces --if-present",
     "install:workspaces": "npm install --workspaces",
     "check:prettier": "prettier ./packages --list-different",
+    "check:ws": "[ $(ls -1 ./packages|wc -l) -eq $(cat package.json | jq '.workspaces | length') ] || exit 1 # check no packages left behind",
     "test": "npm run test --workspaces --if-present",
     "test:browser": "npm run test:browser --workspaces --if-present",
     "test:node": "npm run test:node --workspaces --if-present",
@@ -54,7 +55,8 @@
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-functional": "^5.0.4",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-prettier": "^4.2.1"
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.8"
   },
   "lint-staged": {
     "*.{ts,js}": [
