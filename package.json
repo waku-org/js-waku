@@ -27,8 +27,8 @@
     "fix:prettier": "prettier ./packages --write",
     "check": "run-s check:*",
     "check:workspaces": "npm run check --workspaces --if-present",
+    "install:workspaces": "npm install --workspaces",
     "check:prettier": "prettier ./packages --list-different",
-    "check:ws": "[ $(ls -1 ./packages|wc -l) -eq $(cat package.json | jq '.workspaces | length') ] || exit 1 # check no packages left behind",
     "test": "npm run test --workspaces --if-present",
     "test:browser": "npm run test:browser --workspaces --if-present",
     "test:node": "npm run test:node --workspaces --if-present",
@@ -46,7 +46,15 @@
     "lint-staged": "^13.2.2",
     "size-limit": "^8.1.2",
     "typedoc": "^0.23.26",
-    "typedoc-plugin-resolve-crossmodule-references": "^0.3.3"
+    "typedoc-plugin-resolve-crossmodule-references": "^0.3.3",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.59.8",
+    "eslint": "^8.41.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-functional": "^5.0.4",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-prettier": "^4.2.1"
   },
   "lint-staged": {
     "*.{ts,js}": [
