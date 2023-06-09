@@ -245,18 +245,12 @@ class FilterV2 extends BaseProtocol implements IReceiver {
     return subscription;
   }
 
-  constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(
-      FilterV2Codecs.SUBSCRIBE,
-      libp2p.peerStore,
-      libp2p.getConnections.bind(libp2p)
-    );
+  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
+    super(FilterV2Codecs.SUBSCRIBE, libp2p);
 
-    this.libp2p
-      .handle(FilterV2Codecs.PUSH, this.onRequest.bind(this))
-      .catch((e) => {
-        log("Failed to register ", FilterV2Codecs.PUSH, e);
-      });
+    libp2p.handle(FilterV2Codecs.PUSH, this.onRequest.bind(this)).catch((e) => {
+      log("Failed to register ", FilterV2Codecs.PUSH, e);
+    });
 
     this.activeSubscriptions = new Map();
 

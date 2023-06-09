@@ -33,8 +33,8 @@ export { PushResponse };
 class LightPush extends BaseProtocol implements ILightPush {
   options: ProtocolCreateOptions;
 
-  constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(LightPushCodec, libp2p.peerStore, libp2p.getConnections.bind(libp2p));
+  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
+    super(LightPushCodec, libp2p);
     this.options = options || {};
   }
 
