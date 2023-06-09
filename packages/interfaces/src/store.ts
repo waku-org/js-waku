@@ -1,5 +1,5 @@
 import type { IDecodedMessage, IDecoder } from "./message.js";
-import type { PointToPointProtocol, ProtocolOptions } from "./protocols.js";
+import type { IBaseProtocol, ProtocolOptions } from "./protocols.js";
 
 export enum PageDirection {
   BACKWARD = "backward",
@@ -45,7 +45,7 @@ export type StoreQueryOptions = {
   cursor?: Cursor;
 } & ProtocolOptions;
 
-export interface IStore extends PointToPointProtocol {
+export interface IStore extends IBaseProtocol {
   queryOrderedCallback: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
