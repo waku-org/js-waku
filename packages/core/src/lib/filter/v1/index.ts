@@ -1,4 +1,3 @@
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
 import type {
@@ -9,6 +8,7 @@ import type {
   IDecodedMessage,
   IDecoder,
   IFilter,
+  Libp2p,
   ProtocolCreateOptions,
   ProtocolOptions,
 } from "@waku/interfaces";
