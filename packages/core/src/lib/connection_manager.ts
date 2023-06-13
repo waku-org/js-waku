@@ -1,8 +1,7 @@
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { ConnectionManagerOptions, IRelay } from "@waku/interfaces";
-import { Tags } from "@waku/interfaces";
+import { Libp2p, Tags } from "@waku/interfaces";
 import debug from "debug";
 
 import { KeepAliveManager, KeepAliveOptions } from "./keep_alive_manager.js";
@@ -244,7 +243,7 @@ export class ConnectionManager {
     "peer:connect": async (evt: CustomEvent<PeerId>): Promise<void> => {
       const peerId = evt.detail;
 
-      this.keepAliveManager.start(peerId, this.libp2p.services.ping.bind(this));
+      this.keepAliveManager.start(peerId, this.libp2p.services.ping);
 
       const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
         Tags.BOOTSTRAP
