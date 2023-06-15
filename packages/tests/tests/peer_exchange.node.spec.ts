@@ -103,22 +103,14 @@ describe("Peer Exchange", () => {
       await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
       await new Promise<void>((resolve) => {
-        waku.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
-          if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+        waku.libp2p.addEventListener("peer:update", (evt) => {
+          if (evt.detail.peer.protocols.includes(PeerExchangeCodec)) {
             resolve();
           }
         });
       });
 
-      // the forced type casting is done in ref to https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
-      const { connectionManager, registrar, peerStore } =
-        waku.libp2p as unknown as Libp2pComponents;
-      const components = {
-        connectionManager: connectionManager,
-        registrar: registrar,
-        peerStore: peerStore,
-      };
-
+      const components = waku.libp2p.components as unknown as Libp2pComponents;
       const peerExchange = new WakuPeerExchange(components);
 
       const numPeersToRequest = 1;
@@ -182,22 +174,15 @@ describe("Peer Exchange", () => {
 
         await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
         await new Promise<void>((resolve) => {
-          waku.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
-            if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+          waku.libp2p.addEventListener("peer:update", (evt) => {
+            if (evt.detail.peer.protocols.includes(PeerExchangeCodec)) {
               resolve();
             }
           });
         });
 
-        // the forced type casting is done in ref to https://github.com/libp2p/js-libp2p-interfaces/issues/338#issuecomment-1431643645
-        const { connectionManager, registrar, peerStore } =
-          waku.libp2p as unknown as Libp2pComponents;
-        const components = {
-          connectionManager: connectionManager,
-          registrar: registrar,
-          peerStore: peerStore,
-        };
-
+        const components = waku.libp2p
+          .components as unknown as Libp2pComponents;
         return new PeerExchangeDiscovery(components);
       },
       teardown: async () => {
