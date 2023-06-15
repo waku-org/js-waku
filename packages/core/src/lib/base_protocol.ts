@@ -2,7 +2,7 @@ import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer, PeerStore } from "@libp2p/interface-peer-store";
-import type { IBaseProtocol } from "@waku/interfaces";
+import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
@@ -17,17 +17,17 @@ export class BaseProtocol implements IBaseProtocol {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
 
-  constructor(public multicodec: string, private libp2p: Libp2p) {
-    this.addLibp2pEventListener = this.libp2p.addEventListener.bind(
-      this.libp2p
+  constructor(public multicodec: string, private components: Libp2pComponents) {
+    this.addLibp2pEventListener = components.events.addEventListener.bind(
+      components.events
     );
-    this.removeLibp2pEventListener = this.libp2p.removeEventListener.bind(
-      this.libp2p
+    this.removeLibp2pEventListener = components.events.removeEventListener.bind(
+      components.events
     );
   }
 
   public get peerStore(): PeerStore {
-    return this.libp2p.peerStore;
+    return this.components.peerStore;
   }
 
   /**
@@ -48,7 +48,9 @@ export class BaseProtocol implements IBaseProtocol {
     return peer;
   }
   protected async newStream(peer: Peer): Promise<Stream> {
-    const connections = this.libp2p.getConnections(peer.id);
+    const connections = this.components.connectionManager.getConnections(
+      peer.id
+    );
     const connection = selectConnection(connections);
     if (!connection) {
       throw new Error("Failed to get a connection to the peer");

@@ -2,18 +2,14 @@ import type {
   PeerDiscovery,
   PeerDiscoveryEvents,
 } from "@libp2p/interface-peer-discovery";
-import { symbol } from "@libp2p/interface-peer-discovery";
+import { peerDiscovery as symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import { Libp2pComponents } from "@waku/interfaces";
 import debug from "debug";
 
-import {
-  PeerExchangeCodec,
-  PeerExchangeComponents,
-  WakuPeerExchange,
-} from "./waku_peer_exchange.js";
+import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
 
 const log = debug("waku:peer-exchange-discovery");
 
@@ -56,30 +52,30 @@ export class PeerExchangeDiscovery
   extends EventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery
 {
-  private readonly components: PeerExchangeComponents;
+  private readonly components: Libp2pComponents;
   private readonly peerExchange: WakuPeerExchange;
   private readonly options: Options;
   private isStarted: boolean;
   private queryingPeers: Set<string> = new Set();
   private queryAttempts: Map<string, number> = new Map();
 
-  private readonly eventHandler = async (
-    event: CustomEvent<PeerProtocolsChangeData>
+  private readonly handleDiscoveredPeer = async (
+    event: CustomEvent<PeerInfo>
   ): Promise<void> => {
-    const { protocols, peerId } = event.detail;
+    const { protocols, id } = event.detail;
     if (
       !protocols.includes(PeerExchangeCodec) ||
-      this.queryingPeers.has(peerId.toString())
+      this.queryingPeers.has(id.toString())
     )
       return;
 
-    this.queryingPeers.add(peerId.toString());
-    this.startRecurringQueries(peerId).catch((error) =>
+    this.queryingPeers.add(id.toString());
+    this.startRecurringQueries(id).catch((error) =>
       log(`Error querying peer ${error}`)
     );
   };
 
-  constructor(components: PeerExchangeComponents, options: Options = {}) {
+  constructor(components: Libp2pComponents, options: Options = {}) {
     super();
     this.components = components;
     this.peerExchange = new WakuPeerExchange(components);
@@ -97,9 +93,10 @@ export class PeerExchangeDiscovery
 
     log("Starting peer exchange node discovery, discovering peers");
 
-    this.components.peerStore.addEventListener(
-      "change:protocols",
-      this.eventHandler
+    // might be better to use "peer:identify" or "peer:update"
+    this.components.events.addEventListener(
+      "peer:discovery",
+      this.handleDiscoveredPeer
     );
   }
 
@@ -111,9 +108,9 @@ export class PeerExchangeDiscovery
     log("Stopping peer exchange node discovery");
     this.isStarted = false;
     this.queryingPeers.clear();
-    this.components.peerStore.removeEventListener(
-      "change:protocols",
-      this.eventHandler
+    this.components.events.removeEventListener(
+      "peer:discovery",
+      this.handleDiscoveredPeer
     );
   }
 
@@ -172,22 +169,20 @@ export class PeerExchangeDiscovery
       if (!peerId || !peerInfo) continue;
 
       const { multiaddrs } = peerInfo;
+      const peer = await this.components.peerStore.get(peerId);
 
-      if (
-        (await this.components.peerStore.getTags(peerId)).find(
-          ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
-        )
-      )
+      if (peer.tags.has(DEFAULT_PEER_EXCHANGE_TAG_NAME)) {
         continue;
+      }
 
-      await this.components.peerStore.tagPeer(
-        peerId,
-        DEFAULT_PEER_EXCHANGE_TAG_NAME,
-        {
-          value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
-          ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
-        }
-      );
+      await this.components.peerStore.merge(peerId, {
+        tags: {
+          [DEFAULT_PEER_EXCHANGE_TAG_NAME]: {
+            value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
+            ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
+          },
+        },
+      });
 
       this.dispatchEvent(
         new CustomEvent<PeerInfo>("peer", {
@@ -209,8 +204,8 @@ export class PeerExchangeDiscovery
 }
 
 export function wakuPeerExchangeDiscovery(): (
-  components: PeerExchangeComponents
+  components: Libp2pComponents
 ) => PeerExchangeDiscovery {
-  return (components: PeerExchangeComponents) =>
+  return (components: Libp2pComponents) =>
     new PeerExchangeDiscovery(components);
 }
