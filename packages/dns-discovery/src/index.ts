@@ -2,7 +2,7 @@ import type {
   PeerDiscovery,
   PeerDiscoveryEvents,
 } from "@libp2p/interface-peer-discovery";
-import { symbol } from "@libp2p/interface-peer-discovery";
+import { peerDiscovery as symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
@@ -97,27 +97,32 @@ export class PeerDiscoveryDns
       );
     }
 
-    for await (const peer of this.nextPeer()) {
-      if (!this._started) return;
+    for await (const peerEnr of this.nextPeer()) {
+      if (!this._started) {
+        return;
+      }
 
-      const peerInfo = peer.peerInfo;
-      if (!peerInfo) continue;
+      const peerInfo = peerEnr.peerInfo;
 
-      if (
-        (await this._components.peerStore.getTags(peerInfo.id)).find(
-          ({ name }) => name === DEFAULT_BOOTSTRAP_TAG_NAME
-        )
-      )
+      if (!peerInfo) {
         continue;
+      }
 
-      await this._components.peerStore.tagPeer(
-        peerInfo.id,
-        DEFAULT_BOOTSTRAP_TAG_NAME,
-        {
-          value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-          ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-        }
-      );
+      const peer = await this._components.peerStore.get(peerInfo.id);
+
+      if (peer.tags.has(DEFAULT_BOOTSTRAP_TAG_NAME)) {
+        continue;
+      }
+
+      await this._components.peerStore.merge(peerInfo.id, {
+        tags: {
+          [DEFAULT_BOOTSTRAP_TAG_NAME]: {
+            value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
+            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+          },
+        },
+      });
+
       this.dispatchEvent(
         new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
       );
