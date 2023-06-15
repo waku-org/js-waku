@@ -246,7 +246,7 @@ class FilterV2 extends BaseProtocol implements IReceiver {
   }
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(FilterV2Codecs.SUBSCRIBE, libp2p);
+    super(FilterV2Codecs.SUBSCRIBE, libp2p.components);
 
     libp2p.handle(FilterV2Codecs.PUSH, this.onRequest.bind(this)).catch((e) => {
       log("Failed to register ", FilterV2Codecs.PUSH, e);

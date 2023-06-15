@@ -1,5 +1,4 @@
 import type { Stream } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { sha256 } from "@noble/hashes/sha256";
 import {
@@ -7,6 +6,7 @@ import {
   IDecodedMessage,
   IDecoder,
   IStore,
+  Libp2p,
   ProtocolCreateOptions,
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
@@ -82,7 +82,7 @@ class Store extends BaseProtocol implements IStore {
   options: ProtocolCreateOptions;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(StoreCodec, libp2p);
+    super(StoreCodec, libp2p.components);
     this.options = options ?? {};
   }
 

@@ -51,7 +51,7 @@ class Filter extends BaseProtocol implements IFilter {
   private subscriptions: Map<RequestID, unknown>;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(FilterCodec, libp2p);
+    super(FilterCodec, libp2p.components);
     this.options = options ?? {};
     this.subscriptions = new Map();
     libp2p
