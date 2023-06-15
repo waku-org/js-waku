@@ -199,5 +199,5 @@ export async function defaultLibp2p(
       ...pubsubService,
       ...options?.services,
     },
-  });
+  }) as any as Libp2p; // TODO: make libp2p include it;
 }
