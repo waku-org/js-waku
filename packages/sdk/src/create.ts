@@ -184,7 +184,9 @@ export async function defaultLibp2p(
   options?: Partial<Libp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
-  const pubsubService: PubsubService = { pubsub: wakuGossipSub };
+  const pubsubService: PubsubService = wakuGossipSub
+    ? { pubsub: wakuGossipSub }
+    : {};
 
   return createLibp2p({
     transports: [webSockets({ filter: filterAll })],
