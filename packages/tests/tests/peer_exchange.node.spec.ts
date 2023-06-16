@@ -49,7 +49,7 @@ describe("Peer Exchange", () => {
       const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
       waku.libp2p.addEventListener("peer:discovery", (evt) => {
         const { multiaddrs } = evt.detail;
-        multiaddrs.forEach((ma) => {
+        multiaddrs?.forEach((ma) => {
           const isBootstrapNode = testNodes.find((n) => n === ma.toString());
           if (!isBootstrapNode) {
             resolve(true);
