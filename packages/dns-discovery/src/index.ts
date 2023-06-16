@@ -108,20 +108,22 @@ export class PeerDiscoveryDns
         continue;
       }
 
-      const peer = await this._components.peerStore.get(peerInfo.id);
+      try {
+        const peer = await this._components.peerStore.get(peerInfo.id);
 
-      if (peer.tags.has(DEFAULT_BOOTSTRAP_TAG_NAME)) {
-        continue;
+        if (!peer.tags.has(DEFAULT_BOOTSTRAP_TAG_NAME)) {
+          await this._components.peerStore.merge(peerInfo.id, {
+            tags: {
+              [DEFAULT_BOOTSTRAP_TAG_NAME]: {
+                value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
+                ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+              },
+            },
+          });
+        }
+      } catch (error) {
+        log(`Cannot update peer with ${peerInfo.id}, error: ${error}`);
       }
-
-      await this._components.peerStore.merge(peerInfo.id, {
-        tags: {
-          [DEFAULT_BOOTSTRAP_TAG_NAME]: {
-            value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-          },
-        },
-      });
 
       this.dispatchEvent(
         new CustomEvent<PeerInfo>("peer", { detail: peerInfo })

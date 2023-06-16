@@ -90,6 +90,7 @@
     "prettier": "^2.8.8",
     "typescript": "^5.0.4",
     "interface-datastore": "^8.2.3",
+    "libp2p": "^0.45.4",
     "datastore-core": "^9.2.0"
   }
 }
