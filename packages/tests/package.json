@@ -49,7 +49,7 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@libp2p/peer-id": "^2.0.3",
+    "@libp2p/peer-id": "^2.0.4",
     "@waku/core": "*",
     "@waku/enr": "*",
     "@waku/interfaces": "*",
@@ -63,7 +63,7 @@
   },
   "devDependencies": {
     "@libp2p/bootstrap": "^8.0.0",
-    "@libp2p/components": "^3.1.1",
+    "@libp2p/interface-peer-store": "^2.0.4",
     "@libp2p/interface-peer-discovery-compliance-tests": "^2.0.8",
     "@libp2p/interface-peer-id": "^2.0.2",
     "@types/chai": "^4.3.4",
@@ -88,6 +88,8 @@
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "interface-datastore": "^8.2.3",
+    "datastore-core": "^9.2.0"
   }
 }
