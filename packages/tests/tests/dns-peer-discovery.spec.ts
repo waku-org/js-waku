@@ -1,5 +1,4 @@
 import tests from "@libp2p/interface-peer-discovery-compliance-tests";
-import { Peer } from "@libp2p/interface-peer-store";
 import { EventEmitter } from "@libp2p/interfaces/events";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { PersistentPeerStore } from "@libp2p/peer-store";
@@ -72,17 +71,16 @@ describe("DNS Node Discovery [live data]", function () {
     await waku.start();
 
     const allPeers = await waku.libp2p.peerStore.all();
-
-    const dnsPeers: Peer[] = [];
+    let dnsPeers = 0;
 
     for (const peer of allPeers) {
       const hasTag = peer.tags.has("bootstrap");
       if (hasTag) {
-        dnsPeers.push(peer);
+        dnsPeers += 1;
       }
       expect(hasTag).to.be.eq(true);
     }
-    expect(dnsPeers.length).to.eq(maxQuantity);
+    expect(dnsPeers).to.eq(maxQuantity);
   });
 
   it(`should retrieve ${maxQuantity} multiaddrs for test.waku.nodes.status.im`, async function () {
