@@ -302,7 +302,12 @@ export class ConnectionManager {
    * Fetches the tag names for a given peer
    */
   private async getTagNamesForPeer(peerId: PeerId): Promise<string[]> {
-    const peer = await this.libp2p.peerStore.get(peerId);
-    return Array.from(peer.tags.keys());
+    try {
+      const peer = await this.libp2p.peerStore.get(peerId);
+      return Array.from(peer.tags.keys());
+    } catch (error) {
+      log(`Failed to get peer ${peerId}, error: ${error}`);
+      return [];
+    }
   }
 }

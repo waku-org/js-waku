@@ -213,7 +213,7 @@ describe("User Agent", () => {
       }).then((waku) => waku.start().then(() => waku)),
     ]);
 
-    await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+    await waku1.libp2p.peerStore.save(waku2.libp2p.peerId, {
       multiaddrs: waku2.libp2p.getMultiaddrs(),
     });
     await waku1.dial(waku2.libp2p.peerId);
