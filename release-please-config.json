@@ -15,9 +15,7 @@
     "packages/core": {},
     "packages/dns-discovery": {},
     "packages/message-encryption": {},
-    "packages/sdk": {
-      "release-as": "0.0.16"
-    },
+    "packages/sdk": {},
     "packages/relay": {}
   }
 }
