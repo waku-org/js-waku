@@ -37,7 +37,7 @@ describe("Peer Exchange", () => {
     waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
+          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Prod, 3) }),
           wakuPeerExchangeDiscovery(),
         ],
       },
@@ -47,14 +47,12 @@ describe("Peer Exchange", () => {
 
     const foundPxPeer = await new Promise<boolean>((resolve) => {
       const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
-      waku.libp2p.addEventListener("peer:discovery", (evt) => {
-        const { multiaddrs } = evt.detail;
-        multiaddrs?.forEach((ma) => {
-          const isBootstrapNode = testNodes.find((n) => n === ma.toString());
-          if (!isBootstrapNode) {
-            resolve(true);
-          }
-        });
+      waku.libp2p.addEventListener("peer:discovery", (event) => {
+        const peerId = event.detail.id.toString();
+        const isBootstrapNode = testNodes.find((n) => n.includes(peerId));
+        if (!isBootstrapNode) {
+          resolve(true);
+        }
       });
     });
 
@@ -103,8 +101,8 @@ describe("Peer Exchange", () => {
       await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
       await new Promise<void>((resolve) => {
-        waku.libp2p.addEventListener("peer:update", (evt) => {
-          if (evt.detail.peer.protocols.includes(PeerExchangeCodec)) {
+        waku.libp2p.addEventListener("peer:identify", (evt) => {
+          if (evt.detail.protocols.includes(PeerExchangeCodec)) {
             resolve();
           }
         });

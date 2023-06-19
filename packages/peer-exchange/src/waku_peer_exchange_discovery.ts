@@ -1,3 +1,4 @@
+import type { IdentifyResult } from "@libp2p/interface-libp2p";
 import type {
   PeerDiscovery,
   PeerDiscoveryEvents,
@@ -60,17 +61,17 @@ export class PeerExchangeDiscovery
   private queryAttempts: Map<string, number> = new Map();
 
   private readonly handleDiscoveredPeer = async (
-    event: CustomEvent<PeerInfo>
+    event: CustomEvent<IdentifyResult>
   ): Promise<void> => {
-    const { protocols, id } = event.detail;
+    const { protocols, peerId } = event.detail;
     if (
       !protocols.includes(PeerExchangeCodec) ||
-      this.queryingPeers.has(id.toString())
+      this.queryingPeers.has(peerId.toString())
     )
       return;
 
-    this.queryingPeers.add(id.toString());
-    this.startRecurringQueries(id).catch((error) =>
+    this.queryingPeers.add(peerId.toString());
+    this.startRecurringQueries(peerId).catch((error) =>
       log(`Error querying peer ${error}`)
     );
   };
@@ -95,7 +96,7 @@ export class PeerExchangeDiscovery
 
     // might be better to use "peer:identify" or "peer:update"
     this.components.events.addEventListener(
-      "peer:discovery",
+      "peer:identify",
       this.handleDiscoveredPeer
     );
   }
@@ -109,7 +110,7 @@ export class PeerExchangeDiscovery
     this.isStarted = false;
     this.queryingPeers.clear();
     this.components.events.removeEventListener(
-      "peer:discovery",
+      "peer:identify",
       this.handleDiscoveredPeer
     );
   }
