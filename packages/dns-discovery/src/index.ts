@@ -108,26 +108,36 @@ export class PeerDiscoveryDns
         continue;
       }
 
-      try {
-        const peer = await this._components.peerStore.get(peerInfo.id);
+      const tagsToUpdate = {
+        tags: {
+          [DEFAULT_BOOTSTRAP_TAG_NAME]: {
+            value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
+            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+          },
+        },
+      };
 
-        if (!peer.tags.has(DEFAULT_BOOTSTRAP_TAG_NAME)) {
-          await this._components.peerStore.merge(peerInfo.id, {
-            tags: {
-              [DEFAULT_BOOTSTRAP_TAG_NAME]: {
-                value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-                ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-              },
-            },
-          });
+      let isPeerChanged = false;
+      const isPeerExists = await this._components.peerStore.has(peerInfo.id);
+
+      if (isPeerExists) {
+        const peer = await this._components.peerStore.get(peerInfo.id);
+        const hasBootstrapTag = peer.tags.has(DEFAULT_BOOTSTRAP_TAG_NAME);
+
+        if (!hasBootstrapTag) {
+          isPeerChanged = true;
+          await this._components.peerStore.merge(peerInfo.id, tagsToUpdate);
         }
-      } catch (error) {
-        log(`Cannot update peer with ${peerInfo.id}, error: ${error}`);
+      } else {
+        isPeerChanged = true;
+        await this._components.peerStore.save(peerInfo.id, tagsToUpdate);
       }
 
-      this.dispatchEvent(
-        new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
-      );
+      if (isPeerChanged) {
+        this.dispatchEvent(
+          new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
+        );
+      }
     }
   }
 
