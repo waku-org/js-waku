@@ -46,6 +46,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.13 to 0.0.14
 
+## [0.0.14](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.13...dns-discovery-v0.0.14) (2023-06-08)
+
+
+### Features
+
+* Allow passing of multiple ENR URLs to DNS Discovery & dial multiple peers in parallel ([#1379](https://github.com/waku-org/js-waku/issues/1379)) ([f32d7d9](https://github.com/waku-org/js-waku/commit/f32d7d9fe0b930b4fa9c46b8644e6d21be45d5c1))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from 0.0.13 to 0.0.14
+    * @waku/utils bumped from 0.0.7 to 0.0.8
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.14 to 0.0.15
+
 ## [0.0.12](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.11...dns-discovery-v0.0.12) (2023-05-18)
 
 

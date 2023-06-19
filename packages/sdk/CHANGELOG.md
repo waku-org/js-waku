@@ -26,6 +26,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.11 to 0.0.12
 
+## 0.0.16 (2023-06-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* rename package from @waku/create to @waku/sdk ([#1386](https://github.com/waku-org/js-waku/issues/1386))
+
+### Features
+
+* Allow passing of multiple ENR URLs to DNS Discovery & dial multiple peers in parallel ([#1379](https://github.com/waku-org/js-waku/issues/1379)) ([f32d7d9](https://github.com/waku-org/js-waku/commit/f32d7d9fe0b930b4fa9c46b8644e6d21be45d5c1))
+* Rename package from @waku/create to @waku/sdk ([#1386](https://github.com/waku-org/js-waku/issues/1386)) ([951ebda](https://github.com/waku-org/js-waku/commit/951ebdac9d5b594583acf5e4a21f6471fa81ff74))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from * to 0.0.8
+    * @waku/relay bumped from 0.0.2 to 0.0.3
+    * @waku/core bumped from 0.0.19 to 0.0.20
+    * @waku/dns-discovery bumped from 0.0.13 to 0.0.14
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.14 to 0.0.15
+
 ## [0.0.15](https://github.com/waku-org/js-waku/compare/create-v0.0.14...create-v0.0.15) (2023-05-26)
 
 
