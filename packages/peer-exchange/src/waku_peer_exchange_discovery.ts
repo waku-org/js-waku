@@ -1,4 +1,4 @@
-import type { IdentifyResult } from "@libp2p/interface-libp2p";
+import type { PeerUpdate } from "@libp2p/interface-libp2p";
 import type {
   PeerDiscovery,
   PeerDiscoveryEvents,
@@ -61,9 +61,11 @@ export class PeerExchangeDiscovery
   private queryAttempts: Map<string, number> = new Map();
 
   private readonly handleDiscoveredPeer = async (
-    event: CustomEvent<IdentifyResult>
+    event: CustomEvent<PeerUpdate>
   ): Promise<void> => {
-    const { protocols, peerId } = event.detail;
+    const {
+      peer: { protocols, id: peerId },
+    } = event.detail;
     if (
       !protocols.includes(PeerExchangeCodec) ||
       this.queryingPeers.has(peerId.toString())
@@ -96,7 +98,7 @@ export class PeerExchangeDiscovery
 
     // might be better to use "peer:identify" or "peer:update"
     this.components.events.addEventListener(
-      "peer:identify",
+      "peer:update",
       this.handleDiscoveredPeer
     );
   }
@@ -110,7 +112,7 @@ export class PeerExchangeDiscovery
     this.isStarted = false;
     this.queryingPeers.clear();
     this.components.events.removeEventListener(
-      "peer:identify",
+      "peer:update",
       this.handleDiscoveredPeer
     );
   }
@@ -176,7 +178,8 @@ export class PeerExchangeDiscovery
         continue;
       }
 
-      await this.components.peerStore.merge(peerId, {
+      // update the tags for the peer
+      await this.components.peerStore.patch(peerId, {
         tags: {
           [DEFAULT_PEER_EXCHANGE_TAG_NAME]: {
             value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
