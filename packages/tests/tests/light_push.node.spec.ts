@@ -27,7 +27,7 @@ async function runNodes(
   context: Mocha.Context,
   pubSubTopic?: string
 ): Promise<[NimGoNode, LightNode]> {
-  const nwakuOptional = pubSubTopic ? { topics: pubSubTopic } : {};
+  const nwakuOptional = pubSubTopic ? { topic: pubSubTopic } : {};
   const nwaku = new NimGoNode(makeLogFileName(context));
   await nwaku.start({
     lightpush: true,
