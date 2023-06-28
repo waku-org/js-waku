@@ -54,6 +54,7 @@
     "@waku/utils": "0.0.8",
     "@waku/relay": "0.0.3",
     "@waku/core": "0.0.20",
+    "@waku/interfaces": "0.0.15",
     "@waku/dns-discovery": "0.0.14",
     "libp2p": "^0.42.2"
   },
@@ -78,7 +79,6 @@
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.59.8",
     "@waku/build-utils": "*",
-    "@waku/interfaces": "0.0.15",
     "cspell": "^6.31.1",
     "eslint": "^8.41.0",
     "eslint-config-prettier": "^8.6.0",
