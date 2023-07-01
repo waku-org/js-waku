@@ -195,26 +195,23 @@ class Filter extends BaseProtocol implements IFilter {
         log("Message has no content topic, skipping");
         return;
       }
-
-      let didDecodeMsg = false;
-      // We don't want to wait for decoding failure, just attempt to decode
-      // all messages and do the call back on the one that works
-      // noinspection ES6MissingAwait
-      decoders.forEach(async (dec: IDecoder<T>) => {
-        if (didDecodeMsg) return;
-        const decoded = await dec.fromProtoObj(
-          pubSubTopic,
-          toProtoMessage(protoMessage)
-        );
-        if (!decoded) {
-          log("Not able to decode message");
-          return;
-        }
-        // This is just to prevent more decoding attempt
-        // TODO: Could be better if we were to abort promises
-        didDecodeMsg = Boolean(decoded);
-        await callback(decoded);
-      });
+      Promise.any(
+        decoders.map(async (dec) => {
+          dec
+            .fromProtoObj(pubSubTopic, toProtoMessage(protoMessage))
+            .then((decoded) =>
+              decoded
+                ? Promise.resolve(decoded)
+                : Promise.reject(new Error("Decoding failed"))
+            );
+        })
+      )
+        .then(async (decodedMessage) => {
+          await callback(decodedMessage);
+        })
+        .catch((e) => {
+          log("Error decoding message", e);
+        });
     }
   }
 
