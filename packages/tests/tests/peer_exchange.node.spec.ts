@@ -165,7 +165,14 @@ describe("Peer Exchange", () => {
           discv5BootstrapNode: enr,
         });
 
-        waku = await createLightNode();
+        waku = await createLightNode({
+          libp2p: {
+            peerDiscovery: [wakuPeerExchangeDiscovery()],
+          },
+        });
+        const peerExchange = waku.libp2p.components["components"][
+          "peer-discovery-0"
+        ] as PeerExchangeDiscovery;
 
         await waku.start();
         const nwaku2Ma = await nwaku2.getMultiaddrWithId();
@@ -179,9 +186,7 @@ describe("Peer Exchange", () => {
           });
         });
 
-        const components = waku.libp2p
-          .components as unknown as Libp2pComponents;
-        return new PeerExchangeDiscovery(components);
+        return peerExchange;
       },
       teardown: async () => {
         !!nwaku1 && (await nwaku1.stop());
