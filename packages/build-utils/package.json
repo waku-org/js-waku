@@ -7,6 +7,8 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "fix": "run-s fix:*",
+    "fix:lint": "eslint . --fix",
     "check": "run-s check:*",
     "check:lint": "eslint ."
   },
