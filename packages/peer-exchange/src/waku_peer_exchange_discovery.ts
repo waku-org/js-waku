@@ -168,18 +168,17 @@ export class PeerExchangeDiscovery
       }
 
       const { peerId, peerInfo } = ENR;
+      if (!peerId || !peerInfo) {
+        continue;
+      }
 
-      if (!peerId || !peerInfo) continue;
-
-      const { multiaddrs } = peerInfo;
-      const peer = await this.components.peerStore.get(peerId);
-
-      if (peer.tags.has(DEFAULT_PEER_EXCHANGE_TAG_NAME)) {
+      const hasPeer = await this.components.peerStore.has(peerId);
+      if (hasPeer) {
         continue;
       }
 
       // update the tags for the peer
-      await this.components.peerStore.patch(peerId, {
+      await this.components.peerStore.save(peerId, {
         tags: {
           [DEFAULT_PEER_EXCHANGE_TAG_NAME]: {
             value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
@@ -192,8 +191,8 @@ export class PeerExchangeDiscovery
         new CustomEvent<PeerInfo>("peer", {
           detail: {
             id: peerId,
-            multiaddrs,
             protocols: [],
+            multiaddrs: peerInfo.multiaddrs,
           },
         })
       );
