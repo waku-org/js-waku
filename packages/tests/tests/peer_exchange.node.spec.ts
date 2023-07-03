@@ -72,8 +72,8 @@ describe("Peer Exchange", () => {
     });
 
     afterEach(async function () {
-      !!nwaku1 && nwaku1.stop();
-      !!nwaku2 && nwaku2.stop();
+      !!nwaku1 && (await nwaku1.stop());
+      !!nwaku2 && (await nwaku2.stop());
       !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
     });
 
@@ -146,7 +146,7 @@ describe("Peer Exchange", () => {
     });
   });
 
-  describe("compliance test", async function () {
+  describe("compliance test", function () {
     this.timeout(55_000);
 
     let waku: LightNode;

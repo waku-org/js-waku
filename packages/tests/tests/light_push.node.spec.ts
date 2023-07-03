@@ -55,8 +55,8 @@ describe("Waku Light Push [node only]", () => {
 
   afterEach(async function () {
     try {
-      nwaku?.stop();
-      waku?.stop();
+      await nwaku?.stop();
+      await waku?.stop();
     } catch (e) {
       console.error("Failed to stop nodes: ", e);
     }

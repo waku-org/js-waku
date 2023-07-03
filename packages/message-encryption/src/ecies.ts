@@ -148,7 +148,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
       return;
     }
 
-    const res = await postCipher(payload);
+    const res = postCipher(payload);
 
     if (!res) {
       log(`Failed to decode payload for contentTopic ${this.contentTopic}`);
