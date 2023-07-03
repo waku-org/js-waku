@@ -14,7 +14,7 @@ const KEEP_ALIVE_OPTIONS: KeepAliveOptions = {
 const TEST_TIMEOUT = 10_000;
 const DELAY_MS = 1_000;
 
-describe.only("ConnectionManager", function () {
+describe("ConnectionManager", function () {
   let connectionManager: ConnectionManager | undefined;
   let waku: LightNode;
   let peerId: string;
