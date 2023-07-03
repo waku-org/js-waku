@@ -18,11 +18,11 @@ import { delay } from "../src/delay.js";
 import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
-describe("Peer Exchange", () => {
+describe.only("Peer Exchange", () => {
   let waku: LightNode;
 
   afterEach(async function () {
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    !!waku && (await waku.stop());
   });
 
   it("Auto discovery", async function () {
@@ -74,7 +74,7 @@ describe("Peer Exchange", () => {
     afterEach(async function () {
       !!nwaku1 && (await nwaku1.stop());
       !!nwaku2 && (await nwaku2.stop());
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+      !!waku && (await waku.stop());
     });
 
     it("nwaku interop", async function () {
