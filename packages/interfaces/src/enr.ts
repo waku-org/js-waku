@@ -34,9 +34,15 @@ export interface IEnr extends Map<ENRKey, ENRValue> {
   multiaddrs?: Multiaddr[];
   waku2?: Waku2;
   peerInfo: PeerInfo | undefined;
+  rsOrRsv?: ShardInfo;
 
   /**
    * @deprecated: use { @link IEnr.peerInfo } instead.
    */
   getFullMultiaddrs(): Multiaddr[];
+}
+
+export interface ShardInfo {
+  cluster: number;
+  indices: number[];
 }

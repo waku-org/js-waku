@@ -7,6 +7,7 @@ import type {
   IEnr,
   NodeId,
   SequenceNumber,
+  ShardInfo,
 } from "@waku/interfaces";
 import debug from "debug";
 
@@ -60,6 +61,15 @@ export class ENR extends RawEnr implements IEnr {
         throw new Error(ERR_INVALID_ID);
     }
   }
+
+  get rsOrRsv(): ShardInfo | undefined {
+    if (this.rs && this.rsv) {
+      // this should never happen, but if it does, we will fallback to rs
+      return this.rs;
+    }
+    return this.rs || this.rsv;
+  }
+
   getLocationMultiaddr: (
     protocol: TransportProtocol | TransportProtocolPerIpVersion
   ) => Multiaddr | undefined = locationMultiaddrFromEnrFields.bind({}, this);
