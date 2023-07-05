@@ -89,6 +89,7 @@ export class WakuNode implements Waku {
     const peerId = this.libp2p.peerId.toString();
 
     this.connectionManager = ConnectionManager.create(
+      pubsubTopic,
       peerId,
       libp2p,
       { pingKeepAlive, relayKeepAlive },

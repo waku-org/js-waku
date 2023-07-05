@@ -2,8 +2,15 @@ import type { Connection } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { ConnectionManagerOptions, IRelay } from "@waku/interfaces";
+import type {
+  ConnectionManagerOptions,
+  IRelay,
+  PubSubTopic,
+  ShardInfo,
+} from "@waku/interfaces";
 import { Tags } from "@waku/interfaces";
+import { getPubsubTopicsFromShardInfo } from "@waku/utils";
+import { bytesToUtf8 } from "@waku/utils/bytes";
 import debug from "debug";
 
 import { KeepAliveManager, KeepAliveOptions } from "./keep_alive_manager.js";
@@ -26,6 +33,7 @@ export class ConnectionManager {
   private pendingPeerDialQueue: Array<PeerId> = [];
 
   public static create(
+    pubsubTopic: PubSubTopic,
     peerId: string,
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
@@ -35,6 +43,7 @@ export class ConnectionManager {
     let instance = ConnectionManager.instances.get(peerId);
     if (!instance) {
       instance = new ConnectionManager(
+        pubsubTopic,
         libp2p,
         keepAliveOptions,
         relay,
@@ -47,11 +56,13 @@ export class ConnectionManager {
   }
 
   private constructor(
+    public pubsubTopic: PubSubTopic,
     libp2pComponents: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
     options?: Partial<ConnectionManagerOptions>
   ) {
+    this.pubsubTopic = pubsubTopic;
     this.libp2pComponents = libp2pComponents;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
