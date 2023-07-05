@@ -11,3 +11,4 @@ export function removeItemFromArray(arr: unknown[], value: unknown): unknown[] {
 export * from "./group_by.js";
 export * from "./to_async_iterator.js";
 export * from "./is_size_valid.js";
+export * from "./sharding.js";
