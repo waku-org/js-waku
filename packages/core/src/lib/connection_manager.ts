@@ -251,6 +251,25 @@ export class ConnectionManager {
     "peer:discovery": async (evt: CustomEvent<PeerInfo>): Promise<void> => {
       const { id: peerId } = evt.detail;
 
+      const rsOrRsv =
+        await this.libp2pComponents.peerStore.metadataBook.getValue(
+          peerId,
+          "rsOrRsv"
+        );
+
+      if (rsOrRsv) {
+        const shardInfo = JSON.parse(bytesToUtf8(rsOrRsv)) as ShardInfo;
+        const serviceNodePubsubTopics = getPubsubTopicsFromShardInfo(shardInfo);
+        if (!serviceNodePubsubTopics.includes(this.pubsubTopic)) {
+          log(
+            `Ignoring dial attempt to service node with peer ID ${peerId.toString()}: not subscribed to the same pubsub topic as us - our pubsub topic: ${
+              this.pubsubTopic
+            }, their pubsub topics: ${serviceNodePubsubTopics}`
+          );
+          return;
+        }
+      }
+
       this.attemptDial(peerId).catch((err) =>
         log(`Error dialing peer ${peerId.toString()} : ${err}`)
       );

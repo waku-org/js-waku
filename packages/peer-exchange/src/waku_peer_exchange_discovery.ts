@@ -7,6 +7,7 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import { utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 
 import {
@@ -167,7 +168,7 @@ export class PeerExchangeDiscovery
         continue;
       }
 
-      const { peerId, peerInfo } = ENR;
+      const { peerId, peerInfo, rsOrRsv } = ENR;
 
       if (!peerId || !peerInfo) continue;
 
@@ -188,6 +189,13 @@ export class PeerExchangeDiscovery
           ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
         }
       );
+
+      rsOrRsv &&
+        (await this.components.peerStore.metadataBook.setValue(
+          peerId,
+          "rsOrRsv",
+          utf8ToBytes(JSON.stringify(rsOrRsv))
+        ));
 
       this.dispatchEvent(
         new CustomEvent<PeerInfo>("peer", {
