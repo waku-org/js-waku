@@ -21,7 +21,13 @@ export type ProtocolCreateOptions = {
   /**
    * The PubSub Topic to use. Defaults to {@link @waku/core.DefaultPubSubTopic }.
    *
-   * One and only one pubsub topic is used by Waku. This is used by:
+   * Waku supports usage of multiple pubsub topics, but this is still in early stages.
+   * Waku implements sharding to achieve scalability
+   * The format of the topic is `/waku/2/rs/<shard_cluster_index>/<shard_number>`
+   * To learn more about the sharding specifications implemented, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
+   *
+   * If no pubsub topic is specified, the default pubsub topic is used.
+   * This is used by:
    * - WakuRelay to receive, route and send messages,
    * - WakuLightPush to send messages,
    * - WakuStore to retrieve messages.

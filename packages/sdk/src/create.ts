@@ -74,6 +74,7 @@ export async function createLightNode(
   }
 
   return new WakuNode(
+    options?.pubSubTopic,
     options ?? {},
     libp2p,
     store,
@@ -105,6 +106,7 @@ export async function createRelayNode(
   const relay = wakuRelay(options);
 
   return new WakuNode(
+    options?.pubSubTopic,
     options ?? {},
     libp2p,
     undefined,
@@ -159,6 +161,7 @@ export async function createFullNode(
   const relay = wakuRelay(options);
 
   return new WakuNode(
+    options?.pubSubTopic,
     options ?? {},
     libp2p,
     store,

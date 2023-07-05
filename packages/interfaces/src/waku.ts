@@ -5,11 +5,13 @@ import type { Multiaddr } from "@multiformats/multiaddr";
 
 import type { IFilter, IFilterV2 } from "./filter.js";
 import type { ILightPush } from "./light_push.js";
+import { PubSubTopic } from "./misc.js";
 import { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { IStore } from "./store.js";
 
 export interface Waku {
+  pubsubTopic: PubSubTopic;
   libp2p: Libp2p;
   relay?: IRelay;
   store?: IStore;

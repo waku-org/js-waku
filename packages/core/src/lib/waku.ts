@@ -8,12 +8,14 @@ import type {
   ILightPush,
   IRelay,
   IStore,
+  PubSubTopic,
   Waku,
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 
 import { ConnectionManager } from "./connection_manager.js";
+import { DefaultPubSubTopic } from "./constants.js";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -44,6 +46,7 @@ export interface WakuOptions {
 }
 
 export class WakuNode implements Waku {
+  public pubsubTopic: PubSubTopic;
   public libp2p: Libp2p;
   public relay?: IRelay;
   public store?: IStore;
@@ -52,6 +55,7 @@ export class WakuNode implements Waku {
   public connectionManager: ConnectionManager;
 
   constructor(
+    pubsubTopic: PubSubTopic = DefaultPubSubTopic,
     options: WakuOptions,
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
@@ -59,6 +63,7 @@ export class WakuNode implements Waku {
     filter?: (libp2p: Libp2p) => IFilter | IFilterV2,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
+    this.pubsubTopic = pubsubTopic;
     this.libp2p = libp2p;
 
     if (store) {
