@@ -23,34 +23,36 @@ const TestEncoder = createEncoder({
   contentTopic: TestContentTopic,
 });
 
+async function runNodes(
+  context: Mocha.Context,
+  pubSubTopic?: string
+): Promise<[NimGoNode, LightNode]> {
+  const nwakuOptional = pubSubTopic ? { topic: pubSubTopic } : {};
+  const nwaku = new NimGoNode(makeLogFileName(context));
+  await nwaku.start({
+    lightpush: true,
+    relay: true,
+    ...nwakuOptional,
+  });
+
+  const waku = await createLightNode({
+    pubSubTopic,
+    staticNoiseKey: NOISE_KEY_1,
+  });
+  await waku.start();
+  await waku.dial(await nwaku.getMultiaddrWithId());
+  await waitForRemotePeer(waku, [Protocols.LightPush]);
+
+  return [nwaku, waku];
+}
+
 describe("Waku Light Push [node only]", () => {
   let waku: LightNode;
   let nwaku: NimGoNode;
 
-  const runNodes = async (
-    context: Mocha.Context,
-    pubSubTopic?: string
-  ): Promise<void> => {
-    const nwakuOptional = pubSubTopic ? { topics: pubSubTopic } : {};
-    nwaku = new NimGoNode(makeLogFileName(context));
-    await nwaku.start({
-      lightpush: true,
-      relay: true,
-      ...nwakuOptional,
-    });
-
-    waku = await createLightNode({
-      pubSubTopic,
-      staticNoiseKey: NOISE_KEY_1,
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
-  };
-
   beforeEach(async function () {
     this.timeout(15_000);
-    await runNodes(this);
+    [nwaku, waku] = await runNodes(this);
   });
 
   afterEach(async function () {
@@ -108,12 +110,29 @@ describe("Waku Light Push [node only]", () => {
     expect(pushResponse.recipients.length).to.eq(0);
     expect(pushResponse.error).to.eq(SendError.SIZE_TOO_BIG);
   });
+});
 
-  it("Push on custom pubsub topic", async function () {
+describe("Waku Light Push [node only] - custom pubsub topic", () => {
+  let waku: LightNode;
+  let nwaku: NimGoNode;
+  const customPubSubTopic = "/waku/2/custom-dapp/proto";
+
+  beforeEach(async function () {
     this.timeout(15_000);
+    [nwaku, waku] = await runNodes(this, customPubSubTopic);
+  });
 
-    const customPubSubTopic = "/waku/2/custom-dapp/proto";
-    await runNodes(this, customPubSubTopic);
+  afterEach(async function () {
+    try {
+      nwaku?.stop();
+      waku?.stop();
+    } catch (e) {
+      console.error("Failed to stop nodes: ", e);
+    }
+  });
+
+  it("Push message", async function () {
+    this.timeout(15_000);
 
     const nimPeerId = await nwaku.getPeerId();
     const messageText = "Light Push works!";
