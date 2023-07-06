@@ -14,7 +14,7 @@ export interface Args {
   peerExchange?: boolean;
   discv5Discovery?: boolean;
   storeMessageDbUrl?: string;
-  topics?: string;
+  topic?: string;
   rpcPrivate?: boolean;
   websocketSupport?: boolean;
   tcpPort?: number;
