@@ -575,7 +575,7 @@ describe("Waku Store, custom pubsub topic", () => {
     nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
-      topics: customPubSubTopic,
+      topic: customPubSubTopic,
       relay: true,
     });
   });
