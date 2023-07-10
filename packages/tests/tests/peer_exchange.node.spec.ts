@@ -37,7 +37,7 @@ describe("Peer Exchange", () => {
     waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Prod, 3) }),
+          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
           wakuPeerExchangeDiscovery(),
         ],
       },
