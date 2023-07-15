@@ -132,7 +132,8 @@ describe("Peer Exchange", () => {
 
       expect(doesPeerIdExistInResponse).to.be.equal(true);
 
-      expect(waku.libp2p.peerStore.has(await nwaku2.getPeerId())).to.be.true;
+      expect(await waku.libp2p.peerStore.has(await nwaku2.getPeerId())).to.be
+        .true;
     });
   });
 
