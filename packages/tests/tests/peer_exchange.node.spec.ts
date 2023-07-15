@@ -32,7 +32,7 @@ describe("Peer Exchange", () => {
       this.skip();
     }
 
-    this.timeout(100_000);
+    this.timeout(50_000);
 
     waku = await createLightNode({
       libp2p: {
@@ -76,7 +76,7 @@ describe("Peer Exchange", () => {
     });
 
     it("nwaku interop", async function () {
-      this.timeout(100_000);
+      this.timeout(50_000);
 
       await nwaku1.start({
         relay: true,
@@ -137,7 +137,7 @@ describe("Peer Exchange", () => {
   });
 
   describe("compliance test", async function () {
-    this.timeout(100_000);
+    this.timeout(50_000);
 
     let waku: LightNode;
     let nwaku1: NimGoNode;
@@ -178,13 +178,6 @@ describe("Peer Exchange", () => {
         const nwaku2Ma = await nwaku2.getMultiaddrWithId();
 
         await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
-        await new Promise<void>((resolve) => {
-          waku.libp2p.addEventListener("peer:update", (evt) => {
-            if (evt.detail.peer.protocols.includes(PeerExchangeCodec)) {
-              resolve();
-            }
-          });
-        });
 
         return peerExchange;
       },
