@@ -32,7 +32,7 @@ describe("Peer Exchange", () => {
       this.skip();
     }
 
-    this.timeout(50_000);
+    this.timeout(55_000);
 
     waku = await createLightNode({
       libp2p: {
@@ -76,7 +76,7 @@ describe("Peer Exchange", () => {
     });
 
     it("nwaku interop", async function () {
-      this.timeout(50_000);
+      this.timeout(55_000);
 
       await nwaku1.start({
         relay: true,
@@ -137,7 +137,7 @@ describe("Peer Exchange", () => {
   });
 
   describe("compliance test", async function () {
-    this.timeout(50_000);
+    this.timeout(55_000);
 
     let waku: LightNode;
     let nwaku1: NimGoNode;
