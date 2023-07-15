@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.20](https://github.com/waku-org/js-waku/compare/core-v0.0.19...core-v0.0.20) (2023-06-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* rename package from @waku/create to @waku/sdk ([#1386](https://github.com/waku-org/js-waku/issues/1386))
+
+### Features
+
+* Allow passing of multiple ENR URLs to DNS Discovery & dial multiple peers in parallel ([#1379](https://github.com/waku-org/js-waku/issues/1379)) ([f32d7d9](https://github.com/waku-org/js-waku/commit/f32d7d9fe0b930b4fa9c46b8644e6d21be45d5c1))
+* Rename package from @waku/create to @waku/sdk ([#1386](https://github.com/waku-org/js-waku/issues/1386)) ([951ebda](https://github.com/waku-org/js-waku/commit/951ebdac9d5b594583acf5e4a21f6471fa81ff74))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.14 to 0.0.15
+    * @waku/utils bumped from 0.0.7 to 0.0.8
+
 ## [0.0.19](https://github.com/waku-org/js-waku/compare/core-v0.0.18...core-v0.0.19) (2023-05-26)
 
 

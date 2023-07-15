@@ -57,7 +57,7 @@ jobs:
   node:
     runs-on: ubuntu-latest
     env:
-      WAKUNODE_IMAGE: "statusteam/nim-waku:v0.17.0"
+      WAKUNODE_IMAGE: "statusteam/nim-waku:v0.18.0"
     steps:
       - uses: actions/checkout@v3
 

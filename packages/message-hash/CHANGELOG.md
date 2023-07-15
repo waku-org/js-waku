@@ -8,6 +8,14 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.13 to 0.0.14
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.7 to 0.0.8
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.14 to 0.0.15
+
 ## [0.1.2](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.1...message-hash-v0.1.2) (2023-05-18)
 
 
