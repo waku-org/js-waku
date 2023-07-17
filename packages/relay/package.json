@@ -69,7 +69,7 @@
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-functional": "^5.0.8",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-prettier": "^5.0.0",
     "rollup": "^3.15.0",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
