@@ -31,7 +31,7 @@ class Encoder implements IEncoder {
     private symKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
     public ephemeral: boolean = false,
-    public metaSetter?: IMetaSetter
+    public metaSetter?: IMetaSetter,
   ) {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
@@ -101,13 +101,16 @@ export function createEncoder({
 }
 
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
-  constructor(contentTopic: string, private symKey: Uint8Array) {
+  constructor(
+    contentTopic: string,
+    private symKey: Uint8Array,
+  ) {
     super(contentTopic);
   }
 
   async fromProtoObj(
     pubSubTopic: string,
-    protoMessage: IProtoMessage
+    protoMessage: IProtoMessage,
   ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 
@@ -116,7 +119,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
         "Failed to decrypt due to incorrect version, expected:",
         Version,
         ", actual:",
-        protoMessage.version
+        protoMessage.version,
       );
       return;
     }
@@ -128,7 +131,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
     } catch (e) {
       log(
         `Failed to decrypt message using asymmetric decryption for contentTopic: ${this.contentTopic}`,
-        e
+        e,
       );
       return;
     }
@@ -151,7 +154,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
       protoMessage,
       res.payload,
       res.sig?.signature,
-      res.sig?.publicKey
+      res.sig?.publicKey,
     );
   }
 }
@@ -171,7 +174,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  symKey: Uint8Array
+  symKey: Uint8Array,
 ): Decoder {
   return new Decoder(contentTopic, symKey);
 }

@@ -93,7 +93,7 @@ export class PeerDiscoveryDns
       this.nextPeer = dns.getNextPeer.bind(
         dns,
         enrUrls,
-        wantedNodeCapabilityCount
+        wantedNodeCapabilityCount,
       );
     }
 
@@ -105,7 +105,7 @@ export class PeerDiscoveryDns
 
       if (
         (await this._components.peerStore.getTags(peerInfo.id)).find(
-          ({ name }) => name === DEFAULT_BOOTSTRAP_TAG_NAME
+          ({ name }) => name === DEFAULT_BOOTSTRAP_TAG_NAME,
         )
       )
         continue;
@@ -116,10 +116,10 @@ export class PeerDiscoveryDns
         {
           value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
           ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-        }
+        },
       );
       this.dispatchEvent(
-        new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
+        new CustomEvent<PeerInfo>("peer", { detail: peerInfo }),
       );
     }
   }
@@ -142,7 +142,7 @@ export class PeerDiscoveryDns
 
 export function wakuDnsDiscovery(
   enrUrls: string[],
-  wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
+  wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
 ): (components: DnsDiscoveryComponents) => PeerDiscoveryDns {
   return (components: DnsDiscoveryComponents) =>
     new PeerDiscoveryDns(components, { enrUrls, wantedNodeCapabilityCount });

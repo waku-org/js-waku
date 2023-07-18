@@ -30,7 +30,7 @@ export class ConnectionManager {
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
-    options?: ConnectionManagerOptions
+    options?: ConnectionManagerOptions,
   ): ConnectionManager {
     let instance = ConnectionManager.instances.get(peerId);
     if (!instance) {
@@ -38,7 +38,7 @@ export class ConnectionManager {
         libp2p,
         keepAliveOptions,
         relay,
-        options
+        options,
       );
       ConnectionManager.instances.set(peerId, instance);
     }
@@ -50,7 +50,7 @@ export class ConnectionManager {
     libp2pComponents: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
-    options?: Partial<ConnectionManagerOptions>
+    options?: Partial<ConnectionManagerOptions>,
   ) {
     this.libp2pComponents = libp2pComponents;
     this.options = {
@@ -103,15 +103,15 @@ export class ConnectionManager {
     this.keepAliveManager.stopAll();
     this.libp2pComponents.removeEventListener(
       "peer:connect",
-      this.onEventHandlers["peer:connect"]
+      this.onEventHandlers["peer:connect"],
     );
     this.libp2pComponents.removeEventListener(
       "peer:disconnect",
-      this.onEventHandlers["peer:disconnect"]
+      this.onEventHandlers["peer:disconnect"],
     );
     this.libp2pComponents.removeEventListener(
       "peer:discovery",
-      this.onEventHandlers["peer:discovery"]
+      this.onEventHandlers["peer:discovery"],
     );
   }
 
@@ -129,7 +129,8 @@ export class ConnectionManager {
         this.libp2pComponents
           .getConnections(peerId)
           .forEach(
-            (conn) => (conn.tags = Array.from(new Set([...conn.tags, ...tags])))
+            (conn) =>
+              (conn.tags = Array.from(new Set([...conn.tags, ...tags]))),
           );
 
         this.dialAttemptsForPeer.delete(peerId.toString());
@@ -152,9 +153,9 @@ export class ConnectionManager {
     try {
       log(
         `Deleting undialable peer ${peerId.toString()} from peer store. Error: ${JSON.stringify(
-          this.dialErrorsForPeer.get(peerId.toString()).errors[0]
+          this.dialErrorsForPeer.get(peerId.toString()).errors[0],
         )}
-        }`
+        }`,
       );
       this.dialErrorsForPeer.delete(peerId.toString());
       return await this.libp2pComponents.peerStore.delete(peerId);
@@ -172,7 +173,7 @@ export class ConnectionManager {
       log(`Dropped connection with peer ${peerId.toString()}`);
     } catch (error) {
       log(
-        `Error dropping connection with peer ${peerId.toString()} - ${error}`
+        `Error dropping connection with peer ${peerId.toString()} - ${error}`,
       );
     }
   }
@@ -193,14 +194,14 @@ export class ConnectionManager {
   private startPeerDiscoveryListener(): void {
     this.libp2pComponents.peerStore.addEventListener(
       "peer",
-      this.onEventHandlers["peer:discovery"]
+      this.onEventHandlers["peer:discovery"],
     );
   }
 
   private startPeerConnectionListener(): void {
     this.libp2pComponents.addEventListener(
       "peer:connect",
-      this.onEventHandlers["peer:connect"]
+      this.onEventHandlers["peer:connect"],
     );
   }
 
@@ -219,7 +220,7 @@ export class ConnectionManager {
      */
     this.libp2pComponents.addEventListener(
       "peer:disconnect",
-      this.onEventHandlers["peer:disconnect"]
+      this.onEventHandlers["peer:disconnect"],
     );
   }
 
@@ -241,7 +242,7 @@ export class ConnectionManager {
       const { id: peerId } = evt.detail;
 
       this.attemptDial(peerId).catch((err) =>
-        log(`Error dialing peer ${peerId.toString()} : ${err}`)
+        log(`Error dialing peer ${peerId.toString()} : ${err}`),
       );
     },
     "peer:connect": async (evt: CustomEvent<Connection>): Promise<void> => {
@@ -249,11 +250,11 @@ export class ConnectionManager {
 
       this.keepAliveManager.start(
         peerId,
-        this.libp2pComponents.ping.bind(this)
+        this.libp2pComponents.ping.bind(this),
       );
 
       const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
-        Tags.BOOTSTRAP
+        Tags.BOOTSTRAP,
       );
 
       if (isBootstrap) {
@@ -287,7 +288,7 @@ export class ConnectionManager {
     if (isConnected) return false;
 
     const isBootstrap = (await this.getTagNamesForPeer(peerId)).some(
-      (tagName) => tagName === Tags.BOOTSTRAP
+      (tagName) => tagName === Tags.BOOTSTRAP,
     );
 
     if (isBootstrap) {
@@ -310,7 +311,7 @@ export class ConnectionManager {
    */
   private async getTagNamesForPeer(peerId: PeerId): Promise<string[]> {
     const tags = (await this.libp2pComponents.peerStore.getTags(peerId)).map(
-      (tag) => tag.name
+      (tag) => tag.name,
     );
     return tags;
   }

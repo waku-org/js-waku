@@ -50,7 +50,10 @@ class Filter extends BaseProtocol implements IFilter {
   options: ProtocolCreateOptions;
   private subscriptions: Map<RequestID, unknown>;
 
-  constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
+  constructor(
+    public libp2p: Libp2p,
+    options?: ProtocolCreateOptions,
+  ) {
     super(FilterCodec, libp2p.peerStore, libp2p.getConnections.bind(libp2p));
     this.options = options ?? {};
     this.subscriptions = new Map();
@@ -68,7 +71,7 @@ class Filter extends BaseProtocol implements IFilter {
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
-    opts?: ProtocolOptions
+    opts?: ProtocolOptions,
   ): Promise<UnsubscribeFunction> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
@@ -82,7 +85,7 @@ class Filter extends BaseProtocol implements IFilter {
       pubSubTopic,
       contentFilters,
       undefined,
-      true
+      true,
     );
 
     const requestId = request.requestId;
@@ -96,7 +99,7 @@ class Filter extends BaseProtocol implements IFilter {
         lp.encode,
         stream,
         lp.decode,
-        async (source) => await all(source)
+        async (source) => await all(source),
       );
 
       log("response", res);
@@ -107,7 +110,7 @@ class Filter extends BaseProtocol implements IFilter {
         "for content topics",
         contentTopics,
         ": ",
-        e
+        e,
       );
       throw e;
     }
@@ -127,7 +130,7 @@ class Filter extends BaseProtocol implements IFilter {
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    opts?: ProtocolOptions | undefined
+    opts?: ProtocolOptions | undefined,
   ): Promise<IAsyncIterator<T>> {
     return toAsyncIterator(this, decoders, opts);
   }
@@ -164,7 +167,7 @@ class Filter extends BaseProtocol implements IFilter {
         },
         (e) => {
           log("Error with receiving pipe", e);
-        }
+        },
       );
     } catch (e) {
       log("Error decoding message", e);
@@ -173,7 +176,7 @@ class Filter extends BaseProtocol implements IFilter {
 
   private async pushMessages<T extends IDecodedMessage>(
     requestId: string,
-    messages: WakuMessageProto[]
+    messages: WakuMessageProto[],
   ): Promise<void> {
     const subscription = this.subscriptions.get(requestId) as
       | Subscription<T>
@@ -204,7 +207,7 @@ class Filter extends BaseProtocol implements IFilter {
         if (didDecodeMsg) return;
         const decoded = await dec.fromProtoObj(
           pubSubTopic,
-          toProtoMessage(protoMessage)
+          toProtoMessage(protoMessage),
         );
         if (!decoded) {
           log("Not able to decode message");
@@ -222,13 +225,13 @@ class Filter extends BaseProtocol implements IFilter {
     topic: string,
     contentFilters: ContentFilter[],
     requestId: string,
-    peer: Peer
+    peer: Peer,
   ): Promise<void> {
     const unsubscribeRequest = FilterRpc.createRequest(
       topic,
       contentFilters,
       requestId,
-      false
+      false,
     );
 
     const stream = await this.newStream(peer);
@@ -242,7 +245,7 @@ class Filter extends BaseProtocol implements IFilter {
 }
 
 export function wakuFilter(
-  init: Partial<ProtocolCreateOptions> = {}
+  init: Partial<ProtocolCreateOptions> = {},
 ): (libp2p: Libp2p) => IFilter {
   return (libp2p: Libp2p) => new Filter(libp2p, init);
 }

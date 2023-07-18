@@ -59,7 +59,7 @@ describe("Waku Relay [node only]", () => {
       log("Starting JS Waku instances");
       [waku1, waku2] = await Promise.all([
         createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
-          waku.start().then(() => waku)
+          waku.start().then(() => waku),
         ),
         createRelayNode({
           staticNoiseKey: NOISE_KEY_2,
@@ -69,7 +69,7 @@ describe("Waku Relay [node only]", () => {
       log("Instances started, adding waku2 to waku1's address book");
       await waku1.libp2p.peerStore.addressBook.set(
         waku2.libp2p.peerId,
-        waku2.libp2p.getMultiaddrs()
+        waku2.libp2p.getMultiaddrs(),
       );
       await waku1.dial(waku2.libp2p.peerId);
 
@@ -122,7 +122,7 @@ describe("Waku Relay [node only]", () => {
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
           waku2.relay.subscribe([TestDecoder], resolve);
-        }
+        },
       );
 
       await waku1.relay.send(TestEncoder, message);
@@ -132,7 +132,7 @@ describe("Waku Relay [node only]", () => {
       expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
       expect(bytesToUtf8(receivedMsg.payload)).to.eq(messageText);
       expect(receivedMsg.timestamp?.valueOf()).to.eq(
-        messageTimestamp.valueOf()
+        messageTimestamp.valueOf(),
       );
     });
 
@@ -241,11 +241,11 @@ describe("Waku Relay [node only]", () => {
         (resolve, reject) => {
           const deleteObserver = waku2.relay.subscribe(
             [createDecoder(contentTopic)],
-            reject
+            reject,
           ) as () => void;
           deleteObserver();
           setTimeout(resolve, 500);
-        }
+        },
       );
       await waku1.relay.send(createEncoder({ contentTopic }), {
         payload: utf8ToBytes(messageText),
@@ -293,11 +293,11 @@ describe("Waku Relay [node only]", () => {
 
       await waku1.libp2p.peerStore.addressBook.set(
         waku2.libp2p.peerId,
-        waku2.libp2p.getMultiaddrs()
+        waku2.libp2p.getMultiaddrs(),
       );
       await waku3.libp2p.peerStore.addressBook.set(
         waku2.libp2p.peerId,
-        waku2.libp2p.getMultiaddrs()
+        waku2.libp2p.getMultiaddrs(),
       );
       await Promise.all([
         waku1.dial(waku2.libp2p.peerId),
@@ -314,7 +314,7 @@ describe("Waku Relay [node only]", () => {
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
           waku2.relay.subscribe([TestDecoder], resolve);
-        }
+        },
       );
 
       // The promise **fails** if we receive a message on the default
@@ -323,7 +323,7 @@ describe("Waku Relay [node only]", () => {
         (resolve, reject) => {
           waku3.relay.subscribe([TestDecoder], reject);
           setTimeout(resolve, 1000);
-        }
+        },
       );
 
       await waku1.relay.send(TestEncoder, {
@@ -358,7 +358,7 @@ describe("Waku Relay [node only]", () => {
 
       await waku1.libp2p.peerStore.addressBook.set(
         waku2.libp2p.peerId,
-        waku2.libp2p.getMultiaddrs()
+        waku2.libp2p.getMultiaddrs(),
       );
       await Promise.all([waku1.dial(waku2.libp2p.peerId)]);
 
@@ -372,9 +372,9 @@ describe("Waku Relay [node only]", () => {
           waku2.relay.subscribe([TestDecoder], () =>
             resolve({
               payload: new Uint8Array([]),
-            } as DecodedMessage)
+            } as DecodedMessage),
           );
-        }
+        },
       );
 
       let sendResult = await waku1.relay.send(TestEncoder, {
@@ -433,7 +433,7 @@ describe("Waku Relay [node only]", () => {
 
       const nimPeerId = await nwaku.getPeerId();
       expect(subscribers.map((p) => p.toString())).to.contain(
-        nimPeerId.toString()
+        nimPeerId.toString(),
       );
     });
 
@@ -464,16 +464,16 @@ describe("Waku Relay [node only]", () => {
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
           waku.relay.subscribe<DecodedMessage>(TestDecoder, (msg) =>
-            resolve(msg)
+            resolve(msg),
           );
-        }
+        },
       );
 
       await nwaku.sendMessage(
         NimGoNode.toMessageRpcQuery({
           contentTopic: TestContentTopic,
           payload: utf8ToBytes(messageText),
-        })
+        }),
       );
 
       const receivedMsg = await receivedMsgPromise;
@@ -536,7 +536,7 @@ describe("Waku Relay [node only]", () => {
         const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
           (resolve) => {
             waku2.relay.subscribe(TestDecoder, resolve);
-          }
+          },
         );
 
         await waku1.relay.send(TestEncoder, message);

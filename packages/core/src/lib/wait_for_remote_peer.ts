@@ -28,7 +28,7 @@ const log = debug("waku:wait-for-remote-peer");
 export async function waitForRemotePeer(
   waku: Waku,
   protocols?: Protocols[],
-  timeoutMs?: number
+  timeoutMs?: number,
 ): Promise<void> {
   protocols = protocols ?? getEnabledProtocols(waku);
 
@@ -64,7 +64,7 @@ export async function waitForRemotePeer(
     await rejectOnTimeout(
       Promise.all(promises),
       timeoutMs,
-      "Timed out waiting for a remote peer."
+      "Timed out waiting for a remote peer.",
     );
   } else {
     await Promise.all(promises);
@@ -75,7 +75,7 @@ export async function waitForRemotePeer(
  * Wait for a peer with the given protocol to be connected.
  */
 async function waitForConnectedPeer(
-  protocol: PointToPointProtocol
+  protocol: PointToPointProtocol,
 ): Promise<void> {
   const codec = protocol.multicodec;
   const peers = await protocol.peers();
@@ -116,7 +116,7 @@ const awaitTimeout = (ms: number, rejectReason: string): Promise<void> =>
 async function rejectOnTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  rejectReason: string
+  rejectReason: string,
 ): Promise<void> {
   await Promise.race([promise, awaitTimeout(timeoutMs, rejectReason)]);
 }

@@ -19,7 +19,7 @@ export enum Fleet {
  */
 export function getPredefinedBootstrapNodes(
   fleet: Fleet = Fleet.Prod,
-  wantedNumber: number = DefaultWantedNumber
+  wantedNumber: number = DefaultWantedNumber,
 ): string[] {
   if (wantedNumber <= 0) {
     return [];

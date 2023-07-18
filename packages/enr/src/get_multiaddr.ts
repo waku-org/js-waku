@@ -5,7 +5,7 @@ import { multiaddrFromFields } from "./multiaddr_from_fields.js";
 
 export function locationMultiaddrFromEnrFields(
   enr: IEnr,
-  protocol: "udp" | "udp4" | "udp6" | "tcp" | "tcp4" | "tcp6"
+  protocol: "udp" | "udp4" | "udp6" | "tcp" | "tcp4" | "tcp6",
 ): Multiaddr | undefined {
   switch (protocol) {
     case "udp":
@@ -42,6 +42,6 @@ export function locationMultiaddrFromEnrFields(
     isIpv6 ? "ip6" : "ip4",
     protoName,
     ipVal,
-    protoVal
+    protoVal,
   );
 }

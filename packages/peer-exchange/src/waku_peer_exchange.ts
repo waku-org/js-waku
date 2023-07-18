@@ -39,8 +39,8 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
       PeerExchangeCodec,
       components.peerStore,
       components.connectionManager.getConnections.bind(
-        components.connectionManager
-      )
+        components.connectionManager,
+      ),
     );
     this.multicodec = PeerExchangeCodec;
   }
@@ -49,7 +49,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
    * Make a peer exchange query to a peer
    */
   async query(
-    params: PeerExchangeQueryParams
+    params: PeerExchangeQueryParams,
   ): Promise<PeerInfo[] | undefined> {
     const { numPeers } = params;
 
@@ -66,7 +66,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
       lp.encode,
       stream,
       lp.decode,
-      async (source) => await all(source)
+      async (source) => await all(source),
     );
 
     try {
@@ -88,7 +88,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
           .filter(isDefined)
           .map(async (enr) => {
             return { ENR: await EnrDecoder.fromRLP(enr) };
-          })
+          }),
       );
     } catch (err) {
       log("Failed to decode push reply", err);
@@ -102,7 +102,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
  * @returns A function that creates a new peer exchange protocol
  */
 export function wakuPeerExchange(): (
-  components: PeerExchangeComponents
+  components: PeerExchangeComponents,
 ) => WakuPeerExchange {
   return (components: PeerExchangeComponents) =>
     new WakuPeerExchange(components);

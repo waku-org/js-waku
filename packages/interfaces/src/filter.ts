@@ -14,7 +14,7 @@ export type IFilter = IReceiver & PointToPointProtocol;
 export interface IFilterV2Subscription {
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+    callback: Callback<T>,
   ): Promise<void>;
 
   unsubscribe(contentTopics: ContentTopic[]): Promise<void>;
@@ -28,6 +28,6 @@ export type IFilterV2 = IReceiver &
   PointToPointProtocol & {
     createSubscription(
       pubSubTopic?: string,
-      peerId?: PeerId
+      peerId?: PeerId,
     ): Promise<IFilterV2Subscription>;
   };

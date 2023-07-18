@@ -29,8 +29,8 @@ describe("Message Validator", () => {
           const result = messageValidator(peerId, message);
 
           expect(result).to.eq(TopicValidatorResult.Accept);
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -51,8 +51,8 @@ describe("Message Validator", () => {
           const result = messageValidator(peerId, message);
 
           expect(result).to.eq(TopicValidatorResult.Reject);
-        }
-      )
+        },
+      ),
     );
   });
 });

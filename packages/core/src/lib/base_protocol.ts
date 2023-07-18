@@ -15,7 +15,7 @@ export class BaseProtocol {
   constructor(
     public multicodec: string,
     public peerStore: PeerStore,
-    protected getConnections: (peerId?: PeerId) => Connection[]
+    protected getConnections: (peerId?: PeerId) => Connection[],
   ) {}
 
   /**
@@ -31,7 +31,7 @@ export class BaseProtocol {
     const { peer } = await selectPeerForProtocol(
       this.peerStore,
       [this.multicodec],
-      peerId
+      peerId,
     );
     return peer;
   }

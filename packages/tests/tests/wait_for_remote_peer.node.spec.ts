@@ -88,7 +88,7 @@ describe("Wait for remote peer", function () {
           (reason) => {
             expect(reason).to.eq("Timed out waiting for a remote peer.");
             done();
-          }
+          },
         );
       });
   });
@@ -166,7 +166,7 @@ describe("Wait for remote peer", function () {
     await waitForRemotePeer(waku2, [Protocols.LightPush]);
 
     const peers = (await waku2.lightPush.peers()).map((peer) =>
-      peer.id.toString()
+      peer.id.toString(),
     );
 
     const nimPeerId = multiAddrWithId.getPeerId();
@@ -194,7 +194,7 @@ describe("Wait for remote peer", function () {
     await waitForRemotePeer(waku2, [Protocols.Filter]);
 
     const peers = (await waku2.filter.peers()).map((peer) =>
-      peer.id.toString()
+      peer.id.toString(),
     );
 
     const nimPeerId = multiAddrWithId.getPeerId();
@@ -226,13 +226,13 @@ describe("Wait for remote peer", function () {
     ]);
 
     const filterPeers = (await waku2.filter.peers()).map((peer) =>
-      peer.id.toString()
+      peer.id.toString(),
     );
     const storePeers = (await waku2.store.peers()).map((peer) =>
-      peer.id.toString()
+      peer.id.toString(),
     );
     const lightPushPeers = (await waku2.lightPush.peers()).map((peer) =>
-      peer.id.toString()
+      peer.id.toString(),
     );
 
     const nimPeerId = multiAddrWithId.getPeerId();

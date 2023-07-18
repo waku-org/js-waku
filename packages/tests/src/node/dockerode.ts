@@ -37,12 +37,12 @@ export default class Dockerode {
   }
 
   private static async createNetwork(
-    networkName: string = NETWORK_NAME
+    networkName: string = NETWORK_NAME,
   ): Promise<Docker.Network> {
     const docker = new Docker();
     const networks = await docker.listNetworks();
     const existingNetwork = networks.find(
-      (network) => network.Name === networkName
+      (network) => network.Name === networkName,
     );
 
     let network: Docker.Network;
@@ -92,7 +92,7 @@ export default class Dockerode {
     ports: number[],
     args: Args,
     logPath: string,
-    wakuServiceNodeParams?: string
+    wakuServiceNodeParams?: string,
   ): Promise<Docker.Container> {
     const [rpcPort, tcpPort, websocketPort, discv5UdpPort] = ports;
 
@@ -150,7 +150,7 @@ export default class Dockerode {
         if (stream) {
           stream.pipe(logStream);
         }
-      }
+      },
     );
 
     this.containerId = container.id;
@@ -164,7 +164,7 @@ export default class Dockerode {
     log(
       `Shutting down container ID ${
         this.containerId
-      } at ${new Date().toLocaleTimeString()}`
+      } at ${new Date().toLocaleTimeString()}`,
     );
 
     await this.container.stop();

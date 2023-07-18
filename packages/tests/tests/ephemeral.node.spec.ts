@@ -197,10 +197,10 @@ describe("Waku Message Ephemeral field", () => {
     }
 
     const normalMsg = messages.find(
-      (msg) => bytesToUtf8(msg.payload) === normalTxt
+      (msg) => bytesToUtf8(msg.payload) === normalTxt,
     );
     const ephemeralMsg = messages.find(
-      (msg) => bytesToUtf8(msg.payload) === ephemeralTxt
+      (msg) => bytesToUtf8(msg.payload) === ephemeralTxt,
     );
 
     expect(normalMsg).to.not.be.undefined;
@@ -246,10 +246,10 @@ describe("Waku Message Ephemeral field", () => {
     }
 
     const normalMsg = messages.find(
-      (msg) => bytesToUtf8(msg.payload) === normalTxt
+      (msg) => bytesToUtf8(msg.payload) === normalTxt,
     );
     const ephemeralMsg = messages.find(
-      (msg) => bytesToUtf8(msg.payload) === ephemeralTxt
+      (msg) => bytesToUtf8(msg.payload) === ephemeralTxt,
     );
 
     expect(normalMsg).to.not.be.undefined;
@@ -296,10 +296,10 @@ describe("Waku Message Ephemeral field", () => {
     }
 
     const normalMsg = messages.find(
-      (msg) => bytesToUtf8(msg.payload) === normalTxt
+      (msg) => bytesToUtf8(msg.payload) === normalTxt,
     );
     const ephemeralMsg = messages.find(
-      (msg) => bytesToUtf8(msg.payload) === ephemeralTxt
+      (msg) => bytesToUtf8(msg.payload) === ephemeralTxt,
     );
 
     expect(normalMsg).to.not.be.undefined;

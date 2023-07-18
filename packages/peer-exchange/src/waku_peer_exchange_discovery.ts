@@ -64,7 +64,7 @@ export class PeerExchangeDiscovery
   private queryAttempts: Map<string, number> = new Map();
 
   private readonly eventHandler = async (
-    event: CustomEvent<PeerProtocolsChangeData>
+    event: CustomEvent<PeerProtocolsChangeData>,
   ): Promise<void> => {
     const { protocols, peerId } = event.detail;
     if (
@@ -75,7 +75,7 @@ export class PeerExchangeDiscovery
 
     this.queryingPeers.add(peerId.toString());
     this.startRecurringQueries(peerId).catch((error) =>
-      log(`Error querying peer ${error}`)
+      log(`Error querying peer ${error}`),
     );
   };
 
@@ -99,7 +99,7 @@ export class PeerExchangeDiscovery
 
     this.components.peerStore.addEventListener(
       "change:protocols",
-      this.eventHandler
+      this.eventHandler,
     );
   }
 
@@ -113,7 +113,7 @@ export class PeerExchangeDiscovery
     this.queryingPeers.clear();
     this.components.peerStore.removeEventListener(
       "change:protocols",
-      this.eventHandler
+      this.eventHandler,
     );
   }
 
@@ -126,7 +126,7 @@ export class PeerExchangeDiscovery
   }
 
   private readonly startRecurringQueries = async (
-    peerId: PeerId
+    peerId: PeerId,
   ): Promise<void> => {
     const peerIdStr = peerId.toString();
     const {
@@ -175,7 +175,7 @@ export class PeerExchangeDiscovery
 
       if (
         (await this.components.peerStore.getTags(peerId)).find(
-          ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
+          ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME,
         )
       )
         continue;
@@ -186,7 +186,7 @@ export class PeerExchangeDiscovery
         {
           value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
           ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
-        }
+        },
       );
 
       this.dispatchEvent(
@@ -196,7 +196,7 @@ export class PeerExchangeDiscovery
             multiaddrs,
             protocols: [],
           },
-        })
+        }),
       );
     }
   }
@@ -209,7 +209,7 @@ export class PeerExchangeDiscovery
 }
 
 export function wakuPeerExchangeDiscovery(): (
-  components: PeerExchangeComponents
+  components: PeerExchangeComponents,
 ) => PeerExchangeDiscovery {
   return (components: PeerExchangeComponents) =>
     new PeerExchangeDiscovery(components);

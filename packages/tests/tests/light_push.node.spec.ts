@@ -25,7 +25,7 @@ const TestEncoder = createEncoder({
 
 async function runNodes(
   context: Mocha.Context,
-  pubSubTopic?: string
+  pubSubTopic?: string,
 ): Promise<[NimGoNode, LightNode]> {
   const nwakuOptional = pubSubTopic ? { topic: pubSubTopic } : {};
   const nwaku = new NimGoNode(makeLogFileName(context));
@@ -143,7 +143,7 @@ describe("Waku Light Push [node only] - custom pubsub topic", () => {
       { payload: utf8ToBytes(messageText) },
       {
         peerId: nimPeerId,
-      }
+      },
     );
     log("Ack received", pushResponse);
     expect(pushResponse.recipients[0].toString()).to.eq(nimPeerId.toString());

@@ -12,7 +12,7 @@ export class FilterRpc {
     topic: string,
     contentFilters: ContentFilter[],
     requestId?: string,
-    subscribe = true
+    subscribe = true,
   ): FilterRpc {
     return new FilterRpc({
       requestId: requestId || uuid(),
