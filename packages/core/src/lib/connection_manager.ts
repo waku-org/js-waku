@@ -279,15 +279,15 @@ export class ConnectionManager {
 
     if (isConnected) return false;
 
-    const isBootstrap = (await this.getTagNamesForPeer(peerId)).some(
-      (tagName) => tagName === Tags.BOOTSTRAP
-    );
+    const tagNames = await this.getTagNamesForPeer(peerId);
+
+    const isBootstrap = tagNames.some((tagName) => tagName === Tags.BOOTSTRAP);
 
     if (isBootstrap) {
       const currentBootstrapConnections = this.libp2p
         .getConnections()
         .filter((conn) => {
-          conn.tags.find((name) => name === Tags.BOOTSTRAP);
+          return conn.tags.find((name) => name === Tags.BOOTSTRAP);
         }).length;
       if (currentBootstrapConnections < this.options.maxBootstrapPeersAllowed)
         return true;
