@@ -184,7 +184,7 @@ describe("Peer Exchange", () => {
         await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
         await new Promise<void>((resolve) => {
-          waku.libp2p.peerStore.addEventListener("peer:identify", (evt) => {
+          waku.libp2p.addEventListener("peer:identify", (evt) => {
             if (evt.detail.protocols.includes(PeerExchangeCodec)) {
               resolve();
             }
