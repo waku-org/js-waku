@@ -74,6 +74,7 @@ describe("Peer Exchange", () => {
     });
 
     afterEach(async function () {
+      this.timeout(10_000);
       await nwaku1?.stop();
       await nwaku2?.stop();
       await waku?.stop();
