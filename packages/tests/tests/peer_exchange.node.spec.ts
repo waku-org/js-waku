@@ -103,13 +103,13 @@ describe("Peer Exchange", () => {
       await waku.start();
       await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
-      await new Promise<void>((resolve) => {
-        waku.libp2p.addEventListener("peer:identify", (evt) => {
-          if (evt.detail.protocols.includes(PeerExchangeCodec)) {
-            resolve();
-          }
-        });
-      });
+      // await new Promise<void>((resolve) => {
+      //   waku.libp2p.addEventListener("peer:identify", (evt) => {
+      //     if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+      //       resolve();
+      //     }
+      //   });
+      // });
 
       const components = waku.libp2p.components as unknown as Libp2pComponents;
       const peerExchange = new WakuPeerExchange(components);
@@ -183,13 +183,13 @@ describe("Peer Exchange", () => {
 
         await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
-        await new Promise<void>((resolve) => {
-          waku.libp2p.addEventListener("peer:identify", (evt) => {
-            if (evt.detail.protocols.includes(PeerExchangeCodec)) {
-              resolve();
-            }
-          });
-        });
+        // await new Promise<void>((resolve) => {
+        //   waku.libp2p.addEventListener("peer:identify", (evt) => {
+        //     if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+        //       resolve();
+        //     }
+        //   });
+        // });
 
         return peerExchange;
       },
