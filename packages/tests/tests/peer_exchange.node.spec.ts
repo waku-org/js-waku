@@ -203,9 +203,9 @@ describe("Peer Exchange", () => {
         return new PeerExchangeDiscovery(components);
       },
       teardown: async () => {
-        !!nwaku1 && (await nwaku1.stop());
-        !!nwaku2 && (await nwaku2.stop());
-        !!waku && (await waku.stop());
+        await nwaku1?.stop();
+        await nwaku2?.stop();
+        await waku?.stop();
       },
     });
   });

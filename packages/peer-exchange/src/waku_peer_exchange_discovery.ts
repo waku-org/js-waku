@@ -144,10 +144,10 @@ export class PeerExchangeDiscovery
     }
 
     setTimeout(() => {
-      return async () => {
-        this.queryAttempts.set(peerIdStr, currentAttempt + 1);
-        await this.startRecurringQueries(peerId);
-      };
+      this.queryAttempts.set(peerIdStr, currentAttempt + 1);
+      this.startRecurringQueries(peerId).catch((error) => {
+        log(`Error in startRecurringQueries: ${error}`);
+      });
     }, queryInterval * currentAttempt);
   };
 
