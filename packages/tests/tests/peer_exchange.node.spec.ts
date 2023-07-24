@@ -18,12 +18,12 @@ import { delay } from "../src/delay.js";
 import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
-describe.only("Peer Exchange", () => {
-  describe("Auto Discovery", () => {
+describe("Peer Exchange", () => {
+  describe("Auto Discovery", function () {
     let waku: LightNode;
 
     afterEach(async function () {
-      await waku.stop();
+      await waku?.stop();
     });
 
     it("connection with fleet nodes", async function () {
@@ -74,9 +74,9 @@ describe.only("Peer Exchange", () => {
     });
 
     afterEach(async function () {
-      await nwaku1.stop();
-      await nwaku2.stop();
-      await waku.stop();
+      await nwaku1?.stop();
+      await nwaku2?.stop();
+      await waku?.stop();
     });
 
     it("nwaku interop", async function () {
