@@ -248,11 +248,11 @@ export class ConnectionManager {
     },
     "peer:connect": (evt: CustomEvent<PeerId>): void => {
       void (async () => {
-        const { remotePeer: peerId } = evt.detail;
+        const peerId = evt.detail;
 
         this.keepAliveManager.start(
           peerId,
-          this.libp2p.service.ping.bind(this)
+          this.libp2p.services.ping.bind(this)
         );
 
         const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
