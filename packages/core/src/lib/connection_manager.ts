@@ -240,7 +240,7 @@ export class ConnectionManager {
 
   private onEventHandlers = {
     "peer:discovery": (evt: CustomEvent<PeerInfo>): void => {
-      async () => {
+      void (async () => {
         const { id: peerId } = evt.detail;
 
         try {
@@ -248,10 +248,10 @@ export class ConnectionManager {
         } catch (error) {
           log(`Error dialing peer ${peerId.toString()} : ${error}`);
         }
-      };
+      })();
     },
     "peer:connect": (evt: CustomEvent<Connection>): void => {
-      async () => {
+      void (async () => {
         const { remotePeer: peerId } = evt.detail;
 
         this.keepAliveManager.start(
@@ -275,7 +275,7 @@ export class ConnectionManager {
             await this.dropConnection(peerId);
           }
         }
-      };
+      })();
     },
     "peer:disconnect": () => {
       return (evt: CustomEvent<Connection>): void => {
