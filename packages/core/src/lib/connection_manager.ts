@@ -193,8 +193,8 @@ export class ConnectionManager {
   }
 
   private startPeerDiscoveryListener(): void {
-    this.libp2pComponents.peerStore.addEventListener(
-      "peer",
+    this.libp2pComponents.addEventListener(
+      "peer:discovery",
       this.onEventHandlers["peer:discovery"]
     );
   }
@@ -294,15 +294,15 @@ export class ConnectionManager {
 
     if (isConnected) return false;
 
-    const isBootstrap = (await this.getTagNamesForPeer(peerId)).some(
-      (tagName) => tagName === Tags.BOOTSTRAP
-    );
+    const tagNames = await this.getTagNamesForPeer(peerId);
+
+    const isBootstrap = tagNames.some((tagName) => tagName === Tags.BOOTSTRAP);
 
     if (isBootstrap) {
       const currentBootstrapConnections = this.libp2pComponents
         .getConnections()
         .filter((conn) => {
-          conn.tags.find((name) => name === Tags.BOOTSTRAP);
+          return conn.tags.find((name) => name === Tags.BOOTSTRAP);
         }).length;
       if (currentBootstrapConnections < this.options.maxBootstrapPeersAllowed)
         return true;
