@@ -63,7 +63,7 @@ describe("Waku Dial [node only]", function () {
     let nwaku: NimGoNode;
 
     afterEach(async function () {
-      !!nwaku && nwaku.stop();
+      !!nwaku && (await nwaku.stop());
       !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
     });
 
@@ -174,7 +174,7 @@ describe("Decryption Keys", () => {
 
     const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
-        waku2.relay.subscribe([decoder], resolve);
+        void waku2.relay.subscribe([decoder], resolve);
       }
     );
 

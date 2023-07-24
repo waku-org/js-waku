@@ -19,47 +19,49 @@ import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
 describe("Peer Exchange", () => {
-  let waku: LightNode;
+  describe("Auto Discovery", function () {
+    let waku: LightNode;
 
-  afterEach(async function () {
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
-  });
-
-  it("Auto discovery", async function () {
-    // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
-    // but not with locally run nwaku nodes
-    if (process.env.CI) {
-      this.skip();
-    }
-
-    this.timeout(55_000);
-
-    waku = await createLightNode({
-      libp2p: {
-        peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
-          wakuPeerExchangeDiscovery(),
-        ],
-      },
+    afterEach(async function () {
+      await waku?.stop();
     });
 
-    await waku.start();
+    it("connection with fleet nodes", async function () {
+      // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
+      // but not with locally run nwaku nodes
+      if (process.env.CI) {
+        this.skip();
+      }
 
-    const foundPxPeer = await new Promise<boolean>((resolve) => {
-      const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
-      waku.libp2p.addEventListener("peer:discovery", (event) => {
-        const peerId = event.detail.id.toString();
-        const isBootstrapNode = testNodes.find((n) => n.includes(peerId));
-        if (!isBootstrapNode) {
-          resolve(true);
-        }
+      this.timeout(50_000);
+
+      waku = await createLightNode({
+        libp2p: {
+          peerDiscovery: [
+            bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
+            wakuPeerExchangeDiscovery(),
+          ],
+        },
       });
-    });
 
-    expect(foundPxPeer).to.be.true;
+      await waku.start();
+
+      const foundPxPeer = await new Promise<boolean>((resolve) => {
+        const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
+        waku.libp2p.addEventListener("peer:discovery", (evt) => {
+          const peerId = evt.detail.id.toString();
+          const isBootstrapNode = testNodes.find((n) => n.includes(peerId));
+          if (!isBootstrapNode) {
+            resolve(true);
+          }
+        });
+      });
+
+      expect(foundPxPeer).to.be.true;
+    });
   });
 
-  describe("Locally run nodes", () => {
+  describe("Locally Run Nodes", () => {
     let waku: LightNode;
     let nwaku1: NimGoNode;
     let nwaku2: NimGoNode;
@@ -70,9 +72,10 @@ describe("Peer Exchange", () => {
     });
 
     afterEach(async function () {
-      !!nwaku1 && nwaku1.stop();
-      !!nwaku2 && nwaku2.stop();
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+      this.timeout(10_000);
+      await nwaku1?.stop();
+      await nwaku2?.stop();
+      await waku?.stop();
     });
 
     it("nwaku interop", async function () {
@@ -137,7 +140,7 @@ describe("Peer Exchange", () => {
     });
   });
 
-  describe("compliance test", async function () {
+  describe("Compliance Test", function () {
     this.timeout(55_000);
 
     let waku: LightNode;
@@ -183,9 +186,9 @@ describe("Peer Exchange", () => {
         return peerExchange;
       },
       teardown: async () => {
-        !!nwaku1 && (await nwaku1.stop());
-        !!nwaku2 && (await nwaku2.stop());
-        !!waku && (await waku.stop());
+        await nwaku1?.stop();
+        await nwaku2?.stop();
+        await waku?.stop();
       },
     });
   });

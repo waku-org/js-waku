@@ -193,18 +193,26 @@ class Relay implements IRelay {
       return;
     }
     await Promise.all(
-      Array.from(observers).map(async ({ decoder, callback }) => {
-        const protoMsg = await decoder.fromWireToProtoObj(bytes);
-        if (!protoMsg) {
-          log("Internal error: message previously decoded failed on 2nd pass.");
-          return;
-        }
-        const msg = await decoder.fromProtoObj(pubSubTopic, protoMsg);
-        if (msg) {
-          callback(msg);
-        } else {
-          log("Failed to decode messages on", topicOnlyMsg.contentTopic);
-        }
+      Array.from(observers).map(({ decoder, callback }) => {
+        return (async () => {
+          try {
+            const protoMsg = await decoder.fromWireToProtoObj(bytes);
+            if (!protoMsg) {
+              log(
+                "Internal error: message previously decoded failed on 2nd pass."
+              );
+              return;
+            }
+            const msg = await decoder.fromProtoObj(pubSubTopic, protoMsg);
+            if (msg) {
+              await callback(msg);
+            } else {
+              log("Failed to decode messages on", topicOnlyMsg.contentTopic);
+            }
+          } catch (error) {
+            log("Error while decoding message:", error);
+          }
+        })();
       })
     );
   }
@@ -217,7 +225,7 @@ class Relay implements IRelay {
   private gossipSubSubscribe(pubSubTopic: string): void {
     this.gossipSub.addEventListener(
       "gossipsub:message",
-      async (event: CustomEvent<GossipsubMessage>) => {
+      (event: CustomEvent<GossipsubMessage>) => {
         if (event.detail.msg.topic !== pubSubTopic) return;
         log(`Message received on ${pubSubTopic}`);
 

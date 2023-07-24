@@ -306,7 +306,7 @@ class FilterV2 extends BaseProtocol implements IReceiver {
   ): Promise<Unsubscribe> {
     const subscription = await this.createSubscription(undefined, opts?.peerId);
 
-    subscription.subscribe(decoders, callback);
+    await subscription.subscribe(decoders, callback);
 
     const contentTopics = Array.from(
       groupByContentTopic(
@@ -388,20 +388,19 @@ async function pushMessage<T extends IDecodedMessage>(
   // We don't want to wait for decoding failure, just attempt to decode
   // all messages and do the call back on the one that works
   // noinspection ES6MissingAwait
-  decoders.forEach(async (dec: IDecoder<T>) => {
-    if (didDecodeMsg) return;
+  for (const dec of decoders) {
+    if (didDecodeMsg) break;
     const decoded = await dec.fromProtoObj(
       pubSubTopic,
       message as IProtoMessage
     );
-    // const decoded = await dec.fromProtoObj(pubSubTopic, message);
     if (!decoded) {
       log("Not able to decode message");
-      return;
+      continue;
     }
     // This is just to prevent more decoding attempt
     // TODO: Could be better if we were to abort promises
     didDecodeMsg = Boolean(decoded);
     await callback(decoded);
-  });
+  }
 }

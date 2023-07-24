@@ -129,11 +129,11 @@ describe("ENR", function () {
       }
     });
 
-    it("should throw error - no public key", () => {
+    it("should throw error - no public key", async () => {
       try {
         const txt =
           "enr:-IS4QJ2d11eu6dC7E7LoXeLMgMP3kom1u3SE8esFSWvaHoo0dP1jg8O3-nx9ht-EO3CmG7L6OkHcMmoIh00IYWB92QABgmlkgnY0gmlwhH8AAAGJc2d11eu6dCsxoQIB_c-jQMOXsbjWkbN-kj99H57gfId5pfb4wa1qxwV4CIN1ZHCCIyk";
-        EnrDecoder.fromString(txt);
+        await EnrDecoder.fromString(txt);
         assert.fail("Expect error here");
       } catch (err: unknown) {
         const e = err as Error;
@@ -306,7 +306,7 @@ describe("ENR", function () {
     });
   });
 
-  describe("Location multiaddr", async () => {
+  describe("Location multiaddr", () => {
     const ip4 = "127.0.0.1";
     const ip6 = "::1";
     const tcp = 8080;
@@ -414,7 +414,7 @@ describe("ENR", function () {
     });
   });
 
-  describe("waku2 key round trip", async () => {
+  describe("waku2 key round trip", () => {
     let peerId;
     let enr: ENR;
     let waku2Protocols: Waku2;

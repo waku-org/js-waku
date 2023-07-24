@@ -120,7 +120,7 @@ describe("Waku Relay [node only]", () => {
 
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku2.relay.subscribe([TestDecoder], resolve);
+          void waku2.relay.subscribe([TestDecoder], resolve);
         }
       );
 
@@ -151,12 +151,12 @@ describe("Waku Relay [node only]", () => {
       const barDecoder = createDecoder(barContentTopic);
 
       const fooMessages: DecodedMessage[] = [];
-      waku2.relay.subscribe([fooDecoder], (msg) => {
+      void waku2.relay.subscribe([fooDecoder], (msg) => {
         fooMessages.push(msg);
       });
 
       const barMessages: DecodedMessage[] = [];
-      waku2.relay.subscribe([barDecoder], (msg) => {
+      void waku2.relay.subscribe([barDecoder], (msg) => {
         barMessages.push(msg);
       });
 
@@ -206,10 +206,10 @@ describe("Waku Relay [node only]", () => {
       const symDecoder = createSymDecoder(symTopic, symKey);
 
       const msgs: DecodedMessage[] = [];
-      waku2.relay.subscribe([eciesDecoder], (wakuMsg) => {
+      void waku2.relay.subscribe([eciesDecoder], (wakuMsg) => {
         msgs.push(wakuMsg);
       });
-      waku2.relay.subscribe([symDecoder], (wakuMsg) => {
+      void waku2.relay.subscribe([symDecoder], (wakuMsg) => {
         msgs.push(wakuMsg);
       });
 
@@ -310,7 +310,7 @@ describe("Waku Relay [node only]", () => {
 
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku2.relay.subscribe([TestDecoder], resolve);
+          void waku2.relay.subscribe([TestDecoder], resolve);
         }
       );
 
@@ -318,7 +318,7 @@ describe("Waku Relay [node only]", () => {
       // pubsub topic.
       const waku3NoMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve, reject) => {
-          waku3.relay.subscribe([TestDecoder], reject);
+          void waku3.relay.subscribe([TestDecoder], reject);
           setTimeout(resolve, 1000);
         }
       );
@@ -365,7 +365,7 @@ describe("Waku Relay [node only]", () => {
 
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku2.relay.subscribe([TestDecoder], () =>
+          void waku2.relay.subscribe([TestDecoder], () =>
             resolve({
               payload: new Uint8Array([]),
             } as DecodedMessage)
@@ -460,7 +460,7 @@ describe("Waku Relay [node only]", () => {
 
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku.relay.subscribe<DecodedMessage>(TestDecoder, (msg) =>
+          void waku.relay.subscribe<DecodedMessage>(TestDecoder, (msg) =>
             resolve(msg)
           );
         }
@@ -532,7 +532,7 @@ describe("Waku Relay [node only]", () => {
 
         const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
           (resolve) => {
-            waku2.relay.subscribe(TestDecoder, resolve);
+            void waku2.relay.subscribe(TestDecoder, resolve);
           }
         );
 

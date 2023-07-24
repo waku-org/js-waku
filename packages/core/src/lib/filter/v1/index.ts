@@ -200,7 +200,7 @@ class Filter extends BaseProtocol implements IFilter {
       // We don't want to wait for decoding failure, just attempt to decode
       // all messages and do the call back on the one that works
       // noinspection ES6MissingAwait
-      decoders.forEach(async (dec: IDecoder<T>) => {
+      for (const dec of decoders) {
         if (didDecodeMsg) return;
         const decoded = await dec.fromProtoObj(
           pubSubTopic,
@@ -208,13 +208,13 @@ class Filter extends BaseProtocol implements IFilter {
         );
         if (!decoded) {
           log("Not able to decode message");
-          return;
+          continue;
         }
         // This is just to prevent more decoding attempt
         // TODO: Could be better if we were to abort promises
         didDecodeMsg = Boolean(decoded);
         await callback(decoded);
-      });
+      }
     }
   }
 

@@ -127,7 +127,7 @@ export async function encrypt(
 ): Promise<Uint8Array> {
   const ephemPrivateKey = randomBytes(32);
 
-  const sharedPx = await derive(ephemPrivateKey, publicKeyTo);
+  const sharedPx = derive(ephemPrivateKey, publicKeyTo);
 
   const hash = await kdf(sharedPx, 32);
 

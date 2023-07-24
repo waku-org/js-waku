@@ -60,9 +60,9 @@ export class PeerExchangeDiscovery
   private queryingPeers: Set<string> = new Set();
   private queryAttempts: Map<string, number> = new Map();
 
-  private readonly handleDiscoveredPeer = async (
+  private readonly handleDiscoveredPeer = (
     event: CustomEvent<PeerUpdate>
-  ): Promise<void> => {
+  ): void => {
     const {
       peer: { protocols, id: peerId },
     } = event.detail;
@@ -143,9 +143,11 @@ export class PeerExchangeDiscovery
       return;
     }
 
-    setTimeout(async () => {
+    setTimeout(() => {
       this.queryAttempts.set(peerIdStr, currentAttempt + 1);
-      await this.startRecurringQueries(peerId);
+      this.startRecurringQueries(peerId).catch((error) => {
+        log(`Error in startRecurringQueries: ${error}`);
+      });
     }, queryInterval * currentAttempt);
   };
 
