@@ -161,10 +161,6 @@ export default class Dockerode {
   async stop(): Promise<void> {
     if (!this.container) throw "containerId not set";
 
-    // ignore if the container removal is already in progress
-    const containerInfo = await this.container.inspect();
-    if (containerInfo.State.Status === "removing") return;
-
     log(
       `Shutting down container ID ${
         this.containerId
@@ -174,7 +170,7 @@ export default class Dockerode {
     await this.container.stop();
     await this.container.remove();
 
-    this.containerId = undefined;
+    delete this.containerId;
   }
 
   private async confirmImageExistsOrPull(): Promise<void> {

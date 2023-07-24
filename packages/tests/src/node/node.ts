@@ -165,7 +165,8 @@ export class NimGoNode {
   }
 
   public async stop(): Promise<void> {
-    await this.docker?.stop();
+    await this.docker?.container?.stop();
+    delete this.docker;
   }
 
   async waitForLog(msg: string, timeout: number): Promise<void> {
