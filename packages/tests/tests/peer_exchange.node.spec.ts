@@ -18,7 +18,7 @@ import { delay } from "../src/delay.js";
 import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
-describe.only("Peer Exchange", () => {
+describe("Peer Exchange", () => {
   describe("Auto Discovery", function () {
     let waku: LightNode;
 
@@ -196,16 +196,21 @@ describe.only("Peer Exchange", () => {
           discv5BootstrapNode: enr,
         });
 
-        waku = await createLightNode();
+        waku = await createLightNode({
+          libp2p: {
+            peerDiscovery: [wakuPeerExchangeDiscovery()],
+          },
+        });
+        const peerExchange = waku.libp2p.components["components"][
+          "peer-discovery-0"
+        ] as PeerExchangeDiscovery;
 
         await waku.start();
         const nwaku2Ma = await nwaku2.getMultiaddrWithId();
 
         await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
-        return new PeerExchangeDiscovery(
-          waku.libp2p.components as unknown as Libp2pComponents
-        );
+        return peerExchange;
       },
       teardown: async () => {
         await nwaku1?.stop();
