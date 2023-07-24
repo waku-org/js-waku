@@ -80,7 +80,9 @@ export class ConnectionManager {
     // libp2p emits `peer:discovery` events during its initialization
     // which means that before the ConnectionManager is initialized, some peers may have been discovered
     // we will dial the peers in peerStore ONCE before we start to listen to the `peer:discovery` events within the ConnectionManager
-    this.dialPeerStorePeers();
+    this.dialPeerStorePeers().catch((error) =>
+      log(`Unexpected error while dialing peer store peers`, error)
+    );
   }
 
   private async dialPeerStorePeers(): Promise<void> {
@@ -188,7 +190,7 @@ export class ConnectionManager {
     }
   }
 
-  private async processDialQueue(): Promise<void> {
+  private processDialQueue(): void {
     if (
       this.pendingPeerDialQueue.length > 0 &&
       this.currentActiveDialCount < this.options.maxParallelDials
@@ -202,8 +204,8 @@ export class ConnectionManager {
   }
 
   private startPeerDiscoveryListener(): void {
-    this.libp2pComponents.peerStore.addEventListener(
-      "peer",
+    this.libp2pComponents.addEventListener(
+      "peer:discovery",
       this.onEventHandlers["peer:discovery"]
     );
   }
@@ -248,56 +250,61 @@ export class ConnectionManager {
   }
 
   private onEventHandlers = {
-    "peer:discovery": async (evt: CustomEvent<PeerInfo>): Promise<void> => {
-      const { id: peerId } = evt.detail;
+    "peer:discovery": (evt: CustomEvent<PeerInfo>): void => {
+      void (async () => {
+        const { id: peerId } = evt.detail;
 
-      const rsOrRsv =
-        await this.libp2pComponents.peerStore.metadataBook.getValue(
+        const rsOrRsv =
+          await this.libp2pComponents.peerStore.metadataBook.getValue(
+            peerId,
+            "rsOrRsv"
+          );
+
+        if (rsOrRsv) {
+          const shardInfo = JSON.parse(bytesToUtf8(rsOrRsv)) as ShardInfo;
+          const serviceNodePubsubTopics =
+            getPubsubTopicsFromShardInfo(shardInfo);
+          if (!serviceNodePubsubTopics.includes(this.pubsubTopic)) {
+            log(
+              `Ignoring dial attempt to service node with peer ID ${peerId.toString()}: not subscribed to the same pubsub topic as us - our pubsub topic: ${
+                this.pubsubTopic
+              }, their pubsub topics: ${serviceNodePubsubTopics}`
+            );
+            return;
+          }
+        }
+
+        this.attemptDial(peerId).catch((err) =>
+          log(`Error dialing peer ${peerId.toString()} : ${err}`)
+        );
+      });
+    },
+    "peer:connect": (evt: CustomEvent<Connection>): void => {
+      void (async () => {
+        const { remotePeer: peerId } = evt.detail;
+
+        this.keepAliveManager.start(
           peerId,
-          "rsOrRsv"
+          this.libp2pComponents.ping.bind(this)
         );
 
-      if (rsOrRsv) {
-        const shardInfo = JSON.parse(bytesToUtf8(rsOrRsv)) as ShardInfo;
-        const serviceNodePubsubTopics = getPubsubTopicsFromShardInfo(shardInfo);
-        if (!serviceNodePubsubTopics.includes(this.pubsubTopic)) {
-          log(
-            `Ignoring dial attempt to service node with peer ID ${peerId.toString()}: not subscribed to the same pubsub topic as us - our pubsub topic: ${
-              this.pubsubTopic
-            }, their pubsub topics: ${serviceNodePubsubTopics}`
-          );
-          return;
+        const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
+          Tags.BOOTSTRAP
+        );
+
+        if (isBootstrap) {
+          const bootstrapConnections = this.libp2pComponents
+            .getConnections()
+            .filter((conn) => conn.tags.includes(Tags.BOOTSTRAP));
+
+          // If we have too many bootstrap connections, drop one
+          if (
+            bootstrapConnections.length > this.options.maxBootstrapPeersAllowed
+          ) {
+            await this.dropConnection(peerId);
+          }
         }
-      }
-
-      this.attemptDial(peerId).catch((err) =>
-        log(`Error dialing peer ${peerId.toString()} : ${err}`)
-      );
-    },
-    "peer:connect": async (evt: CustomEvent<Connection>): Promise<void> => {
-      const { remotePeer: peerId } = evt.detail;
-
-      this.keepAliveManager.start(
-        peerId,
-        this.libp2pComponents.ping.bind(this)
-      );
-
-      const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
-        Tags.BOOTSTRAP
-      );
-
-      if (isBootstrap) {
-        const bootstrapConnections = this.libp2pComponents
-          .getConnections()
-          .filter((conn) => conn.tags.includes(Tags.BOOTSTRAP));
-
-        // If we have too many bootstrap connections, drop one
-        if (
-          bootstrapConnections.length > this.options.maxBootstrapPeersAllowed
-        ) {
-          await this.dropConnection(peerId);
-        }
-      }
+      })();
     },
     "peer:disconnect": () => {
       return (evt: CustomEvent<Connection>): void => {
@@ -316,15 +323,15 @@ export class ConnectionManager {
 
     if (isConnected) return false;
 
-    const isBootstrap = (await this.getTagNamesForPeer(peerId)).some(
-      (tagName) => tagName === Tags.BOOTSTRAP
-    );
+    const tagNames = await this.getTagNamesForPeer(peerId);
+
+    const isBootstrap = tagNames.some((tagName) => tagName === Tags.BOOTSTRAP);
 
     if (isBootstrap) {
       const currentBootstrapConnections = this.libp2pComponents
         .getConnections()
         .filter((conn) => {
-          conn.tags.find((name) => name === Tags.BOOTSTRAP);
+          return conn.tags.find((name) => name === Tags.BOOTSTRAP);
         }).length;
       if (currentBootstrapConnections < this.options.maxBootstrapPeersAllowed)
         return true;

@@ -170,7 +170,7 @@ export default class Dockerode {
     await this.container.stop();
     await this.container.remove();
 
-    this.containerId = undefined;
+    delete this.containerId;
   }
 
   private async confirmImageExistsOrPull(): Promise<void> {

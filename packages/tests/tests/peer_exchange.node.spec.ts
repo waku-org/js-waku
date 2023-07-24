@@ -21,49 +21,51 @@ import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
 describe("Peer Exchange", () => {
-  let waku: LightNode;
+  describe("Auto Discovery", function () {
+    let waku: LightNode;
 
-  afterEach(async function () {
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
-  });
-
-  it("Auto discovery", async function () {
-    // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
-    // but not with locally run nwaku nodes
-    if (process.env.CI) {
-      this.skip();
-    }
-
-    this.timeout(50_000);
-
-    waku = await createLightNode({
-      libp2p: {
-        peerDiscovery: [
-          bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
-          wakuPeerExchangeDiscovery(),
-        ],
-      },
+    afterEach(async function () {
+      await waku?.stop();
     });
 
-    await waku.start();
+    it("connection with fleet nodes", async function () {
+      // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
+      // but not with locally run nwaku nodes
+      if (process.env.CI) {
+        this.skip();
+      }
 
-    const foundPxPeer = await new Promise<boolean>((resolve) => {
-      const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
-      waku.libp2p.addEventListener("peer:discovery", (evt) => {
-        const { multiaddrs } = evt.detail;
-        multiaddrs.forEach((ma) => {
-          const isBootstrapNode = testNodes.find((n) => n === ma.toString());
-          if (!isBootstrapNode) {
-            resolve(true);
-          }
+      this.timeout(50_000);
+
+      waku = await createLightNode({
+        libp2p: {
+          peerDiscovery: [
+            bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
+            wakuPeerExchangeDiscovery(),
+          ],
+        },
+      });
+
+      await waku.start();
+
+      const foundPxPeer = await new Promise<boolean>((resolve) => {
+        const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
+        waku.libp2p.addEventListener("peer:discovery", (evt) => {
+          const { multiaddrs } = evt.detail;
+          multiaddrs.forEach((ma) => {
+            const isBootstrapNode = testNodes.find((n) => n === ma.toString());
+            if (!isBootstrapNode) {
+              resolve(true);
+            }
+          });
         });
       });
-    });
 
-    expect(foundPxPeer).to.be.true;
+      expect(foundPxPeer).to.be.true;
+    });
   });
 
-  describe("Locally run nodes", () => {
+  describe("Locally Run Nodes", () => {
     let waku: LightNode;
     let nwaku1: NimGoNode;
     let nwaku2: NimGoNode;
@@ -74,9 +76,10 @@ describe("Peer Exchange", () => {
     });
 
     afterEach(async function () {
-      !!nwaku1 && nwaku1.stop();
-      !!nwaku2 && nwaku2.stop();
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+      this.timeout(10_000);
+      await nwaku1?.stop();
+      await nwaku2?.stop();
+      await waku?.stop();
     });
 
     it("nwaku interop", async function () {
@@ -148,7 +151,7 @@ describe("Peer Exchange", () => {
     });
   });
 
-  describe("Compliance Test", async function () {
+  describe("Compliance Test", function () {
     this.timeout(55_000);
 
     let waku: LightNode;
@@ -203,9 +206,9 @@ describe("Peer Exchange", () => {
         return new PeerExchangeDiscovery(components);
       },
       teardown: async () => {
-        !!nwaku1 && (await nwaku1.stop());
-        !!nwaku2 && (await nwaku2.stop());
-        !!waku && (await waku.stop());
+        await nwaku1?.stop();
+        await nwaku2?.stop();
+        await waku?.stop();
       },
     });
   });
@@ -225,9 +228,9 @@ describe("Peer Exchange", () => {
     });
 
     afterEach(async function () {
-      !!nwaku1 && nwaku1.stop();
-      !!nwaku2 && nwaku2.stop();
-      !!nwaku3 && nwaku3.stop();
+      await nwaku1?.stop();
+      await nwaku2?.stop();
+      await nwaku3?.stop();
       !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
 
       attemptDialSpy && attemptDialSpy.restore();
@@ -282,30 +285,29 @@ describe("Peer Exchange", () => {
       );
 
       await new Promise<void>((resolve) => {
-        waku.libp2p.peerStore.addEventListener(
-          "change:protocols",
-          async (evt) => {
-            if (evt.detail.protocols.includes(PeerExchangeCodec)) {
-              resolve();
-            }
+        waku.libp2p.peerStore.addEventListener("change:protocols", (evt) => {
+          if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+            resolve();
           }
-        );
+        });
       });
 
       const pxPeersDiscovered = new Set<PeerId>();
 
       await new Promise<void>((resolve) => {
-        waku.libp2p.addEventListener("peer:discovery", async (evt) => {
-          const peerId = evt.detail.id;
-          const tags = (await waku.libp2p.peerStore.getTags(peerId)).map(
-            (t) => t.name
-          );
-          if (tags.includes(Tags.PEER_EXCHANGE)) {
-            pxPeersDiscovered.add(peerId);
-            if (pxPeersDiscovered.size === 2) {
-              resolve();
+        waku.libp2p.addEventListener("peer:discovery", (evt) => {
+          void (async () => {
+            const peerId = evt.detail.id;
+            const tags = (await waku.libp2p.peerStore.getTags(peerId)).map(
+              (t) => t.name
+            );
+            if (tags.includes(Tags.PEER_EXCHANGE)) {
+              pxPeersDiscovered.add(peerId);
+              if (pxPeersDiscovered.size === 2) {
+                resolve();
+              }
             }
-          }
+          })();
         });
       });
 
@@ -365,17 +367,19 @@ describe("Peer Exchange", () => {
       const pxPeersDiscovered = new Set<PeerId>();
 
       await new Promise<void>((resolve) => {
-        waku.libp2p.addEventListener("peer:discovery", async (evt) => {
-          const peerId = evt.detail.id;
-          const tags = (await waku.libp2p.peerStore.getTags(peerId)).map(
-            (t) => t.name
-          );
-          if (tags.includes(Tags.PEER_EXCHANGE)) {
-            pxPeersDiscovered.add(peerId);
-            if (pxPeersDiscovered.size === 1) {
-              resolve();
+        waku.libp2p.addEventListener("peer:discovery", (evt) => {
+          void (async () => {
+            const peerId = evt.detail.id;
+            const tags = (await waku.libp2p.peerStore.getTags(peerId)).map(
+              (t) => t.name
+            );
+            if (tags.includes(Tags.PEER_EXCHANGE)) {
+              pxPeersDiscovered.add(peerId);
+              if (pxPeersDiscovered.size === 1) {
+                resolve();
+              }
             }
-          }
+          })();
         });
       });
 
