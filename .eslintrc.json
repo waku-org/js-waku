@@ -49,7 +49,10 @@
       "error",
       { "ignoreDeclarationSort": true, "ignoreCase": true }
     ],
-    "no-console": "error"
+    "no-console": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/await-thenable": "error",
+    "@typescript-eslint/no-misused-promises": "error"
   },
   "overrides": [
     {

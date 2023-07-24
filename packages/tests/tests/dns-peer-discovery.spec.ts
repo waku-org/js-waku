@@ -17,7 +17,7 @@ import { delay } from "../src/delay.js";
 
 const maxQuantity = 3;
 
-describe("DNS Discovery: Compliance Test", async function () {
+describe("DNS Discovery: Compliance Test", function () {
   this.timeout(10000);
   tests({
     async setup() {
