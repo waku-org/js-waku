@@ -3,9 +3,9 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerStore } from "@libp2p/interface-peer-store";
 
 import { IEnr } from "./enr.js";
-import { PointToPointProtocol } from "./protocols.js";
+import { IBaseProtocol } from "./protocols.js";
 
-export interface IPeerExchange extends PointToPointProtocol {
+export interface IPeerExchange extends IBaseProtocol {
   query(params: PeerExchangeQueryParams): Promise<PeerInfo[] | undefined>;
 }
 

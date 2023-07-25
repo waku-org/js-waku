@@ -1,5 +1,5 @@
-import type { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
-import type { IRelay, PointToPointProtocol, Waku } from "@waku/interfaces";
+import type { IdentifyResult } from "@libp2p/interface-libp2p";
+import type { IBaseProtocol, IRelay, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 import { pEvent } from "p-event";
@@ -74,9 +74,7 @@ export async function waitForRemotePeer(
 /**
  * Wait for a peer with the given protocol to be connected.
  */
-async function waitForConnectedPeer(
-  protocol: PointToPointProtocol
-): Promise<void> {
+async function waitForConnectedPeer(protocol: IBaseProtocol): Promise<void> {
   const codec = protocol.multicodec;
   const peers = await protocol.peers();
 
@@ -86,14 +84,14 @@ async function waitForConnectedPeer(
   }
 
   await new Promise<void>((resolve) => {
-    const cb = (evt: CustomEvent<PeerProtocolsChangeData>): void => {
-      if (evt.detail.protocols.includes(codec)) {
+    const cb = (evt: CustomEvent<IdentifyResult>): void => {
+      if (evt.detail?.protocols?.includes(codec)) {
         log("Resolving for", codec, evt.detail.protocols);
-        protocol.peerStore.removeEventListener("change:protocols", cb);
+        protocol.removeLibp2pEventListener("peer:identify", cb);
         resolve();
       }
     };
-    protocol.peerStore.addEventListener("change:protocols", cb);
+    protocol.addLibp2pEventListener("peer:identify", cb);
   });
 }
 

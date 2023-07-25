@@ -68,7 +68,7 @@ describe("ConnectionManager", function () {
   describe("dialPeer method", function () {
     beforeEach(function () {
       getConnectionsStub = sinon.stub(
-        (connectionManager as any).libp2pComponents,
+        (connectionManager as any).libp2p,
         "getConnections"
       );
       getTagNamesForPeerStub = sinon.stub(

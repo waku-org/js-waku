@@ -1,5 +1,4 @@
 import { Stream } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
@@ -12,6 +11,7 @@ import type {
   IFilterV2,
   IProtoMessage,
   IReceiver,
+  Libp2p,
   PeerIdStr,
   ProtocolCreateOptions,
   ProtocolOptions,
@@ -245,18 +245,12 @@ class FilterV2 extends BaseProtocol implements IReceiver {
     return subscription;
   }
 
-  constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(
-      FilterV2Codecs.SUBSCRIBE,
-      libp2p.peerStore,
-      libp2p.getConnections.bind(libp2p)
-    );
+  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
+    super(FilterV2Codecs.SUBSCRIBE, libp2p.components);
 
-    this.libp2p
-      .handle(FilterV2Codecs.PUSH, this.onRequest.bind(this))
-      .catch((e) => {
-        log("Failed to register ", FilterV2Codecs.PUSH, e);
-      });
+    libp2p.handle(FilterV2Codecs.PUSH, this.onRequest.bind(this)).catch((e) => {
+      log("Failed to register ", FilterV2Codecs.PUSH, e);
+    });
 
     this.activeSubscriptions = new Map();
 

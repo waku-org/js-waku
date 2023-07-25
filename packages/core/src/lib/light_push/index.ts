@@ -1,9 +1,9 @@
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import {
   IEncoder,
   ILightPush,
   IMessage,
+  Libp2p,
   ProtocolCreateOptions,
   ProtocolOptions,
   SendError,
@@ -33,8 +33,8 @@ export { PushResponse };
 class LightPush extends BaseProtocol implements ILightPush {
   options: ProtocolCreateOptions;
 
-  constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(LightPushCodec, libp2p.peerStore, libp2p.getConnections.bind(libp2p));
+  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
+    super(LightPushCodec, libp2p.components);
     this.options = options || {};
   }
 

@@ -1,3 +1,4 @@
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import type { Libp2pOptions } from "libp2p";
@@ -11,10 +12,12 @@ export enum Protocols {
   Filter = "filter",
 }
 
-export interface PointToPointProtocol {
+export interface IBaseProtocol {
   multicodec: string;
   peerStore: PeerStore;
   peers: () => Promise<Peer[]>;
+  addLibp2pEventListener: Libp2p["addEventListener"];
+  removeLibp2pEventListener: Libp2p["removeEventListener"];
 }
 
 export type ProtocolCreateOptions = {

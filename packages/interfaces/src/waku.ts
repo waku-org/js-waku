@@ -1,9 +1,9 @@
 import type { Stream } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
 
 import type { IFilter, IFilterV2 } from "./filter.js";
+import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
 import { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
