@@ -26,38 +26,39 @@ describe("Peer Exchange", () => {
       await waku?.stop();
     });
 
-    it("connection with fleet nodes", async function () {
-      // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
-      // but not with locally run nwaku nodes
-      if (process.env.CI) {
-        this.skip();
-      }
+    const testCases: [Fleet, number][] = [
+      [Fleet.Test, 2],
+      [Fleet.Prod, 3],
+    ];
 
-      this.timeout(50_000);
+    testCases.map(([name, nodes]) => {
+      it(`connection with ${name} fleet nodes`, async function () {
+        this.timeout(50_000);
 
-      waku = await createLightNode({
-        libp2p: {
-          peerDiscovery: [
-            bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
-            wakuPeerExchangeDiscovery(),
-          ],
-        },
-      });
-
-      await waku.start();
-
-      const foundPxPeer = await new Promise<boolean>((resolve) => {
-        const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
-        waku.libp2p.addEventListener("peer:discovery", (evt) => {
-          const peerId = evt.detail.id.toString();
-          const isBootstrapNode = testNodes.find((n) => n.includes(peerId));
-          if (!isBootstrapNode) {
-            resolve(true);
-          }
+        waku = await createLightNode({
+          libp2p: {
+            peerDiscovery: [
+              bootstrap({ list: getPredefinedBootstrapNodes(name, nodes) }),
+              wakuPeerExchangeDiscovery(),
+            ],
+          },
         });
-      });
 
-      expect(foundPxPeer).to.be.true;
+        await waku.start();
+
+        const foundPxPeer = await new Promise<boolean>((resolve) => {
+          const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
+          waku.libp2p.addEventListener("peer:discovery", (evt) => {
+            const peerId = evt.detail.id.toString();
+            const isBootstrapNode = testNodes.find((n) => n.includes(peerId));
+            if (!isBootstrapNode) {
+              resolve(true);
+            }
+          });
+        });
+
+        expect(foundPxPeer).to.be.true;
+      });
     });
   });
 
