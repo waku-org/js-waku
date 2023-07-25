@@ -69,7 +69,7 @@ describe("Peer Exchange", () => {
     let nwaku1: NimGoNode;
     let nwaku2: NimGoNode;
 
-    beforeEach(async function () {
+    beforeEach(function () {
       nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
       nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     });
