@@ -11,11 +11,8 @@ export * as message from "./lib/message/index.js";
 export * as waku from "./lib/waku.js";
 export { WakuNode, WakuOptions } from "./lib/waku.js";
 
-export * as waku_filter_v1 from "./lib/filter/v1/index.js";
-export { wakuFilter as wakuFilterV1 } from "./lib/filter/v1/index.js";
-
-export * as waku_filter_v2 from "./lib/filter/v2/index.js";
-export { wakuFilterV2 } from "./lib/filter/v2/index.js";
+export * as waku_filter from "./lib/filter/index.js";
+export { wakuFilterV2 as wakuFilter } from "./lib/filter/index.js";
 
 export * as waku_light_push from "./lib/light_push/index.js";
 export { wakuLightPush, LightPushCodec } from "./lib/light_push/index.js";
