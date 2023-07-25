@@ -27,18 +27,19 @@ describe("Peer Exchange", () => {
     });
 
     const testCases: [Fleet, number][] = [
-      [Fleet.Test, 2],
+      [Fleet.Test, 2], // on test fleet there are only 3 peers
       [Fleet.Prod, 3],
     ];
 
     testCases.map(([name, nodes]) => {
-      it(`connection with ${name} fleet nodes`, async function () {
+      it(`should discover peers other than used for bootstrapping on ${name} fleet`, async function () {
         this.timeout(50_000);
+        const predefinedNodes = getPredefinedBootstrapNodes(name, nodes);
 
         waku = await createLightNode({
           libp2p: {
             peerDiscovery: [
-              bootstrap({ list: getPredefinedBootstrapNodes(name, nodes) }),
+              bootstrap({ list: predefinedNodes }),
               wakuPeerExchangeDiscovery(),
             ],
           },
@@ -47,10 +48,11 @@ describe("Peer Exchange", () => {
         await waku.start();
 
         const foundPxPeer = await new Promise<boolean>((resolve) => {
-          const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
           waku.libp2p.addEventListener("peer:discovery", (evt) => {
             const peerId = evt.detail.id.toString();
-            const isBootstrapNode = testNodes.find((n) => n.includes(peerId));
+            const isBootstrapNode = predefinedNodes.find((n) =>
+              n.includes(peerId)
+            );
             if (!isBootstrapNode) {
               resolve(true);
             }
