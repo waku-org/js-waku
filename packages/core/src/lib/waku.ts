@@ -1,5 +1,4 @@
 import type { Stream } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import { isPeerId, PeerId } from "@libp2p/interface-peer-id";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import type {
@@ -8,6 +7,7 @@ import type {
   ILightPush,
   IRelay,
   IStore,
+  Libp2p,
   Waku,
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";

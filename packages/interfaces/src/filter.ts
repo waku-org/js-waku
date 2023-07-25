@@ -2,14 +2,14 @@ import type { PeerId } from "@libp2p/interface-peer-id";
 
 import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { ContentTopic } from "./misc.js";
-import type { Callback, PointToPointProtocol } from "./protocols.js";
+import type { Callback, IBaseProtocol } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
 
 export type ContentFilter = {
   contentTopic: string;
 };
 
-export type IFilter = IReceiver & PointToPointProtocol;
+export type IFilter = IReceiver & IBaseProtocol;
 
 export interface IFilterV2Subscription {
   subscribe<T extends IDecodedMessage>(
@@ -25,7 +25,7 @@ export interface IFilterV2Subscription {
 }
 
 export type IFilterV2 = IReceiver &
-  PointToPointProtocol & {
+  IBaseProtocol & {
     createSubscription(
       pubSubTopic?: string,
       peerId?: PeerId

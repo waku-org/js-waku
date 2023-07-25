@@ -90,7 +90,8 @@ describe("Wait for remote peer", function () {
             done();
           }
         );
-      });
+      })
+      .catch((e) => done(e));
   });
 
   it("Store - dialed first", async function () {

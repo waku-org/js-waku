@@ -63,7 +63,7 @@ describe("Waku Dial [node only]", function () {
     let nwaku: NimGoNode;
 
     afterEach(async function () {
-      !!nwaku && nwaku.stop();
+      !!nwaku && (await nwaku.stop());
       !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
     });
 
@@ -83,7 +83,7 @@ describe("Waku Dial [node only]", function () {
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
         waku.libp2p.addEventListener("peer:connect", (evt) => {
-          resolve(evt.detail.remotePeer);
+          resolve(evt.detail);
         });
       });
 
@@ -108,7 +108,7 @@ describe("Waku Dial [node only]", function () {
 
       const connectedPeerID: PeerId = await new Promise((resolve) => {
         waku.libp2p.addEventListener("peer:connect", (evt) => {
-          resolve(evt.detail.remotePeer);
+          resolve(evt.detail);
         });
       });
 
@@ -139,10 +139,9 @@ describe("Decryption Keys", () => {
       }).then((waku) => waku.start().then(() => waku)),
     ]);
 
-    await waku1.libp2p.peerStore.addressBook.set(
-      waku2.libp2p.peerId,
-      waku2.libp2p.getMultiaddrs()
-    );
+    await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+      multiaddrs: waku2.libp2p.getMultiaddrs(),
+    });
     await waku1.dial(waku2.libp2p.peerId);
 
     await Promise.all([
@@ -175,7 +174,7 @@ describe("Decryption Keys", () => {
 
     const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
-        waku2.relay.subscribe([decoder], resolve);
+        void waku2.relay.subscribe([decoder], resolve);
       }
     );
 
@@ -214,22 +213,21 @@ describe("User Agent", () => {
       }).then((waku) => waku.start().then(() => waku)),
     ]);
 
-    await waku1.libp2p.peerStore.addressBook.set(
-      waku2.libp2p.peerId,
-      waku2.libp2p.getMultiaddrs()
-    );
+    await waku1.libp2p.peerStore.save(waku2.libp2p.peerId, {
+      multiaddrs: waku2.libp2p.getMultiaddrs(),
+    });
     await waku1.dial(waku2.libp2p.peerId);
     await waitForRemotePeer(waku1);
 
     const [waku1PeerInfo, waku2PeerInfo] = await Promise.all([
-      waku2.libp2p.peerStore.metadataBook.get(waku1.libp2p.peerId),
-      waku1.libp2p.peerStore.metadataBook.get(waku2.libp2p.peerId),
+      waku2.libp2p.peerStore.get(waku1.libp2p.peerId),
+      waku1.libp2p.peerStore.get(waku2.libp2p.peerId),
     ]);
 
-    expect(bytesToUtf8(waku1PeerInfo.get("AgentVersion")!)).to.eq(
+    expect(bytesToUtf8(waku1PeerInfo.metadata.get("AgentVersion")!)).to.eq(
       waku1UserAgent
     );
-    expect(bytesToUtf8(waku2PeerInfo.get("AgentVersion")!)).to.eq(
+    expect(bytesToUtf8(waku2PeerInfo.metadata.get("AgentVersion")!)).to.eq(
       DefaultUserAgent
     );
   });

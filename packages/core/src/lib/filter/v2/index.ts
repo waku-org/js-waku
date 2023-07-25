@@ -1,5 +1,4 @@
 import { Stream } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
@@ -12,6 +11,7 @@ import type {
   IFilterV2,
   IProtoMessage,
   IReceiver,
+  Libp2p,
   PeerIdStr,
   ProtocolCreateOptions,
   ProtocolOptions,
@@ -245,18 +245,12 @@ class FilterV2 extends BaseProtocol implements IReceiver {
     return subscription;
   }
 
-  constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(
-      FilterV2Codecs.SUBSCRIBE,
-      libp2p.peerStore,
-      libp2p.getConnections.bind(libp2p)
-    );
+  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
+    super(FilterV2Codecs.SUBSCRIBE, libp2p.components);
 
-    this.libp2p
-      .handle(FilterV2Codecs.PUSH, this.onRequest.bind(this))
-      .catch((e) => {
-        log("Failed to register ", FilterV2Codecs.PUSH, e);
-      });
+    libp2p.handle(FilterV2Codecs.PUSH, this.onRequest.bind(this)).catch((e) => {
+      log("Failed to register ", FilterV2Codecs.PUSH, e);
+    });
 
     this.activeSubscriptions = new Map();
 
@@ -312,7 +306,7 @@ class FilterV2 extends BaseProtocol implements IReceiver {
   ): Promise<Unsubscribe> {
     const subscription = await this.createSubscription(undefined, opts?.peerId);
 
-    subscription.subscribe(decoders, callback);
+    await subscription.subscribe(decoders, callback);
 
     const contentTopics = Array.from(
       groupByContentTopic(
@@ -394,20 +388,19 @@ async function pushMessage<T extends IDecodedMessage>(
   // We don't want to wait for decoding failure, just attempt to decode
   // all messages and do the call back on the one that works
   // noinspection ES6MissingAwait
-  decoders.forEach(async (dec: IDecoder<T>) => {
-    if (didDecodeMsg) return;
+  for (const dec of decoders) {
+    if (didDecodeMsg) break;
     const decoded = await dec.fromProtoObj(
       pubSubTopic,
       message as IProtoMessage
     );
-    // const decoded = await dec.fromProtoObj(pubSubTopic, message);
     if (!decoded) {
       log("Not able to decode message");
-      return;
+      continue;
     }
     // This is just to prevent more decoding attempt
     // TODO: Could be better if we were to abort promises
     didDecodeMsg = Boolean(decoded);
     await callback(decoded);
-  });
+  }
 }

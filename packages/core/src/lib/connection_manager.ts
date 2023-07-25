@@ -1,9 +1,7 @@
-import type { Connection } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import type { ConnectionManagerOptions, IRelay } from "@waku/interfaces";
-import { Tags } from "@waku/interfaces";
+import { Libp2p, Tags } from "@waku/interfaces";
 import debug from "debug";
 
 import { KeepAliveManager, KeepAliveOptions } from "./keep_alive_manager.js";
@@ -18,7 +16,7 @@ export class ConnectionManager {
   private static instances = new Map<string, ConnectionManager>();
   private keepAliveManager: KeepAliveManager;
   private options: ConnectionManagerOptions;
-  private libp2pComponents: Libp2p;
+  private libp2p: Libp2p;
   private dialAttemptsForPeer: Map<string, number> = new Map();
   private dialErrorsForPeer: Map<string, any> = new Map();
 
@@ -47,12 +45,12 @@ export class ConnectionManager {
   }
 
   private constructor(
-    libp2pComponents: Libp2p,
+    libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
     options?: Partial<ConnectionManagerOptions>
   ) {
-    this.libp2pComponents = libp2pComponents;
+    this.libp2p = libp2p;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
@@ -69,17 +67,17 @@ export class ConnectionManager {
     // libp2p emits `peer:discovery` events during its initialization
     // which means that before the ConnectionManager is initialized, some peers may have been discovered
     // we will dial the peers in peerStore ONCE before we start to listen to the `peer:discovery` events within the ConnectionManager
-    this.dialPeerStorePeers();
+    this.dialPeerStorePeers().catch((error) =>
+      log(`Unexpected error while dialing peer store peers`, error)
+    );
   }
 
   private async dialPeerStorePeers(): Promise<void> {
-    const peerInfos = await this.libp2pComponents.peerStore.all();
+    const peerInfos = await this.libp2p.peerStore.all();
     const dialPromises = [];
     for (const peerInfo of peerInfos) {
       if (
-        this.libp2pComponents
-          .getConnections()
-          .find((c) => c.remotePeer === peerInfo.id)
+        this.libp2p.getConnections().find((c) => c.remotePeer === peerInfo.id)
       )
         continue;
 
@@ -101,15 +99,15 @@ export class ConnectionManager {
 
   stop(): void {
     this.keepAliveManager.stopAll();
-    this.libp2pComponents.removeEventListener(
+    this.libp2p.removeEventListener(
       "peer:connect",
       this.onEventHandlers["peer:connect"]
     );
-    this.libp2pComponents.removeEventListener(
+    this.libp2p.removeEventListener(
       "peer:disconnect",
       this.onEventHandlers["peer:disconnect"]
     );
-    this.libp2pComponents.removeEventListener(
+    this.libp2p.removeEventListener(
       "peer:discovery",
       this.onEventHandlers["peer:discovery"]
     );
@@ -121,12 +119,12 @@ export class ConnectionManager {
     while (dialAttempt <= this.options.maxDialAttemptsForPeer) {
       try {
         log(`Dialing peer ${peerId.toString()}`);
-        await this.libp2pComponents.dial(peerId);
+        await this.libp2p.dial(peerId);
 
         const tags = await this.getTagNamesForPeer(peerId);
         // add tag to connection describing discovery mechanism
         // don't add duplicate tags
-        this.libp2pComponents
+        this.libp2p
           .getConnections(peerId)
           .forEach(
             (conn) => (conn.tags = Array.from(new Set([...conn.tags, ...tags])))
@@ -157,7 +155,7 @@ export class ConnectionManager {
         }`
       );
       this.dialErrorsForPeer.delete(peerId.toString());
-      return await this.libp2pComponents.peerStore.delete(peerId);
+      return await this.libp2p.peerStore.delete(peerId);
     } catch (error) {
       throw `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`;
     } finally {
@@ -168,7 +166,7 @@ export class ConnectionManager {
 
   async dropConnection(peerId: PeerId): Promise<void> {
     try {
-      await this.libp2pComponents.hangUp(peerId);
+      await this.libp2p.hangUp(peerId);
       log(`Dropped connection with peer ${peerId.toString()}`);
     } catch (error) {
       log(
@@ -177,7 +175,7 @@ export class ConnectionManager {
     }
   }
 
-  private async processDialQueue(): Promise<void> {
+  private processDialQueue(): void {
     if (
       this.pendingPeerDialQueue.length > 0 &&
       this.currentActiveDialCount < this.options.maxParallelDials
@@ -191,14 +189,14 @@ export class ConnectionManager {
   }
 
   private startPeerDiscoveryListener(): void {
-    this.libp2pComponents.peerStore.addEventListener(
-      "peer",
+    this.libp2p.addEventListener(
+      "peer:discovery",
       this.onEventHandlers["peer:discovery"]
     );
   }
 
   private startPeerConnectionListener(): void {
-    this.libp2pComponents.addEventListener(
+    this.libp2p.addEventListener(
       "peer:connect",
       this.onEventHandlers["peer:connect"]
     );
@@ -217,7 +215,7 @@ export class ConnectionManager {
      * >this event will **only** be triggered when the last connection is closed.
      * @see https://github.com/libp2p/js-libp2p/blob/bad9e8c0ff58d60a78314077720c82ae331cc55b/doc/API.md?plain=1#L2100
      */
-    this.libp2pComponents.addEventListener(
+    this.libp2p.addEventListener(
       "peer:disconnect",
       this.onEventHandlers["peer:disconnect"]
     );
@@ -237,41 +235,44 @@ export class ConnectionManager {
   }
 
   private onEventHandlers = {
-    "peer:discovery": async (evt: CustomEvent<PeerInfo>): Promise<void> => {
-      const { id: peerId } = evt.detail;
+    "peer:discovery": (evt: CustomEvent<PeerInfo>): void => {
+      void (async () => {
+        const { id: peerId } = evt.detail;
 
-      this.attemptDial(peerId).catch((err) =>
-        log(`Error dialing peer ${peerId.toString()} : ${err}`)
-      );
-    },
-    "peer:connect": async (evt: CustomEvent<Connection>): Promise<void> => {
-      const { remotePeer: peerId } = evt.detail;
-
-      this.keepAliveManager.start(
-        peerId,
-        this.libp2pComponents.ping.bind(this)
-      );
-
-      const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
-        Tags.BOOTSTRAP
-      );
-
-      if (isBootstrap) {
-        const bootstrapConnections = this.libp2pComponents
-          .getConnections()
-          .filter((conn) => conn.tags.includes(Tags.BOOTSTRAP));
-
-        // If we have too many bootstrap connections, drop one
-        if (
-          bootstrapConnections.length > this.options.maxBootstrapPeersAllowed
-        ) {
-          await this.dropConnection(peerId);
+        try {
+          await this.attemptDial(peerId);
+        } catch (error) {
+          log(`Error dialing peer ${peerId.toString()} : ${error}`);
         }
-      }
+      })();
+    },
+    "peer:connect": (evt: CustomEvent<PeerId>): void => {
+      void (async () => {
+        const peerId = evt.detail;
+
+        this.keepAliveManager.start(peerId, this.libp2p.services.ping);
+
+        const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
+          Tags.BOOTSTRAP
+        );
+
+        if (isBootstrap) {
+          const bootstrapConnections = this.libp2p
+            .getConnections()
+            .filter((conn) => conn.tags.includes(Tags.BOOTSTRAP));
+
+          // If we have too many bootstrap connections, drop one
+          if (
+            bootstrapConnections.length > this.options.maxBootstrapPeersAllowed
+          ) {
+            await this.dropConnection(peerId);
+          }
+        }
+      })();
     },
     "peer:disconnect": () => {
-      return (evt: CustomEvent<Connection>): void => {
-        this.keepAliveManager.stop(evt.detail.remotePeer);
+      return (evt: CustomEvent<PeerId>): void => {
+        this.keepAliveManager.stop(evt.detail);
       };
     },
   };
@@ -282,19 +283,19 @@ export class ConnectionManager {
    * 2. If the peer is not a bootstrap peer
    */
   private async shouldDialPeer(peerId: PeerId): Promise<boolean> {
-    const isConnected = this.libp2pComponents.getConnections(peerId).length > 0;
+    const isConnected = this.libp2p.getConnections(peerId).length > 0;
 
     if (isConnected) return false;
 
-    const isBootstrap = (await this.getTagNamesForPeer(peerId)).some(
-      (tagName) => tagName === Tags.BOOTSTRAP
-    );
+    const tagNames = await this.getTagNamesForPeer(peerId);
+
+    const isBootstrap = tagNames.some((tagName) => tagName === Tags.BOOTSTRAP);
 
     if (isBootstrap) {
-      const currentBootstrapConnections = this.libp2pComponents
+      const currentBootstrapConnections = this.libp2p
         .getConnections()
         .filter((conn) => {
-          conn.tags.find((name) => name === Tags.BOOTSTRAP);
+          return conn.tags.find((name) => name === Tags.BOOTSTRAP);
         }).length;
       if (currentBootstrapConnections < this.options.maxBootstrapPeersAllowed)
         return true;
@@ -309,9 +310,12 @@ export class ConnectionManager {
    * Fetches the tag names for a given peer
    */
   private async getTagNamesForPeer(peerId: PeerId): Promise<string[]> {
-    const tags = (await this.libp2pComponents.peerStore.getTags(peerId)).map(
-      (tag) => tag.name
-    );
-    return tags;
+    try {
+      const peer = await this.libp2p.peerStore.get(peerId);
+      return Array.from(peer.tags.keys());
+    } catch (error) {
+      log(`Failed to get peer ${peerId}, error: ${error}`);
+      return [];
+    }
   }
 }

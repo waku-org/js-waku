@@ -1,6 +1,5 @@
-import { Components } from "@libp2p/components";
 import tests from "@libp2p/interface-peer-discovery-compliance-tests";
-import { Peer } from "@libp2p/interface-peer-store";
+import { EventEmitter } from "@libp2p/interfaces/events";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { PersistentPeerStore } from "@libp2p/peer-store";
 import {
@@ -9,25 +8,28 @@ import {
   PeerDiscoveryDns,
   wakuDnsDiscovery,
 } from "@waku/dns-discovery";
+import { Libp2pComponents } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
-import { MemoryDatastore } from "datastore-core";
+import { MemoryDatastore } from "datastore-core/memory";
+import { Datastore } from "interface-datastore";
 
 import { delay } from "../src/delay.js";
 
 const maxQuantity = 3;
 
-describe("DNS Discovery: Compliance Test", async function () {
+describe("DNS Discovery: Compliance Test", function () {
   this.timeout(10000);
   tests({
     async setup() {
       // create libp2p mock peerStore
-      const components = new Components({
+      const components = {
         peerStore: new PersistentPeerStore({
+          events: new EventEmitter(),
           peerId: await createSecp256k1PeerId(),
-          datastore: new MemoryDatastore(),
+          datastore: new MemoryDatastore() as any as Datastore,
         }),
-      });
+      } as unknown as Libp2pComponents;
 
       return new PeerDiscoveryDns(components, {
         enrUrls: [enrTree["PROD"]],
@@ -69,22 +71,16 @@ describe("DNS Node Discovery [live data]", function () {
     await waku.start();
 
     const allPeers = await waku.libp2p.peerStore.all();
-
-    const dnsPeers: Peer[] = [];
+    let dnsPeers = 0;
 
     for (const peer of allPeers) {
-      const tags = await waku.libp2p.peerStore.getTags(peer.id);
-      let hasTag = false;
-      for (const tag of tags) {
-        hasTag = tag.name === "bootstrap";
-        if (hasTag) {
-          dnsPeers.push(peer);
-          break;
-        }
+      const hasTag = peer.tags.has("bootstrap");
+      if (hasTag) {
+        dnsPeers += 1;
       }
       expect(hasTag).to.be.eq(true);
     }
-    expect(dnsPeers.length).to.eq(maxQuantity);
+    expect(dnsPeers).to.eq(maxQuantity);
   });
 
   it(`should retrieve ${maxQuantity} multiaddrs for test.waku.nodes.status.im`, async function () {

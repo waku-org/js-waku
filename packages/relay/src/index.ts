@@ -6,7 +6,6 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import { sha256 } from "@noble/hashes/sha256";
 import { DefaultPubSubTopic } from "@waku/core";
@@ -19,6 +18,7 @@ import {
   IEncoder,
   IMessage,
   IRelay,
+  Libp2p,
   ProtocolCreateOptions,
   ProtocolOptions,
   SendError,
@@ -59,13 +59,13 @@ class Relay implements IRelay {
   private observers: Map<ContentTopic, Set<unknown>>;
 
   constructor(libp2p: Libp2p, options?: Partial<RelayCreateOptions>) {
-    if (!this.isRelayPubSub(libp2p.pubsub)) {
+    if (!this.isRelayPubSub(libp2p.services.pubsub)) {
       throw Error(
         `Failed to initialize Relay. libp2p.pubsub does not support ${Relay.multicodec}`
       );
     }
 
-    this.gossipSub = libp2p.pubsub as GossipSub;
+    this.gossipSub = libp2p.services.pubsub as GossipSub;
     this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
 
     if (this.gossipSub.isStarted()) {
@@ -193,18 +193,26 @@ class Relay implements IRelay {
       return;
     }
     await Promise.all(
-      Array.from(observers).map(async ({ decoder, callback }) => {
-        const protoMsg = await decoder.fromWireToProtoObj(bytes);
-        if (!protoMsg) {
-          log("Internal error: message previously decoded failed on 2nd pass.");
-          return;
-        }
-        const msg = await decoder.fromProtoObj(pubSubTopic, protoMsg);
-        if (msg) {
-          callback(msg);
-        } else {
-          log("Failed to decode messages on", topicOnlyMsg.contentTopic);
-        }
+      Array.from(observers).map(({ decoder, callback }) => {
+        return (async () => {
+          try {
+            const protoMsg = await decoder.fromWireToProtoObj(bytes);
+            if (!protoMsg) {
+              log(
+                "Internal error: message previously decoded failed on 2nd pass."
+              );
+              return;
+            }
+            const msg = await decoder.fromProtoObj(pubSubTopic, protoMsg);
+            if (msg) {
+              await callback(msg);
+            } else {
+              log("Failed to decode messages on", topicOnlyMsg.contentTopic);
+            }
+          } catch (error) {
+            log("Error while decoding message:", error);
+          }
+        })();
       })
     );
   }
@@ -217,7 +225,7 @@ class Relay implements IRelay {
   private gossipSubSubscribe(pubSubTopic: string): void {
     this.gossipSub.addEventListener(
       "gossipsub:message",
-      async (event: CustomEvent<GossipsubMessage>) => {
+      (event: CustomEvent<GossipsubMessage>) => {
         if (event.detail.msg.topic !== pubSubTopic) return;
         log(`Message received on ${pubSubTopic}`);
 
@@ -232,7 +240,7 @@ class Relay implements IRelay {
     this.gossipSub.subscribe(pubSubTopic);
   }
 
-  private isRelayPubSub(pubsub: PubSub): boolean {
+  private isRelayPubSub(pubsub: PubSub | undefined): boolean {
     return pubsub?.multicodecs?.includes(Relay.multicodec) || false;
   }
 }
