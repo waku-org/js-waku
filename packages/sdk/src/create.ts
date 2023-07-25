@@ -6,6 +6,7 @@ import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
+  DefaultPubSubTopic,
   DefaultUserAgent,
   wakuFilterV1,
   wakuFilterV2,
@@ -74,7 +75,7 @@ export async function createLightNode(
   }
 
   return new WakuNode(
-    options?.pubSubTopic,
+    options?.pubSubTopics ?? [DefaultPubSubTopic],
     options ?? {},
     libp2p,
     store,
@@ -106,7 +107,7 @@ export async function createRelayNode(
   const relay = wakuRelay(options);
 
   return new WakuNode(
-    options?.pubSubTopic,
+    options?.pubSubTopics ?? [DefaultPubSubTopic],
     options ?? {},
     libp2p,
     undefined,
@@ -161,7 +162,7 @@ export async function createFullNode(
   const relay = wakuRelay(options);
 
   return new WakuNode(
-    options?.pubSubTopic,
+    options?.pubSubTopics ?? [DefaultPubSubTopic],
     options ?? {},
     libp2p,
     store,

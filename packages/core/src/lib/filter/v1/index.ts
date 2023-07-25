@@ -71,7 +71,7 @@ class Filter extends BaseProtocol implements IFilter {
     opts?: ProtocolOptions
   ): Promise<UnsubscribeFunction> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+    const { pubSubTopics = [DefaultPubSubTopic] } = this.options;
 
     const contentTopics = Array.from(groupByContentTopic(decodersArray).keys());
 
@@ -79,7 +79,7 @@ class Filter extends BaseProtocol implements IFilter {
       contentTopic,
     }));
     const request = FilterRpc.createRequest(
-      pubSubTopic,
+      pubSubTopics,
       contentFilters,
       undefined,
       true

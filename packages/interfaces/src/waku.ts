@@ -11,8 +11,8 @@ import type { IRelay } from "./relay.js";
 import type { IStore } from "./store.js";
 
 export interface Waku {
-  pubsubTopic: PubSubTopic;
   libp2p: Libp2p;
+  pubsubTopics: PubSubTopic[];
   relay?: IRelay;
   store?: IStore;
   filter?: IFilter | IFilterV2;

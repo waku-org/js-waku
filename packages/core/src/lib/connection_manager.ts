@@ -13,6 +13,7 @@ import { getPubsubTopicsFromShardInfo } from "@waku/utils";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 import debug from "debug";
 
+import { DefaultPubSubTopic } from "./constants.js";
 import { KeepAliveManager, KeepAliveOptions } from "./keep_alive_manager.js";
 
 const log = debug("waku:connection-manager");
@@ -33,7 +34,7 @@ export class ConnectionManager {
   private pendingPeerDialQueue: Array<PeerId> = [];
 
   public static create(
-    pubsubTopic: PubSubTopic,
+    pubsubTopics: PubSubTopic[] = [DefaultPubSubTopic],
     peerId: string,
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
@@ -43,7 +44,7 @@ export class ConnectionManager {
     let instance = ConnectionManager.instances.get(peerId);
     if (!instance) {
       instance = new ConnectionManager(
-        pubsubTopic,
+        pubsubTopics,
         libp2p,
         keepAliveOptions,
         relay,
@@ -56,13 +57,13 @@ export class ConnectionManager {
   }
 
   private constructor(
-    public pubsubTopic: PubSubTopic,
+    public pubsubTopics: PubSubTopic[],
     libp2pComponents: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
     options?: Partial<ConnectionManagerOptions>
   ) {
-    this.pubsubTopic = pubsubTopic;
+    this.pubsubTopics = pubsubTopics;
     this.libp2pComponents = libp2pComponents;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
@@ -264,10 +265,17 @@ export class ConnectionManager {
           const shardInfo = JSON.parse(bytesToUtf8(rsOrRsv)) as ShardInfo;
           const serviceNodePubsubTopics =
             getPubsubTopicsFromShardInfo(shardInfo);
-          if (!serviceNodePubsubTopics.includes(this.pubsubTopic)) {
+          // check if we are subscribed to the same pubsub topic as the service node
+
+          if (
+            !serviceNodePubsubTopics.some((topic) =>
+              this.pubsubTopics.includes(topic)
+            )
+          ) {
             log(
-              `Ignoring dial attempt to service node with peer ID ${peerId.toString()}: not subscribed to the same pubsub topic as us - our pubsub topic: ${
-                this.pubsubTopic
+              `Ignoring dial attempt to service node with peer ID ${peerId.toString()}: does not share any pubsub topic as us: 
+              our pubsub topics: ${
+                this.pubsubTopics
               }, their pubsub topics: ${serviceNodePubsubTopics}`
             );
             return;

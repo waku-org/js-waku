@@ -15,7 +15,6 @@ import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 
 import { ConnectionManager } from "./connection_manager.js";
-import { DefaultPubSubTopic } from "./constants.js";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -46,7 +45,7 @@ export interface WakuOptions {
 }
 
 export class WakuNode implements Waku {
-  public pubsubTopic: PubSubTopic;
+  public pubsubTopics: PubSubTopic[];
   public libp2p: Libp2p;
   public relay?: IRelay;
   public store?: IStore;
@@ -55,7 +54,7 @@ export class WakuNode implements Waku {
   public connectionManager: ConnectionManager;
 
   constructor(
-    pubsubTopic: PubSubTopic = DefaultPubSubTopic,
+    pubsubTopics: PubSubTopic[],
     options: WakuOptions,
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
@@ -63,7 +62,7 @@ export class WakuNode implements Waku {
     filter?: (libp2p: Libp2p) => IFilter | IFilterV2,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
-    this.pubsubTopic = pubsubTopic;
+    this.pubsubTopics = pubsubTopics;
     this.libp2p = libp2p;
 
     if (store) {
@@ -89,7 +88,7 @@ export class WakuNode implements Waku {
     const peerId = this.libp2p.peerId.toString();
 
     this.connectionManager = ConnectionManager.create(
-      pubsubTopic,
+      pubsubTopics,
       peerId,
       libp2p,
       { pingKeepAlive, relayKeepAlive },

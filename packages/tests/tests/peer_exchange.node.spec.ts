@@ -213,7 +213,7 @@ describe("Peer Exchange", () => {
     });
   });
 
-  describe("Sharding", function () {
+  describe.only("Sharding", function () {
     let waku: LightNode;
     let nwaku1: NimGoNode;
     let nwaku2: NimGoNode;
@@ -316,7 +316,7 @@ describe("Peer Exchange", () => {
       expect(attemptDialSpy.callCount).to.equal(3);
     });
 
-    it.only("px service nodes not subscribed to the shard should not be dialed", async function () {
+    it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
 
       // this service node is not subscribed to the shard
