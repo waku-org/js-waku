@@ -4,7 +4,7 @@ import {
   DecodedMessage,
   waitForRemotePeer,
 } from "@waku/core";
-import { IFilter, IFilterSubscription, Protocols } from "@waku/interfaces";
+import { IFilterSubscription, Protocols } from "@waku/interfaces";
 import type { LightNode } from "@waku/interfaces";
 import {
   createDecoder as eciesDecoder,
