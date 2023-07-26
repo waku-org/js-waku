@@ -38,7 +38,7 @@ describe("Peer Exchange", () => {
       waku = await createLightNode({
         libp2p: {
           peerDiscovery: [
-            bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Prod, 3) }),
+            bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
             wakuPeerExchangeDiscovery(),
           ],
         },
@@ -46,18 +46,18 @@ describe("Peer Exchange", () => {
 
       await waku.start();
 
-      await delay(50_000);
+      const foundPxPeer = await new Promise<boolean>((resolve) => {
+        const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
+        waku.libp2p.addEventListener("peer:discovery", (evt) => {
+          const peerId = evt.detail.id.toString();
+          const isBootstrapNode = testNodes.find((n) => n.includes(peerId));
+          if (!isBootstrapNode) {
+            resolve(true);
+          }
+        });
+      });
 
-      // const foundPxPeer = await new Promise<boolean>((resolve) => {
-      //   const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
-      //   waku.libp2p.addEventListener("peer:discovery", (evt) => {
-      //     const peerId = evt.detail.id.toString();
-      //     const isBootstrapNode = testNodes.find((n) => n.includes(peerId));
-      //     if (!isBootstrapNode) {
-      //       resolve(true);
-      //     }
-      //   });
-      // });
+      expect(foundPxPeer).to.be.true;
     });
   });
 
