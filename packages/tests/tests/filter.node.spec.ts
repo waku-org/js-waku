@@ -5,11 +5,7 @@ import {
   DefaultPubSubTopic,
   waitForRemotePeer,
 } from "@waku/core";
-import type {
-  IFilterV2,
-  IFilterV2Subscription,
-  LightNode,
-} from "@waku/interfaces";
+import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
@@ -33,7 +29,7 @@ describe("Waku Filter: V2", () => {
   let waku: LightNode;
   let nwaku: NimGoNode;
 
-  let subscription: IFilterV2Subscription;
+  let subscription: IFilterSubscription;
 
   afterEach(async function () {
     !!nwaku &&
@@ -56,7 +52,7 @@ describe("Waku Filter: V2", () => {
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-    subscription = await (waku.filter as IFilterV2).createSubscription();
+    subscription = await waku.filter.createSubscription();
   });
 
   it("creates a subscription", async function () {
