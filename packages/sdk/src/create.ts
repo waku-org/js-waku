@@ -164,6 +164,9 @@ export async function defaultLibp2p(
     : {};
 
   return createLibp2p({
+    connectionManager: {
+      minConnections: 1,
+    },
     transports: [webSockets({ filter: filterAll })],
     streamMuxers: [mplex()],
     connectionEncryption: [noise()],
