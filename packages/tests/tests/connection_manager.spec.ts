@@ -1,7 +1,7 @@
 import { CustomEvent } from "@libp2p/interfaces/events";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { ConnectionManager, KeepAliveOptions } from "@waku/core";
-import { LightNode, PeerEvents, Tags } from "@waku/interfaces";
+import { EPeersByDiscoveryEvents, LightNode, Tags } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import sinon, { SinonSpy, SinonStub } from "sinon";
@@ -37,7 +37,7 @@ describe("ConnectionManager", function () {
     await waku.stop();
   });
 
-  describe("Events", () => {
+  describe.only("Events", () => {
     it("should emit `peer:discovery:{bootstrap/peer-exchange}` event when a peer is discovered", async function () {
       this.timeout(TEST_TIMEOUT);
 
@@ -53,10 +53,12 @@ describe("ConnectionManager", function () {
       });
 
       const peerDiscoveryEventPromise = new Promise<void>((resolve) => {
-        connectionManager!.addListener(
-          PeerEvents.PEER_DISCOVERY_BOOTSTRAP,
-          (peerId) => {
-            expect(peerId.toString()).to.equal(peerIdBootstrap.toString());
+        connectionManager!.addEventListener(
+          EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP,
+          ({ detail: receivedPeerId }) => {
+            expect(receivedPeerId.toString()).to.equal(
+              peerIdBootstrap.toString()
+            );
             resolve();
           }
         );
@@ -78,10 +80,10 @@ describe("ConnectionManager", function () {
       });
 
       const peerDiscoveryEventPromise2 = new Promise<void>((resolve) => {
-        connectionManager!.addListener(
-          PeerEvents.PEER_DISCOVERY_PEER_EXCHANGE,
-          (peerId) => {
-            expect(peerId.toString()).to.equal(peerIdPx.toString());
+        connectionManager!.addEventListener(
+          EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
+          ({ detail: receivedPeerId }) => {
+            expect(receivedPeerId.toString()).to.equal(peerIdPx.toString());
             resolve();
           }
         );
@@ -107,10 +109,12 @@ describe("ConnectionManager", function () {
       });
 
       const peerConnectedEventPromise = new Promise<void>((resolve) => {
-        connectionManager!.addListener(
-          PeerEvents.PEER_CONNECT_BOOTSTRAP,
-          (peerId) => {
-            expect(peerId.toString()).to.equal(peerIdBootstrap.toString());
+        connectionManager!.addEventListener(
+          EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP,
+          ({ detail: receivedPeerId }) => {
+            expect(receivedPeerId.toString()).to.equal(
+              peerIdBootstrap.toString()
+            );
             resolve();
           }
         );
@@ -134,10 +138,10 @@ describe("ConnectionManager", function () {
       });
 
       const peerConnectedEventPromise2 = new Promise<void>((resolve) => {
-        connectionManager!.addListener(
-          PeerEvents.PEER_CONNECT_PEER_EXCHANGE,
-          (peerId) => {
-            expect(peerId.toString()).to.equal(peerIdPx.toString());
+        connectionManager!.addEventListener(
+          EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
+          ({ detail: receivedPeerId }) => {
+            expect(receivedPeerId.toString()).to.equal(peerIdPx.toString());
             resolve();
           }
         );

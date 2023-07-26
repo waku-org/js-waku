@@ -1,3 +1,4 @@
+import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 
 export enum Tags {
@@ -22,11 +23,18 @@ export interface ConnectionManagerOptions {
   maxParallelDials: number;
 }
 
-export enum PeerEvents {
+export enum EPeersByDiscoveryEvents {
   PEER_DISCOVERY_BOOTSTRAP = "peer:discovery:bootstrap",
   PEER_DISCOVERY_PEER_EXCHANGE = "peer:discovery:peer-exchange",
   PEER_CONNECT_BOOTSTRAP = "peer:connected:bootstrap",
   PEER_CONNECT_PEER_EXCHANGE = "peer:connected:peer-exchange",
+}
+
+export interface IPeersByDiscoveryEvents {
+  [EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP]: CustomEvent<PeerId>;
+  [EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE]: CustomEvent<PeerId>;
+  [EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP]: CustomEvent<PeerId>;
+  [EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE]: CustomEvent<PeerId>;
 }
 
 export interface PeersByDiscoveryResult {

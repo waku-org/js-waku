@@ -1,12 +1,13 @@
-import { EventEmitter } from "events";
-
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
-import { Peer } from "@libp2p/interface-peer-store";
+import type { Peer } from "@libp2p/interface-peer-store";
+import { CustomEvent } from "@libp2p/interfaces/events";
+import { EventEmitter } from "@libp2p/interfaces/events";
 import {
   ConnectionManagerOptions,
+  EPeersByDiscoveryEvents,
+  IPeersByDiscoveryEvents,
   IRelay,
-  PeerEvents,
   PeersByDiscoveryResult,
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
@@ -20,7 +21,7 @@ export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
 export const DEFAULT_MAX_PARALLEL_DIALS = 3;
 
-export class ConnectionManager extends EventEmitter {
+export class ConnectionManager extends EventEmitter<IPeersByDiscoveryEvents> {
   private static instances = new Map<string, ConnectionManager>();
   private keepAliveManager: KeepAliveManager;
   private options: ConnectionManagerOptions;
@@ -298,9 +299,23 @@ export class ConnectionManager extends EventEmitter {
         );
 
         if (isBootstrap) {
-          this.emit(PeerEvents.PEER_DISCOVERY_BOOTSTRAP, peerId);
+          this.dispatchEvent(
+            new CustomEvent<PeerId>(
+              EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP,
+              {
+                detail: peerId,
+              }
+            )
+          );
         } else {
-          this.emit(PeerEvents.PEER_DISCOVERY_PEER_EXCHANGE, peerId);
+          this.dispatchEvent(
+            new CustomEvent<PeerId>(
+              EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
+              {
+                detail: peerId,
+              }
+            )
+          );
         }
 
         try {
@@ -331,10 +346,24 @@ export class ConnectionManager extends EventEmitter {
           ) {
             await this.dropConnection(peerId);
           } else {
-            this.emit(PeerEvents.PEER_CONNECT_BOOTSTRAP, peerId);
+            this.dispatchEvent(
+              new CustomEvent<PeerId>(
+                EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP,
+                {
+                  detail: peerId,
+                }
+              )
+            );
           }
         } else {
-          this.emit(PeerEvents.PEER_CONNECT_PEER_EXCHANGE, peerId);
+          this.dispatchEvent(
+            new CustomEvent<PeerId>(
+              EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
+              {
+                detail: peerId,
+              }
+            )
+          );
         }
       })();
     },
