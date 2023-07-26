@@ -4,7 +4,7 @@ import {
   DefaultPubSubTopic,
   waitForRemotePeer,
 } from "@waku/core";
-import type { IFilterV2, LightNode } from "@waku/interfaces";
+import type { LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { toAsyncIterator } from "@waku/utils";
@@ -18,11 +18,9 @@ const TestContentTopic = "/test/1/waku-filter";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
-describe("Util: toAsyncIterator: FilterV2", () => {
+describe("Util: toAsyncIterator: Filter", () => {
   let waku: LightNode;
   let nwaku: NimGoNode;
-
-  let filter: IFilterV2;
 
   beforeEach(async function () {
     this.timeout(15000);
@@ -35,7 +33,6 @@ describe("Util: toAsyncIterator: FilterV2", () => {
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-    filter = waku.filter as IFilterV2;
   });
 
   afterEach(async () => {
@@ -53,7 +50,7 @@ describe("Util: toAsyncIterator: FilterV2", () => {
     const sent = { payload: utf8ToBytes(messageText) };
 
     const { iterator } = await toAsyncIterator(
-      filter,
+      waku.filter,
       TestDecoder,
       {},
       { timeoutMs: 1000 }
@@ -70,7 +67,7 @@ describe("Util: toAsyncIterator: FilterV2", () => {
   it("handles multiple messages", async function () {
     this.timeout(10000);
     const { iterator } = await toAsyncIterator(
-      filter,
+      waku.filter,
       TestDecoder,
       {},
       { timeoutMs: 1000 }
@@ -93,7 +90,7 @@ describe("Util: toAsyncIterator: FilterV2", () => {
   it("unsubscribes", async function () {
     this.timeout(10000);
     const { iterator, stop } = await toAsyncIterator(
-      filter,
+      waku.filter,
       TestDecoder,
       {},
       { timeoutMs: 1000 }

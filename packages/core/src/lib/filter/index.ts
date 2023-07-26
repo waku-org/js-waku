@@ -8,7 +8,7 @@ import type {
   IAsyncIterator,
   IDecodedMessage,
   IDecoder,
-  IFilterV2,
+  IFilter,
   IProtoMessage,
   IReceiver,
   Libp2p,
@@ -41,7 +41,7 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
   callback: Callback<T>;
 };
 
-const FilterV2Codecs = {
+const FilterCodecs = {
   SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
   PUSH: "/vac/waku/filter-push/2.0.0-beta1",
 };
@@ -225,7 +225,7 @@ class Subscription {
   }
 }
 
-class FilterV2 extends BaseProtocol implements IReceiver {
+class Filter extends BaseProtocol implements IReceiver {
   private readonly options: ProtocolCreateOptions;
   private activeSubscriptions = new Map<string, Subscription>();
 
@@ -246,10 +246,10 @@ class FilterV2 extends BaseProtocol implements IReceiver {
   }
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(FilterV2Codecs.SUBSCRIBE, libp2p.components);
+    super(FilterCodecs.SUBSCRIBE, libp2p.components);
 
-    libp2p.handle(FilterV2Codecs.PUSH, this.onRequest.bind(this)).catch((e) => {
-      log("Failed to register ", FilterV2Codecs.PUSH, e);
+    libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
+      log("Failed to register ", FilterCodecs.PUSH, e);
     });
 
     this.activeSubscriptions = new Map();
@@ -365,10 +365,10 @@ class FilterV2 extends BaseProtocol implements IReceiver {
   }
 }
 
-export function wakuFilterV2(
+export function wakuFilter(
   init: Partial<ProtocolCreateOptions> = {}
-): (libp2p: Libp2p) => IFilterV2 {
-  return (libp2p: Libp2p) => new FilterV2(libp2p, init);
+): (libp2p: Libp2p) => IFilter {
+  return (libp2p: Libp2p) => new Filter(libp2p, init);
 }
 
 async function pushMessage<T extends IDecodedMessage>(
