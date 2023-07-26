@@ -15,7 +15,7 @@ const KEEP_ALIVE_OPTIONS: KeepAliveOptions = {
 const TEST_TIMEOUT = 10_000;
 const DELAY_MS = 1_000;
 
-describe("ConnectionManager", function () {
+describe.only("ConnectionManager", function () {
   let connectionManager: ConnectionManager | undefined;
   let waku: LightNode;
   let peerId: string;
@@ -167,7 +167,7 @@ describe("ConnectionManager", function () {
       it("should be called on all `peer:discovery` events", async function () {
         this.timeout(TEST_TIMEOUT);
 
-        const totalPeerIds = 1;
+        const totalPeerIds = 5;
         for (let i = 1; i <= totalPeerIds; i++) {
           waku.libp2p.dispatchEvent(
             new CustomEvent("peer:discovery", { detail: `peer-id-${i}` })
