@@ -16,7 +16,7 @@
 <li><a href="../modules/_waku_interfaces.html">@waku/interfaces</a></li>
 <li><a href="_waku_interfaces.ProtocolCreateOptions.html">ProtocolCreateOptions</a></li></ul>
 <h1>Type alias ProtocolCreateOptions</h1></div>
-<div class="tsd-signature">Protocol<wbr/>Create<wbr/>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span>defaultBootstrap<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>libp2p<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Libp2pOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>pubSubTopic<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>staticNoiseKey<span class="tsd-signature-symbol">?: </span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="tsd-signature-type external" target="_blank">Uint8Array</a><span class="tsd-signature-symbol">; </span><br/><span>    </span>useFilterV1<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature">Protocol<wbr/>Create<wbr/>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span>defaultBootstrap<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>libp2p<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Libp2pOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>pubSubTopic<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>staticNoiseKey<span class="tsd-signature-symbol">?: </span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="tsd-signature-type external" target="_blank">Uint8Array</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
@@ -49,15 +49,9 @@ See <a href="https://rfc.vac.dev/spec/23/">Waku v2 Topic Usage Recommendations</
 <div class="tsd-comment tsd-typography"><p>Byte array used as key for the noise protocol used for connection encryption
 by <a href="https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create"><code>Libp2p.create</code></a>
 This is only used for test purposes to not run out of entropy during CI runs.</p>
-</div></li>
-<li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> use<wbr/>Filter<wbr/>V1<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
-<div class="tsd-comment tsd-typography"><p>FilterV2 has been set to default
-Use this flag to enable the previous version of the filter protocol
-See <a href="https://github.com/vacp2p/rfc/pull/562">Improved Filter protocol specifications</a></p>
 </div></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/92bb35a4f/packages/interfaces/src/protocols.ts#L23">packages/interfaces/src/protocols.ts:23</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/d483644a4/packages/interfaces/src/protocols.ts#L23">packages/interfaces/src/protocols.ts:23</a></li></ul></aside></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -90,8 +84,7 @@ See <a href="https://github.com/vacp2p/rfc/pull/562">Improved Filter protocol sp
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_core.message.version_0.proto.RateLimitProof.html">Rate<wbr/>Limit<wbr/>Proof</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_core.message.version_0.proto.WakuMessage.html">Waku<wbr/>Message</a></li></ul></li></ul></li></ul></li>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_core.waku.html">waku</a></li>
-<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_core.waku_filter_v1.html">waku_<wbr/>filter_<wbr/>v1</a></li>
-<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_core.waku_filter_v2.html">waku_<wbr/>filter_<wbr/>v2</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_core.waku_filter.html">waku_<wbr/>filter</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_waku_core.waku_light_push.html">waku_<wbr/>light_<wbr/>push</a>
 <ul>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_core.waku_light_push.PushResponse.html">Push<wbr/>Response</a></li></ul></li>
@@ -192,8 +185,7 @@ See <a href="https://github.com/vacp2p/rfc/pull/562">Improved Filter protocol sp
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_sdk.waku.message.version_0.proto.RateLimitProof.html">Rate<wbr/>Limit<wbr/>Proof</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_sdk.waku.message.version_0.proto.WakuMessage.html">Waku<wbr/>Message</a></li></ul></li></ul></li></ul></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_sdk.waku.waku.html">waku</a></li>
-<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_sdk.waku.waku_filter_v1.html">waku_<wbr/>filter_<wbr/>v1</a></li>
-<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_sdk.waku.waku_filter_v2.html">waku_<wbr/>filter_<wbr/>v2</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_sdk.waku.waku_filter.html">waku_<wbr/>filter</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_sdk.waku.waku_light_push.html">waku_<wbr/>light_<wbr/>push</a>
 <ul>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_waku_sdk.waku.waku_light_push.PushResponse.html">Push<wbr/>Response</a></li></ul></li>
@@ -217,7 +209,7 @@ See <a href="https://github.com/vacp2p/rfc/pull/562">Improved Filter protocol sp
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_interfaces.IDecoder.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IDecoder</a></li>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_interfaces.IEncoder.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IEncoder</a></li>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_interfaces.IEnr.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IEnr</a></li>
-<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_interfaces.IFilterV2Subscription.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IFilter<wbr/>V2<wbr/>Subscription</a></li>
+<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_interfaces.IFilterSubscription.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IFilter<wbr/>Subscription</a></li>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_interfaces.IMessage.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IMessage</a></li>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_interfaces.IMetaSetter.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IMeta<wbr/>Setter</a></li>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_interfaces.IPeerExchange.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IPeer<wbr/>Exchange</a></li>
@@ -243,7 +235,6 @@ See <a href="https://github.com/vacp2p/rfc/pull/562">Improved Filter protocol sp
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="_waku_interfaces.ENRKey.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>ENRKey</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="_waku_interfaces.ENRValue.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>ENRValue</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="_waku_interfaces.IFilter.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>IFilter</a></li>
-<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="_waku_interfaces.IFilterV2.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>IFilter<wbr/>V2</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="_waku_interfaces.ILightPush.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>ILight<wbr/>Push</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="_waku_interfaces.IRelay.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>IRelay</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="_waku_interfaces.Libp2p.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Libp2p</a></li>

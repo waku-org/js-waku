@@ -16,7 +16,7 @@
 <li><a href="_waku_sdk.html">@waku/sdk</a></li></ul>
 <h1>Module @waku/sdk</h1></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/92bb35a4f/packages/sdk/src/index.ts#L1">packages/sdk/src/index.ts:1</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/d483644a4/packages/sdk/src/index.ts#L1">packages/sdk/src/index.ts:1</a></li></ul></aside>
 <section class="tsd-panel-group">
 <section class="tsd-panel tsd-typography"></section></section>
 <section class="tsd-panel-group tsd-index-group">
@@ -58,7 +58,7 @@
 <a href="../interfaces/_waku_sdk.IDecoder.html" class="tsd-index-link tsd-kind-interface tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg><span>IDecoder</span></a>
 <a href="../interfaces/_waku_sdk.IEncoder.html" class="tsd-index-link tsd-kind-interface tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg><span>IEncoder</span></a>
 <a href="../interfaces/_waku_sdk.IEnr.html" class="tsd-index-link tsd-kind-interface tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg><span>IEnr</span></a>
-<a href="../interfaces/_waku_sdk.IFilterV2Subscription.html" class="tsd-index-link tsd-kind-interface tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg><span>IFilter<wbr/>V2<wbr/>Subscription</span></a>
+<a href="../interfaces/_waku_sdk.IFilterSubscription.html" class="tsd-index-link tsd-kind-interface tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg><span>IFilter<wbr/>Subscription</span></a>
 <a href="../interfaces/_waku_sdk.IMessage.html" class="tsd-index-link tsd-kind-interface tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg><span>IMessage</span></a>
 <a href="../interfaces/_waku_sdk.IMetaSetter.html" class="tsd-index-link tsd-kind-interface tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg><span>IMeta<wbr/>Setter</span></a>
 <a href="../interfaces/_waku_sdk.IPeerExchange.html" class="tsd-index-link tsd-kind-interface tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg><span>IPeer<wbr/>Exchange</span></a>
@@ -87,7 +87,6 @@
 <a href="../types/_waku_sdk.ENRKey.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>ENRKey</span></a>
 <a href="../types/_waku_sdk.ENRValue.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>ENRValue</span></a>
 <a href="../types/_waku_sdk.IFilter.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>IFilter</span></a>
-<a href="../types/_waku_sdk.IFilterV2.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>IFilter<wbr/>V2</span></a>
 <a href="../types/_waku_sdk.ILightPush.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>ILight<wbr/>Push</span></a>
 <a href="../types/_waku_sdk.IRelay.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>IRelay</span></a>
 <a href="../types/_waku_sdk.Libp2p.html" class="tsd-index-link tsd-kind-type-alias tsd-parent-kind-module"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg><span>Libp2p</span></a>
@@ -146,8 +145,7 @@
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_core.message.version_0.proto.RateLimitProof.html">Rate<wbr/>Limit<wbr/>Proof</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_core.message.version_0.proto.WakuMessage.html">Waku<wbr/>Message</a></li></ul></li></ul></li></ul></li>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="_waku_core.waku.html">waku</a></li>
-<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="_waku_core.waku_filter_v1.html">waku_<wbr/>filter_<wbr/>v1</a></li>
-<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="_waku_core.waku_filter_v2.html">waku_<wbr/>filter_<wbr/>v2</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="_waku_core.waku_filter.html">waku_<wbr/>filter</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="_waku_core.waku_light_push.html">waku_<wbr/>light_<wbr/>push</a>
 <ul>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_core.waku_light_push.PushResponse.html">Push<wbr/>Response</a></li></ul></li>
@@ -248,8 +246,7 @@
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_sdk.waku.message.version_0.proto.RateLimitProof.html">Rate<wbr/>Limit<wbr/>Proof</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_sdk.waku.message.version_0.proto.WakuMessage.html">Waku<wbr/>Message</a></li></ul></li></ul></li></ul></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_sdk.waku.waku.html">waku</a></li>
-<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_sdk.waku.waku_filter_v1.html">waku_<wbr/>filter_<wbr/>v1</a></li>
-<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_sdk.waku.waku_filter_v2.html">waku_<wbr/>filter_<wbr/>v2</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_sdk.waku.waku_filter.html">waku_<wbr/>filter</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_sdk.waku.waku_light_push.html">waku_<wbr/>light_<wbr/>push</a>
 <ul>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="_waku_sdk.waku.waku_light_push.PushResponse.html">Push<wbr/>Response</a></li></ul></li>
@@ -277,7 +274,7 @@
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_sdk.IDecoder.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IDecoder</a></li>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_sdk.IEncoder.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IEncoder</a></li>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_sdk.IEnr.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IEnr</a></li>
-<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_sdk.IFilterV2Subscription.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IFilter<wbr/>V2<wbr/>Subscription</a></li>
+<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_sdk.IFilterSubscription.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IFilter<wbr/>Subscription</a></li>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_sdk.IMessage.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IMessage</a></li>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_sdk.IMetaSetter.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IMeta<wbr/>Setter</a></li>
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/_waku_sdk.IPeerExchange.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>IPeer<wbr/>Exchange</a></li>
@@ -303,7 +300,6 @@
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/_waku_sdk.ENRKey.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>ENRKey</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/_waku_sdk.ENRValue.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>ENRValue</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/_waku_sdk.IFilter.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>IFilter</a></li>
-<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/_waku_sdk.IFilterV2.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>IFilter<wbr/>V2</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/_waku_sdk.ILightPush.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>ILight<wbr/>Push</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/_waku_sdk.IRelay.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>IRelay</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="../types/_waku_sdk.Libp2p.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Libp2p</a></li>
