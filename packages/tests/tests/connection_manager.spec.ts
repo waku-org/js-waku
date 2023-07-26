@@ -52,21 +52,18 @@ describe("ConnectionManager", function () {
         },
       });
 
-      const peerDiscoveryBootstrap = new Promise<void>((resolve) => {
+      const peerDiscoveryBootstrap = new Promise<boolean>((resolve) => {
         connectionManager!.addEventListener(
           EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP,
           ({ detail: receivedPeerId }) => {
-            expect(receivedPeerId.toString()).to.equal(
-              peerIdBootstrap.toString()
-            );
-            resolve();
+            resolve(receivedPeerId.toString() === peerIdBootstrap.toString());
           }
         );
       });
 
       waku.libp2p.dispatchEvent(new CustomEvent("peer", { detail: peerId }));
 
-      await peerDiscoveryBootstrap;
+      expect(await peerDiscoveryBootstrap).to.eq(true);
 
       const peerIdPx = await createSecp256k1PeerId();
 
@@ -79,19 +76,18 @@ describe("ConnectionManager", function () {
         },
       });
 
-      const peerDiscoveryPeerExchange = new Promise<void>((resolve) => {
+      const peerDiscoveryPeerExchange = new Promise<boolean>((resolve) => {
         connectionManager!.addEventListener(
           EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
           ({ detail: receivedPeerId }) => {
-            expect(receivedPeerId.toString()).to.equal(peerIdPx.toString());
-            resolve();
+            resolve(receivedPeerId.toString() === peerIdPx.toString());
           }
         );
       });
 
       waku.libp2p.dispatchEvent(new CustomEvent("peer", { detail: peerIdPx }));
 
-      await peerDiscoveryPeerExchange;
+      expect(await peerDiscoveryPeerExchange).to.eq(true);
     });
 
     it("should emit `peer:connected:{bootstrap/peer-exchange}` event when a peer is connected", async function () {
@@ -108,14 +104,11 @@ describe("ConnectionManager", function () {
         },
       });
 
-      const peerConnectedBootstrap = new Promise<void>((resolve) => {
+      const peerConnectedBootstrap = new Promise<boolean>((resolve) => {
         connectionManager!.addEventListener(
           EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP,
           ({ detail: receivedPeerId }) => {
-            expect(receivedPeerId.toString()).to.equal(
-              peerIdBootstrap.toString()
-            );
-            resolve();
+            resolve(receivedPeerId.toString() === peerIdBootstrap.toString());
           }
         );
       });
@@ -124,7 +117,7 @@ describe("ConnectionManager", function () {
         new CustomEvent("peer:connect", { detail: peerIdBootstrap })
       );
 
-      await peerConnectedBootstrap;
+      expect(await peerConnectedBootstrap).to.eq(true);
 
       const peerIdPx = await createSecp256k1PeerId();
 
@@ -137,12 +130,11 @@ describe("ConnectionManager", function () {
         },
       });
 
-      const peerConnectedPeerExchange = new Promise<void>((resolve) => {
+      const peerConnectedPeerExchange = new Promise<boolean>((resolve) => {
         connectionManager!.addEventListener(
           EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
           ({ detail: receivedPeerId }) => {
-            expect(receivedPeerId.toString()).to.equal(peerIdPx.toString());
-            resolve();
+            resolve(receivedPeerId.toString() === peerIdPx.toString());
           }
         );
       });
@@ -151,7 +143,7 @@ describe("ConnectionManager", function () {
         new CustomEvent("peer:connect", { detail: peerIdPx })
       );
 
-      await peerConnectedPeerExchange;
+      expect(await peerConnectedPeerExchange).to.eq(true);
     });
   });
 
