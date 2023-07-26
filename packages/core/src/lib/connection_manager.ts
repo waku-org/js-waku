@@ -52,7 +52,6 @@ export class ConnectionManager extends EventEmitter {
     return instance;
   }
 
-  // write a public function to get all the peers discovered (by bootstrap and peer exchange), and connected (by bootstrap and peer exchange)
   public async getPeersByDiscovery(): Promise<PeersByDiscovery> {
     const peersDiscovered = await this.libp2p.peerStore.all();
     const peersConnected = this.libp2p
