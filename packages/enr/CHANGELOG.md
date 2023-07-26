@@ -51,6 +51,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.14 to 0.0.15
 
+## [0.0.15](https://github.com/waku-org/js-waku/compare/enr-v0.0.14...enr-v0.0.15) (2023-07-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400))
+
+### Features
+
+* Upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400)) ([420e6c6](https://github.com/waku-org/js-waku/commit/420e6c698dd8f44d40d34e47d876da5d2e1ce85e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.8 to 0.0.9
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.15 to 0.0.16
+
 ## [0.0.12](https://github.com/waku-org/js-waku/compare/enr-v0.0.11...enr-v0.0.12) (2023-05-18)
 
 

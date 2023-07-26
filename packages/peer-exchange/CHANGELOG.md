@@ -64,6 +64,28 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.14 to 0.0.15
 
+## [0.0.14](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.13...peer-exchange-v0.0.14) (2023-07-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400))
+
+### Features
+
+* Enable event emission for peer discovery/connection in ConnectionManager ([#1438](https://github.com/waku-org/js-waku/issues/1438)) ([6ce898d](https://github.com/waku-org/js-waku/commit/6ce898d77132f30b5d8f33b48c7f6276992a486e))
+* Upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400)) ([420e6c6](https://github.com/waku-org/js-waku/commit/420e6c698dd8f44d40d34e47d876da5d2e1ce85e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.20 to 0.0.21
+    * @waku/enr bumped from 0.0.14 to 0.0.15
+    * @waku/utils bumped from 0.0.8 to 0.0.9
+    * @waku/interfaces bumped from 0.0.15 to 0.0.16
+
 ## [0.0.11](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.10...peer-exchange-v0.0.11) (2023-05-18)
 
 

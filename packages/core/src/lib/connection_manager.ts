@@ -1,6 +1,14 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { ConnectionManagerOptions, IRelay } from "@waku/interfaces";
+import type { Peer } from "@libp2p/interface-peer-store";
+import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import {
+  ConnectionManagerOptions,
+  EPeersByDiscoveryEvents,
+  IPeersByDiscoveryEvents,
+  IRelay,
+  PeersByDiscoveryResult,
+} from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
 import debug from "debug";
 
@@ -12,7 +20,7 @@ export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
 export const DEFAULT_MAX_PARALLEL_DIALS = 3;
 
-export class ConnectionManager {
+export class ConnectionManager extends EventEmitter<IPeersByDiscoveryEvents> {
   private static instances = new Map<string, ConnectionManager>();
   private keepAliveManager: KeepAliveManager;
   private options: ConnectionManagerOptions;
@@ -44,12 +52,57 @@ export class ConnectionManager {
     return instance;
   }
 
+  public async getPeersByDiscovery(): Promise<PeersByDiscoveryResult> {
+    const peersDiscovered = await this.libp2p.peerStore.all();
+    const peersConnected = this.libp2p
+      .getConnections()
+      .map((conn) => conn.remotePeer);
+
+    const peersDiscoveredByBootstrap: Peer[] = [];
+    const peersDiscoveredByPeerExchange: Peer[] = [];
+    const peersConnectedByBootstrap: Peer[] = [];
+    const peersConnectedByPeerExchange: Peer[] = [];
+
+    for (const peer of peersDiscovered) {
+      const tags = await this.getTagNamesForPeer(peer.id);
+
+      if (tags.includes(Tags.BOOTSTRAP)) {
+        peersDiscoveredByBootstrap.push(peer);
+      } else if (tags.includes(Tags.PEER_EXCHANGE)) {
+        peersDiscoveredByPeerExchange.push(peer);
+      }
+    }
+
+    for (const peerId of peersConnected) {
+      const peer = await this.libp2p.peerStore.get(peerId);
+      const tags = await this.getTagNamesForPeer(peerId);
+
+      if (tags.includes(Tags.BOOTSTRAP)) {
+        peersConnectedByBootstrap.push(peer);
+      } else if (tags.includes(Tags.PEER_EXCHANGE)) {
+        peersConnectedByPeerExchange.push(peer);
+      }
+    }
+
+    return {
+      DISCOVERED: {
+        [Tags.BOOTSTRAP]: peersDiscoveredByBootstrap,
+        [Tags.PEER_EXCHANGE]: peersDiscoveredByPeerExchange,
+      },
+      CONNECTED: {
+        [Tags.BOOTSTRAP]: peersConnectedByBootstrap,
+        [Tags.PEER_EXCHANGE]: peersConnectedByPeerExchange,
+      },
+    };
+  }
+
   private constructor(
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
     options?: Partial<ConnectionManagerOptions>
   ) {
+    super();
     this.libp2p = libp2p;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
@@ -240,6 +293,30 @@ export class ConnectionManager {
       void (async () => {
         const { id: peerId } = evt.detail;
 
+        const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
+          Tags.BOOTSTRAP
+        );
+
+        if (isBootstrap) {
+          this.dispatchEvent(
+            new CustomEvent<PeerId>(
+              EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP,
+              {
+                detail: peerId,
+              }
+            )
+          );
+        } else {
+          this.dispatchEvent(
+            new CustomEvent<PeerId>(
+              EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
+              {
+                detail: peerId,
+              }
+            )
+          );
+        }
+
         try {
           await this.attemptDial(peerId);
         } catch (error) {
@@ -267,7 +344,25 @@ export class ConnectionManager {
             bootstrapConnections.length > this.options.maxBootstrapPeersAllowed
           ) {
             await this.dropConnection(peerId);
+          } else {
+            this.dispatchEvent(
+              new CustomEvent<PeerId>(
+                EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP,
+                {
+                  detail: peerId,
+                }
+              )
+            );
           }
+        } else {
+          this.dispatchEvent(
+            new CustomEvent<PeerId>(
+              EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
+              {
+                detail: peerId,
+              }
+            )
+          );
         }
       })();
     },
