@@ -17,6 +17,26 @@
     * @waku/interfaces bumped from 0.0.14 to 0.0.15
     * @waku/utils bumped from 0.0.7 to 0.0.8
 
+## [0.0.4](https://github.com/waku-org/js-waku/compare/relay-v0.0.3...relay-v0.0.4) (2023-07-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400))
+
+### Features
+
+* Upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400)) ([420e6c6](https://github.com/waku-org/js-waku/commit/420e6c698dd8f44d40d34e47d876da5d2e1ce85e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.20 to 0.0.21
+    * @waku/interfaces bumped from 0.0.15 to 0.0.16
+    * @waku/utils bumped from 0.0.8 to 0.0.9
+
 ## 0.0.1 (2023-05-18)
 
 

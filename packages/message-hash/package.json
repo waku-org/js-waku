@@ -1,6 +1,6 @@
 {
   "name": "@waku/message-hash",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "TypeScript implementation of the Deterministic Message Hashing as specified in 14/WAKU2-MESSAGE",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -53,7 +53,7 @@
   },
   "dependencies": {
     "@noble/hashes": "^1.2.0",
-    "@waku/utils": "0.0.8"
+    "@waku/utils": "0.0.9"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",
@@ -63,7 +63,7 @@
     "@types/debug": "^4.1.7",
     "@types/mocha": "^10.0.1",
     "@waku/build-utils": "*",
-    "@waku/interfaces": "0.0.15",
+    "@waku/interfaces": "0.0.16",
     "chai": "^4.3.7",
     "cspell": "^6.28.0",
     "fast-check": "^3.7.0",
