@@ -213,9 +213,11 @@ describe("ConnectionManager", function () {
           // simulate that the peer is a bootstrap peer
           getTagNamesForPeerStub.resolves([Tags.BOOTSTRAP]);
 
+          const bootstrapPeer = await createSecp256k1PeerId();
+
           // emit a peer:discovery event
           waku.libp2p.dispatchEvent(
-            new CustomEvent("peer:discovery", { detail: "bootstrap-peer" })
+            new CustomEvent("peer:discovery", { detail: bootstrapPeer })
           );
 
           // wait for the async function calls within attemptDial to finish
@@ -241,6 +243,7 @@ describe("ConnectionManager", function () {
           waku.libp2p.dispatchEvent(
             new CustomEvent("peer:discovery", { detail: "bootstrap-peer" })
           );
+          await delay(500);
 
           // simulate that the peer is connected
           getConnectionsStub.returns([{ tags: [{ name: Tags.BOOTSTRAP }] }]);
@@ -251,7 +254,7 @@ describe("ConnectionManager", function () {
             await delay(500);
             waku.libp2p.dispatchEvent(
               new CustomEvent("peer:discovery", {
-                detail: `bootstrap-peer-id-${i}`,
+                detail: await createSecp256k1PeerId(),
               })
             );
           }
@@ -274,9 +277,11 @@ describe("ConnectionManager", function () {
           // simulate that the peer has a PEER_EXCHANGE tag
           getTagNamesForPeerStub.resolves([Tags.PEER_EXCHANGE]);
 
+          const pxPeer = await createSecp256k1PeerId();
+
           // emit a peer:discovery event
           waku.libp2p.dispatchEvent(
-            new CustomEvent("peer:discovery", { detail: "px-peer" })
+            new CustomEvent("peer:discovery", { detail: pxPeer })
           );
 
           // wait for the async function calls within attemptDial to finish
@@ -302,7 +307,9 @@ describe("ConnectionManager", function () {
           const totalPxPeers = 5;
           for (let i = 0; i < totalPxPeers; i++) {
             waku.libp2p.dispatchEvent(
-              new CustomEvent("peer:discovery", { detail: `px-peer-id-${i}` })
+              new CustomEvent("peer:discovery", {
+                detail: await createSecp256k1PeerId(),
+              })
             );
             await delay(500);
           }
