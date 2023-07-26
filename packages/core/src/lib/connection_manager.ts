@@ -1,6 +1,11 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { ConnectionManagerOptions, IRelay } from "@waku/interfaces";
+import { Peer } from "@libp2p/interface-peer-store";
+import type {
+  ConnectionManagerOptions,
+  IRelay,
+  PeersByDiscovery,
+} from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
 import debug from "debug";
 
@@ -42,6 +47,51 @@ export class ConnectionManager {
     }
 
     return instance;
+  }
+
+  // write a public function to get all the peers discovered (by bootstrap and peer exchange), and connected (by bootstrap and peer exchange)
+  public async getPeersByDiscovery(): Promise<PeersByDiscovery> {
+    const peersDiscovered = await this.libp2p.peerStore.all();
+    const peersConnected = this.libp2p
+      .getConnections()
+      .map((conn) => conn.remotePeer);
+
+    const peersDiscoveredByBootstrap: Peer[] = [];
+    const peersDiscoveredByPeerExchange: Peer[] = [];
+    const peersConnectedByBootstrap: Peer[] = [];
+    const peersConnectedByPeerExchange: Peer[] = [];
+
+    for (const peer of peersDiscovered) {
+      const tags = await this.getTagNamesForPeer(peer.id);
+
+      if (tags.includes(Tags.BOOTSTRAP)) {
+        peersDiscoveredByBootstrap.push(peer);
+      } else if (tags.includes(Tags.PEER_EXCHANGE)) {
+        peersDiscoveredByPeerExchange.push(peer);
+      }
+    }
+
+    for (const peerId of peersConnected) {
+      const peer = await this.libp2p.peerStore.get(peerId);
+      const tags = await this.getTagNamesForPeer(peerId);
+
+      if (tags.includes(Tags.BOOTSTRAP)) {
+        peersConnectedByBootstrap.push(peer);
+      } else if (tags.includes(Tags.PEER_EXCHANGE)) {
+        peersConnectedByPeerExchange.push(peer);
+      }
+    }
+
+    return {
+      DISCOVERED: {
+        [Tags.BOOTSTRAP]: peersDiscoveredByBootstrap,
+        [Tags.PEER_EXCHANGE]: peersDiscoveredByPeerExchange,
+      },
+      CONNECTED: {
+        [Tags.BOOTSTRAP]: peersConnectedByBootstrap,
+        [Tags.PEER_EXCHANGE]: peersConnectedByPeerExchange,
+      },
+    };
   }
 
   private constructor(

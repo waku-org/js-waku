@@ -1,3 +1,5 @@
+import type { Peer } from "@libp2p/interface-peer-store";
+
 export enum Tags {
   BOOTSTRAP = "bootstrap",
   PEER_EXCHANGE = "peer-exchange",
@@ -18,4 +20,15 @@ export interface ConnectionManagerOptions {
    * Max number of parallel dials allowed
    */
   maxParallelDials: number;
+}
+
+export interface PeersByDiscovery {
+  DISCOVERED: {
+    [Tags.BOOTSTRAP]: Peer[];
+    [Tags.PEER_EXCHANGE]: Peer[];
+  };
+  CONNECTED: {
+    [Tags.BOOTSTRAP]: Peer[];
+    [Tags.PEER_EXCHANGE]: Peer[];
+  };
 }
