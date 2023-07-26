@@ -166,6 +166,7 @@ export class ConnectionManager {
 
   async dropConnection(peerId: PeerId): Promise<void> {
     try {
+      this.keepAliveManager.stop(peerId);
       await this.libp2p.hangUp(peerId);
       log(`Dropped connection with peer ${peerId.toString()}`);
     } catch (error) {
