@@ -7,7 +7,7 @@ import { peerDiscovery as symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
-import type { Libp2pComponents } from "@waku/interfaces";
+import { Libp2pComponents, Tags } from "@waku/interfaces";
 import debug from "debug";
 
 import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
@@ -45,7 +45,7 @@ export interface Options {
   maxRetries?: number;
 }
 
-export const DEFAULT_PEER_EXCHANGE_TAG_NAME = "peer-exchange";
+export const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
 const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
 const DEFAULT_PEER_EXCHANGE_TAG_TTL = 120000;
 
