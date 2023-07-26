@@ -52,7 +52,7 @@ describe("ConnectionManager", function () {
         },
       });
 
-      const peerDiscoveryEventPromise = new Promise<void>((resolve) => {
+      const peerDiscoveryBootstrap = new Promise<void>((resolve) => {
         connectionManager!.addEventListener(
           EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP,
           ({ detail: receivedPeerId }) => {
@@ -66,7 +66,7 @@ describe("ConnectionManager", function () {
 
       waku.libp2p.dispatchEvent(new CustomEvent("peer", { detail: peerId }));
 
-      await peerDiscoveryEventPromise;
+      await peerDiscoveryBootstrap;
 
       const peerIdPx = await createSecp256k1PeerId();
 
@@ -79,7 +79,7 @@ describe("ConnectionManager", function () {
         },
       });
 
-      const peerDiscoveryEventPromise2 = new Promise<void>((resolve) => {
+      const peerDiscoveryPeerExchange = new Promise<void>((resolve) => {
         connectionManager!.addEventListener(
           EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
           ({ detail: receivedPeerId }) => {
@@ -91,7 +91,7 @@ describe("ConnectionManager", function () {
 
       waku.libp2p.dispatchEvent(new CustomEvent("peer", { detail: peerIdPx }));
 
-      await peerDiscoveryEventPromise2;
+      await peerDiscoveryPeerExchange;
     });
 
     it("should emit `peer:connected:{bootstrap/peer-exchange}` event when a peer is connected", async function () {
@@ -108,7 +108,7 @@ describe("ConnectionManager", function () {
         },
       });
 
-      const peerConnectedEventPromise = new Promise<void>((resolve) => {
+      const peerConnectedBootstrap = new Promise<void>((resolve) => {
         connectionManager!.addEventListener(
           EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP,
           ({ detail: receivedPeerId }) => {
@@ -124,7 +124,7 @@ describe("ConnectionManager", function () {
         new CustomEvent("peer:connect", { detail: peerIdBootstrap })
       );
 
-      await peerConnectedEventPromise;
+      await peerConnectedBootstrap;
 
       const peerIdPx = await createSecp256k1PeerId();
 
@@ -137,7 +137,7 @@ describe("ConnectionManager", function () {
         },
       });
 
-      const peerConnectedEventPromise2 = new Promise<void>((resolve) => {
+      const peerConnectedPeerExchange = new Promise<void>((resolve) => {
         connectionManager!.addEventListener(
           EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
           ({ detail: receivedPeerId }) => {
@@ -151,7 +151,7 @@ describe("ConnectionManager", function () {
         new CustomEvent("peer:connect", { detail: peerIdPx })
       );
 
-      await peerConnectedEventPromise2;
+      await peerConnectedPeerExchange;
     });
   });
 
