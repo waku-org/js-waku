@@ -58,7 +58,7 @@
     "debug": "^4.3.4",
     "dns-query": "^0.11.2",
     "hi-base32": "^0.5.1",
-    "uint8arrays": "^4.0.3"
+    "uint8arrays": "^4.0.4"
   },
   "devDependencies": {
     "@libp2p/interface-peer-info": "^1.0.10",
