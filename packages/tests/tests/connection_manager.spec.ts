@@ -19,9 +19,6 @@ describe("ConnectionManager", function () {
   let connectionManager: ConnectionManager | undefined;
   let waku: LightNode;
   let peerId: string;
-  let getConnectionsStub: SinonStub;
-  let getTagNamesForPeerStub: SinonStub;
-  let dialPeerStub: SinonStub;
 
   beforeEach(async function () {
     waku = await createLightNode();
@@ -37,7 +34,7 @@ describe("ConnectionManager", function () {
     await waku.stop();
   });
 
-  describe.only("Events", () => {
+  describe("Events", () => {
     it("should emit `peer:discovery:{bootstrap/peer-exchange}` event when a peer is discovered", async function () {
       this.timeout(TEST_TIMEOUT);
 
@@ -148,6 +145,10 @@ describe("ConnectionManager", function () {
   });
 
   describe("Testing Dials", () => {
+    let dialPeerStub: SinonStub;
+    let getConnectionsStub: SinonStub;
+    let getTagNamesForPeerStub: SinonStub;
+
     afterEach(() => {
       sinon.restore();
     });
@@ -172,6 +173,9 @@ describe("ConnectionManager", function () {
             new CustomEvent("peer:discovery", { detail: `peer-id-${i}` })
           );
         }
+
+        // add delay to allow async function calls within attemptDial to finish
+        await delay(100);
 
         expect(attemptDialSpy.callCount).to.equal(
           totalPeerIds,
