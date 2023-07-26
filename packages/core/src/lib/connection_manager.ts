@@ -1,9 +1,12 @@
+import { EventEmitter } from "events";
+
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
 import { Peer } from "@libp2p/interface-peer-store";
-import type {
+import {
   ConnectionManagerOptions,
   IRelay,
+  PeerEvents,
   PeersByDiscovery,
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
@@ -17,7 +20,7 @@ export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
 export const DEFAULT_MAX_PARALLEL_DIALS = 3;
 
-export class ConnectionManager {
+export class ConnectionManager extends EventEmitter {
   private static instances = new Map<string, ConnectionManager>();
   private keepAliveManager: KeepAliveManager;
   private options: ConnectionManagerOptions;
@@ -100,6 +103,7 @@ export class ConnectionManager {
     relay?: IRelay,
     options?: Partial<ConnectionManagerOptions>
   ) {
+    super();
     this.libp2p = libp2p;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
@@ -290,6 +294,16 @@ export class ConnectionManager {
       void (async () => {
         const { id: peerId } = evt.detail;
 
+        const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
+          Tags.BOOTSTRAP
+        );
+
+        if (isBootstrap) {
+          this.emit(PeerEvents.PEER_DISCOVERY_BOOTSTRAP, peerId);
+        } else {
+          this.emit(PeerEvents.PEER_DISCOVERY_PEER_EXCHANGE, peerId);
+        }
+
         try {
           await this.attemptDial(peerId);
         } catch (error) {
@@ -317,7 +331,11 @@ export class ConnectionManager {
             bootstrapConnections.length > this.options.maxBootstrapPeersAllowed
           ) {
             await this.dropConnection(peerId);
+          } else {
+            this.emit(PeerEvents.PEER_CONNECT_BOOTSTRAP, peerId);
           }
+        } else {
+          this.emit(PeerEvents.PEER_CONNECT_PEER_EXCHANGE, peerId);
         }
       })();
     },

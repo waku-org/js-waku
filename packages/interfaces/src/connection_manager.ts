@@ -22,6 +22,13 @@ export interface ConnectionManagerOptions {
   maxParallelDials: number;
 }
 
+export enum PeerEvents {
+  PEER_DISCOVERY_BOOTSTRAP = "peer:discovery:bootstrap",
+  PEER_DISCOVERY_PEER_EXCHANGE = "peer:discovery:peer-exchange",
+  PEER_CONNECT_BOOTSTRAP = "peer:connected:bootstrap",
+  PEER_CONNECT_PEER_EXCHANGE = "peer:connected:peer-exchange",
+}
+
 export interface PeersByDiscovery {
   DISCOVERED: {
     [Tags.BOOTSTRAP]: Peer[];
