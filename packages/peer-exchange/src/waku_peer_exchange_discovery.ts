@@ -134,6 +134,12 @@ export class PeerExchangeDiscovery
       maxRetries = DEFAULT_MAX_RETRIES,
     } = this.options;
 
+    log(
+      `Querying peer: ${peerIdStr} (attempt ${
+        this.queryAttempts.get(peerIdStr) ?? 1
+      })`
+    );
+
     await this.query(peerId);
 
     const currentAttempt = this.queryAttempts.get(peerIdStr) ?? 1;
@@ -188,6 +194,8 @@ export class PeerExchangeDiscovery
           },
         },
       });
+
+      log(`Discovered peer: ${peerId.toString()}`);
 
       this.dispatchEvent(
         new CustomEvent<PeerInfo>("peer", {
