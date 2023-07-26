@@ -29,7 +29,7 @@ export enum PeerEvents {
   PEER_CONNECT_PEER_EXCHANGE = "peer:connected:peer-exchange",
 }
 
-export interface PeersByDiscovery {
+export interface PeersByDiscoveryResult {
   DISCOVERED: {
     [Tags.BOOTSTRAP]: Peer[];
     [Tags.PEER_EXCHANGE]: Peer[];

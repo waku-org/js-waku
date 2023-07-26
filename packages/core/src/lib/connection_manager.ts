@@ -7,7 +7,7 @@ import {
   ConnectionManagerOptions,
   IRelay,
   PeerEvents,
-  PeersByDiscovery,
+  PeersByDiscoveryResult,
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
 import debug from "debug";
@@ -52,7 +52,7 @@ export class ConnectionManager extends EventEmitter {
     return instance;
   }
 
-  public async getPeersByDiscovery(): Promise<PeersByDiscovery> {
+  public async getPeersByDiscovery(): Promise<PeersByDiscoveryResult> {
     const peersDiscovered = await this.libp2p.peerStore.all();
     const peersConnected = this.libp2p
       .getConnections()
