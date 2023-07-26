@@ -52,6 +52,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.14 to 0.0.15
     * @waku/utils bumped from 0.0.7 to 0.0.8
 
+## [0.0.19](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.18...message-encryption-v0.0.19) (2023-07-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400))
+
+### Features
+
+* Upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400)) ([420e6c6](https://github.com/waku-org/js-waku/commit/420e6c698dd8f44d40d34e47d876da5d2e1ce85e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.20 to 0.0.21
+    * @waku/interfaces bumped from 0.0.15 to 0.0.16
+    * @waku/utils bumped from 0.0.8 to 0.0.9
+
 ## [0.0.16](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.15...message-encryption-v0.0.16) (2023-05-18)
 
 

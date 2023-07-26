@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.21](https://github.com/waku-org/js-waku/compare/core-v0.0.20...core-v0.0.21) (2023-07-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove filter v1 ([#1433](https://github.com/waku-org/js-waku/issues/1433))
+* upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400))
+
+### Features
+
+* Enable event emission for peer discovery/connection in ConnectionManager ([#1438](https://github.com/waku-org/js-waku/issues/1438)) ([6ce898d](https://github.com/waku-org/js-waku/commit/6ce898d77132f30b5d8f33b48c7f6276992a486e))
+* Spec test for connection manager ([#1417](https://github.com/waku-org/js-waku/issues/1417)) ([d2f675d](https://github.com/waku-org/js-waku/commit/d2f675d690f4a648dc7294455891f2d66a49ea76))
+* Upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400)) ([420e6c6](https://github.com/waku-org/js-waku/commit/420e6c698dd8f44d40d34e47d876da5d2e1ce85e))
+
+
+### Miscellaneous Chores
+
+* Remove filter v1 ([#1433](https://github.com/waku-org/js-waku/issues/1433)) ([d483644](https://github.com/waku-org/js-waku/commit/d483644a4bb4350df380719b9bcfbdd0b1439482))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.15 to 0.0.16
+    * @waku/utils bumped from 0.0.8 to 0.0.9
+
 ## [0.0.20](https://github.com/waku-org/js-waku/compare/core-v0.0.19...core-v0.0.20) (2023-06-08)
 
 
