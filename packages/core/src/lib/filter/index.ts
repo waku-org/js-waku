@@ -385,7 +385,7 @@ async function pushMessage<T extends IDecodedMessage>(
   }
   try {
     const decodedMessage = await Promise.any(
-      decoders.map(async (dec) => {
+      decoders.map((dec) =>
         dec
           .fromProtoObj(pubSubTopic, message as IProtoMessage)
           .then((decoded) =>
@@ -393,8 +393,7 @@ async function pushMessage<T extends IDecodedMessage>(
               ? Promise.resolve(decoded)
               : Promise.reject(new Error("Decoding failed"))
           )
-          .catch((e) => log("Decoding failed", e));
-      })
+      )
     );
     await callback(decodedMessage);
   } catch (e) {
