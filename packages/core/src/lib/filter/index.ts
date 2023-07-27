@@ -383,18 +383,16 @@ async function pushMessage<T extends IDecodedMessage>(
     log("Message has no content topic, skipping");
     return;
   }
+
   try {
-    const decodedMessage = await Promise.any(
-      decoders.map((dec) =>
-        dec
-          .fromProtoObj(pubSubTopic, message as IProtoMessage)
-          .then((decoded) =>
-            decoded
-              ? Promise.resolve(decoded)
-              : Promise.reject(new Error("Decoding failed"))
-          )
-      )
+    const decodePromises = decoders.map((dec) =>
+      dec
+        .fromProtoObj(pubSubTopic, message as IProtoMessage)
+        .then((decoded) => decoded || Promise.reject("Decoding failed"))
     );
+
+    const decodedMessage = await Promise.any(decodePromises);
+
     await callback(decodedMessage);
   } catch (e) {
     log("Error decoding message", e);
