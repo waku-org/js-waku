@@ -11,3 +11,4 @@ export * from "./connection_manager.js";
 export * from "./sender.js";
 export * from "./receiver.js";
 export * from "./misc.js";
+export * from "./libp2p.js";

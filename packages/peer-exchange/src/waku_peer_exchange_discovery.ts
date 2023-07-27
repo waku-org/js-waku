@@ -1,19 +1,16 @@
+import type { PeerUpdate } from "@libp2p/interface-libp2p";
 import type {
   PeerDiscovery,
   PeerDiscoveryEvents,
 } from "@libp2p/interface-peer-discovery";
-import { symbol } from "@libp2p/interface-peer-discovery";
+import { peerDiscovery as symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { PeerProtocolsChangeData } from "@libp2p/interface-peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import { Libp2pComponents, Tags } from "@waku/interfaces";
 import debug from "debug";
 
-import {
-  PeerExchangeCodec,
-  PeerExchangeComponents,
-  WakuPeerExchange,
-} from "./waku_peer_exchange.js";
+import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
 
 const log = debug("waku:peer-exchange-discovery");
 
@@ -48,7 +45,7 @@ export interface Options {
   maxRetries?: number;
 }
 
-export const DEFAULT_PEER_EXCHANGE_TAG_NAME = "peer-exchange";
+export const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
 const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
 const DEFAULT_PEER_EXCHANGE_TAG_TTL = 120000;
 
@@ -56,17 +53,19 @@ export class PeerExchangeDiscovery
   extends EventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery
 {
-  private readonly components: PeerExchangeComponents;
+  private readonly components: Libp2pComponents;
   private readonly peerExchange: WakuPeerExchange;
   private readonly options: Options;
   private isStarted: boolean;
   private queryingPeers: Set<string> = new Set();
   private queryAttempts: Map<string, number> = new Map();
 
-  private readonly eventHandler = async (
-    event: CustomEvent<PeerProtocolsChangeData>
-  ): Promise<void> => {
-    const { protocols, peerId } = event.detail;
+  private readonly handleDiscoveredPeer = (
+    event: CustomEvent<PeerUpdate>
+  ): void => {
+    const {
+      peer: { protocols, id: peerId },
+    } = event.detail;
     if (
       !protocols.includes(PeerExchangeCodec) ||
       this.queryingPeers.has(peerId.toString())
@@ -79,7 +78,7 @@ export class PeerExchangeDiscovery
     );
   };
 
-  constructor(components: PeerExchangeComponents, options: Options = {}) {
+  constructor(components: Libp2pComponents, options: Options = {}) {
     super();
     this.components = components;
     this.peerExchange = new WakuPeerExchange(components);
@@ -97,9 +96,10 @@ export class PeerExchangeDiscovery
 
     log("Starting peer exchange node discovery, discovering peers");
 
-    this.components.peerStore.addEventListener(
-      "change:protocols",
-      this.eventHandler
+    // might be better to use "peer:identify" or "peer:update"
+    this.components.events.addEventListener(
+      "peer:update",
+      this.handleDiscoveredPeer
     );
   }
 
@@ -111,9 +111,9 @@ export class PeerExchangeDiscovery
     log("Stopping peer exchange node discovery");
     this.isStarted = false;
     this.queryingPeers.clear();
-    this.components.peerStore.removeEventListener(
-      "change:protocols",
-      this.eventHandler
+    this.components.events.removeEventListener(
+      "peer:update",
+      this.handleDiscoveredPeer
     );
   }
 
@@ -134,6 +134,12 @@ export class PeerExchangeDiscovery
       maxRetries = DEFAULT_MAX_RETRIES,
     } = this.options;
 
+    log(
+      `Querying peer: ${peerIdStr} (attempt ${
+        this.queryAttempts.get(peerIdStr) ?? 1
+      })`
+    );
+
     await this.query(peerId);
 
     const currentAttempt = this.queryAttempts.get(peerIdStr) ?? 1;
@@ -143,9 +149,11 @@ export class PeerExchangeDiscovery
       return;
     }
 
-    setTimeout(async () => {
+    setTimeout(() => {
       this.queryAttempts.set(peerIdStr, currentAttempt + 1);
-      await this.startRecurringQueries(peerId);
+      this.startRecurringQueries(peerId).catch((error) => {
+        log(`Error in startRecurringQueries: ${error}`);
+      });
     }, queryInterval * currentAttempt);
   };
 
@@ -168,33 +176,33 @@ export class PeerExchangeDiscovery
       }
 
       const { peerId, peerInfo } = ENR;
-
-      if (!peerId || !peerInfo) continue;
-
-      const { multiaddrs } = peerInfo;
-
-      if (
-        (await this.components.peerStore.getTags(peerId)).find(
-          ({ name }) => name === DEFAULT_PEER_EXCHANGE_TAG_NAME
-        )
-      )
+      if (!peerId || !peerInfo) {
         continue;
+      }
 
-      await this.components.peerStore.tagPeer(
-        peerId,
-        DEFAULT_PEER_EXCHANGE_TAG_NAME,
-        {
-          value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
-          ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
-        }
-      );
+      const hasPeer = await this.components.peerStore.has(peerId);
+      if (hasPeer) {
+        continue;
+      }
+
+      // update the tags for the peer
+      await this.components.peerStore.save(peerId, {
+        tags: {
+          [DEFAULT_PEER_EXCHANGE_TAG_NAME]: {
+            value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
+            ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
+          },
+        },
+      });
+
+      log(`Discovered peer: ${peerId.toString()}`);
 
       this.dispatchEvent(
         new CustomEvent<PeerInfo>("peer", {
           detail: {
             id: peerId,
-            multiaddrs,
             protocols: [],
+            multiaddrs: peerInfo.multiaddrs,
           },
         })
       );
@@ -209,8 +217,8 @@ export class PeerExchangeDiscovery
 }
 
 export function wakuPeerExchangeDiscovery(): (
-  components: PeerExchangeComponents
+  components: Libp2pComponents
 ) => PeerExchangeDiscovery {
-  return (components: PeerExchangeComponents) =>
+  return (components: Libp2pComponents) =>
     new PeerExchangeDiscovery(components);
 }

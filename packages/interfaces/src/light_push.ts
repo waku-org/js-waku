@@ -1,4 +1,4 @@
-import type { PointToPointProtocol } from "./protocols.js";
+import type { IBaseProtocol } from "./protocols.js";
 import type { ISender } from "./sender.js";
 
-export type ILightPush = ISender & PointToPointProtocol;
+export type ILightPush = ISender & IBaseProtocol;

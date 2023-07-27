@@ -1,6 +1,6 @@
 ![GitHub Action](https://img.shields.io/github/actions/workflow/status/waku-org/js-waku/ci.yml?branch=master)
 ![Code Climate](https://img.shields.io/codeclimate/maintainability/waku-org/js-waku)
-[![Discord chat](https://img.shields.io/discord/864066763682218004.svg?logo=discord&colorB=7289DA)](https://discord.gg/Nrac59MfSX)
+[![Discord chat](https://img.shields.io/discord/1110799176264056863.svg?logo=discord&colorB=7289DA)](https://discord.waku.org)
 
 # js-waku
 
@@ -8,8 +8,8 @@ A TypeScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/1
 
 ## Documentation
 
-- [Quick start](https://js.waku.guide/docs/quick_start/)
-- [Full documentation](https://js.waku.guide/)
+- [Quick start](https://docs.waku.org/guides/js-waku/quick-start)
+- [Full documentation](https://docs.waku.org/guides/js-waku)
 - [API documentation (`master` branch)](https://js.waku.org/)
 - [Waku](https://waku.org/)
 - [Vac](https://vac.dev/)

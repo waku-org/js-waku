@@ -1,14 +1,12 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
 import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
   DefaultUserAgent,
-  wakuFilterV1,
-  wakuFilterV2,
+  wakuFilter,
   wakuLightPush,
   WakuNode,
   WakuOptions,
@@ -17,16 +15,16 @@ import {
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
   FullNode,
-  IFilter,
-  IFilterV2,
+  Libp2p,
+  Libp2pComponents,
   LightNode,
   ProtocolCreateOptions,
   RelayNode,
 } from "@waku/interfaces";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { createLibp2p, Libp2pOptions } from "libp2p";
-
-import type { Libp2pComponents } from "./libp2p_components.js";
+import { identifyService } from "libp2p/identify";
+import { pingService } from "libp2p/ping";
 
 const DEFAULT_NODE_REQUIREMENTS = {
   lightPush: 1,
@@ -39,12 +37,7 @@ export { Libp2pComponents };
 /**
  * Create a Waku node that uses Waku Light Push, Filter and Store to send and
  * receive messages, enabling low resource consumption.
- * If `useFilterV1` is set to true, the node will use Filter V1 protocol.
- * If `useFilterV1` is set to false or undefined, the node will use Filter V2 protocol. (default behavior)
- *
- * **Note: This is NOT compatible with nwaku v0.11**
- *
- * @see https://github.com/status-im/nwaku/issues/1085
+ * Uses Waku Filter V2 by default.
  */
 export async function createLightNode(
   options?: ProtocolCreateOptions & WakuOptions
@@ -64,14 +57,7 @@ export async function createLightNode(
 
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
-
-  let filter: (libp2p: Libp2p) => IFilter | IFilterV2;
-
-  if (options?.useFilterV1) {
-    filter = wakuFilterV1(options) as (libp2p: Libp2p) => IFilter;
-  } else {
-    filter = wakuFilterV2() as (libp2p: Libp2p) => IFilterV2;
-  }
+  const filter = wakuFilter(options);
 
   return new WakuNode(
     options ?? {},
@@ -116,9 +102,6 @@ export async function createRelayNode(
 
 /**
  * Create a Waku node that uses all Waku protocols.
- * Implements generics to allow for conditional type checking for Filter V1 and V2 protocols.
- * If `useFilterV1` is set to true, the node will use Filter V1 protocol.
- * If `useFilterV1` is set to false or undefined, the node will use Filter V2 protocol. (default behavior)
  *
  * This helper is not recommended except if:
  * - you are interfacing with nwaku v0.11 or below
@@ -148,14 +131,7 @@ export async function createFullNode(
 
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
-
-  let filter: (libp2p: Libp2p) => IFilter | IFilterV2;
-  if (!options?.useFilterV1) {
-    filter = wakuFilterV2();
-  } else {
-    filter = wakuFilterV1(options);
-  }
-
+  const filter = wakuFilter(options);
   const relay = wakuRelay(options);
 
   return new WakuNode(
@@ -174,25 +150,34 @@ export function defaultPeerDiscovery(): (
   return wakuDnsDiscovery([enrTree["PROD"]], DEFAULT_NODE_REQUIREMENTS);
 }
 
+type PubsubService = {
+  pubsub?: (components: Libp2pComponents) => GossipSub;
+};
+
 export async function defaultLibp2p(
-  wakuGossipSub?: (components: Libp2pComponents) => GossipSub,
+  wakuGossipSub?: PubsubService["pubsub"],
   options?: Partial<Libp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
-  const libp2pOpts = Object.assign(
-    {
-      transports: [webSockets({ filter: filterAll })],
-      streamMuxers: [mplex()],
-      connectionEncryption: [noise()],
-      identify: {
-        host: {
-          agentVersion: userAgent ?? DefaultUserAgent,
-        },
-      },
-    } as Libp2pOptions,
-    wakuGossipSub ? { pubsub: wakuGossipSub } : {},
-    options ?? {}
-  );
+  const pubsubService: PubsubService = wakuGossipSub
+    ? { pubsub: wakuGossipSub }
+    : {};
 
-  return createLibp2p(libp2pOpts);
+  return createLibp2p({
+    connectionManager: {
+      minConnections: 1,
+    },
+    transports: [webSockets({ filter: filterAll })],
+    streamMuxers: [mplex()],
+    connectionEncryption: [noise()],
+    ...options,
+    services: {
+      identify: identifyService({
+        agentVersion: userAgent ?? DefaultUserAgent,
+      }),
+      ping: pingService(),
+      ...pubsubService,
+      ...options?.services,
+    },
+  }) as any as Libp2p; // TODO: make libp2p include it;
 }

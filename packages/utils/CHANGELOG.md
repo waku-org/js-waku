@@ -6,6 +6,24 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.14 to 0.0.15
 
+## [0.0.9](https://github.com/waku-org/js-waku/compare/utils-v0.0.8...utils-v0.0.9) (2023-07-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400))
+
+### Features
+
+* Upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400)) ([420e6c6](https://github.com/waku-org/js-waku/commit/420e6c698dd8f44d40d34e47d876da5d2e1ce85e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.15 to 0.0.16
+
 ## [0.0.7](https://github.com/waku-org/js-waku/compare/utils-v0.0.6...utils-v0.0.7) (2023-05-26)
 
 

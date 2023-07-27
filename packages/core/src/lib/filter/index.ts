@@ -1,5 +1,4 @@
 import { Stream } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
@@ -9,9 +8,10 @@ import type {
   IAsyncIterator,
   IDecodedMessage,
   IDecoder,
-  IFilterV2,
+  IFilter,
   IProtoMessage,
   IReceiver,
+  Libp2p,
   PeerIdStr,
   ProtocolCreateOptions,
   ProtocolOptions,
@@ -25,8 +25,8 @@ import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
-import { BaseProtocol } from "../../base_protocol.js";
-import { DefaultPubSubTopic } from "../../constants.js";
+import { BaseProtocol } from "../base_protocol.js";
+import { DefaultPubSubTopic } from "../constants.js";
 
 import {
   FilterPushRpc,
@@ -41,7 +41,7 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
   callback: Callback<T>;
 };
 
-const FilterV2Codecs = {
+const FilterCodecs = {
   SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
   PUSH: "/vac/waku/filter-push/2.0.0-beta1",
 };
@@ -225,7 +225,7 @@ class Subscription {
   }
 }
 
-class FilterV2 extends BaseProtocol implements IReceiver {
+class Filter extends BaseProtocol implements IReceiver {
   private readonly options: ProtocolCreateOptions;
   private activeSubscriptions = new Map<string, Subscription>();
 
@@ -245,18 +245,12 @@ class FilterV2 extends BaseProtocol implements IReceiver {
     return subscription;
   }
 
-  constructor(public libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(
-      FilterV2Codecs.SUBSCRIBE,
-      libp2p.peerStore,
-      libp2p.getConnections.bind(libp2p)
-    );
+  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
+    super(FilterCodecs.SUBSCRIBE, libp2p.components);
 
-    this.libp2p
-      .handle(FilterV2Codecs.PUSH, this.onRequest.bind(this))
-      .catch((e) => {
-        log("Failed to register ", FilterV2Codecs.PUSH, e);
-      });
+    libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
+      log("Failed to register ", FilterCodecs.PUSH, e);
+    });
 
     this.activeSubscriptions = new Map();
 
@@ -312,7 +306,7 @@ class FilterV2 extends BaseProtocol implements IReceiver {
   ): Promise<Unsubscribe> {
     const subscription = await this.createSubscription(undefined, opts?.peerId);
 
-    subscription.subscribe(decoders, callback);
+    await subscription.subscribe(decoders, callback);
 
     const contentTopics = Array.from(
       groupByContentTopic(
@@ -371,10 +365,10 @@ class FilterV2 extends BaseProtocol implements IReceiver {
   }
 }
 
-export function wakuFilterV2(
+export function wakuFilter(
   init: Partial<ProtocolCreateOptions> = {}
-): (libp2p: Libp2p) => IFilterV2 {
-  return (libp2p: Libp2p) => new FilterV2(libp2p, init);
+): (libp2p: Libp2p) => IFilter {
+  return (libp2p: Libp2p) => new Filter(libp2p, init);
 }
 
 async function pushMessage<T extends IDecodedMessage>(
@@ -389,21 +383,21 @@ async function pushMessage<T extends IDecodedMessage>(
     log("Message has no content topic, skipping");
     return;
   }
-  Promise.any(
-    decoders.map(async (dec) => {
-      dec
-        .fromProtoObj(pubSubTopic, message as IProtoMessage)
-        .then((decoded) =>
-          decoded
-            ? Promise.resolve(decoded)
-            : Promise.reject(new Error("Decoding failed"))
-        );
-    })
-  )
-    .then(async (decodedMessage) => {
-      await callback(decodedMessage);
-    })
-    .catch((e) => {
-      log("Error decoding message", e);
-    });
+  try {
+    const decodedMessage = await Promise.any(
+      decoders.map(async (dec) => {
+        dec
+          .fromProtoObj(pubSubTopic, message as IProtoMessage)
+          .then((decoded) =>
+            decoded
+              ? Promise.resolve(decoded)
+              : Promise.reject(new Error("Decoding failed"))
+          )
+          .catch((e) => log("Decoding failed", e));
+      })
+    );
+    await callback(decodedMessage);
+  } catch (e) {
+    log("Error decoding message", e);
+  }
 }

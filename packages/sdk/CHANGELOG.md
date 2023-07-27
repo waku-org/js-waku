@@ -26,6 +26,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.11 to 0.0.12
 
+## [0.0.17](https://github.com/waku-org/js-waku/compare/sdk-v0.0.16...sdk-v0.0.17) (2023-07-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove filter v1 ([#1433](https://github.com/waku-org/js-waku/issues/1433))
+* upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400))
+
+### Features
+
+* Export interfaces and relay from sdk ([#1409](https://github.com/waku-org/js-waku/issues/1409)) ([0d9265a](https://github.com/waku-org/js-waku/commit/0d9265aaf15260be5974c551e84ca6290273dbf0))
+* Upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400)) ([420e6c6](https://github.com/waku-org/js-waku/commit/420e6c698dd8f44d40d34e47d876da5d2e1ce85e))
+
+
+### Miscellaneous Chores
+
+* Remove filter v1 ([#1433](https://github.com/waku-org/js-waku/issues/1433)) ([d483644](https://github.com/waku-org/js-waku/commit/d483644a4bb4350df380719b9bcfbdd0b1439482))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.8 to 0.0.9
+    * @waku/relay bumped from 0.0.3 to 0.0.4
+    * @waku/core bumped from 0.0.20 to 0.0.21
+    * @waku/interfaces bumped from 0.0.15 to 0.0.16
+    * @waku/dns-discovery bumped from 0.0.14 to 0.0.15
+
 ## 0.0.16 (2023-06-08)
 
 

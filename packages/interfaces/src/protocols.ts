@@ -1,3 +1,4 @@
+import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
 import type { Libp2pOptions } from "libp2p";
@@ -11,10 +12,12 @@ export enum Protocols {
   Filter = "filter",
 }
 
-export interface PointToPointProtocol {
+export interface IBaseProtocol {
   multicodec: string;
   peerStore: PeerStore;
   peers: () => Promise<Peer[]>;
+  addLibp2pEventListener: Libp2p["addEventListener"];
+  removeLibp2pEventListener: Libp2p["removeEventListener"];
 }
 
 export type ProtocolCreateOptions = {
@@ -49,12 +52,6 @@ export type ProtocolCreateOptions = {
    * Use recommended bootstrap method to discovery and connect to new nodes.
    */
   defaultBootstrap?: boolean;
-  /**
-   * FilterV2 has been set to default
-   * Use this flag to enable the previous version of the filter protocol
-   * See [Improved Filter protocol specifications](https://github.com/vacp2p/rfc/pull/562)
-   */
-  useFilterV1?: boolean;
 };
 
 export type ProtocolOptions = {

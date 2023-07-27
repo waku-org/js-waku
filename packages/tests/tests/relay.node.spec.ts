@@ -67,10 +67,9 @@ describe("Waku Relay [node only]", () => {
         }).then((waku) => waku.start().then(() => waku)),
       ]);
       log("Instances started, adding waku2 to waku1's address book");
-      await waku1.libp2p.peerStore.addressBook.set(
-        waku2.libp2p.peerId,
-        waku2.libp2p.getMultiaddrs()
-      );
+      await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+        multiaddrs: waku2.libp2p.getMultiaddrs(),
+      });
       await waku1.dial(waku2.libp2p.peerId);
 
       log("Wait for mutual pubsub subscription");
@@ -90,11 +89,11 @@ describe("Waku Relay [node only]", () => {
 
     it("Subscribe", async function () {
       log("Getting subscribers");
-      const subscribers1 = waku1.libp2p.pubsub
-        .getSubscribers(DefaultPubSubTopic)
+      const subscribers1 = waku1.libp2p.services
+        .pubsub!.getSubscribers(DefaultPubSubTopic)
         .map((p) => p.toString());
-      const subscribers2 = waku2.libp2p.pubsub
-        .getSubscribers(DefaultPubSubTopic)
+      const subscribers2 = waku2.libp2p.services
+        .pubsub!.getSubscribers(DefaultPubSubTopic)
         .map((p) => p.toString());
 
       log("Asserting mutual subscription");
@@ -121,7 +120,7 @@ describe("Waku Relay [node only]", () => {
 
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku2.relay.subscribe([TestDecoder], resolve);
+          void waku2.relay.subscribe([TestDecoder], resolve);
         }
       );
 
@@ -152,12 +151,12 @@ describe("Waku Relay [node only]", () => {
       const barDecoder = createDecoder(barContentTopic);
 
       const fooMessages: DecodedMessage[] = [];
-      waku2.relay.subscribe([fooDecoder], (msg) => {
+      void waku2.relay.subscribe([fooDecoder], (msg) => {
         fooMessages.push(msg);
       });
 
       const barMessages: DecodedMessage[] = [];
-      waku2.relay.subscribe([barDecoder], (msg) => {
+      void waku2.relay.subscribe([barDecoder], (msg) => {
         barMessages.push(msg);
       });
 
@@ -207,10 +206,10 @@ describe("Waku Relay [node only]", () => {
       const symDecoder = createSymDecoder(symTopic, symKey);
 
       const msgs: DecodedMessage[] = [];
-      waku2.relay.subscribe([eciesDecoder], (wakuMsg) => {
+      void waku2.relay.subscribe([eciesDecoder], (wakuMsg) => {
         msgs.push(wakuMsg);
       });
-      waku2.relay.subscribe([symDecoder], (wakuMsg) => {
+      void waku2.relay.subscribe([symDecoder], (wakuMsg) => {
         msgs.push(wakuMsg);
       });
 
@@ -291,14 +290,12 @@ describe("Waku Relay [node only]", () => {
         }).then((waku) => waku.start().then(() => waku)),
       ]);
 
-      await waku1.libp2p.peerStore.addressBook.set(
-        waku2.libp2p.peerId,
-        waku2.libp2p.getMultiaddrs()
-      );
-      await waku3.libp2p.peerStore.addressBook.set(
-        waku2.libp2p.peerId,
-        waku2.libp2p.getMultiaddrs()
-      );
+      await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+        multiaddrs: waku2.libp2p.getMultiaddrs(),
+      });
+      await waku3.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+        multiaddrs: waku2.libp2p.getMultiaddrs(),
+      });
       await Promise.all([
         waku1.dial(waku2.libp2p.peerId),
         waku3.dial(waku2.libp2p.peerId),
@@ -313,7 +310,7 @@ describe("Waku Relay [node only]", () => {
 
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku2.relay.subscribe([TestDecoder], resolve);
+          void waku2.relay.subscribe([TestDecoder], resolve);
         }
       );
 
@@ -321,7 +318,7 @@ describe("Waku Relay [node only]", () => {
       // pubsub topic.
       const waku3NoMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve, reject) => {
-          waku3.relay.subscribe([TestDecoder], reject);
+          void waku3.relay.subscribe([TestDecoder], reject);
           setTimeout(resolve, 1000);
         }
       );
@@ -356,10 +353,9 @@ describe("Waku Relay [node only]", () => {
         }).then((waku) => waku.start().then(() => waku)),
       ]);
 
-      await waku1.libp2p.peerStore.addressBook.set(
-        waku2.libp2p.peerId,
-        waku2.libp2p.getMultiaddrs()
-      );
+      await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+        multiaddrs: waku2.libp2p.getMultiaddrs(),
+      });
       await Promise.all([waku1.dial(waku2.libp2p.peerId)]);
 
       await Promise.all([
@@ -369,7 +365,7 @@ describe("Waku Relay [node only]", () => {
 
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku2.relay.subscribe([TestDecoder], () =>
+          void waku2.relay.subscribe([TestDecoder], () =>
             resolve({
               payload: new Uint8Array([]),
             } as DecodedMessage)
@@ -428,7 +424,8 @@ describe("Waku Relay [node only]", () => {
 
       while (subscribers.length === 0) {
         await delay(200);
-        subscribers = waku.libp2p.pubsub.getSubscribers(DefaultPubSubTopic);
+        subscribers =
+          waku.libp2p.services.pubsub!.getSubscribers(DefaultPubSubTopic);
       }
 
       const nimPeerId = await nwaku.getPeerId();
@@ -463,7 +460,7 @@ describe("Waku Relay [node only]", () => {
 
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          waku.relay.subscribe<DecodedMessage>(TestDecoder, (msg) =>
+          void waku.relay.subscribe<DecodedMessage>(TestDecoder, (msg) =>
             resolve(msg)
           );
         }
@@ -535,7 +532,7 @@ describe("Waku Relay [node only]", () => {
 
         const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
           (resolve) => {
-            waku2.relay.subscribe(TestDecoder, resolve);
+            void waku2.relay.subscribe(TestDecoder, resolve);
           }
         );
 
