@@ -10,7 +10,7 @@ import { delay } from "../dist/delay.js";
 const TEST_TIMEOUT = 10_000;
 const DELAY_MS = 1_000;
 
-describe.only("ConnectionManager", function () {
+describe("ConnectionManager", function () {
   let waku: LightNode;
 
   beforeEach(async function () {
