@@ -384,23 +384,17 @@ async function pushMessage<T extends IDecodedMessage>(
     return;
   }
 
-  let didDecodeMsg = false;
-  // We don't want to wait for decoding failure, just attempt to decode
-  // all messages and do the call back on the one that works
-  // noinspection ES6MissingAwait
-  for (const dec of decoders) {
-    if (didDecodeMsg) break;
-    const decoded = await dec.fromProtoObj(
-      pubSubTopic,
-      message as IProtoMessage
+  try {
+    const decodePromises = decoders.map((dec) =>
+      dec
+        .fromProtoObj(pubSubTopic, message as IProtoMessage)
+        .then((decoded) => decoded || Promise.reject("Decoding failed"))
     );
-    if (!decoded) {
-      log("Not able to decode message");
-      continue;
-    }
-    // This is just to prevent more decoding attempt
-    // TODO: Could be better if we were to abort promises
-    didDecodeMsg = Boolean(decoded);
-    await callback(decoded);
+
+    const decodedMessage = await Promise.any(decodePromises);
+
+    await callback(decodedMessage);
+  } catch (e) {
+    log("Error decoding message", e);
   }
 }

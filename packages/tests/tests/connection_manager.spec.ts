@@ -1,6 +1,5 @@
 import { CustomEvent } from "@libp2p/interfaces/events";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
-import { ConnectionManager, KeepAliveOptions } from "@waku/core";
 import { EPeersByDiscoveryEvents, LightNode, Tags } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
@@ -8,26 +7,14 @@ import sinon, { SinonSpy, SinonStub } from "sinon";
 
 import { delay } from "../dist/delay.js";
 
-const KEEP_ALIVE_OPTIONS: KeepAliveOptions = {
-  pingKeepAlive: 0,
-  relayKeepAlive: 5 * 1000,
-};
 const TEST_TIMEOUT = 10_000;
 const DELAY_MS = 1_000;
 
 describe("ConnectionManager", function () {
-  let connectionManager: ConnectionManager | undefined;
   let waku: LightNode;
-  let peerId: string;
 
   beforeEach(async function () {
     waku = await createLightNode();
-    peerId = Math.random().toString(36).substring(7);
-    connectionManager = ConnectionManager.create(
-      peerId,
-      waku.libp2p,
-      KEEP_ALIVE_OPTIONS
-    );
   });
 
   afterEach(async () => {
@@ -51,7 +38,7 @@ describe("ConnectionManager", function () {
         });
 
         const peerDiscoveryBootstrap = new Promise<boolean>((resolve) => {
-          connectionManager!.addEventListener(
+          waku.connectionManager.addEventListener(
             EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP,
             ({ detail: receivedPeerId }) => {
               resolve(receivedPeerId.toString() === peerIdBootstrap.toString());
@@ -59,7 +46,9 @@ describe("ConnectionManager", function () {
           );
         });
 
-        waku.libp2p.dispatchEvent(new CustomEvent("peer", { detail: peerId }));
+        waku.libp2p.dispatchEvent(
+          new CustomEvent("peer", { detail: await createSecp256k1PeerId() })
+        );
 
         expect(await peerDiscoveryBootstrap).to.eq(true);
       });
@@ -77,7 +66,7 @@ describe("ConnectionManager", function () {
         });
 
         const peerDiscoveryPeerExchange = new Promise<boolean>((resolve) => {
-          connectionManager!.addEventListener(
+          waku.connectionManager.addEventListener(
             EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
             ({ detail: receivedPeerId }) => {
               resolve(receivedPeerId.toString() === peerIdPx.toString());
@@ -109,7 +98,7 @@ describe("ConnectionManager", function () {
         });
 
         const peerConnectedBootstrap = new Promise<boolean>((resolve) => {
-          connectionManager!.addEventListener(
+          waku.connectionManager.addEventListener(
             EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP,
             ({ detail: receivedPeerId }) => {
               resolve(receivedPeerId.toString() === peerIdBootstrap.toString());
@@ -136,7 +125,7 @@ describe("ConnectionManager", function () {
         });
 
         const peerConnectedPeerExchange = new Promise<boolean>((resolve) => {
-          connectionManager!.addEventListener(
+          waku.connectionManager.addEventListener(
             EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
             ({ detail: receivedPeerId }) => {
               resolve(receivedPeerId.toString() === peerIdPx.toString());
@@ -157,8 +146,14 @@ describe("ConnectionManager", function () {
     let dialPeerStub: SinonStub;
     let getConnectionsStub: SinonStub;
     let getTagNamesForPeerStub: SinonStub;
+    let waku: LightNode;
 
-    afterEach(() => {
+    this.beforeEach(async function () {
+      waku = await createLightNode();
+    });
+
+    afterEach(async () => {
+      await waku.stop();
       sinon.restore();
     });
 
@@ -166,7 +161,10 @@ describe("ConnectionManager", function () {
       let attemptDialSpy: SinonSpy;
 
       beforeEach(function () {
-        attemptDialSpy = sinon.spy(connectionManager as any, "attemptDial");
+        attemptDialSpy = sinon.spy(
+          waku.connectionManager as any,
+          "attemptDial"
+        );
       });
 
       afterEach(function () {
@@ -196,14 +194,14 @@ describe("ConnectionManager", function () {
     describe("dialPeer method", function () {
       beforeEach(function () {
         getConnectionsStub = sinon.stub(
-          (connectionManager as any).libp2p,
+          (waku.connectionManager as any).libp2p,
           "getConnections"
         );
         getTagNamesForPeerStub = sinon.stub(
-          connectionManager as any,
+          waku.connectionManager as any,
           "getTagNamesForPeer"
         );
-        dialPeerStub = sinon.stub(connectionManager as any, "dialPeer");
+        dialPeerStub = sinon.stub(waku.connectionManager as any, "dialPeer");
       });
 
       afterEach(function () {

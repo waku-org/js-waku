@@ -5,14 +5,16 @@ import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
 import {
   ConnectionManagerOptions,
   EPeersByDiscoveryEvents,
+  IConnectionManager,
   IPeersByDiscoveryEvents,
   IRelay,
+  KeepAliveOptions,
   PeersByDiscoveryResult,
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
 import debug from "debug";
 
-import { KeepAliveManager, KeepAliveOptions } from "./keep_alive_manager.js";
+import { KeepAliveManager } from "./keep_alive_manager.js";
 
 const log = debug("waku:connection-manager");
 
@@ -20,7 +22,10 @@ export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
 export const DEFAULT_MAX_PARALLEL_DIALS = 3;
 
-export class ConnectionManager extends EventEmitter<IPeersByDiscoveryEvents> {
+export class ConnectionManager
+  extends EventEmitter<IPeersByDiscoveryEvents>
+  implements IConnectionManager
+{
   private static instances = new Map<string, ConnectionManager>();
   private keepAliveManager: KeepAliveManager;
   private options: ConnectionManagerOptions;
@@ -217,7 +222,7 @@ export class ConnectionManager extends EventEmitter<IPeersByDiscoveryEvents> {
     }
   }
 
-  async dropConnection(peerId: PeerId): Promise<void> {
+  private async dropConnection(peerId: PeerId): Promise<void> {
     try {
       this.keepAliveManager.stop(peerId);
       await this.libp2p.hangUp(peerId);
