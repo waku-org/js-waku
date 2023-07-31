@@ -1,5 +1,6 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { IRelay } from "@waku/interfaces";
+import type { KeepAliveOptions } from "@waku/interfaces";
 import debug from "debug";
 import type { PingService } from "libp2p/ping";
 
@@ -7,11 +8,6 @@ import { createEncoder } from "../index.js";
 
 export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 const log = debug("waku:keep-alive");
-
-export interface KeepAliveOptions {
-  pingKeepAlive: number;
-  relayKeepAlive: number;
-}
 
 export class KeepAliveManager {
   private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>>;
