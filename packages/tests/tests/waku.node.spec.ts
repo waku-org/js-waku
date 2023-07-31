@@ -5,6 +5,7 @@ import {
   DefaultUserAgent,
   waitForRemotePeer,
 } from "@waku/core";
+import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
@@ -114,6 +115,43 @@ describe("Waku Dial [node only]", function () {
 
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
       expect(connectedPeerID.toString()).to.eq(multiAddrWithId.getPeerId());
+    });
+  });
+
+  describe.only("Bootstrap + Multiple ENR Trees", function () {
+    let waku: LightNode;
+    let nwaku: NimGoNode;
+
+    afterEach(async function () {
+      !!nwaku && (await nwaku.stop());
+      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    });
+
+    it("", async function () {
+      this.timeout(10_000);
+
+      nwaku = new NimGoNode(makeLogFileName(this));
+      await nwaku.start();
+      const multiAddrWithId = await nwaku.getMultiaddrWithId();
+
+      const NODE_REQUIREMENTS = {
+        store: 3,
+        lightPush: 3,
+        filter: 3,
+      };
+
+      waku = await createLightNode({
+        libp2p: {
+          peerDiscovery: [
+            bootstrap({ list: [multiAddrWithId.toString()] }),
+            wakuDnsDiscovery(
+              [enrTree["PROD"], enrTree["TEST"]],
+              NODE_REQUIREMENTS
+            ),
+          ],
+        },
+      });
+      await waku.start();
     });
   });
 });
