@@ -47,7 +47,7 @@ export interface Options {
 
 export const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
 const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
-const DEFAULT_PEER_EXCHANGE_TAG_TTL = 120000;
+const DEFAULT_PEER_EXCHANGE_TAG_TTL = 100_000_000;
 
 export class PeerExchangeDiscovery
   extends EventEmitter<PeerDiscoveryEvents>
