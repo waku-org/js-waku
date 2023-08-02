@@ -192,17 +192,16 @@ export class ConnectionManager
       } catch (error) {
         if (error instanceof AggregateError) {
           // Handle AggregateError
-          this.dialErrorsForPeer.set(peerId.toString(), error);
           log(`Error dialing peer ${peerId.toString()} - ${error.errors}`);
         } else {
           // Handle generic error
-          this.dialErrorsForPeer.set(peerId.toString(), error);
           log(
             `Error dialing peer ${peerId.toString()} - ${
               (error as any).message
             }`
           );
         }
+        this.dialErrorsForPeer.set(peerId.toString(), error);
 
         dialAttempt++;
         this.dialAttemptsForPeer.set(peerId.toString(), dialAttempt);
