@@ -26,6 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.11 to 0.0.12
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.9 to 0.0.10
+    * @waku/relay bumped from 0.0.4 to 0.0.5
+    * @waku/core bumped from 0.0.21 to 0.0.22
+    * @waku/interfaces bumped from 0.0.16 to 0.0.17
+    * @waku/dns-discovery bumped from 0.0.15 to 0.0.16
+
 ## [0.0.17](https://github.com/waku-org/js-waku/compare/sdk-v0.0.16...sdk-v0.0.17) (2023-07-26)
 
 
