@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.17](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.16...interfaces-v0.0.17) (2023-08-02)
+
+
+### Features
+
+* ConnectionManager extends EventEmitter & exposed on the Waku interface (& minor improvements) ([#1447](https://github.com/waku-org/js-waku/issues/1447)) ([0b8936f](https://github.com/waku-org/js-waku/commit/0b8936f1f1ad33f6cb90eb88d027a19e787ae7a2))
+
 ## [0.0.16](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.15...interfaces-v0.0.16) (2023-07-26)
 
 

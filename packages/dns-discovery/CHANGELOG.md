@@ -46,6 +46,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.13 to 0.0.14
 
+## [0.0.16](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.15...dns-discovery-v0.0.16) (2023-08-02)
+
+
+### Bug Fixes
+
+* Improve connection manager error handling + edge cases ([#1450](https://github.com/waku-org/js-waku/issues/1450)) ([785df52](https://github.com/waku-org/js-waku/commit/785df528fe6e5010a61391994e222028dbc4e4c5))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from 0.0.15 to 0.0.16
+    * @waku/utils bumped from 0.0.9 to 0.0.10
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.16 to 0.0.17
+
 ## [0.0.15](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.14...dns-discovery-v0.0.15) (2023-07-26)
 
 
