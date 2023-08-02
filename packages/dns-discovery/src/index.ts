@@ -22,7 +22,7 @@ const enrTree = {
 
 const DEFAULT_BOOTSTRAP_TAG_NAME = "bootstrap";
 const DEFAULT_BOOTSTRAP_TAG_VALUE = 50;
-const DEFAULT_BOOTSTRAP_TAG_TTL = 120000;
+const DEFAULT_BOOTSTRAP_TAG_TTL = 100_000_000;
 
 export interface DnsDiscoveryComponents {
   peerStore: PeerStore;
