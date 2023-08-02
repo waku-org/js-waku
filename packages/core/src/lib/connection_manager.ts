@@ -174,51 +174,67 @@ export class ConnectionManager
   private async dialPeer(peerId: PeerId): Promise<void> {
     this.currentActiveDialCount += 1;
     let dialAttempt = 0;
-    while (dialAttempt <= this.options.maxDialAttemptsForPeer) {
+    while (dialAttempt < this.options.maxDialAttemptsForPeer) {
       try {
-        log(`Dialing peer ${peerId.toString()}`);
+        log(`Dialing peer ${peerId.toString()} on attempt ${dialAttempt + 1}`);
         await this.libp2p.dial(peerId);
 
         const tags = await this.getTagNamesForPeer(peerId);
         // add tag to connection describing discovery mechanism
         // don't add duplicate tags
-        this.libp2p
-          .getConnections(peerId)
-          .forEach(
-            (conn) => (conn.tags = Array.from(new Set([...conn.tags, ...tags])))
-          );
+        this.libp2p.getConnections(peerId).forEach((conn) => {
+          conn.tags = Array.from(new Set([...conn.tags, ...tags]));
+        });
 
         this.dialAttemptsForPeer.delete(peerId.toString());
-        return;
-      } catch (e) {
-        const error = e as AggregateError;
-
-        this.dialErrorsForPeer.set(peerId.toString(), error);
-        log(`Error dialing peer ${peerId.toString()} - ${error.errors}`);
-
-        dialAttempt = this.dialAttemptsForPeer.get(peerId.toString()) ?? 1;
-        this.dialAttemptsForPeer.set(peerId.toString(), dialAttempt + 1);
-
-        if (dialAttempt <= this.options.maxDialAttemptsForPeer) {
-          log(`Reattempting dial (${dialAttempt})`);
+        // Dialing succeeded, break the loop
+        break;
+      } catch (error) {
+        if (error instanceof AggregateError) {
+          // Handle AggregateError
+          log(`Error dialing peer ${peerId.toString()} - ${error.errors}`);
+        } else {
+          // Handle generic error
+          log(
+            `Error dialing peer ${peerId.toString()} - ${
+              (error as any).message
+            }`
+          );
         }
+        this.dialErrorsForPeer.set(peerId.toString(), error);
+
+        dialAttempt++;
+        this.dialAttemptsForPeer.set(peerId.toString(), dialAttempt);
       }
     }
 
-    try {
-      log(
-        `Deleting undialable peer ${peerId.toString()} from peer store. Error: ${JSON.stringify(
-          this.dialErrorsForPeer.get(peerId.toString()).errors[0]
-        )}
-        }`
-      );
-      this.dialErrorsForPeer.delete(peerId.toString());
-      return await this.libp2p.peerStore.delete(peerId);
-    } catch (error) {
-      throw `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`;
-    } finally {
-      this.currentActiveDialCount -= 1;
-      this.processDialQueue();
+    // Always decrease the active dial count and process the dial queue
+    this.currentActiveDialCount--;
+    this.processDialQueue();
+
+    // If max dial attempts reached and dialing failed, delete the peer
+    if (dialAttempt === this.options.maxDialAttemptsForPeer) {
+      try {
+        const error = this.dialErrorsForPeer.get(peerId.toString());
+
+        let errorMessage;
+        if (error instanceof AggregateError) {
+          errorMessage = JSON.stringify(error.errors[0]);
+        } else {
+          errorMessage = error.message;
+        }
+
+        log(
+          `Deleting undialable peer ${peerId.toString()} from peer store. Error: ${errorMessage}`
+        );
+
+        this.dialErrorsForPeer.delete(peerId.toString());
+        await this.libp2p.peerStore.delete(peerId);
+      } catch (error) {
+        throw new Error(
+          `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`
+        );
+      }
     }
   }
 
@@ -302,25 +318,16 @@ export class ConnectionManager
           Tags.BOOTSTRAP
         );
 
-        if (isBootstrap) {
-          this.dispatchEvent(
-            new CustomEvent<PeerId>(
-              EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP,
-              {
-                detail: peerId,
-              }
-            )
-          );
-        } else {
-          this.dispatchEvent(
-            new CustomEvent<PeerId>(
-              EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
-              {
-                detail: peerId,
-              }
-            )
-          );
-        }
+        this.dispatchEvent(
+          new CustomEvent<PeerId>(
+            isBootstrap
+              ? EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP
+              : EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
+            {
+              detail: peerId,
+            }
+          )
+        );
 
         try {
           await this.attemptDial(peerId);

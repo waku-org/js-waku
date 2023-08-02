@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.22](https://github.com/waku-org/js-waku/compare/core-v0.0.21...core-v0.0.22) (2023-08-02)
+
+
+### Features
+
+* ConnectionManager extends EventEmitter & exposed on the Waku interface (& minor improvements) ([#1447](https://github.com/waku-org/js-waku/issues/1447)) ([0b8936f](https://github.com/waku-org/js-waku/commit/0b8936f1f1ad33f6cb90eb88d027a19e787ae7a2))
+
+
+### Bug Fixes
+
+* Improve connection manager error handling + edge cases ([#1450](https://github.com/waku-org/js-waku/issues/1450)) ([785df52](https://github.com/waku-org/js-waku/commit/785df528fe6e5010a61391994e222028dbc4e4c5))
+* Refactors message decoding to abort as soon as a suitable decoder found ([#1414](https://github.com/waku-org/js-waku/issues/1414)) ([30fcace](https://github.com/waku-org/js-waku/commit/30fcacea84d9aefbe71e7f4b48506a088f2e1bf8))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.16 to 0.0.17
+    * @waku/utils bumped from 0.0.9 to 0.0.10
+
 ## [0.0.21](https://github.com/waku-org/js-waku/compare/core-v0.0.20...core-v0.0.21) (2023-07-26)
 
 
