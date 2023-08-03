@@ -67,7 +67,7 @@ jobs:
 
       - uses: ./.github/actions/npm
       - run: npm run build:esm
-      - run: npm run test
+      - run: npm run test:node
         env:
           DEBUG: ""
 
@@ -98,7 +98,7 @@ jobs:
 
       - uses: ./.github/actions/npm
       - run: npm run build:esm
-      - run: npm run test:optional
+      - run: npm run test:optional --workspace=@waku/tests
         env:
           DEBUG: ""
 
@@ -118,7 +118,7 @@ jobs:
 
       - uses: ./.github/actions/npm
       - run: npm run build:esm
-      - run: npm run test
+      - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
@@ -150,7 +150,7 @@ jobs:
 
       - uses: ./.github/actions/npm
       - run: npm run build:esm
-      - run: npm run test
+      - run: npm run test:node
         env:
           DEBUG: "waku:nwaku*,waku:test*"
 
