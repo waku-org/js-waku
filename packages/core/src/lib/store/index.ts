@@ -210,7 +210,6 @@ class Store extends BaseProtocol implements IStore {
     decoders: IDecoder<T>[],
     options?: QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
-    // The existing code for the queryGenerator method remains the same
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
     let startTime, endTime;
