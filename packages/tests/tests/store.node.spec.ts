@@ -204,7 +204,7 @@ describe("Waku Store", () => {
     await waitForRemotePeer(waku, [Protocols.Store]);
 
     const messages: IMessage[] = [];
-    await waku.store.queryCallbackOnPromise(
+    await waku.store.queryWithPromiseCallback(
       [TestDecoder],
       async (msgPromise) => {
         const msg = await msgPromise;
@@ -246,7 +246,7 @@ describe("Waku Store", () => {
 
     const desiredMsgs = 14;
     const messages: IMessage[] = [];
-    await waku.store.queryCallbackOnPromise(
+    await waku.store.queryWithPromiseCallback(
       [TestDecoder],
       async (msgPromise) => {
         const msg = await msgPromise;
@@ -285,7 +285,7 @@ describe("Waku Store", () => {
     await waitForRemotePeer(waku, [Protocols.Store]);
 
     const messages: IMessage[] = [];
-    await waku.store.queryOrderedCallback(
+    await waku.store.queryWithOrderedCallback(
       [TestDecoder],
       async (msg) => {
         messages.push(msg);
@@ -324,7 +324,7 @@ describe("Waku Store", () => {
     await waitForRemotePeer(waku, [Protocols.Store]);
 
     let messages: IMessage[] = [];
-    await waku.store.queryOrderedCallback(
+    await waku.store.queryWithOrderedCallback(
       [TestDecoder],
       async (msg) => {
         messages.push(msg);
@@ -491,7 +491,7 @@ describe("Waku Store", () => {
     const nwakuPeerId = await nwaku.getPeerId();
 
     const firstMessages: IMessage[] = [];
-    await waku.store.queryOrderedCallback(
+    await waku.store.queryWithOrderedCallback(
       [TestDecoder],
       (msg) => {
         if (msg) {
@@ -505,7 +505,7 @@ describe("Waku Store", () => {
     );
 
     const bothMessages: IMessage[] = [];
-    await waku.store.queryOrderedCallback(
+    await waku.store.queryWithOrderedCallback(
       [TestDecoder],
       async (msg) => {
         bothMessages.push(msg);
@@ -552,7 +552,7 @@ describe("Waku Store", () => {
 
     const desiredMsgs = 14;
     const messages: IMessage[] = [];
-    await waku.store.queryOrderedCallback(
+    await waku.store.queryWithOrderedCallback(
       [TestDecoder],
       async (msg) => {
         messages.push(msg);
