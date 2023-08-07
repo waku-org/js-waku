@@ -75,7 +75,7 @@ describe("Peer Exchange", () => {
 
       const doesPeerIdExistInResponse =
         peerInfos.find(
-          ({ ENR }) => ENR?.peerInfo?.id.toString() === nwaku1PeerId.toString()
+          ({ ENR }) => ENR?.peerInfo?.id.toString() === nwaku1PeerId.toString(),
         ) !== undefined;
 
       expect(doesPeerIdExistInResponse).to.be.equal(true);

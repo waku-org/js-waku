@@ -53,7 +53,7 @@ describe("Util: toAsyncIterator: Filter", () => {
       waku.filter,
       TestDecoder,
       {},
-      { timeoutMs: 1000 }
+      { timeoutMs: 1000 },
     );
 
     await waku.lightPush.send(TestEncoder, sent);
@@ -70,7 +70,7 @@ describe("Util: toAsyncIterator: Filter", () => {
       waku.filter,
       TestDecoder,
       {},
-      { timeoutMs: 1000 }
+      { timeoutMs: 1000 },
     );
 
     await waku.lightPush.send(TestEncoder, {
@@ -93,7 +93,7 @@ describe("Util: toAsyncIterator: Filter", () => {
       waku.filter,
       TestDecoder,
       {},
-      { timeoutMs: 1000 }
+      { timeoutMs: 1000 },
     );
 
     await waku.lightPush.send(TestEncoder, {

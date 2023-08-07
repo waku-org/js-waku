@@ -15,7 +15,7 @@ async function createEnr(waku2: Waku2): Promise<ENR> {
     multiaddr("/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"),
     multiaddr("/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"),
     multiaddr(
-      "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
+      "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss",
     ),
   ];
 
@@ -39,7 +39,7 @@ describe("Fetch nodes until capabilities are fulfilled", function () {
     const res = await fetchNodesUntilCapabilitiesFulfilled(
       { relay: 1 },
       0,
-      getNode
+      getNode,
     );
 
     expect(res.length).to.eq(1);
@@ -62,7 +62,7 @@ describe("Fetch nodes until capabilities are fulfilled", function () {
     const res = await fetchNodesUntilCapabilitiesFulfilled(
       { store: 1 },
       1,
-      getNode
+      getNode,
     );
 
     expect(res.length).to.eq(1);
@@ -91,7 +91,7 @@ describe("Fetch nodes until capabilities are fulfilled", function () {
     const res = await fetchNodesUntilCapabilitiesFulfilled(
       { store: 1, relay: 2 },
       1,
-      getNode
+      getNode,
     );
 
     expect(res.length).to.eq(3);
@@ -108,7 +108,7 @@ describe("Fetch nodes until capabilities are fulfilled", function () {
     const res = await fetchNodesUntilCapabilitiesFulfilled(
       { filter: 1, relay: 1 },
       5,
-      getNode
+      getNode,
     );
 
     expect(res.length).to.eq(1);

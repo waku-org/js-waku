@@ -17,7 +17,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
 
   constructor(
     public pubSubTopic: string,
-    private proto: ProtoTopicOnlyMessage
+    private proto: ProtoTopicOnlyMessage,
   ) {}
 
   get contentTopic(): string {
@@ -44,7 +44,7 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
 
   async fromProtoObj(
     pubSubTopic: string,
-    proto: IProtoMessage
+    proto: IProtoMessage,
   ): Promise<TopicOnlyMessage | undefined> {
     return new TopicOnlyMessage(pubSubTopic, proto);
   }

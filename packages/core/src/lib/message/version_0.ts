@@ -18,7 +18,10 @@ export const Version = 0;
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
-  constructor(public pubSubTopic: string, protected proto: proto.WakuMessage) {}
+  constructor(
+    public pubSubTopic: string,
+    protected proto: proto.WakuMessage,
+  ) {}
 
   get ephemeral(): boolean {
     return Boolean(this.proto.ephemeral);
@@ -70,7 +73,7 @@ export class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
-    public metaSetter?: IMetaSetter
+    public metaSetter?: IMetaSetter,
   ) {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
@@ -143,7 +146,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
 
   async fromProtoObj(
     pubSubTopic: string,
-    proto: IProtoMessage
+    proto: IProtoMessage,
   ): Promise<DecodedMessage | undefined> {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
@@ -152,7 +155,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
         "Failed to decode due to incorrect version, expected:",
         Version,
         ", actual:",
-        proto.version
+        proto.version,
       );
       return Promise.resolve(undefined);
     }

@@ -29,7 +29,7 @@ async function main() {
     ],
     {
       stdio: "inherit",
-    }
+    },
   );
 
   mocha.on("error", (error) => {

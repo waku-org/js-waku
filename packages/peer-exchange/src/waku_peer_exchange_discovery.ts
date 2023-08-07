@@ -61,7 +61,7 @@ export class PeerExchangeDiscovery
   private queryAttempts: Map<string, number> = new Map();
 
   private readonly handleDiscoveredPeer = (
-    event: CustomEvent<PeerUpdate>
+    event: CustomEvent<PeerUpdate>,
   ): void => {
     const {
       peer: { protocols, id: peerId },
@@ -74,7 +74,7 @@ export class PeerExchangeDiscovery
 
     this.queryingPeers.add(peerId.toString());
     this.startRecurringQueries(peerId).catch((error) =>
-      log(`Error querying peer ${error}`)
+      log(`Error querying peer ${error}`),
     );
   };
 
@@ -99,7 +99,7 @@ export class PeerExchangeDiscovery
     // might be better to use "peer:identify" or "peer:update"
     this.components.events.addEventListener(
       "peer:update",
-      this.handleDiscoveredPeer
+      this.handleDiscoveredPeer,
     );
   }
 
@@ -113,7 +113,7 @@ export class PeerExchangeDiscovery
     this.queryingPeers.clear();
     this.components.events.removeEventListener(
       "peer:update",
-      this.handleDiscoveredPeer
+      this.handleDiscoveredPeer,
     );
   }
 
@@ -126,7 +126,7 @@ export class PeerExchangeDiscovery
   }
 
   private readonly startRecurringQueries = async (
-    peerId: PeerId
+    peerId: PeerId,
   ): Promise<void> => {
     const peerIdStr = peerId.toString();
     const {
@@ -137,7 +137,7 @@ export class PeerExchangeDiscovery
     log(
       `Querying peer: ${peerIdStr} (attempt ${
         this.queryAttempts.get(peerIdStr) ?? 1
-      })`
+      })`,
     );
 
     await this.query(peerId);
@@ -204,7 +204,7 @@ export class PeerExchangeDiscovery
             protocols: [],
             multiaddrs: peerInfo.multiaddrs,
           },
-        })
+        }),
       );
     }
   }
@@ -217,7 +217,7 @@ export class PeerExchangeDiscovery
 }
 
 export function wakuPeerExchangeDiscovery(): (
-  components: Libp2pComponents
+  components: Libp2pComponents,
 ) => PeerExchangeDiscovery {
   return (components: Libp2pComponents) =>
     new PeerExchangeDiscovery(components);

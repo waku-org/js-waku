@@ -42,12 +42,12 @@ describe("ConnectionManager", function () {
             EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP,
             ({ detail: receivedPeerId }) => {
               resolve(receivedPeerId.toString() === peerIdBootstrap.toString());
-            }
+            },
           );
         });
 
         waku.libp2p.dispatchEvent(
-          new CustomEvent("peer", { detail: await createSecp256k1PeerId() })
+          new CustomEvent("peer", { detail: await createSecp256k1PeerId() }),
         );
 
         expect(await peerDiscoveryBootstrap).to.eq(true);
@@ -70,12 +70,12 @@ describe("ConnectionManager", function () {
             EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
             ({ detail: receivedPeerId }) => {
               resolve(receivedPeerId.toString() === peerIdPx.toString());
-            }
+            },
           );
         });
 
         waku.libp2p.dispatchEvent(
-          new CustomEvent("peer", { detail: peerIdPx })
+          new CustomEvent("peer", { detail: peerIdPx }),
         );
 
         expect(await peerDiscoveryPeerExchange).to.eq(true);
@@ -102,12 +102,12 @@ describe("ConnectionManager", function () {
             EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP,
             ({ detail: receivedPeerId }) => {
               resolve(receivedPeerId.toString() === peerIdBootstrap.toString());
-            }
+            },
           );
         });
 
         waku.libp2p.dispatchEvent(
-          new CustomEvent("peer:connect", { detail: peerIdBootstrap })
+          new CustomEvent("peer:connect", { detail: peerIdBootstrap }),
         );
 
         expect(await peerConnectedBootstrap).to.eq(true);
@@ -129,12 +129,12 @@ describe("ConnectionManager", function () {
             EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
             ({ detail: receivedPeerId }) => {
               resolve(receivedPeerId.toString() === peerIdPx.toString());
-            }
+            },
           );
         });
 
         waku.libp2p.dispatchEvent(
-          new CustomEvent("peer:connect", { detail: peerIdPx })
+          new CustomEvent("peer:connect", { detail: peerIdPx }),
         );
 
         expect(await peerConnectedPeerExchange).to.eq(true);
@@ -163,7 +163,7 @@ describe("ConnectionManager", function () {
       beforeEach(function () {
         attemptDialSpy = sinon.spy(
           waku.connectionManager as any,
-          "attemptDial"
+          "attemptDial",
         );
       });
 
@@ -177,7 +177,7 @@ describe("ConnectionManager", function () {
         const totalPeerIds = 5;
         for (let i = 1; i <= totalPeerIds; i++) {
           waku.libp2p.dispatchEvent(
-            new CustomEvent("peer:discovery", { detail: `peer-id-${i}` })
+            new CustomEvent("peer:discovery", { detail: `peer-id-${i}` }),
           );
         }
 
@@ -186,7 +186,7 @@ describe("ConnectionManager", function () {
 
         expect(attemptDialSpy.callCount).to.equal(
           totalPeerIds,
-          "attemptDial should be called once for each peer:discovery event"
+          "attemptDial should be called once for each peer:discovery event",
         );
       });
     });
@@ -195,11 +195,11 @@ describe("ConnectionManager", function () {
       beforeEach(function () {
         getConnectionsStub = sinon.stub(
           (waku.connectionManager as any).libp2p,
-          "getConnections"
+          "getConnections",
         );
         getTagNamesForPeerStub = sinon.stub(
           waku.connectionManager as any,
-          "getTagNamesForPeer"
+          "getTagNamesForPeer",
         );
         dialPeerStub = sinon.stub(waku.connectionManager as any, "dialPeer");
       });
@@ -224,7 +224,7 @@ describe("ConnectionManager", function () {
 
           // emit a peer:discovery event
           waku.libp2p.dispatchEvent(
-            new CustomEvent("peer:discovery", { detail: bootstrapPeer })
+            new CustomEvent("peer:discovery", { detail: bootstrapPeer }),
           );
 
           // wait for the async function calls within attemptDial to finish
@@ -233,7 +233,7 @@ describe("ConnectionManager", function () {
           // check that dialPeer was called once
           expect(dialPeerStub.callCount).to.equal(
             1,
-            "dialPeer should be called for bootstrap peers"
+            "dialPeer should be called for bootstrap peers",
           );
         });
 
@@ -248,7 +248,7 @@ describe("ConnectionManager", function () {
 
           // emit first peer:discovery event
           waku.libp2p.dispatchEvent(
-            new CustomEvent("peer:discovery", { detail: "bootstrap-peer" })
+            new CustomEvent("peer:discovery", { detail: "bootstrap-peer" }),
           );
           await delay(500);
 
@@ -262,14 +262,14 @@ describe("ConnectionManager", function () {
             waku.libp2p.dispatchEvent(
               new CustomEvent("peer:discovery", {
                 detail: await createSecp256k1PeerId(),
-              })
+              }),
             );
           }
 
           // check that dialPeer was called only once
           expect(dialPeerStub.callCount).to.equal(
             1,
-            "dialPeer should not be called more than once for bootstrap peers"
+            "dialPeer should not be called more than once for bootstrap peers",
           );
         });
       });
@@ -288,7 +288,7 @@ describe("ConnectionManager", function () {
 
           // emit a peer:discovery event
           waku.libp2p.dispatchEvent(
-            new CustomEvent("peer:discovery", { detail: pxPeer })
+            new CustomEvent("peer:discovery", { detail: pxPeer }),
           );
 
           // wait for the async function calls within attemptDial to finish
@@ -297,7 +297,7 @@ describe("ConnectionManager", function () {
           // check that dialPeer was called once
           expect(dialPeerStub.callCount).to.equal(
             1,
-            "dialPeer should be called for peers with PEER_EXCHANGE tags"
+            "dialPeer should be called for peers with PEER_EXCHANGE tags",
           );
         });
 
@@ -316,7 +316,7 @@ describe("ConnectionManager", function () {
             waku.libp2p.dispatchEvent(
               new CustomEvent("peer:discovery", {
                 detail: await createSecp256k1PeerId(),
-              })
+              }),
             );
             await delay(500);
           }
