@@ -46,12 +46,12 @@ export type StoreQueryOptions = {
 } & ProtocolOptions;
 
 export interface IStore extends IBaseProtocol {
-  queryOrderedCallback: <T extends IDecodedMessage>(
+  queryWithOrderedCallback: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: StoreQueryOptions
   ) => Promise<void>;
-  queryCallbackOnPromise: <T extends IDecodedMessage>(
+  queryWithPromiseCallback: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (
       message: Promise<T | undefined>
