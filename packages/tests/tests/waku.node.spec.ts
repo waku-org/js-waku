@@ -152,6 +152,17 @@ describe("Waku Dial [node only]", function () {
         },
       });
       await waku.start();
+
+      const peersDiscovered = await waku.libp2p.peerStore.all();
+
+      // 3 from DNS Disc, 1 from bootstrap
+      expect(peersDiscovered.length).to.eq(3 + 1);
+      // should also have the bootstrap peer
+      expect(
+        peersDiscovered.find(
+          (p) => p.id.toString() === multiAddrWithId.getPeerId()?.toString()
+        )
+      ).to.be.true;
     });
   });
 });
