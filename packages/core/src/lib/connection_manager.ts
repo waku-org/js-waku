@@ -317,12 +317,18 @@ export class ConnectionManager
         const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
           Tags.BOOTSTRAP
         );
+        const isPeerExchange = (await this.getTagNamesForPeer(peerId)).includes(
+          Tags.PEER_EXCHANGE
+        );
 
         this.dispatchEvent(
           new CustomEvent<PeerId>(
             isBootstrap
               ? EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP
-              : EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
+              : isPeerExchange
+              ? EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE
+              : EPeersByDiscoveryEvents.PEER_DISCOVERY_UNKNOWN,
+
             {
               detail: peerId,
             }
@@ -346,6 +352,10 @@ export class ConnectionManager
           Tags.BOOTSTRAP
         );
 
+        const isPeerExchange = (await this.getTagNamesForPeer(peerId)).includes(
+          Tags.PEER_EXCHANGE
+        );
+
         if (isBootstrap) {
           const bootstrapConnections = this.libp2p
             .getConnections()
@@ -366,10 +376,19 @@ export class ConnectionManager
               )
             );
           }
-        } else {
+        } else if (isPeerExchange) {
           this.dispatchEvent(
             new CustomEvent<PeerId>(
               EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
+              {
+                detail: peerId,
+              }
+            )
+          );
+        } else {
+          this.dispatchEvent(
+            new CustomEvent<PeerId>(
+              EPeersByDiscoveryEvents.PEER_CONNECT_UNKNOWN,
               {
                 detail: peerId,
               }

@@ -27,15 +27,19 @@ export interface ConnectionManagerOptions {
 export enum EPeersByDiscoveryEvents {
   PEER_DISCOVERY_BOOTSTRAP = "peer:discovery:bootstrap",
   PEER_DISCOVERY_PEER_EXCHANGE = "peer:discovery:peer-exchange",
+  PEER_DISCOVERY_UNKNOWN = "peer:discovery:unknown",
   PEER_CONNECT_BOOTSTRAP = "peer:connected:bootstrap",
   PEER_CONNECT_PEER_EXCHANGE = "peer:connected:peer-exchange",
+  PEER_CONNECT_UNKNOWN = "peer:connected:unknown",
 }
 
 export interface IPeersByDiscoveryEvents {
   [EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP]: CustomEvent<PeerId>;
   [EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE]: CustomEvent<PeerId>;
+  [EPeersByDiscoveryEvents.PEER_DISCOVERY_UNKNOWN]: CustomEvent<PeerId>;
   [EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP]: CustomEvent<PeerId>;
   [EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE]: CustomEvent<PeerId>;
+  [EPeersByDiscoveryEvents.PEER_CONNECT_UNKNOWN]: CustomEvent<PeerId>;
 }
 
 export interface PeersByDiscoveryResult {
