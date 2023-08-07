@@ -118,7 +118,7 @@ describe("Waku Dial [node only]", function () {
     });
   });
 
-  describe.only("Bootstrap + Multiple ENR Trees", function () {
+  describe("Bootstrap + Multiple ENR Trees", function () {
     let waku: LightNode;
     let nwaku: NimGoNode;
 
