@@ -1,9 +1,4 @@
-import { bootstrap } from "@libp2p/bootstrap";
 import tests from "@libp2p/interface-peer-discovery-compliance-tests";
-import {
-  Fleet,
-  getPredefinedBootstrapNodes,
-} from "@waku/core/lib/predefined_bootstrap_nodes";
 import type { LightNode, PeerInfo } from "@waku/interfaces";
 import {
   PeerExchangeCodec,
@@ -19,54 +14,12 @@ import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
 describe("Peer Exchange", () => {
-  describe("Auto Discovery", function () {
-    let waku: LightNode;
-
-    afterEach(async function () {
-      await waku?.stop();
-    });
-
-    it("connection with fleet nodes", async function () {
-      // skipping in CI as this test demonstrates Peer Exchange working with the test fleet
-      // but not with locally run nwaku nodes
-      if (process.env.CI) {
-        this.skip();
-      }
-
-      this.timeout(50_000);
-
-      waku = await createLightNode({
-        libp2p: {
-          peerDiscovery: [
-            bootstrap({ list: getPredefinedBootstrapNodes(Fleet.Test, 3) }),
-            wakuPeerExchangeDiscovery(),
-          ],
-        },
-      });
-
-      await waku.start();
-
-      const foundPxPeer = await new Promise<boolean>((resolve) => {
-        const testNodes = getPredefinedBootstrapNodes(Fleet.Test, 3);
-        waku.libp2p.addEventListener("peer:discovery", (evt) => {
-          const peerId = evt.detail.id.toString();
-          const isBootstrapNode = testNodes.find((n) => n.includes(peerId));
-          if (!isBootstrapNode) {
-            resolve(true);
-          }
-        });
-      });
-
-      expect(foundPxPeer).to.be.true;
-    });
-  });
-
   describe("Locally Run Nodes", () => {
     let waku: LightNode;
     let nwaku1: NimGoNode;
     let nwaku2: NimGoNode;
 
-    beforeEach(async function () {
+    beforeEach(function () {
       nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
       nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     });

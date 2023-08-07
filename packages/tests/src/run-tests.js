@@ -25,6 +25,7 @@ async function main() {
       "ts-node/register",
       "--project",
       "./tsconfig.dev.json",
+      ...process.argv.slice(2),
     ],
     {
       stdio: "inherit",
