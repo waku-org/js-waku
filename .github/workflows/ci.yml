@@ -85,6 +85,23 @@ jobs:
           name: nwaku-logs
           path: packages/tests/log/
 
+  node_optional:
+    runs-on: ubuntu-latest
+    env:
+      WAKUNODE_IMAGE: "statusteam/nim-waku:v0.18.0"
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+
+      - uses: ./.github/actions/npm
+      - run: npm run build:esm
+      - run: npm run test:optional --workspace=@waku/tests
+        env:
+          DEBUG: ""
+
   node_with_go_waku_master:
     runs-on: ubuntu-latest
     env:

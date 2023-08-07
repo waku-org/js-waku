@@ -1,6 +1,5 @@
 {
   "extension": ["ts"],
-  "spec": "tests/*.spec.ts",
   "require": ["ts-node/register", "isomorphic-fetch"],
   "loader": "ts-node/esm",
   "node-option": [

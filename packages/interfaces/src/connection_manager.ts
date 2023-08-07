@@ -1,5 +1,6 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
+import type { EventEmitter } from "@libp2p/interfaces/events";
 
 export enum Tags {
   BOOTSTRAP = "bootstrap",
@@ -46,4 +47,10 @@ export interface PeersByDiscoveryResult {
     [Tags.BOOTSTRAP]: Peer[];
     [Tags.PEER_EXCHANGE]: Peer[];
   };
+}
+
+export interface IConnectionManager
+  extends EventEmitter<IPeersByDiscoveryEvents> {
+  getPeersByDiscovery(): Promise<PeersByDiscoveryResult>;
+  stop(): void;
 }
