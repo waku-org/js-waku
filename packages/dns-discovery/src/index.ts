@@ -9,20 +9,18 @@ import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
 import type { IEnr } from "@waku/interfaces";
 import debug from "debug";
 
+import {
+  DEFAULT_BOOTSTRAP_TAG_NAME,
+  DEFAULT_BOOTSTRAP_TAG_TTL,
+  DEFAULT_BOOTSTRAP_TAG_VALUE,
+  DEFAULT_NODE_REQUIREMENTS,
+  enrTree,
+} from "./constants.js";
 import { DnsNodeDiscovery, NodeCapabilityCount } from "./dns.js";
 
 export { NodeCapabilityCount };
 
 const log = debug("waku:peer-discovery-dns");
-
-const enrTree = {
-  TEST: "enrtree://AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM@test.waku.nodes.status.im",
-  PROD: "enrtree://AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM@prod.waku.nodes.status.im",
-};
-
-const DEFAULT_BOOTSTRAP_TAG_NAME = "bootstrap";
-const DEFAULT_BOOTSTRAP_TAG_VALUE = 50;
-const DEFAULT_BOOTSTRAP_TAG_TTL = 100_000_000;
 
 export interface DnsDiscoveryComponents {
   peerStore: PeerStore;
@@ -159,7 +157,7 @@ export class PeerDiscoveryDns
 
 export function wakuDnsDiscovery(
   enrUrls: string[],
-  wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
+  wantedNodeCapabilityCount: Partial<NodeCapabilityCount> = DEFAULT_NODE_REQUIREMENTS
 ): (components: DnsDiscoveryComponents) => PeerDiscoveryDns {
   return (components: DnsDiscoveryComponents) =>
     new PeerDiscoveryDns(components, { enrUrls, wantedNodeCapabilityCount });
