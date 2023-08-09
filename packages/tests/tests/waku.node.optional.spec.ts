@@ -6,7 +6,7 @@ import { expect } from "chai";
 
 import { makeLogFileName, NimGoNode } from "../src/index.js";
 
-describe.only("Use static and several ENR trees for bootstrap", function () {
+describe("Use static and several ENR trees for bootstrap", function () {
   let waku: LightNode;
   let nwaku: NimGoNode;
 
