@@ -31,6 +31,41 @@ describe("Peer Exchange", () => {
       await waku?.stop();
     });
 
+    it.only("should emit event with protocol", async function () {
+      this.timeout(55_000);
+
+      await nwaku1.start({
+        relay: true,
+        discv5Discovery: true,
+        peerExchange: true,
+      });
+
+      const enr = (await nwaku1.info()).enrUri;
+
+      await nwaku2.start({
+        relay: true,
+        discv5Discovery: true,
+        peerExchange: true,
+        discv5BootstrapNode: enr,
+      });
+
+      const nwaku2Ma = await nwaku2.getMultiaddrWithId();
+
+      waku = await createLightNode();
+      await waku.start();
+      await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
+
+      const isProtocolIdentified = await new Promise<boolean>((resolve) => {
+        waku.libp2p.addEventListener("peer:identify", (evt) => {
+          if (evt.detail.protocols.includes(PeerExchangeCodec)) {
+            resolve(true);
+          }
+        });
+      });
+
+      expect(isProtocolIdentified).to.be.equal(true);
+    });
+
     it("nwaku interop", async function () {
       this.timeout(55_000);
 
