@@ -1,4 +1,4 @@
-import { NodeCapabilityCount } from "./dns.js";
+import type { NodeCapabilityCount } from "@waku/interfaces";
 
 export const enrTree = {
   TEST: "enrtree://AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM@test.waku.nodes.status.im",

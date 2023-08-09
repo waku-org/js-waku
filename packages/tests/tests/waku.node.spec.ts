@@ -5,7 +5,6 @@ import {
   DefaultUserAgent,
   waitForRemotePeer,
 } from "@waku/core";
-import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {

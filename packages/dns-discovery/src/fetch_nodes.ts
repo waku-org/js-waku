@@ -1,7 +1,5 @@
-import type { IEnr, Waku2 } from "@waku/interfaces";
+import type { IEnr, NodeCapabilityCount, Waku2 } from "@waku/interfaces";
 import debug from "debug";
-
-import { NodeCapabilityCount } from "./dns.js";
 
 const log = debug("waku:discovery:fetch_nodes");
 
