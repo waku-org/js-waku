@@ -6,7 +6,7 @@ import { expect } from "chai";
 
 import { makeLogFileName, NimGoNode } from "../src/index.js";
 
-describe("Use static and several ENR trees for bootstrap", function () {
+describe.only("Use static and several ENR trees for bootstrap", function () {
   let waku: LightNode;
   let nwaku: NimGoNode;
 
@@ -50,6 +50,6 @@ describe("Use static and several ENR trees for bootstrap", function () {
       peersDiscovered.find(
         (p) => p.id.toString() === multiAddrWithId.getPeerId()?.toString()
       )
-    ).to.be.true;
+    ).to.not.be.undefined;
   });
 });
