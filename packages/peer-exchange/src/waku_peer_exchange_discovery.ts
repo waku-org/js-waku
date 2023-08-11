@@ -1,12 +1,12 @@
-import type { PeerUpdate } from "@libp2p/interface-libp2p";
+import type { PeerUpdate } from "@libp2p/interface";
+import { CustomEvent, EventEmitter } from "@libp2p/interface/events";
 import type {
   PeerDiscovery,
   PeerDiscoveryEvents,
-} from "@libp2p/interface-peer-discovery";
-import { peerDiscovery as symbol } from "@libp2p/interface-peer-discovery";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { PeerInfo } from "@libp2p/interface-peer-info";
-import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+} from "@libp2p/interface/peer-discovery";
+import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerInfo } from "@libp2p/interface/peer-info";
 import { Libp2pComponents, Tags } from "@waku/interfaces";
 import debug from "debug";
 

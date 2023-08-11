@@ -1,4 +1,4 @@
-import tests from "@libp2p/interface-peer-discovery-compliance-tests";
+import tests from "@libp2p/interface-compliance-tests/peer-discovery";
 import type { LightNode, PeerInfo } from "@waku/interfaces";
 import {
   PeerExchangeCodec,

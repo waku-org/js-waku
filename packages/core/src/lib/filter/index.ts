@@ -1,7 +1,7 @@
-import { Stream } from "@libp2p/interface-connection";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer } from "@libp2p/interface-peer-store";
-import type { IncomingStreamData } from "@libp2p/interface-registrar";
+import { Stream } from "@libp2p/interface/connection";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { Peer } from "@libp2p/interface/peer-store";
+import type { IncomingStreamData } from "@libp2p/interface-internal/registrar";
 import type {
   Callback,
   ContentTopic,

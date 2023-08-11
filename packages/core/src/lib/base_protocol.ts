@@ -1,7 +1,7 @@
-import type { Stream } from "@libp2p/interface-connection";
-import type { Libp2p } from "@libp2p/interface-libp2p";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import type { Libp2p } from "@libp2p/interface";
+import type { Stream } from "@libp2p/interface/connection";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
 import {
   getPeersForProtocol,

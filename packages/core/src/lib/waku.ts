@@ -1,5 +1,5 @@
-import type { Stream } from "@libp2p/interface-connection";
-import { isPeerId, PeerId } from "@libp2p/interface-peer-id";
+import type { Stream } from "@libp2p/interface/connection";
+import { isPeerId, PeerId } from "@libp2p/interface/peer-id";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import type {
   IFilter,
