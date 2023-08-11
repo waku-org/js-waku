@@ -85,11 +85,6 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@libp2p/interface-connection": "^5.1.1",
-    "@libp2p/interface-libp2p": "^3.2.0",
-    "@libp2p/interface-peer-id": "^2.0.2",
-    "@libp2p/interface-peer-store": "^2.0.4",
-    "@libp2p/interface-registrar": "^2.0.12",
     "@multiformats/multiaddr": "^12.0.0",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-json": "^6.0.0",
@@ -120,7 +115,7 @@
   },
   "peerDependencies": {
     "@multiformats/multiaddr": "^12.0.0",
-    "libp2p": "^0.45.9"
+    "libp2p": "^0.46.3"
   },
   "peerDependenciesMeta": {
     "@multiformats/multiaddr": {

@@ -60,7 +60,6 @@
     "fast-check": "^3.8.1"
   },
   "devDependencies": {
-    "@libp2p/interface-pubsub": "^4.0.1",
     "@rollup/plugin-commonjs": "^24.1.0",
     "@waku/build-utils": "*",
     "@rollup/plugin-json": "^6.0.0",
