@@ -113,7 +113,7 @@ export namespace RateLimitProof {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -219,7 +219,7 @@ export namespace WakuMessage {
               case 21:
                 obj.rateLimitProof = RateLimitProof.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               case 31:
@@ -232,7 +232,7 @@ export namespace WakuMessage {
           }
 
           return obj;
-        }
+        },
       );
     }
 

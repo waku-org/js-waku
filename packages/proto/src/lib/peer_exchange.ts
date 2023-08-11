@@ -51,7 +51,7 @@ export namespace PeerInfo {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -110,7 +110,7 @@ export namespace PeerExchangeQuery {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -122,7 +122,7 @@ export namespace PeerExchangeQuery {
   };
 
   export const decode = (
-    buf: Uint8Array | Uint8ArrayList
+    buf: Uint8Array | Uint8ArrayList,
   ): PeerExchangeQuery => {
     return decodeMessage(buf, PeerExchangeQuery.codec());
   };
@@ -167,7 +167,7 @@ export namespace PeerExchangeResponse {
             switch (tag >>> 3) {
               case 1:
                 obj.peerInfos.push(
-                  PeerInfo.codec().decode(reader, reader.uint32())
+                  PeerInfo.codec().decode(reader, reader.uint32()),
                 );
                 break;
               default:
@@ -177,7 +177,7 @@ export namespace PeerExchangeResponse {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -189,7 +189,7 @@ export namespace PeerExchangeResponse {
   };
 
   export const decode = (
-    buf: Uint8Array | Uint8ArrayList
+    buf: Uint8Array | Uint8ArrayList,
   ): PeerExchangeResponse => {
     return decodeMessage(buf, PeerExchangeResponse.codec());
   };
@@ -237,13 +237,13 @@ export namespace PeerExchangeRPC {
               case 1:
                 obj.query = PeerExchangeQuery.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               case 2:
                 obj.response = PeerExchangeResponse.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               default:
@@ -253,7 +253,7 @@ export namespace PeerExchangeRPC {
           }
 
           return obj;
-        }
+        },
       );
     }
 

@@ -73,6 +73,6 @@ export interface IDecoder<T extends IDecodedMessage> {
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
   fromProtoObj: (
     pubSubTopic: string,
-    proto: IProtoMessage
+    proto: IProtoMessage,
   ) => Promise<T | undefined>;
 }

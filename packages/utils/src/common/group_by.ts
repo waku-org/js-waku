@@ -1,5 +1,5 @@
 export function groupByContentTopic<T extends { contentTopic: string }>(
-  values: readonly T[]
+  values: readonly T[],
 ): Map<string, Array<T>> {
   const groupedDecoders = new Map();
   values.forEach((value) => {

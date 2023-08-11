@@ -1,7 +1,7 @@
 export function pushOrInitMapSet<K, V>(
   map: Map<K, Set<V>>,
   key: K,
-  newValue: V
+  newValue: V,
 ): void {
   let arr = map.get(key);
   if (typeof arr === "undefined") {

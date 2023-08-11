@@ -13,7 +13,7 @@ const log = debug("waku:discovery:fetch_nodes");
 export async function fetchNodesUntilCapabilitiesFulfilled(
   wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
   errorTolerance: number,
-  getNode: () => Promise<IEnr | null>
+  getNode: () => Promise<IEnr | null>,
 ): Promise<IEnr[]> {
   const wanted = {
     relay: wantedNodeCapabilityCount.relay ?? 0,
@@ -64,7 +64,7 @@ export async function fetchNodesUntilCapabilitiesFulfilled(
 export async function* yieldNodesUntilCapabilitiesFulfilled(
   wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
   errorTolerance: number,
-  getNode: () => Promise<IEnr | null>
+  getNode: () => Promise<IEnr | null>,
 ): AsyncGenerator<IEnr> {
   const wanted = {
     relay: wantedNodeCapabilityCount.relay ?? 0,
@@ -108,7 +108,7 @@ export async function* yieldNodesUntilCapabilitiesFulfilled(
 
 function isSatisfied(
   wanted: NodeCapabilityCount,
-  actual: NodeCapabilityCount
+  actual: NodeCapabilityCount,
 ): boolean {
   return (
     actual.relay >= wanted.relay &&
@@ -146,7 +146,7 @@ function addCapabilities(node: Waku2, total: NodeCapabilityCount): void {
 function helpsSatisfyCapabilities(
   node: Waku2,
   wanted: NodeCapabilityCount,
-  actual: NodeCapabilityCount
+  actual: NodeCapabilityCount,
 ): boolean {
   if (isSatisfied(wanted, actual)) {
     throw "Internal Error: Waku2 wanted capabilities are already fulfilled";
@@ -168,7 +168,7 @@ function helpsSatisfyCapabilities(
  */
 function missingCapabilities(
   wanted: NodeCapabilityCount,
-  actual: NodeCapabilityCount
+  actual: NodeCapabilityCount,
 ): Waku2 {
   return {
     relay: actual.relay < wanted.relay,
