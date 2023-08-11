@@ -12,7 +12,6 @@ import { Libp2pComponents } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import { MemoryDatastore } from "datastore-core/memory";
-import { Datastore } from "interface-datastore";
 
 import { delay } from "../src/delay.js";
 
@@ -27,7 +26,7 @@ describe("DNS Discovery: Compliance Test", function () {
         peerStore: new PersistentPeerStore({
           events: new EventEmitter(),
           peerId: await createSecp256k1PeerId(),
-          datastore: new MemoryDatastore() as any as Datastore,
+          datastore: new MemoryDatastore(),
         }),
       } as unknown as Libp2pComponents;
 
