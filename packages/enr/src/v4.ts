@@ -5,7 +5,7 @@ import { bytesToHex } from "@waku/utils/bytes";
 import { keccak256 } from "./crypto.js";
 export async function sign(
   privKey: Uint8Array,
-  msg: Uint8Array
+  msg: Uint8Array,
 ): Promise<Uint8Array> {
   return secp.sign(keccak256(msg), privKey, {
     der: false,

@@ -93,7 +93,7 @@ export class PeerDiscoveryDns
       this.nextPeer = dns.getNextPeer.bind(
         dns,
         enrUrls,
-        wantedNodeCapabilityCount
+        wantedNodeCapabilityCount,
       );
     }
 
@@ -135,7 +135,7 @@ export class PeerDiscoveryDns
 
       if (isPeerChanged) {
         this.dispatchEvent(
-          new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
+          new CustomEvent<PeerInfo>("peer", { detail: peerInfo }),
         );
       }
     }
@@ -159,7 +159,7 @@ export class PeerDiscoveryDns
 
 export function wakuDnsDiscovery(
   enrUrls: string[],
-  wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
+  wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
 ): (components: DnsDiscoveryComponents) => PeerDiscoveryDns {
   return (components: DnsDiscoveryComponents) =>
     new PeerDiscoveryDns(components, { enrUrls, wantedNodeCapabilityCount });

@@ -10,7 +10,7 @@ export class EnrDecoder {
   static fromString(encoded: string): Promise<ENR> {
     if (!encoded.startsWith(ENR.RECORD_PREFIX)) {
       throw new Error(
-        `"string encoded ENR must start with '${ENR.RECORD_PREFIX}'`
+        `"string encoded ENR must start with '${ENR.RECORD_PREFIX}'`,
       );
     }
     return EnrDecoder.fromRLP(fromString(encoded.slice(4), "base64url"));
@@ -64,7 +64,7 @@ function checkValues(values: Uint8Array[]): {
   }
   if (!seq || Array.isArray(seq)) {
     throw new Error(
-      "Decoded ENR invalid sequence number: must be a byte array"
+      "Decoded ENR invalid sequence number: must be a byte array",
     );
   }
 
@@ -75,7 +75,7 @@ function checkSignature(
   seq: Uint8Array,
   kvs: Uint8Array[],
   enr: ENR,
-  signature: Uint8Array
+  signature: Uint8Array,
 ): void {
   const rlpEncodedBytes = hexToBytes(RLP.encode([seq, ...kvs]));
   if (!enr.verify(rlpEncodedBytes, signature)) {

@@ -7,7 +7,7 @@ export class PushRpc {
 
   static createRequest(
     message: proto.WakuMessage,
-    pubSubTopic: string
+    pubSubTopic: string,
   ): PushRpc {
     return new PushRpc({
       requestId: uuid(),

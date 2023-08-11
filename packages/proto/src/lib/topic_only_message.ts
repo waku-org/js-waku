@@ -53,7 +53,7 @@ export namespace TopicOnlyMessage {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -65,7 +65,7 @@ export namespace TopicOnlyMessage {
   };
 
   export const decode = (
-    buf: Uint8Array | Uint8ArrayList
+    buf: Uint8Array | Uint8ArrayList,
   ): TopicOnlyMessage => {
     return decodeMessage(buf, TopicOnlyMessage.codec());
   };

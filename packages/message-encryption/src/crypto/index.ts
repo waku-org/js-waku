@@ -19,7 +19,7 @@ export function getSubtle(): SubtleCrypto {
     return crypto.node.webcrypto.subtle;
   } else {
     throw new Error(
-      "The environment doesn't have Crypto Subtle API (if in the browser, be sure to use to be in a secure context, ie, https)"
+      "The environment doesn't have Crypto Subtle API (if in the browser, be sure to use to be in a secure context, ie, https)",
     );
   }
 }
@@ -59,7 +59,7 @@ export const getPublicKey = secp.getPublicKey;
  */
 export async function sign(
   message: Uint8Array,
-  privateKey: Uint8Array
+  privateKey: Uint8Array,
 ): Promise<Uint8Array> {
   const [signature, recoveryId] = await secp.sign(message, privateKey, {
     recovered: true,
@@ -67,7 +67,7 @@ export async function sign(
   });
   return concat(
     [signature, new Uint8Array([recoveryId])],
-    signature.length + 1
+    signature.length + 1,
   );
 }
 

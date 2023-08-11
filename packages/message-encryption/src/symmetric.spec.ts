@@ -32,8 +32,8 @@ describe("Symmetric Encryption", function () {
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.be.undefined;
           expect(result.signaturePublicKey).to.be.undefined;
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -67,8 +67,8 @@ describe("Symmetric Encryption", function () {
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.not.be.undefined;
           expect(result.signaturePublicKey).to.deep.eq(sigPubKey);
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -81,7 +81,7 @@ describe("Symmetric Encryption", function () {
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (pubSubTopic, contentTopic, payload, symKey) => {
           const metaSetter = (
-            msg: IProtoMessage & { meta: undefined }
+            msg: IProtoMessage & { meta: undefined },
           ): Uint8Array => {
             const buffer = new ArrayBuffer(4);
             const view = new DataView(buffer);
@@ -113,8 +113,8 @@ describe("Symmetric Encryption", function () {
           });
 
           expect(result.meta).to.deep.equal(expectedMeta);
-        }
-      )
+        },
+      ),
     );
   });
 });

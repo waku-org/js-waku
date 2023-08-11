@@ -34,7 +34,7 @@ describe("Use static and several ENR trees for bootstrap", function () {
           bootstrap({ list: [multiAddrWithId.toString()] }),
           wakuDnsDiscovery(
             [enrTree["PROD"], enrTree["TEST"]],
-            NODE_REQUIREMENTS
+            NODE_REQUIREMENTS,
           ),
         ],
       },
@@ -48,8 +48,8 @@ describe("Use static and several ENR trees for bootstrap", function () {
     // should also have the bootstrap peer
     expect(
       peersDiscovered.find(
-        (p) => p.id.toString() === multiAddrWithId.getPeerId()?.toString()
-      )
+        (p) => p.id.toString() === multiAddrWithId.getPeerId()?.toString(),
+      ),
     ).to.not.be.undefined;
   });
 });

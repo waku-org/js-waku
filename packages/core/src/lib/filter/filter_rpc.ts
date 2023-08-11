@@ -35,7 +35,7 @@ export class FilterSubscribeRpc {
 
   static createSubscribeRequest(
     pubsubTopic: string,
-    contentTopics: string[]
+    contentTopics: string[],
   ): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
       requestId: uuid(),
@@ -48,7 +48,7 @@ export class FilterSubscribeRpc {
 
   static createUnsubscribeRequest(
     pubsubTopic: string,
-    contentTopics: string[]
+    contentTopics: string[],
   ): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
       requestId: uuid(),

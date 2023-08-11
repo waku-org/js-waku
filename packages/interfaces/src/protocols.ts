@@ -62,7 +62,7 @@ export type ProtocolOptions = {
 };
 
 export type Callback<T extends IDecodedMessage> = (
-  msg: T
+  msg: T,
 ) => void | Promise<void>;
 
 export enum SendError {

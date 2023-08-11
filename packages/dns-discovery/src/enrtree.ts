@@ -29,7 +29,7 @@ export class ENRTree {
   static parseAndVerifyRoot(root: string, publicKey: string): string {
     if (!root.startsWith(this.ROOT_PREFIX))
       throw new Error(
-        `ENRTree root entry must start with '${this.ROOT_PREFIX}'`
+        `ENRTree root entry must start with '${this.ROOT_PREFIX}'`,
       );
 
     const rootValues = ENRTree.parseRootValues(root);
@@ -43,13 +43,13 @@ export class ENRTree {
     const signedComponentBuffer = utf8ToBytes(signedComponent);
     const signatureBuffer = fromString(rootValues.signature, "base64url").slice(
       0,
-      64
+      64,
     );
 
     const isVerified = verifySignature(
       signatureBuffer,
       keccak256(signedComponentBuffer),
-      new Uint8Array(decodedPublicKey)
+      new Uint8Array(decodedPublicKey),
     );
 
     if (!isVerified) throw new Error("Unable to verify ENRTree root signature");
@@ -59,7 +59,7 @@ export class ENRTree {
 
   static parseRootValues(txt: string): ENRRootValues {
     const matches = txt.match(
-      /^enrtree-root:v1 e=([^ ]+) l=([^ ]+) seq=(\d+) sig=([^ ]+)$/
+      /^enrtree-root:v1 e=([^ ]+) l=([^ ]+) seq=(\d+) sig=([^ ]+)$/,
     );
 
     if (!Array.isArray(matches))
@@ -89,7 +89,7 @@ export class ENRTree {
   static parseTree(tree: string): ENRTreeValues {
     if (!tree.startsWith(this.TREE_PREFIX))
       throw new Error(
-        `ENRTree tree entry must start with '${this.TREE_PREFIX}'`
+        `ENRTree tree entry must start with '${this.TREE_PREFIX}'`,
       );
 
     const matches = tree.match(/^enrtree:\/\/([^@]+)@(.+)$/);
@@ -115,7 +115,7 @@ export class ENRTree {
   static parseBranch(branch: string): string[] {
     if (!branch.startsWith(this.BRANCH_PREFIX))
       throw new Error(
-        `ENRTree branch entry must start with '${this.BRANCH_PREFIX}'`
+        `ENRTree branch entry must start with '${this.BRANCH_PREFIX}'`,
       );
 
     return branch.split(this.BRANCH_PREFIX)[1].split(",");

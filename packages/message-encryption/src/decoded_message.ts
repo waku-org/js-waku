@@ -15,7 +15,7 @@ export class DecodedMessage
     proto: proto.WakuMessage,
     decodedPayload: Uint8Array,
     public signature?: Uint8Array,
-    public signaturePublicKey?: Uint8Array
+    public signaturePublicKey?: Uint8Array,
   ) {
     super(pubSubTopic, proto);
     this._decodedPayload = decodedPayload;

@@ -63,7 +63,7 @@ export namespace FilterSubscribeRequest {
             w.uint32(16);
             FilterSubscribeRequest.FilterSubscribeType.codec().encode(
               obj.filterSubscribeType,
-              w
+              w,
             );
           }
 
@@ -102,7 +102,7 @@ export namespace FilterSubscribeRequest {
               case 2:
                 obj.filterSubscribeType =
                   FilterSubscribeRequest.FilterSubscribeType.codec().decode(
-                    reader
+                    reader,
                   );
                 break;
               case 10:
@@ -118,7 +118,7 @@ export namespace FilterSubscribeRequest {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -130,7 +130,7 @@ export namespace FilterSubscribeRequest {
   };
 
   export const decode = (
-    buf: Uint8Array | Uint8ArrayList
+    buf: Uint8Array | Uint8ArrayList,
   ): FilterSubscribeRequest => {
     return decodeMessage(buf, FilterSubscribeRequest.codec());
   };
@@ -200,7 +200,7 @@ export namespace FilterSubscribeResponse {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -212,7 +212,7 @@ export namespace FilterSubscribeResponse {
   };
 
   export const decode = (
-    buf: Uint8Array | Uint8ArrayList
+    buf: Uint8Array | Uint8ArrayList,
   ): FilterSubscribeResponse => {
     return decodeMessage(buf, FilterSubscribeResponse.codec());
   };
@@ -260,7 +260,7 @@ export namespace MessagePush {
               case 1:
                 obj.wakuMessage = WakuMessage.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               case 2:
@@ -273,7 +273,7 @@ export namespace MessagePush {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -394,7 +394,7 @@ export namespace RateLimitProof {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -500,7 +500,7 @@ export namespace WakuMessage {
               case 21:
                 obj.rateLimitProof = RateLimitProof.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               case 31:
@@ -513,7 +513,7 @@ export namespace WakuMessage {
           }
 
           return obj;
-        }
+        },
       );
     }
 
