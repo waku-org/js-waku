@@ -4,7 +4,6 @@ import {
   PeerExchangeCodec,
   PeerExchangeDiscovery,
   WakuPeerExchange,
-  wakuPeerExchangeDiscovery,
 } from "@waku/peer-exchange";
 import { createLightNode, Libp2pComponents } from "@waku/sdk";
 import { expect } from "chai";
@@ -114,21 +113,13 @@ describe("Peer Exchange", () => {
           discv5BootstrapNode: enr,
         });
 
-        waku = await createLightNode({
-          libp2p: {
-            peerDiscovery: [wakuPeerExchangeDiscovery()],
-          },
-        });
-        const peerExchange = waku.libp2p.components["components"][
-          "peer-discovery-0"
-        ] as PeerExchangeDiscovery;
-
+        waku = await createLightNode();
         await waku.start();
-        const nwaku2Ma = await nwaku2.getMultiaddrWithId();
 
+        const nwaku2Ma = await nwaku2.getMultiaddrWithId();
         await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
 
-        return peerExchange;
+        return new PeerExchangeDiscovery(waku.libp2p.components);
       },
       teardown: async () => {
         await nwaku1?.stop();
