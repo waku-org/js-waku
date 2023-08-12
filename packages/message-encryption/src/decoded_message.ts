@@ -1,6 +1,6 @@
 import {
   DecodedMessage as DecodedMessageV0,
-  proto,
+  proto
 } from "@waku/core/lib/message/version_0";
 import type { IDecodedMessage } from "@waku/interfaces";
 
@@ -15,7 +15,7 @@ export class DecodedMessage
     proto: proto.WakuMessage,
     decodedPayload: Uint8Array,
     public signature?: Uint8Array,
-    public signaturePublicKey?: Uint8Array,
+    public signaturePublicKey?: Uint8Array
   ) {
     super(pubSubTopic, proto);
     this._decodedPayload = decodedPayload;

@@ -1,7 +1,7 @@
 import type { Multiaddr } from "@multiformats/multiaddr";
 import {
   convertToBytes,
-  convertToString,
+  convertToString
 } from "@multiformats/multiaddr/convert";
 import type { ENRKey, ENRValue, SequenceNumber, Waku2 } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
@@ -17,7 +17,7 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
   protected constructor(
     kvs: Record<ENRKey, ENRValue> = {},
     seq: SequenceNumber = BigInt(1),
-    signature?: Uint8Array,
+    signature?: Uint8Array
   ) {
     super(Object.entries(kvs));
     this.seq = seq;
@@ -147,7 +147,7 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
       this,
       "waku2",
       waku2,
-      (w) => new Uint8Array([encodeWaku2(w)]),
+      (w) => new Uint8Array([encodeWaku2(w)])
     );
   }
 }
@@ -155,7 +155,7 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
 function getStringValue(
   map: Map<ENRKey, ENRValue>,
   key: ENRKey,
-  proto: string,
+  proto: string
 ): string | undefined {
   const raw = map.get(key);
   if (!raw) return;
@@ -165,7 +165,7 @@ function getStringValue(
 function getNumberAsStringValue(
   map: Map<ENRKey, ENRValue>,
   key: ENRKey,
-  proto: string,
+  proto: string
 ): number | undefined {
   const raw = map.get(key);
   if (!raw) return;
@@ -176,7 +176,7 @@ function setStringValue(
   map: Map<ENRKey, ENRValue>,
   key: ENRKey,
   proto: string,
-  value: string | undefined,
+  value: string | undefined
 ): void {
   deleteUndefined(map, key, value, convertToBytes.bind({}, proto));
 }
@@ -185,7 +185,7 @@ function setNumberAsStringValue(
   map: Map<ENRKey, ENRValue>,
   key: ENRKey,
   proto: string,
-  value: number | undefined,
+  value: number | undefined
 ): void {
   setStringValue(map, key, proto, value?.toString(10));
 }
@@ -194,7 +194,7 @@ function deleteUndefined<K, V, W>(
   map: Map<K, W>,
   key: K,
   value: V | undefined,
-  transform: (v: V) => W,
+  transform: (v: V) => W
 ): void {
   if (value !== undefined) {
     map.set(key, transform(value));

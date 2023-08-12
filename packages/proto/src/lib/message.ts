@@ -76,7 +76,7 @@ export namespace RateLimitProof {
             shareX: new Uint8Array(0),
             shareY: new Uint8Array(0),
             nullifier: new Uint8Array(0),
-            rlnIdentifier: new Uint8Array(0),
+            rlnIdentifier: new Uint8Array(0)
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -113,7 +113,7 @@ export namespace RateLimitProof {
           }
 
           return obj;
-        },
+        }
       );
     }
 
@@ -192,7 +192,7 @@ export namespace WakuMessage {
         (reader, length) => {
           const obj: any = {
             payload: new Uint8Array(0),
-            contentTopic: "",
+            contentTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -219,7 +219,7 @@ export namespace WakuMessage {
               case 21:
                 obj.rateLimitProof = RateLimitProof.codec().decode(
                   reader,
-                  reader.uint32(),
+                  reader.uint32()
                 );
                 break;
               case 31:
@@ -232,7 +232,7 @@ export namespace WakuMessage {
           }
 
           return obj;
-        },
+        }
       );
     }
 

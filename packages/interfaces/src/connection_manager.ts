@@ -4,7 +4,7 @@ import type { EventEmitter } from "@libp2p/interfaces/events";
 
 export enum Tags {
   BOOTSTRAP = "bootstrap",
-  PEER_EXCHANGE = "peer-exchange",
+  PEER_EXCHANGE = "peer-exchange"
 }
 
 export interface ConnectionManagerOptions {
@@ -28,7 +28,7 @@ export enum EPeersByDiscoveryEvents {
   PEER_DISCOVERY_BOOTSTRAP = "peer:discovery:bootstrap",
   PEER_DISCOVERY_PEER_EXCHANGE = "peer:discovery:peer-exchange",
   PEER_CONNECT_BOOTSTRAP = "peer:connected:bootstrap",
-  PEER_CONNECT_PEER_EXCHANGE = "peer:connected:peer-exchange",
+  PEER_CONNECT_PEER_EXCHANGE = "peer:connected:peer-exchange"
 }
 
 export interface IPeersByDiscoveryEvents {

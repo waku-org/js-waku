@@ -9,7 +9,7 @@ import { Asymmetric, Symmetric } from "../constants.js";
 declare const self: Record<string, any> | undefined;
 const crypto: { node?: any; web?: any } = {
   node: nodeCrypto,
-  web: typeof self === "object" && "crypto" in self ? self.crypto : undefined,
+  web: typeof self === "object" && "crypto" in self ? self.crypto : undefined
 };
 
 export function getSubtle(): SubtleCrypto {
@@ -19,7 +19,7 @@ export function getSubtle(): SubtleCrypto {
     return crypto.node.webcrypto.subtle;
   } else {
     throw new Error(
-      "The environment doesn't have Crypto Subtle API (if in the browser, be sure to use to be in a secure context, ie, https)",
+      "The environment doesn't have Crypto Subtle API (if in the browser, be sure to use to be in a secure context, ie, https)"
     );
   }
 }
@@ -59,15 +59,15 @@ export const getPublicKey = secp.getPublicKey;
  */
 export async function sign(
   message: Uint8Array,
-  privateKey: Uint8Array,
+  privateKey: Uint8Array
 ): Promise<Uint8Array> {
   const [signature, recoveryId] = await secp.sign(message, privateKey, {
     recovered: true,
-    der: false,
+    der: false
   });
   return concat(
     [signature, new Uint8Array([recoveryId])],
-    signature.length + 1,
+    signature.length + 1
   );
 }
 

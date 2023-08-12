@@ -1,6 +1,6 @@
 import type {
   PeerDiscovery,
-  PeerDiscoveryEvents,
+  PeerDiscoveryEvents
 } from "@libp2p/interface-peer-discovery";
 import { peerDiscovery as symbol } from "@libp2p/interface-peer-discovery";
 import type { PeerInfo } from "@libp2p/interface-peer-info";
@@ -17,7 +17,7 @@ const log = debug("waku:peer-discovery-dns");
 
 const enrTree = {
   TEST: "enrtree://AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM@test.waku.nodes.status.im",
-  PROD: "enrtree://AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM@prod.waku.nodes.status.im",
+  PROD: "enrtree://AOGECG2SPND25EEFMAJ5WF3KSGJNSGV356DSTL2YVLLZWIV6SAYBM@prod.waku.nodes.status.im"
 };
 
 const DEFAULT_BOOTSTRAP_TAG_NAME = "bootstrap";
@@ -93,7 +93,7 @@ export class PeerDiscoveryDns
       this.nextPeer = dns.getNextPeer.bind(
         dns,
         enrUrls,
-        wantedNodeCapabilityCount,
+        wantedNodeCapabilityCount
       );
     }
 
@@ -112,9 +112,9 @@ export class PeerDiscoveryDns
         tags: {
           [DEFAULT_BOOTSTRAP_TAG_NAME]: {
             value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-          },
-        },
+            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL
+          }
+        }
       };
 
       let isPeerChanged = false;
@@ -135,7 +135,7 @@ export class PeerDiscoveryDns
 
       if (isPeerChanged) {
         this.dispatchEvent(
-          new CustomEvent<PeerInfo>("peer", { detail: peerInfo }),
+          new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
         );
       }
     }
@@ -159,7 +159,7 @@ export class PeerDiscoveryDns
 
 export function wakuDnsDiscovery(
   enrUrls: string[],
-  wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
+  wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
 ): (components: DnsDiscoveryComponents) => PeerDiscoveryDns {
   return (components: DnsDiscoveryComponents) =>
     new PeerDiscoveryDns(components, { enrUrls, wantedNodeCapabilityCount });

@@ -9,7 +9,7 @@ import {
   IPeersByDiscoveryEvents,
   IRelay,
   KeepAliveOptions,
-  PeersByDiscoveryResult,
+  PeersByDiscoveryResult
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
 import debug from "debug";
@@ -41,7 +41,7 @@ export class ConnectionManager
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
-    options?: ConnectionManagerOptions,
+    options?: ConnectionManagerOptions
   ): ConnectionManager {
     let instance = ConnectionManager.instances.get(peerId);
     if (!instance) {
@@ -49,7 +49,7 @@ export class ConnectionManager
         libp2p,
         keepAliveOptions,
         relay,
-        options,
+        options
       );
       ConnectionManager.instances.set(peerId, instance);
     }
@@ -92,12 +92,12 @@ export class ConnectionManager
     return {
       DISCOVERED: {
         [Tags.BOOTSTRAP]: peersDiscoveredByBootstrap,
-        [Tags.PEER_EXCHANGE]: peersDiscoveredByPeerExchange,
+        [Tags.PEER_EXCHANGE]: peersDiscoveredByPeerExchange
       },
       CONNECTED: {
         [Tags.BOOTSTRAP]: peersConnectedByBootstrap,
-        [Tags.PEER_EXCHANGE]: peersConnectedByPeerExchange,
-      },
+        [Tags.PEER_EXCHANGE]: peersConnectedByPeerExchange
+      }
     };
   }
 
@@ -105,7 +105,7 @@ export class ConnectionManager
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
     relay?: IRelay,
-    options?: Partial<ConnectionManagerOptions>,
+    options?: Partial<ConnectionManagerOptions>
   ) {
     super();
     this.libp2p = libp2p;
@@ -113,7 +113,7 @@ export class ConnectionManager
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
       maxParallelDials: DEFAULT_MAX_PARALLEL_DIALS,
-      ...options,
+      ...options
     };
 
     this.keepAliveManager = new KeepAliveManager(keepAliveOptions, relay);
@@ -126,7 +126,7 @@ export class ConnectionManager
     // which means that before the ConnectionManager is initialized, some peers may have been discovered
     // we will dial the peers in peerStore ONCE before we start to listen to the `peer:discovery` events within the ConnectionManager
     this.dialPeerStorePeers().catch((error) =>
-      log(`Unexpected error while dialing peer store peers`, error),
+      log(`Unexpected error while dialing peer store peers`, error)
     );
   }
 
@@ -159,15 +159,15 @@ export class ConnectionManager
     this.keepAliveManager.stopAll();
     this.libp2p.removeEventListener(
       "peer:connect",
-      this.onEventHandlers["peer:connect"],
+      this.onEventHandlers["peer:connect"]
     );
     this.libp2p.removeEventListener(
       "peer:disconnect",
-      this.onEventHandlers["peer:disconnect"],
+      this.onEventHandlers["peer:disconnect"]
     );
     this.libp2p.removeEventListener(
       "peer:discovery",
-      this.onEventHandlers["peer:discovery"],
+      this.onEventHandlers["peer:discovery"]
     );
   }
 
@@ -198,7 +198,7 @@ export class ConnectionManager
           log(
             `Error dialing peer ${peerId.toString()} - ${
               (error as any).message
-            }`,
+            }`
           );
         }
         this.dialErrorsForPeer.set(peerId.toString(), error);
@@ -225,14 +225,14 @@ export class ConnectionManager
         }
 
         log(
-          `Deleting undialable peer ${peerId.toString()} from peer store. Error: ${errorMessage}`,
+          `Deleting undialable peer ${peerId.toString()} from peer store. Error: ${errorMessage}`
         );
 
         this.dialErrorsForPeer.delete(peerId.toString());
         await this.libp2p.peerStore.delete(peerId);
       } catch (error) {
         throw new Error(
-          `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`,
+          `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`
         );
       }
     }
@@ -245,7 +245,7 @@ export class ConnectionManager
       log(`Dropped connection with peer ${peerId.toString()}`);
     } catch (error) {
       log(
-        `Error dropping connection with peer ${peerId.toString()} - ${error}`,
+        `Error dropping connection with peer ${peerId.toString()} - ${error}`
       );
     }
   }
@@ -266,14 +266,14 @@ export class ConnectionManager
   private startPeerDiscoveryListener(): void {
     this.libp2p.addEventListener(
       "peer:discovery",
-      this.onEventHandlers["peer:discovery"],
+      this.onEventHandlers["peer:discovery"]
     );
   }
 
   private startPeerConnectionListener(): void {
     this.libp2p.addEventListener(
       "peer:connect",
-      this.onEventHandlers["peer:connect"],
+      this.onEventHandlers["peer:connect"]
     );
   }
 
@@ -292,7 +292,7 @@ export class ConnectionManager
      */
     this.libp2p.addEventListener(
       "peer:disconnect",
-      this.onEventHandlers["peer:disconnect"],
+      this.onEventHandlers["peer:disconnect"]
     );
   }
 
@@ -315,7 +315,7 @@ export class ConnectionManager
         const { id: peerId } = evt.detail;
 
         const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
-          Tags.BOOTSTRAP,
+          Tags.BOOTSTRAP
         );
 
         this.dispatchEvent(
@@ -324,9 +324,9 @@ export class ConnectionManager
               ? EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP
               : EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
             {
-              detail: peerId,
-            },
-          ),
+              detail: peerId
+            }
+          )
         );
 
         try {
@@ -343,7 +343,7 @@ export class ConnectionManager
         this.keepAliveManager.start(peerId, this.libp2p.services.ping);
 
         const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
-          Tags.BOOTSTRAP,
+          Tags.BOOTSTRAP
         );
 
         if (isBootstrap) {
@@ -361,9 +361,9 @@ export class ConnectionManager
               new CustomEvent<PeerId>(
                 EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP,
                 {
-                  detail: peerId,
-                },
-              ),
+                  detail: peerId
+                }
+              )
             );
           }
         } else {
@@ -371,9 +371,9 @@ export class ConnectionManager
             new CustomEvent<PeerId>(
               EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
               {
-                detail: peerId,
-              },
-            ),
+                detail: peerId
+              }
+            )
           );
         }
       })();
@@ -382,7 +382,7 @@ export class ConnectionManager
       return (evt: CustomEvent<PeerId>): void => {
         this.keepAliveManager.stop(evt.detail);
       };
-    },
+    }
   };
 
   /**

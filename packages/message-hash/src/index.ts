@@ -8,7 +8,7 @@ import { concat, utf8ToBytes } from "@waku/utils/bytes";
  */
 export function messageHash(
   pubsubTopic: string,
-  message: IProtoMessage,
+  message: IProtoMessage
 ): Uint8Array {
   const pubsubTopicBytes = utf8ToBytes(pubsubTopic);
   const contentTopicBytes = utf8ToBytes(message.contentTopic);
@@ -20,7 +20,7 @@ export function messageHash(
       pubsubTopicBytes,
       message.payload,
       contentTopicBytes,
-      message.meta,
+      message.meta
     ]);
   } else {
     bytes = concat([pubsubTopicBytes, message.payload, contentTopicBytes]);

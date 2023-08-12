@@ -2,7 +2,7 @@ import {
   createDecoder,
   createEncoder,
   DefaultPubSubTopic,
-  waitForRemotePeer,
+  waitForRemotePeer
 } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -28,7 +28,7 @@ describe("Util: toAsyncIterator: Filter", () => {
     await nwaku.start({ filter: true, lightpush: true, relay: true });
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -53,7 +53,7 @@ describe("Util: toAsyncIterator: Filter", () => {
       waku.filter,
       TestDecoder,
       {},
-      { timeoutMs: 1000 },
+      { timeoutMs: 1000 }
     );
 
     await waku.lightPush.send(TestEncoder, sent);
@@ -70,14 +70,14 @@ describe("Util: toAsyncIterator: Filter", () => {
       waku.filter,
       TestDecoder,
       {},
-      { timeoutMs: 1000 },
+      { timeoutMs: 1000 }
     );
 
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("Filtering works!"),
+      payload: utf8ToBytes("Filtering works!")
     });
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("Filtering still works!"),
+      payload: utf8ToBytes("Filtering still works!")
     });
 
     let result = await iterator.next();
@@ -93,17 +93,17 @@ describe("Util: toAsyncIterator: Filter", () => {
       waku.filter,
       TestDecoder,
       {},
-      { timeoutMs: 1000 },
+      { timeoutMs: 1000 }
     );
 
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should be received"),
+      payload: utf8ToBytes("This should be received")
     });
 
     await stop();
 
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should not be received"),
+      payload: utf8ToBytes("This should not be received")
     });
 
     let result = await iterator.next();
