@@ -6,7 +6,7 @@ import type {
   IMessage,
   IMetaSetter,
   IProtoMessage,
-  IRateLimitProof,
+  IRateLimitProof
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
 import debug from "debug";
@@ -18,7 +18,10 @@ export const Version = 0;
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
-  constructor(public pubSubTopic: string, protected proto: proto.WakuMessage) {}
+  constructor(
+    public pubSubTopic: string,
+    protected proto: proto.WakuMessage
+  ) {}
 
   get ephemeral(): boolean {
     return Boolean(this.proto.ephemeral);
@@ -91,7 +94,7 @@ export class Encoder implements IEncoder {
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
       meta: undefined,
       rateLimitProof: message.rateLimitProof,
-      ephemeral: this.ephemeral,
+      ephemeral: this.ephemeral
     };
 
     if (this.metaSetter) {
@@ -115,7 +118,7 @@ export class Encoder implements IEncoder {
 export function createEncoder({
   contentTopic,
   ephemeral,
-  metaSetter,
+  metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(contentTopic, ephemeral, metaSetter);
 }
@@ -137,7 +140,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
       timestamp: protoMessage.timestamp ?? undefined,
       meta: protoMessage.meta ?? undefined,
       rateLimitProof: protoMessage.rateLimitProof ?? undefined,
-      ephemeral: protoMessage.ephemeral ?? false,
+      ephemeral: protoMessage.ephemeral ?? false
     });
   }
 

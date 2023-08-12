@@ -33,7 +33,7 @@ export enum LogLevel {
   Debug = "DEBUG",
   Trace = "TRACE",
   Notice = "NOTICE",
-  Fatal = "FATAL",
+  Fatal = "FATAL"
 }
 
 export interface KeyPair {

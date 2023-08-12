@@ -2,12 +2,12 @@ module.exports = {
   root: true,
   parserOptions: {
     ecmaVersion: 2021,
-    sourceType: "module",
+    sourceType: "module"
   },
   env: {
     browser: true,
     es2021: true,
-    node: true,
+    node: true
   },
   extends: ["eslint:recommended"],
   rules: {
@@ -17,8 +17,8 @@ module.exports = {
     semi: ["error", "always"],
     "no-unused-vars": [
       "error",
-      { vars: "all", args: "after-used", ignoreRestSiblings: false },
+      { vars: "all", args: "after-used", ignoreRestSiblings: false }
     ],
-    "no-console": "warn",
-  },
+    "no-console": "warn"
+  }
 };

@@ -23,7 +23,7 @@ describe("Message Validator", () => {
           const message: UnsignedMessage = {
             type: "unsigned",
             topic: pubSubTopic,
-            data: bytes,
+            data: bytes
           };
 
           const result = messageValidator(peerId, message);
@@ -45,7 +45,7 @@ describe("Message Validator", () => {
           const message: UnsignedMessage = {
             type: "unsigned",
             topic: pubSubTopic,
-            data,
+            data
           };
 
           const result = messageValidator(peerId, message);

@@ -7,7 +7,7 @@ import {
   ProtocolCreateOptions,
   ProtocolOptions,
   SendError,
-  SendResult,
+  SendResult
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
 import { isSizeValid } from "@waku/utils";
@@ -56,7 +56,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         log("Failed to send waku light push: message is bigger that 1MB");
         return {
           recipients,
-          error: SendError.SIZE_TOO_BIG,
+          error: SendError.SIZE_TOO_BIG
         };
       }
 
@@ -65,7 +65,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         log("Failed to encode to protoMessage, aborting push");
         return {
           recipients,
-          error: SendError.ENCODE_FAILED,
+          error: SendError.ENCODE_FAILED
         };
       }
       const query = PushRpc.createRequest(protoMessage, pubSubTopic);
@@ -100,7 +100,7 @@ class LightPush extends BaseProtocol implements ILightPush {
     }
     return {
       error,
-      recipients,
+      recipients
     };
   }
 }

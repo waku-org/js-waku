@@ -11,14 +11,14 @@ export default {
   input,
   output: {
     dir: "bundle",
-    format: "esm",
+    format: "esm"
   },
   plugins: [
     commonjs(),
     json(),
     nodeResolve({
       browser: true,
-      preferBuiltins: false,
-    }),
-  ],
+      preferBuiltins: false
+    })
+  ]
 };

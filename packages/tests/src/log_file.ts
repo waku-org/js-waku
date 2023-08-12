@@ -20,14 +20,14 @@ export default async function waitForLine(
 
   const options = {
     fromBeginning: true,
-    follow: true,
+    follow: true
   };
 
   const tail = new Tail(filepath, options);
 
   await pTimeout(find(tail, logLine), {
     milliseconds: 60000,
-    message: `could not to find '${logLine}' in file '${filepath}'`,
+    message: `could not to find '${logLine}' in file '${filepath}'`
   });
   tail.unwatch();
 }

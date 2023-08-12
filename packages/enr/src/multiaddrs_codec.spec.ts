@@ -12,7 +12,7 @@ describe("ENR multiaddrs codec", function () {
       ),
       multiaddr(
         "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
-      ),
+      )
     ];
 
     const bytes = encodeMultiaddrs(multiaddrs);

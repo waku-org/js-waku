@@ -7,7 +7,7 @@ import {
   IDecoder,
   IStore,
   Libp2p,
-  ProtocolCreateOptions,
+  ProtocolCreateOptions
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
 import { isDefined } from "@waku/utils";
@@ -219,7 +219,7 @@ class Store extends BaseProtocol implements IStore {
       {
         pubSubTopic: pubSubTopic,
         pageDirection: PageDirection.BACKWARD,
-        pageSize: DefaultPageSize,
+        pageSize: DefaultPageSize
       },
       options,
       { contentTopics, startTime, endTime }
@@ -227,7 +227,7 @@ class Store extends BaseProtocol implements IStore {
 
     log("Querying history with the following options", {
       ...options,
-      peerId: options?.peerId?.toString(),
+      peerId: options?.peerId?.toString()
     });
 
     const peer = await this.getPeer(options?.peerId);
@@ -369,7 +369,7 @@ export async function createCursor(
     digest,
     pubsubTopic,
     senderTime: messageTime,
-    receiverTime: messageTime,
+    receiverTime: messageTime
   };
 }
 

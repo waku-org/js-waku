@@ -6,7 +6,7 @@ import type {
   ENRValue,
   IEnr,
   NodeId,
-  SequenceNumber,
+  SequenceNumber
 } from "@waku/interfaces";
 import debug from "debug";
 
@@ -21,13 +21,13 @@ const log = debug("waku:enr");
 
 export enum TransportProtocol {
   TCP = "tcp",
-  UDP = "udp",
+  UDP = "udp"
 }
 export enum TransportProtocolPerIpVersion {
   TCP4 = "tcp4",
   UDP4 = "udp4",
   TCP6 = "tcp6",
-  UDP6 = "udp6",
+  UDP6 = "udp6"
 }
 
 export class ENR extends RawEnr implements IEnr {
@@ -109,7 +109,7 @@ export class ENR extends RawEnr implements IEnr {
     return {
       id,
       multiaddrs: this.getAllLocationMultiaddrs(),
-      protocols: [],
+      protocols: []
     };
   }
 

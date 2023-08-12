@@ -42,11 +42,11 @@ export class DnsOverHttps implements DnsClient {
     try {
       const res = await query(
         {
-          question: { type: "TXT", name: domain },
+          question: { type: "TXT", name: domain }
         },
         {
           endpoints: this.endpoints,
-          retries: this.retries,
+          retries: this.retries
         }
       );
       answers = res.answers;

@@ -6,7 +6,7 @@ import { DnsOverHttps } from "./dns_over_https.js";
 import { ENRTree } from "./enrtree.js";
 import {
   fetchNodesUntilCapabilitiesFulfilled,
-  yieldNodesUntilCapabilitiesFulfilled,
+  yieldNodesUntilCapabilitiesFulfilled
 } from "./fetch_nodes.js";
 
 const log = debug("waku:discovery:dns");
@@ -58,7 +58,7 @@ export class DnsNodeDiscovery {
     const context: SearchContext = {
       domain,
       publicKey,
-      visits: {},
+      visits: {}
     };
 
     const peers = await fetchNodesUntilCapabilitiesFulfilled(
@@ -71,7 +71,7 @@ export class DnsNodeDiscovery {
       peers.map((peer) => {
         return {
           id: peer.peerId?.toString(),
-          multiaddrs: peer.multiaddrs?.map((ma) => ma.toString()),
+          multiaddrs: peer.multiaddrs?.map((ma) => ma.toString())
         };
       })
     );
@@ -95,7 +95,7 @@ export class DnsNodeDiscovery {
     const context: SearchContext = {
       domain,
       publicKey,
-      visits: {},
+      visits: {}
     };
 
     for await (const peer of yieldNodesUntilCapabilitiesFulfilled(

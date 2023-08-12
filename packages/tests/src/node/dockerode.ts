@@ -59,10 +59,10 @@ export default class Dockerode {
             {
               Subnet: SUBNET,
               IPRange: IP_RANGE,
-              Gateway: GATEWAY,
-            },
-          ],
-        },
+              Gateway: GATEWAY
+            }
+          ]
+        }
       });
     }
 
@@ -115,19 +115,19 @@ export default class Dockerode {
           [`${tcpPort}/tcp`]: [{ HostPort: tcpPort.toString() }],
           [`${websocketPort}/tcp`]: [{ HostPort: websocketPort.toString() }],
           ...(args?.peerExchange && {
-            [`${discv5UdpPort}/udp`]: [{ HostPort: discv5UdpPort.toString() }],
-          }),
-        },
+            [`${discv5UdpPort}/udp`]: [{ HostPort: discv5UdpPort.toString() }]
+          })
+        }
       },
       ExposedPorts: {
         [`${rpcPort}/tcp`]: {},
         [`${tcpPort}/tcp`]: {},
         [`${websocketPort}/tcp`]: {},
         ...(args?.peerExchange && {
-          [`${discv5UdpPort}/udp`]: {},
-        }),
+          [`${discv5UdpPort}/udp`]: {}
+        })
       },
-      Cmd: argsArrayWithIP,
+      Cmd: argsArrayWithIP
     });
     await container.start();
 
@@ -135,9 +135,9 @@ export default class Dockerode {
       Container: container.id,
       EndpointConfig: {
         IPAMConfig: {
-          IPv4Address: this.containerIp,
-        },
-      },
+          IPv4Address: this.containerIp
+        }
+      }
     });
     const logStream = fs.createWriteStream(logPath);
 

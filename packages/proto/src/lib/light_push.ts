@@ -40,7 +40,7 @@ export namespace PushRequest {
         },
         (reader, length) => {
           const obj: any = {
-            pubsubTopic: "",
+            pubsubTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -113,7 +113,7 @@ export namespace PushResponse {
         },
         (reader, length) => {
           const obj: any = {
-            isSuccess: false,
+            isSuccess: false
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -189,7 +189,7 @@ export namespace PushRpc {
         },
         (reader, length) => {
           const obj: any = {
-            requestId: "",
+            requestId: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -304,7 +304,7 @@ export namespace RateLimitProof {
             shareX: new Uint8Array(0),
             shareY: new Uint8Array(0),
             nullifier: new Uint8Array(0),
-            rlnIdentifier: new Uint8Array(0),
+            rlnIdentifier: new Uint8Array(0)
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -420,7 +420,7 @@ export namespace WakuMessage {
         (reader, length) => {
           const obj: any = {
             payload: new Uint8Array(0),
-            contentTopic: "",
+            contentTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;

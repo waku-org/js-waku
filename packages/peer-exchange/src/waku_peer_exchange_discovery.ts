@@ -2,11 +2,12 @@ import type { PeerUpdate } from "@libp2p/interface";
 import { CustomEvent, EventEmitter } from "@libp2p/interface/events";
 import type {
   PeerDiscovery,
-  PeerDiscoveryEvents,
-} from "@libp2p/interface/peer-discovery";
-import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
-import type { PeerId } from "@libp2p/interface/peer-id";
-import type { PeerInfo } from "@libp2p/interface/peer-info";
+  PeerDiscoveryEvents
+} from "@libp2p/interface-peer-discovery";
+import { peerDiscovery as symbol } from "@libp2p/interface-peer-discovery";
+import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerInfo } from "@libp2p/interface-peer-info";
+import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
 import { Libp2pComponents, Tags } from "@waku/interfaces";
 import debug from "debug";
 
@@ -64,7 +65,7 @@ export class PeerExchangeDiscovery
     event: CustomEvent<PeerUpdate>
   ): void => {
     const {
-      peer: { protocols, id: peerId },
+      peer: { protocols, id: peerId }
     } = event.detail;
     if (
       !protocols.includes(PeerExchangeCodec) ||
@@ -131,7 +132,7 @@ export class PeerExchangeDiscovery
     const peerIdStr = peerId.toString();
     const {
       queryInterval = DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS,
-      maxRetries = DEFAULT_MAX_RETRIES,
+      maxRetries = DEFAULT_MAX_RETRIES
     } = this.options;
 
     log(
@@ -160,7 +161,7 @@ export class PeerExchangeDiscovery
   private async query(peerId: PeerId): Promise<void> {
     const peerInfos = await this.peerExchange.query({
       numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
-      peerId,
+      peerId
     });
 
     if (!peerInfos) {
@@ -190,9 +191,9 @@ export class PeerExchangeDiscovery
         tags: {
           [DEFAULT_PEER_EXCHANGE_TAG_NAME]: {
             value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
-            ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL,
-          },
-        },
+            ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL
+          }
+        }
       });
 
       log(`Discovered peer: ${peerId.toString()}`);
@@ -202,8 +203,8 @@ export class PeerExchangeDiscovery
           detail: {
             id: peerId,
             protocols: [],
-            multiaddrs: peerInfo.multiaddrs,
-          },
+            multiaddrs: peerInfo.multiaddrs
+          }
         })
       );
     }

@@ -7,7 +7,7 @@ import type {
   IRelay,
   IStore,
   Libp2p,
-  Waku,
+  Waku
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";

@@ -1,6 +1,6 @@
 import {
   DecodedMessage as DecodedMessageV0,
-  proto,
+  proto
 } from "@waku/core/lib/message/version_0";
 import type { IDecodedMessage } from "@waku/interfaces";
 

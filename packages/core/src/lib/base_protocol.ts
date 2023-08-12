@@ -6,7 +6,7 @@ import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
-  selectPeerForProtocol,
+  selectPeerForProtocol
 } from "@waku/utils/libp2p";
 
 /**
@@ -17,7 +17,10 @@ export class BaseProtocol implements IBaseProtocol {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
 
-  constructor(public multicodec: string, private components: Libp2pComponents) {
+  constructor(
+    public multicodec: string,
+    private components: Libp2pComponents
+  ) {
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events
     );

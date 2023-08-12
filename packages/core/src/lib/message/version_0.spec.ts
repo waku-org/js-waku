@@ -13,7 +13,7 @@ describe("Waku Message version 0", function () {
         fc.uint8Array({ minLength: 1 }),
         async (contentTopic, pubSubTopic, payload) => {
           const encoder = createEncoder({
-            contentTopic,
+            contentTopic
           });
           const bytes = await encoder.toWire({ payload });
           const decoder = createDecoder(contentTopic);
@@ -43,7 +43,7 @@ describe("Waku Message version 0", function () {
         async (contentTopic, pubSubTopic, payload) => {
           const encoder = createEncoder({
             contentTopic,
-            ephemeral: true,
+            ephemeral: true
           });
           const bytes = await encoder.toWire({ payload });
           const decoder = createDecoder(contentTopic);
@@ -80,7 +80,7 @@ describe("Waku Message version 0", function () {
           const encoder = createEncoder({
             contentTopic,
             ephemeral: true,
-            metaSetter,
+            metaSetter
           });
           const bytes = await encoder.toWire({ payload });
           const decoder = createDecoder(contentTopic);
@@ -97,7 +97,7 @@ describe("Waku Message version 0", function () {
             ephemeral: undefined,
             meta: undefined,
             rateLimitProof: undefined,
-            version: undefined,
+            version: undefined
           });
 
           expect(result.meta).to.deep.eq(expectedMeta);

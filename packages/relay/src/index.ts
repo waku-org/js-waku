@@ -2,7 +2,7 @@ import {
   GossipSub,
   GossipSubComponents,
   GossipsubMessage,
-  GossipsubOpts,
+  GossipsubOpts
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
@@ -22,7 +22,7 @@ import {
   ProtocolCreateOptions,
   ProtocolOptions,
   SendError,
-  SendResult,
+  SendResult
 } from "@waku/interfaces";
 import { groupByContentTopic, isSizeValid, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
@@ -102,7 +102,7 @@ class Relay implements IRelay {
       log("Failed to send waku relay: message is bigger that 1MB");
       return {
         recipients: [],
-        error: SendError.SIZE_TOO_BIG,
+        error: SendError.SIZE_TOO_BIG
       };
     }
 
@@ -111,7 +111,7 @@ class Relay implements IRelay {
       log("Failed to encode message, aborting publish");
       return {
         recipients: [],
-        error: SendError.ENCODE_FAILED,
+        error: SendError.ENCODE_FAILED
       };
     }
 
@@ -260,7 +260,7 @@ export function wakuGossipSub(
       msgIdFn: ({ data }) => sha256(data),
       // Ensure that no signature is included nor expected in the messages.
       globalSignaturePolicy: SignaturePolicy.StrictNoSign,
-      fallbackToFloodsub: false,
+      fallbackToFloodsub: false
     };
     const pubsub = new GossipSub(components, init);
     pubsub.multicodecs = RelayCodecs;
@@ -285,10 +285,10 @@ function toObservers<T extends IDecodedMessage>(
             (decoder) =>
               ({
                 decoder,
-                callback,
-              } as Observer<T>)
+                callback
+              }) as Observer<T>
           )
-        ),
+        )
       ] as [ContentTopic, Set<Observer<T>>]
   );
 

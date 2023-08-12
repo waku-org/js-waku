@@ -5,7 +5,7 @@ import type {
   IEncoder,
   IMessage,
   IMetaSetter,
-  IProtoMessage,
+  IProtoMessage
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import debug from "debug";
@@ -15,7 +15,7 @@ import {
   decryptSymmetric,
   encryptSymmetric,
   postCipher,
-  preCipher,
+  preCipher
 } from "./waku_payload.js";
 
 import { generateSymmetricKey, OneMillion, Version } from "./index.js";
@@ -58,7 +58,7 @@ class Encoder implements IEncoder {
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
       meta: undefined,
       rateLimitProof: message.rateLimitProof,
-      ephemeral: this.ephemeral,
+      ephemeral: this.ephemeral
     };
 
     if (this.metaSetter) {
@@ -95,13 +95,16 @@ export function createEncoder({
   symKey,
   sigPrivKey,
   ephemeral = false,
-  metaSetter,
+  metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(contentTopic, symKey, sigPrivKey, ephemeral, metaSetter);
 }
 
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
-  constructor(contentTopic: string, private symKey: Uint8Array) {
+  constructor(
+    contentTopic: string,
+    private symKey: Uint8Array
+  ) {
     super(contentTopic);
   }
 

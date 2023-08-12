@@ -4,7 +4,7 @@ import type {
   IDecoder,
   IReceiver,
   ProtocolOptions,
-  Unsubscribe,
+  Unsubscribe
 } from "@waku/interfaces";
 
 type IteratorOptions = {
@@ -74,7 +74,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
         await unsubscribe();
         unsubscribe = undefined;
       }
-    },
+    }
   };
 }
 

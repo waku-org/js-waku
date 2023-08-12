@@ -10,7 +10,7 @@ Symmetric encryption uses a unique key to encrypt and decrypt messages.
 import {
   createDecoder,
   createEncoder,
-  generateSymmetricKey,
+  generateSymmetricKey
 } from "@waku/message-encryption/symmetric";
 
 // Generate a random key
@@ -40,7 +40,7 @@ import {
   createDecoder,
   createEncoder,
   generatePrivateKey,
-  getPublicKey,
+  getPublicKey
 } from "@waku/message-encryption/ecies";
 
 // Generate a random private key

@@ -18,7 +18,7 @@ export class EnrCreator {
     return ENR.create({
       ...kvs,
       id: utf8ToBytes("v4"),
-      secp256k1: publicKey,
+      secp256k1: publicKey
     });
   }
 

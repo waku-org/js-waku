@@ -156,7 +156,7 @@ export namespace PeerExchangeResponse {
         },
         (reader, length) => {
           const obj: any = {
-            peerInfos: [],
+            peerInfos: []
           };
 
           const end = length == null ? reader.len : reader.pos + length;

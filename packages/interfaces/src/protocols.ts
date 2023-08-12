@@ -9,7 +9,7 @@ export enum Protocols {
   Relay = "relay",
   Store = "store",
   LightPush = "lightpush",
-  Filter = "filter",
+  Filter = "filter"
 }
 
 export interface IBaseProtocol {
@@ -70,7 +70,7 @@ export enum SendError {
   ENCODE_FAILED = "Failed to encode",
   DECODE_FAILED = "Failed to decode",
   SIZE_TOO_BIG = "Size is too big",
-  NO_RPC_RESPONSE = "No RPC response",
+  NO_RPC_RESPONSE = "No RPC response"
 }
 
 export interface SendResult {
