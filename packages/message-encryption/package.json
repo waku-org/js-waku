@@ -87,7 +87,7 @@
     "@types/mocha": "^10.0.1",
     "@waku/build-utils": "*",
     "chai": "^4.3.7",
-    "cspell": "^6.31.1",
+    "cspell": "^7.0.0",
     "fast-check": "^3.8.1",
     "karma": "^6.4.1",
     "karma-chrome-launcher": "^3.2.0",
