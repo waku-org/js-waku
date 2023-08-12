@@ -34,7 +34,7 @@ export class DnsNodeDiscovery {
   private readonly _errorTolerance: number = 10;
 
   public static async dnsOverHttp(
-    dnsClient?: DnsClient
+    dnsClient?: DnsClient,
   ): Promise<DnsNodeDiscovery> {
     if (!dnsClient) {
       dnsClient = await DnsOverHttps.create();
@@ -51,7 +51,7 @@ export class DnsNodeDiscovery {
    */
   async getPeers(
     enrTreeUrls: string[],
-    wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
+    wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
   ): Promise<IEnr[]> {
     const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
     const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
@@ -64,7 +64,7 @@ export class DnsNodeDiscovery {
     const peers = await fetchNodesUntilCapabilitiesFulfilled(
       wantedNodeCapabilityCount,
       this._errorTolerance,
-      () => this._search(domain, context)
+      () => this._search(domain, context),
     );
     log(
       "retrieved peers: ",
@@ -73,7 +73,7 @@ export class DnsNodeDiscovery {
           id: peer.peerId?.toString(),
           multiaddrs: peer.multiaddrs?.map((ma) => ma.toString()),
         };
-      })
+      }),
     );
     return peers;
   }
@@ -88,7 +88,7 @@ export class DnsNodeDiscovery {
    */
   async *getNextPeer(
     enrTreeUrls: string[],
-    wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
+    wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
   ): AsyncGenerator<IEnr> {
     const networkIndex = Math.floor(Math.random() * enrTreeUrls.length);
     const { publicKey, domain } = ENRTree.parseTree(enrTreeUrls[networkIndex]);
@@ -101,7 +101,7 @@ export class DnsNodeDiscovery {
     for await (const peer of yieldNodesUntilCapabilitiesFulfilled(
       wantedNodeCapabilityCount,
       this._errorTolerance,
-      () => this._search(domain, context)
+      () => this._search(domain, context),
     )) {
       yield peer;
     }
@@ -113,7 +113,7 @@ export class DnsNodeDiscovery {
    */
   private async _search(
     subdomain: string,
-    context: SearchContext
+    context: SearchContext,
   ): Promise<ENR | null> {
     try {
       const entry = await this._getTXTRecord(subdomain, context);
@@ -139,7 +139,7 @@ export class DnsNodeDiscovery {
         }
       } catch (error) {
         log(
-          `Failed to search DNS tree ${entryType} at subdomain ${subdomain}: ${error}`
+          `Failed to search DNS tree ${entryType} at subdomain ${subdomain}: ${error}`,
         );
         return null;
       }
@@ -157,7 +157,7 @@ export class DnsNodeDiscovery {
    */
   private async _getTXTRecord(
     subdomain: string,
-    context: SearchContext
+    context: SearchContext,
   ): Promise<string> {
     if (this._DNSTreeCache[subdomain]) {
       return this._DNSTreeCache[subdomain];

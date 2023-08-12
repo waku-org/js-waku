@@ -20,7 +20,7 @@ describe("Waku Message version 0", function () {
           const protoResult = await decoder.fromWireToProtoObj(bytes);
           const result = (await decoder.fromProtoObj(
             pubSubTopic,
-            protoResult!
+            protoResult!,
           )) as DecodedMessage;
 
           expect(result.contentTopic).to.eq(contentTopic);
@@ -29,8 +29,8 @@ describe("Waku Message version 0", function () {
           expect(result.ephemeral).to.be.false;
           expect(result.payload).to.deep.eq(payload);
           expect(result.timestamp).to.not.be.undefined;
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -50,12 +50,12 @@ describe("Waku Message version 0", function () {
           const protoResult = await decoder.fromWireToProtoObj(bytes);
           const result = (await decoder.fromProtoObj(
             pubSubTopic,
-            protoResult!
+            protoResult!,
           )) as DecodedMessage;
 
           expect(result.ephemeral).to.be.true;
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -69,7 +69,7 @@ describe("Waku Message version 0", function () {
           // Encode the length of the payload
           // Not a relevant real life example
           const metaSetter = (
-            msg: IProtoMessage & { meta: undefined }
+            msg: IProtoMessage & { meta: undefined },
           ): Uint8Array => {
             const buffer = new ArrayBuffer(4);
             const view = new DataView(buffer);
@@ -87,7 +87,7 @@ describe("Waku Message version 0", function () {
           const protoResult = await decoder.fromWireToProtoObj(bytes);
           const result = (await decoder.fromProtoObj(
             pubSubTopic,
-            protoResult!
+            protoResult!,
           )) as DecodedMessage;
 
           const expectedMeta = metaSetter({
@@ -101,8 +101,8 @@ describe("Waku Message version 0", function () {
           });
 
           expect(result.meta).to.deep.eq(expectedMeta);
-        }
-      )
+        },
+      ),
     );
   });
 });

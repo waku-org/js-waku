@@ -174,7 +174,7 @@ describe("DNS Node Discovery w/ capabilities", () => {
 
     expect(peers.length).to.eq(1);
     expect(peers[0].peerId?.toString()).to.eq(
-      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx"
+      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx",
     );
   });
 
@@ -189,7 +189,7 @@ describe("DNS Node Discovery w/ capabilities", () => {
 
     expect(peers.length).to.eq(1);
     expect(peers[0].peerId?.toString()).to.eq(
-      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
+      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F",
     );
   });
 
@@ -203,7 +203,7 @@ describe("DNS Node Discovery w/ capabilities", () => {
 
     expect(peers.length).to.eq(1);
     expect(peers[0].peerId?.toString()).to.eq(
-      "16Uiu2HAkv3La3ECgQpdYeEJfrX36EWdhkUDv4C9wvXM8TFZ9dNgd"
+      "16Uiu2HAkv3La3ECgQpdYeEJfrX36EWdhkUDv4C9wvXM8TFZ9dNgd",
     );
   });
 
@@ -224,10 +224,10 @@ describe("DNS Node Discovery w/ capabilities", () => {
     expect(peers.length).to.eq(2);
     const peerIds = peers.map((p) => p.peerId?.toString());
     expect(peerIds).to.contain(
-      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
+      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F",
     );
     expect(peerIds).to.contain(
-      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx"
+      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx",
     );
   });
 
@@ -250,13 +250,13 @@ describe("DNS Node Discovery w/ capabilities", () => {
     expect(peers.length).to.eq(3);
     const peerIds = peers.map((p) => p.peerId?.toString());
     expect(peerIds).to.contain(
-      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
+      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F",
     );
     expect(peerIds).to.contain(
-      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx"
+      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx",
     );
     expect(peerIds).to.contain(
-      "16Uiu2HAkv3La3ECgQpdYeEJfrX36EWdhkUDv4C9wvXM8TFZ9dNgd"
+      "16Uiu2HAkv3La3ECgQpdYeEJfrX36EWdhkUDv4C9wvXM8TFZ9dNgd",
     );
   });
 });

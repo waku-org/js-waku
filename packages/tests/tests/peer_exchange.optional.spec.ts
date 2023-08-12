@@ -41,7 +41,7 @@ describe("Peer Exchange", () => {
           waku.libp2p.addEventListener("peer:discovery", (evt) => {
             const peerId = evt.detail.id.toString();
             const isBootstrapNode = predefinedNodes.find((n) =>
-              n.includes(peerId)
+              n.includes(peerId),
             );
             if (!isBootstrapNode) {
               resolve(true);

@@ -131,7 +131,7 @@ describe("Decryption Keys", () => {
     this.timeout(5000);
     [waku1, waku2] = await Promise.all([
       createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
-        waku.start().then(() => waku)
+        waku.start().then(() => waku),
       ),
       createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
@@ -175,7 +175,7 @@ describe("Decryption Keys", () => {
     const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
         void waku2.relay.subscribe([decoder], resolve);
-      }
+      },
     );
 
     await waku1.relay.send(encoder, message);
@@ -225,10 +225,10 @@ describe("User Agent", () => {
     ]);
 
     expect(bytesToUtf8(waku1PeerInfo.metadata.get("AgentVersion")!)).to.eq(
-      waku1UserAgent
+      waku1UserAgent,
     );
     expect(bytesToUtf8(waku2PeerInfo.metadata.get("AgentVersion")!)).to.eq(
-      DefaultUserAgent
+      DefaultUserAgent,
     );
   });
 });

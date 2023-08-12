@@ -18,7 +18,7 @@ export class DnsOverHttps implements DnsClient {
    */
   public static async create(
     endpoints?: Endpoint[],
-    retries?: number
+    retries?: number,
   ): Promise<DnsOverHttps> {
     const _endpoints = endpoints ?? (await wellknown.endpoints("doh"));
 
@@ -27,7 +27,7 @@ export class DnsOverHttps implements DnsClient {
 
   private constructor(
     private endpoints: Endpoint[],
-    private retries: number = 3
+    private retries: number = 3,
   ) {}
 
   /**
@@ -47,7 +47,7 @@ export class DnsOverHttps implements DnsClient {
         {
           endpoints: this.endpoints,
           retries: this.retries,
-        }
+        },
       );
       answers = res.answers;
     } catch (error) {

@@ -41,7 +41,7 @@ class LightPush extends BaseProtocol implements ILightPush {
   async send(
     encoder: IEncoder,
     message: IMessage,
-    opts?: ProtocolOptions
+    opts?: ProtocolOptions,
   ): Promise<SendResult> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
@@ -74,7 +74,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         lp.encode,
         stream,
         lp.decode,
-        async (source) => await all(source)
+        async (source) => await all(source),
       );
       try {
         const bytes = new Uint8ArrayList();
@@ -106,7 +106,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 }
 
 export function wakuLightPush(
-  init: Partial<ProtocolCreateOptions> = {}
+  init: Partial<ProtocolCreateOptions> = {},
 ): (libp2p: Libp2p) => ILightPush {
   return (libp2p: Libp2p) => new LightPush(libp2p, init);
 }

@@ -17,12 +17,15 @@ export class BaseProtocol implements IBaseProtocol {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
 
-  constructor(public multicodec: string, private components: Libp2pComponents) {
+  constructor(
+    public multicodec: string,
+    private components: Libp2pComponents,
+  ) {
     this.addLibp2pEventListener = components.events.addEventListener.bind(
-      components.events
+      components.events,
     );
     this.removeLibp2pEventListener = components.events.removeEventListener.bind(
-      components.events
+      components.events,
     );
   }
 
@@ -43,13 +46,13 @@ export class BaseProtocol implements IBaseProtocol {
     const { peer } = await selectPeerForProtocol(
       this.peerStore,
       [this.multicodec],
-      peerId
+      peerId,
     );
     return peer;
   }
   protected async newStream(peer: Peer): Promise<Stream> {
     const connections = this.components.connectionManager.getConnections(
-      peer.id
+      peer.id,
     );
     const connection = selectConnection(connections);
     if (!connection) {
