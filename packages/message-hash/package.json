@@ -63,7 +63,7 @@
     "@waku/build-utils": "*",
     "@waku/interfaces": "0.0.17",
     "chai": "^4.3.7",
-    "cspell": "^6.28.0",
+    "cspell": "^7.0.0",
     "fast-check": "^3.7.0",
     "ignore-loader": "^0.1.2",
     "isomorphic-fetch": "^3.0.0",
