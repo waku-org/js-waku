@@ -88,7 +88,7 @@ export namespace Index {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -181,7 +181,7 @@ export namespace PagingInfo {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -242,7 +242,7 @@ export namespace ContentFilter {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -324,13 +324,13 @@ export namespace HistoryQuery {
                 break;
               case 3:
                 obj.contentFilters.push(
-                  ContentFilter.codec().decode(reader, reader.uint32())
+                  ContentFilter.codec().decode(reader, reader.uint32()),
                 );
                 break;
               case 4:
                 obj.pagingInfo = PagingInfo.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               case 5:
@@ -346,7 +346,7 @@ export namespace HistoryQuery {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -430,13 +430,13 @@ export namespace HistoryResponse {
             switch (tag >>> 3) {
               case 2:
                 obj.messages.push(
-                  WakuMessage.codec().decode(reader, reader.uint32())
+                  WakuMessage.codec().decode(reader, reader.uint32()),
                 );
                 break;
               case 3:
                 obj.pagingInfo = PagingInfo.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               case 4:
@@ -449,7 +449,7 @@ export namespace HistoryResponse {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -518,13 +518,13 @@ export namespace HistoryRpc {
               case 2:
                 obj.query = HistoryQuery.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               case 3:
                 obj.response = HistoryResponse.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               default:
@@ -534,7 +534,7 @@ export namespace HistoryRpc {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -655,7 +655,7 @@ export namespace RateLimitProof {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -761,7 +761,7 @@ export namespace WakuMessage {
               case 21:
                 obj.rateLimitProof = RateLimitProof.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               case 31:
@@ -774,7 +774,7 @@ export namespace WakuMessage {
           }
 
           return obj;
-        }
+        },
       );
     }
 

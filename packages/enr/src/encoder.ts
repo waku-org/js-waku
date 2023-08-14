@@ -9,7 +9,7 @@ import { ENR } from "./enr.js";
 export class EnrEncoder {
   static async toValues(
     enr: ENR,
-    privateKey?: Uint8Array
+    privateKey?: Uint8Array,
   ): Promise<(ENRKey | ENRValue | number[])[]> {
     // sort keys and flatten into [k, v, k, v, ...]
     const content: Array<ENRKey | ENRValue | number[]> = Array.from(enr.keys())
@@ -20,7 +20,7 @@ export class EnrEncoder {
     content.unshift(new Uint8Array([Number(enr.seq)]));
     if (privateKey) {
       content.unshift(
-        await enr.sign(hexToBytes(RLP.encode(content)), privateKey)
+        await enr.sign(hexToBytes(RLP.encode(content)), privateKey),
       );
     } else {
       if (!enr.signature) {
@@ -33,7 +33,7 @@ export class EnrEncoder {
 
   static async toBytes(enr: ENR, privateKey?: Uint8Array): Promise<Uint8Array> {
     const encoded = hexToBytes(
-      RLP.encode(await EnrEncoder.toValues(enr, privateKey))
+      RLP.encode(await EnrEncoder.toValues(enr, privateKey)),
     );
     if (encoded.length >= MAX_RECORD_SIZE) {
       throw new Error("ENR must be less than 300 bytes");

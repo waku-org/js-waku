@@ -61,7 +61,7 @@ class Relay implements IRelay {
   constructor(libp2p: Libp2p, options?: Partial<RelayCreateOptions>) {
     if (!this.isRelayPubSub(libp2p.services.pubsub)) {
       throw Error(
-        `Failed to initialize Relay. libp2p.pubsub does not support ${Relay.multicodec}`
+        `Failed to initialize Relay. libp2p.pubsub does not support ${Relay.multicodec}`,
       );
     }
 
@@ -125,7 +125,7 @@ class Relay implements IRelay {
    */
   public subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+    callback: Callback<T>,
   ): () => void {
     const contentTopicToObservers = Array.isArray(decoders)
       ? toObservers(decoders, callback)
@@ -147,7 +147,7 @@ class Relay implements IRelay {
 
         const nextObservers = leftMinusJoin(
           currentObservers,
-          observersToRemove
+          observersToRemove,
         );
 
         if (nextObservers.size) {
@@ -161,7 +161,7 @@ class Relay implements IRelay {
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    opts?: ProtocolOptions | undefined
+    opts?: ProtocolOptions | undefined,
   ): Promise<IAsyncIterator<T>> {
     return toAsyncIterator(this, decoders, opts);
   }
@@ -178,7 +178,7 @@ class Relay implements IRelay {
 
   private async processIncomingMessage<T extends IDecodedMessage>(
     pubSubTopic: string,
-    bytes: Uint8Array
+    bytes: Uint8Array,
   ): Promise<void> {
     const topicOnlyMsg = await this.defaultDecoder.fromWireToProtoObj(bytes);
     if (!topicOnlyMsg || !topicOnlyMsg.contentTopic) {
@@ -199,7 +199,7 @@ class Relay implements IRelay {
             const protoMsg = await decoder.fromWireToProtoObj(bytes);
             if (!protoMsg) {
               log(
-                "Internal error: message previously decoded failed on 2nd pass."
+                "Internal error: message previously decoded failed on 2nd pass.",
               );
               return;
             }
@@ -213,7 +213,7 @@ class Relay implements IRelay {
             log("Error while decoding message:", error);
           }
         })();
-      })
+      }),
     );
   }
 
@@ -231,9 +231,9 @@ class Relay implements IRelay {
 
         this.processIncomingMessage(
           event.detail.msg.topic,
-          event.detail.msg.data
+          event.detail.msg.data,
         ).catch((e) => log("Failed to process incoming message", e));
-      }
+      },
     );
 
     this.gossipSub.topicValidators.set(pubSubTopic, messageValidator);
@@ -246,13 +246,13 @@ class Relay implements IRelay {
 }
 
 export function wakuRelay(
-  init: Partial<ProtocolCreateOptions> = {}
+  init: Partial<ProtocolCreateOptions> = {},
 ): (libp2p: Libp2p) => IRelay {
   return (libp2p: Libp2p) => new Relay(libp2p, init);
 }
 
 export function wakuGossipSub(
-  init: Partial<RelayCreateOptions> = {}
+  init: Partial<RelayCreateOptions> = {},
 ): (components: GossipSubComponents) => GossipSub {
   return (components: GossipSubComponents) => {
     init = {
@@ -270,10 +270,10 @@ export function wakuGossipSub(
 
 function toObservers<T extends IDecodedMessage>(
   decoders: IDecoder<T>[],
-  callback: Callback<T>
+  callback: Callback<T>,
 ): Map<ContentTopic, Set<Observer<T>>> {
   const contentTopicToDecoders = Array.from(
-    groupByContentTopic(decoders).entries()
+    groupByContentTopic(decoders).entries(),
   );
 
   const contentTopicToObserversEntries = contentTopicToDecoders.map(
@@ -286,10 +286,10 @@ function toObservers<T extends IDecodedMessage>(
               ({
                 decoder,
                 callback,
-              } as Observer<T>)
-          )
+              }) as Observer<T>,
+          ),
         ),
-      ] as [ContentTopic, Set<Observer<T>>]
+      ] as [ContentTopic, Set<Observer<T>>],
   );
 
   return new Map(contentTopicToObserversEntries);

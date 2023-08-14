@@ -60,7 +60,7 @@ export namespace FilterRequest {
             }
 
             return obj;
-          }
+          },
         );
       }
 
@@ -130,8 +130,8 @@ export namespace FilterRequest {
                 obj.contentFilters.push(
                   FilterRequest.ContentFilter.codec().decode(
                     reader,
-                    reader.uint32()
-                  )
+                    reader.uint32(),
+                  ),
                 );
                 break;
               default:
@@ -141,7 +141,7 @@ export namespace FilterRequest {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -196,7 +196,7 @@ export namespace MessagePush {
             switch (tag >>> 3) {
               case 1:
                 obj.messages.push(
-                  WakuMessage.codec().decode(reader, reader.uint32())
+                  WakuMessage.codec().decode(reader, reader.uint32()),
                 );
                 break;
               default:
@@ -206,7 +206,7 @@ export namespace MessagePush {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -275,7 +275,7 @@ export namespace FilterRpc {
               case 2:
                 obj.request = FilterRequest.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               case 3:
@@ -288,7 +288,7 @@ export namespace FilterRpc {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -409,7 +409,7 @@ export namespace RateLimitProof {
           }
 
           return obj;
-        }
+        },
       );
     }
 
@@ -515,7 +515,7 @@ export namespace WakuMessage {
               case 21:
                 obj.rateLimitProof = RateLimitProof.codec().decode(
                   reader,
-                  reader.uint32()
+                  reader.uint32(),
                 );
                 break;
               case 31:
@@ -528,7 +528,7 @@ export namespace WakuMessage {
           }
 
           return obj;
-        }
+        },
       );
     }
 

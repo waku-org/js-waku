@@ -12,7 +12,7 @@ export const NOISE_KEY_1 = new Uint8Array(
       b.push(1);
     }
     return b;
-  })()
+  })(),
 );
 
 export const NOISE_KEY_2 = new Uint8Array(
@@ -22,7 +22,7 @@ export const NOISE_KEY_2 = new Uint8Array(
       b.push(2);
     }
     return b;
-  })()
+  })(),
 );
 
 export const NOISE_KEY_3 = new Uint8Array(
@@ -32,5 +32,5 @@ export const NOISE_KEY_3 = new Uint8Array(
       b.push(3);
     }
     return b;
-  })()
+  })(),
 );

@@ -21,7 +21,7 @@ function getSizeOfPayloadSizeField(message: Uint8Array): number {
 
 function getPayloadSize(
   message: Uint8Array,
-  sizeOfPayloadSizeField: number
+  sizeOfPayloadSizeField: number,
 ): number {
   let payloadSizeBytes = message.slice(1, 1 + sizeOfPayloadSizeField);
   // int 32 == 4 bytes
@@ -29,7 +29,7 @@ function getPayloadSize(
     // If less than 4 bytes pad right (Little Endian).
     payloadSizeBytes = concat(
       [payloadSizeBytes, new Uint8Array(4 - sizeOfPayloadSizeField)],
-      4
+      4,
     );
   }
   const payloadSizeDataView = new DataView(payloadSizeBytes.buffer);
@@ -50,7 +50,7 @@ function isMessageSigned(message: Uint8Array): boolean {
  */
 export async function encryptAsymmetric(
   data: Uint8Array,
-  publicKey: Uint8Array | string
+  publicKey: Uint8Array | string,
 ): Promise<Uint8Array> {
   return ecies.encrypt(hexToBytes(publicKey), data);
 }
@@ -63,7 +63,7 @@ export async function encryptAsymmetric(
  */
 export async function decryptAsymmetric(
   payload: Uint8Array,
-  privKey: Uint8Array
+  privKey: Uint8Array,
 ): Promise<Uint8Array> {
   return ecies.decrypt(privKey, payload);
 }
@@ -79,7 +79,7 @@ export async function decryptAsymmetric(
  */
 export async function encryptSymmetric(
   data: Uint8Array,
-  key: Uint8Array | string
+  key: Uint8Array | string,
 ): Promise<Uint8Array> {
   const iv = symmetric.generateIv();
 
@@ -99,7 +99,7 @@ export async function encryptSymmetric(
  */
 export async function decryptSymmetric(
   payload: Uint8Array,
-  key: Uint8Array | string
+  key: Uint8Array | string,
 ): Promise<Uint8Array> {
   const ivStart = payload.length - Symmetric.ivSize;
   const cipher = payload.slice(0, ivStart);
@@ -135,7 +135,7 @@ function computeSizeOfPayloadSizeField(payload: Uint8Array): number {
 
 function validateDataIntegrity(
   value: Uint8Array,
-  expectedSize: number
+  expectedSize: number,
 ): boolean {
   if (value.length !== expectedSize) {
     return false;
@@ -157,7 +157,7 @@ function getHash(message: Uint8Array, isSigned: boolean): Uint8Array {
 
 function ecRecoverPubKey(
   messageHash: Uint8Array,
-  signature: Uint8Array
+  signature: Uint8Array,
 ): Uint8Array | undefined {
   const recoveryDataView = new DataView(signature.slice(64).buffer);
   const recovery = recoveryDataView.getUint8(0);
@@ -175,7 +175,7 @@ function ecRecoverPubKey(
  */
 export async function preCipher(
   messagePayload: Uint8Array,
-  sigPrivKey?: Uint8Array
+  sigPrivKey?: Uint8Array,
 ): Promise<Uint8Array> {
   let envelope = new Uint8Array([0]); // No flags
   envelope = addPayloadSizeField(envelope, messagePayload);
@@ -216,7 +216,7 @@ export async function preCipher(
  * @internal
  */
 export function postCipher(
-  message: Uint8Array
+  message: Uint8Array,
 ): { payload: Uint8Array; sig?: Signature } | undefined {
   const sizeOfPayloadSizeField = getSizeOfPayloadSizeField(message);
   if (sizeOfPayloadSizeField === 0) return;

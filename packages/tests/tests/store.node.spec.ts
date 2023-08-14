@@ -64,8 +64,8 @@ describe("Waku Store", () => {
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
-          })
-        )
+          }),
+        ),
       ).to.be.true;
     }
 
@@ -134,8 +134,8 @@ describe("Waku Store", () => {
           NimGoNode.toMessageRpcQuery({
             payload: utf8ToBytes(`Message ${i}`),
             contentTopic: TestContentTopic,
-          })
-        )
+          }),
+        ),
       ).to.be.true;
     }
 
@@ -176,7 +176,7 @@ describe("Waku Store", () => {
     expect(messages.length).be.eq(totalMsgs);
 
     expect(bytesToUtf8(testMessage.payload)).to.be.eq(
-      bytesToUtf8(messages[cursorIndex + 1].payload)
+      bytesToUtf8(messages[cursorIndex + 1].payload),
     );
   });
 
@@ -191,8 +191,8 @@ describe("Waku Store", () => {
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
-          })
-        )
+          }),
+        ),
       ).to.be.true;
     }
 
@@ -211,7 +211,7 @@ describe("Waku Store", () => {
         if (msg) {
           messages.push(msg);
         }
-      }
+      },
     );
 
     expect(messages?.length).eq(totalMsgs);
@@ -232,8 +232,8 @@ describe("Waku Store", () => {
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
-          })
-        )
+          }),
+        ),
       ).to.be.true;
     }
 
@@ -255,7 +255,7 @@ describe("Waku Store", () => {
         }
         return messages.length >= desiredMsgs;
       },
-      { pageSize: 7 }
+      { pageSize: 7 },
     );
 
     expect(messages?.length).eq(desiredMsgs);
@@ -271,8 +271,8 @@ describe("Waku Store", () => {
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
-          })
-        )
+          }),
+        ),
       ).to.be.true;
       await delay(1); // to ensure each timestamp is unique.
     }
@@ -292,7 +292,7 @@ describe("Waku Store", () => {
       },
       {
         pageDirection: PageDirection.FORWARD,
-      }
+      },
     );
 
     expect(messages?.length).eq(totalMsgs);
@@ -310,8 +310,8 @@ describe("Waku Store", () => {
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
-          })
-        )
+          }),
+        ),
       ).to.be.true;
       await delay(1); // to ensure each timestamp is unique.
     }
@@ -331,7 +331,7 @@ describe("Waku Store", () => {
       },
       {
         pageDirection: PageDirection.BACKWARD,
-      }
+      },
     );
 
     messages = messages.reverse();
@@ -476,8 +476,8 @@ describe("Waku Store", () => {
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
             timestamp: messageTimestamps[i],
-          })
-        )
+          }),
+        ),
       ).to.be.true;
     }
 
@@ -501,7 +501,7 @@ describe("Waku Store", () => {
       {
         peerId: nwakuPeerId,
         timeFilter: { startTime, endTime: message1Timestamp },
-      }
+      },
     );
 
     const bothMessages: IMessage[] = [];
@@ -516,7 +516,7 @@ describe("Waku Store", () => {
           startTime,
           endTime,
         },
-      }
+      },
     );
 
     expect(firstMessages?.length).eq(1);
@@ -537,8 +537,8 @@ describe("Waku Store", () => {
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
-          })
-        )
+          }),
+        ),
       ).to.be.true;
       await delay(1); // to ensure each timestamp is unique.
     }
@@ -558,7 +558,7 @@ describe("Waku Store", () => {
         messages.push(msg);
         return messages.length >= desiredMsgs;
       },
-      { pageSize: 7 }
+      { pageSize: 7 },
     );
 
     expect(messages?.length).eq(desiredMsgs);
@@ -597,8 +597,8 @@ describe("Waku Store, custom pubsub topic", () => {
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
           }),
-          customPubSubTopic
-        )
+          customPubSubTopic,
+        ),
       ).to.be.true;
     }
 

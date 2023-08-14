@@ -3,7 +3,7 @@
  */
 export function getPseudoRandomSubset<T>(
   values: T[],
-  wantedNumber: number
+  wantedNumber: number,
 ): T[] {
   if (values.length <= wantedNumber || values.length <= 1) {
     return values;

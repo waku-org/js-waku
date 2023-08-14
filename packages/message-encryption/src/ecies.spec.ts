@@ -34,8 +34,8 @@ describe("Ecies Encryption", function () {
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.be.undefined;
           expect(result.signaturePublicKey).to.be.undefined;
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -54,7 +54,7 @@ describe("Ecies Encryption", function () {
           contentTopic,
           payload,
           alicePrivateKey,
-          bobPrivateKey
+          bobPrivateKey,
         ) => {
           const alicePublicKey = getPublicKey(alicePrivateKey);
           const bobPublicKey = getPublicKey(bobPrivateKey);
@@ -78,8 +78,8 @@ describe("Ecies Encryption", function () {
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.not.be.undefined;
           expect(result.signaturePublicKey).to.deep.eq(alicePublicKey);
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -93,7 +93,7 @@ describe("Ecies Encryption", function () {
         async (pubSubTopic, contentTopic, payload, privateKey) => {
           const publicKey = getPublicKey(privateKey);
           const metaSetter = (
-            msg: IProtoMessage & { meta: undefined }
+            msg: IProtoMessage & { meta: undefined },
           ): Uint8Array => {
             const buffer = new ArrayBuffer(4);
             const view = new DataView(buffer);
@@ -125,8 +125,8 @@ describe("Ecies Encryption", function () {
           });
 
           expect(result.meta).to.deep.equal(expectedMeta);
-        }
-      )
+        },
+      ),
     );
   });
 });

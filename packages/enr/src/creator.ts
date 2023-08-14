@@ -9,7 +9,7 @@ import { getPublicKeyFromPeerId } from "./peer_id.js";
 export class EnrCreator {
   static fromPublicKey(
     publicKey: Uint8Array,
-    kvs: Record<ENRKey, ENRValue> = {}
+    kvs: Record<ENRKey, ENRValue> = {},
   ): Promise<ENR> {
     // EIP-778 specifies that the key must be in compressed format, 33 bytes
     if (publicKey.length !== 33) {
@@ -24,7 +24,7 @@ export class EnrCreator {
 
   static async fromPeerId(
     peerId: PeerId,
-    kvs: Record<ENRKey, ENRValue> = {}
+    kvs: Record<ENRKey, ENRValue> = {},
   ): Promise<ENR> {
     switch (peerId.type) {
       case "secp256k1":

@@ -14,7 +14,7 @@ import { waitForFile } from "./async_fs.js";
 export default async function waitForLine(
   filepath: string,
   logLine: string,
-  timeout: number
+  timeout: number,
 ): Promise<void> {
   await pTimeout(waitForFile(filepath), { milliseconds: timeout });
 

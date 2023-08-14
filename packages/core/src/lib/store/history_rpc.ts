@@ -80,7 +80,7 @@ export class HistoryRpc {
 }
 
 function directionToProto(
-  pageDirection: PageDirection
+  pageDirection: PageDirection,
 ): proto.PagingInfo.Direction {
   switch (pageDirection) {
     case PageDirection.BACKWARD:
