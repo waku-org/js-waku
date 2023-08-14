@@ -1,4 +1,4 @@
-import type { PeerUpdate } from "@libp2p/interface-libp2p";
+import type { IdentifyResult } from "@libp2p/interface-libp2p";
 import type {
   PeerDiscovery,
   PeerDiscoveryEvents,
@@ -61,11 +61,10 @@ export class PeerExchangeDiscovery
   private queryAttempts: Map<string, number> = new Map();
 
   private readonly handleDiscoveredPeer = (
-    event: CustomEvent<PeerUpdate>
+    event: CustomEvent<IdentifyResult>,
   ): void => {
-    const {
-      peer: { protocols, id: peerId },
-    } = event.detail;
+    const { protocols, peerId } = event.detail;
+
     if (
       !protocols.includes(PeerExchangeCodec) ||
       this.queryingPeers.has(peerId.toString())
@@ -74,7 +73,7 @@ export class PeerExchangeDiscovery
 
     this.queryingPeers.add(peerId.toString());
     this.startRecurringQueries(peerId).catch((error) =>
-      log(`Error querying peer ${error}`)
+      log(`Error querying peer ${error}`),
     );
   };
 
@@ -98,8 +97,8 @@ export class PeerExchangeDiscovery
 
     // might be better to use "peer:identify" or "peer:update"
     this.components.events.addEventListener(
-      "peer:update",
-      this.handleDiscoveredPeer
+      "peer:identify",
+      this.handleDiscoveredPeer,
     );
   }
 
@@ -112,8 +111,8 @@ export class PeerExchangeDiscovery
     this.isStarted = false;
     this.queryingPeers.clear();
     this.components.events.removeEventListener(
-      "peer:update",
-      this.handleDiscoveredPeer
+      "peer:identify",
+      this.handleDiscoveredPeer,
     );
   }
 
@@ -126,7 +125,7 @@ export class PeerExchangeDiscovery
   }
 
   private readonly startRecurringQueries = async (
-    peerId: PeerId
+    peerId: PeerId,
   ): Promise<void> => {
     const peerIdStr = peerId.toString();
     const {
@@ -137,7 +136,7 @@ export class PeerExchangeDiscovery
     log(
       `Querying peer: ${peerIdStr} (attempt ${
         this.queryAttempts.get(peerIdStr) ?? 1
-      })`
+      })`,
     );
 
     await this.query(peerId);
@@ -204,7 +203,7 @@ export class PeerExchangeDiscovery
             protocols: [],
             multiaddrs: peerInfo.multiaddrs,
           },
-        })
+        }),
       );
     }
   }
@@ -217,7 +216,7 @@ export class PeerExchangeDiscovery
 }
 
 export function wakuPeerExchangeDiscovery(): (
-  components: Libp2pComponents
+  components: Libp2pComponents,
 ) => PeerExchangeDiscovery {
   return (components: Libp2pComponents) =>
     new PeerExchangeDiscovery(components);
