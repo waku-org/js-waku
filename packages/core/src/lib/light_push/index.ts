@@ -49,7 +49,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       log("Failed to send waku light push: message is bigger than 1MB");
       return {
         recipients: [],
-        error: SendError.SIZE_TOO_BIG,
+        errors: [SendError.SIZE_TOO_BIG],
       };
     }
 
@@ -58,7 +58,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       log("Failed to encode to protoMessage, aborting push");
       return {
         recipients: [],
-        error: SendError.ENCODE_FAILED,
+        errors: [SendError.ENCODE_FAILED],
       };
     }
 
@@ -116,11 +116,11 @@ class LightPush extends BaseProtocol implements ILightPush {
     );
     const errors = successfulResults
       .map((result) => result.value.error)
-      .filter((error) => error !== undefined);
+      .filter((error) => error !== undefined) as SendError[];
 
     return {
       recipients,
-      error: errors.length > 0 ? errors : undefined,
+      errors,
     };
   }
 }

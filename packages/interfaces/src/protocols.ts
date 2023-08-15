@@ -81,6 +81,6 @@ export enum SendError {
 }
 
 export interface SendResult {
-  error?: SendError;
+  errors?: SendError[];
   recipients: PeerId[];
 }
