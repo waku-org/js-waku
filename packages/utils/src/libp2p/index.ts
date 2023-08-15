@@ -1,7 +1,6 @@
 import type { Connection } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
-import { Tags } from "@waku/interfaces";
 import debug from "debug";
 
 const log = debug("waku:libp2p-utils");
@@ -27,12 +26,7 @@ export async function getPeersForProtocol(
   const peers: Peer[] = [];
   await peerStore.forEach((peer) => {
     for (let i = 0; i < protocols.length; i++) {
-      // only add peer if it supports the protocol and is a bootstrap peer
-      // ref: https://github.com/waku-org/js-waku/issues/1429#issuecomment-1667764036
-      if (
-        peer.protocols.includes(protocols[i]) &&
-        peer.tags.has(Tags.BOOTSTRAP)
-      ) {
+      if (peer.protocols.includes(protocols[i])) {
         peers.push(peer);
         break;
       }

@@ -1,5 +1,6 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import {
+  Codecs,
   IEncoder,
   ILightPush,
   IMessage,
@@ -24,7 +25,6 @@ import { PushRpc } from "./push_rpc.js";
 
 const log = debug("waku:light-push");
 
-export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 
 /**
@@ -34,7 +34,7 @@ class LightPush extends BaseProtocol implements ILightPush {
   options: ProtocolCreateOptions;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(LightPushCodec, libp2p.components);
+    super(Codecs.LightPush, libp2p.components, log);
     this.options = options || {};
   }
 
@@ -45,62 +45,82 @@ class LightPush extends BaseProtocol implements ILightPush {
   ): Promise<SendResult> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
-    const peer = await this.getPeer(opts?.peerId);
-    const stream = await this.newStream(peer);
+    if (!isSizeValid(message.payload)) {
+      log("Failed to send waku light push: message is bigger than 1MB");
+      return {
+        recipients: [],
+        error: SendError.SIZE_TOO_BIG,
+      };
+    }
 
-    const recipients: PeerId[] = [];
-    let error: undefined | SendError = undefined;
+    const protoMessage = await encoder.toProtoObj(message);
+    if (!protoMessage) {
+      log("Failed to encode to protoMessage, aborting push");
+      return {
+        recipients: [],
+        error: SendError.ENCODE_FAILED,
+      };
+    }
 
-    try {
-      if (!isSizeValid(message.payload)) {
-        log("Failed to send waku light push: message is bigger that 1MB");
-        return {
-          recipients,
-          error: SendError.SIZE_TOO_BIG,
-        };
-      }
+    const query = PushRpc.createRequest(protoMessage, pubSubTopic);
+    const peers = await this.getPeers(opts?.peerId);
 
-      const protoMessage = await encoder.toProtoObj(message);
-      if (!protoMessage) {
-        log("Failed to encode to protoMessage, aborting push");
-        return {
-          recipients,
-          error: SendError.ENCODE_FAILED,
-        };
-      }
-      const query = PushRpc.createRequest(protoMessage, pubSubTopic);
-      const res = await pipe(
-        [query.encode()],
-        lp.encode,
-        stream,
-        lp.decode,
-        async (source) => await all(source),
-      );
+    const promises = peers.map(async (peer) => {
+      const recipients: PeerId[] = [];
+      let error: SendError | undefined;
+
+      const stream = await this.newStream(peer);
       try {
-        const bytes = new Uint8ArrayList();
-        res.forEach((chunk) => {
-          bytes.append(chunk);
-        });
+        const res = await pipe(
+          [query.encode()],
+          lp.encode,
+          stream,
+          lp.decode,
+          async (source) => await all(source),
+        );
+        try {
+          const bytes = new Uint8ArrayList();
+          res.forEach((chunk) => {
+            bytes.append(chunk);
+          });
 
-        const response = PushRpc.decode(bytes).response;
+          const response = PushRpc.decode(bytes).response;
 
-        if (response?.isSuccess) {
-          recipients.push(peer.id);
-        } else {
-          log("No response in PushRPC");
-          error = SendError.NO_RPC_RESPONSE;
+          if (response?.isSuccess) {
+            recipients.push(peer.id);
+          } else {
+            log("No response in PushRPC");
+            error = SendError.NO_RPC_RESPONSE;
+          }
+        } catch (err) {
+          log("Failed to decode push reply", err);
+          error = SendError.DECODE_FAILED;
         }
       } catch (err) {
-        log("Failed to decode push reply", err);
-        error = SendError.DECODE_FAILED;
+        log("Failed to send waku light push request", err);
+        error = SendError.GENERIC_FAIL;
       }
-    } catch (err) {
-      log("Failed to send waku light push request", err);
-      error = SendError.GENERIC_FAIL;
-    }
+
+      return { recipients, error };
+    });
+
+    const results = await Promise.allSettled(promises);
+    const successfulResults = results.filter(
+      (result) => result.status === "fulfilled",
+    ) as PromiseFulfilledResult<{
+      recipients: PeerId[];
+      error: SendError | undefined;
+    }>[];
+    const recipients = successfulResults.flatMap(
+      (result) => result.value.recipients,
+    );
+    const errors = successfulResults
+      .map((result) => result.value.error)
+      .filter((error) => error !== undefined);
+
     return {
-      error,
       recipients,
+      error: errors.length > 0 ? errors : undefined,
     };
   }
 }
