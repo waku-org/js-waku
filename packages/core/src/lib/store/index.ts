@@ -2,6 +2,7 @@ import type { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { sha256 } from "@noble/hashes/sha256";
 import {
+  Codecs,
   Cursor,
   IDecodedMessage,
   IDecoder,
@@ -27,8 +28,6 @@ import { HistoryRpc, PageDirection, Params } from "./history_rpc.js";
 import HistoryError = proto.HistoryResponse.HistoryError;
 
 const log = debug("waku:store");
-
-export const StoreCodec = "/vac/waku/store/2.0.0-beta4";
 
 export const DefaultPageSize = 10;
 
@@ -82,7 +81,7 @@ class Store extends BaseProtocol implements IStore {
   options: ProtocolCreateOptions;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(StoreCodec, libp2p.components);
+    super(Codecs.Store, libp2p.components, log);
     this.options = options ?? {};
   }
 

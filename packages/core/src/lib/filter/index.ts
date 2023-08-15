@@ -2,8 +2,9 @@ import { Stream } from "@libp2p/interface-connection";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import type { Peer } from "@libp2p/interface-peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-registrar";
-import type {
+import {
   Callback,
+  Codecs,
   ContentTopic,
   IAsyncIterator,
   IDecodedMessage,
@@ -39,11 +40,6 @@ const log = debug("waku:filter:v2");
 type SubscriptionCallback<T extends IDecodedMessage> = {
   decoders: IDecoder<T>[];
   callback: Callback<T>;
-};
-
-const FilterCodecs = {
-  SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
-  PUSH: "/vac/waku/filter-push/2.0.0-beta1",
 };
 
 class Subscription {
@@ -246,10 +242,10 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(FilterCodecs.SUBSCRIBE, libp2p.components);
+    super(Codecs.FilterSubscribe, libp2p.components, log);
 
-    libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
-      log("Failed to register ", FilterCodecs.PUSH, e);
+    libp2p.handle(Codecs.FilterPush, this.onRequest.bind(this)).catch((e) => {
+      log("Failed to register ", Codecs.FilterPush, e);
     });
 
     this.activeSubscriptions = new Map();
