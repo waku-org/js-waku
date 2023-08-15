@@ -45,10 +45,12 @@ class LightPush extends BaseProtocol implements ILightPush {
   ): Promise<SendResult> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
+    const recipients: PeerId[] = [];
+
     if (!isSizeValid(message.payload)) {
       log("Failed to send waku light push: message is bigger than 1MB");
       return {
-        recipients: [],
+        recipients,
         errors: [SendError.SIZE_TOO_BIG],
       };
     }
@@ -57,7 +59,7 @@ class LightPush extends BaseProtocol implements ILightPush {
     if (!protoMessage) {
       log("Failed to encode to protoMessage, aborting push");
       return {
-        recipients: [],
+        recipients,
         errors: [SendError.ENCODE_FAILED],
       };
     }
@@ -66,7 +68,6 @@ class LightPush extends BaseProtocol implements ILightPush {
     const peers = await this.getPeers(opts?.peerId);
 
     const promises = peers.map(async (peer) => {
-      const recipients: PeerId[] = [];
       let error: SendError | undefined;
 
       const stream = await this.newStream(peer);
@@ -87,7 +88,8 @@ class LightPush extends BaseProtocol implements ILightPush {
           const response = PushRpc.decode(bytes).response;
 
           if (response?.isSuccess) {
-            recipients.push(peer.id);
+            recipients.some((recipient) => recipient.equals(peer.id)) ||
+              recipients.push(peer.id);
           } else {
             log("No response in PushRPC");
             error = SendError.NO_RPC_RESPONSE;
@@ -111,9 +113,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       recipients: PeerId[];
       error: SendError | undefined;
     }>[];
-    const recipients = successfulResults.flatMap(
-      (result) => result.value.recipients,
-    );
+
     const errors = successfulResults
       .map((result) => result.value.error)
       .filter((error) => error !== undefined) as SendError[];

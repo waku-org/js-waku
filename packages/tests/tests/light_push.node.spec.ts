@@ -108,7 +108,7 @@ describe("Waku Light Push [node only]", () => {
       payload: generateRandomUint8Array(MB + 65536),
     });
     expect(pushResponse.recipients.length).to.eq(0);
-    expect(pushResponse.error).to.eq(SendError.SIZE_TOO_BIG);
+    expect(pushResponse.errors).to.include(SendError.SIZE_TOO_BIG);
   });
 });
 
