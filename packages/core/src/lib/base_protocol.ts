@@ -2,7 +2,7 @@ import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer, PeerStore } from "@libp2p/interface-peer-store";
-import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
+import { IBaseProtocol, Libp2pComponents, Tags } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
@@ -20,6 +20,7 @@ export class BaseProtocol implements IBaseProtocol {
   constructor(
     public multicodec: string,
     private components: Libp2pComponents,
+    private log: debug.Debugger,
   ) {
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events,
@@ -50,6 +51,46 @@ export class BaseProtocol implements IBaseProtocol {
     );
     return peer;
   }
+
+  protected async getPeers(peerId?: PeerId): Promise<Peer[] | Peer> {
+    const selectedPeers: Peer[] = [];
+
+    if (peerId) {
+      const { peer } = await selectPeerForProtocol(
+        this.peerStore,
+        [this.multicodec],
+        peerId,
+      );
+
+      selectedPeers.push(peer);
+    }
+
+    const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
+      this.multicodec,
+    ]);
+
+    // Counter to keep track of the number of bootstrap peers
+    let bootstrapPeerCount = 0;
+
+    allPeersForProtocol.map((peer) => {
+      // If the peer is a bootstrap peer and we don't have one yet, add it
+      if (peer.tags.has(Tags.BOOTSTRAP) && bootstrapPeerCount < 1) {
+        selectedPeers.push(peer);
+        bootstrapPeerCount++;
+      }
+      // If we have less than 3 total peers, add non-bootstrap peers
+      else if (selectedPeers.length < 3 && !peer.tags.has(Tags.BOOTSTRAP)) {
+        selectedPeers.push(peer);
+      }
+    });
+
+    if (bootstrapPeerCount === 0) {
+      this.log(`warning: no bootstrap peers found, using random peers`);
+    }
+
+    return selectedPeers;
+  }
+
   protected async newStream(peer: Peer): Promise<Stream> {
     const connections = this.components.connectionManager.getConnections(
       peer.id,
