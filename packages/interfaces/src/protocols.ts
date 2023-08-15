@@ -17,6 +17,8 @@ export enum Codecs {
   Store = "/vac/waku/store/2.0.0-beta4",
   FilterSubscribe = "/vac/waku/filter-subscribe/2.0.0-beta1",
   FilterPush = "/vac/waku/filter-push/2.0.0-beta1",
+  PeerExchange = "/vac/waku/peer-exchange/2.0.0-alpha1",
+  Relay = "/vac/waku/relay/2.0.0",
 }
 
 export interface IBaseProtocol {

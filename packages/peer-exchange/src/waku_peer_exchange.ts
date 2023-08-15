@@ -1,6 +1,7 @@
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
 import { EnrDecoder } from "@waku/enr";
-import type {
+import {
+  Codecs,
   IPeerExchange,
   Libp2pComponents,
   PeerExchangeQueryParams,
@@ -23,14 +24,11 @@ const log = debug("waku:peer-exchange");
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
  */
 export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
-  multicodec: string;
-
   /**
    * @param components - libp2p components
    */
   constructor(components: Libp2pComponents) {
-    super(PeerExchangeCodec, components);
-    this.multicodec = PeerExchangeCodec;
+    super(Codecs.PeerExchange, components, log);
   }
 
   /**

@@ -6,12 +6,14 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PubSub } from "@libp2p/interface-pubsub";
 import { sha256 } from "@noble/hashes/sha256";
 import { DefaultPubSubTopic } from "@waku/core";
 import {
   ActiveSubscriptions,
   Callback,
+  Codecs,
   IAsyncIterator,
   IDecodedMessage,
   IDecoder,
@@ -27,7 +29,6 @@ import {
 import { groupByContentTopic, isSizeValid, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
-import { RelayCodecs } from "./constants.js";
 import { messageValidator } from "./message_validator.js";
 import { TopicOnlyDecoder } from "./topic_only_message.js";
 
@@ -49,7 +50,7 @@ class Relay implements IRelay {
   private readonly pubSubTopic: string;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
-  public static multicodec: string = RelayCodecs[0];
+  public static multicodec: string = Codecs.Relay;
   public readonly gossipSub: GossipSub;
 
   /**
@@ -98,11 +99,12 @@ class Relay implements IRelay {
    * Send Waku message.
    */
   public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
+    const recipients: PeerId[] = [];
     if (!isSizeValid(message.payload)) {
       log("Failed to send waku relay: message is bigger that 1MB");
       return {
-        recipients: [],
-        error: SendError.SIZE_TOO_BIG,
+        recipients,
+        errors: [SendError.SIZE_TOO_BIG],
       };
     }
 
@@ -110,8 +112,8 @@ class Relay implements IRelay {
     if (!msg) {
       log("Failed to encode message, aborting publish");
       return {
-        recipients: [],
-        error: SendError.ENCODE_FAILED,
+        recipients,
+        errors: [SendError.ENCODE_FAILED],
       };
     }
 
@@ -263,7 +265,7 @@ export function wakuGossipSub(
       fallbackToFloodsub: false,
     };
     const pubsub = new GossipSub(components, init);
-    pubsub.multicodecs = RelayCodecs;
+    pubsub.multicodecs = [Codecs.Relay];
     return pubsub;
   };
 }
