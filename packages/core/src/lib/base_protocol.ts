@@ -2,7 +2,12 @@ import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer, PeerStore } from "@libp2p/interface-peer-store";
-import { IBaseProtocol, Libp2pComponents, Tags } from "@waku/interfaces";
+import {
+  Codecs,
+  IBaseProtocol,
+  Libp2pComponents,
+  Tags,
+} from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
@@ -18,7 +23,7 @@ export class BaseProtocol implements IBaseProtocol {
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
 
   constructor(
-    public multicodec: string,
+    public multicodec: Codecs,
     private components: Libp2pComponents,
     private log: debug.Debugger,
   ) {
@@ -52,18 +57,24 @@ export class BaseProtocol implements IBaseProtocol {
     return peer;
   }
 
-  protected async getPeers(peerId?: PeerId): Promise<Peer[] | Peer> {
+  protected async getPeers(peerId?: PeerId): Promise<Peer[]> {
     const selectedPeers: Peer[] = [];
 
-    if (peerId) {
-      const { peer } = await selectPeerForProtocol(
-        this.peerStore,
-        [this.multicodec],
-        peerId,
-      );
+    const { peer } = await selectPeerForProtocol(
+      this.peerStore,
+      [this.multicodec],
+      peerId,
+    );
 
-      selectedPeers.push(peer);
-    }
+    selectedPeers.push(peer);
+
+    // only return multiple peers for protocols LP and Filter
+    if (
+      ![Codecs.LightPush, Codecs.FilterPush, Codecs.FilterSubscribe].includes(
+        this.multicodec,
+      )
+    )
+      return selectedPeers;
 
     const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
       this.multicodec,
