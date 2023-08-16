@@ -1,12 +1,12 @@
-import * as secp from "@noble/secp256k1";
+import { sign, Signature } from "@noble/secp256k1";
 import { concat, hexToBytes } from "@waku/utils/bytes";
 
 import { Symmetric } from "./constants.js";
 import * as ecies from "./crypto/ecies.js";
-import { keccak256, randomBytes, sign } from "./crypto/index.js";
+import { keccak256, randomBytes } from "./crypto/index.js";
 import * as symmetric from "./crypto/symmetric.js";
 
-import { Signature } from "./index.js";
+import { Signature as WakuSignature } from "./index.js";
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011
@@ -159,11 +159,8 @@ function ecRecoverPubKey(
   messageHash: Uint8Array,
   signature: Uint8Array
 ): Uint8Array | undefined {
-  const recoveryDataView = new DataView(signature.slice(64).buffer);
-  const recovery = recoveryDataView.getUint8(0);
-  const _signature = secp.Signature.fromCompact(signature.slice(0, 64));
-
-  return secp.recoverPublicKey(messageHash, _signature, recovery, false);
+  const _signature = Signature.fromCompact(signature);
+  return _signature.recoverPublicKey(messageHash).toRawBytes();
 }
 
 /**
@@ -203,7 +200,7 @@ export async function preCipher(
   if (sigPrivKey) {
     envelope[0] |= IsSignedMask;
     const hash = keccak256(envelope);
-    const bytesSignature = await sign(hash, sigPrivKey);
+    const bytesSignature = sign(hash, sigPrivKey).toCompactRawBytes();
     envelope = concat([envelope, bytesSignature]);
   }
 
@@ -217,7 +214,7 @@ export async function preCipher(
  */
 export function postCipher(
   message: Uint8Array
-): { payload: Uint8Array; sig?: Signature } | undefined {
+): { payload: Uint8Array; sig?: WakuSignature } | undefined {
   const sizeOfPayloadSizeField = getSizeOfPayloadSizeField(message);
   if (sizeOfPayloadSizeField === 0) return;
 
