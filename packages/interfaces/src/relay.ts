@@ -11,7 +11,7 @@ import type { ISender } from "./sender.js";
  * @property start - Function to start the relay, returning a Promise that resolves when initialization is complete.
  * @property getMeshPeers - Function to retrieve the mesh peers for a given topic or all topics if none is specified. Returns an array of peer IDs as strings.
  */
-interface IRelayAPI {
+export interface IRelayAPI {
   readonly gossipSub: GossipSub;
   start: () => Promise<void>;
   getMeshPeers: (topic?: TopicStr) => PeerIdStr[];

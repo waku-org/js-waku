@@ -13,7 +13,7 @@ import type {
  * @property timeoutMs - Optional timeout in milliseconds. If specified, the iterator will terminate after this time period.
  * @property iteratorDelay - Optional delay in milliseconds between each iteration. Can be used to control the rate of iteration.
  */
-type IteratorOptions = {
+export type IteratorOptions = {
   timeoutMs?: number;
   iteratorDelay?: number;
 };
