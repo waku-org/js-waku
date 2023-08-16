@@ -117,7 +117,11 @@ describe("Peer Exchange", () => {
         await waku.start();
 
         const nwaku2Ma = await nwaku2.getMultiaddrWithId();
-        await waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
+
+        // we do this because we want peer-exchange discovery to get initialised before we dial the peer which contains info about the other peer
+        setTimeout(() => {
+          void waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
+        }, 1000);
 
         return new PeerExchangeDiscovery(waku.libp2p.components);
       },
