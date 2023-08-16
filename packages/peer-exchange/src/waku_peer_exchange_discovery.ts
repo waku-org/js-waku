@@ -1,5 +1,5 @@
 import type { IdentifyResult } from "@libp2p/interface";
-import { EventEmitter } from "@libp2p/interface/events";
+import { CustomEvent, EventEmitter } from "@libp2p/interface/events";
 import type {
   PeerDiscovery,
   PeerDiscoveryEvents
