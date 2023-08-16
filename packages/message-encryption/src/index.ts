@@ -1,7 +1,7 @@
 import {
   generatePrivateKey,
   generateSymmetricKey,
-  getPublicKey,
+  getPublicKey
 } from "./crypto/index.js";
 import { DecodedMessage } from "./decoded_message.js";
 

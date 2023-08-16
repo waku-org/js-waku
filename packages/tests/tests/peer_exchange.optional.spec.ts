@@ -1,7 +1,7 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import {
   Fleet,
-  getPredefinedBootstrapNodes,
+  getPredefinedBootstrapNodes
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import type { LightNode } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
@@ -18,7 +18,7 @@ describe("Peer Exchange", () => {
 
     const testCases: [Fleet, number][] = [
       [Fleet.Test, 2], // on test fleet there are only 3 peers
-      [Fleet.Prod, 3],
+      [Fleet.Prod, 3]
     ];
 
     testCases.map(([name, nodes]) => {
@@ -30,9 +30,9 @@ describe("Peer Exchange", () => {
           libp2p: {
             peerDiscovery: [
               bootstrap({ list: predefinedNodes }),
-              wakuPeerExchangeDiscovery(),
-            ],
-          },
+              wakuPeerExchangeDiscovery()
+            ]
+          }
         });
 
         await waku.start();
@@ -41,7 +41,7 @@ describe("Peer Exchange", () => {
           waku.libp2p.addEventListener("peer:discovery", (evt) => {
             const peerId = evt.detail.id.toString();
             const isBootstrapNode = predefinedNodes.find((n) =>
-              n.includes(peerId),
+              n.includes(peerId)
             );
             if (!isBootstrapNode) {
               resolve(true);

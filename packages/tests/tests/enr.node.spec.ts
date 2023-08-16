@@ -25,12 +25,12 @@ describe("ENR Interop: NimGoNode", function () {
       relay: true,
       store: false,
       filter: false,
-      lightpush: false,
+      lightpush: false
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -46,7 +46,7 @@ describe("ENR Interop: NimGoNode", function () {
       relay: true,
       store: false,
       filter: false,
-      lightPush: false,
+      lightPush: false
     });
   });
 
@@ -57,12 +57,12 @@ describe("ENR Interop: NimGoNode", function () {
       relay: true,
       store: true,
       filter: false,
-      lightpush: false,
+      lightpush: false
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -78,7 +78,7 @@ describe("ENR Interop: NimGoNode", function () {
       relay: true,
       store: true,
       filter: false,
-      lightPush: false,
+      lightPush: false
     });
   });
 
@@ -90,12 +90,12 @@ describe("ENR Interop: NimGoNode", function () {
       store: true,
       filter: true,
       lightpush: true,
-      legacyFilter: true,
+      legacyFilter: true
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -111,7 +111,7 @@ describe("ENR Interop: NimGoNode", function () {
       relay: true,
       store: true,
       filter: true,
-      lightPush: true,
+      lightPush: true
     });
   });
 });

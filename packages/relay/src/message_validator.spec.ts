@@ -1,5 +1,5 @@
-import { TopicValidatorResult } from "@libp2p/interface-pubsub";
-import type { UnsignedMessage } from "@libp2p/interface-pubsub";
+import { TopicValidatorResult } from "@libp2p/interface/pubsub";
+import type { UnsignedMessage } from "@libp2p/interface/pubsub";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { createEncoder } from "@waku/core";
 import { expect } from "chai";
@@ -23,14 +23,14 @@ describe("Message Validator", () => {
           const message: UnsignedMessage = {
             type: "unsigned",
             topic: pubSubTopic,
-            data: bytes,
+            data: bytes
           };
 
           const result = messageValidator(peerId, message);
 
           expect(result).to.eq(TopicValidatorResult.Accept);
-        },
-      ),
+        }
+      )
     );
   });
 
@@ -45,14 +45,14 @@ describe("Message Validator", () => {
           const message: UnsignedMessage = {
             type: "unsigned",
             topic: pubSubTopic,
-            data,
+            data
           };
 
           const result = messageValidator(peerId, message);
 
           expect(result).to.eq(TopicValidatorResult.Reject);
-        },
-      ),
+        }
+      )
     );
   });
 });

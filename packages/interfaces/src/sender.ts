@@ -5,6 +5,6 @@ export interface ISender {
   send: (
     encoder: IEncoder,
     message: IMessage,
-    opts?: ProtocolOptions,
+    opts?: ProtocolOptions
   ) => Promise<SendResult>;
 }

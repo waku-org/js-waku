@@ -40,7 +40,7 @@ export namespace PushRequest {
         },
         (reader, length) => {
           const obj: any = {
-            pubsubTopic: "",
+            pubsubTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -55,7 +55,7 @@ export namespace PushRequest {
               case 2:
                 obj.message = WakuMessage.codec().decode(
                   reader,
-                  reader.uint32(),
+                  reader.uint32()
                 );
                 break;
               default:
@@ -65,7 +65,7 @@ export namespace PushRequest {
           }
 
           return obj;
-        },
+        }
       );
     }
 
@@ -113,7 +113,7 @@ export namespace PushResponse {
         },
         (reader, length) => {
           const obj: any = {
-            isSuccess: false,
+            isSuccess: false
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -135,7 +135,7 @@ export namespace PushResponse {
           }
 
           return obj;
-        },
+        }
       );
     }
 
@@ -189,7 +189,7 @@ export namespace PushRpc {
         },
         (reader, length) => {
           const obj: any = {
-            requestId: "",
+            requestId: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -204,13 +204,13 @@ export namespace PushRpc {
               case 2:
                 obj.request = PushRequest.codec().decode(
                   reader,
-                  reader.uint32(),
+                  reader.uint32()
                 );
                 break;
               case 3:
                 obj.response = PushResponse.codec().decode(
                   reader,
-                  reader.uint32(),
+                  reader.uint32()
                 );
                 break;
               default:
@@ -220,7 +220,7 @@ export namespace PushRpc {
           }
 
           return obj;
-        },
+        }
       );
     }
 
@@ -304,7 +304,7 @@ export namespace RateLimitProof {
             shareX: new Uint8Array(0),
             shareY: new Uint8Array(0),
             nullifier: new Uint8Array(0),
-            rlnIdentifier: new Uint8Array(0),
+            rlnIdentifier: new Uint8Array(0)
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -341,7 +341,7 @@ export namespace RateLimitProof {
           }
 
           return obj;
-        },
+        }
       );
     }
 
@@ -420,7 +420,7 @@ export namespace WakuMessage {
         (reader, length) => {
           const obj: any = {
             payload: new Uint8Array(0),
-            contentTopic: "",
+            contentTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -447,7 +447,7 @@ export namespace WakuMessage {
               case 21:
                 obj.rateLimitProof = RateLimitProof.codec().decode(
                   reader,
-                  reader.uint32(),
+                  reader.uint32()
                 );
                 break;
               case 31:
@@ -460,7 +460,7 @@ export namespace WakuMessage {
           }
 
           return obj;
-        },
+        }
       );
     }
 

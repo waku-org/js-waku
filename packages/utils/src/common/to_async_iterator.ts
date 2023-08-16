@@ -4,7 +4,7 @@ import type {
   IDecoder,
   IReceiver,
   ProtocolOptions,
-  Unsubscribe,
+  Unsubscribe
 } from "@waku/interfaces";
 
 /**
@@ -13,7 +13,7 @@ import type {
  * @property timeoutMs - Optional timeout in milliseconds. If specified, the iterator will terminate after this time period.
  * @property iteratorDelay - Optional delay in milliseconds between each iteration. Can be used to control the rate of iteration.
  */
-type IteratorOptions = {
+export type IteratorOptions = {
   timeoutMs?: number;
   iteratorDelay?: number;
 };
@@ -32,7 +32,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
   receiver: IReceiver,
   decoder: IDecoder<T> | IDecoder<T>[],
   options?: ProtocolOptions,
-  iteratorOptions?: IteratorOptions,
+  iteratorOptions?: IteratorOptions
 ): Promise<IAsyncIterator<T>> {
   const iteratorDelay = iteratorOptions?.iteratorDelay ?? FRAME_RATE;
 
@@ -44,7 +44,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
     (message: T) => {
       messages.push(message);
     },
-    options,
+    options
   );
 
   const isWithTimeout = Number.isInteger(iteratorOptions?.timeoutMs);
@@ -80,7 +80,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
         await unsubscribe();
         unsubscribe = undefined;
       }
-    },
+    }
   };
 }
 

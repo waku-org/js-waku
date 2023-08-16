@@ -1,5 +1,5 @@
-import type { Stream } from "@libp2p/interface-connection";
-import { isPeerId, PeerId } from "@libp2p/interface-peer-id";
+import type { Stream } from "@libp2p/interface/connection";
+import { isPeerId, PeerId } from "@libp2p/interface/peer-id";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import type {
   IFilter,
@@ -7,7 +7,7 @@ import type {
   IRelay,
   IStore,
   Libp2p,
-  Waku,
+  Waku
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
@@ -56,7 +56,7 @@ export class WakuNode implements Waku {
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
     filter?: (libp2p: Libp2p) => IFilter,
-    relay?: (libp2p: Libp2p) => IRelay,
+    relay?: (libp2p: Libp2p) => IRelay
   ) {
     this.libp2p = libp2p;
 
@@ -86,14 +86,14 @@ export class WakuNode implements Waku {
       peerId,
       libp2p,
       { pingKeepAlive, relayKeepAlive },
-      this.relay,
+      this.relay
     );
 
     log(
       "Waku node created",
       peerId,
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
-        .lightPush}, filter: ${!!this.filter}`,
+        .lightPush}, filter: ${!!this.filter}`
     );
   }
 
@@ -105,7 +105,7 @@ export class WakuNode implements Waku {
    */
   async dial(
     peer: PeerId | MultiaddrInput,
-    protocols?: Protocols[],
+    protocols?: Protocols[]
   ): Promise<Stream> {
     const _protocols = protocols ?? [];
     const peerId = mapToPeerIdOrMultiaddr(peer);
@@ -121,11 +121,11 @@ export class WakuNode implements Waku {
     if (_protocols.includes(Protocols.Relay)) {
       if (this.relay) {
         this.relay.gossipSub.multicodecs.forEach((codec: string) =>
-          codecs.push(codec),
+          codecs.push(codec)
         );
       } else {
         log(
-          "Relay codec not included in dial codec: protocol not mounted locally",
+          "Relay codec not included in dial codec: protocol not mounted locally"
         );
       }
     }
@@ -134,7 +134,7 @@ export class WakuNode implements Waku {
         codecs.push(this.store.multicodec);
       } else {
         log(
-          "Store codec not included in dial codec: protocol not mounted locally",
+          "Store codec not included in dial codec: protocol not mounted locally"
         );
       }
     }
@@ -143,7 +143,7 @@ export class WakuNode implements Waku {
         codecs.push(this.lightPush.multicodec);
       } else {
         log(
-          "Light Push codec not included in dial codec: protocol not mounted locally",
+          "Light Push codec not included in dial codec: protocol not mounted locally"
         );
       }
     }
@@ -152,7 +152,7 @@ export class WakuNode implements Waku {
         codecs.push(this.filter.multicodec);
       } else {
         log(
-          "Filter codec not included in dial codec: protocol not mounted locally",
+          "Filter codec not included in dial codec: protocol not mounted locally"
         );
       }
     }
@@ -191,7 +191,7 @@ export class WakuNode implements Waku {
   }
 }
 function mapToPeerIdOrMultiaddr(
-  peerId: PeerId | MultiaddrInput,
+  peerId: PeerId | MultiaddrInput
 ): PeerId | Multiaddr {
   return isPeerId(peerId) ? peerId : multiaddr(peerId);
 }

@@ -48,25 +48,18 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@libp2p/interface-peer-discovery": "^2.0.0",
     "@libp2p/interfaces": "^3.3.2",
     "@waku/core": "0.0.22",
     "@waku/enr": "0.0.16",
+    "@waku/interfaces": "0.0.17",
     "@waku/proto": "0.0.5",
     "@waku/utils": "0.0.10",
-    "@waku/interfaces": "0.0.17",
     "debug": "^4.3.4",
     "it-all": "^3.0.2",
     "it-length-prefixed": "^9.0.1",
     "it-pipe": "^3.0.1"
   },
   "devDependencies": {
-    "@libp2p/interface-connection-manager": "^3.0.1",
-    "@libp2p/interface-libp2p": "^3.2.0",
-    "@libp2p/interface-peer-id": "^2.0.2",
-    "@libp2p/interface-peer-info": "^1.0.10",
-    "@libp2p/interface-peer-store": "^2.0.4",
-    "@libp2p/interface-registrar": "^2.0.12",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.2",

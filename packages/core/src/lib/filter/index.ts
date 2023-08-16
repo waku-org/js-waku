@@ -1,7 +1,7 @@
-import { Stream } from "@libp2p/interface-connection";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer } from "@libp2p/interface-peer-store";
-import type { IncomingStreamData } from "@libp2p/interface-registrar";
+import { Stream } from "@libp2p/interface/connection";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { Peer } from "@libp2p/interface/peer-store";
+import type { IncomingStreamData } from "@libp2p/interface-internal/registrar";
 import type {
   Callback,
   ContentTopic,
@@ -16,7 +16,7 @@ import type {
   ProtocolCreateOptions,
   ProtocolOptions,
   PubSubTopic,
-  Unsubscribe,
+  Unsubscribe
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { groupByContentTopic, toAsyncIterator } from "@waku/utils";
@@ -31,7 +31,7 @@ import { DefaultPubSubTopic } from "../constants.js";
 import {
   FilterPushRpc,
   FilterSubscribeResponse,
-  FilterSubscribeRpc,
+  FilterSubscribeRpc
 } from "./filter_rpc.js";
 
 const log = debug("waku:filter:v2");
@@ -43,7 +43,7 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
 
 const FilterCodecs = {
   SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
-  PUSH: "/vac/waku/filter-push/2.0.0-beta1",
+  PUSH: "/vac/waku/filter-push/2.0.0-beta1"
 };
 
 class Subscription {
@@ -59,7 +59,7 @@ class Subscription {
   constructor(
     pubSubTopic: PubSubTopic,
     remotePeer: Peer,
-    newStream: (peer: Peer) => Promise<Stream>,
+    newStream: (peer: Peer) => Promise<Stream>
   ) {
     this.peer = remotePeer;
     this.pubSubTopic = pubSubTopic;
@@ -69,7 +69,7 @@ class Subscription {
 
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>,
+    callback: Callback<T>
   ): Promise<void> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
@@ -79,7 +79,7 @@ class Subscription {
 
     const request = FilterSubscribeRpc.createSubscribeRequest(
       this.pubSubTopic,
-      contentTopics,
+      contentTopics
     );
 
     try {
@@ -88,7 +88,7 @@ class Subscription {
         lp.encode,
         stream,
         lp.decode,
-        async (source) => await all(source),
+        async (source) => await all(source)
       );
 
       const { statusCode, requestId, statusDesc } =
@@ -96,7 +96,7 @@ class Subscription {
 
       if (statusCode < 200 || statusCode >= 300) {
         throw new Error(
-          `Filter subscribe request ${requestId} failed with status code ${statusCode}: ${statusDesc}`,
+          `Filter subscribe request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
         );
       }
 
@@ -104,7 +104,7 @@ class Subscription {
         "Subscribed to peer ",
         this.peer.id.toString(),
         "for content topics",
-        contentTopics,
+        contentTopics
       );
     } catch (e) {
       throw new Error(
@@ -113,7 +113,7 @@ class Subscription {
           " for content topics: " +
           contentTopics +
           ": " +
-          e,
+          e
       );
     }
 
@@ -125,7 +125,7 @@ class Subscription {
       // Decoder that decode to different implementations of `IDecodedMessage`
       const subscriptionCallback = {
         decoders,
-        callback,
+        callback
       } as unknown as SubscriptionCallback<IDecodedMessage>;
 
       // The callback and decoder may override previous values, this is on
@@ -138,7 +138,7 @@ class Subscription {
     const stream = await this.newStream(this.peer);
     const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
       this.pubSubTopic,
-      contentTopics,
+      contentTopics
     );
 
     try {
@@ -163,7 +163,7 @@ class Subscription {
         lp.encode,
         stream,
         lp.decode,
-        async (source) => await all(source),
+        async (source) => await all(source)
       );
 
       const { statusCode, requestId, statusDesc } =
@@ -171,7 +171,7 @@ class Subscription {
 
       if (statusCode < 200 || statusCode >= 300) {
         throw new Error(
-          `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`,
+          `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
         );
       }
 
@@ -186,7 +186,7 @@ class Subscription {
     const stream = await this.newStream(this.peer);
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(
-      this.pubSubTopic,
+      this.pubSubTopic
     );
 
     try {
@@ -195,7 +195,7 @@ class Subscription {
         lp.encode,
         stream,
         lp.decode,
-        async (source) => await all(source),
+        async (source) => await all(source)
       );
 
       const { statusCode, requestId, statusDesc } =
@@ -203,7 +203,7 @@ class Subscription {
 
       if (statusCode < 200 || statusCode >= 300) {
         throw new Error(
-          `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}: ${statusDesc}`,
+          `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
         );
       }
 
@@ -231,7 +231,7 @@ class Filter extends BaseProtocol implements IReceiver {
 
   private getActiveSubscription(
     pubSubTopic: PubSubTopic,
-    peerIdStr: PeerIdStr,
+    peerIdStr: PeerIdStr
   ): Subscription | undefined {
     return this.activeSubscriptions.get(`${pubSubTopic}_${peerIdStr}`);
   }
@@ -239,7 +239,7 @@ class Filter extends BaseProtocol implements IReceiver {
   private setActiveSubscription(
     pubSubTopic: PubSubTopic,
     peerIdStr: PeerIdStr,
-    subscription: Subscription,
+    subscription: Subscription
   ): Subscription {
     this.activeSubscriptions.set(`${pubSubTopic}_${peerIdStr}`, subscription);
     return subscription;
@@ -259,7 +259,7 @@ class Filter extends BaseProtocol implements IReceiver {
 
   async createSubscription(
     pubSubTopic?: string,
-    peerId?: PeerId,
+    peerId?: PeerId
   ): Promise<Subscription> {
     const _pubSubTopic =
       pubSubTopic ?? this.options.pubSubTopic ?? DefaultPubSubTopic;
@@ -271,7 +271,7 @@ class Filter extends BaseProtocol implements IReceiver {
       this.setActiveSubscription(
         _pubSubTopic,
         peer.id.toString(),
-        new Subscription(_pubSubTopic, peer, this.newStream.bind(this, peer)),
+        new Subscription(_pubSubTopic, peer, this.newStream.bind(this, peer))
       );
 
     return subscription;
@@ -279,7 +279,7 @@ class Filter extends BaseProtocol implements IReceiver {
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    opts?: ProtocolOptions | undefined,
+    opts?: ProtocolOptions | undefined
   ): Promise<IAsyncIterator<T>> {
     return toAsyncIterator(this, decoders, opts);
   }
@@ -302,7 +302,7 @@ class Filter extends BaseProtocol implements IReceiver {
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
-    opts?: ProtocolOptions,
+    opts?: ProtocolOptions
   ): Promise<Unsubscribe> {
     const subscription = await this.createSubscription(undefined, opts?.peerId);
 
@@ -310,8 +310,8 @@ class Filter extends BaseProtocol implements IReceiver {
 
     const contentTopics = Array.from(
       groupByContentTopic(
-        Array.isArray(decoders) ? decoders : [decoders],
-      ).keys(),
+        Array.isArray(decoders) ? decoders : [decoders]
+      ).keys()
     );
 
     return async () => {
@@ -341,7 +341,7 @@ class Filter extends BaseProtocol implements IReceiver {
           const peerIdStr = streamData.connection.remotePeer.toString();
           const subscription = this.getActiveSubscription(
             pubsubTopic,
-            peerIdStr,
+            peerIdStr
           );
 
           if (!subscription) {
@@ -357,7 +357,7 @@ class Filter extends BaseProtocol implements IReceiver {
         },
         (e) => {
           log("Error with receiving pipe", e);
-        },
+        }
       );
     } catch (e) {
       log("Error decoding message", e);
@@ -366,7 +366,7 @@ class Filter extends BaseProtocol implements IReceiver {
 }
 
 export function wakuFilter(
-  init: Partial<ProtocolCreateOptions> = {},
+  init: Partial<ProtocolCreateOptions> = {}
 ): (libp2p: Libp2p) => IFilter {
   return (libp2p: Libp2p) => new Filter(libp2p, init);
 }
@@ -374,7 +374,7 @@ export function wakuFilter(
 async function pushMessage<T extends IDecodedMessage>(
   subscriptionCallback: SubscriptionCallback<T>,
   pubSubTopic: PubSubTopic,
-  message: WakuMessage,
+  message: WakuMessage
 ): Promise<void> {
   const { decoders, callback } = subscriptionCallback;
 
@@ -388,7 +388,7 @@ async function pushMessage<T extends IDecodedMessage>(
     const decodePromises = decoders.map((dec) =>
       dec
         .fromProtoObj(pubSubTopic, message as IProtoMessage)
-        .then((decoded) => decoded || Promise.reject("Decoding failed")),
+        .then((decoded) => decoded || Promise.reject("Decoding failed"))
     );
 
     const decodedMessage = await Promise.any(decodePromises);
