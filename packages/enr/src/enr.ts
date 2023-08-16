@@ -1,5 +1,5 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { PeerInfo } from "@libp2p/interface-peer-info";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerInfo } from "@libp2p/interface/peer-info";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import type {
   ENRKey,

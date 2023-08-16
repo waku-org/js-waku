@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import type { IRelay } from "@waku/interfaces";
 import type { KeepAliveOptions } from "@waku/interfaces";
 import debug from "debug";

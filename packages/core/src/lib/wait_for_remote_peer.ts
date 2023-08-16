@@ -1,4 +1,4 @@
-import type { IdentifyResult } from "@libp2p/interface-libp2p";
+import type { IdentifyResult } from "@libp2p/interface";
 import type { IBaseProtocol, IRelay, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";

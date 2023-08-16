@@ -41,7 +41,8 @@
     "check:lint": "eslint src tests",
     "check:spelling": "cspell \"{README.md,{tests,src}/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
-    "test": "node ./src/run-tests.js \"tests/**/!(*.optional).spec.ts\"",
+    "test": "run-s test:*",
+    "test:node": "node ./src/run-tests.js \"tests/**/!(*.optional).spec.ts\"",
     "test:optional": "node ./src/run-tests.js \"tests/**/@(*.optional).spec.ts\"",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
@@ -49,6 +50,7 @@
     "node": ">=16"
   },
   "dependencies": {
+    "@libp2p/interface-compliance-tests": "^4.0.2",
     "@libp2p/peer-id": "^2.0.4",
     "@waku/core": "*",
     "@waku/enr": "*",
@@ -63,9 +65,7 @@
     "tail": "^2.2.6"
   },
   "devDependencies": {
-    "@libp2p/bootstrap": "^8.0.0",
-    "@libp2p/interface-peer-discovery-compliance-tests": "^2.0.8",
-    "@libp2p/interface-peer-id": "^2.0.2",
+    "@libp2p/bootstrap": "^9.0.2",
     "@types/sinon": "^10.0.16",
     "@types/chai": "^4.3.4",
     "@types/dockerode": "^3.3.17",
@@ -76,13 +76,14 @@
     "@waku/message-encryption": "*",
     "@waku/peer-exchange": "*",
     "chai": "^4.3.7",
+    "datastore-core": "^9.2.0",
     "cspell": "^7.0.0",
     "debug": "^4.3.4",
+    "interface-datastore": "^8.2.3",
+    "libp2p": "^0.46.3",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
-    "typescript": "^5.0.4",
-    "interface-datastore": "^8.2.3",
-    "libp2p": "^0.45.9",
-    "datastore-core": "^9.2.0"
+    "prettier": "^2.8.8",
+    "typescript": "^5.0.4"
   }
 }

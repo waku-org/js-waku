@@ -1,6 +1,6 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { Peer } from "@libp2p/interface-peer-store";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerInfo } from "@libp2p/interface/peer-info";
+import type { Peer } from "@libp2p/interface/peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
 import {
   ConnectionManagerOptions,

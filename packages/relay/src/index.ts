@@ -6,7 +6,7 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import type { PubSub } from "@libp2p/interface-pubsub";
+import type { PubSub } from "@libp2p/interface/pubsub";
 import { sha256 } from "@noble/hashes/sha256";
 import { DefaultPubSubTopic } from "@waku/core";
 import {

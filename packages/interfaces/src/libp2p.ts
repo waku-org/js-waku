@@ -1,5 +1,5 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
-import type { Libp2p as BaseLibp2p } from "@libp2p/interface-libp2p";
+import type { Libp2p as BaseLibp2p } from "@libp2p/interface";
 import type { Libp2pInit } from "libp2p";
 import type { identifyService } from "libp2p/identify";
 import type { PingService } from "libp2p/ping";

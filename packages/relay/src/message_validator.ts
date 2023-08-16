@@ -1,6 +1,6 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Message } from "@libp2p/interface-pubsub";
-import { TopicValidatorResult } from "@libp2p/interface-pubsub";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { Message } from "@libp2p/interface/pubsub";
+import { TopicValidatorResult } from "@libp2p/interface/pubsub";
 import { proto_message as proto } from "@waku/proto";
 import debug from "debug";
 

@@ -1,5 +1,5 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer } from "@libp2p/interface-peer-store";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { Peer } from "@libp2p/interface/peer-store";
 import type { EventEmitter } from "@libp2p/interfaces/events";
 
 export enum Tags {

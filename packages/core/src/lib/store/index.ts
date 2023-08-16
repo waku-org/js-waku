@@ -1,5 +1,5 @@
-import type { Stream } from "@libp2p/interface-connection";
-import type { PeerId } from "@libp2p/interface-peer-id";
+import type { Stream } from "@libp2p/interface/connection";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import { sha256 } from "@noble/hashes/sha256";
 import {
   Cursor,

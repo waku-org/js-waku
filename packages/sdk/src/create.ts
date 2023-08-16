@@ -1,6 +1,6 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
-import type { PeerDiscovery } from "@libp2p/interface-peer-discovery";
+import type { PeerDiscovery } from "@libp2p/interface/peer-discovery";
 import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
