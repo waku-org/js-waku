@@ -41,7 +41,8 @@
     "check:lint": "eslint src tests",
     "check:spelling": "cspell \"{README.md,{tests,src}/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
-    "test": "node ./src/run-tests.js \"tests/**/!(*.optional).spec.ts\"",
+    "test": "run-s test:*",
+    "test:node": "node ./src/run-tests.js \"tests/**/!(*.optional).spec.ts\"",
     "test:optional": "node ./src/run-tests.js \"tests/**/@(*.optional).spec.ts\"",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },

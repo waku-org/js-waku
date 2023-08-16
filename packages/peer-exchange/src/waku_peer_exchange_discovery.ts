@@ -1,11 +1,10 @@
-import type { PeerUpdate } from "@libp2p/interface";
-import { CustomEvent, EventEmitter } from "@libp2p/interface/events";
 import type {
   PeerDiscovery,
   PeerDiscoveryEvents
 } from "@libp2p/interface/peer-discovery";
 import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
+import type { IdentifyResult } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Libp2pComponents, Tags } from "@waku/interfaces";
 import debug from "debug";
@@ -61,11 +60,10 @@ export class PeerExchangeDiscovery
   private queryAttempts: Map<string, number> = new Map();
 
   private readonly handleDiscoveredPeer = (
-    event: CustomEvent<PeerUpdate>
+    event: CustomEvent<IdentifyResult>
   ): void => {
-    const {
-      peer: { protocols, id: peerId }
-    } = event.detail;
+    const { protocols, peerId } = event.detail;
+
     if (
       !protocols.includes(PeerExchangeCodec) ||
       this.queryingPeers.has(peerId.toString())
@@ -98,7 +96,7 @@ export class PeerExchangeDiscovery
 
     // might be better to use "peer:identify" or "peer:update"
     this.components.events.addEventListener(
-      "peer:update",
+      "peer:identify",
       this.handleDiscoveredPeer
     );
   }
@@ -112,7 +110,7 @@ export class PeerExchangeDiscovery
     this.isStarted = false;
     this.queryingPeers.clear();
     this.components.events.removeEventListener(
-      "peer:update",
+      "peer:identify",
       this.handleDiscoveredPeer
     );
   }
