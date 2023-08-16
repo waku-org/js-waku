@@ -1,15 +1,15 @@
+import { CustomEvent, EventEmitter } from "@libp2p/interface/events";
 import type {
   PeerDiscovery,
-  PeerDiscoveryEvents,
-} from "@libp2p/interface-peer-discovery";
-import { peerDiscovery as symbol } from "@libp2p/interface-peer-discovery";
-import type { PeerInfo } from "@libp2p/interface-peer-info";
-import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+  PeerDiscoveryEvents
+} from "@libp2p/interface/peer-discovery";
+import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
+import type { PeerInfo } from "@libp2p/interface/peer-info";
 import type {
   DnsDiscOptions,
   DnsDiscoveryComponents,
   IEnr,
-  NodeCapabilityCount,
+  NodeCapabilityCount
 } from "@waku/interfaces";
 import debug from "debug";
 
@@ -17,7 +17,7 @@ import {
   DEFAULT_BOOTSTRAP_TAG_NAME,
   DEFAULT_BOOTSTRAP_TAG_TTL,
   DEFAULT_BOOTSTRAP_TAG_VALUE,
-  DEFAULT_NODE_REQUIREMENTS,
+  DEFAULT_NODE_REQUIREMENTS
 } from "./constants.js";
 import { DnsNodeDiscovery } from "./dns.js";
 
@@ -82,9 +82,9 @@ export class PeerDiscoveryDns
         tags: {
           [DEFAULT_BOOTSTRAP_TAG_NAME]: {
             value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
-          },
-        },
+            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL
+          }
+        }
       };
 
       let isPeerChanged = false;
