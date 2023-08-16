@@ -75,7 +75,7 @@ describe("ENRTree", () => {
     const expected = [
       "D2SNLTAGWNQ34NTQTPHNZDECFU",
       "67BLTJEU5R2D5S3B4QKJSBRFCY",
-      "A2HDMZBB4JIU53VTEGC4TG6P4A",
+      "A2HDMZBB4JIU53VTEGC4TG6P4A"
     ];
 
     const branches = ENRTree.parseBranch(dns.enrBranch);

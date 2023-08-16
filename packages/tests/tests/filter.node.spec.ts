@@ -3,7 +3,7 @@ import {
   createEncoder,
   DecodedMessage,
   DefaultPubSubTopic,
-  waitForRemotePeer,
+  waitForRemotePeer
 } from "@waku/core";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -16,7 +16,7 @@ import {
   delay,
   makeLogFileName,
   NimGoNode,
-  NOISE_KEY_1,
+  NOISE_KEY_1
 } from "../src/index.js";
 
 const log = debug("waku:test");
@@ -43,11 +43,11 @@ describe("Waku Filter: V2", () => {
     await nwaku.start({
       filter: true,
       lightpush: true,
-      relay: true,
+      relay: true
     });
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -140,10 +140,10 @@ describe("Waku Filter: V2", () => {
     await subscription.subscribe(TestDecoder, callback);
 
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("Filtering works!"),
+      payload: utf8ToBytes("Filtering works!")
     });
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("Filtering still works!"),
+      payload: utf8ToBytes("Filtering still works!")
     });
     while (messageCount < 2) {
       await delay(250);
@@ -160,12 +160,12 @@ describe("Waku Filter: V2", () => {
 
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should be received"),
+      payload: utf8ToBytes("This should be received")
     });
     await delay(100);
     await subscription.unsubscribe([TestContentTopic]);
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should not be received"),
+      payload: utf8ToBytes("This should not be received")
     });
     await delay(100);
     expect(messageCount).to.eq(1);
@@ -180,12 +180,12 @@ describe("Waku Filter: V2", () => {
 
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should be received"),
+      payload: utf8ToBytes("This should be received")
     });
     await delay(100);
     await subscription.ping();
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should also be received"),
+      payload: utf8ToBytes("This should also be received")
     });
     await delay(100);
     expect(messageCount).to.eq(2);
@@ -200,12 +200,12 @@ describe("Waku Filter: V2", () => {
 
     await delay(200);
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should be received"),
+      payload: utf8ToBytes("This should be received")
     });
     await delay(100);
     await subscription.unsubscribeAll();
     await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("This should not be received"),
+      payload: utf8ToBytes("This should not be received")
     });
     await delay(100);
     expect(messageCount).to.eq(1);

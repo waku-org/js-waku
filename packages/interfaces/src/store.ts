@@ -3,7 +3,7 @@ import type { IBaseProtocol, ProtocolOptions } from "./protocols.js";
 
 export enum PageDirection {
   BACKWARD = "backward",
-  FORWARD = "forward",
+  FORWARD = "forward"
 }
 
 export interface TimeFilter {

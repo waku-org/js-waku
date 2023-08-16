@@ -1,5 +1,5 @@
-import type { Stream } from "@libp2p/interface-connection";
-import type { PeerId } from "@libp2p/interface-peer-id";
+import type { Stream } from "@libp2p/interface/connection";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
 
 import { IConnectionManager } from "./connection_manager.js";

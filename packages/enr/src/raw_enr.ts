@@ -1,7 +1,7 @@
 import type { Multiaddr } from "@multiformats/multiaddr";
 import {
   convertToBytes,
-  convertToString,
+  convertToString
 } from "@multiformats/multiaddr/convert";
 import type { ENRKey, ENRValue, SequenceNumber, Waku2 } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";

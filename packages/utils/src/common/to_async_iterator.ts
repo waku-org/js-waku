@@ -4,10 +4,16 @@ import type {
   IDecoder,
   IReceiver,
   ProtocolOptions,
-  Unsubscribe,
+  Unsubscribe
 } from "@waku/interfaces";
 
-type IteratorOptions = {
+/**
+ * Options for configuring the behavior of an iterator.
+ *
+ * @property timeoutMs - Optional timeout in milliseconds. If specified, the iterator will terminate after this time period.
+ * @property iteratorDelay - Optional delay in milliseconds between each iteration. Can be used to control the rate of iteration.
+ */
+export type IteratorOptions = {
   timeoutMs?: number;
   iteratorDelay?: number;
 };
@@ -74,7 +80,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
         await unsubscribe();
         unsubscribe = undefined;
       }
-    },
+    }
   };
 }
 

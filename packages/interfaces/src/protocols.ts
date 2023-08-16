@@ -1,6 +1,6 @@
-import type { Libp2p } from "@libp2p/interface-libp2p";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import type { Libp2p } from "@libp2p/interface";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { Libp2pOptions } from "libp2p";
 
 import type { IDecodedMessage } from "./message.js";
@@ -9,7 +9,7 @@ export enum Protocols {
   Relay = "relay",
   Store = "store",
   LightPush = "lightpush",
-  Filter = "filter",
+  Filter = "filter"
 }
 
 export interface IBaseProtocol {
@@ -70,7 +70,7 @@ export enum SendError {
   ENCODE_FAILED = "Failed to encode",
   DECODE_FAILED = "Failed to decode",
   SIZE_TOO_BIG = "Size is too big",
-  NO_RPC_RESPONSE = "No RPC response",
+  NO_RPC_RESPONSE = "No RPC response"
 }
 
 export interface SendResult {

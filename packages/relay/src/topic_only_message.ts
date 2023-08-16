@@ -1,7 +1,7 @@
 import type {
   IDecodedMessage,
   IDecoder,
-  IProtoMessage,
+  IProtoMessage
 } from "@waku/interfaces";
 import { TopicOnlyMessage as ProtoTopicOnlyMessage } from "@waku/proto";
 import debug from "debug";
@@ -38,7 +38,7 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
       timestamp: undefined,
       meta: undefined,
       version: undefined,
-      ephemeral: undefined,
+      ephemeral: undefined
     });
   }
 

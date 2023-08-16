@@ -16,7 +16,7 @@ describe("Symmetric Encryption", function () {
         async (pubSubTopic, contentTopic, payload, symKey) => {
           const encoder = createEncoder({
             contentTopic,
-            symKey,
+            symKey
           });
           const bytes = await encoder.toWire({ payload });
 
@@ -51,7 +51,7 @@ describe("Symmetric Encryption", function () {
           const encoder = createEncoder({
             contentTopic,
             symKey,
-            sigPrivKey,
+            sigPrivKey
           });
           const bytes = await encoder.toWire({ payload });
 
@@ -92,7 +92,7 @@ describe("Symmetric Encryption", function () {
           const encoder = createEncoder({
             contentTopic,
             symKey,
-            metaSetter,
+            metaSetter
           });
           const bytes = await encoder.toWire({ payload });
 
@@ -109,7 +109,7 @@ describe("Symmetric Encryption", function () {
             ephemeral: undefined,
             meta: undefined,
             rateLimitProof: undefined,
-            version: undefined,
+            version: undefined
           });
 
           expect(result.meta).to.deep.equal(expectedMeta);
@@ -124,7 +124,7 @@ describe("Ensures content topic is defined", () => {
     const wrapper = function (): void {
       createEncoder({
         contentTopic: undefined as unknown as string,
-        symKey: new Uint8Array(),
+        symKey: new Uint8Array()
       });
     };
 

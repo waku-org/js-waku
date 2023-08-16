@@ -41,7 +41,7 @@ export namespace FilterRequest {
           },
           (reader, length) => {
             const obj: any = {
-              contentTopic: "",
+              contentTopic: ""
             };
 
             const end = length == null ? reader.len : reader.pos + length;
@@ -111,7 +111,7 @@ export namespace FilterRequest {
           const obj: any = {
             subscribe: false,
             topic: "",
-            contentFilters: [],
+            contentFilters: []
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -185,7 +185,7 @@ export namespace MessagePush {
         },
         (reader, length) => {
           const obj: any = {
-            messages: [],
+            messages: []
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -260,7 +260,7 @@ export namespace FilterRpc {
         },
         (reader, length) => {
           const obj: any = {
-            requestId: "",
+            requestId: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -372,7 +372,7 @@ export namespace RateLimitProof {
             shareX: new Uint8Array(0),
             shareY: new Uint8Array(0),
             nullifier: new Uint8Array(0),
-            rlnIdentifier: new Uint8Array(0),
+            rlnIdentifier: new Uint8Array(0)
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -488,7 +488,7 @@ export namespace WakuMessage {
         (reader, length) => {
           const obj: any = {
             payload: new Uint8Array(0),
-            contentTopic: "",
+            contentTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;

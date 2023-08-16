@@ -25,7 +25,7 @@ describe("Use static and several ENR trees for bootstrap", function () {
     const NODE_REQUIREMENTS = {
       store: 3,
       lightPush: 3,
-      filter: 3,
+      filter: 3
     };
 
     waku = await createLightNode({
@@ -35,9 +35,9 @@ describe("Use static and several ENR trees for bootstrap", function () {
           wakuDnsDiscovery(
             [enrTree["PROD"], enrTree["TEST"]],
             NODE_REQUIREMENTS
-          ),
-        ],
-      },
+          )
+        ]
+      }
     });
     await waku.start();
 

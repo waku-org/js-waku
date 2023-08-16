@@ -8,7 +8,7 @@ import {
   encryptAsymmetric,
   encryptSymmetric,
   postCipher,
-  preCipher,
+  preCipher
 } from "./waku_payload.js";
 
 describe("Waku Payload", () => {

@@ -42,7 +42,7 @@ export class FilterSubscribeRpc {
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.SUBSCRIBE,
       pubsubTopic,
-      contentTopics,
+      contentTopics
     });
   }
 
@@ -55,7 +55,7 @@ export class FilterSubscribeRpc {
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.UNSUBSCRIBE,
       pubsubTopic,
-      contentTopics,
+      contentTopics
     });
   }
 
@@ -65,7 +65,7 @@ export class FilterSubscribeRpc {
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.UNSUBSCRIBE_ALL,
       pubsubTopic,
-      contentTopics: [],
+      contentTopics: []
     });
   }
 
@@ -75,7 +75,7 @@ export class FilterSubscribeRpc {
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.SUBSCRIBER_PING,
       pubsubTopic: "",
-      contentTopics: [],
+      contentTopics: []
     });
   }
 

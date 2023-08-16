@@ -1,7 +1,7 @@
-import { Stream } from "@libp2p/interface-connection";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer } from "@libp2p/interface-peer-store";
-import type { IncomingStreamData } from "@libp2p/interface-registrar";
+import { Stream } from "@libp2p/interface/connection";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { Peer } from "@libp2p/interface/peer-store";
+import type { IncomingStreamData } from "@libp2p/interface-internal/registrar";
 import type {
   Callback,
   ContentTopic,
@@ -16,7 +16,7 @@ import type {
   ProtocolCreateOptions,
   ProtocolOptions,
   PubSubTopic,
-  Unsubscribe,
+  Unsubscribe
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { groupByContentTopic, toAsyncIterator } from "@waku/utils";
@@ -31,7 +31,7 @@ import { DefaultPubSubTopic } from "../constants.js";
 import {
   FilterPushRpc,
   FilterSubscribeResponse,
-  FilterSubscribeRpc,
+  FilterSubscribeRpc
 } from "./filter_rpc.js";
 
 const log = debug("waku:filter:v2");
@@ -43,7 +43,7 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
 
 const FilterCodecs = {
   SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
-  PUSH: "/vac/waku/filter-push/2.0.0-beta1",
+  PUSH: "/vac/waku/filter-push/2.0.0-beta1"
 };
 
 class Subscription {
@@ -125,7 +125,7 @@ class Subscription {
       // Decoder that decode to different implementations of `IDecodedMessage`
       const subscriptionCallback = {
         decoders,
-        callback,
+        callback
       } as unknown as SubscriptionCallback<IDecodedMessage>;
 
       // The callback and decoder may override previous values, this is on

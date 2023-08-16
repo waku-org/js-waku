@@ -16,7 +16,7 @@ export async function sign(
 ): Promise<Uint8Array> {
   const [signature, recoveryId] = await secp.sign(message, privateKey, {
     recovered: true,
-    der: false,
+    der: false
   });
   return concat(
     [signature, new Uint8Array([recoveryId])],

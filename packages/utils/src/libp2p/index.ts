@@ -1,6 +1,6 @@
-import type { Connection } from "@libp2p/interface-connection";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { Peer, PeerStore } from "@libp2p/interface-peer-store";
+import type { Connection } from "@libp2p/interface/connection";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import debug from "debug";
 
 const log = debug("waku:libp2p-utils");
@@ -84,12 +84,10 @@ export function selectConnection(
   let latestConnection: Connection | undefined;
 
   connections.forEach((connection) => {
-    if (connection.stat.status === "OPEN") {
+    if (connection.status === "open") {
       if (!latestConnection) {
         latestConnection = connection;
-      } else if (
-        connection.stat.timeline.open > latestConnection.stat.timeline.open
-      ) {
+      } else if (connection.timeline.open > latestConnection.timeline.open) {
         latestConnection = connection;
       }
     }

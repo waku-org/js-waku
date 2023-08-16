@@ -20,7 +20,7 @@ export function messageHash(
       pubsubTopicBytes,
       message.payload,
       contentTopicBytes,
-      message.meta,
+      message.meta
     ]);
   } else {
     bytes = concat([pubsubTopicBytes, message.payload, contentTopicBytes]);
