@@ -47,25 +47,34 @@ class LightPush extends BaseProtocol implements ILightPush {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
     const recipients: PeerId[] = [];
+    let query: PushRpc;
 
-    if (!isSizeValid(message.payload)) {
-      log("Failed to send waku light push: message is bigger than 1MB");
-      return {
-        recipients,
-        errors: [SendError.SIZE_TOO_BIG]
-      };
-    }
+    try {
+      if (!isSizeValid(message.payload)) {
+        log("Failed to send waku light push: message is bigger than 1MB");
+        return {
+          recipients,
+          errors: [SendError.SIZE_TOO_BIG]
+        };
+      }
 
-    const protoMessage = await encoder.toProtoObj(message);
-    if (!protoMessage) {
-      log("Failed to encode to protoMessage, aborting push");
+      const protoMessage = await encoder.toProtoObj(message);
+      if (!protoMessage) {
+        log("Failed to encode to protoMessage, aborting push");
+        return {
+          recipients,
+          errors: [SendError.ENCODE_FAILED]
+        };
+      }
+
+      query = PushRpc.createRequest(protoMessage, pubSubTopic);
+    } catch (error) {
+      log("Failed to encode to protoMessage", error);
       return {
         recipients,
         errors: [SendError.ENCODE_FAILED]
       };
     }
-
-    const query = PushRpc.createRequest(protoMessage, pubSubTopic);
 
     const peers = await this.getPeers(3, true, opts?.peerId && [opts?.peerId]);
 
