@@ -2,8 +2,7 @@ import type { Libp2p } from "@libp2p/interface";
 import type { Stream } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { Peer, PeerStore } from "@libp2p/interface/peer-store";
-import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
-
+import { IBaseProtocol, Libp2pComponents, Tags } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
@@ -63,11 +62,11 @@ export class BaseProtocol implements IBaseProtocol {
   protected async getPeers(
     numPeers: number,
     includeBootstrap: boolean,
-    peerIds?: PeerId[],
+    peerIds?: PeerId[]
   ): Promise<Peer[]> {
     // Retrieve all peers that support the protocol
     const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
-      this.multicodec,
+      this.multicodec
     ]);
 
     // Filter the bootstrap peer if required to include
@@ -82,7 +81,7 @@ export class BaseProtocol implements IBaseProtocol {
 
     // Filter remaining peers excluding bootstrap and specified peerIds
     const remainingPeers = allPeersForProtocol.filter(
-      (peer) => peer !== bootstrapPeer && !matchingPeers.includes(peer),
+      (peer) => peer !== bootstrapPeer && !matchingPeers.includes(peer)
     );
 
     // Initialize the list of selected peers
