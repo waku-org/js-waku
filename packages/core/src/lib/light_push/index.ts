@@ -3,7 +3,6 @@ import {
   IEncoder,
   ILightPush,
   IMessage,
-  IProtoMessage,
   Libp2p,
   ProtocolCreateOptions,
   ProtocolOptions,
@@ -44,28 +43,25 @@ class LightPush extends BaseProtocol implements ILightPush {
     message: IMessage,
     pubSubTopic: string
   ): Promise<{
-    protoMessage: IProtoMessage | null;
     query: PushRpc | null;
     error?: SendError;
   }> {
     if (!isSizeValid(message.payload)) {
       log("Failed to send waku light push: message is bigger than 1MB");
-      return { protoMessage: null, query: null, error: SendError.SIZE_TOO_BIG };
+      return { query: null, error: SendError.SIZE_TOO_BIG };
     }
 
     const protoMessage = await encoder.toProtoObj(message);
     if (!protoMessage) {
       log("Failed to encode to protoMessage, aborting push");
       return {
-        protoMessage: null,
         query: null,
         error: SendError.ENCODE_FAILED
       };
     }
 
     const query = PushRpc.createRequest(protoMessage, pubSubTopic);
-
-    return { protoMessage, query };
+    return { query };
   }
 
   async send(
@@ -77,16 +73,28 @@ class LightPush extends BaseProtocol implements ILightPush {
     const recipients: PeerId[] = [];
     let error: undefined | SendError = undefined;
 
-    const { query, error: preparationError } = await this.preparePushMessage(
-      encoder,
-      message,
-      pubSubTopic
-    );
+    let query: PushRpc | null = null;
 
-    if (preparationError) {
+    try {
+      const { query: preparedQuery, error: preparationError } =
+        await this.preparePushMessage(encoder, message, pubSubTopic);
+
+      if (preparationError) {
+        return {
+          recipients,
+          error: preparationError
+        };
+      }
+
+      query = preparedQuery;
+    } catch (error) {
+      log("Failed to prepare push message", error);
+    }
+
+    if (!query) {
       return {
         recipients,
-        error: preparationError
+        error: SendError.GENERIC_FAIL
       };
     }
 
@@ -95,7 +103,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
     try {
       const res = await pipe(
-        [query!.encode()],
+        [query.encode()],
         lp.encode,
         stream,
         lp.decode,
