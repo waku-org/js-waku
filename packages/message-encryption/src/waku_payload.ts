@@ -1,9 +1,10 @@
 import { sign, Signature } from "@noble/secp256k1";
+import { etc as secpUtils } from "@noble/secp256k1";
 import { concat, hexToBytes } from "@waku/utils/bytes";
 
 import { Symmetric } from "./constants.js";
 import * as ecies from "./crypto/ecies.js";
-import { keccak256, randomBytes } from "./crypto/index.js";
+import { keccak256 } from "./crypto/index.js";
 import * as symmetric from "./crypto/symmetric.js";
 
 import { Signature as WakuSignature } from "./index.js";
@@ -190,7 +191,7 @@ export async function preCipher(
 
   const remainder = rawSize % PaddingTarget;
   const paddingSize = PaddingTarget - remainder;
-  const pad = randomBytes(paddingSize);
+  const pad = secpUtils.randomBytes(paddingSize);
 
   if (!validateDataIntegrity(pad, paddingSize)) {
     throw new Error("failed to generate random padding of size " + paddingSize);

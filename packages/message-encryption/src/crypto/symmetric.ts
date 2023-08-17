@@ -1,6 +1,8 @@
+import { etc as secpUtils } from "@noble/secp256k1";
+
 import { Symmetric } from "../constants.js";
 
-import { getSubtle, randomBytes } from "./index.js";
+import { getSubtle } from "./index.js";
 
 export async function encrypt(
   iv: Uint8Array,
@@ -29,5 +31,5 @@ export async function decrypt(
 }
 
 export function generateIv(): Uint8Array {
-  return randomBytes(Symmetric.ivSize);
+  return secpUtils.randomBytes(Symmetric.ivSize);
 }
