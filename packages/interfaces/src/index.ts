@@ -13,3 +13,4 @@ export * from "./receiver.js";
 export * from "./misc.js";
 export * from "./libp2p.js";
 export * from "./keep_alive_manager.js";
+export * from "./dns_discovery.js";

@@ -1,8 +1,7 @@
+import type { DnsClient } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 import debug from "debug";
 import { Endpoint, query, wellknown } from "dns-query";
-
-import { DnsClient } from "./dns.js";
 
 const log = debug("waku:dns-over-https");
 
