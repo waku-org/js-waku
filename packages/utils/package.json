@@ -70,12 +70,9 @@
     "@waku/interfaces": "^0.0.17"
   },
   "devDependencies": {
-    "@libp2p/interface-connection": "^5.1.1",
-    "@libp2p/interface-peer-id": "^2.0.2",
-    "@libp2p/interface-peer-store": "^2.0.4",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.2",
+    "@rollup/plugin-node-resolve": "^15.1.0",
     "@waku/build-utils": "*",
     "@waku/interfaces": "0.0.17",
     "cspell": "^7.0.0",

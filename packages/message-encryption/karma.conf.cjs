@@ -6,7 +6,7 @@ module.exports = function (config) {
     frameworks: ["webpack", "mocha"],
     files: ["src/**/*.ts"],
     preprocessors: {
-      "src/**/*.ts": ["webpack"],
+      "src/**/*.ts": ["webpack"]
     },
     envPreprocessor: ["CI"],
     reporters: ["progress"],
@@ -14,32 +14,32 @@ module.exports = function (config) {
     singleRun: true,
     client: {
       mocha: {
-        timeout: 6000, // Default is 2s
-      },
+        timeout: 6000 // Default is 2s
+      }
     },
     webpack: {
       mode: "development",
       module: {
-        rules: [{ test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }],
+        rules: [{ test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }]
       },
       plugins: [
         new webpack.DefinePlugin({
-          "process.env.CI": process.env.CI || false,
+          "process.env.CI": process.env.CI || false
         }),
         new webpack.ProvidePlugin({
-          process: "process/browser.js",
-        }),
+          process: "process/browser.js"
+        })
       ],
       resolve: {
         extensions: [".ts", ".tsx", ".js"],
         extensionAlias: {
           ".js": [".js", ".ts"],
           ".cjs": [".cjs", ".cts"],
-          ".mjs": [".mjs", ".mts"],
-        },
+          ".mjs": [".mjs", ".mts"]
+        }
       },
       stats: { warnings: false },
-      devtool: "inline-source-map",
-    },
+      devtool: "inline-source-map"
+    }
   });
 };

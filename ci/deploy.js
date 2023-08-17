@@ -38,8 +38,8 @@ const main = async (url, branch) => {
     repo: url,
     branch: branch,
     dotfiles: true,
-    silent: false,
+    silent: false
   });
 };
 
-main(repoUrl, branch);
+void main(repoUrl, branch);

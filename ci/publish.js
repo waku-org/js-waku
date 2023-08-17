@@ -70,7 +70,7 @@ async function readWorkspace(packagePath) {
     name: json.name,
     private: !!json.private,
     version: json.version,
-    workspace: packagePath,
+    workspace: packagePath
   };
 }
 

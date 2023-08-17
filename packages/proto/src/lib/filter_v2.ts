@@ -8,7 +8,7 @@ import {
   enumeration,
   encodeMessage,
   decodeMessage,
-  message,
+  message
 } from "protons-runtime";
 import type { Codec } from "protons-runtime";
 import type { Uint8ArrayList } from "uint8arraylist";
@@ -25,14 +25,14 @@ export namespace FilterSubscribeRequest {
     SUBSCRIBER_PING = "SUBSCRIBER_PING",
     SUBSCRIBE = "SUBSCRIBE",
     UNSUBSCRIBE = "UNSUBSCRIBE",
-    UNSUBSCRIBE_ALL = "UNSUBSCRIBE_ALL",
+    UNSUBSCRIBE_ALL = "UNSUBSCRIBE_ALL"
   }
 
   enum __FilterSubscribeTypeValues {
     SUBSCRIBER_PING = 0,
     SUBSCRIBE = 1,
     UNSUBSCRIBE = 2,
-    UNSUBSCRIBE_ALL = 3,
+    UNSUBSCRIBE_ALL = 3
   }
 
   export namespace FilterSubscribeType {
@@ -63,7 +63,7 @@ export namespace FilterSubscribeRequest {
             w.uint32(16);
             FilterSubscribeRequest.FilterSubscribeType.codec().encode(
               obj.filterSubscribeType,
-              w,
+              w
             );
           }
 
@@ -87,7 +87,7 @@ export namespace FilterSubscribeRequest {
           const obj: any = {
             requestId: "",
             filterSubscribeType: FilterSubscribeType.SUBSCRIBER_PING,
-            contentTopics: [],
+            contentTopics: []
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -102,7 +102,7 @@ export namespace FilterSubscribeRequest {
               case 2:
                 obj.filterSubscribeType =
                   FilterSubscribeRequest.FilterSubscribeType.codec().decode(
-                    reader,
+                    reader
                   );
                 break;
               case 10:
@@ -118,7 +118,7 @@ export namespace FilterSubscribeRequest {
           }
 
           return obj;
-        },
+        }
       );
     }
 
@@ -130,7 +130,7 @@ export namespace FilterSubscribeRequest {
   };
 
   export const decode = (
-    buf: Uint8Array | Uint8ArrayList,
+    buf: Uint8Array | Uint8ArrayList
   ): FilterSubscribeRequest => {
     return decodeMessage(buf, FilterSubscribeRequest.codec());
   };
@@ -175,7 +175,7 @@ export namespace FilterSubscribeResponse {
         (reader, length) => {
           const obj: any = {
             requestId: "",
-            statusCode: 0,
+            statusCode: 0
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -200,7 +200,7 @@ export namespace FilterSubscribeResponse {
           }
 
           return obj;
-        },
+        }
       );
     }
 
@@ -212,7 +212,7 @@ export namespace FilterSubscribeResponse {
   };
 
   export const decode = (
-    buf: Uint8Array | Uint8ArrayList,
+    buf: Uint8Array | Uint8ArrayList
   ): FilterSubscribeResponse => {
     return decodeMessage(buf, FilterSubscribeResponse.codec());
   };
@@ -260,7 +260,7 @@ export namespace MessagePush {
               case 1:
                 obj.wakuMessage = WakuMessage.codec().decode(
                   reader,
-                  reader.uint32(),
+                  reader.uint32()
                 );
                 break;
               case 2:
@@ -273,7 +273,7 @@ export namespace MessagePush {
           }
 
           return obj;
-        },
+        }
       );
     }
 
@@ -357,7 +357,7 @@ export namespace RateLimitProof {
             shareX: new Uint8Array(0),
             shareY: new Uint8Array(0),
             nullifier: new Uint8Array(0),
-            rlnIdentifier: new Uint8Array(0),
+            rlnIdentifier: new Uint8Array(0)
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -394,7 +394,7 @@ export namespace RateLimitProof {
           }
 
           return obj;
-        },
+        }
       );
     }
 
@@ -473,7 +473,7 @@ export namespace WakuMessage {
         (reader, length) => {
           const obj: any = {
             payload: new Uint8Array(0),
-            contentTopic: "",
+            contentTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -500,7 +500,7 @@ export namespace WakuMessage {
               case 21:
                 obj.rateLimitProof = RateLimitProof.codec().decode(
                   reader,
-                  reader.uint32(),
+                  reader.uint32()
                 );
                 break;
               case 31:
@@ -513,7 +513,7 @@ export namespace WakuMessage {
           }
 
           return obj;
-        },
+        }
       );
     }
 

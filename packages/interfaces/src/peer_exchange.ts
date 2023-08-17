@@ -1,6 +1,6 @@
-import type { ConnectionManager } from "@libp2p/interface-connection-manager";
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { PeerStore } from "@libp2p/interface-peer-store";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerStore } from "@libp2p/interface/peer-store";
+import type { ConnectionManager } from "@libp2p/interface-internal/connection-manager";
 
 import { IEnr } from "./enr.js";
 import { IBaseProtocol } from "./protocols.js";

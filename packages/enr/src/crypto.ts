@@ -12,15 +12,15 @@ import sha3 from "js-sha3";
  */
 export async function sign(
   message: Uint8Array,
-  privateKey: Uint8Array,
+  privateKey: Uint8Array
 ): Promise<Uint8Array> {
   const [signature, recoveryId] = await secp.sign(message, privateKey, {
     recovered: true,
-    der: false,
+    der: false
   });
   return concat(
     [signature, new Uint8Array([recoveryId])],
-    signature.length + 1,
+    signature.length + 1
   );
 }
 
@@ -42,7 +42,7 @@ export function compressPublicKey(publicKey: Uint8Array): Uint8Array {
 export function verifySignature(
   signature: Uint8Array,
   message: Uint8Array | string,
-  publicKey: Uint8Array,
+  publicKey: Uint8Array
 ): boolean {
   try {
     const _signature = secp.Signature.fromCompact(signature.slice(0, 64));

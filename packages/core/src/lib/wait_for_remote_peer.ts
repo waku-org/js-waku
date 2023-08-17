@@ -1,4 +1,4 @@
-import type { IdentifyResult } from "@libp2p/interface-libp2p";
+import type { IdentifyResult } from "@libp2p/interface";
 import type { IBaseProtocol, IRelay, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
@@ -28,7 +28,7 @@ const log = debug("waku:wait-for-remote-peer");
 export async function waitForRemotePeer(
   waku: Waku,
   protocols?: Protocols[],
-  timeoutMs?: number,
+  timeoutMs?: number
 ): Promise<void> {
   protocols = protocols ?? getEnabledProtocols(waku);
 
@@ -64,7 +64,7 @@ export async function waitForRemotePeer(
     await rejectOnTimeout(
       Promise.all(promises),
       timeoutMs,
-      "Timed out waiting for a remote peer.",
+      "Timed out waiting for a remote peer."
     );
   } else {
     await Promise.all(promises);
@@ -114,7 +114,7 @@ const awaitTimeout = (ms: number, rejectReason: string): Promise<void> =>
 async function rejectOnTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  rejectReason: string,
+  rejectReason: string
 ): Promise<void> {
   await Promise.race([promise, awaitTimeout(timeoutMs, rejectReason)]);
 }

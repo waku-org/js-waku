@@ -4,7 +4,7 @@ export const DefaultWantedNumber = 1;
 
 export enum Fleet {
   Prod = "prod",
-  Test = "test",
+  Test = "test"
 }
 
 /**
@@ -19,7 +19,7 @@ export enum Fleet {
  */
 export function getPredefinedBootstrapNodes(
   fleet: Fleet = Fleet.Prod,
-  wantedNumber: number = DefaultWantedNumber,
+  wantedNumber: number = DefaultWantedNumber
 ): string[] {
   if (wantedNumber <= 0) {
     return [];
@@ -51,8 +51,8 @@ export const fleets = {
         "node-01.do-ams3.wakuv2.prod":
           "/dns4/node-01.do-ams3.wakuv2.prod.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmL5okWopX7NqZWBUKVqW8iUxCEmd5GMHLVPwCgzYzQv3e",
         "node-01.gc-us-central1-a.wakuv2.prod":
-          "/dns4/node-01.gc-us-central1-a.wakuv2.prod.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmVkKntsECaYfefR1V2yCR79CegLATuTPE6B9TxgxBiiiA",
-      },
+          "/dns4/node-01.gc-us-central1-a.wakuv2.prod.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmVkKntsECaYfefR1V2yCR79CegLATuTPE6B9TxgxBiiiA"
+      }
     },
     "wakuv2.test": {
       "waku-websocket": {
@@ -61,8 +61,8 @@ export const fleets = {
         "node-01.do-ams3.wakuv2.test":
           "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ",
         "node-01.gc-us-central1-a.wakuv2.test":
-          "/dns4/node-01.gc-us-central1-a.wakuv2.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmJb2e28qLXxT5kZxVUUoJt72EMzNGXB47Rxx5hw3q4YjS",
-      },
-    },
-  },
+          "/dns4/node-01.gc-us-central1-a.wakuv2.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmJb2e28qLXxT5kZxVUUoJt72EMzNGXB47Rxx5hw3q4YjS"
+      }
+    }
+  }
 };

@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import {
   IEncoder,
   ILightPush,
@@ -7,7 +7,7 @@ import {
   ProtocolCreateOptions,
   ProtocolOptions,
   SendError,
-  SendResult,
+  SendResult
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
 import { isSizeValid } from "@waku/utils";
@@ -42,7 +42,7 @@ class LightPush extends BaseProtocol implements ILightPush {
   async send(
     encoder: IEncoder,
     message: IMessage,
-    opts?: ProtocolOptions,
+    opts?: ProtocolOptions
   ): Promise<SendResult> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
@@ -73,6 +73,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       let error: SendError | undefined;
 
       const stream = await this.newStream(peer);
+      
       try {
         const res = await pipe(
           [query.encode()],
@@ -128,7 +129,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 }
 
 export function wakuLightPush(
-  init: Partial<ProtocolCreateOptions> = {},
+  init: Partial<ProtocolCreateOptions> = {}
 ): (libp2p: Libp2p) => ILightPush {
   return (libp2p: Libp2p) => new LightPush(libp2p, init);
 }
