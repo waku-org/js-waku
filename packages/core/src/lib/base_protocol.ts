@@ -2,12 +2,7 @@ import type { Stream } from "@libp2p/interface-connection";
 import type { Libp2p } from "@libp2p/interface-libp2p";
 import type { PeerId } from "@libp2p/interface-peer-id";
 import { Peer, PeerStore } from "@libp2p/interface-peer-store";
-import {
-  Codecs,
-  IBaseProtocol,
-  Libp2pComponents,
-  Tags,
-} from "@waku/interfaces";
+import { IBaseProtocol, Libp2pComponents, Tags } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
@@ -23,9 +18,8 @@ export class BaseProtocol implements IBaseProtocol {
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
 
   constructor(
-    public multicodec: Codecs,
+    public multicodec: string,
     private components: Libp2pComponents,
-    private log: debug.Debugger,
   ) {
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events,
@@ -57,49 +51,49 @@ export class BaseProtocol implements IBaseProtocol {
     return peer;
   }
 
-  protected async getPeers(peerId?: PeerId): Promise<Peer[]> {
-    const selectedPeers: Peer[] = [];
-
-    const { peer } = await selectPeerForProtocol(
-      this.peerStore,
-      [this.multicodec],
-      peerId,
-    );
-
-    selectedPeers.push(peer);
-
-    // only return multiple peers for protocols LP and Filter
-    if (
-      ![Codecs.LightPush, Codecs.FilterPush, Codecs.FilterSubscribe].includes(
-        this.multicodec,
-      )
-    )
-      return selectedPeers;
-
+  protected async getPeers(
+    numPeers: number,
+    includeBootstrap: boolean,
+    peerIds?: PeerId[],
+  ): Promise<Peer[]> {
+    // Retrieve all peers that support the protocol
     const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
       this.multicodec,
     ]);
 
-    // Counter to keep track of the number of bootstrap peers
-    let bootstrapPeerCount = 0;
+    // Filter the bootstrap peer if required to include
+    const bootstrapPeer = includeBootstrap
+      ? allPeersForProtocol.find((peer) => peer.tags.has(Tags.BOOTSTRAP))
+      : undefined;
 
-    allPeersForProtocol.map((peer) => {
-      // If the peer is a bootstrap peer and we don't have one yet, add it
-      if (peer.tags.has(Tags.BOOTSTRAP) && bootstrapPeerCount < 1) {
-        selectedPeers.push(peer);
-        bootstrapPeerCount++;
-      }
-      // If we have less than 3 total peers, add non-bootstrap peers
-      else if (selectedPeers.length < 3 && !peer.tags.has(Tags.BOOTSTRAP)) {
-        selectedPeers.push(peer);
-      }
-    });
+    // Filter the peers that match the specified peerIds
+    const matchingPeers = peerIds
+      ? allPeersForProtocol.filter((peer) => peerIds.includes(peer.id))
+      : [];
 
-    if (bootstrapPeerCount === 0) {
-      this.log(`warning: no bootstrap peers found, using random peers`);
+    // Filter remaining peers excluding bootstrap and specified peerIds
+    const remainingPeers = allPeersForProtocol.filter(
+      (peer) => peer !== bootstrapPeer && !matchingPeers.includes(peer),
+    );
+
+    // Initialize the list of selected peers
+    const selectedPeers: Peer[] = [];
+
+    // Add the bootstrap peer if available and required
+    if (bootstrapPeer) {
+      selectedPeers.push(bootstrapPeer);
     }
 
-    return selectedPeers;
+    // Add the specified peerIds if available
+    selectedPeers.push(...matchingPeers);
+
+    // Fill up to numPeers with remaining random peers if needed
+    while (selectedPeers.length < numPeers && remainingPeers.length > 0) {
+      selectedPeers.push(remainingPeers.shift()!);
+    }
+
+    // Trim the result to the specified number of peers if more were added
+    return selectedPeers.slice(0, numPeers);
   }
 
   protected async newStream(peer: Peer): Promise<Stream> {
