@@ -1,7 +1,7 @@
 import nodeCrypto from "crypto";
 
 import {
-  getPublicKey,
+  getPublicKey as secpGetPublicKey,
   sign as secpSign,
   etc as secpUtils
 } from "@noble/secp256k1";
@@ -48,7 +48,7 @@ export function generateSymmetricKey(): Uint8Array {
  * Return the public key for the given private key, to be used for asymmetric
  * encryption.
  */
-export { getPublicKey };
+export const getPublicKey = secpGetPublicKey;
 
 /**
  * ECDSA Sign a message with the given private key.
