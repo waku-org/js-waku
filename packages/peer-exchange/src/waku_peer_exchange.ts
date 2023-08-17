@@ -1,7 +1,6 @@
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
 import { EnrDecoder } from "@waku/enr";
 import {
-  Codecs,
   IPeerExchange,
   Libp2pComponents,
   PeerExchangeQueryParams,
@@ -16,7 +15,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import { PeerExchangeRPC } from "./rpc.js";
 
-export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
+const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
 const log = debug("waku:peer-exchange");
 
@@ -28,7 +27,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
    * @param components - libp2p components
    */
   constructor(components: Libp2pComponents) {
-    super(Codecs.PeerExchange, components, log);
+    super(PeerExchangeCodec, components, log);
   }
 
   /**
@@ -43,7 +42,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
       numPeers: BigInt(numPeers),
     });
 
-    const peer = await this.getPeer(params.peerId);
+    const peer = await this.getPeers(params.peerId && [params.peerId]);
 
     const stream = await this.newStream(peer);
 

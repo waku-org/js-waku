@@ -13,7 +13,6 @@ import { DefaultPubSubTopic } from "@waku/core";
 import {
   ActiveSubscriptions,
   Callback,
-  Codecs,
   IAsyncIterator,
   IDecodedMessage,
   IDecoder,
@@ -42,6 +41,8 @@ export type Observer<T extends IDecodedMessage> = {
 export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
 export type ContentTopic = string;
 
+const RelayCodec = "/vac/waku/relay/2.0.0";
+
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
  * Throws if libp2p.pubsub does not support Waku Relay
@@ -50,7 +51,7 @@ class Relay implements IRelay {
   private readonly pubSubTopic: string;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
-  public static multicodec: string = Codecs.Relay;
+  public static multicodec: string = RelayCodec;
   public readonly gossipSub: GossipSub;
 
   /**
@@ -265,7 +266,7 @@ export function wakuGossipSub(
       fallbackToFloodsub: false,
     };
     const pubsub = new GossipSub(components, init);
-    pubsub.multicodecs = [Codecs.Relay];
+    pubsub.multicodecs = [RelayCodec];
     return pubsub;
   };
 }
