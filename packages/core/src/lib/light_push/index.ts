@@ -1,6 +1,5 @@
 import type { PeerId } from "@libp2p/interface-peer-id";
 import {
-  Codecs,
   IEncoder,
   ILightPush,
   IMessage,
@@ -27,6 +26,8 @@ const log = debug("waku:light-push");
 
 export { PushResponse };
 
+const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
+
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
@@ -34,7 +35,7 @@ class LightPush extends BaseProtocol implements ILightPush {
   options: ProtocolCreateOptions;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(Codecs.LightPush, libp2p.components, log);
+    super(LightPushCodec, libp2p.components);
     this.options = options || {};
   }
 
@@ -65,7 +66,8 @@ class LightPush extends BaseProtocol implements ILightPush {
     }
 
     const query = PushRpc.createRequest(protoMessage, pubSubTopic);
-    const peers = await this.getPeers(opts?.peerId);
+
+    const peers = await this.getPeers(3, true, opts?.peerId && [opts?.peerId]);
 
     const promises = peers.map(async (peer) => {
       let error: SendError | undefined;

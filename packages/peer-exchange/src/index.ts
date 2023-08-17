@@ -1,7 +1,7 @@
 export {
   wakuPeerExchange,
-  PeerExchangeCodec,
   WakuPeerExchange,
+  PeerExchangeCodec,
 } from "./waku_peer_exchange.js";
 export {
   wakuPeerExchangeDiscovery,
