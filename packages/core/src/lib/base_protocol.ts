@@ -51,6 +51,14 @@ export class BaseProtocol implements IBaseProtocol {
     return peer;
   }
 
+  /**
+   * Retrieves a list of peers based on the specified criteria.
+   *
+   * @param numPeers - The number of peers to retrieve. If you need all available peers, specify a large number.
+   * @param includeBootstrap - If true, includes a bootstrap peer in the result. Useful for protocols like Filter and Store that require only one peer for now.
+   * @param peerIds - Optional list of specific peer IDs to include in the result. This allows for the inclusion of specific peers if needed.
+   * @returns A Promise that resolves to an array of peers based on the specified criteria.
+   */
   protected async getPeers(
     numPeers: number,
     includeBootstrap: boolean,
