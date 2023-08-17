@@ -52,7 +52,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       log("Failed to send waku light push: message is bigger than 1MB");
       return {
         recipients,
-        errors: [SendError.SIZE_TOO_BIG],
+        errors: [SendError.SIZE_TOO_BIG]
       };
     }
 
@@ -61,7 +61,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       log("Failed to encode to protoMessage, aborting push");
       return {
         recipients,
-        errors: [SendError.ENCODE_FAILED],
+        errors: [SendError.ENCODE_FAILED]
       };
     }
 
@@ -73,14 +73,14 @@ class LightPush extends BaseProtocol implements ILightPush {
       let error: SendError | undefined;
 
       const stream = await this.newStream(peer);
-      
+
       try {
         const res = await pipe(
           [query.encode()],
           lp.encode,
           stream,
           lp.decode,
-          async (source) => await all(source),
+          async (source) => await all(source)
         );
         try {
           const bytes = new Uint8ArrayList();
@@ -111,7 +111,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
     const results = await Promise.allSettled(promises);
     const successfulResults = results.filter(
-      (result) => result.status === "fulfilled",
+      (result) => result.status === "fulfilled"
     ) as PromiseFulfilledResult<{
       recipients: PeerId[];
       error: SendError | undefined;
@@ -123,7 +123,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
     return {
       recipients,
-      errors,
+      errors
     };
   }
 }

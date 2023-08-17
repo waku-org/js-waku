@@ -150,7 +150,7 @@ export function defaultPeerDiscoveries(): ((
 ) => PeerDiscovery)[] {
   const discoveries = [
     wakuDnsDiscovery([enrTree["PROD"]], DEFAULT_NODE_REQUIREMENTS),
-    wakuPeerExchangeDiscovery(),
+    wakuPeerExchangeDiscovery()
   ];
   return discoveries;
 }

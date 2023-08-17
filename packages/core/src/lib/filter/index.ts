@@ -38,7 +38,7 @@ const log = debug("waku:filter:v2");
 
 const FilterCodec = {
   SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
-  PUSH: "/vac/waku/filter-push/2.0.0-beta1",
+  PUSH: "/vac/waku/filter-push/2.0.0-beta1"
 };
 
 type SubscriptionCallback<T extends IDecodedMessage> = {

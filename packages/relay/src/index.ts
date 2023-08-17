@@ -105,7 +105,7 @@ class Relay implements IRelay {
       log("Failed to send waku relay: message is bigger that 1MB");
       return {
         recipients,
-        errors: [SendError.SIZE_TOO_BIG],
+        errors: [SendError.SIZE_TOO_BIG]
       };
     }
 
@@ -114,7 +114,7 @@ class Relay implements IRelay {
       log("Failed to encode message, aborting publish");
       return {
         recipients,
-        errors: [SendError.ENCODE_FAILED],
+        errors: [SendError.ENCODE_FAILED]
       };
     }
 
