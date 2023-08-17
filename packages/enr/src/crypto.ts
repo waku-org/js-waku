@@ -7,6 +7,14 @@ import {
 import { concat } from "@waku/utils/bytes";
 import sha3 from "js-sha3";
 
+/**
+ * ECDSA Sign a message with the given private key.
+ *
+ *  @param message The message to sign, usually a hash.
+ *  @param privateKey The ECDSA private key to use to sign the message.
+ *
+ *  @returns The signature and the recovery id concatenated.
+ */
 export async function sign(
   message: Uint8Array,
   privateKey: Uint8Array
