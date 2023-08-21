@@ -4,7 +4,7 @@ import type {
   IPeerExchange,
   Libp2pComponents,
   PeerExchangeQueryParams,
-  PeerInfo,
+  PeerInfo
 } from "@waku/interfaces";
 import { isDefined } from "@waku/utils";
 import debug from "debug";
@@ -42,7 +42,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
     const { numPeers } = params;
 
     const rpcQuery = PeerExchangeRPC.createRequest({
-      numPeers: BigInt(numPeers),
+      numPeers: BigInt(numPeers)
     });
 
     const peer = await this.getPeer(params.peerId);

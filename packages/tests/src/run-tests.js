@@ -4,7 +4,7 @@ import { promisify } from "util";
 const execAsync = promisify(exec);
 
 const WAKUNODE_IMAGE =
-  process.env.WAKUNODE_IMAGE || "statusteam/nim-waku:v0.18.0";
+  process.env.WAKUNODE_IMAGE || "statusteam/nim-waku:v0.19.0";
 
 async function main() {
   try {
@@ -25,9 +25,10 @@ async function main() {
       "ts-node/register",
       "--project",
       "./tsconfig.dev.json",
+      ...process.argv.slice(2)
     ],
     {
-      stdio: "inherit",
+      stdio: "inherit"
     }
   );
 

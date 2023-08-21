@@ -1,4 +1,4 @@
-import { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import type { ENRKey, ENRValue } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 
@@ -18,7 +18,7 @@ export class EnrCreator {
     return ENR.create({
       ...kvs,
       id: utf8ToBytes("v4"),
-      secp256k1: publicKey,
+      secp256k1: publicKey
     });
   }
 

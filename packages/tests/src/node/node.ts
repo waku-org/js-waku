@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import { DefaultPubSubTopic } from "@waku/core";
@@ -17,7 +17,7 @@ import {
   KeyPair,
   LogLevel,
   MessageRpcQuery,
-  MessageRpcResponse,
+  MessageRpcResponse
 } from "./interfaces.js";
 
 const log = debug("waku:node");
@@ -27,7 +27,7 @@ const WAKU_SERVICE_NODE_PARAMS =
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 const DOCKER_IMAGE_NAME =
-  process.env.WAKUNODE_IMAGE || "statusteam/nim-waku:v0.18.0";
+  process.env.WAKUNODE_IMAGE || "statusteam/nim-waku:v0.19.0";
 
 const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
 
@@ -70,7 +70,7 @@ export class NimGoNode {
     return {
       payload: Buffer.from(message.payload).toString("base64"),
       contentTopic: message.contentTopic,
-      timestamp,
+      timestamp
     };
   }
 
@@ -133,7 +133,7 @@ export class NimGoNode {
         tcpPort,
         websocketPort,
         ...(args?.peerExchange && { discv5UdpPort }),
-        ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter }),
+        ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter })
       },
       { rpcAddress: "0.0.0.0" },
       _args
@@ -201,7 +201,7 @@ export class NimGoNode {
 
     return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
       pubSubTopic,
-      message,
+      message
     ]);
   }
 
@@ -250,7 +250,7 @@ export class NimGoNode {
     return this.rpcCall<boolean>("post_waku_v2_private_v1_asymmetric_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       message,
-      "0x" + bytesToHex(publicKey),
+      "0x" + bytesToHex(publicKey)
     ]);
   }
 
@@ -264,7 +264,7 @@ export class NimGoNode {
       "get_waku_v2_private_v1_asymmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
-        "0x" + bytesToHex(privateKey),
+        "0x" + bytesToHex(privateKey)
       ]
     );
   }
@@ -292,7 +292,7 @@ export class NimGoNode {
     return this.rpcCall<boolean>("post_waku_v2_private_v1_symmetric_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       message,
-      "0x" + bytesToHex(symKey),
+      "0x" + bytesToHex(symKey)
     ]);
   }
 
@@ -306,7 +306,7 @@ export class NimGoNode {
       "get_waku_v2_private_v1_symmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
-        "0x" + bytesToHex(symKey),
+        "0x" + bytesToHex(symKey)
       ]
     );
   }
@@ -359,9 +359,9 @@ export class NimGoNode {
         jsonrpc: "2.0",
         id: 1,
         method,
-        params,
+        params
       }),
-      headers: new Headers({ "Content-Type": "application/json" }),
+      headers: new Headers({ "Content-Type": "application/json" })
     });
     const json = await res.json();
     log(`RPC Response: `, JSON.stringify(json));
@@ -382,7 +382,7 @@ export function defaultArgs(): Args {
     relay: false,
     rpcAdmin: true,
     websocketSupport: true,
-    logLevel: LogLevel.Trace,
+    logLevel: LogLevel.Trace
   };
 }
 

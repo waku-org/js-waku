@@ -1,10 +1,10 @@
-import { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import {
   createDecoder,
   createEncoder,
   DecodedMessage,
   DefaultPubSubTopic,
-  waitForRemotePeer,
+  waitForRemotePeer
 } from "@waku/core";
 import { RelayNode, SendError } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -12,12 +12,12 @@ import {
   createDecoder as createEciesDecoder,
   createEncoder as createEciesEncoder,
   generatePrivateKey,
-  getPublicKey,
+  getPublicKey
 } from "@waku/message-encryption/ecies";
 import {
   createDecoder as createSymDecoder,
   createEncoder as createSymEncoder,
-  generateSymmetricKey,
+  generateSymmetricKey
 } from "@waku/message-encryption/symmetric";
 import { createRelayNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
@@ -29,7 +29,7 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
-  NOISE_KEY_3,
+  NOISE_KEY_3
 } from "../src/index.js";
 import { MessageRpcResponse } from "../src/node/interfaces.js";
 import { base64ToUtf8, NimGoNode } from "../src/node/node.js";
@@ -63,19 +63,19 @@ describe("Waku Relay [node only]", () => {
         ),
         createRelayNode({
           staticNoiseKey: NOISE_KEY_2,
-          libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-        }).then((waku) => waku.start().then(() => waku)),
+          libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+        }).then((waku) => waku.start().then(() => waku))
       ]);
       log("Instances started, adding waku2 to waku1's address book");
       await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
-        multiaddrs: waku2.libp2p.getMultiaddrs(),
+        multiaddrs: waku2.libp2p.getMultiaddrs()
       });
       await waku1.dial(waku2.libp2p.peerId);
 
       log("Wait for mutual pubsub subscription");
       await Promise.all([
         waitForRemotePeer(waku1, [Protocols.Relay]),
-        waitForRemotePeer(waku2, [Protocols.Relay]),
+        waitForRemotePeer(waku2, [Protocols.Relay])
       ]);
       log("before each hook done");
     });
@@ -115,7 +115,7 @@ describe("Waku Relay [node only]", () => {
       const messageTimestamp = new Date("1995-12-17T03:24:00");
       const message = {
         payload: utf8ToBytes(messageText),
-        timestamp: messageTimestamp,
+        timestamp: messageTimestamp
       };
 
       const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
@@ -161,10 +161,10 @@ describe("Waku Relay [node only]", () => {
       });
 
       await waku1.relay.send(barEncoder, {
-        payload: utf8ToBytes(barMessageText),
+        payload: utf8ToBytes(barMessageText)
       });
       await waku1.relay.send(fooEncoder, {
-        payload: utf8ToBytes(fooMessageText),
+        payload: utf8ToBytes(fooMessageText)
       });
 
       while (!fooMessages.length && !barMessages.length) {
@@ -195,11 +195,11 @@ describe("Waku Relay [node only]", () => {
 
       const eciesEncoder = createEciesEncoder({
         contentTopic: asymTopic,
-        publicKey,
+        publicKey
       });
       const symEncoder = createSymEncoder({
         contentTopic: symTopic,
-        symKey,
+        symKey
       });
 
       const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
@@ -247,7 +247,7 @@ describe("Waku Relay [node only]", () => {
         }
       );
       await waku1.relay.send(createEncoder({ contentTopic }), {
-        payload: utf8ToBytes(messageText),
+        payload: utf8ToBytes(messageText)
       });
 
       await receivedMsgPromise;
@@ -278,32 +278,32 @@ describe("Waku Relay [node only]", () => {
       [waku1, waku2, waku3] = await Promise.all([
         createRelayNode({
           pubSubTopic: pubSubTopic,
-          staticNoiseKey: NOISE_KEY_1,
+          staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
           pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_2,
-          libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+          libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          staticNoiseKey: NOISE_KEY_3,
-        }).then((waku) => waku.start().then(() => waku)),
+          staticNoiseKey: NOISE_KEY_3
+        }).then((waku) => waku.start().then(() => waku))
       ]);
 
       await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
-        multiaddrs: waku2.libp2p.getMultiaddrs(),
+        multiaddrs: waku2.libp2p.getMultiaddrs()
       });
       await waku3.libp2p.peerStore.merge(waku2.libp2p.peerId, {
-        multiaddrs: waku2.libp2p.getMultiaddrs(),
+        multiaddrs: waku2.libp2p.getMultiaddrs()
       });
       await Promise.all([
         waku1.dial(waku2.libp2p.peerId),
-        waku3.dial(waku2.libp2p.peerId),
+        waku3.dial(waku2.libp2p.peerId)
       ]);
 
       await Promise.all([
         waitForRemotePeer(waku1, [Protocols.Relay]),
-        waitForRemotePeer(waku2, [Protocols.Relay]),
+        waitForRemotePeer(waku2, [Protocols.Relay])
       ]);
 
       const messageText = "Communicating using a custom pubsub topic";
@@ -324,7 +324,7 @@ describe("Waku Relay [node only]", () => {
       );
 
       await waku1.relay.send(TestEncoder, {
-        payload: utf8ToBytes(messageText),
+        payload: utf8ToBytes(messageText)
       });
 
       const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
@@ -344,48 +344,48 @@ describe("Waku Relay [node only]", () => {
       [waku1, waku2] = await Promise.all([
         createRelayNode({
           pubSubTopic: pubSubTopic,
-          staticNoiseKey: NOISE_KEY_1,
+          staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
           pubSubTopic: pubSubTopic,
           staticNoiseKey: NOISE_KEY_2,
-          libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-        }).then((waku) => waku.start().then(() => waku)),
+          libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+        }).then((waku) => waku.start().then(() => waku))
       ]);
 
       await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
-        multiaddrs: waku2.libp2p.getMultiaddrs(),
+        multiaddrs: waku2.libp2p.getMultiaddrs()
       });
       await Promise.all([waku1.dial(waku2.libp2p.peerId)]);
 
       await Promise.all([
         waitForRemotePeer(waku1, [Protocols.Relay]),
-        waitForRemotePeer(waku2, [Protocols.Relay]),
+        waitForRemotePeer(waku2, [Protocols.Relay])
       ]);
 
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
           void waku2.relay.subscribe([TestDecoder], () =>
             resolve({
-              payload: new Uint8Array([]),
+              payload: new Uint8Array([])
             } as DecodedMessage)
           );
         }
       );
 
       let sendResult = await waku1.relay.send(TestEncoder, {
-        payload: generateRandomUint8Array(1 * MB),
+        payload: generateRandomUint8Array(1 * MB)
       });
       expect(sendResult.recipients.length).to.eq(1);
 
       sendResult = await waku1.relay.send(TestEncoder, {
-        payload: generateRandomUint8Array(1 * MB + 65536),
+        payload: generateRandomUint8Array(1 * MB + 65536)
       });
       expect(sendResult.recipients.length).to.eq(0);
       expect(sendResult.error).to.eq(SendError.SIZE_TOO_BIG);
 
       sendResult = await waku1.relay.send(TestEncoder, {
-        payload: generateRandomUint8Array(2 * MB),
+        payload: generateRandomUint8Array(2 * MB)
       });
       expect(sendResult.recipients.length).to.eq(0);
       expect(sendResult.error).to.eq(SendError.SIZE_TOO_BIG);
@@ -402,7 +402,7 @@ describe("Waku Relay [node only]", () => {
     beforeEach(async function () {
       this.timeout(30_000);
       waku = await createRelayNode({
-        staticNoiseKey: NOISE_KEY_1,
+        staticNoiseKey: NOISE_KEY_1
       });
       await waku.start();
 
@@ -469,7 +469,7 @@ describe("Waku Relay [node only]", () => {
       await nwaku.sendMessage(
         NimGoNode.toMessageRpcQuery({
           contentTopic: TestContentTopic,
-          payload: utf8ToBytes(messageText),
+          payload: utf8ToBytes(messageText)
         })
       );
 
@@ -499,11 +499,11 @@ describe("Waku Relay [node only]", () => {
         [waku1, waku2] = await Promise.all([
           createRelayNode({
             staticNoiseKey: NOISE_KEY_1,
-            emitSelf: true,
+            emitSelf: true
           }).then((waku) => waku.start().then(() => waku)),
           createRelayNode({
-            staticNoiseKey: NOISE_KEY_2,
-          }).then((waku) => waku.start().then(() => waku)),
+            staticNoiseKey: NOISE_KEY_2
+          }).then((waku) => waku.start().then(() => waku))
         ]);
 
         nwaku = new NimGoNode(makeLogFileName(this));
@@ -512,13 +512,13 @@ describe("Waku Relay [node only]", () => {
         const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
         await Promise.all([
           waku1.dial(nwakuMultiaddr),
-          waku2.dial(nwakuMultiaddr),
+          waku2.dial(nwakuMultiaddr)
         ]);
 
         // Wait for identify protocol to finish
         await Promise.all([
           waitForRemotePeer(waku1, [Protocols.Relay]),
-          waitForRemotePeer(waku2, [Protocols.Relay]),
+          waitForRemotePeer(waku2, [Protocols.Relay])
         ]);
 
         await delay(2000);

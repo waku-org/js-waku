@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import type { IRelay } from "@waku/interfaces";
 import type { KeepAliveOptions } from "@waku/interfaces";
 import debug from "debug";
@@ -44,7 +44,7 @@ export class KeepAliveManager {
     if (relay && relayPeriodSecs !== 0) {
       const encoder = createEncoder({
         contentTopic: RelayPingContentTopic,
-        ephemeral: true,
+        ephemeral: true
       });
       const interval = setInterval(() => {
         log("Sending Waku Relay ping message");
@@ -73,7 +73,7 @@ export class KeepAliveManager {
   public stopAll(): void {
     for (const timer of [
       ...Object.values(this.pingKeepAliveTimers),
-      ...Object.values(this.relayKeepAliveTimers),
+      ...Object.values(this.relayKeepAliveTimers)
     ]) {
       clearInterval(timer);
     }

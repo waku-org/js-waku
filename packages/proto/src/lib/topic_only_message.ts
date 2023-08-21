@@ -34,7 +34,7 @@ export namespace TopicOnlyMessage {
         },
         (reader, length) => {
           const obj: any = {
-            contentTopic: "",
+            contentTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;

@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { multiaddr } from "@multiformats/multiaddr";
 import * as secp from "@noble/secp256k1";
@@ -14,7 +14,7 @@ import { EnrEncoder } from "./encoder.js";
 import {
   ENR,
   TransportProtocol,
-  TransportProtocolPerIpVersion,
+  TransportProtocolPerIpVersion
 } from "./enr.js";
 import { getPrivateKeyFromPeerId } from "./peer_id.js";
 
@@ -30,14 +30,14 @@ describe("ENR", function () {
         multiaddr("/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"),
         multiaddr(
           "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
-        ),
+        )
       ];
 
       enr.waku2 = {
         relay: true,
         store: false,
         filter: true,
-        lightPush: false,
+        lightPush: false
       };
 
       const txt = await EnrEncoder.toString(enr, privateKey);
@@ -65,7 +65,7 @@ describe("ENR", function () {
         relay: true,
         store: false,
         filter: true,
-        lightPush: false,
+        lightPush: false
       });
     });
 
@@ -428,7 +428,7 @@ describe("ENR", function () {
         relay: false,
         store: false,
         filter: false,
-        lightPush: false,
+        lightPush: false
       };
     });
 

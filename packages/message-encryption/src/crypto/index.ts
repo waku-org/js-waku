@@ -9,7 +9,7 @@ import { Asymmetric, Symmetric } from "../constants.js";
 declare const self: Record<string, any> | undefined;
 const crypto: { node?: any; web?: any } = {
   node: nodeCrypto,
-  web: typeof self === "object" && "crypto" in self ? self.crypto : undefined,
+  web: typeof self === "object" && "crypto" in self ? self.crypto : undefined
 };
 
 export function getSubtle(): SubtleCrypto {
@@ -63,7 +63,7 @@ export async function sign(
 ): Promise<Uint8Array> {
   const [signature, recoveryId] = await secp.sign(message, privateKey, {
     recovered: true,
-    der: false,
+    der: false
   });
   return concat(
     [signature, new Uint8Array([recoveryId])],

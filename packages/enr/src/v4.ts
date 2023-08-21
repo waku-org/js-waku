@@ -8,7 +8,7 @@ export async function sign(
   msg: Uint8Array
 ): Promise<Uint8Array> {
   return secp.sign(keccak256(msg), privKey, {
-    der: false,
+    der: false
   });
 }
 

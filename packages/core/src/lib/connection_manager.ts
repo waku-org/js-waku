@@ -1,6 +1,6 @@
-import type { PeerId } from "@libp2p/interface-peer-id";
-import type { PeerInfo } from "@libp2p/interface-peer-info";
-import type { Peer } from "@libp2p/interface-peer-store";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerInfo } from "@libp2p/interface/peer-info";
+import type { Peer } from "@libp2p/interface/peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
 import {
   ConnectionManagerOptions,
@@ -9,7 +9,7 @@ import {
   IPeersByDiscoveryEvents,
   IRelay,
   KeepAliveOptions,
-  PeersByDiscoveryResult,
+  PeersByDiscoveryResult
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
 import debug from "debug";
@@ -92,12 +92,12 @@ export class ConnectionManager
     return {
       DISCOVERED: {
         [Tags.BOOTSTRAP]: peersDiscoveredByBootstrap,
-        [Tags.PEER_EXCHANGE]: peersDiscoveredByPeerExchange,
+        [Tags.PEER_EXCHANGE]: peersDiscoveredByPeerExchange
       },
       CONNECTED: {
         [Tags.BOOTSTRAP]: peersConnectedByBootstrap,
-        [Tags.PEER_EXCHANGE]: peersConnectedByPeerExchange,
-      },
+        [Tags.PEER_EXCHANGE]: peersConnectedByPeerExchange
+      }
     };
   }
 
@@ -113,7 +113,7 @@ export class ConnectionManager
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
       maxParallelDials: DEFAULT_MAX_PARALLEL_DIALS,
-      ...options,
+      ...options
     };
 
     this.keepAliveManager = new KeepAliveManager(keepAliveOptions, relay);
@@ -324,7 +324,7 @@ export class ConnectionManager
               ? EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP
               : EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
             {
-              detail: peerId,
+              detail: peerId
             }
           )
         );
@@ -361,7 +361,7 @@ export class ConnectionManager
               new CustomEvent<PeerId>(
                 EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP,
                 {
-                  detail: peerId,
+                  detail: peerId
                 }
               )
             );
@@ -371,7 +371,7 @@ export class ConnectionManager
             new CustomEvent<PeerId>(
               EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
               {
-                detail: peerId,
+                detail: peerId
               }
             )
           );
@@ -382,7 +382,7 @@ export class ConnectionManager
       return (evt: CustomEvent<PeerId>): void => {
         this.keepAliveManager.stop(evt.detail);
       };
-    },
+    }
   };
 
   /**

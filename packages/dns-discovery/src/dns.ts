@@ -1,32 +1,20 @@
 import { ENR, EnrDecoder } from "@waku/enr";
-import type { IEnr } from "@waku/interfaces";
+import type {
+  DnsClient,
+  IEnr,
+  NodeCapabilityCount,
+  SearchContext
+} from "@waku/interfaces";
 import debug from "debug";
 
 import { DnsOverHttps } from "./dns_over_https.js";
 import { ENRTree } from "./enrtree.js";
 import {
   fetchNodesUntilCapabilitiesFulfilled,
-  yieldNodesUntilCapabilitiesFulfilled,
+  yieldNodesUntilCapabilitiesFulfilled
 } from "./fetch_nodes.js";
 
 const log = debug("waku:discovery:dns");
-
-export type SearchContext = {
-  domain: string;
-  publicKey: string;
-  visits: { [key: string]: boolean };
-};
-
-export interface DnsClient {
-  resolveTXT: (domain: string) => Promise<string[]>;
-}
-
-export interface NodeCapabilityCount {
-  relay: number;
-  store: number;
-  filter: number;
-  lightPush: number;
-}
 
 export class DnsNodeDiscovery {
   private readonly dns: DnsClient;
@@ -58,7 +46,7 @@ export class DnsNodeDiscovery {
     const context: SearchContext = {
       domain,
       publicKey,
-      visits: {},
+      visits: {}
     };
 
     const peers = await fetchNodesUntilCapabilitiesFulfilled(
@@ -71,7 +59,7 @@ export class DnsNodeDiscovery {
       peers.map((peer) => {
         return {
           id: peer.peerId?.toString(),
-          multiaddrs: peer.multiaddrs?.map((ma) => ma.toString()),
+          multiaddrs: peer.multiaddrs?.map((ma) => ma.toString())
         };
       })
     );
@@ -95,7 +83,7 @@ export class DnsNodeDiscovery {
     const context: SearchContext = {
       domain,
       publicKey,
-      visits: {},
+      visits: {}
     };
 
     for await (const peer of yieldNodesUntilCapabilitiesFulfilled(

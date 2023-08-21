@@ -1,7 +1,5 @@
-import type { IEnr, Waku2 } from "@waku/interfaces";
+import type { IEnr, NodeCapabilityCount, Waku2 } from "@waku/interfaces";
 import debug from "debug";
-
-import { NodeCapabilityCount } from "./dns.js";
 
 const log = debug("waku:discovery:fetch_nodes");
 
@@ -19,7 +17,7 @@ export async function fetchNodesUntilCapabilitiesFulfilled(
     relay: wantedNodeCapabilityCount.relay ?? 0,
     store: wantedNodeCapabilityCount.store ?? 0,
     filter: wantedNodeCapabilityCount.filter ?? 0,
-    lightPush: wantedNodeCapabilityCount.lightPush ?? 0,
+    lightPush: wantedNodeCapabilityCount.lightPush ?? 0
   };
 
   const maxSearches =
@@ -29,7 +27,7 @@ export async function fetchNodesUntilCapabilitiesFulfilled(
     relay: 0,
     store: 0,
     filter: 0,
-    lightPush: 0,
+    lightPush: 0
   };
 
   let totalSearches = 0;
@@ -70,7 +68,7 @@ export async function* yieldNodesUntilCapabilitiesFulfilled(
     relay: wantedNodeCapabilityCount.relay ?? 0,
     store: wantedNodeCapabilityCount.store ?? 0,
     filter: wantedNodeCapabilityCount.filter ?? 0,
-    lightPush: wantedNodeCapabilityCount.lightPush ?? 0,
+    lightPush: wantedNodeCapabilityCount.lightPush ?? 0
   };
 
   const maxSearches =
@@ -80,7 +78,7 @@ export async function* yieldNodesUntilCapabilitiesFulfilled(
     relay: 0,
     store: 0,
     filter: 0,
-    lightPush: 0,
+    lightPush: 0
   };
 
   let totalSearches = 0;
@@ -174,6 +172,6 @@ function missingCapabilities(
     relay: actual.relay < wanted.relay,
     store: actual.store < wanted.store,
     filter: actual.filter < wanted.filter,
-    lightPush: actual.lightPush < wanted.lightPush,
+    lightPush: actual.lightPush < wanted.lightPush
   };
 }

@@ -1,18 +1,17 @@
-import tests from "@libp2p/interface-peer-discovery-compliance-tests";
-import { EventEmitter } from "@libp2p/interfaces/events";
+import { EventEmitter } from "@libp2p/interface/events";
+import tests from "@libp2p/interface-compliance-tests/peer-discovery";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { PersistentPeerStore } from "@libp2p/peer-store";
 import {
   DnsNodeDiscovery,
   enrTree,
   PeerDiscoveryDns,
-  wakuDnsDiscovery,
+  wakuDnsDiscovery
 } from "@waku/dns-discovery";
 import { Libp2pComponents } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import { MemoryDatastore } from "datastore-core/memory";
-import { Datastore } from "interface-datastore";
 
 import { delay } from "../src/delay.js";
 
@@ -27,20 +26,20 @@ describe("DNS Discovery: Compliance Test", function () {
         peerStore: new PersistentPeerStore({
           events: new EventEmitter(),
           peerId: await createSecp256k1PeerId(),
-          datastore: new MemoryDatastore() as any as Datastore,
-        }),
+          datastore: new MemoryDatastore()
+        })
       } as unknown as Libp2pComponents;
 
       return new PeerDiscoveryDns(components, {
         enrUrls: [enrTree["PROD"]],
         wantedNodeCapabilityCount: {
-          filter: 1,
-        },
+          filter: 1
+        }
       });
     },
     async teardown() {
       //
-    },
+    }
   });
 });
 
@@ -59,13 +58,13 @@ describe("DNS Node Discovery [live data]", function () {
       relay: maxQuantity,
       store: maxQuantity,
       filter: maxQuantity,
-      lightPush: maxQuantity,
+      lightPush: maxQuantity
     };
 
     const waku = await createLightNode({
       libp2p: {
-        peerDiscovery: [wakuDnsDiscovery([enrTree["PROD"]], nodeRequirements)],
-      },
+        peerDiscovery: [wakuDnsDiscovery([enrTree["PROD"]], nodeRequirements)]
+      }
     });
 
     await waku.start();
@@ -94,7 +93,7 @@ describe("DNS Node Discovery [live data]", function () {
       relay: maxQuantity,
       store: maxQuantity,
       filter: maxQuantity,
-      lightPush: maxQuantity,
+      lightPush: maxQuantity
     });
 
     expect(peers.length).to.eq(maxQuantity);
@@ -118,10 +117,10 @@ describe("DNS Node Discovery [live data]", function () {
       libp2p: {
         peerDiscovery: [
           wakuDnsDiscovery([enrTree["PROD"], enrTree["TEST"]], {
-            filter: nodesToConnect,
-          }),
-        ],
-      },
+            filter: nodesToConnect
+          })
+        ]
+      }
     });
 
     await waku.start();

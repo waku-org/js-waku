@@ -13,9 +13,9 @@ export class PushRpc {
       requestId: uuid(),
       request: {
         message: message,
-        pubsubTopic: pubSubTopic,
+        pubsubTopic: pubSubTopic
       },
-      response: undefined,
+      response: undefined
     });
   }
 

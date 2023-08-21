@@ -32,9 +32,9 @@ describe("ConnectionManager", function () {
           tags: {
             [Tags.BOOTSTRAP]: {
               value: 50,
-              ttl: 1200000,
-            },
-          },
+              ttl: 1200000
+            }
+          }
         });
 
         const peerDiscoveryBootstrap = new Promise<boolean>((resolve) => {
@@ -60,9 +60,9 @@ describe("ConnectionManager", function () {
           tags: {
             [Tags.PEER_EXCHANGE]: {
               value: 50,
-              ttl: 1200000,
-            },
-          },
+              ttl: 1200000
+            }
+          }
         });
 
         const peerDiscoveryPeerExchange = new Promise<boolean>((resolve) => {
@@ -92,9 +92,9 @@ describe("ConnectionManager", function () {
           tags: {
             [Tags.BOOTSTRAP]: {
               value: 50,
-              ttl: 1200000,
-            },
-          },
+              ttl: 1200000
+            }
+          }
         });
 
         const peerConnectedBootstrap = new Promise<boolean>((resolve) => {
@@ -119,9 +119,9 @@ describe("ConnectionManager", function () {
           tags: {
             [Tags.PEER_EXCHANGE]: {
               value: 50,
-              ttl: 1200000,
-            },
-          },
+              ttl: 1200000
+            }
+          }
         });
 
         const peerConnectedPeerExchange = new Promise<boolean>((resolve) => {
@@ -261,7 +261,7 @@ describe("ConnectionManager", function () {
             await delay(500);
             waku.libp2p.dispatchEvent(
               new CustomEvent("peer:discovery", {
-                detail: await createSecp256k1PeerId(),
+                detail: await createSecp256k1PeerId()
               })
             );
           }
@@ -315,7 +315,7 @@ describe("ConnectionManager", function () {
           for (let i = 0; i < totalPxPeers; i++) {
             waku.libp2p.dispatchEvent(
               new CustomEvent("peer:discovery", {
-                detail: await createSecp256k1PeerId(),
+                detail: await createSecp256k1PeerId()
               })
             );
             await delay(500);

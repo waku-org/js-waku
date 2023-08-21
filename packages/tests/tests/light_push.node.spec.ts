@@ -11,7 +11,7 @@ import {
   delay,
   makeLogFileName,
   NimGoNode,
-  NOISE_KEY_1,
+  NOISE_KEY_1
 } from "../src/index.js";
 import { MessageRpcResponse } from "../src/node/interfaces.js";
 import { generateRandomUint8Array } from "../src/random_array.js";
@@ -20,7 +20,7 @@ const log = debug("waku:test:lightpush");
 
 const TestContentTopic = "/test/1/waku-light-push/utf8";
 const TestEncoder = createEncoder({
-  contentTopic: TestContentTopic,
+  contentTopic: TestContentTopic
 });
 
 async function runNodes(
@@ -32,12 +32,12 @@ async function runNodes(
   await nwaku.start({
     lightpush: true,
     relay: true,
-    ...nwakuOptional,
+    ...nwakuOptional
   });
 
   const waku = await createLightNode({
     pubSubTopic,
-    staticNoiseKey: NOISE_KEY_1,
+    staticNoiseKey: NOISE_KEY_1
   });
   await waku.start();
   await waku.dial(await nwaku.getMultiaddrWithId());
@@ -70,7 +70,7 @@ describe("Waku Light Push [node only]", () => {
     const messageText = "Light Push works!";
 
     const pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes(messageText),
+      payload: utf8ToBytes(messageText)
     });
     expect(pushResponse.recipients.length).to.eq(1);
 
@@ -90,12 +90,12 @@ describe("Waku Light Push [node only]", () => {
     const MB = 1024 ** 2;
 
     let pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: generateRandomUint8Array(MB),
+      payload: generateRandomUint8Array(MB)
     });
     expect(pushResponse.recipients.length).to.greaterThan(0);
 
     pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: generateRandomUint8Array(65536),
+      payload: generateRandomUint8Array(65536)
     });
     expect(pushResponse.recipients.length).to.greaterThan(0);
   });
@@ -105,7 +105,7 @@ describe("Waku Light Push [node only]", () => {
     const MB = 1024 ** 2;
 
     const pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: generateRandomUint8Array(MB + 65536),
+      payload: generateRandomUint8Array(MB + 65536)
     });
     expect(pushResponse.recipients.length).to.eq(0);
     expect(pushResponse.error).to.eq(SendError.SIZE_TOO_BIG);
@@ -142,7 +142,7 @@ describe("Waku Light Push [node only] - custom pubsub topic", () => {
       TestEncoder,
       { payload: utf8ToBytes(messageText) },
       {
-        peerId: nimPeerId,
+        peerId: nimPeerId
       }
     );
     log("Ack received", pushResponse);

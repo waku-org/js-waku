@@ -6,7 +6,7 @@ module.exports = function (config) {
     frameworks: ["webpack", "mocha"],
     files: ["src/**/!(node).spec.ts"],
     preprocessors: {
-      "src/**/!(node).spec.ts": ["webpack"],
+      "src/**/!(node).spec.ts": ["webpack"]
     },
     envPreprocessor: ["CI"],
     reporters: ["progress"],
@@ -14,8 +14,8 @@ module.exports = function (config) {
     singleRun: true,
     client: {
       mocha: {
-        timeout: 6000, // Default is 2s
-      },
+        timeout: 6000 // Default is 2s
+      }
     },
     webpack: {
       mode: "development",
@@ -27,31 +27,31 @@ module.exports = function (config) {
               {
                 loader: "ts-loader",
                 options: {
-                  configFile: "tsconfig.karma.json",
-                },
-              },
-            ],
-          },
-        ],
+                  configFile: "tsconfig.karma.json"
+                }
+              }
+            ]
+          }
+        ]
       },
       plugins: [
         new webpack.DefinePlugin({
-          "process.env.CI": process.env.CI || false,
+          "process.env.CI": process.env.CI || false
         }),
         new webpack.ProvidePlugin({
-          process: "process/browser.js",
-        }),
+          process: "process/browser.js"
+        })
       ],
       resolve: {
         extensions: [".ts", ".tsx", ".js"],
         extensionAlias: {
           ".js": [".js", ".ts"],
           ".cjs": [".cjs", ".cts"],
-          ".mjs": [".mjs", ".mts"],
-        },
+          ".mjs": [".mjs", ".mts"]
+        }
       },
       stats: { warnings: false },
-      devtool: "inline-source-map",
-    },
+      devtool: "inline-source-map"
+    }
   });
 };

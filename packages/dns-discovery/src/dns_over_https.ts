@@ -1,8 +1,7 @@
+import type { DnsClient } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 import debug from "debug";
 import { Endpoint, query, wellknown } from "dns-query";
-
-import { DnsClient } from "./dns.js";
 
 const log = debug("waku:dns-over-https");
 
@@ -42,11 +41,11 @@ export class DnsOverHttps implements DnsClient {
     try {
       const res = await query(
         {
-          question: { type: "TXT", name: domain },
+          question: { type: "TXT", name: domain }
         },
         {
           endpoints: this.endpoints,
-          retries: this.retries,
+          retries: this.retries
         }
       );
       answers = res.answers;

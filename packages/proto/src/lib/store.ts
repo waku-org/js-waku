@@ -8,7 +8,7 @@ import {
   encodeMessage,
   decodeMessage,
   message,
-  enumeration,
+  enumeration
 } from "protons-runtime";
 import type { Codec } from "protons-runtime";
 import type { Uint8ArrayList } from "uint8arraylist";
@@ -60,7 +60,7 @@ export namespace Index {
             digest: new Uint8Array(0),
             receiverTime: 0n,
             senderTime: 0n,
-            pubsubTopic: "",
+            pubsubTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -113,12 +113,12 @@ export interface PagingInfo {
 export namespace PagingInfo {
   export enum Direction {
     BACKWARD = "BACKWARD",
-    FORWARD = "FORWARD",
+    FORWARD = "FORWARD"
   }
 
   enum __DirectionValues {
     BACKWARD = 0,
-    FORWARD = 1,
+    FORWARD = 1
   }
 
   export namespace Direction {
@@ -223,7 +223,7 @@ export namespace ContentFilter {
         },
         (reader, length) => {
           const obj: any = {
-            contentTopic: "",
+            contentTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -310,7 +310,7 @@ export namespace HistoryQuery {
         },
         (reader, length) => {
           const obj: any = {
-            contentFilters: [],
+            contentFilters: []
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -371,12 +371,12 @@ export interface HistoryResponse {
 export namespace HistoryResponse {
   export enum HistoryError {
     NONE = "NONE",
-    INVALID_CURSOR = "INVALID_CURSOR",
+    INVALID_CURSOR = "INVALID_CURSOR"
   }
 
   enum __HistoryErrorValues {
     NONE = 0,
-    INVALID_CURSOR = 1,
+    INVALID_CURSOR = 1
   }
 
   export namespace HistoryError {
@@ -419,7 +419,7 @@ export namespace HistoryResponse {
         (reader, length) => {
           const obj: any = {
             messages: [],
-            error: HistoryError.NONE,
+            error: HistoryError.NONE
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -503,7 +503,7 @@ export namespace HistoryRpc {
         },
         (reader, length) => {
           const obj: any = {
-            requestId: "",
+            requestId: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -618,7 +618,7 @@ export namespace RateLimitProof {
             shareX: new Uint8Array(0),
             shareY: new Uint8Array(0),
             nullifier: new Uint8Array(0),
-            rlnIdentifier: new Uint8Array(0),
+            rlnIdentifier: new Uint8Array(0)
           };
 
           const end = length == null ? reader.len : reader.pos + length;
@@ -734,7 +734,7 @@ export namespace WakuMessage {
         (reader, length) => {
           const obj: any = {
             payload: new Uint8Array(0),
-            contentTopic: "",
+            contentTopic: ""
           };
 
           const end = length == null ? reader.len : reader.pos + length;

@@ -18,7 +18,7 @@ describe("RFC Test Vectors", () => {
       ephemeral: undefined,
       rateLimitProof: undefined,
       timestamp: undefined,
-      version: undefined,
+      version: undefined
     };
 
     const hash = messageHash(pubSubTopic, message);
@@ -38,7 +38,7 @@ describe("RFC Test Vectors", () => {
       ephemeral: undefined,
       rateLimitProof: undefined,
       timestamp: undefined,
-      version: undefined,
+      version: undefined
     };
 
     const hash = messageHash(pubSubTopic, message);
@@ -58,7 +58,7 @@ describe("RFC Test Vectors", () => {
       ephemeral: undefined,
       rateLimitProof: undefined,
       timestamp: undefined,
-      version: undefined,
+      version: undefined
     };
 
     const hash = messageHash(pubSubTopic, message);
