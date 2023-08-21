@@ -24,9 +24,9 @@ import { PushRpc } from "./push_rpc.js";
 
 const log = debug("waku:light-push");
 
-export { PushResponse };
-
 const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
+
+export { PushResponse };
 
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
