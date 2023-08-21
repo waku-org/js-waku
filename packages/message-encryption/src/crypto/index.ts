@@ -10,16 +10,17 @@ import sha3 from "js-sha3";
 import { Asymmetric, Symmetric } from "../constants.js";
 
 declare const self: Record<string, any> | undefined;
-const crypto: { node?: any; web?: any } = {
-  node: nodeCrypto,
-  web: typeof self === "object" && "crypto" in self ? self.crypto : undefined
-};
+
+// Determine the correct crypto object for the environment
+if (typeof self === "object" && "crypto" in self) {
+  globalThis.crypto = self.crypto; // Browser environment
+} else {
+  globalThis.crypto = nodeCrypto.webcrypto as unknown as Crypto; // Node.js environment
+}
 
 export function getSubtle(): SubtleCrypto {
-  if (crypto.web) {
-    return crypto.web.subtle;
-  } else if (crypto.node) {
-    return crypto.node.webcrypto.subtle;
+  if (globalThis.crypto && globalThis.crypto.subtle) {
+    return globalThis.crypto.subtle;
   } else {
     throw new Error(
       "The environment doesn't have Crypto Subtle API (if in the browser, be sure to use to be in a secure context, ie, https)"
