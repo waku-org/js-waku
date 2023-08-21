@@ -28,11 +28,11 @@ import HistoryError = proto.HistoryResponse.HistoryError;
 
 const log = debug("waku:store");
 
+export const StoreCodec = "/vac/waku/store/2.0.0-beta4";
+
 export const DefaultPageSize = 10;
 
 export { PageDirection };
-
-const StoreCodec = "/vac/waku/store/2.0.0-beta4";
 
 export interface TimeFilter {
   startTime: Date;

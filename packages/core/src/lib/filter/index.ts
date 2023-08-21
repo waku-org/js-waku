@@ -36,14 +36,14 @@ import {
 
 const log = debug("waku:filter:v2");
 
-const FilterCodec = {
-  SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
-  PUSH: "/vac/waku/filter-push/2.0.0-beta1"
-};
-
 type SubscriptionCallback<T extends IDecodedMessage> = {
   decoders: IDecoder<T>[];
   callback: Callback<T>;
+};
+
+const FilterCodecs = {
+  SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
+  PUSH: "/vac/waku/filter-push/2.0.0-beta1"
 };
 
 class Subscription {
@@ -246,10 +246,10 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(FilterCodec.SUBSCRIBE, libp2p.components);
+    super(FilterCodecs.SUBSCRIBE, libp2p.components);
 
-    libp2p.handle(FilterCodec.PUSH, this.onRequest.bind(this)).catch((e) => {
-      log("Failed to register ", FilterCodec.PUSH, e);
+    libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
+      log("Failed to register ", FilterCodecs.PUSH, e);
     });
 
     this.activeSubscriptions = new Map();

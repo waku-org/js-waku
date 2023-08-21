@@ -1,6 +1,6 @@
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
 import { EnrDecoder } from "@waku/enr";
-import {
+import type {
   IPeerExchange,
   Libp2pComponents,
   PeerExchangeQueryParams,

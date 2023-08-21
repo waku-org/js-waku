@@ -28,6 +28,7 @@ import {
 import { groupByContentTopic, isSizeValid, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
+import { RelayCodec } from "./constants.js";
 import { messageValidator } from "./message_validator.js";
 import { TopicOnlyDecoder } from "./topic_only_message.js";
 
@@ -40,8 +41,6 @@ export type Observer<T extends IDecodedMessage> = {
 
 export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
 export type ContentTopic = string;
-
-const RelayCodec = "/vac/waku/relay/2.0.0";
 
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
