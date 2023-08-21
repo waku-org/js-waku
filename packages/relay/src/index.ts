@@ -28,7 +28,7 @@ import {
 import { groupByContentTopic, isSizeValid, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
-import { RelayCodec } from "./constants.js";
+import { RelayCodecs } from "./constants.js";
 import { messageValidator } from "./message_validator.js";
 import { TopicOnlyDecoder } from "./topic_only_message.js";
 
@@ -50,7 +50,7 @@ class Relay implements IRelay {
   private readonly pubSubTopic: string;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
-  public static multicodec: string = RelayCodec;
+  public static multicodec: string = RelayCodecs;
   public readonly gossipSub: GossipSub;
 
   /**
@@ -265,7 +265,7 @@ export function wakuGossipSub(
       fallbackToFloodsub: false
     };
     const pubsub = new GossipSub(components, init);
-    pubsub.multicodecs = [RelayCodec];
+    pubsub.multicodecs = [RelayCodecs];
     return pubsub;
   };
 }
