@@ -12,7 +12,7 @@ export type ContentFilter = {
 export interface IFilterSubscription {
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>,
+    callback: Callback<T>
   ): Promise<void>;
 
   unsubscribe(contentTopics: ContentTopic[]): Promise<void>;
@@ -26,6 +26,6 @@ export type IFilter = IReceiver &
   IBaseProtocol & {
     createSubscription(
       pubSubTopic?: string,
-      peerId?: PeerId,
+      peerId?: PeerId
     ): Promise<IFilterSubscription>;
   };

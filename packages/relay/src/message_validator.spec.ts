@@ -23,14 +23,14 @@ describe("Message Validator", () => {
           const message: UnsignedMessage = {
             type: "unsigned",
             topic: pubSubTopic,
-            data: bytes,
+            data: bytes
           };
 
           const result = messageValidator(peerId, message);
 
           expect(result).to.eq(TopicValidatorResult.Accept);
-        },
-      ),
+        }
+      )
     );
   });
 
@@ -45,14 +45,14 @@ describe("Message Validator", () => {
           const message: UnsignedMessage = {
             type: "unsigned",
             topic: pubSubTopic,
-            data,
+            data
           };
 
           const result = messageValidator(peerId, message);
 
           expect(result).to.eq(TopicValidatorResult.Reject);
-        },
-      ),
+        }
+      )
     );
   });
 });

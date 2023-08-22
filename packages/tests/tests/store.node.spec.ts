@@ -4,7 +4,7 @@ import {
   createEncoder,
   DecodedMessage,
   PageDirection,
-  waitForRemotePeer,
+  waitForRemotePeer
 } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -12,12 +12,12 @@ import {
   createDecoder as createEciesDecoder,
   createEncoder as createEciesEncoder,
   generatePrivateKey,
-  getPublicKey,
+  getPublicKey
 } from "@waku/message-encryption/ecies";
 import {
   createDecoder as createSymDecoder,
   createEncoder as createSymEncoder,
-  generateSymmetricKey,
+  generateSymmetricKey
 } from "@waku/message-encryption/symmetric";
 import { createLightNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
@@ -28,7 +28,7 @@ import {
   delay,
   makeLogFileName,
   NOISE_KEY_1,
-  NOISE_KEY_2,
+  NOISE_KEY_2
 } from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
@@ -63,14 +63,14 @@ describe("Waku Store", () => {
         await nwaku.sendMessage(
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic,
-          }),
-        ),
+            contentTopic: TestContentTopic
+          })
+        )
       ).to.be.true;
     }
 
     waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -101,7 +101,7 @@ describe("Waku Store", () => {
     this.timeout(15_000);
 
     waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -133,14 +133,14 @@ describe("Waku Store", () => {
         await nwaku.sendMessage(
           NimGoNode.toMessageRpcQuery({
             payload: utf8ToBytes(`Message ${i}`),
-            contentTopic: TestContentTopic,
-          }),
-        ),
+            contentTopic: TestContentTopic
+          })
+        )
       ).to.be.true;
     }
 
     waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -164,7 +164,7 @@ describe("Waku Store", () => {
 
     const messagesAfterCursor: DecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder], {
-      cursor,
+      cursor
     })) {
       for await (const msg of page.reverse()) {
         messagesAfterCursor.push(msg as DecodedMessage);
@@ -176,7 +176,7 @@ describe("Waku Store", () => {
     expect(messages.length).be.eq(totalMsgs);
 
     expect(bytesToUtf8(testMessage.payload)).to.be.eq(
-      bytesToUtf8(messages[cursorIndex + 1].payload),
+      bytesToUtf8(messages[cursorIndex + 1].payload)
     );
   });
 
@@ -190,14 +190,14 @@ describe("Waku Store", () => {
         await nwaku.sendMessage(
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic,
-          }),
-        ),
+            contentTopic: TestContentTopic
+          })
+        )
       ).to.be.true;
     }
 
     waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -211,7 +211,7 @@ describe("Waku Store", () => {
         if (msg) {
           messages.push(msg);
         }
-      },
+      }
     );
 
     expect(messages?.length).eq(totalMsgs);
@@ -231,14 +231,14 @@ describe("Waku Store", () => {
         await nwaku.sendMessage(
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic,
-          }),
-        ),
+            contentTopic: TestContentTopic
+          })
+        )
       ).to.be.true;
     }
 
     waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -255,7 +255,7 @@ describe("Waku Store", () => {
         }
         return messages.length >= desiredMsgs;
       },
-      { pageSize: 7 },
+      { pageSize: 7 }
     );
 
     expect(messages?.length).eq(desiredMsgs);
@@ -270,15 +270,15 @@ describe("Waku Store", () => {
         await nwaku.sendMessage(
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic,
-          }),
-        ),
+            contentTopic: TestContentTopic
+          })
+        )
       ).to.be.true;
       await delay(1); // to ensure each timestamp is unique.
     }
 
     waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -291,8 +291,8 @@ describe("Waku Store", () => {
         messages.push(msg);
       },
       {
-        pageDirection: PageDirection.FORWARD,
-      },
+        pageDirection: PageDirection.FORWARD
+      }
     );
 
     expect(messages?.length).eq(totalMsgs);
@@ -309,15 +309,15 @@ describe("Waku Store", () => {
         await nwaku.sendMessage(
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic,
-          }),
-        ),
+            contentTopic: TestContentTopic
+          })
+        )
       ).to.be.true;
       await delay(1); // to ensure each timestamp is unique.
     }
 
     waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -330,8 +330,8 @@ describe("Waku Store", () => {
         messages.push(msg);
       },
       {
-        pageDirection: PageDirection.BACKWARD,
-      },
+        pageDirection: PageDirection.BACKWARD
+      }
     );
 
     messages = messages.reverse();
@@ -358,15 +358,15 @@ describe("Waku Store", () => {
     const asymMsg = { payload: utf8ToBytes(asymText), timestamp };
     const symMsg = {
       payload: utf8ToBytes(symText),
-      timestamp: new Date(timestamp.valueOf() + 1),
+      timestamp: new Date(timestamp.valueOf() + 1)
     };
     const clearMsg = {
       payload: utf8ToBytes(clearText),
-      timestamp: new Date(timestamp.valueOf() + 2),
+      timestamp: new Date(timestamp.valueOf() + 2)
     };
     const otherMsg = {
       payload: utf8ToBytes(otherText),
-      timestamp: new Date(timestamp.valueOf() + 3),
+      timestamp: new Date(timestamp.valueOf() + 3)
     };
 
     const privateKey = generatePrivateKey();
@@ -375,16 +375,16 @@ describe("Waku Store", () => {
 
     const eciesEncoder = createEciesEncoder({
       contentTopic: asymTopic,
-      publicKey,
+      publicKey
     });
     const symEncoder = createSymEncoder({
       contentTopic: symTopic,
-      symKey,
+      symKey
     });
 
     const otherEncoder = createEciesEncoder({
       contentTopic: TestContentTopic,
-      publicKey: getPublicKey(generatePrivateKey()),
+      publicKey: getPublicKey(generatePrivateKey())
     });
 
     const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
@@ -392,19 +392,19 @@ describe("Waku Store", () => {
 
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createLightNode({
-        staticNoiseKey: NOISE_KEY_1,
+        staticNoiseKey: NOISE_KEY_1
       }).then((waku) => waku.start().then(() => waku)),
       createLightNode({
-        staticNoiseKey: NOISE_KEY_2,
+        staticNoiseKey: NOISE_KEY_2
       }).then((waku) => waku.start().then(() => waku)),
-      nwaku.getMultiaddrWithId(),
+      nwaku.getMultiaddrWithId()
     ]);
 
     log("Waku nodes created");
 
     await Promise.all([
       waku1.dial(nimWakuMultiaddr),
-      waku2.dial(nimWakuMultiaddr),
+      waku2.dial(nimWakuMultiaddr)
     ]);
 
     log("Waku nodes connected to nwaku");
@@ -416,7 +416,7 @@ describe("Waku Store", () => {
       waku1.lightPush.send(eciesEncoder, asymMsg),
       waku1.lightPush.send(symEncoder, symMsg),
       waku1.lightPush.send(otherEncoder, otherMsg),
-      waku1.lightPush.send(TestEncoder, clearMsg),
+      waku1.lightPush.send(TestEncoder, clearMsg)
     ]);
 
     await waitForRemotePeer(waku2, [Protocols.Store]);
@@ -427,7 +427,7 @@ describe("Waku Store", () => {
     for await (const msgPromises of waku2.store.queryGenerator([
       eciesDecoder,
       symDecoder,
-      TestDecoder,
+      TestDecoder
     ])) {
       for (const promise of msgPromises) {
         const msg = await promise;
@@ -475,14 +475,14 @@ describe("Waku Store", () => {
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
             contentTopic: TestContentTopic,
-            timestamp: messageTimestamps[i],
-          }),
-        ),
+            timestamp: messageTimestamps[i]
+          })
+        )
       ).to.be.true;
     }
 
     waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -500,8 +500,8 @@ describe("Waku Store", () => {
       },
       {
         peerId: nwakuPeerId,
-        timeFilter: { startTime, endTime: message1Timestamp },
-      },
+        timeFilter: { startTime, endTime: message1Timestamp }
+      }
     );
 
     const bothMessages: IMessage[] = [];
@@ -514,9 +514,9 @@ describe("Waku Store", () => {
         peerId: nwakuPeerId,
         timeFilter: {
           startTime,
-          endTime,
-        },
-      },
+          endTime
+        }
+      }
     );
 
     expect(firstMessages?.length).eq(1);
@@ -536,15 +536,15 @@ describe("Waku Store", () => {
         await nwaku.sendMessage(
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic,
-          }),
-        ),
+            contentTopic: TestContentTopic
+          })
+        )
       ).to.be.true;
       await delay(1); // to ensure each timestamp is unique.
     }
 
     waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
+      staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -558,7 +558,7 @@ describe("Waku Store", () => {
         messages.push(msg);
         return messages.length >= desiredMsgs;
       },
-      { pageSize: 7 },
+      { pageSize: 7 }
     );
 
     expect(messages?.length).eq(desiredMsgs);
@@ -576,7 +576,7 @@ describe("Waku Store, custom pubsub topic", () => {
     await nwaku.start({
       store: true,
       topic: customPubSubTopic,
-      relay: true,
+      relay: true
     });
   });
 
@@ -595,16 +595,16 @@ describe("Waku Store, custom pubsub topic", () => {
         await nwaku.sendMessage(
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic,
+            contentTopic: TestContentTopic
           }),
-          customPubSubTopic,
-        ),
+          customPubSubTopic
+        )
       ).to.be.true;
     }
 
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      pubSubTopic: customPubSubTopic,
+      pubSubTopic: customPubSubTopic
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());

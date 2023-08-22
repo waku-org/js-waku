@@ -3,7 +3,7 @@ import type { LightNode, PeerInfo } from "@waku/interfaces";
 import {
   PeerExchangeCodec,
   PeerExchangeDiscovery,
-  WakuPeerExchange,
+  WakuPeerExchange
 } from "@waku/peer-exchange";
 import { createLightNode, Libp2pComponents } from "@waku/sdk";
 import { expect } from "chai";
@@ -36,7 +36,7 @@ describe("Peer Exchange", () => {
       await nwaku1.start({
         relay: true,
         discv5Discovery: true,
-        peerExchange: true,
+        peerExchange: true
       });
 
       const enr = (await nwaku1.info()).enrUri;
@@ -45,7 +45,7 @@ describe("Peer Exchange", () => {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
-        discv5BootstrapNode: enr,
+        discv5BootstrapNode: enr
       });
 
       const nwaku1PeerId = await nwaku1.getPeerId();
@@ -63,7 +63,7 @@ describe("Peer Exchange", () => {
       let peerInfos: PeerInfo[] = [];
       while (peerInfos.length <= 0) {
         peerInfos = (await peerExchange.query({
-          numPeers: numPeersToRequest,
+          numPeers: numPeersToRequest
         })) as PeerInfo[];
         await delay(3000);
       }
@@ -74,7 +74,7 @@ describe("Peer Exchange", () => {
 
       const doesPeerIdExistInResponse =
         peerInfos.find(
-          ({ ENR }) => ENR?.peerInfo?.id.toString() === nwaku1PeerId.toString(),
+          ({ ENR }) => ENR?.peerInfo?.id.toString() === nwaku1PeerId.toString()
         ) !== undefined;
 
       expect(doesPeerIdExistInResponse).to.be.equal(true);
@@ -101,7 +101,7 @@ describe("Peer Exchange", () => {
         await nwaku1.start({
           relay: true,
           discv5Discovery: true,
-          peerExchange: true,
+          peerExchange: true
         });
 
         const enr = (await nwaku1.info()).enrUri;
@@ -110,7 +110,7 @@ describe("Peer Exchange", () => {
           relay: true,
           discv5Discovery: true,
           peerExchange: true,
-          discv5BootstrapNode: enr,
+          discv5BootstrapNode: enr
         });
 
         waku = await createLightNode();
@@ -129,7 +129,7 @@ describe("Peer Exchange", () => {
         await nwaku1?.stop();
         await nwaku2?.stop();
         await waku?.stop();
-      },
+      }
     });
   });
 });

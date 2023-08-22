@@ -17,7 +17,7 @@ import {
   KeyPair,
   LogLevel,
   MessageRpcQuery,
-  MessageRpcResponse,
+  MessageRpcResponse
 } from "./interfaces.js";
 
 const log = debug("waku:node");
@@ -70,7 +70,7 @@ export class NimGoNode {
     return {
       payload: Buffer.from(message.payload).toString("base64"),
       contentTopic: message.contentTopic,
-      timestamp,
+      timestamp
     };
   }
 
@@ -133,10 +133,10 @@ export class NimGoNode {
         tcpPort,
         websocketPort,
         ...(args?.peerExchange && { discv5UdpPort }),
-        ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter }),
+        ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter })
       },
       { rpcAddress: "0.0.0.0" },
-      _args,
+      _args
     );
 
     process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
@@ -149,7 +149,7 @@ export class NimGoNode {
       ports,
       mergedArgs,
       this.logPath,
-      WAKU_SERVICE_NODE_PARAMS,
+      WAKU_SERVICE_NODE_PARAMS
     );
 
     try {
@@ -191,7 +191,7 @@ export class NimGoNode {
 
   async sendMessage(
     message: MessageRpcQuery,
-    pubSubTopic: string = DefaultPubSubTopic,
+    pubSubTopic: string = DefaultPubSubTopic
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -201,18 +201,18 @@ export class NimGoNode {
 
     return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
       pubSubTopic,
-      message,
+      message
     ]);
   }
 
   async messages(
-    pubsubTopic: string = DefaultPubSubTopic,
+    pubsubTopic: string = DefaultPubSubTopic
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
     const msgs = await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_relay_v1_messages",
-      [pubsubTopic],
+      [pubsubTopic]
     );
 
     return msgs.filter(isDefined);
@@ -239,7 +239,7 @@ export class NimGoNode {
   async postAsymmetricMessage(
     message: MessageRpcQuery,
     publicKey: Uint8Array,
-    pubSubTopic?: string,
+    pubSubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -250,13 +250,13 @@ export class NimGoNode {
     return this.rpcCall<boolean>("post_waku_v2_private_v1_asymmetric_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       message,
-      "0x" + bytesToHex(publicKey),
+      "0x" + bytesToHex(publicKey)
     ]);
   }
 
   async getAsymmetricMessages(
     privateKey: Uint8Array,
-    pubSubTopic?: string,
+    pubSubTopic?: string
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
@@ -264,8 +264,8 @@ export class NimGoNode {
       "get_waku_v2_private_v1_asymmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
-        "0x" + bytesToHex(privateKey),
-      ],
+        "0x" + bytesToHex(privateKey)
+      ]
     );
   }
 
@@ -274,14 +274,14 @@ export class NimGoNode {
 
     return this.rpcCall<string>(
       "get_waku_v2_private_v1_symmetric_key",
-      [],
+      []
     ).then(hexToBytes);
   }
 
   async postSymmetricMessage(
     message: MessageRpcQuery,
     symKey: Uint8Array,
-    pubSubTopic?: string,
+    pubSubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -292,13 +292,13 @@ export class NimGoNode {
     return this.rpcCall<boolean>("post_waku_v2_private_v1_symmetric_message", [
       pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
       message,
-      "0x" + bytesToHex(symKey),
+      "0x" + bytesToHex(symKey)
     ]);
   }
 
   async getSymmetricMessages(
     symKey: Uint8Array,
-    pubSubTopic?: string,
+    pubSubTopic?: string
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
@@ -306,8 +306,8 @@ export class NimGoNode {
       "get_waku_v2_private_v1_symmetric_messages",
       [
         pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
-        "0x" + bytesToHex(symKey),
-      ],
+        "0x" + bytesToHex(symKey)
+      ]
     );
   }
 
@@ -323,7 +323,7 @@ export class NimGoNode {
     const peerId = await this.getPeerId();
 
     this.multiaddrWithId = multiaddr(
-      `/ip4/127.0.0.1/tcp/${this.websocketPort}/ws/p2p/${peerId.toString()}`,
+      `/ip4/127.0.0.1/tcp/${this.websocketPort}/ws/p2p/${peerId.toString()}`
     );
     return this.multiaddrWithId;
   }
@@ -350,7 +350,7 @@ export class NimGoNode {
 
   private async rpcCall<T>(
     method: string,
-    params: Array<string | number | unknown>,
+    params: Array<string | number | unknown>
   ): Promise<T> {
     log("RPC Query: ", method, params);
     const res = await fetch(this.rpcUrl, {
@@ -359,9 +359,9 @@ export class NimGoNode {
         jsonrpc: "2.0",
         id: 1,
         method,
-        params,
+        params
       }),
-      headers: new Headers({ "Content-Type": "application/json" }),
+      headers: new Headers({ "Content-Type": "application/json" })
     });
     const json = await res.json();
     log(`RPC Response: `, JSON.stringify(json));
@@ -382,7 +382,7 @@ export function defaultArgs(): Args {
     relay: false,
     rpcAdmin: true,
     websocketSupport: true,
-    logLevel: LogLevel.Trace,
+    logLevel: LogLevel.Trace
   };
 }
 

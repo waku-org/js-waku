@@ -7,7 +7,7 @@ import {
   IDecoder,
   IStore,
   Libp2p,
-  ProtocolCreateOptions,
+  ProtocolCreateOptions
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
 import { isDefined } from "@waku/utils";
@@ -106,7 +106,7 @@ class Store extends BaseProtocol implements IStore {
   async queryOrderedCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
-    options?: QueryOptions,
+    options?: QueryOptions
   ): Promise<void> {
     let abort = false;
     for await (const promises of this.queryGenerator(decoders, options)) {
@@ -129,7 +129,7 @@ class Store extends BaseProtocol implements IStore {
           if (msg && !abort) {
             abort = Boolean(await callback(msg));
           }
-        }),
+        })
       );
     }
   }
@@ -155,9 +155,9 @@ class Store extends BaseProtocol implements IStore {
   async queryCallbackOnPromise<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (
-      message: Promise<T | undefined>,
+      message: Promise<T | undefined>
     ) => Promise<void | boolean> | boolean | void,
-    options?: QueryOptions,
+    options?: QueryOptions
   ): Promise<void> {
     let abort = false;
     let promises: Promise<void>[] = [];
@@ -192,7 +192,7 @@ class Store extends BaseProtocol implements IStore {
    */
   async *queryGenerator<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
-    options?: QueryOptions,
+    options?: QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
@@ -207,7 +207,7 @@ class Store extends BaseProtocol implements IStore {
     decoders.forEach((dec) => {
       if (decodersAsMap.has(dec.contentTopic)) {
         throw new Error(
-          "API does not support different decoder per content topic",
+          "API does not support different decoder per content topic"
         );
       }
       decodersAsMap.set(dec.contentTopic, dec);
@@ -219,15 +219,15 @@ class Store extends BaseProtocol implements IStore {
       {
         pubSubTopic: pubSubTopic,
         pageDirection: PageDirection.BACKWARD,
-        pageSize: DefaultPageSize,
+        pageSize: DefaultPageSize
       },
       options,
-      { contentTopics, startTime, endTime },
+      { contentTopics, startTime, endTime }
     );
 
     log("Querying history with the following options", {
       ...options,
-      peerId: options?.peerId?.toString(),
+      peerId: options?.peerId?.toString()
     });
 
     const peer = await this.getPeer(options?.peerId);
@@ -236,7 +236,7 @@ class Store extends BaseProtocol implements IStore {
       this.newStream.bind(this, peer),
       queryOpts,
       decodersAsMap,
-      options?.cursor,
+      options?.cursor
     )) {
       yield messages;
     }
@@ -247,14 +247,14 @@ async function* paginate<T extends IDecodedMessage>(
   streamFactory: () => Promise<Stream>,
   queryOpts: Params,
   decoders: Map<string, IDecoder<T>>,
-  cursor?: Cursor,
+  cursor?: Cursor
 ): AsyncGenerator<Promise<T | undefined>[]> {
   if (
     queryOpts.contentTopics.toString() !==
     Array.from(decoders.keys()).toString()
   ) {
     throw new Error(
-      "Internal error, the decoders should match the query's content topics",
+      "Internal error, the decoders should match the query's content topics"
     );
   }
 
@@ -267,7 +267,7 @@ async function* paginate<T extends IDecodedMessage>(
     log(
       "Querying store peer",
       `for (${queryOpts.pubSubTopic})`,
-      queryOpts.contentTopics,
+      queryOpts.contentTopics
     );
 
     const stream = await streamFactory();
@@ -277,7 +277,7 @@ async function* paginate<T extends IDecodedMessage>(
       lp.encode,
       stream,
       lp.decode,
-      async (source) => await all(source),
+      async (source) => await all(source)
     );
 
     const bytes = new Uint8ArrayList();
@@ -300,7 +300,7 @@ async function* paginate<T extends IDecodedMessage>(
 
     if (!response.messages || !response.messages.length) {
       log(
-        "Stopping pagination due to store `response.messages` field missing or empty",
+        "Stopping pagination due to store `response.messages` field missing or empty"
       );
       break;
     }
@@ -314,7 +314,7 @@ async function* paginate<T extends IDecodedMessage>(
         if (decoder) {
           return decoder.fromProtoObj(
             queryOpts.pubSubTopic,
-            toProtoMessage(protoMsg),
+            toProtoMessage(protoMsg)
           );
         }
       }
@@ -326,7 +326,7 @@ async function* paginate<T extends IDecodedMessage>(
       // If the server does not return cursor then there is an issue,
       // Need to abort, or we end up in an infinite loop
       log(
-        "Stopping pagination due to `response.pagingInfo.cursor` missing from store response",
+        "Stopping pagination due to `response.pagingInfo.cursor` missing from store response"
       );
       break;
     }
@@ -348,7 +348,7 @@ async function* paginate<T extends IDecodedMessage>(
 
 export async function createCursor(
   message: IDecodedMessage,
-  pubsubTopic: string = DefaultPubSubTopic,
+  pubsubTopic: string = DefaultPubSubTopic
 ): Promise<Cursor> {
   if (
     !message ||
@@ -369,12 +369,12 @@ export async function createCursor(
     digest,
     pubsubTopic,
     senderTime: messageTime,
-    receiverTime: messageTime,
+    receiverTime: messageTime
   };
 }
 
 export function wakuStore(
-  init: Partial<ProtocolCreateOptions> = {},
+  init: Partial<ProtocolCreateOptions> = {}
 ): (libp2p: Libp2p) => IStore {
   return (libp2p: Libp2p) => new Store(libp2p, init);
 }

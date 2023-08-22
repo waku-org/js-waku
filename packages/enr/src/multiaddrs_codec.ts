@@ -12,7 +12,7 @@ export function decodeMultiaddrs(bytes: Uint8Array): Multiaddr[] {
     const sizeDataView = new DataView(
       bytes.buffer,
       index,
-      MULTIADDR_LENGTH_SIZE,
+      MULTIADDR_LENGTH_SIZE
     );
     const size = sizeDataView.getUint16(0);
     index += MULTIADDR_LENGTH_SIZE;
@@ -28,7 +28,7 @@ export function decodeMultiaddrs(bytes: Uint8Array): Multiaddr[] {
 export function encodeMultiaddrs(multiaddrs: Multiaddr[]): Uint8Array {
   const totalLength = multiaddrs.reduce(
     (acc, ma) => acc + MULTIADDR_LENGTH_SIZE + ma.bytes.length,
-    0,
+    0
   );
   const bytes = new Uint8Array(totalLength);
   const dataView = new DataView(bytes.buffer);

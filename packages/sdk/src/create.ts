@@ -10,7 +10,7 @@ import {
   wakuLightPush,
   WakuNode,
   WakuOptions,
-  wakuStore,
+  wakuStore
 } from "@waku/core";
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
@@ -19,7 +19,7 @@ import type {
   Libp2pComponents,
   LightNode,
   ProtocolCreateOptions,
-  RelayNode,
+  RelayNode
 } from "@waku/interfaces";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { createLibp2p, Libp2pOptions } from "libp2p";
@@ -29,7 +29,7 @@ import { pingService } from "libp2p/ping";
 const DEFAULT_NODE_REQUIREMENTS = {
   lightPush: 1,
   filter: 1,
-  store: 1,
+  store: 1
 };
 
 export { Libp2pComponents };
@@ -40,7 +40,7 @@ export { Libp2pComponents };
  * Uses Waku Filter V2 by default.
  */
 export async function createLightNode(
-  options?: ProtocolCreateOptions & WakuOptions,
+  options?: ProtocolCreateOptions & WakuOptions
 ): Promise<LightNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -52,7 +52,7 @@ export async function createLightNode(
   const libp2p = await defaultLibp2p(
     undefined,
     libp2pOptions,
-    options?.userAgent,
+    options?.userAgent
   );
 
   const store = wakuStore(options);
@@ -64,7 +64,7 @@ export async function createLightNode(
     libp2p,
     store,
     lightPush,
-    filter,
+    filter
   ) as LightNode;
 }
 
@@ -73,7 +73,7 @@ export async function createLightNode(
  * enabling some privacy preserving properties.
  */
 export async function createRelayNode(
-  options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>,
+  options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<RelayNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -85,7 +85,7 @@ export async function createRelayNode(
   const libp2p = await defaultLibp2p(
     wakuGossipSub(options),
     libp2pOptions,
-    options?.userAgent,
+    options?.userAgent
   );
 
   const relay = wakuRelay(options);
@@ -96,7 +96,7 @@ export async function createRelayNode(
     undefined,
     undefined,
     undefined,
-    relay,
+    relay
   ) as RelayNode;
 }
 
@@ -114,7 +114,7 @@ export async function createRelayNode(
  * @internal
  */
 export async function createFullNode(
-  options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>,
+  options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<FullNode> {
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -126,7 +126,7 @@ export async function createFullNode(
   const libp2p = await defaultLibp2p(
     wakuGossipSub(options),
     libp2pOptions,
-    options?.userAgent,
+    options?.userAgent
   );
 
   const store = wakuStore(options);
@@ -140,12 +140,12 @@ export async function createFullNode(
     store,
     lightPush,
     filter,
-    relay,
+    relay
   ) as FullNode;
 }
 
 export function defaultPeerDiscovery(): (
-  components: Libp2pComponents,
+  components: Libp2pComponents
 ) => PeerDiscovery {
   return wakuDnsDiscovery([enrTree["PROD"]], DEFAULT_NODE_REQUIREMENTS);
 }
@@ -157,7 +157,7 @@ type PubsubService = {
 export async function defaultLibp2p(
   wakuGossipSub?: PubsubService["pubsub"],
   options?: Partial<Libp2pOptions>,
-  userAgent?: string,
+  userAgent?: string
 ): Promise<Libp2p> {
   const pubsubService: PubsubService = wakuGossipSub
     ? { pubsub: wakuGossipSub }
@@ -165,7 +165,7 @@ export async function defaultLibp2p(
 
   return createLibp2p({
     connectionManager: {
-      minConnections: 1,
+      minConnections: 1
     },
     transports: [webSockets({ filter: filterAll })],
     streamMuxers: [mplex()],
@@ -173,11 +173,11 @@ export async function defaultLibp2p(
     ...options,
     services: {
       identify: identifyService({
-        agentVersion: userAgent ?? DefaultUserAgent,
+        agentVersion: userAgent ?? DefaultUserAgent
       }),
       ping: pingService(),
       ...pubsubService,
-      ...options?.services,
-    },
+      ...options?.services
+    }
   }) as any as Libp2p; // TODO: make libp2p include it;
 }

@@ -11,13 +11,13 @@ const log = debug("waku:discovery:fetch_nodes");
 export async function fetchNodesUntilCapabilitiesFulfilled(
   wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
   errorTolerance: number,
-  getNode: () => Promise<IEnr | null>,
+  getNode: () => Promise<IEnr | null>
 ): Promise<IEnr[]> {
   const wanted = {
     relay: wantedNodeCapabilityCount.relay ?? 0,
     store: wantedNodeCapabilityCount.store ?? 0,
     filter: wantedNodeCapabilityCount.filter ?? 0,
-    lightPush: wantedNodeCapabilityCount.lightPush ?? 0,
+    lightPush: wantedNodeCapabilityCount.lightPush ?? 0
   };
 
   const maxSearches =
@@ -27,7 +27,7 @@ export async function fetchNodesUntilCapabilitiesFulfilled(
     relay: 0,
     store: 0,
     filter: 0,
-    lightPush: 0,
+    lightPush: 0
   };
 
   let totalSearches = 0;
@@ -62,13 +62,13 @@ export async function fetchNodesUntilCapabilitiesFulfilled(
 export async function* yieldNodesUntilCapabilitiesFulfilled(
   wantedNodeCapabilityCount: Partial<NodeCapabilityCount>,
   errorTolerance: number,
-  getNode: () => Promise<IEnr | null>,
+  getNode: () => Promise<IEnr | null>
 ): AsyncGenerator<IEnr> {
   const wanted = {
     relay: wantedNodeCapabilityCount.relay ?? 0,
     store: wantedNodeCapabilityCount.store ?? 0,
     filter: wantedNodeCapabilityCount.filter ?? 0,
-    lightPush: wantedNodeCapabilityCount.lightPush ?? 0,
+    lightPush: wantedNodeCapabilityCount.lightPush ?? 0
   };
 
   const maxSearches =
@@ -78,7 +78,7 @@ export async function* yieldNodesUntilCapabilitiesFulfilled(
     relay: 0,
     store: 0,
     filter: 0,
-    lightPush: 0,
+    lightPush: 0
   };
 
   let totalSearches = 0;
@@ -106,7 +106,7 @@ export async function* yieldNodesUntilCapabilitiesFulfilled(
 
 function isSatisfied(
   wanted: NodeCapabilityCount,
-  actual: NodeCapabilityCount,
+  actual: NodeCapabilityCount
 ): boolean {
   return (
     actual.relay >= wanted.relay &&
@@ -144,7 +144,7 @@ function addCapabilities(node: Waku2, total: NodeCapabilityCount): void {
 function helpsSatisfyCapabilities(
   node: Waku2,
   wanted: NodeCapabilityCount,
-  actual: NodeCapabilityCount,
+  actual: NodeCapabilityCount
 ): boolean {
   if (isSatisfied(wanted, actual)) {
     throw "Internal Error: Waku2 wanted capabilities are already fulfilled";
@@ -166,12 +166,12 @@ function helpsSatisfyCapabilities(
  */
 function missingCapabilities(
   wanted: NodeCapabilityCount,
-  actual: NodeCapabilityCount,
+  actual: NodeCapabilityCount
 ): Waku2 {
   return {
     relay: actual.relay < wanted.relay,
     store: actual.store < wanted.store,
     filter: actual.filter < wanted.filter,
-    lightPush: actual.lightPush < wanted.lightPush,
+    lightPush: actual.lightPush < wanted.lightPush
   };
 }

@@ -4,7 +4,7 @@ import type {
   IPeerExchange,
   Libp2pComponents,
   PeerExchangeQueryParams,
-  PeerInfo,
+  PeerInfo
 } from "@waku/interfaces";
 import { isDefined } from "@waku/utils";
 import debug from "debug";
@@ -37,12 +37,12 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
    * Make a peer exchange query to a peer
    */
   async query(
-    params: PeerExchangeQueryParams,
+    params: PeerExchangeQueryParams
   ): Promise<PeerInfo[] | undefined> {
     const { numPeers } = params;
 
     const rpcQuery = PeerExchangeRPC.createRequest({
-      numPeers: BigInt(numPeers),
+      numPeers: BigInt(numPeers)
     });
 
     const peer = await this.getPeer(params.peerId);
@@ -54,7 +54,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
       lp.encode,
       stream,
       lp.decode,
-      async (source) => await all(source),
+      async (source) => await all(source)
     );
 
     try {
@@ -76,7 +76,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
           .filter(isDefined)
           .map(async (enr) => {
             return { ENR: await EnrDecoder.fromRLP(enr) };
-          }),
+          })
       );
     } catch (err) {
       log("Failed to decode push reply", err);
@@ -90,7 +90,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
  * @returns A function that creates a new peer exchange protocol
  */
 export function wakuPeerExchange(): (
-  components: Libp2pComponents,
+  components: Libp2pComponents
 ) => WakuPeerExchange {
   return (components: Libp2pComponents) => new WakuPeerExchange(components);
 }
