@@ -88,7 +88,7 @@
     "@waku/build-utils": "*",
     "chai": "^4.3.7",
     "cspell": "^7.0.1",
-    "fast-check": "^3.8.1",
+    "fast-check": "^3.12.0",
     "karma": "^6.4.1",
     "karma-chrome-launcher": "^3.2.0",
     "karma-mocha": "^2.0.1",
