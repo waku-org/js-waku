@@ -50,7 +50,7 @@ class Relay implements IRelay {
   private readonly pubSubTopic: string;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
-  public static multicodec: string = RelayCodecs;
+  public static multicodec: string = RelayCodecs[0];
   public readonly gossipSub: GossipSub;
 
   /**
@@ -265,7 +265,7 @@ export function wakuGossipSub(
       fallbackToFloodsub: false
     };
     const pubsub = new GossipSub(components, init);
-    pubsub.multicodecs = [RelayCodecs];
+    pubsub.multicodecs = RelayCodecs;
     return pubsub;
   };
 }
