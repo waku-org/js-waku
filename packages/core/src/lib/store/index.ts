@@ -146,6 +146,10 @@ class Store extends BaseProtocol implements IStore {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
+/**
+* @deprecated Use `queryWithOrderedCallback` instead
+**/
+  async queryOrderedCallback = queryWithOrderedCallback
   async queryWithOrderedCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
