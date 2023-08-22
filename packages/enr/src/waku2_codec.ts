@@ -19,7 +19,7 @@ export function decodeWaku2(byte: number): Waku2 {
     relay: false,
     store: false,
     filter: false,
-    lightPush: false
+    lightPush: false,
   };
 
   if (byte % 2) waku2.relay = true;

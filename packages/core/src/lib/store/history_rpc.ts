@@ -6,7 +6,7 @@ const OneMillion = BigInt(1_000_000);
 
 export enum PageDirection {
   BACKWARD = "backward",
-  FORWARD = "forward"
+  FORWARD = "forward",
 }
 
 export interface Params {
@@ -43,7 +43,7 @@ export class HistoryRpc {
     const pagingInfo = {
       pageSize: BigInt(params.pageSize),
       cursor: params.cursor,
-      direction
+      direction,
     } as proto.PagingInfo;
 
     let startTime, endTime;
@@ -63,9 +63,9 @@ export class HistoryRpc {
         contentFilters,
         pagingInfo,
         startTime,
-        endTime
+        endTime,
       },
-      response: undefined
+      response: undefined,
     });
   }
 
@@ -80,7 +80,7 @@ export class HistoryRpc {
 }
 
 function directionToProto(
-  pageDirection: PageDirection
+  pageDirection: PageDirection,
 ): proto.PagingInfo.Direction {
   switch (pageDirection) {
     case PageDirection.BACKWARD:

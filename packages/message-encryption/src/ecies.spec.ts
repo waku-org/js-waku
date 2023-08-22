@@ -18,7 +18,7 @@ describe("Ecies Encryption", function () {
 
           const encoder = createEncoder({
             contentTopic,
-            publicKey
+            publicKey,
           });
           const bytes = await encoder.toWire({ payload });
 
@@ -34,8 +34,8 @@ describe("Ecies Encryption", function () {
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.be.undefined;
           expect(result.signaturePublicKey).to.be.undefined;
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -54,7 +54,7 @@ describe("Ecies Encryption", function () {
           contentTopic,
           payload,
           alicePrivateKey,
-          bobPrivateKey
+          bobPrivateKey,
         ) => {
           const alicePublicKey = getPublicKey(alicePrivateKey);
           const bobPublicKey = getPublicKey(bobPrivateKey);
@@ -62,7 +62,7 @@ describe("Ecies Encryption", function () {
           const encoder = createEncoder({
             contentTopic,
             publicKey: bobPublicKey,
-            sigPrivKey: alicePrivateKey
+            sigPrivKey: alicePrivateKey,
           });
           const bytes = await encoder.toWire({ payload });
 
@@ -78,8 +78,8 @@ describe("Ecies Encryption", function () {
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.not.be.undefined;
           expect(result.signaturePublicKey).to.deep.eq(alicePublicKey);
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -93,7 +93,7 @@ describe("Ecies Encryption", function () {
         async (pubSubTopic, contentTopic, payload, privateKey) => {
           const publicKey = getPublicKey(privateKey);
           const metaSetter = (
-            msg: IProtoMessage & { meta: undefined }
+            msg: IProtoMessage & { meta: undefined },
           ): Uint8Array => {
             const buffer = new ArrayBuffer(4);
             const view = new DataView(buffer);
@@ -104,7 +104,7 @@ describe("Ecies Encryption", function () {
           const encoder = createEncoder({
             contentTopic,
             publicKey,
-            metaSetter
+            metaSetter,
           });
           const bytes = await encoder.toWire({ payload });
 
@@ -121,12 +121,12 @@ describe("Ecies Encryption", function () {
             ephemeral: undefined,
             meta: undefined,
             rateLimitProof: undefined,
-            version: undefined
+            version: undefined,
           });
 
           expect(result.meta).to.deep.equal(expectedMeta);
-        }
-      )
+        },
+      ),
     );
   });
 });
@@ -136,7 +136,7 @@ describe("Ensures content topic is defined", () => {
     const wrapper = function (): void {
       createEncoder({
         contentTopic: undefined as unknown as string,
-        publicKey: new Uint8Array()
+        publicKey: new Uint8Array(),
       });
     };
 

@@ -7,7 +7,7 @@ import {
   ProtocolCreateOptions,
   ProtocolOptions,
   SendError,
-  SendResult
+  SendResult,
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
 import { isSizeValid } from "@waku/utils";
@@ -41,7 +41,7 @@ class LightPush extends BaseProtocol implements ILightPush {
   async send(
     encoder: IEncoder,
     message: IMessage,
-    opts?: ProtocolOptions
+    opts?: ProtocolOptions,
   ): Promise<SendResult> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
@@ -56,7 +56,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         log("Failed to send waku light push: message is bigger that 1MB");
         return {
           recipients,
-          error: SendError.SIZE_TOO_BIG
+          error: SendError.SIZE_TOO_BIG,
         };
       }
 
@@ -65,7 +65,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         log("Failed to encode to protoMessage, aborting push");
         return {
           recipients,
-          error: SendError.ENCODE_FAILED
+          error: SendError.ENCODE_FAILED,
         };
       }
       const query = PushRpc.createRequest(protoMessage, pubSubTopic);
@@ -74,7 +74,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         lp.encode,
         stream,
         lp.decode,
-        async (source) => await all(source)
+        async (source) => await all(source),
       );
       try {
         const bytes = new Uint8ArrayList();
@@ -100,13 +100,13 @@ class LightPush extends BaseProtocol implements ILightPush {
     }
     return {
       error,
-      recipients
+      recipients,
     };
   }
 }
 
 export function wakuLightPush(
-  init: Partial<ProtocolCreateOptions> = {}
+  init: Partial<ProtocolCreateOptions> = {},
 ): (libp2p: Libp2p) => ILightPush {
   return (libp2p: Libp2p) => new LightPush(libp2p, init);
 }

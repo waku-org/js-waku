@@ -3,14 +3,14 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import {
   DecodedMessage,
   DefaultUserAgent,
-  waitForRemotePeer
+  waitForRemotePeer,
 } from "@waku/core";
 import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   createDecoder,
   createEncoder,
-  generateSymmetricKey
+  generateSymmetricKey,
 } from "@waku/message-encryption/symmetric";
 import { createLightNode, createRelayNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
@@ -38,19 +38,19 @@ describe("Waku Dial [node only]", function () {
       await nwaku.start({
         filter: true,
         store: true,
-        lightpush: true
+        lightpush: true,
       });
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
       waku = await createLightNode({
-        staticNoiseKey: NOISE_KEY_1
+        staticNoiseKey: NOISE_KEY_1,
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
       await waitForRemotePeer(waku, [
         Protocols.Store,
         Protocols.Filter,
-        Protocols.LightPush
+        Protocols.LightPush,
       ]);
 
       const nimPeerId = await nwaku.getPeerId();
@@ -76,8 +76,8 @@ describe("Waku Dial [node only]", function () {
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
-          peerDiscovery: [bootstrap({ list: [multiAddrWithId.toString()] })]
-        }
+          peerDiscovery: [bootstrap({ list: [multiAddrWithId.toString()] })],
+        },
       });
       await waku.start();
 
@@ -101,8 +101,8 @@ describe("Waku Dial [node only]", function () {
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
         libp2p: {
-          peerDiscovery: [bootstrap({ list: [nwakuMa.toString()] })]
-        }
+          peerDiscovery: [bootstrap({ list: [nwakuMa.toString()] })],
+        },
       });
       await waku.start();
 
@@ -131,22 +131,22 @@ describe("Decryption Keys", () => {
     this.timeout(5000);
     [waku1, waku2] = await Promise.all([
       createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
-        waku.start().then(() => waku)
+        waku.start().then(() => waku),
       ),
       createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
-        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-      }).then((waku) => waku.start().then(() => waku))
+        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+      }).then((waku) => waku.start().then(() => waku)),
     ]);
 
     await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
-      multiaddrs: waku2.libp2p.getMultiaddrs()
+      multiaddrs: waku2.libp2p.getMultiaddrs(),
     });
     await waku1.dial(waku2.libp2p.peerId);
 
     await Promise.all([
       waitForRemotePeer(waku1, [Protocols.Relay]),
-      waitForRemotePeer(waku2, [Protocols.Relay])
+      waitForRemotePeer(waku2, [Protocols.Relay]),
     ]);
   });
 
@@ -163,19 +163,19 @@ describe("Decryption Keys", () => {
 
     const encoder = createEncoder({
       contentTopic: TestContentTopic,
-      symKey
+      symKey,
     });
     const messageText = "Message is encrypted";
     const messageTimestamp = new Date("1995-12-17T03:24:00");
     const message = {
       payload: utf8ToBytes(messageText),
-      timestamp: messageTimestamp
+      timestamp: messageTimestamp,
     };
 
     const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
         void waku2.relay.subscribe([decoder], resolve);
-      }
+      },
     );
 
     await waku1.relay.send(encoder, message);
@@ -205,30 +205,30 @@ describe("User Agent", () => {
     [waku1, waku2] = await Promise.all([
       createRelayNode({
         staticNoiseKey: NOISE_KEY_1,
-        userAgent: waku1UserAgent
+        userAgent: waku1UserAgent,
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
-        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-      }).then((waku) => waku.start().then(() => waku))
+        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+      }).then((waku) => waku.start().then(() => waku)),
     ]);
 
     await waku1.libp2p.peerStore.save(waku2.libp2p.peerId, {
-      multiaddrs: waku2.libp2p.getMultiaddrs()
+      multiaddrs: waku2.libp2p.getMultiaddrs(),
     });
     await waku1.dial(waku2.libp2p.peerId);
     await waitForRemotePeer(waku1);
 
     const [waku1PeerInfo, waku2PeerInfo] = await Promise.all([
       waku2.libp2p.peerStore.get(waku1.libp2p.peerId),
-      waku1.libp2p.peerStore.get(waku2.libp2p.peerId)
+      waku1.libp2p.peerStore.get(waku2.libp2p.peerId),
     ]);
 
     expect(bytesToUtf8(waku1PeerInfo.metadata.get("AgentVersion")!)).to.eq(
-      waku1UserAgent
+      waku1UserAgent,
     );
     expect(bytesToUtf8(waku2PeerInfo.metadata.get("AgentVersion")!)).to.eq(
-      DefaultUserAgent
+      DefaultUserAgent,
     );
   });
 });

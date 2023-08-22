@@ -5,7 +5,7 @@ import type {
   IEncoder,
   IMessage,
   IMetaSetter,
-  IProtoMessage
+  IProtoMessage,
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import debug from "debug";
@@ -15,7 +15,7 @@ import {
   decryptSymmetric,
   encryptSymmetric,
   postCipher,
-  preCipher
+  preCipher,
 } from "./waku_payload.js";
 
 import { generateSymmetricKey, OneMillion, Version } from "./index.js";
@@ -31,7 +31,7 @@ class Encoder implements IEncoder {
     private symKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
     public ephemeral: boolean = false,
-    public metaSetter?: IMetaSetter
+    public metaSetter?: IMetaSetter,
   ) {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
@@ -58,7 +58,7 @@ class Encoder implements IEncoder {
       timestamp: BigInt(timestamp.valueOf()) * OneMillion,
       meta: undefined,
       rateLimitProof: message.rateLimitProof,
-      ephemeral: this.ephemeral
+      ephemeral: this.ephemeral,
     };
 
     if (this.metaSetter) {
@@ -95,7 +95,7 @@ export function createEncoder({
   symKey,
   sigPrivKey,
   ephemeral = false,
-  metaSetter
+  metaSetter,
 }: EncoderOptions): Encoder {
   return new Encoder(contentTopic, symKey, sigPrivKey, ephemeral, metaSetter);
 }
@@ -103,14 +103,14 @@ export function createEncoder({
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(
     contentTopic: string,
-    private symKey: Uint8Array
+    private symKey: Uint8Array,
   ) {
     super(contentTopic);
   }
 
   async fromProtoObj(
     pubSubTopic: string,
-    protoMessage: IProtoMessage
+    protoMessage: IProtoMessage,
   ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
 
@@ -119,7 +119,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
         "Failed to decrypt due to incorrect version, expected:",
         Version,
         ", actual:",
-        protoMessage.version
+        protoMessage.version,
       );
       return;
     }
@@ -131,7 +131,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
     } catch (e) {
       log(
         `Failed to decrypt message using asymmetric decryption for contentTopic: ${this.contentTopic}`,
-        e
+        e,
       );
       return;
     }
@@ -154,7 +154,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
       protoMessage,
       res.payload,
       res.sig?.signature,
-      res.sig?.publicKey
+      res.sig?.publicKey,
     );
   }
 }
@@ -174,7 +174,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  symKey: Uint8Array
+  symKey: Uint8Array,
 ): Decoder {
   return new Decoder(contentTopic, symKey);
 }

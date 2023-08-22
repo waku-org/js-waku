@@ -6,7 +6,7 @@ import type {
   ENRValue,
   IEnr,
   NodeId,
-  SequenceNumber
+  SequenceNumber,
 } from "@waku/interfaces";
 import debug from "debug";
 
@@ -21,13 +21,13 @@ const log = debug("waku:enr");
 
 export enum TransportProtocol {
   TCP = "tcp",
-  UDP = "udp"
+  UDP = "udp",
 }
 export enum TransportProtocolPerIpVersion {
   TCP4 = "tcp4",
   UDP4 = "udp4",
   TCP6 = "tcp6",
-  UDP6 = "udp6"
+  UDP6 = "udp6",
 }
 
 export class ENR extends RawEnr implements IEnr {
@@ -37,7 +37,7 @@ export class ENR extends RawEnr implements IEnr {
   static async create(
     kvs: Record<ENRKey, ENRValue> = {},
     seq: SequenceNumber = BigInt(1),
-    signature?: Uint8Array
+    signature?: Uint8Array,
   ): Promise<ENR> {
     const enr = new ENR(kvs, seq, signature);
     try {
@@ -61,7 +61,7 @@ export class ENR extends RawEnr implements IEnr {
     }
   }
   getLocationMultiaddr: (
-    protocol: TransportProtocol | TransportProtocolPerIpVersion
+    protocol: TransportProtocol | TransportProtocolPerIpVersion,
   ) => Multiaddr | undefined = locationMultiaddrFromEnrFields.bind({}, this);
 
   setLocationMultiaddr(multiaddr: Multiaddr): void {
@@ -93,7 +93,7 @@ export class ENR extends RawEnr implements IEnr {
 
     for (const protocol of Object.values(TransportProtocolPerIpVersion)) {
       const ma = this.getLocationMultiaddr(
-        protocol as TransportProtocolPerIpVersion
+        protocol as TransportProtocolPerIpVersion,
       );
       if (ma) multiaddrs.push(ma);
     }
@@ -109,7 +109,7 @@ export class ENR extends RawEnr implements IEnr {
     return {
       id,
       multiaddrs: this.getAllLocationMultiaddrs(),
-      protocols: []
+      protocols: [],
     };
   }
 
@@ -122,7 +122,7 @@ export class ENR extends RawEnr implements IEnr {
    * @param protocol
    */
   getFullMultiaddr(
-    protocol: TransportProtocol | TransportProtocolPerIpVersion
+    protocol: TransportProtocol | TransportProtocolPerIpVersion,
   ): Multiaddr | undefined {
     if (this.peerId) {
       const locationMultiaddr = this.getLocationMultiaddr(protocol);

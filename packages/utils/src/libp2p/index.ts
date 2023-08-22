@@ -21,7 +21,7 @@ export function selectRandomPeer(peers: Peer[]): Peer | undefined {
  */
 export async function getPeersForProtocol(
   peerStore: PeerStore,
-  protocols: string[]
+  protocols: string[],
 ): Promise<Peer[]> {
   const peers: Peer[] = [];
   await peerStore.forEach((peer) => {
@@ -38,14 +38,14 @@ export async function getPeersForProtocol(
 export async function selectPeerForProtocol(
   peerStore: PeerStore,
   protocols: string[],
-  peerId?: PeerId
+  peerId?: PeerId,
 ): Promise<{ peer: Peer; protocol: string }> {
   let peer;
   if (peerId) {
     peer = await peerStore.get(peerId);
     if (!peer) {
       throw new Error(
-        `Failed to retrieve connection details for provided peer in peer store: ${peerId.toString()}`
+        `Failed to retrieve connection details for provided peer in peer store: ${peerId.toString()}`,
       );
     }
   } else {
@@ -53,7 +53,7 @@ export async function selectPeerForProtocol(
     peer = selectRandomPeer(peers);
     if (!peer) {
       throw new Error(
-        `Failed to find known peer that registers protocols: ${protocols}`
+        `Failed to find known peer that registers protocols: ${protocols}`,
       );
     }
   }
@@ -68,7 +68,7 @@ export async function selectPeerForProtocol(
   log(`Using codec ${protocol}`);
   if (!protocol) {
     throw new Error(
-      `Peer does not register required protocols (${peer.id.toString()}): ${protocols}`
+      `Peer does not register required protocols (${peer.id.toString()}): ${protocols}`,
     );
   }
 
@@ -76,7 +76,7 @@ export async function selectPeerForProtocol(
 }
 
 export function selectConnection(
-  connections: Connection[]
+  connections: Connection[],
 ): Connection | undefined {
   if (!connections.length) return;
   if (connections.length === 1) return connections[0];

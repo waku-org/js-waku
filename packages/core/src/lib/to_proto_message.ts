@@ -8,7 +8,7 @@ const EmptyMessage: IProtoMessage = {
   timestamp: undefined,
   meta: undefined,
   rateLimitProof: undefined,
-  ephemeral: undefined
+  ephemeral: undefined,
 };
 
 export function toProtoMessage(wire: WakuMessageProto): IProtoMessage {

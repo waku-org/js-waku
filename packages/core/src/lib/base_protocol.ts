@@ -6,7 +6,7 @@ import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
-  selectPeerForProtocol
+  selectPeerForProtocol,
 } from "@waku/utils/libp2p";
 
 /**
@@ -19,13 +19,13 @@ export class BaseProtocol implements IBaseProtocol {
 
   constructor(
     public multicodec: string,
-    private components: Libp2pComponents
+    private components: Libp2pComponents,
   ) {
     this.addLibp2pEventListener = components.events.addEventListener.bind(
-      components.events
+      components.events,
     );
     this.removeLibp2pEventListener = components.events.removeEventListener.bind(
-      components.events
+      components.events,
     );
   }
 
@@ -46,13 +46,13 @@ export class BaseProtocol implements IBaseProtocol {
     const { peer } = await selectPeerForProtocol(
       this.peerStore,
       [this.multicodec],
-      peerId
+      peerId,
     );
     return peer;
   }
   protected async newStream(peer: Peer): Promise<Stream> {
     const connections = this.components.connectionManager.getConnections(
-      peer.id
+      peer.id,
     );
     const connection = selectConnection(connections);
     if (!connection) {

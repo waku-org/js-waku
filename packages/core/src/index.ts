@@ -4,7 +4,7 @@ export { createEncoder, createDecoder } from "./lib/message/version_0.js";
 export type {
   Encoder,
   Decoder,
-  DecodedMessage
+  DecodedMessage,
 } from "./lib/message/version_0.js";
 export * as message from "./lib/message/index.js";
 
@@ -22,7 +22,7 @@ export {
   PageDirection,
   wakuStore,
   StoreCodec,
-  createCursor
+  createCursor,
 } from "./lib/store/index.js";
 
 export { waitForRemotePeer } from "./lib/wait_for_remote_peer.js";

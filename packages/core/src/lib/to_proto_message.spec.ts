@@ -7,7 +7,7 @@ describe("to proto message", () => {
   it("Fields are not dropped", () => {
     const wire: WakuMessageProto = {
       payload: new Uint8Array(),
-      contentTopic: "foo"
+      contentTopic: "foo",
     };
 
     const protoMessage = toProtoMessage(wire);

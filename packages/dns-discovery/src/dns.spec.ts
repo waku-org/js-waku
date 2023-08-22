@@ -20,7 +20,7 @@ const singleBranch = `enrtree-branch:${branchDomainA}`;
 const doubleBranch = `enrtree-branch:${branchDomainA},${branchDomainB}`;
 const multiComponentBranch = [
   `enrtree-branch:${branchDomainA},${partialBranchA}`,
-  `${partialBranchB},${branchDomainB}`
+  `${partialBranchB},${branchDomainB}`,
 ];
 
 // Note: once td.when is asked to throw for an input it will always throw.
@@ -73,7 +73,7 @@ describe("DNS Node Discovery", () => {
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
+      relay: 1,
     });
 
     expect(peers.length).to.eq(1);
@@ -89,7 +89,7 @@ describe("DNS Node Discovery", () => {
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
+      relay: 1,
     });
 
     expect(peers.length).to.eq(0);
@@ -103,7 +103,7 @@ describe("DNS Node Discovery", () => {
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     let peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
+      relay: 1,
     });
 
     expect(peers.length).to.eq(0);
@@ -121,7 +121,7 @@ describe("DNS Node Discovery", () => {
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
+      relay: 1,
     });
     expect(peers.length).to.eq(0);
   });
@@ -130,7 +130,7 @@ describe("DNS Node Discovery", () => {
     mockDns.addRes(`${rootDomain}.${host}`, [mockData.enrBranchBadPrefix]);
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
+      relay: 1,
     });
     expect(peers.length).to.eq(0);
   });
@@ -141,7 +141,7 @@ describe("DNS Node Discovery", () => {
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peersA = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
+      relay: 1,
     });
     expect(peersA.length).to.eq(1);
 
@@ -150,7 +150,7 @@ describe("DNS Node Discovery", () => {
     mockDns.addThrow(`${branchDomainD}.${host}`);
 
     const peersB = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
+      relay: 1,
     });
     expect(peersB.length).to.eq(1);
     expect(peersA[0].ip).to.eq(peersB[0].ip);
@@ -170,12 +170,12 @@ describe("DNS Node Discovery w/ capabilities", () => {
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      relay: 1
+      relay: 1,
     });
 
     expect(peers.length).to.eq(1);
     expect(peers[0].peerId?.toString()).to.eq(
-      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx"
+      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx",
     );
   });
 
@@ -185,12 +185,12 @@ describe("DNS Node Discovery w/ capabilities", () => {
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
       store: 1,
-      relay: 1
+      relay: 1,
     });
 
     expect(peers.length).to.eq(1);
     expect(peers[0].peerId?.toString()).to.eq(
-      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
+      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F",
     );
   });
 
@@ -199,19 +199,19 @@ describe("DNS Node Discovery w/ capabilities", () => {
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
-      store: 1
+      store: 1,
     });
 
     expect(peers.length).to.eq(1);
     expect(peers[0].peerId?.toString()).to.eq(
-      "16Uiu2HAkv3La3ECgQpdYeEJfrX36EWdhkUDv4C9wvXM8TFZ9dNgd"
+      "16Uiu2HAkv3La3ECgQpdYeEJfrX36EWdhkUDv4C9wvXM8TFZ9dNgd",
     );
   });
 
   it("retrieves all peers (2) when cannot fulfill all requirements", async () => {
     mockDns.addRes(`${rootDomain}.${host}`, [doubleBranch]);
     mockDns.addRes(`${branchDomainA}.${host}`, [
-      mockData.enrWithWaku2RelayStore
+      mockData.enrWithWaku2RelayStore,
     ]);
     mockDns.addRes(`${branchDomainB}.${host}`, [mockData.enrWithWaku2Relay]);
 
@@ -219,45 +219,45 @@ describe("DNS Node Discovery w/ capabilities", () => {
     const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
       store: 1,
       relay: 2,
-      filter: 1
+      filter: 1,
     });
 
     expect(peers.length).to.eq(2);
     const peerIds = peers.map((p) => p.peerId?.toString());
     expect(peerIds).to.contain(
-      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
+      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F",
     );
     expect(peerIds).to.contain(
-      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx"
+      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx",
     );
   });
 
   it("retrieves all peers (3) when branch entries are composed of multiple strings", async function () {
     mockDns.addRes(`${rootDomain}.${host}`, multiComponentBranch);
     mockDns.addRes(`${branchDomainA}.${host}`, [
-      mockData.enrWithWaku2RelayStore
+      mockData.enrWithWaku2RelayStore,
     ]);
     mockDns.addRes(`${branchDomainB}.${host}`, [mockData.enrWithWaku2Relay]);
     mockDns.addRes(`${partialBranchA}${partialBranchB}.${host}`, [
-      mockData.enrWithWaku2Store
+      mockData.enrWithWaku2Store,
     ]);
 
     const dnsNodeDiscovery = new DnsNodeDiscovery(mockDns);
     const peers = await dnsNodeDiscovery.getPeers([mockData.enrTree], {
       store: 2,
-      relay: 2
+      relay: 2,
     });
 
     expect(peers.length).to.eq(3);
     const peerIds = peers.map((p) => p.peerId?.toString());
     expect(peerIds).to.contain(
-      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F"
+      "16Uiu2HAm2HyS6brcCspSbszG9i36re2bWBVjMe3tMdnFp1Hua34F",
     );
     expect(peerIds).to.contain(
-      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx"
+      "16Uiu2HAmPsYLvfKafxgRsb6tioYyGnSvGXS2iuMigptHrqHPNPzx",
     );
     expect(peerIds).to.contain(
-      "16Uiu2HAkv3La3ECgQpdYeEJfrX36EWdhkUDv4C9wvXM8TFZ9dNgd"
+      "16Uiu2HAkv3La3ECgQpdYeEJfrX36EWdhkUDv4C9wvXM8TFZ9dNgd",
     );
   });
 });
@@ -279,7 +279,7 @@ describe("DNS Node Discovery [live data]", function () {
       relay: maxQuantity,
       store: maxQuantity,
       filter: maxQuantity,
-      lightPush: maxQuantity
+      lightPush: maxQuantity,
     });
 
     expect(peers.length).to.eq(maxQuantity);
@@ -302,7 +302,7 @@ describe("DNS Node Discovery [live data]", function () {
       relay: maxQuantity,
       store: maxQuantity,
       filter: maxQuantity,
-      lightPush: maxQuantity
+      lightPush: maxQuantity,
     });
 
     expect(peers.length).to.eq(maxQuantity);

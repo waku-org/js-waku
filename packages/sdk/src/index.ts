@@ -2,12 +2,12 @@ export {
   waitForRemotePeer,
   createEncoder,
   createDecoder,
-  WakuNode
+  WakuNode,
 } from "@waku/core";
 export {
   DecodedMessage,
   Decoder,
-  Encoder
+  Encoder,
 } from "@waku/core/lib/message/version_0";
 
 export { utf8ToBytes, bytesToUtf8 } from "@waku/utils/bytes";

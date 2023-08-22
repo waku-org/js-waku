@@ -17,7 +17,7 @@ describe("nwaku", () => {
       "--rpc-admin=true",
       "--websocket-support=true",
       "--log-level=TRACE",
-      "--ports-shift=42"
+      "--ports-shift=42",
     ];
 
     expect(actual).to.deep.equal(expected);

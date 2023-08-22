@@ -8,7 +8,7 @@ import {
   encryptAsymmetric,
   encryptSymmetric,
   postCipher,
-  preCipher
+  preCipher,
 } from "./waku_payload.js";
 
 describe("Waku Payload", () => {
@@ -24,8 +24,8 @@ describe("Waku Payload", () => {
           const res = await decryptAsymmetric(enc, privKey);
 
           expect(res).deep.equal(message);
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -39,8 +39,8 @@ describe("Waku Payload", () => {
           const res = await decryptSymmetric(enc, key);
 
           expect(res).deep.equal(message);
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -52,9 +52,9 @@ describe("Waku Payload", () => {
 
         expect(res?.payload).deep.equal(
           message,
-          "Payload was not encrypted then decrypted correctly"
+          "Payload was not encrypted then decrypted correctly",
         );
-      })
+      }),
     );
   });
 
@@ -71,14 +71,14 @@ describe("Waku Payload", () => {
 
           expect(res?.payload).deep.equal(
             message,
-            "Payload was not encrypted then decrypted correctly"
+            "Payload was not encrypted then decrypted correctly",
           );
           expect(res?.sig?.publicKey).deep.equal(
             sigPubKey,
-            "signature Public key was not recovered from encrypted then decrypted signature"
+            "signature Public key was not recovered from encrypted then decrypted signature",
           );
-        }
-      )
+        },
+      ),
     );
   });
 });

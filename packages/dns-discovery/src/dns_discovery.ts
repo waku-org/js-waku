@@ -1,7 +1,7 @@
 import { CustomEvent, EventEmitter } from "@libp2p/interface/events";
 import type {
   PeerDiscovery,
-  PeerDiscoveryEvents
+  PeerDiscoveryEvents,
 } from "@libp2p/interface/peer-discovery";
 import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
@@ -9,7 +9,7 @@ import type {
   DnsDiscOptions,
   DnsDiscoveryComponents,
   IEnr,
-  NodeCapabilityCount
+  NodeCapabilityCount,
 } from "@waku/interfaces";
 import debug from "debug";
 
@@ -17,7 +17,7 @@ import {
   DEFAULT_BOOTSTRAP_TAG_NAME,
   DEFAULT_BOOTSTRAP_TAG_TTL,
   DEFAULT_BOOTSTRAP_TAG_VALUE,
-  DEFAULT_NODE_REQUIREMENTS
+  DEFAULT_NODE_REQUIREMENTS,
 } from "./constants.js";
 import { DnsNodeDiscovery } from "./dns.js";
 
@@ -63,7 +63,7 @@ export class PeerDiscoveryDns
       this.nextPeer = dns.getNextPeer.bind(
         dns,
         enrUrls,
-        wantedNodeCapabilityCount
+        wantedNodeCapabilityCount,
       );
     }
 
@@ -82,9 +82,9 @@ export class PeerDiscoveryDns
         tags: {
           [DEFAULT_BOOTSTRAP_TAG_NAME]: {
             value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL
-          }
-        }
+            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL,
+          },
+        },
       };
 
       let isPeerChanged = false;
@@ -105,7 +105,7 @@ export class PeerDiscoveryDns
 
       if (isPeerChanged) {
         this.dispatchEvent(
-          new CustomEvent<PeerInfo>("peer", { detail: peerInfo })
+          new CustomEvent<PeerInfo>("peer", { detail: peerInfo }),
         );
       }
     }
@@ -129,7 +129,7 @@ export class PeerDiscoveryDns
 
 export function wakuDnsDiscovery(
   enrUrls: string[],
-  wantedNodeCapabilityCount: Partial<NodeCapabilityCount> = DEFAULT_NODE_REQUIREMENTS
+  wantedNodeCapabilityCount: Partial<NodeCapabilityCount> = DEFAULT_NODE_REQUIREMENTS,
 ): (components: DnsDiscoveryComponents) => PeerDiscoveryDns {
   return (components: DnsDiscoveryComponents) =>
     new PeerDiscoveryDns(components, { enrUrls, wantedNodeCapabilityCount });

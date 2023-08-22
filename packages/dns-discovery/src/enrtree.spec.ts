@@ -19,7 +19,7 @@ describe("ENRTree", () => {
     } catch (err: unknown) {
       const e = err as Error;
       expect(e.toString()).includes(
-        "ENRTree root entry must start with 'enrtree-root:'"
+        "ENRTree root entry must start with 'enrtree-root:'",
       );
     }
   });
@@ -56,7 +56,7 @@ describe("ENRTree", () => {
     } catch (err: unknown) {
       const e = err as Error;
       expect(e.toString()).includes(
-        "ENRTree tree entry must start with 'enrtree:'"
+        "ENRTree tree entry must start with 'enrtree:'",
       );
     }
   });
@@ -75,7 +75,7 @@ describe("ENRTree", () => {
     const expected = [
       "D2SNLTAGWNQ34NTQTPHNZDECFU",
       "67BLTJEU5R2D5S3B4QKJSBRFCY",
-      "A2HDMZBB4JIU53VTEGC4TG6P4A"
+      "A2HDMZBB4JIU53VTEGC4TG6P4A",
     ];
 
     const branches = ENRTree.parseBranch(dns.enrBranch);
@@ -88,7 +88,7 @@ describe("ENRTree", () => {
     } catch (err: unknown) {
       const e = err as Error;
       expect(e.toString()).includes(
-        "ENRTree branch entry must start with 'enrtree-branch:'"
+        "ENRTree branch entry must start with 'enrtree-branch:'",
       );
     }
   });

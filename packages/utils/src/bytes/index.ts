@@ -35,7 +35,7 @@ export const utf8ToBytes = (s: string): Uint8Array => fromString(s, "utf8");
  */
 export function concat(
   byteArrays: Uint8Array[],
-  totalLength?: number
+  totalLength?: number,
 ): Uint8Array {
   const len =
     totalLength ?? byteArrays.reduce((acc, curr) => acc + curr.length, 0);

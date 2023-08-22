@@ -8,7 +8,7 @@ const log = debug("waku:relay");
 
 export function messageValidator(
   peer: PeerId,
-  message: Message
+  message: Message,
 ): TopicValidatorResult {
   const startTime = performance.now();
   log(`validating message from ${peer} received on ${message.topic}`);

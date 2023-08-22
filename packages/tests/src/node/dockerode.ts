@@ -37,12 +37,12 @@ export default class Dockerode {
   }
 
   private static async createNetwork(
-    networkName: string = NETWORK_NAME
+    networkName: string = NETWORK_NAME,
   ): Promise<Docker.Network> {
     const docker = new Docker();
     const networks = await docker.listNetworks();
     const existingNetwork = networks.find(
-      (network) => network.Name === networkName
+      (network) => network.Name === networkName,
     );
 
     let network: Docker.Network;
@@ -59,10 +59,10 @@ export default class Dockerode {
             {
               Subnet: SUBNET,
               IPRange: IP_RANGE,
-              Gateway: GATEWAY
-            }
-          ]
-        }
+              Gateway: GATEWAY,
+            },
+          ],
+        },
       });
     }
 
@@ -92,7 +92,7 @@ export default class Dockerode {
     ports: number[],
     args: Args,
     logPath: string,
-    wakuServiceNodeParams?: string
+    wakuServiceNodeParams?: string,
   ): Promise<Docker.Container> {
     const [rpcPort, tcpPort, websocketPort, discv5UdpPort] = ports;
 
@@ -115,19 +115,19 @@ export default class Dockerode {
           [`${tcpPort}/tcp`]: [{ HostPort: tcpPort.toString() }],
           [`${websocketPort}/tcp`]: [{ HostPort: websocketPort.toString() }],
           ...(args?.peerExchange && {
-            [`${discv5UdpPort}/udp`]: [{ HostPort: discv5UdpPort.toString() }]
-          })
-        }
+            [`${discv5UdpPort}/udp`]: [{ HostPort: discv5UdpPort.toString() }],
+          }),
+        },
       },
       ExposedPorts: {
         [`${rpcPort}/tcp`]: {},
         [`${tcpPort}/tcp`]: {},
         [`${websocketPort}/tcp`]: {},
         ...(args?.peerExchange && {
-          [`${discv5UdpPort}/udp`]: {}
-        })
+          [`${discv5UdpPort}/udp`]: {},
+        }),
       },
-      Cmd: argsArrayWithIP
+      Cmd: argsArrayWithIP,
     });
     await container.start();
 
@@ -135,9 +135,9 @@ export default class Dockerode {
       Container: container.id,
       EndpointConfig: {
         IPAMConfig: {
-          IPv4Address: this.containerIp
-        }
-      }
+          IPv4Address: this.containerIp,
+        },
+      },
     });
     const logStream = fs.createWriteStream(logPath);
 
@@ -150,7 +150,7 @@ export default class Dockerode {
         if (stream) {
           stream.pipe(logStream);
         }
-      }
+      },
     );
 
     this.containerId = container.id;
@@ -164,7 +164,7 @@ export default class Dockerode {
     log(
       `Shutting down container ID ${
         this.containerId
-      } at ${new Date().toLocaleTimeString()}`
+      } at ${new Date().toLocaleTimeString()}`,
     );
 
     await this.container.stop();

@@ -11,7 +11,7 @@ const waku2FieldEncodings = {
   allTrue: 15,
   allFalse: 0,
   relayAndFilterTrue: 5,
-  storeAndLightPushTrue: 10
+  storeAndLightPushTrue: 10,
 };
 
 describe("ENR waku2 codec", function () {
@@ -22,7 +22,7 @@ describe("ENR waku2 codec", function () {
       relay: false,
       store: false,
       filter: false,
-      lightPush: false
+      lightPush: false,
     };
   });
 

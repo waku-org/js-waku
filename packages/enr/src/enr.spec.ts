@@ -14,7 +14,7 @@ import { EnrEncoder } from "./encoder.js";
 import {
   ENR,
   TransportProtocol,
-  TransportProtocolPerIpVersion
+  TransportProtocolPerIpVersion,
 } from "./enr.js";
 import { getPrivateKeyFromPeerId } from "./peer_id.js";
 
@@ -29,15 +29,15 @@ describe("ENR", function () {
         multiaddr("/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"),
         multiaddr("/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"),
         multiaddr(
-          "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
-        )
+          "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss",
+        ),
       ];
 
       enr.waku2 = {
         relay: true,
         store: false,
         filter: true,
-        lightPush: false
+        lightPush: false,
       };
 
       const txt = await EnrEncoder.toString(enr, privateKey);
@@ -53,19 +53,19 @@ describe("ENR", function () {
       expect(enr2.multiaddrs!.length).to.be.equal(3);
       const multiaddrsAsStr = enr2.multiaddrs!.map((ma) => ma.toString());
       expect(multiaddrsAsStr).to.include(
-        "/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss",
       );
       expect(multiaddrsAsStr).to.include(
-        "/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss",
       );
       expect(multiaddrsAsStr).to.include(
-        "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
+        "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss",
       );
       expect(enr2.waku2).to.deep.equal({
         relay: true,
         store: false,
         filter: true,
-        lightPush: false
+        lightPush: false,
       });
     });
 
@@ -87,13 +87,13 @@ describe("ENR", function () {
       expect(enr.multiaddrs!.length).to.be.equal(3);
       const multiaddrsAsStr = enr.multiaddrs!.map((ma) => ma.toString());
       expect(multiaddrsAsStr).to.include(
-        "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss",
       );
       expect(multiaddrsAsStr).to.include(
-        "/dns6/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns6/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss",
       );
       expect(multiaddrsAsStr).to.include(
-        "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
+        "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss",
       );
     });
 
@@ -107,7 +107,7 @@ describe("ENR", function () {
       expect(enr.ip).to.be.equal("134.209.139.210");
       expect(enr.publicKey).to.not.be.undefined;
       expect(enr.peerId?.toString()).to.be.equal(
-        "16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ"
+        "16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ",
       );
     });
 
@@ -159,7 +159,7 @@ describe("ENR", function () {
         const enr = await ENR.create(
           { id: utf8ToBytes("v3") },
           BigInt(0),
-          new Uint8Array()
+          new Uint8Array(),
         );
         enr.verify(new Uint8Array(), new Uint8Array());
         assert.fail("Expect error here");
@@ -174,7 +174,7 @@ describe("ENR", function () {
         const enr = await ENR.create(
           { id: utf8ToBytes("v4") },
           BigInt(0),
-          new Uint8Array()
+          new Uint8Array(),
         );
         enr.verify(new Uint8Array(), new Uint8Array());
         assert.fail("Expect error here");
@@ -200,7 +200,7 @@ describe("ENR", function () {
     beforeEach(async function () {
       const seq = BigInt(1);
       privateKey = hexToBytes(
-        "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
+        "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291",
       );
       record = await EnrCreator.fromPublicKey(secp.getPublicKey(privateKey));
       record.setLocationMultiaddr(multiaddr("/ip4/127.0.0.1/udp/30303"));
@@ -210,7 +210,7 @@ describe("ENR", function () {
 
     it("should properly compute the node id", () => {
       expect(record.nodeId).to.equal(
-        "a448f24c6d18e575453db13171562b71999873db5b286df957af199ec94617f7"
+        "a448f24c6d18e575453db13171562b71999873db5b286df957af199ec94617f7",
       );
     });
 
@@ -245,7 +245,7 @@ describe("ENR", function () {
 
     beforeEach(async () => {
       privateKey = hexToBytes(
-        "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
+        "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291",
       );
       record = await EnrCreator.fromPublicKey(secp.getPublicKey(privateKey));
     });
@@ -262,14 +262,14 @@ describe("ENR", function () {
       record.set("udp", tuples0[1][1]);
       // and get the multiaddr
       expect(
-        record.getLocationMultiaddr(TransportProtocol.UDP)!.toString()
+        record.getLocationMultiaddr(TransportProtocol.UDP)!.toString(),
       ).to.equal(multi0.toString());
       // set the multiaddr
       const multi1 = multiaddr("/ip4/0.0.0.0/udp/30300");
       record.setLocationMultiaddr(multi1);
       // and get the multiaddr
       expect(
-        record.getLocationMultiaddr(TransportProtocol.UDP)!.toString()
+        record.getLocationMultiaddr(TransportProtocol.UDP)!.toString(),
       ).to.equal(multi1.toString());
       // and get the underlying records
       const tuples1 = multi1.tuples();
@@ -290,14 +290,14 @@ describe("ENR", function () {
       record.set("tcp", tuples0[1][1]);
       // and get the multiaddr
       expect(
-        record.getLocationMultiaddr(TransportProtocol.TCP)!.toString()
+        record.getLocationMultiaddr(TransportProtocol.TCP)!.toString(),
       ).to.equal(multi0.toString());
       // set the multiaddr
       const multi1 = multiaddr("/ip4/0.0.0.0/tcp/30300");
       record.setLocationMultiaddr(multi1);
       // and get the multiaddr
       expect(
-        record.getLocationMultiaddr(TransportProtocol.TCP)!.toString()
+        record.getLocationMultiaddr(TransportProtocol.TCP)!.toString(),
       ).to.equal(multi1.toString());
       // and get the underlying records
       const tuples1 = multi1.tuples();
@@ -312,7 +312,7 @@ describe("ENR", function () {
     const tcp = 8080;
     const udp = 8080;
     const wsMultiaddr = multiaddr(
-      "/dns4/node-01.do-ams3.wakuv2.prod.statusim.net/tcp/8000/wss"
+      "/dns4/node-01.do-ams3.wakuv2.prod.statusim.net/tcp/8000/wss",
     );
     let peerId: PeerId;
     let enr: ENR;
@@ -331,43 +331,43 @@ describe("ENR", function () {
 
     it("should properly create location multiaddrs - udp4", () => {
       expect(
-        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.UDP4)
+        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.UDP4),
       ).to.deep.equal(multiaddr(`/ip4/${ip4}/udp/${udp}`));
     });
 
     it("should properly create location multiaddrs - tcp4", () => {
       expect(
-        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.TCP4)
+        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.TCP4),
       ).to.deep.equal(multiaddr(`/ip4/${ip4}/tcp/${tcp}`));
     });
 
     it("should properly create location multiaddrs - udp6", () => {
       expect(
-        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.UDP6)
+        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.UDP6),
       ).to.deep.equal(multiaddr(`/ip6/${ip6}/udp/${udp}`));
     });
 
     it("should properly create location multiaddrs - tcp6", () => {
       expect(
-        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.TCP6)
+        enr.getLocationMultiaddr(TransportProtocolPerIpVersion.TCP6),
       ).to.deep.equal(multiaddr(`/ip6/${ip6}/tcp/${tcp}`));
     });
 
     it("should properly create location multiaddrs - udp", () => {
       // default to ip4
       expect(enr.getLocationMultiaddr(TransportProtocol.UDP)).to.deep.equal(
-        multiaddr(`/ip4/${ip4}/udp/${udp}`)
+        multiaddr(`/ip4/${ip4}/udp/${udp}`),
       );
       // if ip6 is set, use it
       enr.ip = undefined;
       expect(enr.getLocationMultiaddr(TransportProtocol.UDP)).to.deep.equal(
-        multiaddr(`/ip6/${ip6}/udp/${udp}`)
+        multiaddr(`/ip6/${ip6}/udp/${udp}`),
       );
       // if ip6 does not exist, use ip4
       enr.ip6 = undefined;
       enr.ip = ip4;
       expect(enr.getLocationMultiaddr(TransportProtocol.UDP)).to.deep.equal(
-        multiaddr(`/ip4/${ip4}/udp/${udp}`)
+        multiaddr(`/ip4/${ip4}/udp/${udp}`),
       );
       enr.ip6 = ip6;
     });
@@ -375,18 +375,18 @@ describe("ENR", function () {
     it("should properly create location multiaddrs - tcp", () => {
       // default to ip4
       expect(enr.getLocationMultiaddr(TransportProtocol.TCP)).to.deep.equal(
-        multiaddr(`/ip4/${ip4}/tcp/${tcp}`)
+        multiaddr(`/ip4/${ip4}/tcp/${tcp}`),
       );
       // if ip6 is set, use it
       enr.ip = undefined;
       expect(enr.getLocationMultiaddr(TransportProtocol.TCP)).to.deep.equal(
-        multiaddr(`/ip6/${ip6}/tcp/${tcp}`)
+        multiaddr(`/ip6/${ip6}/tcp/${tcp}`),
       );
       // if ip6 does not exist, use ip4
       enr.ip6 = undefined;
       enr.ip = ip4;
       expect(enr.getLocationMultiaddr(TransportProtocol.TCP)).to.deep.equal(
-        multiaddr(`/ip4/${ip4}/tcp/${tcp}`)
+        multiaddr(`/ip4/${ip4}/tcp/${tcp}`),
       );
       enr.ip6 = ip6;
     });
@@ -397,19 +397,19 @@ describe("ENR", function () {
       expect(peerInfo.id.toString()).to.equal(peerId.toString());
       expect(peerInfo.multiaddrs.length).to.equal(5);
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
-        multiaddr(`/ip4/${ip4}/tcp/${tcp}`).toString()
+        multiaddr(`/ip4/${ip4}/tcp/${tcp}`).toString(),
       );
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
-        multiaddr(`/ip6/${ip6}/tcp/${tcp}`).toString()
+        multiaddr(`/ip6/${ip6}/tcp/${tcp}`).toString(),
       );
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
-        multiaddr(`/ip4/${ip4}/udp/${udp}`).toString()
+        multiaddr(`/ip4/${ip4}/udp/${udp}`).toString(),
       );
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
-        multiaddr(`/ip6/${ip6}/udp/${udp}`).toString()
+        multiaddr(`/ip6/${ip6}/udp/${udp}`).toString(),
       );
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
-        wsMultiaddr.toString()
+        wsMultiaddr.toString(),
       );
     });
   });
@@ -428,7 +428,7 @@ describe("ENR", function () {
         relay: false,
         store: false,
         filter: false,
-        lightPush: false
+        lightPush: false,
       };
     });
 

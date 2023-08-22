@@ -3,7 +3,7 @@ import type { IBaseProtocol, ProtocolOptions } from "./protocols.js";
 
 export enum PageDirection {
   BACKWARD = "backward",
-  FORWARD = "forward"
+  FORWARD = "forward",
 }
 
 export interface TimeFilter {
@@ -49,17 +49,17 @@ export interface IStore extends IBaseProtocol {
   queryOrderedCallback: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
-    options?: StoreQueryOptions
+    options?: StoreQueryOptions,
   ) => Promise<void>;
   queryCallbackOnPromise: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (
-      message: Promise<T | undefined>
+      message: Promise<T | undefined>,
     ) => Promise<void | boolean> | boolean | void,
-    options?: StoreQueryOptions
+    options?: StoreQueryOptions,
   ) => Promise<void>;
   queryGenerator: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
-    options?: StoreQueryOptions
+    options?: StoreQueryOptions,
   ) => AsyncGenerator<Promise<T | undefined>[]>;
 }

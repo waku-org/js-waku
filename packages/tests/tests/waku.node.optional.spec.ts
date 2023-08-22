@@ -25,7 +25,7 @@ describe("Use static and several ENR trees for bootstrap", function () {
     const NODE_REQUIREMENTS = {
       store: 3,
       lightPush: 3,
-      filter: 3
+      filter: 3,
     };
 
     waku = await createLightNode({
@@ -34,10 +34,10 @@ describe("Use static and several ENR trees for bootstrap", function () {
           bootstrap({ list: [multiAddrWithId.toString()] }),
           wakuDnsDiscovery(
             [enrTree["PROD"], enrTree["TEST"]],
-            NODE_REQUIREMENTS
-          )
-        ]
-      }
+            NODE_REQUIREMENTS,
+          ),
+        ],
+      },
     });
     await waku.start();
 
@@ -48,8 +48,8 @@ describe("Use static and several ENR trees for bootstrap", function () {
     // should also have the bootstrap peer
     expect(
       peersDiscovered.find(
-        (p) => p.id.toString() === multiAddrWithId.getPeerId()?.toString()
-      )
+        (p) => p.id.toString() === multiAddrWithId.getPeerId()?.toString(),
+      ),
     ).to.not.be.undefined;
   });
 });
