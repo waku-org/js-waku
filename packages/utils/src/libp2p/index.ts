@@ -4,7 +4,7 @@ import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { PingServiceComponents } from "@waku/interfaces";
 import debug from "debug";
 import type { PingService } from "libp2p/ping";
-import { pingService } from "libp2p/ping";
+import { pingService as libp2pPingService } from "libp2p/ping";
 
 const log = debug("waku:libp2p-utils");
 /**
@@ -88,8 +88,9 @@ export async function selectPeerForProtocol(
     }
   } else {
     const peers = await getPeersForProtocol(peerStore, protocols);
-    const { ping } = pingService()({ connectionManager, registrar });
-    peer = await selectFastestPeer(ping, peers);
+    const pingService = libp2pPingService()({ connectionManager, registrar });
+    const { ping } = pingService;
+    peer = await selectFastestPeer(ping.bind(pingService), peers);
     if (!peer) {
       throw new Error(
         `Failed to find known peer that registers protocols: ${protocols}`
