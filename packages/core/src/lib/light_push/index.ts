@@ -42,26 +42,41 @@ class LightPush extends BaseProtocol implements ILightPush {
     encoder: IEncoder,
     message: IMessage,
     pubSubTopic: string
-  ): Promise<{
-    query: PushRpc | null;
-    error?: SendError;
-  }> {
-    if (!isSizeValid(message.payload)) {
-      log("Failed to send waku light push: message is bigger than 1MB");
-      return { query: null, error: SendError.SIZE_TOO_BIG };
-    }
+  ): Promise<
+    | {
+        query: PushRpc;
+        error: null;
+      }
+    | {
+        query: null;
+        error: SendError;
+      }
+  > {
+    try {
+      if (!isSizeValid(message.payload)) {
+        log("Failed to send waku light push: message is bigger than 1MB");
+        return { query: null, error: SendError.SIZE_TOO_BIG };
+      }
 
-    const protoMessage = await encoder.toProtoObj(message);
-    if (!protoMessage) {
-      log("Failed to encode to protoMessage, aborting push");
+      const protoMessage = await encoder.toProtoObj(message);
+      if (!protoMessage) {
+        log("Failed to encode to protoMessage, aborting push");
+        return {
+          query: null,
+          error: SendError.ENCODE_FAILED
+        };
+      }
+
+      const query = PushRpc.createRequest(protoMessage, pubSubTopic);
+      return { query, error: null };
+    } catch (error) {
+      log("Failed to prepare push message", error);
+
       return {
         query: null,
-        error: SendError.ENCODE_FAILED
+        error: SendError.GENERIC_FAIL
       };
     }
-
-    const query = PushRpc.createRequest(protoMessage, pubSubTopic);
-    return { query };
   }
 
   async send(
@@ -71,33 +86,21 @@ class LightPush extends BaseProtocol implements ILightPush {
   ): Promise<SendResult> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
     const recipients: PeerId[] = [];
-    let error: undefined | SendError = undefined;
 
-    let query: PushRpc | null = null;
+    const { query, error: prepareError } = await this.preparePushMessage(
+      encoder,
+      message,
+      pubSubTopic
+    );
 
-    try {
-      const { query: preparedQuery, error: preparationError } =
-        await this.preparePushMessage(encoder, message, pubSubTopic);
-
-      if (preparationError) {
-        return {
-          recipients,
-          error: preparationError
-        };
-      }
-
-      query = preparedQuery;
-    } catch (error) {
-      log("Failed to prepare push message", error);
-    }
-
-    if (!query) {
+    if (prepareError || !query) {
       return {
         recipients,
-        error: SendError.GENERIC_FAIL
+        error: prepareError
       };
     }
 
+    let error: SendError;
     const peer = await this.getPeer(opts?.peerId);
     const stream = await this.newStream(peer);
 
