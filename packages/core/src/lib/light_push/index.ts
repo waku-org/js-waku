@@ -64,6 +64,20 @@ class LightPush extends BaseProtocol implements ILightPush {
     return { query };
   }
 
+  /**
+   * Sends a message using the Waku v2 Light Push protocol.
+   *
+   * @param encoder - The encoder to use for encoding the message.
+   * @param message - The message to be sent.
+   * @param opts - Optional protocol options.
+   * @param opts.peerId - The ID of the peer to use for LightPush send. If not specified,
+   *                      the peer with the lowest latency from the connected peers is used.
+   *
+   * @returns A promise that resolves to a `SendResult` object containing the recipients
+   *          of the message and any potential error that occurred during the send operation.
+   *
+   * @throws {SendError} - Throws an error if there's an issue with sending the message.
+   */
   async send(
     encoder: IEncoder,
     message: IMessage,

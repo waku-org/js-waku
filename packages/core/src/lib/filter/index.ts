@@ -257,6 +257,19 @@ class Filter extends BaseProtocol implements IReceiver {
     this.options = options ?? {};
   }
 
+  /**
+   * Creates a subscription for a given pub/sub topic and peer.
+   *
+   * @param pubSubTopic - The pub/sub topic for the subscription. If not provided,
+   *                      it defaults to the protocol's configured topic or the default topic.
+   * @param peerId - The ID of the peer to use for Filter subscribe. If not specified,
+   *                 the peer with the lowest latency from the connected peers is used.
+   *
+   * @returns A promise that resolves to a `Subscription` object for the given topic and peer.
+   *
+   * @throws {Error} - Throws an error if there's an issue creating the subscription.
+   *
+   */
   async createSubscription(
     pubSubTopic?: string,
     peerId?: PeerId

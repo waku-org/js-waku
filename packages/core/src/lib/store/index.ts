@@ -41,7 +41,7 @@ export interface TimeFilter {
 
 export interface QueryOptions {
   /**
-   * The peer to query. If undefined, a pseudo-random peer is selected from the connected Waku Store peers.
+   * The peer to query. If undefined, the peer with the lowest latency is selected from the connected Waku Store peers.
    */
   peerId?: PeerId;
   /**
@@ -198,18 +198,20 @@ class Store extends BaseProtocol implements IStore {
   }
 
   /**
-   * Do a query to a Waku Store to retrieve historical/missed messages.
+   * Queries a Waku Store to retrieve historical or missed messages using a generator.
    *
-   * This is a generator, useful if you want most control on how messages
-   * are processed.
+   * This generator provides granular control over how messages are processed.
+   * Messages returned by the remote Waku node are ordered as follows:
+   * - Within a page, messages are ordered from the oldest to the most recent.
+   * - The direction of pages depends on the {@link QueryOptions.pageDirection}.
+   * @params options.peerId - The ID of the peer to use for the Store query. If not specified,
+   *                         the peer with the lowest latency from the connected peers is used.
    *
-   * The order of the messages returned by the remote Waku node SHOULD BE
-   * as follows:
-   * - within a page, messages SHOULD be ordered from oldest to most recent
-   * - pages direction depends on { @link QueryOptions.pageDirection }
-   * @throws If not able to reach a Waku Store peer to query,
-   * or if an error is encountered when processing the reply,
-   * or if two decoders with the same content topic are passed.
+   * @yields An array of promises that resolve to decoded messages.
+   *
+   * @throws {Error} - Throws an error if unable to reach a Waku Store peer,
+   *                   if an error occurs while processing the reply,
+   *                   or if two decoders with the same content topic are passed.
    */
   async *queryGenerator<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
