@@ -175,7 +175,7 @@ export async function defaultLibp2p(
       identify: identifyService({
         agentVersion: userAgent ?? DefaultUserAgent
       }),
-      ping: pingService(),
+      ping: pingService({ maxOutboundStreams: 2 }),
       ...pubsubService,
       ...options?.services
     }
