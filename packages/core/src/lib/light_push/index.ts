@@ -27,6 +27,16 @@ const log = debug("waku:light-push");
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 
+type PreparePushMessageResult =
+  | {
+      query: PushRpc;
+      error: null;
+    }
+  | {
+      query: null;
+      error: SendError;
+    };
+
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
@@ -42,16 +52,7 @@ class LightPush extends BaseProtocol implements ILightPush {
     encoder: IEncoder,
     message: IMessage,
     pubSubTopic: string
-  ): Promise<
-    | {
-        query: PushRpc;
-        error: null;
-      }
-    | {
-        query: null;
-        error: SendError;
-      }
-  > {
+  ): Promise<PreparePushMessageResult> {
     try {
       if (!isSizeValid(message.payload)) {
         log("Failed to send waku light push: message is bigger than 1MB");
