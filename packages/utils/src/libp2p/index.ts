@@ -2,7 +2,7 @@ import type { Connection } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import debug from "debug";
-
+import type { PingService } from "libp2p/ping";
 const log = debug("waku:libp2p-utils");
 
 /**
@@ -73,6 +73,38 @@ export async function selectPeerForProtocol(
   }
 
   return { peer, protocol };
+}
+
+/**
+ *
+ * @param ping The libp2p ping service's ping function
+ * @param peerStore The libp2p peer store
+ * @param protocols The protocols that the peer must support
+ * @returns The peer with the lowest latency that supports the given protocols
+ */
+
+export async function selectFastestPeerForProtocol(
+  ping: PingService["ping"],
+  peerStore: PeerStore,
+  protocols: string[]
+): Promise<{ peer: Peer }> {
+  const peers = await getPeersForProtocol(peerStore, protocols);
+  if (!peers.length) {
+    throw new Error(
+      `Failed to find known peer that registers protocols: ${protocols}`
+    );
+  }
+
+  const peerLatencies = await Promise.all(
+    peers.map(async (peer) => {
+      const latency = await ping(peer.id);
+      return { peer, latency };
+    })
+  );
+
+  peerLatencies.sort((a, b) => a.latency - b.latency);
+
+  return { peer: peerLatencies[0].peer };
 }
 
 export function selectConnection(
