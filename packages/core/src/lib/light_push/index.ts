@@ -87,16 +87,16 @@ class LightPush extends BaseProtocol implements ILightPush {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
     const recipients: PeerId[] = [];
 
-    const { query, error: prepareError } = await this.preparePushMessage(
+    const { query, error: preparationError } = await this.preparePushMessage(
       encoder,
       message,
       pubSubTopic
     );
 
-    if (prepareError || !query) {
+    if (preparationError || !query) {
       return {
         recipients,
-        error: prepareError
+        error: preparationError
       };
     }
 
