@@ -1,10 +1,12 @@
 import type { Connection } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
+import type { PingServiceComponents } from "@waku/interfaces";
 import debug from "debug";
 import type { PingService } from "libp2p/ping";
-const log = debug("waku:libp2p-utils");
+import { pingService } from "libp2p/ping";
 
+const log = debug("waku:libp2p-utils");
 /**
  * @deprecated uses fastest peer selection instead
  * Returns a pseudo-random peer that supports the given protocol.
@@ -25,7 +27,7 @@ export function selectRandomPeer(peers: Peer[]): Peer | undefined {
  * @returns The peer with the lowest latency that supports the given protocols
  */
 
-export async function selectFastestPeer(
+async function selectFastestPeer(
   ping: PingService["ping"],
   peers: Peer[]
 ): Promise<Peer> {
@@ -73,7 +75,7 @@ export async function getPeersForProtocol(
 export async function selectPeerForProtocol(
   peerStore: PeerStore,
   protocols: string[],
-  ping: PingService["ping"],
+  { registrar, connectionManager }: PingServiceComponents,
   peerId?: PeerId
 ): Promise<{ peer: Peer; protocol: string }> {
   let peer: Peer;
@@ -86,6 +88,7 @@ export async function selectPeerForProtocol(
     }
   } else {
     const peers = await getPeersForProtocol(peerStore, protocols);
+    const { ping } = pingService()({ connectionManager, registrar });
     peer = await selectFastestPeer(ping, peers);
     if (!peer) {
       throw new Error(

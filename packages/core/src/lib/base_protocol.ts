@@ -46,6 +46,10 @@ export class BaseProtocol implements IBaseProtocol {
     const { peer } = await selectPeerForProtocol(
       this.peerStore,
       [this.multicodec],
+      {
+        registrar: this.components.registrar,
+        connectionManager: this.components.connectionManager
+      },
       peerId
     );
     return peer;
