@@ -71,23 +71,21 @@ export class BaseProtocol implements IBaseProtocol {
       return allPeersForProtocol;
     }
 
-    // Filter the bootstrap peer if required to include
-    const bootstrapPeer = includeBootstrap
-      ? allPeersForProtocol.find((peer) => peer.tags.has(Tags.BOOTSTRAP))
-      : undefined;
+    // Filter the bootstrap peers if required to include
+    const bootstrapPeers = includeBootstrap
+      ? allPeersForProtocol.filter((peer) => peer.tags.has(Tags.BOOTSTRAP))
+      : [];
 
-    // Filter remaining peers excluding bootstrap
+    // Filter remaining peers excluding bootstrap peers
     const remainingPeers = allPeersForProtocol.filter(
-      (peer) => peer !== bootstrapPeer
+      (peer) => !bootstrapPeers.includes(peer)
     );
 
     // Initialize the list of selected peers
     const selectedPeers: Peer[] = [];
 
-    // Add the bootstrap peer if available and required
-    if (bootstrapPeer) {
-      selectedPeers.push(bootstrapPeer);
-    }
+    // Add the bootstrap peers if available and required
+    selectedPeers.push(...bootstrapPeers);
 
     // Fill up to numPeers with remaining random peers if needed
     while (selectedPeers.length < numPeers && remainingPeers.length > 0) {
