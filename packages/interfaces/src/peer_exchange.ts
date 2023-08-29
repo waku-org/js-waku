@@ -1,3 +1,4 @@
+import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerStore } from "@libp2p/interface/peer-store";
 import type { ConnectionManager } from "@libp2p/interface-internal/connection-manager";
 
@@ -10,6 +11,7 @@ export interface IPeerExchange extends IBaseProtocol {
 
 export interface PeerExchangeQueryParams {
   numPeers: number;
+  peerId?: PeerId;
 }
 
 export interface PeerExchangeResponse {
