@@ -58,10 +58,13 @@ export class BaseProtocol implements IBaseProtocol {
    * @param includeBootstrap - If true, includes a bootstrap peer in the result. Useful for protocols like Filter and Store that require only one peer for now.
    * @returns A Promise that resolves to an array of peers based on the specified criteria.
    */
-  protected async getPeers(
-    numPeers: number,
-    includeBootstrap: boolean
-  ): Promise<Peer[]> {
+  protected async getPeers({
+    numPeers,
+    includeBootstrap
+  }: {
+    numPeers: number;
+    includeBootstrap: boolean;
+  }): Promise<Peer[]> {
     // Retrieve all peers that support the protocol
     const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
       this.multicodec

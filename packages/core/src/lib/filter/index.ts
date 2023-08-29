@@ -260,7 +260,9 @@ class Filter extends BaseProtocol implements IReceiver {
     const _pubSubTopic =
       pubSubTopic ?? this.options.pubSubTopic ?? DefaultPubSubTopic;
 
-    const peer = (await this.getPeers(1, true))[0];
+    const peer = (
+      await this.getPeers({ includeBootstrap: true, numPeers: 1 })
+    )[0];
 
     const subscription =
       this.getActiveSubscription(_pubSubTopic, peer.id.toString()) ??

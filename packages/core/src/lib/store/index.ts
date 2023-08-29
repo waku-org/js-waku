@@ -243,7 +243,9 @@ class Store extends BaseProtocol implements IStore {
 
     log("Querying history with the following options", options);
 
-    const peer = (await this.getPeers(0, true))[0];
+    const peer = (
+      await this.getPeers({ includeBootstrap: true, numPeers: 1 })
+    )[0];
 
     for await (const messages of paginate<T>(
       this.newStream.bind(this, peer),

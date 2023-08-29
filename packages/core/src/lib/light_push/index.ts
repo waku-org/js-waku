@@ -70,7 +70,10 @@ class LightPush extends BaseProtocol implements ILightPush {
       };
     }
 
-    const peers = await this.getPeers(DEFAULT_NUM_PEERS_PROTOCOL, true);
+    const peers = await this.getPeers({
+      includeBootstrap: true,
+      numPeers: DEFAULT_NUM_PEERS_PROTOCOL
+    });
 
     const promises = peers.map(async (peer) => {
       let error: SendError | undefined;
