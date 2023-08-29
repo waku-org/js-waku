@@ -1,5 +1,4 @@
 import { Stream } from "@libp2p/interface/connection";
-import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer } from "@libp2p/interface/peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-internal/registrar";
 import type {
@@ -257,14 +256,11 @@ class Filter extends BaseProtocol implements IReceiver {
     this.options = options ?? {};
   }
 
-  async createSubscription(
-    pubSubTopic?: string,
-    peerId?: PeerId
-  ): Promise<Subscription> {
+  async createSubscription(pubSubTopic?: string): Promise<Subscription> {
     const _pubSubTopic =
       pubSubTopic ?? this.options.pubSubTopic ?? DefaultPubSubTopic;
 
-    const peer = await this.getPeer(peerId);
+    const peer = await this.getPeer();
 
     const subscription =
       this.getActiveSubscription(_pubSubTopic, peer.id.toString()) ??
@@ -301,10 +297,9 @@ class Filter extends BaseProtocol implements IReceiver {
    */
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>,
-    opts?: ProtocolOptions
+    callback: Callback<T>
   ): Promise<Unsubscribe> {
-    const subscription = await this.createSubscription(undefined, opts?.peerId);
+    const subscription = await this.createSubscription();
 
     await subscription.subscribe(decoders, callback);
 

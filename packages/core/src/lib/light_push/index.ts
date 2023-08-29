@@ -5,7 +5,6 @@ import {
   IMessage,
   Libp2p,
   ProtocolCreateOptions,
-  ProtocolOptions,
   SendError,
   SendResult
 } from "@waku/interfaces";
@@ -39,11 +38,7 @@ class LightPush extends BaseProtocol implements ILightPush {
     this.options = options || {};
   }
 
-  async send(
-    encoder: IEncoder,
-    message: IMessage,
-    opts?: ProtocolOptions
-  ): Promise<SendResult> {
+  async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
 
     const recipients: PeerId[] = [];
@@ -76,7 +71,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       };
     }
 
-    const peers = await this.getPeers(3, true, opts?.peerId && [opts?.peerId]);
+    const peers = await this.getPeers(3, true);
 
     const promises = peers.map(async (peer) => {
       let error: SendError | undefined;
