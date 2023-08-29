@@ -24,9 +24,7 @@ import { PushRpc } from "./push_rpc.js";
 const log = debug("waku:light-push");
 
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
-
 export { PushResponse };
-
 export const DEFAULT_NUM_PEERS_PROTOCOL = 3;
 
 /**
@@ -42,7 +40,6 @@ class LightPush extends BaseProtocol implements ILightPush {
 
   async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
-
     const recipients: PeerId[] = [];
     let query: PushRpc;
 
@@ -77,7 +74,6 @@ class LightPush extends BaseProtocol implements ILightPush {
 
     const promises = peers.map(async (peer) => {
       let error: SendError | undefined;
-
       const stream = await this.newStream(peer);
 
       try {

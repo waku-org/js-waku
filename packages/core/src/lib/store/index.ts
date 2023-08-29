@@ -82,6 +82,54 @@ class Store extends BaseProtocol implements IStore {
   }
 
   /**
+   * Processes messages based on the provided callback and options.
+   * @private
+   */
+  private async processMessages<T extends IDecodedMessage>(
+    messages: Promise<T | undefined>[],
+    callback: (message: T) => Promise<void | boolean> | boolean | void,
+    options?: QueryOptions
+  ): Promise<boolean> {
+    let abort = false;
+    const messagesOrUndef: Array<T | undefined> = await Promise.all(messages);
+    let processedMessages: Array<T> = messagesOrUndef.filter(isDefined);
+
+    if (this.shouldReverseOrder(options)) {
+      processedMessages = processedMessages.reverse();
+    }
+
+    await Promise.all(
+      processedMessages.map(async (msg) => {
+        if (msg && !abort) {
+          abort = Boolean(await callback(msg));
+        }
+      })
+    );
+
+    return abort;
+  }
+
+  /**
+   * Determines whether to reverse the order of messages based on the provided options.
+   *
+   * Messages in pages are ordered from oldest (first) to most recent (last).
+   * https://github.com/vacp2p/rfc/issues/533
+   *
+   * @private
+   */
+  private shouldReverseOrder(options?: QueryOptions): boolean {
+    return (
+      typeof options?.pageDirection === "undefined" ||
+      options?.pageDirection === PageDirection.BACKWARD
+    );
+  }
+
+  /**
+   * @deprecated Use `queryWithOrderedCallback` instead
+   **/
+  queryOrderedCallback = this.queryWithOrderedCallback;
+
+  /**
    * Do a query to a Waku Store to retrieve historical/missed messages.
    *
    * The callback function takes a `WakuMessage` in input,
@@ -98,42 +146,20 @@ class Store extends BaseProtocol implements IStore {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryOrderedCallback<T extends IDecodedMessage>(
+  async queryWithOrderedCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: QueryOptions
   ): Promise<void> {
-    let abort = false;
     for await (const promises of this.queryGenerator(decoders, options)) {
-      if (abort) break;
-      const messagesOrUndef: Array<T | undefined> = await Promise.all(promises);
-
-      let messages: Array<T> = messagesOrUndef.filter(isDefined);
-
-      // Messages in pages are ordered from oldest (first) to most recent (last).
-      // https://github.com/vacp2p/rfc/issues/533
-      if (
-        typeof options?.pageDirection === "undefined" ||
-        options?.pageDirection === PageDirection.BACKWARD
-      ) {
-        messages = messages.reverse();
-      }
-
-      await Promise.all(
-        messages.map(async (msg) => {
-          if (msg && !abort) {
-            abort = Boolean(await callback(msg));
-          }
-        })
-      );
+      if (await this.processMessages(promises, callback, options)) break;
     }
   }
 
   /**
    * Do a query to a Waku Store to retrieve historical/missed messages.
-   *
    * The callback function takes a `Promise<WakuMessage>` in input,
-   * useful if messages needs to be decrypted and performance matters.
+   * useful if messages need to be decrypted and performance matters.
    *
    * The order of the messages passed to the callback is as follows:
    * - within a page, messages are expected to be ordered from oldest to most recent
@@ -147,7 +173,7 @@ class Store extends BaseProtocol implements IStore {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryCallbackOnPromise<T extends IDecodedMessage>(
+  async queryWithPromiseCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (
       message: Promise<T | undefined>
@@ -155,17 +181,15 @@ class Store extends BaseProtocol implements IStore {
     options?: QueryOptions
   ): Promise<void> {
     let abort = false;
-    let promises: Promise<void>[] = [];
     for await (const page of this.queryGenerator(decoders, options)) {
-      const _promises = page.map(async (msg) => {
-        if (!abort) {
-          abort = Boolean(await callback(msg));
-        }
+      const _promises = page.map(async (msgPromise) => {
+        if (abort) return;
+        abort = Boolean(await callback(msgPromise));
       });
 
-      promises = promises.concat(_promises);
+      await Promise.all(_promises);
+      if (abort) break;
     }
-    await Promise.all(promises);
   }
 
   /**
@@ -178,9 +202,6 @@ class Store extends BaseProtocol implements IStore {
    * as follows:
    * - within a page, messages SHOULD be ordered from oldest to most recent
    * - pages direction depends on { @link QueryOptions.pageDirection }
-   *
-   * However, there is no way to guarantee the behavior of the remote node.
-   *
    * @throws If not able to reach a Waku Store peer to query,
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
