@@ -27,6 +27,8 @@ export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 
 export { PushResponse };
 
+export const DEFAULT_NUM_PEERS_PROTOCOL = 3;
+
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
@@ -71,7 +73,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       };
     }
 
-    const peers = await this.getPeers(3, true);
+    const peers = await this.getPeers(DEFAULT_NUM_PEERS_PROTOCOL, true);
 
     const promises = peers.map(async (peer) => {
       let error: SendError | undefined;
