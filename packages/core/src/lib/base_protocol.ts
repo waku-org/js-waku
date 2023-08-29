@@ -54,7 +54,7 @@ export class BaseProtocol implements IBaseProtocol {
   /**
    * Retrieves a list of peers based on the specified criteria.
    *
-   * @param numPeers - The number of peers to retrieve. If you need all available peers, specify a large number.
+   * @param numPeers - The number of peers to retrieve. If 0, all peers are returned.
    * @param includeBootstrap - If true, includes a bootstrap peer in the result. Useful for protocols like Filter and Store that require only one peer for now.
    * @returns A Promise that resolves to an array of peers based on the specified criteria.
    */
@@ -66,6 +66,10 @@ export class BaseProtocol implements IBaseProtocol {
     const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
       this.multicodec
     ]);
+
+    if (numPeers === 0) {
+      return allPeersForProtocol;
+    }
 
     // Filter the bootstrap peer if required to include
     const bootstrapPeer = includeBootstrap
@@ -87,11 +91,12 @@ export class BaseProtocol implements IBaseProtocol {
 
     // Fill up to numPeers with remaining random peers if needed
     while (selectedPeers.length < numPeers && remainingPeers.length > 0) {
-      selectedPeers.push(remainingPeers.shift()!);
+      const randomIndex = Math.floor(Math.random() * remainingPeers.length);
+      const randomPeer = remainingPeers.splice(randomIndex, 1)[0];
+      selectedPeers.push(randomPeer);
     }
 
-    // Trim the result to the specified number of peers if more were added
-    return selectedPeers.slice(0, numPeers);
+    return selectedPeers;
   }
 
   protected async newStream(peer: Peer): Promise<Stream> {
