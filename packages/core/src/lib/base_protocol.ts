@@ -80,21 +80,15 @@ export class BaseProtocol implements IBaseProtocol {
       if (!stream) {
         throw new Error("Failed to get a stream from the pool");
       }
-      this.createAndSaveStream(peer)
-        .then(() => {
-          this.log(`Replenished stream pool for peer ${peer.id.toString()}`);
-        })
-        .catch((err) => {
-          this.log(
-            `error: failed to replenish stream pool for peer ${peer.id.toString()}: ${err}`
-          );
-        });
+      this.replenishStreamPool(peer);
       return stream;
     }
     this.log(
       `No stream available for peer ${peer.id.toString()}. Opening a new one.`
     );
-    return this.createAndSaveStream(peer);
+    const stream = await this.createAndSaveStream(peer);
+    this.replenishStreamPool(peer);
+    return stream;
   }
 
   private async createAndSaveStream(peer: Peer): Promise<Stream> {
@@ -107,6 +101,18 @@ export class BaseProtocol implements IBaseProtocol {
     }
     return stream;
   }
+
+  private replenishStreamPool = (peer: Peer): void => {
+    this.createAndSaveStream(peer)
+      .then(() => {
+        this.log(`Replenished stream pool for peer ${peer.id.toString()}`);
+      })
+      .catch((err) => {
+        this.log(
+          `error: failed to replenish stream pool for peer ${peer.id.toString()}: ${err}`
+        );
+      });
+  };
 
   private handlePeerUpdateStreamPool = (evt: CustomEvent<PeerUpdate>): void => {
     const peer = evt.detail.peer;
