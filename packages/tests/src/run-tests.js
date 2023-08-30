@@ -9,9 +9,9 @@ const WAKUNODE_IMAGE =
 async function main() {
   try {
     await execAsync(`docker inspect ${WAKUNODE_IMAGE}`);
-    console.log("Using local image");
+    console.log(`Using local image ${WAKUNODE_IMAGE}`);
   } catch (error) {
-    console.log("Pulling image...");
+    console.log(`Pulling image ${WAKUNODE_IMAGE}`);
     await execAsync(`docker pull ${WAKUNODE_IMAGE}`);
     console.log("Image pulled");
   }
