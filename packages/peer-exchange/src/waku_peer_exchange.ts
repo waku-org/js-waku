@@ -47,7 +47,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
 
     const peer = await this.getPeer(params.peerId);
 
-    const stream = await this.newStream(peer);
+    const stream = await this.getStream(peer);
 
     const res = await pipe(
       [rpcQuery.encode()],
