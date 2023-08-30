@@ -177,7 +177,7 @@ jobs:
       - uses: Wandalen/wretry.action@master
         with:
           attempt_limit: 3
-          command: npm run test:node
+          command: node -e 'process.exit(99);'
           with: |
             DEBUG: "waku:nwaku*,waku:test*"
 
