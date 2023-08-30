@@ -13,7 +13,7 @@ export class StreamManager {
     private log: debug.Debugger
   ) {}
 
-  streamsPool: Map<string, Stream[]> = new Map();
+  streamsPool: Map<string, Stream> = new Map();
 
   private async newStream(peer: Peer): Promise<Stream> {
     const connections = this.getConnections(peer.id);
@@ -21,37 +21,26 @@ export class StreamManager {
     if (!connection) {
       throw new Error("Failed to get a connection to the peer");
     }
-
     return connection.newStream(this.multicodec);
   }
 
   protected async getStream(peer: Peer): Promise<Stream> {
-    const peerStreams = this.streamsPool.get(peer.id.toString());
-    if (peerStreams && peerStreams.length > 0) {
-      // use the stream, remove from the pool, and add a new one
-      const stream = peerStreams.pop();
-      if (!stream) {
-        throw new Error("Failed to get a stream from the pool");
-      }
+    const stream = this.streamsPool.get(peer.id.toString());
+    if (stream) {
       this.replenishStreamPool(peer);
       return stream;
     }
     this.log(
       `No stream available for peer ${peer.id.toString()}. Opening a new one.`
     );
-    const stream = await this.createAndSaveStream(peer);
+    const newStream = await this.createAndSaveStream(peer);
     this.replenishStreamPool(peer);
-    return stream;
+    return newStream;
   }
 
   private async createAndSaveStream(peer: Peer): Promise<Stream> {
-    const peerStreams = this.streamsPool.get(peer.id.toString());
     const stream = await this.newStream(peer);
-    if (peerStreams) {
-      peerStreams.push(stream);
-    } else {
-      this.streamsPool.set(peer.id.toString(), [stream]);
-    }
+    this.streamsPool.set(peer.id.toString(), stream);
     return stream;
   }
 
@@ -72,7 +61,6 @@ export class StreamManager {
   ): void => {
     const peer = evt.detail.peer;
     if (peer.protocols.includes(this.multicodec)) {
-      this.streamsPool.set(peer.id.toString(), []);
       this.log(`Optimistically opening a stream to ${peer.id.toString()}`);
       this.createAndSaveStream(peer)
         .then(() => {
