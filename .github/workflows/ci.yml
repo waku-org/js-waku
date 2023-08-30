@@ -16,6 +16,7 @@ on:
 
 env:
   NODE_JS: "18"
+  RETRY_ATTEMPTS: 3
 
 jobs:
   check:
@@ -77,7 +78,7 @@ jobs:
       
       - uses: Wandalen/wretry.action@master
         with:
-          attempt_limit: 3
+          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
           command: npm run test:optional --workspace=@waku/tests
           with: |
             DEBUG: ""
@@ -114,7 +115,7 @@ jobs:
       
       - uses: Wandalen/wretry.action@master
         with:
-          attempt_limit: 3
+          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
           command: npm run test:optional --workspace=@waku/tests
           with: |
             DEBUG: ""
@@ -139,7 +140,7 @@ jobs:
       
       - uses: Wandalen/wretry.action@master
         with:
-          attempt_limit: 3
+          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
           command: npm run test:node
           with: |
             DEBUG: "waku:nwaku*,waku:test*"
@@ -169,14 +170,14 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
-      
+
       - uses: ./.github/actions/npm
 
       - run: npm run build:esm
 
       - uses: Wandalen/wretry.action@master
         with:
-          attempt_limit: 3
+          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
           command: npm run test:node
           with: |
             DEBUG: "waku:nwaku*,waku:test*"
