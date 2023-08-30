@@ -7,13 +7,14 @@ import { selectConnection } from "@waku/utils/libp2p";
 import debug from "debug";
 
 export class StreamManager {
+  private streamsPool: Map<string, Stream[]> = new Map();
+  private peersWithStreamCreationInProgress: Set<string> = new Set();
+
   constructor(
     public multicodec: string,
     public getConnections: Libp2p["getConnections"],
     private log: debug.Debugger
   ) {}
-
-  streamsPool: Map<string, Stream[]> = new Map();
 
   private async newStream(peer: Peer): Promise<Stream> {
     const connections = this.getConnections(peer.id);
@@ -21,14 +22,20 @@ export class StreamManager {
     if (!connection) {
       throw new Error("Failed to get a connection to the peer");
     }
-
     return connection.newStream(this.multicodec);
   }
 
   protected async getStream(peer: Peer): Promise<Stream> {
-    const peerStreams = this.streamsPool.get(peer.id.toString());
+    const peerIdStr = peer.id.toString();
+
+    if (this.peersWithStreamCreationInProgress.has(peerIdStr)) {
+      throw new Error(
+        `Stream creation already in progress for peer ${peerIdStr}`
+      );
+    }
+
+    const peerStreams = this.streamsPool.get(peerIdStr);
     if (peerStreams && peerStreams.length > 0) {
-      // use the stream, remove from the pool, and add a new one
       const stream = peerStreams.pop();
       if (!stream) {
         throw new Error("Failed to get a stream from the pool");
@@ -36,40 +43,39 @@ export class StreamManager {
       this.replenishStreamPool(peer);
       return stream;
     }
-    this.log(
-      `No stream available for peer ${peer.id.toString()}. Opening a new one.`
-    );
-    const stream = await this.createAndSaveStream(peer);
-    this.replenishStreamPool(peer);
-    return stream;
+
+    this.log(`No stream available for peer ${peerIdStr}. Opening a new one.`);
+    return this.createAndSaveStream(peer);
   }
 
   private async createAndSaveStream(peer: Peer): Promise<Stream> {
-    const peerStreams = this.streamsPool.get(peer.id.toString());
-    const stream = await this.newStream(peer);
-    if (peerStreams) {
+    const peerIdStr = peer.id.toString();
+    this.peersWithStreamCreationInProgress.add(peerIdStr);
+
+    try {
+      const stream = await this.newStream(peer);
+      const peerStreams = this.streamsPool.get(peerIdStr) || [];
       peerStreams.push(stream);
-    } else {
-      this.streamsPool.set(peer.id.toString(), [stream]);
+      this.streamsPool.set(peerIdStr, peerStreams);
+      return stream;
+    } finally {
+      this.peersWithStreamCreationInProgress.delete(peerIdStr);
     }
-    return stream;
   }
 
-  private replenishStreamPool = (peer: Peer): void => {
+  private replenishStreamPool(peer: Peer): void {
     this.createAndSaveStream(peer)
       .then(() => {
         this.log(`Replenished stream pool for peer ${peer.id.toString()}`);
       })
       .catch((err) => {
         this.log(
-          `error: failed to replenish stream pool for peer ${peer.id.toString()}: ${err}`
+          `Error replenishing stream pool for peer ${peer.id.toString()}: ${err}`
         );
       });
-  };
+  }
 
-  protected handlePeerUpdateStreamPool = (
-    evt: CustomEvent<PeerUpdate>
-  ): void => {
+  protected handlePeerUpdateStreamPool(evt: CustomEvent<PeerUpdate>): void {
     const peer = evt.detail.peer;
     if (peer.protocols.includes(this.multicodec)) {
       this.streamsPool.set(peer.id.toString(), []);
@@ -77,19 +83,17 @@ export class StreamManager {
       this.createAndSaveStream(peer)
         .then(() => {
           this.log(
-            `optimistic stream opening succeeded for ${peer.id.toString()}`
+            `Optimistic stream opening succeeded for ${peer.id.toString()}`
           );
         })
         .catch((err) => {
-          this.log(`error: optimistic stream opening failed: ${err}`);
+          this.log(`Error during optimistic stream opening: ${err}`);
         });
     }
-  };
+  }
 
-  protected handlePeerDisconnectStreamPool = (
-    evt: CustomEvent<PeerId>
-  ): void => {
+  protected handlePeerDisconnectStreamPool(evt: CustomEvent<PeerId>): void {
     const peerId = evt.detail;
     this.streamsPool.delete(peerId.toString());
-  };
+  }
 }
