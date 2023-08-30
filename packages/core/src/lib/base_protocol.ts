@@ -22,7 +22,9 @@ export class BaseProtocol extends StreamManager implements IBaseProtocol {
   ) {
     super(
       multicodec,
-      components.connectionManager.getConnections.bind(components),
+      components.connectionManager.getConnections.bind(
+        components.connectionManager
+      ),
       log
     );
 
@@ -35,12 +37,12 @@ export class BaseProtocol extends StreamManager implements IBaseProtocol {
 
     this.addLibp2pEventListener(
       "peer:update",
-      super.handlePeerUpdateStreamPool
+      this.handlePeerUpdateStreamPool.bind(this)
     );
     // TODO: might be better to check with `connection:close` event
     this.addLibp2pEventListener(
       "peer:disconnect",
-      super.handlePeerDisconnectStreamPool
+      this.handlePeerDisconnectStreamPool.bind(this)
     );
   }
 
