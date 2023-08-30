@@ -71,6 +71,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
 
+      - uses: nick-fields/retry@v2
+        with:
+          max_attempts: 3
+
       - uses: ./.github/actions/npm
       - run: npm run build:esm
       - run: npm run test:node
@@ -102,6 +106,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
+      
+      - uses: nick-fields/retry@v2
+        with:
+          max_attempts: 3
 
       - uses: ./.github/actions/npm
       - run: npm run build:esm
@@ -122,6 +130,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
+
+      - uses: nick-fields/retry@v2
+        with:
+          max_attempts: 3
 
       - uses: ./.github/actions/npm
       - run: npm run build:esm
@@ -154,6 +166,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
+      
+      - uses: nick-fields/retry@v2
+        with:
+          max_attempts: 3
 
       - uses: ./.github/actions/npm
       - run: npm run build:esm
