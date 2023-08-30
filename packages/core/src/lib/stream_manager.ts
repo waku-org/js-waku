@@ -9,6 +9,8 @@ import debug from "debug";
 export class StreamManager {
   private streamsPool: Map<string, Stream[]> = new Map();
   private ongoingStreamCreations: Map<string, Promise<Stream>> = new Map();
+  private readonly MAX_STREAMS_PER_PEER = 3;
+  private readonly MAX_RETRIES = 3;
 
   constructor(
     public multicodec: string,
@@ -16,13 +18,24 @@ export class StreamManager {
     private log: debug.Debugger
   ) {}
 
-  private async newStream(peer: Peer): Promise<Stream> {
-    const connections = this.getConnections(peer.id);
-    const connection = selectConnection(connections);
-    if (!connection) {
-      throw new Error("Failed to get a connection to the peer");
+  private async newStream(
+    peer: Peer,
+    retries = this.MAX_RETRIES
+  ): Promise<Stream> {
+    try {
+      const connections = this.getConnections(peer.id);
+      const connection = selectConnection(connections);
+      if (!connection) {
+        throw new Error("Failed to get a connection to the peer");
+      }
+      return connection.newStream(this.multicodec);
+    } catch (error) {
+      if (retries > 0) {
+        this.log(`Retrying stream creation. Retries left: ${retries}`);
+        return this.newStream(peer, retries - 1);
+      }
+      throw error;
     }
-    return connection.newStream(this.multicodec);
   }
 
   protected async getStream(peer: Peer): Promise<Stream> {
@@ -34,8 +47,8 @@ export class StreamManager {
       await ongoingCreation;
     }
 
-    const peerStreams = this.streamsPool.get(peerIdStr);
-    if (peerStreams && peerStreams.length > 0) {
+    const peerStreams = this.streamsPool.get(peerIdStr) || [];
+    if (peerStreams.length > 0) {
       const stream = peerStreams.pop();
       if (!stream) {
         throw new Error("Failed to get a stream from the pool");
@@ -69,36 +82,45 @@ export class StreamManager {
   }
 
   private replenishStreamPool(peer: Peer): void {
-    this.createAndSaveStream(peer)
-      .then(() => {
-        this.log(`Replenished stream pool for peer ${peer.id.toString()}`);
-      })
-      .catch((err) => {
-        this.log(
-          `Error replenishing stream pool for peer ${peer.id.toString()}: ${err}`
-        );
-      });
+    const peerIdStr = peer.id.toString();
+    const ongoingCreationsCount = this.ongoingStreamCreations.has(peerIdStr)
+      ? 1
+      : 0;
+    const availableStreamsCount = (this.streamsPool.get(peerIdStr) || [])
+      .length;
+
+    if (
+      ongoingCreationsCount + availableStreamsCount <
+      this.MAX_STREAMS_PER_PEER
+    ) {
+      this.createAndSaveStream(peer)
+        .then(() => {
+          this.log(`Replenished stream pool for peer ${peer.id.toString()}`);
+        })
+        .catch((err) => {
+          this.log(
+            `Error replenishing stream pool for peer ${peer.id.toString()}: ${err}`
+          );
+        });
+    }
   }
 
   protected handlePeerUpdateStreamPool(evt: CustomEvent<PeerUpdate>): void {
     const peer = evt.detail.peer;
     if (peer.protocols.includes(this.multicodec)) {
-      this.streamsPool.set(peer.id.toString(), []);
+      const peerIdStr = peer.id.toString();
+      if (!this.streamsPool.has(peerIdStr)) {
+        this.streamsPool.set(peerIdStr, []);
+      }
       this.log(`Optimistically opening a stream to ${peer.id.toString()}`);
-      this.createAndSaveStream(peer)
-        .then(() => {
-          this.log(
-            `Optimistic stream opening succeeded for ${peer.id.toString()}`
-          );
-        })
-        .catch((err) => {
-          this.log(`Error during optimistic stream opening: ${err}`);
-        });
+      this.replenishStreamPool(peer);
     }
   }
 
   protected handlePeerDisconnectStreamPool(evt: CustomEvent<PeerId>): void {
     const peerId = evt.detail;
     this.streamsPool.delete(peerId.toString());
+    // Cancel ongoing stream creation if any
+    this.ongoingStreamCreations.delete(peerId.toString());
   }
 }
