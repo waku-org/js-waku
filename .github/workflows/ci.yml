@@ -79,7 +79,7 @@ jobs:
       - uses: Wandalen/wretry.action@master
         with:
           attempt_limit: ${{ env.RETRY_ATTEMPTS }}
-          command: npm run test:optional --workspace=@waku/tests
+          command: npm run test:node
           with: |
             DEBUG: ""
 
