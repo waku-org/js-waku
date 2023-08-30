@@ -19,7 +19,8 @@ export class BaseProtocol implements IBaseProtocol {
 
   constructor(
     public multicodec: string,
-    private components: Libp2pComponents
+    private components: Libp2pComponents,
+    private log: debug.Debugger
   ) {
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events
@@ -27,6 +28,7 @@ export class BaseProtocol implements IBaseProtocol {
     this.removeLibp2pEventListener = components.events.removeEventListener.bind(
       components.events
     );
+    this.log("init");
   }
 
   public get peerStore(): PeerStore {
