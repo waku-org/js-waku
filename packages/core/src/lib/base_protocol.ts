@@ -75,11 +75,20 @@ export class BaseProtocol implements IBaseProtocol {
   protected async getStream(peer: Peer): Promise<Stream> {
     const peerStreams = this.streamsPool.get(peer.id.toString());
     if (peerStreams && peerStreams.length > 0) {
-      //TODO: either reuse the same stream, or pop and replenish the pool
-      const stream = peerStreams[0];
+      // use the stream, remove from the pool, and add a new one
+      const stream = peerStreams.pop();
       if (!stream) {
         throw new Error("Failed to get a stream from the pool");
       }
+      this.createAndSaveStream(peer)
+        .then(() => {
+          this.log(`Replenished stream pool for peer ${peer.id.toString()}`);
+        })
+        .catch((err) => {
+          this.log(
+            `error: failed to replenish stream pool for peer ${peer.id.toString()}: ${err}`
+          );
+        });
       return stream;
     }
     this.log(
