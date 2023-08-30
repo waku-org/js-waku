@@ -30,9 +30,12 @@ export class BaseProtocol implements IBaseProtocol {
       components.events
     );
 
-    this.addLibp2pEventListener("peer:update", this.updateStreamPool);
+    this.addLibp2pEventListener("peer:update", this.handlePeerUpdateStreamPool);
     // TODO: might be better to check with `connection:close` event
-    this.addLibp2pEventListener("peer:disconnect", this.removeStreamPool);
+    this.addLibp2pEventListener(
+      "peer:disconnect",
+      this.handlePeerDisconnectStreamPool
+    );
   }
 
   public get peerStore(): PeerStore {
@@ -57,7 +60,7 @@ export class BaseProtocol implements IBaseProtocol {
     return peer;
   }
 
-  protected async newStream(peer: Peer): Promise<Stream> {
+  private async newStream(peer: Peer): Promise<Stream> {
     const connections = this.components.connectionManager.getConnections(
       peer.id
     );
@@ -69,7 +72,7 @@ export class BaseProtocol implements IBaseProtocol {
     return connection.newStream(this.multicodec);
   }
 
-  protected async getStream(peer: Peer): Promise<Stream | Promise<Stream>> {
+  protected async getStream(peer: Peer): Promise<Stream> {
     const peerStreams = this.streamsPool.get(peer.id.toString());
     if (peerStreams && peerStreams.length > 0) {
       //TODO: either reuse the same stream, or pop and replenish the pool
@@ -82,10 +85,10 @@ export class BaseProtocol implements IBaseProtocol {
     this.log(
       `No stream available for peer ${peer.id.toString()}. Opening a new one.`
     );
-    return this.createStream(peer);
+    return this.createAndSaveStream(peer);
   }
 
-  private async createStream(peer: Peer): Promise<Stream> {
+  private async createAndSaveStream(peer: Peer): Promise<Stream> {
     const peerStreams = this.streamsPool.get(peer.id.toString());
     const stream = await this.newStream(peer);
     if (peerStreams) {
@@ -96,39 +99,24 @@ export class BaseProtocol implements IBaseProtocol {
     return stream;
   }
 
-  private updateStreamPool = (evt: CustomEvent<PeerUpdate>): void => {
+  private handlePeerUpdateStreamPool = (evt: CustomEvent<PeerUpdate>): void => {
     const peer = evt.detail.peer;
     if (peer.protocols.includes(this.multicodec)) {
       this.streamsPool.set(peer.id.toString(), []);
-      this.openAndSaveStream(peer).catch((err) => {
-        this.log(`error: optimistic stream opening failed: ${err}`);
-      });
+      this.log(`Optimistically opening a stream to ${peer.id.toString()}`);
+      this.createAndSaveStream(peer)
+        .then(() => {
+          this.log(
+            `optimistic stream opening succeeded for ${peer.id.toString()}`
+          );
+        })
+        .catch((err) => {
+          this.log(`error: optimistic stream opening failed: ${err}`);
+        });
     }
   };
 
-  private async openAndSaveStream(peer: Peer): Promise<void> {
-    this.log(
-      `Optimistically opening a stream to peer ${peer.id.toString()} for protocol ${
-        this.multicodec
-      }`
-    );
-    try {
-      await this.createStream(peer);
-      this.log(
-        `Optimistically opened a stream to peer ${peer.id.toString()} for protocol ${
-          this.multicodec
-        }`
-      );
-    } catch (error) {
-      this.log(
-        `Failed to open a stream to peer ${peer.id.toString()} for protocol ${
-          this.multicodec
-        }: ${error}`
-      );
-    }
-  }
-
-  private removeStreamPool = (evt: CustomEvent<PeerId>): void => {
+  private handlePeerDisconnectStreamPool = (evt: CustomEvent<PeerId>): void => {
     const peerId = evt.detail;
     this.streamsPool.delete(peerId.toString());
   };
