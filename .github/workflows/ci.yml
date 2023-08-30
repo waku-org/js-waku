@@ -7,6 +7,12 @@ on:
       - "staging"
       - "trying"
   pull_request:
+  workflow_dispatch:
+    inputs:
+      nim_wakunode_image:
+        description: "Docker hub image name taken from https://hub.docker.com/r/statusteam/nim-waku/tags. Format: statusteam/nim-waku:v0.19.0"
+        required: false
+        type: string
 
 env:
   NODE_JS: "18"
@@ -57,7 +63,7 @@ jobs:
   node:
     runs-on: ubuntu-latest
     env:
-      WAKUNODE_IMAGE: "statusteam/nim-waku:v0.19.0"
+      WAKUNODE_IMAGE: ${{ github.event.inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
     steps:
       - uses: actions/checkout@v3
 
@@ -88,7 +94,8 @@ jobs:
   node_optional:
     runs-on: ubuntu-latest
     env:
-      WAKUNODE_IMAGE: "statusteam/nim-waku:v0.19.0"
+      WAKUNODE_IMAGE: ${{ github.event.inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
+
     steps:
       - uses: actions/checkout@v3
 
