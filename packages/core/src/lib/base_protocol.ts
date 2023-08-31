@@ -11,23 +11,16 @@ import { StreamManager } from "./stream_manager.js";
  * A class with predefined helpers, to be used as a base to implement Waku
  * Protocols.
  */
-export class BaseProtocol extends StreamManager implements IBaseProtocol {
+export class BaseProtocol implements IBaseProtocol {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
+  protected streamManager: StreamManager;
 
   constructor(
     public multicodec: string,
     private components: Libp2pComponents,
     log: debug.Debugger
   ) {
-    super(
-      multicodec,
-      components.connectionManager.getConnections.bind(
-        components.connectionManager
-      ),
-      log
-    );
-
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events
     );
@@ -35,14 +28,11 @@ export class BaseProtocol extends StreamManager implements IBaseProtocol {
       components.events
     );
 
-    this.addLibp2pEventListener(
-      "peer:update",
-      this.handlePeerUpdateStreamPool.bind(this)
-    );
-    // TODO: might be better to check with `connection:close` event
-    this.addLibp2pEventListener(
-      "peer:disconnect",
-      this.handlePeerDisconnectStreamPool.bind(this)
+    this.streamManager = new StreamManager(
+      multicodec,
+      components.libp2p.getConnections.bind(components.libp2p),
+      this.addLibp2pEventListener,
+      log
     );
   }
 

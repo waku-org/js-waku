@@ -10,6 +10,7 @@ export class StreamManager {
   constructor(
     public multicodec: string,
     public getConnections: Libp2p["getConnections"],
+    public addEventListener: Libp2p["addEventListener"],
     private log: debug.Debugger
   ) {}
 
