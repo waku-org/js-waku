@@ -29,7 +29,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
    * @param components - libp2p components
    */
   constructor(components: Libp2pComponents) {
-    super(PeerExchangeCodec, components, log);
+    super(PeerExchangeCodec, components);
     this.multicodec = PeerExchangeCodec;
   }
 

@@ -44,7 +44,7 @@ class LightPush extends BaseProtocol implements ILightPush {
   options: ProtocolCreateOptions;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(LightPushCodec, libp2p.components, log);
+    super(LightPushCodec, libp2p.components);
     this.options = options || {};
   }
 

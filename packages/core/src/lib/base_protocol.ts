@@ -3,7 +3,6 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
 import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
-import debug from "debug";
 
 import { StreamManager } from "./stream_manager.js";
 
@@ -18,8 +17,7 @@ export class BaseProtocol implements IBaseProtocol {
 
   constructor(
     public multicodec: string,
-    private components: Libp2pComponents,
-    log: debug.Debugger
+    private components: Libp2pComponents
   ) {
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events
@@ -33,8 +31,7 @@ export class BaseProtocol implements IBaseProtocol {
       components.connectionManager.getConnections.bind(
         components.connectionManager
       ),
-      this.addLibp2pEventListener,
-      log
+      this.addLibp2pEventListener
     );
   }
 

@@ -7,13 +7,14 @@ import debug from "debug";
 
 export class StreamManager {
   private streamPool: Map<string, Promise<Stream>>;
+  private log: debug.Debugger;
 
   constructor(
     public multicodec: string,
     public getConnections: Libp2p["getConnections"],
-    public addEventListener: Libp2p["addEventListener"],
-    private log: debug.Debugger
+    public addEventListener: Libp2p["addEventListener"]
   ) {
+    this.log = debug(`waku:stream-manager:${multicodec}`);
     this.addEventListener(
       "peer:update",
       this.handlePeerUpdateStreamPool.bind(this)
