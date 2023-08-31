@@ -14,15 +14,31 @@ export class KeepAliveManager {
   private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>>;
   private options: KeepAliveOptions;
   private relay?: IRelay;
+  private libp2pPing: PingService;
+  private peerPings: Map<string, number>;
 
-  constructor(options: KeepAliveOptions, relay?: IRelay) {
+  constructor(
+    libp2pPing: PingService,
+    options: KeepAliveOptions,
+    relay?: IRelay
+  ) {
     this.pingKeepAliveTimers = new Map();
     this.relayKeepAliveTimers = new Map();
     this.options = options;
     this.relay = relay;
+    this.peerPings = new Map();
+    this.libp2pPing = libp2pPing;
   }
 
-  public start(peerId: PeerId, libp2pPing: PingService): void {
+  public getPing(peerId: PeerId): number | Promise<number> {
+    const ping = this.peerPings.get(peerId.toString());
+    if (!ping) {
+      return this.libp2pPing.ping(peerId);
+    }
+    return ping;
+  }
+
+  public start(peerId: PeerId): void {
     // Just in case a timer already exist for this peer
     this.stop(peerId);
 
@@ -33,9 +49,15 @@ export class KeepAliveManager {
 
     if (pingPeriodSecs !== 0) {
       const interval = setInterval(() => {
-        libp2pPing.ping(peerId).catch((e) => {
-          log(`Ping failed (${peerIdStr})`, e);
-        });
+        this.libp2pPing
+          .ping(peerId)
+          .then((ping) => {
+            log(`Ping succeeded (${peerIdStr})`, ping);
+            this.peerPings.set(peerIdStr, ping);
+          })
+          .catch((e) => {
+            log(`Ping failed (${peerIdStr})`, e);
+          });
       }, pingPeriodSecs * 1000);
       this.pingKeepAliveTimers.set(peerIdStr, interval);
     }
