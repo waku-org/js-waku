@@ -25,7 +25,6 @@ const log = debug("waku:light-push");
 
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
-export const DEFAULT_NUM_PEERS_PROTOCOL = 3;
 
 type PreparePushMessageResult =
   | {
@@ -42,6 +41,7 @@ type PreparePushMessageResult =
  */
 class LightPush extends BaseProtocol implements ILightPush {
   options: ProtocolCreateOptions;
+  private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components);
@@ -99,7 +99,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
     const peers = await this.getPeers({
       includeBootstrap: true,
-      numPeers: DEFAULT_NUM_PEERS_PROTOCOL
+      numPeers: this.NUM_PEERS_PROTOCOL
     });
 
     const promises = peers.map(async (peer) => {
