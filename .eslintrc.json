@@ -1,6 +1,9 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
+   "parserOptions": {
+    "project": ["./tsconfig.json"]
+   },
   "env": { "es6": true },
   "ignorePatterns": ["node_modules", "build", "coverage", "proto"],
   "plugins": ["import", "eslint-comments", "functional"],
@@ -67,7 +70,12 @@
       "rules": {
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-explicit-any": "off",
-        "no-console": "off"
+        "no-console": "off",
+        "import/no-extraneous-dependencies": [   "error",
+          {
+            "devDependencies": true
+          }
+        ]
       }
     },
     {
