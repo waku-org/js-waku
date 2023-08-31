@@ -1,6 +1,5 @@
 import type { PeerUpdate } from "@libp2p/interface";
 import type { Stream } from "@libp2p/interface/connection";
-import type { PeerId } from "@libp2p/interface/peer-id";
 import { Peer } from "@libp2p/interface/peer-store";
 import { Libp2p } from "@waku/interfaces";
 import { selectConnection } from "@waku/utils/libp2p";
@@ -12,7 +11,9 @@ export class StreamManager {
     public getConnections: Libp2p["getConnections"],
     public addEventListener: Libp2p["addEventListener"],
     private log: debug.Debugger
-  ) {}
+  ) {
+    addEventListener("peer:update", this.handlePeerUpdateStreamPool);
+  }
 
   streamsPool: Map<string, Stream> = new Map();
 
@@ -73,12 +74,5 @@ export class StreamManager {
           this.log(`error: optimistic stream opening failed: ${err}`);
         });
     }
-  };
-
-  protected handlePeerDisconnectStreamPool = (
-    evt: CustomEvent<PeerId>
-  ): void => {
-    const peerId = evt.detail;
-    this.streamsPool.delete(peerId.toString());
   };
 }
