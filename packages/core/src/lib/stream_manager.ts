@@ -6,16 +6,21 @@ import { selectConnection } from "@waku/utils/libp2p";
 import debug from "debug";
 
 export class StreamManager {
+  private streamPool: Map<string, Promise<Stream>>;
+
   constructor(
     public multicodec: string,
     public getConnections: Libp2p["getConnections"],
     public addEventListener: Libp2p["addEventListener"],
     private log: debug.Debugger
   ) {
-    addEventListener("peer:update", this.handlePeerUpdateStreamPool);
+    this.addEventListener(
+      "peer:update",
+      this.handlePeerUpdateStreamPool.bind(this)
+    );
+    this.getStream = this.getStream.bind(this);
+    this.streamPool = new Map();
   }
-
-  ongoingStreamCreations: Map<string, Promise<Stream>> = new Map();
 
   private async newStream(peer: Peer): Promise<Stream> {
     const connections = this.getConnections(peer.id);
@@ -28,16 +33,16 @@ export class StreamManager {
 
   public async getStream(peer: Peer): Promise<Stream> {
     const peerIdStr = peer.id.toString();
-    const streamPromise = this.ongoingStreamCreations.get(peerIdStr);
-
-    // We have the stream, let's remove it from the map
-    this.ongoingStreamCreations.delete(peerIdStr);
-
-    this.prepareNewStream(peer);
+    const streamPromise = this.streamPool.get(peerIdStr);
 
     if (!streamPromise) {
       return this.newStream(peer); // fallback by creating a new stream on the spot
     }
+
+    // We have the stream, let's remove it from the map
+    this.streamPool.delete(peerIdStr);
+
+    this.prepareNewStream(peer);
 
     const stream = await streamPromise;
 
@@ -50,7 +55,7 @@ export class StreamManager {
 
   private prepareNewStream(peer: Peer): void {
     const streamPromise = this.newStream(peer);
-    this.ongoingStreamCreations.set(peer.id.toString(), streamPromise);
+    this.streamPool.set(peer.id.toString(), streamPromise);
   }
 
   protected handlePeerUpdateStreamPool = (
