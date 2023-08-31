@@ -55,10 +55,7 @@ export type ProtocolCreateOptions = {
 };
 
 export type ProtocolOptions = {
-  /**
-   * Optionally specify an PeerId for the protocol request. If not included, will use a random peer.
-   */
-  peerId?: PeerId;
+  //
 };
 
 export type Callback<T extends IDecodedMessage> = (
@@ -74,6 +71,6 @@ export enum SendError {
 }
 
 export interface SendResult {
-  error?: SendError;
+  errors?: SendError[];
   recipients: PeerId[];
 }

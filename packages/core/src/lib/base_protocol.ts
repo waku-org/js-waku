@@ -2,7 +2,7 @@ import type { Libp2p } from "@libp2p/interface";
 import type { Stream } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { Peer, PeerStore } from "@libp2p/interface/peer-store";
-import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
+import { IBaseProtocol, Libp2pComponents, Tags } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
@@ -50,6 +50,60 @@ export class BaseProtocol implements IBaseProtocol {
     );
     return peer;
   }
+
+  /**
+   * Retrieves a list of peers based on the specified criteria.
+   *
+   * @param numPeers - The number of peers to retrieve. If 0, all peers are returned.
+   * @param includeBootstrap - If true, includes a bootstrap peer in the result. Useful for protocols like Filter and Store that require only one peer for now.
+   * @returns A Promise that resolves to an array of peers based on the specified criteria.
+   */
+  protected async getPeers({
+    numPeers,
+    includeBootstrap
+  }: {
+    numPeers: number;
+    includeBootstrap: boolean;
+  }): Promise<Peer[]> {
+    // Retrieve all peers that support the protocol
+    const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
+      this.multicodec
+    ]);
+
+    // Collect the bootstrap peers if required to include
+    const bootstrapPeers = includeBootstrap
+      ? allPeersForProtocol.filter((peer) => peer.tags.has(Tags.BOOTSTRAP))
+      : [];
+
+    // Collect non-bootstrap peers
+    const remainingPeers = allPeersForProtocol.filter(
+      (peer) => !bootstrapPeers.includes(peer)
+    );
+
+    if (numPeers === 0) {
+      if (includeBootstrap) {
+        return allPeersForProtocol;
+      } else {
+        return remainingPeers;
+      }
+    }
+
+    // Initialize the list of selected peers
+    const selectedPeers: Peer[] = [];
+
+    // Add the bootstrap peers if available and required
+    selectedPeers.push(...bootstrapPeers);
+
+    // Fill up to numPeers with remaining random peers if needed
+    while (selectedPeers.length < numPeers && remainingPeers.length > 0) {
+      const randomIndex = Math.floor(Math.random() * remainingPeers.length);
+      const randomPeer = remainingPeers.splice(randomIndex, 1)[0];
+      selectedPeers.push(randomPeer);
+    }
+
+    return selectedPeers;
+  }
+
   protected async newStream(peer: Peer): Promise<Stream> {
     const connections = this.components.connectionManager.getConnections(
       peer.id
