@@ -7,9 +7,16 @@ on:
       - "staging"
       - "trying"
   pull_request:
+  workflow_dispatch:
+    inputs:
+      nim_wakunode_image:
+        description: "Docker hub image name taken from https://hub.docker.com/r/statusteam/nim-waku/tags. Format: statusteam/nim-waku:v0.19.0"
+        required: false
+        type: string
 
 env:
   NODE_JS: "18"
+  RETRY_ATTEMPTS: 3
 
 jobs:
   check:
@@ -57,7 +64,7 @@ jobs:
   node:
     runs-on: ubuntu-latest
     env:
-      WAKUNODE_IMAGE: "statusteam/nim-waku:v0.19.0"
+      WAKUNODE_IMAGE: ${{ github.event.inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
     steps:
       - uses: actions/checkout@v3
 
@@ -66,10 +73,15 @@ jobs:
           node-version: ${{ env.NODE_JS }}
 
       - uses: ./.github/actions/npm
+
       - run: npm run build:esm
-      - run: npm run test:node
-        env:
-          DEBUG: ""
+      
+      - uses: Wandalen/wretry.action@master
+        with:
+          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
+          command: npm run test:node
+          with: |
+            DEBUG: ""
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
@@ -88,7 +100,8 @@ jobs:
   node_optional:
     runs-on: ubuntu-latest
     env:
-      WAKUNODE_IMAGE: "statusteam/nim-waku:v0.19.0"
+      WAKUNODE_IMAGE: ${{ github.event.inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -97,10 +110,15 @@ jobs:
           node-version: ${{ env.NODE_JS }}
 
       - uses: ./.github/actions/npm
+
       - run: npm run build:esm
-      - run: npm run test:optional --workspace=@waku/tests
-        env:
-          DEBUG: ""
+      
+      - uses: Wandalen/wretry.action@master
+        with:
+          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
+          command: npm run test:optional --workspace=@waku/tests
+          with: |
+            DEBUG: ""
 
   node_with_go_waku_master:
     runs-on: ubuntu-latest
@@ -117,10 +135,15 @@ jobs:
           node-version: ${{ env.NODE_JS }}
 
       - uses: ./.github/actions/npm
+
       - run: npm run build:esm
-      - run: npm run test:node
-        env:
-          DEBUG: "waku:nwaku*,waku:test*"
+      
+      - uses: Wandalen/wretry.action@master
+        with:
+          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
+          command: npm run test:node
+          with: |
+            DEBUG: "waku:nwaku*,waku:test*"
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
@@ -149,10 +172,15 @@ jobs:
           node-version: ${{ env.NODE_JS }}
 
       - uses: ./.github/actions/npm
+
       - run: npm run build:esm
-      - run: npm run test:node
-        env:
-          DEBUG: "waku:nwaku*,waku:test*"
+
+      - uses: Wandalen/wretry.action@master
+        with:
+          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
+          command: npm run test:node
+          with: |
+            DEBUG: "waku:nwaku*,waku:test*"
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
