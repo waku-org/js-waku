@@ -22,15 +22,6 @@ export class StreamManager {
     this.streamPool = new Map();
   }
 
-  private async newStream(peer: Peer): Promise<Stream> {
-    const connections = this.getConnections(peer.id);
-    const connection = selectConnection(connections);
-    if (!connection) {
-      throw new Error("Failed to get a connection to the peer");
-    }
-    return connection.newStream(this.multicodec);
-  }
-
   public async getStream(peer: Peer): Promise<Stream> {
     const peerIdStr = peer.id.toString();
     const streamPromise = this.streamPool.get(peerIdStr);
@@ -53,14 +44,21 @@ export class StreamManager {
     return stream;
   }
 
+  private async newStream(peer: Peer): Promise<Stream> {
+    const connections = this.getConnections(peer.id);
+    const connection = selectConnection(connections);
+    if (!connection) {
+      throw new Error("Failed to get a connection to the peer");
+    }
+    return connection.newStream(this.multicodec);
+  }
+
   private prepareNewStream(peer: Peer): void {
     const streamPromise = this.newStream(peer);
     this.streamPool.set(peer.id.toString(), streamPromise);
   }
 
-  protected handlePeerUpdateStreamPool = (
-    evt: CustomEvent<PeerUpdate>
-  ): void => {
+  private handlePeerUpdateStreamPool = (evt: CustomEvent<PeerUpdate>): void => {
     const peer = evt.detail.peer;
     if (peer.protocols.includes(this.multicodec)) {
       this.log(`Optimistically opening a stream to ${peer.id.toString()}`);
