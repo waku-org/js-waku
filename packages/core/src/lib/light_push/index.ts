@@ -27,6 +27,16 @@ export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 export const DEFAULT_NUM_PEERS_PROTOCOL = 3;
 
+type PreparePushMessageResult =
+  | {
+      query: PushRpc;
+      error: null;
+    }
+  | {
+      query: null;
+      error: SendError;
+    };
+
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
@@ -38,35 +48,52 @@ class LightPush extends BaseProtocol implements ILightPush {
     this.options = options || {};
   }
 
-  async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
-    const recipients: PeerId[] = [];
-    let query: PushRpc;
-
+  private async preparePushMessage(
+    encoder: IEncoder,
+    message: IMessage,
+    pubSubTopic: string
+  ): Promise<PreparePushMessageResult> {
     try {
       if (!isSizeValid(message.payload)) {
         log("Failed to send waku light push: message is bigger than 1MB");
-        return {
-          recipients,
-          errors: [SendError.SIZE_TOO_BIG]
-        };
+        return { query: null, error: SendError.SIZE_TOO_BIG };
       }
 
       const protoMessage = await encoder.toProtoObj(message);
       if (!protoMessage) {
         log("Failed to encode to protoMessage, aborting push");
         return {
-          recipients,
-          errors: [SendError.ENCODE_FAILED]
+          query: null,
+          error: SendError.ENCODE_FAILED
         };
       }
 
-      query = PushRpc.createRequest(protoMessage, pubSubTopic);
+      const query = PushRpc.createRequest(protoMessage, pubSubTopic);
+      return { query, error: null };
     } catch (error) {
-      log("Failed to encode to protoMessage", error);
+      log("Failed to prepare push message", error);
+
+      return {
+        query: null,
+        error: SendError.GENERIC_FAIL
+      };
+    }
+  }
+
+  async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+    const recipients: PeerId[] = [];
+
+    const { query, error: preparationError } = await this.preparePushMessage(
+      encoder,
+      message,
+      pubSubTopic
+    );
+
+    if (preparationError || !query) {
       return {
         recipients,
-        errors: [SendError.ENCODE_FAILED]
+        errors: [preparationError]
       };
     }
 
