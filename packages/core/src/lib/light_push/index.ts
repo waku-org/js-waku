@@ -99,7 +99,7 @@ class LightPush extends BaseProtocol implements ILightPush {
     }
 
     const peer = await this.getPeer(opts?.peerId);
-    const stream = await this.getStream(peer);
+    const stream = await this.streamManager.getStream(peer);
 
     try {
       const res = await pipe(

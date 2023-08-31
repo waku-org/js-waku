@@ -15,7 +15,7 @@ export class StreamManager {
     addEventListener("peer:update", this.handlePeerUpdateStreamPool);
   }
 
-  streamsPool: Map<string, Stream> = new Map();
+  ongoingStreamCreations: Map<string, Promise<Stream>> = new Map();
 
   private async newStream(peer: Peer): Promise<Stream> {
     const connections = this.getConnections(peer.id);
@@ -26,37 +26,32 @@ export class StreamManager {
     return connection.newStream(this.multicodec);
   }
 
-  protected async getStream(peer: Peer): Promise<Stream> {
-    const stream = this.streamsPool.get(peer.id.toString());
-    if (stream) {
-      this.replenishStreamPool(peer);
-      return stream;
-    }
-    this.log(
-      `No stream available for peer ${peer.id.toString()}. Opening a new one.`
-    );
-    const newStream = await this.createAndSaveStream(peer);
-    this.replenishStreamPool(peer);
-    return newStream;
-  }
+  public async getStream(peer: Peer): Promise<Stream> {
+    const peerIdStr = peer.id.toString();
+    const streamPromise = this.ongoingStreamCreations.get(peerIdStr);
 
-  private async createAndSaveStream(peer: Peer): Promise<Stream> {
-    const stream = await this.newStream(peer);
-    this.streamsPool.set(peer.id.toString(), stream);
+    // We have the stream, let's remove it from the map
+    this.ongoingStreamCreations.delete(peerIdStr);
+
+    this.prepareNewStream(peer);
+
+    if (!streamPromise) {
+      return this.newStream(peer); // fallback by creating a new stream on the spot
+    }
+
+    const stream = await streamPromise;
+
+    if (stream.status === "closed") {
+      return this.newStream(peer); // fallback by creating a new stream on the spot
+    }
+
     return stream;
   }
 
-  private replenishStreamPool = (peer: Peer): void => {
-    this.createAndSaveStream(peer)
-      .then(() => {
-        this.log(`Replenished stream pool for peer ${peer.id.toString()}`);
-      })
-      .catch((err) => {
-        this.log(
-          `error: failed to replenish stream pool for peer ${peer.id.toString()}: ${err}`
-        );
-      });
-  };
+  private prepareNewStream(peer: Peer): void {
+    const streamPromise = this.newStream(peer);
+    this.ongoingStreamCreations.set(peer.id.toString(), streamPromise);
+  }
 
   protected handlePeerUpdateStreamPool = (
     evt: CustomEvent<PeerUpdate>
@@ -64,15 +59,7 @@ export class StreamManager {
     const peer = evt.detail.peer;
     if (peer.protocols.includes(this.multicodec)) {
       this.log(`Optimistically opening a stream to ${peer.id.toString()}`);
-      this.createAndSaveStream(peer)
-        .then(() => {
-          this.log(
-            `optimistic stream opening succeeded for ${peer.id.toString()}`
-          );
-        })
-        .catch((err) => {
-          this.log(`error: optimistic stream opening failed: ${err}`);
-        });
+      this.prepareNewStream(peer);
     }
   };
 }
