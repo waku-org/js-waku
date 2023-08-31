@@ -30,7 +30,9 @@ export class BaseProtocol implements IBaseProtocol {
 
     this.streamManager = new StreamManager(
       multicodec,
-      components.libp2p.getConnections.bind(components.libp2p),
+      components.connectionManager.getConnections.bind(
+        components.connectionManager
+      ),
       this.addLibp2pEventListener,
       log
     );
