@@ -70,19 +70,23 @@ export class BaseProtocol implements IBaseProtocol {
       this.multicodec
     ]);
 
-    if (numPeers === 0) {
-      return allPeersForProtocol;
-    }
-
-    // Filter the bootstrap peers if required to include
+    // Collect the bootstrap peers if required to include
     const bootstrapPeers = includeBootstrap
       ? allPeersForProtocol.filter((peer) => peer.tags.has(Tags.BOOTSTRAP))
       : [];
 
-    // Filter remaining peers excluding bootstrap peers
+    // Collect non-bootstrap peers
     const remainingPeers = allPeersForProtocol.filter(
       (peer) => !bootstrapPeers.includes(peer)
     );
+
+    if (numPeers === 0) {
+      if (includeBootstrap) {
+        return allPeersForProtocol;
+      } else {
+        return remainingPeers;
+      }
+    }
 
     // Initialize the list of selected peers
     const selectedPeers: Peer[] = [];
