@@ -14,8 +14,11 @@ import { createLightNode } from "@waku/sdk";
 import { toAsyncIterator } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { selectPeerForProtocol } from "@waku/utils/libp2p";
-import { expect } from "chai";
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
+
+chai.use(chaiAsPromised);
 
 import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
@@ -124,7 +127,7 @@ describe("Util: toAsyncIterator: Filter", () => {
 
 const TestCodec = "test/1";
 
-describe("selectPeerForProtocol", () => {
+describe.only("selectPeerForProtocol", () => {
   let peerStore: PeerStore;
   let getPingStub: sinon.SinonStub;
   const protocols = [TestCodec];
@@ -171,5 +174,81 @@ describe("selectPeerForProtocol", () => {
 
     expect(result.peer).to.deep.equal(mockPeers[2]);
     expect(result.protocol).to.equal(TestCodec);
+  });
+
+  it("should return the peer with the provided peerId", async function () {
+    const targetPeer = await createSecp256k1PeerId();
+    const mockPeer = { id: targetPeer, protocols: [TestCodec] } as Peer;
+    sinon.stub(peerStore, "get").withArgs(targetPeer).resolves(mockPeer);
+
+    const result = await selectPeerForProtocol(
+      peerStore,
+      getPingStub,
+      protocols,
+      targetPeer
+    );
+    expect(result.peer).to.deep.equal(mockPeer);
+  });
+
+  it("should return a any peer when all peers have the same latency", async function () {
+    const peer1 = await createSecp256k1PeerId();
+    const peer2 = await createSecp256k1PeerId();
+    const peer3 = await createSecp256k1PeerId();
+
+    const mockPeers = [
+      { id: peer1, protocols: [TestCodec] },
+      { id: peer2, protocols: [TestCodec] },
+      { id: peer3, protocols: [TestCodec] }
+    ] as Peer[];
+
+    sinon.stub(peerStore, "forEach").callsFake(async (callback) => {
+      for (const peer of mockPeers) {
+        callback(peer);
+      }
+    });
+
+    getPingStub.resolves(500); // All peers have the same latency
+
+    const result = await selectPeerForProtocol(
+      peerStore,
+      getPingStub,
+      protocols
+    );
+
+    expect(mockPeers).to.deep.include(result.peer);
+  });
+
+  it("should throw an error when no peer matches the given protocols", async function () {
+    const mockPeers = [
+      { id: await createSecp256k1PeerId(), protocols: ["DifferentCodec"] },
+      {
+        id: await createSecp256k1PeerId(),
+        protocols: ["AnotherDifferentCodec"]
+      }
+    ] as Peer[];
+
+    sinon.stub(peerStore, "forEach").callsFake(async (callback) => {
+      for (const peer of mockPeers) {
+        callback(peer);
+      }
+    });
+
+    await expect(
+      selectPeerForProtocol(peerStore, getPingStub, protocols)
+    ).to.be.rejectedWith(
+      `Failed to find known peer that registers protocols: ${protocols}`
+    );
+  });
+
+  it("should throw an error when the selected peer does not register the required protocols", async function () {
+    const targetPeer = await createSecp256k1PeerId();
+    const mockPeer = { id: targetPeer, protocols: ["DifferentCodec"] } as Peer;
+    sinon.stub(peerStore, "get").withArgs(targetPeer).resolves(mockPeer);
+
+    await expect(
+      selectPeerForProtocol(peerStore, getPingStub, protocols, targetPeer)
+    ).to.be.rejectedWith(
+      `Peer does not register required protocols (${targetPeer.toString()}): ${protocols}`
+    );
   });
 });
