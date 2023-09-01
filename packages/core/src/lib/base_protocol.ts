@@ -9,6 +9,8 @@ import {
   selectPeerForProtocol
 } from "@waku/utils/libp2p";
 
+import { KeepAliveManager } from "./keep_alive_manager.js";
+
 /**
  * A class with predefined helpers, to be used as a base to implement Waku
  * Protocols.
@@ -45,6 +47,9 @@ export class BaseProtocol implements IBaseProtocol {
   protected async getPeer(peerId?: PeerId): Promise<Peer> {
     const { peer } = await selectPeerForProtocol(
       this.peerStore,
+      KeepAliveManager.getInstance().getPing.bind(
+        KeepAliveManager.getInstance()
+      ),
       [this.multicodec],
       peerId
     );
