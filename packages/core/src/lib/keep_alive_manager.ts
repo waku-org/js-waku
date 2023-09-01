@@ -10,6 +10,8 @@ export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 const log = debug("waku:keep-alive");
 
 export class KeepAliveManager {
+  private static instance: KeepAliveManager;
+
   private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>>;
   private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>>;
   private options: KeepAliveOptions;
@@ -17,7 +19,7 @@ export class KeepAliveManager {
   private libp2pPing: PingService;
   private peerPings: Map<string, number>;
 
-  constructor(
+  private constructor(
     libp2pPing: PingService,
     options: KeepAliveOptions,
     relay?: IRelay
@@ -28,6 +30,30 @@ export class KeepAliveManager {
     this.relay = relay;
     this.peerPings = new Map();
     this.libp2pPing = libp2pPing;
+  }
+
+  public static createInstance(
+    libp2pPing: PingService,
+    options: KeepAliveOptions,
+    relay?: IRelay
+  ): KeepAliveManager {
+    if (!KeepAliveManager.instance) {
+      KeepAliveManager.instance = new KeepAliveManager(
+        libp2pPing,
+        options,
+        relay
+      );
+    }
+    return KeepAliveManager.instance;
+  }
+
+  public static getInstance(): KeepAliveManager {
+    if (!KeepAliveManager.instance) {
+      throw new Error(
+        "KeepAliveManager not initialized - please use createInstance() first"
+      );
+    }
+    return KeepAliveManager.instance;
   }
 
   public getPing(peerId: PeerId): number | Promise<number> {

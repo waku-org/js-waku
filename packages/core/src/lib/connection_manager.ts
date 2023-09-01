@@ -116,7 +116,7 @@ export class ConnectionManager
       ...options
     };
 
-    this.keepAliveManager = new KeepAliveManager(
+    this.keepAliveManager = KeepAliveManager.createInstance(
       this.libp2p.services.ping,
       keepAliveOptions,
       relay
