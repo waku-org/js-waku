@@ -1,7 +1,11 @@
+import type { PeerStore } from "@libp2p/interface/peer-store";
+import type { Peer } from "@libp2p/interface/peer-store";
+import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import {
   createDecoder,
   createEncoder,
   DefaultPubSubTopic,
+  KeepAliveManager,
   waitForRemotePeer
 } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
@@ -9,9 +13,11 @@ import { Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { toAsyncIterator } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
+import { selectPeerForProtocol } from "@waku/utils/libp2p";
 import { expect } from "chai";
+import sinon from "sinon";
 
-import { makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
+import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
 const TestContentTopic = "/test/1/waku-filter";
@@ -113,5 +119,57 @@ describe("Util: toAsyncIterator: Filter", () => {
     result = await iterator.next();
     expect(result.value).to.eq(undefined);
     expect(result.done).to.eq(true);
+  });
+});
+
+const TestCodec = "test/1";
+
+describe("selectPeerForProtocol", () => {
+  let peerStore: PeerStore;
+  let getPingStub: sinon.SinonStub;
+  const protocols = [TestCodec];
+
+  beforeEach(async function () {
+    this.timeout(10000);
+    const waku = await createLightNode();
+    await waku.start();
+    await delay(3000);
+    peerStore = waku.libp2p.peerStore;
+    getPingStub = sinon.stub(KeepAliveManager.getInstance(), "getPing");
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it("should return the peer with the lowest ping", async function () {
+    const peer1 = await createSecp256k1PeerId();
+    const peer2 = await createSecp256k1PeerId();
+    const peer3 = await createSecp256k1PeerId();
+
+    const mockPeers = [
+      { id: peer1, protocols: [TestCodec] },
+      { id: peer2, protocols: [TestCodec] },
+      { id: peer3, protocols: [TestCodec] }
+    ] as Peer[];
+
+    sinon.stub(peerStore, "forEach").callsFake(async (callback) => {
+      for (const peer of mockPeers) {
+        callback(peer);
+      }
+    });
+
+    getPingStub.withArgs(peer1).resolves(500);
+    getPingStub.withArgs(peer2).resolves(1000);
+    getPingStub.withArgs(peer3).resolves(100);
+
+    const result = await selectPeerForProtocol(
+      peerStore,
+      getPingStub,
+      protocols
+    );
+
+    expect(result.peer).to.deep.equal(mockPeers[2]);
+    expect(result.protocol).to.equal(TestCodec);
   });
 });
