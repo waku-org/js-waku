@@ -271,11 +271,7 @@ class Filter extends BaseProtocol implements IReceiver {
       this.setActiveSubscription(
         _pubSubTopic,
         peer.id.toString(),
-        new Subscription(
-          _pubSubTopic,
-          peer,
-          this.streamManager.getStream.bind(this, peer)
-        )
+        new Subscription(_pubSubTopic, peer, this.getStream.bind(this, peer))
       );
 
     return subscription;
