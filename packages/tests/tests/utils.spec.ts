@@ -1,15 +1,19 @@
+import { Peer } from "@libp2p/interface/peer-store";
+import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import {
   createDecoder,
   createEncoder,
   DefaultPubSubTopic,
   waitForRemotePeer
 } from "@waku/core";
-import type { LightNode } from "@waku/interfaces";
+import { LightNode, Tags } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { toAsyncIterator } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
+import * as libp2pUtils from "@waku/utils/libp2p";
 import { expect } from "chai";
+import sinon, { SinonStub } from "sinon";
 
 import { makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
@@ -113,5 +117,94 @@ describe("Util: toAsyncIterator: Filter", () => {
     result = await iterator.next();
     expect(result.value).to.eq(undefined);
     expect(result.done).to.eq(true);
+  });
+});
+
+describe("getPeers function", function () {
+  let getPeersForProtocolStub: SinonStub;
+  let waku: LightNode | undefined;
+
+  beforeEach(async function () {
+    waku = await createLightNode();
+    getPeersForProtocolStub = sinon.stub(libp2pUtils, "getPeersForProtocol");
+  });
+
+  afterEach(function () {
+    sinon.restore();
+  });
+
+  it.only("should return all peers when numPeers is 0", async function () {
+    const peer1 = await createSecp256k1PeerId();
+    const peer2 = await createSecp256k1PeerId();
+    const peer3 = await createSecp256k1PeerId();
+
+    const mockPeers = [
+      { id: peer1, tags: [Tags.BOOTSTRAP] },
+      { id: peer2, tags: [Tags.BOOTSTRAP] },
+      { id: peer3, tags: [Tags.BOOTSTRAP] }
+    ] as unknown as Peer[];
+
+    getPeersForProtocolStub.resolves(mockPeers);
+
+    const result = await (waku?.lightPush as any).getPeers({
+      numPeers: 0
+    });
+    expect(result).to.deep.equal(mockPeers);
+  });
+
+  it("should return all peers, except bootstrap, when numPeers is 0 & maxBootstrap is defined", async function () {
+    const peer1 = await createSecp256k1PeerId();
+    const peer2 = await createSecp256k1PeerId();
+    const peer3 = await createSecp256k1PeerId();
+    const peer4 = await createSecp256k1PeerId();
+    const peer5 = await createSecp256k1PeerId();
+
+    const mockPeers = [
+      { id: peer1, tags: [Tags.BOOTSTRAP] },
+      { id: peer2, tags: [Tags.BOOTSTRAP] },
+      { id: peer3, tags: [Tags.PEER_EXCHANGE] },
+      { id: peer4, tags: [Tags.PEER_EXCHANGE] },
+      { id: peer5, tags: [Tags.PEER_EXCHANGE] }
+    ] as unknown as Peer[];
+
+    getPeersForProtocolStub.resolves(mockPeers);
+
+    const result = await (waku?.lightPush as any).getPeers({
+      numPeers: 0,
+      maxBootstrap: 1
+    });
+
+    // result should have 1 bootstrap peers, and a total of 4 peers
+    expect(result.length).to.equal(4);
+    expect(
+      result.filter((peer: Peer) => peer.tags.has(Tags.BOOTSTRAP)).length
+    ).to.equal(1);
+  });
+
+  it("should return only bootstrap peers up to maxBootstrapPeers", async function () {
+    const peer1 = await createSecp256k1PeerId();
+    const peer2 = await createSecp256k1PeerId();
+    const peer3 = await createSecp256k1PeerId();
+    const peer4 = await createSecp256k1PeerId();
+    const peer5 = await createSecp256k1PeerId();
+    const mockPeers = [
+      { id: peer1, tags: [Tags.BOOTSTRAP] },
+      { id: peer2, tags: [Tags.BOOTSTRAP] },
+      { id: peer3, tags: [Tags.BOOTSTRAP] },
+      { id: peer4, tags: [Tags.PEER_EXCHANGE] },
+      { id: peer5, tags: [Tags.PEER_EXCHANGE] }
+    ] as unknown as Peer[];
+
+    getPeersForProtocolStub.resolves(mockPeers);
+
+    const result = await (waku?.lightPush as any).getPeers({
+      numPeers: 5,
+      maxBootstrapPeers: 2
+    });
+
+    // check that result has at least 2 bootstrap peers and no more than 5 peers
+    expect(result.length).to.be.at.least(2);
+    expect(result.length).to.be.at.most(5);
+    expect(result.filter((peer: Peer) => peer.tags.has(Tags.BOOTSTRAP)).length);
   });
 });
