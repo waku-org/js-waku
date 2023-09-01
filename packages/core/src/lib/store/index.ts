@@ -75,6 +75,7 @@ export interface QueryOptions {
  */
 class Store extends BaseProtocol implements IStore {
   options: ProtocolCreateOptions;
+  private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components);
@@ -244,7 +245,10 @@ class Store extends BaseProtocol implements IStore {
     log("Querying history with the following options", options);
 
     const peer = (
-      await this.getPeers({ includeBootstrap: true, numPeers: 1 })
+      await this.getPeers({
+        numPeers: this.NUM_PEERS_PROTOCOL,
+        maxBootstrapPeers: 1
+      })
     )[0];
 
     for await (const messages of paginate<T>(

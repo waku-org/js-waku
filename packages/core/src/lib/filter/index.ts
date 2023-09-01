@@ -227,6 +227,7 @@ class Subscription {
 class Filter extends BaseProtocol implements IReceiver {
   private readonly options: ProtocolCreateOptions;
   private activeSubscriptions = new Map<string, Subscription>();
+  private readonly NUM_PEERS_PROTOCOL = 1;
 
   private getActiveSubscription(
     pubSubTopic: PubSubTopic,
@@ -261,7 +262,10 @@ class Filter extends BaseProtocol implements IReceiver {
       pubSubTopic ?? this.options.pubSubTopic ?? DefaultPubSubTopic;
 
     const peer = (
-      await this.getPeers({ includeBootstrap: true, numPeers: 1 })
+      await this.getPeers({
+        maxBootstrapPeers: 1,
+        numPeers: this.NUM_PEERS_PROTOCOL
+      })
     )[0];
 
     const subscription =
