@@ -59,45 +59,39 @@ export class BaseProtocol implements IBaseProtocol {
   /**
    * Retrieves a list of peers based on the specified criteria.
    *
-   * @param numPeers - The number of peers to retrieve. If 0, all peers are returned.
-   * @param includeBootstrap - If true, includes a bootstrap peer in the result. Useful for protocols like Filter and Store that require only one peer for now.
+   * @param numPeers - The total number of peers to retrieve. If 0, all peers are returned.
+   * @param maxBootstrapPeers - The maximum number of bootstrap peers to retrieve.
    * @returns A Promise that resolves to an array of peers based on the specified criteria.
    */
   protected async getPeers({
     numPeers,
-    includeBootstrap
+    maxBootstrapPeers
   }: {
     numPeers: number;
-    includeBootstrap: boolean;
+    maxBootstrapPeers: number;
   }): Promise<Peer[]> {
     // Retrieve all peers that support the protocol
     const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
       this.multicodec
     ]);
 
-    // Collect the bootstrap peers if required to include
-    const bootstrapPeers = includeBootstrap
-      ? allPeersForProtocol.filter((peer) => peer.tags.has(Tags.BOOTSTRAP))
-      : [];
+    // Collect the bootstrap peers up to the specified maximum
+    const bootstrapPeers = allPeersForProtocol
+      .filter((peer) => peer.tags.has(Tags.BOOTSTRAP))
+      .slice(0, maxBootstrapPeers);
 
     // Collect non-bootstrap peers
     const remainingPeers = allPeersForProtocol.filter(
       (peer) => !bootstrapPeers.includes(peer)
     );
 
+    // If numPeers is 0, return all peers
     if (numPeers === 0) {
-      if (includeBootstrap) {
-        return allPeersForProtocol;
-      } else {
-        return remainingPeers;
-      }
+      return [...bootstrapPeers, ...remainingPeers];
     }
 
-    // Initialize the list of selected peers
-    const selectedPeers: Peer[] = [];
-
-    // Add the bootstrap peers if available and required
-    selectedPeers.push(...bootstrapPeers);
+    // Initialize the list of selected peers with the bootstrap peers
+    const selectedPeers: Peer[] = [...bootstrapPeers];
 
     // Fill up to numPeers with remaining random peers if needed
     while (selectedPeers.length < numPeers && remainingPeers.length > 0) {
