@@ -138,7 +138,7 @@ describe.skip("getPeers function", function () {
     sinon.restore();
   });
 
-  it.only("should return all peers when numPeers is 0", async function () {
+  it("should return all peers when numPeers is 0", async function () {
     const peer1 = await createSecp256k1PeerId();
     const peer2 = await createSecp256k1PeerId();
     const peer3 = await createSecp256k1PeerId();
