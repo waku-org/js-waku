@@ -27,6 +27,16 @@ const log = debug("waku:light-push");
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 
+type PreparePushMessageResult =
+  | {
+      query: PushRpc;
+      error: null;
+    }
+  | {
+      query: null;
+      error: SendError;
+    };
+
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
@@ -38,37 +48,64 @@ class LightPush extends BaseProtocol implements ILightPush {
     this.options = options || {};
   }
 
-  async send(
+  private async preparePushMessage(
     encoder: IEncoder,
     message: IMessage,
-    opts?: ProtocolOptions
-  ): Promise<SendResult> {
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
-
-    const peer = await this.getPeer(opts?.peerId);
-    const stream = await this.newStream(peer);
-
-    const recipients: PeerId[] = [];
-    let error: undefined | SendError = undefined;
-
+    pubSubTopic: string
+  ): Promise<PreparePushMessageResult> {
     try {
       if (!isSizeValid(message.payload)) {
-        log("Failed to send waku light push: message is bigger that 1MB");
-        return {
-          recipients,
-          error: SendError.SIZE_TOO_BIG
-        };
+        log("Failed to send waku light push: message is bigger than 1MB");
+        return { query: null, error: SendError.SIZE_TOO_BIG };
       }
 
       const protoMessage = await encoder.toProtoObj(message);
       if (!protoMessage) {
         log("Failed to encode to protoMessage, aborting push");
         return {
-          recipients,
+          query: null,
           error: SendError.ENCODE_FAILED
         };
       }
+
       const query = PushRpc.createRequest(protoMessage, pubSubTopic);
+      return { query, error: null };
+    } catch (error) {
+      log("Failed to prepare push message", error);
+
+      return {
+        query: null,
+        error: SendError.GENERIC_FAIL
+      };
+    }
+  }
+
+  async send(
+    encoder: IEncoder,
+    message: IMessage,
+    opts?: ProtocolOptions
+  ): Promise<SendResult> {
+    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+    const recipients: PeerId[] = [];
+
+    const { query, error: preparationError } = await this.preparePushMessage(
+      encoder,
+      message,
+      pubSubTopic
+    );
+
+    if (preparationError || !query) {
+      return {
+        recipients,
+        error: preparationError
+      };
+    }
+
+    let error: undefined | SendError = undefined;
+    const peer = await this.getPeer(opts?.peerId);
+    const stream = await this.newStream(peer);
+
+    try {
       const res = await pipe(
         [query.encode()],
         lp.encode,
@@ -76,6 +113,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         lp.decode,
         async (source) => await all(source)
       );
+
       try {
         const bytes = new Uint8ArrayList();
         res.forEach((chunk) => {
@@ -98,9 +136,10 @@ class LightPush extends BaseProtocol implements ILightPush {
       log("Failed to send waku light push request", err);
       error = SendError.GENERIC_FAIL;
     }
+
     return {
-      error,
-      recipients
+      recipients,
+      error
     };
   }
 }

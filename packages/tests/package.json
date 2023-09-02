@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@libp2p/interface-compliance-tests": "^4.0.2",
-    "@libp2p/peer-id": "^2.0.4",
+    "@libp2p/peer-id": "^3.0.2",
     "@waku/core": "*",
     "@waku/enr": "*",
     "@waku/interfaces": "*",
@@ -80,7 +80,7 @@
     "@waku/peer-exchange": "*",
     "chai": "^4.3.7",
     "datastore-core": "^9.2.2",
-    "cspell": "^7.0.0",
+    "cspell": "^7.0.1",
     "debug": "^4.3.4",
     "interface-datastore": "^8.2.3",
     "libp2p": "^0.46.3",
