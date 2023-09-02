@@ -1,7 +1,11 @@
-import * as secp from "@noble/secp256k1";
-import { concat, hexToBytes } from "@waku/utils/bytes";
+import {
+  getPublicKey,
+  getSharedSecret,
+  etc as secpUtils
+} from "@noble/secp256k1";
+import { concat } from "@waku/utils/bytes";
 
-import { getSubtle, randomBytes, sha256 } from "./index.js";
+import { getSubtle } from "./index.js";
 /**
  * HKDF as implemented in go-ethereum.
  */
@@ -15,7 +19,7 @@ function kdf(secret: Uint8Array, outputLength: number): Promise<Uint8Array> {
       [counters, secret],
       counters.length + secret.length
     );
-    const willBeHashResult = sha256(countersSecret);
+    const willBeHashResult = secpUtils.hmacSha256Async(countersSecret);
     willBeResult = willBeResult.then((result) =>
       willBeHashResult.then((hashResult) => {
         const _hashResult = new Uint8Array(hashResult);
@@ -31,61 +35,59 @@ function kdf(secret: Uint8Array, outputLength: number): Promise<Uint8Array> {
   return willBeResult;
 }
 
-function aesCtrEncrypt(
+async function aesCtrEncrypt(
   counter: Uint8Array,
   key: ArrayBufferLike,
   data: ArrayBufferLike
 ): Promise<Uint8Array> {
-  return getSubtle()
-    .importKey("raw", key, "AES-CTR", false, ["encrypt"])
-    .then((cryptoKey) =>
-      getSubtle().encrypt(
-        { name: "AES-CTR", counter: counter, length: 128 },
-        cryptoKey,
-        data
-      )
-    )
-    .then((bytes) => new Uint8Array(bytes));
+  const cryptoKey = await getSubtle().importKey("raw", key, "AES-CTR", false, [
+    "encrypt"
+  ]);
+  const bytes = await getSubtle().encrypt(
+    { name: "AES-CTR", counter: counter, length: 128 },
+    cryptoKey,
+    data
+  );
+  return new Uint8Array(bytes);
 }
 
-function aesCtrDecrypt(
+async function aesCtrDecrypt(
   counter: Uint8Array,
   key: ArrayBufferLike,
   data: ArrayBufferLike
 ): Promise<Uint8Array> {
-  return getSubtle()
-    .importKey("raw", key, "AES-CTR", false, ["decrypt"])
-    .then((cryptoKey) =>
-      getSubtle().decrypt(
-        { name: "AES-CTR", counter: counter, length: 128 },
-        cryptoKey,
-        data
-      )
-    )
-    .then((bytes) => new Uint8Array(bytes));
+  const cryptoKey = await getSubtle().importKey("raw", key, "AES-CTR", false, [
+    "decrypt"
+  ]);
+  const bytes = await getSubtle().decrypt(
+    { name: "AES-CTR", counter: counter, length: 128 },
+    cryptoKey,
+    data
+  );
+  return new Uint8Array(bytes);
 }
 
-function hmacSha256Sign(
+async function hmacSha256Sign(
   key: ArrayBufferLike,
   msg: ArrayBufferLike
-): PromiseLike<Uint8Array> {
+): Promise<Uint8Array> {
   const algorithm = { name: "HMAC", hash: { name: "SHA-256" } };
-  return getSubtle()
-    .importKey("raw", key, algorithm, false, ["sign"])
-    .then((cryptoKey) => getSubtle().sign(algorithm, cryptoKey, msg))
-    .then((bytes) => new Uint8Array(bytes));
+  const cryptoKey = await getSubtle().importKey("raw", key, algorithm, false, [
+    "sign"
+  ]);
+  const bytes = await getSubtle().sign(algorithm, cryptoKey, msg);
+  return new Uint8Array(bytes);
 }
 
-function hmacSha256Verify(
+async function hmacSha256Verify(
   key: ArrayBufferLike,
   msg: ArrayBufferLike,
   sig: ArrayBufferLike
 ): Promise<boolean> {
   const algorithm = { name: "HMAC", hash: { name: "SHA-256" } };
   const _key = getSubtle().importKey("raw", key, algorithm, false, ["verify"]);
-  return _key.then((cryptoKey) =>
-    getSubtle().verify(algorithm, cryptoKey, sig, msg)
-  );
+  const cryptoKey = await _key;
+  return await getSubtle().verify(algorithm, cryptoKey, sig, msg);
 }
 
 /**
@@ -108,9 +110,11 @@ function derive(privateKeyA: Uint8Array, publicKeyB: Uint8Array): Uint8Array {
   } else if (publicKeyB[0] !== 4) {
     throw new Error("Bad public key, a valid public key would begin with 4");
   } else {
-    const px = secp.getSharedSecret(privateKeyA, publicKeyB, true);
+    const privateKeyAHex = secpUtils.bytesToHex(privateKeyA);
+    const publicKeyBHex = secpUtils.bytesToHex(publicKeyB);
+    const px = getSharedSecret(privateKeyAHex, publicKeyBHex, true);
     // Remove the compression prefix
-    return new Uint8Array(hexToBytes(px).slice(1));
+    return new Uint8Array(px.slice(1));
   }
 }
 
@@ -125,21 +129,21 @@ export async function encrypt(
   publicKeyTo: Uint8Array,
   msg: Uint8Array
 ): Promise<Uint8Array> {
-  const ephemPrivateKey = randomBytes(32);
+  const ephemPrivateKey = secpUtils.randomBytes(32);
 
   const sharedPx = derive(ephemPrivateKey, publicKeyTo);
 
   const hash = await kdf(sharedPx, 32);
 
-  const iv = randomBytes(16);
+  const iv = secpUtils.randomBytes(16);
   const encryptionKey = hash.slice(0, 16);
   const cipherText = await aesCtrEncrypt(iv, encryptionKey, msg);
 
   const ivCipherText = concat([iv, cipherText], iv.length + cipherText.length);
 
-  const macKey = await sha256(hash.slice(16));
+  const macKey = await secpUtils.hmacSha256Async(hash.slice(16));
   const hmac = await hmacSha256Sign(macKey, ivCipherText);
-  const ephemPublicKey = secp.getPublicKey(ephemPrivateKey, false);
+  const ephemPublicKey = getPublicKey(ephemPrivateKey, false);
 
   return concat(
     [ephemPublicKey, ivCipherText, hmac],
@@ -181,9 +185,9 @@ export async function decrypt(
     // check HMAC
     const px = derive(privateKey, ephemPublicKey);
     const hash = await kdf(px, 32);
-    const [encryptionKey, macKey] = await sha256(hash.slice(16)).then(
-      (macKey) => [hash.slice(0, 16), macKey]
-    );
+    const [encryptionKey, macKey] = await secpUtils
+      .hmacSha256Async(hash.slice(16))
+      .then((macKey) => [hash.slice(0, 16), macKey]);
 
     if (!(await hmacSha256Verify(macKey, cipherAndIv, msgMac))) {
       throw new Error("Incorrect MAC");
