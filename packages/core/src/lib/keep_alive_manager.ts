@@ -4,7 +4,7 @@ import type { KeepAliveOptions } from "@waku/interfaces";
 import debug from "debug";
 import type { PingService } from "libp2p/ping";
 
-import { createEncoder } from "../index.js";
+import { createEncoder } from "./message/version_0.js";
 
 export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 const log = debug("waku:keep-alive");
