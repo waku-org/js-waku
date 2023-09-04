@@ -20,7 +20,16 @@ export function decodeMultiaddrs(bytes: Uint8Array): Multiaddr[] {
     const multiaddrBytes = bytes.slice(index, index + size);
     index += size;
 
-    multiaddrs.push(multiaddr(multiaddrBytes));
+    let ma = multiaddr(multiaddrBytes);
+
+    // if the multiaddr contains `p2p`, it means that it supports `p2p-circuit`
+    // this is avoided from the ENR to save space
+    // we should add it
+    if (ma.toString().includes("/p2p/")) {
+      ma = multiaddr(ma.toString() + "/p2p-circuit/");
+    }
+
+    multiaddrs.push(ma);
   }
   return multiaddrs;
 }
