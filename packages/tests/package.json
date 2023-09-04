@@ -50,7 +50,7 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@libp2p/interface-compliance-tests": "^4.0.2",
+    "@libp2p/interface-compliance-tests": "^4.0.5",
     "@libp2p/peer-id": "^3.0.2",
     "@waku/core": "*",
     "@waku/enr": "*",
@@ -65,7 +65,6 @@
     "tail": "^2.2.6"
   },
   "devDependencies": {
-    "aegir": "^40.0.11",
     "@libp2p/bootstrap": "^9.0.2",
     "@types/sinon": "^10.0.16",
     "@types/chai": "^4.3.5",
