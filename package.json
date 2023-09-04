@@ -24,10 +24,8 @@
     "size": "npm run build && size-limit",
     "fix": "run-s fix:*",
     "fix:workspaces": "npm run fix --workspaces --if-present",
-    "fix:prettier": "prettier ./packages --write",
     "check": "run-s check:*",
     "check:workspaces": "npm run check --workspaces --if-present",
-    "check:prettier": "prettier ./packages --list-different",
     "check:ws": "[ $(ls -1 ./packages|wc -l) -eq $(cat package.json | jq '.workspaces | length') ] || exit 1 # check no packages left behind",
     "test": "npm run test --workspaces --if-present",
     "test:browser": "npm run test:browser --workspaces --if-present",
@@ -52,7 +50,6 @@
     "gh-pages": "^5.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
-    "prettier": "^3.0.0",
     "size-limit": "^8.1.2",
     "typedoc": "^0.23.26",
     "typedoc-plugin-resolve-crossmodule-references": "^0.3.3"
@@ -60,9 +57,6 @@
   "lint-staged": {
     "*.{ts,js}": [
       "eslint --fix"
-    ],
-    "*.{ts,json,js,md,cjs}": [
-      "prettier --write"
     ]
   }
 }
