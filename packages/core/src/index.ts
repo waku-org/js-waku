@@ -30,3 +30,4 @@ export { waitForRemotePeer } from "./lib/wait_for_remote_peer.js";
 export { ConnectionManager } from "./lib/connection_manager.js";
 
 export { KeepAliveManager } from "./lib/keep_alive_manager.js";
+export { StreamManager } from "./lib/stream_manager.js";
