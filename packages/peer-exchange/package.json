@@ -70,9 +70,6 @@
     "rollup": "^3.28.0",
     "uint8arraylist": "^2.4.3"
   },
-  "typedoc": {
-    "entryPoint": "./src/index.ts"
-  },
   "files": [
     "dist",
     "bundle",

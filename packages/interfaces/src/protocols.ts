@@ -22,7 +22,7 @@ export interface IBaseProtocol {
 
 export type ProtocolCreateOptions = {
   /**
-   * The PubSub Topic to use. Defaults to {@link @waku/core.DefaultPubSubTopic }.
+   * The PubSub Topic to use. Defaults to {@link @waku/core!DefaultPubSubTopic }.
    *
    * One and only one pubsub topic is used by Waku. This is used by:
    * - WakuRelay to receive, route and send messages,
@@ -35,11 +35,11 @@ export type ProtocolCreateOptions = {
    */
   pubSubTopic?: string;
   /**
-   * You can pass options to the `Libp2p` instance used by {@link @waku/core.WakuNode} using the `libp2p` property.
+   * You can pass options to the `Libp2p` instance used by {@link @waku/core!WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * apart that we made the `modules` property optional and partial,
    * allowing its omission and letting Waku set good defaults.
-   * Notes that some values are overridden by {@link @waku/core.WakuNode} to ensure it implements the Waku protocol.
+   * Notes that some values are overridden by {@link @waku/core!WakuNode} to ensure it implements the Waku protocol.
    */
   libp2p?: Partial<Libp2pOptions>;
   /**

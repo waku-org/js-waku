@@ -118,9 +118,6 @@
       "optional": true
     }
   },
-  "typedoc": {
-    "entryPoint": "./src/index.ts"
-  },
   "files": [
     "dist",
     "bundle",
