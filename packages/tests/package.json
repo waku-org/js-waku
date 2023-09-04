@@ -79,7 +79,7 @@
     "@waku/peer-exchange": "*",
     "chai": "^4.3.7",
     "datastore-core": "^9.2.2",
-    "cspell": "^7.0.1",
+    "cspell": "^7.3.2",
     "debug": "^4.3.4",
     "interface-datastore": "^8.2.3",
     "libp2p": "^0.46.3",
