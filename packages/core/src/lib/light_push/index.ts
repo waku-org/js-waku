@@ -104,7 +104,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
     const promises = peers.map(async (peer) => {
       let error: SendError | undefined;
-      const stream = await this.newStream(peer);
+      const stream = await this.getStream(peer);
 
       try {
         const res = await pipe(

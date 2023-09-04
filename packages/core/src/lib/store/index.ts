@@ -252,7 +252,7 @@ class Store extends BaseProtocol implements IStore {
     )[0];
 
     for await (const messages of paginate<T>(
-      this.newStream.bind(this, peer),
+      this.getStream.bind(this, peer),
       queryOpts,
       decodersAsMap,
       options?.cursor

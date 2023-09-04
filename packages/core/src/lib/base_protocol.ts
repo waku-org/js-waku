@@ -2,12 +2,15 @@ import type { Libp2p } from "@libp2p/interface";
 import type { Stream } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { Peer, PeerStore } from "@libp2p/interface/peer-store";
-import { IBaseProtocol, Libp2pComponents, Tags } from "@waku/interfaces";
+import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
+import { Tags } from "@waku/interfaces";
 import {
   getPeersForProtocol,
   selectConnection,
   selectPeerForProtocol
 } from "@waku/utils/libp2p";
+
+import { StreamManager } from "./stream_manager.js";
 
 /**
  * A class with predefined helpers, to be used as a base to implement Waku
@@ -16,6 +19,7 @@ import {
 export class BaseProtocol implements IBaseProtocol {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
+  protected streamManager: StreamManager;
 
   constructor(
     public multicodec: string,
@@ -27,6 +31,17 @@ export class BaseProtocol implements IBaseProtocol {
     this.removeLibp2pEventListener = components.events.removeEventListener.bind(
       components.events
     );
+
+    this.streamManager = new StreamManager(
+      multicodec,
+      components.connectionManager.getConnections.bind(
+        components.connectionManager
+      ),
+      this.addLibp2pEventListener
+    );
+  }
+  protected async getStream(peer: Peer): Promise<Stream> {
+    return this.streamManager.getStream(peer);
   }
 
   public get peerStore(): PeerStore {
