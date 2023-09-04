@@ -64,10 +64,7 @@
     "@waku/build-utils": "*",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.1.0",
-    "rollup": "^3.28.0",
-    "ts-loader": "^9.4.2",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.0.4"
+    "rollup": "^3.28.0"
   },
   "typedoc": {
     "entryPoint": "./src/index.ts"

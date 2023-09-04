@@ -52,7 +52,10 @@
     "lint-staged": "^13.2.2",
     "size-limit": "^8.1.2",
     "typedoc": "^0.23.26",
-    "typedoc-plugin-resolve-crossmodule-references": "^0.3.3"
+    "typedoc-plugin-resolve-crossmodule-references": "^0.3.3",
+    "ts-loader": "^9.4.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
   },
   "lint-staged": {
     "*.{ts,js}": [
