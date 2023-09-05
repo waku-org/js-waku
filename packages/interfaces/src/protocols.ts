@@ -54,10 +54,6 @@ export type ProtocolCreateOptions = {
   defaultBootstrap?: boolean;
 };
 
-export type ProtocolOptions = {
-  //
-};
-
 export type Callback<T extends IDecodedMessage> = (
   msg: T
 ) => void | Promise<void>;

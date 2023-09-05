@@ -21,7 +21,6 @@ import {
   IRelay,
   Libp2p,
   ProtocolCreateOptions,
-  ProtocolOptions,
   SendError,
   SendResult
 } from "@waku/interfaces";
@@ -162,10 +161,9 @@ class Relay implements IRelay {
   }
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    opts?: ProtocolOptions | undefined
+    decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<IAsyncIterator<T>> {
-    return toAsyncIterator(this, decoders, opts);
+    return toAsyncIterator(this, decoders);
   }
 
   public getActiveSubscriptions(): ActiveSubscriptions {
