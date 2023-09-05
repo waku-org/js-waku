@@ -30,7 +30,7 @@ describe("getPeers function", function () {
     expect(result.length).to.deep.equal(mockPeers.length);
   });
 
-  it("should return all peers, except bootstrap, when numPeers is 0 & maxBootstrap is defined", async function () {
+  it("should return one bootstrap peer, and all non-boostrap peers, when numPeers is 0 & maxBootstrap is defined", async function () {
     const peer1 = await createSecp256k1PeerId();
     const peer2 = await createSecp256k1PeerId();
     const peer3 = await createSecp256k1PeerId();
