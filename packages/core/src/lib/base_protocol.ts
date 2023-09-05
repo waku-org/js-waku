@@ -10,6 +10,7 @@ import {
 } from "@waku/utils/libp2p";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
+import { StreamManager } from "./stream_manager.js";
 
 /**
  * A class with predefined helpers, to be used as a base to implement Waku
@@ -18,6 +19,7 @@ import { KeepAliveManager } from "./keep_alive_manager.js";
 export class BaseProtocol implements IBaseProtocol {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
+  protected streamManager: StreamManager;
 
   constructor(
     public multicodec: string,
@@ -29,6 +31,17 @@ export class BaseProtocol implements IBaseProtocol {
     this.removeLibp2pEventListener = components.events.removeEventListener.bind(
       components.events
     );
+
+    this.streamManager = new StreamManager(
+      multicodec,
+      components.connectionManager.getConnections.bind(
+        components.connectionManager
+      ),
+      this.addLibp2pEventListener
+    );
+  }
+  protected async getStream(peer: Peer): Promise<Stream> {
+    return this.streamManager.getStream(peer);
   }
 
   public get peerStore(): PeerStore {
