@@ -22,7 +22,6 @@
         "trailingComma": "none"
       }
     ],
-    "comma-dangle": ["error", "never"],
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "eslint-comments/disable-enable-pair": [
@@ -68,9 +67,6 @@
   "overrides": [
     {
       "files": ["*.spec.ts", "**/test_utils/*.ts", "*.js", "*.cjs"],
-      "env": {
-        "node": true
-      },
       "rules": {
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-explicit-any": "off",
