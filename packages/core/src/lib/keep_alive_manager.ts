@@ -56,12 +56,12 @@ export class KeepAliveManager {
     return KeepAliveManager.instance;
   }
 
-  public getPing(peerId: PeerId): Promise<number> {
+  public async getPing(peerId: PeerId): Promise<number> {
     const ping = this.peerPings.get(peerId.toString());
     if (!ping) {
-      return this.libp2pPing.ping(peerId);
+      return await this.libp2pPing.ping(peerId);
     }
-    return Promise.resolve(ping);
+    return ping;
   }
 
   public start(peerId: PeerId): void {
