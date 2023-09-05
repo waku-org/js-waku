@@ -56,7 +56,7 @@
     "@waku/core": "0.0.22",
     "@waku/dns-discovery": "0.0.16",
     "@waku/interfaces": "0.0.17",
-    "libp2p": "^0.46.3"
+    "libp2p": "^0.46.8"
   },
   "devDependencies": {
     "@chainsafe/libp2p-gossipsub": "^10.1.0",
