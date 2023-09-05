@@ -5,7 +5,6 @@ import {
   createDecoder,
   createEncoder,
   DefaultPubSubTopic,
-  KeepAliveManager,
   waitForRemotePeer
 } from "@waku/core";
 import { LightNode } from "@waku/interfaces";
@@ -120,7 +119,7 @@ const TestCodec = "test/1";
 
 describe("selectPeerForProtocol", () => {
   let peerStore: PeerStore;
-  let getPingStub: sinon.SinonStub;
+  let peerPings: Map<string, number>;
   const protocols = [TestCodec];
 
   beforeEach(async function () {
@@ -129,7 +128,7 @@ describe("selectPeerForProtocol", () => {
     await waku.start();
     await delay(3000);
     peerStore = waku.libp2p.peerStore;
-    getPingStub = sinon.stub(KeepAliveManager.getInstance(), "getPing");
+    peerPings = new Map();
   });
 
   afterEach(() => {
@@ -153,15 +152,11 @@ describe("selectPeerForProtocol", () => {
       }
     });
 
-    getPingStub.withArgs(peer1).resolves(500);
-    getPingStub.withArgs(peer2).resolves(1000);
-    getPingStub.withArgs(peer3).resolves(100);
+    peerPings.set(peer1.toString(), 500);
+    peerPings.set(peer2.toString(), 1000);
+    peerPings.set(peer3.toString(), 100);
 
-    const result = await selectPeerForProtocol(
-      peerStore,
-      getPingStub,
-      protocols
-    );
+    const result = await selectPeerForProtocol(peerStore, peerPings, protocols);
 
     expect(result.peer).to.deep.equal(mockPeers[2]);
     expect(result.protocol).to.equal(TestCodec);
@@ -174,14 +169,14 @@ describe("selectPeerForProtocol", () => {
 
     const result = await selectPeerForProtocol(
       peerStore,
-      getPingStub,
+      peerPings,
       protocols,
       targetPeer
     );
     expect(result.peer).to.deep.equal(mockPeer);
   });
 
-  it("should return a any peer when all peers have the same latency", async function () {
+  it("should return a random peer when all peers have the same latency", async function () {
     const peer1 = await createSecp256k1PeerId();
     const peer2 = await createSecp256k1PeerId();
     const peer3 = await createSecp256k1PeerId();
@@ -198,13 +193,11 @@ describe("selectPeerForProtocol", () => {
       }
     });
 
-    getPingStub.resolves(500); // All peers have the same latency
+    peerPings.set(peer1.toString(), 500);
+    peerPings.set(peer2.toString(), 500);
+    peerPings.set(peer3.toString(), 500);
 
-    const result = await selectPeerForProtocol(
-      peerStore,
-      getPingStub,
-      protocols
-    );
+    const result = await selectPeerForProtocol(peerStore, peerPings, protocols);
 
     expect(mockPeers).to.deep.include(result.peer);
   });
@@ -225,7 +218,7 @@ describe("selectPeerForProtocol", () => {
     });
 
     await expect(
-      selectPeerForProtocol(peerStore, getPingStub, protocols)
+      selectPeerForProtocol(peerStore, peerPings, protocols)
     ).to.be.rejectedWith(
       `Failed to find known peer that registers protocols: ${protocols}`
     );
@@ -237,7 +230,7 @@ describe("selectPeerForProtocol", () => {
     sinon.stub(peerStore, "get").withArgs(targetPeer).resolves(mockPeer);
 
     await expect(
-      selectPeerForProtocol(peerStore, getPingStub, protocols, targetPeer)
+      selectPeerForProtocol(peerStore, peerPings, protocols, targetPeer)
     ).to.be.rejectedWith(
       `Peer does not register required protocols (${targetPeer.toString()}): ${protocols}`
     );
