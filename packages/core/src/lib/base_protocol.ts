@@ -69,13 +69,18 @@ export class BaseProtocol implements IBaseProtocol {
    * @param maxBootstrapPeers - The maximum number of bootstrap peers to retrieve.
    * @returns A Promise that resolves to an array of peers based on the specified criteria.
    */
-  protected async getPeers({
-    numPeers,
-    maxBootstrapPeers
-  }: {
-    numPeers: number;
-    maxBootstrapPeers: number;
-  }): Promise<Peer[]> {
+  protected async getPeers(
+    {
+      numPeers,
+      maxBootstrapPeers
+    }: {
+      numPeers: number;
+      maxBootstrapPeers: number;
+    } = {
+      maxBootstrapPeers: 1,
+      numPeers: 0
+    }
+  ): Promise<Peer[]> {
     // Retrieve all peers that support the protocol
     const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
       this.multicodec
