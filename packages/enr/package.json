@@ -70,7 +70,7 @@
     "@waku/build-utils": "*",
     "@waku/interfaces": "0.0.17",
     "chai": "^4.3.7",
-    "cspell": "^7.0.1",
+    "cspell": "^7.3.2",
     "karma": "^6.4.1",
     "karma-chrome-launcher": "^3.2.0",
     "karma-mocha": "^2.0.1",

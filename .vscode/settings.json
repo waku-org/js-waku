@@ -1,7 +1,11 @@
 {
   "cSpell.userWords": [], // only use words from .cspell.json
   "cSpell.enabled": true,
-  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.formatOnSave": false, // Disable general format on save
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true
 }
