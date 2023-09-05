@@ -5,7 +5,7 @@ import { Tags } from "@waku/interfaces";
 import { filterPeers } from "@waku/utils";
 import { expect } from "chai";
 
-describe.only("getPeers function", function () {
+describe("getPeers function", function () {
   it("should return all peers when numPeers is 0", async function () {
     const peer1 = await createSecp256k1PeerId();
     const peer2 = await createSecp256k1PeerId();

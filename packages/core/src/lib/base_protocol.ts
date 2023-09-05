@@ -4,11 +4,7 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
 import { filterPeers } from "@waku/utils";
-import {
-  getPeersForProtocol,
-  selectConnection,
-  selectPeerForProtocol
-} from "@waku/utils/libp2p";
+import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
 
 import { StreamManager } from "./stream_manager.js";
 
@@ -87,17 +83,5 @@ export class BaseProtocol implements IBaseProtocol {
 
     // Filter the peers based on the specified criteria
     return filterPeers(allPeersForProtocol, numPeers, maxBootstrapPeers);
-  }
-
-  protected async newStream(peer: Peer): Promise<Stream> {
-    const connections = this.components.connectionManager.getConnections(
-      peer.id
-    );
-    const connection = selectConnection(connections);
-    if (!connection) {
-      throw new Error("Failed to get a connection to the peer");
-    }
-
-    return connection.newStream(this.multicodec);
   }
 }
