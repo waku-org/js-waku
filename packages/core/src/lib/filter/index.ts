@@ -13,7 +13,6 @@ import type {
   Libp2p,
   PeerIdStr,
   ProtocolCreateOptions,
-  ProtocolOptions,
   PubSubTopic,
   Unsubscribe
 } from "@waku/interfaces";
@@ -280,10 +279,9 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    opts?: ProtocolOptions | undefined
+    decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<IAsyncIterator<T>> {
-    return toAsyncIterator(this, decoders, opts);
+    return toAsyncIterator(this, decoders);
   }
 
   /**
