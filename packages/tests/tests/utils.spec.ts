@@ -14,11 +14,14 @@ import { createLightNode } from "@waku/sdk";
 import { toAsyncIterator } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { selectPeerForProtocol } from "@waku/utils/libp2p";
-import { expect } from "chai";
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 
 import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
+
+chai.use(chaiAsPromised);
 
 const TestContentTopic = "/test/1/waku-filter";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
@@ -124,7 +127,7 @@ describe("Util: toAsyncIterator: Filter", () => {
 
 const TestCodec = "test/1";
 
-describe("selectPeerForProtocol", () => {
+describe.only("selectPeerForProtocol", () => {
   let peerStore: PeerStore;
   let getPingStub: sinon.SinonStub;
   const protocols = [TestCodec];
