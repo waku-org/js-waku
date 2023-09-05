@@ -54,6 +54,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
   async function* iterator(): AsyncIterator<T> {
     while (true) {
       if (isWithTimeout && Date.now() - startTime >= timeoutMs) {
+        console.log("failing", "AAA");
         return;
       }
 
@@ -62,6 +63,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
       const message = messages.shift() as T;
 
       if (!unsubscribe && messages.length === 0) {
+        console.log("failing", message);
         return message;
       }
 
