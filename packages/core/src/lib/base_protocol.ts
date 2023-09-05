@@ -55,11 +55,10 @@ export class BaseProtocol implements IBaseProtocol {
   }
 
   protected async getPeer(peerId?: PeerId): Promise<Peer> {
+    const { peerPings } = KeepAliveManager.getInstance();
     const { peer } = await selectPeerForProtocol(
       this.peerStore,
-      KeepAliveManager.getInstance().getPing.bind(
-        KeepAliveManager.getInstance()
-      ),
+      peerPings,
       [this.multicodec],
       peerId
     );

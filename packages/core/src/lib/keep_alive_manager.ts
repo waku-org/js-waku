@@ -17,7 +17,7 @@ export class KeepAliveManager {
   private options: KeepAliveOptions;
   private relay?: IRelay;
   private libp2pPing: PingService;
-  private peerPings: Map<string, number>;
+  public peerPings: Map<string, number>;
 
   private constructor(
     libp2pPing: PingService,
@@ -54,14 +54,6 @@ export class KeepAliveManager {
       );
     }
     return KeepAliveManager.instance;
-  }
-
-  public async getPing(peerId: PeerId): Promise<number> {
-    const ping = this.peerPings.get(peerId.toString());
-    if (!ping) {
-      return await this.libp2pPing.ping(peerId);
-    }
-    return ping;
   }
 
   public start(peerId: PeerId): void {

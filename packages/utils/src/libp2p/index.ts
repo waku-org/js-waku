@@ -23,19 +23,15 @@ export function selectRandomPeer(peers: Peer[]): Peer | undefined {
  * @returns The peer with the lowest latency, or undefined if no peer could be reached
  */
 export async function selectLowestLatencyPeer(
-  getPing: (peerId: PeerId) => Promise<number>,
+  peerPings: Map<string, number>,
   peers: Peer[]
 ): Promise<Peer | undefined> {
   if (peers.length === 0) return;
 
   const results = await Promise.all(
-    peers.map(async (peer) => {
-      try {
-        const ping = await getPing(peer.id);
-        return { peer, ping };
-      } catch (error) {
-        return { peer, ping: Infinity };
-      }
+    peers.map((peer) => {
+      const ping = peerPings.get(peer.id.toString()) ?? Infinity;
+      return { peer, ping };
     })
   );
 
@@ -73,7 +69,7 @@ export async function getPeersForProtocol(
  */
 export async function selectPeerForProtocol(
   peerStore: PeerStore,
-  getPing: (peerId: PeerId) => Promise<number>,
+  peerPings: Map<string, number>,
   protocols: string[],
   peerId?: PeerId
 ): Promise<{ peer: Peer; protocol: string }> {
@@ -87,7 +83,7 @@ export async function selectPeerForProtocol(
     }
   } else {
     const peers = await getPeersForProtocol(peerStore, protocols);
-    peer = await selectLowestLatencyPeer(getPing, peers);
+    peer = await selectLowestLatencyPeer(peerPings, peers);
     if (!peer) {
       peer = selectRandomPeer(peers);
       if (!peer)
