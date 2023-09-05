@@ -64,7 +64,7 @@ describe.only("getPeers function", function () {
     ).to.equal(0);
   });
 
-  it("should return one bootstrap peer, and all non-boostrap peers, when numPeers is 0 & maxBootstrap is defined", async function () {
+  it("should return one bootstrap peer, and all non-boostrap peers, when numPeers is 0 & maxBootstrap is 1", async function () {
     const peer1 = await createSecp256k1PeerId();
     const peer2 = await createSecp256k1PeerId();
     const peer3 = await createSecp256k1PeerId();
