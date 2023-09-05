@@ -39,7 +39,7 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
   callback: Callback<T>;
 };
 
-const FilterCodecs = {
+export const FilterCodecs = {
   SUBSCRIBE: "/vac/waku/filter-subscribe/2.0.0-beta1",
   PUSH: "/vac/waku/filter-push/2.0.0-beta1"
 };
