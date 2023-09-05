@@ -2,10 +2,10 @@ import { Peer } from "@libp2p/interface/peer-store";
 import type { Tag } from "@libp2p/interface/peer-store";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { Tags } from "@waku/interfaces";
-import { filterPeers } from "@waku/utils/common";
+import { filterPeers } from "@waku/utils";
 import { expect } from "chai";
 
-describe("getPeers function", function () {
+describe.only("getPeers function", function () {
   it("should return all peers when numPeers is 0", async function () {
     const peer1 = await createSecp256k1PeerId();
     const peer2 = await createSecp256k1PeerId();
@@ -26,8 +26,42 @@ describe("getPeers function", function () {
       }
     ] as unknown as Peer[];
 
-    const result = await filterPeers(mockPeers, 0, 0);
+    const result = await filterPeers(mockPeers, 0, 10);
     expect(result.length).to.deep.equal(mockPeers.length);
+  });
+
+  it("should return all non-bootstrap peers and no bootstrap peer when numPeers is 0 and maxBootstrapPeers is 0", async function () {
+    const peer1 = await createSecp256k1PeerId();
+    const peer2 = await createSecp256k1PeerId();
+    const peer3 = await createSecp256k1PeerId();
+    const peer4 = await createSecp256k1PeerId();
+
+    const mockPeers = [
+      {
+        id: peer1,
+        tags: new Map<string, Tag>([[Tags.BOOTSTRAP, { value: 100 }]])
+      },
+      {
+        id: peer2,
+        tags: new Map<string, Tag>([[Tags.BOOTSTRAP, { value: 100 }]])
+      },
+      {
+        id: peer3,
+        tags: new Map<string, Tag>([[Tags.PEER_EXCHANGE, { value: 100 }]])
+      },
+      {
+        id: peer4,
+        tags: new Map<string, Tag>([[Tags.PEER_EXCHANGE, { value: 100 }]])
+      }
+    ] as unknown as Peer[];
+
+    const result = await filterPeers(mockPeers, 0, 0);
+
+    // result should have no bootstrap peers, and a total of 2 peers
+    expect(result.length).to.equal(2);
+    expect(
+      result.filter((peer: Peer) => peer.tags.has(Tags.BOOTSTRAP)).length
+    ).to.equal(0);
   });
 
   it("should return one bootstrap peer, and all non-boostrap peers, when numPeers is 0 & maxBootstrap is defined", async function () {

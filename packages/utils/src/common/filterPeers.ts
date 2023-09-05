@@ -15,10 +15,9 @@ export async function filterPeers(
   maxBootstrapPeers: number
 ): Promise<Peer[]> {
   // Collect the bootstrap peers up to the specified maximum
-  let bootstrapPeers = peers.filter((peer) => peer.tags.has(Tags.BOOTSTRAP));
-  if (maxBootstrapPeers > 0) {
-    bootstrapPeers = bootstrapPeers.slice(0, maxBootstrapPeers);
-  }
+  const bootstrapPeers = peers
+    .filter((peer) => peer.tags.has(Tags.BOOTSTRAP))
+    .slice(0, maxBootstrapPeers);
 
   // Collect non-bootstrap peers
   const nonBootstrapPeers = peers.filter(
