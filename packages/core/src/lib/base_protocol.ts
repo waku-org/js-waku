@@ -80,9 +80,10 @@ export class BaseProtocol implements IBaseProtocol {
     maxBootstrapPeers: number
   ): Promise<Peer[]> {
     // Collect the bootstrap peers up to the specified maximum
-    const bootstrapPeers = peers
-      .filter((peer) => peer.tags.has(Tags.BOOTSTRAP))
-      .slice(0, maxBootstrapPeers);
+    let bootstrapPeers = peers.filter((peer) => peer.tags.has(Tags.BOOTSTRAP));
+    if (maxBootstrapPeers > 0) {
+      bootstrapPeers = bootstrapPeers.slice(0, maxBootstrapPeers);
+    }
 
     // Collect non-bootstrap peers
     const nonBootstrapPeers = peers.filter(
