@@ -102,6 +102,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       numPeers: this.NUM_PEERS_PROTOCOL
     });
 
+    // This map returns only fulfilled promises
     const promises = peers.map(async (peer) => {
       let error: SendError | undefined;
       const stream = await this.getStream(peer);
@@ -142,14 +143,15 @@ class LightPush extends BaseProtocol implements ILightPush {
     });
 
     const results = await Promise.allSettled(promises);
-    const successfulResults = results.filter(
-      (result) => result.status === "fulfilled"
-    ) as PromiseFulfilledResult<{
-      recipients: PeerId[];
-      error: SendError | undefined;
-    }>[];
-
-    const errors = successfulResults
+    const errors = results
+      .filter(
+        (
+          result
+        ): result is PromiseFulfilledResult<{
+          recipients: PeerId[];
+          error: SendError | undefined;
+        }> => result.status === "fulfilled"
+      )
       .map((result) => result.value.error)
       .filter((error) => error !== undefined) as SendError[];
 
