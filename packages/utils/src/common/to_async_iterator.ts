@@ -42,6 +42,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
   unsubscribe = await receiver.subscribe(
     decoder,
     (message: T) => {
+      console.log("DEBUG: toAsyncIterator messages.push", message);
       messages.push(message);
     },
     options
@@ -54,7 +55,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
   async function* iterator(): AsyncIterator<T> {
     while (true) {
       if (isWithTimeout && Date.now() - startTime >= timeoutMs) {
-        console.log("failing", "AAA");
+        console.log("DEBUG: toAsyncIterator return empty");
         return;
       }
 
@@ -63,14 +64,16 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
       const message = messages.shift() as T;
 
       if (!unsubscribe && messages.length === 0) {
-        console.log("failing", message);
+        console.log("DEBUG: toAsyncIterator return message", message);
         return message;
       }
 
       if (!message && unsubscribe) {
+        console.log("DEBUG: toAsyncIterator skipping");
         continue;
       }
 
+      console.log("DEBUG: toAsyncIterator yield message", message);
       yield message;
     }
   }

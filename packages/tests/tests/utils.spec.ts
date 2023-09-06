@@ -107,7 +107,7 @@ describe("Util: toAsyncIterator: Filter", () => {
     });
 
     let result = await iterator.next();
-    console.log("failing", result.done, result.value);
+    console.log("DEBUG: toAsyncIterator test next", result.done, result.value);
     expect(result.done).to.eq(true);
     expect(bytesToUtf8(result?.value?.payload)).to.eq(
       "This should be received"
