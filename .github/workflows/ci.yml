@@ -154,7 +154,6 @@ jobs:
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v3
-        if: failure()
         with:
           name: go-waku-logs
           path: packages/tests/log/
