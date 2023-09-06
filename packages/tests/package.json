@@ -72,7 +72,7 @@
     "@types/mocha": "^10.0.1",
     "@types/tail": "^2.2.1",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^5.62.0",
+    "@typescript-eslint/parser": "^6.6.0",
     "@waku/sdk": "*",
     "@waku/dns-discovery": "*",
     "@waku/message-encryption": "*",
