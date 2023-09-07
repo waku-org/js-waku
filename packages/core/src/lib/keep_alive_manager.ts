@@ -10,21 +10,53 @@ export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 const log = debug("waku:keep-alive");
 
 export class KeepAliveManager {
+  private static instance: KeepAliveManager;
+
   private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>>;
   private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>>;
   private options: KeepAliveOptions;
   private relay?: IRelay;
+  private libp2pPing: PingService;
   public peerPings: Map<string, number>;
 
-  constructor(options: KeepAliveOptions, relay?: IRelay) {
+  private constructor(
+    libp2pPing: PingService,
+    options: KeepAliveOptions,
+    relay?: IRelay
+  ) {
     this.pingKeepAliveTimers = new Map();
     this.relayKeepAliveTimers = new Map();
     this.options = options;
     this.relay = relay;
     this.peerPings = new Map();
+    this.libp2pPing = libp2pPing;
   }
 
-  public start(peerId: PeerId, libp2pPing: PingService): void {
+  public static createInstance(
+    libp2pPing: PingService,
+    options: KeepAliveOptions,
+    relay?: IRelay
+  ): KeepAliveManager {
+    if (!KeepAliveManager.instance) {
+      KeepAliveManager.instance = new KeepAliveManager(
+        libp2pPing,
+        options,
+        relay
+      );
+    }
+    return KeepAliveManager.instance;
+  }
+
+  public static getInstance(): KeepAliveManager {
+    if (!KeepAliveManager.instance) {
+      throw new Error(
+        "KeepAliveManager not initialized - please use createInstance() first"
+      );
+    }
+    return KeepAliveManager.instance;
+  }
+
+  public start(peerId: PeerId): void {
     // Just in case a timer already exist for this peer
     this.stop(peerId);
 
@@ -35,7 +67,7 @@ export class KeepAliveManager {
 
     if (pingPeriodSecs !== 0) {
       const interval = setInterval(() => {
-        libp2pPing
+        this.libp2pPing
           .ping(peerId)
           .then((ping) => {
             log(`Ping succeeded (${peerIdStr})`, ping);
