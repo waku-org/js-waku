@@ -14,12 +14,14 @@ export class KeepAliveManager {
   private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>>;
   private options: KeepAliveOptions;
   private relay?: IRelay;
+  public peerPings: Map<string, number>;
 
   constructor(options: KeepAliveOptions, relay?: IRelay) {
     this.pingKeepAliveTimers = new Map();
     this.relayKeepAliveTimers = new Map();
     this.options = options;
     this.relay = relay;
+    this.peerPings = new Map();
   }
 
   public start(peerId: PeerId, libp2pPing: PingService): void {
@@ -33,9 +35,15 @@ export class KeepAliveManager {
 
     if (pingPeriodSecs !== 0) {
       const interval = setInterval(() => {
-        libp2pPing.ping(peerId).catch((e) => {
-          log(`Ping failed (${peerIdStr})`, e);
-        });
+        libp2pPing
+          .ping(peerId)
+          .then((ping) => {
+            log(`Ping succeeded (${peerIdStr})`, ping);
+            this.peerPings.set(peerIdStr, ping);
+          })
+          .catch((e) => {
+            log(`Ping failed (${peerIdStr})`, e);
+          });
       }, pingPeriodSecs * 1000);
       this.pingKeepAliveTimers.set(peerIdStr, interval);
     }
