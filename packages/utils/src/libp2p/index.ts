@@ -20,7 +20,7 @@ export function selectRandomPeer(peers: Peer[]): Peer | undefined {
 
 /**
  * Returns the peer with the lowest latency.
- * @param getPing - A function that returns the latency for a given peer
+ * @param peerStore - The Libp2p PeerStore
  * @param peers - The list of peers to choose from
  * @returns The peer with the lowest latency, or undefined if no peer could be reached
  */

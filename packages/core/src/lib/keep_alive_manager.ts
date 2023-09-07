@@ -16,17 +16,19 @@ export class KeepAliveManager {
   private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>>;
   private options: KeepAliveOptions;
   private relay?: IRelay;
-  private peerStore: PeerStore;
 
-  constructor(peerStore: PeerStore, options: KeepAliveOptions, relay?: IRelay) {
+  constructor(options: KeepAliveOptions, relay?: IRelay) {
     this.pingKeepAliveTimers = new Map();
     this.relayKeepAliveTimers = new Map();
     this.options = options;
     this.relay = relay;
-    this.peerStore = peerStore;
   }
 
-  public start(peerId: PeerId, libp2pPing: PingService): void {
+  public start(
+    peerId: PeerId,
+    libp2pPing: PingService,
+    peerStore: PeerStore
+  ): void {
     // Just in case a timer already exists for this peer
     this.stop(peerId);
 
@@ -37,11 +39,13 @@ export class KeepAliveManager {
 
     if (pingPeriodSecs !== 0) {
       const interval = setInterval(() => {
+        // ping the peer for keep alive
+        // also update the peer store with the latency
         libp2pPing
           .ping(peerId)
           .then((ping) => {
             log(`Ping succeeded (${peerIdStr})`, ping);
-            this.peerStore
+            peerStore
               .patch(peerId, {
                 metadata: {
                   ping: utf8ToBytes(ping.toString())
