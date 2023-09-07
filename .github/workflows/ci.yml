@@ -18,6 +18,9 @@ on:
       nim_wakunode_image:
         required: false
         type: string
+      caller:
+        required: false
+        type: string
 
 env:
   NODE_JS: "18"
@@ -62,6 +65,7 @@ jobs:
 
   browser:
     runs-on: ubuntu-latest
+    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     steps:
       - uses: actions/checkout@v3
         with: 
@@ -138,6 +142,7 @@ jobs:
 
   node_with_go_waku_master:
     runs-on: ubuntu-latest
+    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     env:
       WAKUNODE_IMAGE: "statusteam/go-waku:latest"
       WAKU_SERVICE_NODE_PARAMS: "--min-relay-peers-to-publish=0" # Can be removed once https://github.com/status-im/nwaku/issues/1004 is done
@@ -179,6 +184,7 @@ jobs:
 
   node_with_nwaku_master:
     runs-on: ubuntu-latest
+    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     env:
       DEBUG: "waku*"
       WAKUNODE_IMAGE: "statusteam/nim-waku:deploy-wakuv2-test"
@@ -219,7 +225,10 @@ jobs:
   maybe-release:
     name: release
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: >
+      github.event_name == 'push' && 
+      github.ref == 'refs/heads/master' &&
+      (github.event.inputs.caller == null || github.event.inputs.caller != 'nwaku')
     needs: [check, proto, browser, node]
     steps:
       - uses: google-github-actions/release-please-action@v3
