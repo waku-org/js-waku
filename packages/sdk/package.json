@@ -56,6 +56,7 @@
     "@waku/core": "0.0.22",
     "@waku/dns-discovery": "0.0.16",
     "@waku/interfaces": "0.0.17",
+    "@waku/peer-exchange": "^0.0.15",
     "libp2p": "^0.46.8"
   },
   "devDependencies": {

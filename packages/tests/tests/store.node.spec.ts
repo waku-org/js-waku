@@ -488,8 +488,6 @@ describe("Waku Store", () => {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    const nwakuPeerId = await nwaku.getPeerId();
-
     const firstMessages: IMessage[] = [];
     await waku.store.queryWithOrderedCallback(
       [TestDecoder],
@@ -499,7 +497,6 @@ describe("Waku Store", () => {
         }
       },
       {
-        peerId: nwakuPeerId,
         timeFilter: { startTime, endTime: message1Timestamp }
       }
     );
@@ -511,7 +508,6 @@ describe("Waku Store", () => {
         bothMessages.push(msg);
       },
       {
-        peerId: nwakuPeerId,
         timeFilter: {
           startTime,
           endTime
