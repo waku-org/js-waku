@@ -28,6 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: nwaku-test-org/js-waku
+          
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
@@ -40,6 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: nwaku-test-org/js-waku
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
@@ -59,6 +64,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: nwaku-test-org/js-waku
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
@@ -72,6 +79,8 @@ jobs:
       WAKUNODE_IMAGE: ${{ github.event.inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: nwaku-test-org/js-waku
 
       - uses: actions/setup-node@v3
         with:
@@ -109,6 +118,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: nwaku-test-org/js-waku
 
       - uses: actions/setup-node@v3
         with:
@@ -133,6 +144,8 @@ jobs:
       DEBUG: "waku*"
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: nwaku-test-org/js-waku
 
       - name: Install NodeJS
         uses: actions/setup-node@v3
@@ -171,6 +184,8 @@ jobs:
       WAKUNODE_IMAGE: "statusteam/nim-waku:deploy-wakuv2-test"
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: nwaku-test-org/js-waku
 
       - uses: actions/setup-node@v3
         with:
@@ -215,6 +230,8 @@ jobs:
           token: ${{ secrets.CI_TOKEN }}
 
       - uses: actions/checkout@v3
+        with: 
+          repository: nwaku-test-org/js-waku
         if: ${{ steps.release.outputs.releases_created }}
 
       - uses: actions/setup-node@v3
