@@ -123,7 +123,7 @@ jobs:
   node_with_go_waku_master:
     runs-on: ubuntu-latest
     env:
-      WAKUNODE_IMAGE: "statusteam/go-waku:latest"
+      WAKUNODE_IMAGE: "statusteam/go-waku:filterlogging1"
       WAKU_SERVICE_NODE_PARAMS: "--min-relay-peers-to-publish=0" # Can be removed once https://github.com/status-im/nwaku/issues/1004 is done
       DEBUG: "waku*"
     steps:
