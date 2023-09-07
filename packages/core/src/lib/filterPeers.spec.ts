@@ -2,8 +2,9 @@ import { Peer } from "@libp2p/interface/peer-store";
 import type { Tag } from "@libp2p/interface/peer-store";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { Tags } from "@waku/interfaces";
-import { filterPeers } from "@waku/utils";
 import { expect } from "chai";
+
+import { filterPeers } from "./filterPeers.js";
 
 describe("filterPeers function", function () {
   it("should return all peers when numPeers is 0", async function () {
