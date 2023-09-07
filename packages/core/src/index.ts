@@ -15,15 +15,11 @@ export * as waku_filter from "./lib/filter/index.js";
 export { wakuFilter, FilterCodecs } from "./lib/filter/index.js";
 
 export * as waku_light_push from "./lib/light_push/index.js";
-export { wakuLightPush, LightPushCodec } from "./lib/light_push/index.js";
+export { wakuLightPush } from "./lib/light_push/index.js";
 
 export * as waku_store from "./lib/store/index.js";
-export {
-  PageDirection,
-  wakuStore,
-  StoreCodec,
-  createCursor
-} from "./lib/store/index.js";
+
+export { PageDirection, wakuStore, createCursor } from "./lib/store/index.js";
 
 export { waitForRemotePeer } from "./lib/wait_for_remote_peer.js";
 
