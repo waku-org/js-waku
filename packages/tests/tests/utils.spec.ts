@@ -121,12 +121,60 @@ describe.only("selectPeerForProtocol", () => {
   let peerStore: PeerStore;
   const protocols = [TestCodec];
 
+  let lowPingPeer: Peer,
+    midPingPeer: Peer,
+    highPingPeer: Peer,
+    differentCodecPeer: Peer,
+    anotherDifferentCodecPeer: Peer;
+
   beforeEach(async function () {
     this.timeout(10000);
     const waku = await createLightNode();
     await waku.start();
     await delay(3000);
     peerStore = waku.libp2p.peerStore;
+
+    const [
+      lowPingPeerId,
+      midPingPeerId,
+      highPingPeerId,
+      differentCodecPeerId,
+      anotherDifferentCodecPeerId
+    ] = await Promise.all([
+      createSecp256k1PeerId(),
+      createSecp256k1PeerId(),
+      createSecp256k1PeerId(),
+      createSecp256k1PeerId(),
+      createSecp256k1PeerId()
+    ]);
+
+    lowPingPeer = {
+      id: lowPingPeerId,
+      protocols: [TestCodec],
+      metadata: new Map().set("ping", utf8ToBytes("50"))
+    } as Peer;
+
+    midPingPeer = {
+      id: midPingPeerId,
+      protocols: [TestCodec],
+      metadata: new Map().set("ping", utf8ToBytes("100"))
+    } as Peer;
+
+    highPingPeer = {
+      id: highPingPeerId,
+      protocols: [TestCodec],
+      metadata: new Map().set("ping", utf8ToBytes("500"))
+    } as Peer;
+
+    differentCodecPeer = {
+      id: differentCodecPeerId,
+      protocols: ["DifferentCodec"]
+    } as Peer;
+
+    anotherDifferentCodecPeer = {
+      id: anotherDifferentCodecPeerId,
+      protocols: ["AnotherDifferentCodec"]
+    } as Peer;
   });
 
   afterEach(() => {
@@ -134,27 +182,7 @@ describe.only("selectPeerForProtocol", () => {
   });
 
   it("should return the peer with the lowest ping", async function () {
-    const peer1 = await createSecp256k1PeerId();
-    const peer2 = await createSecp256k1PeerId();
-    const peer3 = await createSecp256k1PeerId();
-
-    const mockPeers = [
-      {
-        id: peer1,
-        protocols: [TestCodec],
-        metadata: new Map().set("ping", utf8ToBytes("500"))
-      },
-      {
-        id: peer2,
-        protocols: [TestCodec],
-        metadata: new Map().set("ping", utf8ToBytes("50"))
-      },
-      {
-        id: peer3,
-        protocols: [TestCodec],
-        metadata: new Map().set("ping", utf8ToBytes("100"))
-      }
-    ] as Peer[];
+    const mockPeers = [highPingPeer, lowPingPeer, midPingPeer];
 
     sinon.stub(peerStore, "get").callsFake(async (peerId) => {
       return mockPeers.find((peer) => peer.id.equals(peerId))!;
@@ -168,7 +196,7 @@ describe.only("selectPeerForProtocol", () => {
 
     const result = await selectPeerForProtocol(peerStore, protocols);
 
-    expect(result.peer).to.deep.equal(mockPeers[1]);
+    expect(result.peer).to.deep.equal(lowPingPeer);
     expect(result.protocol).to.equal(TestCodec);
   });
 
@@ -186,27 +214,7 @@ describe.only("selectPeerForProtocol", () => {
   });
 
   it("should return a random peer when all peers have the same latency", async function () {
-    const peer1 = await createSecp256k1PeerId();
-    const peer2 = await createSecp256k1PeerId();
-    const peer3 = await createSecp256k1PeerId();
-
-    const mockPeers = [
-      {
-        id: peer1,
-        protocols: [TestCodec],
-        metadata: new Map().set("ping", utf8ToBytes("500"))
-      },
-      {
-        id: peer2,
-        protocols: [TestCodec],
-        metadata: new Map().set("ping", utf8ToBytes("500"))
-      },
-      {
-        id: peer3,
-        protocols: [TestCodec],
-        metadata: new Map().set("ping", utf8ToBytes("500"))
-      }
-    ] as Peer[];
+    const mockPeers = [highPingPeer, highPingPeer, highPingPeer];
 
     sinon.stub(peerStore, "get").callsFake(async (peerId) => {
       return mockPeers.find((peer) => peer.id.equals(peerId))!;
@@ -224,13 +232,7 @@ describe.only("selectPeerForProtocol", () => {
   });
 
   it("should throw an error when no peer matches the given protocols", async function () {
-    const mockPeers = [
-      { id: await createSecp256k1PeerId(), protocols: ["DifferentCodec"] },
-      {
-        id: await createSecp256k1PeerId(),
-        protocols: ["AnotherDifferentCodec"]
-      }
-    ] as Peer[];
+    const mockPeers = [differentCodecPeer, anotherDifferentCodecPeer];
 
     sinon.stub(peerStore, "forEach").callsFake(async (callback) => {
       for (const peer of mockPeers) {
