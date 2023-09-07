@@ -50,18 +50,18 @@
   "dependencies": {
     "@chainsafe/libp2p-noise": "^13.0.0",
     "@libp2p/mplex": "^9.0.2",
-    "@libp2p/websockets": "^7.0.3",
+    "@libp2p/websockets": "^7.0.5",
+    "@waku/utils": "0.0.10",
+    "@waku/relay": "0.0.5",
     "@waku/core": "0.0.22",
     "@waku/dns-discovery": "0.0.16",
     "@waku/interfaces": "0.0.17",
     "@waku/peer-exchange": "^0.0.15",
-    "@waku/relay": "0.0.5",
-    "@waku/utils": "0.0.10",
     "libp2p": "^0.46.8"
   },
   "devDependencies": {
     "@chainsafe/libp2p-gossipsub": "^10.1.0",
-    "@rollup/plugin-commonjs": "^24.0.1",
+    "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.1.0",
     "@waku/build-utils": "*",

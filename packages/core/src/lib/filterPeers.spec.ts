@@ -2,10 +2,11 @@ import { Peer } from "@libp2p/interface/peer-store";
 import type { Tag } from "@libp2p/interface/peer-store";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { Tags } from "@waku/interfaces";
-import { filterPeers } from "@waku/utils";
 import { expect } from "chai";
 
-describe("getPeers function", function () {
+import { filterPeers } from "./filterPeers.js";
+
+describe("filterPeers function", function () {
   it("should return all peers when numPeers is 0", async function () {
     const peer1 = await createSecp256k1PeerId();
     const peer2 = await createSecp256k1PeerId();
@@ -22,7 +23,7 @@ describe("getPeers function", function () {
       },
       {
         id: peer3,
-        tags: new Map<string, Tag>([[Tags.BOOTSTRAP, { value: 100 }]])
+        tags: new Map<string, Tag>([[Tags.PEER_EXCHANGE, { value: 100 }]])
       }
     ] as unknown as Peer[];
 
