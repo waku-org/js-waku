@@ -41,6 +41,9 @@ export async function selectLowestLatencyPeer(
   );
 
   const lowestLatencyResult = results.sort((a, b) => a.ping - b.ping)[0];
+  if (!lowestLatencyResult) {
+    return undefined;
+  }
 
   return lowestLatencyResult.ping !== Infinity
     ? lowestLatencyResult.peer
