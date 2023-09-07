@@ -116,9 +116,8 @@ export class ConnectionManager
       ...options
     };
 
-    this.keepAliveManager = KeepAliveManager.createInstance(
-      this.libp2p.services.ping,
-      this.libp2p.peerStore,
+    this.keepAliveManager = new KeepAliveManager(
+      libp2p.peerStore,
       keepAliveOptions,
       relay
     );
@@ -345,7 +344,7 @@ export class ConnectionManager
       void (async () => {
         const peerId = evt.detail;
 
-        this.keepAliveManager.start(peerId);
+        this.keepAliveManager.start(peerId, this.libp2p.services.ping);
 
         const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
           Tags.BOOTSTRAP
