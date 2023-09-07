@@ -117,7 +117,7 @@ describe("Util: toAsyncIterator: Filter", () => {
 
 const TestCodec = "test/1";
 
-describe.only("selectPeerForProtocol", () => {
+describe("selectPeerForProtocol", () => {
   let peerStore: PeerStore;
   const protocols = [TestCodec];
 
