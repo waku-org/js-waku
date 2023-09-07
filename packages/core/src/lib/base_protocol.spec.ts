@@ -22,7 +22,7 @@ describe("getPeers function", function () {
       },
       {
         id: peer3,
-        tags: new Map<string, Tag>([[Tags.BOOTSTRAP, { value: 100 }]])
+        tags: new Map<string, Tag>([[Tags.PEER_EXCHANGE, { value: 100 }]])
       }
     ] as unknown as Peer[];
 
