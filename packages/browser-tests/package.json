@@ -1,5 +1,5 @@
 {
-  "name": "browser",
+  "name": "browser-tests",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -20,8 +20,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "test-ct": "playwright test -c playwright-ct.config.ts"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -40,8 +39,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@playwright/experimental-ct-react": "^1.37.1"
   }
 }
