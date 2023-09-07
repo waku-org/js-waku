@@ -17,6 +17,32 @@ export function selectRandomPeer(peers: Peer[]): Peer | undefined {
 }
 
 /**
+ * Returns the peer with the lowest latency.
+ * @param getPing - A function that returns the latency for a given peer
+ * @param peers - The list of peers to choose from
+ * @returns The peer with the lowest latency, or undefined if no peer could be reached
+ */
+export async function selectLowestLatencyPeer(
+  peerPings: Map<string, number>,
+  peers: Peer[]
+): Promise<Peer | undefined> {
+  if (peers.length === 0) return;
+
+  const results = await Promise.all(
+    peers.map((peer) => {
+      const ping = peerPings.get(peer.id.toString()) ?? Infinity;
+      return { peer, ping };
+    })
+  );
+
+  const lowestLatencyResult = results.sort((a, b) => a.ping - b.ping)[0];
+
+  return lowestLatencyResult.ping !== Infinity
+    ? lowestLatencyResult.peer
+    : undefined;
+}
+
+/**
  * Returns the list of peers that supports the given protocol.
  */
 export async function getPeersForProtocol(
@@ -35,12 +61,19 @@ export async function getPeersForProtocol(
   return peers;
 }
 
+/**
+ * Returns a peer that supports the given protocol.
+ * If peerId is provided, the peer with that id is returned.
+ * Otherwise, the peer with the lowest latency is returned.
+ * If no peer is found from the above criteria, a random peer is returned.
+ */
 export async function selectPeerForProtocol(
   peerStore: PeerStore,
+  peerPings: Map<string, number>,
   protocols: string[],
   peerId?: PeerId
 ): Promise<{ peer: Peer; protocol: string }> {
-  let peer;
+  let peer: Peer | undefined;
   if (peerId) {
     peer = await peerStore.get(peerId);
     if (!peer) {
@@ -50,11 +83,13 @@ export async function selectPeerForProtocol(
     }
   } else {
     const peers = await getPeersForProtocol(peerStore, protocols);
-    peer = selectRandomPeer(peers);
+    peer = await selectLowestLatencyPeer(peerPings, peers);
     if (!peer) {
-      throw new Error(
-        `Failed to find known peer that registers protocols: ${protocols}`
-      );
+      peer = selectRandomPeer(peers);
+      if (!peer)
+        throw new Error(
+          `Failed to find known peer that registers protocols: ${protocols}`
+        );
     }
   }
 
