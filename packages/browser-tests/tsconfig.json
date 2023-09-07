@@ -1,5 +1,8 @@
 {
+  "extends": "../../tsconfig",
   "compilerOptions": {
+    "outDir": "dist/",
+    "rootDir": "src",
     "target": "es5",
     "lib": [
       "dom",
@@ -22,5 +25,6 @@
   },
   "include": [
     "src"
-  ]
+  ],
+  "exclude": ["src/**/*.spec.ts", "tests/**/*.spec.ts"]
 }
