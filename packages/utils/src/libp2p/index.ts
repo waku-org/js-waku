@@ -3,6 +3,8 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import debug from "debug";
 
+import { bytesToUtf8 } from "../bytes/index.js";
+
 const log = debug("waku:libp2p-utils");
 
 /**
@@ -23,14 +25,17 @@ export function selectRandomPeer(peers: Peer[]): Peer | undefined {
  * @returns The peer with the lowest latency, or undefined if no peer could be reached
  */
 export async function selectLowestLatencyPeer(
-  peerPings: Map<string, number>,
+  peerStore: PeerStore,
   peers: Peer[]
 ): Promise<Peer | undefined> {
   if (peers.length === 0) return;
 
   const results = await Promise.all(
-    peers.map((peer) => {
-      const ping = peerPings.get(peer.id.toString()) ?? Infinity;
+    peers.map(async (peer) => {
+      const pingBytes = (await peerStore.get(peer.id)).metadata.get("ping");
+      if (!pingBytes) return { peer, ping: Infinity };
+
+      const ping = Number(bytesToUtf8(pingBytes)) ?? Infinity;
       return { peer, ping };
     })
   );
@@ -69,7 +74,6 @@ export async function getPeersForProtocol(
  */
 export async function selectPeerForProtocol(
   peerStore: PeerStore,
-  peerPings: Map<string, number>,
   protocols: string[],
   peerId?: PeerId
 ): Promise<{ peer: Peer; protocol: string }> {
@@ -83,7 +87,7 @@ export async function selectPeerForProtocol(
     }
   } else {
     const peers = await getPeersForProtocol(peerStore, protocols);
-    peer = await selectLowestLatencyPeer(peerPings, peers);
+    peer = await selectLowestLatencyPeer(peerStore, peers);
     if (!peer) {
       peer = selectRandomPeer(peers);
       if (!peer)

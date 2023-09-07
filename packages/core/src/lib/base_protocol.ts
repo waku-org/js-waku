@@ -6,7 +6,6 @@ import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
 import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
 
 import { filterPeers } from "./filterPeers.js";
-import { KeepAliveManager } from "./keep_alive_manager.js";
 import { StreamManager } from "./stream_manager.js";
 
 /**
@@ -55,10 +54,8 @@ export class BaseProtocol implements IBaseProtocol {
   }
 
   protected async getPeer(peerId?: PeerId): Promise<Peer> {
-    const { peerPings } = KeepAliveManager.getInstance();
     const { peer } = await selectPeerForProtocol(
       this.peerStore,
-      peerPings,
       [this.multicodec],
       peerId
     );

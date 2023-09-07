@@ -118,6 +118,7 @@ export class ConnectionManager
 
     this.keepAliveManager = KeepAliveManager.createInstance(
       this.libp2p.services.ping,
+      this.libp2p.peerStore,
       keepAliveOptions,
       relay
     );

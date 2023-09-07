@@ -1,6 +1,8 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerStore } from "@libp2p/interface/peer-store";
 import type { IRelay } from "@waku/interfaces";
 import type { KeepAliveOptions } from "@waku/interfaces";
+import { utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 import type { PingService } from "libp2p/ping";
 
@@ -17,10 +19,11 @@ export class KeepAliveManager {
   private options: KeepAliveOptions;
   private relay?: IRelay;
   private libp2pPing: PingService;
-  public peerPings: Map<string, number>;
+  private peerStore: PeerStore;
 
   private constructor(
     libp2pPing: PingService,
+    peerStore: PeerStore,
     options: KeepAliveOptions,
     relay?: IRelay
   ) {
@@ -28,18 +31,20 @@ export class KeepAliveManager {
     this.relayKeepAliveTimers = new Map();
     this.options = options;
     this.relay = relay;
-    this.peerPings = new Map();
     this.libp2pPing = libp2pPing;
+    this.peerStore = peerStore;
   }
 
   public static createInstance(
     libp2pPing: PingService,
+    peerStore: PeerStore,
     options: KeepAliveOptions,
     relay?: IRelay
   ): KeepAliveManager {
     if (!KeepAliveManager.instance) {
       KeepAliveManager.instance = new KeepAliveManager(
         libp2pPing,
+        peerStore,
         options,
         relay
       );
@@ -71,7 +76,13 @@ export class KeepAliveManager {
           .ping(peerId)
           .then((ping) => {
             log(`Ping succeeded (${peerIdStr})`, ping);
-            this.peerPings.set(peerIdStr, ping);
+            this.peerStore
+              .patch(peerId, {
+                metadata: {
+                  ping: utf8ToBytes(ping.toString())
+                }
+              })
+              .catch((e) => log("Failed to update ping", e));
           })
           .catch((e) => {
             log(`Ping failed (${peerIdStr})`, e);

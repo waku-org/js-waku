@@ -117,9 +117,8 @@ describe("Util: toAsyncIterator: Filter", () => {
 
 const TestCodec = "test/1";
 
-describe("selectPeerForProtocol", () => {
+describe.only("selectPeerForProtocol", () => {
   let peerStore: PeerStore;
-  let peerPings: Map<string, number>;
   const protocols = [TestCodec];
 
   beforeEach(async function () {
@@ -128,7 +127,6 @@ describe("selectPeerForProtocol", () => {
     await waku.start();
     await delay(3000);
     peerStore = waku.libp2p.peerStore;
-    peerPings = new Map();
   });
 
   afterEach(() => {
@@ -141,10 +139,26 @@ describe("selectPeerForProtocol", () => {
     const peer3 = await createSecp256k1PeerId();
 
     const mockPeers = [
-      { id: peer1, protocols: [TestCodec] },
-      { id: peer2, protocols: [TestCodec] },
-      { id: peer3, protocols: [TestCodec] }
+      {
+        id: peer1,
+        protocols: [TestCodec],
+        metadata: new Map().set("ping", utf8ToBytes("500"))
+      },
+      {
+        id: peer2,
+        protocols: [TestCodec],
+        metadata: new Map().set("ping", utf8ToBytes("50"))
+      },
+      {
+        id: peer3,
+        protocols: [TestCodec],
+        metadata: new Map().set("ping", utf8ToBytes("100"))
+      }
     ] as Peer[];
+
+    sinon.stub(peerStore, "get").callsFake(async (peerId) => {
+      return mockPeers.find((peer) => peer.id.equals(peerId))!;
+    });
 
     sinon.stub(peerStore, "forEach").callsFake(async (callback) => {
       for (const peer of mockPeers) {
@@ -152,13 +166,9 @@ describe("selectPeerForProtocol", () => {
       }
     });
 
-    peerPings.set(peer1.toString(), 500);
-    peerPings.set(peer2.toString(), 1000);
-    peerPings.set(peer3.toString(), 100);
+    const result = await selectPeerForProtocol(peerStore, protocols);
 
-    const result = await selectPeerForProtocol(peerStore, peerPings, protocols);
-
-    expect(result.peer).to.deep.equal(mockPeers[2]);
+    expect(result.peer).to.deep.equal(mockPeers[1]);
     expect(result.protocol).to.equal(TestCodec);
   });
 
@@ -169,7 +179,6 @@ describe("selectPeerForProtocol", () => {
 
     const result = await selectPeerForProtocol(
       peerStore,
-      peerPings,
       protocols,
       targetPeer
     );
@@ -182,10 +191,26 @@ describe("selectPeerForProtocol", () => {
     const peer3 = await createSecp256k1PeerId();
 
     const mockPeers = [
-      { id: peer1, protocols: [TestCodec] },
-      { id: peer2, protocols: [TestCodec] },
-      { id: peer3, protocols: [TestCodec] }
+      {
+        id: peer1,
+        protocols: [TestCodec],
+        metadata: new Map().set("ping", utf8ToBytes("500"))
+      },
+      {
+        id: peer2,
+        protocols: [TestCodec],
+        metadata: new Map().set("ping", utf8ToBytes("500"))
+      },
+      {
+        id: peer3,
+        protocols: [TestCodec],
+        metadata: new Map().set("ping", utf8ToBytes("500"))
+      }
     ] as Peer[];
+
+    sinon.stub(peerStore, "get").callsFake(async (peerId) => {
+      return mockPeers.find((peer) => peer.id.equals(peerId))!;
+    });
 
     sinon.stub(peerStore, "forEach").callsFake(async (callback) => {
       for (const peer of mockPeers) {
@@ -193,11 +218,7 @@ describe("selectPeerForProtocol", () => {
       }
     });
 
-    peerPings.set(peer1.toString(), 500);
-    peerPings.set(peer2.toString(), 500);
-    peerPings.set(peer3.toString(), 500);
-
-    const result = await selectPeerForProtocol(peerStore, peerPings, protocols);
+    const result = await selectPeerForProtocol(peerStore, protocols);
 
     expect(mockPeers).to.deep.include(result.peer);
   });
@@ -218,7 +239,7 @@ describe("selectPeerForProtocol", () => {
     });
 
     await expect(
-      selectPeerForProtocol(peerStore, peerPings, protocols)
+      selectPeerForProtocol(peerStore, protocols)
     ).to.be.rejectedWith(
       `Failed to find known peer that registers protocols: ${protocols}`
     );
@@ -230,7 +251,7 @@ describe("selectPeerForProtocol", () => {
     sinon.stub(peerStore, "get").withArgs(targetPeer).resolves(mockPeer);
 
     await expect(
-      selectPeerForProtocol(peerStore, peerPings, protocols, targetPeer)
+      selectPeerForProtocol(peerStore, protocols, targetPeer)
     ).to.be.rejectedWith(
       `Peer does not register required protocols (${targetPeer.toString()}): ${protocols}`
     );
