@@ -29,6 +29,7 @@ env:
 jobs:
   check:
     runs-on: ubuntu-latest
+    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     steps:
       - uses: actions/checkout@v3
         with: 
@@ -44,6 +45,7 @@ jobs:
 
   proto:
     runs-on: ubuntu-latest
+    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     steps:
       - uses: actions/checkout@v3
         with: 
