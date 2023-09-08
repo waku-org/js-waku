@@ -2,47 +2,17 @@
   "name": "browser-tests",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.48",
-    "@types/react": "^18.2.21",
-    "@types/react-dom": "^18.2.7",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
-  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "run-s test:*",
-    "test:build": "npm run build",
-    "test:serve": "serve -p 8080 --no-port-switching ./build"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "start": "run-s start:*",
+    "start:setup": "node ./src/setup-example.js",
+    "start:build": "node ./src/build-example.js",
+    "start:serve": "npx serve -p 8080 --no-port-switching ./example",
+    "test": "npx playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.37.1",
+    "@waku/create-app": "^0.1.1-b688b42",
+    "dotenv": "^16.3.1",
     "serve": "^14.2.1"
   }
 }

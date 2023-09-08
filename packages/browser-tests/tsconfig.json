@@ -3,28 +3,8 @@
   "compilerOptions": {
     "outDir": "dist/",
     "rootDir": "src",
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx"
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
   },
-  "include": [
-    "src"
-  ],
-  "exclude": ["src/**/*.spec.ts", "tests/**/*.spec.ts"]
+  "include": ["src", "src/run-tests.js"],
+  "exclude": ["src/**/*.spec.ts", "src/test_utils"]
 }

@@ -49,6 +49,7 @@
           "**/*.spec.ts",
           "**/tests/**",
           "**/rollup.config.js",
+          "**/playwright.config.ts",
           "**/.eslintrc.cjs",
           "**/karma.conf.cjs"
         ]
