@@ -13,6 +13,14 @@ on:
         description: "Docker hub image name taken from https://hub.docker.com/r/statusteam/nim-waku/tags. Format: statusteam/nim-waku:v0.19.0"
         required: false
         type: string
+  workflow_call:
+    inputs:
+      nim_wakunode_image:
+        required: false
+        type: string
+      caller:
+        required: false
+        type: string
 
 env:
   NODE_JS: "18"
@@ -21,8 +29,12 @@ env:
 jobs:
   check:
     runs-on: ubuntu-latest
+    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
+          
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
@@ -33,8 +45,11 @@ jobs:
 
   proto:
     runs-on: ubuntu-latest
+    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
@@ -52,8 +67,11 @@ jobs:
 
   browser:
     runs-on: ubuntu-latest
+    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_JS }}
@@ -64,9 +82,11 @@ jobs:
   node:
     runs-on: ubuntu-latest
     env:
-      WAKUNODE_IMAGE: ${{ github.event.inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
+      WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
 
       - uses: actions/setup-node@v3
         with:
@@ -100,10 +120,12 @@ jobs:
   node_optional:
     runs-on: ubuntu-latest
     env:
-      WAKUNODE_IMAGE: ${{ github.event.inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
+      WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
 
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
 
       - uses: actions/setup-node@v3
         with:
@@ -122,12 +144,15 @@ jobs:
 
   node_with_go_waku_master:
     runs-on: ubuntu-latest
+    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     env:
       WAKUNODE_IMAGE: "statusteam/go-waku:latest"
       WAKU_SERVICE_NODE_PARAMS: "--min-relay-peers-to-publish=0" # Can be removed once https://github.com/status-im/nwaku/issues/1004 is done
       DEBUG: "waku*"
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
 
       - name: Install NodeJS
         uses: actions/setup-node@v3
@@ -161,11 +186,14 @@ jobs:
 
   node_with_nwaku_master:
     runs-on: ubuntu-latest
+    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     env:
       DEBUG: "waku*"
       WAKUNODE_IMAGE: "statusteam/nim-waku:deploy-wakuv2-test"
     steps:
       - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
 
       - uses: actions/setup-node@v3
         with:
@@ -199,7 +227,10 @@ jobs:
   maybe-release:
     name: release
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: >
+      github.event_name == 'push' && 
+      github.ref == 'refs/heads/master' &&
+      (github.event.inputs.caller == null || github.event.inputs.caller != 'nwaku')
     needs: [check, proto, browser, node]
     steps:
       - uses: google-github-actions/release-please-action@v3
@@ -210,6 +241,8 @@ jobs:
           token: ${{ secrets.CI_TOKEN }}
 
       - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
         if: ${{ steps.release.outputs.releases_created }}
 
       - uses: actions/setup-node@v3
