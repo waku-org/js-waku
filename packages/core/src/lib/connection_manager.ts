@@ -340,7 +340,11 @@ export class ConnectionManager
       void (async () => {
         const peerId = evt.detail;
 
-        this.keepAliveManager.start(peerId, this.libp2p.services.ping);
+        this.keepAliveManager.start(
+          peerId,
+          this.libp2p.services.ping,
+          this.libp2p.peerStore
+        );
 
         const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
           Tags.BOOTSTRAP
