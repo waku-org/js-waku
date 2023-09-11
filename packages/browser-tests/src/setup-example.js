@@ -3,7 +3,7 @@ import "dotenv/config";
 import { execSync } from "child_process";
 import path from "path";
 
-import { __dirname, readJSON } from "./utils";
+import { __dirname, readJSON } from "./utils.js";
 
 const ROOT_PATH = path.resolve(__dirname, "../../../");
 const JS_WAKU_PACKAGES = readWorkspaces();

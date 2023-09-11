@@ -3,7 +3,7 @@ import "dotenv/config";
 import { execSync } from "child_process";
 import path from "path";
 
-import { __dirname } from "./utils";
+import { __dirname } from "./utils.js";
 
 const EXAMPLE_NAME = process.env.EXAMPLE_NAME;
 const EXAMPLE_PATH = path.resolve(__dirname, "..", EXAMPLE_NAME);
