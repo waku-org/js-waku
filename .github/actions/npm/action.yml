@@ -5,12 +5,6 @@ runs:
   steps:
     - run: npm i
       shell: bash
-      if: contains('
-        refs/heads/master
-        refs/heads/release-please--branches--master
-        ', github.ref)
+      if: true
     - uses: bahmutov/npm-install@v1
-      if: contains('
-        refs/heads/master
-        refs/heads/release-please--branches--master
-        ', github.ref) == false
+      if: false
