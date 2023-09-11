@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-require("dotenv").config();
-const { execSync } = require("child_process");
-const path = require("path");
+import "dotenv/config";
+import { execSync } from "child_process";
+import path from "path";
+
+import { __dirname } from "./utils";
 
 const EXAMPLE_NAME = process.env.EXAMPLE_NAME;
 const EXAMPLE_PATH = path.resolve(__dirname, "..", EXAMPLE_NAME);

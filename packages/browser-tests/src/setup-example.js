@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-require("dotenv").config();
-const { execSync } = require("child_process");
-const path = require("path");
+import "dotenv/config";
+import { execSync } from "child_process";
+import path from "path";
+
+import { __dirname, readJSON } from "./utils";
 
 const ROOT_PATH = path.resolve(__dirname, "../../../");
 const JS_WAKU_PACKAGES = readWorkspaces();
@@ -42,7 +44,7 @@ function bootstrapExample() {
 }
 
 function linkPackages() {
-  const examplePackage = require(`${EXAMPLE_PATH}/package.json`);
+  const examplePackage = readJSON(`${EXAMPLE_PATH}/package.json`);
 
   // remove duplicates if any
   const dependencies = filterWakuDependencies({
@@ -77,7 +79,7 @@ function linkDependency(dependency) {
 
 function readWorkspaces() {
   const rootPath = path.resolve(ROOT_PATH, "package.json");
-  const workspaces = require(rootPath).workspaces;
+  const workspaces = readJSON(rootPath).workspaces;
   return workspaces.map(toPackageName);
 }
 
