@@ -3,8 +3,22 @@ name: npm i
 runs:
   using: "composite"
   steps:
+    - run: echo "$IF_RUN $BRANCH"
+      shell: bash
+      env:
+        IF_RUN: ${{ contains('
+          refs/heads/master
+          refs/heads/release-please--branches--master
+          ', github.ref) }}
+        BRANCH: ${{ github.ref }}
     - run: npm i
       shell: bash
-      if: true
+      if: ${{ contains('
+        refs/heads/master
+        refs/heads/release-please--branches--master
+        ', github.ref) }}
     - uses: bahmutov/npm-install@v1
-      if: false
+      if: ${{ contains('
+        refs/heads/master
+        refs/heads/release-please--branches--master
+        ', github.ref) == false }}
