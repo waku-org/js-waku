@@ -46,6 +46,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.13 to 0.0.14
 
+## [0.0.17](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.16...dns-discovery-v0.0.17) (2023-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400))
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316))
+
+### Features
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316)) ([50c2c25](https://github.com/waku-org/js-waku/commit/50c2c2540f3c5ff78d93f3fea646da0eee246e17))
+* Allow passing of multiple ENR URLs to DNS Discovery & dial multiple peers in parallel ([#1379](https://github.com/waku-org/js-waku/issues/1379)) ([f32d7d9](https://github.com/waku-org/js-waku/commit/f32d7d9fe0b930b4fa9c46b8644e6d21be45d5c1))
+* **dns-discovery:** Set default for `NodeRequirements` ([#1466](https://github.com/waku-org/js-waku/issues/1466)) ([aab9c08](https://github.com/waku-org/js-waku/commit/aab9c08caefb9f72460261ec0c38df88ae0f02ce))
+* Upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400)) ([420e6c6](https://github.com/waku-org/js-waku/commit/420e6c698dd8f44d40d34e47d876da5d2e1ce85e))
+
+
+### Bug Fixes
+
+* **dns-discovery:** Use DOH list from dns-query ([1dd3210](https://github.com/waku-org/js-waku/commit/1dd32101baf2750527369f7f25981882aa1f9527))
+* Improve connection manager error handling + edge cases ([#1450](https://github.com/waku-org/js-waku/issues/1450)) ([785df52](https://github.com/waku-org/js-waku/commit/785df528fe6e5010a61391994e222028dbc4e4c5))
+* Remove typesVersions ([#1359](https://github.com/waku-org/js-waku/issues/1359)) ([0ad1954](https://github.com/waku-org/js-waku/commit/0ad19540d527309e0174afa7e9fff2924570d361))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from 0.0.16 to 0.0.17
+    * @waku/utils bumped from 0.0.10 to 0.0.11
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.17 to 0.0.18
+
 ## [0.0.16](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.15...dns-discovery-v0.0.16) (2023-08-02)
 
 

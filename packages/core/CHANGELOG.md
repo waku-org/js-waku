@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.23](https://github.com/waku-org/js-waku/compare/core-v0.0.22...core-v0.0.23) (2023-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* set peer-exchange with default bootstrap ([#1469](https://github.com/waku-org/js-waku/issues/1469))
+* refactor store protocol for readability ([#1456](https://github.com/waku-org/js-waku/issues/1456))
+
+### Features
+
+* Pre-emptive stream creation for protocols ([#1516](https://github.com/waku-org/js-waku/issues/1516)) ([b4f8216](https://github.com/waku-org/js-waku/commit/b4f821676120aa06f4772eed62fb105d5afae7c6))
+* Set peer-exchange with default bootstrap ([#1469](https://github.com/waku-org/js-waku/issues/1469)) ([81a52a8](https://github.com/waku-org/js-waku/commit/81a52a8097ba948783c9d798ba362af0f27e1c10))
+* Use the lowest latency peer for protocols ([#1540](https://github.com/waku-org/js-waku/issues/1540)) ([6f09fbf](https://github.com/waku-org/js-waku/commit/6f09fbf4ed181cb2fe5a15643cf2bebdc889ec64))
+
+
+### Miscellaneous Chores
+
+* Refactor store protocol for readability ([#1456](https://github.com/waku-org/js-waku/issues/1456)) ([2389977](https://github.com/waku-org/js-waku/commit/2389977a9840281dff4008c015fe76451c0f0df5))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.17 to 0.0.18
+    * @waku/utils bumped from 0.0.10 to 0.0.11
+
 ## [0.0.22](https://github.com/waku-org/js-waku/compare/core-v0.0.21...core-v0.0.22) (2023-08-02)
 
 
