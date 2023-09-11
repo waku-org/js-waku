@@ -21,9 +21,6 @@ jobs:
 
     - uses: ./.github/actions/npm
 
-    - name: blah
-      run: npm install -D @playwright/test --workspace=@waku/browser-tests
-
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
 
