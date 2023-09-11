@@ -2,9 +2,9 @@ name: Playwright tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ master ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ master ]
 
 env:
   NODE_JS: "18"
