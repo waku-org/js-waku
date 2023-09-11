@@ -21,12 +21,14 @@ jobs:
 
     - uses: ./.github/actions/npm
 
+    - name: blah
+      run: npm install -D @playwright/test --workspace=@waku/browser-tests
+
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
-      working-directory: ./packages/browser-tests
-      run: npm run test
+      run: npm run test --workspace=@waku/browser-tests
 
     - uses: actions/upload-artifact@v3
       if: always()
