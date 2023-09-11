@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.18](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.17...interfaces-v0.0.18) (2023-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* set peer-exchange with default bootstrap ([#1469](https://github.com/waku-org/js-waku/issues/1469))
+* refactor store protocol for readability ([#1456](https://github.com/waku-org/js-waku/issues/1456))
+* remove filter v1 ([#1433](https://github.com/waku-org/js-waku/issues/1433))
+* upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400))
+* filter v2 ([#1332](https://github.com/waku-org/js-waku/issues/1332))
+* add and implement IReceiver ([#1219](https://github.com/waku-org/js-waku/issues/1219))
+
+### Features
+
+* Add 1MB restriction to LightPush and Relay ([#1351](https://github.com/waku-org/js-waku/issues/1351)) ([72f97d4](https://github.com/waku-org/js-waku/commit/72f97d4545512f92936b1a9b50fa0b53f8603f9d))
+* Add and implement IReceiver ([#1219](https://github.com/waku-org/js-waku/issues/1219)) ([e11e5b4](https://github.com/waku-org/js-waku/commit/e11e5b4870aede7813b3ee4b60f5e625f6eac5a2))
+* Allow passing of multiple ENR URLs to DNS Discovery & dial multiple peers in parallel ([#1379](https://github.com/waku-org/js-waku/issues/1379)) ([f32d7d9](https://github.com/waku-org/js-waku/commit/f32d7d9fe0b930b4fa9c46b8644e6d21be45d5c1))
+* ConnectionManager extends EventEmitter & exposed on the Waku interface (& minor improvements) ([#1447](https://github.com/waku-org/js-waku/issues/1447)) ([0b8936f](https://github.com/waku-org/js-waku/commit/0b8936f1f1ad33f6cb90eb88d027a19e787ae7a2))
+* **dns-discovery:** Set default for `NodeRequirements` ([#1466](https://github.com/waku-org/js-waku/issues/1466)) ([aab9c08](https://github.com/waku-org/js-waku/commit/aab9c08caefb9f72460261ec0c38df88ae0f02ce))
+* Enable event emission for peer discovery/connection in ConnectionManager ([#1438](https://github.com/waku-org/js-waku/issues/1438)) ([6ce898d](https://github.com/waku-org/js-waku/commit/6ce898d77132f30b5d8f33b48c7f6276992a486e))
+* Expose `meta` on `IDecodedMessage` ([5724bb2](https://github.com/waku-org/js-waku/commit/5724bb2b21367e4e397acbc5530b3a2bf315194e))
+* Filter v2 ([#1332](https://github.com/waku-org/js-waku/issues/1332)) ([8d0e647](https://github.com/waku-org/js-waku/commit/8d0e64796695fbafad0a033552eb4412bdff3d78))
+* Set peer-exchange with default bootstrap ([#1469](https://github.com/waku-org/js-waku/issues/1469)) ([81a52a8](https://github.com/waku-org/js-waku/commit/81a52a8097ba948783c9d798ba362af0f27e1c10))
+* ToSubscriptionIterator impl for IReceiver ([#1307](https://github.com/waku-org/js-waku/issues/1307)) ([7daa9d0](https://github.com/waku-org/js-waku/commit/7daa9d05bf44b33296b56df214f5d5901887a129))
+* Upgrade to libp2p@0.45 ([#1400](https://github.com/waku-org/js-waku/issues/1400)) ([420e6c6](https://github.com/waku-org/js-waku/commit/420e6c698dd8f44d40d34e47d876da5d2e1ce85e))
+
+
+### Miscellaneous Chores
+
+* Refactor store protocol for readability ([#1456](https://github.com/waku-org/js-waku/issues/1456)) ([2389977](https://github.com/waku-org/js-waku/commit/2389977a9840281dff4008c015fe76451c0f0df5))
+* Remove filter v1 ([#1433](https://github.com/waku-org/js-waku/issues/1433)) ([d483644](https://github.com/waku-org/js-waku/commit/d483644a4bb4350df380719b9bcfbdd0b1439482))
+
 ## [0.0.17](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.16...interfaces-v0.0.17) (2023-08-02)
 
 
