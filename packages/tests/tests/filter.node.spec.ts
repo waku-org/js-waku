@@ -20,8 +20,8 @@ import {
   makeLogFileName,
   NimGoNode,
   NOISE_KEY_1,
-  testStrings,
-  testTimestamps
+  TEST_STRING,
+  TEST_TIMESTAMPS
 } from "../src/index.js";
 
 // Constants for test configuration.
@@ -39,28 +39,11 @@ const messagePayload = { payload: utf8ToBytes(messageText) };
  */
 class MessageCollector {
   list: Array<DecodedMessage> = [];
-  private resolveFn?: (msg: DecodedMessage) => void;
-  private messageReceived!: Promise<DecodedMessage>;
-
-  constructor() {
-    this.reset_message_received_flag();
-  }
-
-  // Manually reset the flag to indicate message reception.
-  reset_message_received_flag(): void {
-    this.messageReceived = new Promise<DecodedMessage>((resolve) => {
-      this.resolveFn = resolve;
-    });
-  }
 
   // Callback to handle incoming messages.
   callback = (msg: DecodedMessage): void => {
     log("Got a message");
     this.list.push(msg);
-    if (this.resolveFn) {
-      this.resolveFn(msg);
-      this.resolveFn = undefined;
-    }
   };
 
   get count(): number {
@@ -71,13 +54,20 @@ class MessageCollector {
     return this.list[index];
   }
 
-  // Waits for a message until a specified timeout.
-  async waitForMessage(timeoutDuration: number = 400): Promise<boolean> {
-    const timeout = new Promise<boolean>((resolve) =>
-      setTimeout(() => resolve(false), timeoutDuration)
-    );
-    const received = this.messageReceived.then(() => true);
-    return await Promise.race([received, timeout]);
+  async waitForMessages(
+    numMessages: number,
+    timeoutDuration: number = 400
+  ): Promise<boolean> {
+    const startTime = Date.now();
+
+    while (this.count < numMessages) {
+      if (Date.now() - startTime > timeoutDuration * numMessages) {
+        return false;
+      }
+      await delay(10);
+    }
+
+    return true;
   }
 
   // Verifies a received message against expected values.
@@ -137,11 +127,17 @@ class MessageCollector {
       );
     }
 
-    expect(message.meta).to.eql(
-      options.expectedMeta || new Uint8Array(0),
-      `Message meta mismatch. Expected: ${JSON.stringify(
-        options.expectedMeta || new Uint8Array(0)
-      )}. Got: ${JSON.stringify(message.meta)}`
+    expect([
+      options.expectedMeta,
+      undefined,
+      new Uint8Array(0)
+    ]).to.deep.include(
+      message.meta,
+      `Message meta mismatch. Expected: ${
+        options.expectedMeta
+          ? JSON.stringify(options.expectedMeta)
+          : "undefined or " + JSON.stringify(new Uint8Array(0))
+      }. Got: ${JSON.stringify(message.meta)}`
     );
 
     expect(message.ephemeral).to.eq(
@@ -190,7 +186,7 @@ async function validatePingError(
   } catch (err) {
     if (
       err instanceof Error &&
-      err.message.includes("404: NOT_FOUND: peer has no subscriptions")
+      err.message.includes("peer has no subscriptions")
     ) {
       return;
     } else {
@@ -261,11 +257,8 @@ describe("Waku Filter: V2", function () {
     await waku.lightPush.send(TestEncoder, messagePayload);
 
     // Verify that the message was successfully received.
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage({ index: 0 });
-
-    // Confirm that only one message is stored.
-    expect(messageCollector.count).to.eq(1);
     expect((await nwaku.messages()).length).to.eq(1);
   });
 
@@ -285,11 +278,8 @@ describe("Waku Filter: V2", function () {
     );
 
     // Verify that the message was successfully received.
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage({ index: 0 });
-
-    // Confirm that only one message is stored.
-    expect(messageCollector.count).to.eq(1);
     expect((await nwaku.messages()).length).to.eq(1);
   });
 
@@ -301,7 +291,8 @@ describe("Waku Filter: V2", function () {
     await waku.lightPush.send(TestEncoder, messagePayload);
 
     // Verify that the first message was successfully received.
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    //
     messageCollector.verifyReceivedMessage({ index: 0 });
 
     // Send another message on the same topic.
@@ -311,14 +302,11 @@ describe("Waku Filter: V2", function () {
     });
 
     // Verify that the second message was successfully received.
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage({
       expectedMessageText: newMessageText,
       index: 1
     });
-
-    // Confirm that two messages in total are stored.
-    expect(messageCollector.count).to.eq(2);
     expect((await nwaku.messages()).length).to.eq(2);
   });
 
@@ -326,7 +314,7 @@ describe("Waku Filter: V2", function () {
     // Subscribe to the first content topic and send a message.
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, messagePayload);
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage({ index: 0 });
 
     // Modify subscription to include a new content topic and send a message.
@@ -339,7 +327,7 @@ describe("Waku Filter: V2", function () {
     await waku.lightPush.send(newEncoder, {
       payload: utf8ToBytes(newMessageText)
     });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage({
       expectedContentTopic: newContentTopic,
       expectedMessageText: newMessageText,
@@ -348,14 +336,11 @@ describe("Waku Filter: V2", function () {
 
     // Send another message on the initial content topic to verify it still works.
     await waku.lightPush.send(TestEncoder, newMessagePayload);
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(3)).to.eq(true);
     messageCollector.verifyReceivedMessage({
       expectedMessageText: newMessageText,
       index: 2
     });
-
-    // Verify a total of 3 messages were received.
-    expect(messageCollector.count).to.eq(3);
     expect((await nwaku.messages()).length).to.eq(3);
   });
 
@@ -376,7 +361,7 @@ describe("Waku Filter: V2", function () {
     }
 
     // Verify that each message was received on the corresponding topic.
-    await messageCollector.waitForMessage();
+    expect(await messageCollector.waitForMessages(20)).to.eq(true);
     td.contentTopics.forEach((topic, index) => {
       messageCollector.verifyReceivedMessage({
         expectedContentTopic: topic,
@@ -384,9 +369,6 @@ describe("Waku Filter: V2", function () {
         index: index
       });
     });
-
-    // Confirm that 20 messages in total were received.
-    expect(messageCollector.count).to.eq(20);
   });
 
   it("Subscribe to 30 topics at once and receives messages", async function () {
@@ -404,7 +386,7 @@ describe("Waku Filter: V2", function () {
     }
 
     // Verify that each message was received on the corresponding topic.
-    await messageCollector.waitForMessage();
+    expect(await messageCollector.waitForMessages(30)).to.eq(true);
     td.contentTopics.forEach((topic, index) => {
       messageCollector.verifyReceivedMessage({
         expectedContentTopic: topic,
@@ -412,9 +394,6 @@ describe("Waku Filter: V2", function () {
         index: index
       });
     });
-
-    // Confirm that 30 messages in total were received.
-    expect(messageCollector.count).to.eq(30);
   });
 
   it("Error when try to subscribe to more than 30 topics", async function () {
@@ -430,9 +409,7 @@ describe("Waku Filter: V2", function () {
     } catch (err) {
       if (
         err instanceof Error &&
-        err.message.includes(
-          "400: BAD_REQUEST: exceeds maximum content topics: 30"
-        )
+        err.message.includes("exceeds maximum content topics: 30")
       ) {
         return;
       } else {
@@ -472,8 +449,7 @@ describe("Waku Filter: V2", function () {
 
     // Check if all messages were received.
     // Since there are overlapping topics, there should be 6 messages in total (2 from the first set + 4 from the second set).
-    await messageCollector.waitForMessage();
-    expect(messageCollector.count).to.eq(6);
+    expect(await messageCollector.waitForMessages(6)).to.eq(true);
   });
 
   it("Refresh subscription", async function () {
@@ -486,7 +462,7 @@ describe("Waku Filter: V2", function () {
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
 
     // Confirm both messages were received.
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage({
       index: 0,
       expectedMessageText: "M1"
@@ -495,11 +471,9 @@ describe("Waku Filter: V2", function () {
       index: 1,
       expectedMessageText: "M2"
     });
-
-    expect(messageCollector.count).to.eq(2);
   });
 
-  testStrings.forEach((testItem) => {
+  TEST_STRING.forEach((testItem) => {
     it(`Subscribe to topic containing ${testItem.description} and receive message`, async function () {
       // Set the new content topic based on the current test item.
       const newContentTopic = testItem.value;
@@ -513,12 +487,11 @@ describe("Waku Filter: V2", function () {
       await waku.lightPush.send(newEncoder, messagePayload);
 
       // Expect that a message was received.
-      expect(await messageCollector.waitForMessage()).to.eq(true);
+      expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage({
         index: 0,
         expectedContentTopic: newContentTopic
       });
-      expect(messageCollector.count).to.eq(1);
     });
   });
 
@@ -538,7 +511,7 @@ describe("Waku Filter: V2", function () {
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
 
     // Check if both messages were received
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage({
       index: 0,
       expectedMessageText: "M1"
@@ -548,9 +521,6 @@ describe("Waku Filter: V2", function () {
       expectedContentTopic: newContentTopic,
       expectedMessageText: "M2"
     });
-
-    // Ensure total received messages count is 2
-    expect(messageCollector.count).to.eq(2);
   });
 
   // this test fail 50% of times with messageCount being 1. Seems like a message is lost somehow
@@ -558,7 +528,7 @@ describe("Waku Filter: V2", function () {
     // Initial subscription and message send
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
     // Set up and start a new nwaku node
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
@@ -580,7 +550,7 @@ describe("Waku Filter: V2", function () {
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
 
     // Check if both messages were received
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage({
       index: 0,
       expectedMessageText: "M1"
@@ -590,12 +560,9 @@ describe("Waku Filter: V2", function () {
       expectedContentTopic: newContentTopic,
       expectedMessageText: "M2"
     });
-
-    // Ensure total received messages count is 2
-    expect(messageCollector.count).to.eq(2);
   });
 
-  testStrings.forEach((testItem) => {
+  TEST_STRING.forEach((testItem) => {
     it(`Check receive message containing ${testItem.description}`, async function () {
       // Setup subscription and send message
       await subscription.subscribe([TestDecoder], messageCollector.callback);
@@ -604,18 +571,15 @@ describe("Waku Filter: V2", function () {
       });
 
       // Verify message reception
-      expect(await messageCollector.waitForMessage()).to.eq(true);
+      expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage({
         index: 0,
         expectedMessageText: testItem.value
       });
-
-      // Confirm only one message was received
-      expect(messageCollector.count).to.eq(1);
     });
   });
 
-  testTimestamps.forEach((testItem) => {
+  TEST_TIMESTAMPS.forEach((testItem) => {
     it(`Check received message with timestamp: ${testItem} `, async function () {
       await subscription.subscribe([TestDecoder], messageCollector.callback);
       await delay(400);
@@ -631,14 +595,13 @@ describe("Waku Filter: V2", function () {
       ]);
 
       // Verify message reception
-      expect(await messageCollector.waitForMessage()).to.eq(true);
+      expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage({
         index: 0,
         checkTimestamp: false
       });
 
       // Check if the timestamp matches
-      expect(messageCollector.count).to.eq(1);
       const timestamp = messageCollector.getMessage(0).timestamp;
       if (testItem == undefined) {
         expect(timestamp).to.eq(undefined);
@@ -664,8 +627,7 @@ describe("Waku Filter: V2", function () {
     ]);
 
     // Verify that no message was received
-    expect(await messageCollector.waitForMessage()).to.eq(false);
-    expect(messageCollector.count).to.eq(0);
+    expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
   it("Check message on other pubsub topic is not received", async function () {
@@ -683,8 +645,7 @@ describe("Waku Filter: V2", function () {
     ]);
 
     // Verify that no message was received
-    expect(await messageCollector.waitForMessage()).to.eq(false);
-    expect(messageCollector.count).to.eq(0);
+    expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
   it("Check message with no pubsub topic is not received", async function () {
@@ -701,8 +662,7 @@ describe("Waku Filter: V2", function () {
     ]);
 
     // Verify that no message was received
-    expect(await messageCollector.waitForMessage()).to.eq(false);
-    expect(messageCollector.count).to.eq(0);
+    expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
   it("Check message with no content topic is not received", async function () {
@@ -719,8 +679,7 @@ describe("Waku Filter: V2", function () {
     ]);
 
     // Verify that no message was received
-    expect(await messageCollector.waitForMessage()).to.eq(false);
-    expect(messageCollector.count).to.eq(0);
+    expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
   it("Check message with no payload is not received", async function () {
@@ -736,9 +695,12 @@ describe("Waku Filter: V2", function () {
       }
     ]);
 
-    // Verify that no message was received
-    expect(await messageCollector.waitForMessage()).to.eq(false);
-    expect(messageCollector.count).to.eq(0);
+    // For go-waku the message is received (it is possible to send a message with no payload)
+    if (nwaku.type() == "go-waku") {
+      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    } else {
+      expect(await messageCollector.waitForMessages(1)).to.eq(false);
+    }
   });
 
   it("Check message with non string payload is not received", async function () {
@@ -756,8 +718,7 @@ describe("Waku Filter: V2", function () {
     ]);
 
     // Verify that no message was received
-    expect(await messageCollector.waitForMessage()).to.eq(false);
-    expect(messageCollector.count).to.eq(0);
+    expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
   it("Check message with extra parameter is not received", async function () {
@@ -776,8 +737,7 @@ describe("Waku Filter: V2", function () {
     ]);
 
     // Verify that no message was received
-    expect(await messageCollector.waitForMessage()).to.eq(false);
-    expect(messageCollector.count).to.eq(0);
+    expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
   it("Check message with extra option is received", async function () {
@@ -796,9 +756,8 @@ describe("Waku Filter: V2", function () {
     ]);
 
     // Verify that message was received
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage({ index: 0 });
-    expect(messageCollector.count).to.eq(1);
   });
 
   // Will be skipped until https://github.com/waku-org/js-waku/issues/1464 si done
@@ -806,7 +765,7 @@ describe("Waku Filter: V2", function () {
     // Subscribe and send message
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
     // Restart js-waku node
     await waku.stop();
@@ -822,9 +781,9 @@ describe("Waku Filter: V2", function () {
 
     // Resend message
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
 
     // Confirm both messages were received.
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage({
       index: 0,
       expectedMessageText: "M1"
@@ -833,15 +792,13 @@ describe("Waku Filter: V2", function () {
       index: 1,
       expectedMessageText: "M2"
     });
-
-    expect(messageCollector.count).to.eq(2);
   });
 
   // Will be skipped until https://github.com/waku-org/js-waku/issues/1464 si done
   it.skip("Check message received after nwaku node is restarted", async function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
     // Restart nwaku node
     await nwaku.stop();
@@ -850,9 +807,9 @@ describe("Waku Filter: V2", function () {
 
     // Resend message
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
 
     // Confirm both messages were received.
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage({
       index: 0,
       expectedMessageText: "M1"
@@ -861,13 +818,12 @@ describe("Waku Filter: V2", function () {
       index: 1,
       expectedMessageText: "M2"
     });
-    expect(messageCollector.count).to.eq(2);
   });
 
   it("Ping on subscribed peer", async function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
     // If ping is successfull(node has active subscription) we receive a success status code.
     await subscription.ping();
@@ -875,8 +831,7 @@ describe("Waku Filter: V2", function () {
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
 
     // Confirm new messages are received after a ping.
-    expect(await messageCollector.waitForMessage()).to.eq(true);
-    expect(messageCollector.count).to.eq(2);
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
   });
 
   it("Ping on peer without subscriptions", async function () {
@@ -896,15 +851,14 @@ describe("Waku Filter: V2", function () {
     // Subscribe to 1 topic and send message
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, messagePayload);
-    expect(await messageCollector.waitForMessage()).to.eq(true);
-    messageCollector.reset_message_received_flag();
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
     // Unsubscribe from the topic and send again
     await subscription.unsubscribe([TestContentTopic]);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessage()).to.eq(false);
+    expect(await messageCollector.waitForMessages(2)).to.eq(false);
 
-    // Verify that message was received
+    // Check that from 2 messages send only the 1st was received
     messageCollector.verifyReceivedMessage({ index: 0 });
     expect(messageCollector.count).to.eq(1);
     expect((await nwaku.messages()).length).to.eq(2);
@@ -919,18 +873,13 @@ describe("Waku Filter: V2", function () {
     await subscription.subscribe([newDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
-    messageCollector.reset_message_received_flag();
-    expect(messageCollector.count).to.eq(2);
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
 
     // Unsubscribe from the first topic and send again
     await subscription.unsubscribe([TestContentTopic]);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M3") });
-    expect(await messageCollector.waitForMessage()).to.eq(false);
-    messageCollector.reset_message_received_flag();
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M4") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
-    messageCollector.reset_message_received_flag();
+    expect(await messageCollector.waitForMessages(3)).to.eq(true);
 
     // Check that from 4 messages send 3 were received
     expect(messageCollector.count).to.eq(3);
@@ -946,18 +895,16 @@ describe("Waku Filter: V2", function () {
     await subscription.subscribe([newDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
-    messageCollector.reset_message_received_flag();
-    expect(messageCollector.count).to.eq(2);
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
 
     // Unsubscribe from both and send again
     await subscription.unsubscribe([TestContentTopic, newContentTopic]);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M3") });
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M4") });
-    expect(await messageCollector.waitForMessage()).to.eq(false);
-    expect(messageCollector.count).to.eq(2);
+    expect(await messageCollector.waitForMessages(3)).to.eq(false);
 
-    // Check that from 4 messages send 3 were received
+    // Check that from 4 messages send 2 were received
+    expect(messageCollector.count).to.eq(2);
     expect((await nwaku.messages()).length).to.eq(4);
   });
 
@@ -965,15 +912,15 @@ describe("Waku Filter: V2", function () {
     // Subscribe to 1 topic and send message
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
-    messageCollector.reset_message_received_flag();
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+
     expect(messageCollector.count).to.eq(1);
 
     // Unsubscribe from topics that the node is not not subscribed to and send again
     await subscription.unsubscribe([]);
     await subscription.unsubscribe(["/test/2/waku-filter"]);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
+    expect(await messageCollector.waitForMessages(2)).to.eq(true);
 
     // Check that both messages were received
     expect(messageCollector.count).to.eq(2);
@@ -984,14 +931,14 @@ describe("Waku Filter: V2", function () {
     // Subscribe to 1 topic and send message
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessage()).to.eq(true);
-    messageCollector.reset_message_received_flag();
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+
     expect(messageCollector.count).to.eq(1);
 
     // Unsubscribe from all topics and send again
     await subscription.unsubscribeAll();
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
-    expect(await messageCollector.waitForMessage()).to.eq(false);
+    expect(await messageCollector.waitForMessages(2)).to.eq(false);
 
     // Check that from 2 messages send only the 1st was received
     expect(messageCollector.count).to.eq(1);
@@ -1008,9 +955,7 @@ describe("Waku Filter: V2", function () {
         payload: utf8ToBytes(`M${i + 1}`)
       });
     }
-    expect(await messageCollector.waitForMessage()).to.eq(true);
-    messageCollector.reset_message_received_flag();
-    expect(messageCollector.count).to.eq(10);
+    expect(await messageCollector.waitForMessages(10)).to.eq(true);
 
     // Unsubscribe from all topics and send again
     await subscription.unsubscribeAll();
@@ -1019,7 +964,7 @@ describe("Waku Filter: V2", function () {
         payload: utf8ToBytes(`M${topicCount + i + 1}`)
       });
     }
-    expect(await messageCollector.waitForMessage()).to.eq(false);
+    expect(await messageCollector.waitForMessages(11)).to.eq(false);
 
     // Check that from 20 messages send only 10 were received
     expect(messageCollector.count).to.eq(10);

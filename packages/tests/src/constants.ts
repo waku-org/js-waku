@@ -35,7 +35,7 @@ export const NOISE_KEY_3 = new Uint8Array(
   })()
 );
 
-export const testStrings = [
+export const TEST_STRING = [
   { description: "short", value: "hi" },
   { description: "long", value: "A".repeat(10000) },
   { description: "numeric", value: "1234567890" },
@@ -53,7 +53,7 @@ export const testStrings = [
   { description: "unicode special characters", value: "\u202Ereverse" }
 ];
 
-export const testTimestamps = [
+export const TEST_TIMESTAMPS = [
   BigInt(Date.now()) * BigInt(1000000),
   Date.now(),
   1649153314,
