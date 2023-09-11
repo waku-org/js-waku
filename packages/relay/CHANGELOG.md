@@ -25,6 +25,26 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.6](https://github.com/waku-org/js-waku/compare/relay-v0.0.5...relay-v0.0.6) (2023-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* set peer-exchange with default bootstrap ([#1469](https://github.com/waku-org/js-waku/issues/1469))
+
+### Features
+
+* Set peer-exchange with default bootstrap ([#1469](https://github.com/waku-org/js-waku/issues/1469)) ([81a52a8](https://github.com/waku-org/js-waku/commit/81a52a8097ba948783c9d798ba362af0f27e1c10))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.22 to 0.0.23
+    * @waku/interfaces bumped from 0.0.17 to 0.0.18
+    * @waku/utils bumped from 0.0.10 to 0.0.11
+
 ## [0.0.4](https://github.com/waku-org/js-waku/compare/relay-v0.0.3...relay-v0.0.4) (2023-07-26)
 
 
