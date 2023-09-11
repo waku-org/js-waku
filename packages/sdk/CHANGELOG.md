@@ -36,6 +36,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/dns-discovery bumped from 0.0.15 to 0.0.16
 
+## [0.0.19](https://github.com/waku-org/js-waku/compare/sdk-v0.0.18...sdk-v0.0.19) (2023-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* set peer-exchange with default bootstrap ([#1469](https://github.com/waku-org/js-waku/issues/1469))
+
+### Features
+
+* Set peer-exchange with default bootstrap ([#1469](https://github.com/waku-org/js-waku/issues/1469)) ([81a52a8](https://github.com/waku-org/js-waku/commit/81a52a8097ba948783c9d798ba362af0f27e1c10))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.10 to 0.0.11
+    * @waku/relay bumped from 0.0.5 to 0.0.6
+    * @waku/core bumped from 0.0.22 to 0.0.23
+    * @waku/dns-discovery bumped from 0.0.16 to 0.0.17
+    * @waku/interfaces bumped from 0.0.17 to 0.0.18
+    * @waku/peer-exchange bumped from ^0.0.15 to ^0.0.16
+
 ## [0.0.17](https://github.com/waku-org/js-waku/compare/sdk-v0.0.16...sdk-v0.0.17) (2023-07-26)
 
 
