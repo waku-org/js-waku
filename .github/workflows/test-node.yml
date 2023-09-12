@@ -14,6 +14,7 @@ env:
   NODE_JS: "18"
   RETRY_ATTEMPTS: 3
   WAKU_SERVICE_NODE_PARAMS: ${{ (inputs.test_type == 'go-waku-master') && '--min-relay-peers-to-publish=0' || '' }}
+  DEBUG: ${{ (inputs.test_type == 'go-waku-master' || inputs.test_type == 'nwaku-master') && 'waku*' || '' }}
 
 jobs:
   node:
@@ -37,8 +38,6 @@ jobs:
         with:
           attempt_limit: ${{ env.RETRY_ATTEMPTS }}
           command: ${{ (inputs.test_type == 'node-optional') && 'npm run test:optional --workspace=@waku/tests' || 'npm run test:node' }}
-          with: |
-            DEBUG: ${{ (inputs.test_type == 'go-waku-master' || inputs.test_type == 'nwaku-master') && '"waku:nwaku*,waku:test*"' || '' }}
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
