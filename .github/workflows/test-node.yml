@@ -1,0 +1,51 @@
+name: Test Node
+
+on:
+  workflow_call:
+    inputs:
+      nim_wakunode_image:
+        required: false
+        type: string
+
+env:
+  NODE_JS: "18"
+  RETRY_ATTEMPTS: 3
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    env:
+      WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
+    steps:
+      - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+
+      - uses: ./.github/actions/npm
+
+      - run: npm run build:esm
+      
+      - uses: Wandalen/wretry.action@master
+        with:
+          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
+          command: npm run test:node
+          with: |
+            DEBUG: ""
+
+      - name: Upload debug logs on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: debug.log
+          path: debug.log
+
+      - name: Upload nwaku logs on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: nwaku-logs
+          path: packages/tests/log/
