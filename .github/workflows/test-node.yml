@@ -13,8 +13,7 @@ on:
 env:
   NODE_JS: "18"
   RETRY_ATTEMPTS: 3
-  WAKU_SERVICE_NODE_PARAMS: ${{ (inputs.test_type == 'go_waku_master') && '--min-relay-peers-to-publish=0' || '' }}
-  DEBUG: ${{ (inputs.test_type == 'go_waku_master' || inputs.test_type == 'nwaku_master') && 'waku:nwaku*,waku:test*' || 'waku*' }}
+  WAKU_SERVICE_NODE_PARAMS: ${{ (inputs.test_type == 'go-waku-master') && '--min-relay-peers-to-publish=0' || '' }}
 
 jobs:
   node:
@@ -37,9 +36,9 @@ jobs:
       - uses: Wandalen/wretry.action@master
         with:
           attempt_limit: ${{ env.RETRY_ATTEMPTS }}
-          command: ${{ (inputs.test_type == 'node_optional') && 'npm run test:optional --workspace=@waku/tests' || 'npm run test:node' }}
+          command: ${{ (inputs.test_type == 'node-optional') && 'npm run test:optional --workspace=@waku/tests' || 'npm run test:node' }}
           with: |
-            DEBUG: ${{ env.DEBUG }}
+            DEBUG: ${{ (inputs.test_type == 'go-waku-master' || inputs.test_type == 'nwaku-master') && '"waku:nwaku*,waku:test*"' || "" }}
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
