@@ -117,7 +117,9 @@
     "webfonts",
     "websockets",
     "wifi",
-    "xsalsa20"
+    "xsalsa20",
+    "Привет",
+    "مرحبا"
   ],
   "flagWords": [],
   "ignorePaths": [
@@ -142,5 +144,8 @@
       "pattern": "//dns4/.*/"
     }
   ],
-  "ignoreRegExpList": ["import", "multiaddr"]
+  "ignoreRegExpList": [
+    "import",
+    "multiaddr"
+  ]
 }
