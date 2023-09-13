@@ -9,12 +9,16 @@ on:
       test_type:
         required: true
         type: string
+      debug:
+        required: false
+        type: string
+        default: ''
 
 env:
   NODE_JS: "18"
   RETRY_ATTEMPTS: 3
   WAKU_SERVICE_NODE_PARAMS: ${{ (inputs.test_type == 'go-waku-master') && '--min-relay-peers-to-publish=0' || '' }}
-  DEBUG: ${{ (inputs.test_type == 'go-waku-master' || inputs.test_type == 'nwaku-master') && 'waku*' || '' }}
+  DEBUG: ${{ inputs.test_type }}
 
 jobs:
   node:
