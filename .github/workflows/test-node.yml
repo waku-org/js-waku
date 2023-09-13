@@ -1,0 +1,58 @@
+name: Run Test
+
+on:
+  workflow_call:
+    inputs:
+      nim_wakunode_image:
+        required: true
+        type: string
+      test_type:
+        required: true
+        type: string
+      debug:
+        required: false
+        type: string
+        default: ''
+
+env:
+  NODE_JS: "18"
+  RETRY_ATTEMPTS: 3
+  WAKU_SERVICE_NODE_PARAMS: ${{ (inputs.test_type == 'go-waku-master') && '--min-relay-peers-to-publish=0' || '' }}
+  DEBUG: ${{ inputs.test_type }}
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    env:
+      WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image }}
+    steps:
+      - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+
+      - uses: ./.github/actions/npm
+
+      - run: npm run build:esm
+      
+      - uses: Wandalen/wretry.action@master
+        with:
+          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
+          command: ${{ (inputs.test_type == 'node-optional') && 'npm run test:optional --workspace=@waku/tests' || 'npm run test:node' }}
+
+      - name: Upload debug logs on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: ${{ inputs.test_type }}-debug.log
+          path: debug.log
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: ${{ inputs.test_type }}-logs
+          path: packages/tests/log/
