@@ -69,26 +69,26 @@ jobs:
       - run: npm run test:browser
 
   node:
-    uses: ./.github/actions/node
+    uses: ./.github/workflows/test-node.yml
     with:
       nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
       test_type: node
 
   node_optional:
-    uses: ./.github/actions/node
+    uses: ./.github/workflows/test-node.yml
     with:
       nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
       test_type: node-optional
 
   node_with_go_waku_master:
-    uses: ./.github/actions/node
+    uses: ./.github/workflows/test-node.yml
     with:
       nim_wakunode_image: statusteam/go-waku:latest
       test_type: go-waku-master
       debug: waku*
 
   node_with_nwaku_master:
-    uses: ./.github/actions/node
+    uses: ./.github/workflows/test-node.yml
     with:
       nim_wakunode_image: statusteam/nim-waku:deploy-wakuv2-test
       test_type: nwaku-master
