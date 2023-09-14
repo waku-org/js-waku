@@ -348,7 +348,7 @@ export class NimGoNode {
     return `http://127.0.0.1:${this.rpcPort}/`;
   }
 
-  private async rpcCall<T>(
+  async rpcCall<T>(
     method: string,
     params: Array<string | number | unknown>
   ): Promise<T> {
