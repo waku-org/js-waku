@@ -437,6 +437,9 @@ describe("Waku Relay [node only]", () => {
     it("Publishes to nwaku", async function () {
       this.timeout(30000);
 
+      // Nwaku subscribe to the default pubsub topic
+      await nwaku.sendSubscriptions();
+
       const messageText = "This is a message";
       await waku.relay.send(TestEncoder, { payload: utf8ToBytes(messageText) });
 

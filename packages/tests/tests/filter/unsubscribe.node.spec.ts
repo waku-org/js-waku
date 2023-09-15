@@ -35,6 +35,9 @@ describe("Waku Filter V2: Unsubscribe", function () {
   });
 
   it("Unsubscribe 1 topic - node subscribed to 1 topic", async function () {
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.sendSubscriptions();
+
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, messagePayload);
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
@@ -53,6 +56,9 @@ describe("Waku Filter V2: Unsubscribe", function () {
   });
 
   it("Unsubscribe 1 topic - node subscribed to 2 topics", async function () {
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.sendSubscriptions();
+
     // Subscribe to 2 topics and send messages
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     const newContentTopic = "/test/2/waku-filter";
@@ -75,6 +81,9 @@ describe("Waku Filter V2: Unsubscribe", function () {
   });
 
   it("Unsubscribe 2 topics - node subscribed to 2 topics", async function () {
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.sendSubscriptions();
+
     // Subscribe to 2 topics and send messages
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     const newContentTopic = "/test/2/waku-filter";
@@ -97,6 +106,9 @@ describe("Waku Filter V2: Unsubscribe", function () {
   });
 
   it("Unsubscribe topics the node is not subscribed to", async function () {
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.sendSubscriptions();
+
     // Subscribe to 1 topic and send message
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
@@ -116,6 +128,9 @@ describe("Waku Filter V2: Unsubscribe", function () {
   });
 
   it("Unsubscribes all - node subscribed to 1 topic", async function () {
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.sendSubscriptions();
+
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
@@ -132,6 +147,9 @@ describe("Waku Filter V2: Unsubscribe", function () {
   });
 
   it("Unsubscribes all - node subscribed to 10 topics", async function () {
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.sendSubscriptions();
+
     // Subscribe to 10 topics and send message
     const topicCount = 10;
     const td = generateTestData(topicCount);

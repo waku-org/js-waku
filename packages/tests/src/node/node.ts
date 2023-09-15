@@ -209,6 +209,17 @@ export class NimGoNode {
     return this.rpcCall<RpcInfoResponse>("get_waku_v2_debug_v1_info", []);
   }
 
+  async sendSubscriptions(
+    pubsubTopics: [string] = [DefaultPubSubTopic]
+  ): Promise<boolean> {
+    this.checkProcess();
+
+    return this.rpcCall<boolean>(
+      "post_waku_v2_relay_v1_subscriptions",
+      pubsubTopics
+    );
+  }
+
   async sendMessage(
     message: MessageRpcQuery,
     pubSubTopic: string = DefaultPubSubTopic
