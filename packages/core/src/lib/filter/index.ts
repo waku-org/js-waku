@@ -89,6 +89,12 @@ class Subscription {
         async (source) => await all(source)
       );
 
+      if (!res || !res.length) {
+        throw Error(
+          `No response received for request ${request.requestId}: ${res}`
+        );
+      }
+
       const { statusCode, requestId, statusDesc } =
         FilterSubscribeResponse.decode(res[0].slice());
 
