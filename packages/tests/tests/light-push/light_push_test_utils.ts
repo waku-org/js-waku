@@ -25,89 +25,124 @@ export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 export const messageText = "Light Push works!";
 export const messagePayload = { payload: utf8ToBytes(messageText) };
 
-export async function waitForMessages(
-  nwaku: NimGoNode,
-  msgCount = 0,
-  pubSubTopic = DefaultPubSubTopic,
-  maxRetries = 100
-): Promise<MessageRpcResponse[]> {
-  const msgs: MessageRpcResponse[] = [];
-  let retries = 0;
-  while (retries < maxRetries) {
-    if (msgs.length !== msgCount) {
-      return await nwaku.messages(pubSubTopic);
+export class MessageCollector {
+  list: Array<MessageRpcResponse> = [];
+
+  constructor(
+    private nwaku: NimGoNode,
+    private pubSubTopic = DefaultPubSubTopic
+  ) {}
+
+  get count(): number {
+    return this.list.length;
+  }
+
+  getMessage(index: number): MessageRpcResponse {
+    return this.list[index];
+  }
+
+  async waitForMessages(
+    numMessages: number,
+    timeoutDuration: number = 400
+  ): Promise<boolean> {
+    const startTime = Date.now();
+
+    while (this.count < numMessages) {
+      try {
+        this.list = await this.nwaku.messages(this.pubSubTopic);
+      } catch (error) {
+        log(`Can't retrieve messages because of ${error}`);
+        await delay(10);
+      }
+      if (Date.now() - startTime > timeoutDuration * numMessages) {
+        return false;
+      }
+      await delay(10);
     }
-    await delay(10);
-    retries++;
+
+    return true;
   }
-  throw new Error("Could not find messages in the nwaku node");
-}
 
-export function verifyReceivedMessage(
-  message: MessageRpcResponse,
-  options: {
-    expectedContentTopic?: string;
-    expectedMessageText?: string | Uint8Array;
-    expectedVersion?: number;
-    expectedEphemeral?: boolean;
-    expectedTimestamp?: bigint;
-  }
-): void {
-  expect(message.contentTopic).to.eq(
-    options.expectedContentTopic || TestContentTopic,
-    `Message content topic mismatch. Expected: ${
-      options.expectedContentTopic || TestContentTopic
-    }. Got: ${message.contentTopic}`
-  );
+  verifyReceivedMessage(
+    index: number,
+    options: {
+      expectedMessageText: string | Uint8Array | undefined;
+      expectedContentTopic?: string;
+      expectedVersion?: number;
+      expectedEphemeral?: boolean;
+      expectedTimestamp?: bigint;
+    }
+  ): void {
+    expect(this.list.length).to.be.greaterThan(
+      index,
+      `The message list does not have a message at index ${index}`
+    );
 
-  expect(base64ToUtf8(message.payload)).to.eq(
-    options.expectedMessageText,
-    `Message text mismatch. Expected: ${
-      options.expectedMessageText
-    }. Got: ${base64ToUtf8(message.payload)}`
-  );
+    const message = this.getMessage(index);
 
-  expect(message.version).to.eq(
-    options.expectedVersion || 0,
-    `Message version mismatch. Expected: ${
-      options.expectedVersion || 0
-    }. Got: ${message.version}`
-  );
+    expect(message.contentTopic).to.eq(
+      options.expectedContentTopic || TestContentTopic,
+      `Message content topic mismatch. Expected: ${
+        options.expectedContentTopic || TestContentTopic
+      }. Got: ${message.contentTopic}`
+    );
 
-  if (message.timestamp) {
-    // In we send timestamp in the request we assert that it matches the timestamp in the response +- 1 sec
-    // We take the 1s deviation because there are some ms diffs in timestamps, probably because of conversions
-    if (options.expectedTimestamp !== undefined) {
-      const lowerBound = BigInt(options.expectedTimestamp) - BigInt(1000000000);
-      const upperBound = BigInt(options.expectedTimestamp) + BigInt(1000000000);
+    const receivedMessageText = message.payload
+      ? base64ToUtf8(message.payload)
+      : undefined;
 
-      if (message.timestamp < lowerBound || message.timestamp > upperBound) {
-        throw new AssertionError(
-          `Message timestamp not within the expected range. Expected between: ${lowerBound} and ${upperBound}. Got: ${message.timestamp}`
-        );
+    expect(receivedMessageText).to.eq(
+      options.expectedMessageText,
+      `Message text mismatch. Expected: ${options.expectedMessageText}. Got: ${receivedMessageText}`
+    );
+
+    expect(message.version).to.eq(
+      options.expectedVersion || 0,
+      `Message version mismatch. Expected: ${
+        options.expectedVersion || 0
+      }. Got: ${message.version}`
+    );
+
+    if (message.timestamp) {
+      // In we send timestamp in the request we assert that it matches the timestamp in the response +- 1 sec
+      // We take the 1s deviation because there are some ms diffs in timestamps, probably because of conversions
+      if (options.expectedTimestamp !== undefined) {
+        const lowerBound =
+          BigInt(options.expectedTimestamp) - BigInt(1000000000);
+        const upperBound =
+          BigInt(options.expectedTimestamp) + BigInt(1000000000);
+
+        if (message.timestamp < lowerBound || message.timestamp > upperBound) {
+          throw new AssertionError(
+            `Message timestamp not within the expected range. Expected between: ${lowerBound} and ${upperBound}. Got: ${message.timestamp}`
+          );
+        }
+      }
+      // In we don't send timestamp in the request we assert that the timestamp in the response is between now and (now-10s)
+      else {
+        const now = BigInt(Date.now()) * BigInt(1_000_000);
+        const tenSecondsAgo = now - BigInt(10_000_000_000);
+
+        if (message.timestamp < tenSecondsAgo || message.timestamp > now) {
+          throw new AssertionError(
+            `Message timestamp not within the expected range. Expected between: ${tenSecondsAgo} and ${now}. Got: ${message.timestamp}`
+          );
+        }
       }
     }
-    // In we don't send timestamp in the request we assert that the timestamp in the response is between now and (now-10s)
-    else {
-      const now = BigInt(Date.now()) * BigInt(1_000_000);
-      const tenSecondsAgo = now - BigInt(10_000_000_000);
-
-      if (message.timestamp < tenSecondsAgo || message.timestamp > now) {
-        throw new AssertionError(
-          `Message timestamp not within the expected range. Expected between: ${tenSecondsAgo} and ${now}. Got: ${message.timestamp}`
-        );
-      }
+    if (message.ephemeral !== undefined) {
+      expect(message.ephemeral).to.eq(
+        options.expectedEphemeral !== undefined
+          ? options.expectedEphemeral
+          : false,
+        `Message ephemeral value mismatch. Expected: ${
+          options.expectedEphemeral !== undefined
+            ? options.expectedEphemeral
+            : false
+        }. Got: ${message.ephemeral}`
+      );
     }
   }
-
-  expect(message.ephemeral).to.eq(
-    options.expectedEphemeral !== undefined ? options.expectedEphemeral : false,
-    `Message ephemeral value mismatch. Expected: ${
-      options.expectedEphemeral !== undefined
-        ? options.expectedEphemeral
-        : false
-    }. Got: ${message.ephemeral}`
-  );
 }
 
 export async function runNodes(

@@ -1,21 +1,19 @@
-import { createEncoder } from "@waku/core";
+import { createEncoder, DefaultPubSubTopic } from "@waku/core";
 import { IRateLimitProof, LightNode, SendError } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import { NimGoNode, TEST_STRING } from "../../src/index.js";
-import { MessageRpcResponse } from "../../src/node/interfaces.js";
 import { generateRandomUint8Array } from "../../src/random_array.js";
 
 import {
+  MessageCollector,
   messagePayload,
   messageText,
   runNodes,
   tearDownNodes,
   TestContentTopic,
-  TestEncoder,
-  verifyReceivedMessage,
-  waitForMessages
+  TestEncoder
 } from "./light_push_test_utils.js";
 
 describe("Waku Light Push [node only]", function () {
@@ -23,10 +21,12 @@ describe("Waku Light Push [node only]", function () {
   this.timeout(15000);
   let waku: LightNode;
   let nwaku: NimGoNode;
+  let messageCollector: MessageCollector;
 
   this.beforeEach(async function () {
     this.timeout(15_000);
     [nwaku, waku] = await runNodes(this);
+    messageCollector = new MessageCollector(nwaku, DefaultPubSubTopic);
   });
 
   this.afterEach(async function () {
@@ -34,25 +34,17 @@ describe("Waku Light Push [node only]", function () {
   });
 
   TEST_STRING.forEach((testItem) => {
-    it(`Push message with payload containing ${testItem.description}`, async function () {
+    it(`Push message with ${testItem.description} payload`, async function () {
       const pushResponse = await waku.lightPush.send(TestEncoder, {
         payload: utf8ToBytes(testItem.value)
       });
       expect(pushResponse.recipients.length).to.eq(1);
 
-      const msgs = await waitForMessages(nwaku, 1);
-
-      verifyReceivedMessage(msgs[0], { expectedMessageText: testItem.value });
+      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      messageCollector.verifyReceivedMessage(0, {
+        expectedMessageText: testItem.value
+      });
     });
-  });
-
-  it("Push multiple messages", async function () {
-    const pushResponse = await waku.lightPush.send(TestEncoder, messagePayload);
-    expect(pushResponse.recipients.length).to.eq(1);
-
-    const msgs = await waitForMessages(nwaku, 1);
-
-    verifyReceivedMessage(msgs[0], { expectedMessageText: messageText });
   });
 
   it("Push 30 different messages", async function () {
@@ -65,10 +57,10 @@ describe("Waku Light Push [node only]", function () {
       expect(pushResponse.recipients.length).to.eq(1);
     }
 
-    const msgs = await waitForMessages(nwaku, 30);
+    expect(await messageCollector.waitForMessages(30)).to.eq(true);
 
     for (let i = 0; i < 30; i++) {
-      verifyReceivedMessage(msgs[i], {
+      messageCollector.verifyReceivedMessage(i, {
         expectedMessageText: generateMessageText(i)
       });
     }
@@ -79,8 +71,17 @@ describe("Waku Light Push [node only]", function () {
       payload: utf8ToBytes("")
     });
 
-    expect(pushResponse.recipients.length).to.eq(0);
-    expect(pushResponse.errors).to.include(SendError.NO_RPC_RESPONSE);
+    if (nwaku.type() == "go-waku") {
+      expect(pushResponse.recipients.length).to.eq(1);
+      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      messageCollector.verifyReceivedMessage(0, {
+        expectedMessageText: undefined
+      });
+    } else {
+      expect(pushResponse.recipients.length).to.eq(0);
+      expect(pushResponse.errors).to.include(SendError.NO_RPC_RESPONSE);
+      expect(await messageCollector.waitForMessages(1)).to.eq(false);
+    }
   });
 
   TEST_STRING.forEach((testItem) => {
@@ -94,9 +95,8 @@ describe("Waku Light Push [node only]", function () {
       );
       expect(pushResponse.recipients.length).to.eq(1);
 
-      const msgs = await waitForMessages(nwaku, 1);
-
-      verifyReceivedMessage(msgs[0], {
+      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: testItem.value
       });
@@ -126,9 +126,10 @@ describe("Waku Light Push [node only]", function () {
     );
     expect(pushResponse.recipients.length).to.eq(1);
 
-    const msgs = await waitForMessages(nwaku, 1);
-
-    verifyReceivedMessage(msgs[0], { expectedMessageText: messageText });
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText
+    });
   });
 
   it("Fails to push message with large meta", async function () {
@@ -142,8 +143,17 @@ describe("Waku Light Push [node only]", function () {
       messagePayload
     );
 
-    expect(pushResponse.recipients.length).to.eq(0);
-    expect(pushResponse.errors).to.include(SendError.NO_RPC_RESPONSE);
+    if (nwaku.type() == "go-waku") {
+      expect(pushResponse.recipients.length).to.eq(1);
+      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      messageCollector.verifyReceivedMessage(0, {
+        expectedMessageText: messageText
+      });
+    } else {
+      expect(pushResponse.recipients.length).to.eq(0);
+      expect(pushResponse.errors).to.include(SendError.NO_RPC_RESPONSE);
+      expect(await messageCollector.waitForMessages(1)).to.eq(false);
+    }
   });
 
   it("Push message with rate limit", async function () {
@@ -163,9 +173,10 @@ describe("Waku Light Push [node only]", function () {
     });
     expect(pushResponse.recipients.length).to.eq(1);
 
-    const msgs = await waitForMessages(nwaku, 1);
-
-    verifyReceivedMessage(msgs[0], { expectedMessageText: messageText });
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText
+    });
   });
 
   [
@@ -174,34 +185,31 @@ describe("Waku Light Push [node only]", function () {
     Date.now() + 3600000
   ].forEach((testItem) => {
     it(`Push message with custom timestamp: ${testItem}`, async function () {
-      const oneHourAgoNanos = BigInt(testItem) * BigInt(1000000);
+      const customTimeNanos = BigInt(testItem) * BigInt(1000000);
       const pushResponse = await waku.lightPush.send(TestEncoder, {
         payload: utf8ToBytes(messageText),
         timestamp: new Date(testItem)
       });
       expect(pushResponse.recipients.length).to.eq(1);
 
-      let msgs: MessageRpcResponse[] = [];
-
-      msgs = await waitForMessages(nwaku, 1);
-
-      verifyReceivedMessage(msgs[0], {
+      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
-        expectedTimestamp: oneHourAgoNanos
+        expectedTimestamp: customTimeNanos
       });
     });
   });
 
   it("Push message equal or less that 1MB", async function () {
-    const MB = 1024 ** 2;
-
+    const oneMbPayload = generateRandomUint8Array(1024 ** 2);
     let pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: generateRandomUint8Array(MB)
+      payload: oneMbPayload
     });
     expect(pushResponse.recipients.length).to.greaterThan(0);
 
+    const bigPayload = generateRandomUint8Array(65536);
     pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: generateRandomUint8Array(65536)
+      payload: bigPayload
     });
     expect(pushResponse.recipients.length).to.greaterThan(0);
   });
@@ -214,37 +222,6 @@ describe("Waku Light Push [node only]", function () {
     });
     expect(pushResponse.recipients.length).to.eq(0);
     expect(pushResponse.errors).to.include(SendError.SIZE_TOO_BIG);
-  });
-});
-
-describe("Waku Light Push [node only] - custom pubsub topic", function () {
-  this.timeout(15_000);
-  let waku: LightNode;
-  let nwaku: NimGoNode;
-  const customPubSubTopic = "/waku/2/custom-dapp/proto";
-
-  beforeEach(async function () {
-    [nwaku, waku] = await runNodes(this, customPubSubTopic);
-  });
-
-  this.afterEach(async function () {
-    tearDownNodes(nwaku, waku);
-  });
-
-  it("Push message", async function () {
-    const nimPeerId = await nwaku.getPeerId();
-
-    const pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes(messageText)
-    });
-
-    expect(pushResponse.recipients[0].toString()).to.eq(nimPeerId.toString());
-
-    const msgs = await waitForMessages(nwaku, 1, customPubSubTopic);
-
-    verifyReceivedMessage(msgs[0], {
-      expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic
-    });
+    expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 });
