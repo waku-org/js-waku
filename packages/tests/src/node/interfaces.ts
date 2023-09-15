@@ -52,4 +52,5 @@ export interface MessageRpcResponse {
   contentTopic?: string;
   version?: number;
   timestamp?: bigint; // Unix epoch time in nanoseconds as a 64-bits integer value.
+  ephemeral?: boolean;
 }
