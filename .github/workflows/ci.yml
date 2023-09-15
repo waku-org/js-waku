@@ -24,7 +24,6 @@ on:
 
 env:
   NODE_JS: "18"
-  RETRY_ATTEMPTS: 3
 
 jobs:
   check:
@@ -96,12 +95,9 @@ jobs:
 
       - run: npm run build:esm
       
-      - uses: Wandalen/wretry.action@master
-        with:
-          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
-          command: npm run test:node
-          with: |
-            DEBUG: ""
+      - run: npm run test:node
+        env:
+          DEBUG: ""
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
@@ -135,12 +131,9 @@ jobs:
 
       - run: npm run build:esm
       
-      - uses: Wandalen/wretry.action@master
-        with:
-          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
-          command: npm run test:optional --workspace=@waku/tests
-          with: |
-            DEBUG: ""
+      - run: npm run test:optional --workspace=@waku/tests
+        env:
+          DEBUG: ""
 
   node_with_go_waku_master:
     runs-on: ubuntu-latest
@@ -163,12 +156,9 @@ jobs:
 
       - run: npm run build:esm
       
-      - uses: Wandalen/wretry.action@master
-        with:
-          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
-          command: npm run test:node
-          with: |
-            DEBUG: "waku:nwaku*,waku:test*"
+      - run: npm run test:node
+        env:
+          DEBUG: "waku:nwaku*,waku:test*"
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
@@ -203,12 +193,9 @@ jobs:
 
       - run: npm run build:esm
 
-      - uses: Wandalen/wretry.action@master
-        with:
-          attempt_limit: ${{ env.RETRY_ATTEMPTS }}
-          command: npm run test:node
-          with: |
-            DEBUG: "waku:nwaku*,waku:test*"
+      - run: npm run test:node
+        env:
+          DEBUG: "waku:nwaku*,waku:test*"
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
