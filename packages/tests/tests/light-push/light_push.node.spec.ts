@@ -24,7 +24,7 @@ describe("Waku Light Push [node only]", function () {
   let messageCollector: MessageCollector;
 
   this.beforeEach(async function () {
-    this.timeout(15_000);
+    this.timeout(15000);
     [nwaku, waku] = await runNodes(this);
     messageCollector = new MessageCollector(nwaku, DefaultPubSubTopic);
   });

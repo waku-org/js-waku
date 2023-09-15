@@ -14,7 +14,7 @@ import {
 } from "./light_push_test_utils.js";
 
 describe("Waku Light Push [node only] - custom pubsub topic", function () {
-  this.timeout(15_000);
+  this.timeout(15000);
   let waku: LightNode;
   let nwaku: NimGoNode;
   let messageCollector: MessageCollector;
