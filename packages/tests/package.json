@@ -81,7 +81,7 @@
     "@waku/sdk": "*",
     "chai": "^4.3.7",
     "cspell": "^7.3.2",
-    "datastore-core": "^9.2.2",
+    "datastore-core": "^9.2.3",
     "debug": "^4.3.4",
     "interface-datastore": "^8.2.3",
     "libp2p": "^0.46.9",
