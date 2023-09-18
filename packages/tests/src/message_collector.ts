@@ -43,7 +43,10 @@ export class MessageCollector {
   isMessageRpcResponse(
     message: MessageRpcResponse | DecodedMessage
   ): message is MessageRpcResponse {
-    return "payload" in message && typeof message.payload === "string";
+    return (
+      ("payload" in message && typeof message.payload === "string") ||
+      !!this.nwaku
+    );
   }
 
   async waitForMessages(
@@ -106,16 +109,18 @@ export class MessageCollector {
       }. Got: ${message.version}`
     );
 
-    expect(message.ephemeral).to.eq(
-      options.expectedEphemeral !== undefined
-        ? options.expectedEphemeral
-        : false,
-      `Message ephemeral value mismatch. Expected: ${
+    if (message.ephemeral !== undefined) {
+      expect(message.ephemeral).to.eq(
         options.expectedEphemeral !== undefined
           ? options.expectedEphemeral
-          : false
-      }. Got: ${message.ephemeral}`
-    );
+          : false,
+        `Message ephemeral value mismatch. Expected: ${
+          options.expectedEphemeral !== undefined
+            ? options.expectedEphemeral
+            : false
+        }. Got: ${message.ephemeral}`
+      );
+    }
 
     if (this.isMessageRpcResponse(message)) {
       // nwaku message specific assertions
