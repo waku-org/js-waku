@@ -10,3 +10,5 @@ export * from "./constants.js";
 export * from "./delay.js";
 export * from "./log_file.js";
 export * from "./node/node.js";
+export * from "./teardown.js";
+export * from "./message_collector.js";

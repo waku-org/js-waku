@@ -2,17 +2,15 @@ import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { NimGoNode } from "../../src/index.js";
+import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index.js";
 
 import {
-  MessageCollector,
-  setupNodes,
-  tearDownNodes,
+  runNodes,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
   validatePingError
-} from "./filter_test_utils.js";
+} from "./utils.js";
 
 describe("Waku Filter V2: Ping", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
@@ -22,17 +20,15 @@ describe("Waku Filter V2: Ping", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  this.afterEach(async function () {
-    tearDownNodes(nwaku, waku);
-  });
-
   this.beforeEach(async function () {
     this.timeout(15000);
-    const setup = await setupNodes(this);
-    nwaku = setup.nwaku;
-    waku = setup.waku;
-    subscription = setup.subscription;
-    messageCollector = setup.messageCollector;
+    [nwaku, waku] = await runNodes(this);
+    subscription = await waku.filter.createSubscription();
+    messageCollector = new MessageCollector(TestContentTopic);
+  });
+
+  this.afterEach(async function () {
+    tearDownNodes([nwaku], [waku]);
   });
 
   it("Ping on subscribed peer", async function () {

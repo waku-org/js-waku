@@ -3,18 +3,21 @@ import { IRateLimitProof, LightNode, SendError } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { NimGoNode, TEST_STRING } from "../../src/index.js";
+import {
+  MessageCollector,
+  NimGoNode,
+  tearDownNodes,
+  TEST_STRING
+} from "../../src/index.js";
 import { generateRandomUint8Array } from "../../src/random_array.js";
 
 import {
-  MessageCollector,
   messagePayload,
   messageText,
   runNodes,
-  tearDownNodes,
   TestContentTopic,
   TestEncoder
-} from "./light_push_test_utils.js";
+} from "./utils.js";
 
 describe("Waku Light Push [node only]", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
@@ -26,11 +29,15 @@ describe("Waku Light Push [node only]", function () {
   this.beforeEach(async function () {
     this.timeout(15000);
     [nwaku, waku] = await runNodes(this);
-    messageCollector = new MessageCollector(nwaku, DefaultPubSubTopic);
+    messageCollector = new MessageCollector(
+      TestContentTopic,
+      nwaku,
+      DefaultPubSubTopic
+    );
   });
 
   this.afterEach(async function () {
-    tearDownNodes(nwaku, waku);
+    tearDownNodes([nwaku], [waku]);
   });
 
   TEST_STRING.forEach((testItem) => {

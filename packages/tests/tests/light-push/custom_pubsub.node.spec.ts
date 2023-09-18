@@ -2,16 +2,14 @@ import { LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { NimGoNode } from "../../src/index.js";
+import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index.js";
 
 import {
-  MessageCollector,
   messageText,
   runNodes,
-  tearDownNodes,
   TestContentTopic,
   TestEncoder
-} from "./light_push_test_utils.js";
+} from "./utils.js";
 
 describe("Waku Light Push [node only] - custom pubsub topic", function () {
   this.timeout(15000);
@@ -22,11 +20,15 @@ describe("Waku Light Push [node only] - custom pubsub topic", function () {
 
   beforeEach(async function () {
     [nwaku, waku] = await runNodes(this, customPubSubTopic);
-    messageCollector = new MessageCollector(nwaku, customPubSubTopic);
+    messageCollector = new MessageCollector(
+      TestContentTopic,
+      nwaku,
+      customPubSubTopic
+    );
   });
 
   this.afterEach(async function () {
-    tearDownNodes(nwaku, waku);
+    tearDownNodes([nwaku], [waku]);
   });
 
   it("Push message", async function () {
