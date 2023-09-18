@@ -16,7 +16,6 @@ on:
 
 env:
   NODE_JS: "18"
-  RETRY_ATTEMPTS: 3
 
 jobs:
   check:
