@@ -43,7 +43,8 @@ describe("Util: toAsyncIterator: Filter", () => {
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });
 
-  afterEach(async () => {
+  afterEach(async function () {
+    this.timeout(15000);
     try {
       await nwaku.stop();
       await waku.stop();
