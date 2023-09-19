@@ -33,7 +33,7 @@
     "proto": "npm run proto --workspaces --if-present",
     "deploy": "node ci/deploy.js",
     "doc": "run-s doc:*",
-    "doc:html": "typedoc --options typedoc.json",
+    "doc:html": "typedoc --options typedoc.cjs",
     "doc:cname": "echo 'js.waku.org' > docs/CNAME",
     "publish": "node ./ci/publish.js"
   },
@@ -51,9 +51,9 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
     "size-limit": "^8.1.2",
-    "typedoc": "^0.25.0",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
+    "typedoc": "^0.25.1",
     "typescript": "^5.2.2"
   },
   "lint-staged": {

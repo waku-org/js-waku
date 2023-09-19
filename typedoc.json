@@ -1,8 +1,0 @@
-{
-  "entryPointStrategy": "packages",
-  "entryPoints": ["packages/*"],
-  "out": "docs",
-  "excludeInternal": true,
-  "excludeExternals": true,
-  "exclude": ["**/*.spec.ts", "packages/build-utils", "packages/tests"]
-}
