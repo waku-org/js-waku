@@ -32,6 +32,27 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.1.7](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.6...message-hash-v0.1.7) (2023-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316))
+
+### Features
+
+* @waku/relay ([#1316](https://github.com/waku-org/js-waku/issues/1316)) ([50c2c25](https://github.com/waku-org/js-waku/commit/50c2c2540f3c5ff78d93f3fea646da0eee246e17))
+* Implement deterministic message hash logic ([fe57461](https://github.com/waku-org/js-waku/commit/fe574613290875d1c142aa51c18641346208401d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.10 to 0.0.11
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.17 to 0.0.18
+
 ## [0.1.2](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.1...message-hash-v0.1.2) (2023-05-18)
 
 

@@ -21,6 +21,7 @@ import type {
   ProtocolCreateOptions,
   RelayNode
 } from "@waku/interfaces";
+import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 import { identifyService } from "libp2p/identify";
@@ -45,7 +46,7 @@ export async function createLightNode(
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
-    peerDiscovery.push(defaultPeerDiscovery());
+    peerDiscovery.push(...defaultPeerDiscoveries());
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
@@ -78,7 +79,7 @@ export async function createRelayNode(
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
-    peerDiscovery.push(defaultPeerDiscovery());
+    peerDiscovery.push(...defaultPeerDiscoveries());
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
@@ -119,7 +120,7 @@ export async function createFullNode(
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
-    peerDiscovery.push(defaultPeerDiscovery());
+    peerDiscovery.push(...defaultPeerDiscoveries());
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
@@ -144,10 +145,14 @@ export async function createFullNode(
   ) as FullNode;
 }
 
-export function defaultPeerDiscovery(): (
+export function defaultPeerDiscoveries(): ((
   components: Libp2pComponents
-) => PeerDiscovery {
-  return wakuDnsDiscovery([enrTree["PROD"]], DEFAULT_NODE_REQUIREMENTS);
+) => PeerDiscovery)[] {
+  const discoveries = [
+    wakuDnsDiscovery([enrTree["PROD"]], DEFAULT_NODE_REQUIREMENTS),
+    wakuPeerExchangeDiscovery()
+  ];
+  return discoveries;
 }
 
 type PubsubService = {

@@ -64,6 +64,28 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.14 to 0.0.15
 
+## [0.0.16](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.15...peer-exchange-v0.0.16) (2023-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* set peer-exchange with default bootstrap ([#1469](https://github.com/waku-org/js-waku/issues/1469))
+
+### Features
+
+* Pre-emptive stream creation for protocols ([#1516](https://github.com/waku-org/js-waku/issues/1516)) ([b4f8216](https://github.com/waku-org/js-waku/commit/b4f821676120aa06f4772eed62fb105d5afae7c6))
+* Set peer-exchange with default bootstrap ([#1469](https://github.com/waku-org/js-waku/issues/1469)) ([81a52a8](https://github.com/waku-org/js-waku/commit/81a52a8097ba948783c9d798ba362af0f27e1c10))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.22 to 0.0.23
+    * @waku/enr bumped from 0.0.16 to 0.0.17
+    * @waku/interfaces bumped from 0.0.17 to 0.0.18
+    * @waku/utils bumped from 0.0.10 to 0.0.11
+
 ## [0.0.15](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.14...peer-exchange-v0.0.15) (2023-08-02)
 
 

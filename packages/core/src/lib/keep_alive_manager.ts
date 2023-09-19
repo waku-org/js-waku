@@ -1,10 +1,12 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerStore } from "@libp2p/interface/peer-store";
 import type { IRelay } from "@waku/interfaces";
 import type { KeepAliveOptions } from "@waku/interfaces";
+import { utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 import type { PingService } from "libp2p/ping";
 
-import { createEncoder } from "../index.js";
+import { createEncoder } from "./message/version_0.js";
 
 export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 const log = debug("waku:keep-alive");
@@ -22,8 +24,12 @@ export class KeepAliveManager {
     this.relay = relay;
   }
 
-  public start(peerId: PeerId, libp2pPing: PingService): void {
-    // Just in case a timer already exist for this peer
+  public start(
+    peerId: PeerId,
+    libp2pPing: PingService,
+    peerStore: PeerStore
+  ): void {
+    // Just in case a timer already exists for this peer
     this.stop(peerId);
 
     const { pingKeepAlive: pingPeriodSecs, relayKeepAlive: relayPeriodSecs } =
@@ -33,10 +39,28 @@ export class KeepAliveManager {
 
     if (pingPeriodSecs !== 0) {
       const interval = setInterval(() => {
-        libp2pPing.ping(peerId).catch((e) => {
-          log(`Ping failed (${peerIdStr})`, e);
-        });
+        void (async () => {
+          try {
+            // ping the peer for keep alive
+            // also update the peer store with the latency
+            const ping = await libp2pPing.ping(peerId);
+            log(`Ping succeeded (${peerIdStr})`, ping);
+
+            try {
+              await peerStore.patch(peerId, {
+                metadata: {
+                  ping: utf8ToBytes(ping.toString())
+                }
+              });
+            } catch (e) {
+              log("Failed to update ping", e);
+            }
+          } catch (e) {
+            log(`Ping failed (${peerIdStr})`, e);
+          }
+        })();
       }, pingPeriodSecs * 1000);
+
       this.pingKeepAliveTimers.set(peerIdStr, interval);
     }
 

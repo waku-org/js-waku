@@ -1,5 +1,4 @@
 import { Stream } from "@libp2p/interface/connection";
-import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer } from "@libp2p/interface/peer-store";
 import type { IncomingStreamData } from "@libp2p/interface-internal/registrar";
 import type {
@@ -14,7 +13,6 @@ import type {
   Libp2p,
   PeerIdStr,
   ProtocolCreateOptions,
-  ProtocolOptions,
   PubSubTopic,
   Unsubscribe
 } from "@waku/interfaces";
@@ -90,6 +88,12 @@ class Subscription {
         lp.decode,
         async (source) => await all(source)
       );
+
+      if (!res || !res.length) {
+        throw Error(
+          `No response received for request ${request.requestId}: ${res}`
+        );
+      }
 
       const { statusCode, requestId, statusDesc } =
         FilterSubscribeResponse.decode(res[0].slice());
@@ -228,6 +232,7 @@ class Subscription {
 class Filter extends BaseProtocol implements IReceiver {
   private readonly options: ProtocolCreateOptions;
   private activeSubscriptions = new Map<string, Subscription>();
+  private readonly NUM_PEERS_PROTOCOL = 1;
 
   private getActiveSubscription(
     pubSubTopic: PubSubTopic,
@@ -257,14 +262,16 @@ class Filter extends BaseProtocol implements IReceiver {
     this.options = options ?? {};
   }
 
-  async createSubscription(
-    pubSubTopic?: string,
-    peerId?: PeerId
-  ): Promise<Subscription> {
+  async createSubscription(pubSubTopic?: string): Promise<Subscription> {
     const _pubSubTopic =
       pubSubTopic ?? this.options.pubSubTopic ?? DefaultPubSubTopic;
 
-    const peer = await this.getPeer(peerId);
+    const peer = (
+      await this.getPeers({
+        maxBootstrapPeers: 1,
+        numPeers: this.NUM_PEERS_PROTOCOL
+      })
+    )[0];
 
     const subscription =
       this.getActiveSubscription(_pubSubTopic, peer.id.toString()) ??
@@ -278,10 +285,9 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    opts?: ProtocolOptions | undefined
+    decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<IAsyncIterator<T>> {
-    return toAsyncIterator(this, decoders, opts);
+    return toAsyncIterator(this, decoders);
   }
 
   /**
@@ -301,10 +307,9 @@ class Filter extends BaseProtocol implements IReceiver {
    */
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>,
-    opts?: ProtocolOptions
+    callback: Callback<T>
   ): Promise<Unsubscribe> {
-    const subscription = await this.createSubscription(undefined, opts?.peerId);
+    const subscription = await this.createSubscription();
 
     await subscription.subscribe(decoders, callback);
 

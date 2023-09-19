@@ -1,6 +1,6 @@
 {
   "name": "@waku/enr",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "ENR (EIP-778) for Waku",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -56,22 +56,22 @@
     "@libp2p/peer-id": "^3.0.2",
     "@multiformats/multiaddr": "^12.0.0",
     "@noble/secp256k1": "^1.7.1",
-    "@waku/utils": "0.0.10",
+    "@waku/utils": "0.0.11",
     "debug": "^4.3.4",
     "js-sha3": "^0.8.0"
   },
   "devDependencies": {
     "@libp2p/peer-id-factory": "^3.0.3",
-    "@rollup/plugin-commonjs": "^24.0.1",
+    "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.1.0",
     "@types/chai": "^4.3.5",
     "@types/mocha": "^10.0.1",
     "@waku/build-utils": "*",
-    "@waku/interfaces": "0.0.17",
+    "@waku/interfaces": "0.0.18",
     "chai": "^4.3.7",
     "cspell": "^7.3.2",
-    "karma": "^6.4.1",
+    "karma": "^6.4.2",
     "karma-chrome-launcher": "^3.2.0",
     "karma-mocha": "^2.0.1",
     "karma-webpack": "^5.0.0",
@@ -79,7 +79,7 @@
     "npm-run-all": "^4.1.5",
     "process": "^0.11.10",
     "puppeteer": "^21.1.1",
-    "rollup": "^3.28.0",
+    "rollup": "^3.29.2",
     "uint8arrays": "^4.0.4"
   },
   "files": [

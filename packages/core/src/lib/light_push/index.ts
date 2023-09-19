@@ -5,7 +5,6 @@ import {
   IMessage,
   Libp2p,
   ProtocolCreateOptions,
-  ProtocolOptions,
   SendError,
   SendResult
 } from "@waku/interfaces";
@@ -42,6 +41,7 @@ type PreparePushMessageResult =
  */
 class LightPush extends BaseProtocol implements ILightPush {
   options: ProtocolCreateOptions;
+  private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components);
@@ -80,11 +80,7 @@ class LightPush extends BaseProtocol implements ILightPush {
     }
   }
 
-  async send(
-    encoder: IEncoder,
-    message: IMessage,
-    opts?: ProtocolOptions
-  ): Promise<SendResult> {
+  async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
     const { pubSubTopic = DefaultPubSubTopic } = this.options;
     const recipients: PeerId[] = [];
 
@@ -97,49 +93,70 @@ class LightPush extends BaseProtocol implements ILightPush {
     if (preparationError || !query) {
       return {
         recipients,
-        error: preparationError
+        errors: [preparationError]
       };
     }
 
-    let error: undefined | SendError = undefined;
-    const peer = await this.getPeer(opts?.peerId);
-    const stream = await this.getStream(peer);
+    const peers = await this.getPeers({
+      maxBootstrapPeers: 1,
+      numPeers: this.NUM_PEERS_PROTOCOL
+    });
 
-    try {
-      const res = await pipe(
-        [query.encode()],
-        lp.encode,
-        stream,
-        lp.decode,
-        async (source) => await all(source)
-      );
+    const promises = peers.map(async (peer) => {
+      let error: SendError | undefined;
+      const stream = await this.getStream(peer);
 
       try {
-        const bytes = new Uint8ArrayList();
-        res.forEach((chunk) => {
-          bytes.append(chunk);
-        });
+        const res = await pipe(
+          [query.encode()],
+          lp.encode,
+          stream,
+          lp.decode,
+          async (source) => await all(source)
+        );
+        try {
+          const bytes = new Uint8ArrayList();
+          res.forEach((chunk) => {
+            bytes.append(chunk);
+          });
 
-        const response = PushRpc.decode(bytes).response;
+          const response = PushRpc.decode(bytes).response;
 
-        if (response?.isSuccess) {
-          recipients.push(peer.id);
-        } else {
-          log("No response in PushRPC");
-          error = SendError.NO_RPC_RESPONSE;
+          if (response?.isSuccess) {
+            recipients.some((recipient) => recipient.equals(peer.id)) ||
+              recipients.push(peer.id);
+          } else {
+            log("No response in PushRPC");
+            error = SendError.NO_RPC_RESPONSE;
+          }
+        } catch (err) {
+          log("Failed to decode push reply", err);
+          error = SendError.DECODE_FAILED;
         }
       } catch (err) {
-        log("Failed to decode push reply", err);
-        error = SendError.DECODE_FAILED;
+        log("Failed to send waku light push request", err);
+        error = SendError.GENERIC_FAIL;
       }
-    } catch (err) {
-      log("Failed to send waku light push request", err);
-      error = SendError.GENERIC_FAIL;
-    }
+
+      return { recipients, error };
+    });
+
+    const results = await Promise.allSettled(promises);
+    const errors = results
+      .filter(
+        (
+          result
+        ): result is PromiseFulfilledResult<{
+          recipients: PeerId[];
+          error: SendError | undefined;
+        }> => result.status === "fulfilled"
+      )
+      .map((result) => result.value.error)
+      .filter((error) => error !== undefined) as SendError[];
 
     return {
       recipients,
-      error
+      errors
     };
   }
 }

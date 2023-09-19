@@ -382,13 +382,13 @@ describe("Waku Relay [node only]", () => {
         payload: generateRandomUint8Array(1 * MB + 65536)
       });
       expect(sendResult.recipients.length).to.eq(0);
-      expect(sendResult.error).to.eq(SendError.SIZE_TOO_BIG);
+      expect(sendResult.errors).to.include(SendError.SIZE_TOO_BIG);
 
       sendResult = await waku1.relay.send(TestEncoder, {
         payload: generateRandomUint8Array(2 * MB)
       });
       expect(sendResult.recipients.length).to.eq(0);
-      expect(sendResult.error).to.eq(SendError.SIZE_TOO_BIG);
+      expect(sendResult.errors).to.include(SendError.SIZE_TOO_BIG);
 
       const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
       expect(waku2ReceivedMsg?.payload?.length).to.eq(0);
@@ -411,6 +411,9 @@ describe("Waku Relay [node only]", () => {
 
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.Relay]);
+
+      // Nwaku subscribe to the default pubsub topic
+      await nwaku.ensureSubscriptions();
     });
 
     afterEach(async function () {

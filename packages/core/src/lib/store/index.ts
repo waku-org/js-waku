@@ -1,5 +1,4 @@
 import type { Stream } from "@libp2p/interface/connection";
-import type { PeerId } from "@libp2p/interface/peer-id";
 import { sha256 } from "@noble/hashes/sha256";
 import {
   Cursor,
@@ -41,10 +40,6 @@ export interface TimeFilter {
 
 export interface QueryOptions {
   /**
-   * The peer to query. If undefined, a pseudo-random peer is selected from the connected Waku Store peers.
-   */
-  peerId?: PeerId;
-  /**
    * The direction in which pages are retrieved:
    * - { @link PageDirection.BACKWARD }: Most recent page first.
    * - { @link PageDirection.FORWARD }: Oldest page first.
@@ -80,6 +75,7 @@ export interface QueryOptions {
  */
 class Store extends BaseProtocol implements IStore {
   options: ProtocolCreateOptions;
+  private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components);
@@ -246,12 +242,14 @@ class Store extends BaseProtocol implements IStore {
       { contentTopics, startTime, endTime }
     );
 
-    log("Querying history with the following options", {
-      ...options,
-      peerId: options?.peerId?.toString()
-    });
+    log("Querying history with the following options", options);
 
-    const peer = await this.getPeer(options?.peerId);
+    const peer = (
+      await this.getPeers({
+        numPeers: this.NUM_PEERS_PROTOCOL,
+        maxBootstrapPeers: 1
+      })
+    )[0];
 
     for await (const messages of paginate<T>(
       this.getStream.bind(this, peer),

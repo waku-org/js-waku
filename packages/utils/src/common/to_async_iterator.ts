@@ -3,7 +3,6 @@ import type {
   IDecodedMessage,
   IDecoder,
   IReceiver,
-  ProtocolOptions,
   Unsubscribe
 } from "@waku/interfaces";
 
@@ -31,7 +30,6 @@ const FRAME_RATE = 60;
 export async function toAsyncIterator<T extends IDecodedMessage>(
   receiver: IReceiver,
   decoder: IDecoder<T> | IDecoder<T>[],
-  options?: ProtocolOptions,
   iteratorOptions?: IteratorOptions
 ): Promise<IAsyncIterator<T>> {
   const iteratorDelay = iteratorOptions?.iteratorDelay ?? FRAME_RATE;
@@ -39,13 +37,9 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
   const messages: T[] = [];
 
   let unsubscribe: undefined | Unsubscribe;
-  unsubscribe = await receiver.subscribe(
-    decoder,
-    (message: T) => {
-      messages.push(message);
-    },
-    options
-  );
+  unsubscribe = await receiver.subscribe(decoder, (message: T) => {
+    messages.push(message);
+  });
 
   const isWithTimeout = Number.isInteger(iteratorOptions?.timeoutMs);
   const timeoutMs = iteratorOptions?.timeoutMs ?? 0;

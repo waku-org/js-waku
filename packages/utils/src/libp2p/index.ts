@@ -3,6 +3,8 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import debug from "debug";
 
+import { bytesToUtf8 } from "../bytes/index.js";
+
 const log = debug("waku:libp2p-utils");
 
 /**
@@ -14,6 +16,38 @@ export function selectRandomPeer(peers: Peer[]): Peer | undefined {
 
   const index = Math.round(Math.random() * (peers.length - 1));
   return peers[index];
+}
+
+/**
+ * Returns the peer with the lowest latency.
+ * @param peerStore - The Libp2p PeerStore
+ * @param peers - The list of peers to choose from
+ * @returns The peer with the lowest latency, or undefined if no peer could be reached
+ */
+export async function selectLowestLatencyPeer(
+  peerStore: PeerStore,
+  peers: Peer[]
+): Promise<Peer | undefined> {
+  if (peers.length === 0) return;
+
+  const results = await Promise.all(
+    peers.map(async (peer) => {
+      const pingBytes = (await peerStore.get(peer.id)).metadata.get("ping");
+      if (!pingBytes) return { peer, ping: Infinity };
+
+      const ping = Number(bytesToUtf8(pingBytes)) ?? Infinity;
+      return { peer, ping };
+    })
+  );
+
+  const lowestLatencyResult = results.sort((a, b) => a.ping - b.ping)[0];
+  if (!lowestLatencyResult) {
+    return undefined;
+  }
+
+  return lowestLatencyResult.ping !== Infinity
+    ? lowestLatencyResult.peer
+    : undefined;
 }
 
 /**
@@ -35,12 +69,18 @@ export async function getPeersForProtocol(
   return peers;
 }
 
+/**
+ * Returns a peer that supports the given protocol.
+ * If peerId is provided, the peer with that id is returned.
+ * Otherwise, the peer with the lowest latency is returned.
+ * If no peer is found from the above criteria, a random peer is returned.
+ */
 export async function selectPeerForProtocol(
   peerStore: PeerStore,
   protocols: string[],
   peerId?: PeerId
 ): Promise<{ peer: Peer; protocol: string }> {
-  let peer;
+  let peer: Peer | undefined;
   if (peerId) {
     peer = await peerStore.get(peerId);
     if (!peer) {
@@ -50,11 +90,13 @@ export async function selectPeerForProtocol(
     }
   } else {
     const peers = await getPeersForProtocol(peerStore, protocols);
-    peer = selectRandomPeer(peers);
+    peer = await selectLowestLatencyPeer(peerStore, peers);
     if (!peer) {
-      throw new Error(
-        `Failed to find known peer that registers protocols: ${protocols}`
-      );
+      peer = selectRandomPeer(peers);
+      if (!peer)
+        throw new Error(
+          `Failed to find known peer that registers protocols: ${protocols}`
+        );
     }
   }
 

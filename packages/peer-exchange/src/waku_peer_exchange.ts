@@ -23,14 +23,11 @@ const log = debug("waku:peer-exchange");
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
  */
 export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
-  multicodec: string;
-
   /**
    * @param components - libp2p components
    */
   constructor(components: Libp2pComponents) {
     super(PeerExchangeCodec, components);
-    this.multicodec = PeerExchangeCodec;
   }
 
   /**
