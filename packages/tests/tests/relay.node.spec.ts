@@ -411,6 +411,9 @@ describe("Waku Relay [node only]", () => {
 
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.Relay]);
+
+      // Nwaku subscribe to the default pubsub topic
+      await nwaku.ensureSubscriptions();
     });
 
     afterEach(async function () {
@@ -436,9 +439,6 @@ describe("Waku Relay [node only]", () => {
 
     it("Publishes to nwaku", async function () {
       this.timeout(30000);
-
-      // Nwaku subscribe to the default pubsub topic
-      await nwaku.sendSubscriptions();
 
       const messageText = "This is a message";
       await waku.relay.send(TestEncoder, { payload: utf8ToBytes(messageText) });

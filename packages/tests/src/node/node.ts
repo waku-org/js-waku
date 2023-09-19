@@ -209,7 +209,7 @@ export class NimGoNode {
     return this.rpcCall<RpcInfoResponse>("get_waku_v2_debug_v1_info", []);
   }
 
-  async sendSubscriptions(
+  async ensureSubscriptions(
     pubsubTopics: [string] = [DefaultPubSubTopic]
   ): Promise<boolean> {
     this.checkProcess();
