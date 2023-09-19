@@ -411,6 +411,9 @@ describe("Waku Relay [node only]", () => {
 
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.Relay]);
+
+      // Nwaku subscribe to the default pubsub topic
+      await nwaku.ensureSubscriptions();
     });
 
     afterEach(async function () {
