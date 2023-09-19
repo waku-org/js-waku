@@ -6,20 +6,20 @@ import { expect } from "chai";
 
 import {
   delay,
+  MessageCollector,
   NimGoNode,
+  tearDownNodes,
   TEST_STRING,
   TEST_TIMESTAMPS
 } from "../../src/index.js";
 
 import {
-  MessageCollector,
   messageText,
-  setupNodes,
-  tearDownNodes,
+  runNodes,
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./filter_test_utils.js";
+} from "./utils.js";
 
 describe("Waku Filter V2: FilterPush", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
@@ -29,17 +29,15 @@ describe("Waku Filter V2: FilterPush", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  this.afterEach(async function () {
-    tearDownNodes(nwaku, waku);
-  });
-
   this.beforeEach(async function () {
     this.timeout(15000);
-    const setup = await setupNodes(this);
-    nwaku = setup.nwaku;
-    waku = setup.waku;
-    subscription = setup.subscription;
-    messageCollector = setup.messageCollector;
+    [nwaku, waku] = await runNodes(this);
+    subscription = await waku.filter.createSubscription();
+    messageCollector = new MessageCollector(TestContentTopic);
+  });
+
+  this.afterEach(async function () {
+    tearDownNodes([nwaku], [waku]);
   });
 
   TEST_STRING.forEach((testItem) => {
@@ -50,8 +48,7 @@ describe("Waku Filter V2: FilterPush", function () {
       });
 
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
-      messageCollector.verifyReceivedMessage({
-        index: 0,
+      messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: testItem.value
       });
     });
@@ -72,8 +69,8 @@ describe("Waku Filter V2: FilterPush", function () {
       ]);
 
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
-      messageCollector.verifyReceivedMessage({
-        index: 0,
+      messageCollector.verifyReceivedMessage(0, {
+        expectedMessageText: messageText,
         checkTimestamp: false
       });
 
@@ -82,7 +79,7 @@ describe("Waku Filter V2: FilterPush", function () {
       if (testItem == undefined) {
         expect(timestamp).to.eq(undefined);
       }
-      if (timestamp !== undefined) {
+      if (timestamp !== undefined && timestamp instanceof Date) {
         expect(testItem?.toString()).to.contain(timestamp.getTime().toString());
       }
     });
@@ -219,7 +216,9 @@ describe("Waku Filter V2: FilterPush", function () {
     ]);
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
-    messageCollector.verifyReceivedMessage({ index: 0 });
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText
+    });
   });
 
   // Will be skipped until https://github.com/waku-org/js-waku/issues/1464 si done
@@ -245,12 +244,10 @@ describe("Waku Filter V2: FilterPush", function () {
 
     // Confirm both messages were received.
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
-    messageCollector.verifyReceivedMessage({
-      index: 0,
+    messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1"
     });
-    messageCollector.verifyReceivedMessage({
-      index: 1,
+    messageCollector.verifyReceivedMessage(1, {
       expectedMessageText: "M2"
     });
   });
@@ -270,12 +267,10 @@ describe("Waku Filter V2: FilterPush", function () {
 
     // Confirm both messages were received.
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
-    messageCollector.verifyReceivedMessage({
-      index: 0,
+    messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1"
     });
-    messageCollector.verifyReceivedMessage({
-      index: 1,
+    messageCollector.verifyReceivedMessage(1, {
       expectedMessageText: "M2"
     });
   });

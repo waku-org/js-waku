@@ -5,6 +5,7 @@ import { DefaultPubSubTopic } from "@waku/core";
 import { isDefined } from "@waku/utils";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import debug from "debug";
+import pRetry from "p-retry";
 import portfinder from "portfinder";
 
 import { existsAsync, mkdirAsync, openAsync } from "../async_fs.js";
@@ -162,6 +163,25 @@ export class NimGoNode {
       if (this.docker.container) await this.docker.stop();
       throw error;
     }
+  }
+
+  async startWithRetries(
+    args: Args,
+    options: {
+      retries: number;
+    }
+  ): Promise<void> {
+    await pRetry(
+      async () => {
+        try {
+          await this.start(args);
+        } catch (error) {
+          log("Nwaku node failed to start:", error);
+          throw error;
+        }
+      },
+      { retries: options.retries }
+    );
   }
 
   public async stop(): Promise<void> {
