@@ -28,6 +28,9 @@ describe("Waku Filter V2: Unsubscribe", function () {
     [nwaku, waku] = await runNodes(this);
     subscription = await waku.filter.createSubscription();
     messageCollector = new MessageCollector(TestContentTopic);
+
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.ensureSubscriptions();
   });
 
   this.afterEach(async function () {
