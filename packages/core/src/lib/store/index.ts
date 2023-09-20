@@ -6,7 +6,8 @@ import {
   IDecoder,
   IStore,
   Libp2p,
-  ProtocolCreateOptions
+  ProtocolCreateOptions,
+  PubSubTopic
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
 import { isDefined } from "@waku/utils";
@@ -74,12 +75,12 @@ export interface QueryOptions {
  * The Waku Store protocol can be used to retrieved historical messages.
  */
 class Store extends BaseProtocol implements IStore {
-  options: ProtocolCreateOptions;
+  private readonly pubSubTopics: PubSubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components);
-    this.options = options ?? {};
+    this.pubSubTopics = options?.pubSubTopics ?? [DefaultPubSubTopic];
   }
 
   /**
@@ -211,8 +212,6 @@ class Store extends BaseProtocol implements IStore {
     decoders: IDecoder<T>[],
     options?: QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
-
     let startTime, endTime;
 
     if (options?.timeFilter) {
@@ -220,44 +219,50 @@ class Store extends BaseProtocol implements IStore {
       endTime = options.timeFilter.endTime;
     }
 
-    const decodersAsMap = new Map();
-    decoders.forEach((dec) => {
-      if (decodersAsMap.has(dec.contentTopic)) {
-        throw new Error(
-          "API does not support different decoder per content topic"
-        );
+    const _pubSubTopics = decoders.map((decoder) => decoder.pubSubTopic);
+
+    for (const topic of _pubSubTopics) {
+      this.ensurePubsubTopicIsValid(topic, this.pubSubTopics);
+
+      const decodersAsMap = new Map();
+      decoders.forEach((dec) => {
+        if (decodersAsMap.has(dec.contentTopic)) {
+          throw new Error(
+            "API does not support different decoder per content topic"
+          );
+        }
+        decodersAsMap.set(dec.contentTopic, dec);
+      });
+
+      const contentTopics = decoders.map((dec) => dec.contentTopic);
+
+      const queryOpts = Object.assign(
+        {
+          pubSubTopic: topic,
+          pageDirection: PageDirection.BACKWARD,
+          pageSize: DefaultPageSize
+        },
+        options,
+        { contentTopics, startTime, endTime }
+      );
+
+      log("Querying history with the following options", options);
+
+      const peer = (
+        await this.getPeers({
+          numPeers: this.NUM_PEERS_PROTOCOL,
+          maxBootstrapPeers: 1
+        })
+      )[0];
+
+      for await (const messages of paginate<T>(
+        this.getStream.bind(this, peer),
+        queryOpts,
+        decodersAsMap,
+        options?.cursor
+      )) {
+        yield messages;
       }
-      decodersAsMap.set(dec.contentTopic, dec);
-    });
-
-    const contentTopics = decoders.map((dec) => dec.contentTopic);
-
-    const queryOpts = Object.assign(
-      {
-        pubSubTopic: pubSubTopic,
-        pageDirection: PageDirection.BACKWARD,
-        pageSize: DefaultPageSize
-      },
-      options,
-      { contentTopics, startTime, endTime }
-    );
-
-    log("Querying history with the following options", options);
-
-    const peer = (
-      await this.getPeers({
-        numPeers: this.NUM_PEERS_PROTOCOL,
-        maxBootstrapPeers: 1
-      })
-    )[0];
-
-    for await (const messages of paginate<T>(
-      this.getStream.bind(this, peer),
-      queryOpts,
-      decodersAsMap,
-      options?.cursor
-    )) {
-      yield messages;
     }
   }
 }

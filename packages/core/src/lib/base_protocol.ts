@@ -2,7 +2,11 @@ import type { Libp2p } from "@libp2p/interface";
 import type { Stream } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { Peer, PeerStore } from "@libp2p/interface/peer-store";
-import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
+import type {
+  IBaseProtocol,
+  Libp2pComponents,
+  PubSubTopic
+} from "@waku/interfaces";
 import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
 
 import { filterPeers } from "./filterPeers.js";
@@ -88,5 +92,16 @@ export class BaseProtocol implements IBaseProtocol {
 
     // Filter the peers based on the specified criteria
     return filterPeers(allPeersForProtocol, numPeers, maxBootstrapPeers);
+  }
+
+  protected ensurePubsubTopicIsValid(
+    pubsubTopic: PubSubTopic,
+    allowedTopics: PubSubTopic[]
+  ): void {
+    if (!allowedTopics.includes(pubsubTopic)) {
+      throw new Error(
+        `Pubsub topic ${pubsubTopic} is not supported by this protocol. Allowed topics are: ${allowedTopics}`
+      );
+    }
   }
 }
