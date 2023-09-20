@@ -219,22 +219,32 @@ class Store extends BaseProtocol implements IStore {
       endTime = options.timeFilter.endTime;
     }
 
-    const _pubSubTopics = decoders.map((decoder) => decoder.pubSubTopic);
+    const _pubSubTopics = new Set(
+      decoders.map((decoder) => decoder.pubSubTopic)
+    );
 
     for (const topic of _pubSubTopics) {
       this.ensurePubsubTopicIsValid(topic, this.pubSubTopics);
 
       const decodersAsMap = new Map();
-      decoders.forEach((dec) => {
-        if (decodersAsMap.has(dec.contentTopic)) {
-          throw new Error(
-            "API does not support different decoder per content topic"
-          );
-        }
-        decodersAsMap.set(dec.contentTopic, dec);
-      });
+      decoders
+        .filter((decoder) => decoder.pubSubTopic === topic)
+        .forEach((dec) => {
+          if (decodersAsMap.has(dec.contentTopic)) {
+            throw new Error(
+              "API does not support different decoder per content topic"
+            );
+          }
+          decodersAsMap.set(dec.contentTopic, dec);
+        });
 
-      const contentTopics = decoders.map((dec) => dec.contentTopic);
+      const contentTopics = decoders
+        .filter((decoder) => decoder.pubSubTopic === topic)
+        .map((dec) => dec.contentTopic);
+
+      if (contentTopics.length === 0) {
+        throw new Error("No decoders found for topic " + topic);
+      }
 
       const queryOpts = Object.assign(
         {
