@@ -22,18 +22,22 @@ export interface IBaseProtocol {
 
 export type ProtocolCreateOptions = {
   /**
-   * The PubSub Topic to use. Defaults to {@link @waku/core.DefaultPubSubTopic }.
+   * Waku supports usage of multiple pubsub topics, but this is still in early stages.
+   * Waku implements sharding to achieve scalability
+   * The format of the sharded topic is `/waku/2/rs/<shard_cluster_index>/<shard_number>`
+   * To learn more about the sharding specifications implemented, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
    *
-   * One and only one pubsub topic is used by Waku. This is used by:
+   * If no pubsub topic is specified, the default pubsub topic is used.
+   * The set of pubsub topics that are used to initialise the Waku node, will need to be used by the protocols as well
+   * You cannot currently add or remove pubsub topics after initialisation.
+   * This is used by:
    * - WakuRelay to receive, route and send messages,
    * - WakuLightPush to send messages,
    * - WakuStore to retrieve messages.
-   *
-   * The usage of the default pubsub topic is recommended.
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
    */
-  pubSubTopic?: string;
+  pubSubTopics?: string[];
   /**
    * You can pass options to the `Libp2p` instance used by {@link @waku/core.WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
@@ -63,7 +67,8 @@ export enum SendError {
   ENCODE_FAILED = "Failed to encode",
   DECODE_FAILED = "Failed to decode",
   SIZE_TOO_BIG = "Size is too big",
-  NO_RPC_RESPONSE = "No RPC response"
+  NO_RPC_RESPONSE = "No RPC response",
+  TOPIC_NOT_SUBSCRIBED = "Topic not subscribed"
 }
 
 export interface SendResult {
