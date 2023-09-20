@@ -7,7 +7,7 @@ import { expect } from "chai";
 import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
-describe("Wait for remote peer", function () {
+describe.only("Wait for remote peer", function () {
   let waku1: RelayNode;
   let waku2: LightNode;
   let nwaku: NimGoNode | undefined;
@@ -39,7 +39,7 @@ describe("Wait for remote peer", function () {
     await waku1.dial(multiAddrWithId);
     await delay(1000);
     await waitForRemotePeer(waku1, [Protocols.Relay]);
-    const peers = waku1.relay.getMeshPeers();
+    const peers = Array.from(waku1.relay.getMeshPeers().values()).flat();
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -67,7 +67,7 @@ describe("Wait for remote peer", function () {
     await waku1.dial(multiAddrWithId);
     await waitPromise;
 
-    const peers = waku1.relay.getMeshPeers();
+    const peers = Array.from(waku1.relay.getMeshPeers().values()).flat();
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -262,7 +262,7 @@ describe("Wait for remote peer", function () {
     await waku1.dial(multiAddrWithId);
     await waitForRemotePeer(waku1);
 
-    const peers = waku1.relay.getMeshPeers();
+    const peers = Array.from(waku1.relay.getMeshPeers().values()).flat();
 
     const nimPeerId = multiAddrWithId.getPeerId();
 

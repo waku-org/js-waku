@@ -1,15 +1,11 @@
+import { createEncoder } from "@waku/core";
 import { LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index.js";
 
-import {
-  messageText,
-  runNodes,
-  TestContentTopic,
-  TestEncoder
-} from "./utils.js";
+import { messageText, runNodes, TestContentTopic } from "./utils.js";
 
 describe("Waku Light Push [node only] - custom pubsub topic", function () {
   this.timeout(15000);
@@ -34,7 +30,12 @@ describe("Waku Light Push [node only] - custom pubsub topic", function () {
   it("Push message", async function () {
     const nimPeerId = await nwaku.getPeerId();
 
-    const pushResponse = await waku.lightPush.send(TestEncoder, {
+    const testEncoder = createEncoder({
+      contentTopic: TestContentTopic,
+      pubSubTopic: customPubSubTopic
+    });
+
+    const pushResponse = await waku.lightPush.send(testEncoder, {
       payload: utf8ToBytes(messageText)
     });
 
