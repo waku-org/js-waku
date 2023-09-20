@@ -63,7 +63,8 @@ export enum SendError {
   ENCODE_FAILED = "Failed to encode",
   DECODE_FAILED = "Failed to decode",
   SIZE_TOO_BIG = "Size is too big",
-  NO_RPC_RESPONSE = "No RPC response"
+  NO_PEER_AVAILABLE = "No peer available",
+  REMOTE_PEER_FAULT = "Remote peer fault"
 }
 
 export interface SendResult {

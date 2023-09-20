@@ -1,3 +1,4 @@
+import type { Stream } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import {
   IEncoder,
@@ -102,9 +103,24 @@ class LightPush extends BaseProtocol implements ILightPush {
       numPeers: this.NUM_PEERS_PROTOCOL
     });
 
+    if (!peers.length) {
+      return {
+        recipients,
+        errors: [SendError.NO_PEER_AVAILABLE]
+      };
+    }
+
     const promises = peers.map(async (peer) => {
       let error: SendError | undefined;
-      const stream = await this.getStream(peer);
+
+      let stream: Stream | undefined;
+      try {
+        stream = await this.getStream(peer);
+      } catch (err) {
+        log(`Failed to get a stream for remote peer${peer.id.toString()}`, err);
+        error = SendError.REMOTE_PEER_FAULT;
+        return { recipients, error };
+      }
 
       try {
         const res = await pipe(
@@ -126,8 +142,8 @@ class LightPush extends BaseProtocol implements ILightPush {
             recipients.some((recipient) => recipient.equals(peer.id)) ||
               recipients.push(peer.id);
           } else {
-            log("No response in PushRPC");
-            error = SendError.NO_RPC_RESPONSE;
+            log("Remote peer fault: No response in PushRPC");
+            error = SendError.REMOTE_PEER_FAULT;
           }
         } catch (err) {
           log("Failed to decode push reply", err);
