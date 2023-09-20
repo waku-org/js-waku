@@ -34,6 +34,8 @@ describe("Waku Light Push [node only]", function () {
       nwaku,
       DefaultPubSubTopic
     );
+
+    await nwaku.ensureSubscriptions();
   });
 
   this.afterEach(async function () {
