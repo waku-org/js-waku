@@ -7,7 +7,7 @@ import { expect } from "chai";
 import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
-describe.only("Wait for remote peer", function () {
+describe("Wait for remote peer", function () {
   let waku1: RelayNode;
   let waku2: LightNode;
   let nwaku: NimGoNode | undefined;

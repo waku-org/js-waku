@@ -28,8 +28,8 @@ export type ProtocolCreateOptions = {
    * To learn more about the sharding specifications implemented, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
    *
    * If no pubsub topic is specified, the default pubsub topic is used.
-   * The set of pubsub topics that are used to initialise the Waku node, will need to be used by the protocols as well
-   * You cannot currently add or remove pubsub topics after initialisation.
+   * The set of pubsub topics that are used to initialize the Waku node, will need to be used by the protocols as well
+   * You cannot currently add or remove pubsub topics after initialization.
    * This is used by:
    * - WakuRelay to receive, route and send messages,
    * - WakuLightPush to send messages,
