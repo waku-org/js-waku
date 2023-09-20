@@ -21,6 +21,7 @@ import {
   IRelay,
   Libp2p,
   ProtocolCreateOptions,
+  PubSubTopic,
   SendError,
   SendResult
 } from "@waku/interfaces";
@@ -34,6 +35,7 @@ import { TopicOnlyDecoder } from "./topic_only_message.js";
 const log = debug("waku:relay");
 
 export type Observer<T extends IDecodedMessage> = {
+  pubsubTopic: PubSubTopic;
   decoder: IDecoder<T>;
   callback: Callback<T>;
 };
@@ -46,7 +48,7 @@ export type ContentTopic = string;
  * Throws if libp2p.pubsub does not support Waku Relay
  */
 class Relay implements IRelay {
-  private readonly pubSubTopic: string;
+  readonly pubSubTopics: Set<string>;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
   public static multicodec: string = RelayCodecs[0];
@@ -56,7 +58,7 @@ class Relay implements IRelay {
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  private observers: Map<ContentTopic, Set<unknown>>;
+  private observers: Map<PubSubTopic, Map<ContentTopic, Set<unknown>>>;
 
   constructor(libp2p: Libp2p, options?: Partial<RelayCreateOptions>) {
     if (!this.isRelayPubSub(libp2p.services.pubsub)) {
@@ -66,21 +68,22 @@ class Relay implements IRelay {
     }
 
     this.gossipSub = libp2p.services.pubsub as GossipSub;
-    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+    this.pubSubTopics = new Set(options?.pubSubTopics ?? [DefaultPubSubTopic]);
 
     if (this.gossipSub.isStarted()) {
-      this.gossipSubSubscribe(this.pubSubTopic);
+      this.subscribeToAllTopics();
     }
 
     this.observers = new Map();
 
+    // Default PubSubTopic decoder
     // TODO: User might want to decide what decoder should be used (e.g. for RLN)
     this.defaultDecoder = new TopicOnlyDecoder();
   }
 
   /**
    * Mounts the gossipsub protocol onto the libp2p node
-   * and subscribes to the default topic.
+   * and subscribes to all the topics.
    *
    * @override
    * @returns {void}
@@ -91,7 +94,7 @@ class Relay implements IRelay {
     }
 
     await this.gossipSub.start();
-    this.gossipSubSubscribe(this.pubSubTopic);
+    this.subscribeToAllTopics();
   }
 
   /**
@@ -99,6 +102,16 @@ class Relay implements IRelay {
    */
   public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
     const recipients: PeerId[] = [];
+
+    const { pubSubTopic } = encoder;
+    if (!this.pubSubTopics.has(pubSubTopic)) {
+      log("Failed to send waku relay: topic not subscribed");
+      return {
+        recipients,
+        errors: [SendError.TOPIC_NOT_SUBSCRIBED]
+      };
+    }
+
     if (!isSizeValid(message.payload)) {
       log("Failed to send waku relay: message is bigger that 1MB");
       return {
@@ -116,45 +129,72 @@ class Relay implements IRelay {
       };
     }
 
-    return this.gossipSub.publish(this.pubSubTopic, msg);
+    return await this.gossipSub.publish(pubSubTopic, msg);
   }
 
-  /**
-   * Add an observer and associated Decoder to process incoming messages on a given content topic.
-   *
-   * @returns Function to delete the observer
-   */
   public subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
-    const contentTopicToObservers = Array.isArray(decoders)
-      ? toObservers(decoders, callback)
-      : toObservers([decoders], callback);
+    const pubSubTopicToContentObservers = Array.isArray(decoders)
+      ? toObservers(Array.from(this.pubSubTopics), decoders, callback)
+      : toObservers(Array.from(this.pubSubTopics), [decoders], callback);
 
-    for (const contentTopic of contentTopicToObservers.keys()) {
-      const currObservers = this.observers.get(contentTopic) || new Set();
-      const newObservers =
-        contentTopicToObservers.get(contentTopic) || new Set();
+    for (const [
+      pubSubTopic,
+      contentTopicToObservers
+    ] of pubSubTopicToContentObservers.entries()) {
+      const existingContentObservers =
+        this.observers.get(pubSubTopic) ||
+        new Map<ContentTopic, Set<Observer<T>>>();
 
-      this.observers.set(contentTopic, union(currObservers, newObservers));
+      for (const [
+        contentTopic,
+        newObservers
+      ] of contentTopicToObservers.entries()) {
+        const currObservers =
+          existingContentObservers.get(contentTopic) || new Set<Observer<T>>();
+        existingContentObservers.set(
+          contentTopic,
+          union(currObservers, newObservers)
+        );
+      }
+
+      this.observers.set(pubSubTopic, existingContentObservers);
     }
 
     return () => {
-      for (const contentTopic of contentTopicToObservers.keys()) {
-        const currentObservers = this.observers.get(contentTopic) || new Set();
-        const observersToRemove =
-          contentTopicToObservers.get(contentTopic) || new Set();
+      for (const [
+        pubSubTopic,
+        contentTopicToObservers
+      ] of pubSubTopicToContentObservers.entries()) {
+        const existingContentObservers = this.observers.get(pubSubTopic);
 
-        const nextObservers = leftMinusJoin(
-          currentObservers,
-          observersToRemove
-        );
+        if (existingContentObservers) {
+          for (const [
+            contentTopic,
+            observersToRemove
+          ] of contentTopicToObservers.entries()) {
+            const currentObservers =
+              existingContentObservers.get(contentTopic) ||
+              new Set<Observer<T>>();
+            const nextObservers = leftMinusJoin(
+              currentObservers,
+              observersToRemove
+            );
 
-        if (nextObservers.size) {
-          this.observers.set(contentTopic, nextObservers);
-        } else {
-          this.observers.delete(contentTopic);
+            if (nextObservers.size) {
+              existingContentObservers.set(contentTopic, nextObservers);
+            } else {
+              existingContentObservers.delete(contentTopic);
+            }
+          }
+
+          if (existingContentObservers.size) {
+            this.observers.set(pubSubTopic, existingContentObservers);
+          } else {
+            this.observers.delete(pubSubTopic);
+          }
         }
       }
     };
@@ -168,12 +208,28 @@ class Relay implements IRelay {
 
   public getActiveSubscriptions(): ActiveSubscriptions {
     const map = new Map();
-    map.set(this.pubSubTopic, this.observers.keys());
+    for (const pubSubTopic of this.pubSubTopics) {
+      map.set(pubSubTopic, Array.from(this.observers.keys()));
+    }
     return map;
   }
 
-  public getMeshPeers(topic?: TopicStr): PeerIdStr[] {
-    return this.gossipSub.getMeshPeers(topic ?? this.pubSubTopic);
+  /**
+   * Returns mesh peers for all topics.
+   * @returns Map of topic to peer ids
+   */
+  public getMeshPeers(): Map<TopicStr, PeerIdStr[]> {
+    const map = new Map();
+    for (const topic of this.pubSubTopics) {
+      map.set(topic, this.gossipSub.mesh.get(topic));
+    }
+    return map;
+  }
+
+  private subscribeToAllTopics(): void {
+    for (const pubSubTopic of this.pubSubTopics) {
+      this.gossipSubSubscribe(pubSubTopic);
+    }
   }
 
   private async processIncomingMessage<T extends IDecodedMessage>(
@@ -186,12 +242,20 @@ class Relay implements IRelay {
       return;
     }
 
-    const observers = this.observers.get(topicOnlyMsg.contentTopic) as Set<
+    // Retrieve the map of content topics for the given pubSubTopic
+    const contentTopicMap = this.observers.get(pubSubTopic);
+    if (!contentTopicMap) {
+      return;
+    }
+
+    // Retrieve the set of observers for the given contentTopic
+    const observers = contentTopicMap.get(topicOnlyMsg.contentTopic) as Set<
       Observer<T>
     >;
     if (!observers) {
       return;
     }
+
     await Promise.all(
       Array.from(observers).map(({ decoder, callback }) => {
         return (async () => {
@@ -269,30 +333,51 @@ export function wakuGossipSub(
 }
 
 function toObservers<T extends IDecodedMessage>(
+  allPubSubTopics: PubSubTopic[],
   decoders: IDecoder<T>[],
   callback: Callback<T>
-): Map<ContentTopic, Set<Observer<T>>> {
-  const contentTopicToDecoders = Array.from(
-    groupByContentTopic(decoders).entries()
-  );
+): Map<PubSubTopic, Map<ContentTopic, Set<Observer<T>>>> {
+  for (const decoder of decoders) {
+    if (!allPubSubTopics.includes(decoder.pubSubTopic)) {
+      throw new Error(
+        `Pubsub topic ${decoder.pubSubTopic} is not supported by this protocol. Allowed topics are: ${allPubSubTopics}`
+      );
+    }
+  }
 
-  const contentTopicToObserversEntries = contentTopicToDecoders.map(
-    ([contentTopic, decoders]) =>
-      [
-        contentTopic,
-        new Set(
-          decoders.map(
-            (decoder) =>
-              ({
-                decoder,
-                callback
-              }) as Observer<T>
-          )
-        )
-      ] as [ContentTopic, Set<Observer<T>>]
-  );
+  const finalMap = new Map<PubSubTopic, Map<ContentTopic, Set<Observer<T>>>>();
 
-  return new Map(contentTopicToObserversEntries);
+  for (const pubSubTopic of allPubSubTopics) {
+    // Filter decoders that match the current pubSubTopic
+    const filteredDecoders = decoders.filter(
+      (decoder) => decoder.pubSubTopic === pubSubTopic
+    );
+
+    // Group these decoders by ContentTopic
+    const contentTopicToDecoders = Array.from(
+      groupByContentTopic(filteredDecoders).entries()
+    );
+
+    const contentTopicToObserversMap = new Map<
+      ContentTopic,
+      Set<Observer<T>>
+    >();
+
+    for (const [contentTopic, topicDecoders] of contentTopicToDecoders) {
+      const observersSet = new Set<Observer<T>>(
+        topicDecoders.map((decoder) => ({
+          decoder,
+          callback
+        })) as Observer<T>[]
+      );
+      contentTopicToObserversMap.set(contentTopic, observersSet);
+    }
+
+    // Set the result in the final map
+    finalMap.set(pubSubTopic, contentTopicToObserversMap);
+  }
+
+  return finalMap;
 }
 
 function union(left: Set<unknown>, right: Set<unknown>): Set<unknown> {
