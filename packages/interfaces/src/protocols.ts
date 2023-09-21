@@ -3,7 +3,7 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { Libp2pOptions } from "libp2p";
 
-import type { IDecodedMessage } from "./message.js";
+import type { IDecodedMessage } from "./message";
 
 export enum Protocols {
   Relay = "relay",

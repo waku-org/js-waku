@@ -3,8 +3,8 @@ import type { ENRKey, ENRValue } from "@waku/interfaces";
 import { hexToBytes, utf8ToBytes } from "@waku/utils/bytes";
 import { toString } from "uint8arrays/to-string";
 
-import { ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants.js";
-import { ENR } from "./enr.js";
+import { ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants";
+import { ENR } from "./enr";
 
 export class EnrEncoder {
   static async toValues(

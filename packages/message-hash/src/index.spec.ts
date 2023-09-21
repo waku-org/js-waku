@@ -2,7 +2,7 @@ import type { IProtoMessage } from "@waku/interfaces";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { messageHash } from "./index.js";
+import { messageHash } from "./index";
 
 // https://rfc.vac.dev/spec/14/#test-vectors
 describe("RFC Test Vectors", () => {

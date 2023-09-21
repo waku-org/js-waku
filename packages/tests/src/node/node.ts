@@ -8,18 +8,18 @@ import debug from "debug";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
 
-import { existsAsync, mkdirAsync, openAsync } from "../async_fs.js";
-import { delay } from "../delay.js";
-import waitForLine from "../log_file.js";
+import { existsAsync, mkdirAsync, openAsync } from "../async_fs";
+import { delay } from "../delay";
+import waitForLine from "../log_file";
 
-import Dockerode from "./dockerode.js";
+import Dockerode from "./dockerode";
 import {
   Args,
   KeyPair,
   LogLevel,
   MessageRpcQuery,
   MessageRpcResponse
-} from "./interfaces.js";
+} from "./interfaces";
 
 const log = debug("waku:node");
 

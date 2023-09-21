@@ -1,8 +1,8 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 
-import { IReceiver } from "./receiver.js";
-import type { ISender } from "./sender.js";
+import { IReceiver } from "./receiver";
+import type { ISender } from "./sender";
 
 /**
  * Interface representing the Relay API, providing control and information about the GossipSub protocol.

@@ -4,7 +4,7 @@ import * as secp from "@noble/secp256k1";
 import { concat } from "@waku/utils/bytes";
 import sha3 from "js-sha3";
 
-import { Asymmetric, Symmetric } from "../constants.js";
+import { Asymmetric, Symmetric } from "../constants";
 
 declare const self: Record<string, any> | undefined;
 const crypto: { node?: any; web?: any } = {

@@ -23,14 +23,14 @@ import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
-import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
+import { BaseProtocol } from "../base_protocol";
+import { DefaultPubSubTopic } from "../constants";
 
 import {
   FilterPushRpc,
   FilterSubscribeResponse,
   FilterSubscribeRpc
-} from "./filter_rpc.js";
+} from "./filter_rpc";
 
 const log = debug("waku:filter:v2");
 

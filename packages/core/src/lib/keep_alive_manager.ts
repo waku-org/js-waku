@@ -6,7 +6,7 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 import type { PingService } from "libp2p/ping";
 
-import { createEncoder } from "./message/version_0.js";
+import { createEncoder } from "./message/version_0";
 
 export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 const log = debug("waku:keep-alive");

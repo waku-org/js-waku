@@ -2,8 +2,8 @@ import { IProtoMessage } from "@waku/interfaces";
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { getPublicKey } from "./crypto/index.js";
-import { createDecoder, createEncoder } from "./ecies.js";
+import { getPublicKey } from "./crypto/index";
+import { createDecoder, createEncoder } from "./ecies";
 
 describe("Ecies Encryption", function () {
   it("Round trip binary encryption [ecies, no signature]", async function () {

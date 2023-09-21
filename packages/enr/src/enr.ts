@@ -10,12 +10,12 @@ import type {
 } from "@waku/interfaces";
 import debug from "debug";
 
-import { ERR_INVALID_ID } from "./constants.js";
-import { keccak256, verifySignature } from "./crypto.js";
-import { locationMultiaddrFromEnrFields } from "./get_multiaddr.js";
-import { createPeerIdFromPublicKey } from "./peer_id.js";
-import { RawEnr } from "./raw_enr.js";
-import * as v4 from "./v4.js";
+import { ERR_INVALID_ID } from "./constants";
+import { keccak256, verifySignature } from "./crypto";
+import { locationMultiaddrFromEnrFields } from "./get_multiaddr";
+import { createPeerIdFromPublicKey } from "./peer_id";
+import { RawEnr } from "./raw_enr";
+import * as v4 from "./v4";
 
 const log = debug("waku:enr");
 

@@ -7,16 +7,12 @@ import { bytesToHex, hexToBytes, utf8ToBytes } from "@waku/utils/bytes";
 import { assert, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
-import { ERR_INVALID_ID } from "./constants.js";
-import { EnrCreator } from "./creator.js";
-import { EnrDecoder } from "./decoder.js";
-import { EnrEncoder } from "./encoder.js";
-import {
-  ENR,
-  TransportProtocol,
-  TransportProtocolPerIpVersion
-} from "./enr.js";
-import { getPrivateKeyFromPeerId } from "./peer_id.js";
+import { ERR_INVALID_ID } from "./constants";
+import { EnrCreator } from "./creator";
+import { EnrDecoder } from "./decoder";
+import { EnrEncoder } from "./encoder";
+import { ENR, TransportProtocol, TransportProtocolPerIpVersion } from "./enr";
+import { getPrivateKeyFromPeerId } from "./peer_id";
 
 describe("ENR", function () {
   describe("Txt codec", () => {

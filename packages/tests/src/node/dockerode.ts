@@ -3,7 +3,7 @@ import fs from "fs";
 import debug from "debug";
 import Docker from "dockerode";
 
-import { Args } from "./interfaces.js";
+import { Args } from "./interfaces";
 
 const log = debug("waku:docker");
 

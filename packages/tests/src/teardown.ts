@@ -1,7 +1,7 @@
 import { LightNode } from "@waku/interfaces";
 import debug from "debug";
 
-import { NimGoNode } from "./index.js";
+import { NimGoNode } from "./index";
 
 const log = debug("waku:test");
 

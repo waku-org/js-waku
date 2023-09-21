@@ -1,4 +1,4 @@
-import type { IDecodedMessage } from "./message.js";
+import type { IDecodedMessage } from "./message";
 
 export interface IAsyncIterator<T extends IDecodedMessage> {
   iterator: AsyncIterator<T>;

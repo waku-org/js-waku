@@ -4,8 +4,8 @@ import { Protocols } from "@waku/interfaces";
 import { createLightNode, createRelayNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
+import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index";
+import { NimGoNode } from "../src/node/node";
 
 describe("Wait for remote peer", function () {
   let waku1: RelayNode;

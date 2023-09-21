@@ -8,7 +8,7 @@
 import fs, { promises as asyncFs } from "fs";
 import { promisify } from "util";
 
-import { delay } from "./delay.js";
+import { delay } from "./delay";
 
 export const existsAsync = (filepath: string): Promise<void> =>
   asyncFs.access(filepath, fs.constants.F_OK);

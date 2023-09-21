@@ -1,9 +1,9 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 
-import type { IDecodedMessage, IDecoder } from "./message.js";
-import type { ContentTopic } from "./misc.js";
-import type { Callback, IBaseProtocol } from "./protocols.js";
-import type { IReceiver } from "./receiver.js";
+import type { IDecodedMessage, IDecoder } from "./message";
+import type { ContentTopic } from "./misc";
+import type { Callback, IBaseProtocol } from "./protocols";
+import type { IReceiver } from "./receiver";
 
 export type ContentFilter = {
   contentTopic: string;

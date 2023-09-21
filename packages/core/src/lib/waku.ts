@@ -12,7 +12,7 @@ import type {
 import { Protocols } from "@waku/interfaces";
 import debug from "debug";
 
-import { ConnectionManager } from "./connection_manager.js";
+import { ConnectionManager } from "./connection_manager";
 
 export const DefaultPingKeepAliveValueSecs = 0;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;

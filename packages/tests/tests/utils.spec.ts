@@ -17,8 +17,8 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 
-import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
+import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index";
+import { NimGoNode } from "../src/node/node";
 
 chai.use(chaiAsPromised);
 

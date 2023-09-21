@@ -3,7 +3,7 @@ import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index.js";
+import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index";
 
 import {
   generateTestData,
@@ -13,7 +13,7 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./utils.js";
+} from "./utils";
 
 describe("Waku Filter V2: Unsubscribe", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level

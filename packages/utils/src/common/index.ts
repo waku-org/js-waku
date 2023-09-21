@@ -1,8 +1,8 @@
-export * from "./is_defined.js";
-export * from "./random_subset.js";
-export * from "./group_by.js";
-export * from "./to_async_iterator.js";
-export * from "./is_size_valid.js";
+export * from "./is_defined";
+export * from "./random_subset";
+export * from "./group_by";
+export * from "./to_async_iterator";
+export * from "./is_size_valid";
 
 export function removeItemFromArray(arr: unknown[], value: unknown): unknown[] {
   const index = arr.indexOf(value);

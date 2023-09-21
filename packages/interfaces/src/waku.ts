@@ -2,13 +2,13 @@ import type { Stream } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Multiaddr } from "@multiformats/multiaddr";
 
-import { IConnectionManager } from "./connection_manager.js";
-import type { IFilter } from "./filter.js";
-import type { Libp2p } from "./libp2p.js";
-import type { ILightPush } from "./light_push.js";
-import { Protocols } from "./protocols.js";
-import type { IRelay } from "./relay.js";
-import type { IStore } from "./store.js";
+import { IConnectionManager } from "./connection_manager";
+import type { IFilter } from "./filter";
+import type { Libp2p } from "./libp2p";
+import type { ILightPush } from "./light_push";
+import { Protocols } from "./protocols";
+import type { IRelay } from "./relay";
+import type { IStore } from "./store";
 
 export interface Waku {
   libp2p: Libp2p;

@@ -17,10 +17,10 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
+import { BaseProtocol } from "../base_protocol";
+import { DefaultPubSubTopic } from "../constants";
 
-import { PushRpc } from "./push_rpc.js";
+import { PushRpc } from "./push_rpc";
 
 const log = debug("waku:light-push");
 

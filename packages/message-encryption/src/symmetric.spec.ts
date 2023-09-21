@@ -2,8 +2,8 @@ import { IProtoMessage } from "@waku/interfaces";
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { getPublicKey } from "./crypto/index.js";
-import { createDecoder, createEncoder } from "./symmetric.js";
+import { getPublicKey } from "./crypto/index";
+import { createDecoder, createEncoder } from "./symmetric";
 
 describe("Symmetric Encryption", function () {
   it("Round trip binary encryption [symmetric, no signature]", async function () {

@@ -2,9 +2,9 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { ENRKey, ENRValue } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 
-import { compressPublicKey } from "./crypto.js";
-import { ENR } from "./enr.js";
-import { getPublicKeyFromPeerId } from "./peer_id.js";
+import { compressPublicKey } from "./crypto";
+import { ENR } from "./enr";
+import { getPublicKeyFromPeerId } from "./peer_id";
 
 export class EnrCreator {
   static fromPublicKey(

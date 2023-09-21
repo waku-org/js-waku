@@ -2,16 +2,16 @@ import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey
-} from "./crypto/index.js";
-import { DecodedMessage } from "./decoded_message.js";
+} from "./crypto/index";
+import { DecodedMessage } from "./decoded_message";
 
 export const OneMillion = BigInt(1_000_000);
 
 export { generatePrivateKey, generateSymmetricKey, getPublicKey };
 export type { DecodedMessage };
 
-export * as ecies from "./ecies.js";
-export * as symmetric from "./symmetric.js";
+export * as ecies from "./ecies";
+export * as symmetric from "./symmetric";
 
 export const Version = 1;
 

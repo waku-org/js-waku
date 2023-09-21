@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { getPublicKey } from "./crypto/index.js";
+import { getPublicKey } from "./crypto/index";
 import {
   decryptAsymmetric,
   decryptSymmetric,
@@ -9,7 +9,7 @@ import {
   encryptSymmetric,
   postCipher,
   preCipher
-} from "./waku_payload.js";
+} from "./waku_payload";
 
 describe("Waku Payload", () => {
   it("Asymmetric encrypt & decrypt", async function () {

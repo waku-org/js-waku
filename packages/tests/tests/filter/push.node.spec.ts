@@ -11,7 +11,7 @@ import {
   tearDownNodes,
   TEST_STRING,
   TEST_TIMESTAMPS
-} from "../../src/index.js";
+} from "../../src/index";
 
 import {
   messageText,
@@ -19,7 +19,7 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./utils.js";
+} from "./utils";
 
 describe("Waku Filter V2: FilterPush", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level

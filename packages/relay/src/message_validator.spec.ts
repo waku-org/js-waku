@@ -5,7 +5,7 @@ import { createEncoder } from "@waku/core";
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { messageValidator } from "./message_validator.js";
+import { messageValidator } from "./message_validator";
 
 describe("Message Validator", () => {
   it("Accepts a valid Waku Message", async () => {

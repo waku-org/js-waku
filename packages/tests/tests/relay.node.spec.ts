@@ -30,10 +30,10 @@ import {
   NOISE_KEY_1,
   NOISE_KEY_2,
   NOISE_KEY_3
-} from "../src/index.js";
-import { MessageRpcResponse } from "../src/node/interfaces.js";
-import { base64ToUtf8, NimGoNode } from "../src/node/node.js";
-import { generateRandomUint8Array } from "../src/random_array.js";
+} from "../src/index";
+import { MessageRpcResponse } from "../src/node/interfaces";
+import { base64ToUtf8, NimGoNode } from "../src/node/node";
+import { generateRandomUint8Array } from "../src/random_array";
 
 const log = debug("waku:test");
 

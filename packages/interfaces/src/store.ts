@@ -1,5 +1,5 @@
-import type { IDecodedMessage, IDecoder } from "./message.js";
-import type { IBaseProtocol } from "./protocols.js";
+import type { IDecodedMessage, IDecoder } from "./message";
+import type { IBaseProtocol } from "./protocols";
 
 export enum PageDirection {
   BACKWARD = "backward",

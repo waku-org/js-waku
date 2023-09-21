@@ -16,7 +16,7 @@ import {
   NimGoNode,
   tearDownNodes,
   TEST_STRING
-} from "../../src/index.js";
+} from "../../src/index";
 
 import {
   generateTestData,
@@ -26,7 +26,7 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./utils.js";
+} from "./utils";
 
 describe("Waku Filter V2: Subscribe", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level

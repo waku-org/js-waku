@@ -8,8 +8,8 @@ import {
   NimGoNode,
   tearDownNodes,
   TEST_STRING
-} from "../../src/index.js";
-import { generateRandomUint8Array } from "../../src/random_array.js";
+} from "../../src/index";
+import { generateRandomUint8Array } from "../../src/random_array";
 
 import {
   messagePayload,
@@ -17,7 +17,7 @@ import {
   runNodes,
   TestContentTopic,
   TestEncoder
-} from "./utils.js";
+} from "./utils";
 
 describe("Waku Light Push [node only]", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level

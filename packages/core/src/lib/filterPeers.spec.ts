@@ -4,7 +4,7 @@ import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { Tags } from "@waku/interfaces";
 import { expect } from "chai";
 
-import { filterPeers } from "./filterPeers.js";
+import { filterPeers } from "./filterPeers";
 
 describe("filterPeers function", function () {
   it("should return all peers when numPeers is 0", async function () {

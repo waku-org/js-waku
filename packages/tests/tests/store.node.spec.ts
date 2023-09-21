@@ -24,13 +24,8 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import debug from "debug";
 
-import {
-  delay,
-  makeLogFileName,
-  NOISE_KEY_1,
-  NOISE_KEY_2
-} from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
+import { delay, makeLogFileName, NOISE_KEY_1, NOISE_KEY_2 } from "../src/index";
+import { NimGoNode } from "../src/node/node";
 
 const log = debug("waku:test:store");
 

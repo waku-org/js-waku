@@ -17,11 +17,11 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
-import { toProtoMessage } from "../to_proto_message.js";
+import { BaseProtocol } from "../base_protocol";
+import { DefaultPubSubTopic } from "../constants";
+import { toProtoMessage } from "../to_proto_message";
 
-import { HistoryRpc, PageDirection, Params } from "./history_rpc.js";
+import { HistoryRpc, PageDirection, Params } from "./history_rpc";
 
 import HistoryError = proto.HistoryResponse.HistoryError;
 

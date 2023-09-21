@@ -10,7 +10,7 @@ import type { PeerInfo } from "@libp2p/interface/peer-info";
 import { Libp2pComponents, Tags } from "@waku/interfaces";
 import debug from "debug";
 
-import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
+import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange";
 
 const log = debug("waku:peer-exchange-discovery");
 

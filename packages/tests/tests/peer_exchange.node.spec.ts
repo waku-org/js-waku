@@ -8,9 +8,9 @@ import {
 import { createLightNode, Libp2pComponents } from "@waku/sdk";
 import { expect } from "chai";
 
-import { delay } from "../src/delay.js";
-import { makeLogFileName } from "../src/log_file.js";
-import { NimGoNode } from "../src/node/node.js";
+import { delay } from "../src/delay";
+import { makeLogFileName } from "../src/log_file";
+import { NimGoNode } from "../src/node/node";
 
 describe("Peer Exchange", () => {
   describe("Locally Run Nodes", () => {

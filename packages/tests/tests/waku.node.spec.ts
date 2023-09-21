@@ -25,7 +25,7 @@ import {
   NimGoNode,
   NOISE_KEY_1,
   NOISE_KEY_2
-} from "../src/index.js";
+} from "../src/index";
 
 const TestContentTopic = "/test/1/waku/utf8";
 

@@ -5,10 +5,10 @@
  * @module
  */
 
-export * from "./async_fs.js";
-export * from "./constants.js";
-export * from "./delay.js";
-export * from "./log_file.js";
-export * from "./node/node.js";
-export * from "./teardown.js";
-export * from "./message_collector.js";
+export * from "./async_fs";
+export * from "./constants";
+export * from "./delay";
+export * from "./log_file";
+export * from "./node/node";
+export * from "./teardown";
+export * from "./message_collector";

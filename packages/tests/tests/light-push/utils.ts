@@ -3,7 +3,7 @@ import { LightNode, Protocols } from "@waku/interfaces";
 import { createLightNode, utf8ToBytes } from "@waku/sdk";
 import debug from "debug";
 
-import { makeLogFileName, NimGoNode, NOISE_KEY_1 } from "../../src/index.js";
+import { makeLogFileName, NimGoNode, NOISE_KEY_1 } from "../../src/index";
 
 // Constants for test configuration.
 export const log = debug("waku:test:lightpush");

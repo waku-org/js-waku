@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
-import { defaultArgs } from "../src/index.js";
-import { argsToArray } from "../src/node/dockerode.js";
+import { defaultArgs } from "../src/index";
+import { argsToArray } from "../src/node/dockerode";
 
 describe("nwaku", () => {
   it("Correctly serialized arguments", function () {

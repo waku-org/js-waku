@@ -13,7 +13,7 @@ import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import { MemoryDatastore } from "datastore-core/memory";
 
-import { delay } from "../src/delay.js";
+import { delay } from "../src/delay";
 
 const maxQuantity = 3;
 

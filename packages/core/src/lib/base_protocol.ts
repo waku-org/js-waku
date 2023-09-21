@@ -5,8 +5,8 @@ import { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
 import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
 
-import { filterPeers } from "./filterPeers.js";
-import { StreamManager } from "./stream_manager.js";
+import { filterPeers } from "./filterPeers";
+import { StreamManager } from "./stream_manager";
 
 /**
  * A class with predefined helpers, to be used as a base to implement Waku

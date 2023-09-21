@@ -4,7 +4,7 @@ import { LightNode } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { makeLogFileName, NimGoNode } from "../src/index.js";
+import { makeLogFileName, NimGoNode } from "../src/index";
 
 describe("Use static and several ENR trees for bootstrap", function () {
   let waku: LightNode;

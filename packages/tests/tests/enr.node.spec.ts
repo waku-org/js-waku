@@ -5,8 +5,8 @@ import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
+import { makeLogFileName, NOISE_KEY_1 } from "../src/index";
+import { NimGoNode } from "../src/node/node";
 
 describe("ENR Interop: NimGoNode", function () {
   let waku: RelayNode;

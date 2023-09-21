@@ -1,11 +1,11 @@
-import type { IDecodedMessage, IDecoder } from "./message.js";
+import type { IDecodedMessage, IDecoder } from "./message";
 import type {
   ContentTopic,
   IAsyncIterator,
   PubSubTopic,
   Unsubscribe
-} from "./misc.js";
-import type { Callback } from "./protocols.js";
+} from "./misc";
+import type { Callback } from "./protocols";
 
 export type ActiveSubscriptions = Map<PubSubTopic, ContentTopic[]>;
 

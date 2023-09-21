@@ -3,9 +3,9 @@ import { bytesToUtf8 } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
 import debug from "debug";
 
-import { MessageRpcResponse } from "./node/interfaces.js";
+import { MessageRpcResponse } from "./node/interfaces";
 
-import { base64ToUtf8, delay, NimGoNode } from "./index.js";
+import { base64ToUtf8, delay, NimGoNode } from "./index";
 
 const log = debug("waku:test");
 

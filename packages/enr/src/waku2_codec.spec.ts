@@ -1,7 +1,7 @@
 import type { Waku2 } from "@waku/interfaces";
 import { expect } from "chai";
 
-import { decodeWaku2, encodeWaku2 } from "./waku2_codec.js";
+import { decodeWaku2, encodeWaku2 } from "./waku2_codec";
 
 const waku2FieldEncodings = {
   relay: 1,

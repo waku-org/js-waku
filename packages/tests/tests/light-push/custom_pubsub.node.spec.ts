@@ -2,14 +2,9 @@ import { LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index.js";
+import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index";
 
-import {
-  messageText,
-  runNodes,
-  TestContentTopic,
-  TestEncoder
-} from "./utils.js";
+import { messageText, runNodes, TestContentTopic, TestEncoder } from "./utils";
 
 describe("Waku Light Push [node only] - custom pubsub topic", function () {
   this.timeout(15000);

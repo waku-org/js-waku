@@ -2,7 +2,7 @@ import type { IProtoMessage } from "@waku/interfaces";
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { createDecoder, createEncoder, DecodedMessage } from "./version_0.js";
+import { createDecoder, createEncoder, DecodedMessage } from "./version_0";
 
 describe("Waku Message version 0", function () {
   it("Round trip binary serialization", async function () {

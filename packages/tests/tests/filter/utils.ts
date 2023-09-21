@@ -11,7 +11,7 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 import { Context } from "mocha";
 
-import { makeLogFileName, NimGoNode, NOISE_KEY_1 } from "../../src/index.js";
+import { makeLogFileName, NimGoNode, NOISE_KEY_1 } from "../../src/index";
 
 // Constants for test configuration.
 export const log = debug("waku:test:filter");

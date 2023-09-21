@@ -27,9 +27,9 @@ import {
 import { groupByContentTopic, isSizeValid, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
-import { RelayCodecs } from "./constants.js";
-import { messageValidator } from "./message_validator.js";
-import { TopicOnlyDecoder } from "./topic_only_message.js";
+import { RelayCodecs } from "./constants";
+import { messageValidator } from "./message_validator";
+import { TopicOnlyDecoder } from "./topic_only_message";
 
 const log = debug("waku:relay");
 

@@ -4,7 +4,7 @@ import { bytesToHex, bytesToUtf8, hexToBytes } from "@waku/utils/bytes";
 import { log } from "debug";
 import { fromString } from "uint8arrays/from-string";
 
-import { ENR } from "./enr.js";
+import { ENR } from "./enr";
 
 export class EnrDecoder {
   static fromString(encoded: string): Promise<ENR> {

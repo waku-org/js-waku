@@ -14,7 +14,7 @@ import {
 import { Libp2p, Tags } from "@waku/interfaces";
 import debug from "debug";
 
-import { KeepAliveManager } from "./keep_alive_manager.js";
+import { KeepAliveManager } from "./keep_alive_manager";
 
 const log = debug("waku:connection-manager");
 

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { pushOrInitMapSet } from "./push_or_init_map.js";
+import { pushOrInitMapSet } from "./push_or_init_map";
 
 describe("pushOrInitMapSet", () => {
   it("Init the array if not present", () => {
