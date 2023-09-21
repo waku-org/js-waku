@@ -2,6 +2,7 @@ process.env.CHROME_BIN = require("puppeteer").executablePath();
 const webpack = require("webpack");
 
 module.exports = function (config) {
+  console.log(config);
   config.set({
     frameworks: ["webpack", "mocha"],
     files: ["src/lib/**/!(node).spec.ts"],
@@ -20,7 +21,12 @@ module.exports = function (config) {
     webpack: {
       mode: "development",
       module: {
-        rules: [{ test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }]
+        rules: [{ test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }, {
+          test: /\.m?js/,
+          resolve: {
+            fullySpecified: false
+          }
+        }]
       },
       plugins: [
         new webpack.DefinePlugin({

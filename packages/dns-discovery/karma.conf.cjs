@@ -31,6 +31,11 @@ module.exports = function (config) {
                 }
               }
             ]
+          }, {
+            test: /\.m?js/,
+            resolve: {
+              fullySpecified: false
+            }
           }
         ]
       },

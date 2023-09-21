@@ -20,7 +20,12 @@ module.exports = function (config) {
     webpack: {
       mode: "development",
       module: {
-        rules: [{ test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }]
+        rules: [{ test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }], {
+          test: /\.m?js/,
+          resolve: {
+            fullySpecified: false
+          }
+        }
       },
       plugins: [
         new webpack.DefinePlugin({
