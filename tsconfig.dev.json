@@ -1,8 +1,8 @@
 {
   "extends": "./tsconfig",
   "compilerOptions": {
-    "module": "nodenext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "noEmit": true
-  },
-  "exclude": []
+  }
 }
