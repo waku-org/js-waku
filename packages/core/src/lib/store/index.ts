@@ -229,19 +229,20 @@ class Store extends BaseProtocol implements IStore {
       endTime = options.timeFilter.endTime;
     }
 
-    const uniquePubSubTopicsInQuery = new Set(
-      decoders.map((decoder) => decoder.pubSubTopic)
+    // convert array to set to remove duplicates
+    const uniquePubSubTopicsInQuery = Array.from(
+      new Set(decoders.map((decoder) => decoder.pubSubTopic))
     );
 
-    if (uniquePubSubTopicsInQuery.size > 1) {
+    // If multiple pubsub topics are provided, throw an error
+    if (uniquePubSubTopicsInQuery.length > 1) {
       throw new Error(
         "API does not support querying multiple pubsub topics at once"
       );
     }
 
-    const pubSubTopicForQuery = uniquePubSubTopicsInQuery
-      .values()
-      .next() as unknown as PubSubTopic;
+    // we can be certain that there is only one pubsub topic in the query
+    const pubSubTopicForQuery = uniquePubSubTopicsInQuery[0];
 
     this.ensurePubsubTopicIsValid(pubSubTopicForQuery, this.pubSubTopics);
 
