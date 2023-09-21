@@ -1,5 +1,9 @@
-process.env.CHROME_BIN = require("puppeteer").executablePath();
 const webpack = require("webpack");
+const playwright = require('playwright');
+
+process.env.CHROME_BIN = playwright.chromium.executablePath();
+process.env.FIREFOX_BIN = playwright.firefox.executablePath();
+process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
 
 module.exports = function (config) {
   config.set({
@@ -10,7 +14,7 @@ module.exports = function (config) {
     },
     envPreprocessor: ["CI"],
     reporters: ["progress"],
-    browsers: ["ChromeHeadless"],
+    browsers: ["ChromeHeadless", "Firefox", "WebkitHeadless"],
     singleRun: true,
     client: {
       mocha: {
