@@ -80,12 +80,7 @@
     "process": "^0.11.10",
     "puppeteer": "^21.1.1",
     "rollup": "^3.29.2",
-    "ts-loader": "^9.4.2",
-    "typescript": "^5.0.4",
     "uint8arrays": "^4.0.4"
-  },
-  "typedoc": {
-    "entryPoint": "./src/index.ts"
   },
   "files": [
     "dist",

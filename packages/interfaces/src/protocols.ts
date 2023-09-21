@@ -27,6 +27,7 @@ export type ProtocolCreateOptions = {
    * Waku implements sharding to achieve scalability
    * The format of the sharded topic is `/waku/2/rs/<shard_cluster_index>/<shard_number>`
    * To learn more about the sharding specifications implemented, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
+   * The PubSub Topic to use. Defaults to {@link @waku/core!DefaultPubSubTopic }.
    *
    * If no pubsub topic is specified, the default pubsub topic is used.
    * The set of pubsub topics that are used to initialize the Waku node, will need to be used by the protocols as well
@@ -40,11 +41,11 @@ export type ProtocolCreateOptions = {
    */
   pubSubTopics?: PubSubTopic[];
   /**
-   * You can pass options to the `Libp2p` instance used by {@link @waku/core.WakuNode} using the `libp2p` property.
+   * You can pass options to the `Libp2p` instance used by {@link @waku/core!WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * apart that we made the `modules` property optional and partial,
    * allowing its omission and letting Waku set good defaults.
-   * Notes that some values are overridden by {@link @waku/core.WakuNode} to ensure it implements the Waku protocol.
+   * Notes that some values are overridden by {@link @waku/core!WakuNode} to ensure it implements the Waku protocol.
    */
   libp2p?: Partial<Libp2pOptions>;
   /**
@@ -64,12 +65,41 @@ export type Callback<T extends IDecodedMessage> = (
 ) => void | Promise<void>;
 
 export enum SendError {
+  /** Could not determine the origin of the fault. Best to check connectivity and try again */
   GENERIC_FAIL = "Generic error",
+  /** Failure to protobuf encode the message. This is not recoverable and needs
+   * further investigation. */
   ENCODE_FAILED = "Failed to encode",
+  /** Failure to protobuf decode the message. May be due to a remote peer issue,
+   * ensuring that messages are sent via several peer enable mitigation of this error.. */
   DECODE_FAILED = "Failed to decode",
+  /** The message size is above the maximum message size allowed on the Waku Network.
+   * Compressing the message or using an alternative strategy for large messages is recommended.
+   */
   SIZE_TOO_BIG = "Size is too big",
-  NO_RPC_RESPONSE = "No RPC response",
-  TOPIC_NOT_CONFIGURED = "Topic not configured"
+  /**
+   * The PubSubTopic passed to the send function is not configured on the Waku node.
+   * Please ensure that the PubSubTopic is used when initializing the Waku node.
+   */
+  TOPIC_NOT_CONFIGURED = "Topic not configured",
+  /**
+   * Failure to find a peer with suitable protocols. This may due to a connection issue.
+   * Mitigation can be: retrying after a given time period, display connectivity issue
+   * to user or listening for `peer:connected:bootstrap` or `peer:connected:peer-exchange`
+   * on the connection manager before retrying.
+   */
+  NO_PEER_AVAILABLE = "No peer available",
+  /**
+   * The remote peer did not behave as expected. Mitigation for `NO_PEER_AVAILABLE`
+   * or `DECODE_FAILED` can be used.
+   */
+  REMOTE_PEER_FAULT = "Remote peer fault",
+  /**
+   * The remote peer rejected the message. Information provided by the remote peer
+   * is logged. Review message validity, or mitigation for `NO_PEER_AVAILABLE`
+   * or `DECODE_FAILED` can be used.
+   */
+  REMOTE_PEER_REJECTED = "Remote peer rejected"
 }
 
 export interface SendResult {
