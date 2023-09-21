@@ -17,7 +17,12 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 
-import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
+import {
+  delay,
+  makeLogFileName,
+  NOISE_KEY_1,
+  tearDownNodes
+} from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
 chai.use(chaiAsPromised);
@@ -43,13 +48,9 @@ describe("Util: toAsyncIterator: Filter", () => {
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });
 
-  afterEach(async () => {
-    try {
-      await nwaku.stop();
-      await waku.stop();
-    } catch (err) {
-      console.log("Failed to stop", err);
-    }
+  afterEach(async function () {
+    this.timeout(10000);
+    tearDownNodes([nwaku], [waku]);
   });
 
   it("creates an iterator", async function () {

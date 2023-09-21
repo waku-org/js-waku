@@ -16,7 +16,12 @@ import { createLightNode, createRelayNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2 } from "../src/index.js";
+import {
+  makeLogFileName,
+  NOISE_KEY_1,
+  NOISE_KEY_2,
+  tearDownNodes
+} from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
@@ -63,8 +68,8 @@ describe("Waku Dial [node only]", function () {
     let nwaku: NimGoNode;
 
     afterEach(async function () {
-      !!nwaku && (await nwaku.stop());
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+      this.timeout(10000);
+      tearDownNodes([nwaku], [waku]);
     });
 
     it("Passing an array", async function () {
