@@ -3,7 +3,7 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import debug from "debug";
 
-import { bytesToUtf8 } from "../bytes/index";
+import { bytesToUtf8 } from "../bytes";
 
 const log = debug("waku:libp2p-utils");
 

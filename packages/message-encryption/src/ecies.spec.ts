@@ -2,7 +2,7 @@ import { IProtoMessage } from "@waku/interfaces";
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { getPublicKey } from "./crypto/index";
+import { getPublicKey } from "./crypto";
 import { createDecoder, createEncoder } from "./ecies";
 
 describe("Ecies Encryption", function () {

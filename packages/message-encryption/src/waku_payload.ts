@@ -2,8 +2,8 @@ import * as secp from "@noble/secp256k1";
 import { concat, hexToBytes } from "@waku/utils/bytes";
 
 import { Symmetric } from "./constants";
+import { keccak256, randomBytes, sign } from "./crypto";
 import * as ecies from "./crypto/ecies";
-import { keccak256, randomBytes, sign } from "./crypto/index";
 import * as symmetric from "./crypto/symmetric";
 
 import { Signature } from "./index";

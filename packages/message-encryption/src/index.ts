@@ -2,7 +2,7 @@ import {
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey
-} from "./crypto/index";
+} from "./crypto";
 import { DecodedMessage } from "./decoded_message";
 
 export const OneMillion = BigInt(1_000_000);

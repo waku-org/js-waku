@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { getPublicKey } from "./crypto/index";
+import { getPublicKey } from "./crypto";
 import {
   decryptAsymmetric,
   decryptSymmetric,
