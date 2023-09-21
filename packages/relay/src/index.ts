@@ -153,7 +153,7 @@ class Relay implements IRelay {
         newObservers
       ] of contentTopicToObservers.entries()) {
         const currObservers =
-          existingContentObservers.get(contentTopic) || new Set<Observer<T>>();
+          existingContentObservers.get(contentTopic) ?? new Set<Observer<T>>();
         existingContentObservers.set(
           contentTopic,
           union(currObservers, newObservers)

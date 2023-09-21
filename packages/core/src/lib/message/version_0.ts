@@ -74,9 +74,9 @@ export class DecodedMessage implements IDecodedMessage {
 
 export class Encoder implements IEncoder {
   constructor(
-    public pubSubTopic: PubSubTopic,
     public contentTopic: string,
     public ephemeral: boolean = false,
+    public pubSubTopic: PubSubTopic,
     public metaSetter?: IMetaSetter
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -125,7 +125,7 @@ export function createEncoder({
   ephemeral,
   metaSetter
 }: EncoderOptions): Encoder {
-  return new Encoder(pubSubTopic, contentTopic, ephemeral, metaSetter);
+  return new Encoder(contentTopic, ephemeral, pubSubTopic, metaSetter);
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {

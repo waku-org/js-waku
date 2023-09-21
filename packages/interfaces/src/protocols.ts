@@ -4,6 +4,7 @@ import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { Libp2pOptions } from "libp2p";
 
 import type { IDecodedMessage } from "./message.js";
+import type { PubSubTopic } from "./misc.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -37,7 +38,7 @@ export type ProtocolCreateOptions = {
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
    */
-  pubSubTopics?: string[];
+  pubSubTopics?: PubSubTopic[];
   /**
    * You can pass options to the `Libp2p` instance used by {@link @waku/core.WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
