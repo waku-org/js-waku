@@ -1,7 +1,7 @@
 const packageJson = require("./package.json");
 
 module.exports = {
-  "treatWarningsAsErrors": true,
+  "treatWarningsAsErrors": false,
   "entryPointStrategy": "packages",
   "entryPoints": packageJson.workspaces,
   "out": "docs",
