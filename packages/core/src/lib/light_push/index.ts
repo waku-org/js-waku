@@ -1,3 +1,4 @@
+import type { Stream } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import {
   IEncoder,
@@ -102,43 +103,63 @@ class LightPush extends BaseProtocol implements ILightPush {
       numPeers: this.NUM_PEERS_PROTOCOL
     });
 
-    const promises = peers.map(async (peer) => {
-      let error: SendError | undefined;
-      const stream = await this.getStream(peer);
+    if (!peers.length) {
+      return {
+        recipients,
+        errors: [SendError.NO_PEER_AVAILABLE]
+      };
+    }
 
+    const promises = peers.map(async (peer) => {
+      let stream: Stream | undefined;
       try {
-        const res = await pipe(
+        stream = await this.getStream(peer);
+      } catch (err) {
+        log(`Failed to get a stream for remote peer${peer.id.toString()}`, err);
+        return { recipients, error: SendError.REMOTE_PEER_FAULT };
+      }
+
+      let res: Uint8ArrayList[] | undefined;
+      try {
+        res = await pipe(
           [query.encode()],
           lp.encode,
           stream,
           lp.decode,
           async (source) => await all(source)
         );
-        try {
-          const bytes = new Uint8ArrayList();
-          res.forEach((chunk) => {
-            bytes.append(chunk);
-          });
-
-          const response = PushRpc.decode(bytes).response;
-
-          if (response?.isSuccess) {
-            recipients.some((recipient) => recipient.equals(peer.id)) ||
-              recipients.push(peer.id);
-          } else {
-            log("No response in PushRPC");
-            error = SendError.NO_RPC_RESPONSE;
-          }
-        } catch (err) {
-          log("Failed to decode push reply", err);
-          error = SendError.DECODE_FAILED;
-        }
       } catch (err) {
         log("Failed to send waku light push request", err);
-        error = SendError.GENERIC_FAIL;
+        return { recipients, error: SendError.GENERIC_FAIL };
       }
 
-      return { recipients, error };
+      const bytes = new Uint8ArrayList();
+      res.forEach((chunk) => {
+        bytes.append(chunk);
+      });
+
+      let response: PushResponse | undefined;
+      try {
+        response = PushRpc.decode(bytes).response;
+      } catch (err) {
+        log("Failed to decode push reply", err);
+        return { recipients, error: SendError.DECODE_FAILED };
+      }
+
+      if (!response) {
+        log("Remote peer fault: No response in PushRPC");
+        return { recipients, error: SendError.REMOTE_PEER_FAULT };
+      }
+
+      if (!response.isSuccess) {
+        log("Remote peer rejected the message: ", response.info);
+        return { recipients, error: SendError.REMOTE_PEER_REJECTED };
+      }
+
+      recipients.some((recipient) => recipient.equals(peer.id)) ||
+        recipients.push(peer.id);
+
+      return { recipients };
     });
 
     const results = await Promise.allSettled(promises);

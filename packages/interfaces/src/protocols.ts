@@ -59,11 +59,36 @@ export type Callback<T extends IDecodedMessage> = (
 ) => void | Promise<void>;
 
 export enum SendError {
+  /** Could not determine the origin of the fault. Best to check connectivity and try again */
   GENERIC_FAIL = "Generic error",
+  /** Failure to protobuf encode the message. This is not recoverable and needs
+   * further investigation. */
   ENCODE_FAILED = "Failed to encode",
+  /** Failure to protobuf decode the message. May be due to a remote peer issue,
+   * ensuring that messages are sent via several peer enable mitigation of this error.. */
   DECODE_FAILED = "Failed to decode",
+  /** The message size is above the maximum message size allowed on the Waku Network.
+   * Compressing the message or using an alternative strategy for large messages is recommended.
+   */
   SIZE_TOO_BIG = "Size is too big",
-  NO_RPC_RESPONSE = "No RPC response"
+  /**
+   * Failure to find a peer with suitable protocols. This may due to a connection issue.
+   * Mitigation can be: retrying after a given time period, display connectivity issue
+   * to user or listening for `peer:connected:bootstrap` or `peer:connected:peer-exchange`
+   * on the connection manager before retrying.
+   */
+  NO_PEER_AVAILABLE = "No peer available",
+  /**
+   * The remote peer did not behave as expected. Mitigation for `NO_PEER_AVAILABLE`
+   * or `DECODE_FAILED` can be used.
+   */
+  REMOTE_PEER_FAULT = "Remote peer fault",
+  /**
+   * The remote peer rejected the message. Information provided by the remote peer
+   * is logged. Review message validity, or mitigation for `NO_PEER_AVAILABLE`
+   * or `DECODE_FAILED` can be used.
+   */
+  REMOTE_PEER_REJECTED = "Remote peer rejected"
 }
 
 export interface SendResult {

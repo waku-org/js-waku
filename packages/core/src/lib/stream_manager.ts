@@ -6,8 +6,8 @@ import { selectConnection } from "@waku/utils/libp2p";
 import debug from "debug";
 
 export class StreamManager {
-  private streamPool: Map<string, Promise<Stream>>;
-  private log: debug.Debugger;
+  private streamPool: Map<string, Promise<Stream | void>>;
+  private readonly log: debug.Debugger;
 
   constructor(
     public multicodec: string,
@@ -38,7 +38,7 @@ export class StreamManager {
 
     const stream = await streamPromise;
 
-    if (stream.status === "closed") {
+    if (!stream || stream.status === "closed") {
       return this.newStream(peer); // fallback by creating a new stream on the spot
     }
 
@@ -55,7 +55,10 @@ export class StreamManager {
   }
 
   private prepareNewStream(peer: Peer): void {
-    const streamPromise = this.newStream(peer);
+    const streamPromise = this.newStream(peer).catch(() => {
+      // No error thrown as this call is not triggered by the user
+      this.log(`Failed to prepare a new stream for ${peer.id.toString()}`);
+    });
     this.streamPool.set(peer.id.toString(), streamPromise);
   }
 
