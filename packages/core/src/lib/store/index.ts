@@ -207,11 +207,21 @@ class Store extends BaseProtocol implements IStore {
    * @throws If not able to reach a Waku Store peer to query,
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
+   *
+   * This API only supports querying a single pubsub topic at a time.
+   * If multiple decoders are provided, they must all have the same pubsub topic.
+   * @throws If multiple decoders with different pubsub topics are provided.
+   * @throws If no decoders are provided.
+   * @throws If no decoders are found for the provided pubsub topic.
    */
   async *queryGenerator<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     options?: QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
+    if (decoders.length === 0) {
+      throw new Error("No decoders provided");
+    }
+
     let startTime, endTime;
 
     if (options?.timeFilter) {
@@ -219,60 +229,66 @@ class Store extends BaseProtocol implements IStore {
       endTime = options.timeFilter.endTime;
     }
 
-    const _pubSubTopics = new Set(
+    const uniquePubSubTopicsInQuery = new Set(
       decoders.map((decoder) => decoder.pubSubTopic)
     );
 
-    for (const topic of _pubSubTopics) {
-      this.ensurePubsubTopicIsValid(topic, this.pubSubTopics);
-
-      const decodersAsMap = new Map();
-      decoders
-        .filter((decoder) => decoder.pubSubTopic === topic)
-        .forEach((dec) => {
-          if (decodersAsMap.has(dec.contentTopic)) {
-            throw new Error(
-              "API does not support different decoder per content topic"
-            );
-          }
-          decodersAsMap.set(dec.contentTopic, dec);
-        });
-
-      const contentTopics = decoders
-        .filter((decoder) => decoder.pubSubTopic === topic)
-        .map((dec) => dec.contentTopic);
-
-      if (contentTopics.length === 0) {
-        throw new Error("No decoders found for topic " + topic);
-      }
-
-      const queryOpts = Object.assign(
-        {
-          pubSubTopic: topic,
-          pageDirection: PageDirection.BACKWARD,
-          pageSize: DefaultPageSize
-        },
-        options,
-        { contentTopics, startTime, endTime }
+    if (uniquePubSubTopicsInQuery.size > 1) {
+      throw new Error(
+        "API does not support querying multiple pubsub topics at once"
       );
+    }
 
-      log("Querying history with the following options", options);
+    const pubSubTopicForQuery = uniquePubSubTopicsInQuery
+      .values()
+      .next() as unknown as PubSubTopic;
 
-      const peer = (
-        await this.getPeers({
-          numPeers: this.NUM_PEERS_PROTOCOL,
-          maxBootstrapPeers: 1
-        })
-      )[0];
+    this.ensurePubsubTopicIsValid(pubSubTopicForQuery, this.pubSubTopics);
 
-      for await (const messages of paginate<T>(
-        this.getStream.bind(this, peer),
-        queryOpts,
-        decodersAsMap,
-        options?.cursor
-      )) {
-        yield messages;
+    const decodersAsMap = new Map();
+    decoders.forEach((dec) => {
+      if (decodersAsMap.has(dec.contentTopic)) {
+        throw new Error(
+          "API does not support different decoder per content topic"
+        );
       }
+      decodersAsMap.set(dec.contentTopic, dec);
+    });
+
+    const contentTopics = decoders
+      .filter((decoder) => decoder.pubSubTopic === pubSubTopicForQuery)
+      .map((dec) => dec.contentTopic);
+
+    if (contentTopics.length === 0) {
+      throw new Error("No decoders found for topic " + pubSubTopicForQuery);
+    }
+
+    const queryOpts = Object.assign(
+      {
+        pubSubTopic: pubSubTopicForQuery,
+        pageDirection: PageDirection.BACKWARD,
+        pageSize: DefaultPageSize
+      },
+      options,
+      { contentTopics, startTime, endTime }
+    );
+
+    log("Querying history with the following options", options);
+
+    const peer = (
+      await this.getPeers({
+        numPeers: this.NUM_PEERS_PROTOCOL,
+        maxBootstrapPeers: 1
+      })
+    )[0];
+
+    for await (const messages of paginate<T>(
+      this.getStream.bind(this, peer),
+      queryOpts,
+      decodersAsMap,
+      options?.cursor
+    )) {
+      yield messages;
     }
   }
 }
