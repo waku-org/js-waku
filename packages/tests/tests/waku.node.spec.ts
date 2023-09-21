@@ -91,13 +91,9 @@ describe("Waku Dial [node only]", function () {
       await waku.start();
       await waku.dial(multiAddrWithId);
       await nwaku.stop();
-      try {
-        await waku.lightPush?.send(TestEncoder, {
-          payload: utf8ToBytes("hello world")
-        });
-      } catch (e) {
-        // We are not checking this exception
-      }
+      await waku.lightPush?.send(TestEncoder, {
+        payload: utf8ToBytes("hello world")
+      });
     });
   });
 
