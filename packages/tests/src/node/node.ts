@@ -5,6 +5,7 @@ import { DefaultPubSubTopic } from "@waku/core";
 import { isDefined } from "@waku/utils";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import debug from "debug";
+import pRetry from "p-retry";
 import portfinder from "portfinder";
 
 import { existsAsync, mkdirAsync, openAsync } from "../async_fs.js";
@@ -164,6 +165,25 @@ export class NimGoNode {
     }
   }
 
+  async startWithRetries(
+    args: Args,
+    options: {
+      retries: number;
+    }
+  ): Promise<void> {
+    await pRetry(
+      async () => {
+        try {
+          await this.start(args);
+        } catch (error) {
+          log("Nwaku node failed to start:", error);
+          throw error;
+        }
+      },
+      { retries: options.retries }
+    );
+  }
+
   public async stop(): Promise<void> {
     await this.docker?.container?.stop();
     delete this.docker;
@@ -187,6 +207,17 @@ export class NimGoNode {
     this.checkProcess();
 
     return this.rpcCall<RpcInfoResponse>("get_waku_v2_debug_v1_info", []);
+  }
+
+  async ensureSubscriptions(
+    pubsubTopics: [string] = [DefaultPubSubTopic]
+  ): Promise<boolean> {
+    this.checkProcess();
+
+    return this.rpcCall<boolean>(
+      "post_waku_v2_relay_v1_subscriptions",
+      pubsubTopics
+    );
   }
 
   async sendMessage(

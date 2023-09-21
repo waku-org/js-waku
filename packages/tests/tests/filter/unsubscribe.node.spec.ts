@@ -3,18 +3,17 @@ import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { NimGoNode } from "../../src/index.js";
+import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index.js";
 
 import {
   generateTestData,
-  MessageCollector,
   messagePayload,
-  setupNodes,
-  tearDownNodes,
+  messageText,
+  runNodes,
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./filter_test_utils.js";
+} from "./utils.js";
 
 describe("Waku Filter V2: Unsubscribe", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
@@ -24,17 +23,18 @@ describe("Waku Filter V2: Unsubscribe", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  this.afterEach(async function () {
-    tearDownNodes(nwaku, waku);
-  });
-
   this.beforeEach(async function () {
     this.timeout(15000);
-    const setup = await setupNodes(this);
-    nwaku = setup.nwaku;
-    waku = setup.waku;
-    subscription = setup.subscription;
-    messageCollector = setup.messageCollector;
+    [nwaku, waku] = await runNodes(this);
+    subscription = await waku.filter.createSubscription();
+    messageCollector = new MessageCollector(TestContentTopic);
+
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.ensureSubscriptions();
+  });
+
+  this.afterEach(async function () {
+    tearDownNodes([nwaku], [waku]);
   });
 
   it("Unsubscribe 1 topic - node subscribed to 1 topic", async function () {
@@ -48,7 +48,9 @@ describe("Waku Filter V2: Unsubscribe", function () {
     expect(await messageCollector.waitForMessages(2)).to.eq(false);
 
     // Check that from 2 messages send only the 1st was received
-    messageCollector.verifyReceivedMessage({ index: 0 });
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText
+    });
     expect(messageCollector.count).to.eq(1);
     expect((await nwaku.messages()).length).to.eq(2);
   });

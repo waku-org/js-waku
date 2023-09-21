@@ -12,21 +12,21 @@ import { expect } from "chai";
 import {
   delay,
   makeLogFileName,
+  MessageCollector,
   NimGoNode,
+  tearDownNodes,
   TEST_STRING
 } from "../../src/index.js";
 
 import {
   generateTestData,
-  MessageCollector,
   messagePayload,
   messageText,
-  setupNodes,
-  tearDownNodes,
+  runNodes,
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./filter_test_utils.js";
+} from "./utils.js";
 
 describe("Waku Filter V2: Subscribe", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
@@ -37,17 +37,18 @@ describe("Waku Filter V2: Subscribe", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  this.afterEach(async function () {
-    tearDownNodes(nwaku, waku, nwaku2);
-  });
-
   this.beforeEach(async function () {
     this.timeout(15000);
-    const setup = await setupNodes(this);
-    nwaku = setup.nwaku;
-    waku = setup.waku;
-    subscription = setup.subscription;
-    messageCollector = setup.messageCollector;
+    [nwaku, waku] = await runNodes(this);
+    subscription = await waku.filter.createSubscription();
+    messageCollector = new MessageCollector(TestContentTopic);
+
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.ensureSubscriptions();
+  });
+
+  this.afterEach(async function () {
+    tearDownNodes([nwaku, nwaku2], [waku]);
   });
 
   it("Subscribe and receive messages via lightPush", async function () {
@@ -56,7 +57,9 @@ describe("Waku Filter V2: Subscribe", function () {
     await waku.lightPush.send(TestEncoder, messagePayload);
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
-    messageCollector.verifyReceivedMessage({ index: 0 });
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText
+    });
     expect((await nwaku.messages()).length).to.eq(1);
   });
 
@@ -74,7 +77,9 @@ describe("Waku Filter V2: Subscribe", function () {
     );
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
-    messageCollector.verifyReceivedMessage({ index: 0 });
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText
+    });
     expect((await nwaku.messages()).length).to.eq(1);
   });
 
@@ -84,7 +89,9 @@ describe("Waku Filter V2: Subscribe", function () {
     await waku.lightPush.send(TestEncoder, messagePayload);
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
-    messageCollector.verifyReceivedMessage({ index: 0 });
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText
+    });
 
     // Send another message on the same topic.
     const newMessageText = "Filtering still works!";
@@ -94,9 +101,8 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Verify that the second message was successfully received.
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
-    messageCollector.verifyReceivedMessage({
-      expectedMessageText: newMessageText,
-      index: 1
+    messageCollector.verifyReceivedMessage(1, {
+      expectedMessageText: newMessageText
     });
     expect((await nwaku.messages()).length).to.eq(2);
   });
@@ -106,7 +112,9 @@ describe("Waku Filter V2: Subscribe", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, messagePayload);
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
-    messageCollector.verifyReceivedMessage({ index: 0 });
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText
+    });
 
     // Modify subscription to include a new content topic and send a message.
     const newMessageText = "Filtering still works!";
@@ -119,18 +127,16 @@ describe("Waku Filter V2: Subscribe", function () {
       payload: utf8ToBytes(newMessageText)
     });
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
-    messageCollector.verifyReceivedMessage({
+    messageCollector.verifyReceivedMessage(1, {
       expectedContentTopic: newContentTopic,
-      expectedMessageText: newMessageText,
-      index: 1
+      expectedMessageText: newMessageText
     });
 
     // Send another message on the initial content topic to verify it still works.
     await waku.lightPush.send(TestEncoder, newMessagePayload);
     expect(await messageCollector.waitForMessages(3)).to.eq(true);
-    messageCollector.verifyReceivedMessage({
-      expectedMessageText: newMessageText,
-      index: 2
+    messageCollector.verifyReceivedMessage(2, {
+      expectedMessageText: newMessageText
     });
     expect((await nwaku.messages()).length).to.eq(3);
   });
@@ -154,10 +160,9 @@ describe("Waku Filter V2: Subscribe", function () {
     // Verify that each message was received on the corresponding topic.
     expect(await messageCollector.waitForMessages(20)).to.eq(true);
     td.contentTopics.forEach((topic, index) => {
-      messageCollector.verifyReceivedMessage({
+      messageCollector.verifyReceivedMessage(index, {
         expectedContentTopic: topic,
-        expectedMessageText: `Message for Topic ${index + 1}`,
-        index: index
+        expectedMessageText: `Message for Topic ${index + 1}`
       });
     });
   });
@@ -179,10 +184,9 @@ describe("Waku Filter V2: Subscribe", function () {
     // Verify that each message was received on the corresponding topic.
     expect(await messageCollector.waitForMessages(30)).to.eq(true);
     td.contentTopics.forEach((topic, index) => {
-      messageCollector.verifyReceivedMessage({
+      messageCollector.verifyReceivedMessage(index, {
         expectedContentTopic: topic,
-        expectedMessageText: `Message for Topic ${index + 1}`,
-        index: index
+        expectedMessageText: `Message for Topic ${index + 1}`
       });
     });
   });
@@ -253,12 +257,10 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Confirm both messages were received.
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
-    messageCollector.verifyReceivedMessage({
-      index: 0,
+    messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1"
     });
-    messageCollector.verifyReceivedMessage({
-      index: 1,
+    messageCollector.verifyReceivedMessage(1, {
       expectedMessageText: "M2"
     });
   });
@@ -273,8 +275,8 @@ describe("Waku Filter V2: Subscribe", function () {
       await waku.lightPush.send(newEncoder, messagePayload);
 
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
-      messageCollector.verifyReceivedMessage({
-        index: 0,
+      messageCollector.verifyReceivedMessage(0, {
+        expectedMessageText: messageText,
         expectedContentTopic: newContentTopic
       });
     });
@@ -295,12 +297,10 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Check if both messages were received
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
-    messageCollector.verifyReceivedMessage({
-      index: 0,
+    messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1"
     });
-    messageCollector.verifyReceivedMessage({
-      index: 1,
+    messageCollector.verifyReceivedMessage(1, {
       expectedContentTopic: newContentTopic,
       expectedMessageText: "M2"
     });
@@ -332,12 +332,10 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Check if both messages were received
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
-    messageCollector.verifyReceivedMessage({
-      index: 0,
+    messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1"
     });
-    messageCollector.verifyReceivedMessage({
-      index: 1,
+    messageCollector.verifyReceivedMessage(1, {
       expectedContentTopic: newContentTopic,
       expectedMessageText: "M2"
     });
