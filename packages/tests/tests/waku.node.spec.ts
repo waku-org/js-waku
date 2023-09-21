@@ -12,14 +12,24 @@ import {
   createEncoder,
   generateSymmetricKey
 } from "@waku/message-encryption/symmetric";
-import { createLightNode, createRelayNode } from "@waku/sdk";
+import {
+  createLightNode,
+  createEncoder as createPlainEncoder,
+  createRelayNode
+} from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2 } from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
+import {
+  makeLogFileName,
+  NimGoNode,
+  NOISE_KEY_1,
+  NOISE_KEY_2
+} from "../src/index.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
+
+const TestEncoder = createPlainEncoder({ contentTopic: TestContentTopic });
 
 describe("Waku Dial [node only]", function () {
   describe("Interop: NimGoNode", function () {
@@ -55,6 +65,35 @@ describe("Waku Dial [node only]", function () {
 
       const nimPeerId = await nwaku.getPeerId();
       expect(await waku.libp2p.peerStore.has(nimPeerId)).to.be.true;
+    });
+
+    it("Does not throw an exception when node disconnects", async function () {
+      this.timeout(20_000);
+
+      process.on("unhandledRejection", (e) =>
+        expect.fail("unhandledRejection", e)
+      );
+      process.on("uncaughtException", (e) =>
+        expect.fail("uncaughtException", e)
+      );
+
+      nwaku = new NimGoNode(makeLogFileName(this));
+      await nwaku.start({
+        filter: true,
+        store: true,
+        lightpush: true
+      });
+      const multiAddrWithId = await nwaku.getMultiaddrWithId();
+
+      waku = await createLightNode({
+        staticNoiseKey: NOISE_KEY_1
+      });
+      await waku.start();
+      await waku.dial(multiAddrWithId);
+      await nwaku.stop();
+      await waku.lightPush?.send(TestEncoder, {
+        payload: utf8ToBytes("hello world")
+      });
     });
   });
 

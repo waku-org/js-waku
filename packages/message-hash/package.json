@@ -75,13 +75,7 @@
     "npm-run-all": "^4.1.5",
     "process": "^0.11.10",
     "puppeteer": "^21.1.1",
-    "rollup": "^3.29.2",
-    "ts-loader": "^9.4.2",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.0.4"
-  },
-  "typedoc": {
-    "entryPoint": "./src/index.ts"
+    "rollup": "^3.29.2"
   },
   "files": [
     "dist",
