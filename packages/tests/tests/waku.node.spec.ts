@@ -16,8 +16,12 @@ import { createLightNode, createRelayNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, NOISE_KEY_2 } from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
+import {
+  makeLogFileName,
+  NimGoNode,
+  NOISE_KEY_1,
+  NOISE_KEY_2
+} from "../src/index.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
 
