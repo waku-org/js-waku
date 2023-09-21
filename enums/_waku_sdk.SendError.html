@@ -28,36 +28,71 @@
 <div class="tsd-index-list"><a href="_waku_sdk.SendError.html#DECODE_FAILED" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-1024-path"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)" id="icon-1024-text"></path></svg><span>DECODE_<wbr/>FAILED</span></a>
 <a href="_waku_sdk.SendError.html#ENCODE_FAILED" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>ENCODE_<wbr/>FAILED</span></a>
 <a href="_waku_sdk.SendError.html#GENERIC_FAIL" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>GENERIC_<wbr/>FAIL</span></a>
-<a href="_waku_sdk.SendError.html#NO_RPC_RESPONSE" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>NO_<wbr/>RPC_<wbr/>RESPONSE</span></a>
+<a href="_waku_sdk.SendError.html#NO_PEER_AVAILABLE" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>NO_<wbr/>PEER_<wbr/>AVAILABLE</span></a>
+<a href="_waku_sdk.SendError.html#REMOTE_PEER_FAULT" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>REMOTE_<wbr/>PEER_<wbr/>FAULT</span></a>
+<a href="_waku_sdk.SendError.html#REMOTE_PEER_REJECTED" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>REMOTE_<wbr/>PEER_<wbr/>REJECTED</span></a>
 <a href="_waku_sdk.SendError.html#SIZE_TOO_BIG" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>SIZE_<wbr/>TOO_<wbr/>BIG</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Enumeration Members</h2>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="DECODE_FAILED" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>DECODE_<wbr/>FAILED</span><a href="#DECODE_FAILED" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
-<div class="tsd-signature">DECODE_<wbr/>FAILED<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Failed to decode&quot;</span></div><aside class="tsd-sources">
+<div class="tsd-signature">DECODE_<wbr/>FAILED<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Failed to decode&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Failure to protobuf decode the message. May be due to a remote peer issue,
+ensuring that messages are sent via several peer enable mitigation of this error..</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:56</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:61</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="ENCODE_FAILED" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>ENCODE_<wbr/>FAILED</span><a href="#ENCODE_FAILED" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">ENCODE_<wbr/>FAILED<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Failed to encode&quot;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:55</li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="GENERIC_FAIL" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>GENERIC_<wbr/>FAIL</span><a href="#GENERIC_FAIL" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">GENERIC_<wbr/>FAIL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Generic error&quot;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:54</li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="NO_RPC_RESPONSE" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>NO_<wbr/>RPC_<wbr/>RESPONSE</span><a href="#NO_RPC_RESPONSE" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">NO_<wbr/>RPC_<wbr/>RESPONSE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;No RPC response&quot;</span></div><aside class="tsd-sources">
+<div class="tsd-signature">ENCODE_<wbr/>FAILED<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Failed to encode&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Failure to protobuf encode the message. This is not recoverable and needs
+further investigation.</p>
+</div><aside class="tsd-sources">
 <ul>
 <li>Defined in packages/interfaces/dist/protocols.d.ts:58</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="GENERIC_FAIL" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>GENERIC_<wbr/>FAIL</span><a href="#GENERIC_FAIL" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">GENERIC_<wbr/>FAIL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Generic error&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Could not determine the origin of the fault. Best to check connectivity and try again</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:55</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="NO_PEER_AVAILABLE" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>NO_<wbr/>PEER_<wbr/>AVAILABLE</span><a href="#NO_PEER_AVAILABLE" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">NO_<wbr/>PEER_<wbr/>AVAILABLE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;No peer available&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Failure to find a peer with suitable protocols. This may due to a connection issue.
+Mitigation can be: retrying after a given time period, display connectivity issue
+to user or listening for <code>peer:connected:bootstrap</code> or <code>peer:connected:peer-exchange</code>
+on the connection manager before retrying.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:72</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="REMOTE_PEER_FAULT" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>REMOTE_<wbr/>PEER_<wbr/>FAULT</span><a href="#REMOTE_PEER_FAULT" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">REMOTE_<wbr/>PEER_<wbr/>FAULT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Remote peer fault&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>The remote peer did not behave as expected. Mitigation for <code>NO_PEER_AVAILABLE</code>
+or <code>DECODE_FAILED</code> can be used.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:77</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="REMOTE_PEER_REJECTED" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>REMOTE_<wbr/>PEER_<wbr/>REJECTED</span><a href="#REMOTE_PEER_REJECTED" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">REMOTE_<wbr/>PEER_<wbr/>REJECTED<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Remote peer rejected&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>The remote peer rejected the message. Information provided by the remote peer
+is logged. Review message validity, or mitigation for <code>NO_PEER_AVAILABLE</code>
+or <code>DECODE_FAILED</code> can be used.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:83</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="SIZE_TOO_BIG" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>SIZE_<wbr/>TOO_<wbr/>BIG</span><a href="#SIZE_TOO_BIG" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">SIZE_<wbr/>TOO_<wbr/>BIG<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Size is too big&quot;</span></div><aside class="tsd-sources">
+<div class="tsd-signature">SIZE_<wbr/>TOO_<wbr/>BIG<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Size is too big&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>The message size is above the maximum message size allowed on the Waku Network.
+Compressing the message or using an alternative strategy for large messages is recommended.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:57</li></ul></aside></section></section></div>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:65</li></ul></aside></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -186,7 +221,9 @@
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_waku_sdk.SendError.html#DECODE_FAILED" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>DECODE_<wbr/>FAILED</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_waku_sdk.SendError.html#ENCODE_FAILED" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>ENCODE_<wbr/>FAILED</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_waku_sdk.SendError.html#GENERIC_FAIL" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>GENERIC_<wbr/>FAIL</a></li>
-<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_waku_sdk.SendError.html#NO_RPC_RESPONSE" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>NO_<wbr/>RPC_<wbr/>RESPONSE</a></li>
+<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_waku_sdk.SendError.html#NO_PEER_AVAILABLE" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>NO_<wbr/>PEER_<wbr/>AVAILABLE</a></li>
+<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_waku_sdk.SendError.html#REMOTE_PEER_FAULT" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>REMOTE_<wbr/>PEER_<wbr/>FAULT</a></li>
+<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_waku_sdk.SendError.html#REMOTE_PEER_REJECTED" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>REMOTE_<wbr/>PEER_<wbr/>REJECTED</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_waku_sdk.SendError.html#SIZE_TOO_BIG" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>SIZE_<wbr/>TOO_<wbr/>BIG</a></li></ul></li></ul></nav></div></div>
 <div class="container tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
