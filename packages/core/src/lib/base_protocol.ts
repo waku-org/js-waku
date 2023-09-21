@@ -96,11 +96,11 @@ export class BaseProtocol implements IBaseProtocol {
 
   protected ensurePubsubTopicIsValid(
     pubsubTopic: PubSubTopic,
-    allowedTopics: PubSubTopic[]
+    configuredTopics: PubSubTopic[]
   ): void {
-    if (!allowedTopics.includes(pubsubTopic)) {
+    if (!configuredTopics.includes(pubsubTopic)) {
       throw new Error(
-        `Pubsub topic ${pubsubTopic} is not supported by this protocol. Allowed topics are: ${allowedTopics}`
+        `PubSub topic ${pubsubTopic} is not supported by this protocol. Configured topics are: ${configuredTopics}. Please update your configuration by passing in the topic during Waku node instantiation.`
       );
     }
   }

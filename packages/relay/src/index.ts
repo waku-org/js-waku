@@ -105,10 +105,10 @@ class Relay implements IRelay {
 
     const { pubSubTopic } = encoder;
     if (!this.pubSubTopics.has(pubSubTopic)) {
-      log("Failed to send waku relay: topic not subscribed");
+      log("Failed to send waku relay: topic not configured");
       return {
         recipients,
-        errors: [SendError.TOPIC_NOT_SUBSCRIBED]
+        errors: [SendError.TOPIC_NOT_CONFIGURED]
       };
     }
 
@@ -340,7 +340,7 @@ function toObservers<T extends IDecodedMessage>(
   for (const decoder of decoders) {
     if (!allPubSubTopics.includes(decoder.pubSubTopic)) {
       throw new Error(
-        `Pubsub topic ${decoder.pubSubTopic} is not supported by this protocol. Allowed topics are: ${allPubSubTopics}`
+        `PubSub topic ${decoder.pubSubTopic} is not supported by this protocol. Configured topics are: ${allPubSubTopics}. Please update your configuration by passing in the topic during Waku node instantiation.`
       );
     }
   }

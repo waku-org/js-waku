@@ -68,7 +68,7 @@ export enum SendError {
   DECODE_FAILED = "Failed to decode",
   SIZE_TOO_BIG = "Size is too big",
   NO_RPC_RESPONSE = "No RPC response",
-  TOPIC_NOT_SUBSCRIBED = "Topic not subscribed"
+  TOPIC_NOT_CONFIGURED = "Topic not configured"
 }
 
 export interface SendResult {
