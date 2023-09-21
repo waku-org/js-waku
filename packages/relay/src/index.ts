@@ -136,10 +136,33 @@ class Relay implements IRelay {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
-    const pubSubTopicToContentObservers = Array.isArray(decoders)
+    const pubSubTopicToContentObservers = this.createObservers(
+      decoders,
+      callback
+    );
+
+    this.addObservers(pubSubTopicToContentObservers);
+
+    return () => {
+      this.removeObservers(pubSubTopicToContentObservers);
+    };
+  }
+
+  private createObservers<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    callback: Callback<T>
+  ): Map<PubSubTopic, Map<ContentTopic, Set<Observer<T>>>> {
+    return Array.isArray(decoders)
       ? toObservers(Array.from(this.pubSubTopics), decoders, callback)
       : toObservers(Array.from(this.pubSubTopics), [decoders], callback);
+  }
 
+  private addObservers<T extends IDecodedMessage>(
+    pubSubTopicToContentObservers: Map<
+      PubSubTopic,
+      Map<ContentTopic, Set<Observer<T>>>
+    >
+  ): void {
     for (const [
       pubSubTopic,
       contentTopicToObservers
@@ -162,42 +185,47 @@ class Relay implements IRelay {
 
       this.observers.set(pubSubTopic, existingContentObservers);
     }
+  }
 
-    return () => {
-      for (const [
-        pubSubTopic,
-        contentTopicToObservers
-      ] of pubSubTopicToContentObservers.entries()) {
-        const existingContentObservers = this.observers.get(pubSubTopic);
+  private removeObservers<T extends IDecodedMessage>(
+    pubSubTopicToContentObservers: Map<
+      PubSubTopic,
+      Map<ContentTopic, Set<Observer<T>>>
+    >
+  ): void {
+    for (const [
+      pubSubTopic,
+      contentTopicToObservers
+    ] of pubSubTopicToContentObservers.entries()) {
+      const existingContentObservers = this.observers.get(pubSubTopic);
 
-        if (existingContentObservers) {
-          for (const [
-            contentTopic,
+      if (existingContentObservers) {
+        for (const [
+          contentTopic,
+          observersToRemove
+        ] of contentTopicToObservers.entries()) {
+          const currentObservers =
+            existingContentObservers.get(contentTopic) ||
+            new Set<Observer<T>>();
+          const nextObservers = leftMinusJoin(
+            currentObservers,
             observersToRemove
-          ] of contentTopicToObservers.entries()) {
-            const currentObservers =
-              existingContentObservers.get(contentTopic) ||
-              new Set<Observer<T>>();
-            const nextObservers = leftMinusJoin(
-              currentObservers,
-              observersToRemove
-            );
+          );
 
-            if (nextObservers.size) {
-              existingContentObservers.set(contentTopic, nextObservers);
-            } else {
-              existingContentObservers.delete(contentTopic);
-            }
-          }
-
-          if (existingContentObservers.size) {
-            this.observers.set(pubSubTopic, existingContentObservers);
+          if (nextObservers.size) {
+            existingContentObservers.set(contentTopic, nextObservers);
           } else {
-            this.observers.delete(pubSubTopic);
+            existingContentObservers.delete(contentTopic);
           }
         }
+
+        if (existingContentObservers.size) {
+          this.observers.set(pubSubTopic, existingContentObservers);
+        } else {
+          this.observers.delete(pubSubTopic);
+        }
       }
-    };
+    }
   }
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
