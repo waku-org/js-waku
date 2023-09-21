@@ -86,7 +86,7 @@ describe("Waku Light Push [node only]", function () {
       });
     } else {
       expect(pushResponse.recipients.length).to.eq(0);
-      expect(pushResponse.errors).to.include(SendError.NO_RPC_RESPONSE);
+      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_REJECTED);
       expect(await messageCollector.waitForMessages(1)).to.eq(false);
     }
   });
@@ -158,7 +158,7 @@ describe("Waku Light Push [node only]", function () {
       });
     } else {
       expect(pushResponse.recipients.length).to.eq(0);
-      expect(pushResponse.errors).to.include(SendError.NO_RPC_RESPONSE);
+      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_REJECTED);
       expect(await messageCollector.waitForMessages(1)).to.eq(false);
     }
   });

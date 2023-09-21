@@ -146,13 +146,18 @@ class LightPush extends BaseProtocol implements ILightPush {
         return { recipients, error: SendError.DECODE_FAILED };
       }
 
-      if (response?.isSuccess) {
-        recipients.some((recipient) => recipient.equals(peer.id)) ||
-          recipients.push(peer.id);
-      } else {
+      if (!response) {
         log("Remote peer fault: No response in PushRPC");
         return { recipients, error: SendError.REMOTE_PEER_FAULT };
       }
+
+      if (!response.isSuccess) {
+        log("Remote peer rejected the message: ", response.info);
+        return { recipients, error: SendError.REMOTE_PEER_REJECTED };
+      }
+
+      recipients.some((recipient) => recipient.equals(peer.id)) ||
+        recipients.push(peer.id);
 
       return { recipients };
     });

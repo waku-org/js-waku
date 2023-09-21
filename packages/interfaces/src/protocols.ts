@@ -79,10 +79,16 @@ export enum SendError {
    */
   NO_PEER_AVAILABLE = "No peer available",
   /**
-   * The remote peer did not behave as expected. Mitigation from `NO_PEER_AVAILABLE`
+   * The remote peer did not behave as expected. Mitigation for `NO_PEER_AVAILABLE`
    * or `DECODE_FAILED` can be used.
    */
-  REMOTE_PEER_FAULT = "Remote peer fault"
+  REMOTE_PEER_FAULT = "Remote peer fault",
+  /**
+   * The remote peer rejected the message. Information provided by the remote peer
+   * is logged. Review message validity, or mitigation for `NO_PEER_AVAILABLE`
+   * or `DECODE_FAILED` can be used.
+   */
+  REMOTE_PEER_REJECTED = "Remote peer rejected"
 }
 
 export interface SendResult {
