@@ -5,6 +5,8 @@ process.env.CHROME_BIN = playwright.chromium.executablePath();
 process.env.FIREFOX_BIN = playwright.firefox.executablePath();
 process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
 
+console.log("__dirname", __dirname);
+
 module.exports = function (config) {
   config.set({
     frameworks: ["webpack", "mocha"],
