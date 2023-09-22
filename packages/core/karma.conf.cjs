@@ -29,7 +29,7 @@ module.exports = function (config) {
       plugins: [
         new webpack.DefinePlugin({
           "process.env.CI": process.env.CI || false,
-          "process.env.DISPLAY": "localhost",
+          "process.env.DISPLAY": "Browser",
         }),
         new webpack.ProvidePlugin({
           process: "process/browser.js"
