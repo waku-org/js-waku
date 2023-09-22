@@ -11,6 +11,9 @@ env:
   EXAMPLE_TEMPLATE: "web-chat"
   EXAMPLE_NAME: "example"
   EXAMPLE_PORT: "8080"
+  # Firefox in container fails due to $HOME not being owned by user running commands
+  # more details https://github.com/microsoft/playwright/issues/6500
+  HOME: "/root"
 
 jobs:
   test:
