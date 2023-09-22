@@ -4,7 +4,7 @@ import { promisify } from "util";
 const execAsync = promisify(exec);
 
 const WAKUNODE_IMAGE =
-  process.env.WAKUNODE_IMAGE || "statusteam/nim-waku:v0.19.0";
+  process.env.WAKUNODE_IMAGE || "statusteam/nim-waku:v0.20.0";
 
 async function main() {
   try {
