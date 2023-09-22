@@ -2,10 +2,8 @@ const webpack = require("webpack");
 const playwright = require('playwright');
 
 process.env.CHROME_BIN = playwright.chromium.executablePath();
-process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
-
-process.env.DISPLAY = "Browser";
 process.env.FIREFOX_BIN = playwright.firefox.executablePath();
+process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
 
 module.exports = function (config) {
   config.set({
@@ -30,7 +28,8 @@ module.exports = function (config) {
       },
       plugins: [
         new webpack.DefinePlugin({
-          "process.env.CI": process.env.CI || false
+          "process.env.CI": process.env.CI || false,
+          "process.env.DISPLAY": "localhost",
         }),
         new webpack.ProvidePlugin({
           process: "process/browser.js"
