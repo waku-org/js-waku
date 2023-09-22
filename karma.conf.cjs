@@ -8,9 +8,9 @@ process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
 module.exports = function (config) {
   config.set({
     frameworks: ["webpack", "mocha"],
-    files: ["src/lib/**/!(node).spec.ts"],
+    files: ["./src/lib/**/!(node).spec.ts"],
     preprocessors: {
-      "src/lib/**/!(node).spec.ts": ["webpack"]
+      "./src/lib/**/!(node).spec.ts": ["webpack"]
     },
     envPreprocessor: ["CI"],
     reporters: ["progress"],
