@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "dotenv-flow/config";
 import { defineConfig, devices } from "@playwright/test";
 
 const EXAMPLE_PORT = process.env.EXAMPLE_PORT;
