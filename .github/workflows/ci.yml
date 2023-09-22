@@ -58,6 +58,11 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.38.0-jammy
+      options: '--no-sandbox'
+    env:
+      # Firefox in container fails due to $HOME not being owned by user running commands
+      # more details https://github.com/microsoft/playwright/issues/6500
+      HOME: "/root"
     steps:
       - uses: actions/checkout@v3
         with: 
