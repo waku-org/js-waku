@@ -45,7 +45,5 @@
   "compileOnSave": false,
   "ts-node": {
     "files": true
-  },
-  "include": ["src"],
-  "exclude": ["src/**/*.spec.ts", "src/test_utils"]
+  }
 }
