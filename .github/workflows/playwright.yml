@@ -1,0 +1,40 @@
+name: Playwright tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  NODE_JS: "18"
+  EXAMPLE_TEMPLATE: "web-chat"
+  EXAMPLE_NAME: "example"
+  EXAMPLE_PORT: "8080"
+  # Firefox in container fails due to $HOME not being owned by user running commands
+  # more details https://github.com/microsoft/playwright/issues/6500
+  HOME: "/root"
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.38.0-jammy
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_JS }}
+
+    - uses: ./.github/actions/npm
+
+    - name: Run Playwright tests
+      run: npm run test --workspace=@waku/browser-tests
+
+    - uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
