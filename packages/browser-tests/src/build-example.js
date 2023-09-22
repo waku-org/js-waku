@@ -35,7 +35,7 @@ function cleanPrevBuildIfExists() {
 function buildExample() {
   try {
     console.log("Building example at", EXAMPLE_PATH);
-    execSync(`cd ${EXAMPLE_PATH} && npm run build`, { stdio: "ignore" });
+    execSync(`cd ${EXAMPLE_PATH} && npm run build`, { stdio: "pipe" });
   } catch (error) {
     console.error(`Failed to build example: ${error.message}`);
     throw error;
