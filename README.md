@@ -8,7 +8,7 @@ A TypeScript implementation of the [Waku v2 protocol](https://rfc.vac.dev/spec/1
 
 ## Documentation
 
-- [Quick start](https://docs.waku.org/guides/js-waku/quick-start)
+- [Quick start](https://docs.waku.org/guides/js-waku/#getting-started)
 - [Full documentation](https://docs.waku.org/guides/js-waku)
 - [API documentation (`master` branch)](https://js.waku.org/)
 - [Waku](https://waku.org/)
