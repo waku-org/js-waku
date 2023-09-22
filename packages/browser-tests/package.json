@@ -13,7 +13,7 @@
   "devDependencies": {
     "@playwright/test": "^1.37.1",
     "@waku/create-app": "^0.1.1-b688b42",
-    "dotenv": "^16.3.1",
+    "dotenv-flow": "^3.3.0",
     "serve": "^14.2.1"
   }
 }

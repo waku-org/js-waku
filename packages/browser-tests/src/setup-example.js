@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import "dotenv/config";
+import "dotenv-flow/config";
 import { execSync } from "child_process";
 import path from "path";
 
