@@ -16,7 +16,7 @@ module.exports = function (config) {
     },
     envPreprocessor: ["CI"],
     reporters: ["progress"],
-    browsers: ["ChromeHeadless", "Firefox", "WebkitHeadless"],
+    browsers: ["ChromeHeadless", "FirefoxHeadless", "WebkitHeadless"],
     singleRun: true,
     client: {
       mocha: {
