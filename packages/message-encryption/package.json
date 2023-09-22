@@ -65,7 +65,7 @@
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "browser": {
     "crypto": false
@@ -97,12 +97,7 @@
     "npm-run-all": "^4.1.5",
     "process": "^0.11.10",
     "puppeteer": "^21.1.1",
-    "rollup": "^3.29.2",
-    "ts-loader": "^9.4.2",
-    "typescript": "^5.0.4"
-  },
-  "typedoc": {
-    "entryPoint": "./src/index.ts"
+    "rollup": "^3.29.2"
   },
   "files": [
     "dist",

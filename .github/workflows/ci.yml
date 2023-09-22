@@ -10,15 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       nim_wakunode_image:
-        description: "Docker hub image name taken from https://hub.docker.com/r/statusteam/nim-waku/tags. Format: statusteam/nim-waku:v0.19.0"
-        required: false
-        type: string
-  workflow_call:
-    inputs:
-      nim_wakunode_image:
-        required: false
-        type: string
-      caller:
+        description: "Docker hub image name taken from https://hub.docker.com/r/statusteam/nim-waku/tags. Format: statusteam/nim-waku:v0.20.0"
         required: false
         type: string
 
@@ -28,7 +20,6 @@ env:
 jobs:
   check:
     runs-on: ubuntu-latest
-    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     steps:
       - uses: actions/checkout@v3
         with: 
@@ -44,7 +35,6 @@ jobs:
 
   proto:
     runs-on: ubuntu-latest
-    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     steps:
       - uses: actions/checkout@v3
         with: 
@@ -66,7 +56,6 @@ jobs:
 
   browser:
     runs-on: ubuntu-latest
-    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
     steps:
       - uses: actions/checkout@v3
         with: 
@@ -79,145 +68,35 @@ jobs:
       - run: npm run test:browser
 
   node:
-    runs-on: ubuntu-latest
-    env:
-      WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
-    steps:
-      - uses: actions/checkout@v3
-        with: 
-          repository: waku-org/js-waku
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_JS }}
-
-      - uses: ./.github/actions/npm
-
-      - run: npm run build:esm
-      
-      - run: npm run test:node
-        env:
-          DEBUG: ""
-
-      - name: Upload debug logs on failure
-        uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: debug.log
-          path: debug.log
-
-      - name: Upload nwaku logs on failure
-        uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: nwaku-logs
-          path: packages/tests/log/
+    uses: ./.github/workflows/test-node.yml
+    with:
+      nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.20.0' }}
+      test_type: node
 
   node_optional:
-    runs-on: ubuntu-latest
-    env:
-      WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
-
-    steps:
-      - uses: actions/checkout@v3
-        with: 
-          repository: waku-org/js-waku
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_JS }}
-
-      - uses: ./.github/actions/npm
-
-      - run: npm run build:esm
-      
-      - run: npm run test:optional --workspace=@waku/tests
-        env:
-          DEBUG: ""
+    uses: ./.github/workflows/test-node.yml
+    with:
+      nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.20.0' }}
+      test_type: node-optional
 
   node_with_go_waku_master:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
-    env:
-      WAKUNODE_IMAGE: "statusteam/go-waku:latest"
-      WAKU_SERVICE_NODE_PARAMS: "--min-relay-peers-to-publish=0" # Can be removed once https://github.com/status-im/nwaku/issues/1004 is done
-      DEBUG: "waku*"
-    steps:
-      - uses: actions/checkout@v3
-        with: 
-          repository: waku-org/js-waku
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_JS }}
-
-      - uses: ./.github/actions/npm
-
-      - run: npm run build:esm
-      
-      - run: npm run test:node
-        env:
-          DEBUG: "waku:nwaku*,waku:test*"
-
-      - name: Upload debug logs on failure
-        uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: go-waku-debug.log
-          path: debug.log
-
-      - name: Upload logs on failure
-        uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: go-waku-logs
-          path: packages/tests/log/
+    uses: ./.github/workflows/test-node.yml
+    with:
+      nim_wakunode_image: statusteam/go-waku:latest
+      test_type: go-waku-master
+      debug: waku*
 
   node_with_nwaku_master:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.caller == null || inputs.caller != 'nwaku' }}
-    env:
-      DEBUG: "waku*"
-      WAKUNODE_IMAGE: "statusteam/nim-waku:deploy-wakuv2-test"
-    steps:
-      - uses: actions/checkout@v3
-        with: 
-          repository: waku-org/js-waku
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_JS }}
-
-      - uses: ./.github/actions/npm
-
-      - run: npm run build:esm
-
-      - run: npm run test:node
-        env:
-          DEBUG: "waku:nwaku*,waku:test*"
-
-      - name: Upload debug logs on failure
-        uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: nwaku-master-debug.log
-          path: debug.log
-
-      - name: Upload logs on failure
-        uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: nwaku-master-logs
-          path: packages/tests/log/
+    uses: ./.github/workflows/test-node.yml
+    with:
+      nim_wakunode_image: statusteam/nim-waku:deploy-wakuv2-test
+      test_type: nwaku-master
+      debug: waku*
 
   maybe-release:
     name: release
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'push' && 
-      github.ref == 'refs/heads/master' &&
-      (github.event.inputs.caller == null || github.event.inputs.caller != 'nwaku')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [check, proto, browser, node]
     steps:
       - uses: google-github-actions/release-please-action@v3

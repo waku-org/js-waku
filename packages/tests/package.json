@@ -47,7 +47,7 @@
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "dependencies": {
     "@libp2p/interface-compliance-tests": "^4.0.5",
@@ -73,8 +73,6 @@
     "@types/mocha": "^10.0.1",
     "@types/sinon": "^10.0.16",
     "@types/tail": "^2.2.1",
-    "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^5.62.0",
     "@waku/dns-discovery": "*",
     "@waku/message-encryption": "*",
     "@waku/peer-exchange": "*",
@@ -86,7 +84,6 @@
     "interface-datastore": "^8.2.5",
     "libp2p": "^0.46.9",
     "mocha": "^10.2.0",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.0.4"
+    "npm-run-all": "^4.1.5"
   }
 }

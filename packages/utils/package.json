@@ -62,7 +62,7 @@
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "dependencies": {
     "debug": "^4.3.4",
@@ -77,11 +77,7 @@
     "@waku/interfaces": "0.0.17",
     "cspell": "^7.3.2",
     "npm-run-all": "^4.1.5",
-    "rollup": "^3.29.2",
-    "typescript": "^5.0.4"
-  },
-  "typedoc": {
-    "entryPoint": "./src/index.ts"
+    "rollup": "^3.29.2"
   },
   "files": [
     "dist",
