@@ -96,15 +96,23 @@ async function waitForConnectedPeer(protocol: IBaseProtocol): Promise<void> {
 }
 
 /**
- * Wait for a peer with the given protocol to be connected and in the gossipsub
- * mesh.
+ * Wait for at least one peer with the given protocol to be connected and in the gossipsub
+ * mesh for all pubSubTopics.
  */
 async function waitForGossipSubPeerInMesh(waku: IRelay): Promise<void> {
-  let peers = waku.getMeshPeers();
+  let topicHasNoPeer = true;
 
-  while (peers.length == 0) {
+  while (topicHasNoPeer) {
     await pEvent(waku.gossipSub, "gossipsub:heartbeat");
-    peers = waku.getMeshPeers();
+    const meshPeersMap = waku.getMeshPeers();
+
+    topicHasNoPeer = false; // Assume no topic is without peers initially
+    for (const peers of meshPeersMap.values()) {
+      if (peers.length === 0) {
+        topicHasNoPeer = true; // If any topic doesn't have peers, set to true
+        break;
+      }
+    }
   }
 }
 

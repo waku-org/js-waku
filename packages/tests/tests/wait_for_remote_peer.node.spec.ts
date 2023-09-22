@@ -39,7 +39,7 @@ describe("Wait for remote peer", function () {
     await waku1.dial(multiAddrWithId);
     await delay(1000);
     await waitForRemotePeer(waku1, [Protocols.Relay]);
-    const peers = waku1.relay.getMeshPeers();
+    const peers = Array.from(waku1.relay.getMeshPeers().values()).flat();
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -67,7 +67,7 @@ describe("Wait for remote peer", function () {
     await waku1.dial(multiAddrWithId);
     await waitPromise;
 
-    const peers = waku1.relay.getMeshPeers();
+    const peers = Array.from(waku1.relay.getMeshPeers().values()).flat();
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -262,7 +262,7 @@ describe("Wait for remote peer", function () {
     await waku1.dial(multiAddrWithId);
     await waitForRemotePeer(waku1);
 
-    const peers = waku1.relay.getMeshPeers();
+    const peers = Array.from(waku1.relay.getMeshPeers().values()).flat();
 
     const nimPeerId = multiAddrWithId.getPeerId();
 

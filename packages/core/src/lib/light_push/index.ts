@@ -6,6 +6,7 @@ import {
   IMessage,
   Libp2p,
   ProtocolCreateOptions,
+  PubSubTopic,
   SendError,
   SendResult
 } from "@waku/interfaces";
@@ -41,12 +42,12 @@ type PreparePushMessageResult =
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 class LightPush extends BaseProtocol implements ILightPush {
-  options: ProtocolCreateOptions;
+  private readonly pubsubTopics: PubSubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components);
-    this.options = options || {};
+    this.pubsubTopics = options?.pubSubTopics ?? [DefaultPubSubTopic];
   }
 
   private async preparePushMessage(
@@ -82,7 +83,9 @@ class LightPush extends BaseProtocol implements ILightPush {
   }
 
   async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+    const { pubSubTopic } = encoder;
+    this.ensurePubsubTopicIsValid(pubSubTopic, this.pubsubTopics);
+
     const recipients: PeerId[] = [];
 
     const { query, error: preparationError } = await this.preparePushMessage(
@@ -98,6 +101,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       };
     }
 
+    //TODO: get a relevant peer for the topic/shard
     const peers = await this.getPeers({
       maxBootstrapPeers: 1,
       numPeers: this.NUM_PEERS_PROTOCOL
