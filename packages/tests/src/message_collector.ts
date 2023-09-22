@@ -1,4 +1,4 @@
-import { DecodedMessage, DefaultPubSubTopic } from "@waku/core";
+import { DecodedMessage } from "@waku/core";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
 import debug from "debug";
@@ -20,8 +20,8 @@ export class MessageCollector {
 
   constructor(
     private contentTopic: string,
-    private nwaku?: NimGoNode,
-    private pubSubTopic = DefaultPubSubTopic
+    private pubSubTopic: string,
+    private nwaku?: NimGoNode
   ) {
     if (!this.nwaku) {
       this.callback = (msg: DecodedMessage): void => {
@@ -166,9 +166,9 @@ export class MessageCollector {
     } else {
       // js-waku message specific assertions
       expect(message.pubSubTopic).to.eq(
-        options.expectedPubSubTopic || DefaultPubSubTopic,
+        options.expectedPubSubTopic || this.pubSubTopic,
         `Message pub/sub topic mismatch. Expected: ${
-          options.expectedPubSubTopic || DefaultPubSubTopic
+          options.expectedPubSubTopic || this.pubSubTopic
         }. Got: ${message.pubSubTopic}`
       );
 

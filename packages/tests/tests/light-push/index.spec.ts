@@ -31,8 +31,8 @@ describe("Waku Light Push [node only]", function () {
     [nwaku, waku] = await runNodes(this);
     messageCollector = new MessageCollector(
       TestContentTopic,
-      nwaku,
-      DefaultPubSubTopic
+      DefaultPubSubTopic,
+      nwaku
     );
   });
 

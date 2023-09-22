@@ -31,9 +31,12 @@ describe("Waku Filter V2: FilterPush", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this);
+    [nwaku, waku] = await runNodes(this, [DefaultPubSubTopic]);
     subscription = await waku.filter.createSubscription();
-    messageCollector = new MessageCollector(TestContentTopic);
+    messageCollector = new MessageCollector(
+      TestContentTopic,
+      DefaultPubSubTopic
+    );
   });
 
   this.afterEach(async function () {

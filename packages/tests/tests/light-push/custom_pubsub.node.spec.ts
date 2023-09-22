@@ -22,8 +22,8 @@ describe("Waku Light Push [node only] - custom pubsub topic", function () {
     [nwaku, waku] = await runNodes(this, customPubSubTopic);
     messageCollector = new MessageCollector(
       TestContentTopic,
-      nwaku,
-      customPubSubTopic
+      customPubSubTopic,
+      nwaku
     );
   });
 
