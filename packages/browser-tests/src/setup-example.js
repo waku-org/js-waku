@@ -5,8 +5,6 @@ import path from "path";
 
 import { __dirname, readJSON } from "./utils.js";
 
-console.log("TEMPLATE!", process.env.EXAMPLE_TEMPLATE);
-
 const ROOT_PATH = path.resolve(__dirname, "../../../");
 const JS_WAKU_PACKAGES = readWorkspaces();
 
