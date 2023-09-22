@@ -9,3 +9,6 @@ coverage
 *.log
 *.tsbuildinfo
 docs
+test-results
+playwright-report
+example
