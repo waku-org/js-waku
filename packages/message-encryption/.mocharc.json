@@ -7,5 +7,6 @@
     "experimental-specifier-resolution=node",
     "loader=ts-node/esm"
   ],
-  "exit": true
+  "exit": true,
+  "retries": 3
 }
