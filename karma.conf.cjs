@@ -1,5 +1,9 @@
-process.env.CHROME_BIN = require("puppeteer").executablePath();
 const webpack = require("webpack");
+const playwright = require('playwright');
+
+process.env.CHROME_BIN = playwright.chromium.executablePath();
+process.env.FIREFOX_BIN = playwright.firefox.executablePath();
+process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
 
 module.exports = function (config) {
   config.set({
@@ -10,7 +14,7 @@ module.exports = function (config) {
     },
     envPreprocessor: ["CI"],
     reporters: ["progress"],
-    browsers: ["ChromeHeadless"],
+    browsers: ["ChromeHeadless", "FirefoxHeadless", "WebkitHeadless"],
     singleRun: true,
     client: {
       mocha: {
@@ -20,28 +24,12 @@ module.exports = function (config) {
     webpack: {
       mode: "development",
       module: {
-        rules: [
-          {
-            test: /\.([cm]?ts|tsx)$/,
-            use: [
-              {
-                loader: "ts-loader",
-                options: {
-                  configFile: "tsconfig.karma.json"
-                }
-              }
-            ]
-          }, {
-            test: /\.m?js/,
-            resolve: {
-              fullySpecified: false
-            }
-          }
-        ]
+        rules: [{ test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }]
       },
       plugins: [
         new webpack.DefinePlugin({
-          "process.env.CI": process.env.CI || false
+          "process.env.CI": process.env.CI || false,
+          "process.env.DISPLAY": "Browser",
         }),
         new webpack.ProvidePlugin({
           process: "process/browser.js"

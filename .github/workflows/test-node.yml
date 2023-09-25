@@ -1,7 +1,12 @@
+# WARNING: This workflow is used by upstream workflows (jswaku, nwaku, gowaku) via workflow_call.
+# DO NOT modify the name, inputs, or other parts of this workflow that might break upstream CI.
+
 name: Run Test
 
 on:
   workflow_call:
+    # IMPORTANT: Do not change the name or properties of these inputs.
+    # If you add new required inputs make sure that they have default value or you make the change upstream as well
     inputs:
       nim_wakunode_image:
         required: true
@@ -16,6 +21,7 @@ on:
 
 env:
   NODE_JS: "18"
+  # Ensure test type conditions remain consistent.
   WAKU_SERVICE_NODE_PARAMS: ${{ (inputs.test_type == 'go-waku-master') && '--min-relay-peers-to-publish=0' || '' }}
   DEBUG: ${{ inputs.debug }}
 

@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       nim_wakunode_image:
-        description: "Docker hub image name taken from https://hub.docker.com/r/statusteam/nim-waku/tags. Format: statusteam/nim-waku:v0.19.0"
+        description: "Docker hub image name taken from https://hub.docker.com/r/statusteam/nim-waku/tags. Format: statusteam/nim-waku:v0.20.0"
         required: false
         type: string
 
@@ -64,19 +64,20 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: ./.github/actions/npm
+      - run: npx playwright install --with-deps
       - run: npm run build:esm
       - run: npm run test:browser
 
   node:
     uses: ./.github/workflows/test-node.yml
     with:
-      nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
+      nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.20.0' }}
       test_type: node
 
   node_optional:
     uses: ./.github/workflows/test-node.yml
     with:
-      nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.19.0' }}
+      nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.20.0' }}
       test_type: node-optional
 
   node_with_go_waku_master:
