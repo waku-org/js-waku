@@ -25,6 +25,8 @@ describe("Waku Light Push [node only] - custom pubsub topic", function () {
       nwaku,
       customPubSubTopic
     );
+
+    await nwaku.ensureSubscriptions([customPubSubTopic]);
   });
 
   this.afterEach(async function () {
