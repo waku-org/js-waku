@@ -1,7 +1,7 @@
 import { Multiaddr } from "@multiformats/multiaddr";
 import type { IEnr } from "@waku/interfaces";
 
-import { multiaddrFromFields } from "./multiaddr_from_fields";
+import { multiaddrFromFields } from "./multiaddr_from_fields.js";
 
 export function locationMultiaddrFromEnrFields(
   enr: IEnr,
