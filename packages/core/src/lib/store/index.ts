@@ -17,9 +17,9 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
+import { DefaultPubSubTopic } from "../../constants.js";
 import { toProtoMessage } from "../../helpers/to_proto_message.js";
 import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
 
 import { HistoryRpc, PageDirection, Params } from "./history_rpc.js";
 
