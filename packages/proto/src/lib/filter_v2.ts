@@ -11,7 +11,7 @@ import type { Uint8ArrayList } from 'uint8arraylist'
 export interface FilterSubscribeRequest {
   requestId: string
   filterSubscribeType: FilterSubscribeRequest.FilterSubscribeType
-  pubSubTopic?: string
+  pubsubTopic?: string
   contentTopics: string[]
 }
 
@@ -55,9 +55,9 @@ export namespace FilterSubscribeRequest {
           FilterSubscribeRequest.FilterSubscribeType.codec().encode(obj.filterSubscribeType, w)
         }
 
-        if (obj.pubSubTopic != null) {
+        if (obj.pubsubTopic != null) {
           w.uint32(82)
-          w.string(obj.pubSubTopic)
+          w.string(obj.pubsubTopic)
         }
 
         if (obj.contentTopics != null) {
@@ -90,7 +90,7 @@ export namespace FilterSubscribeRequest {
               obj.filterSubscribeType = FilterSubscribeRequest.FilterSubscribeType.codec().decode(reader)
               break
             case 10:
-              obj.pubSubTopic = reader.string()
+              obj.pubsubTopic = reader.string()
               break
             case 11:
               obj.contentTopics.push(reader.string())
@@ -196,7 +196,7 @@ export namespace FilterSubscribeResponse {
 
 export interface MessagePush {
   wakuMessage?: WakuMessage
-  pubSubTopic?: string
+  pubsubTopic?: string
 }
 
 export namespace MessagePush {
@@ -214,9 +214,9 @@ export namespace MessagePush {
           WakuMessage.codec().encode(obj.wakuMessage, w)
         }
 
-        if (obj.pubSubTopic != null) {
+        if (obj.pubsubTopic != null) {
           w.uint32(18)
-          w.string(obj.pubSubTopic)
+          w.string(obj.pubsubTopic)
         }
 
         if (opts.lengthDelimited !== false) {
@@ -235,7 +235,7 @@ export namespace MessagePush {
               obj.wakuMessage = WakuMessage.codec().decode(reader, reader.uint32())
               break
             case 2:
-              obj.pubSubTopic = reader.string()
+              obj.pubsubTopic = reader.string()
               break
             default:
               reader.skipType(tag & 7)
