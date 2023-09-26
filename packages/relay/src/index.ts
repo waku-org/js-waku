@@ -35,7 +35,6 @@ import { TopicOnlyDecoder } from "./topic_only_message.js";
 const log = debug("waku:relay");
 
 export type Observer<T extends IDecodedMessage> = {
-  pubSubTopic: PubSubTopic;
   decoder: IDecoder<T>;
   callback: Callback<T>;
 };
@@ -136,7 +135,7 @@ class Relay implements IRelay {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
-    const observers: Observer<T>[] = [];
+    const observers: Array<[PubSubTopic, Observer<T>]> = [];
 
     for (const decoder of Array.isArray(decoders) ? decoders : [decoders]) {
       const pubSubTopic = decoder.pubSubTopic;
@@ -149,7 +148,7 @@ class Relay implements IRelay {
       ctObs.set(decoder.contentTopic, _obs);
       this.observers.set(pubSubTopic, ctObs);
 
-      observers.push(observer);
+      observers.push([pubSubTopic, observer]);
     }
 
     return () => {
@@ -158,11 +157,9 @@ class Relay implements IRelay {
   }
 
   private removeObservers<T extends IDecodedMessage>(
-    observers: Observer<T>[]
+    observers: Array<[PubSubTopic, Observer<T>]>
   ): void {
-    for (const observer of observers) {
-      const pubSubTopic = observer.pubSubTopic;
-
+    for (const [pubSubTopic, observer] of observers) {
       const ctObs = this.observers.get(pubSubTopic);
       if (!ctObs) continue;
 
