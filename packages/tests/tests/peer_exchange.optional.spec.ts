@@ -2,7 +2,7 @@ import { bootstrap } from "@libp2p/bootstrap";
 import {
   Fleet,
   getPredefinedBootstrapNodes
-} from "@waku/core/lib/predefined_bootstrap_nodes";
+} from "@waku/core/helpers/predefined_bootstrap_nodes";
 import type { LightNode } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { createLightNode } from "@waku/sdk";

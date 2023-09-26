@@ -27,6 +27,9 @@
       "lib/*": [
         "dist/lib/*"
       ],
+      "helpers/*": [
+        "dist/helpers/*"
+      ],
       "constants/*": [
         "dist/constants/*"
       ]
