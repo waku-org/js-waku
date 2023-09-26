@@ -7,12 +7,13 @@ import type {
 } from "@waku/interfaces";
 import debug from "debug";
 
-import { DnsOverHttps } from "./dns_over_https.js";
-import { ENRTree } from "./enrtree.js";
 import {
   fetchNodesUntilCapabilitiesFulfilled,
   yieldNodesUntilCapabilitiesFulfilled
-} from "./fetch_nodes.js";
+} from "../helpers/fetch_nodes.js";
+
+import { DnsOverHttps } from "./dns_over_https.js";
+import { ENRTree } from "./enrtree.js";
 
 const log = debug("waku:discovery:dns");
 

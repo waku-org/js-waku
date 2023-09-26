@@ -18,7 +18,8 @@ import {
   DEFAULT_BOOTSTRAP_TAG_TTL,
   DEFAULT_BOOTSTRAP_TAG_VALUE,
   DEFAULT_NODE_REQUIREMENTS
-} from "./constants.js";
+} from "../constants.js";
+
 import { DnsNodeDiscovery } from "./dns.js";
 
 const log = debug("waku:peer-discovery-dns");
