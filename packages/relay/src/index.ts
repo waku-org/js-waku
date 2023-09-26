@@ -25,7 +25,7 @@ import {
   SendError,
   SendResult
 } from "@waku/interfaces";
-import { groupByContentTopic, isSizeValid, toAsyncIterator } from "@waku/utils";
+import { isSizeValid, toAsyncIterator } from "@waku/utils";
 import debug from "debug";
 
 import { RelayCodecs } from "./constants.js";
@@ -35,7 +35,7 @@ import { TopicOnlyDecoder } from "./topic_only_message.js";
 const log = debug("waku:relay");
 
 export type Observer<T extends IDecodedMessage> = {
-  pubsubTopic: PubSubTopic;
+  pubSubTopic: PubSubTopic;
   decoder: IDecoder<T>;
   callback: Callback<T>;
 };
@@ -136,95 +136,43 @@ class Relay implements IRelay {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
-    const pubSubTopicToContentObservers = this.createObservers(
-      decoders,
-      callback
-    );
+    const observers: Observer<T>[] = [];
 
-    this.addObservers(pubSubTopicToContentObservers);
+    for (const decoder of Array.isArray(decoders) ? decoders : [decoders]) {
+      const pubSubTopic = decoder.pubSubTopic;
+      const ctObs: Map<ContentTopic, Set<Observer<T>>> = this.observers.get(
+        pubSubTopic
+      ) ?? new Map();
+      const _obs = ctObs.get(decoder.contentTopic) ?? new Set();
+      const observer = { pubSubTopic, decoder, callback };
+      _obs.add(observer);
+      ctObs.set(decoder.contentTopic, _obs);
+      this.observers.set(pubSubTopic, ctObs);
+
+      observers.push(observer);
+    }
 
     return () => {
-      this.removeObservers(pubSubTopicToContentObservers);
+      this.removeObservers(observers);
     };
   }
 
-  private createObservers<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
-  ): Map<PubSubTopic, Map<ContentTopic, Set<Observer<T>>>> {
-    return Array.isArray(decoders)
-      ? toObservers(Array.from(this.pubSubTopics), decoders, callback)
-      : toObservers(Array.from(this.pubSubTopics), [decoders], callback);
-  }
-
-  private addObservers<T extends IDecodedMessage>(
-    pubSubTopicToContentObservers: Map<
-      PubSubTopic,
-      Map<ContentTopic, Set<Observer<T>>>
-    >
-  ): void {
-    for (const [
-      pubSubTopic,
-      contentTopicToObservers
-    ] of pubSubTopicToContentObservers.entries()) {
-      const existingContentObservers =
-        this.observers.get(pubSubTopic) ||
-        new Map<ContentTopic, Set<Observer<T>>>();
-
-      for (const [
-        contentTopic,
-        newObservers
-      ] of contentTopicToObservers.entries()) {
-        const currObservers =
-          existingContentObservers.get(contentTopic) ?? new Set<Observer<T>>();
-        existingContentObservers.set(
-          contentTopic,
-          union(currObservers, newObservers)
-        );
-      }
-
-      this.observers.set(pubSubTopic, existingContentObservers);
-    }
-  }
-
   private removeObservers<T extends IDecodedMessage>(
-    pubSubTopicToContentObservers: Map<
-      PubSubTopic,
-      Map<ContentTopic, Set<Observer<T>>>
-    >
+    observers: Observer<T>[]
   ): void {
-    for (const [
-      pubSubTopic,
-      contentTopicToObservers
-    ] of pubSubTopicToContentObservers.entries()) {
-      const existingContentObservers = this.observers.get(pubSubTopic);
+    for (const observer of observers) {
+      const pubSubTopic = observer.pubSubTopic;
 
-      if (existingContentObservers) {
-        for (const [
-          contentTopic,
-          observersToRemove
-        ] of contentTopicToObservers.entries()) {
-          const currentObservers =
-            existingContentObservers.get(contentTopic) ||
-            new Set<Observer<T>>();
-          const nextObservers = leftMinusJoin(
-            currentObservers,
-            observersToRemove
-          );
+      const ctObs = this.observers.get(pubSubTopic);
+      if (!ctObs) continue;
 
-          if (nextObservers.size) {
-            existingContentObservers.set(contentTopic, nextObservers);
-          } else {
-            existingContentObservers.delete(contentTopic);
-          }
-        }
+      const contentTopic = observer.decoder.contentTopic;
+      const _obs = ctObs.get(contentTopic);
+      if (!_obs) continue;
 
-        if (existingContentObservers.size) {
-          this.observers.set(pubSubTopic, existingContentObservers);
-        } else {
-          this.observers.delete(pubSubTopic);
-        }
-      }
+      _obs.delete(observer);
+      ctObs.set(contentTopic, _obs);
+      this.observers.set(pubSubTopic, ctObs);
     }
   }
 
@@ -358,68 +306,4 @@ export function wakuGossipSub(
     pubsub.multicodecs = RelayCodecs;
     return pubsub;
   };
-}
-
-function toObservers<T extends IDecodedMessage>(
-  allPubSubTopics: PubSubTopic[],
-  decoders: IDecoder<T>[],
-  callback: Callback<T>
-): Map<PubSubTopic, Map<ContentTopic, Set<Observer<T>>>> {
-  for (const decoder of decoders) {
-    if (!allPubSubTopics.includes(decoder.pubSubTopic)) {
-      throw new Error(
-        `PubSub topic ${decoder.pubSubTopic} is not supported by this protocol. Configured topics are: ${allPubSubTopics}. Please update your configuration by passing in the topic during Waku node instantiation.`
-      );
-    }
-  }
-
-  const finalMap = new Map<PubSubTopic, Map<ContentTopic, Set<Observer<T>>>>();
-
-  for (const pubSubTopic of allPubSubTopics) {
-    // Filter decoders that match the current pubSubTopic
-    const filteredDecoders = decoders.filter(
-      (decoder) => decoder.pubSubTopic === pubSubTopic
-    );
-
-    // Group these decoders by ContentTopic
-    const contentTopicToDecoders = Array.from(
-      groupByContentTopic(filteredDecoders).entries()
-    );
-
-    const contentTopicToObserversMap = new Map<
-      ContentTopic,
-      Set<Observer<T>>
-    >();
-
-    for (const [contentTopic, topicDecoders] of contentTopicToDecoders) {
-      const observersSet = new Set<Observer<T>>(
-        topicDecoders.map((decoder) => ({
-          decoder,
-          callback
-        })) as Observer<T>[]
-      );
-      contentTopicToObserversMap.set(contentTopic, observersSet);
-    }
-
-    // Set the result in the final map
-    finalMap.set(pubSubTopic, contentTopicToObserversMap);
-  }
-
-  return finalMap;
-}
-
-function union(left: Set<unknown>, right: Set<unknown>): Set<unknown> {
-  for (const val of right.values()) {
-    left.add(val);
-  }
-  return left;
-}
-
-function leftMinusJoin(left: Set<unknown>, right: Set<unknown>): Set<unknown> {
-  for (const val of right.values()) {
-    if (left.has(val)) {
-      left.delete(val);
-    }
-  }
-  return left;
 }
