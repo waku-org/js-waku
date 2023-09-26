@@ -6,9 +6,12 @@ import {
 import type { ENRKey, ENRValue, SequenceNumber, Waku2 } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 
-import { ERR_INVALID_ID } from "./constants.js";
-import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
-import { decodeWaku2, encodeWaku2 } from "./waku2_codec.js";
+import { ERR_INVALID_ID } from "../constants.js";
+import {
+  decodeMultiaddrs,
+  encodeMultiaddrs
+} from "../helpers/multiaddrs_codec.js";
+import { decodeWaku2, encodeWaku2 } from "../helpers/waku2_codec.js";
 
 export class RawEnr extends Map<ENRKey, ENRValue> {
   public seq: SequenceNumber;
