@@ -14,7 +14,8 @@ import type { ISender } from "./sender.js";
 export interface IRelayAPI {
   readonly gossipSub: GossipSub;
   start: () => Promise<void>;
-  getMeshPeers: () => Map<TopicStr, PeerIdStr[]>;
+  getMeshPeers: (topic?: TopicStr) => PeerIdStr[];
+  getAllMeshPeers: () => Map<TopicStr, PeerIdStr[]>;
 }
 
 export type IRelay = IRelayAPI & ISender & IReceiver;

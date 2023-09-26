@@ -242,11 +242,15 @@ class Relay implements IRelay {
     return map;
   }
 
+  public getMeshPeers(topic: TopicStr = DefaultPubSubTopic): PeerIdStr[] {
+    return this.gossipSub.getMeshPeers(topic);
+  }
+
   /**
    * Returns mesh peers for all topics.
    * @returns Map of topic to peer ids
    */
-  public getMeshPeers(): Map<TopicStr, PeerIdStr[]> {
+  public getAllMeshPeers(): Map<TopicStr, PeerIdStr[]> {
     const map = new Map<TopicStr, PeerIdStr[]>();
     for (const topic of this.pubSubTopics) {
       map.set(topic, Array.from(this.gossipSub.mesh.get(topic) ?? []));
