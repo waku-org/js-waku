@@ -5,7 +5,8 @@ import { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
 import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
 
-import { filterPeers } from "./filterPeers.js";
+import { filterPeers } from "../helpers/filterPeers.js";
+
 import { StreamManager } from "./stream_manager.js";
 
 /**
