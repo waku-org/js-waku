@@ -38,7 +38,7 @@ export class KeepAliveManager {
     const peerIdStr = peerId.toString();
 
     if (pingPeriodSecs !== 0) {
-      const intervals = setInterval(() => {
+      const interval = setInterval(() => {
         void (async () => {
           try {
             // ping the peer for keep alive
@@ -61,17 +61,17 @@ export class KeepAliveManager {
         })();
       }, pingPeriodSecs * 1000);
 
-      this.pingKeepAliveTimers.set(peerIdStr, intervals);
+      this.pingKeepAliveTimers.set(peerIdStr, interval);
     }
 
     const relay = this.relay;
     if (relay && relayPeriodSecs !== 0) {
-      const interval = this.scheduleRelayPings(
+      const intervals = this.scheduleRelayPings(
         relay,
         relayPeriodSecs,
         peerId.toString()
       );
-      this.relayKeepAliveTimers.set(peerId, interval);
+      this.relayKeepAliveTimers.set(peerId, intervals);
     }
   }
 
