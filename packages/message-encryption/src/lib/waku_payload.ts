@@ -1,12 +1,11 @@
 import * as secp from "@noble/secp256k1";
 import { concat, hexToBytes } from "@waku/utils/bytes";
 
-import { Symmetric } from "./constants.js";
-import * as ecies from "./crypto/ecies.js";
-import { keccak256, randomBytes, sign } from "./crypto/index.js";
-import * as symmetric from "./crypto/symmetric.js";
-
-import { Signature } from "./index.js";
+import { Symmetric } from "../constants.js";
+import * as ecies from "../helpers/crypto/ecies.js";
+import { keccak256, randomBytes, sign } from "../helpers/crypto/index.js";
+import * as symmetric from "../helpers/crypto/symmetric.js";
+import { Signature } from "../index.js";
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011

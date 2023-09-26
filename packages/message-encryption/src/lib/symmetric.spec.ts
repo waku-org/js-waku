@@ -2,27 +2,26 @@ import { IProtoMessage } from "@waku/interfaces";
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { getPublicKey } from "./crypto/index.js";
-import { createDecoder, createEncoder } from "./ecies.js";
+import { getPublicKey } from "../helpers/crypto/index.js";
 
-describe("Ecies Encryption", function () {
-  it("Round trip binary encryption [ecies, no signature]", async function () {
+import { createDecoder, createEncoder } from "./symmetric.js";
+
+describe("Symmetric Encryption", function () {
+  it("Round trip binary encryption [symmetric, no signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.string({ minLength: 1 }),
         fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubSubTopic, contentTopic, payload, privateKey) => {
-          const publicKey = getPublicKey(privateKey);
-
+        async (pubSubTopic, contentTopic, payload, symKey) => {
           const encoder = createEncoder({
             contentTopic,
-            publicKey
+            symKey
           });
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = createDecoder(contentTopic, privateKey);
+          const decoder = createDecoder(contentTopic, symKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(pubSubTopic, protoResult);
@@ -39,9 +38,7 @@ describe("Ecies Encryption", function () {
     );
   });
 
-  it("R trip binary encryption [ecies, signature]", async function () {
-    this.timeout(4000);
-
+  it("Round trip binary encryption [symmetric, signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.string({ minLength: 1 }),
@@ -49,24 +46,17 @@ describe("Ecies Encryption", function () {
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (
-          pubSubTopic,
-          contentTopic,
-          payload,
-          alicePrivateKey,
-          bobPrivateKey
-        ) => {
-          const alicePublicKey = getPublicKey(alicePrivateKey);
-          const bobPublicKey = getPublicKey(bobPrivateKey);
+        async (pubSubTopic, contentTopic, payload, sigPrivKey, symKey) => {
+          const sigPubKey = getPublicKey(sigPrivKey);
 
           const encoder = createEncoder({
             contentTopic,
-            publicKey: bobPublicKey,
-            sigPrivKey: alicePrivateKey
+            symKey,
+            sigPrivKey
           });
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = createDecoder(contentTopic, bobPrivateKey);
+          const decoder = createDecoder(contentTopic, symKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(pubSubTopic, protoResult);
@@ -77,21 +67,20 @@ describe("Ecies Encryption", function () {
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.not.be.undefined;
-          expect(result.signaturePublicKey).to.deep.eq(alicePublicKey);
+          expect(result.signaturePublicKey).to.deep.eq(sigPubKey);
         }
       )
     );
   });
 
-  it("Check meta is set [ecies]", async function () {
+  it("Check meta is set [symmetric]", async function () {
     await fc.assert(
       fc.asyncProperty(
         fc.string({ minLength: 1 }),
         fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubSubTopic, contentTopic, payload, privateKey) => {
-          const publicKey = getPublicKey(privateKey);
+        async (pubSubTopic, contentTopic, payload, symKey) => {
           const metaSetter = (
             msg: IProtoMessage & { meta: undefined }
           ): Uint8Array => {
@@ -103,12 +92,12 @@ describe("Ecies Encryption", function () {
 
           const encoder = createEncoder({
             contentTopic,
-            publicKey,
+            symKey,
             metaSetter
           });
           const bytes = await encoder.toWire({ payload });
 
-          const decoder = createDecoder(contentTopic, privateKey);
+          const decoder = createDecoder(contentTopic, symKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
           const result = await decoder.fromProtoObj(pubSubTopic, protoResult);
@@ -136,7 +125,7 @@ describe("Ensures content topic is defined", () => {
     const wrapper = function (): void {
       createEncoder({
         contentTopic: undefined as unknown as string,
-        publicKey: new Uint8Array()
+        symKey: new Uint8Array()
       });
     };
 
@@ -144,7 +133,7 @@ describe("Ensures content topic is defined", () => {
   });
   it("Encoder throws on empty string content topic", () => {
     const wrapper = function (): void {
-      createEncoder({ contentTopic: "", publicKey: new Uint8Array() });
+      createEncoder({ contentTopic: "", symKey: new Uint8Array() });
     };
 
     expect(wrapper).to.throw("Content topic must be specified");

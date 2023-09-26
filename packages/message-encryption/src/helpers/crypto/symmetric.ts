@@ -1,4 +1,4 @@
-import { Symmetric } from "../constants.js";
+import { Symmetric } from "../../constants.js";
 
 import { getSubtle, randomBytes } from "./index.js";
 

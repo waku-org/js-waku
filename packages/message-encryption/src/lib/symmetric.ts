@@ -10,15 +10,15 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
-import { DecodedMessage } from "./decoded_message.js";
+import { generateSymmetricKey, OneMillion, Version } from "../index.js";
+import { DecodedMessage } from "../lib/decoded_message.js";
+
 import {
   decryptSymmetric,
   encryptSymmetric,
   postCipher,
   preCipher
 } from "./waku_payload.js";
-
-import { generateSymmetricKey, OneMillion, Version } from "./index.js";
 
 export { generateSymmetricKey };
 export type { DecodedMessage, Encoder, Decoder };

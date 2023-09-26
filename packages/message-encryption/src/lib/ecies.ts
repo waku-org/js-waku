@@ -10,6 +10,13 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import debug from "debug";
 
+import {
+  generatePrivateKey,
+  getPublicKey,
+  OneMillion,
+  Version
+} from "../index.js";
+
 import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptAsymmetric,
@@ -17,13 +24,6 @@ import {
   postCipher,
   preCipher
 } from "./waku_payload.js";
-
-import {
-  generatePrivateKey,
-  getPublicKey,
-  OneMillion,
-  Version
-} from "./index.js";
 
 export { generatePrivateKey, getPublicKey };
 export type { Encoder, Decoder, DecodedMessage };
