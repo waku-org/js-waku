@@ -282,7 +282,7 @@ class Relay implements IRelay {
   }
 
   private isRelayPubSub(pubsub: PubSub | undefined): boolean {
-    return pubsub?.multicodecs?.includes(Relay.multicodec) || false;
+    return pubsub?.multicodecs?.includes(Relay.multicodec) ?? false;
   }
 }
 
