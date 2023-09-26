@@ -28,7 +28,7 @@ const WAKU_SERVICE_NODE_PARAMS =
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 const DOCKER_IMAGE_NAME =
-  process.env.WAKUNODE_IMAGE || "statusteam/nim-waku:v0.19.0";
+  process.env.WAKUNODE_IMAGE || "statusteam/nim-waku:v0.20.0";
 
 const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
 
@@ -210,14 +210,13 @@ export class NimGoNode {
   }
 
   async ensureSubscriptions(
-    pubsubTopics: [string] = [DefaultPubSubTopic]
+    pubsubTopics: string[] = [DefaultPubSubTopic]
   ): Promise<boolean> {
     this.checkProcess();
 
-    return this.rpcCall<boolean>(
-      "post_waku_v2_relay_v1_subscriptions",
+    return this.rpcCall<boolean>("post_waku_v2_relay_v1_subscriptions", [
       pubsubTopics
-    );
+    ]);
   }
 
   async sendMessage(
