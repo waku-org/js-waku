@@ -129,7 +129,7 @@ class Relay implements IRelay {
       };
     }
 
-    return await this.gossipSub.publish(pubSubTopic, msg);
+    return this.gossipSub.publish(pubSubTopic, msg);
   }
 
   public subscribe<T extends IDecodedMessage>(

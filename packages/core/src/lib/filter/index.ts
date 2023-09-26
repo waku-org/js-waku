@@ -272,6 +272,7 @@ class Filter extends BaseProtocol implements IReceiver {
     ensurePubsubTopicIsValid(pubSubTopic, this.pubsubTopics);
 
     //TODO: get a relevant peer for the topic/shard
+    // https://github.com/waku-org/js-waku/pull/1586#discussion_r1336428230
     const peer = (
       await this.getPeers({
         maxBootstrapPeers: 1,

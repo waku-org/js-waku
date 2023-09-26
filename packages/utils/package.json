@@ -66,10 +66,10 @@
   },
   "dependencies": {
     "debug": "^4.3.4",
-    "uint8arrays": "^4.0.4",
-    "@waku/interfaces": "0.0.18"
+    "uint8arrays": "^4.0.4"
   },
   "devDependencies": {
+    "@waku/interfaces": "0.0.18",
     "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.1.0",
