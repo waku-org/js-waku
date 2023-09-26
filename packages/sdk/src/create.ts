@@ -24,6 +24,7 @@ import type {
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { createLibp2p, Libp2pOptions } from "libp2p";
+import { circuitRelayTransport } from "libp2p/circuit-relay";
 import { identifyService } from "libp2p/identify";
 import { pingService } from "libp2p/ping";
 
@@ -172,7 +173,7 @@ export async function defaultLibp2p(
     connectionManager: {
       minConnections: 1
     },
-    transports: [webSockets({ filter: filterAll })],
+    transports: [webSockets({ filter: filterAll }), circuitRelayTransport()],
     streamMuxers: [mplex()],
     connectionEncryption: [noise()],
     ...options,
