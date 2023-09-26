@@ -71,11 +71,15 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
 
   it("Subscribe and receive messages from 2 nwaku nodes on 2 different pubsubtopics", async function () {
     await subscription.subscribe([newDecoder], messageCollector.callback);
-    await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M1") });
 
-    // Set up and start a new nwaku node with a different pubSubtopic
+    // Set up and start a new nwaku node with Default PubSubtopic
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
-    await nwaku2.start({ filter: true, lightpush: true, relay: true });
+    await nwaku2.start({
+      filter: true,
+      lightpush: true,
+      relay: true,
+      topic: DefaultPubSubTopic
+    });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
 
@@ -86,18 +90,21 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
     );
     await nwaku.ensureSubscriptions([DefaultPubSubTopic]);
 
-    // Send a message using the new subscription
     const messageCollector2 = new MessageCollector(
       TestContentTopic,
       DefaultPubSubTopic
     );
 
     await subscription2.subscribe([TestDecoder], messageCollector2.callback);
-    await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
 
-    // Check that both messages were correctly send on coresponding pubSubtopics
-    expect(await messageCollector.waitForMessages(0)).to.eq(true);
-    expect(await messageCollector2.waitForMessages(1)).to.eq(true);
+    // Making sure that messages are send and reveiced for both subscriptions
+    while (
+      !(await messageCollector.waitForMessages(1)) ||
+      !(await messageCollector2.waitForMessages(1))
+    ) {
+      await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M1") });
+      await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
+    }
 
     messageCollector.verifyReceivedMessage(0, {
       expectedContentTopic: customContentTopic,

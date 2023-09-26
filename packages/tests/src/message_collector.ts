@@ -39,6 +39,12 @@ export class MessageCollector {
     return this.list[index];
   }
 
+  hasMessage(topic: string, text: string): boolean {
+    return this.list.some(
+      (message) => message.contentTopic === topic && message.payload === text
+    );
+  }
+
   // Type guard to determine if a message is of type MessageRpcResponse
   isMessageRpcResponse(
     message: MessageRpcResponse | DecodedMessage

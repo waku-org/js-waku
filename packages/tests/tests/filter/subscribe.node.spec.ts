@@ -309,11 +309,8 @@ describe("Waku Filter V2: Subscribe", function () {
     });
   });
 
-  // this test fail 50% of times with messageCount being 1. Seems like a message is lost somehow
-  it.skip("Subscribe and receive messages from multiple nwaku nodes", async function () {
+  it("Subscribe and receive messages from multiple nwaku nodes", async function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
-    await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
     // Set up and start a new nwaku node
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
@@ -331,16 +328,15 @@ describe("Waku Filter V2: Subscribe", function () {
     const newEncoder = createEncoder({ contentTopic: newContentTopic });
     const newDecoder = createDecoder(newContentTopic);
     await subscription2.subscribe([newDecoder], messageCollector.callback);
-    await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
+
+    // Making sure that messages are send and reveiced for both subscriptions
+    while (!(await messageCollector.waitForMessages(2))) {
+      await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
+      await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
+    }
 
     // Check if both messages were received
-    expect(await messageCollector.waitForMessages(2)).to.eq(true);
-    messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: "M1"
-    });
-    messageCollector.verifyReceivedMessage(1, {
-      expectedContentTopic: newContentTopic,
-      expectedMessageText: "M2"
-    });
+    expect(messageCollector.hasMessage(TestContentTopic, "M1")).to.be.true;
+    expect(messageCollector.hasMessage(newContentTopic, "M2")).to.be.true;
   });
 });

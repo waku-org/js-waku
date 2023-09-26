@@ -14,23 +14,19 @@ export const messagePayload = { payload: utf8ToBytes(messageText) };
 
 export async function runNodes(
   context: Mocha.Context,
-  pubSubTopic?: string
+  pubSubTopics: string[]
 ): Promise<[NimGoNode, LightNode]> {
-  const nwakuOptional = pubSubTopic ? { topic: pubSubTopic } : {};
+  const nwakuOptional = pubSubTopics[0] ? { topic: pubSubTopics[0] } : {};
   const nwaku = new NimGoNode(makeLogFileName(context));
   await nwaku.startWithRetries(
-    {
-      lightpush: true,
-      relay: true,
-      ...nwakuOptional
-    },
+    { lightpush: true, relay: true, ...nwakuOptional },
     { retries: 3 }
   );
 
   let waku: LightNode | undefined;
   try {
     waku = await createLightNode({
-      pubSubTopics: pubSubTopic ? [pubSubTopic] : undefined,
+      pubSubTopics: pubSubTopics,
       staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
