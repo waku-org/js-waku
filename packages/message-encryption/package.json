@@ -10,12 +10,12 @@
       "import": "./dist/index.js"
     },
     "./ecies": {
-      "types": "./dist/ecies.d.ts",
-      "import": "./dist/ecies.js"
+      "types": "./dist/lib/ecies.d.ts",
+      "import": "./dist/lib/ecies.js"
     },
     "./symmetric": {
-      "types": "./dist/symmetric.d.ts",
-      "import": "./dist/symmetric.js"
+      "types": "./dist/lib/symmetric.d.ts",
+      "import": "./dist/lib/symmetric.js"
     }
   },
   "typesVersions": {
