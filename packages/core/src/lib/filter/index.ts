@@ -234,7 +234,7 @@ class Subscription {
 }
 
 class Filter extends BaseProtocol implements IReceiver {
-  private readonly pubsubTopics: PubSubTopic[] = [];
+  private readonly pubSubTopics: PubSubTopic[] = [];
   private activeSubscriptions = new Map<string, Subscription>();
   private readonly NUM_PEERS_PROTOCOL = 1;
 
@@ -257,7 +257,7 @@ class Filter extends BaseProtocol implements IReceiver {
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(FilterCodecs.SUBSCRIBE, libp2p.components);
 
-    this.pubsubTopics = options?.pubSubTopics || [DefaultPubSubTopic];
+    this.pubSubTopics = options?.pubSubTopics || [DefaultPubSubTopic];
 
     libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
       log("Failed to register ", FilterCodecs.PUSH, e);
@@ -269,7 +269,7 @@ class Filter extends BaseProtocol implements IReceiver {
   async createSubscription(
     pubSubTopic: string = DefaultPubSubTopic
   ): Promise<Subscription> {
-    ensurePubsubTopicIsConfigured(pubSubTopic, this.pubsubTopics);
+    ensurePubsubTopicIsConfigured(pubSubTopic, this.pubSubTopics);
 
     //TODO: get a relevant peer for the topic/shard
     // https://github.com/waku-org/js-waku/pull/1586#discussion_r1336428230
