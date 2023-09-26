@@ -1,6 +1,6 @@
 import type { PubSubTopic } from "@waku/interfaces";
 
-export function ensurePubsubTopicIsValid(
+export function ensurePubsubTopicIsConfigured(
   pubsubTopic: PubSubTopic,
   configuredTopics: PubSubTopic[]
 ): void {

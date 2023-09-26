@@ -18,7 +18,7 @@ import type {
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import {
-  ensurePubsubTopicIsValid,
+  ensurePubsubTopicIsConfigured,
   groupByContentTopic,
   toAsyncIterator
 } from "@waku/utils";
@@ -269,7 +269,7 @@ class Filter extends BaseProtocol implements IReceiver {
   async createSubscription(
     pubSubTopic: string = DefaultPubSubTopic
   ): Promise<Subscription> {
-    ensurePubsubTopicIsValid(pubSubTopic, this.pubsubTopics);
+    ensurePubsubTopicIsConfigured(pubSubTopic, this.pubsubTopics);
 
     //TODO: get a relevant peer for the topic/shard
     // https://github.com/waku-org/js-waku/pull/1586#discussion_r1336428230

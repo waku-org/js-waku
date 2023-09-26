@@ -106,7 +106,7 @@ export class KeepAliveManager {
     relayPeriodSecs: number,
     peerIdStr: PeerIdStr
   ): NodeJS.Timeout[] {
-    const peersMap = relay.getMeshPeers();
+    const peersMap = relay.getAllMeshPeers();
 
     // find the PubSubTopics the peer is part of
     const pubSubTopics: PubSubTopic[] = [];
