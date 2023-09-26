@@ -210,12 +210,12 @@ export class NimGoNode {
   }
 
   async ensureSubscriptions(
-    pubsubTopics: string[] = [DefaultPubSubTopic]
+    pubSubTopics: string[] = [DefaultPubSubTopic]
   ): Promise<boolean> {
     this.checkProcess();
 
     return this.rpcCall<boolean>("post_waku_v2_relay_v1_subscriptions", [
-      pubsubTopics
+      pubSubTopics
     ]);
   }
 
@@ -236,13 +236,13 @@ export class NimGoNode {
   }
 
   async messages(
-    pubsubTopic: string = DefaultPubSubTopic
+    pubSubTopic: string = DefaultPubSubTopic
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
     const msgs = await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_relay_v1_messages",
-      [pubsubTopic]
+      [pubSubTopic]
     );
 
     return msgs.filter(isDefined);

@@ -59,7 +59,7 @@ export class HistoryRpc {
     return new HistoryRpc({
       requestId: uuid(),
       query: {
-        pubsubTopic: params.pubSubTopic,
+        pubSubTopic: params.pubSubTopic,
         contentFilters,
         pagingInfo,
         startTime,

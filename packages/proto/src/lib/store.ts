@@ -12,7 +12,7 @@ export interface Index {
   digest: Uint8Array
   receiverTime: bigint
   senderTime: bigint
-  pubsubTopic: string
+  pubSubTopic: string
 }
 
 export namespace Index {
@@ -40,9 +40,9 @@ export namespace Index {
           w.sint64(obj.senderTime)
         }
 
-        if ((obj.pubsubTopic != null && obj.pubsubTopic !== '')) {
+        if ((obj.pubSubTopic != null && obj.pubSubTopic !== '')) {
           w.uint32(34)
-          w.string(obj.pubsubTopic)
+          w.string(obj.pubSubTopic)
         }
 
         if (opts.lengthDelimited !== false) {
@@ -53,7 +53,7 @@ export namespace Index {
           digest: new Uint8Array(0),
           receiverTime: 0n,
           senderTime: 0n,
-          pubsubTopic: ''
+          pubSubTopic: ''
         }
 
         const end = length == null ? reader.len : reader.pos + length
@@ -72,7 +72,7 @@ export namespace Index {
               obj.senderTime = reader.sint64()
               break
             case 4:
-              obj.pubsubTopic = reader.string()
+              obj.pubSubTopic = reader.string()
               break
             default:
               reader.skipType(tag & 7)
@@ -245,7 +245,7 @@ export namespace ContentFilter {
 }
 
 export interface HistoryQuery {
-  pubsubTopic?: string
+  pubSubTopic?: string
   contentFilters: ContentFilter[]
   pagingInfo?: PagingInfo
   startTime?: bigint
@@ -262,9 +262,9 @@ export namespace HistoryQuery {
           w.fork()
         }
 
-        if (obj.pubsubTopic != null) {
+        if (obj.pubSubTopic != null) {
           w.uint32(18)
-          w.string(obj.pubsubTopic)
+          w.string(obj.pubSubTopic)
         }
 
         if (obj.contentFilters != null) {
@@ -304,7 +304,7 @@ export namespace HistoryQuery {
 
           switch (tag >>> 3) {
             case 2:
-              obj.pubsubTopic = reader.string()
+              obj.pubSubTopic = reader.string()
               break
             case 3:
               obj.contentFilters.push(ContentFilter.codec().decode(reader, reader.uint32()))

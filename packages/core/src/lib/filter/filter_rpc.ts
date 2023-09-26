@@ -25,8 +25,8 @@ export class FilterPushRpc {
    * Get the pubsub topic from the FilterPushRpc object.
    * @returns string
    */
-  get pubsubTopic(): string | undefined {
-    return this.proto.pubsubTopic;
+  get pubSubTopic(): string | undefined {
+    return this.proto.pubSubTopic;
   }
 }
 
@@ -34,37 +34,37 @@ export class FilterSubscribeRpc {
   public constructor(public proto: proto.FilterSubscribeRequest) {}
 
   static createSubscribeRequest(
-    pubsubTopic: string,
+    pubSubTopic: string,
     contentTopics: string[]
   ): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
       requestId: uuid(),
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.SUBSCRIBE,
-      pubsubTopic,
+      pubSubTopic,
       contentTopics
     });
   }
 
   static createUnsubscribeRequest(
-    pubsubTopic: string,
+    pubSubTopic: string,
     contentTopics: string[]
   ): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
       requestId: uuid(),
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.UNSUBSCRIBE,
-      pubsubTopic,
+      pubSubTopic,
       contentTopics
     });
   }
 
-  static createUnsubscribeAllRequest(pubsubTopic: string): FilterSubscribeRpc {
+  static createUnsubscribeAllRequest(pubSubTopic: string): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
       requestId: uuid(),
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.UNSUBSCRIBE_ALL,
-      pubsubTopic,
+      pubSubTopic,
       contentTopics: []
     });
   }
@@ -74,7 +74,7 @@ export class FilterSubscribeRpc {
       requestId: uuid(),
       filterSubscribeType:
         proto.FilterSubscribeRequest.FilterSubscribeType.SUBSCRIBER_PING,
-      pubsubTopic: "",
+      pubSubTopic: "",
       contentTopics: []
     });
   }
@@ -96,8 +96,8 @@ export class FilterSubscribeRpc {
     return this.proto.requestId;
   }
 
-  get pubsubTopic(): string | undefined {
-    return this.proto.pubsubTopic;
+  get pubSubTopic(): string | undefined {
+    return this.proto.pubSubTopic;
   }
 
   get contentTopics(): string[] {

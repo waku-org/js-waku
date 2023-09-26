@@ -9,7 +9,7 @@ import type { Codec } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface PushRequest {
-  pubsubTopic: string
+  pubSubTopic: string
   message?: WakuMessage
 }
 
@@ -23,9 +23,9 @@ export namespace PushRequest {
           w.fork()
         }
 
-        if ((obj.pubsubTopic != null && obj.pubsubTopic !== '')) {
+        if ((obj.pubSubTopic != null && obj.pubSubTopic !== '')) {
           w.uint32(10)
-          w.string(obj.pubsubTopic)
+          w.string(obj.pubSubTopic)
         }
 
         if (obj.message != null) {
@@ -38,7 +38,7 @@ export namespace PushRequest {
         }
       }, (reader, length) => {
         const obj: any = {
-          pubsubTopic: ''
+          pubSubTopic: ''
         }
 
         const end = length == null ? reader.len : reader.pos + length
@@ -48,7 +48,7 @@ export namespace PushRequest {
 
           switch (tag >>> 3) {
             case 1:
-              obj.pubsubTopic = reader.string()
+              obj.pubSubTopic = reader.string()
               break
             case 2:
               obj.message = WakuMessage.codec().decode(reader, reader.uint32())

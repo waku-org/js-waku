@@ -753,7 +753,7 @@ Nothing. Was published by mistake and does not contain valid code. Same as 0.0.1
 - Examples (eth-pm): Use sign typed data EIP-712 instead of personal sign.
 - Upgraded dependencies to remove warning at installation.
 - **Breaking**: Moved `DefaultPubSubTopic` to `waku.ts` and fixed the casing.
-- **Breaking**: Rename all `pubsubTopic` occurrences to `pubSubTopic`, across all interfaces.
+- **Breaking**: Rename all `pubSubTopic` occurrences to `pubSubTopic`, across all interfaces.
 
 ### Removed
 

@@ -15,7 +15,7 @@ export interface Cursor {
   digest: Uint8Array;
   receiverTime: bigint;
   senderTime: bigint;
-  pubsubTopic: string;
+  pubSubTopic: string;
 }
 
 export type StoreQueryOptions = {

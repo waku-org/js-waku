@@ -331,26 +331,26 @@ class Filter extends BaseProtocol implements IReceiver {
         for await (const bytes of source) {
           const response = FilterPushRpc.decode(bytes.slice());
 
-          const { pubsubTopic, wakuMessage } = response;
+          const { pubSubTopic, wakuMessage } = response;
 
           if (!wakuMessage) {
             log("Received empty message");
             return;
           }
 
-          if (!pubsubTopic) {
+          if (!pubSubTopic) {
             log("PubSub topic missing from push message");
             return;
           }
 
           const peerIdStr = streamData.connection.remotePeer.toString();
           const subscription = this.getActiveSubscription(
-            pubsubTopic,
+            pubSubTopic,
             peerIdStr
           );
 
           if (!subscription) {
-            log(`No subscription locally registered for topic ${pubsubTopic}`);
+            log(`No subscription locally registered for topic ${pubSubTopic}`);
             return;
           }
 

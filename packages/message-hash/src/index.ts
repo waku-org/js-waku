@@ -7,10 +7,10 @@ import { concat, utf8ToBytes } from "@waku/utils/bytes";
  * [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/#deterministic-message-hashing)
  */
 export function messageHash(
-  pubsubTopic: string,
+  pubSubTopic: string,
   message: IProtoMessage
 ): Uint8Array {
-  const pubsubTopicBytes = utf8ToBytes(pubsubTopic);
+  const pubsubTopicBytes = utf8ToBytes(pubSubTopic);
   const contentTopicBytes = utf8ToBytes(message.contentTopic);
 
   let bytes;

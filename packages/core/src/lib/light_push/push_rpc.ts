@@ -13,7 +13,7 @@ export class PushRpc {
       requestId: uuid(),
       request: {
         message: message,
-        pubsubTopic: pubSubTopic
+        pubSubTopic: pubSubTopic
       },
       response: undefined
     });
