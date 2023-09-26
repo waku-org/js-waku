@@ -15,6 +15,7 @@
     "packages/message-encryption",
     "packages/sdk",
     "packages/tests",
+    "packages/browser-tests",
     "packages/build-utils"
   ],
   "scripts": {
@@ -54,7 +55,14 @@
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "typedoc": "^0.25.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "karma": "^6.4.2",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-firefox-launcher": "^2.1.2",
+    "karma-mocha": "^2.0.1",
+    "karma-webkit-launcher": "^2.1.0",
+    "karma-webpack": "^5.0.0",
+    "playwright": "^1.38.1"
   },
   "lint-staged": {
     "*.{ts,js}": [

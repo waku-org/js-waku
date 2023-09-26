@@ -6,10 +6,10 @@ import chaiAsPromised from "chai-as-promised";
 import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
-const PubSubTopic1 = "/waku/1/test1";
-const PubSubTopic2 = "/waku/1/test2";
+const PubSubTopic1 = "/waku/2/rs/0/2";
+const PubSubTopic2 = "/waku/2/rs/0/3";
 
-const ContentTopic = "/waku/1/content/test";
+const ContentTopic = "/waku/2/content/test";
 
 chai.use(chaiAsPromised);
 

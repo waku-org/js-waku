@@ -17,7 +17,11 @@ import type {
   Unsubscribe
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { groupByContentTopic, toAsyncIterator } from "@waku/utils";
+import {
+  ensurePubsubTopicIsValid,
+  groupByContentTopic,
+  toAsyncIterator
+} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -265,9 +269,10 @@ class Filter extends BaseProtocol implements IReceiver {
   async createSubscription(
     pubSubTopic: string = DefaultPubSubTopic
   ): Promise<Subscription> {
-    this.ensurePubsubTopicIsValid(pubSubTopic, this.pubsubTopics);
+    ensurePubsubTopicIsValid(pubSubTopic, this.pubsubTopics);
 
     //TODO: get a relevant peer for the topic/shard
+    // https://github.com/waku-org/js-waku/pull/1586#discussion_r1336428230
     const peer = (
       await this.getPeers({
         maxBootstrapPeers: 1,

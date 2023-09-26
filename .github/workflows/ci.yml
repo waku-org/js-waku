@@ -64,6 +64,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_JS }}
       - uses: ./.github/actions/npm
+      - run: npx playwright install --with-deps
       - run: npm run build:esm
       - run: npm run test:browser
 

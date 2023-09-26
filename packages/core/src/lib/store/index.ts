@@ -10,7 +10,7 @@ import {
   PubSubTopic
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
-import { isDefined } from "@waku/utils";
+import { ensurePubsubTopicIsValid, isDefined } from "@waku/utils";
 import { concat, utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 import all from "it-all";
@@ -244,7 +244,7 @@ class Store extends BaseProtocol implements IStore {
     // we can be certain that there is only one pubsub topic in the query
     const pubSubTopicForQuery = uniquePubSubTopicsInQuery[0];
 
-    this.ensurePubsubTopicIsValid(pubSubTopicForQuery, this.pubSubTopics);
+    ensurePubsubTopicIsValid(pubSubTopicForQuery, this.pubSubTopics);
 
     const decodersAsMap = new Map();
     decoders.forEach((dec) => {

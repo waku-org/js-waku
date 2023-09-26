@@ -210,14 +210,13 @@ export class NimGoNode {
   }
 
   async ensureSubscriptions(
-    pubsubTopics: [string] = [DefaultPubSubTopic]
+    pubsubTopics: string[] = [DefaultPubSubTopic]
   ): Promise<boolean> {
     this.checkProcess();
 
-    return this.rpcCall<boolean>(
-      "post_waku_v2_relay_v1_subscriptions",
+    return this.rpcCall<boolean>("post_waku_v2_relay_v1_subscriptions", [
       pubsubTopics
-    );
+    ]);
   }
 
   async sendMessage(

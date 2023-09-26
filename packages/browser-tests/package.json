@@ -1,0 +1,19 @@
+{
+  "name": "@waku/browser-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "run-s start:*",
+    "start:setup": "node ./src/setup-example.js",
+    "start:build": "node ./src/build-example.js",
+    "start:serve": "npx serve -p 8080 --no-port-switching ./example",
+    "test": "npx playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.37.1",
+    "@waku/create-app": "^0.1.1-7c24ffa",
+    "dotenv-flow": "^3.3.0",
+    "serve": "^14.2.1"
+  }
+}

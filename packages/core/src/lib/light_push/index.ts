@@ -11,7 +11,7 @@ import {
   SendResult
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
-import { isSizeValid } from "@waku/utils";
+import { ensurePubsubTopicIsValid, isSizeValid } from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -84,7 +84,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
   async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
     const { pubSubTopic } = encoder;
-    this.ensurePubsubTopicIsValid(pubSubTopic, this.pubsubTopics);
+    ensurePubsubTopicIsValid(pubSubTopic, this.pubsubTopics);
 
     const recipients: PeerId[] = [];
 
