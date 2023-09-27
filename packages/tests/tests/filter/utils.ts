@@ -64,21 +64,21 @@ export async function validatePingError(
 }
 
 export async function runNodes(
-  currentTest: Context
+  context: Context,
+  pubSubTopics: string[]
 ): Promise<[NimGoNode, LightNode]> {
-  const nwaku = new NimGoNode(makeLogFileName(currentTest));
+  const nwakuOptional = pubSubTopics[0] ? { topic: pubSubTopics[0] } : {};
+  const nwaku = new NimGoNode(makeLogFileName(context));
+
   await nwaku.startWithRetries(
-    {
-      filter: true,
-      lightpush: true,
-      relay: true
-    },
+    { filter: true, lightpush: true, relay: true, ...nwakuOptional },
     { retries: 3 }
   );
 
   let waku: LightNode | undefined;
   try {
     waku = await createLightNode({
+      pubSubTopics: pubSubTopics,
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
     });
