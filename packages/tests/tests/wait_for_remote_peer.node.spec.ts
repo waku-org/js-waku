@@ -1,4 +1,4 @@
-import { waitForRemotePeer } from "@waku/core";
+import { DefaultPubSubTopic, waitForRemotePeer } from "@waku/core";
 import type { LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createLightNode, createRelayNode } from "@waku/sdk";
@@ -262,7 +262,7 @@ describe("Wait for remote peer", function () {
     await waku1.dial(multiAddrWithId);
     await waitForRemotePeer(waku1);
 
-    const peers = Array.from(waku1.relay.getMeshPeers().values()).flat();
+    const peers = waku1.relay.getMeshPeers(DefaultPubSubTopic);
 
     const nimPeerId = multiAddrWithId.getPeerId();
 

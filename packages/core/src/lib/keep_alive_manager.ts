@@ -1,6 +1,6 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerStore } from "@libp2p/interface/peer-store";
-import type { IRelay, PeerIdStr, PubSubTopic } from "@waku/interfaces";
+import type { IRelay, PeerIdStr } from "@waku/interfaces";
 import type { KeepAliveOptions } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
@@ -106,19 +106,12 @@ export class KeepAliveManager {
     relayPeriodSecs: number,
     peerIdStr: PeerIdStr
   ): NodeJS.Timeout[] {
-    const peersMap = relay.getAllMeshPeers();
-
-    // find the PubSubTopics the peer is part of
-    const pubSubTopics: PubSubTopic[] = [];
-    peersMap.forEach((peers, topic) => {
-      if (peers.includes(peerIdStr)) {
-        pubSubTopics.push(topic);
-      }
-    });
-
     // send a ping message to each PubSubTopic the peer is part of
     const intervals: NodeJS.Timeout[] = [];
-    for (const topic of pubSubTopics) {
+    for (const topic of relay.pubSubTopics) {
+      const meshPeers = relay.getMeshPeers(topic);
+      if (!meshPeers.includes(peerIdStr)) continue;
+
       const encoder = createEncoder({
         pubSubTopic: topic,
         contentTopic: RelayPingContentTopic,
