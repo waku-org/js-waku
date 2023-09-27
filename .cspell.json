@@ -39,6 +39,7 @@
     "exponentiate",
     "extip",
     "fanout",
+    "sharded",
     "floodsub",
     "fontsource",
     "globby",

@@ -566,6 +566,11 @@ describe("Waku Store, custom pubsub topic", () => {
   let waku: LightNode;
   let nwaku: NimGoNode;
 
+  const CustomPubSubTestDecoder = createDecoder(
+    TestContentTopic,
+    customPubSubTopic
+  );
+
   beforeEach(async function () {
     this.timeout(15_000);
     nwaku = new NimGoNode(makeLogFileName(this));
@@ -600,7 +605,7 @@ describe("Waku Store, custom pubsub topic", () => {
 
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      pubSubTopic: customPubSubTopic
+      pubSubTopics: [customPubSubTopic]
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -608,7 +613,9 @@ describe("Waku Store, custom pubsub topic", () => {
 
     const messages: IMessage[] = [];
     let promises: Promise<void>[] = [];
-    for await (const msgPromises of waku.store.queryGenerator([TestDecoder])) {
+    for await (const msgPromises of waku.store.queryGenerator([
+      CustomPubSubTestDecoder
+    ])) {
       const _promises = msgPromises.map(async (promise) => {
         const msg = await promise;
         if (msg) {
