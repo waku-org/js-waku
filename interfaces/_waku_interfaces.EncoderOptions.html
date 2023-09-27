@@ -21,7 +21,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">EncoderOptions</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/interfaces/src/message.ts#L38">packages/interfaces/src/message.ts:38</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/interfaces/src/message.ts#L40">packages/interfaces/src/message.ts:40</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -32,6 +32,7 @@
 <div class="tsd-index-list"><a href="_waku_interfaces.EncoderOptions.html#contentTopic" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>content<wbr/>Topic</span></a>
 <a href="_waku_interfaces.EncoderOptions.html#ephemeral" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>ephemeral?</span></a>
 <a href="_waku_interfaces.EncoderOptions.html#metaSetter" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>meta<wbr/>Setter?</span></a>
+<a href="_waku_interfaces.EncoderOptions.html#pubSubTopic" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topic?</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
@@ -42,7 +43,7 @@
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/interfaces/src/message.ts#L40">packages/interfaces/src/message.ts:40</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/interfaces/src/message.ts#L43">packages/interfaces/src/message.ts:43</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="ephemeral" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>ephemeral</span><a href="#ephemeral" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">ephemeral</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -52,7 +53,7 @@
 <h4>Default Value</h4><p><code>false</code></p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/interfaces/src/message.ts#L45">packages/interfaces/src/message.ts:45</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/interfaces/src/message.ts#L48">packages/interfaces/src/message.ts:48</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="metaSetter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>meta<wbr/>Setter</span><a href="#metaSetter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">meta<wbr/>Setter</span><span class="tsd-signature-symbol">?:</span> <a href="_waku_interfaces.IMetaSetter.html" class="tsd-signature-type tsd-kind-interface">IMetaSetter</a></div>
@@ -63,7 +64,12 @@
 If encryption is used, <code>metaSetter</code> only accesses <em>encrypted</em> payload.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/interfaces/src/message.ts#L51">packages/interfaces/src/message.ts:51</a></li></ul></aside></section></section></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/interfaces/src/message.ts#L54">packages/interfaces/src/message.ts:54</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member"><a id="pubSubTopic" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>pub<wbr/>Sub<wbr/>Topic</span><a href="#pubSubTopic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">pub<wbr/>Sub<wbr/>Topic</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/interfaces/src/message.ts#L41">packages/interfaces/src/message.ts:41</a></li></ul></aside></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -84,7 +90,8 @@ If encryption is used, <code>metaSetter</code> only accesses <em>encrypted</em> 
 <ul>
 <li><a href="#contentTopic" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>content<wbr/>Topic</span></a></li>
 <li><a href="#ephemeral" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>ephemeral</span></a></li>
-<li><a href="#metaSetter" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>meta<wbr/>Setter</span></a></li></ul></div></details></div>
+<li><a href="#metaSetter" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>meta<wbr/>Setter</span></a></li>
+<li><a href="#pubSubTopic" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topic</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1"></use></svg><span>Documentation</span></a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container" data-base="..">

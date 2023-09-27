@@ -28,7 +28,7 @@
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/_waku_sdk.IDecoder.html" class="tsd-signature-type tsd-kind-interface">IDecoder</a><span class="tsd-signature-symbol">&lt;</span><a href="_waku_message_encryption.DecodedMessage.html" class="tsd-signature-type tsd-kind-class">DecodedMessage</a><span class="tsd-signature-symbol">&gt;</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/message-encryption/src/symmetric.ts#L102">packages/message-encryption/src/symmetric.ts:102</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/message-encryption/src/symmetric.ts#L113">packages/message-encryption/src/symmetric.ts:113</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -41,6 +41,7 @@
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Properties</h3>
 <div class="tsd-index-list"><a href="_waku_message_encryption.symmetric.Decoder.html#contentTopic" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>content<wbr/>Topic</span></a>
+<a href="_waku_message_encryption.symmetric.Decoder.html#pubSubTopic" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topic</span></a>
 <a href="_waku_message_encryption.symmetric.Decoder.html#symKey" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>sym<wbr/>Key</span></a>
 </div></section>
 <section class="tsd-index-section">
@@ -53,11 +54,13 @@
 <section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_Decoder"><span class="tsd-kind-constructor-signature">new <wbr/>Decoder</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">contentTopic</span>, <span class="tsd-kind-parameter">symKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_waku_message_encryption.symmetric.html" class="tsd-signature-type tsd-kind-namespace">symmetric</a><span class="tsd-signature-symbol">.</span><a href="_waku_message_encryption.symmetric.Decoder.html" class="tsd-signature-type tsd-kind-class">Decoder</a><a href="#constructor.new_Decoder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_Decoder"><span class="tsd-kind-constructor-signature">new <wbr/>Decoder</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">pubSubTopic</span>, <span class="tsd-kind-parameter">contentTopic</span>, <span class="tsd-kind-parameter">symKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_waku_message_encryption.symmetric.html" class="tsd-signature-type tsd-kind-namespace">symmetric</a><span class="tsd-signature-symbol">.</span><a href="_waku_message_encryption.symmetric.Decoder.html" class="tsd-signature-type tsd-kind-class">Decoder</a><a href="#constructor.new_Decoder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">pubSubTopic</span>: <span class="tsd-signature-type">string</span></h5></li>
 <li>
 <h5><span class="tsd-kind-parameter">contentTopic</span>: <span class="tsd-signature-type">string</span></h5></li>
 <li>
@@ -65,7 +68,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../modules/_waku_message_encryption.symmetric.html" class="tsd-signature-type tsd-kind-namespace">symmetric</a><span class="tsd-signature-symbol">.</span><a href="_waku_message_encryption.symmetric.Decoder.html" class="tsd-signature-type tsd-kind-class">Decoder</a></h4><aside class="tsd-sources">
 <p>Overrides <a href="_waku_sdk.Decoder.html">Decoder</a>.<a href="_waku_sdk.Decoder.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/message-encryption/src/symmetric.ts#L103">packages/message-encryption/src/symmetric.ts:103</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/message-encryption/src/symmetric.ts#L114">packages/message-encryption/src/symmetric.ts:114</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="contentTopic" class="tsd-anchor"></a>
@@ -74,12 +77,19 @@
 <p>Implementation of <a href="../interfaces/_waku_sdk.IDecoder.html">IDecoder</a>.<a href="../interfaces/_waku_sdk.IDecoder.html#contentTopic">contentTopic</a></p>
 <p>Inherited from <a href="_waku_sdk.Decoder.html">Decoder</a>.<a href="_waku_sdk.Decoder.html#contentTopic">contentTopic</a></p>
 <ul>
-<li>Defined in packages/core/dist/lib/message/version_0.d.ts:36</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/message/version_0.d.ts:38</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="pubSubTopic" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>pub<wbr/>Sub<wbr/>Topic</span><a href="#pubSubTopic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">pub<wbr/>Sub<wbr/>Topic</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
+<p>Implementation of <a href="../interfaces/_waku_sdk.IDecoder.html">IDecoder</a>.<a href="../interfaces/_waku_sdk.IDecoder.html#pubSubTopic">pubSubTopic</a></p>
+<p>Inherited from <a href="_waku_sdk.Decoder.html">Decoder</a>.<a href="_waku_sdk.Decoder.html#pubSubTopic">pubSubTopic</a></p>
+<ul>
+<li>Defined in packages/core/dist/lib/message/version_0.d.ts:37</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="symKey" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>sym<wbr/>Key</span><a href="#symKey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">sym<wbr/>Key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Uint8Array</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/message-encryption/src/symmetric.ts#L105">packages/message-encryption/src/symmetric.ts:105</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/message-encryption/src/symmetric.ts#L117">packages/message-encryption/src/symmetric.ts:117</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member"><a id="fromProtoObj" class="tsd-anchor"></a>
@@ -98,7 +108,7 @@
 <p>Implementation of <a href="../interfaces/_waku_sdk.IDecoder.html">IDecoder</a>.<a href="../interfaces/_waku_sdk.IDecoder.html#fromProtoObj">fromProtoObj</a></p>
 <p>Overrides <a href="_waku_sdk.Decoder.html">Decoder</a>.<a href="_waku_sdk.Decoder.html#fromProtoObj">fromProtoObj</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/message-encryption/src/symmetric.ts#L110">packages/message-encryption/src/symmetric.ts:110</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/message-encryption/src/symmetric.ts#L122">packages/message-encryption/src/symmetric.ts:122</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="fromWireToProtoObj" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>from<wbr/>Wire<wbr/>To<wbr/>Proto<wbr/>Obj</span><a href="#fromWireToProtoObj" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -113,7 +123,7 @@
 <p>Implementation of <a href="../interfaces/_waku_sdk.IDecoder.html">IDecoder</a>.<a href="../interfaces/_waku_sdk.IDecoder.html#fromWireToProtoObj">fromWireToProtoObj</a></p>
 <p>Inherited from <a href="_waku_sdk.Decoder.html">Decoder</a>.<a href="_waku_sdk.Decoder.html#fromWireToProtoObj">fromWireToProtoObj</a></p>
 <ul>
-<li>Defined in packages/core/dist/lib/message/version_0.d.ts:38</li></ul></aside></li></ul></section></section></div>
+<li>Defined in packages/core/dist/lib/message/version_0.d.ts:40</li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -134,6 +144,7 @@
 <ul>
 <li><a href="#constructor" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
 <li><a href="#contentTopic" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>content<wbr/>Topic</span></a></li>
+<li><a href="#pubSubTopic" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topic</span></a></li>
 <li><a href="#symKey" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>sym<wbr/>Key</span></a></li>
 <li><a href="#fromProtoObj" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>from<wbr/>Proto<wbr/>Obj</span></a></li>
 <li><a href="#fromWireToProtoObj" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>from<wbr/>Wire<wbr/>To<wbr/>Proto<wbr/>Obj</span></a></li></ul></div></details></div>

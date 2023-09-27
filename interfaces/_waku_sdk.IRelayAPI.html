@@ -25,7 +25,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">IRelayAPI</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/relay.d.ts:12</li></ul></aside>
+<li>Defined in packages/interfaces/dist/relay.d.ts:13</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -35,6 +35,7 @@
 <h3 class="tsd-index-heading">Properties</h3>
 <div class="tsd-index-list"><a href="_waku_sdk.IRelayAPI.html#getMeshPeers" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>get<wbr/>Mesh<wbr/>Peers</span></a>
 <a href="_waku_sdk.IRelayAPI.html#gossipSub" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>gossip<wbr/>Sub</span></a>
+<a href="_waku_sdk.IRelayAPI.html#pubSubTopics" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topics</span></a>
 <a href="_waku_sdk.IRelayAPI.html#start" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>start</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
@@ -59,7 +60,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography"></div></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/relay.d.ts:15</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/relay.d.ts:17</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="gossipSub" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>gossip<wbr/>Sub</span><a href="#gossipSub" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">gossip<wbr/>Sub</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">GossipSub</span></div>
@@ -67,7 +68,12 @@
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/relay.d.ts:13</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/relay.d.ts:15</li></ul></aside></section>
+<section class="tsd-panel tsd-member"><a id="pubSubTopics" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>pub<wbr/>Sub<wbr/>Topics</span><a href="#pubSubTopics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">pub<wbr/>Sub<wbr/>Topics</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in packages/interfaces/dist/relay.d.ts:14</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="start" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>start</span><a href="#start" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">start</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></div>
@@ -83,7 +89,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/relay.d.ts:14</li></ul></aside></section></section></div>
+<li>Defined in packages/interfaces/dist/relay.d.ts:16</li></ul></aside></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -104,6 +110,7 @@
 <ul>
 <li><a href="#getMeshPeers" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>get<wbr/>Mesh<wbr/>Peers</span></a></li>
 <li><a href="#gossipSub" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>gossip<wbr/>Sub</span></a></li>
+<li><a href="#pubSubTopics" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topics</span></a></li>
 <li><a href="#start" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>start</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1"></use></svg><span>Documentation</span></a>

@@ -24,7 +24,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">EncoderOptions</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/message-encryption/src/ecies.ts#L78">packages/message-encryption/src/ecies.ts:78</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/message-encryption/src/ecies.ts#L80">packages/message-encryption/src/ecies.ts:80</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -35,6 +35,7 @@
 <div class="tsd-index-list"><a href="_waku_message_encryption.ecies.EncoderOptions.html#contentTopic" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>content<wbr/>Topic</span></a>
 <a href="_waku_message_encryption.ecies.EncoderOptions.html#ephemeral" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>ephemeral?</span></a>
 <a href="_waku_message_encryption.ecies.EncoderOptions.html#metaSetter" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>meta<wbr/>Setter?</span></a>
+<a href="_waku_message_encryption.ecies.EncoderOptions.html#pubSubTopic" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topic?</span></a>
 <a href="_waku_message_encryption.ecies.EncoderOptions.html#publicKey" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>public<wbr/>Key</span></a>
 <a href="_waku_message_encryption.ecies.EncoderOptions.html#sigPrivKey" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>sig<wbr/>Priv<wbr/>Key?</span></a>
 </div></section></div></details></section></section>
@@ -48,7 +49,7 @@
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="_waku_sdk.EncoderOptions.html">EncoderOptions</a>.<a href="_waku_sdk.EncoderOptions.html#contentTopic">contentTopic</a></p>
 <ul>
-<li>Defined in packages/interfaces/dist/message.d.ts:38</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/message.d.ts:40</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="ephemeral" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>ephemeral</span><a href="#ephemeral" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">ephemeral</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -59,7 +60,7 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="_waku_sdk.EncoderOptions.html">EncoderOptions</a>.<a href="_waku_sdk.EncoderOptions.html#ephemeral">ephemeral</a></p>
 <ul>
-<li>Defined in packages/interfaces/dist/message.d.ts:43</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/message.d.ts:45</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="metaSetter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>meta<wbr/>Setter</span><a href="#metaSetter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">meta<wbr/>Setter</span><span class="tsd-signature-symbol">?:</span> <a href="_waku_sdk.IMetaSetter.html" class="tsd-signature-type tsd-kind-interface">IMetaSetter</a></div>
@@ -71,7 +72,13 @@ If encryption is used, <code>metaSetter</code> only accesses <em>encrypted</em> 
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="_waku_sdk.EncoderOptions.html">EncoderOptions</a>.<a href="_waku_sdk.EncoderOptions.html#metaSetter">metaSetter</a></p>
 <ul>
-<li>Defined in packages/interfaces/dist/message.d.ts:49</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/message.d.ts:51</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="pubSubTopic" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>pub<wbr/>Sub<wbr/>Topic</span><a href="#pubSubTopic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">pub<wbr/>Sub<wbr/>Topic</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
+<p>Inherited from <a href="_waku_sdk.EncoderOptions.html">EncoderOptions</a>.<a href="_waku_sdk.EncoderOptions.html#pubSubTopic">pubSubTopic</a></p>
+<ul>
+<li>Defined in packages/interfaces/dist/message.d.ts:38</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="publicKey" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>public<wbr/>Key</span><a href="#publicKey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">public<wbr/>Key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Uint8Array</span></div>
@@ -79,7 +86,7 @@ If encryption is used, <code>metaSetter</code> only accesses <em>encrypted</em> 
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/message-encryption/src/ecies.ts#L80">packages/message-encryption/src/ecies.ts:80</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/message-encryption/src/ecies.ts#L82">packages/message-encryption/src/ecies.ts:82</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="sigPrivKey" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>sig<wbr/>Priv<wbr/>Key</span><a href="#sigPrivKey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">sig<wbr/>Priv<wbr/>Key</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type ">Uint8Array</span></div>
@@ -87,7 +94,7 @@ If encryption is used, <code>metaSetter</code> only accesses <em>encrypted</em> 
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/077d9a76d/packages/message-encryption/src/ecies.ts#L82">packages/message-encryption/src/ecies.ts:82</a></li></ul></aside></section></section></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/a3c45b6e1/packages/message-encryption/src/ecies.ts#L84">packages/message-encryption/src/ecies.ts:84</a></li></ul></aside></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -109,6 +116,7 @@ If encryption is used, <code>metaSetter</code> only accesses <em>encrypted</em> 
 <li><a href="#contentTopic" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>content<wbr/>Topic</span></a></li>
 <li><a href="#ephemeral" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>ephemeral</span></a></li>
 <li><a href="#metaSetter" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>meta<wbr/>Setter</span></a></li>
+<li><a href="#pubSubTopic" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topic</span></a></li>
 <li><a href="#publicKey" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>public<wbr/>Key</span></a></li>
 <li><a href="#sigPrivKey" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>sig<wbr/>Priv<wbr/>Key</span></a></li></ul></div></details></div>
 <div class="site-menu">
