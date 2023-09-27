@@ -26,6 +26,7 @@ import {
   SendResult
 } from "@waku/interfaces";
 import { isSizeValid, toAsyncIterator } from "@waku/utils";
+import { pushOrInitMapSet } from "@waku/utils";
 import debug from "debug";
 
 import { RelayCodecs } from "./constants.js";
@@ -138,16 +139,14 @@ class Relay implements IRelay {
     const observers: Array<[PubSubTopic, Observer<T>]> = [];
 
     for (const decoder of Array.isArray(decoders) ? decoders : [decoders]) {
-      const pubSubTopic = decoder.pubSubTopic;
+      const { pubSubTopic } = decoder;
       const ctObs: Map<ContentTopic, Set<Observer<T>>> = this.observers.get(
         pubSubTopic
       ) ?? new Map();
-      const _obs = ctObs.get(decoder.contentTopic) ?? new Set();
       const observer = { pubSubTopic, decoder, callback };
-      _obs.add(observer);
-      ctObs.set(decoder.contentTopic, _obs);
-      this.observers.set(pubSubTopic, ctObs);
+      pushOrInitMapSet(ctObs, decoder.contentTopic, observer);
 
+      this.observers.set(pubSubTopic, ctObs);
       observers.push([pubSubTopic, observer]);
     }
 
