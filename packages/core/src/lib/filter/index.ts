@@ -17,7 +17,11 @@ import type {
   Unsubscribe
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { groupByContentTopic, toAsyncIterator } from "@waku/utils";
+import {
+  ensurePubsubTopicIsConfigured,
+  groupByContentTopic,
+  toAsyncIterator
+} from "@waku/utils";
 import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -230,7 +234,7 @@ class Subscription {
 }
 
 class Filter extends BaseProtocol implements IReceiver {
-  private readonly options: ProtocolCreateOptions;
+  private readonly pubSubTopics: PubSubTopic[] = [];
   private activeSubscriptions = new Map<string, Subscription>();
   private readonly NUM_PEERS_PROTOCOL = 1;
 
@@ -253,19 +257,22 @@ class Filter extends BaseProtocol implements IReceiver {
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(FilterCodecs.SUBSCRIBE, libp2p.components);
 
+    this.pubSubTopics = options?.pubSubTopics || [DefaultPubSubTopic];
+
     libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
       log("Failed to register ", FilterCodecs.PUSH, e);
     });
 
     this.activeSubscriptions = new Map();
-
-    this.options = options ?? {};
   }
 
-  async createSubscription(pubSubTopic?: string): Promise<Subscription> {
-    const _pubSubTopic =
-      pubSubTopic ?? this.options.pubSubTopic ?? DefaultPubSubTopic;
+  async createSubscription(
+    pubSubTopic: string = DefaultPubSubTopic
+  ): Promise<Subscription> {
+    ensurePubsubTopicIsConfigured(pubSubTopic, this.pubSubTopics);
 
+    //TODO: get a relevant peer for the topic/shard
+    // https://github.com/waku-org/js-waku/pull/1586#discussion_r1336428230
     const peer = (
       await this.getPeers({
         maxBootstrapPeers: 1,
@@ -274,11 +281,11 @@ class Filter extends BaseProtocol implements IReceiver {
     )[0];
 
     const subscription =
-      this.getActiveSubscription(_pubSubTopic, peer.id.toString()) ??
+      this.getActiveSubscription(pubSubTopic, peer.id.toString()) ??
       this.setActiveSubscription(
-        _pubSubTopic,
+        pubSubTopic,
         peer.id.toString(),
-        new Subscription(_pubSubTopic, peer, this.getStream.bind(this, peer))
+        new Subscription(pubSubTopic, peer, this.getStream.bind(this, peer))
       );
 
     return subscription;

@@ -96,15 +96,18 @@ async function waitForConnectedPeer(protocol: IBaseProtocol): Promise<void> {
 }
 
 /**
- * Wait for a peer with the given protocol to be connected and in the gossipsub
- * mesh.
+ * Wait for at least one peer with the given protocol to be connected and in the gossipsub
+ * mesh for all pubSubTopics.
  */
 async function waitForGossipSubPeerInMesh(waku: IRelay): Promise<void> {
   let peers = waku.getMeshPeers();
+  const pubSubTopics = waku.pubSubTopics;
 
-  while (peers.length == 0) {
-    await pEvent(waku.gossipSub, "gossipsub:heartbeat");
-    peers = waku.getMeshPeers();
+  for (const topic of pubSubTopics) {
+    while (peers.length == 0) {
+      await pEvent(waku.gossipSub, "gossipsub:heartbeat");
+      peers = waku.getMeshPeers(topic);
+    }
   }
 }
 
