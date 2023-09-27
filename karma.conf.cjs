@@ -3,7 +3,6 @@ const playwright = require('playwright');
 
 process.env.CHROME_BIN = playwright.chromium.executablePath();
 process.env.FIREFOX_BIN = playwright.firefox.executablePath();
-process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
 
 module.exports = function (config) {
   config.set({
@@ -14,7 +13,7 @@ module.exports = function (config) {
     },
     envPreprocessor: ["CI"],
     reporters: ["progress"],
-    browsers: ["ChromeHeadless", "FirefoxHeadless", "WebkitHeadless"],
+    browsers: ["ChromeHeadless", "FirefoxHeadless"],
     singleRun: true,
     client: {
       mocha: {
