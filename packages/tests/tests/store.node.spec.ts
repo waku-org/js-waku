@@ -643,7 +643,7 @@ describe("Waku Store, custom pubsub topic", () => {
   });
 
   it("Generator, multiple pubsub topics", async function () {
-    this.timeout(15_000);
+    this.timeout(10000);
 
     // Set up and start a new nwaku node with Default PubSubtopic
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
@@ -667,27 +667,24 @@ describe("Waku Store, custom pubsub topic", () => {
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
-    await delay(1000);
+    let customMessages: IMessage[] = [];
+    let testMessages: IMessage[] = [];
 
-    const customMessages = await processMessages(
-      waku,
-      [customTestDecoder],
-      customPubSubTopic
-    );
-    expect(
-      customMessages.length,
-      "Might fail here because https://github.com/waku-org/js-waku/issues/1606"
-    ).eq(totalMsgs);
-
-    const testMessages = await processMessages(
-      waku,
-      [TestDecoder],
-      DefaultPubSubTopic
-    );
-    expect(
-      testMessages.length,
-      "Might fail here because https://github.com/waku-org/js-waku/issues/1606"
-    ).eq(totalMsgs);
+    while (
+      customMessages.length != totalMsgs ||
+      testMessages.length != totalMsgs
+    ) {
+      customMessages = await processMessages(
+        waku,
+        [customTestDecoder],
+        customPubSubTopic
+      );
+      testMessages = await processMessages(
+        waku,
+        [TestDecoder],
+        DefaultPubSubTopic
+      );
+    }
   });
 
   // will move those 2 reusable functions to store/utils when refactoring store tests but with another PR
