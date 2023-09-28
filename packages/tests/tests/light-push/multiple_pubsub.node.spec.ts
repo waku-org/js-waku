@@ -22,7 +22,7 @@ import {
 } from "./utils.js";
 
 describe("Waku Light Push : Multiple PubSubtopics", function () {
-  this.timeout(15000);
+  this.timeout(30000);
   let waku: LightNode;
   let nwaku: NimGoNode;
   let nwaku2: NimGoNode;

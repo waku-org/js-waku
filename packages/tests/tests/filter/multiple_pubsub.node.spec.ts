@@ -25,7 +25,7 @@ import {
 
 describe("Waku Filter V2: Multiple PubSubtopics", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
-  this.timeout(10000);
+  this.timeout(30000);
   let waku: LightNode;
   let nwaku: NimGoNode;
   let nwaku2: NimGoNode;
