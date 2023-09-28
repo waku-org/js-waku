@@ -674,14 +674,20 @@ describe("Waku Store, custom pubsub topic", () => {
       [customTestDecoder],
       customPubSubTopic
     );
-    expect(customMessages.length).eq(totalMsgs);
+    expect(
+      customMessages.length,
+      "Might fail here because https://github.com/waku-org/js-waku/issues/1606"
+    ).eq(totalMsgs);
 
     const testMessages = await processMessages(
       waku,
       [TestDecoder],
       DefaultPubSubTopic
     );
-    expect(testMessages.length).eq(totalMsgs);
+    expect(
+      testMessages.length,
+      "Might fail here because https://github.com/waku-org/js-waku/issues/1606"
+    ).eq(totalMsgs);
   });
 
   // will move those 2 reusable functions to store/utils when refactoring store tests but with another PR

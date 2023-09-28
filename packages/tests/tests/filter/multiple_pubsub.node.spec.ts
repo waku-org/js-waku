@@ -58,7 +58,7 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
   it("Subscribe and receive messages on custom pubsubtopic", async function () {
     await subscription.subscribe([newDecoder], messageCollector.callback);
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessages(0)).to.eq(true);
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
       expectedContentTopic: customContentTopic,
       expectedPubSubTopic: customPubSubTopic,
