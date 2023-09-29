@@ -34,7 +34,8 @@ describe("Waku Filter V2: Unsubscribe", function () {
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku], [waku]);
+    this.timeout(15000);
+    await tearDownNodes([nwaku], [waku]);
   });
 
   it("Unsubscribe 1 topic - node subscribed to 1 topic", async function () {

@@ -1,23 +1,46 @@
 import { LightNode } from "@waku/interfaces";
 import debug from "debug";
+import pRetry from "p-retry";
 
 import { NimGoNode } from "./index.js";
 
 const log = debug("waku:test");
 
-export function tearDownNodes(
+export async function tearDownNodes(
   nwakuNodes: NimGoNode[],
   wakuNodes: LightNode[]
-): void {
-  nwakuNodes.forEach((nwaku) => {
+): Promise<void> {
+  const stopNwakuNodes = nwakuNodes.map(async (nwaku) => {
     if (nwaku) {
-      nwaku.stop().catch((e) => log("Nwaku failed to stop", e));
+      await pRetry(
+        async () => {
+          try {
+            await nwaku.stop();
+          } catch (error) {
+            log("Nwaku failed to stop:", error);
+            throw error;
+          }
+        },
+        { retries: 3 }
+      );
     }
   });
 
-  wakuNodes.forEach((waku) => {
+  const stopWakuNodes = wakuNodes.map(async (waku) => {
     if (waku) {
-      waku.stop().catch((e) => log("Waku failed to stop", e));
+      await pRetry(
+        async () => {
+          try {
+            await waku.stop();
+          } catch (error) {
+            log("Waku failed to stop:", error);
+            throw error;
+          }
+        },
+        { retries: 3 }
+      );
     }
   });
+
+  await Promise.all([...stopNwakuNodes, ...stopWakuNodes]);
 }

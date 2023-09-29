@@ -67,14 +67,7 @@ export async function runNodes(
   currentTest: Context
 ): Promise<[NimGoNode, LightNode]> {
   const nwaku = new NimGoNode(makeLogFileName(currentTest));
-  await nwaku.startWithRetries(
-    {
-      filter: true,
-      lightpush: true,
-      relay: true
-    },
-    { retries: 3 }
-  );
+  await nwaku.startWithRetries({ filter: true, lightpush: true, relay: true });
 
   let waku: LightNode | undefined;
   try {

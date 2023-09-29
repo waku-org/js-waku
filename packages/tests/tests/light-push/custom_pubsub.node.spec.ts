@@ -26,7 +26,8 @@ describe("Waku Light Push [node only] - custom pubsub topic", function () {
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku], [waku]);
+    this.timeout(15000);
+    await tearDownNodes([nwaku], [waku]);
   });
 
   it("Push message", async function () {

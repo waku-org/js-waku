@@ -18,14 +18,11 @@ export async function runNodes(
 ): Promise<[NimGoNode, LightNode]> {
   const nwakuOptional = pubSubTopic ? { topic: pubSubTopic } : {};
   const nwaku = new NimGoNode(makeLogFileName(context));
-  await nwaku.startWithRetries(
-    {
-      lightpush: true,
-      relay: true,
-      ...nwakuOptional
-    },
-    { retries: 3 }
-  );
+  await nwaku.startWithRetries({
+    lightpush: true,
+    relay: true,
+    ...nwakuOptional
+  });
 
   let waku: LightNode | undefined;
   try {
