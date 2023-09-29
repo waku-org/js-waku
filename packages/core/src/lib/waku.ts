@@ -7,6 +7,7 @@ import type {
   IRelay,
   IStore,
   Libp2p,
+  PubSubTopic,
   Waku
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -52,12 +53,15 @@ export class WakuNode implements Waku {
 
   constructor(
     options: WakuOptions,
+    public readonly pubSubTopics: PubSubTopic[],
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
     filter?: (libp2p: Libp2p) => IFilter,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
+    this.pubSubTopics = pubSubTopics;
+
     this.libp2p = libp2p;
 
     if (store) {
@@ -86,6 +90,7 @@ export class WakuNode implements Waku {
       peerId,
       libp2p,
       { pingKeepAlive, relayKeepAlive },
+      pubSubTopics,
       this.relay
     );
 
