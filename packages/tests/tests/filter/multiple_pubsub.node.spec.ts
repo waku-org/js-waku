@@ -47,8 +47,6 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
     ]);
     subscription = await waku.filter.createSubscription(customPubSubTopic);
     messageCollector = new MessageCollector();
-
-    await nwaku.ensureSubscriptions([customPubSubTopic]);
   });
 
   this.afterEach(async function () {
@@ -66,7 +64,37 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
     });
   });
 
-  it("Subscribe and receive messages from 2 nwaku nodes on 2 different pubsubtopics", async function () {
+  it("Subscribe and receive messages on 2 different pubsubtopics", async function () {
+    await subscription.subscribe([newDecoder], messageCollector.callback);
+
+    // Subscribe from the same lightnode to the 2nd pubSubtopic
+    const subscription2 =
+      await waku.filter.createSubscription(DefaultPubSubTopic);
+
+    const messageCollector2 = new MessageCollector();
+
+    await subscription2.subscribe([TestDecoder], messageCollector2.callback);
+
+    await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M1") });
+    await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
+
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    expect(await messageCollector2.waitForMessages(1)).to.eq(true);
+
+    messageCollector.verifyReceivedMessage(0, {
+      expectedContentTopic: customContentTopic,
+      expectedPubSubTopic: customPubSubTopic,
+      expectedMessageText: "M1"
+    });
+
+    messageCollector2.verifyReceivedMessage(0, {
+      expectedContentTopic: TestContentTopic,
+      expectedPubSubTopic: DefaultPubSubTopic,
+      expectedMessageText: "M2"
+    });
+  });
+
+  it("Subscribe and receive messages from 2 nwaku nodes each with different pubsubtopics", async function () {
     await subscription.subscribe([newDecoder], messageCollector.callback);
 
     // Set up and start a new nwaku node with Default PubSubtopic
@@ -75,7 +103,7 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      topic: DefaultPubSubTopic
+      topic: [DefaultPubSubTopic]
     });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
@@ -92,6 +120,7 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
     await subscription2.subscribe([TestDecoder], messageCollector2.callback);
 
     // Making sure that messages are send and reveiced for both subscriptions
+    // While loop is done because of https://github.com/waku-org/js-waku/issues/1606
     while (
       !(await messageCollector.waitForMessages(1, {
         pubSubTopic: customPubSubTopic

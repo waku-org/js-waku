@@ -581,9 +581,10 @@ describe("Waku Store, custom pubsub topic", () => {
     nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
-      topic: customPubSubTopic,
+      topic: [customPubSubTopic, DefaultPubSubTopic],
       relay: true
     });
+    await nwaku.ensureSubscriptions([customPubSubTopic, DefaultPubSubTopic]);
   });
 
   afterEach(async function () {
@@ -642,14 +643,53 @@ describe("Waku Store, custom pubsub topic", () => {
     expect(result).to.not.eq(-1);
   });
 
-  it("Generator, multiple pubsub topics", async function () {
+  it("Generator, 2 different pubsubtopics", async function () {
+    this.timeout(10000);
+
+    const totalMsgs = 10;
+    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubSubTopic);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+
+    waku = await createLightNode({
+      staticNoiseKey: NOISE_KEY_1,
+      pubSubTopics: [customPubSubTopic, DefaultPubSubTopic]
+    });
+    await waku.start();
+
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.Store]);
+
+    const customMessages = await processMessages(
+      waku,
+      [customTestDecoder],
+      customPubSubTopic
+    );
+    expect(customMessages?.length).eq(totalMsgs);
+    const result1 = customMessages?.findIndex((msg) => {
+      return msg.payload![0]! === 0;
+    });
+    expect(result1).to.not.eq(-1);
+
+    const testMessages = await processMessages(
+      waku,
+      [TestDecoder],
+      DefaultPubSubTopic
+    );
+    expect(testMessages?.length).eq(totalMsgs);
+    const result2 = testMessages?.findIndex((msg) => {
+      return msg.payload![0]! === 0;
+    });
+    expect(result2).to.not.eq(-1);
+  });
+
+  it("Generator, 2 nwaku nodes each with different pubsubtopics", async function () {
     this.timeout(10000);
 
     // Set up and start a new nwaku node with Default PubSubtopic
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
-      topic: DefaultPubSubTopic,
+      topic: [DefaultPubSubTopic],
       relay: true
     });
 
