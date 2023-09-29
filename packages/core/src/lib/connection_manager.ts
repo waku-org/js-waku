@@ -9,9 +9,11 @@ import {
   IPeersByDiscoveryEvents,
   IRelay,
   KeepAliveOptions,
-  PeersByDiscoveryResult
+  PeersByDiscoveryResult,
+  PubSubTopic
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
+import { bytesToShardInfo, getPubsubTopicsFromShardInfo } from "@waku/utils";
 import debug from "debug";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
@@ -40,6 +42,7 @@ export class ConnectionManager
     peerId: string,
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
+    pubSubTopics: PubSubTopic[],
     relay?: IRelay,
     options?: ConnectionManagerOptions
   ): ConnectionManager {
@@ -48,6 +51,7 @@ export class ConnectionManager
       instance = new ConnectionManager(
         libp2p,
         keepAliveOptions,
+        pubSubTopics,
         relay,
         options
       );
@@ -104,11 +108,13 @@ export class ConnectionManager
   private constructor(
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
+    private configuredPubSubTopics: PubSubTopic[],
     relay?: IRelay,
     options?: Partial<ConnectionManagerOptions>
   ) {
     super();
     this.libp2p = libp2p;
+    this.configuredPubSubTopics = configuredPubSubTopics;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
@@ -309,10 +315,40 @@ export class ConnectionManager
     });
   }
 
+  async validatePeerTopic(peerId: PeerId): Promise<boolean> {
+    const peer = await this.libp2p.peerStore.get(peerId);
+    const rsOrRsv = peer.metadata.get("rsOrRsv");
+
+    // if the peer follows Waku's sharding format, check if it is part of any of the configured pubsub topics
+    if (rsOrRsv) {
+      const shardInfo = bytesToShardInfo(rsOrRsv);
+      const pubSubTopics = getPubsubTopicsFromShardInfo(shardInfo);
+
+      // If the peer is not part of any of the configured pubsub topics, don't dial
+      if (
+        !pubSubTopics.some((topic) =>
+          this.configuredPubSubTopics.includes(topic)
+        )
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   private onEventHandlers = {
     "peer:discovery": (evt: CustomEvent<PeerInfo>): void => {
       void (async () => {
         const { id: peerId } = evt.detail;
+
+        const topicValidity = await this.validatePeerTopic(peerId);
+        if (!topicValidity) {
+          log(
+            `Discovered peer ${peerId.toString()} is not part of any of the configured pubsub topics. Not dialing.`
+          );
+          return;
+        }
 
         const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
           Tags.BOOTSTRAP
