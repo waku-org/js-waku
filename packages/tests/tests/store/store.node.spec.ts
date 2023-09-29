@@ -20,35 +20,27 @@ import {
   createEncoder as createSymEncoder,
   generateSymmetricKey
 } from "@waku/message-encryption/symmetric";
-import { createLightNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
-import debug from "debug";
+
+import { makeLogFileName, NimGoNode, tearDownNodes } from "../../src/index.js";
 
 import {
-  delay,
-  makeLogFileName,
-  NimGoNode,
-  NOISE_KEY_1,
-  NOISE_KEY_2,
-  tearDownNodes
-} from "../../src/index.js";
-
-import {
+  log,
   processMessages,
   sendMessages,
   startAndConnectLightNode
 } from "./utils.js";
 
-const log = debug("waku:test:store");
-
 const TestContentTopic = "/test/1/waku-store/utf8";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
+const totalMsgs = 20;
 
-describe.only("Waku Store", function () {
+describe("Waku Store", function () {
   this.timeout(15000);
   let waku: LightNode;
+  let waku2: LightNode;
   let nwaku: NimGoNode;
 
   beforeEach(async function () {
@@ -59,12 +51,10 @@ describe.only("Waku Store", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([nwaku], [waku]);
+    await tearDownNodes([nwaku], [waku, waku2]);
   });
 
   it("Generator", async function () {
-    const totalMsgs = 20;
-
     await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);
     const messages = await processMessages(
@@ -80,7 +70,7 @@ describe.only("Waku Store", function () {
     expect(result).to.not.eq(-1);
   });
 
-  it.only("Generator, no message returned", async function () {
+  it("Generator, no message returned", async function () {
     waku = await startAndConnectLightNode(nwaku);
     const messages = await processMessages(
       waku,
@@ -92,26 +82,8 @@ describe.only("Waku Store", function () {
   });
 
   it("Passing a cursor", async function () {
-    this.timeout(4_000);
-    const totalMsgs = 20;
-
-    for (let i = 0; i < totalMsgs; i++) {
-      expect(
-        await nwaku.sendMessage(
-          NimGoNode.toMessageRpcQuery({
-            payload: utf8ToBytes(`Message ${i}`),
-            contentTopic: TestContentTopic
-          })
-        )
-      ).to.be.true;
-    }
-
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    waku = await startAndConnectLightNode(nwaku);
 
     const query = waku.store.queryGenerator([TestDecoder]);
 
@@ -148,27 +120,8 @@ describe.only("Waku Store", function () {
   });
 
   it("Callback on promise", async function () {
-    this.timeout(15_000);
-
-    const totalMsgs = 15;
-
-    for (let i = 0; i < totalMsgs; i++) {
-      expect(
-        await nwaku.sendMessage(
-          NimGoNode.toMessageRpcQuery({
-            payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic
-          })
-        )
-      ).to.be.true;
-    }
-
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    waku = await startAndConnectLightNode(nwaku);
 
     const messages: IMessage[] = [];
     await waku.store.queryWithPromiseCallback(
@@ -189,27 +142,8 @@ describe.only("Waku Store", function () {
   });
 
   it("Callback on promise, aborts when callback returns true", async function () {
-    this.timeout(15_000);
-
-    const totalMsgs = 20;
-
-    for (let i = 0; i < totalMsgs; i++) {
-      expect(
-        await nwaku.sendMessage(
-          NimGoNode.toMessageRpcQuery({
-            payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic
-          })
-        )
-      ).to.be.true;
-    }
-
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    waku = await startAndConnectLightNode(nwaku);
 
     const desiredMsgs = 14;
     const messages: IMessage[] = [];
@@ -229,27 +163,8 @@ describe.only("Waku Store", function () {
   });
 
   it("Ordered Callback - Forward", async function () {
-    this.timeout(15_000);
-
-    const totalMsgs = 18;
-    for (let i = 0; i < totalMsgs; i++) {
-      expect(
-        await nwaku.sendMessage(
-          NimGoNode.toMessageRpcQuery({
-            payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic
-          })
-        )
-      ).to.be.true;
-      await delay(1); // to ensure each timestamp is unique.
-    }
-
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    waku = await startAndConnectLightNode(nwaku);
 
     const messages: IMessage[] = [];
     await waku.store.queryWithOrderedCallback(
@@ -268,27 +183,8 @@ describe.only("Waku Store", function () {
   });
 
   it("Ordered Callback - Backward", async function () {
-    this.timeout(15_000);
-
-    const totalMsgs = 18;
-    for (let i = 0; i < totalMsgs; i++) {
-      expect(
-        await nwaku.sendMessage(
-          NimGoNode.toMessageRpcQuery({
-            payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic
-          })
-        )
-      ).to.be.true;
-      await delay(1); // to ensure each timestamp is unique.
-    }
-
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    waku = await startAndConnectLightNode(nwaku);
 
     let messages: IMessage[] = [];
     await waku.store.queryWithOrderedCallback(
@@ -309,8 +205,6 @@ describe.only("Waku Store", function () {
   });
 
   it("Generator, with asymmetric & symmetric encrypted messages", async function () {
-    this.timeout(15_000);
-
     const asymText = "This message is encrypted for me using asymmetric";
     const asymTopic = "/test/1/asymmetric/proto";
     const symText =
@@ -357,33 +251,25 @@ describe.only("Waku Store", function () {
     const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
     const symDecoder = createSymDecoder(symTopic, symKey);
 
-    const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
-      createLightNode({
-        staticNoiseKey: NOISE_KEY_1
-      }).then((waku) => waku.start().then(() => waku)),
-      createLightNode({
-        staticNoiseKey: NOISE_KEY_2
-      }).then((waku) => waku.start().then(() => waku)),
-      nwaku.getMultiaddrWithId()
-    ]);
-
-    log("Waku nodes created");
+    waku = await startAndConnectLightNode(nwaku);
+    waku2 = await startAndConnectLightNode(nwaku);
+    const nimWakuMultiaddr = await nwaku.getMultiaddrWithId();
 
     await Promise.all([
-      waku1.dial(nimWakuMultiaddr),
+      waku.dial(nimWakuMultiaddr),
       waku2.dial(nimWakuMultiaddr)
     ]);
 
     log("Waku nodes connected to nwaku");
 
-    await waitForRemotePeer(waku1, [Protocols.LightPush]);
+    await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     log("Sending messages using light push");
     await Promise.all([
-      waku1.lightPush.send(eciesEncoder, asymMsg),
-      waku1.lightPush.send(symEncoder, symMsg),
-      waku1.lightPush.send(otherEncoder, otherMsg),
-      waku1.lightPush.send(TestEncoder, clearMsg)
+      waku.lightPush.send(eciesEncoder, asymMsg),
+      waku.lightPush.send(symEncoder, symMsg),
+      waku.lightPush.send(otherEncoder, otherMsg),
+      waku.lightPush.send(TestEncoder, clearMsg)
     ]);
 
     await waitForRemotePeer(waku2, [Protocols.Store]);
@@ -409,14 +295,9 @@ describe.only("Waku Store", function () {
     expect(bytesToUtf8(messages[1].payload!)).to.eq(symText);
     expect(bytesToUtf8(messages[2].payload!)).to.eq(clearText);
     expect(messages?.length).eq(3);
-
-    !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
-    !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
   it("Ordered callback, using start and end time", async function () {
-    this.timeout(20000);
-
     const now = new Date();
 
     const startTime = new Date();
@@ -436,6 +317,9 @@ describe.only("Waku Store", function () {
     // Set end time 1 second in the past
     endTime.setTime(now.getTime() - 1000);
 
+    await sendMessages(nwaku, 2, TestContentTopic, DefaultPubSubTopic);
+    waku = await startAndConnectLightNode(nwaku);
+
     for (let i = 0; i < 2; i++) {
       expect(
         await nwaku.sendMessage(
@@ -448,12 +332,7 @@ describe.only("Waku Store", function () {
       ).to.be.true;
     }
 
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    waku = await startAndConnectLightNode(nwaku);
 
     const firstMessages: IMessage[] = [];
     await waku.store.queryWithOrderedCallback(
@@ -490,28 +369,8 @@ describe.only("Waku Store", function () {
   });
 
   it("Ordered callback, aborts when callback returns true", async function () {
-    this.timeout(15_000);
-
-    const totalMsgs = 20;
-
-    for (let i = 0; i < totalMsgs; i++) {
-      expect(
-        await nwaku.sendMessage(
-          NimGoNode.toMessageRpcQuery({
-            payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic
-          })
-        )
-      ).to.be.true;
-      await delay(1); // to ensure each timestamp is unique.
-    }
-
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    waku = await startAndConnectLightNode(nwaku);
 
     const desiredMsgs = 14;
     const messages: IMessage[] = [];

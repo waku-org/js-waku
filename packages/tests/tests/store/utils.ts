@@ -1,9 +1,12 @@
-import { Decoder, waitForRemotePeer } from "@waku/core";
+import { Decoder, DefaultPubSubTopic, waitForRemotePeer } from "@waku/core";
 import { IMessage, LightNode, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
+import debug from "debug";
 
 import { delay, NimGoNode, NOISE_KEY_1 } from "../../src";
+
+export const log = debug("waku:test:store");
 
 export async function sendMessages(
   instance: NimGoNode,
@@ -48,13 +51,16 @@ export async function processMessages(
 }
 
 export async function startAndConnectLightNode(
-  instance: NimGoNode
+  instance: NimGoNode,
+  pubSubTopics: string[] = [DefaultPubSubTopic]
 ): Promise<LightNode> {
   const waku = await createLightNode({
+    pubSubTopics: pubSubTopics,
     staticNoiseKey: NOISE_KEY_1
   });
   await waku.start();
   await waku.dial(await instance.getMultiaddrWithId());
   await waitForRemotePeer(waku, [Protocols.Store]);
+  log("Waku node created");
   return waku;
 }
