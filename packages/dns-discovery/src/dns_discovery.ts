@@ -11,6 +11,7 @@ import type {
   IEnr,
   NodeCapabilityCount
 } from "@waku/interfaces";
+import { shardInfoToBytes } from "@waku/utils";
 import debug from "debug";
 
 import {
@@ -72,18 +73,16 @@ export class PeerDiscoveryDns
         return;
       }
 
-      const peerInfo = peerEnr.peerInfo;
+      const { peerInfo, rsOrRsv } = peerEnr;
 
       if (!peerInfo) {
         continue;
       }
 
       const tagsToUpdate = {
-        tags: {
-          [DEFAULT_BOOTSTRAP_TAG_NAME]: {
-            value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL
-          }
+        [DEFAULT_BOOTSTRAP_TAG_NAME]: {
+          value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
+          ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL
         }
       };
 
@@ -96,11 +95,20 @@ export class PeerDiscoveryDns
 
         if (!hasBootstrapTag) {
           isPeerChanged = true;
-          await this._components.peerStore.merge(peerInfo.id, tagsToUpdate);
+          await this._components.peerStore.merge(peerInfo.id, {
+            tags: tagsToUpdate
+          });
         }
       } else {
         isPeerChanged = true;
-        await this._components.peerStore.save(peerInfo.id, tagsToUpdate);
+        await this._components.peerStore.save(peerInfo.id, {
+          tags: tagsToUpdate,
+          ...(rsOrRsv && {
+            metadata: {
+              rsOrRsv: shardInfoToBytes(rsOrRsv)
+            }
+          })
+        });
       }
 
       if (isPeerChanged) {
