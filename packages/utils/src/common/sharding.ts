@@ -1,6 +1,6 @@
 import type { PubSubTopic, ShardInfo } from "@waku/interfaces";
 
-import { bytesToUtf8, utf8ToBytes } from "../bytes";
+import { bytesToUtf8, utf8ToBytes } from "../bytes/index.js";
 
 export const getPubsubTopicsFromShardInfo = (
   shardInfo: ShardInfo
