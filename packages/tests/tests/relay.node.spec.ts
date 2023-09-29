@@ -259,6 +259,15 @@ describe("Waku Relay [node only]", () => {
     let waku1: RelayNode;
     let waku2: RelayNode;
     let waku3: RelayNode;
+
+    const pubSubTopic = "/some/pubsub/topic";
+
+    const CustomTopicEncoder = createEncoder({
+      contentTopic: TestContentTopic,
+      pubSubTopic: pubSubTopic
+    });
+    const CustomTopicDecoder = createDecoder(TestContentTopic, pubSubTopic);
+
     afterEach(async function () {
       !!waku1 &&
         waku1.stop().catch((e) => console.log("Waku failed to stop", e));
@@ -271,17 +280,15 @@ describe("Waku Relay [node only]", () => {
     it("Publish", async function () {
       this.timeout(10000);
 
-      const pubSubTopic = "/some/pubsub/topic";
-
       // 1 and 2 uses a custom pubsub
       // 3 uses the default pubsub
       [waku1, waku2, waku3] = await Promise.all([
         createRelayNode({
-          pubSubTopic: pubSubTopic,
+          pubSubTopics: [pubSubTopic],
           staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopic: pubSubTopic,
+          pubSubTopics: [pubSubTopic],
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku)),
@@ -310,7 +317,7 @@ describe("Waku Relay [node only]", () => {
 
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          void waku2.relay.subscribe([TestDecoder], resolve);
+          void waku2.relay.subscribe([CustomTopicDecoder], resolve);
         }
       );
 
@@ -323,7 +330,7 @@ describe("Waku Relay [node only]", () => {
         }
       );
 
-      await waku1.relay.send(TestEncoder, {
+      await waku1.relay.send(CustomTopicEncoder, {
         payload: utf8ToBytes(messageText)
       });
 
@@ -338,16 +345,14 @@ describe("Waku Relay [node only]", () => {
       this.timeout(10000);
       const MB = 1024 ** 2;
 
-      const pubSubTopic = "/some/pubsub/topic";
-
       // 1 and 2 uses a custom pubsub
       [waku1, waku2] = await Promise.all([
         createRelayNode({
-          pubSubTopic: pubSubTopic,
+          pubSubTopics: [pubSubTopic],
           staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopic: pubSubTopic,
+          pubSubTopics: [pubSubTopic],
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku))
@@ -365,7 +370,7 @@ describe("Waku Relay [node only]", () => {
 
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          void waku2.relay.subscribe([TestDecoder], () =>
+          void waku2.relay.subscribe([CustomTopicDecoder], () =>
             resolve({
               payload: new Uint8Array([])
             } as DecodedMessage)
@@ -373,18 +378,18 @@ describe("Waku Relay [node only]", () => {
         }
       );
 
-      let sendResult = await waku1.relay.send(TestEncoder, {
+      let sendResult = await waku1.relay.send(CustomTopicEncoder, {
         payload: generateRandomUint8Array(1 * MB)
       });
       expect(sendResult.recipients.length).to.eq(1);
 
-      sendResult = await waku1.relay.send(TestEncoder, {
+      sendResult = await waku1.relay.send(CustomTopicEncoder, {
         payload: generateRandomUint8Array(1 * MB + 65536)
       });
       expect(sendResult.recipients.length).to.eq(0);
       expect(sendResult.errors).to.include(SendError.SIZE_TOO_BIG);
 
-      sendResult = await waku1.relay.send(TestEncoder, {
+      sendResult = await waku1.relay.send(CustomTopicEncoder, {
         payload: generateRandomUint8Array(2 * MB)
       });
       expect(sendResult.recipients.length).to.eq(0);

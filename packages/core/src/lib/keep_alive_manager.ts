@@ -1,6 +1,6 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerStore } from "@libp2p/interface/peer-store";
-import type { IRelay } from "@waku/interfaces";
+import type { IRelay, PeerIdStr } from "@waku/interfaces";
 import type { KeepAliveOptions } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
@@ -13,7 +13,7 @@ const log = debug("waku:keep-alive");
 
 export class KeepAliveManager {
   private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>>;
-  private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>>;
+  private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>[]>;
   private options: KeepAliveOptions;
   private relay?: IRelay;
 
@@ -66,17 +66,12 @@ export class KeepAliveManager {
 
     const relay = this.relay;
     if (relay && relayPeriodSecs !== 0) {
-      const encoder = createEncoder({
-        contentTopic: RelayPingContentTopic,
-        ephemeral: true
-      });
-      const interval = setInterval(() => {
-        log("Sending Waku Relay ping message");
-        relay
-          .send(encoder, { payload: new Uint8Array([1]) })
-          .catch((e) => log("Failed to send relay ping", e));
-      }, relayPeriodSecs * 1000);
-      this.relayKeepAliveTimers.set(peerId, interval);
+      const intervals = this.scheduleRelayPings(
+        relay,
+        relayPeriodSecs,
+        peerId.toString()
+      );
+      this.relayKeepAliveTimers.set(peerId, intervals);
     }
   }
 
@@ -89,7 +84,7 @@ export class KeepAliveManager {
     }
 
     if (this.relayKeepAliveTimers.has(peerId)) {
-      clearInterval(this.relayKeepAliveTimers.get(peerId));
+      this.relayKeepAliveTimers.get(peerId)?.map(clearInterval);
       this.relayKeepAliveTimers.delete(peerId);
     }
   }
@@ -104,5 +99,33 @@ export class KeepAliveManager {
 
     this.pingKeepAliveTimers.clear();
     this.relayKeepAliveTimers.clear();
+  }
+
+  private scheduleRelayPings(
+    relay: IRelay,
+    relayPeriodSecs: number,
+    peerIdStr: PeerIdStr
+  ): NodeJS.Timeout[] {
+    // send a ping message to each PubSubTopic the peer is part of
+    const intervals: NodeJS.Timeout[] = [];
+    for (const topic of relay.pubSubTopics) {
+      const meshPeers = relay.getMeshPeers(topic);
+      if (!meshPeers.includes(peerIdStr)) continue;
+
+      const encoder = createEncoder({
+        pubSubTopic: topic,
+        contentTopic: RelayPingContentTopic,
+        ephemeral: true
+      });
+      const interval = setInterval(() => {
+        log("Sending Waku Relay ping message");
+        relay
+          .send(encoder, { payload: new Uint8Array([1]) })
+          .catch((e) => log("Failed to send relay ping", e));
+      }, relayPeriodSecs * 1000);
+      intervals.push(interval);
+    }
+
+    return intervals;
   }
 }

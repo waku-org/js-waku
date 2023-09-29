@@ -30,7 +30,7 @@ export async function runNodes(
   let waku: LightNode | undefined;
   try {
     waku = await createLightNode({
-      pubSubTopic,
+      pubSubTopics: pubSubTopic ? [pubSubTopic] : undefined,
       staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
