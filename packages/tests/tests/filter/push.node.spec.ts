@@ -31,9 +31,9 @@ describe("Waku Filter V2: FilterPush", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this);
+    [nwaku, waku] = await runNodes(this, [DefaultPubSubTopic]);
     subscription = await waku.filter.createSubscription();
-    messageCollector = new MessageCollector(TestContentTopic);
+    messageCollector = new MessageCollector();
   });
 
   this.afterEach(async function () {
@@ -50,7 +50,8 @@ describe("Waku Filter V2: FilterPush", function () {
 
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
-        expectedMessageText: testItem.value
+        expectedMessageText: testItem.value,
+        expectedContentTopic: TestContentTopic
       });
     });
   });
@@ -72,7 +73,8 @@ describe("Waku Filter V2: FilterPush", function () {
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
-        checkTimestamp: false
+        checkTimestamp: false,
+        expectedContentTopic: TestContentTopic
       });
 
       // Check if the timestamp matches
@@ -218,7 +220,8 @@ describe("Waku Filter V2: FilterPush", function () {
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: messageText
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic
     });
   });
 
@@ -246,10 +249,12 @@ describe("Waku Filter V2: FilterPush", function () {
     // Confirm both messages were received.
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: "M1"
+      expectedMessageText: "M1",
+      expectedContentTopic: TestContentTopic
     });
     messageCollector.verifyReceivedMessage(1, {
-      expectedMessageText: "M2"
+      expectedMessageText: "M2",
+      expectedContentTopic: TestContentTopic
     });
   });
 
@@ -269,10 +274,12 @@ describe("Waku Filter V2: FilterPush", function () {
     // Confirm both messages were received.
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: "M1"
+      expectedMessageText: "M1",
+      expectedContentTopic: TestContentTopic
     });
     messageCollector.verifyReceivedMessage(1, {
-      expectedMessageText: "M2"
+      expectedMessageText: "M2",
+      expectedContentTopic: TestContentTopic
     });
   });
 });

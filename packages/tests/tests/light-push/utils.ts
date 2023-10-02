@@ -14,20 +14,18 @@ export const messagePayload = { payload: utf8ToBytes(messageText) };
 
 export async function runNodes(
   context: Mocha.Context,
-  pubSubTopic?: string
+  pubSubTopics: string[]
 ): Promise<[NimGoNode, LightNode]> {
-  const nwakuOptional = pubSubTopic ? { topic: pubSubTopic } : {};
   const nwaku = new NimGoNode(makeLogFileName(context));
-  await nwaku.startWithRetries({
-    lightpush: true,
-    relay: true,
-    ...nwakuOptional
-  });
+  await nwaku.startWithRetries(
+    { lightpush: true, relay: true, topic: pubSubTopics },
+    { retries: 3 }
+  );
 
   let waku: LightNode | undefined;
   try {
     waku = await createLightNode({
-      pubSubTopics: pubSubTopic ? [pubSubTopic] : undefined,
+      pubSubTopics: pubSubTopics,
       staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
@@ -38,6 +36,7 @@ export async function runNodes(
   if (waku) {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await nwaku.ensureSubscriptions(pubSubTopics);
     return [nwaku, waku];
   } else {
     throw new Error("Failed to initialize waku");
