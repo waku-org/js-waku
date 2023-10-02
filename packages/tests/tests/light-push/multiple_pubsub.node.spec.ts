@@ -112,6 +112,7 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
       relay: true,
       topic: [DefaultPubSubTopic]
     });
+    await nwaku2.ensureSubscriptions([DefaultPubSubTopic]);
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
