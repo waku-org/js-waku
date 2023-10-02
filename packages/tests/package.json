@@ -63,7 +63,7 @@
     "p-retry": "^6.0.0",
     "p-timeout": "^6.1.0",
     "portfinder": "^1.0.32",
-    "sinon": "^15.2.0",
+    "sinon": "^16.0.0",
     "tail": "^2.2.6"
   },
   "devDependencies": {
