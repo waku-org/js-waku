@@ -327,6 +327,7 @@ describe("Waku Filter V2: Subscribe", function () {
       DefaultPubSubTopic,
       await nwaku2.getPeerId()
     );
+    await nwaku2.ensureSubscriptions([DefaultPubSubTopic]);
     // Send a message using the new subscription
     const newContentTopic = "/test/2/waku-filter";
     const newEncoder = createEncoder({ contentTopic: newContentTopic });
