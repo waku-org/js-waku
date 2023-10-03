@@ -5,13 +5,13 @@ import type {
 } from "@libp2p/interface/peer-discovery";
 import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
+import { encodeRelayShard } from "@waku/enr";
 import type {
   DnsDiscOptions,
   DnsDiscoveryComponents,
   IEnr,
   NodeCapabilityCount
 } from "@waku/interfaces";
-import { shardInfoToBytes } from "@waku/utils";
 import debug from "debug";
 
 import {
@@ -105,7 +105,7 @@ export class PeerDiscoveryDns
           tags: tagsToUpdate,
           ...(shardInfo && {
             metadata: {
-              shardInfo: shardInfoToBytes(shardInfo)
+              shardInfo: encodeRelayShard(shardInfo)
             }
           })
         });

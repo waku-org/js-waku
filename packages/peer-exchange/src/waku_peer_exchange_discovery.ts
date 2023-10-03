@@ -7,8 +7,8 @@ import type {
 import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
+import { encodeRelayShard } from "@waku/enr";
 import { Libp2pComponents, Tags } from "@waku/interfaces";
-import { shardInfoToBytes } from "@waku/utils";
 import debug from "debug";
 
 import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
@@ -195,7 +195,7 @@ export class PeerExchangeDiscovery
         },
         ...(shardInfo && {
           metadata: {
-            shardInfo: shardInfoToBytes(shardInfo)
+            shardInfo: encodeRelayShard(shardInfo)
           }
         })
       });

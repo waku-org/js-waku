@@ -2,6 +2,7 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
 import type { Peer } from "@libp2p/interface/peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import { decodeRelayShard } from "@waku/enr";
 import {
   ConnectionManagerOptions,
   EPeersByDiscoveryEvents,
@@ -13,7 +14,7 @@ import {
   PubSubTopic
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
-import { bytesToShardInfo, shardInfoToPubSubTopics } from "@waku/utils";
+import { shardInfoToPubSubTopics } from "@waku/utils";
 import debug from "debug";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
@@ -317,11 +318,11 @@ export class ConnectionManager
 
   async validatePeerTopic(peerId: PeerId): Promise<boolean> {
     const peer = await this.libp2p.peerStore.get(peerId);
-    const rsOrRsv = peer.metadata.get("rsOrRsv");
+    const shardInfoBytes = peer.metadata.get("shardInfo");
 
     // if the peer follows Waku's sharding format, check if it is part of any of the configured pubsub topics
-    if (rsOrRsv) {
-      const shardInfo = bytesToShardInfo(rsOrRsv);
+    if (shardInfoBytes) {
+      const shardInfo = decodeRelayShard(shardInfoBytes);
       const pubSubTopics = shardInfoToPubSubTopics(shardInfo);
 
       // If the peer is not part of any of the configured pubsub topics, don't dial

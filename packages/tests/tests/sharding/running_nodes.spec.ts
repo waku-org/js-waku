@@ -2,8 +2,8 @@ import { LightNode } from "@waku/interfaces";
 import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
-import { makeLogFileName } from "../../src/log_file";
-import { NimGoNode } from "../../src/node/node";
+import { makeLogFileName } from "../../src/log_file.js";
+import { NimGoNode } from "../../src/node/node.js";
 
 const PubSubTopic1 = "/waku/2/rs/0/2";
 const PubSubTopic2 = "/waku/2/rs/0/3";
