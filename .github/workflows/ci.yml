@@ -83,14 +83,14 @@ jobs:
   node_with_go_waku_master:
     uses: ./.github/workflows/test-node.yml
     with:
-      nim_wakunode_image: statusteam/go-waku:latest
+      nim_wakunode_image: wakuorg/go-waku:latest
       test_type: go-waku-master
       debug: waku*
 
   node_with_nwaku_master:
     uses: ./.github/workflows/test-node.yml
     with:
-      nim_wakunode_image: statusteam/nim-waku:deploy-wakuv2-test
+      nim_wakunode_image: wakuorg/nwaku:deploy-wakuv2-test
       test_type: nwaku-master
       debug: waku*
 
