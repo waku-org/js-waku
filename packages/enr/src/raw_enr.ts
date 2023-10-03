@@ -14,7 +14,7 @@ import { bytesToUtf8 } from "@waku/utils/bytes";
 
 import { ERR_INVALID_ID } from "./constants.js";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
-import { deserialize } from "./shard_deserialization.js";
+import { decodeRelayShard } from "./shard_deserialization.js";
 import { decodeWaku2, encodeWaku2 } from "./waku2_codec.js";
 
 export class RawEnr extends Map<ENRKey, ENRValue> {
@@ -55,13 +55,13 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
   get rs(): ShardInfo | undefined {
     const rs = this.get("rs");
     if (!rs) return undefined;
-    return deserialize(rs);
+    return decodeRelayShard(rs);
   }
 
   get rsv(): ShardInfo | undefined {
     const rsv = this.get("rsv");
     if (!rsv) return undefined;
-    return deserialize(rsv);
+    return decodeRelayShard(rsv);
   }
 
   get ip(): string | undefined {

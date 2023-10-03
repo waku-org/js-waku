@@ -65,10 +65,9 @@ export class ENR extends RawEnr implements IEnr {
     protocol: TransportProtocol | TransportProtocolPerIpVersion
   ) => Multiaddr | undefined = locationMultiaddrFromEnrFields.bind({}, this);
 
-  get rsOrRsv(): ShardInfo | undefined {
+  get shardInfo(): ShardInfo | undefined {
     if (this.rs && this.rsv) {
-      // this should never happen, but if it does, we will fallback to rs
-      return this.rs;
+      log("Warning: ENR contains both `rs` and `rsv` fields.");
     }
     return this.rs || this.rsv;
   }

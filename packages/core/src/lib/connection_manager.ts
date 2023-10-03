@@ -13,7 +13,7 @@ import {
   PubSubTopic
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
-import { bytesToShardInfo, getPubsubTopicsFromShardInfo } from "@waku/utils";
+import { bytesToShardInfo, shardInfoToPubSubTopics } from "@waku/utils";
 import debug from "debug";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
@@ -322,7 +322,7 @@ export class ConnectionManager
     // if the peer follows Waku's sharding format, check if it is part of any of the configured pubsub topics
     if (rsOrRsv) {
       const shardInfo = bytesToShardInfo(rsOrRsv);
-      const pubSubTopics = getPubsubTopicsFromShardInfo(shardInfo);
+      const pubSubTopics = shardInfoToPubSubTopics(shardInfo);
 
       // If the peer is not part of any of the configured pubsub topics, don't dial
       if (
@@ -342,8 +342,7 @@ export class ConnectionManager
       void (async () => {
         const { id: peerId } = evt.detail;
 
-        const topicValidity = await this.validatePeerTopic(peerId);
-        if (!topicValidity) {
+        if (!(await this.validatePeerTopic(peerId))) {
           log(
             `Discovered peer ${peerId.toString()} is not part of any of the configured pubsub topics. Not dialing.`
           );

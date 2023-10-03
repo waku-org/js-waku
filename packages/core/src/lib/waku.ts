@@ -60,8 +60,6 @@ export class WakuNode implements Waku {
     filter?: (libp2p: Libp2p) => IFilter,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
-    this.pubSubTopics = pubSubTopics;
-
     this.libp2p = libp2p;
 
     if (store) {

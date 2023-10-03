@@ -2,10 +2,10 @@ import type { PubSubTopic, ShardInfo } from "@waku/interfaces";
 
 import { bytesToUtf8, utf8ToBytes } from "../bytes/index.js";
 
-export const getPubsubTopicsFromShardInfo = (
+export const shardInfoToPubSubTopics = (
   shardInfo: ShardInfo
 ): PubSubTopic[] => {
-  return shardInfo.indices.map(
+  return shardInfo.indexList.map(
     (index) => `/waku/2/rs/${shardInfo.cluster}/${index}`
   );
 };

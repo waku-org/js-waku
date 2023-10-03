@@ -175,7 +175,7 @@ export class PeerExchangeDiscovery
         continue;
       }
 
-      const { peerId, peerInfo, rsOrRsv } = ENR;
+      const { peerId, peerInfo, shardInfo } = ENR;
       if (!peerId || !peerInfo) {
         continue;
       }
@@ -193,9 +193,9 @@ export class PeerExchangeDiscovery
             ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL
           }
         },
-        ...(rsOrRsv && {
+        ...(shardInfo && {
           metadata: {
-            rsOrRsv: shardInfoToBytes(rsOrRsv)
+            shardInfo: shardInfoToBytes(shardInfo)
           }
         })
       });

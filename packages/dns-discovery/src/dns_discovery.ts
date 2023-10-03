@@ -73,7 +73,7 @@ export class PeerDiscoveryDns
         return;
       }
 
-      const { peerInfo, rsOrRsv } = peerEnr;
+      const { peerInfo, shardInfo } = peerEnr;
 
       if (!peerInfo) {
         continue;
@@ -103,9 +103,9 @@ export class PeerDiscoveryDns
         isPeerChanged = true;
         await this._components.peerStore.save(peerInfo.id, {
           tags: tagsToUpdate,
-          ...(rsOrRsv && {
+          ...(shardInfo && {
             metadata: {
-              rsOrRsv: shardInfoToBytes(rsOrRsv)
+              shardInfo: shardInfoToBytes(shardInfo)
             }
           })
         });

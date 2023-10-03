@@ -1,6 +1,6 @@
 import type { ShardInfo } from "@waku/interfaces";
 
-export const deserialize = (bytes: Uint8Array): ShardInfo => {
+export const decodeRelayShard = (bytes: Uint8Array): ShardInfo => {
   // Ensure there is enough data (at least 3 bytes)
   if (bytes.length < 3) {
     throw new Error("Insufficient data");
@@ -14,14 +14,14 @@ export const deserialize = (bytes: Uint8Array): ShardInfo => {
 
   // Read the indices
   let offset = 3;
-  const indices = [];
+  const indexList = [];
   for (let i = 0; i < numIndices; i++) {
     if (offset + 1 >= bytes.length) {
       throw new Error("Unexpected end of data");
     }
-    indices.push((bytes[offset] << 8) | bytes[offset + 1]);
+    indexList.push((bytes[offset] << 8) | bytes[offset + 1]);
     offset += 2;
   }
 
-  return { cluster, indices };
+  return { cluster, indexList };
 };

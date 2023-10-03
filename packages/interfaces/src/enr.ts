@@ -20,7 +20,7 @@ export interface Waku2 {
 
 export interface ShardInfo {
   cluster: number;
-  indices: number[];
+  indexList: number[];
 }
 
 export interface IEnr extends Map<ENRKey, ENRValue> {
@@ -39,7 +39,7 @@ export interface IEnr extends Map<ENRKey, ENRValue> {
   multiaddrs?: Multiaddr[];
   waku2?: Waku2;
   peerInfo: PeerInfo | undefined;
-  rsOrRsv?: ShardInfo;
+  shardInfo?: ShardInfo;
 
   /**
    * @deprecated: use { @link IEnr.peerInfo } instead.
