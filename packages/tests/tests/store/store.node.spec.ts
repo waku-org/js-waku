@@ -1,7 +1,6 @@
 import {
   createCursor,
   createDecoder,
-  createEncoder,
   DecodedMessage,
   DefaultPubSubTopic,
   PageDirection,
@@ -23,19 +22,27 @@ import {
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { makeLogFileName, NimGoNode, tearDownNodes } from "../../src/index.js";
+import {
+  delay,
+  makeLogFileName,
+  MessageCollector,
+  NimGoNode,
+  tearDownNodes,
+  TEST_STRING
+} from "../../src/index.js";
+import { areUint8ArraysEqual } from "../../src/utils.js";
 
 import {
   log,
+  messageText,
   processMessages,
   sendMessages,
-  startAndConnectLightNode
+  startAndConnectLightNode,
+  TestContentTopic,
+  TestDecoder,
+  TestEncoder,
+  totalMsgs
 } from "./utils.js";
-
-const TestContentTopic = "/test/1/waku-store/utf8";
-const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
-const TestDecoder = createDecoder(TestContentTopic);
-const totalMsgs = 20;
 
 describe("Waku Store", function () {
   this.timeout(15000);
@@ -54,7 +61,7 @@ describe("Waku Store", function () {
     await tearDownNodes([nwaku], [waku, waku2]);
   });
 
-  it("Generator", async function () {
+  it("Query generator for multiple messages", async function () {
     await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);
     const messages = await processMessages(
@@ -64,13 +71,77 @@ describe("Waku Store", function () {
     );
 
     expect(messages?.length).eq(totalMsgs);
+
+    // checking that the message with text 0 exists
     const result = messages?.findIndex((msg) => {
       return msg.payload[0]! === 0;
     });
     expect(result).to.not.eq(-1);
   });
 
-  it("Generator, no message returned", async function () {
+  it("Query generator for multiple messages with different message text format", async function () {
+    for (const testItem of TEST_STRING) {
+      expect(
+        await nwaku.sendMessage(
+          NimGoNode.toMessageRpcQuery({
+            payload: utf8ToBytes(testItem["value"]),
+            contentTopic: TestContentTopic
+          }),
+          DefaultPubSubTopic
+        )
+      ).to.be.true;
+      await delay(1); // to ensure each timestamp is unique.
+    }
+
+    waku = await startAndConnectLightNode(nwaku);
+    const messageCollector = new MessageCollector();
+    messageCollector.list = await processMessages(
+      waku,
+      [TestDecoder],
+      DefaultPubSubTopic
+    );
+    TEST_STRING.forEach((testItem) => {
+      expect(
+        messageCollector.hasMessage(TestContentTopic, testItem["value"])
+      ).to.eq(true);
+    });
+  });
+
+  it("Query generator for multiple messages with different message content topic format", async function () {
+    for (const testItem of TEST_STRING) {
+      expect(
+        await nwaku.sendMessage(
+          NimGoNode.toMessageRpcQuery({
+            payload: utf8ToBytes(messageText),
+            contentTopic: testItem["value"]
+          }),
+          DefaultPubSubTopic
+        )
+      ).to.be.true;
+      await delay(1); // to ensure each timestamp is unique.
+    }
+
+    waku = await startAndConnectLightNode(nwaku);
+
+    let localPromises: Promise<void>[] = [];
+    for (const testItem of TEST_STRING) {
+      for await (const msgPromises of waku.store.queryGenerator([
+        createDecoder(testItem["value"])
+      ])) {
+        const _promises = msgPromises.map(async (promise) => {
+          const msg = await promise;
+          if (msg) {
+            areUint8ArraysEqual(msg.payload, utf8ToBytes(messageText));
+          }
+        });
+
+        localPromises = localPromises.concat(_promises);
+      }
+      await Promise.all(localPromises);
+    }
+  });
+
+  it("Query generator, no message returned", async function () {
     waku = await startAndConnectLightNode(nwaku);
     const messages = await processMessages(
       waku,

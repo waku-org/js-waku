@@ -17,15 +17,15 @@ import {
 import {
   processMessages,
   sendMessages,
-  startAndConnectLightNode
+  startAndConnectLightNode,
+  TestContentTopic,
+  TestDecoder,
+  totalMsgs
 } from "./utils.js";
 
-const TestContentTopic = "/test/1/waku-store/utf8";
-const TestDecoder = createDecoder(TestContentTopic);
 const customContentTopic = "/test/2/waku-store/utf8";
 const customPubSubTopic = "/waku/2/custom-dapp/proto";
 const customTestDecoder = createDecoder(customContentTopic, customPubSubTopic);
-const totalMsgs = 20;
 
 describe("Waku Store, custom pubsub topic", function () {
   this.timeout(15000);
@@ -110,6 +110,7 @@ describe("Waku Store, custom pubsub topic", function () {
       topic: [DefaultPubSubTopic],
       relay: true
     });
+    await nwaku2.ensureSubscriptions([DefaultPubSubTopic]);
 
     const totalMsgs = 10;
     await sendMessages(nwaku, totalMsgs, customContentTopic, customPubSubTopic);

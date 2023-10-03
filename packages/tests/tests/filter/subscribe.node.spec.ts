@@ -341,7 +341,7 @@ describe("Waku Filter V2: Subscribe", function () {
     }
 
     // Check if both messages were received
-    expect(messageCollector.hasMessage(TestContentTopic, "M1")).to.be.true;
-    expect(messageCollector.hasMessage(newContentTopic, "M2")).to.be.true;
+    expect(messageCollector.hasMessage(TestContentTopic, "M1")).to.eq(true);
+    expect(messageCollector.hasMessage(newContentTopic, "M2")).to.eq(true);
   });
 });

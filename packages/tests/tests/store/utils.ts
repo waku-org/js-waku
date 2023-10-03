@@ -1,5 +1,12 @@
-import { Decoder, DefaultPubSubTopic, waitForRemotePeer } from "@waku/core";
-import { IMessage, LightNode, Protocols } from "@waku/interfaces";
+import {
+  createDecoder,
+  createEncoder,
+  DecodedMessage,
+  Decoder,
+  DefaultPubSubTopic,
+  waitForRemotePeer
+} from "@waku/core";
+import { LightNode, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import debug from "debug";
@@ -7,6 +14,12 @@ import debug from "debug";
 import { delay, NimGoNode, NOISE_KEY_1 } from "../../src";
 
 export const log = debug("waku:test:store");
+
+export const TestContentTopic = "/test/1/waku-store/utf8";
+export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
+export const TestDecoder = createDecoder(TestContentTopic);
+export const totalMsgs = 20;
+export const messageText = "Store Push works!";
 
 export async function sendMessages(
   instance: NimGoNode,
@@ -24,16 +37,16 @@ export async function sendMessages(
         pubSubTopic
       )
     ).to.be.true;
+    await delay(1); // to ensure each timestamp is unique.
   }
-  await delay(1); // to ensure each timestamp is unique.
 }
 
 export async function processMessages(
   instance: LightNode,
   decoders: Array<Decoder>,
   expectedTopic: string
-): Promise<IMessage[]> {
-  const localMessages: IMessage[] = [];
+): Promise<DecodedMessage[]> {
+  const localMessages: DecodedMessage[] = [];
   let localPromises: Promise<void>[] = [];
   for await (const msgPromises of instance.store.queryGenerator(decoders)) {
     const _promises = msgPromises.map(async (promise) => {
