@@ -33,6 +33,7 @@ import {
 import { areUint8ArraysEqual } from "../../src/utils.js";
 
 import {
+  customContentTopic,
   log,
   messageText,
   processMessages,
@@ -100,6 +101,8 @@ describe("Waku Store", function () {
       [TestDecoder],
       DefaultPubSubTopic
     );
+
+    // checking that all message sent were retrieved
     TEST_STRING.forEach((testItem) => {
       expect(
         messageCollector.hasMessage(TestContentTopic, testItem["value"])
@@ -107,7 +110,36 @@ describe("Waku Store", function () {
     });
   });
 
-  it("Query generator for multiple messages with different message content topic format", async function () {
+  it("Query generator for multiple messages with multiple decoders", async function () {
+    await nwaku.sendMessage(
+      NimGoNode.toMessageRpcQuery({
+        payload: utf8ToBytes("M1"),
+        contentTopic: TestContentTopic
+      }),
+      DefaultPubSubTopic
+    );
+    await nwaku.sendMessage(
+      NimGoNode.toMessageRpcQuery({
+        payload: utf8ToBytes("M2"),
+        contentTopic: customContentTopic
+      }),
+      DefaultPubSubTopic
+    );
+    waku = await startAndConnectLightNode(nwaku);
+
+    const secondDecoder = createDecoder(customContentTopic, DefaultPubSubTopic);
+
+    const messageCollector = new MessageCollector();
+    messageCollector.list = await processMessages(
+      waku,
+      [TestDecoder, secondDecoder],
+      DefaultPubSubTopic
+    );
+    expect(messageCollector.hasMessage(TestContentTopic, "M1")).to.eq(true);
+    expect(messageCollector.hasMessage(customContentTopic, "M2")).to.eq(true);
+  });
+
+  it("Query generator for multiple messages with different content topic format", async function () {
     for (const testItem of TEST_STRING) {
       expect(
         await nwaku.sendMessage(
@@ -131,7 +163,9 @@ describe("Waku Store", function () {
         const _promises = msgPromises.map(async (promise) => {
           const msg = await promise;
           if (msg) {
-            areUint8ArraysEqual(msg.payload, utf8ToBytes(messageText));
+            expect(
+              areUint8ArraysEqual(msg.payload, utf8ToBytes(messageText))
+            ).to.eq(true);
           }
         });
 

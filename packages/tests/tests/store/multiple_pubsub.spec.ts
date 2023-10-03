@@ -1,8 +1,4 @@
-import {
-  createDecoder,
-  DefaultPubSubTopic,
-  waitForRemotePeer
-} from "@waku/core";
+import { DefaultPubSubTopic, waitForRemotePeer } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
 import { createLightNode, Protocols } from "@waku/sdk";
 import { expect } from "chai";
@@ -15,6 +11,9 @@ import {
 } from "../../src/index.js";
 
 import {
+  customContentTopic,
+  customPubSubTopic,
+  customTestDecoder,
   processMessages,
   sendMessages,
   startAndConnectLightNode,
@@ -22,10 +21,6 @@ import {
   TestDecoder,
   totalMsgs
 } from "./utils.js";
-
-const customContentTopic = "/test/2/waku-store/utf8";
-const customPubSubTopic = "/waku/2/custom-dapp/proto";
-const customTestDecoder = createDecoder(customContentTopic, customPubSubTopic);
 
 describe("Waku Store, custom pubsub topic", function () {
   this.timeout(15000);

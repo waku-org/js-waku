@@ -18,6 +18,12 @@ export const log = debug("waku:test:store");
 export const TestContentTopic = "/test/1/waku-store/utf8";
 export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 export const TestDecoder = createDecoder(TestContentTopic);
+export const customContentTopic = "/test/2/waku-store/utf8";
+export const customPubSubTopic = "/waku/2/custom-dapp/proto";
+export const customTestDecoder = createDecoder(
+  customContentTopic,
+  customPubSubTopic
+);
 export const totalMsgs = 20;
 export const messageText = "Store Push works!";
 
