@@ -41,7 +41,7 @@ describe("Static Sharding: Peer Management", function () {
       this.timeout(100_000);
 
       await nwaku1.start({
-        topic: "/waku/2/rs/18/2",
+        topic: ["/waku/2/rs/18/2"],
         discv5Discovery: true,
         peerExchange: true,
         relay: true
@@ -50,7 +50,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        topic: "/waku/2/rs/18/2",
+        topic: ["/waku/2/rs/18/2"],
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
@@ -60,7 +60,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr2 = (await nwaku2.info()).enrUri;
 
       await nwaku3.start({
-        topic: "/waku/2/rs/18/2",
+        topic: ["/waku/2/rs/18/2"],
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
@@ -96,7 +96,6 @@ describe("Static Sharding: Peer Management", function () {
             if (tags.includes(Tags.PEER_EXCHANGE)) {
               pxPeersDiscovered.add(peerId);
               if (pxPeersDiscovered.size === 2) {
-                console.log("done");
                 resolve();
               }
             }
@@ -106,8 +105,6 @@ describe("Static Sharding: Peer Management", function () {
 
       await delay(1000);
 
-      console.log(attemptDialSpy.callCount);
-
       expect(attemptDialSpy.callCount).to.equal(3);
     });
 
@@ -116,7 +113,7 @@ describe("Static Sharding: Peer Management", function () {
 
       // this service node is not subscribed to the shard
       await nwaku1.start({
-        topic: "/waku/2/rs/17/0",
+        topic: ["/waku/2/rs/17/0"],
         relay: true,
         discv5Discovery: true,
         peerExchange: true
@@ -125,7 +122,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        topic: "/waku/2/rs/18/2",
+        topic: ["/waku/2/rs/18/2"],
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
