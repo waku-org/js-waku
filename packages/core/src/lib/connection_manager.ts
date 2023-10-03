@@ -18,6 +18,7 @@ import { shardInfoToPubSubTopics } from "@waku/utils";
 import debug from "debug";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
+import { getPeerShardInfo } from "./sharding.js";
 
 const log = debug("waku:connection-manager");
 
@@ -316,34 +317,12 @@ export class ConnectionManager
     });
   }
 
-  async validatePeerTopic(peerId: PeerId): Promise<boolean> {
-    const peer = await this.libp2p.peerStore.get(peerId);
-    const shardInfoBytes = peer.metadata.get("shardInfo");
-
-    // if the peer follows Waku's sharding format, check if it is part of any of the configured pubsub topics
-    if (shardInfoBytes) {
-      const shardInfo = decodeRelayShard(shardInfoBytes);
-      const pubSubTopics = shardInfoToPubSubTopics(shardInfo);
-
-      // If the peer is not part of any of the configured pubsub topics, don't dial
-      if (
-        !pubSubTopics.some((topic) =>
-          this.configuredPubSubTopics.includes(topic)
-        )
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   private onEventHandlers = {
     "peer:discovery": (evt: CustomEvent<PeerInfo>): void => {
       void (async () => {
         const { id: peerId } = evt.detail;
 
-        if (!(await this.validatePeerTopic(peerId))) {
+        if (!(await this.isPeerTopicConfigured(peerId))) {
           log(
             `Discovered peer ${peerId.toString()} is not part of any of the configured pubsub topics. Not dialing.`
           );
@@ -465,5 +444,19 @@ export class ConnectionManager
       log(`Failed to get peer ${peerId}, error: ${error}`);
       return [];
     }
+  }
+
+  private async isPeerTopicConfigured(peerId: PeerId): Promise<boolean> {
+    const shardInfo = await getPeerShardInfo(peerId, this.libp2p.peerStore);
+
+    // If there's no shard information, simply return true
+    if (!shardInfo) return true;
+
+    const pubSubTopics = shardInfoToPubSubTopics(decodeRelayShard(shardInfo));
+
+    const isTopicConfigured = pubSubTopics.some((topic) =>
+      this.configuredPubSubTopics.includes(topic)
+    );
+    return isTopicConfigured;
   }
 }
