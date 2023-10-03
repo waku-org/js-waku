@@ -19,7 +19,7 @@ import {
   TestEncoder
 } from "./utils.js";
 
-describe("Waku Light Push [node only]", function () {
+describe("Waku Light Push", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(15000);
   let waku: LightNode;
@@ -28,12 +28,8 @@ describe("Waku Light Push [node only]", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this);
-    messageCollector = new MessageCollector(
-      TestContentTopic,
-      nwaku,
-      DefaultPubSubTopic
-    );
+    [nwaku, waku] = await runNodes(this, [DefaultPubSubTopic]);
+    messageCollector = new MessageCollector(nwaku);
 
     await nwaku.ensureSubscriptions();
   });
@@ -51,7 +47,8 @@ describe("Waku Light Push [node only]", function () {
 
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
-        expectedMessageText: testItem.value
+        expectedMessageText: testItem.value,
+        expectedContentTopic: TestContentTopic
       });
     });
   });
@@ -70,7 +67,8 @@ describe("Waku Light Push [node only]", function () {
 
     for (let i = 0; i < 30; i++) {
       messageCollector.verifyReceivedMessage(i, {
-        expectedMessageText: generateMessageText(i)
+        expectedMessageText: generateMessageText(i),
+        expectedContentTopic: TestContentTopic
       });
     }
   });
@@ -84,7 +82,8 @@ describe("Waku Light Push [node only]", function () {
       expect(pushResponse.recipients.length).to.eq(1);
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
-        expectedMessageText: undefined
+        expectedMessageText: undefined,
+        expectedContentTopic: TestContentTopic
       });
     } else {
       expect(pushResponse.recipients.length).to.eq(0);
@@ -138,7 +137,8 @@ describe("Waku Light Push [node only]", function () {
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: messageText
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic
     });
   });
 
@@ -157,7 +157,8 @@ describe("Waku Light Push [node only]", function () {
       expect(pushResponse.recipients.length).to.eq(1);
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
-        expectedMessageText: messageText
+        expectedMessageText: messageText,
+        expectedContentTopic: TestContentTopic
       });
     } else {
       expect(pushResponse.recipients.length).to.eq(0);
@@ -186,7 +187,8 @@ describe("Waku Light Push [node only]", function () {
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: messageText
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic
     });
   });
 
@@ -206,7 +208,8 @@ describe("Waku Light Push [node only]", function () {
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
-        expectedTimestamp: customTimeNanos
+        expectedTimestamp: customTimeNanos,
+        expectedContentTopic: TestContentTopic
       });
     });
   });

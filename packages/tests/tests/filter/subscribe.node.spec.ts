@@ -39,9 +39,9 @@ describe("Waku Filter V2: Subscribe", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this);
+    [nwaku, waku] = await runNodes(this, [DefaultPubSubTopic]);
     subscription = await waku.filter.createSubscription();
-    messageCollector = new MessageCollector(TestContentTopic);
+    messageCollector = new MessageCollector();
 
     // Nwaku subscribe to the default pubsub topic
     await nwaku.ensureSubscriptions();
@@ -58,7 +58,8 @@ describe("Waku Filter V2: Subscribe", function () {
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: messageText
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic
     });
     expect((await nwaku.messages()).length).to.eq(1);
   });
@@ -78,7 +79,8 @@ describe("Waku Filter V2: Subscribe", function () {
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: messageText
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic
     });
     expect((await nwaku.messages()).length).to.eq(1);
   });
@@ -90,7 +92,8 @@ describe("Waku Filter V2: Subscribe", function () {
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: messageText
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic
     });
 
     // Send another message on the same topic.
@@ -102,7 +105,8 @@ describe("Waku Filter V2: Subscribe", function () {
     // Verify that the second message was successfully received.
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage(1, {
-      expectedMessageText: newMessageText
+      expectedMessageText: newMessageText,
+      expectedContentTopic: TestContentTopic
     });
     expect((await nwaku.messages()).length).to.eq(2);
   });
@@ -113,7 +117,8 @@ describe("Waku Filter V2: Subscribe", function () {
     await waku.lightPush.send(TestEncoder, messagePayload);
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: messageText
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic
     });
 
     // Modify subscription to include a new content topic and send a message.
@@ -136,7 +141,8 @@ describe("Waku Filter V2: Subscribe", function () {
     await waku.lightPush.send(TestEncoder, newMessagePayload);
     expect(await messageCollector.waitForMessages(3)).to.eq(true);
     messageCollector.verifyReceivedMessage(2, {
-      expectedMessageText: newMessageText
+      expectedMessageText: newMessageText,
+      expectedContentTopic: TestContentTopic
     });
     expect((await nwaku.messages()).length).to.eq(3);
   });
@@ -258,10 +264,12 @@ describe("Waku Filter V2: Subscribe", function () {
     // Confirm both messages were received.
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: "M1"
+      expectedMessageText: "M1",
+      expectedContentTopic: TestContentTopic
     });
     messageCollector.verifyReceivedMessage(1, {
-      expectedMessageText: "M2"
+      expectedMessageText: "M2",
+      expectedContentTopic: TestContentTopic
     });
   });
 
@@ -298,7 +306,8 @@ describe("Waku Filter V2: Subscribe", function () {
     // Check if both messages were received
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: "M1"
+      expectedMessageText: "M1",
+      expectedContentTopic: TestContentTopic
     });
     messageCollector.verifyReceivedMessage(1, {
       expectedContentTopic: newContentTopic,
@@ -306,38 +315,33 @@ describe("Waku Filter V2: Subscribe", function () {
     });
   });
 
-  // this test fail 50% of times with messageCount being 1. Seems like a message is lost somehow
-  it.skip("Subscribe and receive messages from multiple nwaku nodes", async function () {
+  it("Subscribe and receive messages from multiple nwaku nodes", async function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
-    await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
     // Set up and start a new nwaku node
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     await nwaku2.start({ filter: true, lightpush: true, relay: true });
-
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
     const subscription2 = await waku.filter.createSubscription(
       DefaultPubSubTopic,
       await nwaku2.getPeerId()
     );
-
+    await nwaku2.ensureSubscriptions([DefaultPubSubTopic]);
     // Send a message using the new subscription
     const newContentTopic = "/test/2/waku-filter";
     const newEncoder = createEncoder({ contentTopic: newContentTopic });
     const newDecoder = createDecoder(newContentTopic);
     await subscription2.subscribe([newDecoder], messageCollector.callback);
-    await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
+
+    // Making sure that messages are send and reveiced for both subscriptions
+    while (!(await messageCollector.waitForMessages(2))) {
+      await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
+      await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
+    }
 
     // Check if both messages were received
-    expect(await messageCollector.waitForMessages(2)).to.eq(true);
-    messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: "M1"
-    });
-    messageCollector.verifyReceivedMessage(1, {
-      expectedContentTopic: newContentTopic,
-      expectedMessageText: "M2"
-    });
+    expect(messageCollector.hasMessage(TestContentTopic, "M1")).to.be.true;
+    expect(messageCollector.hasMessage(newContentTopic, "M2")).to.be.true;
   });
 });

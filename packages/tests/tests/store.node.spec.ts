@@ -3,6 +3,8 @@ import {
   createDecoder,
   createEncoder,
   DecodedMessage,
+  Decoder,
+  DefaultPubSubTopic,
   PageDirection,
   waitForRemotePeer
 } from "@waku/core";
@@ -565,9 +567,12 @@ describe("Waku Store, custom pubsub topic", () => {
   const customPubSubTopic = "/waku/2/custom-dapp/proto";
   let waku: LightNode;
   let nwaku: NimGoNode;
+  let nwaku2: NimGoNode;
 
-  const CustomPubSubTestDecoder = createDecoder(
-    TestContentTopic,
+  const customContentTopic = "/test/2/waku-store/utf8";
+
+  const customTestDecoder = createDecoder(
+    customContentTopic,
     customPubSubTopic
   );
 
@@ -576,14 +581,17 @@ describe("Waku Store, custom pubsub topic", () => {
     nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
-      topic: customPubSubTopic,
+      topic: [customPubSubTopic, DefaultPubSubTopic],
       relay: true
     });
+    await nwaku.ensureSubscriptions([customPubSubTopic, DefaultPubSubTopic]);
   });
 
   afterEach(async function () {
     !!nwaku &&
       nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
+    !!nwaku2 &&
+      nwaku2.stop().catch((e) => console.log("Nwaku failed to stop", e));
     !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
   });
 
@@ -596,7 +604,7 @@ describe("Waku Store, custom pubsub topic", () => {
         await nwaku.sendMessage(
           NimGoNode.toMessageRpcQuery({
             payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic
+            contentTopic: customContentTopic
           }),
           customPubSubTopic
         )
@@ -614,7 +622,7 @@ describe("Waku Store, custom pubsub topic", () => {
     const messages: IMessage[] = [];
     let promises: Promise<void>[] = [];
     for await (const msgPromises of waku.store.queryGenerator([
-      CustomPubSubTestDecoder
+      customTestDecoder
     ])) {
       const _promises = msgPromises.map(async (promise) => {
         const msg = await promise;
@@ -634,4 +642,131 @@ describe("Waku Store, custom pubsub topic", () => {
     });
     expect(result).to.not.eq(-1);
   });
+
+  it("Generator, 2 different pubsubtopics", async function () {
+    this.timeout(10000);
+
+    const totalMsgs = 10;
+    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubSubTopic);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+
+    waku = await createLightNode({
+      staticNoiseKey: NOISE_KEY_1,
+      pubSubTopics: [customPubSubTopic, DefaultPubSubTopic]
+    });
+    await waku.start();
+
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.Store]);
+
+    const customMessages = await processMessages(
+      waku,
+      [customTestDecoder],
+      customPubSubTopic
+    );
+    expect(customMessages?.length).eq(totalMsgs);
+    const result1 = customMessages?.findIndex((msg) => {
+      return msg.payload![0]! === 0;
+    });
+    expect(result1).to.not.eq(-1);
+
+    const testMessages = await processMessages(
+      waku,
+      [TestDecoder],
+      DefaultPubSubTopic
+    );
+    expect(testMessages?.length).eq(totalMsgs);
+    const result2 = testMessages?.findIndex((msg) => {
+      return msg.payload![0]! === 0;
+    });
+    expect(result2).to.not.eq(-1);
+  });
+
+  it("Generator, 2 nwaku nodes each with different pubsubtopics", async function () {
+    this.timeout(10000);
+
+    // Set up and start a new nwaku node with Default PubSubtopic
+    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    await nwaku2.start({
+      store: true,
+      topic: [DefaultPubSubTopic],
+      relay: true
+    });
+
+    const totalMsgs = 10;
+    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubSubTopic);
+    await sendMessages(nwaku2, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+
+    waku = await createLightNode({
+      staticNoiseKey: NOISE_KEY_1,
+      pubSubTopics: [customPubSubTopic, DefaultPubSubTopic]
+    });
+    await waku.start();
+
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waku.dial(await nwaku2.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.Store]);
+
+    let customMessages: IMessage[] = [];
+    let testMessages: IMessage[] = [];
+
+    while (
+      customMessages.length != totalMsgs ||
+      testMessages.length != totalMsgs
+    ) {
+      customMessages = await processMessages(
+        waku,
+        [customTestDecoder],
+        customPubSubTopic
+      );
+      testMessages = await processMessages(
+        waku,
+        [TestDecoder],
+        DefaultPubSubTopic
+      );
+    }
+  });
+
+  // will move those 2 reusable functions to store/utils when refactoring store tests but with another PR
+  async function sendMessages(
+    instance: NimGoNode,
+    numMessages: number,
+    contentTopic: string,
+    pubSubTopic: string
+  ): Promise<void> {
+    for (let i = 0; i < numMessages; i++) {
+      expect(
+        await instance.sendMessage(
+          NimGoNode.toMessageRpcQuery({
+            payload: new Uint8Array([i]),
+            contentTopic: contentTopic
+          }),
+          pubSubTopic
+        )
+      ).to.be.true;
+    }
+    await delay(1); // to ensure each timestamp is unique.
+  }
+
+  async function processMessages(
+    instance: LightNode,
+    decoders: Array<Decoder>,
+    expectedTopic: string
+  ): Promise<IMessage[]> {
+    const localMessages: IMessage[] = [];
+    let localPromises: Promise<void>[] = [];
+    for await (const msgPromises of instance.store.queryGenerator(decoders)) {
+      const _promises = msgPromises.map(async (promise) => {
+        const msg = await promise;
+        if (msg) {
+          localMessages.push(msg);
+          expect(msg.pubSubTopic).to.eq(expectedTopic);
+        }
+      });
+
+      localPromises = localPromises.concat(_promises);
+    }
+    await Promise.all(localPromises);
+    return localMessages;
+  }
 });
