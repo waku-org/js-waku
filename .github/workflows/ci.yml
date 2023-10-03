@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       nim_wakunode_image:
-        description: "Docker hub image name taken from https://hub.docker.com/r/statusteam/nim-waku/tags. Format: statusteam/nim-waku:v0.20.0"
+        description: "Docker hub image name taken from https://hub.docker.com/r/wakuorg/nwaku/tags. Format: wakuorg/nwaku:v0.20.0"
         required: false
         type: string
 
@@ -71,13 +71,13 @@ jobs:
   node:
     uses: ./.github/workflows/test-node.yml
     with:
-      nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.20.0' }}
+      nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'wakuorg/nwaku:v0.20.0' }}
       test_type: node
 
   node_optional:
     uses: ./.github/workflows/test-node.yml
     with:
-      nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'statusteam/nim-waku:v0.20.0' }}
+      nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'wakuorg/nwaku:v0.20.0' }}
       test_type: node-optional
 
   node_with_go_waku_master:
