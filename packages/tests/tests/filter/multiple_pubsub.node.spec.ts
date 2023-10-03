@@ -114,7 +114,7 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
       DefaultPubSubTopic,
       await nwaku2.getPeerId()
     );
-    await nwaku.ensureSubscriptions([DefaultPubSubTopic]);
+    await nwaku2.ensureSubscriptions([DefaultPubSubTopic]);
 
     const messageCollector2 = new MessageCollector();
 
