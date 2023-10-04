@@ -47,25 +47,20 @@ export async function sendMessages(
   }
 }
 
-export async function processMessages(
+export async function processQueriedMessages(
   instance: LightNode,
   decoders: Array<Decoder>,
-  expectedTopic: string
+  expectedTopic?: string
 ): Promise<DecodedMessage[]> {
   const localMessages: DecodedMessage[] = [];
-  let localPromises: Promise<void>[] = [];
-  for await (const msgPromises of instance.store.queryGenerator(decoders)) {
-    const _promises = msgPromises.map(async (promise) => {
-      const msg = await promise;
+  for await (const query of instance.store.queryGenerator(decoders)) {
+    for await (const msg of query) {
       if (msg) {
-        localMessages.push(msg);
         expect(msg.pubSubTopic).to.eq(expectedTopic);
+        localMessages.push(msg as DecodedMessage);
       }
-    });
-
-    localPromises = localPromises.concat(_promises);
+    }
   }
-  await Promise.all(localPromises);
   return localMessages;
 }
 
@@ -82,4 +77,15 @@ export async function startAndConnectLightNode(
   await waitForRemotePeer(waku, [Protocols.Store]);
   log("Waku node created");
   return waku;
+}
+
+export function chunkAndReverseArray(
+  arr: number[],
+  chunkSize: number
+): number[] {
+  const result: number[] = [];
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    result.push(...arr.slice(i, i + chunkSize).reverse());
+  }
+  return result.reverse();
 }

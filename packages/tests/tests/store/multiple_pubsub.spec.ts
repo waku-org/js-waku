@@ -14,7 +14,7 @@ import {
   customContentTopic,
   customPubSubTopic,
   customTestDecoder,
-  processMessages,
+  processQueriedMessages,
   sendMessages,
   startAndConnectLightNode,
   TestContentTopic,
@@ -47,7 +47,7 @@ describe("Waku Store, custom pubsub topic", function () {
   it("Generator, custom pubsub topic", async function () {
     await sendMessages(nwaku, totalMsgs, customContentTopic, customPubSubTopic);
     waku = await startAndConnectLightNode(nwaku, [customPubSubTopic]);
-    const messages = await processMessages(
+    const messages = await processQueriedMessages(
       waku,
       [customTestDecoder],
       customPubSubTopic
@@ -72,7 +72,7 @@ describe("Waku Store, custom pubsub topic", function () {
       DefaultPubSubTopic
     ]);
 
-    const customMessages = await processMessages(
+    const customMessages = await processQueriedMessages(
       waku,
       [customTestDecoder],
       customPubSubTopic
@@ -83,7 +83,7 @@ describe("Waku Store, custom pubsub topic", function () {
     });
     expect(result1).to.not.eq(-1);
 
-    const testMessages = await processMessages(
+    const testMessages = await processQueriedMessages(
       waku,
       [TestDecoder],
       DefaultPubSubTopic
@@ -128,12 +128,12 @@ describe("Waku Store, custom pubsub topic", function () {
       customMessages.length != totalMsgs ||
       testMessages.length != totalMsgs
     ) {
-      customMessages = await processMessages(
+      customMessages = await processQueriedMessages(
         waku,
         [customTestDecoder],
         customPubSubTopic
       );
-      testMessages = await processMessages(
+      testMessages = await processQueriedMessages(
         waku,
         [TestDecoder],
         DefaultPubSubTopic

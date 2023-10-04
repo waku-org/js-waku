@@ -1,9 +1,7 @@
 import {
-  createCursor,
   createDecoder,
   DecodedMessage,
   DefaultPubSubTopic,
-  PageDirection,
   waitForRemotePeer
 } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
@@ -36,7 +34,7 @@ import {
   customContentTopic,
   log,
   messageText,
-  processMessages,
+  processQueriedMessages,
   sendMessages,
   startAndConnectLightNode,
   TestContentTopic,
@@ -44,6 +42,8 @@ import {
   TestEncoder,
   totalMsgs
 } from "./utils.js";
+
+const secondDecoder = createDecoder(customContentTopic, DefaultPubSubTopic);
 
 describe("Waku Store", function () {
   this.timeout(15000);
@@ -55,6 +55,7 @@ describe("Waku Store", function () {
     this.timeout(15000);
     nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.startWithRetries({ store: true, lightpush: true, relay: true });
+    await nwaku.ensureSubscriptions();
   });
 
   afterEach(async function () {
@@ -65,7 +66,7 @@ describe("Waku Store", function () {
   it("Query generator for multiple messages", async function () {
     await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);
-    const messages = await processMessages(
+    const messages = await processQueriedMessages(
       waku,
       [TestDecoder],
       DefaultPubSubTopic
@@ -96,7 +97,7 @@ describe("Waku Store", function () {
 
     waku = await startAndConnectLightNode(nwaku);
     const messageCollector = new MessageCollector();
-    messageCollector.list = await processMessages(
+    messageCollector.list = await processQueriedMessages(
       waku,
       [TestDecoder],
       DefaultPubSubTopic
@@ -127,10 +128,8 @@ describe("Waku Store", function () {
     );
     waku = await startAndConnectLightNode(nwaku);
 
-    const secondDecoder = createDecoder(customContentTopic, DefaultPubSubTopic);
-
     const messageCollector = new MessageCollector();
-    messageCollector.list = await processMessages(
+    messageCollector.list = await processQueriedMessages(
       waku,
       [TestDecoder, secondDecoder],
       DefaultPubSubTopic
@@ -155,73 +154,17 @@ describe("Waku Store", function () {
 
     waku = await startAndConnectLightNode(nwaku);
 
-    let localPromises: Promise<void>[] = [];
     for (const testItem of TEST_STRING) {
-      for await (const msgPromises of waku.store.queryGenerator([
+      for await (const query of waku.store.queryGenerator([
         createDecoder(testItem["value"])
       ])) {
-        const _promises = msgPromises.map(async (promise) => {
-          const msg = await promise;
-          if (msg) {
-            expect(
-              areUint8ArraysEqual(msg.payload, utf8ToBytes(messageText))
-            ).to.eq(true);
-          }
-        });
-
-        localPromises = localPromises.concat(_promises);
-      }
-      await Promise.all(localPromises);
-    }
-  });
-
-  it("Query generator, no message returned", async function () {
-    waku = await startAndConnectLightNode(nwaku);
-    const messages = await processMessages(
-      waku,
-      [TestDecoder],
-      DefaultPubSubTopic
-    );
-
-    expect(messages?.length).eq(0);
-  });
-
-  it("Passing a cursor", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
-    waku = await startAndConnectLightNode(nwaku);
-
-    const query = waku.store.queryGenerator([TestDecoder]);
-
-    // messages in reversed order (first message at last index)
-    const messages: DecodedMessage[] = [];
-    for await (const page of query) {
-      for await (const msg of page.reverse()) {
-        messages.push(msg as DecodedMessage);
+        for await (const msg of query) {
+          expect(
+            areUint8ArraysEqual(msg!.payload, utf8ToBytes(messageText))
+          ).to.eq(true);
+        }
       }
     }
-
-    // index 2 would mean the third last message sent
-    const cursorIndex = 2;
-
-    // create cursor to extract messages after the 3rd index
-    const cursor = await createCursor(messages[cursorIndex]);
-
-    const messagesAfterCursor: DecodedMessage[] = [];
-    for await (const page of waku.store.queryGenerator([TestDecoder], {
-      cursor
-    })) {
-      for await (const msg of page.reverse()) {
-        messagesAfterCursor.push(msg as DecodedMessage);
-      }
-    }
-
-    const testMessage = messagesAfterCursor[0];
-
-    expect(messages.length).be.eq(totalMsgs);
-
-    expect(bytesToUtf8(testMessage.payload)).to.be.eq(
-      bytesToUtf8(messages[cursorIndex + 1].payload)
-    );
   });
 
   it("Callback on promise", async function () {
@@ -265,48 +208,6 @@ describe("Waku Store", function () {
     );
 
     expect(messages?.length).eq(desiredMsgs);
-  });
-
-  it("Ordered Callback - Forward", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
-    waku = await startAndConnectLightNode(nwaku);
-
-    const messages: IMessage[] = [];
-    await waku.store.queryWithOrderedCallback(
-      [TestDecoder],
-      async (msg) => {
-        messages.push(msg);
-      },
-      {
-        pageDirection: PageDirection.FORWARD
-      }
-    );
-
-    expect(messages?.length).eq(totalMsgs);
-    const payloads = messages.map((msg) => msg.payload[0]!);
-    expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
-  });
-
-  it("Ordered Callback - Backward", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
-    waku = await startAndConnectLightNode(nwaku);
-
-    let messages: IMessage[] = [];
-    await waku.store.queryWithOrderedCallback(
-      [TestDecoder],
-      async (msg) => {
-        messages.push(msg);
-      },
-      {
-        pageDirection: PageDirection.BACKWARD
-      }
-    );
-
-    messages = messages.reverse();
-
-    expect(messages?.length).eq(totalMsgs);
-    const payloads = messages.map((msg) => msg.payload![0]!);
-    expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
   });
 
   it("Generator, with asymmetric & symmetric encrypted messages", async function () {
@@ -382,15 +283,14 @@ describe("Waku Store", function () {
     const messages: DecodedMessage[] = [];
     log("Retrieve messages from store");
 
-    for await (const msgPromises of waku2.store.queryGenerator([
+    for await (const query of waku2.store.queryGenerator([
       eciesDecoder,
       symDecoder,
       TestDecoder
     ])) {
-      for (const promise of msgPromises) {
-        const msg = await promise;
+      for await (const msg of query) {
         if (msg) {
-          messages.push(msg);
+          messages.push(msg as DecodedMessage);
         }
       }
     }
@@ -436,8 +336,6 @@ describe("Waku Store", function () {
         )
       ).to.be.true;
     }
-
-    waku = await startAndConnectLightNode(nwaku);
 
     const firstMessages: IMessage[] = [];
     await waku.store.queryWithOrderedCallback(
