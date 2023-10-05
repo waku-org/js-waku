@@ -12,7 +12,7 @@ import {
   TestDecoder
 } from "./utils.js";
 
-describe("Waku Store, Error Handling", function () {
+describe("Waku Store, error handling", function () {
   this.timeout(15000);
   let waku: LightNode;
   let nwaku: NimGoNode;

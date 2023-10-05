@@ -89,3 +89,9 @@ export function chunkAndReverseArray(
   }
   return result.reverse();
 }
+
+export const adjustDate = (baseDate: Date, adjustMs: number): Date => {
+  const adjusted = new Date(baseDate);
+  adjusted.setTime(adjusted.getTime() + adjustMs);
+  return adjusted;
+};

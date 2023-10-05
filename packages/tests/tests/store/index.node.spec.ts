@@ -302,75 +302,6 @@ describe("Waku Store", function () {
     expect(messages?.length).eq(3);
   });
 
-  it("Ordered callback, using start and end time", async function () {
-    const now = new Date();
-
-    const startTime = new Date();
-    // Set start time 15 seconds in the past
-    startTime.setTime(now.getTime() - 15 * 1000);
-
-    const message1Timestamp = new Date();
-    // Set first message was 10 seconds in the past
-    message1Timestamp.setTime(now.getTime() - 10 * 1000);
-
-    const message2Timestamp = new Date();
-    // Set second message 2 seconds in the past
-    message2Timestamp.setTime(now.getTime() - 2 * 1000);
-    const messageTimestamps = [message1Timestamp, message2Timestamp];
-
-    const endTime = new Date();
-    // Set end time 1 second in the past
-    endTime.setTime(now.getTime() - 1000);
-
-    await sendMessages(nwaku, 2, TestContentTopic, DefaultPubSubTopic);
-    waku = await startAndConnectLightNode(nwaku);
-
-    for (let i = 0; i < 2; i++) {
-      expect(
-        await nwaku.sendMessage(
-          NimGoNode.toMessageRpcQuery({
-            payload: new Uint8Array([i]),
-            contentTopic: TestContentTopic,
-            timestamp: messageTimestamps[i]
-          })
-        )
-      ).to.be.true;
-    }
-
-    const firstMessages: IMessage[] = [];
-    await waku.store.queryWithOrderedCallback(
-      [TestDecoder],
-      (msg) => {
-        if (msg) {
-          firstMessages.push(msg);
-        }
-      },
-      {
-        timeFilter: { startTime, endTime: message1Timestamp }
-      }
-    );
-
-    const bothMessages: IMessage[] = [];
-    await waku.store.queryWithOrderedCallback(
-      [TestDecoder],
-      async (msg) => {
-        bothMessages.push(msg);
-      },
-      {
-        timeFilter: {
-          startTime,
-          endTime
-        }
-      }
-    );
-
-    expect(firstMessages?.length).eq(1);
-
-    expect(firstMessages[0].payload![0]!).eq(0);
-
-    expect(bothMessages?.length).eq(2);
-  });
-
   it("Ordered callback, aborts when callback returns true", async function () {
     await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);
@@ -387,5 +318,18 @@ describe("Waku Store", function () {
     );
 
     expect(messages?.length).eq(desiredMsgs);
+  });
+
+  it("Query generator for 2000 messages", async function () {
+    this.timeout(40000);
+    await sendMessages(nwaku, 2000, TestContentTopic, DefaultPubSubTopic);
+    waku = await startAndConnectLightNode(nwaku);
+    const messages = await processQueriedMessages(
+      waku,
+      [TestDecoder],
+      DefaultPubSubTopic
+    );
+
+    expect(messages?.length).eq(2000);
   });
 });
