@@ -17,6 +17,7 @@ import {
 describe("Waku Store, cursor", function () {
   this.timeout(15000);
   let waku: LightNode;
+  let waku2: LightNode;
   let nwaku: NimGoNode;
 
   beforeEach(async function () {
@@ -28,7 +29,7 @@ describe("Waku Store, cursor", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([nwaku], [waku]);
+    await tearDownNodes([nwaku], [waku, waku2]);
   });
 
   [
@@ -59,8 +60,6 @@ describe("Waku Store, cursor", function () {
       // create cursor to extract messages after the cursorIndex
       const cursor = await createCursor(messages[cursorIndex]);
 
-      // cursor.digest = new Uint8Array([]);
-
       const messagesAfterCursor: DecodedMessage[] = [];
       for await (const page of waku.store.queryGenerator([TestDecoder], {
         cursor
@@ -88,6 +87,44 @@ describe("Waku Store, cursor", function () {
         ).to.be.eq(bytesToUtf8(messages[messages.length - 1].payload));
       }
     });
+  });
+
+  it("Reusing cursor across nodes", async function () {
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    waku = await startAndConnectLightNode(nwaku);
+    waku2 = await startAndConnectLightNode(nwaku);
+
+    // messages in reversed order (first message at last index)
+    const messages: DecodedMessage[] = [];
+    for await (const page of waku.store.queryGenerator([TestDecoder])) {
+      for await (const msg of page.reverse()) {
+        messages.push(msg as DecodedMessage);
+      }
+    }
+
+    // create cursor to extract messages after the cursorIndex
+    const cursor = await createCursor(messages[5]);
+
+    // query node2 with the cursor from node1
+    const messagesAfterCursor: DecodedMessage[] = [];
+    for await (const page of waku2.store.queryGenerator([TestDecoder], {
+      cursor
+    })) {
+      for await (const msg of page.reverse()) {
+        if (msg) {
+          messagesAfterCursor.push(msg as DecodedMessage);
+        }
+      }
+    }
+
+    expect(messages.length).be.eql(totalMsgs);
+    expect(messagesAfterCursor.length).be.eql(totalMsgs - 6);
+    expect(bytesToUtf8(messagesAfterCursor[0].payload)).to.be.eq(
+      bytesToUtf8(messages[6].payload)
+    );
+    expect(
+      bytesToUtf8(messagesAfterCursor[messagesAfterCursor.length - 1].payload)
+    ).to.be.eq(bytesToUtf8(messages[messages.length - 1].payload));
   });
 
   it("Passing cursor with wrong message digest", async function () {
