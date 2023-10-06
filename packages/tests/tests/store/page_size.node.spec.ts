@@ -29,7 +29,7 @@ describe("Waku Store, page size", function () {
   });
 
   [
-    [0, 30],
+    [0, 110],
     [1, 4],
     [3, 20],
     [10, 10],
@@ -48,7 +48,11 @@ describe("Waku Store, page size", function () {
       // Determine effectivePageSize for test expectations
       let effectivePageSize = pageSize;
       if (pageSize === 0) {
-        effectivePageSize = 20;
+        if (nwaku.type() == "go-waku") {
+          effectivePageSize = 100;
+        } else {
+          effectivePageSize = 20;
+        }
       } else if (pageSize > 100) {
         effectivePageSize = 100;
       }

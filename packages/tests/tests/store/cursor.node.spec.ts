@@ -106,20 +106,32 @@ describe("Waku Store, cursor", function () {
     cursor.digest = new Uint8Array([]);
 
     const messagesAfterCursor: DecodedMessage[] = [];
-    for await (const page of waku.store.queryGenerator([TestDecoder], {
-      cursor
-    })) {
-      for await (const msg of page.reverse()) {
-        if (msg) {
-          messagesAfterCursor.push(msg as DecodedMessage);
+    try {
+      for await (const page of waku.store.queryGenerator([TestDecoder], {
+        cursor
+      })) {
+        for await (const msg of page.reverse()) {
+          if (msg) {
+            messagesAfterCursor.push(msg as DecodedMessage);
+          }
         }
       }
+      expect(messagesAfterCursor.length).to.eql(0);
+    } catch (error) {
+      if (
+        nwaku.type() === "go-waku" &&
+        typeof error === "string" &&
+        error.includes("History response contains an Error: INVALID_CURSOR")
+      ) {
+        return;
+      }
+      throw error instanceof Error
+        ? new Error(`Unexpected error: ${error.message}`)
+        : error;
     }
-    expect(messagesAfterCursor.length).be.eql(0);
   });
 
-  // Skipped because of strange results. Generator retrieves messages even if cursor is using a different customPubSubTopic.
-  // My guess is that pubsubTopic is not used. Need to confirm
+  // PubsubTopic is ignored in the cursor. Needs fixing so it throws an error if it doesn't match with Decoder
   it.skip("Passing cursor with wrong pubSubTopic", async function () {
     await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);

@@ -28,26 +28,19 @@ describe("Waku Store, time filter", function () {
   });
 
   [
-    [-10000, -10, 10],
-    [-10000, 1, 4],
-    [-10000, -2, -1],
-    [-10000, 0, 1000],
-    [-10000, -1000, 0],
-    [10000, 4, 1],
-    [10000, -10, 10]
-  ].forEach(([msgTimeAdjustment, startTime, endTime]) => {
-    it(`msgTime: ${adjustDate(
-      new Date(),
-      msgTimeAdjustment
-    )}, startTime: ${adjustDate(
-      adjustDate(new Date(), msgTimeAdjustment),
-      startTime
-    )}, endTime: ${adjustDate(
-      adjustDate(new Date(), msgTimeAdjustment),
-      endTime
-    )}`, async function () {
-      const msgTimestamp = adjustDate(new Date(), msgTimeAdjustment);
-
+    [-19000, -10, 10],
+    [-19000, 1, 4],
+    [-19000, -2, -1],
+    [-19000, 0, 1000],
+    [-19000, -1000, 0],
+    [19000, 4, 1],
+    [19000, -10010, -9990],
+    [19000, -10, 10]
+  ].forEach(([msgTime, startTime, endTime]) => {
+    it(`msgTime: ${msgTime} ms from now, startTime: ${
+      msgTime + startTime
+    }, endTime: ${msgTime + endTime}`, async function () {
+      const msgTimestamp = adjustDate(new Date(), msgTime);
       expect(
         await nwaku.sendMessage(
           NimGoNode.toMessageRpcQuery({
@@ -83,6 +76,41 @@ describe("Waku Store, time filter", function () {
         expect(messages.length).eq(1);
         expect(messages[0].payload![0]!).eq(0);
       }
+    });
+  });
+
+  [-20000, 40000].forEach((msgTime) => {
+    it(`Timestamp too far from node time: ${msgTime} ms from now`, async function () {
+      const msgTimestamp = adjustDate(new Date(), msgTime);
+      expect(
+        await nwaku.sendMessage(
+          NimGoNode.toMessageRpcQuery({
+            payload: new Uint8Array([0]),
+            contentTopic: TestContentTopic,
+            timestamp: msgTimestamp
+          })
+        )
+      ).to.be.true;
+
+      waku = await startAndConnectLightNode(nwaku);
+
+      const messages: IMessage[] = [];
+      await waku.store.queryWithOrderedCallback(
+        [TestDecoder],
+        (msg) => {
+          if (msg) {
+            messages.push(msg);
+          }
+        },
+        {
+          timeFilter: {
+            startTime: adjustDate(msgTimestamp, -1000),
+            endTime: adjustDate(msgTimestamp, 1000)
+          }
+        }
+      );
+
+      expect(messages.length).eq(0);
     });
   });
 });
