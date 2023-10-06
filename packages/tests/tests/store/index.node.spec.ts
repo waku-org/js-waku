@@ -45,7 +45,7 @@ import {
 
 const secondDecoder = createDecoder(customContentTopic, DefaultPubSubTopic);
 
-describe("Waku Store", function () {
+describe("Waku Store, general", function () {
   this.timeout(15000);
   let waku: LightNode;
   let waku2: LightNode;
