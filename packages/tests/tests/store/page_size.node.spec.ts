@@ -80,6 +80,7 @@ describe("Waku Store, page size", function () {
     });
   });
 
+  // Possible issue here because pageSize differs across implementations
   it("Default pageSize", async function () {
     await sendMessages(nwaku, 20, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);

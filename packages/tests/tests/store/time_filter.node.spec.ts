@@ -31,7 +31,7 @@ describe("Waku Store, time filter", function () {
     [-19000, -10, 10],
     [-19000, 1, 4],
     [-19000, -2, -1],
-    // [-19000, 0, 1000], // skipped because it fails on gowaku
+    // [-19000, 0, 1000], // skipped for now because it fails on gowaku which returns messages > startTime
     [-19000, -1000, 0],
     [19000, -10, 10], // message in the future
     [-19000, 10, -10] // startTime is newer than endTime

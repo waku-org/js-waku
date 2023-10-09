@@ -153,6 +153,7 @@ describe("Waku Store, cursor", function () {
           }
         }
       }
+      // Should return same as go-waku. Raised bug: https://github.com/waku-org/nwaku/issues/2117
       expect(messagesAfterCursor.length).to.eql(0);
     } catch (error) {
       if (
@@ -168,7 +169,7 @@ describe("Waku Store, cursor", function () {
     }
   });
 
-  // PubsubTopic is ignored in the cursor. Needs fixing so it throws an error if it doesn't match with Decoder
+  // PubsubTopic is ignored in the cursor: https://github.com/waku-org/js-waku/pull/1640
   it.skip("Passing cursor with wrong pubSubTopic", async function () {
     await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);
