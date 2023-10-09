@@ -397,10 +397,7 @@ async function* paginate<T extends IDecodedMessage>(
   }
 }
 
-export async function createCursor(
-  message: IDecodedMessage,
-  pubsubTopic: string = DefaultPubSubTopic
-): Promise<Cursor> {
+export async function createCursor(message: IDecodedMessage): Promise<Cursor> {
   if (
     !message ||
     !message.timestamp ||
@@ -418,7 +415,7 @@ export async function createCursor(
 
   return {
     digest,
-    pubsubTopic,
+    pubsubTopic: message.pubSubTopic,
     senderTime: messageTime,
     receiverTime: messageTime
   };
