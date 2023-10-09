@@ -63,7 +63,7 @@
     "@rollup/plugin-commonjs": "^25.0.4",
     "@waku/build-utils": "*",
     "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "rollup": "^3.29.2"
   },
   "files": [

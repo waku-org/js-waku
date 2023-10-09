@@ -82,7 +82,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/chai": "^4.3.5",
     "@types/mocha": "^10.0.1",
     "@waku/build-utils": "*",
