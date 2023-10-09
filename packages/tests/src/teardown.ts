@@ -1,4 +1,4 @@
-import { LightNode } from "@waku/interfaces";
+import { LightNode, RelayNode } from "@waku/interfaces";
 import debug from "debug";
 
 import { NimGoNode } from "./index.js";
@@ -7,7 +7,7 @@ const log = debug("waku:test");
 
 export function tearDownNodes(
   nwakuNodes: NimGoNode[],
-  wakuNodes: LightNode[]
+  wakuNodes: LightNode[] | RelayNode[]
 ): void {
   nwakuNodes.forEach((nwaku) => {
     if (nwaku) {
