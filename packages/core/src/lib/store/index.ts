@@ -246,6 +246,13 @@ class Store extends BaseProtocol implements IStore {
 
     ensurePubsubTopicIsConfigured(pubSubTopicForQuery, this.pubSubTopics);
 
+    // check that the pubSubTopic from the Cursor and Decoder match
+    if (options?.cursor?.pubsubTopic !== pubSubTopicForQuery) {
+      throw new Error(
+        `Cursor pubsub topic (${options?.cursor?.pubsubTopic}) does not match decoder pubsub topic (${pubSubTopicForQuery})`
+      );
+    }
+
     const decodersAsMap = new Map();
     decoders.forEach((dec) => {
       if (decodersAsMap.has(dec.contentTopic)) {
