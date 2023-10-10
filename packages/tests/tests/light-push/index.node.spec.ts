@@ -88,8 +88,7 @@ describe("Waku Light Push", function () {
       });
     } else {
       expect(pushResponse.recipients.length).to.eq(0);
-      // This should be `REMOTE_PEER_REJECTED`, tracked with https://github.com/waku-org/nwaku/issues/1641
-      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_FAULT);
+      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_REJECTED);
       expect(await messageCollector.waitForMessages(1)).to.eq(false);
     }
   });
@@ -163,8 +162,7 @@ describe("Waku Light Push", function () {
       });
     } else {
       expect(pushResponse.recipients.length).to.eq(0);
-      // Should be `REMOTE_PEER_REJECTED`, tracked with https://github.com/waku-org/nwaku/issues/2059
-      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_FAULT);
+      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_REJECTED);
       expect(await messageCollector.waitForMessages(1)).to.eq(false);
     }
   });
