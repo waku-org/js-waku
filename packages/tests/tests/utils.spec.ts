@@ -100,6 +100,8 @@ describe("Util: toAsyncIterator: Filter", () => {
       payload: utf8ToBytes("This should be received")
     });
 
+    await delay(400);
+
     await stop();
 
     await waku.lightPush.send(TestEncoder, {
