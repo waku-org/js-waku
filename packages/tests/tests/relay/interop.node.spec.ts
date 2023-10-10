@@ -46,7 +46,7 @@ describe("Interop: NimGoNode", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    tearDownNodes([nwaku], [waku]);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("nwaku subscribes", async function () {

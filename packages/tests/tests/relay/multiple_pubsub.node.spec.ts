@@ -33,7 +33,7 @@ describe("Custom pubsub topic", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    tearDownNodes([], [waku1, waku2, waku3]);
+    await tearDownNodes([], [waku1, waku2, waku3]);
   });
 
   [
