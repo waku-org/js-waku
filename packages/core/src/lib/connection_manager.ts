@@ -324,8 +324,15 @@ export class ConnectionManager
         const { id: peerId } = evt.detail;
 
         if (!(await this.isPeerTopicConfigured(peerId))) {
+          const shardInfo = await this.getPeerShardInfo(
+            peerId,
+            this.libp2p.peerStore
+          );
           log(
-            `Discovered peer ${peerId.toString()} is not part of any of the configured pubsub topics. Not dialing.`
+            `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
+              this.configuredPubSubTopics
+            }). 
+            Not dialing.`
           );
           return;
         }
