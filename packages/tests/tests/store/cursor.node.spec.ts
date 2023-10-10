@@ -169,8 +169,7 @@ describe("Waku Store, cursor", function () {
     }
   });
 
-  // PubsubTopic is ignored in the cursor: https://github.com/waku-org/js-waku/pull/1640
-  it.skip("Passing cursor with wrong pubSubTopic", async function () {
+  it("Passing cursor with wrong pubSubTopic", async function () {
     await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);
 
@@ -180,18 +179,25 @@ describe("Waku Store, cursor", function () {
         messages.push(msg as DecodedMessage);
       }
     }
-    const cursor = await createCursor(messages[5], customPubSubTopic);
+    messages[5].pubSubTopic = customPubSubTopic;
+    const cursor = await createCursor(messages[5]);
 
-    const messagesAfterCursor: DecodedMessage[] = [];
-    for await (const page of waku.store.queryGenerator([TestDecoder], {
-      cursor
-    })) {
-      for await (const msg of page.reverse()) {
-        if (msg) {
-          messagesAfterCursor.push(msg as DecodedMessage);
-        }
+    try {
+      for await (const page of waku.store.queryGenerator([TestDecoder], {
+        cursor
+      })) {
+        page;
+      }
+      throw new Error("Cursor with wrong pubsubtopic was accepted");
+    } catch (err) {
+      if (
+        !(err instanceof Error) ||
+        !err.message.includes(
+          `Cursor pubsub topic (${customPubSubTopic}) does not match decoder pubsub topic (${DefaultPubSubTopic})`
+        )
+      ) {
+        throw err;
       }
     }
-    expect(messagesAfterCursor.length).be.eql(0);
   });
 });
