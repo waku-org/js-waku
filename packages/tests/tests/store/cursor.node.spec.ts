@@ -169,7 +169,7 @@ describe("Waku Store, cursor", function () {
     }
   });
 
-  it.only("Passing cursor with wrong pubSubTopic", async function () {
+  it("Passing cursor with wrong pubSubTopic", async function () {
     await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);
 
