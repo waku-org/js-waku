@@ -37,6 +37,8 @@ export class KeepAliveManager {
 
     const peerIdStr = peerId.toString();
 
+    // Ping the peer every pingPeriodSecs seconds
+    // if pingPeriodSecs is 0, don't ping the peer
     if (pingPeriodSecs !== 0) {
       const interval = setInterval(() => {
         void (async () => {

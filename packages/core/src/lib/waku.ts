@@ -14,7 +14,7 @@ import debug from "debug";
 
 import { ConnectionManager } from "./connection_manager.js";
 
-export const DefaultPingKeepAliveValueSecs = 0;
+export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 export const DefaultUserAgent = "js-waku";
 
