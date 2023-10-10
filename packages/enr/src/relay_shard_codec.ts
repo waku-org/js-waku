@@ -1,6 +1,10 @@
 import type { ShardInfo } from "@waku/interfaces";
 
 export const decodeRelayShard = (bytes: Uint8Array): ShardInfo => {
+  // explicitly converting to Uint8Array to avoid Buffer
+  // https://github.com/libp2p/js-libp2p/issues/2146
+  bytes = new Uint8Array(bytes);
+
   if (bytes.length < 3) throw new Error("Insufficient data");
 
   const view = new DataView(bytes.buffer);
