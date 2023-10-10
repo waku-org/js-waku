@@ -67,13 +67,23 @@ export type Callback<T extends IDecodedMessage> = (
 export enum SendError {
   /** Could not determine the origin of the fault. Best to check connectivity and try again */
   GENERIC_FAIL = "Generic error",
-  /** Failure to protobuf encode the message. This is not recoverable and needs
-   * further investigation. */
+  /**
+   * Failure to protobuf encode the message. This is not recoverable and needs
+   * further investigation.
+   */
   ENCODE_FAILED = "Failed to encode",
-  /** Failure to protobuf decode the message. May be due to a remote peer issue,
-   * ensuring that messages are sent via several peer enable mitigation of this error.. */
+  /**
+   * Failure to protobuf decode the message. May be due to a remote peer issue,
+   * ensuring that messages are sent via several peer enable mitigation of this error.
+   */
   DECODE_FAILED = "Failed to decode",
-  /** The message size is above the maximum message size allowed on the Waku Network.
+  /**
+   * The message payload is empty, making the message invalid. Ensure that a non-empty
+   * payload is set on the outgoing message.
+   */
+  EMPTY_PAYLOAD = "Payload is empty",
+  /**
+   * The message size is above the maximum message size allowed on the Waku Network.
    * Compressing the message or using an alternative strategy for large messages is recommended.
    */
   SIZE_TOO_BIG = "Size is too big",

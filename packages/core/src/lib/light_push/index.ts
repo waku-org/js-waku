@@ -56,6 +56,11 @@ class LightPush extends BaseProtocol implements ILightPush {
     pubSubTopic: string
   ): Promise<PreparePushMessageResult> {
     try {
+      if (!message.payload || message.payload.length === 0) {
+        log("Failed to send waku light push: payload is empty");
+        return { query: null, error: SendError.EMPTY_PAYLOAD };
+      }
+
       if (!isSizeUnderCap(message.payload)) {
         log("Failed to send waku light push: message is bigger than 1MB");
         return { query: null, error: SendError.SIZE_TOO_BIG };
