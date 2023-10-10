@@ -1,23 +1,42 @@
-import { ShardInfo } from "@waku/interfaces";
 import { expect } from "chai";
+import fc from "fast-check";
 
-import { decodeRelayShard, encodeRelayShard } from "./relay_shard_codec.js.js";
+import { decodeRelayShard, encodeRelayShard } from "./relay_shard_codec.js";
 
-describe.only("Relay Shard codec", function () {
-  it("Sample", () => {
-    const shardInfoSample: ShardInfo = {
-      cluster: 0, // Sample cluster value
-      indexList: [1, 2, 3] // Sample index list
-    };
+describe.only("Relay Shard codec", () => {
+  it("should correctly encode and decode relay shards using rs format (Index List)", () => {
+    fc.assert(
+      fc.property(
+        fc.nat(65535), // cluster
+        fc
+          .array(fc.nat(1023), { minLength: 1, maxLength: 63 })
+          .map((arr) => [...new Set(arr)].sort((a, b) => a - b)), // indexList
+        (cluster, indexList) => {
+          const shardInfo = { cluster, indexList };
+          const encoded = encodeRelayShard(shardInfo);
+          const decoded = decodeRelayShard(encoded);
 
-    // Encode the sample shard info
-    const bytes = encodeRelayShard(shardInfoSample);
+          expect(decoded).to.deep.equal(shardInfo);
+        }
+      )
+    );
+  });
 
-    // Decode the bytes back to shard info
-    const decodedShardInfo = decodeRelayShard(bytes);
+  it("should correctly encode and decode relay shards using rsv format (Bit Vector)", () => {
+    fc.assert(
+      fc.property(
+        fc.nat(65535), // cluster
+        fc
+          .array(fc.nat(1023), { minLength: 64, maxLength: 1024 })
+          .map((arr) => [...new Set(arr)].sort((a, b) => a - b)), // indexList
+        (cluster, indexList) => {
+          const shardInfo = { cluster, indexList };
+          const encoded = encodeRelayShard(shardInfo);
+          const decoded = decodeRelayShard(encoded);
 
-    // Check if the decoded shard info matches the original
-    expect(decodedShardInfo.cluster).to.equal(shardInfoSample.cluster);
-    expect(decodedShardInfo.indexList).to.deep.equal(shardInfoSample.indexList);
+          expect(decoded).to.deep.equal(shardInfo);
+        }
+      )
+    );
   });
 });
