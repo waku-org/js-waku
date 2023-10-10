@@ -27,7 +27,7 @@ describe("Waku Store, order", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([nwaku], [waku]);
+    await tearDownNodes(nwaku, waku);
   });
 
   [PageDirection.FORWARD, PageDirection.BACKWARD].forEach((pageDirection) => {

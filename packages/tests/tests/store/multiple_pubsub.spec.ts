@@ -41,7 +41,7 @@ describe("Waku Store, custom pubsub topic", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], [waku]);
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Generator, custom pubsub topic", async function () {

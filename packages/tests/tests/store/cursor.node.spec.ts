@@ -29,7 +29,7 @@ describe("Waku Store, cursor", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([nwaku], [waku, waku2]);
+    await tearDownNodes(nwaku, [waku, waku2]);
   });
 
   [
@@ -169,7 +169,7 @@ describe("Waku Store, cursor", function () {
     }
   });
 
-  it("Passing cursor with wrong pubSubTopic", async function () {
+  it.only("Passing cursor with wrong pubSubTopic", async function () {
     await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);
 

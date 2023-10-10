@@ -49,7 +49,7 @@ describe("Waku Filter V2: Subscribe", function () {
 
   this.afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], [waku]);
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Subscribe and receive messages via lightPush", async function () {

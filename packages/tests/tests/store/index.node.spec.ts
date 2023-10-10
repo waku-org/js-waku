@@ -60,7 +60,7 @@ describe("Waku Store, general", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([nwaku], [waku, waku2]);
+    await tearDownNodes(nwaku, [waku, waku2]);
   });
 
   it("Query generator for multiple messages", async function () {

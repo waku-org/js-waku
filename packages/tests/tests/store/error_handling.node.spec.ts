@@ -27,7 +27,7 @@ describe("Waku Store, error handling", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([nwaku], [waku]);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("Query Generator, Wrong PubSubTopic", async function () {

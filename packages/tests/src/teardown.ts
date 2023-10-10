@@ -7,10 +7,13 @@ import { NimGoNode } from "./index.js";
 const log = debug("waku:test");
 
 export async function tearDownNodes(
-  nwakuNodes: NimGoNode[],
-  wakuNodes: LightNode[]
+  nwakuNodes: NimGoNode | NimGoNode[],
+  wakuNodes: LightNode | LightNode[]
 ): Promise<void> {
-  const stopNwakuNodes = nwakuNodes.map(async (nwaku) => {
+  const nNodes = Array.isArray(nwakuNodes) ? nwakuNodes : [nwakuNodes];
+  const wNodes = Array.isArray(wakuNodes) ? wakuNodes : [wakuNodes];
+
+  const stopNwakuNodes = nNodes.map(async (nwaku) => {
     if (nwaku) {
       await pRetry(
         async () => {
@@ -26,7 +29,7 @@ export async function tearDownNodes(
     }
   });
 
-  const stopWakuNodes = wakuNodes.map(async (waku) => {
+  const stopWakuNodes = wNodes.map(async (waku) => {
     if (waku) {
       await pRetry(
         async () => {

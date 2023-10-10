@@ -30,7 +30,7 @@ describe("Waku Filter V2: Ping", function () {
 
   this.afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([nwaku], [waku]);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("Ping on subscribed peer", async function () {

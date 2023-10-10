@@ -24,7 +24,7 @@ describe("Waku Store, time filter", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([nwaku], [waku]);
+    await tearDownNodes(nwaku, waku);
   });
 
   [
