@@ -42,13 +42,16 @@
 <h3 class="tsd-index-heading">Properties</h3>
 <div class="tsd-index-list"><a href="_waku_sdk.waku.ConnectionManager.html#_private" class="tsd-index-link tsd-is-private tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>#private</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#attemptDial" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>attempt<wbr/>Dial</span></a>
+<a href="_waku_sdk.waku.ConnectionManager.html#configuredPubSubTopics" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>configured<wbr/>Pub<wbr/>Sub<wbr/>Topics</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#currentActiveDialCount" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>current<wbr/>Active<wbr/>Dial<wbr/>Count</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#dialAttemptsForPeer" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>dial<wbr/>Attempts<wbr/>For<wbr/>Peer</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#dialErrorsForPeer" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>dial<wbr/>Errors<wbr/>For<wbr/>Peer</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#dialPeer" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>dial<wbr/>Peer</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#dialPeerStorePeers" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>dial<wbr/>Peer<wbr/>Store<wbr/>Peers</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#dropConnection" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>drop<wbr/>Connection</span></a>
+<a href="_waku_sdk.waku.ConnectionManager.html#getPeerShardInfo" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>get<wbr/>Peer<wbr/>Shard<wbr/>Info</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#getTagNamesForPeer" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>get<wbr/>Tag<wbr/>Names<wbr/>For<wbr/>Peer</span></a>
+<a href="_waku_sdk.waku.ConnectionManager.html#isPeerTopicConfigured" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>is<wbr/>Peer<wbr/>Topic<wbr/>Configured</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#keepAliveManager" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>keep<wbr/>Alive<wbr/>Manager</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#libp2p" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>libp2p</span></a>
 <a href="_waku_sdk.waku.ConnectionManager.html#onEventHandlers" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>on<wbr/>Event<wbr/>Handlers</span></a>
@@ -83,7 +86,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../modules/_waku_sdk.waku.html" class="tsd-signature-type tsd-kind-namespace">waku</a><span class="tsd-signature-symbol">.</span><a href="_waku_sdk.waku.ConnectionManager.html" class="tsd-signature-type tsd-kind-class">ConnectionManager</a></h4><aside class="tsd-sources">
 <p>Overrides EventEmitter&lt;IPeersByDiscoveryEvents&gt;.constructor</p>
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:18</li></ul></aside></li></ul></section></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:19</li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-private tsd-is-inherited tsd-is-external"><a id="_private" class="tsd-anchor"></a>
@@ -97,37 +100,47 @@
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>attempt<wbr/>Dial</span><a href="#attemptDial" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">attempt<wbr/>Dial</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:28</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:29</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="configuredPubSubTopics" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>configured<wbr/>Pub<wbr/>Sub<wbr/>Topics</span><a href="#configuredPubSubTopics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">configured<wbr/>Pub<wbr/>Sub<wbr/>Topics</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:8</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="currentActiveDialCount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>current<wbr/>Active<wbr/>Dial<wbr/>Count</span><a href="#currentActiveDialCount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">current<wbr/>Active<wbr/>Dial<wbr/>Count</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:14</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:15</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="dialAttemptsForPeer" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>dial<wbr/>Attempts<wbr/>For<wbr/>Peer</span><a href="#dialAttemptsForPeer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">dial<wbr/>Attempts<wbr/>For<wbr/>Peer</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:12</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:13</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="dialErrorsForPeer" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>dial<wbr/>Errors<wbr/>For<wbr/>Peer</span><a href="#dialErrorsForPeer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">dial<wbr/>Errors<wbr/>For<wbr/>Peer</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:13</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:14</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="dialPeer" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>dial<wbr/>Peer</span><a href="#dialPeer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">dial<wbr/>Peer</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:22</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:23</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="dialPeerStorePeers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>dial<wbr/>Peer<wbr/>Store<wbr/>Peers</span><a href="#dialPeerStorePeers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">dial<wbr/>Peer<wbr/>Store<wbr/>Peers</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:19</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:20</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="dropConnection" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>drop<wbr/>Connection</span><a href="#dropConnection" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">drop<wbr/>Connection</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:23</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:24</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="getPeerShardInfo" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>get<wbr/>Peer<wbr/>Shard<wbr/>Info</span><a href="#getPeerShardInfo" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">get<wbr/>Peer<wbr/>Shard<wbr/>Info</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:42</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="getTagNamesForPeer" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>get<wbr/>Tag<wbr/>Names<wbr/>For<wbr/>Peer</span><a href="#getTagNamesForPeer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">get<wbr/>Tag<wbr/>Names<wbr/>For<wbr/>Peer</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
@@ -135,42 +148,47 @@
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:39</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:40</li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="isPeerTopicConfigured" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>is<wbr/>Peer<wbr/>Topic<wbr/>Configured</span><a href="#isPeerTopicConfigured" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">is<wbr/>Peer<wbr/>Topic<wbr/>Configured</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:41</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="keepAliveManager" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>keep<wbr/>Alive<wbr/>Manager</span><a href="#keepAliveManager" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">keep<wbr/>Alive<wbr/>Manager</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:9</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:10</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="libp2p" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>libp2p</span><a href="#libp2p" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">libp2p</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:11</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:12</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="onEventHandlers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>on<wbr/>Event<wbr/>Handlers</span><a href="#onEventHandlers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">on<wbr/>Event<wbr/>Handlers</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:29</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:30</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="options" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>options</span><a href="#options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">options</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:10</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:11</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="pendingPeerDialQueue" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>pending<wbr/>Peer<wbr/>Dial<wbr/>Queue</span><a href="#pendingPeerDialQueue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">pending<wbr/>Peer<wbr/>Dial<wbr/>Queue</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:15</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:16</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="processDialQueue" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>process<wbr/>Dial<wbr/>Queue</span><a href="#processDialQueue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">process<wbr/>Dial<wbr/>Queue</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:24</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:25</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="run" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>run</span><a href="#run" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">run</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:20</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:21</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="shouldDialPeer" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>should<wbr/>Dial<wbr/>Peer</span><a href="#shouldDialPeer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">should<wbr/>Dial<wbr/>Peer</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
@@ -182,27 +200,27 @@
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:35</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:36</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="startPeerConnectionListener" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>start<wbr/>Peer<wbr/>Connection<wbr/>Listener</span><a href="#startPeerConnectionListener" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">start<wbr/>Peer<wbr/>Connection<wbr/>Listener</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:26</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:27</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="startPeerDisconnectionListener" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>start<wbr/>Peer<wbr/>Disconnection<wbr/>Listener</span><a href="#startPeerDisconnectionListener" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">start<wbr/>Peer<wbr/>Disconnection<wbr/>Listener</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:27</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:28</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="startPeerDiscoveryListener" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>start<wbr/>Peer<wbr/>Discovery<wbr/>Listener</span><a href="#startPeerDiscoveryListener" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">start<wbr/>Peer<wbr/>Discovery<wbr/>Listener</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:25</li></ul></aside></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:26</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="instances" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <code class="tsd-tag ts-flagStatic">Static</code> <span>instances</span><a href="#instances" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">instances</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:8</li></ul></aside></section></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:9</li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="addEventListener" class="tsd-anchor"></a>
@@ -252,7 +270,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_waku_sdk.PeersByDiscoveryResult.html" class="tsd-signature-type tsd-kind-interface">PeersByDiscoveryResult</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/_waku_sdk.IConnectionManager.html">IConnectionManager</a>.<a href="../interfaces/_waku_sdk.IConnectionManager.html#getPeersByDiscovery">getPeersByDiscovery</a></p>
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:17</li></ul></aside></li></ul></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:18</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="listenerCount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>listener<wbr/>Count</span><a href="#listenerCount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -322,11 +340,11 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/_waku_sdk.IConnectionManager.html">IConnectionManager</a>.<a href="../interfaces/_waku_sdk.IConnectionManager.html#stop">stop</a></p>
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:21</li></ul></aside></li></ul></section>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:22</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="create" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>create</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="create.create-1"><span class="tsd-kind-call-signature">create</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">peerId</span>, <span class="tsd-kind-parameter">libp2p</span>, <span class="tsd-kind-parameter">keepAliveOptions</span>, <span class="tsd-kind-parameter">relay</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_waku_sdk.waku.html" class="tsd-signature-type tsd-kind-namespace">waku</a><span class="tsd-signature-symbol">.</span><a href="_waku_sdk.waku.ConnectionManager.html" class="tsd-signature-type tsd-kind-class">ConnectionManager</a><a href="#create.create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="create.create-1"><span class="tsd-kind-call-signature">create</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">peerId</span>, <span class="tsd-kind-parameter">libp2p</span>, <span class="tsd-kind-parameter">keepAliveOptions</span>, <span class="tsd-kind-parameter">pubSubTopics</span>, <span class="tsd-kind-parameter">relay</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_waku_sdk.waku.html" class="tsd-signature-type tsd-kind-namespace">waku</a><span class="tsd-signature-symbol">.</span><a href="_waku_sdk.waku.ConnectionManager.html" class="tsd-signature-type tsd-kind-class">ConnectionManager</a><a href="#create.create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -338,12 +356,14 @@
 <li>
 <h5><span class="tsd-kind-parameter">keepAliveOptions</span>: <a href="../interfaces/_waku_sdk.KeepAliveOptions.html" class="tsd-signature-type tsd-kind-interface">KeepAliveOptions</a></h5></li>
 <li>
+<h5><span class="tsd-kind-parameter">pubSubTopics</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5></li>
+<li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">relay</span>: <a href="../types/_waku_sdk.IRelay.html" class="tsd-signature-type tsd-kind-type-alias">IRelay</a></h5></li>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">options</span>: <a href="../interfaces/_waku_sdk.ConnectionManagerOptions.html" class="tsd-signature-type tsd-kind-interface">ConnectionManagerOptions</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../modules/_waku_sdk.waku.html" class="tsd-signature-type tsd-kind-namespace">waku</a><span class="tsd-signature-symbol">.</span><a href="_waku_sdk.waku.ConnectionManager.html" class="tsd-signature-type tsd-kind-class">ConnectionManager</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/core/dist/lib/connection_manager.d.ts:16</li></ul></aside></li></ul></section></section></div>
+<li>Defined in packages/core/dist/lib/connection_manager.d.ts:17</li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -365,13 +385,16 @@
 <li><a href="#constructor" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
 <li><a href="#_private" class="tsd-is-private tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>#private</span></a></li>
 <li><a href="#attemptDial" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>attempt<wbr/>Dial</span></a></li>
+<li><a href="#configuredPubSubTopics" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>configured<wbr/>Pub<wbr/>Sub<wbr/>Topics</span></a></li>
 <li><a href="#currentActiveDialCount" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>current<wbr/>Active<wbr/>Dial<wbr/>Count</span></a></li>
 <li><a href="#dialAttemptsForPeer" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>dial<wbr/>Attempts<wbr/>For<wbr/>Peer</span></a></li>
 <li><a href="#dialErrorsForPeer" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>dial<wbr/>Errors<wbr/>For<wbr/>Peer</span></a></li>
 <li><a href="#dialPeer" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>dial<wbr/>Peer</span></a></li>
 <li><a href="#dialPeerStorePeers" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>dial<wbr/>Peer<wbr/>Store<wbr/>Peers</span></a></li>
 <li><a href="#dropConnection" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>drop<wbr/>Connection</span></a></li>
+<li><a href="#getPeerShardInfo" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>get<wbr/>Peer<wbr/>Shard<wbr/>Info</span></a></li>
 <li><a href="#getTagNamesForPeer" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>get<wbr/>Tag<wbr/>Names<wbr/>For<wbr/>Peer</span></a></li>
+<li><a href="#isPeerTopicConfigured" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>is<wbr/>Peer<wbr/>Topic<wbr/>Configured</span></a></li>
 <li><a href="#keepAliveManager" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>keep<wbr/>Alive<wbr/>Manager</span></a></li>
 <li><a href="#libp2p" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>libp2p</span></a></li>
 <li><a href="#onEventHandlers" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>on<wbr/>Event<wbr/>Handlers</span></a></li>
