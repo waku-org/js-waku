@@ -3,7 +3,7 @@ import fc from "fast-check";
 
 import { decodeRelayShard, encodeRelayShard } from "./relay_shard_codec.js";
 
-describe.only("Relay Shard codec", () => {
+describe("Relay Shard codec", () => {
   // Boundary test case
   it("should handle a minimal index list", () => {
     const shardInfo = { cluster: 0, indexList: [0] };
