@@ -3,11 +3,18 @@ import {
   convertToBytes,
   convertToString
 } from "@multiformats/multiaddr/convert";
-import type { ENRKey, ENRValue, SequenceNumber, Waku2 } from "@waku/interfaces";
+import type {
+  ENRKey,
+  ENRValue,
+  SequenceNumber,
+  ShardInfo,
+  Waku2
+} from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 
 import { ERR_INVALID_ID } from "./constants.js";
 import { decodeMultiaddrs, encodeMultiaddrs } from "./multiaddrs_codec.js";
+import { decodeRelayShard } from "./relay_shard_codec.js";
 import { decodeWaku2, encodeWaku2 } from "./waku2_codec.js";
 
 export class RawEnr extends Map<ENRKey, ENRValue> {
@@ -43,6 +50,18 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
       default:
         throw new Error(ERR_INVALID_ID);
     }
+  }
+
+  get rs(): ShardInfo | undefined {
+    const rs = this.get("rs");
+    if (!rs) return undefined;
+    return decodeRelayShard(rs);
+  }
+
+  get rsv(): ShardInfo | undefined {
+    const rsv = this.get("rsv");
+    if (!rsv) return undefined;
+    return decodeRelayShard(rsv);
   }
 
   get ip(): string | undefined {
