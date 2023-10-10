@@ -48,7 +48,7 @@
     "eslint-plugin-functional": "^6.0.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^5.0.0",
-    "gh-pages": "^5.0.0",
+    "gh-pages": "^6.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^14.0.1",
     "size-limit": "^9.0.0",
