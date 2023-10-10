@@ -112,7 +112,7 @@ export class MessageCollector {
       expectedVersion?: number;
       expectedMeta?: Uint8Array;
       expectedEphemeral?: boolean;
-      expectedTimestamp?: bigint;
+      expectedTimestamp?: bigint | number;
       checkTimestamp?: boolean; // Used to determine if we need to check the timestamp
     }
   ): void {
@@ -147,6 +147,38 @@ export class MessageCollector {
       );
     }
 
+    const shouldCheckTimestamp =
+      options.checkTimestamp !== undefined ? options.checkTimestamp : true;
+    if (shouldCheckTimestamp && message.timestamp) {
+      // In we send timestamp in the request we assert that it matches the timestamp in the response +- 1 sec
+      // We take the 1s deviation because there are some ms diffs in timestamps, probably because of conversions
+      let timestampAsNumber: number;
+
+      if (message.timestamp instanceof Date) {
+        timestampAsNumber = message.timestamp.getTime();
+      } else {
+        timestampAsNumber = Number(message.timestamp) / 1_000_000;
+      }
+
+      let lowerBound: number;
+      let upperBound: number;
+
+      // Define the bounds based on the expectedTimestamp
+      if (options.expectedTimestamp !== undefined) {
+        lowerBound = Number(options.expectedTimestamp) - 1000;
+        upperBound = Number(options.expectedTimestamp) + 1000;
+      } else {
+        upperBound = Date.now();
+        lowerBound = upperBound - 10000;
+      }
+
+      if (timestampAsNumber < lowerBound || timestampAsNumber > upperBound) {
+        throw new AssertionError(
+          `Message timestamp not within the expected range. Expected between: ${lowerBound} and ${upperBound}. Got: ${timestampAsNumber}`
+        );
+      }
+    }
+
     if (this.isMessageRpcResponse(message)) {
       // nwaku message specific assertions
       const receivedMessageText = message.payload
@@ -157,37 +189,6 @@ export class MessageCollector {
         options.expectedMessageText,
         `Message text mismatch. Expected: ${options.expectedMessageText}. Got: ${receivedMessageText}`
       );
-
-      if (message.timestamp) {
-        // In we send timestamp in the request we assert that it matches the timestamp in the response +- 1 sec
-        // We take the 1s deviation because there are some ms diffs in timestamps, probably because of conversions
-        if (options.expectedTimestamp !== undefined) {
-          const lowerBound =
-            BigInt(options.expectedTimestamp) - BigInt(1000000000);
-          const upperBound =
-            BigInt(options.expectedTimestamp) + BigInt(1000000000);
-
-          if (
-            message.timestamp < lowerBound ||
-            message.timestamp > upperBound
-          ) {
-            throw new AssertionError(
-              `Message timestamp not within the expected range. Expected between: ${lowerBound} and ${upperBound}. Got: ${message.timestamp}`
-            );
-          }
-        }
-        // In we don't send timestamp in the request we assert that the timestamp in the response is between now and (now-10s)
-        else {
-          const now = BigInt(Date.now()) * BigInt(1_000_000);
-          const tenSecondsAgo = now - BigInt(10_000_000_000);
-
-          if (message.timestamp < tenSecondsAgo || message.timestamp > now) {
-            throw new AssertionError(
-              `Message timestamp not within the expected range. Expected between: ${tenSecondsAgo} and ${now}. Got: ${message.timestamp}`
-            );
-          }
-        }
-      }
     } else {
       // js-waku message specific assertions
       expect(message.pubSubTopic).to.eq(
@@ -203,18 +204,6 @@ export class MessageCollector {
           options.expectedMessageText
         }. Got: ${bytesToUtf8(message.payload)}`
       );
-
-      const shouldCheckTimestamp =
-        options.checkTimestamp !== undefined ? options.checkTimestamp : true;
-      if (shouldCheckTimestamp && message.timestamp) {
-        const now = Date.now();
-        const tenSecondsAgo = now - 10000;
-        expect(message.timestamp.getTime()).to.be.within(
-          tenSecondsAgo,
-          now,
-          `Message timestamp not within the expected range. Expected between: ${tenSecondsAgo} and ${now}. Got: ${message.timestamp.getTime()}`
-        );
-      }
 
       expect([
         options.expectedMeta,

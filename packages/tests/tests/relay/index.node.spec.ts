@@ -25,6 +25,7 @@ import debug from "debug";
 
 import {
   delay,
+  MessageCollector,
   NOISE_KEY_1,
   NOISE_KEY_2,
   tearDownNodes
@@ -35,7 +36,7 @@ import { TestContentTopic, TestDecoder, TestEncoder } from "./utils.js";
 
 const log = debug("waku:test");
 
-describe.only("Waku Relay 2 js nodes", function () {
+describe("Waku Relay 2 js nodes", function () {
   this.timeout(15000);
   let waku1: RelayNode;
   let waku2: RelayNode;
@@ -68,7 +69,7 @@ describe.only("Waku Relay 2 js nodes", function () {
 
   afterEach(async function () {
     this.timeout(15000);
-    tearDownNodes([], [waku1, waku2]);
+    await tearDownNodes([], [waku1, waku2]);
   });
 
   it("Subscribe", async function () {
@@ -79,6 +80,9 @@ describe.only("Waku Relay 2 js nodes", function () {
     const subscribers2 = waku2.libp2p.services
       .pubsub!.getSubscribers(DefaultPubSubTopic)
       .map((p) => p.toString());
+
+    console.log(subscribers1);
+    console.log(subscribers2);
 
     log("Asserting mutual subscription");
     expect(subscribers1).to.contain(waku2.libp2p.peerId.toString());
@@ -100,19 +104,18 @@ describe.only("Waku Relay 2 js nodes", function () {
       timestamp: messageTimestamp
     };
 
-    const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
-      (resolve) => {
-        void waku2.relay.subscribe([TestDecoder], resolve);
-      }
-    );
+    const messageCollector = new MessageCollector();
+    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
 
     await waku1.relay.send(TestEncoder, message);
 
-    const receivedMsg = await receivedMsgPromise;
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
-    expect(receivedMsg.contentTopic).to.eq(TestContentTopic);
-    expect(bytesToUtf8(receivedMsg.payload)).to.eq(messageText);
-    expect(receivedMsg.timestamp?.valueOf()).to.eq(messageTimestamp.valueOf());
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic,
+      expectedTimestamp: messageTimestamp.valueOf()
+    });
   });
 
   it("Filter on content topics", async function () {
