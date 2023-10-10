@@ -50,7 +50,8 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku, nwaku2], [waku]);
+    this.timeout(15000);
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Subscribe and receive messages on custom pubsubtopic", async function () {

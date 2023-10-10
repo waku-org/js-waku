@@ -150,6 +150,7 @@ describe("ConnectionManager", function () {
     let waku: LightNode;
 
     this.beforeEach(async function () {
+      this.timeout(15000);
       waku = await createLightNode();
       isPeerTopicConfigured = sinon.stub(
         waku.connectionManager as any,
@@ -159,6 +160,7 @@ describe("ConnectionManager", function () {
     });
 
     afterEach(async () => {
+      this.timeout(15000);
       await waku.stop();
       isPeerTopicConfigured.restore();
       sinon.restore();

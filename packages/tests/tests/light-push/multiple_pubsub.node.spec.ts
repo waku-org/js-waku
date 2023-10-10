@@ -36,7 +36,8 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
   });
   let nimPeerId: PeerId;
 
-  beforeEach(async function () {
+  this.beforeEach(async function () {
+    this.timeout(15000);
     [nwaku, waku] = await runNodes(this, [
       customPubSubTopic,
       DefaultPubSubTopic
@@ -46,7 +47,8 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku, nwaku2], [waku]);
+    this.timeout(15000);
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Push message on custom pubSubTopic", async function () {

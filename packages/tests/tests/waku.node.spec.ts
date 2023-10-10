@@ -22,10 +22,11 @@ import { expect } from "chai";
 
 import {
   makeLogFileName,
-  NimGoNode,
   NOISE_KEY_1,
-  NOISE_KEY_2
+  NOISE_KEY_2,
+  tearDownNodes
 } from "../src/index.js";
+import { NimGoNode } from "../src/node/node.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
 
@@ -33,13 +34,12 @@ const TestEncoder = createPlainEncoder({ contentTopic: TestContentTopic });
 
 describe("Waku Dial [node only]", function () {
   describe("Interop: NimGoNode", function () {
-    let waku: Waku;
+    let waku: LightNode;
     let nwaku: NimGoNode;
 
     afterEach(async function () {
-      !!nwaku &&
-        nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+      this.timeout(15000);
+      await tearDownNodes(nwaku, waku);
     });
 
     it("connects to nwaku", async function () {
@@ -102,8 +102,8 @@ describe("Waku Dial [node only]", function () {
     let nwaku: NimGoNode;
 
     afterEach(async function () {
-      !!nwaku && (await nwaku.stop());
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+      this.timeout(15000);
+      await tearDownNodes(nwaku, waku);
     });
 
     it("Passing an array", async function () {

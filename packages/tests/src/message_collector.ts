@@ -1,7 +1,8 @@
 import { DecodedMessage, DefaultPubSubTopic } from "@waku/core";
-import { bytesToUtf8 } from "@waku/utils/bytes";
+import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
 import debug from "debug";
+import isEqual from "lodash/isEqual";
 
 import { MessageRpcResponse } from "./node/interfaces.js";
 
@@ -36,9 +37,17 @@ export class MessageCollector {
   }
 
   hasMessage(topic: string, text: string): boolean {
-    return this.list.some(
-      (message) => message.contentTopic === topic && message.payload === text
-    );
+    return this.list.some((message) => {
+      if (message.contentTopic !== topic) {
+        return false;
+      }
+      if (typeof message.payload === "string") {
+        return message.payload === text;
+      } else if (message.payload instanceof Uint8Array) {
+        return isEqual(message.payload, utf8ToBytes(text));
+      }
+      return false;
+    });
   }
 
   // Type guard to determine if a message is of type MessageRpcResponse
