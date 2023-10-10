@@ -19,6 +19,7 @@ import {
 } from "@waku/message-encryption/symmetric";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
+import isEqual from "lodash/isEqual";
 
 import {
   delay,
@@ -28,7 +29,6 @@ import {
   tearDownNodes,
   TEST_STRING
 } from "../../src/index.js";
-import { areUint8ArraysEqual } from "../../src/utils.js";
 
 import {
   customContentTopic,
@@ -159,9 +159,7 @@ describe("Waku Store, general", function () {
         createDecoder(testItem["value"])
       ])) {
         for await (const msg of query) {
-          expect(
-            areUint8ArraysEqual(msg!.payload, utf8ToBytes(messageText))
-          ).to.eq(true);
+          expect(isEqual(msg!.payload, utf8ToBytes(messageText))).to.eq(true);
         }
       }
     }
