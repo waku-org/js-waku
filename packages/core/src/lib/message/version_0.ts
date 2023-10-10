@@ -6,10 +6,13 @@ import type {
   IMessage,
   IMetaSetter,
   IProtoMessage,
-  IRateLimitProof
+  IRateLimitProof,
+  PubSubTopic
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
 import debug from "debug";
+
+import { DefaultPubSubTopic } from "../constants.js";
 
 const log = debug("waku:message:version-0");
 const OneMillion = BigInt(1_000_000);
@@ -73,6 +76,7 @@ export class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
+    public pubSubTopic: PubSubTopic,
     public metaSetter?: IMetaSetter
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -109,22 +113,25 @@ export class Encoder implements IEncoder {
 /**
  * Creates an encoder that encode messages without Waku level encryption or signature.
  *
- * An encoder is used to encode messages in the [`14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
+ * An encoder is used to encode messages in the [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
  * format to be sent over the Waku network. The resulting encoder can then be
- * pass to { @link @waku/interfaces.LightPush.push } or
- * { @link @waku/interfaces.Relay.send } to automatically encode outgoing
+ * pass to { @link @waku/interfaces!ISender.send } to automatically encode outgoing
  * messages.
  */
 export function createEncoder({
+  pubSubTopic = DefaultPubSubTopic,
   contentTopic,
   ephemeral,
   metaSetter
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, ephemeral, metaSetter);
+  return new Encoder(contentTopic, ephemeral, pubSubTopic, metaSetter);
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
-  constructor(public contentTopic: string) {
+  constructor(
+    public pubSubTopic: PubSubTopic,
+    public contentTopic: string
+  ) {
     if (!contentTopic || contentTopic === "") {
       throw new Error("Content topic must be specified");
     }
@@ -169,12 +176,14 @@ export class Decoder implements IDecoder<DecodedMessage> {
  *
  * A decoder is used to decode messages from the [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
  * format when received from the Waku network. The resulting decoder can then be
- * pass to { @link @waku/interfaces.Filter.subscribe } or
- * { @link @waku/interfaces.Relay.subscribe } to automatically decode incoming
+ * pass to { @link @waku/interfaces!IReceiver.subscribe } to automatically decode incoming
  * messages.
  *
  * @param contentTopic The resulting decoder will only decode messages with this content topic.
  */
-export function createDecoder(contentTopic: string): Decoder {
-  return new Decoder(contentTopic);
+export function createDecoder(
+  contentTopic: string,
+  pubsubTopic: PubSubTopic = DefaultPubSubTopic
+): Decoder {
+  return new Decoder(pubsubTopic, contentTopic);
 }

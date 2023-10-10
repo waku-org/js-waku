@@ -9,8 +9,8 @@ const log = debug("waku:wait-for-remote-peer");
 /**
  * Wait for a remote peer to be ready given the passed protocols.
  * Must be used after attempting to connect to nodes, using
- * {@link @waku/core.WakuNode.dial} or a bootstrap method with
- * {@link @waku/sdk.createLightNode}.
+ * {@link @waku/core!WakuNode.dial} or a bootstrap method with
+ * {@link @waku/sdk!createLightNode}.
  *
  * If the passed protocols is a GossipSub protocol, then it resolves only once
  * a peer is in a mesh, to help ensure that other peers will send and receive
@@ -96,15 +96,18 @@ async function waitForConnectedPeer(protocol: IBaseProtocol): Promise<void> {
 }
 
 /**
- * Wait for a peer with the given protocol to be connected and in the gossipsub
- * mesh.
+ * Wait for at least one peer with the given protocol to be connected and in the gossipsub
+ * mesh for all pubSubTopics.
  */
 async function waitForGossipSubPeerInMesh(waku: IRelay): Promise<void> {
   let peers = waku.getMeshPeers();
+  const pubSubTopics = waku.pubSubTopics;
 
-  while (peers.length == 0) {
-    await pEvent(waku.gossipSub, "gossipsub:heartbeat");
-    peers = waku.getMeshPeers();
+  for (const topic of pubSubTopics) {
+    while (peers.length == 0) {
+      await pEvent(waku.gossipSub, "gossipsub:heartbeat");
+      peers = waku.getMeshPeers(topic);
+    }
   }
 }
 

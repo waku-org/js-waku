@@ -1,7 +1,8 @@
 import { DecodedMessage, DefaultPubSubTopic } from "@waku/core";
-import { bytesToUtf8 } from "@waku/utils/bytes";
+import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
 import debug from "debug";
+import isEqual from "lodash/isEqual";
 
 import { MessageRpcResponse } from "./node/interfaces.js";
 
@@ -18,11 +19,7 @@ export class MessageCollector {
   list: Array<MessageRpcResponse | DecodedMessage> = [];
   callback: (msg: DecodedMessage) => void = () => {};
 
-  constructor(
-    private contentTopic: string,
-    private nwaku?: NimGoNode,
-    private pubSubTopic = DefaultPubSubTopic
-  ) {
+  constructor(private nwaku?: NimGoNode) {
     if (!this.nwaku) {
       this.callback = (msg: DecodedMessage): void => {
         log("Got a message");
@@ -39,6 +36,20 @@ export class MessageCollector {
     return this.list[index];
   }
 
+  hasMessage(topic: string, text: string): boolean {
+    return this.list.some((message) => {
+      if (message.contentTopic !== topic) {
+        return false;
+      }
+      if (typeof message.payload === "string") {
+        return message.payload === text;
+      } else if (message.payload instanceof Uint8Array) {
+        return isEqual(message.payload, utf8ToBytes(text));
+      }
+      return false;
+    });
+  }
+
   // Type guard to determine if a message is of type MessageRpcResponse
   isMessageRpcResponse(
     message: MessageRpcResponse | DecodedMessage
@@ -51,14 +62,21 @@ export class MessageCollector {
 
   async waitForMessages(
     numMessages: number,
-    timeoutDuration: number = 400
+    options?: {
+      pubSubTopic?: string;
+      timeoutDuration?: number;
+      exact?: boolean;
+    }
   ): Promise<boolean> {
     const startTime = Date.now();
+    const pubSubTopic = options?.pubSubTopic || DefaultPubSubTopic;
+    const timeoutDuration = options?.timeoutDuration || 400;
+    const exact = options?.exact || false;
 
     while (this.count < numMessages) {
       if (this.nwaku) {
         try {
-          this.list = await this.nwaku.messages(this.pubSubTopic);
+          this.list = await this.nwaku.messages(pubSubTopic);
         } catch (error) {
           log(`Can't retrieve messages because of ${error}`);
           await delay(10);
@@ -72,7 +90,16 @@ export class MessageCollector {
       await delay(10);
     }
 
-    return true;
+    if (exact) {
+      if (this.count == numMessages) {
+        return true;
+      } else {
+        log(`Was expecting exactly ${numMessages} messages`);
+        return false;
+      }
+    } else {
+      return true;
+    }
   }
 
   // Verifies a received message against expected values.
@@ -96,10 +123,8 @@ export class MessageCollector {
 
     const message = this.getMessage(index);
     expect(message.contentTopic).to.eq(
-      options.expectedContentTopic || this.contentTopic,
-      `Message content topic mismatch. Expected: ${
-        options.expectedContentTopic || this.contentTopic
-      }. Got: ${message.contentTopic}`
+      options.expectedContentTopic,
+      `Message content topic mismatch. Expected: ${options.expectedContentTopic}. Got: ${message.contentTopic}`
     );
 
     expect(message.version).to.eq(

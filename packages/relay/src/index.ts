@@ -21,10 +21,12 @@ import {
   IRelay,
   Libp2p,
   ProtocolCreateOptions,
+  PubSubTopic,
   SendError,
   SendResult
 } from "@waku/interfaces";
-import { groupByContentTopic, isSizeValid, toAsyncIterator } from "@waku/utils";
+import { isSizeValid, toAsyncIterator } from "@waku/utils";
+import { pushOrInitMapSet } from "@waku/utils";
 import debug from "debug";
 
 import { RelayCodecs } from "./constants.js";
@@ -46,7 +48,7 @@ export type ContentTopic = string;
  * Throws if libp2p.pubsub does not support Waku Relay
  */
 class Relay implements IRelay {
-  private readonly pubSubTopic: string;
+  public readonly pubSubTopics: Set<PubSubTopic>;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
   public static multicodec: string = RelayCodecs[0];
@@ -56,7 +58,7 @@ class Relay implements IRelay {
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  private observers: Map<ContentTopic, Set<unknown>>;
+  private observers: Map<PubSubTopic, Map<ContentTopic, Set<unknown>>>;
 
   constructor(libp2p: Libp2p, options?: Partial<RelayCreateOptions>) {
     if (!this.isRelayPubSub(libp2p.services.pubsub)) {
@@ -66,21 +68,22 @@ class Relay implements IRelay {
     }
 
     this.gossipSub = libp2p.services.pubsub as GossipSub;
-    this.pubSubTopic = options?.pubSubTopic ?? DefaultPubSubTopic;
+    this.pubSubTopics = new Set(options?.pubSubTopics ?? [DefaultPubSubTopic]);
 
     if (this.gossipSub.isStarted()) {
-      this.gossipSubSubscribe(this.pubSubTopic);
+      this.subscribeToAllTopics();
     }
 
     this.observers = new Map();
 
+    // Default PubSubTopic decoder
     // TODO: User might want to decide what decoder should be used (e.g. for RLN)
     this.defaultDecoder = new TopicOnlyDecoder();
   }
 
   /**
    * Mounts the gossipsub protocol onto the libp2p node
-   * and subscribes to the default topic.
+   * and subscribes to all the topics.
    *
    * @override
    * @returns {void}
@@ -91,7 +94,7 @@ class Relay implements IRelay {
     }
 
     await this.gossipSub.start();
-    this.gossipSubSubscribe(this.pubSubTopic);
+    this.subscribeToAllTopics();
   }
 
   /**
@@ -99,6 +102,16 @@ class Relay implements IRelay {
    */
   public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
     const recipients: PeerId[] = [];
+
+    const { pubSubTopic } = encoder;
+    if (!this.pubSubTopics.has(pubSubTopic)) {
+      log("Failed to send waku relay: topic not configured");
+      return {
+        recipients,
+        errors: [SendError.TOPIC_NOT_CONFIGURED]
+      };
+    }
+
     if (!isSizeValid(message.payload)) {
       log("Failed to send waku relay: message is bigger that 1MB");
       return {
@@ -116,48 +129,47 @@ class Relay implements IRelay {
       };
     }
 
-    return this.gossipSub.publish(this.pubSubTopic, msg);
+    return this.gossipSub.publish(pubSubTopic, msg);
   }
 
-  /**
-   * Add an observer and associated Decoder to process incoming messages on a given content topic.
-   *
-   * @returns Function to delete the observer
-   */
   public subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
-    const contentTopicToObservers = Array.isArray(decoders)
-      ? toObservers(decoders, callback)
-      : toObservers([decoders], callback);
+    const observers: Array<[PubSubTopic, Observer<T>]> = [];
 
-    for (const contentTopic of contentTopicToObservers.keys()) {
-      const currObservers = this.observers.get(contentTopic) || new Set();
-      const newObservers =
-        contentTopicToObservers.get(contentTopic) || new Set();
+    for (const decoder of Array.isArray(decoders) ? decoders : [decoders]) {
+      const { pubSubTopic } = decoder;
+      const ctObs: Map<ContentTopic, Set<Observer<T>>> = this.observers.get(
+        pubSubTopic
+      ) ?? new Map();
+      const observer = { pubSubTopic, decoder, callback };
+      pushOrInitMapSet(ctObs, decoder.contentTopic, observer);
 
-      this.observers.set(contentTopic, union(currObservers, newObservers));
+      this.observers.set(pubSubTopic, ctObs);
+      observers.push([pubSubTopic, observer]);
     }
 
     return () => {
-      for (const contentTopic of contentTopicToObservers.keys()) {
-        const currentObservers = this.observers.get(contentTopic) || new Set();
-        const observersToRemove =
-          contentTopicToObservers.get(contentTopic) || new Set();
-
-        const nextObservers = leftMinusJoin(
-          currentObservers,
-          observersToRemove
-        );
-
-        if (nextObservers.size) {
-          this.observers.set(contentTopic, nextObservers);
-        } else {
-          this.observers.delete(contentTopic);
-        }
-      }
+      this.removeObservers(observers);
     };
+  }
+
+  private removeObservers<T extends IDecodedMessage>(
+    observers: Array<[PubSubTopic, Observer<T>]>
+  ): void {
+    for (const [pubSubTopic, observer] of observers) {
+      const ctObs = this.observers.get(pubSubTopic);
+      if (!ctObs) continue;
+
+      const contentTopic = observer.decoder.contentTopic;
+      const _obs = ctObs.get(contentTopic);
+      if (!_obs) continue;
+
+      _obs.delete(observer);
+      ctObs.set(contentTopic, _obs);
+      this.observers.set(pubSubTopic, ctObs);
+    }
   }
 
   public toSubscriptionIterator<T extends IDecodedMessage>(
@@ -168,12 +180,20 @@ class Relay implements IRelay {
 
   public getActiveSubscriptions(): ActiveSubscriptions {
     const map = new Map();
-    map.set(this.pubSubTopic, this.observers.keys());
+    for (const pubSubTopic of this.pubSubTopics) {
+      map.set(pubSubTopic, Array.from(this.observers.keys()));
+    }
     return map;
   }
 
-  public getMeshPeers(topic?: TopicStr): PeerIdStr[] {
-    return this.gossipSub.getMeshPeers(topic ?? this.pubSubTopic);
+  public getMeshPeers(topic: TopicStr = DefaultPubSubTopic): PeerIdStr[] {
+    return this.gossipSub.getMeshPeers(topic);
+  }
+
+  private subscribeToAllTopics(): void {
+    for (const pubSubTopic of this.pubSubTopics) {
+      this.gossipSubSubscribe(pubSubTopic);
+    }
   }
 
   private async processIncomingMessage<T extends IDecodedMessage>(
@@ -186,12 +206,20 @@ class Relay implements IRelay {
       return;
     }
 
-    const observers = this.observers.get(topicOnlyMsg.contentTopic) as Set<
+    // Retrieve the map of content topics for the given pubSubTopic
+    const contentTopicMap = this.observers.get(pubSubTopic);
+    if (!contentTopicMap) {
+      return;
+    }
+
+    // Retrieve the set of observers for the given contentTopic
+    const observers = contentTopicMap.get(topicOnlyMsg.contentTopic) as Set<
       Observer<T>
     >;
     if (!observers) {
       return;
     }
+
     await Promise.all(
       Array.from(observers).map(({ decoder, callback }) => {
         return (async () => {
@@ -241,7 +269,7 @@ class Relay implements IRelay {
   }
 
   private isRelayPubSub(pubsub: PubSub | undefined): boolean {
-    return pubsub?.multicodecs?.includes(Relay.multicodec) || false;
+    return pubsub?.multicodecs?.includes(Relay.multicodec) ?? false;
   }
 }
 
@@ -266,47 +294,4 @@ export function wakuGossipSub(
     pubsub.multicodecs = RelayCodecs;
     return pubsub;
   };
-}
-
-function toObservers<T extends IDecodedMessage>(
-  decoders: IDecoder<T>[],
-  callback: Callback<T>
-): Map<ContentTopic, Set<Observer<T>>> {
-  const contentTopicToDecoders = Array.from(
-    groupByContentTopic(decoders).entries()
-  );
-
-  const contentTopicToObserversEntries = contentTopicToDecoders.map(
-    ([contentTopic, decoders]) =>
-      [
-        contentTopic,
-        new Set(
-          decoders.map(
-            (decoder) =>
-              ({
-                decoder,
-                callback
-              }) as Observer<T>
-          )
-        )
-      ] as [ContentTopic, Set<Observer<T>>]
-  );
-
-  return new Map(contentTopicToObserversEntries);
-}
-
-function union(left: Set<unknown>, right: Set<unknown>): Set<unknown> {
-  for (const val of right.values()) {
-    left.add(val);
-  }
-  return left;
-}
-
-function leftMinusJoin(left: Set<unknown>, right: Set<unknown>): Set<unknown> {
-  for (const val of right.values()) {
-    if (left.has(val)) {
-      left.delete(val);
-    }
-  }
-  return left;
 }

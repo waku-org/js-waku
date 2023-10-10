@@ -27,6 +27,7 @@ import debug from "debug";
 import {
   delay,
   makeLogFileName,
+  MessageCollector,
   NOISE_KEY_1,
   NOISE_KEY_2,
   NOISE_KEY_3
@@ -259,6 +260,16 @@ describe("Waku Relay [node only]", () => {
     let waku1: RelayNode;
     let waku2: RelayNode;
     let waku3: RelayNode;
+
+    const CustomContentTopic = "/test/2/waku-relay/utf8";
+    const CustomPubSubTopic = "/some/pubsub/topic";
+
+    const CustomEncoder = createEncoder({
+      contentTopic: CustomContentTopic,
+      pubSubTopic: CustomPubSubTopic
+    });
+    const CustomDecoder = createDecoder(CustomContentTopic, CustomPubSubTopic);
+
     afterEach(async function () {
       !!waku1 &&
         waku1.stop().catch((e) => console.log("Waku failed to stop", e));
@@ -268,20 +279,196 @@ describe("Waku Relay [node only]", () => {
         waku3.stop().catch((e) => console.log("Waku failed to stop", e));
     });
 
-    it("Publish", async function () {
+    [
+      {
+        pubsub: CustomPubSubTopic,
+        encoder: CustomEncoder,
+        decoder: CustomDecoder
+      },
+      {
+        pubsub: DefaultPubSubTopic,
+        encoder: TestEncoder,
+        decoder: TestDecoder
+      }
+    ].forEach((testItem) => {
+      it(`3 nodes on ${testItem.pubsub} topic`, async function () {
+        this.timeout(10000);
+
+        const [msgCollector1, msgCollector2, msgCollector3] = Array(3)
+          .fill(null)
+          .map(() => new MessageCollector());
+
+        [waku1, waku2, waku3] = await Promise.all([
+          createRelayNode({
+            pubSubTopics: [testItem.pubsub],
+            staticNoiseKey: NOISE_KEY_1
+          }).then((waku) => waku.start().then(() => waku)),
+          createRelayNode({
+            pubSubTopics: [testItem.pubsub],
+            staticNoiseKey: NOISE_KEY_2,
+            libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+          }).then((waku) => waku.start().then(() => waku)),
+          createRelayNode({
+            pubSubTopics: [testItem.pubsub],
+            staticNoiseKey: NOISE_KEY_3
+          }).then((waku) => waku.start().then(() => waku))
+        ]);
+
+        await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+          multiaddrs: waku2.libp2p.getMultiaddrs()
+        });
+        await waku3.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+          multiaddrs: waku2.libp2p.getMultiaddrs()
+        });
+        await Promise.all([
+          waku1.dial(waku2.libp2p.peerId),
+          waku3.dial(waku2.libp2p.peerId)
+        ]);
+
+        await Promise.all([
+          waitForRemotePeer(waku1, [Protocols.Relay]),
+          waitForRemotePeer(waku2, [Protocols.Relay]),
+          waitForRemotePeer(waku3, [Protocols.Relay])
+        ]);
+
+        await waku1.relay.subscribe([testItem.decoder], msgCollector1.callback);
+        await waku2.relay.subscribe([testItem.decoder], msgCollector2.callback);
+        await waku3.relay.subscribe([testItem.decoder], msgCollector3.callback);
+
+        // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
+        const relayResponse1 = await waku1.relay.send(testItem.encoder, {
+          payload: utf8ToBytes("M1")
+        });
+        const relayResponse2 = await waku2.relay.send(testItem.encoder, {
+          payload: utf8ToBytes("M2")
+        });
+        const relayResponse3 = await waku3.relay.send(testItem.encoder, {
+          payload: utf8ToBytes("M3")
+        });
+
+        expect(relayResponse1.recipients[0].toString()).to.eq(
+          waku2.libp2p.peerId.toString()
+        );
+        expect(relayResponse3.recipients[0].toString()).to.eq(
+          waku2.libp2p.peerId.toString()
+        );
+        expect(relayResponse2.recipients.map((r) => r.toString())).to.include(
+          waku1.libp2p.peerId.toString()
+        );
+        expect(relayResponse2.recipients.map((r) => r.toString())).to.include(
+          waku3.libp2p.peerId.toString()
+        );
+
+        expect(await msgCollector1.waitForMessages(2, { exact: true })).to.eq(
+          true
+        );
+        expect(await msgCollector2.waitForMessages(2, { exact: true })).to.eq(
+          true
+        );
+        expect(await msgCollector3.waitForMessages(2, { exact: true })).to.eq(
+          true
+        );
+
+        expect(msgCollector1.hasMessage(testItem.pubsub, "M2")).to.be.true;
+        expect(msgCollector1.hasMessage(testItem.pubsub, "M3")).to.be.true;
+        expect(msgCollector2.hasMessage(testItem.pubsub, "M1")).to.be.true;
+        expect(msgCollector2.hasMessage(testItem.pubsub, "M3")).to.be.true;
+        expect(msgCollector3.hasMessage(testItem.pubsub, "M1")).to.be.true;
+        expect(msgCollector3.hasMessage(testItem.pubsub, "M2")).to.be.true;
+      });
+    });
+
+    it("Nodes with multiple pubsub topic", async function () {
       this.timeout(10000);
 
-      const pubSubTopic = "/some/pubsub/topic";
+      const [msgCollector1, msgCollector2, msgCollector3] = Array(3)
+        .fill(null)
+        .map(() => new MessageCollector());
 
-      // 1 and 2 uses a custom pubsub
-      // 3 uses the default pubsub
+      // Waku1 and waku2 are using multiple pubsub topis
       [waku1, waku2, waku3] = await Promise.all([
         createRelayNode({
-          pubSubTopic: pubSubTopic,
+          pubSubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopic: pubSubTopic,
+          pubSubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
+          staticNoiseKey: NOISE_KEY_2,
+          libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+        }).then((waku) => waku.start().then(() => waku)),
+        createRelayNode({
+          pubSubTopics: [DefaultPubSubTopic],
+          staticNoiseKey: NOISE_KEY_3
+        }).then((waku) => waku.start().then(() => waku))
+      ]);
+
+      await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+        multiaddrs: waku2.libp2p.getMultiaddrs()
+      });
+      await waku3.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+        multiaddrs: waku2.libp2p.getMultiaddrs()
+      });
+      await Promise.all([
+        waku1.dial(waku2.libp2p.peerId),
+        waku3.dial(waku2.libp2p.peerId)
+      ]);
+
+      await Promise.all([
+        waitForRemotePeer(waku1, [Protocols.Relay]),
+        waitForRemotePeer(waku2, [Protocols.Relay]),
+        waitForRemotePeer(waku3, [Protocols.Relay])
+      ]);
+
+      await waku1.relay.subscribe(
+        [TestDecoder, CustomDecoder],
+        msgCollector1.callback
+      );
+      await waku2.relay.subscribe(
+        [TestDecoder, CustomDecoder],
+        msgCollector2.callback
+      );
+      await waku3.relay.subscribe([TestDecoder], msgCollector3.callback);
+
+      // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
+      // However onlt waku1 and waku2 are receiving messages on the CustomPubSubTopic
+      await waku1.relay.send(TestEncoder, { payload: utf8ToBytes("M1") });
+      await waku1.relay.send(CustomEncoder, { payload: utf8ToBytes("M2") });
+      await waku2.relay.send(TestEncoder, { payload: utf8ToBytes("M3") });
+      await waku2.relay.send(CustomEncoder, { payload: utf8ToBytes("M4") });
+      await waku3.relay.send(TestEncoder, { payload: utf8ToBytes("M5") });
+      await waku3.relay.send(CustomEncoder, { payload: utf8ToBytes("M6") });
+
+      expect(await msgCollector1.waitForMessages(3, { exact: true })).to.eq(
+        true
+      );
+      expect(await msgCollector2.waitForMessages(3, { exact: true })).to.eq(
+        true
+      );
+      expect(await msgCollector3.waitForMessages(2, { exact: true })).to.eq(
+        true
+      );
+
+      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M3")).to.be.true;
+      expect(msgCollector1.hasMessage(CustomPubSubTopic, "M4")).to.be.true;
+      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M5")).to.be.true;
+      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M1")).to.be.true;
+      expect(msgCollector1.hasMessage(CustomPubSubTopic, "M2")).to.be.true;
+      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M5")).to.be.true;
+      expect(msgCollector2.hasMessage(CustomPubSubTopic, "M1")).to.be.true;
+      expect(msgCollector2.hasMessage(DefaultPubSubTopic, "M3")).to.be.true;
+      expect(msgCollector3.hasMessage(DefaultPubSubTopic, "M1")).to.be.true;
+    });
+
+    it("n1 and n2 uses a custom pubsub, n3 uses the default pubsub", async function () {
+      this.timeout(10000);
+
+      [waku1, waku2, waku3] = await Promise.all([
+        createRelayNode({
+          pubSubTopics: [CustomPubSubTopic],
+          staticNoiseKey: NOISE_KEY_1
+        }).then((waku) => waku.start().then(() => waku)),
+        createRelayNode({
+          pubSubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku)),
@@ -310,7 +497,7 @@ describe("Waku Relay [node only]", () => {
 
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          void waku2.relay.subscribe([TestDecoder], resolve);
+          void waku2.relay.subscribe([CustomDecoder], resolve);
         }
       );
 
@@ -323,7 +510,7 @@ describe("Waku Relay [node only]", () => {
         }
       );
 
-      await waku1.relay.send(TestEncoder, {
+      await waku1.relay.send(CustomEncoder, {
         payload: utf8ToBytes(messageText)
       });
 
@@ -331,23 +518,21 @@ describe("Waku Relay [node only]", () => {
       await waku3NoMsgPromise;
 
       expect(bytesToUtf8(waku2ReceivedMsg.payload!)).to.eq(messageText);
-      expect(waku2ReceivedMsg.pubSubTopic).to.eq(pubSubTopic);
+      expect(waku2ReceivedMsg.pubSubTopic).to.eq(CustomPubSubTopic);
     });
 
     it("Publishes <= 1 MB and rejects others", async function () {
       this.timeout(10000);
       const MB = 1024 ** 2;
 
-      const pubSubTopic = "/some/pubsub/topic";
-
       // 1 and 2 uses a custom pubsub
       [waku1, waku2] = await Promise.all([
         createRelayNode({
-          pubSubTopic: pubSubTopic,
+          pubSubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopic: pubSubTopic,
+          pubSubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku))
@@ -365,7 +550,7 @@ describe("Waku Relay [node only]", () => {
 
       const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
         (resolve) => {
-          void waku2.relay.subscribe([TestDecoder], () =>
+          void waku2.relay.subscribe([CustomDecoder], () =>
             resolve({
               payload: new Uint8Array([])
             } as DecodedMessage)
@@ -373,18 +558,18 @@ describe("Waku Relay [node only]", () => {
         }
       );
 
-      let sendResult = await waku1.relay.send(TestEncoder, {
+      let sendResult = await waku1.relay.send(CustomEncoder, {
         payload: generateRandomUint8Array(1 * MB)
       });
       expect(sendResult.recipients.length).to.eq(1);
 
-      sendResult = await waku1.relay.send(TestEncoder, {
+      sendResult = await waku1.relay.send(CustomEncoder, {
         payload: generateRandomUint8Array(1 * MB + 65536)
       });
       expect(sendResult.recipients.length).to.eq(0);
       expect(sendResult.errors).to.include(SendError.SIZE_TOO_BIG);
 
-      sendResult = await waku1.relay.send(TestEncoder, {
+      sendResult = await waku1.relay.send(CustomEncoder, {
         payload: generateRandomUint8Array(2 * MB)
       });
       expect(sendResult.recipients.length).to.eq(0);

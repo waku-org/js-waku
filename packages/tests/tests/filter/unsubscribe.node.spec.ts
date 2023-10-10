@@ -1,4 +1,4 @@
-import { createDecoder, createEncoder } from "@waku/core";
+import { createDecoder, createEncoder, DefaultPubSubTopic } from "@waku/core";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -25,16 +25,17 @@ describe("Waku Filter V2: Unsubscribe", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this);
+    [nwaku, waku] = await runNodes(this, [DefaultPubSubTopic]);
     subscription = await waku.filter.createSubscription();
-    messageCollector = new MessageCollector(TestContentTopic);
+    messageCollector = new MessageCollector();
 
     // Nwaku subscribe to the default pubsub topic
     await nwaku.ensureSubscriptions();
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku], [waku]);
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("Unsubscribe 1 topic - node subscribed to 1 topic", async function () {
@@ -49,7 +50,8 @@ describe("Waku Filter V2: Unsubscribe", function () {
 
     // Check that from 2 messages send only the 1st was received
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: messageText
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic
     });
     expect(messageCollector.count).to.eq(1);
     expect((await nwaku.messages()).length).to.eq(2);

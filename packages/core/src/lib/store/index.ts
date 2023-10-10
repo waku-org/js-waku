@@ -6,10 +6,11 @@ import {
   IDecoder,
   IStore,
   Libp2p,
-  ProtocolCreateOptions
+  ProtocolCreateOptions,
+  PubSubTopic
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
-import { isDefined } from "@waku/utils";
+import { ensurePubsubTopicIsConfigured, isDefined } from "@waku/utils";
 import { concat, utf8ToBytes } from "@waku/utils/bytes";
 import debug from "debug";
 import all from "it-all";
@@ -74,12 +75,12 @@ export interface QueryOptions {
  * The Waku Store protocol can be used to retrieved historical messages.
  */
 class Store extends BaseProtocol implements IStore {
-  options: ProtocolCreateOptions;
+  private readonly pubSubTopics: PubSubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components);
-    this.options = options ?? {};
+    this.pubSubTopics = options?.pubSubTopics ?? [DefaultPubSubTopic];
   }
 
   /**
@@ -206,18 +207,53 @@ class Store extends BaseProtocol implements IStore {
    * @throws If not able to reach a Waku Store peer to query,
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
+   *
+   * This API only supports querying a single pubsub topic at a time.
+   * If multiple decoders are provided, they must all have the same pubsub topic.
+   * @throws If multiple decoders with different pubsub topics are provided.
+   * @throws If no decoders are provided.
+   * @throws If no decoders are found for the provided pubsub topic.
    */
   async *queryGenerator<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     options?: QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
-    const { pubSubTopic = DefaultPubSubTopic } = this.options;
+    if (decoders.length === 0) {
+      throw new Error("No decoders provided");
+    }
 
     let startTime, endTime;
 
     if (options?.timeFilter) {
       startTime = options.timeFilter.startTime;
       endTime = options.timeFilter.endTime;
+    }
+
+    // convert array to set to remove duplicates
+    const uniquePubSubTopicsInQuery = Array.from(
+      new Set(decoders.map((decoder) => decoder.pubSubTopic))
+    );
+
+    // If multiple pubsub topics are provided, throw an error
+    if (uniquePubSubTopicsInQuery.length > 1) {
+      throw new Error(
+        "API does not support querying multiple pubsub topics at once"
+      );
+    }
+
+    // we can be certain that there is only one pubsub topic in the query
+    const pubSubTopicForQuery = uniquePubSubTopicsInQuery[0];
+
+    ensurePubsubTopicIsConfigured(pubSubTopicForQuery, this.pubSubTopics);
+
+    // check that the pubSubTopic from the Cursor and Decoder match
+    if (
+      options?.cursor?.pubsubTopic &&
+      options.cursor.pubsubTopic !== pubSubTopicForQuery
+    ) {
+      throw new Error(
+        `Cursor pubsub topic (${options?.cursor?.pubsubTopic}) does not match decoder pubsub topic (${pubSubTopicForQuery})`
+      );
     }
 
     const decodersAsMap = new Map();
@@ -230,11 +266,17 @@ class Store extends BaseProtocol implements IStore {
       decodersAsMap.set(dec.contentTopic, dec);
     });
 
-    const contentTopics = decoders.map((dec) => dec.contentTopic);
+    const contentTopics = decoders
+      .filter((decoder) => decoder.pubSubTopic === pubSubTopicForQuery)
+      .map((dec) => dec.contentTopic);
+
+    if (contentTopics.length === 0) {
+      throw new Error("No decoders found for topic " + pubSubTopicForQuery);
+    }
 
     const queryOpts = Object.assign(
       {
-        pubSubTopic: pubSubTopic,
+        pubSubTopic: pubSubTopicForQuery,
         pageDirection: PageDirection.BACKWARD,
         pageSize: DefaultPageSize
       },
@@ -365,10 +407,7 @@ async function* paginate<T extends IDecodedMessage>(
   }
 }
 
-export async function createCursor(
-  message: IDecodedMessage,
-  pubsubTopic: string = DefaultPubSubTopic
-): Promise<Cursor> {
+export async function createCursor(message: IDecodedMessage): Promise<Cursor> {
   if (
     !message ||
     !message.timestamp ||
@@ -386,7 +425,7 @@ export async function createCursor(
 
   return {
     digest,
-    pubsubTopic,
+    pubsubTopic: message.pubSubTopic,
     senderTime: messageTime,
     receiverTime: messageTime
   };

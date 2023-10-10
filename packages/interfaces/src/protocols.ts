@@ -4,6 +4,7 @@ import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { Libp2pOptions } from "libp2p";
 
 import type { IDecodedMessage } from "./message.js";
+import type { PubSubTopic } from "./misc.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -22,24 +23,29 @@ export interface IBaseProtocol {
 
 export type ProtocolCreateOptions = {
   /**
-   * The PubSub Topic to use. Defaults to {@link @waku/core.DefaultPubSubTopic }.
+   * Waku supports usage of multiple pubsub topics, but this is still in early stages.
+   * Waku implements sharding to achieve scalability
+   * The format of the sharded topic is `/waku/2/rs/<shard_cluster_index>/<shard_number>`
+   * To learn more about the sharding specifications implemented, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
+   * The PubSub Topic to use. Defaults to {@link @waku/core!DefaultPubSubTopic }.
    *
-   * One and only one pubsub topic is used by Waku. This is used by:
+   * If no pubsub topic is specified, the default pubsub topic is used.
+   * The set of pubsub topics that are used to initialize the Waku node, will need to be used by the protocols as well
+   * You cannot currently add or remove pubsub topics after initialization.
+   * This is used by:
    * - WakuRelay to receive, route and send messages,
    * - WakuLightPush to send messages,
    * - WakuStore to retrieve messages.
-   *
-   * The usage of the default pubsub topic is recommended.
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
    */
-  pubSubTopic?: string;
+  pubSubTopics?: PubSubTopic[];
   /**
-   * You can pass options to the `Libp2p` instance used by {@link @waku/core.WakuNode} using the `libp2p` property.
+   * You can pass options to the `Libp2p` instance used by {@link @waku/core!WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * apart that we made the `modules` property optional and partial,
    * allowing its omission and letting Waku set good defaults.
-   * Notes that some values are overridden by {@link @waku/core.WakuNode} to ensure it implements the Waku protocol.
+   * Notes that some values are overridden by {@link @waku/core!WakuNode} to ensure it implements the Waku protocol.
    */
   libp2p?: Partial<Libp2pOptions>;
   /**
@@ -71,6 +77,11 @@ export enum SendError {
    * Compressing the message or using an alternative strategy for large messages is recommended.
    */
   SIZE_TOO_BIG = "Size is too big",
+  /**
+   * The PubSubTopic passed to the send function is not configured on the Waku node.
+   * Please ensure that the PubSubTopic is used when initializing the Waku node.
+   */
+  TOPIC_NOT_CONFIGURED = "Topic not configured",
   /**
    * Failure to find a peer with suitable protocols. This may due to a connection issue.
    * Mitigation can be: retrying after a given time period, display connectivity issue

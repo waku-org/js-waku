@@ -65,7 +65,7 @@
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "browser": {
     "crypto": false
@@ -77,7 +77,7 @@
     "@waku/proto": "0.0.5",
     "@waku/utils": "0.0.11",
     "debug": "^4.3.4",
-    "js-sha3": "^0.8.0"
+    "js-sha3": "^0.9.2"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.4",
@@ -88,21 +88,11 @@
     "@waku/build-utils": "*",
     "chai": "^4.3.7",
     "cspell": "^7.3.2",
-    "fast-check": "^3.12.0",
-    "karma": "^6.4.2",
-    "karma-chrome-launcher": "^3.2.0",
-    "karma-mocha": "^2.0.1",
-    "karma-webpack": "^5.0.0",
+    "fast-check": "^3.13.1",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
     "process": "^0.11.10",
-    "puppeteer": "^21.1.1",
-    "rollup": "^3.29.2",
-    "ts-loader": "^9.4.2",
-    "typescript": "^5.0.4"
-  },
-  "typedoc": {
-    "entryPoint": "./src/index.ts"
+    "rollup": "^3.29.2"
   },
   "files": [
     "dist",

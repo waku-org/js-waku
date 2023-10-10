@@ -50,7 +50,7 @@ describe("Util: toAsyncIterator: Filter", () => {
 
   afterEach(async function () {
     this.timeout(10000);
-    tearDownNodes([nwaku], [waku]);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("creates an iterator", async function () {

@@ -1,6 +1,7 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 
+import { PubSubTopic } from "./misc.js";
 import { IReceiver } from "./receiver.js";
 import type { ISender } from "./sender.js";
 
@@ -12,6 +13,7 @@ import type { ISender } from "./sender.js";
  * @property getMeshPeers - Function to retrieve the mesh peers for a given topic or all topics if none is specified. Returns an array of peer IDs as strings.
  */
 export interface IRelayAPI {
+  readonly pubSubTopics: Set<PubSubTopic>;
   readonly gossipSub: GossipSub;
   start: () => Promise<void>;
   getMeshPeers: (topic?: TopicStr) => PeerIdStr[];

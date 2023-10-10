@@ -64,14 +64,17 @@ export async function validatePingError(
 }
 
 export async function runNodes(
-  currentTest: Context
+  context: Context,
+  pubSubTopics: string[]
 ): Promise<[NimGoNode, LightNode]> {
-  const nwaku = new NimGoNode(makeLogFileName(currentTest));
+  const nwaku = new NimGoNode(makeLogFileName(context));
+
   await nwaku.startWithRetries(
     {
       filter: true,
       lightpush: true,
-      relay: true
+      relay: true,
+      topic: pubSubTopics
     },
     { retries: 3 }
   );
@@ -79,6 +82,7 @@ export async function runNodes(
   let waku: LightNode | undefined;
   try {
     waku = await createLightNode({
+      pubSubTopics: pubSubTopics,
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
     });
@@ -90,6 +94,7 @@ export async function runNodes(
   if (waku) {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+    await nwaku.ensureSubscriptions(pubSubTopics);
     return [nwaku, waku];
   } else {
     throw new Error("Failed to initialize waku");

@@ -1,3 +1,4 @@
+import { DefaultPubSubTopic } from "@waku/core";
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import type {
   EncoderOptions as BaseEncoderOptions,
@@ -5,7 +6,8 @@ import type {
   IEncoder,
   IMessage,
   IMetaSetter,
-  IProtoMessage
+  IProtoMessage,
+  PubSubTopic
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import debug from "debug";
@@ -27,6 +29,7 @@ const log = debug("waku:message-encryption:symmetric");
 
 class Encoder implements IEncoder {
   constructor(
+    public pubSubTopic: PubSubTopic,
     public contentTopic: string,
     private symKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
@@ -83,29 +86,37 @@ export interface EncoderOptions extends BaseEncoderOptions {
  *
  * An encoder is used to encode messages in the [`14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
  * format to be sent over the Waku network. The resulting encoder can then be
- * pass to { @link @waku/interfaces.LightPush.push } or
- * { @link @waku/interfaces.Relay.send } to automatically encrypt
+ * pass to { @link @waku/interfaces!ISender.send } to automatically encrypt
  * and encode outgoing messages.
  *
  * The payload can optionally be signed with the given private key as defined
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
+  pubSubTopic = DefaultPubSubTopic,
   contentTopic,
   symKey,
   sigPrivKey,
   ephemeral = false,
   metaSetter
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, symKey, sigPrivKey, ephemeral, metaSetter);
+  return new Encoder(
+    pubSubTopic,
+    contentTopic,
+    symKey,
+    sigPrivKey,
+    ephemeral,
+    metaSetter
+  );
 }
 
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(
+    pubSubTopic: PubSubTopic,
     contentTopic: string,
     private symKey: Uint8Array
   ) {
-    super(contentTopic);
+    super(pubSubTopic, contentTopic);
   }
 
   async fromProtoObj(
@@ -165,8 +176,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
  *
  * A decoder is used to decode messages from the [14/WAKU2-MESSAGE](https://rfc.vac.dev/spec/14/)
  * format when received from the Waku network. The resulting decoder can then be
- * pass to { @link @waku/interfaces.Filter.subscribe } or
- * { @link @waku/interfaces.Relay.subscribe } to automatically decrypt and
+ * pass to { @link @waku/interfaces!IReceiver.subscribe } to automatically decrypt and
  * decode incoming messages.
  *
  * @param contentTopic The resulting decoder will only decode messages with this content topic.
@@ -174,7 +184,8 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  symKey: Uint8Array
+  symKey: Uint8Array,
+  pubSubTopic: PubSubTopic = DefaultPubSubTopic
 ): Decoder {
-  return new Decoder(contentTopic, symKey);
+  return new Decoder(pubSubTopic, contentTopic, symKey);
 }

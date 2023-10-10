@@ -1,3 +1,4 @@
+import { DefaultPubSubTopic } from "@waku/core";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -22,13 +23,14 @@ describe("Waku Filter V2: Ping", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this);
+    [nwaku, waku] = await runNodes(this, [DefaultPubSubTopic]);
     subscription = await waku.filter.createSubscription();
-    messageCollector = new MessageCollector(TestContentTopic);
+    messageCollector = new MessageCollector();
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku], [waku]);
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("Ping on subscribed peer", async function () {
