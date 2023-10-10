@@ -110,7 +110,7 @@ describe("Static Sharding: Peer Management", function () {
       expect(attemptDialSpy.callCount).to.equal(3);
     });
 
-    it.only("px service nodes not subscribed to the shard should not be dialed", async function () {
+    it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
       const pubSubTopicsToDial = ["/waku/2/rs/18/2"];
       const pubSubTopicsToIgnore = ["/waku/2/rs/18/3"];
