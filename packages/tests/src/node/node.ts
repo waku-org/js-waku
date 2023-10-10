@@ -167,8 +167,8 @@ export class NimGoNode {
   async startWithRetries(
     args: Args,
     options: {
-      retries: number;
-    }
+      retries?: number;
+    } = { retries: 3 }
   ): Promise<void> {
     await pRetry(
       async () => {

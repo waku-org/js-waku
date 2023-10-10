@@ -149,10 +149,12 @@ describe("ConnectionManager", function () {
     let waku: LightNode;
 
     this.beforeEach(async function () {
+      this.timeout(15000);
       waku = await createLightNode();
     });
 
     afterEach(async () => {
+      this.timeout(15000);
       await waku.stop();
       sinon.restore();
     });

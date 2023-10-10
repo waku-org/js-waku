@@ -35,7 +35,8 @@ describe("Waku Light Push", function () {
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku], [waku]);
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   TEST_STRING.forEach((testItem) => {
