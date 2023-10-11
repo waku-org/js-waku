@@ -50,7 +50,7 @@ export const FilterCodecs = {
 
 class Subscription {
   private readonly peer: Peer;
-  private readonly pubSubTopic: PubSubTopic;
+  private readonly pubsubTopic: PubSubTopic;
   private newStream: (peer: Peer) => Promise<Stream>;
 
   private subscriptionCallbacks: Map<
@@ -59,12 +59,12 @@ class Subscription {
   >;
 
   constructor(
-    pubSubTopic: PubSubTopic,
+    pubsubTopic: PubSubTopic,
     remotePeer: Peer,
     newStream: (peer: Peer) => Promise<Stream>
   ) {
     this.peer = remotePeer;
-    this.pubSubTopic = pubSubTopic;
+    this.pubsubTopic = pubsubTopic;
     this.newStream = newStream;
     this.subscriptionCallbacks = new Map();
   }
@@ -80,7 +80,7 @@ class Subscription {
     const stream = await this.newStream(this.peer);
 
     const request = FilterSubscribeRpc.createSubscribeRequest(
-      this.pubSubTopic,
+      this.pubsubTopic,
       contentTopics
     );
 
@@ -145,7 +145,7 @@ class Subscription {
   async unsubscribe(contentTopics: ContentTopic[]): Promise<void> {
     const stream = await this.newStream(this.peer);
     const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
-      this.pubSubTopic,
+      this.pubsubTopic,
       contentTopics
     );
 
@@ -194,7 +194,7 @@ class Subscription {
     const stream = await this.newStream(this.peer);
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(
-      this.pubSubTopic
+      this.pubsubTopic
     );
 
     try {
@@ -229,7 +229,7 @@ class Subscription {
       log("No subscription callback available for ", contentTopic);
       return;
     }
-    await pushMessage(subscriptionCallback, this.pubSubTopic, message);
+    await pushMessage(subscriptionCallback, this.pubsubTopic, message);
   }
 }
 
@@ -239,18 +239,18 @@ class Filter extends BaseProtocol implements IReceiver {
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   private getActiveSubscription(
-    pubSubTopic: PubSubTopic,
+    pubsubTopic: PubSubTopic,
     peerIdStr: PeerIdStr
   ): Subscription | undefined {
-    return this.activeSubscriptions.get(`${pubSubTopic}_${peerIdStr}`);
+    return this.activeSubscriptions.get(`${pubsubTopic}_${peerIdStr}`);
   }
 
   private setActiveSubscription(
-    pubSubTopic: PubSubTopic,
+    pubsubTopic: PubSubTopic,
     peerIdStr: PeerIdStr,
     subscription: Subscription
   ): Subscription {
-    this.activeSubscriptions.set(`${pubSubTopic}_${peerIdStr}`, subscription);
+    this.activeSubscriptions.set(`${pubsubTopic}_${peerIdStr}`, subscription);
     return subscription;
   }
 
@@ -267,9 +267,9 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   async createSubscription(
-    pubSubTopic: string = DefaultPubSubTopic
+    pubsubTopic: string = DefaultPubSubTopic
   ): Promise<Subscription> {
-    ensurePubsubTopicIsConfigured(pubSubTopic, this.pubSubTopics);
+    ensurePubsubTopicIsConfigured(pubsubTopic, this.pubSubTopics);
 
     //TODO: get a relevant peer for the topic/shard
     // https://github.com/waku-org/js-waku/pull/1586#discussion_r1336428230
@@ -281,11 +281,11 @@ class Filter extends BaseProtocol implements IReceiver {
     )[0];
 
     const subscription =
-      this.getActiveSubscription(pubSubTopic, peer.id.toString()) ??
+      this.getActiveSubscription(pubsubTopic, peer.id.toString()) ??
       this.setActiveSubscription(
-        pubSubTopic,
+        pubsubTopic,
         peer.id.toString(),
-        new Subscription(pubSubTopic, peer, this.getStream.bind(this, peer))
+        new Subscription(pubsubTopic, peer, this.getStream.bind(this, peer))
       );
 
     return subscription;
@@ -385,7 +385,7 @@ export function wakuFilter(
 
 async function pushMessage<T extends IDecodedMessage>(
   subscriptionCallback: SubscriptionCallback<T>,
-  pubSubTopic: PubSubTopic,
+  pubsubTopic: PubSubTopic,
   message: WakuMessage
 ): Promise<void> {
   const { decoders, callback } = subscriptionCallback;
@@ -399,7 +399,7 @@ async function pushMessage<T extends IDecodedMessage>(
   try {
     const decodePromises = decoders.map((dec) =>
       dec
-        .fromProtoObj(pubSubTopic, message as IProtoMessage)
+        .fromProtoObj(pubsubTopic, message as IProtoMessage)
         .then((decoded) => decoded || Promise.reject("Decoding failed"))
     );
 

@@ -34,12 +34,12 @@ describe("Static Sharding: Running Nodes", () => {
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
-      pubSubTopic: PubSubTopic1
+      pubsubTopic: PubSubTopic1
     });
 
     const encoder2 = createEncoder({
       contentTopic: ContentTopic,
-      pubSubTopic: PubSubTopic2
+      pubsubTopic: PubSubTopic2
     });
 
     const request1 = waku.lightPush.send(encoder1, {
@@ -63,7 +63,7 @@ describe("Static Sharding: Running Nodes", () => {
     // use a pubsub topic that is not configured
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubSubTopic: PubSubTopic2
+      pubsubTopic: PubSubTopic2
     });
 
     // the following request should throw an error

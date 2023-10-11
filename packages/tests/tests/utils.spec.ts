@@ -66,7 +66,7 @@ describe("Util: toAsyncIterator: Filter", () => {
     const { value } = await iterator.next();
 
     expect(value.contentTopic).to.eq(TestContentTopic);
-    expect(value.pubSubTopic).to.eq(DefaultPubSubTopic);
+    expect(value.pubsubTopic).to.eq(DefaultPubSubTopic);
     expect(bytesToUtf8(value.payload)).to.eq(messageText);
   });
 

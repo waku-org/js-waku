@@ -113,7 +113,7 @@ export class KeepAliveManager {
       if (!meshPeers.includes(peerIdStr)) continue;
 
       const encoder = createEncoder({
-        pubSubTopic: topic,
+        pubsubTopic: topic,
         contentTopic: RelayPingContentTopic,
         ephemeral: true
       });

@@ -25,7 +25,7 @@ export interface IFilterSubscription {
 export type IFilter = IReceiver &
   IBaseProtocol & {
     createSubscription(
-      pubSubTopic?: string,
+      pubsubTopic?: string,
       peerId?: PeerId
     ): Promise<IFilterSubscription>;
   };

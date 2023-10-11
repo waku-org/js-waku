@@ -266,7 +266,7 @@ describe("Waku Relay [node only]", () => {
 
     const CustomEncoder = createEncoder({
       contentTopic: CustomContentTopic,
-      pubSubTopic: CustomPubSubTopic
+      pubsubTopic: CustomPubSubTopic
     });
     const CustomDecoder = createDecoder(CustomContentTopic, CustomPubSubTopic);
 
@@ -518,7 +518,7 @@ describe("Waku Relay [node only]", () => {
       await waku3NoMsgPromise;
 
       expect(bytesToUtf8(waku2ReceivedMsg.payload!)).to.eq(messageText);
-      expect(waku2ReceivedMsg.pubSubTopic).to.eq(CustomPubSubTopic);
+      expect(waku2ReceivedMsg.pubsubTopic).to.eq(CustomPubSubTopic);
     });
 
     it("Publishes <= 1 MB and rejects others", async function () {

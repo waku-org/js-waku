@@ -31,7 +31,7 @@ export async function sendMessages(
   instance: NimGoNode,
   numMessages: number,
   contentTopic: string,
-  pubSubTopic: string
+  pubsubTopic: string
 ): Promise<void> {
   for (let i = 0; i < numMessages; i++) {
     expect(
@@ -40,7 +40,7 @@ export async function sendMessages(
           payload: new Uint8Array([i]),
           contentTopic: contentTopic
         }),
-        pubSubTopic
+        pubsubTopic
       )
     ).to.be.true;
     await delay(1); // to ensure each timestamp is unique.
@@ -56,7 +56,7 @@ export async function processQueriedMessages(
   for await (const query of instance.store.queryGenerator(decoders)) {
     for await (const msg of query) {
       if (msg) {
-        expect(msg.pubSubTopic).to.eq(expectedTopic);
+        expect(msg.pubsubTopic).to.eq(expectedTopic);
         localMessages.push(msg as DecodedMessage);
       }
     }

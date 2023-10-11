@@ -103,8 +103,8 @@ class Relay implements IRelay {
   public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
     const recipients: PeerId[] = [];
 
-    const { pubSubTopic } = encoder;
-    if (!this.pubSubTopics.has(pubSubTopic)) {
+    const { pubsubTopic } = encoder;
+    if (!this.pubSubTopics.has(pubsubTopic)) {
       log("Failed to send waku relay: topic not configured");
       return {
         recipients,
@@ -129,7 +129,7 @@ class Relay implements IRelay {
       };
     }
 
-    return this.gossipSub.publish(pubSubTopic, msg);
+    return this.gossipSub.publish(pubsubTopic, msg);
   }
 
   public subscribe<T extends IDecodedMessage>(
@@ -139,15 +139,15 @@ class Relay implements IRelay {
     const observers: Array<[PubSubTopic, Observer<T>]> = [];
 
     for (const decoder of Array.isArray(decoders) ? decoders : [decoders]) {
-      const { pubSubTopic } = decoder;
+      const { pubsubTopic } = decoder;
       const ctObs: Map<ContentTopic, Set<Observer<T>>> = this.observers.get(
-        pubSubTopic
+        pubsubTopic
       ) ?? new Map();
-      const observer = { pubSubTopic, decoder, callback };
+      const observer = { pubsubTopic, decoder, callback };
       pushOrInitMapSet(ctObs, decoder.contentTopic, observer);
 
-      this.observers.set(pubSubTopic, ctObs);
-      observers.push([pubSubTopic, observer]);
+      this.observers.set(pubsubTopic, ctObs);
+      observers.push([pubsubTopic, observer]);
     }
 
     return () => {
@@ -158,8 +158,8 @@ class Relay implements IRelay {
   private removeObservers<T extends IDecodedMessage>(
     observers: Array<[PubSubTopic, Observer<T>]>
   ): void {
-    for (const [pubSubTopic, observer] of observers) {
-      const ctObs = this.observers.get(pubSubTopic);
+    for (const [pubsubTopic, observer] of observers) {
+      const ctObs = this.observers.get(pubsubTopic);
       if (!ctObs) continue;
 
       const contentTopic = observer.decoder.contentTopic;
@@ -168,7 +168,7 @@ class Relay implements IRelay {
 
       _obs.delete(observer);
       ctObs.set(contentTopic, _obs);
-      this.observers.set(pubSubTopic, ctObs);
+      this.observers.set(pubsubTopic, ctObs);
     }
   }
 
@@ -180,8 +180,8 @@ class Relay implements IRelay {
 
   public getActiveSubscriptions(): ActiveSubscriptions {
     const map = new Map();
-    for (const pubSubTopic of this.pubSubTopics) {
-      map.set(pubSubTopic, Array.from(this.observers.keys()));
+    for (const pubsubTopic of this.pubSubTopics) {
+      map.set(pubsubTopic, Array.from(this.observers.keys()));
     }
     return map;
   }
@@ -191,13 +191,13 @@ class Relay implements IRelay {
   }
 
   private subscribeToAllTopics(): void {
-    for (const pubSubTopic of this.pubSubTopics) {
-      this.gossipSubSubscribe(pubSubTopic);
+    for (const pubsubTopic of this.pubSubTopics) {
+      this.gossipSubSubscribe(pubsubTopic);
     }
   }
 
   private async processIncomingMessage<T extends IDecodedMessage>(
-    pubSubTopic: string,
+    pubsubTopic: string,
     bytes: Uint8Array
   ): Promise<void> {
     const topicOnlyMsg = await this.defaultDecoder.fromWireToProtoObj(bytes);
@@ -206,8 +206,8 @@ class Relay implements IRelay {
       return;
     }
 
-    // Retrieve the map of content topics for the given pubSubTopic
-    const contentTopicMap = this.observers.get(pubSubTopic);
+    // Retrieve the map of content topics for the given pubsubTopic
+    const contentTopicMap = this.observers.get(pubsubTopic);
     if (!contentTopicMap) {
       return;
     }
@@ -231,7 +231,7 @@ class Relay implements IRelay {
               );
               return;
             }
-            const msg = await decoder.fromProtoObj(pubSubTopic, protoMsg);
+            const msg = await decoder.fromProtoObj(pubsubTopic, protoMsg);
             if (msg) {
               await callback(msg);
             } else {
@@ -250,12 +250,12 @@ class Relay implements IRelay {
    *
    * @override
    */
-  private gossipSubSubscribe(pubSubTopic: string): void {
+  private gossipSubSubscribe(pubsubTopic: string): void {
     this.gossipSub.addEventListener(
       "gossipsub:message",
       (event: CustomEvent<GossipsubMessage>) => {
-        if (event.detail.msg.topic !== pubSubTopic) return;
-        log(`Message received on ${pubSubTopic}`);
+        if (event.detail.msg.topic !== pubsubTopic) return;
+        log(`Message received on ${pubsubTopic}`);
 
         this.processIncomingMessage(
           event.detail.msg.topic,
@@ -264,8 +264,8 @@ class Relay implements IRelay {
       }
     );
 
-    this.gossipSub.topicValidators.set(pubSubTopic, messageValidator);
-    this.gossipSub.subscribe(pubSubTopic);
+    this.gossipSub.topicValidators.set(pubsubTopic, messageValidator);
+    this.gossipSub.subscribe(pubsubTopic);
   }
 
   private isRelayPubSub(pubsub: PubSub | undefined): boolean {

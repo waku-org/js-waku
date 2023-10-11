@@ -53,7 +53,7 @@ class LightPush extends BaseProtocol implements ILightPush {
   private async preparePushMessage(
     encoder: IEncoder,
     message: IMessage,
-    pubSubTopic: string
+    pubsubTopic: string
   ): Promise<PreparePushMessageResult> {
     try {
       if (!isSizeValid(message.payload)) {
@@ -70,7 +70,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         };
       }
 
-      const query = PushRpc.createRequest(protoMessage, pubSubTopic);
+      const query = PushRpc.createRequest(protoMessage, pubsubTopic);
       return { query, error: null };
     } catch (error) {
       log("Failed to prepare push message", error);
@@ -83,15 +83,15 @@ class LightPush extends BaseProtocol implements ILightPush {
   }
 
   async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
-    const { pubSubTopic } = encoder;
-    ensurePubsubTopicIsConfigured(pubSubTopic, this.pubSubTopics);
+    const { pubsubTopic } = encoder;
+    ensurePubsubTopicIsConfigured(pubsubTopic, this.pubSubTopics);
 
     const recipients: PeerId[] = [];
 
     const { query, error: preparationError } = await this.preparePushMessage(
       encoder,
       message,
-      pubSubTopic
+      pubsubTopic
     );
 
     if (preparationError || !query) {
