@@ -9,6 +9,7 @@ import { createLightNode, Libp2pComponents } from "@waku/sdk";
 import { expect } from "chai";
 
 import { delay } from "../src/delay.js";
+import { tearDownNodes } from "../src/index.js";
 import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
@@ -24,16 +25,14 @@ describe("Peer Exchange", () => {
     });
 
     afterEach(async function () {
-      this.timeout(10_000);
-      await nwaku1?.stop();
-      await nwaku2?.stop();
-      await waku?.stop();
+      this.timeout(15000);
+      await tearDownNodes([nwaku1, nwaku2], waku);
     });
 
     it("nwaku interop", async function () {
       this.timeout(55_000);
 
-      await nwaku1.start({
+      await nwaku1.startWithRetries({
         relay: true,
         discv5Discovery: true,
         peerExchange: true
@@ -41,7 +40,7 @@ describe("Peer Exchange", () => {
 
       const enr = (await nwaku1.info()).enrUri;
 
-      await nwaku2.start({
+      await nwaku2.startWithRetries({
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -98,7 +97,7 @@ describe("Peer Exchange", () => {
 
     tests({
       async setup() {
-        await nwaku1.start({
+        await nwaku1.startWithRetries({
           relay: true,
           discv5Discovery: true,
           peerExchange: true
@@ -106,7 +105,7 @@ describe("Peer Exchange", () => {
 
         const enr = (await nwaku1.info()).enrUri;
 
-        await nwaku2.start({
+        await nwaku2.startWithRetries({
           relay: true,
           discv5Discovery: true,
           peerExchange: true,
@@ -126,9 +125,8 @@ describe("Peer Exchange", () => {
         return new PeerExchangeDiscovery(waku.libp2p.components);
       },
       teardown: async () => {
-        await nwaku1?.stop();
-        await nwaku2?.stop();
-        await waku?.stop();
+        this.timeout(15000);
+        await tearDownNodes([nwaku1, nwaku2], waku);
       }
     });
   });

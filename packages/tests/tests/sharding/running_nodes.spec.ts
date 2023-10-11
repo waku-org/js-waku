@@ -2,6 +2,7 @@ import { LightNode } from "@waku/interfaces";
 import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
+import { tearDownNodes } from "../../src/index.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
 
@@ -17,13 +18,12 @@ describe("Static Sharding: Running Nodes", () => {
   beforeEach(async function () {
     this.timeout(15_000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.start({ store: true, lightpush: true, relay: true });
+    await nwaku.startWithRetries({ store: true, lightpush: true, relay: true });
   });
 
   afterEach(async function () {
-    !!nwaku &&
-      nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("configure the node with multiple pubsub topics", async function () {

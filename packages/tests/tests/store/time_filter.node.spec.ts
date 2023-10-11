@@ -48,7 +48,7 @@ describe("Waku Store, time filter", function () {
             timestamp: msgTimestamp
           })
         )
-      ).to.be.true;
+      ).to.eq(true);
 
       waku = await startAndConnectLightNode(nwaku);
 
@@ -93,7 +93,7 @@ describe("Waku Store, time filter", function () {
             timestamp: msgTimestamp
           })
         )
-      ).to.be.true;
+      ).to.eq(true);
 
       waku = await startAndConnectLightNode(nwaku);
 

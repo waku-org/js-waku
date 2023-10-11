@@ -31,7 +31,7 @@ describe("Waku Store, custom pubsub topic", function () {
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.start({
+    await nwaku.startWithRetries({
       store: true,
       topic: [customPubSubTopic, DefaultPubSubTopic],
       relay: true
@@ -100,7 +100,7 @@ describe("Waku Store, custom pubsub topic", function () {
 
     // Set up and start a new nwaku node with Default PubSubtopic
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
-    await nwaku2.start({
+    await nwaku2.startWithRetries({
       store: true,
       topic: [DefaultPubSubTopic],
       relay: true

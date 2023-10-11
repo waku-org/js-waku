@@ -20,6 +20,9 @@ export default class Dockerode {
   private static network: Docker.Network;
   private static lastUsedIp = "172.18.0.1";
   private containerIp: string;
+  private uniqueLabel = `test-${Date.now()}-${Math.random()
+    .toString(36)
+    .substring(7)}`;
 
   private constructor(imageName: string, containerIp: string) {
     this.docker = new Docker();
@@ -108,6 +111,9 @@ export default class Dockerode {
 
     const container = await this.docker.createContainer({
       Image: this.IMAGE_NAME,
+      Labels: {
+        "test-label": this.uniqueLabel
+      },
       HostConfig: {
         AutoRemove: true,
         PortBindings: {
@@ -159,18 +165,25 @@ export default class Dockerode {
   }
 
   async stop(): Promise<void> {
-    if (!this.container) throw "containerId not set";
+    const containers = await this.docker.listContainers({
+      all: true,
+      filters: { label: [`test-label=${this.uniqueLabel}`] }
+    });
 
-    log(
-      `Shutting down container ID ${
-        this.containerId
-      } at ${new Date().toLocaleTimeString()}`
-    );
+    for (const containerInfo of containers) {
+      const container = this.docker.getContainer(containerInfo.Id);
 
-    await this.container.stop();
-    await this.container.remove();
+      try {
+        await container.stop();
+      } catch (err) {
+        log(
+          `Failed to stop container ${containerInfo.Id}, might be already stopped.`
+        );
+      }
 
-    delete this.containerId;
+      await container.remove();
+      log(`Container ${containerInfo.Id} removed.`);
+    }
   }
 
   private async confirmImageExistsOrPull(): Promise<void> {

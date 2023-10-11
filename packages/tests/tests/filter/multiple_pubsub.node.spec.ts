@@ -100,7 +100,7 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
 
     // Set up and start a new nwaku node with Default PubSubtopic
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
-    await nwaku2.start({
+    await nwaku2.startWithRetries({
       filter: true,
       lightpush: true,
       relay: true,

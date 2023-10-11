@@ -91,7 +91,7 @@ describe("Waku Store, general", function () {
           }),
           DefaultPubSubTopic
         )
-      ).to.be.true;
+      ).to.eq(true);
       await delay(1); // to ensure each timestamp is unique.
     }
 
@@ -148,7 +148,7 @@ describe("Waku Store, general", function () {
           }),
           DefaultPubSubTopic
         )
-      ).to.be.true;
+      ).to.eq(true);
       await delay(1); // to ensure each timestamp is unique.
     }
 

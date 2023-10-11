@@ -265,8 +265,8 @@ describe("Waku Filter V2: FilterPush", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
     // Restart nwaku node
-    await nwaku.stop();
-    await nwaku.start();
+    await tearDownNodes(nwaku, []);
+    await nwaku.startWithRetries();
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
 
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });

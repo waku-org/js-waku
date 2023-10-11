@@ -5,7 +5,7 @@ import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
+import { makeLogFileName, NOISE_KEY_1, tearDownNodes } from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
 describe("ENR Interop: NimGoNode", function () {
@@ -13,15 +13,14 @@ describe("ENR Interop: NimGoNode", function () {
   let nwaku: NimGoNode;
 
   afterEach(async function () {
-    !!nwaku &&
-      nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("Relay", async function () {
     this.timeout(20_000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.start({
+    await nwaku.startWithRetries({
       relay: true,
       store: false,
       filter: false,
@@ -53,7 +52,7 @@ describe("ENR Interop: NimGoNode", function () {
   it("Relay + Store", async function () {
     this.timeout(20_000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.start({
+    await nwaku.startWithRetries({
       relay: true,
       store: true,
       filter: false,
@@ -85,7 +84,7 @@ describe("ENR Interop: NimGoNode", function () {
   it("All", async function () {
     this.timeout(20_000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.start({
+    await nwaku.startWithRetries({
       relay: true,
       store: true,
       filter: true,

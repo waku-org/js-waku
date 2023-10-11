@@ -4,22 +4,22 @@ import { LightNode } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { makeLogFileName, NimGoNode } from "../src/index.js";
+import { makeLogFileName, NimGoNode, tearDownNodes } from "../src/index.js";
 
 describe("Use static and several ENR trees for bootstrap", function () {
   let waku: LightNode;
   let nwaku: NimGoNode;
 
   afterEach(async function () {
-    !!nwaku && (await nwaku.stop());
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("", async function () {
     this.timeout(10_000);
 
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.start();
+    await nwaku.startWithRetries();
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     const NODE_REQUIREMENTS = {

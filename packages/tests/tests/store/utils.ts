@@ -42,7 +42,7 @@ export async function sendMessages(
         }),
         pubSubTopic
       )
-    ).to.be.true;
+    ).to.eq(true);
     await delay(1); // to ensure each timestamp is unique.
   }
 }

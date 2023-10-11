@@ -9,6 +9,7 @@ import Sinon, { SinonSpy } from "sinon";
 import { delay } from "../../src/delay.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
+import { tearDownNodes } from "../../src/teardown.js";
 
 chai.use(chaiAsPromised);
 
@@ -28,12 +29,8 @@ describe("Static Sharding: Peer Management", function () {
     });
 
     afterEach(async function () {
-      this.timeout(5_000);
-      await nwaku1?.stop();
-      await nwaku2?.stop();
-      await nwaku3?.stop();
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
-
+      this.timeout(15000);
+      await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
       attemptDialSpy && attemptDialSpy.restore();
     });
 
@@ -42,7 +39,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const pubSubTopics = ["/waku/2/rs/18/2"];
 
-      await nwaku1.start({
+      await nwaku1.startWithRetries({
         topic: pubSubTopics,
         discv5Discovery: true,
         peerExchange: true,
@@ -51,7 +48,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const enr1 = (await nwaku1.info()).enrUri;
 
-      await nwaku2.start({
+      await nwaku2.startWithRetries({
         topic: pubSubTopics,
         discv5Discovery: true,
         peerExchange: true,
@@ -61,7 +58,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const enr2 = (await nwaku2.info()).enrUri;
 
-      await nwaku3.start({
+      await nwaku3.startWithRetries({
         topic: pubSubTopics,
         discv5Discovery: true,
         peerExchange: true,
@@ -116,7 +113,7 @@ describe("Static Sharding: Peer Management", function () {
       const pubSubTopicsToIgnore = ["/waku/2/rs/18/3"];
 
       // this service node is not subscribed to the shard
-      await nwaku1.start({
+      await nwaku1.startWithRetries({
         topic: pubSubTopicsToIgnore,
         relay: true,
         discv5Discovery: true,
@@ -125,7 +122,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const enr1 = (await nwaku1.info()).enrUri;
 
-      await nwaku2.start({
+      await nwaku2.startWithRetries({
         topic: pubSubTopicsToDial,
         relay: true,
         discv5Discovery: true,
@@ -135,7 +132,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const enr2 = (await nwaku2.info()).enrUri;
 
-      await nwaku3.start({
+      await nwaku3.startWithRetries({
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
