@@ -1,19 +1,16 @@
-import { createLightNode, LightNode, utf8ToBytes } from "@waku/sdk";
-import { createEncoder } from "@waku/sdk";
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
+import { LightNode } from "@waku/interfaces";
+import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
+import { expect } from "chai";
 
-import { makeLogFileName } from "../src/log_file.js";
-import { NimGoNode } from "../src/node/node.js";
+import { makeLogFileName } from "../../src/log_file.js";
+import { NimGoNode } from "../../src/node/node.js";
 
 const PubSubTopic1 = "/waku/2/rs/0/2";
 const PubSubTopic2 = "/waku/2/rs/0/3";
 
-const ContentTopic = "/waku/2/content/test";
+const ContentTopic = "/waku/2/content/test.js";
 
-chai.use(chaiAsPromised);
-
-describe("Static Sharding", () => {
+describe("Static Sharding: Running Nodes", () => {
   let waku: LightNode;
   let nwaku: NimGoNode;
 

@@ -146,16 +146,23 @@ describe("ConnectionManager", function () {
     let dialPeerStub: SinonStub;
     let getConnectionsStub: SinonStub;
     let getTagNamesForPeerStub: SinonStub;
+    let isPeerTopicConfigured: SinonStub;
     let waku: LightNode;
 
     this.beforeEach(async function () {
       this.timeout(15000);
       waku = await createLightNode();
+      isPeerTopicConfigured = sinon.stub(
+        waku.connectionManager as any,
+        "isPeerTopicConfigured"
+      );
+      isPeerTopicConfigured.resolves(true);
     });
 
     afterEach(async () => {
       this.timeout(15000);
       await waku.stop();
+      isPeerTopicConfigured.restore();
       sinon.restore();
     });
 

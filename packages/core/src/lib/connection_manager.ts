@@ -1,7 +1,9 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
 import type { Peer } from "@libp2p/interface/peer-store";
+import type { PeerStore } from "@libp2p/interface/peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import { decodeRelayShard } from "@waku/enr";
 import {
   ConnectionManagerOptions,
   EPeersByDiscoveryEvents,
@@ -9,9 +11,12 @@ import {
   IPeersByDiscoveryEvents,
   IRelay,
   KeepAliveOptions,
-  PeersByDiscoveryResult
+  PeersByDiscoveryResult,
+  PubSubTopic,
+  ShardInfo
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
+import { shardInfoToPubSubTopics } from "@waku/utils";
 import debug from "debug";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
@@ -40,6 +45,7 @@ export class ConnectionManager
     peerId: string,
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
+    pubSubTopics: PubSubTopic[],
     relay?: IRelay,
     options?: ConnectionManagerOptions
   ): ConnectionManager {
@@ -48,6 +54,7 @@ export class ConnectionManager
       instance = new ConnectionManager(
         libp2p,
         keepAliveOptions,
+        pubSubTopics,
         relay,
         options
       );
@@ -104,11 +111,13 @@ export class ConnectionManager
   private constructor(
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
+    private configuredPubSubTopics: PubSubTopic[],
     relay?: IRelay,
     options?: Partial<ConnectionManagerOptions>
   ) {
     super();
     this.libp2p = libp2p;
+    this.configuredPubSubTopics = configuredPubSubTopics;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
@@ -314,6 +323,20 @@ export class ConnectionManager
       void (async () => {
         const { id: peerId } = evt.detail;
 
+        if (!(await this.isPeerTopicConfigured(peerId))) {
+          const shardInfo = await this.getPeerShardInfo(
+            peerId,
+            this.libp2p.peerStore
+          );
+          log(
+            `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
+              this.configuredPubSubTopics
+            }). 
+            Not dialing.`
+          );
+          return;
+        }
+
         const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
           Tags.BOOTSTRAP
         );
@@ -429,5 +452,32 @@ export class ConnectionManager
       log(`Failed to get peer ${peerId}, error: ${error}`);
       return [];
     }
+  }
+
+  private async isPeerTopicConfigured(peerId: PeerId): Promise<boolean> {
+    const shardInfo = await this.getPeerShardInfo(
+      peerId,
+      this.libp2p.peerStore
+    );
+
+    // If there's no shard information, simply return true
+    if (!shardInfo) return true;
+
+    const pubSubTopics = shardInfoToPubSubTopics(shardInfo);
+
+    const isTopicConfigured = pubSubTopics.some((topic) =>
+      this.configuredPubSubTopics.includes(topic)
+    );
+    return isTopicConfigured;
+  }
+
+  private async getPeerShardInfo(
+    peerId: PeerId,
+    peerStore: PeerStore
+  ): Promise<ShardInfo | undefined> {
+    const peer = await peerStore.get(peerId);
+    const shardInfoBytes = peer.metadata.get("shardInfo");
+    if (!shardInfoBytes) return undefined;
+    return decodeRelayShard(shardInfoBytes);
   }
 }

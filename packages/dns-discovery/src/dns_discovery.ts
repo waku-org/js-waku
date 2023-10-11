@@ -5,6 +5,7 @@ import type {
 } from "@libp2p/interface/peer-discovery";
 import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
+import { encodeRelayShard } from "@waku/enr";
 import type {
   DnsDiscOptions,
   DnsDiscoveryComponents,
@@ -72,18 +73,16 @@ export class PeerDiscoveryDns
         return;
       }
 
-      const peerInfo = peerEnr.peerInfo;
+      const { peerInfo, shardInfo } = peerEnr;
 
       if (!peerInfo) {
         continue;
       }
 
       const tagsToUpdate = {
-        tags: {
-          [DEFAULT_BOOTSTRAP_TAG_NAME]: {
-            value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
-            ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL
-          }
+        [DEFAULT_BOOTSTRAP_TAG_NAME]: {
+          value: this._options.tagValue ?? DEFAULT_BOOTSTRAP_TAG_VALUE,
+          ttl: this._options.tagTTL ?? DEFAULT_BOOTSTRAP_TAG_TTL
         }
       };
 
@@ -96,11 +95,20 @@ export class PeerDiscoveryDns
 
         if (!hasBootstrapTag) {
           isPeerChanged = true;
-          await this._components.peerStore.merge(peerInfo.id, tagsToUpdate);
+          await this._components.peerStore.merge(peerInfo.id, {
+            tags: tagsToUpdate
+          });
         }
       } else {
         isPeerChanged = true;
-        await this._components.peerStore.save(peerInfo.id, tagsToUpdate);
+        await this._components.peerStore.save(peerInfo.id, {
+          tags: tagsToUpdate,
+          ...(shardInfo && {
+            metadata: {
+              shardInfo: encodeRelayShard(shardInfo)
+            }
+          })
+        });
       }
 
       if (isPeerChanged) {
