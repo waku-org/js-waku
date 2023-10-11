@@ -25,7 +25,7 @@ import {
   TestEncoder
 } from "./utils.js";
 
-describe("Custom pubsub topic", function () {
+describe("Waku Relay, ustom pubsub topic", function () {
   this.timeout(15000);
   let waku1: RelayNode;
   let waku2: RelayNode;

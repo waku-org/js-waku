@@ -21,7 +21,6 @@ import {
 import { createRelayNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
-import debug from "debug";
 
 import {
   delay,
@@ -31,11 +30,14 @@ import {
 } from "../../src/index.js";
 import { generateRandomUint8Array } from "../../src/random_array.js";
 
-import { TestDecoder, TestEncoder } from "./utils.js";
+import {
+  log,
+  TestDecoder,
+  TestEncoder,
+  waitForAllRemotePeers
+} from "./utils.js";
 
-const log = debug("waku:test");
-
-describe("Waku Relay 2 js nodes", function () {
+describe("Waku Relay", function () {
   this.timeout(15000);
   let waku1: RelayNode;
   let waku2: RelayNode;
@@ -58,11 +60,7 @@ describe("Waku Relay 2 js nodes", function () {
     });
     await waku1.dial(waku2.libp2p.peerId);
 
-    log("Wait for mutual pubsub subscription");
-    await Promise.all([
-      waitForRemotePeer(waku1, [Protocols.Relay]),
-      waitForRemotePeer(waku2, [Protocols.Relay])
-    ]);
+    await waitForAllRemotePeers(waku1, waku2);
     log("before each hook done");
   });
 

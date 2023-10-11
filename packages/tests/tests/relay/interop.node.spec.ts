@@ -22,7 +22,7 @@ import { base64ToUtf8, NimGoNode } from "../../src/node/node.js";
 
 import { TestContentTopic, TestDecoder, TestEncoder } from "./utils.js";
 
-describe("Interop: NimGoNode", function () {
+describe("Waku Relay, Interop", function () {
   this.timeout(15000);
   let waku: RelayNode;
   let nwaku: NimGoNode;
