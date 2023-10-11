@@ -42,11 +42,19 @@ export class KeepAliveManager {
     if (pingPeriodSecs !== 0) {
       const interval = setInterval(() => {
         void (async () => {
+          let ping: number;
           try {
             // ping the peer for keep alive
             // also update the peer store with the latency
-            const ping = await libp2pPing.ping(peerId);
-            log(`Ping succeeded (${peerIdStr})`, ping);
+            try {
+              ping = await libp2pPing.ping(peerId);
+              log(`Ping succeeded (${peerIdStr})`, ping);
+            } catch (error) {
+              log(`Ping failed for peer (${peerIdStr}).
+                Next ping will be attempted in ${pingPeriodSecs} seconds.
+              `);
+              return;
+            }
 
             try {
               await peerStore.patch(peerId, {
