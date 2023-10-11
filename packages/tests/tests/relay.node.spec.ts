@@ -30,7 +30,8 @@ import {
   MessageCollector,
   NOISE_KEY_1,
   NOISE_KEY_2,
-  NOISE_KEY_3
+  NOISE_KEY_3,
+  tearDownNodes
 } from "../src/index.js";
 import { MessageRpcResponse } from "../src/node/interfaces.js";
 import { base64ToUtf8, NimGoNode } from "../src/node/node.js";
@@ -602,9 +603,7 @@ describe("Waku Relay [node only]", () => {
     });
 
     afterEach(async function () {
-      !!nwaku &&
-        nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+      await tearDownNodes(nwaku, waku);
     });
 
     it("nwaku subscribes", async function () {
@@ -674,12 +673,7 @@ describe("Waku Relay [node only]", () => {
       let nwaku: NimGoNode;
 
       afterEach(async function () {
-        !!nwaku &&
-          nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-        !!waku1 &&
-          waku1.stop().catch((e) => console.log("Waku failed to stop", e));
-        !!waku2 &&
-          waku2.stop().catch((e) => console.log("Waku failed to stop", e));
+        await tearDownNodes(nwaku, [waku1, waku2]);
       });
 
       it("Js publishes, other Js receives", async function () {
