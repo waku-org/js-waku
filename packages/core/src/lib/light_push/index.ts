@@ -42,12 +42,12 @@ type PreparePushMessageResult =
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 class LightPush extends BaseProtocol implements ILightPush {
-  private readonly pubSubTopics: PubSubTopic[];
+  private readonly pubsubTopics: PubSubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components);
-    this.pubSubTopics = options?.pubSubTopics ?? [DefaultPubSubTopic];
+    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubSubTopic];
   }
 
   private async preparePushMessage(
@@ -84,7 +84,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
   async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
     const { pubsubTopic } = encoder;
-    ensurePubsubTopicIsConfigured(pubsubTopic, this.pubSubTopics);
+    ensurePubsubTopicIsConfigured(pubsubTopic, this.pubsubTopics);
 
     const recipients: PeerId[] = [];
 

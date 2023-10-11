@@ -45,7 +45,7 @@ export class ConnectionManager
     peerId: string,
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
-    pubSubTopics: PubSubTopic[],
+    pubsubTopics: PubSubTopic[],
     relay?: IRelay,
     options?: ConnectionManagerOptions
   ): ConnectionManager {
@@ -54,7 +54,7 @@ export class ConnectionManager
       instance = new ConnectionManager(
         libp2p,
         keepAliveOptions,
-        pubSubTopics,
+        pubsubTopics,
         relay,
         options
       );
@@ -463,9 +463,9 @@ export class ConnectionManager
     // If there's no shard information, simply return true
     if (!shardInfo) return true;
 
-    const pubSubTopics = shardInfoToPubSubTopics(shardInfo);
+    const pubsubTopics = shardInfoToPubSubTopics(shardInfo);
 
-    const isTopicConfigured = pubSubTopics.some((topic) =>
+    const isTopicConfigured = pubsubTopics.some((topic) =>
       this.configuredPubSubTopics.includes(topic)
     );
     return isTopicConfigured;

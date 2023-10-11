@@ -66,10 +66,10 @@ export async function processQueriedMessages(
 
 export async function startAndConnectLightNode(
   instance: NimGoNode,
-  pubSubTopics: string[] = [DefaultPubSubTopic]
+  pubsubTopics: string[] = [DefaultPubSubTopic]
 ): Promise<LightNode> {
   const waku = await createLightNode({
-    pubSubTopics: pubSubTopics,
+    pubsubTopics: pubsubTopics,
     staticNoiseKey: NOISE_KEY_1
   });
   await waku.start();

@@ -48,7 +48,7 @@ export type ContentTopic = string;
  * Throws if libp2p.pubsub does not support Waku Relay
  */
 class Relay implements IRelay {
-  public readonly pubSubTopics: Set<PubSubTopic>;
+  public readonly pubsubTopics: Set<PubSubTopic>;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
   public static multicodec: string = RelayCodecs[0];
@@ -68,7 +68,7 @@ class Relay implements IRelay {
     }
 
     this.gossipSub = libp2p.services.pubsub as GossipSub;
-    this.pubSubTopics = new Set(options?.pubSubTopics ?? [DefaultPubSubTopic]);
+    this.pubsubTopics = new Set(options?.pubsubTopics ?? [DefaultPubSubTopic]);
 
     if (this.gossipSub.isStarted()) {
       this.subscribeToAllTopics();
@@ -104,7 +104,7 @@ class Relay implements IRelay {
     const recipients: PeerId[] = [];
 
     const { pubsubTopic } = encoder;
-    if (!this.pubSubTopics.has(pubsubTopic)) {
+    if (!this.pubsubTopics.has(pubsubTopic)) {
       log("Failed to send waku relay: topic not configured");
       return {
         recipients,
@@ -180,7 +180,7 @@ class Relay implements IRelay {
 
   public getActiveSubscriptions(): ActiveSubscriptions {
     const map = new Map();
-    for (const pubsubTopic of this.pubSubTopics) {
+    for (const pubsubTopic of this.pubsubTopics) {
       map.set(pubsubTopic, Array.from(this.observers.keys()));
     }
     return map;
@@ -191,7 +191,7 @@ class Relay implements IRelay {
   }
 
   private subscribeToAllTopics(): void {
-    for (const pubsubTopic of this.pubSubTopics) {
+    for (const pubsubTopic of this.pubsubTopics) {
       this.gossipSubSubscribe(pubsubTopic);
     }
   }

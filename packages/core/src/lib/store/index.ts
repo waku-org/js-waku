@@ -75,12 +75,12 @@ export interface QueryOptions {
  * The Waku Store protocol can be used to retrieved historical messages.
  */
 class Store extends BaseProtocol implements IStore {
-  private readonly pubSubTopics: PubSubTopic[];
+  private readonly pubsubTopics: PubSubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components);
-    this.pubSubTopics = options?.pubSubTopics ?? [DefaultPubSubTopic];
+    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubSubTopic];
   }
 
   /**
@@ -244,7 +244,7 @@ class Store extends BaseProtocol implements IStore {
     // we can be certain that there is only one pubsub topic in the query
     const pubSubTopicForQuery = uniquePubSubTopicsInQuery[0];
 
-    ensurePubsubTopicIsConfigured(pubSubTopicForQuery, this.pubSubTopics);
+    ensurePubsubTopicIsConfigured(pubSubTopicForQuery, this.pubsubTopics);
 
     // check that the pubsubTopic from the Cursor and Decoder match
     if (
