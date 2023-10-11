@@ -5,6 +5,7 @@ import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
+  DefaultPubSubTopic,
   DefaultUserAgent,
   wakuFilter,
   wakuLightPush,
@@ -43,6 +44,12 @@ export { Libp2pComponents };
 export async function createLightNode(
   options?: ProtocolCreateOptions & WakuOptions
 ): Promise<LightNode> {
+  options = options ?? {};
+
+  if (!options.pubSubTopics) {
+    options.pubSubTopics = [DefaultPubSubTopic];
+  }
+
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -62,6 +69,7 @@ export async function createLightNode(
 
   return new WakuNode(
     options ?? {},
+    options.pubSubTopics,
     libp2p,
     store,
     lightPush,
@@ -76,6 +84,12 @@ export async function createLightNode(
 export async function createRelayNode(
   options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<RelayNode> {
+  options = options ?? {};
+
+  if (!options.pubSubTopics) {
+    options.pubSubTopics = [DefaultPubSubTopic];
+  }
+
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -92,7 +106,8 @@ export async function createRelayNode(
   const relay = wakuRelay(options);
 
   return new WakuNode(
-    options ?? {},
+    options,
+    options.pubSubTopics,
     libp2p,
     undefined,
     undefined,
@@ -117,6 +132,12 @@ export async function createRelayNode(
 export async function createFullNode(
   options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<FullNode> {
+  options = options ?? {};
+
+  if (!options.pubSubTopics) {
+    options.pubSubTopics = [DefaultPubSubTopic];
+  }
+
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -137,6 +158,7 @@ export async function createFullNode(
 
   return new WakuNode(
     options ?? {},
+    options.pubSubTopics,
     libp2p,
     store,
     lightPush,
