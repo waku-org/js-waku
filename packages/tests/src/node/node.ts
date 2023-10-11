@@ -165,7 +165,7 @@ export class NimGoNode {
   }
 
   async startWithRetries(
-    args: Args,
+    args: Args = {},
     options: {
       retries?: number;
     } = { retries: 3 }
@@ -176,6 +176,7 @@ export class NimGoNode {
           await this.start(args);
         } catch (error) {
           log("Nwaku node failed to start:", error);
+          await this.stop();
           throw error;
         }
       },
@@ -184,7 +185,7 @@ export class NimGoNode {
   }
 
   public async stop(): Promise<void> {
-    await this.docker?.container?.stop();
+    await this.docker?.stop();
     delete this.docker;
   }
 
@@ -381,20 +382,31 @@ export class NimGoNode {
     method: string,
     params: Array<string | number | unknown>
   ): Promise<T> {
-    log("RPC Query: ", method, params);
-    const res = await fetch(this.rpcUrl, {
-      method: "POST",
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method,
-        params
-      }),
-      headers: new Headers({ "Content-Type": "application/json" })
-    });
-    const json = await res.json();
-    log(`RPC Response: `, JSON.stringify(json));
-    return json.result;
+    return await pRetry(
+      async () => {
+        try {
+          log("RPC Query: ", method, params);
+          const res = await fetch(this.rpcUrl, {
+            method: "POST",
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method,
+              params
+            }),
+            headers: new Headers({ "Content-Type": "application/json" })
+          });
+          const json = await res.json();
+          log(`RPC Response: `, JSON.stringify(json));
+          return json.result;
+        } catch (error) {
+          log("post_waku_v2_relay_v1_subscriptions failed with error:", error);
+          await delay(10);
+          throw error;
+        }
+      },
+      { retries: 5 }
+    );
   }
 
   private checkProcess(): void {

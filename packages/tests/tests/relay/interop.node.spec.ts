@@ -35,7 +35,7 @@ describe("Waku Relay, Interop", function () {
     await waku.start();
 
     nwaku = new NimGoNode(this.test?.ctx?.currentTest?.title + "");
-    await nwaku.start({ relay: true });
+    await nwaku.startWithRetries({ relay: true });
 
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Relay]);
@@ -114,12 +114,8 @@ describe("Waku Relay, Interop", function () {
     let nwaku: NimGoNode;
 
     afterEach(async function () {
-      !!nwaku &&
-        nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-      !!waku1 &&
-        waku1.stop().catch((e) => console.log("Waku failed to stop", e));
-      !!waku2 &&
-        waku2.stop().catch((e) => console.log("Waku failed to stop", e));
+      this.timeout(15000);
+      await tearDownNodes(nwaku, [waku1, waku2]);
     });
 
     it("Js publishes, other Js receives", async function () {
@@ -134,7 +130,7 @@ describe("Waku Relay, Interop", function () {
       ]);
 
       nwaku = new NimGoNode(makeLogFileName(this));
-      await nwaku.start();
+      await nwaku.startWithRetries();
 
       const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
       await Promise.all([
@@ -150,8 +146,10 @@ describe("Waku Relay, Interop", function () {
 
       await delay(2000);
       // Check that the two JS peers are NOT directly connected
-      expect(await waku1.libp2p.peerStore.has(waku2.libp2p.peerId)).to.be.false;
-      expect(waku2.libp2p.peerStore.has(waku1.libp2p.peerId)).to.be.false;
+      expect(await waku1.libp2p.peerStore.has(waku2.libp2p.peerId)).to.eq(
+        false
+      );
+      expect(waku2.libp2p.peerStore.has(waku1.libp2p.peerId)).to.eq(false);
 
       const msgStr = "Hello there!";
       const message = { payload: utf8ToBytes(msgStr) };
