@@ -19,7 +19,7 @@ describe("Use static and several ENR trees for bootstrap", function () {
     this.timeout(10_000);
 
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.startWithRetries();
+    await nwaku.start();
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     const NODE_REQUIREMENTS = {

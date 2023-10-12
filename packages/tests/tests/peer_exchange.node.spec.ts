@@ -32,7 +32,7 @@ describe("Peer Exchange", () => {
     it("nwaku interop", async function () {
       this.timeout(55_000);
 
-      await nwaku1.startWithRetries({
+      await nwaku1.start({
         relay: true,
         discv5Discovery: true,
         peerExchange: true
@@ -40,7 +40,7 @@ describe("Peer Exchange", () => {
 
       const enr = (await nwaku1.info()).enrUri;
 
-      await nwaku2.startWithRetries({
+      await nwaku2.start({
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -97,7 +97,7 @@ describe("Peer Exchange", () => {
 
     tests({
       async setup() {
-        await nwaku1.startWithRetries({
+        await nwaku1.start({
           relay: true,
           discv5Discovery: true,
           peerExchange: true
@@ -105,7 +105,7 @@ describe("Peer Exchange", () => {
 
         const enr = (await nwaku1.info()).enrUri;
 
-        await nwaku2.startWithRetries({
+        await nwaku2.start({
           relay: true,
           discv5Discovery: true,
           peerExchange: true,

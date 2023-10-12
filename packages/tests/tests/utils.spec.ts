@@ -38,7 +38,7 @@ describe("Util: toAsyncIterator: Filter", () => {
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.startWithRetries({
+    await nwaku.start({
       filter: true,
       lightpush: true,
       relay: true

@@ -40,7 +40,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const pubSubTopics = ["/waku/2/rs/18/2"];
 
-      await nwaku1.startWithRetries({
+      await nwaku1.start({
         topic: pubSubTopics,
         discv5Discovery: true,
         peerExchange: true,
@@ -49,7 +49,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const enr1 = (await nwaku1.info()).enrUri;
 
-      await nwaku2.startWithRetries({
+      await nwaku2.start({
         topic: pubSubTopics,
         discv5Discovery: true,
         peerExchange: true,
@@ -59,7 +59,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const enr2 = (await nwaku2.info()).enrUri;
 
-      await nwaku3.startWithRetries({
+      await nwaku3.start({
         topic: pubSubTopics,
         discv5Discovery: true,
         peerExchange: true,
@@ -114,7 +114,7 @@ describe("Static Sharding: Peer Management", function () {
       const pubSubTopicsToIgnore = ["/waku/2/rs/18/3"];
 
       // this service node is not subscribed to the shard
-      await nwaku1.startWithRetries({
+      await nwaku1.start({
         topic: pubSubTopicsToIgnore,
         relay: true,
         discv5Discovery: true,
@@ -123,7 +123,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const enr1 = (await nwaku1.info()).enrUri;
 
-      await nwaku2.startWithRetries({
+      await nwaku2.start({
         topic: pubSubTopicsToDial,
         relay: true,
         discv5Discovery: true,
@@ -133,7 +133,7 @@ describe("Static Sharding: Peer Management", function () {
 
       const enr2 = (await nwaku2.info()).enrUri;
 
-      await nwaku3.startWithRetries({
+      await nwaku3.start({
         relay: true,
         discv5Discovery: true,
         peerExchange: true,

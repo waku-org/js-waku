@@ -45,7 +45,7 @@ describe("Waku Dial [node only]", function () {
     it("connects to nwaku", async function () {
       this.timeout(20_000);
       nwaku = new NimGoNode(makeLogFileName(this));
-      await nwaku.startWithRetries({
+      await nwaku.start({
         filter: true,
         store: true,
         lightpush: true
@@ -78,7 +78,7 @@ describe("Waku Dial [node only]", function () {
       );
 
       nwaku = new NimGoNode(makeLogFileName(this));
-      await nwaku.startWithRetries({
+      await nwaku.start({
         filter: true,
         store: true,
         lightpush: true
@@ -111,7 +111,7 @@ describe("Waku Dial [node only]", function () {
       this.timeout(10_000);
 
       nwaku = new NimGoNode(makeLogFileName(this));
-      await nwaku.startWithRetries();
+      await nwaku.start();
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
@@ -134,7 +134,7 @@ describe("Waku Dial [node only]", function () {
       this.timeout(10_000);
 
       nwaku = new NimGoNode(makeLogFileName(this));
-      await nwaku.startWithRetries();
+      await nwaku.start();
 
       const nwakuMa = await nwaku.getMultiaddrWithId();
 

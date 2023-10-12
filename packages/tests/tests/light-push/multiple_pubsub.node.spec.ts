@@ -108,7 +108,7 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
   it("Light push messages to 2 nwaku nodes each with different pubsubtopics", async function () {
     // Set up and start a new nwaku node with Default PubSubtopic
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
-    await nwaku2.startWithRetries({
+    await nwaku2.start({
       filter: true,
       lightpush: true,
       relay: true,

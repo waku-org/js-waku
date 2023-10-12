@@ -86,7 +86,12 @@ export class NimGoNode {
     return isGoWaku ? "go-waku" : "nwaku";
   }
 
-  async start(args: Args = {}): Promise<void> {
+  async start(
+    args: Args = {},
+    options: {
+      retries?: number;
+    } = { retries: 3 }
+  ): Promise<void> {
     this.docker = await Dockerode.createInstance(DOCKER_IMAGE_NAME);
     try {
       await existsAsync(LOG_DIR);
@@ -145,11 +150,22 @@ export class NimGoNode {
       await this.docker.stop();
     }
 
-    await this.docker.startContainer(
-      ports,
-      mergedArgs,
-      this.logPath,
-      WAKU_SERVICE_NODE_PARAMS
+    await pRetry(
+      async () => {
+        try {
+          await this.docker?.startContainer(
+            ports,
+            mergedArgs,
+            this.logPath,
+            WAKU_SERVICE_NODE_PARAMS
+          );
+        } catch (error) {
+          log("Nwaku node failed to start:", error);
+          await this.stop();
+          throw error;
+        }
+      },
+      { retries: options.retries }
     );
 
     try {
@@ -162,26 +178,6 @@ export class NimGoNode {
       if (this.docker.container) await this.docker.stop();
       throw error;
     }
-  }
-
-  async startWithRetries(
-    args: Args = {},
-    options: {
-      retries?: number;
-    } = { retries: 3 }
-  ): Promise<void> {
-    await pRetry(
-      async () => {
-        try {
-          await this.start(args);
-        } catch (error) {
-          log("Nwaku node failed to start:", error);
-          await this.stop();
-          throw error;
-        }
-      },
-      { retries: options.retries }
-    );
   }
 
   public async stop(): Promise<void> {

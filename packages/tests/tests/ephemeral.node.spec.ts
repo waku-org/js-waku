@@ -53,7 +53,7 @@ describe("Waku Message Ephemeral field", () => {
   beforeEach(async function () {
     this.timeout(15_000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.startWithRetries({
+    await nwaku.start({
       filter: true,
       lightpush: true,
       store: true,

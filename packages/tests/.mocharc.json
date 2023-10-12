@@ -9,5 +9,5 @@
   "exit": true,
   "retries": 4,
   "parallel": true,
-  "jobs": 6
+  "jobs": 8
 }

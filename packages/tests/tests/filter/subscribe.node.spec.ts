@@ -321,7 +321,7 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Set up and start a new nwaku node
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
-    await nwaku2.startWithRetries({
+    await nwaku2.start({
       filter: true,
       lightpush: true,
       relay: true

@@ -20,7 +20,7 @@ describe("ENR Interop: NimGoNode", function () {
   it("Relay", async function () {
     this.timeout(20_000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.startWithRetries({
+    await nwaku.start({
       relay: true,
       store: false,
       filter: false,
@@ -52,7 +52,7 @@ describe("ENR Interop: NimGoNode", function () {
   it("Relay + Store", async function () {
     this.timeout(20_000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.startWithRetries({
+    await nwaku.start({
       relay: true,
       store: true,
       filter: false,
@@ -84,7 +84,7 @@ describe("ENR Interop: NimGoNode", function () {
   it("All", async function () {
     this.timeout(20_000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.startWithRetries({
+    await nwaku.start({
       relay: true,
       store: true,
       filter: true,
