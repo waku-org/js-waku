@@ -3,12 +3,7 @@ import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import {
-  // delay,
-  MessageCollector,
-  NimGoNode,
-  tearDownNodes
-} from "../../src/index.js";
+import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index.js";
 
 import {
   runNodes,
