@@ -306,12 +306,12 @@ export class ConnectionManager
   }
 
   private async attemptDial(peerId: PeerId): Promise<void> {
+    if (!(await this.shouldDialPeer(peerId))) return;
+
     if (this.currentActiveDialCount >= this.options.maxParallelDials) {
       this.pendingPeerDialQueue.push(peerId);
       return;
     }
-
-    if (!(await this.shouldDialPeer(peerId))) return;
 
     this.dialPeer(peerId).catch((err) => {
       throw `Error dialing peer ${peerId.toString()} : ${err}`;
@@ -323,34 +323,7 @@ export class ConnectionManager
       void (async () => {
         const { id: peerId } = evt.detail;
 
-        if (!(await this.isPeerTopicConfigured(peerId))) {
-          const shardInfo = await this.getPeerShardInfo(
-            peerId,
-            this.libp2p.peerStore
-          );
-          log(
-            `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
-              this.configuredPubSubTopics
-            }). 
-            Not dialing.`
-          );
-          return;
-        }
-
-        const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
-          Tags.BOOTSTRAP
-        );
-
-        this.dispatchEvent(
-          new CustomEvent<PeerId>(
-            isBootstrap
-              ? EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP
-              : EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
-            {
-              detail: peerId
-            }
-          )
-        );
+        await this.dispatchDiscoveryEvent(peerId);
 
         try {
           await this.attemptDial(peerId);
@@ -413,15 +386,48 @@ export class ConnectionManager
   };
 
   /**
+   * Checks if the peer should be dialed based on the following conditions:
+   * 1. If the peer is already connected, don't dial
+   * 2. If the peer is not part of any of the configured pubsub topics, don't dial
+   * 3. If the peer is not dialable based on bootstrap status, don't dial
+   * @returns true if the peer should be dialed, false otherwise
+   */
+  private async shouldDialPeer(peerId: PeerId): Promise<boolean> {
+    // if we're already connected to the peer, don't dial
+    const isConnected = this.libp2p.getConnections(peerId).length > 0;
+    if (isConnected) return false;
+
+    // if the peer is not part of any of the configured pubsub topics, don't dial
+    if (!(await this.isPeerTopicConfigured(peerId))) {
+      const shardInfo = await this.getPeerShardInfo(
+        peerId,
+        this.libp2p.peerStore
+      );
+      log(
+        `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
+          this.configuredPubSubTopics
+        }). 
+            Not dialing.`
+      );
+      return false;
+    }
+
+    // if the peer is not dialable based on bootstrap status, don't dial
+    if (!(await this.isPeerDialableBasedOnBootstrapStatus(peerId))) {
+      return false;
+    }
+
+    return false;
+  }
+
+  /**
    * Checks if the peer is dialable based on the following conditions:
    * 1. If the peer is a bootstrap peer, it is only dialable if the number of current bootstrap connections is less than the max allowed.
    * 2. If the peer is not a bootstrap peer
    */
-  private async shouldDialPeer(peerId: PeerId): Promise<boolean> {
-    const isConnected = this.libp2p.getConnections(peerId).length > 0;
-
-    if (isConnected) return false;
-
+  private async isPeerDialableBasedOnBootstrapStatus(
+    peerId: PeerId
+  ): Promise<boolean> {
     const tagNames = await this.getTagNamesForPeer(peerId);
 
     const isBootstrap = tagNames.some((tagName) => tagName === Tags.BOOTSTRAP);
@@ -439,6 +445,23 @@ export class ConnectionManager
     }
 
     return false;
+  }
+
+  private async dispatchDiscoveryEvent(peerId: PeerId): Promise<void> {
+    const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
+      Tags.BOOTSTRAP
+    );
+
+    this.dispatchEvent(
+      new CustomEvent<PeerId>(
+        isBootstrap
+          ? EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP
+          : EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
+        {
+          detail: peerId
+        }
+      )
+    );
   }
 
   /**
