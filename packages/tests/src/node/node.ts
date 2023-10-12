@@ -92,67 +92,67 @@ export class NimGoNode {
       retries?: number;
     } = { retries: 3 }
   ): Promise<void> {
-    this.docker = await Dockerode.createInstance(DOCKER_IMAGE_NAME);
-    try {
-      await existsAsync(LOG_DIR);
-    } catch (e) {
-      try {
-        await mkdirAsync(LOG_DIR);
-      } catch (e) {
-        // Looks like 2 tests tried to create the director at the same time,
-        // it can be ignored
-      }
-    }
-
-    await openAsync(this.logPath, "w");
-
-    const mergedArgs = defaultArgs();
-
-    // waku nodes takes some time to bind port so to decrease chances of conflict
-    // we also randomize the first port that portfinder will try
-    const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
-
-    const ports: number[] = await new Promise((resolve, reject) => {
-      portfinder.getPorts(4, { port: startPort }, (err, ports) => {
-        if (err) reject(err);
-        resolve(ports);
-      });
-    });
-
-    if (isGoWaku && !args.logLevel) {
-      args.logLevel = LogLevel.Debug;
-    }
-
-    const [rpcPort, tcpPort, websocketPort, discv5UdpPort] = ports;
-    this.rpcPort = rpcPort;
-    this.websocketPort = websocketPort;
-
-    // `legacyFilter` is required to enable filter v1 with go-waku
-    const { legacyFilter = false, ..._args } = args;
-
-    // Object.assign overrides the properties with the source (if there are conflicts)
-    Object.assign(
-      mergedArgs,
-      {
-        rpcPort,
-        tcpPort,
-        websocketPort,
-        ...(args?.peerExchange && { discv5UdpPort }),
-        ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter })
-      },
-      { rpcAddress: "0.0.0.0" },
-      _args
-    );
-
-    process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
-
-    if (this.docker.container) {
-      await this.docker.stop();
-    }
-
     await pRetry(
       async () => {
         try {
+          this.docker = await Dockerode.createInstance(DOCKER_IMAGE_NAME);
+          try {
+            await existsAsync(LOG_DIR);
+          } catch (e) {
+            try {
+              await mkdirAsync(LOG_DIR);
+            } catch (e) {
+              // Looks like 2 tests tried to create the director at the same time,
+              // it can be ignored
+            }
+          }
+
+          await openAsync(this.logPath, "w");
+
+          const mergedArgs = defaultArgs();
+
+          // waku nodes takes some time to bind port so to decrease chances of conflict
+          // we also randomize the first port that portfinder will try
+          const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
+
+          const ports: number[] = await new Promise((resolve, reject) => {
+            portfinder.getPorts(4, { port: startPort }, (err, ports) => {
+              if (err) reject(err);
+              resolve(ports);
+            });
+          });
+
+          if (isGoWaku && !args.logLevel) {
+            args.logLevel = LogLevel.Debug;
+          }
+
+          const [rpcPort, tcpPort, websocketPort, discv5UdpPort] = ports;
+          this.rpcPort = rpcPort;
+          this.websocketPort = websocketPort;
+
+          // `legacyFilter` is required to enable filter v1 with go-waku
+          const { legacyFilter = false, ..._args } = args;
+
+          // Object.assign overrides the properties with the source (if there are conflicts)
+          Object.assign(
+            mergedArgs,
+            {
+              rpcPort,
+              tcpPort,
+              websocketPort,
+              ...(args?.peerExchange && { discv5UdpPort }),
+              ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter })
+            },
+            { rpcAddress: "0.0.0.0" },
+            _args
+          );
+
+          process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
+
+          if (this.docker.container) {
+            await this.docker.stop();
+          }
+
           await this.docker?.startContainer(
             ports,
             mergedArgs,
@@ -164,20 +164,19 @@ export class NimGoNode {
           await this.stop();
           throw error;
         }
+        try {
+          log(`Waiting to see '${NODE_READY_LOG_LINE}' in ${this.type} logs`);
+          await this.waitForLog(NODE_READY_LOG_LINE, 15000);
+          if (process.env.CI) await delay(100);
+          log(`${this.type} node has been started`);
+        } catch (error) {
+          log(`Error starting ${this.type}: ${error}`);
+          if (this.docker.container) await this.docker.stop();
+          throw error;
+        }
       },
       { retries: options.retries }
     );
-
-    try {
-      log(`Waiting to see '${NODE_READY_LOG_LINE}' in ${this.type} logs`);
-      await this.waitForLog(NODE_READY_LOG_LINE, 15000);
-      if (process.env.CI) await delay(100);
-      log(`${this.type} node has been started`);
-    } catch (error) {
-      log(`Error starting ${this.type}: ${error}`);
-      if (this.docker.container) await this.docker.stop();
-      throw error;
-    }
   }
 
   public async stop(): Promise<void> {
