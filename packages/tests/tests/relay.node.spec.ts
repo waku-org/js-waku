@@ -370,12 +370,24 @@ describe("Waku Relay [node only]", () => {
           true
         );
 
-        expect(msgCollector1.hasMessage(testItem.pubsub, "M2")).to.be.true;
-        expect(msgCollector1.hasMessage(testItem.pubsub, "M3")).to.be.true;
-        expect(msgCollector2.hasMessage(testItem.pubsub, "M1")).to.be.true;
-        expect(msgCollector2.hasMessage(testItem.pubsub, "M3")).to.be.true;
-        expect(msgCollector3.hasMessage(testItem.pubsub, "M1")).to.be.true;
-        expect(msgCollector3.hasMessage(testItem.pubsub, "M2")).to.be.true;
+        expect(
+          msgCollector1.hasMessage(testItem.encoder.contentTopic, "M2")
+        ).to.eq(true);
+        expect(
+          msgCollector1.hasMessage(testItem.encoder.contentTopic, "M3")
+        ).to.eq(true);
+        expect(
+          msgCollector2.hasMessage(testItem.encoder.contentTopic, "M1")
+        ).to.eq(true);
+        expect(
+          msgCollector2.hasMessage(testItem.encoder.contentTopic, "M3")
+        ).to.eq(true);
+        expect(
+          msgCollector3.hasMessage(testItem.encoder.contentTopic, "M1")
+        ).to.eq(true);
+        expect(
+          msgCollector3.hasMessage(testItem.encoder.contentTopic, "M2")
+        ).to.eq(true);
       });
     });
 
@@ -448,16 +460,14 @@ describe("Waku Relay [node only]", () => {
       expect(await msgCollector3.waitForMessages(2, { exact: true })).to.eq(
         true
       );
-
-      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M3")).to.be.true;
-      expect(msgCollector1.hasMessage(CustomPubSubTopic, "M4")).to.be.true;
-      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M5")).to.be.true;
-      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M1")).to.be.true;
-      expect(msgCollector1.hasMessage(CustomPubSubTopic, "M2")).to.be.true;
-      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M5")).to.be.true;
-      expect(msgCollector2.hasMessage(CustomPubSubTopic, "M1")).to.be.true;
-      expect(msgCollector2.hasMessage(DefaultPubSubTopic, "M3")).to.be.true;
-      expect(msgCollector3.hasMessage(DefaultPubSubTopic, "M1")).to.be.true;
+      expect(msgCollector1.hasMessage(TestContentTopic, "M3")).to.eq(true);
+      expect(msgCollector1.hasMessage(CustomContentTopic, "M4")).to.eq(true);
+      expect(msgCollector1.hasMessage(TestContentTopic, "M5")).to.eq(true);
+      expect(msgCollector2.hasMessage(TestContentTopic, "M1")).to.eq(true);
+      expect(msgCollector2.hasMessage(CustomContentTopic, "M2")).to.eq(true);
+      expect(msgCollector2.hasMessage(TestContentTopic, "M5")).to.eq(true);
+      expect(msgCollector3.hasMessage(TestContentTopic, "M1")).to.eq(true);
+      expect(msgCollector3.hasMessage(TestContentTopic, "M3")).to.eq(true);
     });
 
     it("n1 and n2 uses a custom pubsub, n3 uses the default pubsub", async function () {
