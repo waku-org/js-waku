@@ -395,7 +395,10 @@ export class ConnectionManager
   private async shouldDialPeer(peerId: PeerId): Promise<boolean> {
     // if we're already connected to the peer, don't dial
     const isConnected = this.libp2p.getConnections(peerId).length > 0;
-    if (isConnected) return false;
+    if (isConnected) {
+      log(`Already connected to peer ${peerId.toString()}. Not dialing.`);
+      return false;
+    }
 
     // if the peer is not part of any of the configured pubsub topics, don't dial
     if (!(await this.isPeerTopicConfigured(peerId))) {
@@ -414,10 +417,13 @@ export class ConnectionManager
 
     // if the peer is not dialable based on bootstrap status, don't dial
     if (!(await this.isPeerDialableBasedOnBootstrapStatus(peerId))) {
+      log(
+        `Peer ${peerId.toString()} is not dialable based on bootstrap status. Not dialing.`
+      );
       return false;
     }
 
-    return false;
+    return true;
   }
 
   /**
