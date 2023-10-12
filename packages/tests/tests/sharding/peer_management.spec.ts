@@ -23,6 +23,7 @@ describe("Static Sharding: Peer Management", function () {
     let attemptDialSpy: SinonSpy;
 
     beforeEach(async function () {
+      this.timeout(15000);
       nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
       nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
       nwaku3 = new NimGoNode(makeLogFileName(this) + "3");

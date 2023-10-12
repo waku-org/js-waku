@@ -603,6 +603,7 @@ describe("Waku Relay [node only]", () => {
     });
 
     afterEach(async function () {
+      this.timeout(15000);
       await tearDownNodes(nwaku, waku);
     });
 

@@ -18,7 +18,6 @@ export default class Dockerode {
   public containerId?: string;
 
   private static network: Docker.Network;
-  private static lastUsedIp = "172.18.0.1";
   private containerIp: string;
   private uniqueLabel = `test-${Date.now()}-${Math.random()
     .toString(36)
@@ -73,15 +72,14 @@ export default class Dockerode {
   }
 
   private static getNextIp(): string {
-    const ipFragments = Dockerode.lastUsedIp.split(".");
-    let lastFragment = Number(ipFragments[3]);
-    lastFragment++;
-    if (lastFragment > 254) {
-      throw new Error("IP Address Range Exhausted");
-    }
-    ipFragments[3] = lastFragment.toString();
-    Dockerode.lastUsedIp = ipFragments.join(".");
-    return Dockerode.lastUsedIp;
+    const baseIpFragments = "172.18".split(".");
+    // Generate a random number between 0 and 255 for the last two fragments.
+    const secondLastFragment = Math.floor(Math.random() * 256); // For the .0 fragment
+    const lastFragment = Math.floor(Math.random() * 256); // For the last fragment
+    const newIp = [...baseIpFragments, secondLastFragment, lastFragment].join(
+      "."
+    );
+    return newIp;
   }
 
   get container(): Docker.Container | undefined {
