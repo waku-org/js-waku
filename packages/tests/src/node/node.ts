@@ -400,7 +400,7 @@ export class NimGoNode {
           log(`RPC Response: `, JSON.stringify(json));
           return json.result;
         } catch (error) {
-          log("post_waku_v2_relay_v1_subscriptions failed with error:", error);
+          log(`${this.rpcUrl} failed with error:`, error);
           await delay(10);
           throw error;
         }
