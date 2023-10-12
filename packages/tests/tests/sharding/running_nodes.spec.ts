@@ -42,16 +42,16 @@ describe("Static Sharding: Running Nodes", () => {
       pubSubTopic: PubSubTopic2
     });
 
-    const request1 = waku.lightPush.send(encoder1, {
+    const request1 = await waku.lightPush.send(encoder1, {
       payload: utf8ToBytes("Hello World")
     });
 
-    const request2 = waku.lightPush.send(encoder2, {
+    const request2 = await waku.lightPush.send(encoder2, {
       payload: utf8ToBytes("Hello World")
     });
 
-    await expect(request1).to.be.fulfilled;
-    await expect(request2).to.be.fulfilled;
+    expect(request1.recipients.length).to.eq(0);
+    expect(request2.recipients.length).to.eq(0);
   });
 
   it("using a protocol with unconfigured pubsub topic should fail", async function () {
@@ -66,11 +66,20 @@ describe("Static Sharding: Running Nodes", () => {
       pubSubTopic: PubSubTopic2
     });
 
-    // the following request should throw an error
-    const request = waku.lightPush.send(encoder, {
-      payload: utf8ToBytes("Hello World")
-    });
-
-    await expect(request).to.be.rejectedWith(Error);
+    try {
+      await waku.lightPush.send(encoder, {
+        payload: utf8ToBytes("Hello World")
+      });
+      throw new Error("The request should've thrown an error");
+    } catch (err) {
+      if (
+        !(err instanceof Error) ||
+        !err.message.includes(
+          `PubSub topic ${PubSubTopic2} has not been configured on this instance. Configured topics are: ${PubSubTopic1}`
+        )
+      ) {
+        throw err;
+      }
+    }
   });
 });
