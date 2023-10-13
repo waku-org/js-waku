@@ -226,16 +226,24 @@ export class ConnectionManager
       try {
         const error = this.dialErrorsForPeer.get(peerId.toString());
 
-        let errorMessage;
-        if (error instanceof AggregateError) {
-          errorMessage = JSON.stringify(error.errors[0]);
-        } else {
-          errorMessage = error.message;
-        }
+        if (error) {
+          let errorMessage;
+          if (error instanceof AggregateError) {
+            if (!error.errors) {
+              log(`No errors array found for AggregateError`);
+            } else if (error.errors.length === 0) {
+              log(`Errors array is empty for AggregateError`);
+            } else {
+              errorMessage = JSON.stringify(error.errors[0]);
+            }
+          } else {
+            errorMessage = error.message;
+          }
 
-        log(
-          `Deleting undialable peer ${peerId.toString()} from peer store. Error: ${errorMessage}`
-        );
+          log(
+            `Deleting undialable peer ${peerId.toString()} from peer store. Error: ${errorMessage}`
+          );
+        }
 
         this.dialErrorsForPeer.delete(peerId.toString());
         await this.libp2p.peerStore.delete(peerId);
@@ -314,7 +322,7 @@ export class ConnectionManager
     }
 
     this.dialPeer(peerId).catch((err) => {
-      throw `Error dialing peer ${peerId.toString()} : ${err}`;
+      log(`Error dialing peer ${peerId.toString()} : ${err}`);
     });
   }
 
