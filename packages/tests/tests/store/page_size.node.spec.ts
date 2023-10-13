@@ -48,13 +48,13 @@ describe("Waku Store, page size", function () {
       // Determine effectivePageSize for test expectations
       let effectivePageSize = pageSize;
       if (pageSize === 0) {
-        if (nwaku.type() == "go-waku") {
-          effectivePageSize = 100;
-        } else {
-          effectivePageSize = 20;
-        }
+        effectivePageSize = 20;
       } else if (pageSize > 100) {
-        effectivePageSize = 100;
+        if (nwaku.type() == "go-waku") {
+          effectivePageSize = 20;
+        } else {
+          effectivePageSize = 100;
+        }
       }
 
       waku = await startAndConnectLightNode(nwaku);
