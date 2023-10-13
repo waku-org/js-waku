@@ -15,21 +15,24 @@ async function main() {
     console.log("Image pulled");
   }
 
+  const mochaArgs = [
+    "mocha",
+    "--require",
+    "ts-node/register",
+    "--project",
+    "./tsconfig.dev.json",
+    ...process.argv.slice(2)
+  ];
+
+  // If in CI, add --parallel
+  if (process.env.CI) {
+    mochaArgs.push("--parallel");
+  }
+
   // Run mocha tests
-  const mocha = spawn(
-    "npx",
-    [
-      "mocha",
-      "--require",
-      "ts-node/register",
-      "--project",
-      "./tsconfig.dev.json",
-      ...process.argv.slice(2)
-    ],
-    {
-      stdio: "inherit"
-    }
-  );
+  const mocha = spawn("npx", mochaArgs, {
+    stdio: "inherit"
+  });
 
   mocha.on("error", (error) => {
     console.log(`Error running mocha tests: ${error.message}`);

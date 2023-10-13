@@ -8,6 +8,6 @@
   ],
   "exit": true,
   "retries": 4,
-  "parallel": true,
+  "parallel": false,
   "jobs": 6
 }
