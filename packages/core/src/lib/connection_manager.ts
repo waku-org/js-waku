@@ -226,9 +226,7 @@ export class ConnectionManager
       try {
         const error = this.dialErrorsForPeer.get(peerId.toString());
 
-        if (!error) {
-          log(`No error found for peer ${peerId.toString()}`);
-        } else {
+        if (error) {
           let errorMessage;
           if (error instanceof AggregateError) {
             if (!error.errors) {
