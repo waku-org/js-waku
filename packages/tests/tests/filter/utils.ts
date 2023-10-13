@@ -69,7 +69,7 @@ export async function runNodes(
 ): Promise<[NimGoNode, LightNode]> {
   const nwaku = new NimGoNode(makeLogFileName(context));
 
-  await nwaku.startWithRetries(
+  await nwaku.start(
     {
       filter: true,
       lightpush: true,

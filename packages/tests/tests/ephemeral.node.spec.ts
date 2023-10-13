@@ -26,7 +26,8 @@ import {
   delay,
   makeLogFileName,
   NOISE_KEY_1,
-  NOISE_KEY_2
+  NOISE_KEY_2,
+  tearDownNodes
 } from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
@@ -45,9 +46,8 @@ describe("Waku Message Ephemeral field", () => {
   let subscription: IFilterSubscription;
 
   afterEach(async function () {
-    !!nwaku &&
-      nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   beforeEach(async function () {
@@ -165,8 +165,7 @@ describe("Waku Message Ephemeral field", () => {
 
     expect(messages?.length).eq(0);
 
-    !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
-    !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
+    await tearDownNodes([], [waku1, waku2]);
   });
 
   it("Ephemeral field is preserved - encoder v0", async function () {
