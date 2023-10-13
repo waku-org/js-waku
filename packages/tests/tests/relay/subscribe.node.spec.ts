@@ -4,11 +4,18 @@ import { createRelayNode } from "@waku/sdk";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { NOISE_KEY_1, NOISE_KEY_2, tearDownNodes } from "../../src/index.js";
+import {
+  MessageCollector,
+  NOISE_KEY_1,
+  NOISE_KEY_2,
+  tearDownNodes
+} from "../../src/index.js";
 
 import {
   log,
   messageText,
+  TestContentTopic,
+  TestDecoder,
   TestEncoder,
   waitForAllRemotePeers
 } from "./utils.js";
@@ -45,7 +52,7 @@ describe("Waku Relay, Subscribe", function () {
     await tearDownNodes([], [waku1, waku2]);
   });
 
-  it("Subscribe", async function () {
+  it("Mutual subscription", async function () {
     await waitForAllRemotePeers(waku1, waku2);
     const subscribers1 = waku1.libp2p.services
       .pubsub!.getSubscribers(DefaultPubSubTopic)
@@ -65,7 +72,7 @@ describe("Waku Relay, Subscribe", function () {
     expect(protocols.findIndex((value) => value.match(/sub/))).to.eq(-1);
   });
 
-  it("Publish error, Insufficient Peers", async function () {
+  it("Publish without waiting for remote peer", async function () {
     try {
       await waku1.relay.send(TestEncoder, {
         payload: utf8ToBytes(messageText)
@@ -79,5 +86,32 @@ describe("Waku Relay, Subscribe", function () {
         throw err;
       }
     }
+  });
+
+  it("Subscribe and publish message", async function () {
+    await waitForAllRemotePeers(waku1, waku2);
+    const messageTimestamp = new Date("1995-12-17T03:24:00");
+    const message = {
+      payload: utf8ToBytes(messageText),
+      timestamp: messageTimestamp
+    };
+
+    const messageCollector = new MessageCollector();
+    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+
+    const pushResponse = await waku1.relay.send(TestEncoder, message);
+
+    expect(pushResponse.recipients.length).to.eq(1);
+    expect(pushResponse.recipients[0].toString()).to.eq(
+      waku2.libp2p.peerId.toString()
+    );
+
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic,
+      expectedTimestamp: messageTimestamp.valueOf()
+    });
   });
 });
