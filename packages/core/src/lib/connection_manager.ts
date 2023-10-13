@@ -440,7 +440,7 @@ export class ConnectionManager
       return false;
     }
 
-    // If the peer is already in the peer store or has an active dial attempt, don't dial it
+    // If the peer is already already has an active dial attempt, or has been dialed before, don't dial it
     if (this.dialAttemptsForPeer.has(peerId.toString())) {
       log(
         `Peer ${peerId.toString()} has already been attempted dial before, or already has a dial attempt in progress, skipping dial`

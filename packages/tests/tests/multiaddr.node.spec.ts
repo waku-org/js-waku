@@ -93,7 +93,7 @@ describe("multiaddr: dialing", function () {
 
       for (let i = 0; i < PEER_DISCOVERY_COUNT; i++) {
         discoverPeer();
-        await delay(1500);
+        await delay(100);
       }
 
       expect(dialPeerSpy.callCount).to.eq(1);
