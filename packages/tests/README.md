@@ -40,6 +40,7 @@ Therefore, you need to have `docker` installed on your machine to run the tests.
     WAKUNODE_IMAGE=image-name npm run test:node
     ```
 
+- Locally, tests are executed serially, allowing the use of **.only** for focused testing. If you wish to run all tests locally and expedite the process, you can enable parallel execution in the Mocha configuration.
 
 # Running tests in the CI
 
