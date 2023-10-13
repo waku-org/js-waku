@@ -3,16 +3,15 @@ import type { Waku } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { NimGoNode } from "../src/index.js";
+import { NimGoNode, tearDownNodes } from "../src/index.js";
 
 describe("dials multiaddr", function () {
   let waku: Waku;
   let nwaku: NimGoNode;
 
   afterEach(async function () {
-    !!nwaku &&
-      nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("TLS", async function () {

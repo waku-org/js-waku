@@ -321,7 +321,11 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Set up and start a new nwaku node
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
-    await nwaku2.start({ filter: true, lightpush: true, relay: true });
+    await nwaku2.start({
+      filter: true,
+      lightpush: true,
+      relay: true
+    });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
     const subscription2 = await waku.filter.createSubscription(
