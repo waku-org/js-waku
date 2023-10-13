@@ -35,7 +35,7 @@ describe("Waku Relay, Interop", function () {
     await waku.start();
 
     nwaku = new NimGoNode(this.test?.ctx?.currentTest?.title + "");
-    await nwaku.startWithRetries({ relay: true });
+    await nwaku.start({ relay: true });
 
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Relay]);
@@ -130,7 +130,7 @@ describe("Waku Relay, Interop", function () {
       ]);
 
       nwaku = new NimGoNode(makeLogFileName(this));
-      await nwaku.startWithRetries();
+      await nwaku.start();
 
       const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
       await Promise.all([
