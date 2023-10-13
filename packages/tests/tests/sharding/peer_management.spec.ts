@@ -173,7 +173,6 @@ describe("Static Sharding: Peer Management", function () {
       });
 
       await delay(1000);
-      console.log({ count: dialPeerSpy.callCount });
       expect(dialPeerSpy.callCount).to.equal(2);
     });
   });
