@@ -1,4 +1,4 @@
-import { LightNode } from "@waku/interfaces";
+import { Waku } from "@waku/interfaces";
 import debug from "debug";
 import pRetry from "p-retry";
 
@@ -8,7 +8,7 @@ const log = debug("waku:test");
 
 export async function tearDownNodes(
   nwakuNodes: NimGoNode | NimGoNode[],
-  wakuNodes: LightNode | LightNode[]
+  wakuNodes: Waku | Waku[]
 ): Promise<void> {
   const nNodes = Array.isArray(nwakuNodes) ? nwakuNodes : [nwakuNodes];
   const wNodes = Array.isArray(wakuNodes) ? wakuNodes : [wakuNodes];

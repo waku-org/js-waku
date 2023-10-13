@@ -38,7 +38,11 @@ describe("Util: toAsyncIterator: Filter", () => {
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.start({ filter: true, lightpush: true, relay: true });
+    await nwaku.start({
+      filter: true,
+      lightpush: true,
+      relay: true
+    });
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }

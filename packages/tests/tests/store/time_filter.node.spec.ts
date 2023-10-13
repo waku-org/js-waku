@@ -18,7 +18,7 @@ describe("Waku Store, time filter", function () {
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.startWithRetries({ store: true, lightpush: true, relay: true });
+    await nwaku.start({ store: true, lightpush: true, relay: true });
     await nwaku.ensureSubscriptions();
   });
 
@@ -48,7 +48,7 @@ describe("Waku Store, time filter", function () {
             timestamp: msgTimestamp
           })
         )
-      ).to.be.true;
+      ).to.eq(true);
 
       waku = await startAndConnectLightNode(nwaku);
 
@@ -93,7 +93,7 @@ describe("Waku Store, time filter", function () {
             timestamp: msgTimestamp
           })
         )
-      ).to.be.true;
+      ).to.eq(true);
 
       waku = await startAndConnectLightNode(nwaku);
 

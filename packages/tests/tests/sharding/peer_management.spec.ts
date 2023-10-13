@@ -9,6 +9,7 @@ import Sinon, { SinonSpy } from "sinon";
 import { delay } from "../../src/delay.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
+import { tearDownNodes } from "../../src/teardown.js";
 
 chai.use(chaiAsPromised);
 
@@ -22,18 +23,15 @@ describe("Static Sharding: Peer Management", function () {
     let dialPeerSpy: SinonSpy;
 
     beforeEach(async function () {
+      this.timeout(15000);
       nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
       nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
       nwaku3 = new NimGoNode(makeLogFileName(this) + "3");
     });
 
     afterEach(async function () {
-      this.timeout(5_000);
-      await nwaku1?.stop();
-      await nwaku2?.stop();
-      await nwaku3?.stop();
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
-
+      this.timeout(15000);
+      await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
       dialPeerSpy && dialPeerSpy.restore();
     });
 
