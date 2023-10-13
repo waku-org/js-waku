@@ -27,6 +27,11 @@ async function main() {
   // If in CI, add --parallel
   if (process.env.CI) {
     mochaArgs.push("--parallel");
+    console.log("Running tests in parallel");
+  } else {
+    console.log(
+      "Running tests serially. To enable parallel execution update mocha config"
+    );
   }
 
   // Run mocha tests
