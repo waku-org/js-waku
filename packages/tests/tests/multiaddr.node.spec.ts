@@ -18,7 +18,7 @@ import {
 describe("multiaddr: dialing", function () {
   let waku: Waku;
   let nwaku: NimGoNode;
-  let attemptDialSpy: SinonSpy;
+  let dialPeerSpy: SinonSpy;
   let isPeerTopicConfigured: SinonStub;
 
   afterEach(async function () {
@@ -69,11 +69,11 @@ describe("multiaddr: dialing", function () {
         "isPeerTopicConfigured"
       );
       isPeerTopicConfigured.resolves(true);
-      attemptDialSpy = Sinon.spy(waku.connectionManager as any, "attemptDial");
+      dialPeerSpy = Sinon.spy(waku.connectionManager as any, "dialPeer");
     });
 
     afterEach(function () {
-      attemptDialSpy.restore();
+      dialPeerSpy.restore();
     });
 
     it("through manual discovery", async function () {
@@ -96,7 +96,7 @@ describe("multiaddr: dialing", function () {
         await delay(1500);
       }
 
-      expect(attemptDialSpy.callCount).to.eq(1);
+      expect(dialPeerSpy.callCount).to.eq(1);
     });
   });
 });

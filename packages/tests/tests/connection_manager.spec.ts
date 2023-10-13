@@ -210,10 +210,8 @@ describe("ConnectionManager", function () {
               }
             })
           );
+          await delay(100);
         }
-
-        // add delay to allow async function calls within attemptDial to finish
-        await delay(100);
 
         expect(attemptDialSpy.callCount).to.equal(
           totalPeerIds,
