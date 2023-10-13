@@ -38,7 +38,7 @@ export class ConnectionManager
   private dialAttemptsForPeer: Map<string, number> = new Map();
   private dialErrorsForPeer: Map<string, any> = new Map();
 
-  private currentActiveDialCount = 0;
+  private currentActiveParallelDialCount = 0;
   private pendingPeerDialQueue: Array<PeerId> = [];
 
   public static create(
@@ -183,7 +183,7 @@ export class ConnectionManager
   }
 
   private async dialPeer(peerId: PeerId): Promise<void> {
-    this.currentActiveDialCount += 1;
+    this.currentActiveParallelDialCount += 1;
     let dialAttempt = 0;
     while (dialAttempt < this.options.maxDialAttemptsForPeer) {
       try {
@@ -199,7 +199,10 @@ export class ConnectionManager
           conn.tags = Array.from(new Set([...conn.tags, ...tags]));
         });
 
-        this.dialAttemptsForPeer.delete(peerId.toString());
+        // instead of deleting the peer from the peer store, we set the dial attempt to Infinity
+        // this helps us keep track of peers that have been dialed before
+        this.dialAttemptsForPeer.set(peerId.toString(), Infinity);
+
         // Dialing succeeded, break the loop
         break;
       } catch (error) {
@@ -224,7 +227,7 @@ export class ConnectionManager
     }
 
     // Always decrease the active dial count and process the dial queue
-    this.currentActiveDialCount--;
+    this.currentActiveParallelDialCount--;
     this.processDialQueue();
 
     // If max dial attempts reached and dialing failed, delete the peer
@@ -276,7 +279,7 @@ export class ConnectionManager
   private processDialQueue(): void {
     if (
       this.pendingPeerDialQueue.length > 0 &&
-      this.currentActiveDialCount < this.options.maxParallelDials
+      this.currentActiveParallelDialCount < this.options.maxParallelDials
     ) {
       const peerId = this.pendingPeerDialQueue.shift();
       if (!peerId) return;
@@ -322,7 +325,7 @@ export class ConnectionManager
   private async attemptDial(peerId: PeerId): Promise<void> {
     if (!(await this.shouldDialPeer(peerId))) return;
 
-    if (this.currentActiveDialCount >= this.options.maxParallelDials) {
+    if (this.currentActiveParallelDialCount >= this.options.maxParallelDials) {
       this.pendingPeerDialQueue.push(peerId);
       return;
     }
@@ -438,11 +441,10 @@ export class ConnectionManager
     }
 
     // If the peer is already in the peer store or has an active dial attempt, don't dial it
-    if (
-      (await this.libp2p.peerStore.has(peerId)) ||
-      this.dialAttemptsForPeer.has(peerId.toString())
-    ) {
-      log(`Peer ${peerId.toString()} already in peer store, skipping dial`);
+    if (this.dialAttemptsForPeer.has(peerId.toString())) {
+      log(
+        `Peer ${peerId.toString()} has already been attempted dial before, or already has a dial attempt in progress, skipping dial`
+      );
       return false;
     }
 
