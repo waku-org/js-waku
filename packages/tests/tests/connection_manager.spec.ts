@@ -6,6 +6,7 @@ import { expect } from "chai";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 
 import { delay } from "../dist/delay.js";
+import { tearDownNodes } from "../src/index.js";
 
 const TEST_TIMEOUT = 10_000;
 const DELAY_MS = 1_000;
@@ -18,7 +19,8 @@ describe("ConnectionManager", function () {
   });
 
   afterEach(async () => {
-    await waku.stop();
+    this.timeout(15000);
+    await tearDownNodes([], waku);
   });
 
   describe("Events", () => {
@@ -161,7 +163,7 @@ describe("ConnectionManager", function () {
 
     afterEach(async () => {
       this.timeout(15000);
-      await waku.stop();
+      await tearDownNodes([], waku);
       isPeerTopicConfigured.restore();
       sinon.restore();
     });

@@ -4,21 +4,22 @@ import { Protocols } from "@waku/interfaces";
 import { createLightNode, createRelayNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
+import {
+  delay,
+  makeLogFileName,
+  NOISE_KEY_1,
+  tearDownNodes
+} from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
 describe("Wait for remote peer", function () {
   let waku1: RelayNode;
   let waku2: LightNode;
-  let nwaku: NimGoNode | undefined;
+  let nwaku: NimGoNode;
 
   afterEach(async function () {
-    if (nwaku) {
-      nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-      nwaku = undefined;
-    }
-    waku1?.stop().catch((e) => console.log("Waku failed to stop", e));
-    waku2?.stop().catch((e) => console.log("Waku failed to stop", e));
+    this.timeout(15000);
+    await tearDownNodes(nwaku, [waku1, waku2]);
   });
 
   it("Relay - dialed first", async function () {
