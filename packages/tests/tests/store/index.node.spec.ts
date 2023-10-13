@@ -54,7 +54,7 @@ describe("Waku Store, general", function () {
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.startWithRetries({ store: true, lightpush: true, relay: true });
+    await nwaku.start({ store: true, lightpush: true, relay: true });
     await nwaku.ensureSubscriptions();
   });
 
@@ -91,7 +91,7 @@ describe("Waku Store, general", function () {
           }),
           DefaultPubSubTopic
         )
-      ).to.be.true;
+      ).to.eq(true);
       await delay(1); // to ensure each timestamp is unique.
     }
 
@@ -148,7 +148,7 @@ describe("Waku Store, general", function () {
           }),
           DefaultPubSubTopic
         )
-      ).to.be.true;
+      ).to.eq(true);
       await delay(1); // to ensure each timestamp is unique.
     }
 
