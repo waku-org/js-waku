@@ -8,6 +8,10 @@ const PACKAGE_JSON = "package.json";
 // hack to get __dirname
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 
+const NEXT_TAG = "next";
+const LATEST_TAG = "latest";
+const CURRENT_TAG = readPublishTag();
+
 const exec = promisify(cp.exec);
 const readFile = promisify(fs.readFile);
 
@@ -22,6 +26,10 @@ run()
 async function run() {
   const rootPackage = await readJSON(path.resolve(DIR, "../", PACKAGE_JSON));
   const workspacePaths = rootPackage.workspaces;
+
+  if (CURRENT_TAG === NEXT_TAG) {
+    await makeReleaseCandidate();
+  }
 
   const workspaces = await Promise.all(
     workspacePaths.map(async (workspacePath) => {
@@ -42,7 +50,7 @@ async function run() {
       .map(async (info) => {
         try {
           await exec(
-            `npm publish --workspace ${info.workspace} --tag latest --access public`
+            `npm publish --workspace ${info.workspace} --tag ${CURRENT_TAG} --access public`
           );
           console.info(
             `Successfully published ${info.workspace} with version ${info.version}.`
@@ -76,7 +84,7 @@ async function readWorkspace(packagePath) {
 
 async function shouldBePublished(info) {
   if (info.private) {
-    console.info(`Skipping ${info.path} because it is private.`);
+    console.info(`Skipping ${info.name} because it is private.`);
     return false;
   }
 
@@ -98,4 +106,26 @@ async function shouldBePublished(info) {
       `Cannot check published version of ${info.path}. Received error: ${err.message}`
     );
   }
+}
+
+async function makeReleaseCandidate() {
+  try {
+    console.info("Marking workspace versions as release candidates.");
+    await exec(
+      `npm version prerelease --preid $(git rev-parse --short HEAD) --workspaces true`
+    );
+  } catch (e) {
+    console.error("Failed to mark release candidate versions.", e);
+  }
+}
+
+function readPublishTag() {
+  const args = process.argv.slice(2);
+  const tagIndex = args.indexOf("--tag");
+
+  if (tagIndex !== -1 && args[tagIndex + 1]) {
+    return args[tagIndex + 1];
+  }
+
+  return LATEST_TAG;
 }
