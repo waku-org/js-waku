@@ -26,6 +26,7 @@
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Enumeration Members</h3>
 <div class="tsd-index-list"><a href="_waku_sdk.SendError.html#DECODE_FAILED" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-16"></use></svg><span>DECODE_<wbr/>FAILED</span></a>
+<a href="_waku_sdk.SendError.html#EMPTY_PAYLOAD" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-16"></use></svg><span>EMPTY_<wbr/>PAYLOAD</span></a>
 <a href="_waku_sdk.SendError.html#ENCODE_FAILED" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-16"></use></svg><span>ENCODE_<wbr/>FAILED</span></a>
 <a href="_waku_sdk.SendError.html#GENERIC_FAIL" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-16"></use></svg><span>GENERIC_<wbr/>FAIL</span></a>
 <a href="_waku_sdk.SendError.html#NO_PEER_AVAILABLE" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-16"></use></svg><span>NO_<wbr/>PEER_<wbr/>AVAILABLE</span></a>
@@ -40,11 +41,20 @@
 <h3 class="tsd-anchor-link"><span>DECODE_<wbr/>FAILED</span><a href="#DECODE_FAILED" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-enum-member">DECODE_<wbr/>FAILED</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Failed to decode&quot;</span></div>
 <div class="tsd-comment tsd-typography"><p>Failure to protobuf decode the message. May be due to a remote peer issue,
-ensuring that messages are sent via several peer enable mitigation of this error..</p>
+ensuring that messages are sent via several peer enable mitigation of this error.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:67</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:71</li></ul></aside></section>
+<section class="tsd-panel tsd-member"><a id="EMPTY_PAYLOAD" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>EMPTY_<wbr/>PAYLOAD</span><a href="#EMPTY_PAYLOAD" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">EMPTY_<wbr/>PAYLOAD</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Payload is empty&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>The message payload is empty, making the message invalid. Ensure that a non-empty
+payload is set on the outgoing message.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:76</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="ENCODE_FAILED" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>ENCODE_<wbr/>FAILED</span><a href="#ENCODE_FAILED" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-enum-member">ENCODE_<wbr/>FAILED</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Failed to encode&quot;</span></div>
@@ -53,7 +63,7 @@ further investigation.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:64</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:66</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="GENERIC_FAIL" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>GENERIC_<wbr/>FAIL</span><a href="#GENERIC_FAIL" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-enum-member">GENERIC_<wbr/>FAIL</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Generic error&quot;</span></div>
@@ -72,7 +82,7 @@ on the connection manager before retrying.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:83</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:93</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="REMOTE_PEER_FAULT" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>REMOTE_<wbr/>PEER_<wbr/>FAULT</span><a href="#REMOTE_PEER_FAULT" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-enum-member">REMOTE_<wbr/>PEER_<wbr/>FAULT</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Remote peer fault&quot;</span></div>
@@ -81,7 +91,7 @@ or <code>DECODE_FAILED</code> can be used.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:88</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:98</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="REMOTE_PEER_REJECTED" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>REMOTE_<wbr/>PEER_<wbr/>REJECTED</span><a href="#REMOTE_PEER_REJECTED" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-enum-member">REMOTE_<wbr/>PEER_<wbr/>REJECTED</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Remote peer rejected&quot;</span></div>
@@ -91,7 +101,7 @@ or <code>DECODE_FAILED</code> can be used.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:94</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:104</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="SIZE_TOO_BIG" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>SIZE_<wbr/>TOO_<wbr/>BIG</span><a href="#SIZE_TOO_BIG" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-enum-member">SIZE_<wbr/>TOO_<wbr/>BIG</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Size is too big&quot;</span></div>
@@ -100,7 +110,7 @@ Compressing the message or using an alternative strategy for large messages is r
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:71</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:81</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="TOPIC_NOT_CONFIGURED" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>TOPIC_<wbr/>NOT_<wbr/>CONFIGURED</span><a href="#TOPIC_NOT_CONFIGURED" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-enum-member">TOPIC_<wbr/>NOT_<wbr/>CONFIGURED</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Topic not configured&quot;</span></div>
@@ -109,7 +119,7 @@ Please ensure that the PubSubTopic is used when initializing the Waku node.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/protocols.d.ts:76</li></ul></aside></section></section></div>
+<li>Defined in packages/interfaces/dist/protocols.d.ts:86</li></ul></aside></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -129,6 +139,7 @@ Please ensure that the PubSubTopic is used when initializing the Waku node.</p>
 <div class="tsd-accordion-details">
 <ul>
 <li><a href="#DECODE_FAILED" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-16"></use></svg><span>DECODE_<wbr/>FAILED</span></a></li>
+<li><a href="#EMPTY_PAYLOAD" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-16"></use></svg><span>EMPTY_<wbr/>PAYLOAD</span></a></li>
 <li><a href="#ENCODE_FAILED" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-16"></use></svg><span>ENCODE_<wbr/>FAILED</span></a></li>
 <li><a href="#GENERIC_FAIL" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-16"></use></svg><span>GENERIC_<wbr/>FAIL</span></a></li>
 <li><a href="#NO_PEER_AVAILABLE" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-16"></use></svg><span>NO_<wbr/>PEER_<wbr/>AVAILABLE</span></a></li>
