@@ -18,6 +18,10 @@ on:
         required: false
         type: string
         default: ''
+      allure_reports:
+        required: false
+        type: boolean
+        default: false
 
 env:
   NODE_JS: "18"
@@ -30,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image }}
+      ALLURE_REPORTS: ${{ inputs.allure_reports }}
     steps:
       - uses: actions/checkout@v3
         with: 
@@ -46,7 +51,7 @@ jobs:
       - run: ${{ (inputs.test_type == 'node-optional') && 'npm run test:optional --workspace=@waku/tests' || 'npm run test:node' }}
 
       - name: Get allure history
-        if: always()
+        if: always() && env.ALLURE_REPORTS == 'true'
         uses: actions/checkout@v3
         continue-on-error: true
         with:
@@ -54,17 +59,17 @@ jobs:
           path: gh-pages
 
       - name: Setup allure report
-        if: always()
+        if: always() && env.ALLURE_REPORTS == 'true'
         uses: simple-elf/allure-report-action@master
         id: allure-report
         with:
-          allure_results: allure-results
+          allure_results: packages/tests/allure-results
           gh_pages: gh-pages/node
           allure_history: allure-history
           keep_reports: 10
     
       - name: Deploy report to Github Pages
-        if: always()
+        if: always() && env.ALLURE_REPORTS == 'true'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
