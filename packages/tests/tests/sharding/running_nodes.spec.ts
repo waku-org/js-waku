@@ -29,17 +29,17 @@ describe("Static Sharding: Running Nodes", () => {
   it("configure the node with multiple pubsub topics", async function () {
     this.timeout(15_000);
     waku = await createLightNode({
-      pubSubTopics: [PubSubTopic1, PubSubTopic2]
+      pubsubTopics: [PubSubTopic1, PubSubTopic2]
     });
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
-      pubSubTopic: PubSubTopic1
+      pubsubTopic: PubSubTopic1
     });
 
     const encoder2 = createEncoder({
       contentTopic: ContentTopic,
-      pubSubTopic: PubSubTopic2
+      pubsubTopic: PubSubTopic2
     });
 
     const request1 = await waku.lightPush.send(encoder1, {
@@ -57,13 +57,13 @@ describe("Static Sharding: Running Nodes", () => {
   it("using a protocol with unconfigured pubsub topic should fail", async function () {
     this.timeout(15_000);
     waku = await createLightNode({
-      pubSubTopics: [PubSubTopic1]
+      pubsubTopics: [PubSubTopic1]
     });
 
     // use a pubsub topic that is not configured
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubSubTopic: PubSubTopic2
+      pubsubTopic: PubSubTopic2
     });
 
     try {

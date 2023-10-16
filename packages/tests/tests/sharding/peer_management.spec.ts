@@ -38,10 +38,10 @@ describe("Static Sharding: Peer Management", function () {
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
       this.timeout(100_000);
 
-      const pubSubTopics = ["/waku/2/rs/18/2"];
+      const pubsubTopics = ["/waku/2/rs/18/2"];
 
       await nwaku1.start({
-        topic: pubSubTopics,
+        topic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         relay: true
@@ -50,7 +50,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        topic: pubSubTopics,
+        topic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
@@ -60,7 +60,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr2 = (await nwaku2.info()).enrUri;
 
       await nwaku3.start({
-        topic: pubSubTopics,
+        topic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
@@ -69,7 +69,7 @@ describe("Static Sharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        pubSubTopics,
+        pubsubTopics,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
@@ -139,7 +139,7 @@ describe("Static Sharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        pubSubTopics: pubSubTopicsToDial,
+        pubsubTopics: pubSubTopicsToDial,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),

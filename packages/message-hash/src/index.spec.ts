@@ -10,7 +10,7 @@ describe("RFC Test Vectors", () => {
     const expectedHash =
       "4fdde1099c9f77f6dae8147b6b3179aba1fc8e14a7bf35203fc253ee479f135f";
 
-    const pubSubTopic = "/waku/2/default-waku/proto";
+    const pubsubTopic = "/waku/2/default-waku/proto";
     const message: IProtoMessage = {
       payload: hexToBytes("0x010203045445535405060708"),
       contentTopic: "/waku/2/default-content/proto",
@@ -21,7 +21,7 @@ describe("RFC Test Vectors", () => {
       version: undefined
     };
 
-    const hash = messageHash(pubSubTopic, message);
+    const hash = messageHash(pubsubTopic, message);
 
     expect(bytesToHex(hash)).to.equal(expectedHash);
   });
@@ -30,7 +30,7 @@ describe("RFC Test Vectors", () => {
     const expectedHash =
       "87619d05e563521d9126749b45bd4cc2430df0607e77e23572d874ed9c1aaa62";
 
-    const pubSubTopic = "/waku/2/default-waku/proto";
+    const pubsubTopic = "/waku/2/default-waku/proto";
     const message: IProtoMessage = {
       payload: hexToBytes("0x010203045445535405060708"),
       contentTopic: "/waku/2/default-content/proto",
@@ -41,7 +41,7 @@ describe("RFC Test Vectors", () => {
       version: undefined
     };
 
-    const hash = messageHash(pubSubTopic, message);
+    const hash = messageHash(pubsubTopic, message);
 
     expect(bytesToHex(hash)).to.equal(expectedHash);
   });
@@ -50,7 +50,7 @@ describe("RFC Test Vectors", () => {
     const expectedHash =
       "e1a9596237dbe2cc8aaf4b838c46a7052df6bc0d42ba214b998a8bfdbe8487d6";
 
-    const pubSubTopic = "/waku/2/default-waku/proto";
+    const pubsubTopic = "/waku/2/default-waku/proto";
     const message: IProtoMessage = {
       payload: new Uint8Array(),
       contentTopic: "/waku/2/default-content/proto",
@@ -61,7 +61,7 @@ describe("RFC Test Vectors", () => {
       version: undefined
     };
 
-    const hash = messageHash(pubSubTopic, message);
+    const hash = messageHash(pubsubTopic, message);
 
     expect(bytesToHex(hash)).to.equal(expectedHash);
   });

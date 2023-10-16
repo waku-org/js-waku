@@ -267,7 +267,7 @@ describe("Waku Relay [node only]", () => {
 
     const CustomEncoder = createEncoder({
       contentTopic: CustomContentTopic,
-      pubSubTopic: CustomPubSubTopic
+      pubsubTopic: CustomPubSubTopic
     });
     const CustomDecoder = createDecoder(CustomContentTopic, CustomPubSubTopic);
 
@@ -301,16 +301,16 @@ describe("Waku Relay [node only]", () => {
 
         [waku1, waku2, waku3] = await Promise.all([
           createRelayNode({
-            pubSubTopics: [testItem.pubsub],
+            pubsubTopics: [testItem.pubsub],
             staticNoiseKey: NOISE_KEY_1
           }).then((waku) => waku.start().then(() => waku)),
           createRelayNode({
-            pubSubTopics: [testItem.pubsub],
+            pubsubTopics: [testItem.pubsub],
             staticNoiseKey: NOISE_KEY_2,
             libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
           }).then((waku) => waku.start().then(() => waku)),
           createRelayNode({
-            pubSubTopics: [testItem.pubsub],
+            pubsubTopics: [testItem.pubsub],
             staticNoiseKey: NOISE_KEY_3
           }).then((waku) => waku.start().then(() => waku))
         ]);
@@ -401,16 +401,16 @@ describe("Waku Relay [node only]", () => {
       // Waku1 and waku2 are using multiple pubsub topis
       [waku1, waku2, waku3] = await Promise.all([
         createRelayNode({
-          pubSubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
+          pubsubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
+          pubsubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopics: [DefaultPubSubTopic],
+          pubsubTopics: [DefaultPubSubTopic],
           staticNoiseKey: NOISE_KEY_3
         }).then((waku) => waku.start().then(() => waku))
       ]);
@@ -475,11 +475,11 @@ describe("Waku Relay [node only]", () => {
 
       [waku1, waku2, waku3] = await Promise.all([
         createRelayNode({
-          pubSubTopics: [CustomPubSubTopic],
+          pubsubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopics: [CustomPubSubTopic],
+          pubsubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku)),
@@ -529,7 +529,7 @@ describe("Waku Relay [node only]", () => {
       await waku3NoMsgPromise;
 
       expect(bytesToUtf8(waku2ReceivedMsg.payload!)).to.eq(messageText);
-      expect(waku2ReceivedMsg.pubSubTopic).to.eq(CustomPubSubTopic);
+      expect(waku2ReceivedMsg.pubsubTopic).to.eq(CustomPubSubTopic);
     });
 
     it("Publishes <= 1 MB and rejects others", async function () {
@@ -539,11 +539,11 @@ describe("Waku Relay [node only]", () => {
       // 1 and 2 uses a custom pubsub
       [waku1, waku2] = await Promise.all([
         createRelayNode({
-          pubSubTopics: [CustomPubSubTopic],
+          pubsubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopics: [CustomPubSubTopic],
+          pubsubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku))
