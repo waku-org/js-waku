@@ -44,6 +44,7 @@ export class MessageCollector {
       if (typeof message.payload === "string") {
         return message.payload === text;
       } else if (message.payload instanceof Uint8Array) {
+        log(`Checking payload: ${bytesToUtf8(message.payload)}`);
         return isEqual(message.payload, utf8ToBytes(text));
       }
       return false;

@@ -2,6 +2,7 @@ import { LightNode } from "@waku/interfaces";
 import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
+import { tearDownNodes } from "../../src/index.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
 
@@ -21,9 +22,8 @@ describe("Static Sharding: Running Nodes", () => {
   });
 
   afterEach(async function () {
-    !!nwaku &&
-      nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("configure the node with multiple pubsub topics", async function () {
@@ -42,16 +42,16 @@ describe("Static Sharding: Running Nodes", () => {
       pubsubTopic: PubSubTopic2
     });
 
-    const request1 = waku.lightPush.send(encoder1, {
+    const request1 = await waku.lightPush.send(encoder1, {
       payload: utf8ToBytes("Hello World")
     });
 
-    const request2 = waku.lightPush.send(encoder2, {
+    const request2 = await waku.lightPush.send(encoder2, {
       payload: utf8ToBytes("Hello World")
     });
 
-    await expect(request1).to.be.fulfilled;
-    await expect(request2).to.be.fulfilled;
+    expect(request1.recipients.length).to.eq(0);
+    expect(request2.recipients.length).to.eq(0);
   });
 
   it("using a protocol with unconfigured pubsub topic should fail", async function () {
@@ -66,11 +66,20 @@ describe("Static Sharding: Running Nodes", () => {
       pubsubTopic: PubSubTopic2
     });
 
-    // the following request should throw an error
-    const request = waku.lightPush.send(encoder, {
-      payload: utf8ToBytes("Hello World")
-    });
-
-    await expect(request).to.be.rejectedWith(Error);
+    try {
+      await waku.lightPush.send(encoder, {
+        payload: utf8ToBytes("Hello World")
+      });
+      throw new Error("The request should've thrown an error");
+    } catch (err) {
+      if (
+        !(err instanceof Error) ||
+        !err.message.includes(
+          `PubSub topic ${PubSubTopic2} has not been configured on this instance. Configured topics are: ${PubSubTopic1}`
+        )
+      ) {
+        throw err;
+      }
+    }
   });
 });

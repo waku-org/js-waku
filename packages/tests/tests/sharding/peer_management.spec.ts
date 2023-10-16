@@ -9,6 +9,7 @@ import Sinon, { SinonSpy } from "sinon";
 import { delay } from "../../src/delay.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
+import { tearDownNodes } from "../../src/teardown.js";
 
 chai.use(chaiAsPromised);
 
@@ -19,22 +20,19 @@ describe("Static Sharding: Peer Management", function () {
     let nwaku2: NimGoNode;
     let nwaku3: NimGoNode;
 
-    let attemptDialSpy: SinonSpy;
+    let dialPeerSpy: SinonSpy;
 
     beforeEach(async function () {
+      this.timeout(15000);
       nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
       nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
       nwaku3 = new NimGoNode(makeLogFileName(this) + "3");
     });
 
     afterEach(async function () {
-      this.timeout(5_000);
-      await nwaku1?.stop();
-      await nwaku2?.stop();
-      await nwaku3?.stop();
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
-
-      attemptDialSpy && attemptDialSpy.restore();
+      this.timeout(15000);
+      await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
+      dialPeerSpy && dialPeerSpy.restore();
     });
 
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
@@ -82,10 +80,7 @@ describe("Static Sharding: Peer Management", function () {
 
       await waku.start();
 
-      attemptDialSpy = Sinon.spy(
-        (waku as any).connectionManager,
-        "attemptDial"
-      );
+      dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
 
       const pxPeersDiscovered = new Set<PeerId>();
 
@@ -107,7 +102,7 @@ describe("Static Sharding: Peer Management", function () {
 
       await delay(1000);
 
-      expect(attemptDialSpy.callCount).to.equal(3);
+      expect(dialPeerSpy.callCount).to.equal(3);
     });
 
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
@@ -153,10 +148,7 @@ describe("Static Sharding: Peer Management", function () {
         }
       });
 
-      attemptDialSpy = Sinon.spy(
-        (waku as any).connectionManager,
-        "attemptDial"
-      );
+      dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
 
       await waku.start();
 
@@ -179,8 +171,7 @@ describe("Static Sharding: Peer Management", function () {
       });
 
       await delay(1000);
-
-      expect(attemptDialSpy.callCount).to.equal(2);
+      expect(dialPeerSpy.callCount).to.equal(2);
     });
   });
 });

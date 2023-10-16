@@ -17,7 +17,7 @@ export async function runNodes(
   pubsubTopics: string[]
 ): Promise<[NimGoNode, LightNode]> {
   const nwaku = new NimGoNode(makeLogFileName(context));
-  await nwaku.startWithRetries(
+  await nwaku.start(
     { lightpush: true, relay: true, topic: pubsubTopics },
     { retries: 3 }
   );
