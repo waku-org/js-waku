@@ -42,18 +42,18 @@ type PreparePushMessageResult =
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 class LightPush extends BaseProtocol implements ILightPush {
-  private readonly pubSubTopics: PubSubTopic[];
+  private readonly pubsubTopics: PubSubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components);
-    this.pubSubTopics = options?.pubSubTopics ?? [DefaultPubSubTopic];
+    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubSubTopic];
   }
 
   private async preparePushMessage(
     encoder: IEncoder,
     message: IMessage,
-    pubSubTopic: string
+    pubsubTopic: string
   ): Promise<PreparePushMessageResult> {
     try {
       if (!message.payload || message.payload.length === 0) {
@@ -75,7 +75,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         };
       }
 
-      const query = PushRpc.createRequest(protoMessage, pubSubTopic);
+      const query = PushRpc.createRequest(protoMessage, pubsubTopic);
       return { query, error: null };
     } catch (error) {
       log("Failed to prepare push message", error);
@@ -88,15 +88,15 @@ class LightPush extends BaseProtocol implements ILightPush {
   }
 
   async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
-    const { pubSubTopic } = encoder;
-    ensurePubsubTopicIsConfigured(pubSubTopic, this.pubSubTopics);
+    const { pubsubTopic } = encoder;
+    ensurePubsubTopicIsConfigured(pubsubTopic, this.pubsubTopics);
 
     const recipients: PeerId[] = [];
 
     const { query, error: preparationError } = await this.preparePushMessage(
       encoder,
       message,
-      pubSubTopic
+      pubsubTopic
     );
 
     if (preparationError || !query) {

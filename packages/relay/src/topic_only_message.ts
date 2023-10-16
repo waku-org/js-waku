@@ -17,7 +17,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
   public ephemeral: undefined;
 
   constructor(
-    public pubSubTopic: string,
+    public pubsubTopic: string,
     private proto: ProtoTopicOnlyMessage
   ) {}
 
@@ -27,7 +27,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
 }
 
 export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
-  pubSubTopic = DefaultPubSubTopic;
+  pubsubTopic = DefaultPubSubTopic;
   public contentTopic = "";
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
@@ -45,9 +45,9 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
   }
 
   async fromProtoObj(
-    pubSubTopic: string,
+    pubsubTopic: string,
     proto: IProtoMessage
   ): Promise<TopicOnlyMessage | undefined> {
-    return new TopicOnlyMessage(pubSubTopic, proto);
+    return new TopicOnlyMessage(pubsubTopic, proto);
   }
 }

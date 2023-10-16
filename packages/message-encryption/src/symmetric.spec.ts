@@ -13,7 +13,7 @@ describe("Symmetric Encryption", function () {
         fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubSubTopic, contentTopic, payload, symKey) => {
+        async (pubsubTopic, contentTopic, payload, symKey) => {
           const encoder = createEncoder({
             contentTopic,
             symKey
@@ -23,11 +23,11 @@ describe("Symmetric Encryption", function () {
           const decoder = createDecoder(contentTopic, symKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(pubSubTopic, protoResult);
+          const result = await decoder.fromProtoObj(pubsubTopic, protoResult);
           if (!result) throw "Failed to decode";
 
           expect(result.contentTopic).to.equal(contentTopic);
-          expect(result.pubSubTopic).to.equal(pubSubTopic);
+          expect(result.pubsubTopic).to.equal(pubsubTopic);
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.be.undefined;
@@ -45,7 +45,7 @@ describe("Symmetric Encryption", function () {
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubSubTopic, contentTopic, payload, sigPrivKey, symKey) => {
+        async (pubsubTopic, contentTopic, payload, sigPrivKey, symKey) => {
           const sigPubKey = getPublicKey(sigPrivKey);
 
           const encoder = createEncoder({
@@ -58,11 +58,11 @@ describe("Symmetric Encryption", function () {
           const decoder = createDecoder(contentTopic, symKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(pubSubTopic, protoResult);
+          const result = await decoder.fromProtoObj(pubsubTopic, protoResult);
           if (!result) throw "Failed to decode";
 
           expect(result.contentTopic).to.equal(contentTopic);
-          expect(result.pubSubTopic).to.equal(pubSubTopic);
+          expect(result.pubsubTopic).to.equal(pubsubTopic);
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.not.be.undefined;
@@ -79,7 +79,7 @@ describe("Symmetric Encryption", function () {
         fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubSubTopic, contentTopic, payload, symKey) => {
+        async (pubsubTopic, contentTopic, payload, symKey) => {
           const metaSetter = (
             msg: IProtoMessage & { meta: undefined }
           ): Uint8Array => {
@@ -99,7 +99,7 @@ describe("Symmetric Encryption", function () {
           const decoder = createDecoder(contentTopic, symKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(pubSubTopic, protoResult);
+          const result = await decoder.fromProtoObj(pubsubTopic, protoResult);
           if (!result) throw "Failed to decode";
 
           const expectedMeta = metaSetter({

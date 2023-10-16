@@ -29,7 +29,8 @@ describe("Waku Filter V2: Ping", function () {
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku], [waku]);
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("Ping on subscribed peer", async function () {
@@ -57,5 +58,41 @@ describe("Waku Filter V2: Ping", function () {
 
     // Ping imediately after unsubscribe
     await validatePingError(subscription);
+  });
+
+  it("Reopen subscription with peer with lost subscription", async function () {
+    const openSubscription = async (): Promise<void> => {
+      await subscription.subscribe([TestDecoder], messageCollector.callback);
+    };
+
+    const unsubscribe = async (): Promise<void> => {
+      await subscription.unsubscribe([TestContentTopic]);
+    };
+
+    const pingAndReinitiateSubscription = async (): Promise<void> => {
+      try {
+        await subscription.ping();
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes("peer has no subscriptions")
+        ) {
+          await openSubscription();
+        } else {
+          throw error;
+        }
+      }
+    };
+
+    // open subscription & ping -> should pass
+    await openSubscription();
+    await pingAndReinitiateSubscription();
+
+    // unsubscribe & ping -> should fail and reinitiate subscription
+    await unsubscribe();
+    await pingAndReinitiateSubscription();
+
+    // ping -> should pass as subscription is reinitiated
+    await pingAndReinitiateSubscription();
   });
 });

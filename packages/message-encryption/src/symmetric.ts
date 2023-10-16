@@ -29,7 +29,7 @@ const log = debug("waku:message-encryption:symmetric");
 
 class Encoder implements IEncoder {
   constructor(
-    public pubSubTopic: PubSubTopic,
+    public pubsubTopic: PubSubTopic,
     public contentTopic: string,
     private symKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
@@ -93,7 +93,7 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
-  pubSubTopic = DefaultPubSubTopic,
+  pubsubTopic = DefaultPubSubTopic,
   contentTopic,
   symKey,
   sigPrivKey,
@@ -101,7 +101,7 @@ export function createEncoder({
   metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(
-    pubSubTopic,
+    pubsubTopic,
     contentTopic,
     symKey,
     sigPrivKey,
@@ -112,15 +112,15 @@ export function createEncoder({
 
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(
-    pubSubTopic: PubSubTopic,
+    pubsubTopic: PubSubTopic,
     contentTopic: string,
     private symKey: Uint8Array
   ) {
-    super(pubSubTopic, contentTopic);
+    super(pubsubTopic, contentTopic);
   }
 
   async fromProtoObj(
-    pubSubTopic: string,
+    pubsubTopic: string,
     protoMessage: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
     const cipherPayload = protoMessage.payload;
@@ -161,7 +161,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 
     log("Message decrypted", protoMessage);
     return new DecodedMessage(
-      pubSubTopic,
+      pubsubTopic,
       protoMessage,
       res.payload,
       res.sig?.signature,
@@ -185,7 +185,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   symKey: Uint8Array,
-  pubSubTopic: PubSubTopic = DefaultPubSubTopic
+  pubsubTopic: PubSubTopic = DefaultPubSubTopic
 ): Decoder {
-  return new Decoder(pubSubTopic, contentTopic, symKey);
+  return new Decoder(pubsubTopic, contentTopic, symKey);
 }

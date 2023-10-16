@@ -75,12 +75,12 @@ export interface QueryOptions {
  * The Waku Store protocol can be used to retrieved historical messages.
  */
 class Store extends BaseProtocol implements IStore {
-  private readonly pubSubTopics: PubSubTopic[];
+  private readonly pubsubTopics: PubSubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components);
-    this.pubSubTopics = options?.pubSubTopics ?? [DefaultPubSubTopic];
+    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubSubTopic];
   }
 
   /**
@@ -231,7 +231,7 @@ class Store extends BaseProtocol implements IStore {
 
     // convert array to set to remove duplicates
     const uniquePubSubTopicsInQuery = Array.from(
-      new Set(decoders.map((decoder) => decoder.pubSubTopic))
+      new Set(decoders.map((decoder) => decoder.pubsubTopic))
     );
 
     // If multiple pubsub topics are provided, throw an error
@@ -244,9 +244,9 @@ class Store extends BaseProtocol implements IStore {
     // we can be certain that there is only one pubsub topic in the query
     const pubSubTopicForQuery = uniquePubSubTopicsInQuery[0];
 
-    ensurePubsubTopicIsConfigured(pubSubTopicForQuery, this.pubSubTopics);
+    ensurePubsubTopicIsConfigured(pubSubTopicForQuery, this.pubsubTopics);
 
-    // check that the pubSubTopic from the Cursor and Decoder match
+    // check that the pubsubTopic from the Cursor and Decoder match
     if (
       options?.cursor?.pubsubTopic &&
       options.cursor.pubsubTopic !== pubSubTopicForQuery
@@ -267,7 +267,7 @@ class Store extends BaseProtocol implements IStore {
     });
 
     const contentTopics = decoders
-      .filter((decoder) => decoder.pubSubTopic === pubSubTopicForQuery)
+      .filter((decoder) => decoder.pubsubTopic === pubSubTopicForQuery)
       .map((dec) => dec.contentTopic);
 
     if (contentTopics.length === 0) {
@@ -276,7 +276,7 @@ class Store extends BaseProtocol implements IStore {
 
     const queryOpts = Object.assign(
       {
-        pubSubTopic: pubSubTopicForQuery,
+        pubsubTopic: pubSubTopicForQuery,
         pageDirection: PageDirection.BACKWARD,
         pageSize: DefaultPageSize
       },
@@ -327,7 +327,7 @@ async function* paginate<T extends IDecodedMessage>(
 
     log(
       "Querying store peer",
-      `for (${queryOpts.pubSubTopic})`,
+      `for (${queryOpts.pubsubTopic})`,
       queryOpts.contentTopics
     );
 
@@ -374,7 +374,7 @@ async function* paginate<T extends IDecodedMessage>(
         const decoder = decoders.get(contentTopic);
         if (decoder) {
           return decoder.fromProtoObj(
-            queryOpts.pubSubTopic,
+            queryOpts.pubsubTopic,
             toProtoMessage(protoMsg)
           );
         }
@@ -425,7 +425,7 @@ export async function createCursor(message: IDecodedMessage): Promise<Cursor> {
 
   return {
     digest,
-    pubsubTopic: message.pubSubTopic,
+    pubsubTopic: message.pubsubTopic,
     senderTime: messageTime,
     receiverTime: messageTime
   };

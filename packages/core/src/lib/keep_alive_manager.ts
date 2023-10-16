@@ -37,14 +37,24 @@ export class KeepAliveManager {
 
     const peerIdStr = peerId.toString();
 
+    // Ping the peer every pingPeriodSecs seconds
+    // if pingPeriodSecs is 0, don't ping the peer
     if (pingPeriodSecs !== 0) {
       const interval = setInterval(() => {
         void (async () => {
+          let ping: number;
           try {
             // ping the peer for keep alive
             // also update the peer store with the latency
-            const ping = await libp2pPing.ping(peerId);
-            log(`Ping succeeded (${peerIdStr})`, ping);
+            try {
+              ping = await libp2pPing.ping(peerId);
+              log(`Ping succeeded (${peerIdStr})`, ping);
+            } catch (error) {
+              log(`Ping failed for peer (${peerIdStr}).
+                Next ping will be attempted in ${pingPeriodSecs} seconds.
+              `);
+              return;
+            }
 
             try {
               await peerStore.patch(peerId, {
@@ -108,12 +118,12 @@ export class KeepAliveManager {
   ): NodeJS.Timeout[] {
     // send a ping message to each PubSubTopic the peer is part of
     const intervals: NodeJS.Timeout[] = [];
-    for (const topic of relay.pubSubTopics) {
+    for (const topic of relay.pubsubTopics) {
       const meshPeers = relay.getMeshPeers(topic);
       if (!meshPeers.includes(peerIdStr)) continue;
 
       const encoder = createEncoder({
-        pubSubTopic: topic,
+        pubsubTopic: topic,
         contentTopic: RelayPingContentTopic,
         ephemeral: true
       });

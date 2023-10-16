@@ -32,11 +32,12 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
   const customContentTopic = "/test/2/waku-light-push/utf8";
   const customEncoder = createEncoder({
     contentTopic: customContentTopic,
-    pubSubTopic: customPubSubTopic
+    pubsubTopic: customPubSubTopic
   });
   let nimPeerId: PeerId;
 
-  beforeEach(async function () {
+  this.beforeEach(async function () {
+    this.timeout(15000);
     [nwaku, waku] = await runNodes(this, [
       customPubSubTopic,
       DefaultPubSubTopic
@@ -46,10 +47,11 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku, nwaku2], [waku]);
+    this.timeout(15000);
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
-  it("Push message on custom pubSubTopic", async function () {
+  it("Push message on custom pubsubTopic", async function () {
     const pushResponse = await waku.lightPush.send(customEncoder, {
       payload: utf8ToBytes(messageText)
     });
@@ -58,7 +60,7 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
 
     expect(
       await messageCollector.waitForMessages(1, {
-        pubSubTopic: customPubSubTopic
+        pubsubTopic: customPubSubTopic
       })
     ).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
@@ -81,13 +83,13 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
 
     expect(
       await messageCollector.waitForMessages(1, {
-        pubSubTopic: customPubSubTopic
+        pubsubTopic: customPubSubTopic
       })
     ).to.eq(true);
 
     expect(
       await messageCollector2.waitForMessages(1, {
-        pubSubTopic: DefaultPubSubTopic
+        pubsubTopic: DefaultPubSubTopic
       })
     ).to.eq(true);
 
@@ -124,10 +126,10 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
     // While loop is done because of https://github.com/waku-org/js-waku/issues/1606
     while (
       !(await messageCollector.waitForMessages(1, {
-        pubSubTopic: customPubSubTopic
+        pubsubTopic: customPubSubTopic
       })) ||
       !(await messageCollector2.waitForMessages(1, {
-        pubSubTopic: DefaultPubSubTopic
+        pubsubTopic: DefaultPubSubTopic
       })) ||
       pushResponse1!.recipients[0].toString() ===
         pushResponse2!.recipients[0].toString()

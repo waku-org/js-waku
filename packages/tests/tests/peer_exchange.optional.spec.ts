@@ -8,12 +8,15 @@ import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 
+import { tearDownNodes } from "../src";
+
 describe("Peer Exchange", () => {
   describe("Auto Discovery", function () {
     let waku: LightNode;
 
     afterEach(async function () {
-      await waku?.stop();
+      this.timeout(15000);
+      await tearDownNodes([], waku);
     });
 
     const testCases: [Fleet, number][] = [

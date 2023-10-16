@@ -48,7 +48,8 @@ describe("Waku Filter V2: Subscribe", function () {
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku, nwaku2], [waku]);
+    this.timeout(15000);
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Subscribe and receive messages via lightPush", async function () {
@@ -320,7 +321,11 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Set up and start a new nwaku node
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
-    await nwaku2.start({ filter: true, lightpush: true, relay: true });
+    await nwaku2.start({
+      filter: true,
+      lightpush: true,
+      relay: true
+    });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
     const subscription2 = await waku.filter.createSubscription(
@@ -341,7 +346,7 @@ describe("Waku Filter V2: Subscribe", function () {
     }
 
     // Check if both messages were received
-    expect(messageCollector.hasMessage(TestContentTopic, "M1")).to.be.true;
-    expect(messageCollector.hasMessage(newContentTopic, "M2")).to.be.true;
+    expect(messageCollector.hasMessage(TestContentTopic, "M1")).to.eq(true);
+    expect(messageCollector.hasMessage(newContentTopic, "M2")).to.eq(true);
   });
 });

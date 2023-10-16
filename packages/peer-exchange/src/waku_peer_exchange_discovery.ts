@@ -7,6 +7,7 @@ import type {
 import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
+import { encodeRelayShard } from "@waku/enr";
 import { Libp2pComponents, Tags } from "@waku/interfaces";
 import debug from "debug";
 
@@ -174,7 +175,7 @@ export class PeerExchangeDiscovery
         continue;
       }
 
-      const { peerId, peerInfo } = ENR;
+      const { peerId, peerInfo, shardInfo } = ENR;
       if (!peerId || !peerInfo) {
         continue;
       }
@@ -191,7 +192,12 @@ export class PeerExchangeDiscovery
             value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
             ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL
           }
-        }
+        },
+        ...(shardInfo && {
+          metadata: {
+            shardInfo: encodeRelayShard(shardInfo)
+          }
+        })
       });
 
       log(`Discovered peer: ${peerId.toString()}`);

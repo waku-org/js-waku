@@ -1,7 +1,8 @@
 import { DecodedMessage, DefaultPubSubTopic } from "@waku/core";
-import { bytesToUtf8 } from "@waku/utils/bytes";
+import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
 import debug from "debug";
+import isEqual from "lodash/isEqual";
 
 import { MessageRpcResponse } from "./node/interfaces.js";
 
@@ -36,9 +37,18 @@ export class MessageCollector {
   }
 
   hasMessage(topic: string, text: string): boolean {
-    return this.list.some(
-      (message) => message.contentTopic === topic && message.payload === text
-    );
+    return this.list.some((message) => {
+      if (message.contentTopic !== topic) {
+        return false;
+      }
+      if (typeof message.payload === "string") {
+        return message.payload === text;
+      } else if (message.payload instanceof Uint8Array) {
+        log(`Checking payload: ${bytesToUtf8(message.payload)}`);
+        return isEqual(message.payload, utf8ToBytes(text));
+      }
+      return false;
+    });
   }
 
   // Type guard to determine if a message is of type MessageRpcResponse
@@ -54,20 +64,20 @@ export class MessageCollector {
   async waitForMessages(
     numMessages: number,
     options?: {
-      pubSubTopic?: string;
+      pubsubTopic?: string;
       timeoutDuration?: number;
       exact?: boolean;
     }
   ): Promise<boolean> {
     const startTime = Date.now();
-    const pubSubTopic = options?.pubSubTopic || DefaultPubSubTopic;
+    const pubsubTopic = options?.pubsubTopic || DefaultPubSubTopic;
     const timeoutDuration = options?.timeoutDuration || 400;
     const exact = options?.exact || false;
 
     while (this.count < numMessages) {
       if (this.nwaku) {
         try {
-          this.list = await this.nwaku.messages(pubSubTopic);
+          this.list = await this.nwaku.messages(pubsubTopic);
         } catch (error) {
           log(`Can't retrieve messages because of ${error}`);
           await delay(10);
@@ -181,11 +191,11 @@ export class MessageCollector {
       }
     } else {
       // js-waku message specific assertions
-      expect(message.pubSubTopic).to.eq(
+      expect(message.pubsubTopic).to.eq(
         options.expectedPubSubTopic || DefaultPubSubTopic,
         `Message pub/sub topic mismatch. Expected: ${
           options.expectedPubSubTopic || DefaultPubSubTopic
-        }. Got: ${message.pubSubTopic}`
+        }. Got: ${message.pubsubTopic}`
       );
 
       expect(bytesToUtf8(message.payload)).to.eq(

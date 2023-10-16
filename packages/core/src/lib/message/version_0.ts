@@ -22,7 +22,7 @@ export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
   constructor(
-    public pubSubTopic: string,
+    public pubsubTopic: string,
     protected proto: proto.WakuMessage
   ) {}
 
@@ -76,7 +76,7 @@ export class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
-    public pubSubTopic: PubSubTopic,
+    public pubsubTopic: PubSubTopic,
     public metaSetter?: IMetaSetter
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -119,17 +119,17 @@ export class Encoder implements IEncoder {
  * messages.
  */
 export function createEncoder({
-  pubSubTopic = DefaultPubSubTopic,
+  pubsubTopic = DefaultPubSubTopic,
   contentTopic,
   ephemeral,
   metaSetter
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, ephemeral, pubSubTopic, metaSetter);
+  return new Encoder(contentTopic, ephemeral, pubsubTopic, metaSetter);
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
   constructor(
-    public pubSubTopic: PubSubTopic,
+    public pubsubTopic: PubSubTopic,
     public contentTopic: string
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -152,7 +152,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
   }
 
   async fromProtoObj(
-    pubSubTopic: string,
+    pubsubTopic: string,
     proto: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
     // https://rfc.vac.dev/spec/14/
@@ -167,7 +167,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
       return Promise.resolve(undefined);
     }
 
-    return new DecodedMessage(pubSubTopic, proto);
+    return new DecodedMessage(pubsubTopic, proto);
   }
 }
 

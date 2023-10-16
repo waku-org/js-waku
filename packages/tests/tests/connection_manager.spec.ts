@@ -6,6 +6,7 @@ import { expect } from "chai";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 
 import { delay } from "../dist/delay.js";
+import { tearDownNodes } from "../src/index.js";
 
 const TEST_TIMEOUT = 10_000;
 const DELAY_MS = 1_000;
@@ -18,7 +19,8 @@ describe("ConnectionManager", function () {
   });
 
   afterEach(async () => {
-    await waku.stop();
+    this.timeout(15000);
+    await tearDownNodes([], waku);
   });
 
   describe("Events", () => {
@@ -146,14 +148,23 @@ describe("ConnectionManager", function () {
     let dialPeerStub: SinonStub;
     let getConnectionsStub: SinonStub;
     let getTagNamesForPeerStub: SinonStub;
+    let isPeerTopicConfigured: SinonStub;
     let waku: LightNode;
 
     this.beforeEach(async function () {
+      this.timeout(15000);
       waku = await createLightNode();
+      isPeerTopicConfigured = sinon.stub(
+        waku.connectionManager as any,
+        "isPeerTopicConfigured"
+      );
+      isPeerTopicConfigured.resolves(true);
     });
 
     afterEach(async () => {
-      await waku.stop();
+      this.timeout(15000);
+      await tearDownNodes([], waku);
+      isPeerTopicConfigured.restore();
       sinon.restore();
     });
 
