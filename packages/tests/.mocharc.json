@@ -9,5 +9,9 @@
   "exit": true,
   "retries": 4,
   "parallel": false,
-  "jobs": 6
+  "jobs": 6,
+  "reporter": "mocha-multi-reporters",
+  "reporter-option": [
+    "configFile=.mocha.reporters.json"
+  ]
 }

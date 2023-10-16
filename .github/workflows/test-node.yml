@@ -45,6 +45,33 @@ jobs:
 
       - run: ${{ (inputs.test_type == 'node-optional') && 'npm run test:optional --workspace=@waku/tests' || 'npm run test:node' }}
 
+      - name: Get allure history
+        if: always()
+        uses: actions/checkout@v3
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Setup allure report
+        if: always()
+        uses: simple-elf/allure-report-action@master
+        id: allure-report
+        with:
+          allure_results: allure-results
+          gh_pages: gh-pages/node
+          allure_history: allure-history
+          keep_reports: 10
+    
+      - name: Deploy report to Github Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+          destination_dir: node
+
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
         if: failure()
