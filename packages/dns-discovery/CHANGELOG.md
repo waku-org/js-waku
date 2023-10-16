@@ -46,6 +46,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.13 to 0.0.14
 
+## [0.0.18](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.17...dns-discovery-v0.0.18) (2023-10-16)
+
+
+### Features
+
+* Add Firefox and Webkit to karma  ([#1598](https://github.com/waku-org/js-waku/issues/1598)) ([d9e4bcb](https://github.com/waku-org/js-waku/commit/d9e4bcbe3f7bcc092f20621bd362d76426701dab))
+* **static-sharding:** Filter peer connections per shards ([#1626](https://github.com/waku-org/js-waku/issues/1626)) ([124a29e](https://github.com/waku-org/js-waku/commit/124a29ebba59c05fbbf199d969e6ba3f9e57d45b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from 0.0.17 to 0.0.18
+    * @waku/utils bumped from 0.0.11 to 0.0.12
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.18 to 0.0.19
+
 ## [0.0.17](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.16...dns-discovery-v0.0.17) (2023-09-11)
 
 

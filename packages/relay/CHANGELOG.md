@@ -25,6 +25,26 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.7](https://github.com/waku-org/js-waku/compare/relay-v0.0.6...relay-v0.0.7) (2023-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **static-sharding:** allow multiple pubSubTopics ([#1586](https://github.com/waku-org/js-waku/issues/1586))
+
+### Features
+
+* **static-sharding:** Allow multiple pubSubTopics ([#1586](https://github.com/waku-org/js-waku/issues/1586)) ([a3c45b6](https://github.com/waku-org/js-waku/commit/a3c45b6e1a9beae488cae3c71c48949fa47bcaf6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.23 to 0.0.24
+    * @waku/interfaces bumped from 0.0.18 to 0.0.19
+    * @waku/utils bumped from 0.0.11 to 0.0.12
+
 ## [0.0.6](https://github.com/waku-org/js-waku/compare/relay-v0.0.5...relay-v0.0.6) (2023-09-11)
 
 

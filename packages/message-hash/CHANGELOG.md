@@ -32,6 +32,22 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.1.8](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.7...message-hash-v0.1.8) (2023-10-16)
+
+
+### Features
+
+* Add Firefox and Webkit to karma  ([#1598](https://github.com/waku-org/js-waku/issues/1598)) ([d9e4bcb](https://github.com/waku-org/js-waku/commit/d9e4bcbe3f7bcc092f20621bd362d76426701dab))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.11 to 0.0.12
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.18 to 0.0.19
+
 ## [0.1.7](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.6...message-hash-v0.1.7) (2023-09-11)
 
 
