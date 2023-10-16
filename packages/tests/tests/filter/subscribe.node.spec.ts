@@ -52,7 +52,7 @@ describe("Waku Filter V2: Subscribe", function () {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 
-  it("Subscribe and receive messages via lightPush", async function () {
+  it.only("Subscribe and receive messages via lightPush", async function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
 
     await waku.lightPush.send(TestEncoder, messagePayload);
@@ -62,7 +62,10 @@ describe("Waku Filter V2: Subscribe", function () {
       expectedMessageText: messageText,
       expectedContentTopic: TestContentTopic
     });
-    expect((await nwaku.messages()).length).to.eq(1);
+    expect(
+      (await nwaku.messages()).length,
+      "Intentional failure for allure report"
+    ).to.eq(2);
   });
 
   it("Subscribe and receive messages via waku relay post", async function () {
