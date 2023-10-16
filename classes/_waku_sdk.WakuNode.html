@@ -41,7 +41,7 @@
 <a href="_waku_sdk.WakuNode.html#filter" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>filter?</span></a>
 <a href="_waku_sdk.WakuNode.html#libp2p" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>libp2p</span></a>
 <a href="_waku_sdk.WakuNode.html#lightPush" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>light<wbr/>Push?</span></a>
-<a href="_waku_sdk.WakuNode.html#pubSubTopics" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topics</span></a>
+<a href="_waku_sdk.WakuNode.html#pubsubTopics" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pubsub<wbr/>Topics</span></a>
 <a href="_waku_sdk.WakuNode.html#relay" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>relay?</span></a>
 <a href="_waku_sdk.WakuNode.html#store" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>store?</span></a>
 </div></section>
@@ -58,7 +58,7 @@
 <section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_WakuNode"><span class="tsd-kind-constructor-signature">new <wbr/>Waku<wbr/>Node</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span>, <span class="tsd-kind-parameter">pubSubTopics</span>, <span class="tsd-kind-parameter">libp2p</span>, <span class="tsd-kind-parameter">store</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">lightPush</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">filter</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">relay</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_waku_sdk.WakuNode.html" class="tsd-signature-type tsd-kind-class">WakuNode</a><a href="#constructor.new_WakuNode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_WakuNode"><span class="tsd-kind-constructor-signature">new <wbr/>Waku<wbr/>Node</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span>, <span class="tsd-kind-parameter">pubsubTopics</span>, <span class="tsd-kind-parameter">libp2p</span>, <span class="tsd-kind-parameter">store</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">lightPush</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">filter</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">relay</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_waku_sdk.WakuNode.html" class="tsd-signature-type tsd-kind-class">WakuNode</a><a href="#constructor.new_WakuNode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -66,7 +66,7 @@
 <li>
 <h5><span class="tsd-kind-parameter">options</span>: <a href="../modules/_waku_sdk.waku.html" class="tsd-signature-type tsd-kind-namespace">waku</a><span class="tsd-signature-symbol">.</span><a href="../modules/_waku_sdk.waku.waku.html" class="tsd-signature-type tsd-kind-namespace">waku</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/_waku_sdk.waku.waku.WakuOptions.html" class="tsd-signature-type tsd-kind-interface">WakuOptions</a></h5></li>
 <li>
-<h5><span class="tsd-kind-parameter">pubSubTopics</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5></li>
+<h5><span class="tsd-kind-parameter">pubsubTopics</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5></li>
 <li>
 <h5><span class="tsd-kind-parameter">libp2p</span>: <a href="../types/_waku_sdk.Libp2p.html" class="tsd-signature-type tsd-kind-type-alias">Libp2p</a></h5></li>
 <li>
@@ -150,9 +150,9 @@
 <p>Implementation of <a href="../interfaces/_waku_sdk.Waku-1.html">Waku</a>.<a href="../interfaces/_waku_sdk.Waku-1.html#lightPush">lightPush</a></p>
 <ul>
 <li>Defined in packages/core/dist/lib/waku.d.ts:37</li></ul></aside></section>
-<section class="tsd-panel tsd-member"><a id="pubSubTopics" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>pub<wbr/>Sub<wbr/>Topics</span><a href="#pubSubTopics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">pub<wbr/>Sub<wbr/>Topics</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
+<section class="tsd-panel tsd-member"><a id="pubsubTopics" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>pubsub<wbr/>Topics</span><a href="#pubsubTopics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">pubsub<wbr/>Topics</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
 <ul>
 <li>Defined in packages/core/dist/lib/waku.d.ts:32</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="relay" class="tsd-anchor"></a>
@@ -257,7 +257,7 @@
 <li><a href="#filter" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>filter</span></a></li>
 <li><a href="#libp2p" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>libp2p</span></a></li>
 <li><a href="#lightPush" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>light<wbr/>Push</span></a></li>
-<li><a href="#pubSubTopics" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topics</span></a></li>
+<li><a href="#pubsubTopics" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pubsub<wbr/>Topics</span></a></li>
 <li><a href="#relay" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>relay</span></a></li>
 <li><a href="#store" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>store</span></a></li>
 <li><a href="#dial" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>dial</span></a></li>

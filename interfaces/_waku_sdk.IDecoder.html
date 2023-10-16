@@ -41,7 +41,7 @@
 <div class="tsd-index-list"><a href="_waku_sdk.IDecoder.html#contentTopic" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>content<wbr/>Topic</span></a>
 <a href="_waku_sdk.IDecoder.html#fromProtoObj" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>from<wbr/>Proto<wbr/>Obj</span></a>
 <a href="_waku_sdk.IDecoder.html#fromWireToProtoObj" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>from<wbr/>Wire<wbr/>To<wbr/>Proto<wbr/>Obj</span></a>
-<a href="_waku_sdk.IDecoder.html#pubSubTopic" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topic</span></a>
+<a href="_waku_sdk.IDecoder.html#pubsubTopic" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pubsub<wbr/>Topic</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
@@ -52,19 +52,19 @@
 <li>Defined in packages/interfaces/dist/message.d.ts:71</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="fromProtoObj" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>from<wbr/>Proto<wbr/>Obj</span><a href="#fromProtoObj" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">from<wbr/>Proto<wbr/>Obj</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">pubSubTopic</span>, <span class="tsd-kind-parameter">proto</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-signature"><span class="tsd-kind-property">from<wbr/>Proto<wbr/>Obj</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">pubsubTopic</span>, <span class="tsd-kind-parameter">proto</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures">
-<li class="tsd-signature" id="fromProtoObj.__type.__type-1"><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">pubSubTopic</span>, <span class="tsd-kind-parameter">proto</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-signature" id="fromProtoObj.__type.__type-1"><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">pubsubTopic</span>, <span class="tsd-kind-parameter">proto</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">pubSubTopic</span>: <span class="tsd-signature-type">string</span></h5></li>
+<h5><span class="tsd-kind-parameter">pubsubTopic</span>: <span class="tsd-signature-type">string</span></h5></li>
 <li>
 <h5><span class="tsd-kind-parameter">proto</span>: <a href="_waku_sdk.IProtoMessage.html" class="tsd-signature-type tsd-kind-interface">IProtoMessage</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
@@ -88,9 +88,9 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="_waku_sdk.IProtoMessage.html" class="tsd-signature-type tsd-kind-interface">IProtoMessage</a><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
 <li>Defined in packages/interfaces/dist/message.d.ts:72</li></ul></aside></section>
-<section class="tsd-panel tsd-member"><a id="pubSubTopic" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>pub<wbr/>Sub<wbr/>Topic</span><a href="#pubSubTopic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">pub<wbr/>Sub<wbr/>Topic</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
+<section class="tsd-panel tsd-member"><a id="pubsubTopic" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>pubsub<wbr/>Topic</span><a href="#pubsubTopic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">pubsub<wbr/>Topic</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
 <ul>
 <li>Defined in packages/interfaces/dist/message.d.ts:70</li></ul></aside></section></section></div>
 <div class="col-sidebar">
@@ -114,7 +114,7 @@
 <li><a href="#contentTopic" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>content<wbr/>Topic</span></a></li>
 <li><a href="#fromProtoObj" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>from<wbr/>Proto<wbr/>Obj</span></a></li>
 <li><a href="#fromWireToProtoObj" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>from<wbr/>Wire<wbr/>To<wbr/>Proto<wbr/>Obj</span></a></li>
-<li><a href="#pubSubTopic" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pub<wbr/>Sub<wbr/>Topic</span></a></li></ul></div></details></div>
+<li><a href="#pubsubTopic" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>pubsub<wbr/>Topic</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1"></use></svg><span>Documentation</span></a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container" data-base="..">
