@@ -52,7 +52,7 @@ describe("Waku Filter V2: Subscribe", function () {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 
-  it.only("Subscribe and receive messages via lightPush", async function () {
+  it("Subscribe and receive messages via lightPush", async function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
 
     await waku.lightPush.send(TestEncoder, messagePayload);
