@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.24](https://github.com/waku-org/js-waku/compare/core-v0.0.23...core-v0.0.24) (2023-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **store:** use `pubSubTopic` from `DecodedMessage` for `createCursor` ([#1640](https://github.com/waku-org/js-waku/issues/1640))
+* **static-sharding:** allow multiple pubSubTopics ([#1586](https://github.com/waku-org/js-waku/issues/1586))
+* return `REMOTE_PEER_REJECTED` if remote peer rejected the message
+
+### Features
+
+* Add Firefox and Webkit to karma  ([#1598](https://github.com/waku-org/js-waku/issues/1598)) ([d9e4bcb](https://github.com/waku-org/js-waku/commit/d9e4bcbe3f7bcc092f20621bd362d76426701dab))
+* Enable pinging connected peers by default ([#1647](https://github.com/waku-org/js-waku/issues/1647)) ([1d60c4b](https://github.com/waku-org/js-waku/commit/1d60c4ba44f7fd511371e926247d9151590edec5))
+* Return `REMOTE_PEER_REJECTED` if remote peer rejected the message ([053b654](https://github.com/waku-org/js-waku/commit/053b6545ad0c2450af5687495eb7b6049c0f21ad))
+* **static-sharding:** Allow multiple pubSubTopics ([#1586](https://github.com/waku-org/js-waku/issues/1586)) ([a3c45b6](https://github.com/waku-org/js-waku/commit/a3c45b6e1a9beae488cae3c71c48949fa47bcaf6))
+* **static-sharding:** Filter peer connections per shards ([#1626](https://github.com/waku-org/js-waku/issues/1626)) ([124a29e](https://github.com/waku-org/js-waku/commit/124a29ebba59c05fbbf199d969e6ba3f9e57d45b))
+
+
+### Bug Fixes
+
+* Catch stream creation promise rejection for `lightPush.send` ([b696a89](https://github.com/waku-org/js-waku/commit/b696a8957211bf20577f419a207a23ceca03d23f))
+* Catch top level exception when preemptively creating streams ([fb37c89](https://github.com/waku-org/js-waku/commit/fb37c89e40a9d7c98bef17a085876478486fca8b))
+* **store:** Use `pubSubTopic` from `DecodedMessage` for `createCursor` ([#1640](https://github.com/waku-org/js-waku/issues/1640)) ([b10c46b](https://github.com/waku-org/js-waku/commit/b10c46b910511418a048d7092dfd8b500a71a931))
+* Throw error when no response ([#1567](https://github.com/waku-org/js-waku/issues/1567)) ([d049ebb](https://github.com/waku-org/js-waku/commit/d049ebbc3417e5c20eccba3aa1b9fc5382e8d7fc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.17 to ^0.0.18
+    * @waku/interfaces bumped from 0.0.18 to 0.0.19
+    * @waku/utils bumped from 0.0.11 to 0.0.12
+
 ## [0.0.23](https://github.com/waku-org/js-waku/compare/core-v0.0.22...core-v0.0.23) (2023-09-11)
 
 

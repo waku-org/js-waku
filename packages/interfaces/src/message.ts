@@ -38,7 +38,7 @@ export interface IMetaSetter {
 }
 
 export interface EncoderOptions {
-  pubSubTopic?: PubSubTopic;
+  pubsubTopic?: PubSubTopic;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
   /**
@@ -55,7 +55,7 @@ export interface EncoderOptions {
 }
 
 export interface IEncoder {
-  pubSubTopic: PubSubTopic;
+  pubsubTopic: PubSubTopic;
   contentTopic: string;
   ephemeral: boolean;
   toWire: (message: IMessage) => Promise<Uint8Array | undefined>;
@@ -65,7 +65,7 @@ export interface IEncoder {
 export interface IDecodedMessage {
   payload: Uint8Array;
   contentTopic: string;
-  pubSubTopic: PubSubTopic;
+  pubsubTopic: PubSubTopic;
   timestamp: Date | undefined;
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
@@ -73,11 +73,11 @@ export interface IDecodedMessage {
 }
 
 export interface IDecoder<T extends IDecodedMessage> {
-  pubSubTopic: PubSubTopic;
+  pubsubTopic: PubSubTopic;
   contentTopic: string;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
   fromProtoObj: (
-    pubSubTopic: string,
+    pubsubTopic: string,
     proto: IProtoMessage
   ) => Promise<T | undefined>;
 }
