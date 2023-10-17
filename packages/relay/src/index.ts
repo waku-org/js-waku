@@ -25,7 +25,7 @@ import {
   SendError,
   SendResult
 } from "@waku/interfaces";
-import { isSizeValid, toAsyncIterator } from "@waku/utils";
+import { isSizeUnderCap, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
 import debug from "debug";
 
@@ -112,7 +112,7 @@ class Relay implements IRelay {
       };
     }
 
-    if (!isSizeValid(message.payload)) {
+    if (!isSizeUnderCap(message.payload)) {
       log("Failed to send waku relay: message is bigger that 1MB");
       return {
         recipients,
