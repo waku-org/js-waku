@@ -407,6 +407,7 @@ export class ConnectionManager
    * 1. If the peer is already connected, don't dial
    * 2. If the peer is not part of any of the configured pubsub topics, don't dial
    * 3. If the peer is not dialable based on bootstrap status, don't dial
+   * 4. If the peer is already has an active dial attempt, or has been dialed before, don't dial it
    * @returns true if the peer should be dialed, false otherwise
    */
   private async shouldDialPeer(peerId: PeerId): Promise<boolean> {
