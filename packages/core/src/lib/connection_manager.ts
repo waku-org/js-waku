@@ -199,9 +199,9 @@ export class ConnectionManager
           conn.tags = Array.from(new Set([...conn.tags, ...tags]));
         });
 
-        // instead of deleting the peer from the peer store, we set the dial attempt to Infinity
+        // instead of deleting the peer from the peer store, we set the dial attempt to -1
         // this helps us keep track of peers that have been dialed before
-        this.dialAttemptsForPeer.set(peerId.toString(), Infinity);
+        this.dialAttemptsForPeer.set(peerId.toString(), -1);
 
         // Dialing succeeded, break the loop
         break;
