@@ -12,6 +12,25 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.12](https://github.com/waku-org/js-waku/compare/utils-v0.0.11...utils-v0.0.12) (2023-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **static-sharding:** allow multiple pubSubTopics ([#1586](https://github.com/waku-org/js-waku/issues/1586))
+
+### Features
+
+* **static-sharding:** Allow multiple pubSubTopics ([#1586](https://github.com/waku-org/js-waku/issues/1586)) ([a3c45b6](https://github.com/waku-org/js-waku/commit/a3c45b6e1a9beae488cae3c71c48949fa47bcaf6))
+* **static-sharding:** Filter peer connections per shards ([#1626](https://github.com/waku-org/js-waku/issues/1626)) ([124a29e](https://github.com/waku-org/js-waku/commit/124a29ebba59c05fbbf199d969e6ba3f9e57d45b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.18 to 0.0.19
+
 ## [0.0.11](https://github.com/waku-org/js-waku/compare/utils-v0.0.10...utils-v0.0.11) (2023-09-11)
 
 

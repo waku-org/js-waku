@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.19](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.18...interfaces-v0.0.19) (2023-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **static-sharding:** allow multiple pubSubTopics ([#1586](https://github.com/waku-org/js-waku/issues/1586))
+* return `REMOTE_PEER_REJECTED` if remote peer rejected the message
+
+### Features
+
+* Return `REMOTE_PEER_REJECTED` if remote peer rejected the message ([053b654](https://github.com/waku-org/js-waku/commit/053b6545ad0c2450af5687495eb7b6049c0f21ad))
+* **static-sharding:** Allow multiple pubSubTopics ([#1586](https://github.com/waku-org/js-waku/issues/1586)) ([a3c45b6](https://github.com/waku-org/js-waku/commit/a3c45b6e1a9beae488cae3c71c48949fa47bcaf6))
+* **static-sharding:** Filter peer connections per shards ([#1626](https://github.com/waku-org/js-waku/issues/1626)) ([124a29e](https://github.com/waku-org/js-waku/commit/124a29ebba59c05fbbf199d969e6ba3f9e57d45b))
+
+
+### Bug Fixes
+
+* Catch stream creation promise rejection for `lightPush.send` ([b696a89](https://github.com/waku-org/js-waku/commit/b696a8957211bf20577f419a207a23ceca03d23f))
+
 ## [0.0.18](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.17...interfaces-v0.0.18) (2023-09-11)
 
 

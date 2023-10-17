@@ -36,6 +36,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/dns-discovery bumped from 0.0.15 to 0.0.16
 
+## [0.0.20](https://github.com/waku-org/js-waku/compare/sdk-v0.0.19...sdk-v0.0.20) (2023-10-16)
+
+
+### Features
+
+* **static-sharding:** Filter peer connections per shards ([#1626](https://github.com/waku-org/js-waku/issues/1626)) ([124a29e](https://github.com/waku-org/js-waku/commit/124a29ebba59c05fbbf199d969e6ba3f9e57d45b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.11 to 0.0.12
+    * @waku/relay bumped from 0.0.6 to 0.0.7
+    * @waku/core bumped from 0.0.23 to 0.0.24
+    * @waku/dns-discovery bumped from 0.0.17 to 0.0.18
+    * @waku/interfaces bumped from 0.0.18 to 0.0.19
+    * @waku/peer-exchange bumped from ^0.0.16 to ^0.0.17
+
 ## [0.0.19](https://github.com/waku-org/js-waku/compare/sdk-v0.0.18...sdk-v0.0.19) (2023-09-11)
 
 
