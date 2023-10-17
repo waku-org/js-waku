@@ -144,11 +144,11 @@ describe("Waku Relay", function () {
     // 1 and 2 uses a custom pubsub
     [waku1, waku2] = await Promise.all([
       createRelayNode({
-        pubSubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubSubTopic],
         staticNoiseKey: NOISE_KEY_1
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
-        pubSubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubSubTopic],
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))

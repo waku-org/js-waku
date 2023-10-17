@@ -10,7 +10,7 @@ export const CustomContentTopic = "/test/2/waku-relay/utf8";
 export const CustomPubSubTopic = "/some/pubsub/topic";
 export const CustomEncoder = createEncoder({
   contentTopic: CustomContentTopic,
-  pubSubTopic: CustomPubSubTopic
+  pubsubTopic: CustomPubSubTopic
 });
 export const CustomDecoder = createDecoder(
   CustomContentTopic,

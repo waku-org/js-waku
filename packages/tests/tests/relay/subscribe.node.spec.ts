@@ -30,11 +30,11 @@ describe("Waku Relay, Subscribe", function () {
     log("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({
-        pubSubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubSubTopic],
         staticNoiseKey: NOISE_KEY_1
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
-        pubSubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubSubTopic],
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
