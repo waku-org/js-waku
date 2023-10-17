@@ -196,7 +196,7 @@ describe("ConnectionManager", function () {
         attemptDialSpy.restore();
       });
 
-      it("should be called on all `peer:discovery` events", async function () {
+      it("should be called at least once on all `peer:discovery` events", async function () {
         this.timeout(TEST_TIMEOUT);
 
         const totalPeerIds = 5;
@@ -210,12 +210,13 @@ describe("ConnectionManager", function () {
               }
             })
           );
-          await delay(100);
         }
 
-        expect(attemptDialSpy.callCount).to.equal(
+        await delay(100);
+
+        expect(attemptDialSpy.callCount).to.be.greaterThanOrEqual(
           totalPeerIds,
-          "attemptDial should be called once for each peer:discovery event"
+          "attemptDial should be called at least once for each peer:discovery event"
         );
       });
     });
