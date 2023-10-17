@@ -62,7 +62,10 @@ describe("Waku Filter V2: Subscribe", function () {
       expectedMessageText: messageText,
       expectedContentTopic: TestContentTopic
     });
-    expect((await nwaku.messages()).length).to.eq(1);
+    expect(
+      (await nwaku.messages()).length,
+      "Intentional failure for allure report"
+    ).to.eq(2);
   });
 
   it("Subscribe and receive messages via waku relay post", async function () {
