@@ -55,6 +55,7 @@ jobs:
         uses: actions/checkout@v3
         continue-on-error: true
         with:
+          repository: waku-org/allure-jswaku
           ref: gh-pages
           path: gh-pages
 
@@ -64,18 +65,18 @@ jobs:
         id: allure-report
         with:
           allure_results: packages/tests/allure-results
-          gh_pages: gh-pages/node
+          gh_pages: gh-pages
           allure_history: allure-history
-          keep_reports: 10
+          keep_reports: 30
     
       - name: Deploy report to Github Pages
         if: always() && env.ALLURE_REPORTS == 'true'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          external_repository: waku-org/allure-jswaku
           publish_branch: gh-pages
           publish_dir: allure-history
-          destination_dir: node
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3
