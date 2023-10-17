@@ -1,6 +1,6 @@
 {
   "name": "@waku/sdk",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "A unified SDK for easy creation and management of js-waku nodes.",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -51,12 +51,12 @@
     "@chainsafe/libp2p-noise": "^13.0.0",
     "@libp2p/mplex": "^9.0.5",
     "@libp2p/websockets": "^7.0.5",
-    "@waku/utils": "0.0.11",
-    "@waku/relay": "0.0.6",
-    "@waku/core": "0.0.23",
-    "@waku/dns-discovery": "0.0.17",
-    "@waku/interfaces": "0.0.18",
-    "@waku/peer-exchange": "^0.0.16",
+    "@waku/utils": "0.0.12",
+    "@waku/relay": "0.0.7",
+    "@waku/core": "0.0.24",
+    "@waku/dns-discovery": "0.0.18",
+    "@waku/interfaces": "0.0.19",
+    "@waku/peer-exchange": "^0.0.17",
     "libp2p": "^0.46.12"
   },
   "devDependencies": {

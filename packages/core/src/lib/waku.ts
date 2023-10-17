@@ -53,7 +53,7 @@ export class WakuNode implements Waku {
 
   constructor(
     options: WakuOptions,
-    public readonly pubSubTopics: PubSubTopic[],
+    public readonly pubsubTopics: PubSubTopic[],
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
@@ -88,7 +88,7 @@ export class WakuNode implements Waku {
       peerId,
       libp2p,
       { pingKeepAlive, relayKeepAlive },
-      pubSubTopics,
+      pubsubTopics,
       this.relay
     );
 

@@ -68,6 +68,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.17 to 0.0.18
     * @waku/utils bumped from 0.0.10 to 0.0.11
 
+## [0.0.22](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.21...message-encryption-v0.0.22) (2023-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **static-sharding:** allow multiple pubSubTopics ([#1586](https://github.com/waku-org/js-waku/issues/1586))
+
+### Features
+
+* Add Firefox and Webkit to karma  ([#1598](https://github.com/waku-org/js-waku/issues/1598)) ([d9e4bcb](https://github.com/waku-org/js-waku/commit/d9e4bcbe3f7bcc092f20621bd362d76426701dab))
+* **static-sharding:** Allow multiple pubSubTopics ([#1586](https://github.com/waku-org/js-waku/issues/1586)) ([a3c45b6](https://github.com/waku-org/js-waku/commit/a3c45b6e1a9beae488cae3c71c48949fa47bcaf6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.23 to 0.0.24
+    * @waku/interfaces bumped from 0.0.18 to 0.0.19
+    * @waku/utils bumped from 0.0.11 to 0.0.12
+
 ## [0.0.19](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.18...message-encryption-v0.0.19) (2023-07-26)
 
 

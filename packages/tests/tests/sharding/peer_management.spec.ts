@@ -20,7 +20,7 @@ describe("Static Sharding: Peer Management", function () {
     let nwaku2: NimGoNode;
     let nwaku3: NimGoNode;
 
-    let attemptDialSpy: SinonSpy;
+    let dialPeerSpy: SinonSpy;
 
     beforeEach(async function () {
       this.timeout(15000);
@@ -32,16 +32,16 @@ describe("Static Sharding: Peer Management", function () {
     afterEach(async function () {
       this.timeout(15000);
       await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
-      attemptDialSpy && attemptDialSpy.restore();
+      dialPeerSpy && dialPeerSpy.restore();
     });
 
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
       this.timeout(100_000);
 
-      const pubSubTopics = ["/waku/2/rs/18/2"];
+      const pubsubTopics = ["/waku/2/rs/18/2"];
 
       await nwaku1.start({
-        topic: pubSubTopics,
+        topic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         relay: true
@@ -50,7 +50,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        topic: pubSubTopics,
+        topic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
@@ -60,7 +60,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr2 = (await nwaku2.info()).enrUri;
 
       await nwaku3.start({
-        topic: pubSubTopics,
+        topic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
@@ -69,7 +69,7 @@ describe("Static Sharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        pubSubTopics,
+        pubsubTopics,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
@@ -80,10 +80,7 @@ describe("Static Sharding: Peer Management", function () {
 
       await waku.start();
 
-      attemptDialSpy = Sinon.spy(
-        (waku as any).connectionManager,
-        "attemptDial"
-      );
+      dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
 
       const pxPeersDiscovered = new Set<PeerId>();
 
@@ -105,7 +102,7 @@ describe("Static Sharding: Peer Management", function () {
 
       await delay(1000);
 
-      expect(attemptDialSpy.callCount).to.equal(3);
+      expect(dialPeerSpy.callCount).to.equal(3);
     });
 
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
@@ -142,7 +139,7 @@ describe("Static Sharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        pubSubTopics: pubSubTopicsToDial,
+        pubsubTopics: pubSubTopicsToDial,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
@@ -151,10 +148,7 @@ describe("Static Sharding: Peer Management", function () {
         }
       });
 
-      attemptDialSpy = Sinon.spy(
-        (waku as any).connectionManager,
-        "attemptDial"
-      );
+      dialPeerSpy = Sinon.spy((waku as any).connectionManager, "dialPeer");
 
       await waku.start();
 
@@ -177,8 +171,7 @@ describe("Static Sharding: Peer Management", function () {
       });
 
       await delay(1000);
-
-      expect(attemptDialSpy.callCount).to.equal(2);
+      expect(dialPeerSpy.callCount).to.equal(2);
     });
   });
 });

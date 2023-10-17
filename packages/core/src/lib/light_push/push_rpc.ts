@@ -7,13 +7,13 @@ export class PushRpc {
 
   static createRequest(
     message: proto.WakuMessage,
-    pubSubTopic: string
+    pubsubTopic: string
   ): PushRpc {
     return new PushRpc({
       requestId: uuid(),
       request: {
         message: message,
-        pubsubTopic: pubSubTopic
+        pubsubTopic: pubsubTopic
       },
       response: undefined
     });

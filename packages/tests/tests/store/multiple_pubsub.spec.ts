@@ -113,7 +113,7 @@ describe("Waku Store, custom pubsub topic", function () {
 
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      pubSubTopics: [customPubSubTopic, DefaultPubSubTopic]
+      pubsubTopics: [customPubSubTopic, DefaultPubSubTopic]
     });
     await waku.start();
 

@@ -31,7 +31,7 @@ export async function sendMessages(
   instance: NimGoNode,
   numMessages: number,
   contentTopic: string,
-  pubSubTopic: string
+  pubsubTopic: string
 ): Promise<void> {
   for (let i = 0; i < numMessages; i++) {
     expect(
@@ -40,7 +40,7 @@ export async function sendMessages(
           payload: new Uint8Array([i]),
           contentTopic: contentTopic
         }),
-        pubSubTopic
+        pubsubTopic
       )
     ).to.eq(true);
     await delay(1); // to ensure each timestamp is unique.
@@ -56,7 +56,7 @@ export async function processQueriedMessages(
   for await (const query of instance.store.queryGenerator(decoders)) {
     for await (const msg of query) {
       if (msg) {
-        expect(msg.pubSubTopic).to.eq(expectedTopic);
+        expect(msg.pubsubTopic).to.eq(expectedTopic);
         localMessages.push(msg as DecodedMessage);
       }
     }
@@ -66,10 +66,10 @@ export async function processQueriedMessages(
 
 export async function startAndConnectLightNode(
   instance: NimGoNode,
-  pubSubTopics: string[] = [DefaultPubSubTopic]
+  pubsubTopics: string[] = [DefaultPubSubTopic]
 ): Promise<LightNode> {
   const waku = await createLightNode({
-    pubSubTopics: pubSubTopics,
+    pubsubTopics: pubsubTopics,
     staticNoiseKey: NOISE_KEY_1
   });
   await waku.start();

@@ -11,13 +11,13 @@ export class DecodedMessage
   private readonly _decodedPayload: Uint8Array;
 
   constructor(
-    pubSubTopic: string,
+    pubsubTopic: string,
     proto: proto.WakuMessage,
     decodedPayload: Uint8Array,
     public signature?: Uint8Array,
     public signaturePublicKey?: Uint8Array
   ) {
-    super(pubSubTopic, proto);
+    super(pubsubTopic, proto);
     this._decodedPayload = decodedPayload;
   }
 

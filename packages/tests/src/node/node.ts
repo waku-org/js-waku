@@ -216,7 +216,7 @@ export class NimGoNode {
 
   async sendMessage(
     message: MessageRpcQuery,
-    pubSubTopic: string = DefaultPubSubTopic
+    pubsubTopic: string = DefaultPubSubTopic
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -225,7 +225,7 @@ export class NimGoNode {
     }
 
     return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
-      pubSubTopic,
+      pubsubTopic,
       message
     ]);
   }
@@ -264,7 +264,7 @@ export class NimGoNode {
   async postAsymmetricMessage(
     message: MessageRpcQuery,
     publicKey: Uint8Array,
-    pubSubTopic?: string
+    pubsubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -273,7 +273,7 @@ export class NimGoNode {
     }
 
     return this.rpcCall<boolean>("post_waku_v2_private_v1_asymmetric_message", [
-      pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
+      pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
       message,
       "0x" + bytesToHex(publicKey)
     ]);
@@ -281,14 +281,14 @@ export class NimGoNode {
 
   async getAsymmetricMessages(
     privateKey: Uint8Array,
-    pubSubTopic?: string
+    pubsubTopic?: string
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
     return await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_private_v1_asymmetric_messages",
       [
-        pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
+        pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
         "0x" + bytesToHex(privateKey)
       ]
     );
@@ -306,7 +306,7 @@ export class NimGoNode {
   async postSymmetricMessage(
     message: MessageRpcQuery,
     symKey: Uint8Array,
-    pubSubTopic?: string
+    pubsubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -315,7 +315,7 @@ export class NimGoNode {
     }
 
     return this.rpcCall<boolean>("post_waku_v2_private_v1_symmetric_message", [
-      pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
+      pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
       message,
       "0x" + bytesToHex(symKey)
     ]);
@@ -323,14 +323,14 @@ export class NimGoNode {
 
   async getSymmetricMessages(
     symKey: Uint8Array,
-    pubSubTopic?: string
+    pubsubTopic?: string
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
     return await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_private_v1_symmetric_messages",
       [
-        pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
+        pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
         "0x" + bytesToHex(symKey)
       ]
     );

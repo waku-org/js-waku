@@ -46,8 +46,8 @@ export async function createLightNode(
 ): Promise<LightNode> {
   options = options ?? {};
 
-  if (!options.pubSubTopics) {
-    options.pubSubTopics = [DefaultPubSubTopic];
+  if (!options.pubsubTopics) {
+    options.pubsubTopics = [DefaultPubSubTopic];
   }
 
   const libp2pOptions = options?.libp2p ?? {};
@@ -69,7 +69,7 @@ export async function createLightNode(
 
   return new WakuNode(
     options ?? {},
-    options.pubSubTopics,
+    options.pubsubTopics,
     libp2p,
     store,
     lightPush,
@@ -86,8 +86,8 @@ export async function createRelayNode(
 ): Promise<RelayNode> {
   options = options ?? {};
 
-  if (!options.pubSubTopics) {
-    options.pubSubTopics = [DefaultPubSubTopic];
+  if (!options.pubsubTopics) {
+    options.pubsubTopics = [DefaultPubSubTopic];
   }
 
   const libp2pOptions = options?.libp2p ?? {};
@@ -107,7 +107,7 @@ export async function createRelayNode(
 
   return new WakuNode(
     options,
-    options.pubSubTopics,
+    options.pubsubTopics,
     libp2p,
     undefined,
     undefined,
@@ -134,8 +134,8 @@ export async function createFullNode(
 ): Promise<FullNode> {
   options = options ?? {};
 
-  if (!options.pubSubTopics) {
-    options.pubSubTopics = [DefaultPubSubTopic];
+  if (!options.pubsubTopics) {
+    options.pubsubTopics = [DefaultPubSubTopic];
   }
 
   const libp2pOptions = options?.libp2p ?? {};
@@ -158,7 +158,7 @@ export async function createFullNode(
 
   return new WakuNode(
     options ?? {},
-    options.pubSubTopics,
+    options.pubsubTopics,
     libp2p,
     store,
     lightPush,

@@ -64,20 +64,20 @@ export class MessageCollector {
   async waitForMessages(
     numMessages: number,
     options?: {
-      pubSubTopic?: string;
+      pubsubTopic?: string;
       timeoutDuration?: number;
       exact?: boolean;
     }
   ): Promise<boolean> {
     const startTime = Date.now();
-    const pubSubTopic = options?.pubSubTopic || DefaultPubSubTopic;
+    const pubsubTopic = options?.pubsubTopic || DefaultPubSubTopic;
     const timeoutDuration = options?.timeoutDuration || 400;
     const exact = options?.exact || false;
 
     while (this.count < numMessages) {
       if (this.nwaku) {
         try {
-          this.list = await this.nwaku.messages(pubSubTopic);
+          this.list = await this.nwaku.messages(pubsubTopic);
         } catch (error) {
           log(`Can't retrieve messages because of ${error}`);
           await delay(10);
@@ -192,11 +192,11 @@ export class MessageCollector {
       );
     } else {
       // js-waku message specific assertions
-      expect(message.pubSubTopic).to.eq(
+      expect(message.pubsubTopic).to.eq(
         options.expectedPubSubTopic || DefaultPubSubTopic,
         `Message pub/sub topic mismatch. Expected: ${
           options.expectedPubSubTopic || DefaultPubSubTopic
-        }. Got: ${message.pubSubTopic}`
+        }. Got: ${message.pubsubTopic}`
       );
 
       expect(bytesToUtf8(message.payload)).to.eq(

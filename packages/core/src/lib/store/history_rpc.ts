@@ -11,7 +11,7 @@ export enum PageDirection {
 
 export interface Params {
   contentTopics: string[];
-  pubSubTopic: string;
+  pubsubTopic: string;
   pageDirection: PageDirection;
   pageSize: number;
   startTime?: Date;
@@ -59,7 +59,7 @@ export class HistoryRpc {
     return new HistoryRpc({
       requestId: uuid(),
       query: {
-        pubsubTopic: params.pubSubTopic,
+        pubsubTopic: params.pubsubTopic,
         contentFilters,
         pagingInfo,
         startTime,
