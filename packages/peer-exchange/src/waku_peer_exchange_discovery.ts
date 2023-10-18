@@ -7,6 +7,8 @@ import type {
 import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
+import type { Multiaddr } from "@multiformats/multiaddr";
+import { multiaddr } from "@multiformats/multiaddr";
 import { Libp2pComponents, Tags } from "@waku/interfaces";
 import debug from "debug";
 
@@ -184,6 +186,11 @@ export class PeerExchangeDiscovery
         continue;
       }
 
+      // set the p2p-circuit multiaddr for the peer if exists
+      peerInfo.multiaddrs = peerInfo.multiaddrs.map((ma) =>
+        constructCircuitAddrIfValid(ma, peerId)
+      );
+
       // update the tags for the peer
       await this.components.peerStore.save(peerId, {
         tags: {
@@ -214,6 +221,29 @@ export class PeerExchangeDiscovery
     this.queryAttempts.delete(peerIdStr);
   }
 }
+
+// we need to manually construct a valid p2p-circuit addr because of limitations on the ENR
+// ref: https://rfc.vac.dev/spec/31/
+const constructCircuitAddrIfValid = (
+  ma: Multiaddr,
+  peerId: PeerId
+): Multiaddr => {
+  // check that the multiaddr contains a peerId
+  const maPeerId = ma.getPeerId();
+  if (!maPeerId) {
+    return ma;
+  }
+
+  // check if the multiaddr that contains a peerId is not the peer we are querying
+  if (maPeerId === peerId.toString()) {
+    return ma;
+  }
+
+  const p2pCircuitMaStr =
+    ma.toString() + `/p2p-circuit/p2p/${peerId.toString()}`;
+
+  return multiaddr(p2pCircuitMaStr);
+};
 
 export function wakuPeerExchangeDiscovery(): (
   components: Libp2pComponents
