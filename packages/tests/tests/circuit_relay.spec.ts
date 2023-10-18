@@ -2,7 +2,7 @@ import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
 import { bootstrap } from "@libp2p/bootstrap";
-import type { LightNode, RelayNode } from "@waku/interfaces";
+import type { LightNode } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
@@ -18,7 +18,7 @@ const keyFilePath = resolve(__dirname, "../src/certs/key.pem");
 const certFilePath = resolve(__dirname, "../src/certs/cert.pem");
 
 describe("circuit relay", () => {
-  let waku: LightNode | RelayNode;
+  let waku: LightNode;
   let serviceNode1: NimGoNode;
   let serviceNode2: NimGoNode;
 
@@ -63,7 +63,7 @@ describe("circuit relay", () => {
     // time it takes for go-waku to populate circuit relay addresses in the ENR
     await delay(25_000);
 
-    waku = (await createLightNode({
+    waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
           bootstrap({
@@ -72,7 +72,7 @@ describe("circuit relay", () => {
           wakuPeerExchangeDiscovery()
         ]
       }
-    })) as LightNode;
+    });
 
     let connectedPeersStr = waku.libp2p
       .getConnections()
