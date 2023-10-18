@@ -3,7 +3,6 @@ import debug, { Debugger } from "debug";
 const APP_NAME = "js-waku";
 
 export class Logger {
-  private _debug: Debugger;
   private _info: Debugger;
   private _warn: Debugger;
   private _error: Debugger;
@@ -13,19 +12,13 @@ export class Logger {
   }
 
   constructor(prefix?: string) {
-    this._debug = debug(Logger.createDebugNamespace("DEBUG", prefix));
     this._info = debug(Logger.createDebugNamespace("INFO", prefix));
     this._warn = debug(Logger.createDebugNamespace("WARN", prefix));
     this._error = debug(Logger.createDebugNamespace("ERROR", prefix));
 
-    this._debug.log = console.info.bind(console);
     this._info.log = console.info.bind(console);
     this._warn.log = console.warn.bind(console);
     this._error.log = console.error.bind(console);
-  }
-
-  get debug(): Debugger {
-    return this._debug;
   }
 
   get info(): Debugger {
