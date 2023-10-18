@@ -7,6 +7,7 @@ import type {
   IRelay,
   IStore,
   Libp2p,
+  PubSubTopic,
   Waku
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -14,7 +15,7 @@ import debug from "debug";
 
 import { ConnectionManager } from "./connection_manager.js";
 
-export const DefaultPingKeepAliveValueSecs = 0;
+export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 export const DefaultUserAgent = "js-waku";
 
@@ -52,6 +53,7 @@ export class WakuNode implements Waku {
 
   constructor(
     options: WakuOptions,
+    public readonly pubsubTopics: PubSubTopic[],
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
@@ -86,6 +88,7 @@ export class WakuNode implements Waku {
       peerId,
       libp2p,
       { pingKeepAlive, relayKeepAlive },
+      pubsubTopics,
       this.relay
     );
 

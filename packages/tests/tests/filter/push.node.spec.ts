@@ -265,7 +265,7 @@ describe("Waku Filter V2: FilterPush", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
     // Restart nwaku node
-    await nwaku.stop();
+    await tearDownNodes(nwaku, []);
     await nwaku.start();
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
 

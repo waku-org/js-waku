@@ -39,3 +39,11 @@ Therefore, you need to have `docker` installed on your machine to run the tests.
     ```bash
     WAKUNODE_IMAGE=image-name npm run test:node
     ```
+
+- Locally, tests are executed serially, allowing the use of **.only** for focused testing. If you wish to run all tests locally and expedite the process, you can enable parallel execution in the Mocha configuration.
+
+# Running tests in the CI
+
+- Tests are being run on standard Ubuntu GitHub Actions instances.
+- To speed up execution, we run tests in parallel. After numerous attempts, we determined that using 6 threads strikes the best balance between execution speed and test reliability. Using more than this doesn't significantly decrease execution time and might even slow it down.
+- To address occasional test flakiness, primarily due to Docker containers starting and stopping for each test and the concurrent execution of tests, we utilize the Mocha retry mechanism.

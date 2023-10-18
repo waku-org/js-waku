@@ -19,7 +19,7 @@ import {
   TestEncoder
 } from "./utils.js";
 
-describe("Waku Light Push", function () {
+describe.only("Waku Light Push", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(15000);
   let waku: LightNode;
@@ -74,9 +74,9 @@ describe("Waku Light Push", function () {
     }
   });
 
-  it("Fails to push message with empty payload", async function () {
+  it("Throws when trying to push message with empty payload", async function () {
     const pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("")
+      payload: new Uint8Array()
     });
 
     if (nwaku.type() == "go-waku") {
@@ -88,7 +88,7 @@ describe("Waku Light Push", function () {
       });
     } else {
       expect(pushResponse.recipients.length).to.eq(0);
-      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_REJECTED);
+      expect(pushResponse.errors).to.include(SendError.EMPTY_PAYLOAD);
       expect(await messageCollector.waitForMessages(1)).to.eq(false);
     }
   });

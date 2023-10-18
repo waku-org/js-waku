@@ -23,7 +23,7 @@ describe("Waku Store, cursor", function () {
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.startWithRetries({ store: true, lightpush: true, relay: true });
+    await nwaku.start({ store: true, lightpush: true, relay: true });
     await nwaku.ensureSubscriptions();
   });
 
@@ -169,7 +169,7 @@ describe("Waku Store, cursor", function () {
     }
   });
 
-  it("Passing cursor with wrong pubSubTopic", async function () {
+  it("Passing cursor with wrong pubsubTopic", async function () {
     await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
     waku = await startAndConnectLightNode(nwaku);
 
@@ -179,7 +179,7 @@ describe("Waku Store, cursor", function () {
         messages.push(msg as DecodedMessage);
       }
     }
-    messages[5].pubSubTopic = customPubSubTopic;
+    messages[5].pubsubTopic = customPubSubTopic;
     const cursor = await createCursor(messages[5]);
 
     try {
