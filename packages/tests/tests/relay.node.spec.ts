@@ -20,9 +20,9 @@ import {
   generateSymmetricKey
 } from "@waku/message-encryption/symmetric";
 import { createRelayNode } from "@waku/sdk";
+import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
-import debug from "debug";
 
 import {
   delay,
@@ -37,7 +37,7 @@ import { MessageRpcResponse } from "../src/node/interfaces.js";
 import { base64ToUtf8, NimGoNode } from "../src/node/node.js";
 import { generateRandomUint8Array } from "../src/random_array.js";
 
-const log = debug("waku:test");
+const log = new Logger("test:relay");
 
 const TestContentTopic = "/test/1/waku-relay/utf8";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
@@ -58,7 +58,7 @@ describe("Waku Relay [node only]", () => {
     beforeEach(async function () {
       this.timeout(10000);
 
-      log("Starting JS Waku instances");
+      log.info("Starting JS Waku instances");
       [waku1, waku2] = await Promise.all([
         createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
           waku.start().then(() => waku)
@@ -68,18 +68,18 @@ describe("Waku Relay [node only]", () => {
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku))
       ]);
-      log("Instances started, adding waku2 to waku1's address book");
+      log.info("Instances started, adding waku2 to waku1's address book");
       await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
         multiaddrs: waku2.libp2p.getMultiaddrs()
       });
       await waku1.dial(waku2.libp2p.peerId);
 
-      log("Wait for mutual pubsub subscription");
+      log.info("Wait for mutual pubsub subscription");
       await Promise.all([
         waitForRemotePeer(waku1, [Protocols.Relay]),
         waitForRemotePeer(waku2, [Protocols.Relay])
       ]);
-      log("before each hook done");
+      log.info("before each hook done");
     });
 
     afterEach(async function () {
@@ -90,7 +90,7 @@ describe("Waku Relay [node only]", () => {
     });
 
     it("Subscribe", async function () {
-      log("Getting subscribers");
+      log.info("Getting subscribers");
       const subscribers1 = waku1.libp2p.services
         .pubsub!.getSubscribers(DefaultPubSubTopic)
         .map((p) => p.toString());
@@ -98,7 +98,7 @@ describe("Waku Relay [node only]", () => {
         .pubsub!.getSubscribers(DefaultPubSubTopic)
         .map((p) => p.toString());
 
-      log("Asserting mutual subscription");
+      log.info("Asserting mutual subscription");
       expect(subscribers1).to.contain(waku2.libp2p.peerId.toString());
       expect(subscribers2).to.contain(waku1.libp2p.peerId.toString());
     });

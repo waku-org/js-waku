@@ -8,12 +8,12 @@ import {
 } from "@waku/core";
 import { LightNode, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
+import { Logger } from "@waku/utils";
 import { expect } from "chai";
-import debug from "debug";
 
 import { delay, NimGoNode, NOISE_KEY_1 } from "../../src";
 
-export const log = debug("waku:test:store");
+export const log = new Logger("test:store");
 
 export const TestContentTopic = "/test/1/waku-store/utf8";
 export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
@@ -75,7 +75,7 @@ export async function startAndConnectLightNode(
   await waku.start();
   await waku.dial(await instance.getMultiaddrWithId());
   await waitForRemotePeer(waku, [Protocols.Store]);
-  log("Waku node created");
+  log.info("Waku node created");
   return waku;
 }
 
