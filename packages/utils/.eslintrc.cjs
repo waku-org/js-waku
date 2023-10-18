@@ -7,7 +7,8 @@ module.exports = {
     {
       files: ["src/logger/index.ts"],
       rules: {
-        "no-console": "off"
+        "no-console": "off",
+        "no-restricted-imports": "off"
       }
     }
   ]
