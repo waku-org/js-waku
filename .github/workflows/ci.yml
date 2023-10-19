@@ -70,6 +70,7 @@ jobs:
 
   node:
     uses: ./.github/workflows/test-node.yml
+    secrets: inherit
     with:
       nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'wakuorg/nwaku:v0.20.0' }}
       test_type: node

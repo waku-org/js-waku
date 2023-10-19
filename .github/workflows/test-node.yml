@@ -57,6 +57,14 @@ jobs:
             echo "Value of the secret: ${{ secrets.DEPLOY_TEST_REPORTS_PAT }}"
           fi
 
+      - name: Check if secret exists2
+        run: |
+          if [ -z "${{ secrets.NPM_JS_WAKU_PUBLISH }}" ]; then
+            echo "Secret is NOT set."
+          else
+            echo "Secret is set."
+          fi
+
       - run: ${{ (inputs.test_type == 'node-optional') && 'npm run test:optional --workspace=@waku/tests' || 'npm run test:node' }}
 
       - name: Get allure history
