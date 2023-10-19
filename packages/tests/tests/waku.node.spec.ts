@@ -1,5 +1,6 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface/peer-id";
+import { tcp } from "@libp2p/tcp";
 import {
   DecodedMessage,
   DefaultUserAgent,
@@ -54,6 +55,36 @@ describe("Waku Dial [node only]", function () {
 
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1
+      });
+      await waku.start();
+      await waku.dial(multiAddrWithId);
+      await waitForRemotePeer(waku, [
+        Protocols.Store,
+        Protocols.Filter,
+        Protocols.LightPush
+      ]);
+
+      const nimPeerId = await nwaku.getPeerId();
+      expect(await waku.libp2p.peerStore.has(nimPeerId)).to.be.true;
+    });
+
+    it("connects to nwaku using tcp", async function () {
+      // Demonstrates how to override libp2p transport for those deciding
+      // to use js-waku in NodeJS which is **not** recommended.
+      this.timeout(20_000);
+      nwaku = new NimGoNode(makeLogFileName(this));
+      await nwaku.start({
+        filter: true,
+        store: true,
+        lightpush: true
+      });
+      const multiAddrWithId = await nwaku.getTcpMultiaddrWithId();
+
+      waku = await createLightNode({
+        staticNoiseKey: NOISE_KEY_1,
+        libp2p: {
+          transports: [tcp()]
+        }
       });
       await waku.start();
       await waku.dial(multiAddrWithId);

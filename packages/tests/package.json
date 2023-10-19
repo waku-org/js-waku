@@ -69,6 +69,7 @@
   },
   "devDependencies": {
     "@libp2p/bootstrap": "^9.0.2",
+    "@libp2p/tcp": "^8.0.9",
     "@types/chai": "^4.3.5",
     "@types/dockerode": "^3.3.19",
     "@types/lodash": "^4.14.199",

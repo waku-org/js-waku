@@ -45,7 +45,9 @@ export class NimGoNode {
   private docker?: Dockerode;
   private peerId?: PeerId;
   private multiaddrWithId?: Multiaddr;
+  private tcpMultiaddrWithId?: Multiaddr;
   private websocketPort?: number;
+  private tcpPort?: number;
   private readonly logPath: string;
   private rpcPort?: number;
 
@@ -128,6 +130,7 @@ export class NimGoNode {
 
           const [rpcPort, tcpPort, websocketPort, discv5UdpPort] = ports;
           this.rpcPort = rpcPort;
+          this.tcpPort = tcpPort;
           this.websocketPort = websocketPort;
 
           // `legacyFilter` is required to enable filter v1 with go-waku
@@ -351,6 +354,17 @@ export class NimGoNode {
       `/ip4/127.0.0.1/tcp/${this.websocketPort}/ws/p2p/${peerId.toString()}`
     );
     return this.multiaddrWithId;
+  }
+
+  async getTcpMultiaddrWithId(): Promise<Multiaddr> {
+    if (this.tcpMultiaddrWithId) return this.tcpMultiaddrWithId;
+
+    const peerId = await this.getPeerId();
+
+    this.tcpMultiaddrWithId = multiaddr(
+      `/ip4/127.0.0.1/tcp/${this.tcpPort}/p2p/${peerId.toString()}`
+    );
+    return this.tcpMultiaddrWithId;
   }
 
   private async _getPeerId(): Promise<PeerId> {
