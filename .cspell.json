@@ -77,7 +77,6 @@
     "nodekey",
     "nwaku",
     "opendns",
-    "peaceiris",
     "peerhave",
     "portfinder",
     "prettierignore",
@@ -124,11 +123,7 @@
     "Привет",
     "مرحبا"
   ],
-  "flagWords": [
-    "pubSub",
-    "pubSubTopics",
-    "pubSubTopic"
-  ],
+  "flagWords": ["pubSub", "pubSubTopics", "pubSubTopic"],
   "ignorePaths": [
     "package.json",
     "package-lock.json",

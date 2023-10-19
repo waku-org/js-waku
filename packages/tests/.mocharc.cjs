@@ -2,7 +2,7 @@ const config = {
   extension: ['ts'],
   require: ['ts-node/register', 'isomorphic-fetch'],
   loader: 'ts-node/esm',
-  'node-option': [  // Note the corrected property name
+  'node-option': [
     'experimental-specifier-resolution=node',
     'loader=ts-node/esm'
   ],
@@ -15,8 +15,8 @@ if (process.env.CI) {
   config.parallel = true;
   config.jobs = 6;
   console.log("Activating allure reporting");
-  config.reporter = 'mocha-multi-reporters';  // Note the corrected property name
-  config.reporterOptions = {  // Note the corrected property name
+  config.reporter = 'mocha-multi-reporters';
+  config.reporterOptions = {
     configFile: '.mocha.reporters.json'
   };
 } else {
