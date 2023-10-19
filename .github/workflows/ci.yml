@@ -16,6 +16,7 @@ on:
 
 env:
   NODE_JS: "18"
+  GITHUB_TOKEN: ${{ secrets.DEPLOY_TEST_REPORTS_PAT }}
 
 jobs:
   check:

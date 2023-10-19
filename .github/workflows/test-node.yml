@@ -28,6 +28,7 @@ env:
   # Ensure test type conditions remain consistent.
   WAKU_SERVICE_NODE_PARAMS: ${{ (inputs.test_type == 'go-waku-master') && '--min-relay-peers-to-publish=0' || '' }}
   DEBUG: ${{ inputs.debug }}
+  GITHUB_TOKEN: ${{ secrets.DEPLOY_TEST_REPORTS_PAT }}
 
 jobs:
   node:
@@ -58,6 +59,7 @@ jobs:
           repository: waku-org/allure-jswaku
           ref: gh-pages
           path: gh-pages
+          token: ${{ env.GITHUB_TOKEN }}
 
       - name: Setup allure report
         if: always() && env.ALLURE_REPORTS == 'true'
@@ -73,7 +75,7 @@ jobs:
         if: always() && env.ALLURE_REPORTS == 'true'
         uses: peaceiris/actions-gh-pages@v3
         with:
-          personal_token: "fgfghfghfghfghfg"
+          personal_token: ${{ env.GITHUB_TOKEN }}
           external_repository: waku-org/allure-jswaku
           publish_branch: gh-pages
           publish_dir: allure-history
