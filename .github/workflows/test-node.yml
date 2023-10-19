@@ -73,7 +73,7 @@ jobs:
         if: always() && env.ALLURE_REPORTS == 'true'
         uses: peaceiris/actions-gh-pages@v3
         with:
-          personal_token: "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"
+          personal_token: ${{ secrets.DEPLOY_TEST_REPORTS_PAT }}
           external_repository: waku-org/allure-jswaku
           publish_branch: gh-pages
           publish_dir: allure-history
