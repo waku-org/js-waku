@@ -1,10 +1,4 @@
-import {
-  createDecoder,
-  createEncoder,
-  Decoder,
-  Encoder,
-  waitForRemotePeer
-} from "@waku/core";
+import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import { IFilterSubscription, LightNode, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -20,27 +14,6 @@ export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 export const TestDecoder = createDecoder(TestContentTopic);
 export const messageText = "Filtering works!";
 export const messagePayload = { payload: utf8ToBytes(messageText) };
-
-// Utility to generate test data for multiple topics tests.
-export function generateTestData(topicCount: number): {
-  contentTopics: string[];
-  encoders: Encoder[];
-  decoders: Decoder[];
-} {
-  const contentTopics = Array.from(
-    { length: topicCount },
-    (_, i) => `/test/${i + 1}/waku-multi`
-  );
-  const encoders = contentTopics.map((topic) =>
-    createEncoder({ contentTopic: topic })
-  );
-  const decoders = contentTopics.map((topic) => createDecoder(topic));
-  return {
-    contentTopics,
-    encoders,
-    decoders
-  };
-}
 
 // Utility to validate errors related to pings in the subscription.
 export async function validatePingError(

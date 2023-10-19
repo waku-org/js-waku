@@ -50,7 +50,8 @@ export const TEST_STRING = [
   { description: "JSON", value: '{"user":"admin","password":"123456"}' },
   { description: "shell command", value: "`rm -rf /`" },
   { description: "escaped characters", value: "\\n\\t\\0" },
-  { description: "unicode special characters", value: "\u202Ereverse" }
+  { description: "unicode special characters", value: "\u202Ereverse" },
+  { description: "emoji", value: "🤫 🤥 😶 😶‍🌫️ 😐 😑 😬 🫨 🫠 🙄 😯 😦 😧 😮" }
 ];
 
 export const TEST_TIMESTAMPS = [

@@ -1,14 +1,16 @@
-import { DefaultPubSubTopic } from "@waku/core";
+import { createDecoder, createEncoder, DefaultPubSubTopic } from "@waku/core";
 import { RelayNode } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  generateTestData,
   MessageCollector,
   NOISE_KEY_1,
   NOISE_KEY_2,
-  tearDownNodes
+  tearDownNodes,
+  TEST_STRING
 } from "../../src/index.js";
 
 import {
@@ -24,6 +26,7 @@ describe("Waku Relay, Subscribe", function () {
   this.timeout(15000);
   let waku1: RelayNode;
   let waku2: RelayNode;
+  let messageCollector: MessageCollector;
 
   beforeEach(async function () {
     this.timeout(10000);
@@ -45,6 +48,7 @@ describe("Waku Relay, Subscribe", function () {
     });
     await waku1.dial(waku2.libp2p.peerId);
     log("before each hook done");
+    messageCollector = new MessageCollector();
   });
 
   afterEach(async function () {
@@ -90,28 +94,182 @@ describe("Waku Relay, Subscribe", function () {
 
   it("Subscribe and publish message", async function () {
     await waitForAllRemotePeers(waku1, waku2);
-    const messageTimestamp = new Date("1995-12-17T03:24:00");
-    const message = {
-      payload: utf8ToBytes(messageText),
-      timestamp: messageTimestamp
-    };
-
-    const messageCollector = new MessageCollector();
     await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
-
-    const pushResponse = await waku1.relay.send(TestEncoder, message);
-
-    expect(pushResponse.recipients.length).to.eq(1);
-    expect(pushResponse.recipients[0].toString()).to.eq(
-      waku2.libp2p.peerId.toString()
-    );
-
+    await waku1.relay.send(TestEncoder, { payload: utf8ToBytes(messageText) });
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
-
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic,
-      expectedTimestamp: messageTimestamp.valueOf()
+      expectedContentTopic: TestContentTopic
+    });
+  });
+
+  it("Subscribe and publish 10000 messages on the same topic", async function () {
+    const messageCount = 10000;
+    await waitForAllRemotePeers(waku1, waku2);
+    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+    // Send a unique message on each topic.
+    for (let i = 0; i < messageCount; i++) {
+      await waku1.relay.send(TestEncoder, {
+        payload: utf8ToBytes(`M${i + 1}`)
+      });
+    }
+
+    // Verify that each message was received on the corresponding topic.
+    expect(
+      await messageCollector.waitForMessages(messageCount, { exact: true })
+    ).to.eq(true);
+
+    for (let i = 0; i < messageCount; i++) {
+      messageCollector.verifyReceivedMessage(i, {
+        expectedMessageText: `M${i + 1}`,
+        expectedContentTopic: TestContentTopic
+      });
+    }
+  });
+
+  it("Subscribe and publish messages on 2 different content topics", async function () {
+    const secondContentTopic = "/test/2/waku-relay/utf8";
+    const secondEncoder = createEncoder({ contentTopic: secondContentTopic });
+    const secondDecoder = createDecoder(secondContentTopic);
+
+    await waitForAllRemotePeers(waku1, waku2);
+    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+    await waku2.relay.subscribe([secondDecoder], messageCollector.callback);
+    await waku1.relay.send(TestEncoder, { payload: utf8ToBytes("M1") });
+    await waku1.relay.send(secondEncoder, { payload: utf8ToBytes("M2") });
+    expect(await messageCollector.waitForMessages(2, { exact: true })).to.eq(
+      true
+    );
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: "M1",
+      expectedContentTopic: TestContentTopic
+    });
+    messageCollector.verifyReceivedMessage(1, {
+      expectedMessageText: "M2",
+      expectedContentTopic: secondContentTopic
+    });
+  });
+
+  it("Subscribe one by one to 100 topics and publish messages", async function () {
+    const topicCount = 100;
+    const td = generateTestData(topicCount);
+    await waitForAllRemotePeers(waku1, waku2);
+
+    // Subscribe to topics one by one
+    for (let i = 0; i < topicCount; i++) {
+      await waku2.relay.subscribe([td.decoders[i]], messageCollector.callback);
+    }
+
+    // Send a unique message on each topic.
+    for (let i = 0; i < topicCount; i++) {
+      await waku1.relay.send(td.encoders[i], {
+        payload: utf8ToBytes(`Message for Topic ${i + 1}`)
+      });
+    }
+
+    // Verify that each message was received on the corresponding topic.
+    expect(
+      await messageCollector.waitForMessages(topicCount, { exact: true })
+    ).to.eq(true);
+    td.contentTopics.forEach((topic, index) => {
+      messageCollector.verifyReceivedMessage(index, {
+        expectedContentTopic: topic,
+        expectedMessageText: `Message for Topic ${index + 1}`
+      });
+    });
+  });
+
+  it("Subscribe at once to 10000 topics and publish messages", async function () {
+    const topicCount = 10000;
+    const td = generateTestData(topicCount);
+    await waitForAllRemotePeers(waku1, waku2);
+
+    // Subscribe to all topics at once
+    await waku2.relay.subscribe(td.decoders, messageCollector.callback);
+
+    // Send a unique message on each topic.
+    for (let i = 0; i < topicCount; i++) {
+      await waku1.relay.send(td.encoders[i], {
+        payload: utf8ToBytes(`Message for Topic ${i + 1}`)
+      });
+    }
+
+    // Verify that each message was received on the corresponding topic.
+    expect(
+      await messageCollector.waitForMessages(topicCount, { exact: true })
+    ).to.eq(true);
+    td.contentTopics.forEach((topic, index) => {
+      messageCollector.verifyReceivedMessage(index, {
+        expectedContentTopic: topic,
+        expectedMessageText: `Message for Topic ${index + 1}`
+      });
+    });
+  });
+
+  it("Refresh subscription", async function () {
+    await waitForAllRemotePeers(waku1, waku2);
+
+    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+
+    await waku1.relay.send(TestEncoder, { payload: utf8ToBytes("M1") });
+
+    expect(await messageCollector.waitForMessages(1, { exact: true })).to.eq(
+      true
+    );
+  });
+
+  it("Overlapping topic subscription", async function () {
+    // Define two sets of test data with overlapping topics.
+    const topicCount1 = 2;
+    const td1 = generateTestData(topicCount1);
+    const topicCount2 = 4;
+    const td2 = generateTestData(topicCount2);
+    await waitForAllRemotePeers(waku1, waku2);
+
+    // Subscribe to the first set of topics.
+    await waku2.relay.subscribe(td1.decoders, messageCollector.callback);
+    // Subscribe to the second set of topics which has overlapping topics with the first set.
+    await waku2.relay.subscribe(td2.decoders, messageCollector.callback);
+
+    // Send messages to the first set of topics.
+    for (let i = 0; i < topicCount1; i++) {
+      const messageText = `Message for Topic ${i + 1}`;
+      await waku1.relay.send(td1.encoders[i], {
+        payload: utf8ToBytes(messageText)
+      });
+    }
+
+    // Send messages to the second set of topics.
+    for (let i = 0; i < topicCount2; i++) {
+      const messageText = `Message for Topic ${i + 3}`;
+      await waku1.relay.send(td2.encoders[i], {
+        payload: utf8ToBytes(messageText)
+      });
+    }
+
+    // Check if all messages were received.
+    // Since there are overlapping topics, there should be 6 messages in total (2 from the first set + 4 from the second set).
+    expect(await messageCollector.waitForMessages(6, { exact: true })).to.eq(
+      true
+    );
+  });
+
+  TEST_STRING.forEach((testItem) => {
+    it(`Subscribe to topic containing ${testItem.description} and publish message`, async function () {
+      const newContentTopic = testItem.value;
+      const newEncoder = createEncoder({ contentTopic: newContentTopic });
+      const newDecoder = createDecoder(newContentTopic);
+      await waitForAllRemotePeers(waku1, waku2);
+      await waku2.relay.subscribe([newDecoder], messageCollector.callback);
+      await waku1.relay.send(newEncoder, {
+        payload: utf8ToBytes(messageText)
+      });
+      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      messageCollector.verifyReceivedMessage(0, {
+        expectedMessageText: messageText,
+        expectedContentTopic: newContentTopic
+      });
     });
   });
 });
