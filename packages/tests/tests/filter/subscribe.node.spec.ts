@@ -6,6 +6,7 @@ import {
 } from "@waku/core";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import { ecies, symmetric } from "@waku/message-encryption";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -61,6 +62,49 @@ describe("Waku Filter V2: Subscribe", function () {
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
       expectedContentTopic: TestContentTopic
+    });
+    expect((await nwaku.messages()).length).to.eq(1);
+  });
+
+  it("Subscribe and receive ecies encrypted messages via lightPush", async function () {
+    const privateKey = ecies.generatePrivateKey();
+    const publicKey = ecies.getPublicKey(privateKey);
+    const encoder = ecies.createEncoder({
+      contentTopic: TestContentTopic,
+      publicKey
+    });
+    const decoder = ecies.createDecoder(TestContentTopic, privateKey);
+
+    await subscription.subscribe([decoder], messageCollector.callback);
+
+    await waku.lightPush.send(encoder, messagePayload);
+
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic,
+      expectedVersion: 1
+    });
+    expect((await nwaku.messages()).length).to.eq(1);
+  });
+
+  it("Subscribe and receive symmetrically encrypted messages via lightPush", async function () {
+    const symKey = symmetric.generateSymmetricKey();
+    const encoder = symmetric.createEncoder({
+      contentTopic: TestContentTopic,
+      symKey
+    });
+    const decoder = symmetric.createDecoder(TestContentTopic, symKey);
+
+    await subscription.subscribe([decoder], messageCollector.callback);
+
+    await waku.lightPush.send(encoder, messagePayload);
+
+    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    messageCollector.verifyReceivedMessage(0, {
+      expectedMessageText: messageText,
+      expectedContentTopic: TestContentTopic,
+      expectedVersion: 1
     });
     expect((await nwaku.messages()).length).to.eq(1);
   });
