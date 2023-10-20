@@ -79,18 +79,9 @@ describe("Waku Light Push", function () {
       payload: new Uint8Array()
     });
 
-    if (nwaku.type() == "go-waku") {
-      expect(pushResponse.recipients.length).to.eq(1);
-      expect(await messageCollector.waitForMessages(1)).to.eq(true);
-      messageCollector.verifyReceivedMessage(0, {
-        expectedMessageText: undefined,
-        expectedContentTopic: TestContentTopic
-      });
-    } else {
-      expect(pushResponse.recipients.length).to.eq(0);
-      expect(pushResponse.errors).to.include(SendError.EMPTY_PAYLOAD);
-      expect(await messageCollector.waitForMessages(1)).to.eq(false);
-    }
+    expect(pushResponse.recipients.length).to.eq(0);
+    expect(pushResponse.errors).to.include(SendError.EMPTY_PAYLOAD);
+    expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
   TEST_STRING.forEach((testItem) => {
