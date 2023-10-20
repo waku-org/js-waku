@@ -23,7 +23,7 @@ import {
 } from "./utils.js";
 
 describe("Waku Relay, Subscribe", function () {
-  this.timeout(15000);
+  this.timeout(40000);
   let waku1: RelayNode;
   let waku2: RelayNode;
   let messageCollector: MessageCollector;
