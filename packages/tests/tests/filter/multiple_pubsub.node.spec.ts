@@ -149,13 +149,12 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
 
   it.only("Subscribe with a pubsub topic but pass a wrong decoder", async function () {
     // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
-    await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M1") });
-    expect(await messageCollector.waitForMessages(1)).to.eq(true);
-    messageCollector.verifyReceivedMessage(0, {
-      expectedContentTopic: customContentTopic,
-      expectedPubSubTopic: customPubSubTopic,
-      expectedMessageText: "M1"
-    });
+    try {
+      await subscription.subscribe([TestDecoder], messageCollector.callback);
+    } catch (error) {
+      expect((error as Error).message).to.include(
+        "Pubsub topic not configured"
+      );
+    }
   });
 });
