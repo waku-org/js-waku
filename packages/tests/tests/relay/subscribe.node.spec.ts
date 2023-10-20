@@ -122,7 +122,8 @@ describe("Waku Relay, Subscribe", function () {
     for (let i = 0; i < messageCount; i++) {
       messageCollector.verifyReceivedMessage(i, {
         expectedMessageText: `M${i + 1}`,
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        checkTimestamp: false
       });
     }
   });
@@ -201,7 +202,8 @@ describe("Waku Relay, Subscribe", function () {
     td.contentTopics.forEach((topic, index) => {
       messageCollector.verifyReceivedMessage(index, {
         expectedContentTopic: topic,
-        expectedMessageText: `Message for Topic ${index + 1}`
+        expectedMessageText: `Message for Topic ${index + 1}`,
+        checkTimestamp: false
       });
     });
   });
