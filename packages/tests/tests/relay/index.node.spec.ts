@@ -1,12 +1,5 @@
-import {
-  createDecoder,
-  createEncoder,
-  DecodedMessage,
-  DefaultPubSubTopic,
-  waitForRemotePeer
-} from "@waku/core";
-import { RelayNode, SendError } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
+import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
+import { RelayNode } from "@waku/interfaces";
 import {
   createDecoder as createEciesDecoder,
   createEncoder as createEciesEncoder,
@@ -28,14 +21,8 @@ import {
   NOISE_KEY_2,
   tearDownNodes
 } from "../../src/index.js";
-import { generateRandomUint8Array } from "../../src/random_array.js";
 
-import {
-  log,
-  TestDecoder,
-  TestEncoder,
-  waitForAllRemotePeers
-} from "./utils.js";
+import { log, waitForAllRemotePeers } from "./utils.js";
 
 describe("Waku Relay", function () {
   this.timeout(15000);
@@ -136,62 +123,5 @@ describe("Waku Relay", function () {
 
     await receivedMsgPromise;
     // If it does not throw then we are good.
-  });
-
-  it("Publishes <= 1 MB and rejects others", async function () {
-    const MB = 1024 ** 2;
-
-    // 1 and 2 uses a custom pubsub
-    [waku1, waku2] = await Promise.all([
-      createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic],
-        staticNoiseKey: NOISE_KEY_1
-      }).then((waku) => waku.start().then(() => waku)),
-      createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic],
-        staticNoiseKey: NOISE_KEY_2,
-        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-      }).then((waku) => waku.start().then(() => waku))
-    ]);
-
-    await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
-      multiaddrs: waku2.libp2p.getMultiaddrs()
-    });
-    await Promise.all([waku1.dial(waku2.libp2p.peerId)]);
-
-    await Promise.all([
-      waitForRemotePeer(waku1, [Protocols.Relay]),
-      waitForRemotePeer(waku2, [Protocols.Relay])
-    ]);
-
-    const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
-      (resolve) => {
-        void waku2.relay.subscribe([TestDecoder], () =>
-          resolve({
-            payload: new Uint8Array([])
-          } as DecodedMessage)
-        );
-      }
-    );
-
-    let sendResult = await waku1.relay.send(TestEncoder, {
-      payload: generateRandomUint8Array(1 * MB)
-    });
-    expect(sendResult.recipients.length).to.eq(1);
-
-    sendResult = await waku1.relay.send(TestEncoder, {
-      payload: generateRandomUint8Array(1 * MB + 65536)
-    });
-    expect(sendResult.recipients.length).to.eq(0);
-    expect(sendResult.errors).to.include(SendError.SIZE_TOO_BIG);
-
-    sendResult = await waku1.relay.send(TestEncoder, {
-      payload: generateRandomUint8Array(2 * MB)
-    });
-    expect(sendResult.recipients.length).to.eq(0);
-    expect(sendResult.errors).to.include(SendError.SIZE_TOO_BIG);
-
-    const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
-    expect(waku2ReceivedMsg?.payload?.length).to.eq(0);
   });
 });

@@ -7,7 +7,7 @@
     "loader=ts-node/esm"
   ],
   "exit": true,
-  "retries": 4,
+  // "retries": 4,
   "parallel": false,
   "jobs": 6
 }
