@@ -7,14 +7,14 @@ import {
 } from "@waku/core";
 import { IFilterSubscription, LightNode, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
+import { Logger } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
-import debug from "debug";
 import { Context } from "mocha";
 
 import { makeLogFileName, NimGoNode, NOISE_KEY_1 } from "../../src/index.js";
 
 // Constants for test configuration.
-export const log = debug("waku:test:filter");
+export const log = new Logger("test:filter");
 export const TestContentTopic = "/test/1/waku-filter";
 export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 export const TestDecoder = createDecoder(TestContentTopic);
@@ -88,7 +88,7 @@ export async function runNodes(
     });
     await waku.start();
   } catch (error) {
-    log("jswaku node failed to start:", error);
+    log.error("jswaku node failed to start:", error);
   }
 
   if (waku) {

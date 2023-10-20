@@ -2,19 +2,19 @@ import type { PeerUpdate } from "@libp2p/interface";
 import type { Stream } from "@libp2p/interface/connection";
 import { Peer } from "@libp2p/interface/peer-store";
 import { Libp2p } from "@waku/interfaces";
+import { Logger } from "@waku/utils";
 import { selectConnection } from "@waku/utils/libp2p";
-import debug from "debug";
 
 export class StreamManager {
   private streamPool: Map<string, Promise<Stream | void>>;
-  private readonly log: debug.Debugger;
+  private readonly log: Logger;
 
   constructor(
     public multicodec: string,
     public getConnections: Libp2p["getConnections"],
     public addEventListener: Libp2p["addEventListener"]
   ) {
-    this.log = debug(`waku:stream-manager:${multicodec}`);
+    this.log = new Logger(`stream-manager:${multicodec}`);
     this.addEventListener(
       "peer:update",
       this.handlePeerUpdateStreamPool.bind(this)
@@ -57,7 +57,9 @@ export class StreamManager {
   private prepareNewStream(peer: Peer): void {
     const streamPromise = this.newStream(peer).catch(() => {
       // No error thrown as this call is not triggered by the user
-      this.log(`Failed to prepare a new stream for ${peer.id.toString()}`);
+      this.log.error(
+        `Failed to prepare a new stream for ${peer.id.toString()}`
+      );
     });
     this.streamPool.set(peer.id.toString(), streamPromise);
   }
@@ -65,7 +67,7 @@ export class StreamManager {
   private handlePeerUpdateStreamPool = (evt: CustomEvent<PeerUpdate>): void => {
     const peer = evt.detail.peer;
     if (peer.protocols.includes(this.multicodec)) {
-      this.log(`Preemptively opening a stream to ${peer.id.toString()}`);
+      this.log.error(`Preemptively opening a stream to ${peer.id.toString()}`);
       this.prepareNewStream(peer);
     }
   };

@@ -12,7 +12,7 @@ import {
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
 import { ensurePubsubTopicIsConfigured, isSizeUnderCap } from "@waku/utils";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -23,7 +23,7 @@ import { DefaultPubSubTopic } from "../constants.js";
 
 import { PushRpc } from "./push_rpc.js";
 
-const log = debug("waku:light-push");
+const log = new Logger("light-push");
 
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
@@ -57,18 +57,18 @@ class LightPush extends BaseProtocol implements ILightPush {
   ): Promise<PreparePushMessageResult> {
     try {
       if (!message.payload || message.payload.length === 0) {
-        log("Failed to send waku light push: payload is empty");
+        log.error("Failed to send waku light push: payload is empty");
         return { query: null, error: SendError.EMPTY_PAYLOAD };
       }
 
       if (!isSizeUnderCap(message.payload)) {
-        log("Failed to send waku light push: message is bigger than 1MB");
+        log.error("Failed to send waku light push: message is bigger than 1MB");
         return { query: null, error: SendError.SIZE_TOO_BIG };
       }
 
       const protoMessage = await encoder.toProtoObj(message);
       if (!protoMessage) {
-        log("Failed to encode to protoMessage, aborting push");
+        log.error("Failed to encode to protoMessage, aborting push");
         return {
           query: null,
           error: SendError.ENCODE_FAILED
@@ -78,7 +78,7 @@ class LightPush extends BaseProtocol implements ILightPush {
       const query = PushRpc.createRequest(protoMessage, pubsubTopic);
       return { query, error: null };
     } catch (error) {
-      log("Failed to prepare push message", error);
+      log.error("Failed to prepare push message", error);
 
       return {
         query: null,
@@ -124,7 +124,10 @@ class LightPush extends BaseProtocol implements ILightPush {
       try {
         stream = await this.getStream(peer);
       } catch (err) {
-        log(`Failed to get a stream for remote peer${peer.id.toString()}`, err);
+        log.error(
+          `Failed to get a stream for remote peer${peer.id.toString()}`,
+          err
+        );
         return { recipients, error: SendError.REMOTE_PEER_FAULT };
       }
 
@@ -138,7 +141,7 @@ class LightPush extends BaseProtocol implements ILightPush {
           async (source) => await all(source)
         );
       } catch (err) {
-        log("Failed to send waku light push request", err);
+        log.error("Failed to send waku light push request", err);
         return { recipients, error: SendError.GENERIC_FAIL };
       }
 
@@ -151,17 +154,17 @@ class LightPush extends BaseProtocol implements ILightPush {
       try {
         response = PushRpc.decode(bytes).response;
       } catch (err) {
-        log("Failed to decode push reply", err);
+        log.error("Failed to decode push reply", err);
         return { recipients, error: SendError.DECODE_FAILED };
       }
 
       if (!response) {
-        log("Remote peer fault: No response in PushRPC");
+        log.error("Remote peer fault: No response in PushRPC");
         return { recipients, error: SendError.REMOTE_PEER_FAULT };
       }
 
       if (!response.isSuccess) {
-        log("Remote peer rejected the message: ", response.info);
+        log.error("Remote peer rejected the message: ", response.info);
         return { recipients, error: SendError.REMOTE_PEER_REJECTED };
       }
 

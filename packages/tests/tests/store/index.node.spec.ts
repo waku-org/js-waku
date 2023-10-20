@@ -264,11 +264,11 @@ describe("Waku Store, general", function () {
       waku2.dial(nimWakuMultiaddr)
     ]);
 
-    log("Waku nodes connected to nwaku");
+    log.info("Waku nodes connected to nwaku");
 
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
-    log("Sending messages using light push");
+    log.info("Sending messages using light push");
     await Promise.all([
       waku.lightPush.send(eciesEncoder, asymMsg),
       waku.lightPush.send(symEncoder, symMsg),
@@ -279,7 +279,7 @@ describe("Waku Store, general", function () {
     await waitForRemotePeer(waku2, [Protocols.Store]);
 
     const messages: DecodedMessage[] = [];
-    log("Retrieve messages from store");
+    log.info("Retrieve messages from store");
 
     for await (const query of waku2.store.queryGenerator([
       eciesDecoder,

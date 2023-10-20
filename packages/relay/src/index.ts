@@ -27,13 +27,13 @@ import {
 } from "@waku/interfaces";
 import { isSizeUnderCap, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
 import { RelayCodecs } from "./constants.js";
 import { messageValidator } from "./message_validator.js";
 import { TopicOnlyDecoder } from "./topic_only_message.js";
 
-const log = debug("waku:relay");
+const log = new Logger("relay");
 
 export type Observer<T extends IDecodedMessage> = {
   decoder: IDecoder<T>;
@@ -105,7 +105,7 @@ class Relay implements IRelay {
 
     const { pubsubTopic } = encoder;
     if (!this.pubsubTopics.has(pubsubTopic)) {
-      log("Failed to send waku relay: topic not configured");
+      log.error("Failed to send waku relay: topic not configured");
       return {
         recipients,
         errors: [SendError.TOPIC_NOT_CONFIGURED]
@@ -113,7 +113,7 @@ class Relay implements IRelay {
     }
 
     if (!isSizeUnderCap(message.payload)) {
-      log("Failed to send waku relay: message is bigger that 1MB");
+      log.error("Failed to send waku relay: message is bigger that 1MB");
       return {
         recipients,
         errors: [SendError.SIZE_TOO_BIG]
@@ -122,7 +122,7 @@ class Relay implements IRelay {
 
     const msg = await encoder.toWire(message);
     if (!msg) {
-      log("Failed to encode message, aborting publish");
+      log.error("Failed to encode message, aborting publish");
       return {
         recipients,
         errors: [SendError.ENCODE_FAILED]
@@ -202,7 +202,7 @@ class Relay implements IRelay {
   ): Promise<void> {
     const topicOnlyMsg = await this.defaultDecoder.fromWireToProtoObj(bytes);
     if (!topicOnlyMsg || !topicOnlyMsg.contentTopic) {
-      log("Message does not have a content topic, skipping");
+      log.warn("Message does not have a content topic, skipping");
       return;
     }
 
@@ -226,7 +226,7 @@ class Relay implements IRelay {
           try {
             const protoMsg = await decoder.fromWireToProtoObj(bytes);
             if (!protoMsg) {
-              log(
+              log.error(
                 "Internal error: message previously decoded failed on 2nd pass."
               );
               return;
@@ -235,10 +235,13 @@ class Relay implements IRelay {
             if (msg) {
               await callback(msg);
             } else {
-              log("Failed to decode messages on", topicOnlyMsg.contentTopic);
+              log.error(
+                "Failed to decode messages on",
+                topicOnlyMsg.contentTopic
+              );
             }
           } catch (error) {
-            log("Error while decoding message:", error);
+            log.error("Error while decoding message:", error);
           }
         })();
       })
@@ -255,12 +258,11 @@ class Relay implements IRelay {
       "gossipsub:message",
       (event: CustomEvent<GossipsubMessage>) => {
         if (event.detail.msg.topic !== pubsubTopic) return;
-        log(`Message received on ${pubsubTopic}`);
 
         this.processIncomingMessage(
           event.detail.msg.topic,
           event.detail.msg.data
-        ).catch((e) => log("Failed to process incoming message", e));
+        ).catch((e) => log.error("Failed to process incoming message", e));
       }
     );
 

@@ -1,10 +1,10 @@
 import { Waku } from "@waku/interfaces";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 import pRetry from "p-retry";
 
 import { NimGoNode } from "./index.js";
 
-const log = debug("waku:test");
+const log = new Logger("test:teardown");
 
 export async function tearDownNodes(
   nwakuNodes: NimGoNode | NimGoNode[],
@@ -20,7 +20,7 @@ export async function tearDownNodes(
           try {
             await nwaku.stop();
           } catch (error) {
-            log("Nwaku failed to stop:", error);
+            log.error("Nwaku failed to stop:", error);
             throw error;
           }
         },
@@ -36,7 +36,7 @@ export async function tearDownNodes(
           try {
             await waku.stop();
           } catch (error) {
-            log("Waku failed to stop:", error);
+            log.error("Waku failed to stop:", error);
             throw error;
           }
         },
