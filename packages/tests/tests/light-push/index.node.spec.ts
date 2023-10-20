@@ -19,7 +19,7 @@ import {
   TestEncoder
 } from "./utils.js";
 
-describe.only("Waku Light Push", function () {
+describe("Waku Light Push", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(15000);
   let waku: LightNode;
