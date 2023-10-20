@@ -147,7 +147,7 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
     });
   });
 
-  it.only("Subscribe with a pubsub topic but pass a wrong decoder", async function () {
+  it("Subscribe with a pubsub topic but pass a wrong decoder", async function () {
     // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
     try {
       await subscription.subscribe([TestDecoder], messageCollector.callback);
