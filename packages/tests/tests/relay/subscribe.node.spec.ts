@@ -208,8 +208,7 @@ describe("Waku Relay, Subscribe", function () {
     });
   });
 
-  // Seems that there are duplicates messages for this scenario
-  // Skipping until finding a resolution
+  // Will be skipped until https://github.com/waku-org/js-waku/issues/1678 is fixed
   it.skip("Refresh subscription", async function () {
     await waitForAllRemotePeers(waku1, waku2);
 
@@ -223,8 +222,7 @@ describe("Waku Relay, Subscribe", function () {
     );
   });
 
-  // Seems that there are duplicates messages for this scenario
-  // Skipping until finding a resolution
+  // Will be skipped until https://github.com/waku-org/js-waku/issues/1678 is fixed
   it.skip("Overlapping topic subscription", async function () {
     // Define two sets of test data with overlapping topics.
     const topicCount1 = 2;
