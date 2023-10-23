@@ -58,7 +58,7 @@
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/chai": "^4.3.5",
-    "@types/debug": "^4.1.8",
+    "@types/debug": "^4.1.10",
     "@types/mocha": "^10.0.1",
     "@waku/build-utils": "*",
     "@waku/interfaces": "0.0.19",
