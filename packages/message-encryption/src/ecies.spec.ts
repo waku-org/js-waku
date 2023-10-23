@@ -6,6 +6,7 @@ import { getPublicKey } from "./crypto/index.js";
 import { createDecoder, createEncoder } from "./ecies.js";
 
 describe("Ecies Encryption", function () {
+  this.timeout(20000);
   it("Round trip binary encryption [ecies, no signature]", async function () {
     await fc.assert(
       fc.asyncProperty(

@@ -18,18 +18,24 @@ on:
         required: false
         type: string
         default: ''
+      allure_reports:
+        required: false
+        type: boolean
+        default: false
 
 env:
   NODE_JS: "18"
   # Ensure test type conditions remain consistent.
   WAKU_SERVICE_NODE_PARAMS: ${{ (inputs.test_type == 'go-waku-master') && '--min-relay-peers-to-publish=0' || '' }}
   DEBUG: ${{ inputs.debug }}
+  GITHUB_TOKEN: ${{ secrets.DEPLOY_TEST_REPORTS_PAT }}
 
 jobs:
   node:
     runs-on: ubuntu-latest
     env:
       WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image }}
+      ALLURE_REPORTS: ${{ inputs.allure_reports }}
     steps:
       - uses: actions/checkout@v3
         with: 
@@ -44,6 +50,39 @@ jobs:
       - run: npm run build:esm
 
       - run: ${{ (inputs.test_type == 'node-optional') && 'npm run test:optional --workspace=@waku/tests' || 'npm run test:node' }}
+
+      - name: Merge allure reports
+        if: always() && env.ALLURE_REPORTS == 'true'
+        run: node ci/mergeAllureResults.cjs 
+
+      - name: Get allure history
+        if: always() && env.ALLURE_REPORTS == 'true'
+        uses: actions/checkout@v3
+        continue-on-error: true
+        with:
+          repository: waku-org/allure-jswaku
+          ref: gh-pages
+          path: gh-pages
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Setup allure report
+        if: always() && env.ALLURE_REPORTS == 'true'
+        uses: simple-elf/allure-report-action@master
+        id: allure-report
+        with:
+          allure_results: allure-results
+          gh_pages: gh-pages
+          allure_history: allure-history
+          keep_reports: 30
+    
+      - name: Deploy report to Github Pages
+        if: always() && env.ALLURE_REPORTS == 'true'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ env.GITHUB_TOKEN }}
+          external_repository: waku-org/allure-jswaku
+          publish_branch: gh-pages
+          publish_dir: allure-history
 
       - name: Upload debug logs on failure
         uses: actions/upload-artifact@v3

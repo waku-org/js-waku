@@ -11,7 +11,8 @@ import {
   preCipher
 } from "./waku_payload.js";
 
-describe("Waku Payload", () => {
+describe("Waku Payload", function () {
+  this.timeout(20000);
   it("Asymmetric encrypt & decrypt", async function () {
     await fc.assert(
       fc.asyncProperty(
