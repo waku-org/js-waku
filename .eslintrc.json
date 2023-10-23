@@ -16,6 +16,15 @@
   ],
   "globals": { "BigInt": true, "console": true, "WebAssembly": true },
   "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [{
+          "name": "debug",
+          "message": "The usage of 'debug' package directly is disallowed. Please use the custom logger from @waku/utils instead."
+        }]
+      }
+    ],
     "prettier/prettier": [
       "error",
       {

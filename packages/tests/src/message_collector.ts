@@ -1,14 +1,14 @@
 import { DecodedMessage, DefaultPubSubTopic } from "@waku/core";
+import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
-import debug from "debug";
 import isEqual from "lodash/isEqual";
 
 import { MessageRpcResponse } from "./node/interfaces.js";
 
 import { base64ToUtf8, delay, NimGoNode } from "./index.js";
 
-const log = debug("waku:test");
+const log = new Logger("test:message-collector");
 
 /**
  * Class responsible for collecting messages.
@@ -22,7 +22,7 @@ export class MessageCollector {
   constructor(private nwaku?: NimGoNode) {
     if (!this.nwaku) {
       this.callback = (msg: DecodedMessage): void => {
-        log("Got a message");
+        log.info("Got a message");
         this.list.push(msg);
       };
     }
@@ -44,7 +44,7 @@ export class MessageCollector {
       if (typeof message.payload === "string") {
         return message.payload === text;
       } else if (message.payload instanceof Uint8Array) {
-        log(`Checking payload: ${bytesToUtf8(message.payload)}`);
+        log.info(`Checking payload: ${bytesToUtf8(message.payload)}`);
         return isEqual(message.payload, utf8ToBytes(text));
       }
       return false;
@@ -79,7 +79,7 @@ export class MessageCollector {
         try {
           this.list = await this.nwaku.messages(pubsubTopic);
         } catch (error) {
-          log(`Can't retrieve messages because of ${error}`);
+          log.error(`Can't retrieve messages because of ${error}`);
           await delay(10);
         }
       }
@@ -95,7 +95,7 @@ export class MessageCollector {
       if (this.count == numMessages) {
         return true;
       } else {
-        log(`Was expecting exactly ${numMessages} messages`);
+        log.warn(`Was expecting exactly ${numMessages} messages`);
         return false;
       }
     } else {

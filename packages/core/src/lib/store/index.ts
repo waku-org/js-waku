@@ -11,8 +11,8 @@ import {
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
 import { ensurePubsubTopicIsConfigured, isDefined } from "@waku/utils";
+import { Logger } from "@waku/utils";
 import { concat, utf8ToBytes } from "@waku/utils/bytes";
-import debug from "debug";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -26,7 +26,7 @@ import { HistoryRpc, PageDirection, Params } from "./history_rpc.js";
 
 import HistoryError = proto.HistoryResponse.HistoryError;
 
-const log = debug("waku:store");
+const log = new Logger("store");
 
 export const StoreCodec = "/vac/waku/store/2.0.0-beta4";
 
@@ -284,8 +284,6 @@ class Store extends BaseProtocol implements IStore {
       { contentTopics, startTime, endTime }
     );
 
-    log("Querying history with the following options", options);
-
     const peer = (
       await this.getPeers({
         numPeers: this.NUM_PEERS_PROTOCOL,
@@ -325,7 +323,7 @@ async function* paginate<T extends IDecodedMessage>(
 
     const historyRpcQuery = HistoryRpc.createQuery(queryOpts);
 
-    log(
+    log.info(
       "Querying store peer",
       `for (${queryOpts.pubsubTopic})`,
       queryOpts.contentTopics
@@ -349,7 +347,7 @@ async function* paginate<T extends IDecodedMessage>(
     const reply = historyRpcQuery.decode(bytes);
 
     if (!reply.response) {
-      log("Stopping pagination due to store `response` field missing");
+      log.warn("Stopping pagination due to store `response` field missing");
       break;
     }
 
@@ -360,13 +358,13 @@ async function* paginate<T extends IDecodedMessage>(
     }
 
     if (!response.messages || !response.messages.length) {
-      log(
+      log.warn(
         "Stopping pagination due to store `response.messages` field missing or empty"
       );
       break;
     }
 
-    log(`${response.messages.length} messages retrieved from store`);
+    log.error(`${response.messages.length} messages retrieved from store`);
 
     yield response.messages.map((protoMsg) => {
       const contentTopic = protoMsg.contentTopic;
@@ -386,7 +384,7 @@ async function* paginate<T extends IDecodedMessage>(
     if (typeof nextCursor === "undefined") {
       // If the server does not return cursor then there is an issue,
       // Need to abort, or we end up in an infinite loop
-      log(
+      log.warn(
         "Stopping pagination due to `response.pagingInfo.cursor` missing from store response"
       );
       break;
