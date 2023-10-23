@@ -3,8 +3,8 @@ import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import { DefaultPubSubTopic } from "@waku/core";
 import { isDefined } from "@waku/utils";
+import { Logger } from "@waku/utils";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
-import debug from "debug";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
 
@@ -21,13 +21,13 @@ import {
   MessageRpcResponse
 } from "./interfaces.js";
 
-const log = debug("waku:node");
+const log = new Logger("test:node");
 
 const WAKU_SERVICE_NODE_PARAMS =
   process.env.WAKU_SERVICE_NODE_PARAMS ?? undefined;
 const NODE_READY_LOG_LINE = "Node setup complete";
 
-const DOCKER_IMAGE_NAME = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.20.0";
+const DOCKER_IMAGE_NAME = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.21.0";
 
 const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
 
@@ -160,17 +160,19 @@ export class NimGoNode {
             WAKU_SERVICE_NODE_PARAMS
           );
         } catch (error) {
-          log("Nwaku node failed to start:", error);
+          log.error("Nwaku node failed to start:", error);
           await this.stop();
           throw error;
         }
         try {
-          log(`Waiting to see '${NODE_READY_LOG_LINE}' in ${this.type} logs`);
+          log.info(
+            `Waiting to see '${NODE_READY_LOG_LINE}' in ${this.type} logs`
+          );
           await this.waitForLog(NODE_READY_LOG_LINE, 15000);
           if (process.env.CI) await delay(100);
-          log(`${this.type} node has been started`);
+          log.info(`${this.type} node has been started`);
         } catch (error) {
-          log(`Error starting ${this.type}: ${error}`);
+          log.error(`Error starting ${this.type}: ${error}`);
           if (this.docker.container) await this.docker.stop();
           throw error;
         }
@@ -380,7 +382,7 @@ export class NimGoNode {
     return await pRetry(
       async () => {
         try {
-          log("RPC Query: ", method, params);
+          log.info("Making an RPC Query: ", method, params);
           const res = await fetch(this.rpcUrl, {
             method: "POST",
             body: JSON.stringify({
@@ -392,10 +394,10 @@ export class NimGoNode {
             headers: new Headers({ "Content-Type": "application/json" })
           });
           const json = await res.json();
-          log(`RPC Response: `, JSON.stringify(json));
+          log.info(`Received RPC Response: `, JSON.stringify(json));
           return json.result;
         } catch (error) {
-          log(`${this.rpcUrl} failed with error:`, error);
+          log.error(`${this.rpcUrl} failed with error:`, error);
           await delay(10);
           throw error;
         }

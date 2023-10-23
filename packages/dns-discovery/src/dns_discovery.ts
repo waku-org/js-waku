@@ -12,7 +12,7 @@ import type {
   IEnr,
   NodeCapabilityCount
 } from "@waku/interfaces";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
 import {
   DEFAULT_BOOTSTRAP_TAG_NAME,
@@ -22,7 +22,7 @@ import {
 } from "./constants.js";
 import { DnsNodeDiscovery } from "./dns.js";
 
-const log = debug("waku:peer-discovery-dns");
+const log = new Logger("peer-discovery-dns");
 
 /**
  * Parse options and expose function to return bootstrap peer addresses.
@@ -43,14 +43,14 @@ export class PeerDiscoveryDns
     this._options = options;
 
     const { enrUrls } = options;
-    log("Use following EIP-1459 ENR Tree URLs: ", enrUrls);
+    log.info("Use following EIP-1459 ENR Tree URLs: ", enrUrls);
   }
 
   /**
    * Start discovery process
    */
   async start(): Promise<void> {
-    log("Starting peer discovery via dns");
+    log.info("Starting peer discovery via dns");
 
     this._started = true;
 
