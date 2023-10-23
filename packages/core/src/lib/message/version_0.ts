@@ -10,11 +10,11 @@ import type {
   PubSubTopic
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
 import { DefaultPubSubTopic } from "../constants.js";
 
-const log = debug("waku:message:version-0");
+const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
 
 export const Version = 0;
@@ -139,7 +139,6 @@ export class Decoder implements IDecoder<DecodedMessage> {
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);
-    log("Message decoded", protoMessage);
     return Promise.resolve({
       payload: protoMessage.payload,
       contentTopic: protoMessage.contentTopic,
@@ -158,7 +157,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
     if (proto.version ?? 0 !== Version) {
-      log(
+      log.error(
         "Failed to decode due to incorrect version, expected:",
         Version,
         ", actual:",

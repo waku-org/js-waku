@@ -3,10 +3,14 @@ import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index.js";
-
 import {
   generateTestData,
+  MessageCollector,
+  NimGoNode,
+  tearDownNodes
+} from "../../src/index.js";
+
+import {
   messagePayload,
   messageText,
   runNodes,

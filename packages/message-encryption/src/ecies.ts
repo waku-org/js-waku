@@ -9,7 +9,7 @@ import type {
   IProtoMessage
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
 import { DecodedMessage } from "./decoded_message.js";
 import {
@@ -29,7 +29,7 @@ import {
 export { generatePrivateKey, getPublicKey };
 export type { Encoder, Decoder, DecodedMessage };
 
-const log = debug("waku:message-encryption:ecies");
+const log = new Logger("message-encryption:ecies");
 
 class Encoder implements IEncoder {
   constructor(
@@ -130,7 +130,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
     const cipherPayload = protoMessage.payload;
 
     if (protoMessage.version !== Version) {
-      log(
+      log.error(
         "Failed to decrypt due to incorrect version, expected:",
         Version,
         ", actual:",
@@ -144,7 +144,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
     try {
       payload = await decryptAsymmetric(cipherPayload, this.privateKey);
     } catch (e) {
-      log(
+      log.error(
         `Failed to decrypt message using asymmetric decryption for contentTopic: ${this.contentTopic}`,
         e
       );
@@ -152,18 +152,22 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
     }
 
     if (!payload) {
-      log(`Failed to decrypt payload for contentTopic ${this.contentTopic}`);
+      log.error(
+        `Failed to decrypt payload for contentTopic ${this.contentTopic}`
+      );
       return;
     }
 
     const res = postCipher(payload);
 
     if (!res) {
-      log(`Failed to decode payload for contentTopic ${this.contentTopic}`);
+      log.error(
+        `Failed to decode payload for contentTopic ${this.contentTopic}`
+      );
       return;
     }
 
-    log("Message decrypted", protoMessage);
+    log.info("Message decrypted", protoMessage);
     return new DecodedMessage(
       pubsubTopic,
       protoMessage,

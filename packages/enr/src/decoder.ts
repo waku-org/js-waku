@@ -1,10 +1,12 @@
 import * as RLP from "@ethersproject/rlp";
 import type { ENRKey, ENRValue } from "@waku/interfaces";
+import { Logger } from "@waku/utils";
 import { bytesToHex, bytesToUtf8, hexToBytes } from "@waku/utils/bytes";
-import { log } from "debug";
 import { fromString } from "uint8arrays/from-string";
 
 import { ENR } from "./enr.js";
+
+const log = new Logger("enr:decoder");
 
 export class EnrDecoder {
   static fromString(encoded: string): Promise<ENR> {
@@ -30,7 +32,7 @@ async function fromValues(values: Uint8Array[]): Promise<ENR> {
     try {
       obj[bytesToUtf8(kvs[i])] = kvs[i + 1];
     } catch (e) {
-      log("Failed to decode ENR key to UTF-8, skipping it", kvs[i], e);
+      log.error("Failed to decode ENR key to UTF-8, skipping it", kvs[i], e);
     }
   }
   const _seq = decodeSeq(seq);

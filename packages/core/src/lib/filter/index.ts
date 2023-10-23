@@ -22,7 +22,7 @@ import {
   groupByContentTopic,
   toAsyncIterator
 } from "@waku/utils";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -36,7 +36,7 @@ import {
   FilterSubscribeRpc
 } from "./filter_rpc.js";
 
-const log = debug("waku:filter:v2");
+const log = new Logger("filter:v2");
 
 type SubscriptionCallback<T extends IDecodedMessage> = {
   decoders: IDecoder<T>[];
@@ -74,6 +74,16 @@ class Subscription {
     callback: Callback<T>
   ): Promise<void> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
+
+    // check that all decoders are configured for the same pubsub topic as this subscription
+    decodersArray.forEach((decoder) => {
+      if (decoder.pubsubTopic !== this.pubsubTopic) {
+        throw new Error(
+          `Pubsub topic not configured: decoder is configured for pubsub topic ${decoder.pubsubTopic} but this subscription is for pubsub topic ${this.pubsubTopic}. Please create a new Subscription for the different pubsub topic.`
+        );
+      }
+    });
+
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
     const contentTopics = Array.from(decodersGroupedByCT.keys());
 
@@ -108,7 +118,7 @@ class Subscription {
         );
       }
 
-      log(
+      log.info(
         "Subscribed to peer ",
         this.peer.id.toString(),
         "for content topics",
@@ -183,9 +193,9 @@ class Subscription {
         );
       }
 
-      log("Ping successful");
+      log.info("Ping successful");
     } catch (error) {
-      log("Error pinging: ", error);
+      log.error("Error pinging: ", error);
       throw new Error("Error pinging: " + error);
     }
   }
@@ -216,7 +226,7 @@ class Subscription {
       }
 
       this.subscriptionCallbacks.clear();
-      log("Unsubscribed from all content topics");
+      log.info("Unsubscribed from all content topics");
     } catch (error) {
       throw new Error("Error unsubscribing from all content topics: " + error);
     }
@@ -226,7 +236,7 @@ class Subscription {
     const contentTopic = message.contentTopic;
     const subscriptionCallback = this.subscriptionCallbacks.get(contentTopic);
     if (!subscriptionCallback) {
-      log("No subscription callback available for ", contentTopic);
+      log.error("No subscription callback available for ", contentTopic);
       return;
     }
     await pushMessage(subscriptionCallback, this.pubsubTopic, message);
@@ -260,7 +270,7 @@ class Filter extends BaseProtocol implements IReceiver {
     this.pubsubTopics = options?.pubsubTopics || [DefaultPubSubTopic];
 
     libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
-      log("Failed to register ", FilterCodecs.PUSH, e);
+      log.error("Failed to register ", FilterCodecs.PUSH, e);
     });
 
     this.activeSubscriptions = new Map();
@@ -332,7 +342,6 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   private onRequest(streamData: IncomingStreamData): void {
-    log("Receiving message push");
     try {
       pipe(streamData.stream, lp.decode, async (source) => {
         for await (const bytes of source) {
@@ -341,12 +350,12 @@ class Filter extends BaseProtocol implements IReceiver {
           const { pubsubTopic, wakuMessage } = response;
 
           if (!wakuMessage) {
-            log("Received empty message");
+            log.error("Received empty message");
             return;
           }
 
           if (!pubsubTopic) {
-            log("PubSub topic missing from push message");
+            log.error("PubSub topic missing from push message");
             return;
           }
 
@@ -357,7 +366,9 @@ class Filter extends BaseProtocol implements IReceiver {
           );
 
           if (!subscription) {
-            log(`No subscription locally registered for topic ${pubsubTopic}`);
+            log.error(
+              `No subscription locally registered for topic ${pubsubTopic}`
+            );
             return;
           }
 
@@ -365,14 +376,14 @@ class Filter extends BaseProtocol implements IReceiver {
         }
       }).then(
         () => {
-          log("Receiving pipe closed.");
+          log.info("Receiving pipe closed.");
         },
         (e) => {
-          log("Error with receiving pipe", e);
+          log.error("Error with receiving pipe", e);
         }
       );
     } catch (e) {
-      log("Error decoding message", e);
+      log.error("Error decoding message", e);
     }
   }
 }
@@ -392,7 +403,7 @@ async function pushMessage<T extends IDecodedMessage>(
 
   const { contentTopic } = message;
   if (!contentTopic) {
-    log("Message has no content topic, skipping");
+    log.warn("Message has no content topic, skipping");
     return;
   }
 
@@ -407,6 +418,6 @@ async function pushMessage<T extends IDecodedMessage>(
 
     await callback(decodedMessage);
   } catch (e) {
-    log("Error decoding message", e);
+    log.error("Error decoding message", e);
   }
 }

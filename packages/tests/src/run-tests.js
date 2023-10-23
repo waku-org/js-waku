@@ -3,7 +3,7 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-const WAKUNODE_IMAGE = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.20.0";
+const WAKUNODE_IMAGE = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.21.0";
 
 async function main() {
   try {
@@ -23,16 +23,6 @@ async function main() {
     "./tsconfig.dev.json",
     ...process.argv.slice(2)
   ];
-
-  // If in CI, add --parallel
-  if (process.env.CI) {
-    mochaArgs.push("--parallel");
-    console.log("Running tests in parallel");
-  } else {
-    console.log(
-      "Running tests serially. To enable parallel execution update mocha config"
-    );
-  }
 
   // Run mocha tests
   const mocha = spawn("npx", mochaArgs, {
