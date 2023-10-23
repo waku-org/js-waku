@@ -5,7 +5,7 @@ import type {
   NodeCapabilityCount,
   SearchContext
 } from "@waku/interfaces";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
 import { DnsOverHttps } from "./dns_over_https.js";
 import { ENRTree } from "./enrtree.js";
@@ -14,7 +14,7 @@ import {
   yieldNodesUntilCapabilitiesFulfilled
 } from "./fetch_nodes.js";
 
-const log = debug("waku:discovery:dns");
+const log = new Logger("discovery:dns");
 
 export class DnsNodeDiscovery {
   private readonly dns: DnsClient;
@@ -54,7 +54,7 @@ export class DnsNodeDiscovery {
       this._errorTolerance,
       () => this._search(domain, context)
     );
-    log(
+    log.info(
       "retrieved peers: ",
       peers.map((peer) => {
         return {
@@ -126,13 +126,15 @@ export class DnsNodeDiscovery {
             return null;
         }
       } catch (error) {
-        log(
+        log.error(
           `Failed to search DNS tree ${entryType} at subdomain ${subdomain}: ${error}`
         );
         return null;
       }
     } catch (error) {
-      log(`Failed to retrieve TXT record at subdomain ${subdomain}: ${error}`);
+      log.error(
+        `Failed to retrieve TXT record at subdomain ${subdomain}: ${error}`
+      );
       return null;
     }
   }

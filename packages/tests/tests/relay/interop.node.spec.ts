@@ -71,7 +71,6 @@ describe("Waku Relay, Interop", function () {
     let msgs: MessageRpcResponse[] = [];
 
     while (msgs.length === 0) {
-      console.log("Waiting for messages");
       await delay(200);
       msgs = await nwaku.messages();
     }
@@ -161,7 +160,6 @@ describe("Waku Relay, Interop", function () {
       );
 
       await waku1.relay.send(TestEncoder, message);
-      console.log("Waiting for message");
       const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
 
       expect(waku2ReceivedMsg.payload).to.eq(msgStr);

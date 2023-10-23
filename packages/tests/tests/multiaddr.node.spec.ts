@@ -1,20 +1,32 @@
+import { CustomEvent } from "@libp2p/interface/events";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerInfo } from "@libp2p/interface/peer-info";
 import { multiaddr } from "@multiformats/multiaddr";
+import type { Multiaddr } from "@multiformats/multiaddr";
 import type { Waku } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
+import Sinon, { SinonSpy, SinonStub } from "sinon";
 
-import { NimGoNode, tearDownNodes } from "../src/index.js";
+import {
+  delay,
+  makeLogFileName,
+  NimGoNode,
+  tearDownNodes
+} from "../src/index.js";
 
-describe("dials multiaddr", function () {
+describe("multiaddr: dialing", function () {
   let waku: Waku;
   let nwaku: NimGoNode;
+  let dialPeerSpy: SinonSpy;
+  let isPeerTopicConfigured: SinonStub;
 
   afterEach(async function () {
     this.timeout(15000);
     await tearDownNodes(nwaku, waku);
   });
 
-  it("TLS", async function () {
+  it("can dial TLS multiaddrs", async function () {
     this.timeout(20_000);
 
     let tlsWorks = true;
@@ -35,5 +47,56 @@ describe("dials multiaddr", function () {
     }
 
     expect(tlsWorks).to.eq(true);
+  });
+
+  describe("does not attempt the same peer discovered multiple times more than once", function () {
+    const PEER_DISCOVERY_COUNT = 3;
+    let peerId: PeerId;
+    let multiaddr: Multiaddr;
+
+    beforeEach(async function () {
+      this.timeout(10_000);
+      nwaku = new NimGoNode(makeLogFileName(this));
+      await nwaku.start();
+
+      waku = await createLightNode();
+
+      peerId = await nwaku.getPeerId();
+      multiaddr = await nwaku.getMultiaddrWithId();
+
+      isPeerTopicConfigured = Sinon.stub(
+        waku.connectionManager as any,
+        "isPeerTopicConfigured"
+      );
+      isPeerTopicConfigured.resolves(true);
+      dialPeerSpy = Sinon.spy(waku.connectionManager as any, "dialPeer");
+    });
+
+    afterEach(function () {
+      dialPeerSpy.restore();
+    });
+
+    it("through manual discovery", async function () {
+      this.timeout(20_000);
+
+      const discoverPeer = (): void => {
+        waku.libp2p.dispatchEvent(
+          new CustomEvent<PeerInfo>("peer:discovery", {
+            detail: {
+              id: peerId,
+              protocols: [],
+              multiaddrs: [multiaddr]
+            }
+          })
+        );
+      };
+
+      for (let i = 0; i < PEER_DISCOVERY_COUNT; i++) {
+        discoverPeer();
+        await delay(100);
+      }
+
+      expect(dialPeerSpy.callCount).to.eq(1);
+    });
   });
 });

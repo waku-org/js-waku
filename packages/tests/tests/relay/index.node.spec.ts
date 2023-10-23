@@ -31,7 +31,7 @@ describe("Waku Relay", function () {
 
   beforeEach(async function () {
     this.timeout(10000);
-    log("Starting JS Waku instances");
+    log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
         waku.start().then(() => waku)
@@ -41,14 +41,14 @@ describe("Waku Relay", function () {
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
     ]);
-    log("Instances started, adding waku2 to waku1's address book");
+    log.info("Instances started, adding waku2 to waku1's address book");
     await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
       multiaddrs: waku2.libp2p.getMultiaddrs()
     });
     await waku1.dial(waku2.libp2p.peerId);
 
     await waitForAllRemotePeers(waku1, waku2);
-    log("before each hook done");
+    log.info("before each hook done");
   });
 
   afterEach(async function () {

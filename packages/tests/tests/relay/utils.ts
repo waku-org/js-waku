@@ -1,6 +1,6 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import { Protocols, RelayNode } from "@waku/interfaces";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
 export const messageText = "Relay works!";
 export const TestContentTopic = "/test/1/waku-relay/utf8";
@@ -17,12 +17,12 @@ export const CustomDecoder = createDecoder(
   CustomPubSubTopic
 );
 
-export const log = debug("waku:test:relay");
+export const log = new Logger("test:relay");
 
 export async function waitForAllRemotePeers(
   ...nodes: RelayNode[]
 ): Promise<void> {
-  log("Wait for mutual pubsub subscription");
+  log.info("Wait for mutual pubsub subscription");
   await Promise.all(
     nodes.map((node) => waitForRemotePeer(node, [Protocols.Relay]))
   );

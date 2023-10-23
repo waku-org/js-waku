@@ -1,9 +1,9 @@
 import type { DnsClient } from "@waku/interfaces";
+import { Logger } from "@waku/utils";
 import { bytesToUtf8 } from "@waku/utils/bytes";
-import debug from "debug";
 import { Endpoint, query, wellknown } from "dns-query";
 
-const log = debug("waku:dns-over-https");
+const log = new Logger("dns-over-https");
 
 export class DnsOverHttps implements DnsClient {
   /**
@@ -50,7 +50,7 @@ export class DnsOverHttps implements DnsClient {
       );
       answers = res.answers;
     } catch (error) {
-      log("query failed: ", error);
+      log.error("query failed: ", error);
       throw new Error("DNS query failed");
     }
 

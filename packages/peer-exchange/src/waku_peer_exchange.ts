@@ -7,7 +7,7 @@ import type {
   PeerInfo
 } from "@waku/interfaces";
 import { isDefined } from "@waku/utils";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -17,7 +17,7 @@ import { PeerExchangeRPC } from "./rpc.js";
 
 export const PeerExchangeCodec = "/vac/waku/peer-exchange/2.0.0-alpha1";
 
-const log = debug("waku:peer-exchange");
+const log = new Logger("peer-exchange");
 
 /**
  * Implementation of the Peer Exchange protocol (https://rfc.vac.dev/spec/34/)
@@ -63,7 +63,9 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
       const { response } = PeerExchangeRPC.decode(bytes);
 
       if (!response) {
-        log("PeerExchangeRPC message did not contains a `response` field");
+        log.error(
+          "PeerExchangeRPC message did not contains a `response` field"
+        );
         return;
       }
 
@@ -76,7 +78,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
           })
       );
     } catch (err) {
-      log("Failed to decode push reply", err);
+      log.error("Failed to decode push reply", err);
       return;
     }
   }
