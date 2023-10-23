@@ -67,7 +67,7 @@ export class StreamManager {
   private handlePeerUpdateStreamPool = (evt: CustomEvent<PeerUpdate>): void => {
     const peer = evt.detail.peer;
     if (peer.protocols.includes(this.multicodec)) {
-      this.log.error(`Preemptively opening a stream to ${peer.id.toString()}`);
+      this.log.info(`Preemptively opening a stream to ${peer.id.toString()}`);
       this.prepareNewStream(peer);
     }
   };
