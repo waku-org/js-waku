@@ -12,13 +12,9 @@ export class Logger {
   }
 
   constructor(prefix?: string) {
-    this._info = debug(Logger.createDebugNamespace("INFO", prefix));
-    this._warn = debug(Logger.createDebugNamespace("WARN", prefix));
-    this._error = debug(Logger.createDebugNamespace("ERROR", prefix));
-
-    this._info.log = console.info.bind(console);
-    this._warn.log = console.warn.bind(console);
-    this._error.log = console.error.bind(console);
+    this._info = debug(Logger.createDebugNamespace("info", prefix));
+    this._warn = debug(Logger.createDebugNamespace("warn", prefix));
+    this._error = debug(Logger.createDebugNamespace("error", prefix));
   }
 
   get info(): Debugger {
@@ -31,5 +27,10 @@ export class Logger {
 
   get error(): Debugger {
     return this._error;
+  }
+
+  log(level: "info" | "warn" | "error", ...args: unknown[]): void {
+    const logger = this[level] as (...args: unknown[]) => void;
+    logger(...args);
   }
 }
