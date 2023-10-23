@@ -24,16 +24,6 @@ async function main() {
     ...process.argv.slice(2)
   ];
 
-  // If in CI, add --parallel
-  if (process.env.CI) {
-    mochaArgs.push("--parallel");
-    console.log("Running tests in parallel");
-  } else {
-    console.log(
-      "Running tests serially. To enable parallel execution update mocha config"
-    );
-  }
-
   // Run mocha tests
   const mocha = spawn("npx", mochaArgs, {
     stdio: "inherit"
