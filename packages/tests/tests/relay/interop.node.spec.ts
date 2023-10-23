@@ -107,13 +107,12 @@ describe("Waku Relay, Interop", function () {
     expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
   });
 
-  describe.skip("Two nodes connected to nwaku", function () {
+  describe("Two nodes connected to nwaku", function () {
     let waku1: RelayNode;
     let waku2: RelayNode;
     let nwaku: NimGoNode;
 
     afterEach(async function () {
-      this.timeout(15000);
       await tearDownNodes(nwaku, [waku1, waku2]);
     });
 
@@ -129,7 +128,7 @@ describe("Waku Relay, Interop", function () {
       ]);
 
       nwaku = new NimGoNode(makeLogFileName(this));
-      await nwaku.start();
+      await nwaku.start({ relay: true });
 
       const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
       await Promise.all([
@@ -148,7 +147,9 @@ describe("Waku Relay, Interop", function () {
       expect(await waku1.libp2p.peerStore.has(waku2.libp2p.peerId)).to.eq(
         false
       );
-      expect(waku2.libp2p.peerStore.has(waku1.libp2p.peerId)).to.eq(false);
+      expect(await waku2.libp2p.peerStore.has(waku1.libp2p.peerId)).to.eq(
+        false
+      );
 
       const msgStr = "Hello there!";
       const message = { payload: utf8ToBytes(msgStr) };
@@ -162,7 +163,7 @@ describe("Waku Relay, Interop", function () {
       await waku1.relay.send(TestEncoder, message);
       const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
 
-      expect(waku2ReceivedMsg.payload).to.eq(msgStr);
+      expect(bytesToUtf8(waku2ReceivedMsg.payload)).to.eq(msgStr);
     });
   });
 });
