@@ -1,4 +1,12 @@
-import type { PubSubTopic } from "@waku/interfaces";
+import type { PubSubTopic, ShardInfo } from "@waku/interfaces";
+
+export const shardInfoToPubSubTopics = (
+  shardInfo: ShardInfo
+): PubSubTopic[] => {
+  return shardInfo.indexList.map(
+    (index) => `/waku/2/rs/${shardInfo.cluster}/${index}`
+  );
+};
 
 export function ensurePubsubTopicIsConfigured(
   pubsubTopic: PubSubTopic,

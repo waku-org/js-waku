@@ -18,19 +18,20 @@ import {
   createEncoder as symEncoder
 } from "@waku/message-encryption/symmetric";
 import { createLightNode } from "@waku/sdk";
+import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
-import debug from "debug";
 
 import {
   delay,
   makeLogFileName,
   NOISE_KEY_1,
-  NOISE_KEY_2
+  NOISE_KEY_2,
+  tearDownNodes
 } from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
-const log = debug("waku:test:ephemeral");
+const log = new Logger("test:ephemeral");
 
 const TestContentTopic = "/test/1/ephemeral/utf8";
 const TestEncoder = createEncoder({
@@ -45,9 +46,8 @@ describe("Waku Message Ephemeral field", () => {
   let subscription: IFilterSubscription;
 
   afterEach(async function () {
-    !!nwaku &&
-      nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-    !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   beforeEach(async function () {
@@ -127,18 +127,18 @@ describe("Waku Message Ephemeral field", () => {
       nwaku.getMultiaddrWithId()
     ]);
 
-    log("Waku nodes created");
+    log.info("Waku nodes created");
 
     await Promise.all([
       waku1.dial(nimWakuMultiaddr),
       waku2.dial(nimWakuMultiaddr)
     ]);
 
-    log("Waku nodes connected to nwaku");
+    log.info("Waku nodes connected to nwaku");
 
     await waitForRemotePeer(waku1, [Protocols.LightPush]);
 
-    log("Sending messages using light push");
+    log.info("Sending messages using light push");
     await Promise.all([
       waku1.lightPush.send(asymEncoder, asymMsg),
       waku1.lightPush.send(symEncoder, symMsg),
@@ -148,8 +148,8 @@ describe("Waku Message Ephemeral field", () => {
     await waitForRemotePeer(waku2, [Protocols.Store]);
 
     const messages: DecodedMessage[] = [];
-    log("Retrieve messages from store");
 
+    log.info("Retrieving messages from store");
     for await (const msgPromises of waku2.store.queryGenerator([
       asymDecoder,
       symDecoder,
@@ -165,8 +165,7 @@ describe("Waku Message Ephemeral field", () => {
 
     expect(messages?.length).eq(0);
 
-    !!waku1 && waku1.stop().catch((e) => console.log("Waku failed to stop", e));
-    !!waku2 && waku2.stop().catch((e) => console.log("Waku failed to stop", e));
+    await tearDownNodes([], [waku1, waku2]);
   });
 
   it("Ephemeral field is preserved - encoder v0", async function () {

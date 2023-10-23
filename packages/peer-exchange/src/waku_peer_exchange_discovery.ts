@@ -7,12 +7,13 @@ import type {
 import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
+import { encodeRelayShard } from "@waku/enr";
 import { Libp2pComponents, Tags } from "@waku/interfaces";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
 import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
 
-const log = debug("waku:peer-exchange-discovery");
+const log = new Logger("peer-exchange-discovery");
 
 const DEFAULT_PEER_EXCHANGE_REQUEST_NODES = 10;
 const DEFAULT_PEER_EXCHANGE_QUERY_INTERVAL_MS = 10 * 1000;
@@ -73,7 +74,7 @@ export class PeerExchangeDiscovery
 
     this.queryingPeers.add(peerId.toString());
     this.startRecurringQueries(peerId).catch((error) =>
-      log(`Error querying peer ${error}`)
+      log.error(`Error querying peer ${error}`)
     );
   };
 
@@ -93,7 +94,7 @@ export class PeerExchangeDiscovery
       return;
     }
 
-    log("Starting peer exchange node discovery, discovering peers");
+    log.info("Starting peer exchange node discovery, discovering peers");
 
     // might be better to use "peer:identify" or "peer:update"
     this.components.events.addEventListener(
@@ -107,7 +108,7 @@ export class PeerExchangeDiscovery
    */
   stop(): void {
     if (!this.isStarted) return;
-    log("Stopping peer exchange node discovery");
+    log.info("Stopping peer exchange node discovery");
     this.isStarted = false;
     this.queryingPeers.clear();
     this.components.events.removeEventListener(
@@ -133,7 +134,7 @@ export class PeerExchangeDiscovery
       maxRetries = DEFAULT_MAX_RETRIES
     } = this.options;
 
-    log(
+    log.info(
       `Querying peer: ${peerIdStr} (attempt ${
         this.queryAttempts.get(peerIdStr) ?? 1
       })`
@@ -151,7 +152,7 @@ export class PeerExchangeDiscovery
     setTimeout(() => {
       this.queryAttempts.set(peerIdStr, currentAttempt + 1);
       this.startRecurringQueries(peerId).catch((error) => {
-        log(`Error in startRecurringQueries: ${error}`);
+        log.error(`Error in startRecurringQueries: ${error}`);
       });
     }, queryInterval * currentAttempt);
   };
@@ -163,18 +164,18 @@ export class PeerExchangeDiscovery
     });
 
     if (!peerInfos) {
-      log("Peer exchange query failed, no peer info returned");
+      log.error("Peer exchange query failed, no peer info returned");
       return;
     }
 
     for (const _peerInfo of peerInfos) {
       const { ENR } = _peerInfo;
       if (!ENR) {
-        log("No ENR in peerInfo object, skipping");
+        log.warn("No ENR in peerInfo object, skipping");
         continue;
       }
 
-      const { peerId, peerInfo } = ENR;
+      const { peerId, peerInfo, shardInfo } = ENR;
       if (!peerId || !peerInfo) {
         continue;
       }
@@ -191,10 +192,15 @@ export class PeerExchangeDiscovery
             value: this.options.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
             ttl: this.options.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL
           }
-        }
+        },
+        ...(shardInfo && {
+          metadata: {
+            shardInfo: encodeRelayShard(shardInfo)
+          }
+        })
       });
 
-      log(`Discovered peer: ${peerId.toString()}`);
+      log.info(`Discovered peer: ${peerId.toString()}`);
 
       this.dispatchEvent(
         new CustomEvent<PeerInfo>("peer", {
@@ -209,7 +215,7 @@ export class PeerExchangeDiscovery
   }
 
   private abortQueriesForPeer(peerIdStr: string): void {
-    log(`Aborting queries for peer: ${peerIdStr}`);
+    log.info(`Aborting queries for peer: ${peerIdStr}`);
     this.queryingPeers.delete(peerIdStr);
     this.queryAttempts.delete(peerIdStr);
   }

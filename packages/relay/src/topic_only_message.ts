@@ -5,9 +5,6 @@ import type {
   IProtoMessage
 } from "@waku/interfaces";
 import { TopicOnlyMessage as ProtoTopicOnlyMessage } from "@waku/proto";
-import debug from "debug";
-
-const log = debug("waku:message:topic-only");
 
 export class TopicOnlyMessage implements IDecodedMessage {
   public payload: Uint8Array = new Uint8Array();
@@ -17,7 +14,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
   public ephemeral: undefined;
 
   constructor(
-    public pubSubTopic: string,
+    public pubsubTopic: string,
     private proto: ProtoTopicOnlyMessage
   ) {}
 
@@ -27,12 +24,11 @@ export class TopicOnlyMessage implements IDecodedMessage {
 }
 
 export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
-  pubSubTopic = DefaultPubSubTopic;
+  pubsubTopic = DefaultPubSubTopic;
   public contentTopic = "";
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
     const protoMessage = ProtoTopicOnlyMessage.decode(bytes);
-    log("Message decoded", protoMessage);
     return Promise.resolve({
       contentTopic: protoMessage.contentTopic,
       payload: new Uint8Array(),
@@ -45,9 +41,9 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
   }
 
   async fromProtoObj(
-    pubSubTopic: string,
+    pubsubTopic: string,
     proto: IProtoMessage
   ): Promise<TopicOnlyMessage | undefined> {
-    return new TopicOnlyMessage(pubSubTopic, proto);
+    return new TopicOnlyMessage(pubsubTopic, proto);
   }
 }

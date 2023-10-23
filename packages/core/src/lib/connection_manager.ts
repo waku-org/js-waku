@@ -1,7 +1,9 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
 import type { Peer } from "@libp2p/interface/peer-store";
+import type { PeerStore } from "@libp2p/interface/peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import { decodeRelayShard } from "@waku/enr";
 import {
   ConnectionManagerOptions,
   EPeersByDiscoveryEvents,
@@ -9,14 +11,17 @@ import {
   IPeersByDiscoveryEvents,
   IRelay,
   KeepAliveOptions,
-  PeersByDiscoveryResult
+  PeersByDiscoveryResult,
+  PubSubTopic,
+  ShardInfo
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
-import debug from "debug";
+import { shardInfoToPubSubTopics } from "@waku/utils";
+import { Logger } from "@waku/utils";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
 
-const log = debug("waku:connection-manager");
+const log = new Logger("connection-manager");
 
 export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
@@ -33,13 +38,14 @@ export class ConnectionManager
   private dialAttemptsForPeer: Map<string, number> = new Map();
   private dialErrorsForPeer: Map<string, any> = new Map();
 
-  private currentActiveDialCount = 0;
+  private currentActiveParallelDialCount = 0;
   private pendingPeerDialQueue: Array<PeerId> = [];
 
   public static create(
     peerId: string,
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
+    pubsubTopics: PubSubTopic[],
     relay?: IRelay,
     options?: ConnectionManagerOptions
   ): ConnectionManager {
@@ -48,6 +54,7 @@ export class ConnectionManager
       instance = new ConnectionManager(
         libp2p,
         keepAliveOptions,
+        pubsubTopics,
         relay,
         options
       );
@@ -104,11 +111,13 @@ export class ConnectionManager
   private constructor(
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
+    private configuredPubSubTopics: PubSubTopic[],
     relay?: IRelay,
     options?: Partial<ConnectionManagerOptions>
   ) {
     super();
     this.libp2p = libp2p;
+    this.configuredPubSubTopics = configuredPubSubTopics;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
@@ -119,14 +128,16 @@ export class ConnectionManager
     this.keepAliveManager = new KeepAliveManager(keepAliveOptions, relay);
 
     this.run()
-      .then(() => log(`Connection Manager is now running`))
-      .catch((error) => log(`Unexpected error while running service`, error));
+      .then(() => log.info(`Connection Manager is now running`))
+      .catch((error) =>
+        log.error(`Unexpected error while running service`, error)
+      );
 
     // libp2p emits `peer:discovery` events during its initialization
     // which means that before the ConnectionManager is initialized, some peers may have been discovered
     // we will dial the peers in peerStore ONCE before we start to listen to the `peer:discovery` events within the ConnectionManager
     this.dialPeerStorePeers().catch((error) =>
-      log(`Unexpected error while dialing peer store peers`, error)
+      log.error(`Unexpected error while dialing peer store peers`, error)
     );
   }
 
@@ -144,7 +155,7 @@ export class ConnectionManager
     try {
       await Promise.all(dialPromises);
     } catch (error) {
-      log(`Unexpected error while dialing peer store peers`, error);
+      log.error(`Unexpected error while dialing peer store peers`, error);
     }
   }
 
@@ -172,11 +183,13 @@ export class ConnectionManager
   }
 
   private async dialPeer(peerId: PeerId): Promise<void> {
-    this.currentActiveDialCount += 1;
+    this.currentActiveParallelDialCount += 1;
     let dialAttempt = 0;
     while (dialAttempt < this.options.maxDialAttemptsForPeer) {
       try {
-        log(`Dialing peer ${peerId.toString()} on attempt ${dialAttempt + 1}`);
+        log.info(
+          `Dialing peer ${peerId.toString()} on attempt ${dialAttempt + 1}`
+        );
         await this.libp2p.dial(peerId);
 
         const tags = await this.getTagNamesForPeer(peerId);
@@ -186,16 +199,21 @@ export class ConnectionManager
           conn.tags = Array.from(new Set([...conn.tags, ...tags]));
         });
 
-        this.dialAttemptsForPeer.delete(peerId.toString());
+        // instead of deleting the peer from the peer store, we set the dial attempt to -1
+        // this helps us keep track of peers that have been dialed before
+        this.dialAttemptsForPeer.set(peerId.toString(), -1);
+
         // Dialing succeeded, break the loop
         break;
       } catch (error) {
         if (error instanceof AggregateError) {
           // Handle AggregateError
-          log(`Error dialing peer ${peerId.toString()} - ${error.errors}`);
+          log.error(
+            `Error dialing peer ${peerId.toString()} - ${error.errors}`
+          );
         } else {
           // Handle generic error
-          log(
+          log.error(
             `Error dialing peer ${peerId.toString()} - ${
               (error as any).message
             }`
@@ -209,7 +227,7 @@ export class ConnectionManager
     }
 
     // Always decrease the active dial count and process the dial queue
-    this.currentActiveDialCount--;
+    this.currentActiveParallelDialCount--;
     this.processDialQueue();
 
     // If max dial attempts reached and dialing failed, delete the peer
@@ -217,16 +235,24 @@ export class ConnectionManager
       try {
         const error = this.dialErrorsForPeer.get(peerId.toString());
 
-        let errorMessage;
-        if (error instanceof AggregateError) {
-          errorMessage = JSON.stringify(error.errors[0]);
-        } else {
-          errorMessage = error.message;
-        }
+        if (error) {
+          let errorMessage;
+          if (error instanceof AggregateError) {
+            if (!error.errors) {
+              log.warn(`No errors array found for AggregateError`);
+            } else if (error.errors.length === 0) {
+              log.warn(`Errors array is empty for AggregateError`);
+            } else {
+              errorMessage = JSON.stringify(error.errors[0]);
+            }
+          } else {
+            errorMessage = error.message;
+          }
 
-        log(
-          `Deleting undialable peer ${peerId.toString()} from peer store. Error: ${errorMessage}`
-        );
+          log.info(
+            `Deleting undialable peer ${peerId.toString()} from peer store. Reason: ${errorMessage}`
+          );
+        }
 
         this.dialErrorsForPeer.delete(peerId.toString());
         await this.libp2p.peerStore.delete(peerId);
@@ -242,9 +268,9 @@ export class ConnectionManager
     try {
       this.keepAliveManager.stop(peerId);
       await this.libp2p.hangUp(peerId);
-      log(`Dropped connection with peer ${peerId.toString()}`);
+      log.info(`Dropped connection with peer ${peerId.toString()}`);
     } catch (error) {
-      log(
+      log.error(
         `Error dropping connection with peer ${peerId.toString()} - ${error}`
       );
     }
@@ -253,12 +279,12 @@ export class ConnectionManager
   private processDialQueue(): void {
     if (
       this.pendingPeerDialQueue.length > 0 &&
-      this.currentActiveDialCount < this.options.maxParallelDials
+      this.currentActiveParallelDialCount < this.options.maxParallelDials
     ) {
       const peerId = this.pendingPeerDialQueue.shift();
       if (!peerId) return;
       this.attemptDial(peerId).catch((error) => {
-        log(error);
+        log.error(error);
       });
     }
   }
@@ -297,15 +323,15 @@ export class ConnectionManager
   }
 
   private async attemptDial(peerId: PeerId): Promise<void> {
-    if (this.currentActiveDialCount >= this.options.maxParallelDials) {
+    if (!(await this.shouldDialPeer(peerId))) return;
+
+    if (this.currentActiveParallelDialCount >= this.options.maxParallelDials) {
       this.pendingPeerDialQueue.push(peerId);
       return;
     }
 
-    if (!(await this.shouldDialPeer(peerId))) return;
-
     this.dialPeer(peerId).catch((err) => {
-      throw `Error dialing peer ${peerId.toString()} : ${err}`;
+      log.error(`Error dialing peer ${peerId.toString()} : ${err}`);
     });
   }
 
@@ -314,25 +340,12 @@ export class ConnectionManager
       void (async () => {
         const { id: peerId } = evt.detail;
 
-        const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
-          Tags.BOOTSTRAP
-        );
-
-        this.dispatchEvent(
-          new CustomEvent<PeerId>(
-            isBootstrap
-              ? EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP
-              : EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
-            {
-              detail: peerId
-            }
-          )
-        );
+        await this.dispatchDiscoveryEvent(peerId);
 
         try {
           await this.attemptDial(peerId);
         } catch (error) {
-          log(`Error dialing peer ${peerId.toString()} : ${error}`);
+          log.error(`Error dialing peer ${peerId.toString()} : ${error}`);
         }
       })();
     },
@@ -390,15 +403,63 @@ export class ConnectionManager
   };
 
   /**
+   * Checks if the peer should be dialed based on the following conditions:
+   * 1. If the peer is already connected, don't dial
+   * 2. If the peer is not part of any of the configured pubsub topics, don't dial
+   * 3. If the peer is not dialable based on bootstrap status, don't dial
+   * 4. If the peer is already has an active dial attempt, or has been dialed before, don't dial it
+   * @returns true if the peer should be dialed, false otherwise
+   */
+  private async shouldDialPeer(peerId: PeerId): Promise<boolean> {
+    // if we're already connected to the peer, don't dial
+    const isConnected = this.libp2p.getConnections(peerId).length > 0;
+    if (isConnected) {
+      log.warn(`Already connected to peer ${peerId.toString()}. Not dialing.`);
+      return false;
+    }
+
+    // if the peer is not part of any of the configured pubsub topics, don't dial
+    if (!(await this.isPeerTopicConfigured(peerId))) {
+      const shardInfo = await this.getPeerShardInfo(
+        peerId,
+        this.libp2p.peerStore
+      );
+      log.warn(
+        `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
+          this.configuredPubSubTopics
+        }). 
+            Not dialing.`
+      );
+      return false;
+    }
+
+    // if the peer is not dialable based on bootstrap status, don't dial
+    if (!(await this.isPeerDialableBasedOnBootstrapStatus(peerId))) {
+      log.warn(
+        `Peer ${peerId.toString()} is not dialable based on bootstrap status. Not dialing.`
+      );
+      return false;
+    }
+
+    // If the peer is already already has an active dial attempt, or has been dialed before, don't dial it
+    if (this.dialAttemptsForPeer.has(peerId.toString())) {
+      log.warn(
+        `Peer ${peerId.toString()} has already been attempted dial before, or already has a dial attempt in progress, skipping dial`
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Checks if the peer is dialable based on the following conditions:
    * 1. If the peer is a bootstrap peer, it is only dialable if the number of current bootstrap connections is less than the max allowed.
    * 2. If the peer is not a bootstrap peer
    */
-  private async shouldDialPeer(peerId: PeerId): Promise<boolean> {
-    const isConnected = this.libp2p.getConnections(peerId).length > 0;
-
-    if (isConnected) return false;
-
+  private async isPeerDialableBasedOnBootstrapStatus(
+    peerId: PeerId
+  ): Promise<boolean> {
     const tagNames = await this.getTagNamesForPeer(peerId);
 
     const isBootstrap = tagNames.some((tagName) => tagName === Tags.BOOTSTRAP);
@@ -418,6 +479,23 @@ export class ConnectionManager
     return false;
   }
 
+  private async dispatchDiscoveryEvent(peerId: PeerId): Promise<void> {
+    const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
+      Tags.BOOTSTRAP
+    );
+
+    this.dispatchEvent(
+      new CustomEvent<PeerId>(
+        isBootstrap
+          ? EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP
+          : EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
+        {
+          detail: peerId
+        }
+      )
+    );
+  }
+
   /**
    * Fetches the tag names for a given peer
    */
@@ -426,8 +504,35 @@ export class ConnectionManager
       const peer = await this.libp2p.peerStore.get(peerId);
       return Array.from(peer.tags.keys());
     } catch (error) {
-      log(`Failed to get peer ${peerId}, error: ${error}`);
+      log.error(`Failed to get peer ${peerId}, error: ${error}`);
       return [];
     }
+  }
+
+  private async isPeerTopicConfigured(peerId: PeerId): Promise<boolean> {
+    const shardInfo = await this.getPeerShardInfo(
+      peerId,
+      this.libp2p.peerStore
+    );
+
+    // If there's no shard information, simply return true
+    if (!shardInfo) return true;
+
+    const pubsubTopics = shardInfoToPubSubTopics(shardInfo);
+
+    const isTopicConfigured = pubsubTopics.some((topic) =>
+      this.configuredPubSubTopics.includes(topic)
+    );
+    return isTopicConfigured;
+  }
+
+  private async getPeerShardInfo(
+    peerId: PeerId,
+    peerStore: PeerStore
+  ): Promise<ShardInfo | undefined> {
+    const peer = await peerStore.get(peerId);
+    const shardInfoBytes = peer.metadata.get("shardInfo");
+    if (!shardInfoBytes) return undefined;
+    return decodeRelayShard(shardInfoBytes);
   }
 }

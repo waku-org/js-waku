@@ -1,10 +1,10 @@
 import type { IdentifyResult } from "@libp2p/interface";
 import type { IBaseProtocol, IRelay, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 import { pEvent } from "p-event";
 
-const log = debug("waku:wait-for-remote-peer");
+const log = new Logger("wait-for-remote-peer");
 
 /**
  * Wait for a remote peer to be ready given the passed protocols.
@@ -79,14 +79,13 @@ async function waitForConnectedPeer(protocol: IBaseProtocol): Promise<void> {
   const peers = await protocol.peers();
 
   if (peers.length) {
-    log(`${codec} peer found: `, peers[0].id.toString());
+    log.info(`${codec} peer found: `, peers[0].id.toString());
     return;
   }
 
   await new Promise<void>((resolve) => {
     const cb = (evt: CustomEvent<IdentifyResult>): void => {
       if (evt.detail?.protocols?.includes(codec)) {
-        log("Resolving for", codec, evt.detail.protocols);
         protocol.removeLibp2pEventListener("peer:identify", cb);
         resolve();
       }
@@ -97,13 +96,13 @@ async function waitForConnectedPeer(protocol: IBaseProtocol): Promise<void> {
 
 /**
  * Wait for at least one peer with the given protocol to be connected and in the gossipsub
- * mesh for all pubSubTopics.
+ * mesh for all pubsubTopics.
  */
 async function waitForGossipSubPeerInMesh(waku: IRelay): Promise<void> {
   let peers = waku.getMeshPeers();
-  const pubSubTopics = waku.pubSubTopics;
+  const pubsubTopics = waku.pubsubTopics;
 
-  for (const topic of pubSubTopics) {
+  for (const topic of pubsubTopics) {
     while (peers.length == 0) {
       await pEvent(waku.gossipSub, "gossipsub:heartbeat");
       peers = waku.getMeshPeers(topic);

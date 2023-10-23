@@ -6,9 +6,10 @@ import type {
   ENRValue,
   IEnr,
   NodeId,
-  SequenceNumber
+  SequenceNumber,
+  ShardInfo
 } from "@waku/interfaces";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
 import { ERR_INVALID_ID } from "./constants.js";
 import { keccak256, verifySignature } from "./crypto.js";
@@ -17,7 +18,7 @@ import { createPeerIdFromPublicKey } from "./peer_id.js";
 import { RawEnr } from "./raw_enr.js";
 import * as v4 from "./v4.js";
 
-const log = debug("waku:enr");
+const log = new Logger("enr");
 
 export enum TransportProtocol {
   TCP = "tcp",
@@ -46,7 +47,7 @@ export class ENR extends RawEnr implements IEnr {
         enr.peerId = await createPeerIdFromPublicKey(publicKey);
       }
     } catch (e) {
-      log("Could not calculate peer id for ENR", e);
+      log.error("Could not calculate peer id for ENR", e);
     }
 
     return enr;
@@ -63,6 +64,13 @@ export class ENR extends RawEnr implements IEnr {
   getLocationMultiaddr: (
     protocol: TransportProtocol | TransportProtocolPerIpVersion
   ) => Multiaddr | undefined = locationMultiaddrFromEnrFields.bind({}, this);
+
+  get shardInfo(): ShardInfo | undefined {
+    if (this.rs && this.rsv) {
+      log.warn("ENR contains both `rs` and `rsv` fields.");
+    }
+    return this.rs || this.rsv;
+  }
 
   setLocationMultiaddr(multiaddr: Multiaddr): void {
     const protoNames = multiaddr.protoNames();

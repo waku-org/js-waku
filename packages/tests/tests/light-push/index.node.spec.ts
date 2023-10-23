@@ -35,7 +35,8 @@ describe("Waku Light Push", function () {
   });
 
   this.afterEach(async function () {
-    tearDownNodes([nwaku], [waku]);
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
   });
 
   TEST_STRING.forEach((testItem) => {
@@ -73,24 +74,14 @@ describe("Waku Light Push", function () {
     }
   });
 
-  it("Fails to push message with empty payload", async function () {
+  it("Throws when trying to push message with empty payload", async function () {
     const pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes("")
+      payload: new Uint8Array()
     });
 
-    if (nwaku.type() == "go-waku") {
-      expect(pushResponse.recipients.length).to.eq(1);
-      expect(await messageCollector.waitForMessages(1)).to.eq(true);
-      messageCollector.verifyReceivedMessage(0, {
-        expectedMessageText: undefined,
-        expectedContentTopic: TestContentTopic
-      });
-    } else {
-      expect(pushResponse.recipients.length).to.eq(0);
-      // This should be `REMOTE_PEER_REJECTED`, tracked with https://github.com/waku-org/nwaku/issues/1641
-      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_FAULT);
-      expect(await messageCollector.waitForMessages(1)).to.eq(false);
-    }
+    expect(pushResponse.recipients.length).to.eq(0);
+    expect(pushResponse.errors).to.include(SendError.EMPTY_PAYLOAD);
+    expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
   TEST_STRING.forEach((testItem) => {
@@ -162,8 +153,7 @@ describe("Waku Light Push", function () {
       });
     } else {
       expect(pushResponse.recipients.length).to.eq(0);
-      // Should be `REMOTE_PEER_REJECTED`, tracked with https://github.com/waku-org/nwaku/issues/2059
-      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_FAULT);
+      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_REJECTED);
       expect(await messageCollector.waitForMessages(1)).to.eq(false);
     }
   });

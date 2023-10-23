@@ -2,16 +2,16 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Message } from "@libp2p/interface/pubsub";
 import { TopicValidatorResult } from "@libp2p/interface/pubsub";
 import { proto_message as proto } from "@waku/proto";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
-const log = debug("waku:relay");
+const log = new Logger("relay");
 
 export function messageValidator(
   peer: PeerId,
   message: Message
 ): TopicValidatorResult {
   const startTime = performance.now();
-  log(`validating message from ${peer} received on ${message.topic}`);
+  log.info(`validating message from ${peer} received on ${message.topic}`);
   let result = TopicValidatorResult.Accept;
 
   try {
@@ -30,6 +30,18 @@ export function messageValidator(
   }
 
   const endTime = performance.now();
-  log(`Validation time (must be <100ms): ${endTime - startTime}ms`);
+
+  const timeTakenMs = endTime - startTime;
+
+  if (timeTakenMs > 100) {
+    log.warn(
+      `message validation took ${timeTakenMs}ms for peer ${peer} on topic ${message.topic}. This should be less than 100ms.`
+    );
+  } else {
+    log.info(
+      `message validation took ${timeTakenMs}ms for peer ${peer} on topic ${message.topic}`
+    );
+  }
+
   return result;
 }

@@ -13,7 +13,7 @@ describe("Ecies Encryption", function () {
         fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubSubTopic, contentTopic, payload, privateKey) => {
+        async (pubsubTopic, contentTopic, payload, privateKey) => {
           const publicKey = getPublicKey(privateKey);
 
           const encoder = createEncoder({
@@ -25,11 +25,11 @@ describe("Ecies Encryption", function () {
           const decoder = createDecoder(contentTopic, privateKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(pubSubTopic, protoResult);
+          const result = await decoder.fromProtoObj(pubsubTopic, protoResult);
           if (!result) throw "Failed to decode";
 
           expect(result.contentTopic).to.equal(contentTopic);
-          expect(result.pubSubTopic).to.equal(pubSubTopic);
+          expect(result.pubsubTopic).to.equal(pubsubTopic);
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.be.undefined;
@@ -50,7 +50,7 @@ describe("Ecies Encryption", function () {
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         async (
-          pubSubTopic,
+          pubsubTopic,
           contentTopic,
           payload,
           alicePrivateKey,
@@ -69,11 +69,11 @@ describe("Ecies Encryption", function () {
           const decoder = createDecoder(contentTopic, bobPrivateKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(pubSubTopic, protoResult);
+          const result = await decoder.fromProtoObj(pubsubTopic, protoResult);
           if (!result) throw "Failed to decode";
 
           expect(result.contentTopic).to.equal(contentTopic);
-          expect(result.pubSubTopic).to.equal(pubSubTopic);
+          expect(result.pubsubTopic).to.equal(pubsubTopic);
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.not.be.undefined;
@@ -90,7 +90,7 @@ describe("Ecies Encryption", function () {
         fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubSubTopic, contentTopic, payload, privateKey) => {
+        async (pubsubTopic, contentTopic, payload, privateKey) => {
           const publicKey = getPublicKey(privateKey);
           const metaSetter = (
             msg: IProtoMessage & { meta: undefined }
@@ -111,7 +111,7 @@ describe("Ecies Encryption", function () {
           const decoder = createDecoder(contentTopic, privateKey);
           const protoResult = await decoder.fromWireToProtoObj(bytes!);
           if (!protoResult) throw "Failed to proto decode";
-          const result = await decoder.fromProtoObj(pubSubTopic, protoResult);
+          const result = await decoder.fromProtoObj(pubsubTopic, protoResult);
           if (!result) throw "Failed to decode";
 
           const expectedMeta = metaSetter({

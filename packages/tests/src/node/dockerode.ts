@@ -1,11 +1,11 @@
 import fs from "fs";
 
-import debug from "debug";
+import { Logger } from "@waku/utils";
 import Docker from "dockerode";
 
 import { Args } from "./interfaces.js";
 
-const log = debug("waku:docker");
+const log = new Logger("test:docker");
 
 const NETWORK_NAME = "waku";
 const SUBNET = "172.18.0.0/16";
@@ -18,7 +18,6 @@ export default class Dockerode {
   public containerId?: string;
 
   private static network: Docker.Network;
-  private static lastUsedIp = "172.18.0.1";
   private containerIp: string;
 
   private constructor(imageName: string, containerIp: string) {
@@ -70,15 +69,14 @@ export default class Dockerode {
   }
 
   private static getNextIp(): string {
-    const ipFragments = Dockerode.lastUsedIp.split(".");
-    let lastFragment = Number(ipFragments[3]);
-    lastFragment++;
-    if (lastFragment > 254) {
-      throw new Error("IP Address Range Exhausted");
-    }
-    ipFragments[3] = lastFragment.toString();
-    Dockerode.lastUsedIp = ipFragments.join(".");
-    return Dockerode.lastUsedIp;
+    const baseIpFragments = "172.18".split(".");
+    // Generate a random number between 0 and 255 for the last two fragments.
+    const secondLastFragment = Math.floor(Math.random() * 256); // For the .0 fragment
+    const lastFragment = Math.floor(Math.random() * 256); // For the last fragment
+    const newIp = [...baseIpFragments, secondLastFragment, lastFragment].join(
+      "."
+    );
+    return newIp;
   }
 
   get container(): Docker.Container | undefined {
@@ -104,7 +102,7 @@ export default class Dockerode {
     }
 
     const argsArrayWithIP = [...argsArray, `--nat=extip:${this.containerIp}`];
-    log(`Args: ${argsArray.join(" ")}`);
+    log.info(`Running node with args: ${argsArray.join(" ")}`);
 
     const container = await this.docker.createContainer({
       Image: this.IMAGE_NAME,
@@ -154,27 +152,30 @@ export default class Dockerode {
     );
 
     this.containerId = container.id;
-    log(`${this.containerId} started at ${new Date().toLocaleTimeString()}`);
+    log.info(
+      `${this.containerId} started at ${new Date().toLocaleTimeString()}`
+    );
     return container;
   }
 
   async stop(): Promise<void> {
-    if (!this.container) throw "containerId not set";
+    if (!this.container) {
+      log.error("ContainerId not set");
+    } else {
+      log.info(
+        `Shutting down container ID ${
+          this.containerId
+        } at ${new Date().toLocaleTimeString()}`
+      );
 
-    log(
-      `Shutting down container ID ${
-        this.containerId
-      } at ${new Date().toLocaleTimeString()}`
-    );
+      await this.container.stop();
 
-    await this.container.stop();
-    await this.container.remove();
-
-    delete this.containerId;
+      delete this.containerId;
+    }
   }
 
   private async confirmImageExistsOrPull(): Promise<void> {
-    log(`Confirming that image ${this.IMAGE_NAME} exists`);
+    log.info(`Confirming that image ${this.IMAGE_NAME} exists`);
 
     const doesImageExist = this.docker.getImage(this.IMAGE_NAME);
     if (!doesImageExist) {
@@ -194,7 +195,7 @@ export default class Dockerode {
         });
       });
     }
-    log(`Image ${this.IMAGE_NAME} successfully found`);
+    log.info(`Image ${this.IMAGE_NAME} successfully found`);
   }
 }
 

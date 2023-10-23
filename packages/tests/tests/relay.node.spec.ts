@@ -20,9 +20,9 @@ import {
   generateSymmetricKey
 } from "@waku/message-encryption/symmetric";
 import { createRelayNode } from "@waku/sdk";
+import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
-import debug from "debug";
 
 import {
   delay,
@@ -30,13 +30,14 @@ import {
   MessageCollector,
   NOISE_KEY_1,
   NOISE_KEY_2,
-  NOISE_KEY_3
+  NOISE_KEY_3,
+  tearDownNodes
 } from "../src/index.js";
 import { MessageRpcResponse } from "../src/node/interfaces.js";
 import { base64ToUtf8, NimGoNode } from "../src/node/node.js";
 import { generateRandomUint8Array } from "../src/random_array.js";
 
-const log = debug("waku:test");
+const log = new Logger("test:relay");
 
 const TestContentTopic = "/test/1/waku-relay/utf8";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
@@ -57,7 +58,7 @@ describe("Waku Relay [node only]", () => {
     beforeEach(async function () {
       this.timeout(10000);
 
-      log("Starting JS Waku instances");
+      log.info("Starting JS Waku instances");
       [waku1, waku2] = await Promise.all([
         createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
           waku.start().then(() => waku)
@@ -67,18 +68,18 @@ describe("Waku Relay [node only]", () => {
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku))
       ]);
-      log("Instances started, adding waku2 to waku1's address book");
+      log.info("Instances started, adding waku2 to waku1's address book");
       await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
         multiaddrs: waku2.libp2p.getMultiaddrs()
       });
       await waku1.dial(waku2.libp2p.peerId);
 
-      log("Wait for mutual pubsub subscription");
+      log.info("Wait for mutual pubsub subscription");
       await Promise.all([
         waitForRemotePeer(waku1, [Protocols.Relay]),
         waitForRemotePeer(waku2, [Protocols.Relay])
       ]);
-      log("before each hook done");
+      log.info("before each hook done");
     });
 
     afterEach(async function () {
@@ -89,7 +90,7 @@ describe("Waku Relay [node only]", () => {
     });
 
     it("Subscribe", async function () {
-      log("Getting subscribers");
+      log.info("Getting subscribers");
       const subscribers1 = waku1.libp2p.services
         .pubsub!.getSubscribers(DefaultPubSubTopic)
         .map((p) => p.toString());
@@ -97,7 +98,7 @@ describe("Waku Relay [node only]", () => {
         .pubsub!.getSubscribers(DefaultPubSubTopic)
         .map((p) => p.toString());
 
-      log("Asserting mutual subscription");
+      log.info("Asserting mutual subscription");
       expect(subscribers1).to.contain(waku2.libp2p.peerId.toString());
       expect(subscribers2).to.contain(waku1.libp2p.peerId.toString());
     });
@@ -266,7 +267,7 @@ describe("Waku Relay [node only]", () => {
 
     const CustomEncoder = createEncoder({
       contentTopic: CustomContentTopic,
-      pubSubTopic: CustomPubSubTopic
+      pubsubTopic: CustomPubSubTopic
     });
     const CustomDecoder = createDecoder(CustomContentTopic, CustomPubSubTopic);
 
@@ -300,16 +301,16 @@ describe("Waku Relay [node only]", () => {
 
         [waku1, waku2, waku3] = await Promise.all([
           createRelayNode({
-            pubSubTopics: [testItem.pubsub],
+            pubsubTopics: [testItem.pubsub],
             staticNoiseKey: NOISE_KEY_1
           }).then((waku) => waku.start().then(() => waku)),
           createRelayNode({
-            pubSubTopics: [testItem.pubsub],
+            pubsubTopics: [testItem.pubsub],
             staticNoiseKey: NOISE_KEY_2,
             libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
           }).then((waku) => waku.start().then(() => waku)),
           createRelayNode({
-            pubSubTopics: [testItem.pubsub],
+            pubsubTopics: [testItem.pubsub],
             staticNoiseKey: NOISE_KEY_3
           }).then((waku) => waku.start().then(() => waku))
         ]);
@@ -369,12 +370,24 @@ describe("Waku Relay [node only]", () => {
           true
         );
 
-        expect(msgCollector1.hasMessage(testItem.pubsub, "M2")).to.be.true;
-        expect(msgCollector1.hasMessage(testItem.pubsub, "M3")).to.be.true;
-        expect(msgCollector2.hasMessage(testItem.pubsub, "M1")).to.be.true;
-        expect(msgCollector2.hasMessage(testItem.pubsub, "M3")).to.be.true;
-        expect(msgCollector3.hasMessage(testItem.pubsub, "M1")).to.be.true;
-        expect(msgCollector3.hasMessage(testItem.pubsub, "M2")).to.be.true;
+        expect(
+          msgCollector1.hasMessage(testItem.encoder.contentTopic, "M2")
+        ).to.eq(true);
+        expect(
+          msgCollector1.hasMessage(testItem.encoder.contentTopic, "M3")
+        ).to.eq(true);
+        expect(
+          msgCollector2.hasMessage(testItem.encoder.contentTopic, "M1")
+        ).to.eq(true);
+        expect(
+          msgCollector2.hasMessage(testItem.encoder.contentTopic, "M3")
+        ).to.eq(true);
+        expect(
+          msgCollector3.hasMessage(testItem.encoder.contentTopic, "M1")
+        ).to.eq(true);
+        expect(
+          msgCollector3.hasMessage(testItem.encoder.contentTopic, "M2")
+        ).to.eq(true);
       });
     });
 
@@ -388,16 +401,16 @@ describe("Waku Relay [node only]", () => {
       // Waku1 and waku2 are using multiple pubsub topis
       [waku1, waku2, waku3] = await Promise.all([
         createRelayNode({
-          pubSubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
+          pubsubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
+          pubsubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopics: [DefaultPubSubTopic],
+          pubsubTopics: [DefaultPubSubTopic],
           staticNoiseKey: NOISE_KEY_3
         }).then((waku) => waku.start().then(() => waku))
       ]);
@@ -447,16 +460,14 @@ describe("Waku Relay [node only]", () => {
       expect(await msgCollector3.waitForMessages(2, { exact: true })).to.eq(
         true
       );
-
-      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M3")).to.be.true;
-      expect(msgCollector1.hasMessage(CustomPubSubTopic, "M4")).to.be.true;
-      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M5")).to.be.true;
-      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M1")).to.be.true;
-      expect(msgCollector1.hasMessage(CustomPubSubTopic, "M2")).to.be.true;
-      expect(msgCollector1.hasMessage(DefaultPubSubTopic, "M5")).to.be.true;
-      expect(msgCollector2.hasMessage(CustomPubSubTopic, "M1")).to.be.true;
-      expect(msgCollector2.hasMessage(DefaultPubSubTopic, "M3")).to.be.true;
-      expect(msgCollector3.hasMessage(DefaultPubSubTopic, "M1")).to.be.true;
+      expect(msgCollector1.hasMessage(TestContentTopic, "M3")).to.eq(true);
+      expect(msgCollector1.hasMessage(CustomContentTopic, "M4")).to.eq(true);
+      expect(msgCollector1.hasMessage(TestContentTopic, "M5")).to.eq(true);
+      expect(msgCollector2.hasMessage(TestContentTopic, "M1")).to.eq(true);
+      expect(msgCollector2.hasMessage(CustomContentTopic, "M2")).to.eq(true);
+      expect(msgCollector2.hasMessage(TestContentTopic, "M5")).to.eq(true);
+      expect(msgCollector3.hasMessage(TestContentTopic, "M1")).to.eq(true);
+      expect(msgCollector3.hasMessage(TestContentTopic, "M3")).to.eq(true);
     });
 
     it("n1 and n2 uses a custom pubsub, n3 uses the default pubsub", async function () {
@@ -464,11 +475,11 @@ describe("Waku Relay [node only]", () => {
 
       [waku1, waku2, waku3] = await Promise.all([
         createRelayNode({
-          pubSubTopics: [CustomPubSubTopic],
+          pubsubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopics: [CustomPubSubTopic],
+          pubsubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku)),
@@ -518,7 +529,7 @@ describe("Waku Relay [node only]", () => {
       await waku3NoMsgPromise;
 
       expect(bytesToUtf8(waku2ReceivedMsg.payload!)).to.eq(messageText);
-      expect(waku2ReceivedMsg.pubSubTopic).to.eq(CustomPubSubTopic);
+      expect(waku2ReceivedMsg.pubsubTopic).to.eq(CustomPubSubTopic);
     });
 
     it("Publishes <= 1 MB and rejects others", async function () {
@@ -528,11 +539,11 @@ describe("Waku Relay [node only]", () => {
       // 1 and 2 uses a custom pubsub
       [waku1, waku2] = await Promise.all([
         createRelayNode({
-          pubSubTopics: [CustomPubSubTopic],
+          pubsubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_1
         }).then((waku) => waku.start().then(() => waku)),
         createRelayNode({
-          pubSubTopics: [CustomPubSubTopic],
+          pubsubTopics: [CustomPubSubTopic],
           staticNoiseKey: NOISE_KEY_2,
           libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
         }).then((waku) => waku.start().then(() => waku))
@@ -602,9 +613,8 @@ describe("Waku Relay [node only]", () => {
     });
 
     afterEach(async function () {
-      !!nwaku &&
-        nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-      !!waku && waku.stop().catch((e) => console.log("Waku failed to stop", e));
+      this.timeout(15000);
+      await tearDownNodes(nwaku, waku);
     });
 
     it("nwaku subscribes", async function () {
@@ -674,12 +684,7 @@ describe("Waku Relay [node only]", () => {
       let nwaku: NimGoNode;
 
       afterEach(async function () {
-        !!nwaku &&
-          nwaku.stop().catch((e) => console.log("Nwaku failed to stop", e));
-        !!waku1 &&
-          waku1.stop().catch((e) => console.log("Waku failed to stop", e));
-        !!waku2 &&
-          waku2.stop().catch((e) => console.log("Waku failed to stop", e));
+        await tearDownNodes(nwaku, [waku1, waku2]);
       });
 
       it("Js publishes, other Js receives", async function () {

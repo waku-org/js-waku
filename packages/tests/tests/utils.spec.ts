@@ -17,7 +17,12 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 
-import { delay, makeLogFileName, NOISE_KEY_1 } from "../src/index.js";
+import {
+  delay,
+  makeLogFileName,
+  NOISE_KEY_1,
+  tearDownNodes
+} from "../src/index.js";
 import { NimGoNode } from "../src/node/node.js";
 
 chai.use(chaiAsPromised);
@@ -33,7 +38,11 @@ describe("Util: toAsyncIterator: Filter", () => {
   beforeEach(async function () {
     this.timeout(15000);
     nwaku = new NimGoNode(makeLogFileName(this));
-    await nwaku.start({ filter: true, lightpush: true, relay: true });
+    await nwaku.start({
+      filter: true,
+      lightpush: true,
+      relay: true
+    });
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
@@ -43,13 +52,9 @@ describe("Util: toAsyncIterator: Filter", () => {
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });
 
-  afterEach(async () => {
-    try {
-      await nwaku.stop();
-      await waku.stop();
-    } catch (err) {
-      console.log("Failed to stop", err);
-    }
+  afterEach(async function () {
+    this.timeout(10000);
+    await tearDownNodes(nwaku, waku);
   });
 
   it("creates an iterator", async function () {
@@ -65,7 +70,7 @@ describe("Util: toAsyncIterator: Filter", () => {
     const { value } = await iterator.next();
 
     expect(value.contentTopic).to.eq(TestContentTopic);
-    expect(value.pubSubTopic).to.eq(DefaultPubSubTopic);
+    expect(value.pubsubTopic).to.eq(DefaultPubSubTopic);
     expect(bytesToUtf8(value.payload)).to.eq(messageText);
   });
 
@@ -98,6 +103,8 @@ describe("Util: toAsyncIterator: Filter", () => {
     await waku.lightPush.send(TestEncoder, {
       payload: utf8ToBytes("This should be received")
     });
+
+    await delay(400);
 
     await stop();
 

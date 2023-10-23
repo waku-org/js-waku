@@ -2,14 +2,14 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerStore } from "@libp2p/interface/peer-store";
 import type { IRelay, PeerIdStr } from "@waku/interfaces";
 import type { KeepAliveOptions } from "@waku/interfaces";
+import { Logger } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
-import debug from "debug";
 import type { PingService } from "libp2p/ping";
 
 import { createEncoder } from "./message/version_0.js";
 
 export const RelayPingContentTopic = "/relay-ping/1/ping/null";
-const log = debug("waku:keep-alive");
+const log = new Logger("keep-alive");
 
 export class KeepAliveManager {
   private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>>;
@@ -37,14 +37,24 @@ export class KeepAliveManager {
 
     const peerIdStr = peerId.toString();
 
+    // Ping the peer every pingPeriodSecs seconds
+    // if pingPeriodSecs is 0, don't ping the peer
     if (pingPeriodSecs !== 0) {
       const interval = setInterval(() => {
         void (async () => {
+          let ping: number;
           try {
             // ping the peer for keep alive
             // also update the peer store with the latency
-            const ping = await libp2pPing.ping(peerId);
-            log(`Ping succeeded (${peerIdStr})`, ping);
+            try {
+              ping = await libp2pPing.ping(peerId);
+              log.info(`Ping succeeded (${peerIdStr})`, ping);
+            } catch (error) {
+              log.error(`Ping failed for peer (${peerIdStr}).
+                Next ping will be attempted in ${pingPeriodSecs} seconds.
+              `);
+              return;
+            }
 
             try {
               await peerStore.patch(peerId, {
@@ -53,10 +63,10 @@ export class KeepAliveManager {
                 }
               });
             } catch (e) {
-              log("Failed to update ping", e);
+              log.error("Failed to update ping", e);
             }
           } catch (e) {
-            log(`Ping failed (${peerIdStr})`, e);
+            log.error(`Ping failed (${peerIdStr})`, e);
           }
         })();
       }, pingPeriodSecs * 1000);
@@ -108,20 +118,20 @@ export class KeepAliveManager {
   ): NodeJS.Timeout[] {
     // send a ping message to each PubSubTopic the peer is part of
     const intervals: NodeJS.Timeout[] = [];
-    for (const topic of relay.pubSubTopics) {
+    for (const topic of relay.pubsubTopics) {
       const meshPeers = relay.getMeshPeers(topic);
       if (!meshPeers.includes(peerIdStr)) continue;
 
       const encoder = createEncoder({
-        pubSubTopic: topic,
+        pubsubTopic: topic,
         contentTopic: RelayPingContentTopic,
         ephemeral: true
       });
       const interval = setInterval(() => {
-        log("Sending Waku Relay ping message");
+        log.info("Sending Waku Relay ping message");
         relay
           .send(encoder, { payload: new Uint8Array([1]) })
-          .catch((e) => log("Failed to send relay ping", e));
+          .catch((e) => log.error("Failed to send relay ping", e));
       }, relayPeriodSecs * 1000);
       intervals.push(interval);
     }

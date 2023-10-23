@@ -1,11 +1,8 @@
 import type { Connection } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
-import debug from "debug";
 
 import { bytesToUtf8 } from "../bytes/index.js";
-
-const log = debug("waku:libp2p-utils");
 
 /**
  * Returns a pseudo-random peer that supports the given protocol.
@@ -107,7 +104,6 @@ export async function selectPeerForProtocol(
       // Do not break as we want to keep the last value
     }
   }
-  log(`Using codec ${protocol}`);
   if (!protocol) {
     throw new Error(
       `Peer does not register required protocols (${peer.id.toString()}): ${protocols}`

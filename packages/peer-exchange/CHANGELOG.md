@@ -64,6 +64,23 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.14 to 0.0.15
 
+## [0.0.17](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.16...peer-exchange-v0.0.17) (2023-10-16)
+
+
+### Features
+
+* **static-sharding:** Filter peer connections per shards ([#1626](https://github.com/waku-org/js-waku/issues/1626)) ([124a29e](https://github.com/waku-org/js-waku/commit/124a29ebba59c05fbbf199d969e6ba3f9e57d45b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.23 to 0.0.24
+    * @waku/enr bumped from 0.0.17 to 0.0.18
+    * @waku/interfaces bumped from 0.0.18 to 0.0.19
+    * @waku/utils bumped from 0.0.11 to 0.0.12
+
 ## [0.0.16](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.15...peer-exchange-v0.0.16) (2023-09-11)
 
 

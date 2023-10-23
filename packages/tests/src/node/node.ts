@@ -3,8 +3,8 @@ import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import { DefaultPubSubTopic } from "@waku/core";
 import { isDefined } from "@waku/utils";
+import { Logger } from "@waku/utils";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
-import debug from "debug";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
 
@@ -21,13 +21,13 @@ import {
   MessageRpcResponse
 } from "./interfaces.js";
 
-const log = debug("waku:node");
+const log = new Logger("test:node");
 
 const WAKU_SERVICE_NODE_PARAMS =
   process.env.WAKU_SERVICE_NODE_PARAMS ?? undefined;
 const NODE_READY_LOG_LINE = "Node setup complete";
 
-const DOCKER_IMAGE_NAME = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.20.0";
+const DOCKER_IMAGE_NAME = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.21.0";
 
 const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
 
@@ -86,96 +86,94 @@ export class NimGoNode {
     return isGoWaku ? "go-waku" : "nwaku";
   }
 
-  async start(args: Args = {}): Promise<void> {
-    this.docker = await Dockerode.createInstance(DOCKER_IMAGE_NAME);
-    try {
-      await existsAsync(LOG_DIR);
-    } catch (e) {
-      try {
-        await mkdirAsync(LOG_DIR);
-      } catch (e) {
-        // Looks like 2 tests tried to create the director at the same time,
-        // it can be ignored
-      }
-    }
-
-    await openAsync(this.logPath, "w");
-
-    const mergedArgs = defaultArgs();
-
-    // waku nodes takes some time to bind port so to decrease chances of conflict
-    // we also randomize the first port that portfinder will try
-    const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
-
-    const ports: number[] = await new Promise((resolve, reject) => {
-      portfinder.getPorts(4, { port: startPort }, (err, ports) => {
-        if (err) reject(err);
-        resolve(ports);
-      });
-    });
-
-    if (isGoWaku && !args.logLevel) {
-      args.logLevel = LogLevel.Debug;
-    }
-
-    const [rpcPort, tcpPort, websocketPort, discv5UdpPort] = ports;
-    this.rpcPort = rpcPort;
-    this.websocketPort = websocketPort;
-
-    // `legacyFilter` is required to enable filter v1 with go-waku
-    const { legacyFilter = false, ..._args } = args;
-
-    // Object.assign overrides the properties with the source (if there are conflicts)
-    Object.assign(
-      mergedArgs,
-      {
-        rpcPort,
-        tcpPort,
-        websocketPort,
-        ...(args?.peerExchange && { discv5UdpPort }),
-        ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter })
-      },
-      { rpcAddress: "0.0.0.0" },
-      _args
-    );
-
-    process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
-
-    if (this.docker.container) {
-      await this.docker.stop();
-    }
-
-    await this.docker.startContainer(
-      ports,
-      mergedArgs,
-      this.logPath,
-      WAKU_SERVICE_NODE_PARAMS
-    );
-
-    try {
-      log(`Waiting to see '${NODE_READY_LOG_LINE}' in ${this.type} logs`);
-      await this.waitForLog(NODE_READY_LOG_LINE, 15000);
-      if (process.env.CI) await delay(100);
-      log(`${this.type} node has been started`);
-    } catch (error) {
-      log(`Error starting ${this.type}: ${error}`);
-      if (this.docker.container) await this.docker.stop();
-      throw error;
-    }
-  }
-
-  async startWithRetries(
-    args: Args,
+  async start(
+    args: Args = {},
     options: {
-      retries: number;
-    }
+      retries?: number;
+    } = { retries: 3 }
   ): Promise<void> {
     await pRetry(
       async () => {
         try {
-          await this.start(args);
+          this.docker = await Dockerode.createInstance(DOCKER_IMAGE_NAME);
+          try {
+            await existsAsync(LOG_DIR);
+          } catch (e) {
+            try {
+              await mkdirAsync(LOG_DIR);
+            } catch (e) {
+              // Looks like 2 tests tried to create the director at the same time,
+              // it can be ignored
+            }
+          }
+
+          await openAsync(this.logPath, "w");
+
+          const mergedArgs = defaultArgs();
+
+          // waku nodes takes some time to bind port so to decrease chances of conflict
+          // we also randomize the first port that portfinder will try
+          const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
+
+          const ports: number[] = await new Promise((resolve, reject) => {
+            portfinder.getPorts(4, { port: startPort }, (err, ports) => {
+              if (err) reject(err);
+              resolve(ports);
+            });
+          });
+
+          if (isGoWaku && !args.logLevel) {
+            args.logLevel = LogLevel.Debug;
+          }
+
+          const [rpcPort, tcpPort, websocketPort, discv5UdpPort] = ports;
+          this.rpcPort = rpcPort;
+          this.websocketPort = websocketPort;
+
+          // `legacyFilter` is required to enable filter v1 with go-waku
+          const { legacyFilter = false, ..._args } = args;
+
+          // Object.assign overrides the properties with the source (if there are conflicts)
+          Object.assign(
+            mergedArgs,
+            {
+              rpcPort,
+              tcpPort,
+              websocketPort,
+              ...(args?.peerExchange && { discv5UdpPort }),
+              ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter })
+            },
+            { rpcAddress: "0.0.0.0" },
+            _args
+          );
+
+          process.env.WAKUNODE2_STORE_MESSAGE_DB_URL = "";
+
+          if (this.docker.container) {
+            await this.docker.stop();
+          }
+
+          await this.docker?.startContainer(
+            ports,
+            mergedArgs,
+            this.logPath,
+            WAKU_SERVICE_NODE_PARAMS
+          );
         } catch (error) {
-          log("Nwaku node failed to start:", error);
+          log.error("Nwaku node failed to start:", error);
+          await this.stop();
+          throw error;
+        }
+        try {
+          log.info(
+            `Waiting to see '${NODE_READY_LOG_LINE}' in ${this.type} logs`
+          );
+          await this.waitForLog(NODE_READY_LOG_LINE, 15000);
+          if (process.env.CI) await delay(100);
+          log.info(`${this.type} node has been started`);
+        } catch (error) {
+          log.error(`Error starting ${this.type}: ${error}`);
+          if (this.docker.container) await this.docker.stop();
           throw error;
         }
       },
@@ -184,7 +182,7 @@ export class NimGoNode {
   }
 
   public async stop(): Promise<void> {
-    await this.docker?.container?.stop();
+    await this.docker?.stop();
     delete this.docker;
   }
 
@@ -220,7 +218,7 @@ export class NimGoNode {
 
   async sendMessage(
     message: MessageRpcQuery,
-    pubSubTopic: string = DefaultPubSubTopic
+    pubsubTopic: string = DefaultPubSubTopic
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -229,7 +227,7 @@ export class NimGoNode {
     }
 
     return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
-      pubSubTopic,
+      pubsubTopic,
       message
     ]);
   }
@@ -268,7 +266,7 @@ export class NimGoNode {
   async postAsymmetricMessage(
     message: MessageRpcQuery,
     publicKey: Uint8Array,
-    pubSubTopic?: string
+    pubsubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -277,7 +275,7 @@ export class NimGoNode {
     }
 
     return this.rpcCall<boolean>("post_waku_v2_private_v1_asymmetric_message", [
-      pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
+      pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
       message,
       "0x" + bytesToHex(publicKey)
     ]);
@@ -285,14 +283,14 @@ export class NimGoNode {
 
   async getAsymmetricMessages(
     privateKey: Uint8Array,
-    pubSubTopic?: string
+    pubsubTopic?: string
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
     return await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_private_v1_asymmetric_messages",
       [
-        pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
+        pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
         "0x" + bytesToHex(privateKey)
       ]
     );
@@ -310,7 +308,7 @@ export class NimGoNode {
   async postSymmetricMessage(
     message: MessageRpcQuery,
     symKey: Uint8Array,
-    pubSubTopic?: string
+    pubsubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -319,7 +317,7 @@ export class NimGoNode {
     }
 
     return this.rpcCall<boolean>("post_waku_v2_private_v1_symmetric_message", [
-      pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
+      pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
       message,
       "0x" + bytesToHex(symKey)
     ]);
@@ -327,14 +325,14 @@ export class NimGoNode {
 
   async getSymmetricMessages(
     symKey: Uint8Array,
-    pubSubTopic?: string
+    pubsubTopic?: string
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
     return await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_private_v1_symmetric_messages",
       [
-        pubSubTopic ? pubSubTopic : DefaultPubSubTopic,
+        pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
         "0x" + bytesToHex(symKey)
       ]
     );
@@ -381,20 +379,31 @@ export class NimGoNode {
     method: string,
     params: Array<string | number | unknown>
   ): Promise<T> {
-    log("RPC Query: ", method, params);
-    const res = await fetch(this.rpcUrl, {
-      method: "POST",
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method,
-        params
-      }),
-      headers: new Headers({ "Content-Type": "application/json" })
-    });
-    const json = await res.json();
-    log(`RPC Response: `, JSON.stringify(json));
-    return json.result;
+    return await pRetry(
+      async () => {
+        try {
+          log.info("Making an RPC Query: ", method, params);
+          const res = await fetch(this.rpcUrl, {
+            method: "POST",
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method,
+              params
+            }),
+            headers: new Headers({ "Content-Type": "application/json" })
+          });
+          const json = await res.json();
+          log.info(`Received RPC Response: `, JSON.stringify(json));
+          return json.result;
+        } catch (error) {
+          log.error(`${this.rpcUrl} failed with error:`, error);
+          await delay(10);
+          throw error;
+        }
+      },
+      { retries: 5 }
+    );
   }
 
   private checkProcess(): void {
