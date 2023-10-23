@@ -11,7 +11,7 @@ describe("Waku Message version 0", function () {
         fc.string({ minLength: 1 }),
         fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
-        async (contentTopic, pubSubTopic, payload) => {
+        async (contentTopic, pubsubTopic, payload) => {
           const encoder = createEncoder({
             contentTopic
           });
@@ -19,12 +19,12 @@ describe("Waku Message version 0", function () {
           const decoder = createDecoder(contentTopic);
           const protoResult = await decoder.fromWireToProtoObj(bytes);
           const result = (await decoder.fromProtoObj(
-            pubSubTopic,
+            pubsubTopic,
             protoResult!
           )) as DecodedMessage;
 
           expect(result.contentTopic).to.eq(contentTopic);
-          expect(result.pubSubTopic).to.eq(pubSubTopic);
+          expect(result.pubsubTopic).to.eq(pubsubTopic);
           expect(result.version).to.eq(0);
           expect(result.ephemeral).to.be.false;
           expect(result.payload).to.deep.eq(payload);
@@ -40,7 +40,7 @@ describe("Waku Message version 0", function () {
         fc.string({ minLength: 1 }),
         fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
-        async (contentTopic, pubSubTopic, payload) => {
+        async (contentTopic, pubsubTopic, payload) => {
           const encoder = createEncoder({
             contentTopic,
             ephemeral: true
@@ -49,7 +49,7 @@ describe("Waku Message version 0", function () {
           const decoder = createDecoder(contentTopic);
           const protoResult = await decoder.fromWireToProtoObj(bytes);
           const result = (await decoder.fromProtoObj(
-            pubSubTopic,
+            pubsubTopic,
             protoResult!
           )) as DecodedMessage;
 
@@ -65,7 +65,7 @@ describe("Waku Message version 0", function () {
         fc.string({ minLength: 1 }),
         fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
-        async (contentTopic, pubSubTopic, payload) => {
+        async (contentTopic, pubsubTopic, payload) => {
           // Encode the length of the payload
           // Not a relevant real life example
           const metaSetter = (
@@ -86,7 +86,7 @@ describe("Waku Message version 0", function () {
           const decoder = createDecoder(contentTopic);
           const protoResult = await decoder.fromWireToProtoObj(bytes);
           const result = (await decoder.fromProtoObj(
-            pubSubTopic,
+            pubsubTopic,
             protoResult!
           )) as DecodedMessage;
 

@@ -11,7 +11,7 @@ import type {
   Waku
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
 import { ConnectionManager } from "./connection_manager.js";
 
@@ -19,7 +19,7 @@ export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 export const DefaultUserAgent = "js-waku";
 
-const log = debug("waku:waku");
+const log = new Logger("waku");
 
 export interface WakuOptions {
   /**
@@ -53,7 +53,7 @@ export class WakuNode implements Waku {
 
   constructor(
     options: WakuOptions,
-    public readonly pubSubTopics: PubSubTopic[],
+    public readonly pubsubTopics: PubSubTopic[],
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
@@ -88,11 +88,11 @@ export class WakuNode implements Waku {
       peerId,
       libp2p,
       { pingKeepAlive, relayKeepAlive },
-      pubSubTopics,
+      pubsubTopics,
       this.relay
     );
 
-    log(
+    log.info(
       "Waku node created",
       peerId,
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
@@ -127,7 +127,7 @@ export class WakuNode implements Waku {
           codecs.push(codec)
         );
       } else {
-        log(
+        log.error(
           "Relay codec not included in dial codec: protocol not mounted locally"
         );
       }
@@ -136,7 +136,7 @@ export class WakuNode implements Waku {
       if (this.store) {
         codecs.push(this.store.multicodec);
       } else {
-        log(
+        log.error(
           "Store codec not included in dial codec: protocol not mounted locally"
         );
       }
@@ -145,7 +145,7 @@ export class WakuNode implements Waku {
       if (this.lightPush) {
         codecs.push(this.lightPush.multicodec);
       } else {
-        log(
+        log.error(
           "Light Push codec not included in dial codec: protocol not mounted locally"
         );
       }
@@ -154,13 +154,13 @@ export class WakuNode implements Waku {
       if (this.filter) {
         codecs.push(this.filter.multicodec);
       } else {
-        log(
+        log.error(
           "Filter codec not included in dial codec: protocol not mounted locally"
         );
       }
     }
 
-    log(`Dialing to ${peerId.toString()} with protocols ${_protocols}`);
+    log.info(`Dialing to ${peerId.toString()} with protocols ${_protocols}`);
 
     return this.libp2p.dialProtocol(peerId, codecs);
   }

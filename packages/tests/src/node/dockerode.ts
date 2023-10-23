@@ -1,11 +1,11 @@
 import fs from "fs";
 
-import debug from "debug";
+import { Logger } from "@waku/utils";
 import Docker from "dockerode";
 
 import { Args } from "./interfaces.js";
 
-const log = debug("waku:docker");
+const log = new Logger("test:docker");
 
 const NETWORK_NAME = "waku";
 const SUBNET = "172.18.0.0/16";
@@ -102,7 +102,7 @@ export default class Dockerode {
     }
 
     const argsArrayWithIP = [...argsArray, `--nat=extip:${this.containerIp}`];
-    log(`Args: ${argsArray.join(" ")}`);
+    log.info(`Running node with args: ${argsArray.join(" ")}`);
 
     const container = await this.docker.createContainer({
       Image: this.IMAGE_NAME,
@@ -152,15 +152,17 @@ export default class Dockerode {
     );
 
     this.containerId = container.id;
-    log(`${this.containerId} started at ${new Date().toLocaleTimeString()}`);
+    log.info(
+      `${this.containerId} started at ${new Date().toLocaleTimeString()}`
+    );
     return container;
   }
 
   async stop(): Promise<void> {
     if (!this.container) {
-      log("ContainerId not set");
+      log.error("ContainerId not set");
     } else {
-      log(
+      log.info(
         `Shutting down container ID ${
           this.containerId
         } at ${new Date().toLocaleTimeString()}`
@@ -173,7 +175,7 @@ export default class Dockerode {
   }
 
   private async confirmImageExistsOrPull(): Promise<void> {
-    log(`Confirming that image ${this.IMAGE_NAME} exists`);
+    log.info(`Confirming that image ${this.IMAGE_NAME} exists`);
 
     const doesImageExist = this.docker.getImage(this.IMAGE_NAME);
     if (!doesImageExist) {
@@ -193,7 +195,7 @@ export default class Dockerode {
         });
       });
     }
-    log(`Image ${this.IMAGE_NAME} successfully found`);
+    log.info(`Image ${this.IMAGE_NAME} successfully found`);
   }
 }
 

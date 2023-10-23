@@ -14,7 +14,7 @@ describe("Message Validator", () => {
         fc.uint8Array({ minLength: 1 }),
         fc.string({ minLength: 1 }),
         fc.string({ minLength: 1 }),
-        async (payload, pubSubTopic, contentTopic) => {
+        async (payload, pubsubTopic, contentTopic) => {
           const peerId = await createSecp256k1PeerId();
 
           const encoder = createEncoder({ contentTopic });
@@ -22,7 +22,7 @@ describe("Message Validator", () => {
 
           const message: UnsignedMessage = {
             type: "unsigned",
-            topic: pubSubTopic,
+            topic: pubsubTopic,
             data: bytes
           };
 
@@ -39,12 +39,12 @@ describe("Message Validator", () => {
       fc.asyncProperty(
         fc.uint8Array(),
         fc.string(),
-        async (data, pubSubTopic) => {
+        async (data, pubsubTopic) => {
           const peerId = await createSecp256k1PeerId();
 
           const message: UnsignedMessage = {
             type: "unsigned",
-            topic: pubSubTopic,
+            topic: pubsubTopic,
             data
           };
 

@@ -39,7 +39,7 @@ export type ProtocolCreateOptions = {
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
    */
-  pubSubTopics?: PubSubTopic[];
+  pubsubTopics?: PubSubTopic[];
   /**
    * You can pass options to the `Libp2p` instance used by {@link @waku/core!WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
@@ -67,13 +67,23 @@ export type Callback<T extends IDecodedMessage> = (
 export enum SendError {
   /** Could not determine the origin of the fault. Best to check connectivity and try again */
   GENERIC_FAIL = "Generic error",
-  /** Failure to protobuf encode the message. This is not recoverable and needs
-   * further investigation. */
+  /**
+   * Failure to protobuf encode the message. This is not recoverable and needs
+   * further investigation.
+   */
   ENCODE_FAILED = "Failed to encode",
-  /** Failure to protobuf decode the message. May be due to a remote peer issue,
-   * ensuring that messages are sent via several peer enable mitigation of this error.. */
+  /**
+   * Failure to protobuf decode the message. May be due to a remote peer issue,
+   * ensuring that messages are sent via several peer enable mitigation of this error.
+   */
   DECODE_FAILED = "Failed to decode",
-  /** The message size is above the maximum message size allowed on the Waku Network.
+  /**
+   * The message payload is empty, making the message invalid. Ensure that a non-empty
+   * payload is set on the outgoing message.
+   */
+  EMPTY_PAYLOAD = "Payload is empty",
+  /**
+   * The message size is above the maximum message size allowed on the Waku Network.
    * Compressing the message or using an alternative strategy for large messages is recommended.
    */
   SIZE_TOO_BIG = "Size is too big",

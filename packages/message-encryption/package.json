@@ -1,6 +1,6 @@
 {
   "name": "@waku/message-encryption",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "Waku Message Payload Encryption",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -72,17 +72,17 @@
   },
   "dependencies": {
     "@noble/secp256k1": "^1.7.1",
-    "@waku/core": "0.0.23",
-    "@waku/interfaces": "0.0.18",
+    "@waku/core": "0.0.24",
+    "@waku/interfaces": "0.0.19",
     "@waku/proto": "0.0.5",
-    "@waku/utils": "0.0.11",
+    "@waku/utils": "0.0.12",
     "debug": "^4.3.4",
     "js-sha3": "^0.9.2"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/chai": "^4.3.5",
     "@types/mocha": "^10.0.1",
     "@waku/build-utils": "*",

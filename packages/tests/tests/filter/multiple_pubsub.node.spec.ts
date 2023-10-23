@@ -34,7 +34,7 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
   const customPubSubTopic = "/waku/2/custom-dapp/proto";
   const customContentTopic = "/test/2/waku-filter";
   const newEncoder = createEncoder({
-    pubSubTopic: customPubSubTopic,
+    pubsubTopic: customPubSubTopic,
     contentTopic: customContentTopic
   });
   const newDecoder = createDecoder(customContentTopic, customPubSubTopic);
@@ -124,10 +124,10 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
     // While loop is done because of https://github.com/waku-org/js-waku/issues/1606
     while (
       !(await messageCollector.waitForMessages(1, {
-        pubSubTopic: customPubSubTopic
+        pubsubTopic: customPubSubTopic
       })) ||
       !(await messageCollector2.waitForMessages(1, {
-        pubSubTopic: DefaultPubSubTopic
+        pubsubTopic: DefaultPubSubTopic
       }))
     ) {
       await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M1") });
@@ -145,5 +145,16 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
       expectedPubSubTopic: DefaultPubSubTopic,
       expectedMessageText: "M2"
     });
+  });
+
+  it("Should fail to subscribe with decoder with wrong pubsubTopic", async function () {
+    // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
+    try {
+      await subscription.subscribe([TestDecoder], messageCollector.callback);
+    } catch (error) {
+      expect((error as Error).message).to.include(
+        "Pubsub topic not configured"
+      );
+    }
   });
 });

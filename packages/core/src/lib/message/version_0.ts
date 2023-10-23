@@ -10,11 +10,11 @@ import type {
   PubSubTopic
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import debug from "debug";
+import { Logger } from "@waku/utils";
 
 import { DefaultPubSubTopic } from "../constants.js";
 
-const log = debug("waku:message:version-0");
+const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
 
 export const Version = 0;
@@ -22,7 +22,7 @@ export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
   constructor(
-    public pubSubTopic: string,
+    public pubsubTopic: string,
     protected proto: proto.WakuMessage
   ) {}
 
@@ -76,7 +76,7 @@ export class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
-    public pubSubTopic: PubSubTopic,
+    public pubsubTopic: PubSubTopic,
     public metaSetter?: IMetaSetter
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -119,17 +119,17 @@ export class Encoder implements IEncoder {
  * messages.
  */
 export function createEncoder({
-  pubSubTopic = DefaultPubSubTopic,
+  pubsubTopic = DefaultPubSubTopic,
   contentTopic,
   ephemeral,
   metaSetter
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, ephemeral, pubSubTopic, metaSetter);
+  return new Encoder(contentTopic, ephemeral, pubsubTopic, metaSetter);
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
   constructor(
-    public pubSubTopic: PubSubTopic,
+    public pubsubTopic: PubSubTopic,
     public contentTopic: string
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -139,7 +139,6 @@ export class Decoder implements IDecoder<DecodedMessage> {
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);
-    log("Message decoded", protoMessage);
     return Promise.resolve({
       payload: protoMessage.payload,
       contentTopic: protoMessage.contentTopic,
@@ -152,13 +151,13 @@ export class Decoder implements IDecoder<DecodedMessage> {
   }
 
   async fromProtoObj(
-    pubSubTopic: string,
+    pubsubTopic: string,
     proto: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
     if (proto.version ?? 0 !== Version) {
-      log(
+      log.error(
         "Failed to decode due to incorrect version, expected:",
         Version,
         ", actual:",
@@ -167,7 +166,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
       return Promise.resolve(undefined);
     }
 
-    return new DecodedMessage(pubSubTopic, proto);
+    return new DecodedMessage(pubsubTopic, proto);
   }
 }
 
