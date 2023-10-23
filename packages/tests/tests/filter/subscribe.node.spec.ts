@@ -12,6 +12,7 @@ import { expect } from "chai";
 
 import {
   delay,
+  generateTestData,
   makeLogFileName,
   MessageCollector,
   NimGoNode,
@@ -20,7 +21,6 @@ import {
 } from "../../src/index.js";
 
 import {
-  generateTestData,
   messagePayload,
   messageText,
   runNodes,
@@ -295,7 +295,9 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Check if all messages were received.
     // Since there are overlapping topics, there should be 6 messages in total (2 from the first set + 4 from the second set).
-    expect(await messageCollector.waitForMessages(6)).to.eq(true);
+    expect(await messageCollector.waitForMessages(6, { exact: true })).to.eq(
+      true
+    );
   });
 
   it("Refresh subscription", async function () {
@@ -307,7 +309,9 @@ describe("Waku Filter V2: Subscribe", function () {
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
 
     // Confirm both messages were received.
-    expect(await messageCollector.waitForMessages(2)).to.eq(true);
+    expect(await messageCollector.waitForMessages(2, { exact: true })).to.eq(
+      true
+    );
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1",
       expectedContentTopic: TestContentTopic

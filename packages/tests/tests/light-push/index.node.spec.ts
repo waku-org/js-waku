@@ -188,7 +188,6 @@ describe("Waku Light Push", function () {
     Date.now() + 3600000
   ].forEach((testItem) => {
     it(`Push message with custom timestamp: ${testItem}`, async function () {
-      const customTimeNanos = BigInt(testItem) * BigInt(1000000);
       const pushResponse = await waku.lightPush.send(TestEncoder, {
         payload: utf8ToBytes(messageText),
         timestamp: new Date(testItem)
@@ -198,7 +197,7 @@ describe("Waku Light Push", function () {
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
-        expectedTimestamp: customTimeNanos,
+        expectedTimestamp: testItem,
         expectedContentTopic: TestContentTopic
       });
     });
