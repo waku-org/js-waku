@@ -146,4 +146,15 @@ describe("Waku Filter V2: Multiple PubSubtopics", function () {
       expectedMessageText: "M2"
     });
   });
+
+  it("Should fail to subscribe with decoder with wrong pubsubTopic", async function () {
+    // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
+    try {
+      await subscription.subscribe([TestDecoder], messageCollector.callback);
+    } catch (error) {
+      expect((error as Error).message).to.include(
+        "Pubsub topic not configured"
+      );
+    }
+  });
 });
