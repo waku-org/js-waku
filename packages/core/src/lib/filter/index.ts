@@ -74,6 +74,16 @@ class Subscription {
     callback: Callback<T>
   ): Promise<void> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
+
+    // check that all decoders are configured for the same pubsub topic as this subscription
+    decodersArray.forEach((decoder) => {
+      if (decoder.pubsubTopic !== this.pubsubTopic) {
+        throw new Error(
+          `Pubsub topic not configured: decoder is configured for pubsub topic ${decoder.pubsubTopic} but this subscription is for pubsub topic ${this.pubsubTopic}. Please create a new Subscription for the different pubsub topic.`
+        );
+      }
+    });
+
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
     const contentTopics = Array.from(decodersGroupedByCT.keys());
 
