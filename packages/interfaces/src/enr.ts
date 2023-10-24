@@ -18,6 +18,7 @@ export interface Waku2 {
   lightPush: boolean;
 }
 
+//TODO: adhere to terminology from the metadata protocol
 export interface ShardInfo {
   cluster: number;
   indexList: number[];
