@@ -2,7 +2,7 @@ import { DecodedMessage, DefaultPubSubTopic } from "@waku/core";
 import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
-import isEqual from "lodash/isEqual";
+import { equals } from "uint8arrays/equals";
 
 import { MessageRpcResponse } from "./node/interfaces.js";
 
@@ -45,7 +45,7 @@ export class MessageCollector {
         return message.payload === text;
       } else if (message.payload instanceof Uint8Array) {
         log.info(`Checking payload: ${bytesToUtf8(message.payload)}`);
-        return isEqual(message.payload, utf8ToBytes(text));
+        return equals(message.payload, utf8ToBytes(text));
       }
       return false;
     });
