@@ -25,7 +25,7 @@ import {
   SendError,
   SendResult
 } from "@waku/interfaces";
-import { isSizeUnderCap, toAsyncIterator } from "@waku/utils";
+import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
 import { Logger } from "@waku/utils";
 
@@ -112,20 +112,20 @@ class Relay implements IRelay {
       };
     }
 
-    if (!isSizeUnderCap(message.payload)) {
-      log.error("Failed to send waku relay: message is bigger that 1MB");
-      return {
-        recipients,
-        errors: [SendError.SIZE_TOO_BIG]
-      };
-    }
-
     const msg = await encoder.toWire(message);
     if (!msg) {
       log.error("Failed to encode message, aborting publish");
       return {
         recipients,
         errors: [SendError.ENCODE_FAILED]
+      };
+    }
+
+    if (!isWireSizeUnderCap(msg)) {
+      log.error("Failed to send waku relay: message is bigger that 1MB");
+      return {
+        recipients,
+        errors: [SendError.SIZE_TOO_BIG]
       };
     }
 

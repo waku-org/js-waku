@@ -204,14 +204,8 @@ describe("Waku Light Push", function () {
   });
 
   it("Push message equal or less that 1MB", async function () {
-    const oneMbPayload = generateRandomUint8Array(1024 ** 2);
-    let pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: oneMbPayload
-    });
-    expect(pushResponse.recipients.length).to.greaterThan(0);
-
     const bigPayload = generateRandomUint8Array(65536);
-    pushResponse = await waku.lightPush.send(TestEncoder, {
+    const pushResponse = await waku.lightPush.send(TestEncoder, {
       payload: bigPayload
     });
     expect(pushResponse.recipients.length).to.greaterThan(0);

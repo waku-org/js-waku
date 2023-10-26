@@ -141,17 +141,6 @@ describe("Waku Relay, Publish", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
-  it("Publish message with size of 1 MB", async function () {
-    const pushResponse = await waku1.relay.send(TestEncoder, {
-      payload: generateRandomUint8Array(1024 ** 2)
-    });
-    expect(pushResponse.recipients.length).to.eq(1);
-    expect(pushResponse.recipients[0].toString()).to.eq(
-      waku2.libp2p.peerId.toString()
-    );
-    expect(await messageCollector.waitForMessages(1)).to.eq(true);
-  });
-
   [1024 ** 2 + 65536, 2 * 1024 ** 2].forEach((testItem) => {
     it("Fails to publish message with size larger than 1 MB", async function () {
       const pushResponse = await waku1.relay.send(TestEncoder, {
