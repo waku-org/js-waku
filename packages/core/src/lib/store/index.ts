@@ -416,8 +416,18 @@ export async function createCursor(message: IDecodedMessage): Promise<Cursor> {
   }
 
   const contentTopicBytes = utf8ToBytes(message.contentTopic);
+  const pubSubTopicBytes = utf8ToBytes(message.pubsubTopic);
 
-  const digest = sha256(concat([contentTopicBytes, message.payload]));
+  let metaBytes: Uint8Array;
+  if (message.meta instanceof Uint8Array) {
+    metaBytes = message.meta;
+  } else {
+    metaBytes = new Uint8Array(); // default value
+  }
+
+  const digest = sha256(
+    concat([pubSubTopicBytes, message.payload, contentTopicBytes, metaBytes])
+  );
 
   const messageTime = BigInt(message.timestamp.getTime()) * BigInt(1000000);
 
