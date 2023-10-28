@@ -1,6 +1,6 @@
 import debug, { Debugger } from "debug";
 
-const APP_NAME = "js-waku";
+const APP_NAME = "waku";
 
 export class Logger {
   private _info: Debugger;
