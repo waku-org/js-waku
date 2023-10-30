@@ -11,7 +11,10 @@ import {
   SendResult
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
-import { ensurePubsubTopicIsConfigured, isSizeUnderCap } from "@waku/utils";
+import {
+  ensurePubsubTopicIsConfigured,
+  isMessageSizeUnderCap
+} from "@waku/utils";
 import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -61,7 +64,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         return { query: null, error: SendError.EMPTY_PAYLOAD };
       }
 
-      if (!isSizeUnderCap(message.payload)) {
+      if (!(await isMessageSizeUnderCap(encoder, message))) {
         log.error("Failed to send waku light push: message is bigger than 1MB");
         return { query: null, error: SendError.SIZE_TOO_BIG };
       }

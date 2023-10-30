@@ -19,7 +19,7 @@ import {
 } from "@waku/message-encryption/symmetric";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
-import isEqual from "lodash/isEqual";
+import { equals } from "uint8arrays/equals";
 
 import {
   delay,
@@ -159,7 +159,7 @@ describe("Waku Store, general", function () {
         createDecoder(testItem["value"])
       ])) {
         for await (const msg of query) {
-          expect(isEqual(msg!.payload, utf8ToBytes(messageText))).to.eq(true);
+          expect(equals(msg!.payload, utf8ToBytes(messageText))).to.eq(true);
         }
       }
     }
