@@ -419,7 +419,7 @@ export async function createCursor(message: IDecodedMessage): Promise<Cursor> {
   const pubSubTopicBytes = utf8ToBytes(message.pubsubTopic);
 
   let metaBytes: Uint8Array;
-  if (message.meta instanceof Uint8Array) {
+  if (message.meta && message.meta.length) {
     metaBytes = message.meta;
   } else {
     metaBytes = new Uint8Array(); // default value
