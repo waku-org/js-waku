@@ -14,6 +14,7 @@ const CURRENT_TAG = readPublishTag();
 
 const exec = promisify(cp.exec);
 const readFile = promisify(fs.readFile);
+const writeFile = promisify(fs.writeFile);
 
 run()
   .then(() => {
@@ -31,25 +32,26 @@ async function run() {
     await makeReleaseCandidate();
   }
 
-  const workspaces = await Promise.all(
-    workspacePaths.map(async (workspacePath) => {
-      const workspaceInfo = await readWorkspace(workspacePath);
-      const allowPublishing = await shouldBePublished(workspaceInfo);
+  const workspaces = await Promise.all(workspacePaths.map(readWorkspace));
 
-      if (allowPublishing) {
-        return workspaceInfo;
-      }
-
-      return;
-    })
-  );
+  if (CURRENT_TAG === NEXT_TAG) {
+    await upgradeWakuDependencies(workspaces);
+  }
 
   await Promise.all(
     workspaces
-      .filter((v) => !!v)
+      .filter(async (info) => {
+        const allowPublishing = await shouldBePublished(info);
+
+        if (allowPublishing) {
+          return true;
+        }
+
+        return false;
+      })
       .map(async (info) => {
         try {
-          await exec(
+          console.log(
             `npm publish --workspace ${info.workspace} --tag ${CURRENT_TAG} --access public`
           );
           console.info(
@@ -69,6 +71,11 @@ async function readJSON(path) {
   return JSON.parse(rawJSON);
 }
 
+async function writeWorkspace(packagePath, text) {
+  const resolvedPath = path.resolve(DIR, "../", packagePath, PACKAGE_JSON);
+  await writeFile(resolvedPath, text);
+}
+
 async function readWorkspace(packagePath) {
   const json = await readJSON(
     path.resolve(DIR, "../", packagePath, PACKAGE_JSON)
@@ -78,7 +85,8 @@ async function readWorkspace(packagePath) {
     name: json.name,
     private: !!json.private,
     version: json.version,
-    workspace: packagePath
+    workspace: packagePath,
+    rawPackageJson: json
   };
 }
 
@@ -128,4 +136,39 @@ function readPublishTag() {
   }
 
   return LATEST_TAG;
+}
+
+async function upgradeWakuDependencies(workspaces) {
+  console.log("Upgrading Waku dependencies in workspaces.");
+  const map = workspaces.reduce((acc, item) => {
+    if (!item.private) {
+      acc[item.name] = item;
+    }
+    return acc;
+  }, {});
+  const packageNames = Object.keys(map);
+  workspaces.forEach(async (info) => {
+    if (info.private) {
+      return;
+    }
+    ["dependencies", "devDependencies", "peerDependencies"].forEach((type) => {
+      const deps = info.rawPackageJson[type];
+      if (!deps) {
+        return;
+      }
+      packageNames.forEach((name) => {
+        if (deps[name]) {
+          deps[name] = map[name].version;
+        }
+      });
+    });
+    try {
+      await writeWorkspace(info.workspace, JSON.stringify(info.rawPackageJson));
+    } catch (error) {
+      console.error(
+        `Failed to update package.json for ${info.name} with: `,
+        error
+      );
+    }
+  });
 }
