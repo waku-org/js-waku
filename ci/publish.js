@@ -51,7 +51,7 @@ async function run() {
       })
       .map(async (info) => {
         try {
-          console.log(
+          await exec(
             `npm publish --workspace ${info.workspace} --tag ${CURRENT_TAG} --access public`
           );
           console.info(
