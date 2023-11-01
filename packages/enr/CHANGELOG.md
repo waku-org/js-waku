@@ -59,6 +59,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.19](https://github.com/waku-org/js-waku/compare/enr-v0.0.18...enr-v0.0.19) (2023-11-01)
+
+
+### Features
+
+* Logger with log levels ([#1672](https://github.com/waku-org/js-waku/issues/1672)) ([0f7d63e](https://github.com/waku-org/js-waku/commit/0f7d63ef93716223dc8fea7e8cb09e12e267b386))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.12 to 0.0.13
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.19 to 0.0.20
+
 ## [0.0.18](https://github.com/waku-org/js-waku/compare/enr-v0.0.17...enr-v0.0.18) (2023-10-16)
 
 
