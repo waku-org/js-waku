@@ -96,6 +96,29 @@ jobs:
       test_type: nwaku-master
       debug: waku*
 
+  pre-release:
+    name: pre-release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [check, proto, browser, node]
+    steps:
+      - uses: actions/checkout@v3
+        with: 
+          repository: waku-org/js-waku
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+          registry-url: "https://registry.npmjs.org"
+
+      - run: npm install
+
+      - run: npm run build
+
+      - run: npm run publish -- --tag next
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_JS_WAKU_PUBLISH }}
+
   maybe-release:
     name: release
     runs-on: ubuntu-latest
