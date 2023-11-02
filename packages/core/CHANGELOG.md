@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.25](https://github.com/waku-org/js-waku/compare/core-v0.0.24...core-v0.0.25) (2023-11-01)
+
+
+### Features
+
+* Fail early when trying to send empty payload ([#1642](https://github.com/waku-org/js-waku/issues/1642)) ([6bad4ea](https://github.com/waku-org/js-waku/commit/6bad4ea7d1dee79c296c550390da57ffa824e2cf))
+* Logger with log levels ([#1672](https://github.com/waku-org/js-waku/issues/1672)) ([0f7d63e](https://github.com/waku-org/js-waku/commit/0f7d63ef93716223dc8fea7e8cb09e12e267b386))
+
+
+### Bug Fixes
+
+* Don't dial discovered peers if have already been attempted dial ([#1657](https://github.com/waku-org/js-waku/issues/1657)) ([1892f50](https://github.com/waku-org/js-waku/commit/1892f5093da540530d7ee5640178ebaa46cf769f))
+* Filter subscription with `pubsubTopic1` and decoder with `pubsubTopic2` ([#1675](https://github.com/waku-org/js-waku/issues/1675)) ([491366b](https://github.com/waku-org/js-waku/commit/491366bd4f96d5b72f83ca47dea5a93389ec5a27))
+* Handle all empty responses in filter ([#1688](https://github.com/waku-org/js-waku/issues/1688)) ([b3864f8](https://github.com/waku-org/js-waku/commit/b3864f8772b072e804954c1096510554ea578424))
+* Measure total message size ([#1643](https://github.com/waku-org/js-waku/issues/1643)) ([b7dc3d7](https://github.com/waku-org/js-waku/commit/b7dc3d7576e9444a5acbb036812c05cfccb25815))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.18 to ^0.0.19
+    * @waku/interfaces bumped from 0.0.19 to 0.0.20
+    * @waku/utils bumped from 0.0.12 to 0.0.13
+
 ## [0.0.24](https://github.com/waku-org/js-waku/compare/core-v0.0.23...core-v0.0.24) (2023-10-16)
 
 

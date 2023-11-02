@@ -64,6 +64,23 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.14 to 0.0.15
 
+## [0.0.18](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.17...peer-exchange-v0.0.18) (2023-11-01)
+
+
+### Features
+
+* Logger with log levels ([#1672](https://github.com/waku-org/js-waku/issues/1672)) ([0f7d63e](https://github.com/waku-org/js-waku/commit/0f7d63ef93716223dc8fea7e8cb09e12e267b386))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.24 to 0.0.25
+    * @waku/enr bumped from 0.0.18 to 0.0.19
+    * @waku/interfaces bumped from 0.0.19 to 0.0.20
+    * @waku/utils bumped from 0.0.12 to 0.0.13
+
 ## [0.0.17](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.16...peer-exchange-v0.0.17) (2023-10-16)
 
 
