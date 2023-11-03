@@ -60,3 +60,12 @@ Commit messages should never contain any `@` mentions (usernames prefixed with "
 
 Please refer to the [Git manual](https://git-scm.com/doc) for more information
 about Git.
+
+### Releasing
+
+`js-waku` has two types of releases:
+- public releases;
+- pre releases;
+
+Public releases happen by merging PRs opened by `release-please` action.
+Pre releases happen manually by triggering [this workflow](https://github.com/waku-org/js-waku/actions/workflows/pre-release.yml)
