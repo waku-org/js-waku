@@ -4,7 +4,7 @@ import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { Libp2pOptions } from "libp2p";
 
 import type { IDecodedMessage } from "./message.js";
-import type { PubSubTopic } from "./misc.js";
+import type { PubsubTopic } from "./misc.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -27,7 +27,7 @@ export type ProtocolCreateOptions = {
    * Waku implements sharding to achieve scalability
    * The format of the sharded topic is `/waku/2/rs/<shard_cluster_index>/<shard_number>`
    * To learn more about the sharding specifications implemented, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
-   * The PubSub Topic to use. Defaults to {@link @waku/core!DefaultPubSubTopic }.
+   * The Pubsub Topic to use. Defaults to {@link @waku/core!DefaultPubsubTopic }.
    *
    * If no pubsub topic is specified, the default pubsub topic is used.
    * The set of pubsub topics that are used to initialize the Waku node, will need to be used by the protocols as well
@@ -39,7 +39,7 @@ export type ProtocolCreateOptions = {
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
    */
-  pubsubTopics?: PubSubTopic[];
+  pubsubTopics?: PubsubTopic[];
   /**
    * You can pass options to the `Libp2p` instance used by {@link @waku/core!WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
@@ -88,8 +88,8 @@ export enum SendError {
    */
   SIZE_TOO_BIG = "Size is too big",
   /**
-   * The PubSubTopic passed to the send function is not configured on the Waku node.
-   * Please ensure that the PubSubTopic is used when initializing the Waku node.
+   * The PubsubTopic passed to the send function is not configured on the Waku node.
+   * Please ensure that the PubsubTopic is used when initializing the Waku node.
    */
   TOPIC_NOT_CONFIGURED = "Topic not configured",
   /**

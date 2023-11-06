@@ -6,7 +6,7 @@ import {
   IMessage,
   Libp2p,
   ProtocolCreateOptions,
-  PubSubTopic,
+  PubsubTopic,
   SendError,
   SendResult
 } from "@waku/interfaces";
@@ -22,7 +22,7 @@ import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
 import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
+import { DefaultPubsubTopic } from "../constants.js";
 
 import { PushRpc } from "./push_rpc.js";
 
@@ -45,12 +45,12 @@ type PreparePushMessageResult =
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 class LightPush extends BaseProtocol implements ILightPush {
-  private readonly pubsubTopics: PubSubTopic[];
+  private readonly pubsubTopics: PubsubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components);
-    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubSubTopic];
+    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubsubTopic];
   }
 
   private async preparePushMessage(

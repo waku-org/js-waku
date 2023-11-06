@@ -7,7 +7,7 @@ import type {
   IRelay,
   IStore,
   Libp2p,
-  PubSubTopic,
+  PubsubTopic,
   Waku
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -53,7 +53,7 @@ export class WakuNode implements Waku {
 
   constructor(
     options: WakuOptions,
-    public readonly pubsubTopics: PubSubTopic[],
+    public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,

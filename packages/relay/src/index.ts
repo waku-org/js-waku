@@ -7,9 +7,9 @@ import {
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
 import type { PeerId } from "@libp2p/interface/peer-id";
-import type { PubSub } from "@libp2p/interface/pubsub";
+import type { PubSub as Libp2pPubsub } from "@libp2p/interface/pubsub";
 import { sha256 } from "@noble/hashes/sha256";
-import { DefaultPubSubTopic } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/core";
 import {
   ActiveSubscriptions,
   Callback,
@@ -21,7 +21,7 @@ import {
   IRelay,
   Libp2p,
   ProtocolCreateOptions,
-  PubSubTopic,
+  PubsubTopic,
   SendError,
   SendResult
 } from "@waku/interfaces";
@@ -48,7 +48,7 @@ export type ContentTopic = string;
  * Throws if libp2p.pubsub does not support Waku Relay
  */
 class Relay implements IRelay {
-  public readonly pubsubTopics: Set<PubSubTopic>;
+  public readonly pubsubTopics: Set<PubsubTopic>;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
   public static multicodec: string = RelayCodecs[0];
@@ -58,17 +58,17 @@ class Relay implements IRelay {
    * observers called when receiving new message.
    * Observers under key `""` are always called.
    */
-  private observers: Map<PubSubTopic, Map<ContentTopic, Set<unknown>>>;
+  private observers: Map<PubsubTopic, Map<ContentTopic, Set<unknown>>>;
 
   constructor(libp2p: Libp2p, options?: Partial<RelayCreateOptions>) {
-    if (!this.isRelayPubSub(libp2p.services.pubsub)) {
+    if (!this.isRelayPubsub(libp2p.services.pubsub)) {
       throw Error(
         `Failed to initialize Relay. libp2p.pubsub does not support ${Relay.multicodec}`
       );
     }
 
     this.gossipSub = libp2p.services.pubsub as GossipSub;
-    this.pubsubTopics = new Set(options?.pubsubTopics ?? [DefaultPubSubTopic]);
+    this.pubsubTopics = new Set(options?.pubsubTopics ?? [DefaultPubsubTopic]);
 
     if (this.gossipSub.isStarted()) {
       this.subscribeToAllTopics();
@@ -76,7 +76,7 @@ class Relay implements IRelay {
 
     this.observers = new Map();
 
-    // Default PubSubTopic decoder
+    // Default PubsubTopic decoder
     // TODO: User might want to decide what decoder should be used (e.g. for RLN)
     this.defaultDecoder = new TopicOnlyDecoder();
   }
@@ -136,7 +136,7 @@ class Relay implements IRelay {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
-    const observers: Array<[PubSubTopic, Observer<T>]> = [];
+    const observers: Array<[PubsubTopic, Observer<T>]> = [];
 
     for (const decoder of Array.isArray(decoders) ? decoders : [decoders]) {
       const { pubsubTopic } = decoder;
@@ -156,7 +156,7 @@ class Relay implements IRelay {
   }
 
   private removeObservers<T extends IDecodedMessage>(
-    observers: Array<[PubSubTopic, Observer<T>]>
+    observers: Array<[PubsubTopic, Observer<T>]>
   ): void {
     for (const [pubsubTopic, observer] of observers) {
       const ctObs = this.observers.get(pubsubTopic);
@@ -186,7 +186,7 @@ class Relay implements IRelay {
     return map;
   }
 
-  public getMeshPeers(topic: TopicStr = DefaultPubSubTopic): PeerIdStr[] {
+  public getMeshPeers(topic: TopicStr = DefaultPubsubTopic): PeerIdStr[] {
     return this.gossipSub.getMeshPeers(topic);
   }
 
@@ -270,7 +270,7 @@ class Relay implements IRelay {
     this.gossipSub.subscribe(pubsubTopic);
   }
 
-  private isRelayPubSub(pubsub: PubSub | undefined): boolean {
+  private isRelayPubsub(pubsub: Libp2pPubsub | undefined): boolean {
     return pubsub?.multicodecs?.includes(Relay.multicodec) ?? false;
   }
 }

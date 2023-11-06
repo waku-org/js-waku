@@ -1,4 +1,4 @@
-import { DecodedMessage, DefaultPubSubTopic } from "@waku/core";
+import { DecodedMessage, DefaultPubsubTopic } from "@waku/core";
 import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
@@ -70,7 +70,7 @@ export class MessageCollector {
     }
   ): Promise<boolean> {
     const startTime = Date.now();
-    const pubsubTopic = options?.pubsubTopic || DefaultPubSubTopic;
+    const pubsubTopic = options?.pubsubTopic || DefaultPubsubTopic;
     const timeoutDuration = options?.timeoutDuration || 400;
     const exact = options?.exact || false;
 
@@ -109,7 +109,7 @@ export class MessageCollector {
     options: {
       expectedMessageText: string | Uint8Array | undefined;
       expectedContentTopic?: string;
-      expectedPubSubTopic?: string;
+      expectedPubsubTopic?: string;
       expectedVersion?: number;
       expectedMeta?: Uint8Array;
       expectedEphemeral?: boolean;
@@ -193,9 +193,9 @@ export class MessageCollector {
     } else {
       // js-waku message specific assertions
       expect(message.pubsubTopic).to.eq(
-        options.expectedPubSubTopic || DefaultPubSubTopic,
+        options.expectedPubsubTopic || DefaultPubsubTopic,
         `Message pub/sub topic mismatch. Expected: ${
-          options.expectedPubSubTopic || DefaultPubSubTopic
+          options.expectedPubsubTopic || DefaultPubsubTopic
         }. Got: ${message.pubsubTopic}`
       );
 

@@ -2,12 +2,12 @@ import type { IDecodedMessage, IDecoder } from "./message.js";
 import type {
   ContentTopic,
   IAsyncIterator,
-  PubSubTopic,
+  PubsubTopic,
   Unsubscribe
 } from "./misc.js";
 import type { Callback } from "./protocols.js";
 
-export type ActiveSubscriptions = Map<PubSubTopic, ContentTopic[]>;
+export type ActiveSubscriptions = Map<PubsubTopic, ContentTopic[]>;
 
 export interface IReceiver {
   toSubscriptionIterator: <T extends IDecodedMessage>(

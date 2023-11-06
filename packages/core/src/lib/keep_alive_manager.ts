@@ -116,7 +116,7 @@ export class KeepAliveManager {
     relayPeriodSecs: number,
     peerIdStr: PeerIdStr
   ): NodeJS.Timeout[] {
-    // send a ping message to each PubSubTopic the peer is part of
+    // send a ping message to each PubsubTopic the peer is part of
     const intervals: NodeJS.Timeout[] = [];
     for (const topic of relay.pubsubTopics) {
       const meshPeers = relay.getMeshPeers(topic);

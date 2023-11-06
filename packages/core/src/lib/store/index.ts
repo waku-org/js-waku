@@ -7,7 +7,7 @@ import {
   IStore,
   Libp2p,
   ProtocolCreateOptions,
-  PubSubTopic
+  PubsubTopic
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
 import { ensurePubsubTopicIsConfigured, isDefined } from "@waku/utils";
@@ -19,7 +19,7 @@ import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
 import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
+import { DefaultPubsubTopic } from "../constants.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
 import { HistoryRpc, PageDirection, Params } from "./history_rpc.js";
@@ -75,12 +75,12 @@ export interface QueryOptions {
  * The Waku Store protocol can be used to retrieved historical messages.
  */
 class Store extends BaseProtocol implements IStore {
-  private readonly pubsubTopics: PubSubTopic[];
+  private readonly pubsubTopics: PubsubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components);
-    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubSubTopic];
+    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubsubTopic];
   }
 
   /**
@@ -230,29 +230,29 @@ class Store extends BaseProtocol implements IStore {
     }
 
     // convert array to set to remove duplicates
-    const uniquePubSubTopicsInQuery = Array.from(
+    const uniquePubsubTopicsInQuery = Array.from(
       new Set(decoders.map((decoder) => decoder.pubsubTopic))
     );
 
     // If multiple pubsub topics are provided, throw an error
-    if (uniquePubSubTopicsInQuery.length > 1) {
+    if (uniquePubsubTopicsInQuery.length > 1) {
       throw new Error(
         "API does not support querying multiple pubsub topics at once"
       );
     }
 
     // we can be certain that there is only one pubsub topic in the query
-    const pubSubTopicForQuery = uniquePubSubTopicsInQuery[0];
+    const pubsubTopicForQuery = uniquePubsubTopicsInQuery[0];
 
-    ensurePubsubTopicIsConfigured(pubSubTopicForQuery, this.pubsubTopics);
+    ensurePubsubTopicIsConfigured(pubsubTopicForQuery, this.pubsubTopics);
 
     // check that the pubsubTopic from the Cursor and Decoder match
     if (
       options?.cursor?.pubsubTopic &&
-      options.cursor.pubsubTopic !== pubSubTopicForQuery
+      options.cursor.pubsubTopic !== pubsubTopicForQuery
     ) {
       throw new Error(
-        `Cursor pubsub topic (${options?.cursor?.pubsubTopic}) does not match decoder pubsub topic (${pubSubTopicForQuery})`
+        `Cursor pubsub topic (${options?.cursor?.pubsubTopic}) does not match decoder pubsub topic (${pubsubTopicForQuery})`
       );
     }
 
@@ -267,16 +267,16 @@ class Store extends BaseProtocol implements IStore {
     });
 
     const contentTopics = decoders
-      .filter((decoder) => decoder.pubsubTopic === pubSubTopicForQuery)
+      .filter((decoder) => decoder.pubsubTopic === pubsubTopicForQuery)
       .map((dec) => dec.contentTopic);
 
     if (contentTopics.length === 0) {
-      throw new Error("No decoders found for topic " + pubSubTopicForQuery);
+      throw new Error("No decoders found for topic " + pubsubTopicForQuery);
     }
 
     const queryOpts = Object.assign(
       {
-        pubsubTopic: pubSubTopicForQuery,
+        pubsubTopic: pubsubTopicForQuery,
         pageDirection: PageDirection.BACKWARD,
         pageSize: DefaultPageSize
       },

@@ -6,8 +6,8 @@ import { tearDownNodes } from "../../src/index.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
 
-const PubSubTopic1 = "/waku/2/rs/0/2";
-const PubSubTopic2 = "/waku/2/rs/0/3";
+const PubsubTopic1 = "/waku/2/rs/0/2";
+const PubsubTopic2 = "/waku/2/rs/0/3";
 
 const ContentTopic = "/waku/2/content/test.js";
 
@@ -29,17 +29,17 @@ describe("Static Sharding: Running Nodes", () => {
   it("configure the node with multiple pubsub topics", async function () {
     this.timeout(15_000);
     waku = await createLightNode({
-      pubsubTopics: [PubSubTopic1, PubSubTopic2]
+      pubsubTopics: [PubsubTopic1, PubsubTopic2]
     });
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: PubSubTopic1
+      pubsubTopic: PubsubTopic1
     });
 
     const encoder2 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: PubSubTopic2
+      pubsubTopic: PubsubTopic2
     });
 
     const request1 = await waku.lightPush.send(encoder1, {
@@ -57,13 +57,13 @@ describe("Static Sharding: Running Nodes", () => {
   it("using a protocol with unconfigured pubsub topic should fail", async function () {
     this.timeout(15_000);
     waku = await createLightNode({
-      pubsubTopics: [PubSubTopic1]
+      pubsubTopics: [PubsubTopic1]
     });
 
     // use a pubsub topic that is not configured
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: PubSubTopic2
+      pubsubTopic: PubsubTopic2
     });
 
     try {
@@ -75,7 +75,7 @@ describe("Static Sharding: Running Nodes", () => {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `PubSub topic ${PubSubTopic2} has not been configured on this instance. Configured topics are: ${PubSubTopic1}`
+          `Pubsub topic ${PubsubTopic2} has not been configured on this instance. Configured topics are: ${PubsubTopic1}`
         )
       ) {
         throw err;

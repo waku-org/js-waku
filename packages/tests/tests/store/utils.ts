@@ -3,7 +3,7 @@ import {
   createEncoder,
   DecodedMessage,
   Decoder,
-  DefaultPubSubTopic,
+  DefaultPubsubTopic,
   waitForRemotePeer
 } from "@waku/core";
 import { LightNode, Protocols } from "@waku/interfaces";
@@ -19,10 +19,10 @@ export const TestContentTopic = "/test/1/waku-store/utf8";
 export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 export const TestDecoder = createDecoder(TestContentTopic);
 export const customContentTopic = "/test/2/waku-store/utf8";
-export const customPubSubTopic = "/waku/2/custom-dapp/proto";
+export const customPubsubTopic = "/waku/2/custom-dapp/proto";
 export const customTestDecoder = createDecoder(
   customContentTopic,
-  customPubSubTopic
+  customPubsubTopic
 );
 export const totalMsgs = 20;
 export const messageText = "Store Push works!";
@@ -66,7 +66,7 @@ export async function processQueriedMessages(
 
 export async function startAndConnectLightNode(
   instance: NimGoNode,
-  pubsubTopics: string[] = [DefaultPubSubTopic]
+  pubsubTopics: string[] = [DefaultPubsubTopic]
 ): Promise<LightNode> {
   const waku = await createLightNode({
     pubsubTopics: pubsubTopics,

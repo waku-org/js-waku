@@ -1,4 +1,4 @@
-import { DecodedMessage, DefaultPubSubTopic, PageDirection } from "@waku/core";
+import { DecodedMessage, DefaultPubsubTopic, PageDirection } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
 import { expect } from "chai";
 
@@ -36,7 +36,7 @@ describe("Waku Store, order", function () {
         nwaku,
         totalMsgs,
         TestContentTopic,
-        DefaultPubSubTopic
+        DefaultPubsubTopic
       );
       waku = await startAndConnectLightNode(nwaku);
 
@@ -68,7 +68,7 @@ describe("Waku Store, order", function () {
         nwaku,
         totalMsgs,
         TestContentTopic,
-        DefaultPubSubTopic
+        DefaultPubsubTopic
       );
       waku = await startAndConnectLightNode(nwaku);
 
@@ -103,7 +103,7 @@ describe("Waku Store, order", function () {
         nwaku,
         totalMsgs,
         TestContentTopic,
-        DefaultPubSubTopic
+        DefaultPubsubTopic
       );
       waku = await startAndConnectLightNode(nwaku);
 
