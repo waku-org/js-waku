@@ -49,8 +49,17 @@ export interface PeersByDiscoveryResult {
   };
 }
 
+export enum EConnectionStateEvents {
+  CONNECTION_STATUS = "waku:connection"
+}
+
+export interface IConnectionStateEvents {
+  // true when online, false when offline
+  [EConnectionStateEvents.CONNECTION_STATUS]: CustomEvent<boolean>;
+}
+
 export interface IConnectionManager
-  extends EventEmitter<IPeersByDiscoveryEvents> {
+  extends EventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents> {
   getPeersByDiscovery(): Promise<PeersByDiscoveryResult>;
   stop(): void;
 }
