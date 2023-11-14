@@ -1,4 +1,4 @@
-import { DefaultPubSubTopic } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
 import { expect } from "chai";
 
@@ -42,7 +42,7 @@ describe("Waku Store, page size", function () {
         nwaku,
         messageCount,
         TestContentTopic,
-        DefaultPubSubTopic
+        DefaultPubsubTopic
       );
 
       // Determine effectivePageSize for test expectations
@@ -82,7 +82,7 @@ describe("Waku Store, page size", function () {
 
   // Possible issue here because pageSize differs across implementations
   it("Default pageSize", async function () {
-    await sendMessages(nwaku, 20, TestContentTopic, DefaultPubSubTopic);
+    await sendMessages(nwaku, 20, TestContentTopic, DefaultPubsubTopic);
     waku = await startAndConnectLightNode(nwaku);
 
     let messagesRetrieved = 0;

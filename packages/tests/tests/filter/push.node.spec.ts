@@ -1,4 +1,4 @@
-import { DefaultPubSubTopic, waitForRemotePeer } from "@waku/core";
+import { DefaultPubsubTopic, waitForRemotePeer } from "@waku/core";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -31,7 +31,7 @@ describe("Waku Filter V2: FilterPush", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubSubTopic]);
+    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
     subscription = await waku.filter.createSubscription();
     messageCollector = new MessageCollector();
   });
@@ -62,7 +62,7 @@ describe("Waku Filter V2: FilterPush", function () {
       await delay(400);
 
       await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-        DefaultPubSubTopic,
+        DefaultPubsubTopic,
         {
           contentTopic: TestContentTopic,
           payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
@@ -93,7 +93,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubSubTopic,
+      DefaultPubsubTopic,
       {
         contentTopic: TestContentTopic,
         payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
@@ -110,7 +110,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      "DefaultPubSubTopic",
+      "DefaultPubsubTopic",
       {
         contentTopic: TestContentTopic,
         payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
@@ -141,7 +141,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubSubTopic,
+      DefaultPubsubTopic,
       {
         payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
         timestamp: BigInt(Date.now()) * BigInt(1000000)
@@ -156,7 +156,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubSubTopic,
+      DefaultPubsubTopic,
       {
         contentTopic: TestContentTopic,
         timestamp: BigInt(Date.now()) * BigInt(1000000)
@@ -176,7 +176,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubSubTopic,
+      DefaultPubsubTopic,
       {
         contentTopic: TestContentTopic,
         payload: 12345,
@@ -192,7 +192,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubSubTopic,
+      DefaultPubsubTopic,
       "extraField",
       {
         contentTopic: TestContentTopic,
@@ -209,7 +209,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubSubTopic,
+      DefaultPubsubTopic,
       {
         contentTopic: TestContentTopic,
         payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),

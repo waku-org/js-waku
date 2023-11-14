@@ -12,11 +12,11 @@ import {
   IRelay,
   KeepAliveOptions,
   PeersByDiscoveryResult,
-  PubSubTopic,
+  PubsubTopic,
   ShardInfo
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
-import { shardInfoToPubSubTopics } from "@waku/utils";
+import { shardInfoToPubsubTopics } from "@waku/utils";
 import { Logger } from "@waku/utils";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
@@ -45,7 +45,7 @@ export class ConnectionManager
     peerId: string,
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
-    pubsubTopics: PubSubTopic[],
+    pubsubTopics: PubsubTopic[],
     relay?: IRelay,
     options?: ConnectionManagerOptions
   ): ConnectionManager {
@@ -111,13 +111,13 @@ export class ConnectionManager
   private constructor(
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
-    private configuredPubSubTopics: PubSubTopic[],
+    private configuredPubsubTopics: PubsubTopic[],
     relay?: IRelay,
     options?: Partial<ConnectionManagerOptions>
   ) {
     super();
     this.libp2p = libp2p;
-    this.configuredPubSubTopics = configuredPubSubTopics;
+    this.configuredPubsubTopics = configuredPubsubTopics;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
@@ -426,7 +426,7 @@ export class ConnectionManager
       );
       log.warn(
         `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
-          this.configuredPubSubTopics
+          this.configuredPubsubTopics
         }). 
             Not dialing.`
       );
@@ -518,10 +518,10 @@ export class ConnectionManager
     // If there's no shard information, simply return true
     if (!shardInfo) return true;
 
-    const pubsubTopics = shardInfoToPubSubTopics(shardInfo);
+    const pubsubTopics = shardInfoToPubsubTopics(shardInfo);
 
     const isTopicConfigured = pubsubTopics.some((topic) =>
-      this.configuredPubSubTopics.includes(topic)
+      this.configuredPubsubTopics.includes(topic)
     );
     return isTopicConfigured;
   }

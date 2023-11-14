@@ -1,7 +1,7 @@
 import {
   createDecoder,
   createEncoder,
-  DefaultPubSubTopic,
+  DefaultPubsubTopic,
   waitForRemotePeer
 } from "@waku/core";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
@@ -40,7 +40,7 @@ describe("Waku Filter V2: Subscribe", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubSubTopic]);
+    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
     subscription = await waku.filter.createSubscription();
     messageCollector = new MessageCollector();
 
@@ -377,10 +377,10 @@ describe("Waku Filter V2: Subscribe", function () {
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
     const subscription2 = await waku.filter.createSubscription(
-      DefaultPubSubTopic,
+      DefaultPubsubTopic,
       await nwaku2.getPeerId()
     );
-    await nwaku2.ensureSubscriptions([DefaultPubSubTopic]);
+    await nwaku2.ensureSubscriptions([DefaultPubsubTopic]);
     // Send a message using the new subscription
     const newContentTopic = "/test/2/waku-filter";
     const newEncoder = createEncoder({ contentTopic: newContentTopic });

@@ -1,4 +1,4 @@
-import type { PubSubTopic } from "./misc.js";
+import type { PubsubTopic } from "./misc.js";
 
 export interface IRateLimitProof {
   proof: Uint8Array;
@@ -38,7 +38,7 @@ export interface IMetaSetter {
 }
 
 export interface EncoderOptions {
-  pubsubTopic?: PubSubTopic;
+  pubsubTopic?: PubsubTopic;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
   /**
@@ -55,7 +55,7 @@ export interface EncoderOptions {
 }
 
 export interface IEncoder {
-  pubsubTopic: PubSubTopic;
+  pubsubTopic: PubsubTopic;
   contentTopic: string;
   ephemeral: boolean;
   toWire: (message: IMessage) => Promise<Uint8Array | undefined>;
@@ -65,7 +65,7 @@ export interface IEncoder {
 export interface IDecodedMessage {
   payload: Uint8Array;
   contentTopic: string;
-  pubsubTopic: PubSubTopic;
+  pubsubTopic: PubsubTopic;
   timestamp: Date | undefined;
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
@@ -73,7 +73,7 @@ export interface IDecodedMessage {
 }
 
 export interface IDecoder<T extends IDecodedMessage> {
-  pubsubTopic: PubSubTopic;
+  pubsubTopic: PubsubTopic;
   contentTopic: string;
   fromWireToProtoObj: (bytes: Uint8Array) => Promise<IProtoMessage | undefined>;
   fromProtoObj: (

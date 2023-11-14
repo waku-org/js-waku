@@ -7,7 +7,7 @@ export interface IAsyncIterator<T extends IDecodedMessage> {
 
 export type Unsubscribe = () => void | Promise<void>;
 
-export type PubSubTopic = string;
+export type PubsubTopic = string;
 export type ContentTopic = string;
 
 export type PeerIdStr = string;

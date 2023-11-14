@@ -7,12 +7,12 @@ import type {
   IMetaSetter,
   IProtoMessage,
   IRateLimitProof,
-  PubSubTopic
+  PubsubTopic
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
-import { DefaultPubSubTopic } from "../constants.js";
+import { DefaultPubsubTopic } from "../constants.js";
 
 const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
@@ -76,7 +76,7 @@ export class Encoder implements IEncoder {
   constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
-    public pubsubTopic: PubSubTopic,
+    public pubsubTopic: PubsubTopic,
     public metaSetter?: IMetaSetter
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -119,7 +119,7 @@ export class Encoder implements IEncoder {
  * messages.
  */
 export function createEncoder({
-  pubsubTopic = DefaultPubSubTopic,
+  pubsubTopic = DefaultPubsubTopic,
   contentTopic,
   ephemeral,
   metaSetter
@@ -129,7 +129,7 @@ export function createEncoder({
 
 export class Decoder implements IDecoder<DecodedMessage> {
   constructor(
-    public pubsubTopic: PubSubTopic,
+    public pubsubTopic: PubsubTopic,
     public contentTopic: string
   ) {
     if (!contentTopic || contentTopic === "") {
@@ -182,7 +182,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  pubsubTopic: PubSubTopic = DefaultPubSubTopic
+  pubsubTopic: PubsubTopic = DefaultPubsubTopic
 ): Decoder {
   return new Decoder(pubsubTopic, contentTopic);
 }

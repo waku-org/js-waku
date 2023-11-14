@@ -1,4 +1,4 @@
-import { createEncoder, DefaultPubSubTopic } from "@waku/core";
+import { createEncoder, DefaultPubsubTopic } from "@waku/core";
 import { IRateLimitProof, LightNode, SendError } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -28,7 +28,7 @@ describe("Waku Light Push", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubSubTopic]);
+    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
     messageCollector = new MessageCollector(nwaku);
 
     await nwaku.ensureSubscriptions();

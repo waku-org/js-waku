@@ -13,7 +13,7 @@ import type {
   Libp2p,
   PeerIdStr,
   ProtocolCreateOptions,
-  PubSubTopic,
+  PubsubTopic,
   Unsubscribe
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
@@ -28,7 +28,7 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
 import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
+import { DefaultPubsubTopic } from "../constants.js";
 
 import {
   FilterPushRpc,
@@ -50,7 +50,7 @@ export const FilterCodecs = {
 
 class Subscription {
   private readonly peer: Peer;
-  private readonly pubsubTopic: PubSubTopic;
+  private readonly pubsubTopic: PubsubTopic;
   private newStream: (peer: Peer) => Promise<Stream>;
 
   private subscriptionCallbacks: Map<
@@ -59,7 +59,7 @@ class Subscription {
   >;
 
   constructor(
-    pubsubTopic: PubSubTopic,
+    pubsubTopic: PubsubTopic,
     remotePeer: Peer,
     newStream: (peer: Peer) => Promise<Stream>
   ) {
@@ -256,19 +256,19 @@ class Subscription {
 }
 
 class Filter extends BaseProtocol implements IReceiver {
-  private readonly pubsubTopics: PubSubTopic[] = [];
+  private readonly pubsubTopics: PubsubTopic[] = [];
   private activeSubscriptions = new Map<string, Subscription>();
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   private getActiveSubscription(
-    pubsubTopic: PubSubTopic,
+    pubsubTopic: PubsubTopic,
     peerIdStr: PeerIdStr
   ): Subscription | undefined {
     return this.activeSubscriptions.get(`${pubsubTopic}_${peerIdStr}`);
   }
 
   private setActiveSubscription(
-    pubsubTopic: PubSubTopic,
+    pubsubTopic: PubsubTopic,
     peerIdStr: PeerIdStr,
     subscription: Subscription
   ): Subscription {
@@ -279,7 +279,7 @@ class Filter extends BaseProtocol implements IReceiver {
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(FilterCodecs.SUBSCRIBE, libp2p.components);
 
-    this.pubsubTopics = options?.pubsubTopics || [DefaultPubSubTopic];
+    this.pubsubTopics = options?.pubsubTopics || [DefaultPubsubTopic];
 
     libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
       log.error("Failed to register ", FilterCodecs.PUSH, e);
@@ -289,7 +289,7 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   async createSubscription(
-    pubsubTopic: string = DefaultPubSubTopic
+    pubsubTopic: string = DefaultPubsubTopic
   ): Promise<Subscription> {
     ensurePubsubTopicIsConfigured(pubsubTopic, this.pubsubTopics);
 
@@ -367,7 +367,7 @@ class Filter extends BaseProtocol implements IReceiver {
           }
 
           if (!pubsubTopic) {
-            log.error("PubSub topic missing from push message");
+            log.error("Pubsub topic missing from push message");
             return;
           }
 
@@ -408,7 +408,7 @@ export function wakuFilter(
 
 async function pushMessage<T extends IDecodedMessage>(
   subscriptionCallback: SubscriptionCallback<T>,
-  pubsubTopic: PubSubTopic,
+  pubsubTopic: PubsubTopic,
   message: WakuMessage
 ): Promise<void> {
   const { decoders, callback } = subscriptionCallback;

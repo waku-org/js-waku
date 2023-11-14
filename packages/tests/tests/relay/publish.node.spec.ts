@@ -1,4 +1,4 @@
-import { createEncoder, DefaultPubSubTopic } from "@waku/core";
+import { createEncoder, DefaultPubsubTopic } from "@waku/core";
 import { IRateLimitProof, RelayNode, SendError } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -34,11 +34,11 @@ describe("Waku Relay, Publish", function () {
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubsubTopic],
         staticNoiseKey: NOISE_KEY_1
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubsubTopic],
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))

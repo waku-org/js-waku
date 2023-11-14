@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
-import { DefaultPubSubTopic } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/core";
 import { isDefined } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
@@ -207,7 +207,7 @@ export class NimGoNode {
   }
 
   async ensureSubscriptions(
-    pubsubTopics: string[] = [DefaultPubSubTopic]
+    pubsubTopics: string[] = [DefaultPubsubTopic]
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -218,7 +218,7 @@ export class NimGoNode {
 
   async sendMessage(
     message: MessageRpcQuery,
-    pubsubTopic: string = DefaultPubSubTopic
+    pubsubTopic: string = DefaultPubsubTopic
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -233,7 +233,7 @@ export class NimGoNode {
   }
 
   async messages(
-    pubsubTopic: string = DefaultPubSubTopic
+    pubsubTopic: string = DefaultPubsubTopic
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
@@ -275,7 +275,7 @@ export class NimGoNode {
     }
 
     return this.rpcCall<boolean>("post_waku_v2_private_v1_asymmetric_message", [
-      pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
+      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
       message,
       "0x" + bytesToHex(publicKey)
     ]);
@@ -290,7 +290,7 @@ export class NimGoNode {
     return await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_private_v1_asymmetric_messages",
       [
-        pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
+        pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
         "0x" + bytesToHex(privateKey)
       ]
     );
@@ -317,7 +317,7 @@ export class NimGoNode {
     }
 
     return this.rpcCall<boolean>("post_waku_v2_private_v1_symmetric_message", [
-      pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
+      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
       message,
       "0x" + bytesToHex(symKey)
     ]);
@@ -332,7 +332,7 @@ export class NimGoNode {
     return await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_private_v1_symmetric_messages",
       [
-        pubsubTopic ? pubsubTopic : DefaultPubSubTopic,
+        pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
         "0x" + bytesToHex(symKey)
       ]
     );

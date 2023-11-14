@@ -1,4 +1,4 @@
-import { DefaultPubSubTopic, waitForRemotePeer } from "@waku/core";
+import { DefaultPubsubTopic, waitForRemotePeer } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
 import { createLightNode, Protocols } from "@waku/sdk";
 import { expect } from "chai";
@@ -12,7 +12,7 @@ import {
 
 import {
   customContentTopic,
-  customPubSubTopic,
+  customPubsubTopic,
   customTestDecoder,
   processQueriedMessages,
   sendMessages,
@@ -33,10 +33,10 @@ describe("Waku Store, custom pubsub topic", function () {
     nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
-      topic: [customPubSubTopic, DefaultPubSubTopic],
+      topic: [customPubsubTopic, DefaultPubsubTopic],
       relay: true
     });
-    await nwaku.ensureSubscriptions([customPubSubTopic, DefaultPubSubTopic]);
+    await nwaku.ensureSubscriptions([customPubsubTopic, DefaultPubsubTopic]);
   });
 
   afterEach(async function () {
@@ -45,12 +45,12 @@ describe("Waku Store, custom pubsub topic", function () {
   });
 
   it("Generator, custom pubsub topic", async function () {
-    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubSubTopic);
-    waku = await startAndConnectLightNode(nwaku, [customPubSubTopic]);
+    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubsubTopic);
+    waku = await startAndConnectLightNode(nwaku, [customPubsubTopic]);
     const messages = await processQueriedMessages(
       waku,
       [customTestDecoder],
-      customPubSubTopic
+      customPubsubTopic
     );
 
     expect(messages?.length).eq(totalMsgs);
@@ -64,18 +64,18 @@ describe("Waku Store, custom pubsub topic", function () {
     this.timeout(10000);
 
     const totalMsgs = 10;
-    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubSubTopic);
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubsubTopic);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
 
     waku = await startAndConnectLightNode(nwaku, [
-      customPubSubTopic,
-      DefaultPubSubTopic
+      customPubsubTopic,
+      DefaultPubsubTopic
     ]);
 
     const customMessages = await processQueriedMessages(
       waku,
       [customTestDecoder],
-      customPubSubTopic
+      customPubsubTopic
     );
     expect(customMessages?.length).eq(totalMsgs);
     const result1 = customMessages?.findIndex((msg) => {
@@ -86,7 +86,7 @@ describe("Waku Store, custom pubsub topic", function () {
     const testMessages = await processQueriedMessages(
       waku,
       [TestDecoder],
-      DefaultPubSubTopic
+      DefaultPubsubTopic
     );
     expect(testMessages?.length).eq(totalMsgs);
     const result2 = testMessages?.findIndex((msg) => {
@@ -98,22 +98,22 @@ describe("Waku Store, custom pubsub topic", function () {
   it("Generator, 2 nwaku nodes each with different pubsubtopics", async function () {
     this.timeout(10000);
 
-    // Set up and start a new nwaku node with Default PubSubtopic
+    // Set up and start a new nwaku node with Default Pubsubtopic
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
-      topic: [DefaultPubSubTopic],
+      topic: [DefaultPubsubTopic],
       relay: true
     });
-    await nwaku2.ensureSubscriptions([DefaultPubSubTopic]);
+    await nwaku2.ensureSubscriptions([DefaultPubsubTopic]);
 
     const totalMsgs = 10;
-    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubSubTopic);
-    await sendMessages(nwaku2, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubsubTopic);
+    await sendMessages(nwaku2, totalMsgs, TestContentTopic, DefaultPubsubTopic);
 
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      pubsubTopics: [customPubSubTopic, DefaultPubSubTopic]
+      pubsubTopics: [customPubsubTopic, DefaultPubsubTopic]
     });
     await waku.start();
 
@@ -131,12 +131,12 @@ describe("Waku Store, custom pubsub topic", function () {
       customMessages = await processQueriedMessages(
         waku,
         [customTestDecoder],
-        customPubSubTopic
+        customPubsubTopic
       );
       testMessages = await processQueriedMessages(
         waku,
         [TestDecoder],
-        DefaultPubSubTopic
+        DefaultPubsubTopic
       );
     }
   });

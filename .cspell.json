@@ -123,7 +123,7 @@
     "Привет",
     "مرحبا"
   ],
-  "flagWords": ["pubSub", "pubSubTopics", "pubSubTopic"],
+  "flagWords": ["pubSub: pubsub", "pubSubTopics: pubsubTopics", "pubSubTopic: pubsubTopic", "PubSub: Pubsub", "PubSubTopics: PubsubTopics", "PubSubTopic: PubsubTopic", "DefaultPubSubTopic: DefaultPubsubTopic"],
   "ignorePaths": [
     "package.json",
     "package-lock.json",

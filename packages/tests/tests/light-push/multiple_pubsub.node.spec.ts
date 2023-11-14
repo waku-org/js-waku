@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import {
   createEncoder,
-  DefaultPubSubTopic,
+  DefaultPubsubTopic,
   waitForRemotePeer
 } from "@waku/core";
 import { LightNode, Protocols, SendResult } from "@waku/interfaces";
@@ -22,25 +22,25 @@ import {
   TestEncoder
 } from "./utils.js";
 
-describe("Waku Light Push : Multiple PubSubtopics", function () {
+describe("Waku Light Push : Multiple PubsubTopics", function () {
   this.timeout(30000);
   let waku: LightNode;
   let nwaku: NimGoNode;
   let nwaku2: NimGoNode;
   let messageCollector: MessageCollector;
-  const customPubSubTopic = "/waku/2/custom-dapp/proto";
+  const customPubsubTopic = "/waku/2/custom-dapp/proto";
   const customContentTopic = "/test/2/waku-light-push/utf8";
   const customEncoder = createEncoder({
     contentTopic: customContentTopic,
-    pubsubTopic: customPubSubTopic
+    pubsubTopic: customPubsubTopic
   });
   let nimPeerId: PeerId;
 
   this.beforeEach(async function () {
     this.timeout(15000);
     [nwaku, waku] = await runNodes(this, [
-      customPubSubTopic,
-      DefaultPubSubTopic
+      customPubsubTopic,
+      DefaultPubsubTopic
     ]);
     messageCollector = new MessageCollector(nwaku);
     nimPeerId = await nwaku.getPeerId();
@@ -60,7 +60,7 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
 
     expect(
       await messageCollector.waitForMessages(1, {
-        pubsubTopic: customPubSubTopic
+        pubsubTopic: customPubsubTopic
       })
     ).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
@@ -83,38 +83,38 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
 
     expect(
       await messageCollector.waitForMessages(1, {
-        pubsubTopic: customPubSubTopic
+        pubsubTopic: customPubsubTopic
       })
     ).to.eq(true);
 
     expect(
       await messageCollector2.waitForMessages(1, {
-        pubsubTopic: DefaultPubSubTopic
+        pubsubTopic: DefaultPubsubTopic
       })
     ).to.eq(true);
 
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1",
       expectedContentTopic: customContentTopic,
-      expectedPubSubTopic: customPubSubTopic
+      expectedPubsubTopic: customPubsubTopic
     });
     messageCollector2.verifyReceivedMessage(0, {
       expectedMessageText: "M2",
       expectedContentTopic: TestContentTopic,
-      expectedPubSubTopic: DefaultPubSubTopic
+      expectedPubsubTopic: DefaultPubsubTopic
     });
   });
 
   it("Light push messages to 2 nwaku nodes each with different pubsubtopics", async function () {
-    // Set up and start a new nwaku node with Default PubSubtopic
+    // Set up and start a new nwaku node with Default PubsubTopic
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,
       relay: true,
-      topic: [DefaultPubSubTopic]
+      topic: [DefaultPubsubTopic]
     });
-    await nwaku2.ensureSubscriptions([DefaultPubSubTopic]);
+    await nwaku2.ensureSubscriptions([DefaultPubsubTopic]);
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
@@ -126,10 +126,10 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
     // While loop is done because of https://github.com/waku-org/js-waku/issues/1606
     while (
       !(await messageCollector.waitForMessages(1, {
-        pubsubTopic: customPubSubTopic
+        pubsubTopic: customPubsubTopic
       })) ||
       !(await messageCollector2.waitForMessages(1, {
-        pubsubTopic: DefaultPubSubTopic
+        pubsubTopic: DefaultPubsubTopic
       })) ||
       pushResponse1!.recipients[0].toString() ===
         pushResponse2!.recipients[0].toString()
@@ -145,12 +145,12 @@ describe("Waku Light Push : Multiple PubSubtopics", function () {
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1",
       expectedContentTopic: customContentTopic,
-      expectedPubSubTopic: customPubSubTopic
+      expectedPubsubTopic: customPubsubTopic
     });
     messageCollector2.verifyReceivedMessage(0, {
       expectedMessageText: "M2",
       expectedContentTopic: TestContentTopic,
-      expectedPubSubTopic: DefaultPubSubTopic
+      expectedPubsubTopic: DefaultPubsubTopic
     });
   });
 });
