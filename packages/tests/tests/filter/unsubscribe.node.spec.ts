@@ -1,5 +1,6 @@
-import { createDecoder, createEncoder, DefaultPubsubTopic } from "@waku/core";
+import { createDecoder, createEncoder } from "@waku/core";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 

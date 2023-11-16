@@ -6,12 +6,12 @@ import type {
   IBaseProtocol,
   Libp2pComponents,
   PubsubTopic,
-  ShardInfo
+  ShardingParams
 } from "@waku/interfaces";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import { shardInfoToPubsubTopics } from "@waku/utils";
 import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
 
-import { DefaultPubsubTopic } from "./constants.js";
 import { filterPeers } from "./filterPeers.js";
 import { StreamManager } from "./stream_manager.js";
 
@@ -97,7 +97,7 @@ export class BaseProtocol implements IBaseProtocol {
     return filterPeers(allPeersForProtocol, numPeers, maxBootstrapPeers);
   }
 
-  initializePubsubTopic(shardInfo?: ShardInfo): PubsubTopic[] {
+  initializePubsubTopic(shardInfo?: ShardingParams): PubsubTopic[] {
     return shardInfo
       ? shardInfoToPubsubTopics(shardInfo)
       : [DefaultPubsubTopic];

@@ -1,9 +1,10 @@
+import { createEncoder, waitForRemotePeer } from "@waku/core";
 import {
-  createEncoder,
   DefaultPubsubTopic,
-  waitForRemotePeer
-} from "@waku/core";
-import { LightNode, Protocols, ShardInfo } from "@waku/interfaces";
+  LightNode,
+  Protocols,
+  ShardingParams
+} from "@waku/interfaces";
 import { createLightNode, utf8ToBytes } from "@waku/sdk";
 import { Logger } from "@waku/utils";
 
@@ -19,7 +20,7 @@ export const messagePayload = { payload: utf8ToBytes(messageText) };
 export async function runNodes(
   context: Mocha.Context,
   pubsubTopics: string[],
-  shardInfo?: ShardInfo
+  shardInfo?: ShardingParams
 ): Promise<[NimGoNode, LightNode]> {
   const nwaku = new NimGoNode(makeLogFileName(context));
   await nwaku.start(
@@ -44,6 +45,13 @@ export async function runNodes(
   if (waku) {
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
+    if (
+      shardInfo &&
+      "contentTopics" in shardInfo &&
+      shardInfo.contentTopics.length > 0
+    ) {
+      await nwaku.ensureSubscriptionsAutosharding(shardInfo.contentTopics);
+    }
     await nwaku.ensureSubscriptions(pubsubTopics);
     return [nwaku, waku];
   } else {

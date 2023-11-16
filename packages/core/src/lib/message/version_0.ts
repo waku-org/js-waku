@@ -11,9 +11,7 @@ import type {
   SingleShardInfo
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
-
-import { DefaultPubsubTopic } from "../constants.js";
+import { determinePubsubTopic, Logger } from "@waku/utils";
 
 const log = new Logger("message:version-0");
 const OneMillion = BigInt(1_000_000);
@@ -128,9 +126,7 @@ export function createEncoder({
   return new Encoder(
     contentTopic,
     ephemeral,
-    pubsubTopicShardInfo
-      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
-      : DefaultPubsubTopic,
+    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
     metaSetter
   );
 }
@@ -193,9 +189,7 @@ export function createDecoder(
   pubsubTopicShardInfo?: SingleShardInfo
 ): Decoder {
   return new Decoder(
-    pubsubTopicShardInfo
-      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
-      : DefaultPubsubTopic,
+    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
     contentTopic
   );
 }

@@ -1,11 +1,6 @@
-import {
-  createDecoder,
-  DecodedMessage,
-  DefaultPubsubTopic,
-  waitForRemotePeer
-} from "@waku/core";
+import { createDecoder, DecodedMessage, waitForRemotePeer } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
+import { DefaultPubsubTopic, Protocols } from "@waku/interfaces";
 import {
   generatePrivateKey,
   generateSymmetricKey,

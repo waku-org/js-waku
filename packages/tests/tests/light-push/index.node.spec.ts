@@ -1,5 +1,10 @@
-import { createEncoder, DefaultPubsubTopic } from "@waku/core";
-import { IRateLimitProof, LightNode, SendError } from "@waku/interfaces";
+import { createEncoder } from "@waku/core";
+import {
+  DefaultPubsubTopic,
+  IRateLimitProof,
+  LightNode,
+  SendError
+} from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 

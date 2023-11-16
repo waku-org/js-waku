@@ -1,5 +1,6 @@
-import { DefaultPubsubTopic, waitForRemotePeer } from "@waku/core";
+import { waitForRemotePeer } from "@waku/core";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";

@@ -1,6 +1,6 @@
-import { DefaultPubsubTopic, waitForRemotePeer } from "@waku/core";
+import { waitForRemotePeer } from "@waku/core";
 import type { LightNode, RelayNode } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
+import { DefaultPubsubTopic, Protocols } from "@waku/interfaces";
 import { createLightNode, createRelayNode } from "@waku/sdk";
 import { expect } from "chai";
 

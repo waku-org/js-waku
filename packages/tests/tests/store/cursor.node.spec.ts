@@ -1,5 +1,6 @@
-import { createCursor, DecodedMessage, DefaultPubsubTopic } from "@waku/core";
+import { createCursor, DecodedMessage } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 import { expect } from "chai";
 
