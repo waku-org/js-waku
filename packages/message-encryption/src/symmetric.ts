@@ -1,13 +1,14 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
-import type {
-  EncoderOptions as BaseEncoderOptions,
-  IDecoder,
-  IEncoder,
-  IMessage,
-  IMetaSetter,
-  IProtoMessage,
-  PubsubTopic,
-  SingleShardInfo
+import {
+  type EncoderOptions as BaseEncoderOptions,
+  DefaultPubsubTopic,
+  type IDecoder,
+  type IEncoder,
+  type IMessage,
+  type IMetaSetter,
+  type IProtoMessage,
+  type PubsubTopic,
+  type SingleShardInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { determinePubsubTopic, Logger } from "@waku/utils";
@@ -98,6 +99,7 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
+  pubsubTopic = DefaultPubsubTopic,
   pubsubTopicShardInfo,
   contentTopic,
   symKey,
@@ -106,7 +108,7 @@ export function createEncoder({
   metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
+    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
     contentTopic,
     symKey,
     sigPrivKey,
@@ -194,7 +196,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   symKey: Uint8Array,
-  pubsubTopicShardInfo?: SingleShardInfo
+  pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
 ): Decoder {
   return new Decoder(
     determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
