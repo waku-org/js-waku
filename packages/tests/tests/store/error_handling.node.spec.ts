@@ -42,7 +42,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `PubSub topic ${customShardedPubsubTopic1} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
+          `Pubsub topic ${customShardedPubsubTopic1} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
         )
       ) {
         throw err;
@@ -107,7 +107,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `PubSub topic ${customShardedPubsubTopic1} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
+          `Pubsub topic ${customShardedPubsubTopic1} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
         )
       ) {
         throw err;
@@ -167,7 +167,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `PubSub topic ${customShardedPubsubTopic1} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
+          `Pubsub topic ${customShardedPubsubTopic1} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
         )
       ) {
         throw err;
