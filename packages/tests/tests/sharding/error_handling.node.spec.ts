@@ -1,8 +1,10 @@
 import { DefaultPubsubTopic } from "@waku/core";
 import { createDecoder, createEncoder } from "@waku/sdk";
 
+import { createTestShardedTopic } from "../../src";
+
 describe("Static Sharding: error handling", function () {
-  const customPubsubTopic = "/waku/2/rs/3/1";
+  const customPubsubTopic = createTestShardedTopic(3, 1);
 
   it("Decoder with custom pubSubTopic", async function () {
     try {

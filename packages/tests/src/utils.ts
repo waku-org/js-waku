@@ -20,3 +20,8 @@ export function generateTestData(topicCount: number): {
     decoders
   };
 }
+
+// Utility to generate sharded pubsub topic string
+export function createTestShardedTopic(cluster: number, index: number): string {
+  return `/waku/2/rs/${cluster}/${index}`;
+}

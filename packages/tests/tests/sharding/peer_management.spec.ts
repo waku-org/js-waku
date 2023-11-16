@@ -10,6 +10,7 @@ import { delay } from "../../src/delay.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
 import { tearDownNodes } from "../../src/teardown.js";
+import { createTestShardedTopic } from "../../src/utils.js";
 
 chai.use(chaiAsPromised);
 
@@ -38,7 +39,7 @@ describe("Static Sharding: Peer Management", function () {
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
       this.timeout(100_000);
 
-      const pubsubTopics = ["/waku/2/rs/18/2"];
+      const pubsubTopics = [createTestShardedTopic(18, 2)];
       const shardInfo: ShardInfo = { cluster: 18, indexList: [2] };
 
       await nwaku1.start({
@@ -108,9 +109,9 @@ describe("Static Sharding: Peer Management", function () {
 
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
-      const pubsubTopicsToDial = ["/waku/2/rs/18/2"];
+      const pubsubTopicsToDial = [createTestShardedTopic(18, 2)];
       const shardInfoToDial: ShardInfo = { cluster: 18, indexList: [2] };
-      const pubsubTopicsToIgnore = ["/waku/2/rs/18/3"];
+      const pubsubTopicsToIgnore = [createTestShardedTopic(18, 3)];
 
       // this service node is not subscribed to the shard
       await nwaku1.start({

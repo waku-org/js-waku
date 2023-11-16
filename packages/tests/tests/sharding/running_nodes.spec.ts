@@ -2,12 +2,12 @@ import { LightNode, ShardInfo, SingleTopicShardInfo } from "@waku/interfaces";
 import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
-import { tearDownNodes } from "../../src/index.js";
+import { createTestShardedTopic, tearDownNodes } from "../../src/index.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
 
-const PubsubTopic1 = "/waku/2/rs/0/2";
-const PubsubTopic2 = "/waku/2/rs/0/3";
+const PubsubTopic1 = createTestShardedTopic(0, 2);
+const PubsubTopic2 = createTestShardedTopic(0, 3);
 const shardInfoFirstShard: ShardInfo = { cluster: 0, indexList: [2] };
 const shardInfoBothShards: ShardInfo = { cluster: 0, indexList: [2, 3] };
 const singleTopicShardInfo1: SingleTopicShardInfo = { cluster: 0, index: 2 };
