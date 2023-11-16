@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { ensureValidContentTopic } from "./sharding";
+import { contentTopicToShardIndex, ensureValidContentTopic } from "./sharding";
 
 const testInvalidCases = (
   contentTopics: string[],
@@ -84,5 +84,17 @@ describe("ensureValidContentTopic", () => {
 
   it("throws on content topic with empty encoding field", () => {
     testInvalidCases(["/0/myapp/1/mytopic/"], "Encoding field cannot be empty");
+  });
+});
+
+describe("contentTopicToShardIndex", () => {
+  it("converts content topics to expected shard index", () => {
+    const contentTopics: [string, number][] = [
+      ["/toychat/2/huilong/proto", 3],
+      ["/myapp/1/latest/proto", 0]
+    ];
+    for (const [topic, shard] of contentTopics) {
+      expect(contentTopicToShardIndex(topic)).to.eq(shard);
+    }
   });
 });
