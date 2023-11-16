@@ -31,7 +31,7 @@ import {
 } from "../../src/index.js";
 
 import {
-  customContentTopic,
+  customContentTopic1,
   log,
   messageText,
   processQueriedMessages,
@@ -43,7 +43,7 @@ import {
   totalMsgs
 } from "./utils.js";
 
-const secondDecoder = createDecoder(customContentTopic, DefaultPubsubTopic);
+const secondDecoder = createDecoder(customContentTopic1, DefaultPubsubTopic);
 
 describe("Waku Store, general", function () {
   this.timeout(15000);
@@ -122,7 +122,7 @@ describe("Waku Store, general", function () {
     await nwaku.sendMessage(
       NimGoNode.toMessageRpcQuery({
         payload: utf8ToBytes("M2"),
-        contentTopic: customContentTopic
+        contentTopic: customContentTopic1
       }),
       DefaultPubsubTopic
     );
@@ -135,7 +135,7 @@ describe("Waku Store, general", function () {
       DefaultPubsubTopic
     );
     expect(messageCollector.hasMessage(TestContentTopic, "M1")).to.eq(true);
-    expect(messageCollector.hasMessage(customContentTopic, "M2")).to.eq(true);
+    expect(messageCollector.hasMessage(customContentTopic1, "M2")).to.eq(true);
   });
 
   it("Query generator for multiple messages with different content topic format", async function () {

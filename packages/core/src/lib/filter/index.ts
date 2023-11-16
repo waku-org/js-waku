@@ -20,6 +20,7 @@ import { WakuMessage } from "@waku/proto";
 import {
   ensurePubsubTopicIsConfigured,
   groupByContentTopic,
+  shardInfoToPubsubTopics,
   toAsyncIterator
 } from "@waku/utils";
 import { Logger } from "@waku/utils";
@@ -279,7 +280,9 @@ class Filter extends BaseProtocol implements IReceiver {
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(FilterCodecs.SUBSCRIBE, libp2p.components);
 
-    this.pubsubTopics = options?.pubsubTopics || [DefaultPubsubTopic];
+    this.pubsubTopics = options?.shardInfo
+      ? shardInfoToPubsubTopics(options.shardInfo)
+      : [DefaultPubsubTopic];
 
     libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
       log.error("Failed to register ", FilterCodecs.PUSH, e);

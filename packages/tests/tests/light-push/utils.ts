@@ -1,5 +1,9 @@
-import { createEncoder, waitForRemotePeer } from "@waku/core";
-import { LightNode, Protocols } from "@waku/interfaces";
+import {
+  createEncoder,
+  DefaultPubsubTopic,
+  waitForRemotePeer
+} from "@waku/core";
+import { LightNode, Protocols, ShardInfo } from "@waku/interfaces";
 import { createLightNode, utf8ToBytes } from "@waku/sdk";
 import { Logger } from "@waku/utils";
 
@@ -14,18 +18,22 @@ export const messagePayload = { payload: utf8ToBytes(messageText) };
 
 export async function runNodes(
   context: Mocha.Context,
-  pubsubTopics: string[]
+  pubsubTopics: string[],
+  shardInfo?: ShardInfo
 ): Promise<[NimGoNode, LightNode]> {
   const nwaku = new NimGoNode(makeLogFileName(context));
   await nwaku.start(
-    { lightpush: true, relay: true, topic: pubsubTopics },
+    { lightpush: true, relay: true, pubsubTopic: pubsubTopics },
     { retries: 3 }
   );
 
   let waku: LightNode | undefined;
   try {
     waku = await createLightNode({
-      pubsubTopics: pubsubTopics,
+      ...((pubsubTopics.length !== 1 ||
+        pubsubTopics[0] !== DefaultPubsubTopic) && {
+        shardInfo: shardInfo
+      }),
       staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();

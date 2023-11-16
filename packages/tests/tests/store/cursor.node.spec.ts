@@ -6,7 +6,7 @@ import { expect } from "chai";
 import { makeLogFileName, NimGoNode, tearDownNodes } from "../../src/index.js";
 
 import {
-  customPubsubTopic,
+  customShardedPubsubTopic1,
   sendMessages,
   startAndConnectLightNode,
   TestContentTopic,
@@ -179,7 +179,7 @@ describe("Waku Store, cursor", function () {
         messages.push(msg as DecodedMessage);
       }
     }
-    messages[5].pubsubTopic = customPubsubTopic;
+    messages[5].pubsubTopic = customShardedPubsubTopic1;
     const cursor = await createCursor(messages[5]);
 
     try {
@@ -193,7 +193,7 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Cursor pubsub topic (${customPubsubTopic}) does not match decoder pubsub topic (${DefaultPubsubTopic})`
+          `Cursor pubsub topic (${customShardedPubsubTopic1}) does not match decoder pubsub topic (${DefaultPubsubTopic})`
         )
       ) {
         throw err;

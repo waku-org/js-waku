@@ -1,4 +1,4 @@
-import { createEncoder, DefaultPubsubTopic } from "@waku/core";
+import { createEncoder } from "@waku/core";
 import { IRateLimitProof, RelayNode, SendError } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -34,11 +34,9 @@ describe("Waku Relay, Publish", function () {
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({
-        pubsubTopics: [DefaultPubsubTopic],
         staticNoiseKey: NOISE_KEY_1
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
-        pubsubTopics: [DefaultPubsubTopic],
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
@@ -130,7 +128,7 @@ describe("Waku Relay, Publish", function () {
 
   it("Fails to publish message with wrong pubsubtopic", async function () {
     const wrong_encoder = createEncoder({
-      pubsubTopic: "wrong",
+      pubsubTopic: { cluster: 3, index: 1 },
       contentTopic: TestContentTopic
     });
     const pushResponse = await waku1.relay.send(wrong_encoder, {

@@ -22,8 +22,10 @@ import type {
   ProtocolCreateOptions,
   RelayNode
 } from "@waku/interfaces";
+import type { PubsubTopic } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
+import { shardInfoToPubsubTopics } from "@waku/utils";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 import { identifyService } from "libp2p/identify";
 import { pingService } from "libp2p/ping";
@@ -46,8 +48,12 @@ export async function createLightNode(
 ): Promise<LightNode> {
   options = options ?? {};
 
-  if (!options.pubsubTopics) {
-    options.pubsubTopics = [DefaultPubsubTopic];
+  let pubsubTopics: PubsubTopic[];
+
+  if (!options.shardInfo) {
+    pubsubTopics = [DefaultPubsubTopic];
+  } else {
+    pubsubTopics = shardInfoToPubsubTopics(options.shardInfo);
   }
 
   const libp2pOptions = options?.libp2p ?? {};
@@ -69,7 +75,7 @@ export async function createLightNode(
 
   return new WakuNode(
     options ?? {},
-    options.pubsubTopics,
+    pubsubTopics,
     libp2p,
     store,
     lightPush,
@@ -86,8 +92,12 @@ export async function createRelayNode(
 ): Promise<RelayNode> {
   options = options ?? {};
 
-  if (!options.pubsubTopics) {
-    options.pubsubTopics = [DefaultPubsubTopic];
+  let pubsubTopics: PubsubTopic[];
+
+  if (!options.shardInfo) {
+    pubsubTopics = [DefaultPubsubTopic];
+  } else {
+    pubsubTopics = shardInfoToPubsubTopics(options.shardInfo);
   }
 
   const libp2pOptions = options?.libp2p ?? {};
@@ -107,7 +117,7 @@ export async function createRelayNode(
 
   return new WakuNode(
     options,
-    options.pubsubTopics,
+    pubsubTopics,
     libp2p,
     undefined,
     undefined,
@@ -134,8 +144,12 @@ export async function createFullNode(
 ): Promise<FullNode> {
   options = options ?? {};
 
-  if (!options.pubsubTopics) {
-    options.pubsubTopics = [DefaultPubsubTopic];
+  let pubsubTopics: PubsubTopic[];
+
+  if (!options.shardInfo) {
+    pubsubTopics = [DefaultPubsubTopic];
+  } else {
+    pubsubTopics = shardInfoToPubsubTopics(options.shardInfo);
   }
 
   const libp2pOptions = options?.libp2p ?? {};
@@ -158,7 +172,7 @@ export async function createFullNode(
 
   return new WakuNode(
     options ?? {},
-    options.pubsubTopics,
+    pubsubTopics,
     libp2p,
     store,
     lightPush,

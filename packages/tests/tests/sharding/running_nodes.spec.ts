@@ -1,4 +1,4 @@
-import { LightNode } from "@waku/interfaces";
+import { LightNode, ShardInfo, SingleTopicShardInfo } from "@waku/interfaces";
 import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -8,7 +8,10 @@ import { NimGoNode } from "../../src/node/node.js";
 
 const PubsubTopic1 = "/waku/2/rs/0/2";
 const PubsubTopic2 = "/waku/2/rs/0/3";
-
+const shardInfoFirstShard: ShardInfo = { cluster: 0, indexList: [2] };
+const shardInfoBothShards: ShardInfo = { cluster: 0, indexList: [2, 3] };
+const singleTopicShardInfo1: SingleTopicShardInfo = { cluster: 0, index: 2 };
+const singleTopicShardInfo2: SingleTopicShardInfo = { cluster: 0, index: 3 };
 const ContentTopic = "/waku/2/content/test.js";
 
 describe("Static Sharding: Running Nodes", () => {
@@ -29,17 +32,17 @@ describe("Static Sharding: Running Nodes", () => {
   it("configure the node with multiple pubsub topics", async function () {
     this.timeout(15_000);
     waku = await createLightNode({
-      pubsubTopics: [PubsubTopic1, PubsubTopic2]
+      shardInfo: shardInfoBothShards
     });
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: PubsubTopic1
+      pubsubTopic: singleTopicShardInfo1
     });
 
     const encoder2 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: PubsubTopic2
+      pubsubTopic: singleTopicShardInfo2
     });
 
     const request1 = await waku.lightPush.send(encoder1, {
@@ -57,13 +60,13 @@ describe("Static Sharding: Running Nodes", () => {
   it("using a protocol with unconfigured pubsub topic should fail", async function () {
     this.timeout(15_000);
     waku = await createLightNode({
-      pubsubTopics: [PubsubTopic1]
+      shardInfo: shardInfoFirstShard
     });
 
     // use a pubsub topic that is not configured
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: PubsubTopic2
+      pubsubTopic: singleTopicShardInfo2
     });
 
     try {

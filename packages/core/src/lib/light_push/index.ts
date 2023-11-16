@@ -13,7 +13,8 @@ import {
 import { PushResponse } from "@waku/proto";
 import {
   ensurePubsubTopicIsConfigured,
-  isMessageSizeUnderCap
+  isMessageSizeUnderCap,
+  shardInfoToPubsubTopics
 } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import all from "it-all";
@@ -50,7 +51,9 @@ class LightPush extends BaseProtocol implements ILightPush {
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components);
-    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubsubTopic];
+    this.pubsubTopics = options?.shardInfo
+      ? shardInfoToPubsubTopics(options.shardInfo)
+      : [DefaultPubsubTopic];
   }
 
   private async preparePushMessage(

@@ -1,10 +1,12 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
+import { createEncoder, waitForRemotePeer } from "@waku/core";
 import {
-  createEncoder,
-  DefaultPubsubTopic,
-  waitForRemotePeer
-} from "@waku/core";
-import { LightNode, Protocols, SendResult } from "@waku/interfaces";
+  LightNode,
+  Protocols,
+  SendResult,
+  ShardInfo,
+  SingleTopicShardInfo
+} from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -15,12 +17,7 @@ import {
   tearDownNodes
 } from "../../src/index.js";
 
-import {
-  messageText,
-  runNodes,
-  TestContentTopic,
-  TestEncoder
-} from "./utils.js";
+import { messageText, runNodes } from "./utils.js";
 
 describe("Waku Light Push : Multiple PubsubTopics", function () {
   this.timeout(30000);
@@ -28,20 +25,32 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
   let nwaku: NimGoNode;
   let nwaku2: NimGoNode;
   let messageCollector: MessageCollector;
-  const customPubsubTopic = "/waku/2/custom-dapp/proto";
-  const customContentTopic = "/test/2/waku-light-push/utf8";
-  const customEncoder = createEncoder({
-    contentTopic: customContentTopic,
-    pubsubTopic: customPubsubTopic
+
+  const customPubsubTopic1 = "/waku/2/rs/3/1";
+  const customPubsubTopic2 = "/waku/2/rs/3/2";
+  const shardInfo: ShardInfo = { cluster: 3, indexList: [1, 2] };
+  const singleTopicShardInfo1: SingleTopicShardInfo = { cluster: 3, index: 1 };
+  const singleTopicShardInfo2: SingleTopicShardInfo = { cluster: 3, index: 2 };
+  const customContentTopic1 = "/test/2/waku-light-push/utf8";
+  const customContentTopic2 = "/test/3/waku-light-push/utf8";
+  const customEncoder1 = createEncoder({
+    pubsubTopic: singleTopicShardInfo1,
+    contentTopic: customContentTopic1
   });
+  const customEncoder2 = createEncoder({
+    pubsubTopic: singleTopicShardInfo2,
+    contentTopic: customContentTopic2
+  });
+
   let nimPeerId: PeerId;
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [
-      customPubsubTopic,
-      DefaultPubsubTopic
-    ]);
+    [nwaku, waku] = await runNodes(
+      this,
+      [customPubsubTopic1, customPubsubTopic2],
+      shardInfo
+    );
     messageCollector = new MessageCollector(nwaku);
     nimPeerId = await nwaku.getPeerId();
   });
@@ -52,7 +61,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
   });
 
   it("Push message on custom pubsubTopic", async function () {
-    const pushResponse = await waku.lightPush.send(customEncoder, {
+    const pushResponse = await waku.lightPush.send(customEncoder1, {
       payload: utf8ToBytes(messageText)
     });
 
@@ -60,20 +69,20 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
 
     expect(
       await messageCollector.waitForMessages(1, {
-        pubsubTopic: customPubsubTopic
+        pubsubTopic: customPubsubTopic1
       })
     ).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
-      expectedContentTopic: customContentTopic
+      expectedContentTopic: customContentTopic1
     });
   });
 
   it("Subscribe and receive messages on 2 different pubsubtopics", async function () {
-    const pushResponse1 = await waku.lightPush.send(customEncoder, {
+    const pushResponse1 = await waku.lightPush.send(customEncoder1, {
       payload: utf8ToBytes("M1")
     });
-    const pushResponse2 = await waku.lightPush.send(TestEncoder, {
+    const pushResponse2 = await waku.lightPush.send(customEncoder2, {
       payload: utf8ToBytes("M2")
     });
     expect(pushResponse1.recipients[0].toString()).to.eq(nimPeerId.toString());
@@ -83,25 +92,25 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
 
     expect(
       await messageCollector.waitForMessages(1, {
-        pubsubTopic: customPubsubTopic
+        pubsubTopic: customPubsubTopic1
       })
     ).to.eq(true);
 
     expect(
       await messageCollector2.waitForMessages(1, {
-        pubsubTopic: DefaultPubsubTopic
+        pubsubTopic: customPubsubTopic2
       })
     ).to.eq(true);
 
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1",
-      expectedContentTopic: customContentTopic,
-      expectedPubsubTopic: customPubsubTopic
+      expectedContentTopic: customContentTopic1,
+      expectedPubsubTopic: customPubsubTopic1
     });
     messageCollector2.verifyReceivedMessage(0, {
       expectedMessageText: "M2",
-      expectedContentTopic: TestContentTopic,
-      expectedPubsubTopic: DefaultPubsubTopic
+      expectedContentTopic: customContentTopic2,
+      expectedPubsubTopic: customPubsubTopic2
     });
   });
 
@@ -112,9 +121,9 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      topic: [DefaultPubsubTopic]
+      pubsubTopic: [customPubsubTopic2]
     });
-    await nwaku2.ensureSubscriptions([DefaultPubsubTopic]);
+    await nwaku2.ensureSubscriptions([customPubsubTopic2]);
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
@@ -126,31 +135,31 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
     // While loop is done because of https://github.com/waku-org/js-waku/issues/1606
     while (
       !(await messageCollector.waitForMessages(1, {
-        pubsubTopic: customPubsubTopic
+        pubsubTopic: customPubsubTopic1
       })) ||
       !(await messageCollector2.waitForMessages(1, {
-        pubsubTopic: DefaultPubsubTopic
+        pubsubTopic: customPubsubTopic2
       })) ||
       pushResponse1!.recipients[0].toString() ===
         pushResponse2!.recipients[0].toString()
     ) {
-      pushResponse1 = await waku.lightPush.send(customEncoder, {
+      pushResponse1 = await waku.lightPush.send(customEncoder1, {
         payload: utf8ToBytes("M1")
       });
-      pushResponse2 = await waku.lightPush.send(TestEncoder, {
+      pushResponse2 = await waku.lightPush.send(customEncoder2, {
         payload: utf8ToBytes("M2")
       });
     }
 
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1",
-      expectedContentTopic: customContentTopic,
-      expectedPubsubTopic: customPubsubTopic
+      expectedContentTopic: customContentTopic1,
+      expectedPubsubTopic: customPubsubTopic1
     });
     messageCollector2.verifyReceivedMessage(0, {
       expectedMessageText: "M2",
-      expectedContentTopic: TestContentTopic,
-      expectedPubsubTopic: DefaultPubsubTopic
+      expectedContentTopic: customContentTopic2,
+      expectedPubsubTopic: customPubsubTopic2
     });
   });
 });

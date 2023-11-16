@@ -7,10 +7,11 @@ import type {
   IMetaSetter,
   IProtoMessage,
   IRateLimitProof,
-  PubsubTopic
+  PubsubTopic,
+  SingleTopicShardInfo
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import { Logger } from "@waku/utils";
+import { Logger, singleTopicShardInfoToPubsubTopic } from "@waku/utils";
 
 import { DefaultPubsubTopic } from "../constants.js";
 
@@ -124,7 +125,20 @@ export function createEncoder({
   ephemeral,
   metaSetter
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, ephemeral, pubsubTopic, metaSetter);
+  if (typeof pubsubTopic === "string" && pubsubTopic !== DefaultPubsubTopic) {
+    throw new Error(
+      `Error: cannot use custom named pubsub topic: ${pubsubTopic}, must be ${DefaultPubsubTopic}`
+    );
+  }
+
+  return new Encoder(
+    contentTopic,
+    ephemeral,
+    typeof pubsubTopic === "string"
+      ? pubsubTopic
+      : singleTopicShardInfoToPubsubTopic(pubsubTopic),
+    metaSetter
+  );
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
@@ -182,7 +196,17 @@ export class Decoder implements IDecoder<DecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  pubsubTopic: PubsubTopic = DefaultPubsubTopic
+  pubsubTopic: SingleTopicShardInfo | PubsubTopic = DefaultPubsubTopic
 ): Decoder {
-  return new Decoder(pubsubTopic, contentTopic);
+  if (typeof pubsubTopic === "string" && pubsubTopic !== DefaultPubsubTopic) {
+    throw new Error(
+      `Error: cannot use custom named pubsub topic: ${pubsubTopic}, must be ${DefaultPubsubTopic}`
+    );
+  }
+  return new Decoder(
+    typeof pubsubTopic === "string"
+      ? pubsubTopic
+      : singleTopicShardInfoToPubsubTopic(pubsubTopic),
+    contentTopic
+  );
 }

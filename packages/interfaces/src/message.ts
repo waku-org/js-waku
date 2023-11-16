@@ -1,4 +1,9 @@
+import { ShardInfo } from "./enr.js";
 import type { PubsubTopic } from "./misc.js";
+
+export interface SingleTopicShardInfo extends Omit<ShardInfo, "indexList"> {
+  index: number;
+}
 
 export interface IRateLimitProof {
   proof: Uint8Array;
@@ -38,7 +43,7 @@ export interface IMetaSetter {
 }
 
 export interface EncoderOptions {
-  pubsubTopic?: PubsubTopic;
+  pubsubTopic?: SingleTopicShardInfo | PubsubTopic;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
   /**

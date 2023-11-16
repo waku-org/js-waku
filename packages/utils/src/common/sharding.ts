@@ -1,4 +1,14 @@
-import type { PubsubTopic, ShardInfo } from "@waku/interfaces";
+import type {
+  PubsubTopic,
+  ShardInfo,
+  SingleTopicShardInfo
+} from "@waku/interfaces";
+
+export const singleTopicShardInfoToPubsubTopic = (
+  shardInfo: SingleTopicShardInfo
+): PubsubTopic => {
+  return `/waku/2/rs/${shardInfo.cluster}/${shardInfo.index}`;
+};
 
 export const shardInfoToPubsubTopics = (
   shardInfo: ShardInfo

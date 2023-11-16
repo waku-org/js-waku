@@ -10,7 +10,11 @@ import {
   PubsubTopic
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
-import { ensurePubsubTopicIsConfigured, isDefined } from "@waku/utils";
+import {
+  ensurePubsubTopicIsConfigured,
+  isDefined,
+  shardInfoToPubsubTopics
+} from "@waku/utils";
 import { Logger } from "@waku/utils";
 import { concat, utf8ToBytes } from "@waku/utils/bytes";
 import all from "it-all";
@@ -80,7 +84,9 @@ class Store extends BaseProtocol implements IStore {
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components);
-    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubsubTopic];
+    this.pubsubTopics = options?.shardInfo
+      ? shardInfoToPubsubTopics(options.shardInfo)
+      : [DefaultPubsubTopic];
   }
 
   /**
