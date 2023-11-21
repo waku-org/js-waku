@@ -1,6 +1,6 @@
 import {
   DecodedMessage,
-  DefaultPubSubTopic,
+  DefaultPubsubTopic,
   waitForRemotePeer
 } from "@waku/core";
 import { RelayNode } from "@waku/interfaces";
@@ -21,7 +21,7 @@ import {
   CustomContentTopic,
   CustomDecoder,
   CustomEncoder,
-  CustomPubSubTopic,
+  CustomPubsubTopic,
   TestContentTopic,
   TestDecoder,
   TestEncoder
@@ -40,12 +40,12 @@ describe("Waku Relay, multiple pubsub topics", function () {
 
   [
     {
-      pubsub: CustomPubSubTopic,
+      pubsub: CustomPubsubTopic,
       encoder: CustomEncoder,
       decoder: CustomDecoder
     },
     {
-      pubsub: DefaultPubSubTopic,
+      pubsub: DefaultPubsubTopic,
       encoder: TestEncoder,
       decoder: TestDecoder
     }
@@ -155,16 +155,16 @@ describe("Waku Relay, multiple pubsub topics", function () {
     // Waku1 and waku2 are using multiple pubsub topis
     [waku1, waku2, waku3] = await Promise.all([
       createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
+        pubsubTopics: [DefaultPubsubTopic, CustomPubsubTopic],
         staticNoiseKey: NOISE_KEY_1
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic, CustomPubSubTopic],
+        pubsubTopics: [DefaultPubsubTopic, CustomPubsubTopic],
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubsubTopic],
         staticNoiseKey: NOISE_KEY_3
       }).then((waku) => waku.start().then(() => waku))
     ]);
@@ -197,7 +197,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
     await waku3.relay.subscribe([TestDecoder], msgCollector3.callback);
 
     // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
-    // However onlt waku1 and waku2 are receiving messages on the CustomPubSubTopic
+    // However onlt waku1 and waku2 are receiving messages on the CustomPubsubTopic
     await waku1.relay.send(TestEncoder, { payload: utf8ToBytes("M1") });
     await waku1.relay.send(CustomEncoder, { payload: utf8ToBytes("M2") });
     await waku2.relay.send(TestEncoder, { payload: utf8ToBytes("M3") });
@@ -221,11 +221,11 @@ describe("Waku Relay, multiple pubsub topics", function () {
   it("n1 and n2 uses a custom pubsub, n3 uses the default pubsub", async function () {
     [waku1, waku2, waku3] = await Promise.all([
       createRelayNode({
-        pubsubTopics: [CustomPubSubTopic],
+        pubsubTopics: [CustomPubsubTopic],
         staticNoiseKey: NOISE_KEY_1
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
-        pubsubTopics: [CustomPubSubTopic],
+        pubsubTopics: [CustomPubsubTopic],
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku)),
@@ -275,6 +275,6 @@ describe("Waku Relay, multiple pubsub topics", function () {
     await waku3NoMsgPromise;
 
     expect(bytesToUtf8(waku2ReceivedMsg.payload!)).to.eq(messageText);
-    expect(waku2ReceivedMsg.pubsubTopic).to.eq(CustomPubSubTopic);
+    expect(waku2ReceivedMsg.pubsubTopic).to.eq(CustomPubsubTopic);
   });
 });

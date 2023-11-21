@@ -67,7 +67,7 @@
     "tail": "^2.2.6"
   },
   "devDependencies": {
-    "@libp2p/bootstrap": "^9.0.2",
+    "@libp2p/bootstrap": "^9.0.10",
     "@types/chai": "^4.3.5",
     "@types/dockerode": "^3.3.19",
     "@types/mocha": "^10.0.1",

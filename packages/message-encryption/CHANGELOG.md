@@ -68,6 +68,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.17 to 0.0.18
     * @waku/utils bumped from 0.0.10 to 0.0.11
 
+## [0.0.23](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.22...message-encryption-v0.0.23) (2023-11-01)
+
+
+### Features
+
+* Logger with log levels ([#1672](https://github.com/waku-org/js-waku/issues/1672)) ([0f7d63e](https://github.com/waku-org/js-waku/commit/0f7d63ef93716223dc8fea7e8cb09e12e267b386))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.24 to 0.0.25
+    * @waku/interfaces bumped from 0.0.19 to 0.0.20
+    * @waku/utils bumped from 0.0.12 to 0.0.13
+
 ## [0.0.22](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.21...message-encryption-v0.0.22) (2023-10-16)
 
 

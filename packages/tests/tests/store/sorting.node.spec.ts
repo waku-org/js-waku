@@ -1,4 +1,4 @@
-import { DecodedMessage, DefaultPubSubTopic, PageDirection } from "@waku/core";
+import { DecodedMessage, DefaultPubsubTopic, PageDirection } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
 
 import { makeLogFileName, NimGoNode, tearDownNodes } from "../../src/index.js";
@@ -34,7 +34,7 @@ describe("Waku Store, sorting", function () {
         nwaku,
         totalMsgs,
         TestContentTopic,
-        DefaultPubSubTopic
+        DefaultPubsubTopic
       );
       waku = await startAndConnectLightNode(nwaku);
 
@@ -69,7 +69,7 @@ describe("Waku Store, sorting", function () {
         nwaku,
         totalMsgs,
         TestContentTopic,
-        DefaultPubSubTopic
+        DefaultPubsubTopic
       );
       waku = await startAndConnectLightNode(nwaku);
 

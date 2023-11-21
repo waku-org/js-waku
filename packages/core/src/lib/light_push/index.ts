@@ -6,12 +6,15 @@ import {
   IMessage,
   Libp2p,
   ProtocolCreateOptions,
-  PubSubTopic,
+  PubsubTopic,
   SendError,
   SendResult
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
-import { ensurePubsubTopicIsConfigured, isSizeUnderCap } from "@waku/utils";
+import {
+  ensurePubsubTopicIsConfigured,
+  isMessageSizeUnderCap
+} from "@waku/utils";
 import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -19,7 +22,7 @@ import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
 import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubSubTopic } from "../constants.js";
+import { DefaultPubsubTopic } from "../constants.js";
 
 import { PushRpc } from "./push_rpc.js";
 
@@ -42,12 +45,12 @@ type PreparePushMessageResult =
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 class LightPush extends BaseProtocol implements ILightPush {
-  private readonly pubsubTopics: PubSubTopic[];
+  private readonly pubsubTopics: PubsubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components);
-    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubSubTopic];
+    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubsubTopic];
   }
 
   private async preparePushMessage(
@@ -61,7 +64,7 @@ class LightPush extends BaseProtocol implements ILightPush {
         return { query: null, error: SendError.EMPTY_PAYLOAD };
       }
 
-      if (!isSizeUnderCap(message.payload)) {
+      if (!(await isMessageSizeUnderCap(encoder, message))) {
         log.error("Failed to send waku light push: message is bigger than 1MB");
         return { query: null, error: SendError.SIZE_TOO_BIG };
       }

@@ -1,4 +1,4 @@
-import { createCursor, DecodedMessage, DefaultPubSubTopic } from "@waku/core";
+import { createCursor, DecodedMessage, DefaultPubsubTopic } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -6,7 +6,7 @@ import { expect } from "chai";
 import { makeLogFileName, NimGoNode, tearDownNodes } from "../../src/index.js";
 
 import {
-  customPubSubTopic,
+  customPubsubTopic,
   sendMessages,
   startAndConnectLightNode,
   TestContentTopic,
@@ -45,7 +45,7 @@ describe("Waku Store, cursor", function () {
         nwaku,
         messageCount,
         TestContentTopic,
-        DefaultPubSubTopic
+        DefaultPubsubTopic
       );
       waku = await startAndConnectLightNode(nwaku);
 
@@ -90,7 +90,7 @@ describe("Waku Store, cursor", function () {
   });
 
   it("Reusing cursor across nodes", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
     waku = await startAndConnectLightNode(nwaku);
     waku2 = await startAndConnectLightNode(nwaku);
 
@@ -128,7 +128,7 @@ describe("Waku Store, cursor", function () {
   });
 
   it("Passing cursor with wrong message digest", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
     waku = await startAndConnectLightNode(nwaku);
 
     const messages: DecodedMessage[] = [];
@@ -170,7 +170,7 @@ describe("Waku Store, cursor", function () {
   });
 
   it("Passing cursor with wrong pubsubTopic", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubSubTopic);
+    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
     waku = await startAndConnectLightNode(nwaku);
 
     const messages: DecodedMessage[] = [];
@@ -179,7 +179,7 @@ describe("Waku Store, cursor", function () {
         messages.push(msg as DecodedMessage);
       }
     }
-    messages[5].pubsubTopic = customPubSubTopic;
+    messages[5].pubsubTopic = customPubsubTopic;
     const cursor = await createCursor(messages[5]);
 
     try {
@@ -193,7 +193,7 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Cursor pubsub topic (${customPubSubTopic}) does not match decoder pubsub topic (${DefaultPubSubTopic})`
+          `Cursor pubsub topic (${customPubsubTopic}) does not match decoder pubsub topic (${DefaultPubsubTopic})`
         )
       ) {
         throw err;

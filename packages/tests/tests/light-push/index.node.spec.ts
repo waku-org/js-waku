@@ -1,4 +1,4 @@
-import { createEncoder, DefaultPubSubTopic } from "@waku/core";
+import { createEncoder, DefaultPubsubTopic } from "@waku/core";
 import { IRateLimitProof, LightNode, SendError } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -28,7 +28,7 @@ describe("Waku Light Push", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubSubTopic]);
+    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
     messageCollector = new MessageCollector(nwaku);
 
     await nwaku.ensureSubscriptions();
@@ -204,14 +204,8 @@ describe("Waku Light Push", function () {
   });
 
   it("Push message equal or less that 1MB", async function () {
-    const oneMbPayload = generateRandomUint8Array(1024 ** 2);
-    let pushResponse = await waku.lightPush.send(TestEncoder, {
-      payload: oneMbPayload
-    });
-    expect(pushResponse.recipients.length).to.greaterThan(0);
-
     const bigPayload = generateRandomUint8Array(65536);
-    pushResponse = await waku.lightPush.send(TestEncoder, {
+    const pushResponse = await waku.lightPush.send(TestEncoder, {
       payload: bigPayload
     });
     expect(pushResponse.recipients.length).to.greaterThan(0);

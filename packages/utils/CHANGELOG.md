@@ -12,6 +12,26 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.13](https://github.com/waku-org/js-waku/compare/utils-v0.0.12...utils-v0.0.13) (2023-11-01)
+
+
+### Features
+
+* Fail early when trying to send empty payload ([#1642](https://github.com/waku-org/js-waku/issues/1642)) ([6bad4ea](https://github.com/waku-org/js-waku/commit/6bad4ea7d1dee79c296c550390da57ffa824e2cf))
+* Logger with log levels ([#1672](https://github.com/waku-org/js-waku/issues/1672)) ([0f7d63e](https://github.com/waku-org/js-waku/commit/0f7d63ef93716223dc8fea7e8cb09e12e267b386))
+
+
+### Bug Fixes
+
+* Measure total message size ([#1643](https://github.com/waku-org/js-waku/issues/1643)) ([b7dc3d7](https://github.com/waku-org/js-waku/commit/b7dc3d7576e9444a5acbb036812c05cfccb25815))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.19 to 0.0.20
+
 ## [0.0.12](https://github.com/waku-org/js-waku/compare/utils-v0.0.11...utils-v0.0.12) (2023-10-16)
 
 

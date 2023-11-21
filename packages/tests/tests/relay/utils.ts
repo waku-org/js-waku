@@ -7,14 +7,14 @@ export const TestContentTopic = "/test/1/waku-relay/utf8";
 export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 export const TestDecoder = createDecoder(TestContentTopic);
 export const CustomContentTopic = "/test/2/waku-relay/utf8";
-export const CustomPubSubTopic = "/some/pubsub/topic";
+export const CustomPubsubTopic = "/some/pubsub/topic";
 export const CustomEncoder = createEncoder({
   contentTopic: CustomContentTopic,
-  pubsubTopic: CustomPubSubTopic
+  pubsubTopic: CustomPubsubTopic
 });
 export const CustomDecoder = createDecoder(
   CustomContentTopic,
-  CustomPubSubTopic
+  CustomPubsubTopic
 );
 
 export const log = new Logger("test:relay");

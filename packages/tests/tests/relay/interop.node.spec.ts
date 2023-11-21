@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import {
   DecodedMessage,
-  DefaultPubSubTopic,
+  DefaultPubsubTopic,
   waitForRemotePeer
 } from "@waku/core";
 import { RelayNode } from "@waku/interfaces";
@@ -55,7 +55,7 @@ describe("Waku Relay, Interop", function () {
     while (subscribers.length === 0) {
       await delay(200);
       subscribers =
-        waku.libp2p.services.pubsub!.getSubscribers(DefaultPubSubTopic);
+        waku.libp2p.services.pubsub!.getSubscribers(DefaultPubsubTopic);
     }
 
     const nimPeerId = await nwaku.getPeerId();

@@ -107,12 +107,12 @@ describe("Static Sharding: Peer Management", function () {
 
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
-      const pubSubTopicsToDial = ["/waku/2/rs/18/2"];
-      const pubSubTopicsToIgnore = ["/waku/2/rs/18/3"];
+      const pubsubTopicsToDial = ["/waku/2/rs/18/2"];
+      const pubsubTopicsToIgnore = ["/waku/2/rs/18/3"];
 
       // this service node is not subscribed to the shard
       await nwaku1.start({
-        topic: pubSubTopicsToIgnore,
+        topic: pubsubTopicsToIgnore,
         relay: true,
         discv5Discovery: true,
         peerExchange: true
@@ -121,7 +121,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        topic: pubSubTopicsToDial,
+        topic: pubsubTopicsToDial,
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -139,7 +139,7 @@ describe("Static Sharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        pubsubTopics: pubSubTopicsToDial,
+        pubsubTopics: pubsubTopicsToDial,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),

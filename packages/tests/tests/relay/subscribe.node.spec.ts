@@ -1,4 +1,4 @@
-import { createDecoder, createEncoder, DefaultPubSubTopic } from "@waku/core";
+import { createDecoder, createEncoder, DefaultPubsubTopic } from "@waku/core";
 import { RelayNode } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -33,11 +33,11 @@ describe("Waku Relay, Subscribe", function () {
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubsubTopic],
         staticNoiseKey: NOISE_KEY_1
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubsubTopic],
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
@@ -59,10 +59,10 @@ describe("Waku Relay, Subscribe", function () {
   it("Mutual subscription", async function () {
     await waitForAllRemotePeers(waku1, waku2);
     const subscribers1 = waku1.libp2p.services
-      .pubsub!.getSubscribers(DefaultPubSubTopic)
+      .pubsub!.getSubscribers(DefaultPubsubTopic)
       .map((p) => p.toString());
     const subscribers2 = waku2.libp2p.services
-      .pubsub!.getSubscribers(DefaultPubSubTopic)
+      .pubsub!.getSubscribers(DefaultPubsubTopic)
       .map((p) => p.toString());
 
     expect(subscribers1).to.contain(waku2.libp2p.peerId.toString());

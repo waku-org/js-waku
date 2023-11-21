@@ -1,4 +1,4 @@
-import { DefaultPubSubTopic } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/core";
 import type {
   IDecodedMessage,
   IDecoder,
@@ -24,7 +24,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
 }
 
 export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
-  pubsubTopic = DefaultPubSubTopic;
+  pubsubTopic = DefaultPubsubTopic;
   public contentTopic = "";
 
   fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {

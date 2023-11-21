@@ -97,3 +97,11 @@ jobs:
         with:
           name: ${{ inputs.test_type }}-logs
           path: packages/tests/log/
+
+      - name: Create test summary
+        if: always() && env.ALLURE_REPORTS == 'true'
+        run: |
+          echo "## Run Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **NWAKU**: ${{ env.WAKUNODE_IMAGE }}" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "Allure report will be available at: https://waku-org.github.io/allure-jswaku/${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY

@@ -4,7 +4,7 @@ import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import {
   createDecoder,
   createEncoder,
-  DefaultPubSubTopic,
+  DefaultPubsubTopic,
   waitForRemotePeer
 } from "@waku/core";
 import { LightNode } from "@waku/interfaces";
@@ -70,7 +70,7 @@ describe("Util: toAsyncIterator: Filter", () => {
     const { value } = await iterator.next();
 
     expect(value.contentTopic).to.eq(TestContentTopic);
-    expect(value.pubsubTopic).to.eq(DefaultPubSubTopic);
+    expect(value.pubsubTopic).to.eq(DefaultPubsubTopic);
     expect(bytesToUtf8(value.payload)).to.eq(messageText);
   });
 

@@ -1,4 +1,4 @@
-import { DefaultPubSubTopic } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/core";
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import type {
   EncoderOptions as BaseEncoderOptions,
@@ -7,7 +7,7 @@ import type {
   IMessage,
   IMetaSetter,
   IProtoMessage,
-  PubSubTopic
+  PubsubTopic
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
@@ -29,7 +29,7 @@ const log = new Logger("message-encryption:symmetric");
 
 class Encoder implements IEncoder {
   constructor(
-    public pubsubTopic: PubSubTopic,
+    public pubsubTopic: PubsubTopic,
     public contentTopic: string,
     private symKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
@@ -93,7 +93,7 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
-  pubsubTopic = DefaultPubSubTopic,
+  pubsubTopic = DefaultPubsubTopic,
   contentTopic,
   symKey,
   sigPrivKey,
@@ -112,7 +112,7 @@ export function createEncoder({
 
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(
-    pubsubTopic: PubSubTopic,
+    pubsubTopic: PubsubTopic,
     contentTopic: string,
     private symKey: Uint8Array
   ) {
@@ -189,7 +189,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   symKey: Uint8Array,
-  pubsubTopic: PubSubTopic = DefaultPubSubTopic
+  pubsubTopic: PubsubTopic = DefaultPubsubTopic
 ): Decoder {
   return new Decoder(pubsubTopic, contentTopic, symKey);
 }

@@ -1,6 +1,6 @@
-import { DefaultPubSubTopic } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/core";
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
-import { IMetaSetter, PubSubTopic } from "@waku/interfaces";
+import { IMetaSetter, PubsubTopic } from "@waku/interfaces";
 import type {
   EncoderOptions as BaseEncoderOptions,
   IDecoder,
@@ -33,7 +33,7 @@ const log = new Logger("message-encryption:ecies");
 
 class Encoder implements IEncoder {
   constructor(
-    public pubsubTopic: PubSubTopic,
+    public pubsubTopic: PubsubTopic,
     public contentTopic: string,
     private publicKey: Uint8Array,
     private sigPrivKey?: Uint8Array,
@@ -97,7 +97,7 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
-  pubsubTopic = DefaultPubSubTopic,
+  pubsubTopic = DefaultPubsubTopic,
   contentTopic,
   publicKey,
   sigPrivKey,
@@ -116,7 +116,7 @@ export function createEncoder({
 
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
   constructor(
-    pubsubTopic: PubSubTopic,
+    pubsubTopic: PubsubTopic,
     contentTopic: string,
     private privateKey: Uint8Array
   ) {
@@ -193,7 +193,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   privateKey: Uint8Array,
-  pubsubTopic: PubSubTopic = DefaultPubSubTopic
+  pubsubTopic: PubsubTopic = DefaultPubsubTopic
 ): Decoder {
   return new Decoder(pubsubTopic, contentTopic, privateKey);
 }

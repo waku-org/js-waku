@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.20](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.19...interfaces-v0.0.20) (2023-11-01)
+
+
+### Features
+
+* Fail early when trying to send empty payload ([#1642](https://github.com/waku-org/js-waku/issues/1642)) ([6bad4ea](https://github.com/waku-org/js-waku/commit/6bad4ea7d1dee79c296c550390da57ffa824e2cf))
+
 ## [0.0.19](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.18...interfaces-v0.0.19) (2023-10-16)
 
 

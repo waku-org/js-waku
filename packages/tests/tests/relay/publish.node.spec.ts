@@ -1,4 +1,4 @@
-import { createEncoder, DefaultPubSubTopic } from "@waku/core";
+import { createEncoder, DefaultPubsubTopic } from "@waku/core";
 import { IRateLimitProof, RelayNode, SendError } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -34,11 +34,11 @@ describe("Waku Relay, Publish", function () {
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubsubTopic],
         staticNoiseKey: NOISE_KEY_1
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
-        pubsubTopics: [DefaultPubSubTopic],
+        pubsubTopics: [DefaultPubsubTopic],
         staticNoiseKey: NOISE_KEY_2,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
@@ -139,17 +139,6 @@ describe("Waku Relay, Publish", function () {
     expect(pushResponse.errors?.[0]).to.eq("Topic not configured");
     await delay(400);
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
-  });
-
-  it("Publish message with size of 1 MB", async function () {
-    const pushResponse = await waku1.relay.send(TestEncoder, {
-      payload: generateRandomUint8Array(1024 ** 2)
-    });
-    expect(pushResponse.recipients.length).to.eq(1);
-    expect(pushResponse.recipients[0].toString()).to.eq(
-      waku2.libp2p.peerId.toString()
-    );
-    expect(await messageCollector.waitForMessages(1)).to.eq(true);
   });
 
   [1024 ** 2 + 65536, 2 * 1024 ** 2].forEach((testItem) => {

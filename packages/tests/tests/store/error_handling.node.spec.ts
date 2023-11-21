@@ -1,11 +1,11 @@
-import { DefaultPubSubTopic } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/core";
 import { IMessage, type LightNode } from "@waku/interfaces";
 import { expect } from "chai";
 
 import { makeLogFileName, NimGoNode, tearDownNodes } from "../../src/index.js";
 
 import {
-  customPubSubTopic,
+  customPubsubTopic,
   customTestDecoder,
   processQueriedMessages,
   startAndConnectLightNode,
@@ -30,7 +30,7 @@ describe("Waku Store, error handling", function () {
     await tearDownNodes(nwaku, waku);
   });
 
-  it("Query Generator, Wrong PubSubTopic", async function () {
+  it("Query Generator, Wrong PubsubTopic", async function () {
     try {
       for await (const msgPromises of waku.store.queryGenerator([
         customTestDecoder
@@ -42,7 +42,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `PubSub topic ${customPubSubTopic} has not been configured on this instance. Configured topics are: ${DefaultPubSubTopic}`
+          `Pubsub topic ${customPubsubTopic} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
         )
       ) {
         throw err;
@@ -50,7 +50,7 @@ describe("Waku Store, error handling", function () {
     }
   });
 
-  it("Query Generator, Multiple PubSubTopics", async function () {
+  it("Query Generator, Multiple PubsubTopics", async function () {
     try {
       for await (const msgPromises of waku.store.queryGenerator([
         TestDecoder,
@@ -91,12 +91,12 @@ describe("Waku Store, error handling", function () {
     const messages = await processQueriedMessages(
       waku,
       [TestDecoder],
-      DefaultPubSubTopic
+      DefaultPubsubTopic
     );
     expect(messages?.length).eq(0);
   });
 
-  it("Query with Ordered Callback, Wrong PubSubTopic", async function () {
+  it("Query with Ordered Callback, Wrong PubsubTopic", async function () {
     try {
       await waku.store.queryWithOrderedCallback(
         [customTestDecoder],
@@ -107,7 +107,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `PubSub topic ${customPubSubTopic} has not been configured on this instance. Configured topics are: ${DefaultPubSubTopic}`
+          `Pubsub topic ${customPubsubTopic} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
         )
       ) {
         throw err;
@@ -115,7 +115,7 @@ describe("Waku Store, error handling", function () {
     }
   });
 
-  it("Query with Ordered Callback, Multiple PubSubTopics", async function () {
+  it("Query with Ordered Callback, Multiple PubsubTopics", async function () {
     try {
       await waku.store.queryWithOrderedCallback(
         [TestDecoder, customTestDecoder],
@@ -156,7 +156,7 @@ describe("Waku Store, error handling", function () {
     expect(messages?.length).eq(0);
   });
 
-  it("Query with Promise Callback, Wrong PubSubTopic", async function () {
+  it("Query with Promise Callback, Wrong PubsubTopic", async function () {
     try {
       await waku.store.queryWithPromiseCallback(
         [customTestDecoder],
@@ -167,7 +167,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `PubSub topic ${customPubSubTopic} has not been configured on this instance. Configured topics are: ${DefaultPubSubTopic}`
+          `Pubsub topic ${customPubsubTopic} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
         )
       ) {
         throw err;
@@ -175,7 +175,7 @@ describe("Waku Store, error handling", function () {
     }
   });
 
-  it("Query with Promise Callback, Multiple PubSubTopics", async function () {
+  it("Query with Promise Callback, Multiple PubsubTopics", async function () {
     try {
       await waku.store.queryWithPromiseCallback(
         [TestDecoder, customTestDecoder],
