@@ -7,12 +7,17 @@ import type {
 export const singleTopicShardInfoToPubsubTopic = (
   shardInfo: SingleTopicShardInfo
 ): PubsubTopic => {
+  if (!shardInfo.cluster || !shardInfo.index) throw new Error("Invalid shard");
+
   return `/waku/2/rs/${shardInfo.cluster}/${shardInfo.index}`;
 };
 
 export const shardInfoToPubsubTopics = (
   shardInfo: ShardInfo
 ): PubsubTopic[] => {
+  if (!shardInfo.cluster || !shardInfo.indexList)
+    throw new Error("Invalid shard");
+
   return shardInfo.indexList.map(
     (index) => `/waku/2/rs/${shardInfo.cluster}/${index}`
   );
