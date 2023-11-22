@@ -2,6 +2,7 @@ import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { createLightNode, LightNode, ShardInfo, Tags } from "@waku/sdk";
+import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import Sinon, { SinonSpy } from "sinon";
@@ -10,7 +11,6 @@ import { delay } from "../../src/delay.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
 import { tearDownNodes } from "../../src/teardown.js";
-import { createTestShardedTopic } from "../../src/utils.js";
 
 chai.use(chaiAsPromised);
 
@@ -39,7 +39,9 @@ describe("Static Sharding: Peer Management", function () {
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
       this.timeout(100_000);
 
-      const pubsubTopics = [createTestShardedTopic(18, 2)];
+      const pubsubTopics = [
+        singleTopicShardInfoToPubsubTopic({ cluster: 18, index: 2 })
+      ];
       const shardInfo: ShardInfo = { cluster: 18, indexList: [2] };
 
       await nwaku1.start({
@@ -109,9 +111,13 @@ describe("Static Sharding: Peer Management", function () {
 
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
-      const pubsubTopicsToDial = [createTestShardedTopic(18, 2)];
+      const pubsubTopicsToDial = [
+        singleTopicShardInfoToPubsubTopic({ cluster: 18, index: 2 })
+      ];
       const shardInfoToDial: ShardInfo = { cluster: 18, indexList: [2] };
-      const pubsubTopicsToIgnore = [createTestShardedTopic(18, 3)];
+      const pubsubTopicsToIgnore = [
+        singleTopicShardInfoToPubsubTopic({ cluster: 18, index: 1 })
+      ];
 
       // this service node is not subscribed to the shard
       await nwaku1.start({

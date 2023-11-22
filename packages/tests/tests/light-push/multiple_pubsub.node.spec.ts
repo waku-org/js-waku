@@ -7,11 +7,11 @@ import {
   ShardInfo,
   SingleTopicShardInfo
 } from "@waku/interfaces";
+import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
-  createTestShardedTopic,
   makeLogFileName,
   MessageCollector,
   NimGoNode,
@@ -27,8 +27,14 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
   let nwaku2: NimGoNode;
   let messageCollector: MessageCollector;
 
-  const customPubsubTopic1 = createTestShardedTopic(3, 1);
-  const customPubsubTopic2 = createTestShardedTopic(3, 2);
+  const customPubsubTopic1 = singleTopicShardInfoToPubsubTopic({
+    cluster: 3,
+    index: 1
+  });
+  const customPubsubTopic2 = singleTopicShardInfoToPubsubTopic({
+    cluster: 3,
+    index: 2
+  });
   const shardInfo: ShardInfo = { cluster: 3, indexList: [1, 2] };
   const singleTopicShardInfo1: SingleTopicShardInfo = { cluster: 3, index: 1 };
   const singleTopicShardInfo2: SingleTopicShardInfo = { cluster: 3, index: 2 };

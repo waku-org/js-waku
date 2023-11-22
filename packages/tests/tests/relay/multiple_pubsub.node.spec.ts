@@ -7,11 +7,11 @@ import {
 import { RelayNode, ShardInfo, SingleTopicShardInfo } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
+import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
-  createTestShardedTopic,
   MessageCollector,
   NOISE_KEY_1,
   NOISE_KEY_2,
@@ -26,8 +26,14 @@ describe("Waku Relay, multiple pubsub topics", function () {
   let waku2: RelayNode;
   let waku3: RelayNode;
 
-  const customPubsubTopic1 = createTestShardedTopic(3, 1);
-  const customPubsubTopic2 = createTestShardedTopic(3, 2);
+  const customPubsubTopic1 = singleTopicShardInfoToPubsubTopic({
+    cluster: 3,
+    index: 1
+  });
+  const customPubsubTopic2 = singleTopicShardInfoToPubsubTopic({
+    cluster: 3,
+    index: 2
+  });
   const shardInfo1: ShardInfo = { cluster: 3, indexList: [1] };
   const singleTopicShardInfo1: SingleTopicShardInfo = {
     cluster: 3,
