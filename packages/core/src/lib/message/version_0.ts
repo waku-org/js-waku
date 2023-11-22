@@ -120,23 +120,17 @@ export class Encoder implements IEncoder {
  * messages.
  */
 export function createEncoder({
-  pubsubTopic = DefaultPubsubTopic,
+  pubsubTopicShardInfo,
   contentTopic,
   ephemeral,
   metaSetter
 }: EncoderOptions): Encoder {
-  if (typeof pubsubTopic === "string" && pubsubTopic !== DefaultPubsubTopic) {
-    throw new Error(
-      `Error: cannot use custom named pubsub topic: ${pubsubTopic}, must be ${DefaultPubsubTopic}`
-    );
-  }
-
   return new Encoder(
     contentTopic,
     ephemeral,
-    typeof pubsubTopic === "string"
-      ? pubsubTopic
-      : singleTopicShardInfoToPubsubTopic(pubsubTopic),
+    pubsubTopicShardInfo?.index
+      ? singleTopicShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic,
     metaSetter
   );
 }
@@ -196,17 +190,12 @@ export class Decoder implements IDecoder<DecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  pubsubTopic: SingleTopicShardInfo | PubsubTopic = DefaultPubsubTopic
+  pubsubTopicShardInfo?: SingleTopicShardInfo
 ): Decoder {
-  if (typeof pubsubTopic === "string" && pubsubTopic !== DefaultPubsubTopic) {
-    throw new Error(
-      `Error: cannot use custom named pubsub topic: ${pubsubTopic}, must be ${DefaultPubsubTopic}`
-    );
-  }
   return new Decoder(
-    typeof pubsubTopic === "string"
-      ? pubsubTopic
-      : singleTopicShardInfoToPubsubTopic(pubsubTopic),
+    pubsubTopicShardInfo?.index
+      ? singleTopicShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic,
     contentTopic
   );
 }

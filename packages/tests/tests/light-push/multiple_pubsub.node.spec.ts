@@ -35,11 +35,11 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
   const customContentTopic1 = "/test/2/waku-light-push/utf8";
   const customContentTopic2 = "/test/3/waku-light-push/utf8";
   const customEncoder1 = createEncoder({
-    pubsubTopic: singleTopicShardInfo1,
+    pubsubTopicShardInfo: singleTopicShardInfo1,
     contentTopic: customContentTopic1
   });
   const customEncoder2 = createEncoder({
-    pubsubTopic: singleTopicShardInfo2,
+    pubsubTopicShardInfo: singleTopicShardInfo2,
     contentTopic: customContentTopic2
   });
 

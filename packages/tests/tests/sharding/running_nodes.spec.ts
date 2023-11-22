@@ -37,12 +37,12 @@ describe("Static Sharding: Running Nodes", () => {
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: singleTopicShardInfo1
+      pubsubTopicShardInfo: singleTopicShardInfo1
     });
 
     const encoder2 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: singleTopicShardInfo2
+      pubsubTopicShardInfo: singleTopicShardInfo2
     });
 
     const request1 = await waku.lightPush.send(encoder1, {
@@ -66,7 +66,7 @@ describe("Static Sharding: Running Nodes", () => {
     // use a pubsub topic that is not configured
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: singleTopicShardInfo2
+      pubsubTopicShardInfo: singleTopicShardInfo2
     });
 
     try {

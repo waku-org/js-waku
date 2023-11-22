@@ -43,7 +43,7 @@ import {
   totalMsgs
 } from "./utils.js";
 
-const secondDecoder = createDecoder(customContentTopic1, DefaultPubsubTopic);
+const secondDecoder = createDecoder(customContentTopic1);
 
 describe("Waku Store, general", function () {
   this.timeout(15000);

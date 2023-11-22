@@ -41,7 +41,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
     index: 2
   };
   const customEncoder1 = createEncoder({
-    pubsubTopic: singleTopicShardInfo1,
+    pubsubTopicShardInfo: singleTopicShardInfo1,
     contentTopic: customContentTopic1
   });
   const customDecoder1 = createDecoder(
@@ -49,7 +49,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
     singleTopicShardInfo1
   );
   const customEncoder2 = createEncoder({
-    pubsubTopic: singleTopicShardInfo2,
+    pubsubTopicShardInfo: singleTopicShardInfo2,
     contentTopic: customContentTopic2
   });
   const customDecoder2 = createDecoder(

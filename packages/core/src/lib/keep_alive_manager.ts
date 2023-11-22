@@ -2,7 +2,7 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerStore } from "@libp2p/interface/peer-store";
 import type { IRelay, PeerIdStr } from "@waku/interfaces";
 import type { KeepAliveOptions } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { Logger, pubsubTopicToShardInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import type { PingService } from "libp2p/ping";
 
@@ -123,7 +123,7 @@ export class KeepAliveManager {
       if (!meshPeers.includes(peerIdStr)) continue;
 
       const encoder = createEncoder({
-        pubsubTopic: topic,
+        pubsubTopicShardInfo: pubsubTopicToShardInfo(topic),
         contentTopic: RelayPingContentTopic,
         ephemeral: true
       });

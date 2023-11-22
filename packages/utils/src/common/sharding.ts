@@ -18,6 +18,24 @@ export const shardInfoToPubsubTopics = (
   );
 };
 
+export const pubsubTopicToShardInfo = (
+  pubsubTopics: PubsubTopic[]
+): ShardInfo => {
+  const indexList: number[] = [];
+  const cluster = parseInt(pubsubTopics[0].split("/")[4]);
+  for (const topic of pubsubTopics) {
+    const topicCluster = parseInt(topic.split("/")[4]);
+    if (topicCluster !== cluster) {
+      throw new Error(
+        "Pubsub topics must be from the same cluster to convert to shard info"
+      );
+    }
+    const index = parseInt(topic.split("/")[5]);
+    indexList.push(index);
+  }
+  return { cluster, indexList };
+};
+
 export function ensurePubsubTopicIsConfigured(
   pubsubTopic: PubsubTopic,
   configuredTopics: PubsubTopic[]

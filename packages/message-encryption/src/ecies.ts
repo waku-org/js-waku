@@ -98,23 +98,17 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
-  pubsubTopic = DefaultPubsubTopic,
+  pubsubTopicShardInfo,
   contentTopic,
   publicKey,
   sigPrivKey,
   ephemeral = false,
   metaSetter
 }: EncoderOptions): Encoder {
-  if (typeof pubsubTopic === "string" && pubsubTopic !== DefaultPubsubTopic) {
-    throw new Error(
-      `Error: cannot use custom named pubsub topic: ${pubsubTopic}, must be ${DefaultPubsubTopic}`
-    );
-  }
-
   return new Encoder(
-    typeof pubsubTopic === "string"
-      ? pubsubTopic
-      : singleTopicShardInfoToPubsubTopic(pubsubTopic),
+    pubsubTopicShardInfo?.index
+      ? singleTopicShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic,
     contentTopic,
     publicKey,
     sigPrivKey,
@@ -202,18 +196,12 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   privateKey: Uint8Array,
-  pubsubTopic: SingleTopicShardInfo | PubsubTopic = DefaultPubsubTopic
+  pubsubTopicShardInfo?: SingleTopicShardInfo
 ): Decoder {
-  if (typeof pubsubTopic === "string" && pubsubTopic !== DefaultPubsubTopic) {
-    throw new Error(
-      `Error: cannot use custom named pubsub topic: ${pubsubTopic}, must be ${DefaultPubsubTopic}`
-    );
-  }
-
   return new Decoder(
-    typeof pubsubTopic === "string"
-      ? pubsubTopic
-      : singleTopicShardInfoToPubsubTopic(pubsubTopic),
+    pubsubTopicShardInfo?.index
+      ? singleTopicShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic,
     contentTopic,
     privateKey
   );
