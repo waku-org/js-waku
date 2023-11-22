@@ -247,20 +247,17 @@ describe("Waku Filter V2: Subscribe", function () {
     const td = generateTestData(topicCount);
 
     // Attempt to subscribe to 31 topics
-    try {
-      await subscription.subscribe(td.decoders, messageCollector.callback);
+    const { statusCode } = await subscription.subscribe(
+      td.decoders,
+      messageCollector.callback
+    );
+
+    if (statusCode !== 200) {
+      return;
+    } else {
       throw new Error(
         "Subscribe to 31 topics was successful but was expected to fail with a specific error."
       );
-    } catch (err) {
-      if (
-        err instanceof Error &&
-        err.message.includes("exceeds maximum content topics: 30")
-      ) {
-        return;
-      } else {
-        throw err;
-      }
     }
   });
 

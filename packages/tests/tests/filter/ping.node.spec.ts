@@ -71,13 +71,12 @@ describe("Waku Filter V2: Ping", function () {
 
     const pingAndReinitiateSubscription = async (): Promise<void> => {
       try {
-        const { code } = await subscription.ping();
-        if (code !== 200) {
-          // `Ping failed with code ${code} and message ${message}. Reinitiating subscription.`;
+        const { statusCode } = await subscription.ping();
+        if (statusCode !== 200) {
+          // ping failed, reinstantiate subscription
+          await openSubscription();
         }
-        await openSubscription();
       } catch (error) {
-        // to handle unexpected errors
         console.error(error);
       }
     };

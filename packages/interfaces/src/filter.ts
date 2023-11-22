@@ -20,7 +20,7 @@ export enum EFilterSuccessKind {
 
 export interface IFilterResponse {
   requestId: string;
-  code: EFilterErrorKind | EFilterSuccessKind;
+  statusCode: EFilterErrorKind | EFilterSuccessKind;
   message?: string;
 }
 

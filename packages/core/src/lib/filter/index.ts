@@ -116,7 +116,7 @@ class Subscription {
       if (statusCode < 200 || statusCode >= 300) {
         return {
           requestId: requestId,
-          code: statusCode,
+          statusCode: statusCode,
           message: statusDesc
         };
       }
@@ -129,7 +129,7 @@ class Subscription {
       );
       return {
         requestId: requestId,
-        code: statusCode
+        statusCode: statusCode
       };
     } catch (e) {
       throw new Error(
@@ -187,7 +187,7 @@ class Subscription {
       if (statusCode < 200 || statusCode >= 300) {
         return {
           requestId: requestId,
-          code: statusCode,
+          statusCode: statusCode,
           message: statusDesc
         };
       }
@@ -200,7 +200,7 @@ class Subscription {
       );
       return {
         requestId: requestId,
-        code: statusCode
+        statusCode: statusCode
       };
     } catch (error) {
       throw new Error("Unexpected error unsubscribing: " + error);
@@ -237,7 +237,7 @@ class Subscription {
       if (statusCode < 200 || statusCode >= 300) {
         return {
           requestId: requestId,
-          code: statusCode,
+          statusCode: statusCode,
           message: statusDesc
         };
       }
@@ -245,7 +245,7 @@ class Subscription {
       log.info("Ping successful");
       return {
         requestId: requestId,
-        code: statusCode
+        statusCode: statusCode
       };
     } catch (error) {
       log.error("Unexpected error while pinging: ", error);
@@ -281,7 +281,7 @@ class Subscription {
       if (statusCode < 200 || statusCode >= 300) {
         return {
           requestId: requestId,
-          code: statusCode,
+          statusCode: statusCode,
           message: statusDesc
         };
       }
@@ -291,7 +291,7 @@ class Subscription {
 
       return {
         requestId: requestId,
-        code: statusCode
+        statusCode: statusCode
       };
     } catch (error) {
       throw new Error(

@@ -20,19 +20,18 @@ export async function validatePingError(
   subscription: IFilterSubscription
 ): Promise<void> {
   try {
-    await subscription.ping();
-    throw new Error(
-      "Ping was successful but was expected to fail with a specific error."
-    );
-  } catch (err) {
-    if (
-      err instanceof Error &&
-      err.message.includes("peer has no subscriptions")
-    ) {
-      return;
+    const { statusCode } = await subscription.ping();
+    if (statusCode === 200) {
+      throw new Error(
+        "Ping was successful but was expected to fail with a specific error."
+      );
     } else {
-      throw err;
+      return;
     }
+  } catch (error) {
+    throw new Error(
+      `Ping failed with an unexpected error. ` + `Error: ${error}`
+    );
   }
 }
 
