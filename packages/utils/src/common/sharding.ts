@@ -26,22 +26,16 @@ export const shardInfoToPubsubTopics = (
   );
 };
 
-export const pubsubTopicToShardInfo = (
-  pubsubTopics: PubsubTopic[]
-): ShardInfo => {
-  const indexList: number[] = [];
-  const cluster = parseInt(pubsubTopics[0].split("/")[4]);
-  for (const topic of pubsubTopics) {
-    const topicCluster = parseInt(topic.split("/")[4]);
-    if (topicCluster !== cluster) {
-      throw new Error(
-        "Pubsub topics must be from the same cluster to convert to shard info"
-      );
-    }
-    const index = parseInt(topic.split("/")[5]);
-    indexList.push(index);
-  }
-  return { cluster, indexList };
+export const pubsubTopicToSingleTopicShardInfo = (
+  pubsubTopics: PubsubTopic
+): SingleTopicShardInfo => {
+  const parts = pubsubTopics.split("/");
+  if (parts.length != 5) throw new Error("Invalid pubsub topic");
+
+  return {
+    cluster: parseInt(parts[3]),
+    index: parseInt(parts[4])
+  };
 };
 
 export function ensurePubsubTopicIsConfigured(
