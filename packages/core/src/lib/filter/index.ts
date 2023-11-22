@@ -8,6 +8,7 @@ import type {
   IDecodedMessage,
   IDecoder,
   IFilter,
+  IFilterResponse,
   IProtoMessage,
   IReceiver,
   Libp2p,
@@ -72,7 +73,7 @@ class Subscription {
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
-  ): Promise<void> {
+  ): Promise<IFilterResponse> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
     // check that all decoders are configured for the same pubsub topic as this subscription
@@ -113,9 +114,11 @@ class Subscription {
         FilterSubscribeResponse.decode(res[0].slice());
 
       if (statusCode < 200 || statusCode >= 300) {
-        throw new Error(
-          `Filter subscribe request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
-        );
+        return {
+          requestId: requestId,
+          code: statusCode,
+          message: statusDesc
+        };
       }
 
       log.info(
@@ -124,53 +127,91 @@ class Subscription {
         "for content topics",
         contentTopics
       );
+      return {
+        requestId: requestId,
+        code: statusCode
+      };
     } catch (e) {
       throw new Error(
-        "Error subscribing to peer: " +
+        "Expected Error: Subscribing to peer: " +
           this.peer.id.toString() +
           " for content topics: " +
           contentTopics +
           ": " +
           e
       );
+    } finally {
+      // Save the callback functions by content topics so they
+      // can easily be removed (reciprocally replaced) if `unsubscribe` (reciprocally `subscribe`)
+      // is called for those content topics
+      decodersGroupedByCT.forEach((decoders, contentTopic) => {
+        // Cast the type because a given `subscriptionCallbacks` map may hold
+        // Decoder that decode to different implementations of `IDecodedMessage`
+        const subscriptionCallback = {
+          decoders,
+          callback
+        } as unknown as SubscriptionCallback<IDecodedMessage>;
+
+        // The callback and decoder may override previous values, this is on
+        // purpose as the user may call `subscribe` to refresh the subscription
+        this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
+      });
     }
-
-    // Save the callback functions by content topics so they
-    // can easily be removed (reciprocally replaced) if `unsubscribe` (reciprocally `subscribe`)
-    // is called for those content topics
-    decodersGroupedByCT.forEach((decoders, contentTopic) => {
-      // Cast the type because a given `subscriptionCallbacks` map may hold
-      // Decoder that decode to different implementations of `IDecodedMessage`
-      const subscriptionCallback = {
-        decoders,
-        callback
-      } as unknown as SubscriptionCallback<IDecodedMessage>;
-
-      // The callback and decoder may override previous values, this is on
-      // purpose as the user may call `subscribe` to refresh the subscription
-      this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
-    });
   }
 
-  async unsubscribe(contentTopics: ContentTopic[]): Promise<void> {
+  async unsubscribe(contentTopics: ContentTopic[]): Promise<IFilterResponse> {
     const stream = await this.newStream(this.peer);
-    const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
+    const request = FilterSubscribeRpc.createUnsubscribeRequest(
       this.pubsubTopic,
       contentTopics
     );
 
     try {
-      await pipe([unsubscribeRequest.encode()], lp.encode, stream.sink);
-    } catch (error) {
-      throw new Error("Error subscribing: " + error);
-    }
+      const res = await pipe(
+        [request.encode()],
+        lp.encode,
+        stream,
+        lp.decode,
+        async (source) => await all(source)
+      );
 
-    contentTopics.forEach((contentTopic: string) => {
-      this.subscriptionCallbacks.delete(contentTopic);
-    });
+      if (!res || !res.length) {
+        throw Error(
+          `No response received for request ${request.requestId}: ${res}`
+        );
+      }
+
+      const { requestId, statusCode, statusDesc } =
+        FilterSubscribeResponse.decode(res[0].slice());
+
+      if (statusCode < 200 || statusCode >= 300) {
+        return {
+          requestId: requestId,
+          code: statusCode,
+          message: statusDesc
+        };
+      }
+
+      log.info(
+        "Unsubscribed from peer ",
+        this.peer.id.toString(),
+        "for content topics",
+        contentTopics
+      );
+      return {
+        requestId: requestId,
+        code: statusCode
+      };
+    } catch (error) {
+      throw new Error("Unexpected error unsubscribing: " + error);
+    } finally {
+      contentTopics.forEach((contentTopic: string) => {
+        this.subscriptionCallbacks.delete(contentTopic);
+      });
+    }
   }
 
-  async ping(): Promise<void> {
+  async ping(): Promise<IFilterResponse> {
     const stream = await this.newStream(this.peer);
 
     const request = FilterSubscribeRpc.createSubscriberPingRequest();
@@ -194,19 +235,25 @@ class Subscription {
         FilterSubscribeResponse.decode(res[0].slice());
 
       if (statusCode < 200 || statusCode >= 300) {
-        throw new Error(
-          `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
-        );
+        return {
+          requestId: requestId,
+          code: statusCode,
+          message: statusDesc
+        };
       }
 
       log.info("Ping successful");
+      return {
+        requestId: requestId,
+        code: statusCode
+      };
     } catch (error) {
-      log.error("Error pinging: ", error);
-      throw new Error("Error pinging: " + error);
+      log.error("Unexpected error while pinging: ", error);
+      throw new Error("Unexpected error while pinging" + error);
     }
   }
 
-  async unsubscribeAll(): Promise<void> {
+  async unsubscribeAll(): Promise<IFilterResponse> {
     const stream = await this.newStream(this.peer);
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(
@@ -232,15 +279,24 @@ class Subscription {
         FilterSubscribeResponse.decode(res[0].slice());
 
       if (statusCode < 200 || statusCode >= 300) {
-        throw new Error(
-          `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
-        );
+        return {
+          requestId: requestId,
+          code: statusCode,
+          message: statusDesc
+        };
       }
 
       this.subscriptionCallbacks.clear();
       log.info("Unsubscribed from all content topics");
+
+      return {
+        requestId: requestId,
+        code: statusCode
+      };
     } catch (error) {
-      throw new Error("Error unsubscribing from all content topics: " + error);
+      throw new Error(
+        "Unexpected error unsubscribing from all content topics: " + error
+      );
     }
   }
 

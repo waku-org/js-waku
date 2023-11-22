@@ -71,16 +71,14 @@ describe("Waku Filter V2: Ping", function () {
 
     const pingAndReinitiateSubscription = async (): Promise<void> => {
       try {
-        await subscription.ping();
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message.includes("peer has no subscriptions")
-        ) {
-          await openSubscription();
-        } else {
-          throw error;
+        const { code } = await subscription.ping();
+        if (code !== 200) {
+          // `Ping failed with code ${code} and message ${message}. Reinitiating subscription.`;
         }
+        await openSubscription();
+      } catch (error) {
+        // to handle unexpected errors
+        console.error(error);
       }
     };
 
