@@ -5,7 +5,6 @@ import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
-  DefaultPubsubTopic,
   DefaultUserAgent,
   wakuFilter,
   wakuLightPush,
@@ -22,10 +21,8 @@ import type {
   ProtocolCreateOptions,
   RelayNode
 } from "@waku/interfaces";
-import type { PubsubTopic } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
-import { shardInfoToPubsubTopics } from "@waku/utils";
 import { createLibp2p, Libp2pOptions } from "libp2p";
 import { identifyService } from "libp2p/identify";
 import { pingService } from "libp2p/ping";
@@ -48,14 +45,6 @@ export async function createLightNode(
 ): Promise<LightNode> {
   options = options ?? {};
 
-  let pubsubTopics: PubsubTopic[];
-
-  if (!options.shardInfo) {
-    pubsubTopics = [DefaultPubsubTopic];
-  } else {
-    pubsubTopics = shardInfoToPubsubTopics(options.shardInfo);
-  }
-
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -75,8 +64,8 @@ export async function createLightNode(
 
   return new WakuNode(
     options ?? {},
-    pubsubTopics,
     libp2p,
+    options.shardInfo,
     store,
     lightPush,
     filter
@@ -91,14 +80,6 @@ export async function createRelayNode(
   options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<RelayNode> {
   options = options ?? {};
-
-  let pubsubTopics: PubsubTopic[];
-
-  if (!options.shardInfo) {
-    pubsubTopics = [DefaultPubsubTopic];
-  } else {
-    pubsubTopics = shardInfoToPubsubTopics(options.shardInfo);
-  }
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -117,8 +98,8 @@ export async function createRelayNode(
 
   return new WakuNode(
     options,
-    pubsubTopics,
     libp2p,
+    options.shardInfo,
     undefined,
     undefined,
     undefined,
@@ -144,14 +125,6 @@ export async function createFullNode(
 ): Promise<FullNode> {
   options = options ?? {};
 
-  let pubsubTopics: PubsubTopic[];
-
-  if (!options.shardInfo) {
-    pubsubTopics = [DefaultPubsubTopic];
-  } else {
-    pubsubTopics = shardInfoToPubsubTopics(options.shardInfo);
-  }
-
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -172,8 +145,8 @@ export async function createFullNode(
 
   return new WakuNode(
     options ?? {},
-    pubsubTopics,
     libp2p,
+    options.shardInfo,
     store,
     lightPush,
     filter,
