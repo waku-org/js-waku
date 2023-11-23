@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import fc from "fast-check";
 
-import { getPublicKey } from "./crypto/index.js";
+import { getPublicKey } from "./crypto/crypto.js";
 import {
   decryptAsymmetric,
   decryptSymmetric,
@@ -9,9 +9,9 @@ import {
   encryptSymmetric,
   postCipher,
   preCipher
-} from "./waku_payload.js";
+} from "./encryption.js";
 
-describe("Waku Payload", function () {
+describe("Waku Encryption", function () {
   this.timeout(20000);
   it("Asymmetric encrypt & decrypt", async function () {
     await fc.assert(
