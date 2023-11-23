@@ -121,26 +121,6 @@ class Subscription {
         };
       }
 
-      log.info(
-        "Subscribed to peer ",
-        this.peer.id.toString(),
-        "for content topics",
-        contentTopics
-      );
-      return {
-        requestId: requestId,
-        statusCode: statusCode
-      };
-    } catch (e) {
-      throw new Error(
-        "Expected Error: Subscribing to peer: " +
-          this.peer.id.toString() +
-          " for content topics: " +
-          contentTopics +
-          ": " +
-          e
-      );
-    } finally {
       // Save the callback functions by content topics so they
       // can easily be removed (reciprocally replaced) if `unsubscribe` (reciprocally `subscribe`)
       // is called for those content topics
@@ -156,6 +136,27 @@ class Subscription {
         // purpose as the user may call `subscribe` to refresh the subscription
         this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
       });
+
+      log.info(
+        "Subscribed to peer ",
+        this.peer.id.toString(),
+        "for content topics",
+        contentTopics
+      );
+
+      return {
+        requestId: requestId,
+        statusCode: statusCode
+      };
+    } catch (e) {
+      throw new Error(
+        "Expected Error: Subscribing to peer: " +
+          this.peer.id.toString() +
+          " for content topics: " +
+          contentTopics +
+          ": " +
+          e
+      );
     }
   }
 
@@ -192,22 +193,23 @@ class Subscription {
         };
       }
 
+      contentTopics.forEach((contentTopic: string) => {
+        this.subscriptionCallbacks.delete(contentTopic);
+      });
+
       log.info(
         "Unsubscribed from peer ",
         this.peer.id.toString(),
         "for content topics",
         contentTopics
       );
+
       return {
         requestId: requestId,
         statusCode: statusCode
       };
     } catch (error) {
       throw new Error("Unexpected error unsubscribing: " + error);
-    } finally {
-      contentTopics.forEach((contentTopic: string) => {
-        this.subscriptionCallbacks.delete(contentTopic);
-      });
     }
   }
 
