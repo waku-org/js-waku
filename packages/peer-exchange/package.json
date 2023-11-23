@@ -55,7 +55,7 @@
     "@waku/proto": "0.0.5",
     "@waku/utils": "0.0.13",
     "debug": "^4.3.4",
-    "it-all": "^3.0.3",
+    "it-all": "^3.0.4",
     "it-length-prefixed": "^9.0.1",
     "it-pipe": "^3.0.1"
   },
