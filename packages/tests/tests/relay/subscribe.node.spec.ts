@@ -94,7 +94,7 @@ describe("Waku Relay, Subscribe", function () {
 
   it("Subscribe and publish message", async function () {
     await waitForAllRemotePeers(waku1, waku2);
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+    await waku2.relay.subscribe([TestDecoder], messageCollector.relayCallback);
     await waku1.relay.send(TestEncoder, { payload: utf8ToBytes(messageText) });
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
@@ -106,7 +106,7 @@ describe("Waku Relay, Subscribe", function () {
   it("Subscribe and publish 10000 messages on the same topic", async function () {
     const messageCount = 10000;
     await waitForAllRemotePeers(waku1, waku2);
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+    await waku2.relay.subscribe([TestDecoder], messageCollector.relayCallback);
     // Send a unique message on each topic.
     for (let i = 0; i < messageCount; i++) {
       await waku1.relay.send(TestEncoder, {
@@ -134,8 +134,11 @@ describe("Waku Relay, Subscribe", function () {
     const secondDecoder = createDecoder(secondContentTopic);
 
     await waitForAllRemotePeers(waku1, waku2);
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
-    await waku2.relay.subscribe([secondDecoder], messageCollector.callback);
+    await waku2.relay.subscribe([TestDecoder], messageCollector.relayCallback);
+    await waku2.relay.subscribe(
+      [secondDecoder],
+      messageCollector.relayCallback
+    );
     await waku1.relay.send(TestEncoder, { payload: utf8ToBytes("M1") });
     await waku1.relay.send(secondEncoder, { payload: utf8ToBytes("M2") });
     expect(await messageCollector.waitForMessages(2, { exact: true })).to.eq(
@@ -158,7 +161,10 @@ describe("Waku Relay, Subscribe", function () {
 
     // Subscribe to topics one by one
     for (let i = 0; i < topicCount; i++) {
-      await waku2.relay.subscribe([td.decoders[i]], messageCollector.callback);
+      await waku2.relay.subscribe(
+        [td.decoders[i]],
+        messageCollector.relayCallback
+      );
     }
 
     // Send a unique message on each topic.
@@ -186,7 +192,7 @@ describe("Waku Relay, Subscribe", function () {
     await waitForAllRemotePeers(waku1, waku2);
 
     // Subscribe to all topics at once
-    await waku2.relay.subscribe(td.decoders, messageCollector.callback);
+    await waku2.relay.subscribe(td.decoders, messageCollector.relayCallback);
 
     // Send a unique message on each topic.
     for (let i = 0; i < topicCount; i++) {
@@ -212,8 +218,8 @@ describe("Waku Relay, Subscribe", function () {
   it.skip("Refresh subscription", async function () {
     await waitForAllRemotePeers(waku1, waku2);
 
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+    await waku2.relay.subscribe([TestDecoder], messageCollector.relayCallback);
+    await waku2.relay.subscribe([TestDecoder], messageCollector.relayCallback);
 
     await waku1.relay.send(TestEncoder, { payload: utf8ToBytes("M1") });
 
@@ -232,9 +238,9 @@ describe("Waku Relay, Subscribe", function () {
     await waitForAllRemotePeers(waku1, waku2);
 
     // Subscribe to the first set of topics.
-    await waku2.relay.subscribe(td1.decoders, messageCollector.callback);
+    await waku2.relay.subscribe(td1.decoders, messageCollector.relayCallback);
     // Subscribe to the second set of topics which has overlapping topics with the first set.
-    await waku2.relay.subscribe(td2.decoders, messageCollector.callback);
+    await waku2.relay.subscribe(td2.decoders, messageCollector.relayCallback);
 
     // Send messages to the first set of topics.
     for (let i = 0; i < topicCount1; i++) {
@@ -265,7 +271,7 @@ describe("Waku Relay, Subscribe", function () {
       const newEncoder = createEncoder({ contentTopic: newContentTopic });
       const newDecoder = createDecoder(newContentTopic);
       await waitForAllRemotePeers(waku1, waku2);
-      await waku2.relay.subscribe([newDecoder], messageCollector.callback);
+      await waku2.relay.subscribe([newDecoder], messageCollector.relayCallback);
       await waku1.relay.send(newEncoder, {
         payload: utf8ToBytes(messageText)
       });

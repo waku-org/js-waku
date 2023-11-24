@@ -88,9 +88,18 @@ describe("Waku Relay, multiple pubsub topics", function () {
         waitForRemotePeer(waku3, [Protocols.Relay])
       ]);
 
-      await waku1.relay.subscribe([testItem.decoder], msgCollector1.callback);
-      await waku2.relay.subscribe([testItem.decoder], msgCollector2.callback);
-      await waku3.relay.subscribe([testItem.decoder], msgCollector3.callback);
+      await waku1.relay.subscribe(
+        [testItem.decoder],
+        msgCollector1.relayCallback
+      );
+      await waku2.relay.subscribe(
+        [testItem.decoder],
+        msgCollector2.relayCallback
+      );
+      await waku3.relay.subscribe(
+        [testItem.decoder],
+        msgCollector3.relayCallback
+      );
 
       // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
       const relayResponse1 = await waku1.relay.send(testItem.encoder, {
@@ -188,13 +197,13 @@ describe("Waku Relay, multiple pubsub topics", function () {
 
     await waku1.relay.subscribe(
       [TestDecoder, CustomDecoder],
-      msgCollector1.callback
+      msgCollector1.relayCallback
     );
     await waku2.relay.subscribe(
       [TestDecoder, CustomDecoder],
-      msgCollector2.callback
+      msgCollector2.relayCallback
     );
-    await waku3.relay.subscribe([TestDecoder], msgCollector3.callback);
+    await waku3.relay.subscribe([TestDecoder], msgCollector3.relayCallback);
 
     // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
     // However onlt waku1 and waku2 are receiving messages on the CustomPubsubTopic

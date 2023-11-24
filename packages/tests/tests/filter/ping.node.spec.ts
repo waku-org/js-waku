@@ -18,13 +18,11 @@ describe("Waku Filter V2: Ping", function () {
   this.timeout(10000);
   let waku: LightNode;
   let nwaku: NimGoNode;
-  let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
   this.beforeEach(async function () {
     this.timeout(15000);
     [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
-    subscription = await waku.filter.createSubscription();
     messageCollector = new MessageCollector();
   });
 
@@ -34,7 +32,12 @@ describe("Waku Filter V2: Ping", function () {
   });
 
   it("Ping on subscribed peer", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
+    // await subscription.subscribe([TestDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
@@ -47,12 +50,8 @@ describe("Waku Filter V2: Ping", function () {
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
   });
 
-  it("Ping on peer without subscriptions", async function () {
-    await validatePingError(subscription);
-  });
-
   it("Ping on unsubscribed peer", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
     await subscription.ping();
     await subscription.unsubscribe([TestContentTopic]);
 
@@ -61,8 +60,13 @@ describe("Waku Filter V2: Ping", function () {
   });
 
   it("Reopen subscription with peer with lost subscription", async function () {
+    let subscription: IFilterSubscription;
     const openSubscription = async (): Promise<void> => {
-      await subscription.subscribe([TestDecoder], messageCollector.callback);
+      subscription = await waku.filter.createSubscription([TestDecoder]);
+      subscription.addEventListener(
+        TestDecoder.contentTopic,
+        messageCollector.filterCallback
+      );
     };
 
     const unsubscribe = async (): Promise<void> => {

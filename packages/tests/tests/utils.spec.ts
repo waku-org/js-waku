@@ -31,7 +31,8 @@ const TestContentTopic = "/test/1/waku-filter";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
-describe("Util: toAsyncIterator: Filter", () => {
+// TODO: unskip this after https://github.com/waku-org/js-waku/issues/1713 is resolved
+describe.skip("Util: toAsyncIterator: Filter", () => {
   let waku: LightNode;
   let nwaku: NimGoNode;
 

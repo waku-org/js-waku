@@ -51,7 +51,7 @@ describe("Waku Relay, Publish", function () {
     log.info("before each hook done");
     await waitForAllRemotePeers(waku1, waku2);
     messageCollector = new MessageCollector();
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+    await waku2.relay.subscribe([TestDecoder], messageCollector.relayCallback);
   });
 
   afterEach(async function () {

@@ -4,7 +4,7 @@ import {
   DefaultPubsubTopic,
   waitForRemotePeer
 } from "@waku/core";
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
+import type { LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -29,7 +29,6 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   let waku: LightNode;
   let nwaku: NimGoNode;
   let nwaku2: NimGoNode;
-  let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
   const customPubsubTopic = "/waku/2/custom-dapp/proto";
   const customContentTopic = "/test/2/waku-filter";
@@ -45,7 +44,6 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
       customPubsubTopic,
       DefaultPubsubTopic
     ]);
-    subscription = await waku.filter.createSubscription(customPubsubTopic);
     messageCollector = new MessageCollector();
   });
 
@@ -55,7 +53,14 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   });
 
   it("Subscribe and receive messages on custom pubsubtopic", async function () {
-    await subscription.subscribe([newDecoder], messageCollector.callback);
+    const subscription = await waku.filter.createSubscription(
+      [newDecoder],
+      customPubsubTopic
+    );
+    subscription.addEventListener(
+      newDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M1") });
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
@@ -66,15 +71,26 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   });
 
   it("Subscribe and receive messages on 2 different pubsubtopics", async function () {
-    await subscription.subscribe([newDecoder], messageCollector.callback);
-
-    // Subscribe from the same lightnode to the 2nd pubsubtopic
-    const subscription2 =
-      await waku.filter.createSubscription(DefaultPubsubTopic);
+    const subscription = await waku.filter.createSubscription(
+      [newDecoder],
+      customPubsubTopic
+    );
+    subscription.addEventListener(
+      newDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
 
     const messageCollector2 = new MessageCollector();
 
-    await subscription2.subscribe([TestDecoder], messageCollector2.callback);
+    // Subscribe from the same lightnode to the 2nd pubSubtopic
+    const subscription2 = await waku.filter.createSubscription(
+      [TestDecoder],
+      DefaultPubsubTopic
+    );
+    subscription2.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector2.filterCallback
+    );
 
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M1") });
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
@@ -96,7 +112,14 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   });
 
   it("Subscribe and receive messages from 2 nwaku nodes each with different pubsubtopics", async function () {
-    await subscription.subscribe([newDecoder], messageCollector.callback);
+    const subscription = await waku.filter.createSubscription(
+      [newDecoder],
+      customPubsubTopic
+    );
+    subscription.addEventListener(
+      newDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
 
     // Set up and start a new nwaku node with Default Pubsubtopic
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
@@ -111,14 +134,22 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
 
     // Subscribe from the same lightnode to the new nwaku on the new pubsubtopic
     const subscription2 = await waku.filter.createSubscription(
-      DefaultPubsubTopic,
-      await nwaku2.getPeerId()
+      [TestDecoder],
+      DefaultPubsubTopic
+    );
+    subscription2.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
     );
     await nwaku2.ensureSubscriptions([DefaultPubsubTopic]);
 
     const messageCollector2 = new MessageCollector();
 
-    await subscription2.subscribe([TestDecoder], messageCollector2.callback);
+    await subscription2.subscribe([TestDecoder]);
+    subscription2.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector2.filterCallback
+    );
 
     // Making sure that messages are send and reveiced for both subscriptions
     // While loop is done because of https://github.com/waku-org/js-waku/issues/1606
@@ -149,12 +180,16 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
 
   it("Should fail to subscribe with decoder with wrong pubsubTopic", async function () {
     // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
-    try {
-      await subscription.subscribe([TestDecoder], messageCollector.callback);
-    } catch (error) {
-      expect((error as Error).message).to.include(
-        "Pubsub topic not configured"
+
+    const subscription = await waku.filter.createSubscription(
+      [TestDecoder],
+      customPubsubTopic
+    );
+    expect(() => {
+      subscription.addEventListener(
+        TestDecoder.contentTopic,
+        messageCollector.filterCallback
       );
-    }
+    }).to.throw();
   });
 });

@@ -1,5 +1,5 @@
 import { DefaultPubsubTopic, waitForRemotePeer } from "@waku/core";
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
+import type { LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -26,13 +26,11 @@ describe("Waku Filter V2: FilterPush", function () {
   this.timeout(10000);
   let waku: LightNode;
   let nwaku: NimGoNode;
-  let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
   this.beforeEach(async function () {
     this.timeout(15000);
     [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
-    subscription = await waku.filter.createSubscription();
     messageCollector = new MessageCollector();
   });
 
@@ -43,7 +41,11 @@ describe("Waku Filter V2: FilterPush", function () {
 
   TEST_STRING.forEach((testItem) => {
     it(`Check received message containing ${testItem.description}`, async function () {
-      await subscription.subscribe([TestDecoder], messageCollector.callback);
+      const subscription = await waku.filter.createSubscription([TestDecoder]);
+      subscription.addEventListener(
+        TestDecoder.contentTopic,
+        messageCollector.filterCallback
+      );
       await waku.lightPush.send(TestEncoder, {
         payload: utf8ToBytes(testItem.value)
       });
@@ -58,7 +60,11 @@ describe("Waku Filter V2: FilterPush", function () {
 
   TEST_TIMESTAMPS.forEach((testItem) => {
     it(`Check received message with timestamp: ${testItem} `, async function () {
-      await subscription.subscribe([TestDecoder], messageCollector.callback);
+      const subscription = await waku.filter.createSubscription([TestDecoder]);
+      subscription.addEventListener(
+        TestDecoder.contentTopic,
+        messageCollector.filterCallback
+      );
       await delay(400);
 
       await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
@@ -88,8 +94,12 @@ describe("Waku Filter V2: FilterPush", function () {
     });
   });
 
-  it("Check message with invalid timestamp is not received", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+  it("Check received message with invalid timestamp is not received", async function () {
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
@@ -105,8 +115,12 @@ describe("Waku Filter V2: FilterPush", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
-  it("Check message on other pubsub topic is not received", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+  it("Check received message on other pubsub topic is not received", async function () {
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
@@ -121,8 +135,12 @@ describe("Waku Filter V2: FilterPush", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
-  it("Check message with no pubsub topic is not received", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+  it("Check received message with no pubsub topic is not received", async function () {
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
@@ -136,8 +154,12 @@ describe("Waku Filter V2: FilterPush", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
-  it("Check message with no content topic is not received", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+  it("Check received message with no content topic is not received", async function () {
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
@@ -151,8 +173,12 @@ describe("Waku Filter V2: FilterPush", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
-  it("Check message with no payload is not received", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+  it("Check received message with no payload is not received", async function () {
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
@@ -171,8 +197,12 @@ describe("Waku Filter V2: FilterPush", function () {
     }
   });
 
-  it("Check message with non string payload is not received", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+  it("Check received message with non string payload is not received", async function () {
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
@@ -187,8 +217,12 @@ describe("Waku Filter V2: FilterPush", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
-  it("Check message with extra parameter is not received", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+  it("Check received message with extra parameter is not received", async function () {
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
@@ -205,7 +239,11 @@ describe("Waku Filter V2: FilterPush", function () {
   });
 
   it("Check received message with extra option is received", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await delay(400);
 
     await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
@@ -228,7 +266,11 @@ describe("Waku Filter V2: FilterPush", function () {
   // Will be skipped until https://github.com/waku-org/js-waku/issues/1464 si done
   it.skip("Check message received after jswaku node is restarted", async function () {
     // Subscribe and send message
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+    let subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
@@ -241,8 +283,11 @@ describe("Waku Filter V2: FilterPush", function () {
     // Redo the connection and create a new subscription
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-    subscription = await waku.filter.createSubscription();
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+    subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
 
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
 
@@ -258,9 +303,13 @@ describe("Waku Filter V2: FilterPush", function () {
     });
   });
 
-  // Will be skipped until https://github.com/waku-org/js-waku/issues/1464 si done
-  it.skip("Check message received after nwaku node is restarted", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+  // Will be skipped until https://github.com/waku-org/js-waku/issues/1464 is done
+  it.skip("Check received message received after nwaku node is restarted", async function () {
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(
+      TestDecoder.contentTopic,
+      messageCollector.filterCallback
+    );
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
 

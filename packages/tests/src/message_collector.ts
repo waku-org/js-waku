@@ -1,4 +1,5 @@
 import { DecodedMessage, DefaultPubsubTopic } from "@waku/core";
+import type { IDecodedMessage } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
@@ -16,12 +17,18 @@ const log = new Logger("test:message-collector");
  * and offers a way to wait for incoming messages.
  */
 export class MessageCollector {
-  list: Array<MessageRpcResponse | DecodedMessage> = [];
-  callback: (msg: DecodedMessage) => void = () => {};
+  list: Array<MessageRpcResponse | IDecodedMessage> = [];
+  filterCallback: (event: CustomEvent<IDecodedMessage>) => void = () => {};
+  relayCallback: (msg: DecodedMessage) => void = () => {};
 
   constructor(private nwaku?: NimGoNode) {
     if (!this.nwaku) {
-      this.callback = (msg: DecodedMessage): void => {
+      this.filterCallback = (evt): void => {
+        const message = evt.detail;
+        log.info("Got a message");
+        this.list.push(message);
+      };
+      this.relayCallback = (msg): void => {
         log.info("Got a message");
         this.list.push(msg);
       };
@@ -32,7 +39,7 @@ export class MessageCollector {
     return this.list.length;
   }
 
-  getMessage(index: number): MessageRpcResponse | DecodedMessage {
+  getMessage(index: number): MessageRpcResponse | IDecodedMessage {
     return this.list[index];
   }
 
@@ -53,7 +60,7 @@ export class MessageCollector {
 
   // Type guard to determine if a message is of type MessageRpcResponse
   isMessageRpcResponse(
-    message: MessageRpcResponse | DecodedMessage
+    message: MessageRpcResponse | IDecodedMessage
   ): message is MessageRpcResponse {
     return (
       ("payload" in message && typeof message.payload === "string") ||

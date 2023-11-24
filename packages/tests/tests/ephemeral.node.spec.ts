@@ -4,8 +4,8 @@ import {
   DecodedMessage,
   waitForRemotePeer
 } from "@waku/core";
-import { IFilterSubscription, Protocols } from "@waku/interfaces";
-import type { LightNode } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
+import type { IDecodedMessage, LightNode } from "@waku/interfaces";
 import {
   createDecoder as eciesDecoder,
   createEncoder as eciesEncoder,
@@ -43,8 +43,6 @@ describe("Waku Message Ephemeral field", () => {
   let waku: LightNode;
   let nwaku: NimGoNode;
 
-  let subscription: IFilterSubscription;
-
   afterEach(async function () {
     this.timeout(15000);
     await tearDownNodes(nwaku, waku);
@@ -71,8 +69,6 @@ describe("Waku Message Ephemeral field", () => {
       Protocols.LightPush,
       Protocols.Store
     ]);
-
-    subscription = await waku.filter.createSubscription();
   });
 
   it("Ephemeral messages are not stored", async function () {
@@ -176,11 +172,13 @@ describe("Waku Message Ephemeral field", () => {
       ephemeral: true
     });
 
-    const messages: DecodedMessage[] = [];
-    const callback = (msg: DecodedMessage): void => {
-      messages.push(msg);
-    };
-    await subscription.subscribe([TestDecoder], callback);
+    const messages: IDecodedMessage[] = [];
+
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    subscription.addEventListener(TestDecoder.contentTopic, (event) => {
+      const message = event.detail;
+      messages.push(message);
+    });
 
     await delay(200);
     const normalTxt = "Normal message";
@@ -225,11 +223,13 @@ describe("Waku Message Ephemeral field", () => {
     });
     const decoder = symDecoder(TestContentTopic, symKey);
 
-    const messages: DecodedMessage[] = [];
-    const callback = (msg: DecodedMessage): void => {
-      messages.push(msg);
-    };
-    await subscription.subscribe([decoder], callback);
+    const messages: IDecodedMessage[] = [];
+
+    const subscription = await waku.filter.createSubscription([decoder]);
+    subscription.addEventListener(decoder.contentTopic, (event) => {
+      const message = event.detail;
+      messages.push(message);
+    });
 
     await delay(200);
     const normalTxt = "Normal message";
@@ -275,11 +275,13 @@ describe("Waku Message Ephemeral field", () => {
     });
     const decoder = eciesDecoder(TestContentTopic, privKey);
 
-    const messages: DecodedMessage[] = [];
-    const callback = (msg: DecodedMessage): void => {
-      messages.push(msg);
-    };
-    await subscription.subscribe([decoder], callback);
+    const messages: IDecodedMessage[] = [];
+
+    const subscription = await waku.filter.createSubscription([decoder]);
+    subscription.addEventListener(decoder.contentTopic, (event) => {
+      const message = event.detail;
+      messages.push(message);
+    });
 
     await delay(200);
     const normalTxt = "Normal message";

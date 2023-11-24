@@ -12,6 +12,7 @@ export class TopicOnlyMessage implements IDecodedMessage {
   public timestamp: undefined;
   public meta: undefined;
   public ephemeral: undefined;
+  public version: undefined;
 
   constructor(
     public pubsubTopic: string,

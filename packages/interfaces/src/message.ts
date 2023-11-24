@@ -70,6 +70,7 @@ export interface IDecodedMessage {
   rateLimitProof: IRateLimitProof | undefined;
   ephemeral: boolean | undefined;
   meta: Uint8Array | undefined;
+  version: number | undefined;
 }
 
 export interface IDecoder<T extends IDecodedMessage> {
