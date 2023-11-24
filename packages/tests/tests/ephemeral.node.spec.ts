@@ -7,13 +7,15 @@ import {
 import { IFilterSubscription, Protocols } from "@waku/interfaces";
 import type { LightNode } from "@waku/interfaces";
 import {
-  createDecoder as eciesDecoder,
-  createEncoder as eciesEncoder,
   generatePrivateKey,
+  generateSymmetricKey,
   getPublicKey
+} from "@waku/message-encryption";
+import {
+  createDecoder as eciesDecoder,
+  createEncoder as eciesEncoder
 } from "@waku/message-encryption/ecies";
 import {
-  generateSymmetricKey,
   createDecoder as symDecoder,
   createEncoder as symEncoder
 } from "@waku/message-encryption/symmetric";
