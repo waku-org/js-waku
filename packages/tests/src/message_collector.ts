@@ -1,5 +1,5 @@
 import { DecodedMessage, DefaultPubsubTopic } from "@waku/core";
-import type { IDecodedMessage } from "@waku/interfaces";
+import type { EventDetail, IDecodedMessage } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
@@ -18,15 +18,19 @@ const log = new Logger("test:message-collector");
  */
 export class MessageCollector {
   list: Array<MessageRpcResponse | IDecodedMessage> = [];
-  filterCallback: (event: CustomEvent<IDecodedMessage>) => void = () => {};
+  filterCallback: (event: CustomEvent<EventDetail>) => void = () => {};
   relayCallback: (msg: DecodedMessage) => void = () => {};
 
   constructor(private nwaku?: NimGoNode) {
     if (!this.nwaku) {
       this.filterCallback = (evt): void => {
-        const message = evt.detail;
-        log.info("Got a message");
-        this.list.push(message);
+        const { data, error } = evt.detail;
+        if (data) {
+          log.info("Got a message");
+          this.list.push(data);
+        } else if (error) {
+          log.error(`Error: ${error}`);
+        }
       };
       this.relayCallback = (msg): void => {
         log.info("Got a message");

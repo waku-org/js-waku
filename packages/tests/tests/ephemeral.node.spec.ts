@@ -176,8 +176,12 @@ describe("Waku Message Ephemeral field", () => {
 
     const subscription = await waku.filter.createSubscription([TestDecoder]);
     subscription.addEventListener(TestDecoder.contentTopic, (event) => {
-      const message = event.detail;
-      messages.push(message);
+      const { data, error } = event.detail;
+      if (data) {
+        messages.push(data);
+      } else if (error) {
+        log.error(error);
+      }
     });
 
     await delay(200);
@@ -227,8 +231,12 @@ describe("Waku Message Ephemeral field", () => {
 
     const subscription = await waku.filter.createSubscription([decoder]);
     subscription.addEventListener(decoder.contentTopic, (event) => {
-      const message = event.detail;
-      messages.push(message);
+      const { data, error } = event.detail;
+      if (data) {
+        messages.push(data);
+      } else if (error) {
+        log.error(error);
+      }
     });
 
     await delay(200);
@@ -279,8 +287,12 @@ describe("Waku Message Ephemeral field", () => {
 
     const subscription = await waku.filter.createSubscription([decoder]);
     subscription.addEventListener(decoder.contentTopic, (event) => {
-      const message = event.detail;
-      messages.push(message);
+      const { data, error } = event.detail;
+      if (data) {
+        messages.push(data);
+      } else if (error) {
+        log.error(error);
+      }
     });
 
     await delay(200);

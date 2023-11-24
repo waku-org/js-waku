@@ -10,8 +10,13 @@ export type ContentFilter = {
   contentTopic: string;
 };
 
+export interface EventDetail {
+  data?: IDecodedMessage;
+  error?: Error;
+}
+
 export interface SubscriptionEventMap {
-  [key: string]: CustomEvent<IDecodedMessage>;
+  [key: ContentTopic]: CustomEvent<EventDetail>;
 }
 
 export interface IFilterSubscription

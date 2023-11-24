@@ -7,6 +7,7 @@ import {
 import type { Peer } from "@libp2p/interface/peer-store";
 import type {
   ContentTopic,
+  EventDetail,
   IDecodedMessage,
   IDecoder,
   IProtoMessage,
@@ -58,44 +59,51 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<void> {
-    // check if the decoders received now are not already present in the decoders map
-    // else add them
-    this.setNewDecoders(decoders);
+    try {
+      // check if the decoders received now are not already present in the decoders map
+      // else add them
+      this.setNewDecoders(decoders);
 
-    const contentTopics = this.getContentTopics(decoders);
+      const contentTopics = this.getContentTopics(decoders);
 
-    const request = FilterSubscribeRpc.createSubscribeRequest(
-      this.pubsubTopic,
-      contentTopics
-    );
+      const request = FilterSubscribeRpc.createSubscribeRequest(
+        this.pubsubTopic,
+        contentTopics
+      );
 
-    const response = await this.sendSubscribeRequest(request);
+      const response = await this.sendSubscribeRequest(request);
+      if (!response) return;
 
-    this.processSubscribeResponse(response, decoders);
+      this.processSubscribeResponse(response, decoders);
+    } catch (error) {
+      const errorMsg = "Error subscribing: " + error;
+      this.dispatchError(this.pubsubTopic, errorMsg);
+    }
   }
 
   async unsubscribe(contentTopics: ContentTopic[]): Promise<void> {
-    const stream = await this.newStream(this.peer);
-    const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
-      this.pubsubTopic,
-      contentTopics
-    );
-
     try {
-      await pipe([unsubscribeRequest.encode()], lp.encode, stream.sink);
-    } catch (error) {
-      throw new Error("Error unsubscribing: " + error);
-    }
+      const stream = await this.newStream(this.peer);
+      const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
+        this.pubsubTopic,
+        contentTopics
+      );
 
-    this.removeExistingDecoders(contentTopics);
+      await pipe([unsubscribeRequest.encode()], lp.encode, stream.sink);
+
+      this.removeExistingDecoders(contentTopics);
+    } catch (error) {
+      const errorMsg = "Error unsubscribing: " + error;
+      this.dispatchError(this.pubsubTopic, errorMsg);
+    }
   }
 
   async ping(): Promise<void> {
-    const stream = await this.newStream(this.peer);
-
-    const request = FilterSubscribeRpc.createSubscriberPingRequest();
-
     try {
+      const stream = await this.newStream(this.peer);
+
+      const request = FilterSubscribeRpc.createSubscriberPingRequest();
+
       const res = await pipe(
         [request.encode()],
         lp.encode,
@@ -104,36 +112,30 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
         async (source) => await all(source)
       );
 
-      if (!res || !res.length) {
-        throw Error(
-          `No response received for request ${request.requestId}: ${res}`
-        );
-      }
+      if (!res || !res.length)
+        throw `No response received for request ${request.requestId}: ${res}`;
 
       const { statusCode, requestId, statusDesc } =
         FilterSubscribeResponse.decode(res[0].slice());
 
-      if (statusCode < 200 || statusCode >= 300) {
-        throw new Error(
-          `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
-        );
-      }
+      if (statusCode < 200 || statusCode >= 300)
+        throw `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`;
 
       log.info("Ping successful");
     } catch (error) {
-      log.error("Error pinging: ", error);
-      throw new Error("Error pinging: " + error);
+      const errorMsg = "Error pinging: " + error;
+      this.dispatchError(this.pubsubTopic, errorMsg);
     }
   }
 
   async unsubscribeAll(): Promise<void> {
-    const stream = await this.newStream(this.peer);
-
-    const request = FilterSubscribeRpc.createUnsubscribeAllRequest(
-      this.pubsubTopic
-    );
-
     try {
+      const stream = await this.newStream(this.peer);
+
+      const request = FilterSubscribeRpc.createUnsubscribeAllRequest(
+        this.pubsubTopic
+      );
+
       const res = await pipe(
         [request.encode()],
         lp.encode,
@@ -142,28 +144,21 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
         async (source) => await all(source)
       );
 
-      if (!res || !res.length) {
-        throw Error(
-          `No response received for request ${request.requestId}: ${res}`
-        );
-      }
+      if (!res || !res.length)
+        throw `No response received for request ${request.requestId}: ${res}`;
 
       const { statusCode, requestId, statusDesc } =
         FilterSubscribeResponse.decode(res[0].slice());
 
-      if (statusCode < 200 || statusCode >= 300) {
-        throw new Error(
-          `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
-        );
-      }
+      if (statusCode < 200 || statusCode >= 300)
+        throw `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}: ${statusDesc}`;
 
       for (const decoder of this.decoders.values()) {
         this.removeEventListener(decoder.contentTopic);
       }
-      this.decoders.clear();
-      log.info("Unsubscribed from all content topics");
     } catch (error) {
-      throw new Error("Error unsubscribing from all content topics: " + error);
+      const errorMsg = "Error unsubscribing all: " + error;
+      this.dispatchError(this.pubsubTopic, errorMsg);
     }
   }
 
@@ -172,55 +167,60 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
     listener: EventHandler<SubscriptionEventMap[K]> | null,
     options?: boolean | AddEventListenerOptions | undefined
   ): void {
-    if (typeof contentTopic !== "string")
-      throw new Error(
-        `Invalid event type. Expected content topic which should be a string but received ${contentTopic} of the type ${typeof contentTopic}`
-      );
+    try {
+      if (typeof contentTopic !== "string")
+        throw `Invalid event type. Expected content topic which should be a string but received ${contentTopic} of the type ${typeof contentTopic}`;
 
-    const decoder = this.decoders.get(contentTopic);
-    if (!decoder)
-      throw new Error("No decoder found for content topic " + contentTopic);
-    if (decoder.pubsubTopic !== this.pubsubTopic)
-      throw new Error(
-        `Invalid decoder received. Expected decoder for pubsub topic ${this.pubsubTopic} but received decoder for pubsub topic ${decoder.pubsubTopic}`
-      );
+      const decoder = this.decoders.get(contentTopic);
+      if (!decoder) throw "No decoder found for content topic " + contentTopic;
 
-    super.addEventListener(contentTopic, listener, options);
+      if (decoder.pubsubTopic !== this.pubsubTopic) {
+        throw `Invalid decoder received. Expected decoder for pubsub topic ${this.pubsubTopic} but received decoder for pubsub topic ${decoder.pubsubTopic}`;
+      }
+
+      super.addEventListener(contentTopic, listener, options);
+    } catch (error) {
+      const errorMsg = "Error adding event listener: " + error;
+      this.dispatchError(this.pubsubTopic, errorMsg);
+      return;
+    }
   }
 
   async processMessage(message: WakuMessage): Promise<void> {
-    const { contentTopic } = message;
-    if (!contentTopic) {
-      log.info("Message has no content topic, skipping");
-      return;
-    }
-
-    const decoder = this.decoders.get(contentTopic);
-    if (decoder) {
-      try {
-        const decodedMessage = await decoder.fromProtoObj(
-          this.pubsubTopic,
-          message as IProtoMessage
-        );
-        if (!decodedMessage) {
-          throw new Error("Decoding failed");
-        }
-        this.dispatchEvent(
-          new CustomEvent<IDecodedMessage>(decoder.contentTopic, {
-            detail: decodedMessage
-          })
-        );
-      } catch (e) {
-        log.error("Error decoding message", e);
+    try {
+      const { contentTopic } = message;
+      if (!contentTopic) {
+        log.info("Message has no content topic, skipping");
+        return;
       }
-    } else {
-      log.error("No decoder found for content topic", contentTopic);
+
+      const decoder = this.decoders.get(contentTopic);
+      if (decoder) {
+        try {
+          const decodedMessage = await decoder.fromProtoObj(
+            this.pubsubTopic,
+            message as IProtoMessage
+          );
+          if (!decodedMessage) {
+            this.dispatchError(contentTopic, "Error decoding message");
+            return;
+          }
+          this.dispatchData(decoder.contentTopic, decodedMessage);
+        } catch (e) {
+          throw `Error decoding message: ${e}`;
+        }
+      } else {
+        throw `No decoder found for content topic: ${contentTopic}`;
+      }
+    } catch (error) {
+      const errorMsg = "Error processing message: " + error;
+      this.dispatchError(this.pubsubTopic, errorMsg);
     }
   }
 
   private async sendSubscribeRequest(
     request: FilterSubscribeRpc
-  ): Promise<FilterSubscribeResponse> {
+  ): Promise<FilterSubscribeResponse | void> {
     const stream = await this.newStream(this.peer);
     const res = await pipe(
       [request.encode()],
@@ -230,11 +230,9 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
       async (source) => await all(source)
     );
 
-    if (!res || !res.length) {
-      throw Error(
-        `No response received for request ${request.requestId}: ${res}`
-      );
-    }
+    if (!res || !res.length)
+      // throwing here as it is caught in the caller function
+      throw `No response received for request ${request.requestId}: ${res}`;
 
     return FilterSubscribeResponse.decode(res[0].slice());
   }
@@ -245,11 +243,9 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
   ): void {
     const { statusCode, requestId, statusDesc } = response;
 
-    if (statusCode < 200 || statusCode >= 300) {
-      throw new Error(
-        `Filter subscribe request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
-      );
-    }
+    if (statusCode < 200 || statusCode >= 300)
+      // throwing here as it is caught in the caller function
+      throw `Filter subscribe request ${requestId} failed with status code ${statusCode}: ${statusDesc}`;
 
     log.info(
       "Subscribed to peer ",
@@ -280,11 +276,33 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
 
   private removeExistingDecoders(contentTopics: ContentTopic[]): void {
     contentTopics.forEach((contentTopic: string) => {
-      const decoder = this.decoders.get(contentTopic);
-      if (!decoder)
-        throw new Error("No decoder found for content topic " + contentTopic);
-      this.removeEventListener(decoder.contentTopic);
-      this.decoders.delete(contentTopic);
+      try {
+        const decoder = this.decoders.get(contentTopic);
+        if (!decoder)
+          throw "No decoder found for content topic " + contentTopic;
+        this.removeEventListener(decoder.contentTopic);
+        this.decoders.delete(contentTopic);
+      } catch (error) {
+        const errorMsg = "Error removing event listener: " + error;
+        this.dispatchError(this.pubsubTopic, errorMsg);
+      }
     });
+  }
+
+  private dispatchData(
+    contentTopic: ContentTopic,
+    data: IDecodedMessage
+  ): void {
+    this.dispatchEvent(
+      new CustomEvent<EventDetail>(contentTopic, { detail: { data } })
+    );
+  }
+
+  private dispatchError(contentTopic: ContentTopic, errorMsg: string): void {
+    this.dispatchEvent(
+      new CustomEvent<EventDetail>(contentTopic, {
+        detail: { error: new Error(errorMsg) }
+      })
+    );
   }
 }
