@@ -111,6 +111,12 @@ export class KeepAliveManager {
     this.relayKeepAliveTimers.clear();
   }
 
+  public connectionsExist(): boolean {
+    return (
+      this.pingKeepAliveTimers.size > 0 || this.relayKeepAliveTimers.size > 0
+    );
+  }
+
   private scheduleRelayPings(
     relay: IRelay,
     relayPeriodSecs: number,
