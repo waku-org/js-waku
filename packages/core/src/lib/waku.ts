@@ -187,6 +187,10 @@ export class WakuNode implements Waku {
     return this.libp2p.isStarted();
   }
 
+  isConnected(): boolean {
+    return this.connectionManager.isConnected();
+  }
+
   /**
    * Return the local multiaddr with peer id on which libp2p is listening.
    *
