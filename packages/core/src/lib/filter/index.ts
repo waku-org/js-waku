@@ -67,9 +67,17 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   async createSubscription(
-    decoders: IDecoder<IDecodedMessage>[],
-    pubsubTopic: string = DefaultPubsubTopic
+    decoders: IDecoder<IDecodedMessage>[]
   ): Promise<Subscription> {
+    const uniquePubsubTopics = new Set(
+      decoders.map((decoder) => decoder.pubsubTopic)
+    );
+    if (uniquePubsubTopics.size > 1) {
+      throw new Error(
+        "Error: Only one pubsub topic is supported per subscription at this time. Please call this function multiple times if you need to subscribe to multiple topics."
+      );
+    }
+    const pubsubTopic = Array.from(uniquePubsubTopics)[0];
     ensurePubsubTopicIsConfigured(pubsubTopic, this.pubsubTopics);
 
     //TODO: get a relevant peer for the topic/shard
