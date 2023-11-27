@@ -48,7 +48,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@chainsafe/libp2p-noise": "^13.0.0",
+    "@chainsafe/libp2p-noise": "^13.0.4",
     "@libp2p/mplex": "^9.0.10",
     "@libp2p/websockets": "^7.0.5",
     "@waku/utils": "0.0.13",
