@@ -12,6 +12,7 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
+import { generatePrivateKey } from "./crypto/crypto.js";
 import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptAsymmetric,
@@ -21,7 +22,13 @@ import {
 } from "./encryption.js";
 import { OneMillion, Version } from "./misc.js";
 
-export { decryptAsymmetric, encryptAsymmetric, postCipher, preCipher };
+export {
+  decryptAsymmetric,
+  encryptAsymmetric,
+  postCipher,
+  preCipher,
+  generatePrivateKey
+};
 
 const log = new Logger("message-encryption:ecies");
 
