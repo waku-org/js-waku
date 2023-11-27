@@ -55,7 +55,7 @@
     "@waku/interfaces": "0.0.20",
     "@waku/proto": "0.0.5",
     "@waku/utils": "0.0.13",
-    "chai": "^4.3.7",
+    "chai": "^4.3.10",
     "debug": "^4.3.4",
     "fast-check": "^3.13.1"
   },
