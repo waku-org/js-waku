@@ -15,12 +15,12 @@ module.exports = [
   {
     name: "ECIES encryption",
     path: "packages/message-encryption/bundle/ecies.js",
-    import: "{ createEncoder, createDecoder }",
+    import: "{ generatePrivateKey, createEncoder, createDecoder }",
   },
   {
     name: "Symmetric encryption",
     path: "packages/message-encryption/bundle/symmetric.js",
-    import: "{ createEncoder, createDecoder }",
+    import: "{ generateSymmetricKey, createEncoder, createDecoder }",
   },
   {
     name: "DNS discovery",

@@ -12,7 +12,7 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
-import { generateSymmetricKey } from "./crypto/crypto.js";
+import { generateSymmetricKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptSymmetric,
