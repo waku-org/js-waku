@@ -10,7 +10,8 @@ import { concat, utf8ToBytes } from "../bytes/index.js";
 export const singleTopicShardInfoToPubsubTopic = (
   shardInfo: SingleTopicShardInfo
 ): PubsubTopic => {
-  if (!shardInfo.cluster || !shardInfo.index) throw new Error("Invalid shard");
+  if (shardInfo.cluster === undefined || shardInfo.index === undefined)
+    throw new Error("Invalid shard");
 
   return `/waku/2/rs/${shardInfo.cluster}/${shardInfo.index}`;
 };
@@ -18,7 +19,7 @@ export const singleTopicShardInfoToPubsubTopic = (
 export const shardInfoToPubsubTopics = (
   shardInfo: ShardInfo
 ): PubsubTopic[] => {
-  if (!shardInfo.cluster || !shardInfo.indexList)
+  if (shardInfo.cluster === undefined || shardInfo.indexList === undefined)
     throw new Error("Invalid shard");
 
   return shardInfo.indexList.map(
@@ -30,12 +31,13 @@ export const pubsubTopicToSingleTopicShardInfo = (
   pubsubTopics: PubsubTopic
 ): SingleTopicShardInfo => {
   const parts = pubsubTopics.split("/");
-  if (parts.length != 5) throw new Error("Invalid pubsub topic");
+  if (parts.length != 6) throw new Error("Invalid pubsub topic");
 
-  return {
-    cluster: parseInt(parts[3]),
-    index: parseInt(parts[4])
-  };
+  const cluster = parseInt(parts[4]);
+  const index = parseInt(parts[5]);
+  if (isNaN(cluster) || isNaN(index)) throw new Error("Invalid pubsub topic");
+
+  return { cluster, index };
 };
 
 export function ensurePubsubTopicIsConfigured(

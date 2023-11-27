@@ -26,7 +26,6 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
   let nwaku: NimGoNode;
   let nwaku2: NimGoNode;
   let messageCollector: MessageCollector;
-
   const customPubsubTopic1 = singleTopicShardInfoToPubsubTopic({
     cluster: 3,
     index: 1
