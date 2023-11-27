@@ -19,11 +19,11 @@
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
-<li><span class="tsd-signature-type ">EventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a><span class="tsd-signature-symbol">&gt;</span>
+<li><span class="tsd-signature-type ">EventEmitter</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a><span class="tsd-signature-symbol"> &amp; </span><a href="_waku_interfaces.IConnectionStateEvents.html" class="tsd-signature-type tsd-kind-interface">IConnectionStateEvents</a><span class="tsd-signature-symbol">&gt;</span>
 <ul class="tsd-hierarchy">
 <li><span class="target">IConnectionManager</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/affdc265b/packages/interfaces/src/connection_manager.ts#L52">packages/interfaces/src/connection_manager.ts:52</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/1d0e2ace7/packages/interfaces/src/connection_manager.ts#L61">packages/interfaces/src/connection_manager.ts:61</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -62,14 +62,14 @@
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li>
-<h4><span class="tsd-kind-type-parameter">K</span><span class="tsd-signature-symbol"> extends </span><span class="tsd-signature-symbol">keyof </span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a></h4></li></ul></section>
+<h4><span class="tsd-kind-type-parameter">K</span><span class="tsd-signature-symbol"> extends </span><a href="../enums/_waku_interfaces.EConnectionStateEvents.html#CONNECTION_STATUS" class="tsd-signature-type tsd-kind-enum-member">CONNECTION_STATUS</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">keyof </span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a></h4></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
 <h5><span class="tsd-kind-parameter">type</span>: <span class="tsd-signature-type tsd-kind-type-parameter">K</span></h5></li>
 <li>
-<h5><span class="tsd-kind-parameter">listener</span>: <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">EventHandler</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type tsd-kind-type-parameter">K</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
+<h5><span class="tsd-kind-parameter">listener</span>: <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">EventHandler</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a><span class="tsd-signature-symbol"> &amp; </span><a href="_waku_interfaces.IConnectionStateEvents.html" class="tsd-signature-type tsd-kind-interface">IConnectionStateEvents</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type tsd-kind-type-parameter">K</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">AddEventListenerOptions</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
@@ -97,7 +97,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_interfaces.PeersByDiscoveryResult.html" class="tsd-signature-type tsd-kind-interface">PeersByDiscoveryResult</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/affdc265b/packages/interfaces/src/connection_manager.ts#L54">packages/interfaces/src/connection_manager.ts:54</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/1d0e2ace7/packages/interfaces/src/connection_manager.ts#L63">packages/interfaces/src/connection_manager.ts:63</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="listenerCount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>listener<wbr/>Count</span><a href="#listenerCount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -121,14 +121,14 @@
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li>
-<h4><span class="tsd-kind-type-parameter">K</span><span class="tsd-signature-symbol"> extends </span><span class="tsd-signature-symbol">keyof </span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a></h4></li></ul></section>
+<h4><span class="tsd-kind-type-parameter">K</span><span class="tsd-signature-symbol"> extends </span><a href="../enums/_waku_interfaces.EConnectionStateEvents.html#CONNECTION_STATUS" class="tsd-signature-type tsd-kind-enum-member">CONNECTION_STATUS</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">keyof </span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a></h4></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
 <h5><span class="tsd-kind-parameter">type</span>: <span class="tsd-signature-type tsd-kind-type-parameter">K</span></h5></li>
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">listener</span>: <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">EventHandler</span><span class="tsd-signature-symbol">&lt;</span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type tsd-kind-type-parameter">K</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">listener</span>: <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">EventHandler</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a><span class="tsd-signature-symbol"> &amp; </span><a href="_waku_interfaces.IConnectionStateEvents.html" class="tsd-signature-type tsd-kind-interface">IConnectionStateEvents</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type tsd-kind-type-parameter">K</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">EventListenerOptions</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
@@ -149,7 +149,7 @@
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">type</span>: <span class="tsd-signature-symbol">keyof </span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a></h5></li>
+<h5><span class="tsd-kind-parameter">type</span>: <a href="../enums/_waku_interfaces.EConnectionStateEvents.html#CONNECTION_STATUS" class="tsd-signature-type tsd-kind-enum-member">CONNECTION_STATUS</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">keyof </span><a href="_waku_interfaces.IPeersByDiscoveryEvents.html" class="tsd-signature-type tsd-kind-interface">IPeersByDiscoveryEvents</a></h5></li>
 <li>
 <h5><span class="tsd-kind-parameter">detail</span>: <span class="tsd-signature-type ">CustomEventInit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">Detail</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
@@ -163,7 +163,7 @@
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/affdc265b/packages/interfaces/src/connection_manager.ts#L55">packages/interfaces/src/connection_manager.ts:55</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/1d0e2ace7/packages/interfaces/src/connection_manager.ts#L64">packages/interfaces/src/connection_manager.ts:64</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

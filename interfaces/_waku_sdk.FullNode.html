@@ -23,7 +23,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">FullNode</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in packages/interfaces/dist/waku.d.ts:35</li></ul></aside>
+<li>Defined in packages/interfaces/dist/waku.d.ts:36</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -41,6 +41,7 @@
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Methods</h3>
 <div class="tsd-index-list"><a href="_waku_sdk.FullNode.html#dial" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>dial</span></a>
+<a href="_waku_sdk.FullNode.html#isConnected" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Connected</span></a>
 <a href="_waku_sdk.FullNode.html#isStarted" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Started</span></a>
 <a href="_waku_sdk.FullNode.html#start" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>start</span></a>
 <a href="_waku_sdk.FullNode.html#stop" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stop</span></a>
@@ -58,7 +59,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">filter</span><span class="tsd-signature-symbol">:</span> <a href="../types/_waku_sdk.IFilter.html" class="tsd-signature-type tsd-kind-type-alias">IFilter</a></div><aside class="tsd-sources">
 <p>Overrides <a href="_waku_sdk.Waku-1.html">Waku</a>.<a href="_waku_sdk.Waku-1.html#filter">filter</a></p>
 <ul>
-<li>Defined in packages/interfaces/dist/waku.d.ts:38</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/waku.d.ts:39</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="libp2p" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>libp2p</span><a href="#libp2p" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">libp2p</span><span class="tsd-signature-symbol">:</span> <a href="../types/_waku_sdk.Libp2p.html" class="tsd-signature-type tsd-kind-type-alias">Libp2p</a></div><aside class="tsd-sources">
@@ -70,19 +71,19 @@
 <div class="tsd-signature"><span class="tsd-kind-property">light<wbr/>Push</span><span class="tsd-signature-symbol">:</span> <a href="../types/_waku_sdk.ILightPush.html" class="tsd-signature-type tsd-kind-type-alias">ILightPush</a></div><aside class="tsd-sources">
 <p>Overrides <a href="_waku_sdk.Waku-1.html">Waku</a>.<a href="_waku_sdk.Waku-1.html#lightPush">lightPush</a></p>
 <ul>
-<li>Defined in packages/interfaces/dist/waku.d.ts:39</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/waku.d.ts:40</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="relay" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>relay</span><a href="#relay" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">relay</span><span class="tsd-signature-symbol">:</span> <a href="../types/_waku_sdk.IRelay.html" class="tsd-signature-type tsd-kind-type-alias">IRelay</a></div><aside class="tsd-sources">
 <p>Overrides <a href="_waku_sdk.Waku-1.html">Waku</a>.<a href="_waku_sdk.Waku-1.html#relay">relay</a></p>
 <ul>
-<li>Defined in packages/interfaces/dist/waku.d.ts:36</li></ul></aside></section>
+<li>Defined in packages/interfaces/dist/waku.d.ts:37</li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="store" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>store</span><a href="#store" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">store</span><span class="tsd-signature-symbol">:</span> <a href="_waku_sdk.IStore.html" class="tsd-signature-type tsd-kind-interface">IStore</a></div><aside class="tsd-sources">
 <p>Overrides <a href="_waku_sdk.Waku-1.html">Waku</a>.<a href="_waku_sdk.Waku-1.html#store">store</a></p>
 <ul>
-<li>Defined in packages/interfaces/dist/waku.d.ts:37</li></ul></aside></section></section>
+<li>Defined in packages/interfaces/dist/waku.d.ts:38</li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="dial" class="tsd-anchor"></a>
@@ -101,6 +102,15 @@
 <p>Inherited from <a href="_waku_sdk.Waku-1.html">Waku</a>.<a href="_waku_sdk.Waku-1.html#dial">dial</a></p>
 <ul>
 <li>Defined in packages/interfaces/dist/waku.d.ts:18</li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="isConnected" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>is<wbr/>Connected</span><a href="#isConnected" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="isConnected.isConnected-1"><span class="tsd-kind-call-signature">is<wbr/>Connected</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><a href="#isConnected.isConnected-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="_waku_sdk.Waku-1.html">Waku</a>.<a href="_waku_sdk.Waku-1.html#isConnected">isConnected</a></p>
+<ul>
+<li>Defined in packages/interfaces/dist/waku.d.ts:22</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="isStarted" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>is<wbr/>Started</span><a href="#isStarted" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -153,6 +163,7 @@
 <li><a href="#relay" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>relay</span></a></li>
 <li><a href="#store" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>store</span></a></li>
 <li><a href="#dial" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>dial</span></a></li>
+<li><a href="#isConnected" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Connected</span></a></li>
 <li><a href="#isStarted" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Started</span></a></li>
 <li><a href="#start" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>start</span></a></li>
 <li><a href="#stop" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stop</span></a></li></ul></div></details></div>
