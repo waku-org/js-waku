@@ -8,7 +8,7 @@ import {
   sign,
   symmetric
 } from "./crypto/index.js";
-import { Signature, Symmetric } from "./misc.js";
+import { Symmetric } from "./misc.js";
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011
@@ -211,6 +211,11 @@ export async function preCipher(
 
   return envelope;
 }
+
+type Signature = {
+  signature: Uint8Array;
+  publicKey: Uint8Array | undefined;
+};
 
 /**
  * Decode a decrypted payload.
