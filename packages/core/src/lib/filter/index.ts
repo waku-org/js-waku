@@ -14,12 +14,14 @@ import type {
   PeerIdStr,
   ProtocolCreateOptions,
   PubsubTopic,
+  SingleTopicShardInfo,
   Unsubscribe
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import {
   ensurePubsubTopicIsConfigured,
   groupByContentTopic,
+  singleTopicShardInfoToPubsubTopic,
   toAsyncIterator
 } from "@waku/utils";
 import { Logger } from "@waku/utils";
@@ -289,8 +291,12 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   async createSubscription(
-    pubsubTopic: string = DefaultPubsubTopic
+    pubsubTopicShardInfo?: SingleTopicShardInfo
   ): Promise<Subscription> {
+    const pubsubTopic = pubsubTopicShardInfo
+      ? singleTopicShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic;
+
     ensurePubsubTopicIsConfigured(pubsubTopic, this.pubsubTopics);
 
     //TODO: get a relevant peer for the topic/shard

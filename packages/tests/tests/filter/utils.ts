@@ -48,6 +48,7 @@ export async function validatePingError(
 
 export async function runNodes(
   context: Context,
+  //TODO: change this to use `ShardInfo` instead of `string[]`
   pubsubTopics: string[],
   shardInfo?: ShardInfo
 ): Promise<[NimGoNode, LightNode]> {

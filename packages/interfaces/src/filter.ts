@@ -1,6 +1,10 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 
-import type { IDecodedMessage, IDecoder } from "./message.js";
+import type {
+  IDecodedMessage,
+  IDecoder,
+  SingleTopicShardInfo
+} from "./message.js";
 import type { ContentTopic } from "./misc.js";
 import type { Callback, IBaseProtocol } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
@@ -25,7 +29,7 @@ export interface IFilterSubscription {
 export type IFilter = IReceiver &
   IBaseProtocol & {
     createSubscription(
-      pubsubTopic?: string,
+      pubsubTopicShardInfo?: SingleTopicShardInfo,
       peerId?: PeerId
     ): Promise<IFilterSubscription>;
   };

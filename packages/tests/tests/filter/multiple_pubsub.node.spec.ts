@@ -6,7 +6,10 @@ import type {
   SingleTopicShardInfo
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
+import {
+  pubsubTopicToSingleTopicShardInfo,
+  singleTopicShardInfoToPubsubTopic
+} from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -65,7 +68,9 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
       [customPubsubTopic1, customPubsubTopic2],
       shardInfo
     );
-    subscription = await waku.filter.createSubscription(customPubsubTopic1);
+    subscription = await waku.filter.createSubscription(
+      pubsubTopicToSingleTopicShardInfo(customPubsubTopic1)
+    );
     messageCollector = new MessageCollector();
   });
 
@@ -89,8 +94,9 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Subscribe from the same lightnode to the 2nd pubsubtopic
-    const subscription2 =
-      await waku.filter.createSubscription(customPubsubTopic2);
+    const subscription2 = await waku.filter.createSubscription(
+      pubsubTopicToSingleTopicShardInfo(customPubsubTopic2)
+    );
 
     const messageCollector2 = new MessageCollector();
 
@@ -131,7 +137,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
 
     // Subscribe from the same lightnode to the new nwaku on the new pubsubtopic
     const subscription2 = await waku.filter.createSubscription(
-      customPubsubTopic2,
+      pubsubTopicToSingleTopicShardInfo(customPubsubTopic2),
       await nwaku2.getPeerId()
     );
     await nwaku2.ensureSubscriptions([customPubsubTopic2]);
