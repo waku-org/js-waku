@@ -4,7 +4,7 @@ import sinon, { SinonSpy } from "sinon";
 
 import { tearDownNodes } from "../src/index.js";
 
-describe.only("Craete node", () => {
+describe("Craete node", () => {
   let waku: LightNode;
   let consoleInfoSpy: SinonSpy;
 
