@@ -186,6 +186,17 @@ export async function defaultLibp2p(
   options?: Partial<Libp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
+  /* eslint-disable no-console */
+  console.info(
+    "%cIgnore WebSocket connection failures",
+    "background: gray; color: white; font-size: x-large"
+  );
+  console.info(
+    "%cWaku tries to discover peers and some of them are expected to fail",
+    "background: gray; color: white; font-size: x-large"
+  );
+  /* eslint-enable no-console */
+
   const pubsubService: PubsubService = wakuGossipSub
     ? { pubsub: wakuGossipSub }
     : {};
