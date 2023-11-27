@@ -15,6 +15,7 @@ import {
 } from "@waku/core";
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
+  CreateLibp2pOptions,
   FullNode,
   Libp2p,
   Libp2pComponents,
@@ -24,7 +25,7 @@ import type {
 } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
-import { createLibp2p, Libp2pOptions } from "libp2p";
+import { createLibp2p } from "libp2p";
 import { identifyService } from "libp2p/identify";
 import { pingService } from "libp2p/ping";
 
@@ -183,9 +184,22 @@ type PubsubService = {
 
 export async function defaultLibp2p(
   wakuGossipSub?: PubsubService["pubsub"],
-  options?: Partial<Libp2pOptions>,
+  options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
+  if (!options?.hideWebSocketInfo) {
+    /* eslint-disable no-console */
+    console.info(
+      "%cIgnore WebSocket connection failures",
+      "background: gray; color: white; font-size: x-large"
+    );
+    console.info(
+      "%cWaku tries to discover peers and some of them are expected to fail",
+      "background: gray; color: white; font-size: x-large"
+    );
+    /* eslint-enable no-console */
+  }
+
   const pubsubService: PubsubService = wakuGossipSub
     ? { pubsub: wakuGossipSub }
     : {};
