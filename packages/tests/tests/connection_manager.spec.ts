@@ -2,18 +2,26 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
 import { CustomEvent } from "@libp2p/interfaces/events";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
-import { EPeersByDiscoveryEvents, LightNode, Tags } from "@waku/interfaces";
+import { Multiaddr } from "@multiformats/multiaddr";
+import {
+  EConnectionStateEvents,
+  EPeersByDiscoveryEvents,
+  LightNode,
+  Protocols,
+  Tags
+} from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 
 import { delay } from "../dist/delay.js";
-import { tearDownNodes } from "../src/index.js";
+import { makeLogFileName, NimGoNode, tearDownNodes } from "../src/index.js";
 
 const TEST_TIMEOUT = 10_000;
 const DELAY_MS = 1_000;
 
 describe("ConnectionManager", function () {
+  this.timeout(20_000);
   let waku: LightNode;
 
   beforeEach(async function () {
@@ -154,6 +162,105 @@ describe("ConnectionManager", function () {
         );
 
         expect(await peerConnectedPeerExchange).to.eq(true);
+      });
+    });
+
+    describe("peer:disconnect", () => {
+      it("should emit `waku:offline` event when all peers disconnect", async function () {
+        const peerIdPx = await createSecp256k1PeerId();
+        const peerIdPx2 = await createSecp256k1PeerId();
+
+        await waku.libp2p.peerStore.save(peerIdPx, {
+          tags: {
+            [Tags.PEER_EXCHANGE]: {
+              value: 50,
+              ttl: 1200000
+            }
+          }
+        });
+
+        await waku.libp2p.peerStore.save(peerIdPx2, {
+          tags: {
+            [Tags.PEER_EXCHANGE]: {
+              value: 50,
+              ttl: 1200000
+            }
+          }
+        });
+
+        waku.libp2p.dispatchEvent(
+          new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx })
+        );
+        waku.libp2p.dispatchEvent(
+          new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx2 })
+        );
+
+        await delay(100);
+
+        let eventCount = 0;
+        const connectionStatus = new Promise<boolean>((resolve) => {
+          waku.connectionManager.addEventListener(
+            EConnectionStateEvents.CONNECTION_STATUS,
+            ({ detail: status }) => {
+              eventCount++;
+              resolve(status);
+            }
+          );
+        });
+
+        expect(waku.isConnected()).to.be.true;
+
+        waku.libp2p.dispatchEvent(
+          new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx })
+        );
+        waku.libp2p.dispatchEvent(
+          new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx2 })
+        );
+
+        expect(await connectionStatus).to.eq(false);
+        expect(eventCount).to.be.eq(1);
+      });
+      it("isConnected should return false after all peers disconnect", async function () {
+        const peerIdPx = await createSecp256k1PeerId();
+        const peerIdPx2 = await createSecp256k1PeerId();
+
+        await waku.libp2p.peerStore.save(peerIdPx, {
+          tags: {
+            [Tags.PEER_EXCHANGE]: {
+              value: 50,
+              ttl: 1200000
+            }
+          }
+        });
+
+        await waku.libp2p.peerStore.save(peerIdPx2, {
+          tags: {
+            [Tags.PEER_EXCHANGE]: {
+              value: 50,
+              ttl: 1200000
+            }
+          }
+        });
+
+        waku.libp2p.dispatchEvent(
+          new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx })
+        );
+        waku.libp2p.dispatchEvent(
+          new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx2 })
+        );
+
+        await delay(100);
+
+        expect(waku.isConnected()).to.be.true;
+
+        waku.libp2p.dispatchEvent(
+          new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx })
+        );
+        waku.libp2p.dispatchEvent(
+          new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx2 })
+        );
+
+        expect(waku.isConnected()).to.be.false;
       });
     });
   });
@@ -374,6 +481,113 @@ describe("ConnectionManager", function () {
           expect(dialPeerStub.callCount).to.equal(totalPxPeers);
         });
       });
+    });
+  });
+
+  describe("Connection state", () => {
+    this.timeout(20_000);
+    let nwaku1: NimGoNode;
+    let nwaku2: NimGoNode;
+    let nwaku1PeerId: Multiaddr;
+    let nwaku2PeerId: Multiaddr;
+
+    beforeEach(async () => {
+      this.timeout(20_000);
+      nwaku1 = new NimGoNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new NimGoNode(makeLogFileName(this.ctx) + "2");
+      await nwaku1.start({
+        filter: true
+      });
+
+      await nwaku2.start({
+        filter: true
+      });
+
+      nwaku1PeerId = await nwaku1.getMultiaddrWithId();
+      nwaku2PeerId = await nwaku2.getMultiaddrWithId();
+    });
+
+    afterEach(async () => {
+      this.timeout(15000);
+      await tearDownNodes([nwaku1, nwaku2], []);
+    });
+
+    it("should emit `waku:online` event only when first peer is connected", async function () {
+      this.timeout(20_000);
+
+      let eventCount = 0;
+      const connectionStatus = new Promise<boolean>((resolve) => {
+        waku.connectionManager.addEventListener(
+          EConnectionStateEvents.CONNECTION_STATUS,
+          ({ detail: status }) => {
+            eventCount++;
+            resolve(status);
+          }
+        );
+      });
+
+      // await waku.start();
+      await waku.dial(nwaku1PeerId, [Protocols.Filter]);
+      await waku.dial(nwaku2PeerId, [Protocols.Filter]);
+
+      await delay(250);
+
+      expect(await connectionStatus).to.eq(true);
+      expect(eventCount).to.be.eq(1);
+    });
+
+    it("isConnected should return true after first peer connects", async function () {
+      this.timeout(20_000);
+      expect(waku.isConnected()).to.be.false;
+
+      // await waku.start();
+      await waku.dial(nwaku1PeerId, [Protocols.Filter]);
+      await waku.dial(nwaku2PeerId, [Protocols.Filter]);
+
+      await delay(250);
+
+      expect(waku.isConnected()).to.be.true;
+    });
+
+    it("should emit `waku:offline` event only when all peers disconnect", async function () {
+      this.timeout(20_000);
+      expect(waku.isConnected()).to.be.false;
+
+      await waku.dial(nwaku1PeerId, [Protocols.Filter]);
+      await waku.dial(nwaku2PeerId, [Protocols.Filter]);
+
+      await delay(250);
+
+      let eventCount = 0;
+      const connectionStatus = new Promise<boolean>((resolve) => {
+        waku.connectionManager.addEventListener(
+          EConnectionStateEvents.CONNECTION_STATUS,
+          ({ detail: status }) => {
+            eventCount++;
+            resolve(status);
+          }
+        );
+      });
+
+      await waku.libp2p.hangUp(nwaku1PeerId);
+      await waku.libp2p.hangUp(nwaku2PeerId);
+      expect(await connectionStatus).to.eq(false);
+      expect(eventCount).to.be.eq(1);
+    });
+
+    it("isConnected should return false after all peers disconnect", async function () {
+      this.timeout(20_000);
+      expect(waku.isConnected()).to.be.false;
+
+      await waku.dial(nwaku1PeerId, [Protocols.Filter]);
+      await waku.dial(nwaku2PeerId, [Protocols.Filter]);
+
+      await delay(250);
+      expect(waku.isConnected()).to.be.true;
+
+      await waku.libp2p.hangUp(nwaku1PeerId);
+      await waku.libp2p.hangUp(nwaku2PeerId);
+      expect(waku.isConnected()).to.be.false;
     });
   });
 });

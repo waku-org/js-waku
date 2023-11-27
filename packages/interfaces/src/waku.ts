@@ -26,6 +26,8 @@ export interface Waku {
   stop(): Promise<void>;
 
   isStarted(): boolean;
+
+  isConnected(): boolean;
 }
 
 export interface LightNode extends Waku {
