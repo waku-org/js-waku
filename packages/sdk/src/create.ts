@@ -5,7 +5,6 @@ import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
-  DefaultPubsubTopic,
   DefaultUserAgent,
   wakuFilter,
   wakuLightPush,
@@ -47,10 +46,6 @@ export async function createLightNode(
 ): Promise<LightNode> {
   options = options ?? {};
 
-  if (!options.pubsubTopics) {
-    options.pubsubTopics = [DefaultPubsubTopic];
-  }
-
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -70,8 +65,8 @@ export async function createLightNode(
 
   return new WakuNode(
     options ?? {},
-    options.pubsubTopics,
     libp2p,
+    options.shardInfo,
     store,
     lightPush,
     filter
@@ -86,10 +81,6 @@ export async function createRelayNode(
   options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<RelayNode> {
   options = options ?? {};
-
-  if (!options.pubsubTopics) {
-    options.pubsubTopics = [DefaultPubsubTopic];
-  }
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -108,8 +99,8 @@ export async function createRelayNode(
 
   return new WakuNode(
     options,
-    options.pubsubTopics,
     libp2p,
+    options.shardInfo,
     undefined,
     undefined,
     undefined,
@@ -135,10 +126,6 @@ export async function createFullNode(
 ): Promise<FullNode> {
   options = options ?? {};
 
-  if (!options.pubsubTopics) {
-    options.pubsubTopics = [DefaultPubsubTopic];
-  }
-
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -159,8 +146,8 @@ export async function createFullNode(
 
   return new WakuNode(
     options ?? {},
-    options.pubsubTopics,
     libp2p,
+    options.shardInfo,
     store,
     lightPush,
     filter,

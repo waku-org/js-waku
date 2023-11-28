@@ -25,7 +25,11 @@ import {
   SendError,
   SendResult
 } from "@waku/interfaces";
-import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
+import {
+  isWireSizeUnderCap,
+  shardInfoToPubsubTopics,
+  toAsyncIterator
+} from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
 import { Logger } from "@waku/utils";
 
@@ -68,7 +72,9 @@ class Relay implements IRelay {
     }
 
     this.gossipSub = libp2p.services.pubsub as GossipSub;
-    this.pubsubTopics = new Set(options?.pubsubTopics ?? [DefaultPubsubTopic]);
+    this.pubsubTopics = options?.shardInfo
+      ? new Set(shardInfoToPubsubTopics(options.shardInfo))
+      : new Set([DefaultPubsubTopic]);
 
     if (this.gossipSub.isStarted()) {
       this.subscribeToAllTopics();

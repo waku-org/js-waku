@@ -1,5 +1,10 @@
 import type { PubsubTopic } from "./misc.js";
 
+export interface SingleShardInfo {
+  cluster: number;
+  index: number;
+}
+
 export interface IRateLimitProof {
   proof: Uint8Array;
   merkleRoot: Uint8Array;
@@ -38,7 +43,7 @@ export interface IMetaSetter {
 }
 
 export interface EncoderOptions {
-  pubsubTopic?: PubsubTopic;
+  pubsubTopicShardInfo?: SingleShardInfo;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
   /**

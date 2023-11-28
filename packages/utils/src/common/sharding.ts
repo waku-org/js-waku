@@ -1,14 +1,39 @@
 import { sha256 } from "@noble/hashes/sha256";
-import type { PubsubTopic, ShardInfo } from "@waku/interfaces";
+import type { PubsubTopic, ShardInfo, SingleShardInfo } from "@waku/interfaces";
 
 import { concat, utf8ToBytes } from "../bytes/index.js";
+
+export const singleShardInfoToPubsubTopic = (
+  shardInfo: SingleShardInfo
+): PubsubTopic => {
+  if (shardInfo.cluster === undefined || shardInfo.index === undefined)
+    throw new Error("Invalid shard");
+
+  return `/waku/2/rs/${shardInfo.cluster}/${shardInfo.index}`;
+};
 
 export const shardInfoToPubsubTopics = (
   shardInfo: ShardInfo
 ): PubsubTopic[] => {
+  if (shardInfo.cluster === undefined || shardInfo.indexList === undefined)
+    throw new Error("Invalid shard");
+
   return shardInfo.indexList.map(
     (index) => `/waku/2/rs/${shardInfo.cluster}/${index}`
   );
+};
+
+export const pubsubTopicToSingleShardInfo = (
+  pubsubTopics: PubsubTopic
+): SingleShardInfo => {
+  const parts = pubsubTopics.split("/");
+  if (parts.length != 6) throw new Error("Invalid pubsub topic");
+
+  const cluster = parseInt(parts[4]);
+  const index = parseInt(parts[5]);
+  if (isNaN(cluster) || isNaN(index)) throw new Error("Invalid pubsub topic");
+
+  return { cluster, index };
 };
 
 export function ensurePubsubTopicIsConfigured(

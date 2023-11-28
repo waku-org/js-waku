@@ -7,10 +7,11 @@ import type {
   IMetaSetter,
   IProtoMessage,
   IRateLimitProof,
-  PubsubTopic
+  PubsubTopic,
+  SingleShardInfo
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
-import { Logger } from "@waku/utils";
+import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 
 import { DefaultPubsubTopic } from "../constants.js";
 
@@ -119,12 +120,19 @@ export class Encoder implements IEncoder {
  * messages.
  */
 export function createEncoder({
-  pubsubTopic = DefaultPubsubTopic,
+  pubsubTopicShardInfo,
   contentTopic,
   ephemeral,
   metaSetter
 }: EncoderOptions): Encoder {
-  return new Encoder(contentTopic, ephemeral, pubsubTopic, metaSetter);
+  return new Encoder(
+    contentTopic,
+    ephemeral,
+    pubsubTopicShardInfo?.index
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic,
+    metaSetter
+  );
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
@@ -182,7 +190,12 @@ export class Decoder implements IDecoder<DecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  pubsubTopic: PubsubTopic = DefaultPubsubTopic
+  pubsubTopicShardInfo?: SingleShardInfo
 ): Decoder {
-  return new Decoder(pubsubTopic, contentTopic);
+  return new Decoder(
+    pubsubTopicShardInfo?.index
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic,
+    contentTopic
+  );
 }

@@ -383,7 +383,7 @@ describe("Waku Filter V2: Subscribe", function () {
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
     const subscription2 = await waku.filter.createSubscription(
-      DefaultPubsubTopic,
+      undefined,
       await nwaku2.getPeerId()
     );
     await nwaku2.ensureSubscriptions([DefaultPubsubTopic]);

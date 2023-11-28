@@ -1,5 +1,15 @@
-import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
-import { IFilterSubscription, LightNode, Protocols } from "@waku/interfaces";
+import {
+  createDecoder,
+  createEncoder,
+  DefaultPubsubTopic,
+  waitForRemotePeer
+} from "@waku/core";
+import {
+  IFilterSubscription,
+  LightNode,
+  Protocols,
+  ShardInfo
+} from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { Logger } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -38,7 +48,9 @@ export async function validatePingError(
 
 export async function runNodes(
   context: Context,
-  pubsubTopics: string[]
+  //TODO: change this to use `ShardInfo` instead of `string[]`
+  pubsubTopics: string[],
+  shardInfo?: ShardInfo
 ): Promise<[NimGoNode, LightNode]> {
   const nwaku = new NimGoNode(makeLogFileName(context));
 
@@ -47,18 +59,24 @@ export async function runNodes(
       filter: true,
       lightpush: true,
       relay: true,
-      topic: pubsubTopics
+      pubsubTopic: pubsubTopics
     },
     { retries: 3 }
   );
 
+  const waku_options = {
+    staticNoiseKey: NOISE_KEY_1,
+    libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+    ...((pubsubTopics.length !== 1 ||
+      pubsubTopics[0] !== DefaultPubsubTopic) && {
+      shardInfo: shardInfo
+    })
+  };
+
+  log.info("Starting js waku node with :", JSON.stringify(waku_options));
   let waku: LightNode | undefined;
   try {
-    waku = await createLightNode({
-      pubsubTopics: pubsubTopics,
-      staticNoiseKey: NOISE_KEY_1,
-      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-    });
+    waku = await createLightNode(waku_options);
     await waku.start();
   } catch (error) {
     log.error("jswaku node failed to start:", error);

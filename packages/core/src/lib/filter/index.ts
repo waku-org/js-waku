@@ -14,12 +14,14 @@ import type {
   PeerIdStr,
   ProtocolCreateOptions,
   PubsubTopic,
+  SingleShardInfo,
   Unsubscribe
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import {
   ensurePubsubTopicIsConfigured,
   groupByContentTopic,
+  singleShardInfoToPubsubTopic,
   toAsyncIterator
 } from "@waku/utils";
 import { Logger } from "@waku/utils";
@@ -279,7 +281,7 @@ class Filter extends BaseProtocol implements IReceiver {
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(FilterCodecs.SUBSCRIBE, libp2p.components);
 
-    this.pubsubTopics = options?.pubsubTopics || [DefaultPubsubTopic];
+    this.pubsubTopics = this.initializePubsubTopic(options?.shardInfo);
 
     libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
       log.error("Failed to register ", FilterCodecs.PUSH, e);
@@ -289,8 +291,12 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   async createSubscription(
-    pubsubTopic: string = DefaultPubsubTopic
+    pubsubTopicShardInfo?: SingleShardInfo
   ): Promise<Subscription> {
+    const pubsubTopic = pubsubTopicShardInfo
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic;
+
     ensurePubsubTopicIsConfigured(pubsubTopic, this.pubsubTopics);
 
     //TODO: get a relevant peer for the topic/shard
