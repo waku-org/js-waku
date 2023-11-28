@@ -29,7 +29,7 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
   private readonly peer: Peer;
   private readonly pubsubTopic: PubsubTopic;
   private newStream: (peer: Peer) => Promise<Stream>;
-  private readonly decoders: Map<ContentTopic, IDecoder<IDecodedMessage>>;
+  private readonly decoders: Map<ContentTopic, IDecoder<IDecodedMessage>[]>;
 
   constructor(
     pubsubTopic: PubsubTopic,
@@ -41,9 +41,7 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
     this.peer = remotePeer;
     this.pubsubTopic = pubsubTopic;
     this.newStream = newStream;
-    this.decoders = new Map(
-      decoders.map((decoder) => [decoder.contentTopic, decoder])
-    );
+    this.decoders = groupByContentTopic(decoders);
   }
   /**
    * Subscribes to a set of topics.
@@ -153,8 +151,10 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
       if (statusCode < 200 || statusCode >= 300)
         throw `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}: ${statusDesc}`;
 
-      for (const decoder of this.decoders.values()) {
-        this.removeEventListener(decoder.contentTopic);
+      for (const decoders of this.decoders.values()) {
+        for (const decoder of decoders) {
+          this.removeEventListener(decoder.contentTopic);
+        }
       }
     } catch (error) {
       const errorMsg = "Error unsubscribing all: " + error;
@@ -171,11 +171,15 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
       if (typeof contentTopic !== "string")
         throw `Invalid event type. Expected content topic which should be a string but received ${contentTopic} of the type ${typeof contentTopic}`;
 
-      const decoder = this.decoders.get(contentTopic);
-      if (!decoder) throw "No decoder found for content topic " + contentTopic;
+      const decoders = this.decoders.get(contentTopic);
+      if (!decoders || decoders.length === 0)
+        throw "No decoders found for content topic " + contentTopic;
 
-      if (decoder.pubsubTopic !== this.pubsubTopic) {
-        throw `Invalid decoder received. Expected decoder for pubsub topic ${this.pubsubTopic} but received decoder for pubsub topic ${decoder.pubsubTopic}`;
+      // Check if all decoders are for the correct pubsub topic
+      for (const decoder of decoders) {
+        if (decoder.pubsubTopic !== this.pubsubTopic) {
+          throw `Invalid decoder received. Expected decoder for pubsub topic ${this.pubsubTopic} but received decoder for pubsub topic ${decoder.pubsubTopic}`;
+        }
       }
 
       super.addEventListener(contentTopic, listener, options);
@@ -194,21 +198,25 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
         return;
       }
 
-      const decoder = this.decoders.get(contentTopic);
-      if (decoder) {
-        try {
-          const decodedMessage = await decoder.fromProtoObj(
-            this.pubsubTopic,
-            message as IProtoMessage
-          );
-          if (!decodedMessage) {
-            this.dispatchError(contentTopic, "Error decoding message");
-            return;
+      const decoders = this.decoders.get(contentTopic);
+      if (decoders && decoders.length > 0) {
+        for (const decoder of decoders) {
+          try {
+            const decodedMessage = await decoder.fromProtoObj(
+              this.pubsubTopic,
+              message as IProtoMessage
+            );
+            if (decodedMessage) {
+              this.dispatchData(decoder.contentTopic, decodedMessage);
+              return; // Stop after successful decoding
+            }
+          } catch (e) {
+            // Log error but continue trying with other decoders
+            log.warn(`Error decoding message with decoder: ${e}`);
           }
-          this.dispatchData(decoder.contentTopic, decodedMessage);
-        } catch (e) {
-          throw `Error decoding message: ${e}`;
         }
+        // If no decoder succeeded
+        throw `No decoder succeeded in decoding message with content topic ${contentTopic}`;
       } else {
         throw `No decoder found for content topic: ${contentTopic}`;
       }
@@ -268,8 +276,9 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
   ): void {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
     decodersArray.forEach((decoder) => {
-      if (!this.decoders.has(decoder.contentTopic)) {
-        this.decoders.set(decoder.contentTopic, decoder);
+      const existingDecoders = this.decoders.get(decoder.contentTopic) || [];
+      if (!existingDecoders.includes(decoder)) {
+        this.decoders.set(decoder.contentTopic, [...existingDecoders, decoder]);
       }
     });
   }
@@ -277,10 +286,12 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
   private removeExistingDecoders(contentTopics: ContentTopic[]): void {
     contentTopics.forEach((contentTopic: string) => {
       try {
-        const decoder = this.decoders.get(contentTopic);
-        if (!decoder)
+        const decoders = this.decoders.get(contentTopic);
+        if (!decoders || decoders.length === 0)
           throw "No decoder found for content topic " + contentTopic;
-        this.removeEventListener(decoder.contentTopic);
+        for (const decoder of decoders) {
+          this.removeEventListener(decoder.contentTopic);
+        }
         this.decoders.delete(contentTopic);
       } catch (error) {
         const errorMsg = "Error removing event listener: " + error;
