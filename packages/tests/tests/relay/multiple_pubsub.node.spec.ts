@@ -4,7 +4,7 @@ import {
   DecodedMessage,
   waitForRemotePeer
 } from "@waku/core";
-import { RelayNode, ShardInfo, SingleTopicShardInfo } from "@waku/interfaces";
+import { RelayNode, ShardInfo, SingleShardInfo } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
 import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
@@ -35,14 +35,14 @@ describe("Waku Relay, multiple pubsub topics", function () {
     index: 2
   });
   const shardInfo1: ShardInfo = { cluster: 3, indexList: [1] };
-  const singleTopicShardInfo1: SingleTopicShardInfo = {
+  const singleTopicShardInfo1: SingleShardInfo = {
     cluster: 3,
     index: 1
   };
   const customContentTopic1 = "/test/2/waku-relay/utf8";
   const customContentTopic2 = "/test/3/waku-relay/utf8";
   const shardInfo2: ShardInfo = { cluster: 3, indexList: [2] };
-  const singleTopicShardInfo2: SingleTopicShardInfo = {
+  const singleTopicShardInfo2: SingleShardInfo = {
     cluster: 3,
     index: 2
   };

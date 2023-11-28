@@ -8,7 +8,7 @@ import type {
   IMetaSetter,
   IProtoMessage,
   PubsubTopic,
-  SingleTopicShardInfo
+  SingleShardInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger, singleTopicShardInfoToPubsubTopic } from "@waku/utils";
@@ -197,7 +197,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   privateKey: Uint8Array,
-  pubsubTopicShardInfo?: SingleTopicShardInfo
+  pubsubTopicShardInfo?: SingleShardInfo
 ): Decoder {
   return new Decoder(
     pubsubTopicShardInfo?.index

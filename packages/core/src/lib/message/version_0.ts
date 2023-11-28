@@ -8,7 +8,7 @@ import type {
   IProtoMessage,
   IRateLimitProof,
   PubsubTopic,
-  SingleTopicShardInfo
+  SingleShardInfo
 } from "@waku/interfaces";
 import { proto_message as proto } from "@waku/proto";
 import { Logger, singleTopicShardInfoToPubsubTopic } from "@waku/utils";
@@ -190,7 +190,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  pubsubTopicShardInfo?: SingleTopicShardInfo
+  pubsubTopicShardInfo?: SingleShardInfo
 ): Decoder {
   return new Decoder(
     pubsubTopicShardInfo?.index

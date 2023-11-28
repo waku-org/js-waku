@@ -1,4 +1,4 @@
-import { LightNode, ShardInfo, SingleTopicShardInfo } from "@waku/interfaces";
+import { LightNode, ShardInfo, SingleShardInfo } from "@waku/interfaces";
 import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
@@ -17,8 +17,8 @@ const PubsubTopic2 = singleTopicShardInfoToPubsubTopic({
 });
 const shardInfoFirstShard: ShardInfo = { cluster: 0, indexList: [2] };
 const shardInfoBothShards: ShardInfo = { cluster: 0, indexList: [2, 3] };
-const singleTopicShardInfo1: SingleTopicShardInfo = { cluster: 0, index: 2 };
-const singleTopicShardInfo2: SingleTopicShardInfo = { cluster: 0, index: 3 };
+const singleTopicShardInfo1: SingleShardInfo = { cluster: 0, index: 2 };
+const singleTopicShardInfo2: SingleShardInfo = { cluster: 0, index: 3 };
 const ContentTopic = "/waku/2/content/test.js";
 
 describe("Static Sharding: Running Nodes", () => {

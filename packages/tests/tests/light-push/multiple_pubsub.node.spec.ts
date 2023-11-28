@@ -5,7 +5,7 @@ import {
   Protocols,
   SendResult,
   ShardInfo,
-  SingleTopicShardInfo
+  SingleShardInfo
 } from "@waku/interfaces";
 import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -35,8 +35,8 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
     index: 2
   });
   const shardInfo: ShardInfo = { cluster: 3, indexList: [1, 2] };
-  const singleTopicShardInfo1: SingleTopicShardInfo = { cluster: 3, index: 1 };
-  const singleTopicShardInfo2: SingleTopicShardInfo = { cluster: 3, index: 2 };
+  const singleTopicShardInfo1: SingleShardInfo = { cluster: 3, index: 1 };
+  const singleTopicShardInfo2: SingleShardInfo = { cluster: 3, index: 2 };
   const customContentTopic1 = "/test/2/waku-light-push/utf8";
   const customContentTopic2 = "/test/3/waku-light-push/utf8";
   const customEncoder1 = createEncoder({

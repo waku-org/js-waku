@@ -3,7 +3,7 @@ import type {
   IFilterSubscription,
   LightNode,
   ShardInfo,
-  SingleTopicShardInfo
+  SingleShardInfo
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
@@ -40,8 +40,8 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
     index: 2
   });
   const shardInfo: ShardInfo = { cluster: 3, indexList: [1, 2] };
-  const singleTopicShardInfo1: SingleTopicShardInfo = { cluster: 3, index: 1 };
-  const singleTopicShardInfo2: SingleTopicShardInfo = { cluster: 3, index: 2 };
+  const singleTopicShardInfo1: SingleShardInfo = { cluster: 3, index: 1 };
+  const singleTopicShardInfo2: SingleShardInfo = { cluster: 3, index: 2 };
   const customContentTopic1 = "/test/2/waku-filter";
   const customContentTopic2 = "/test/3/waku-filter";
   const customEncoder1 = createEncoder({

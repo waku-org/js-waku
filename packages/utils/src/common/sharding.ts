@@ -1,14 +1,10 @@
 import { sha256 } from "@noble/hashes/sha256";
-import type {
-  PubsubTopic,
-  ShardInfo,
-  SingleTopicShardInfo
-} from "@waku/interfaces";
+import type { PubsubTopic, ShardInfo, SingleShardInfo } from "@waku/interfaces";
 
 import { concat, utf8ToBytes } from "../bytes/index.js";
 
 export const singleTopicShardInfoToPubsubTopic = (
-  shardInfo: SingleTopicShardInfo
+  shardInfo: SingleShardInfo
 ): PubsubTopic => {
   if (shardInfo.cluster === undefined || shardInfo.index === undefined)
     throw new Error("Invalid shard");
@@ -29,7 +25,7 @@ export const shardInfoToPubsubTopics = (
 
 export const pubsubTopicToSingleTopicShardInfo = (
   pubsubTopics: PubsubTopic
-): SingleTopicShardInfo => {
+): SingleShardInfo => {
   const parts = pubsubTopics.split("/");
   if (parts.length != 6) throw new Error("Invalid pubsub topic");
 

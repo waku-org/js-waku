@@ -14,7 +14,7 @@ import type {
   PeerIdStr,
   ProtocolCreateOptions,
   PubsubTopic,
-  SingleTopicShardInfo,
+  SingleShardInfo,
   Unsubscribe
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
@@ -291,7 +291,7 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   async createSubscription(
-    pubsubTopicShardInfo?: SingleTopicShardInfo
+    pubsubTopicShardInfo?: SingleShardInfo
   ): Promise<Subscription> {
     const pubsubTopic = pubsubTopicShardInfo
       ? singleTopicShardInfoToPubsubTopic(pubsubTopicShardInfo)

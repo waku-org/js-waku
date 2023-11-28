@@ -1,7 +1,7 @@
-import { ShardInfo } from "./enr.js";
 import type { PubsubTopic } from "./misc.js";
 
-export interface SingleTopicShardInfo extends Omit<ShardInfo, "indexList"> {
+export interface SingleShardInfo {
+  cluster: number;
   index: number;
 }
 
@@ -43,7 +43,7 @@ export interface IMetaSetter {
 }
 
 export interface EncoderOptions {
-  pubsubTopicShardInfo?: SingleTopicShardInfo;
+  pubsubTopicShardInfo?: SingleShardInfo;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
   /**
