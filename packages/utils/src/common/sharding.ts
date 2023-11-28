@@ -3,7 +3,7 @@ import type { PubsubTopic, ShardInfo, SingleShardInfo } from "@waku/interfaces";
 
 import { concat, utf8ToBytes } from "../bytes/index.js";
 
-export const singleTopicShardInfoToPubsubTopic = (
+export const singleShardInfoToPubsubTopic = (
   shardInfo: SingleShardInfo
 ): PubsubTopic => {
   if (shardInfo.cluster === undefined || shardInfo.index === undefined)
@@ -23,7 +23,7 @@ export const shardInfoToPubsubTopics = (
   );
 };
 
-export const pubsubTopicToSingleTopicShardInfo = (
+export const pubsubTopicToSingleShardInfo = (
   pubsubTopics: PubsubTopic
 ): SingleShardInfo => {
   const parts = pubsubTopics.split("/");

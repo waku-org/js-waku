@@ -1,24 +1,24 @@
 import { LightNode, ShardInfo, SingleShardInfo } from "@waku/interfaces";
 import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
-import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
+import { singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
 import { tearDownNodes } from "../../src/index.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
 
-const PubsubTopic1 = singleTopicShardInfoToPubsubTopic({
+const PubsubTopic1 = singleShardInfoToPubsubTopic({
   cluster: 0,
   index: 2
 });
-const PubsubTopic2 = singleTopicShardInfoToPubsubTopic({
+const PubsubTopic2 = singleShardInfoToPubsubTopic({
   cluster: 0,
   index: 3
 });
 const shardInfoFirstShard: ShardInfo = { cluster: 0, indexList: [2] };
 const shardInfoBothShards: ShardInfo = { cluster: 0, indexList: [2, 3] };
-const singleTopicShardInfo1: SingleShardInfo = { cluster: 0, index: 2 };
-const singleTopicShardInfo2: SingleShardInfo = { cluster: 0, index: 3 };
+const singleShardInfo1: SingleShardInfo = { cluster: 0, index: 2 };
+const singleShardInfo2: SingleShardInfo = { cluster: 0, index: 3 };
 const ContentTopic = "/waku/2/content/test.js";
 
 describe("Static Sharding: Running Nodes", () => {
@@ -44,12 +44,12 @@ describe("Static Sharding: Running Nodes", () => {
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopicShardInfo: singleTopicShardInfo1
+      pubsubTopicShardInfo: singleShardInfo1
     });
 
     const encoder2 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopicShardInfo: singleTopicShardInfo2
+      pubsubTopicShardInfo: singleShardInfo2
     });
 
     const request1 = await waku.lightPush.send(encoder1, {
@@ -73,7 +73,7 @@ describe("Static Sharding: Running Nodes", () => {
     // use a pubsub topic that is not configured
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopicShardInfo: singleTopicShardInfo2
+      pubsubTopicShardInfo: singleShardInfo2
     });
 
     try {

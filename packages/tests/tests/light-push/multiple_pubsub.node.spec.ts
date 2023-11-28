@@ -7,7 +7,7 @@ import {
   ShardInfo,
   SingleShardInfo
 } from "@waku/interfaces";
-import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
+import { singleShardInfoToPubsubTopic } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -26,25 +26,25 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
   let nwaku: NimGoNode;
   let nwaku2: NimGoNode;
   let messageCollector: MessageCollector;
-  const customPubsubTopic1 = singleTopicShardInfoToPubsubTopic({
+  const customPubsubTopic1 = singleShardInfoToPubsubTopic({
     cluster: 3,
     index: 1
   });
-  const customPubsubTopic2 = singleTopicShardInfoToPubsubTopic({
+  const customPubsubTopic2 = singleShardInfoToPubsubTopic({
     cluster: 3,
     index: 2
   });
   const shardInfo: ShardInfo = { cluster: 3, indexList: [1, 2] };
-  const singleTopicShardInfo1: SingleShardInfo = { cluster: 3, index: 1 };
-  const singleTopicShardInfo2: SingleShardInfo = { cluster: 3, index: 2 };
+  const singleShardInfo1: SingleShardInfo = { cluster: 3, index: 1 };
+  const singleShardInfo2: SingleShardInfo = { cluster: 3, index: 2 };
   const customContentTopic1 = "/test/2/waku-light-push/utf8";
   const customContentTopic2 = "/test/3/waku-light-push/utf8";
   const customEncoder1 = createEncoder({
-    pubsubTopicShardInfo: singleTopicShardInfo1,
+    pubsubTopicShardInfo: singleShardInfo1,
     contentTopic: customContentTopic1
   });
   const customEncoder2 = createEncoder({
-    pubsubTopicShardInfo: singleTopicShardInfo2,
+    pubsubTopicShardInfo: singleShardInfo2,
     contentTopic: customContentTopic2
   });
 

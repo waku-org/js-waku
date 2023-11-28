@@ -21,7 +21,7 @@ import { WakuMessage } from "@waku/proto";
 import {
   ensurePubsubTopicIsConfigured,
   groupByContentTopic,
-  singleTopicShardInfoToPubsubTopic,
+  singleShardInfoToPubsubTopic,
   toAsyncIterator
 } from "@waku/utils";
 import { Logger } from "@waku/utils";
@@ -294,7 +294,7 @@ class Filter extends BaseProtocol implements IReceiver {
     pubsubTopicShardInfo?: SingleShardInfo
   ): Promise<Subscription> {
     const pubsubTopic = pubsubTopicShardInfo
-      ? singleTopicShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
       : DefaultPubsubTopic;
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.pubsubTopics);

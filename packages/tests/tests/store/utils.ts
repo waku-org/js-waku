@@ -8,7 +8,7 @@ import {
 } from "@waku/core";
 import { LightNode, Protocols, ShardInfo } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { Logger, singleTopicShardInfoToPubsubTopic } from "@waku/utils";
+import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
 import { delay, NimGoNode, NOISE_KEY_1 } from "../../src";
@@ -18,11 +18,11 @@ export const log = new Logger("test:store");
 export const TestContentTopic = "/test/1/waku-store/utf8";
 export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 export const TestDecoder = createDecoder(TestContentTopic);
-export const customShardedPubsubTopic1 = singleTopicShardInfoToPubsubTopic({
+export const customShardedPubsubTopic1 = singleShardInfoToPubsubTopic({
   cluster: 3,
   index: 1
 });
-export const customShardedPubsubTopic2 = singleTopicShardInfoToPubsubTopic({
+export const customShardedPubsubTopic2 = singleShardInfoToPubsubTopic({
   cluster: 3,
   index: 2
 });

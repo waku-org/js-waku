@@ -7,7 +7,7 @@ import {
 import { RelayNode, ShardInfo, SingleShardInfo } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
-import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
+import { singleShardInfoToPubsubTopic } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -26,42 +26,36 @@ describe("Waku Relay, multiple pubsub topics", function () {
   let waku2: RelayNode;
   let waku3: RelayNode;
 
-  const customPubsubTopic1 = singleTopicShardInfoToPubsubTopic({
+  const customPubsubTopic1 = singleShardInfoToPubsubTopic({
     cluster: 3,
     index: 1
   });
-  const customPubsubTopic2 = singleTopicShardInfoToPubsubTopic({
+  const customPubsubTopic2 = singleShardInfoToPubsubTopic({
     cluster: 3,
     index: 2
   });
   const shardInfo1: ShardInfo = { cluster: 3, indexList: [1] };
-  const singleTopicShardInfo1: SingleShardInfo = {
+  const singleShardInfo1: SingleShardInfo = {
     cluster: 3,
     index: 1
   };
   const customContentTopic1 = "/test/2/waku-relay/utf8";
   const customContentTopic2 = "/test/3/waku-relay/utf8";
   const shardInfo2: ShardInfo = { cluster: 3, indexList: [2] };
-  const singleTopicShardInfo2: SingleShardInfo = {
+  const singleShardInfo2: SingleShardInfo = {
     cluster: 3,
     index: 2
   };
   const customEncoder1 = createEncoder({
-    pubsubTopicShardInfo: singleTopicShardInfo1,
+    pubsubTopicShardInfo: singleShardInfo1,
     contentTopic: customContentTopic1
   });
-  const customDecoder1 = createDecoder(
-    customContentTopic1,
-    singleTopicShardInfo1
-  );
+  const customDecoder1 = createDecoder(customContentTopic1, singleShardInfo1);
   const customEncoder2 = createEncoder({
-    pubsubTopicShardInfo: singleTopicShardInfo2,
+    pubsubTopicShardInfo: singleShardInfo2,
     contentTopic: customContentTopic2
   });
-  const customDecoder2 = createDecoder(
-    customContentTopic2,
-    singleTopicShardInfo2
-  );
+  const customDecoder2 = createDecoder(customContentTopic2, singleShardInfo2);
   const shardInfoBothShards: ShardInfo = { cluster: 3, indexList: [1, 2] };
 
   afterEach(async function () {

@@ -2,7 +2,7 @@ import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { createLightNode, LightNode, ShardInfo, Tags } from "@waku/sdk";
-import { singleTopicShardInfoToPubsubTopic } from "@waku/utils";
+import { singleShardInfoToPubsubTopic } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import Sinon, { SinonSpy } from "sinon";
@@ -40,7 +40,7 @@ describe("Static Sharding: Peer Management", function () {
       this.timeout(100_000);
 
       const pubsubTopics = [
-        singleTopicShardInfoToPubsubTopic({ cluster: 18, index: 2 })
+        singleShardInfoToPubsubTopic({ cluster: 18, index: 2 })
       ];
       const shardInfo: ShardInfo = { cluster: 18, indexList: [2] };
 
@@ -112,11 +112,11 @@ describe("Static Sharding: Peer Management", function () {
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
       const pubsubTopicsToDial = [
-        singleTopicShardInfoToPubsubTopic({ cluster: 18, index: 2 })
+        singleShardInfoToPubsubTopic({ cluster: 18, index: 2 })
       ];
       const shardInfoToDial: ShardInfo = { cluster: 18, indexList: [2] };
       const pubsubTopicsToIgnore = [
-        singleTopicShardInfoToPubsubTopic({ cluster: 18, index: 1 })
+        singleShardInfoToPubsubTopic({ cluster: 18, index: 1 })
       ];
 
       // this service node is not subscribed to the shard

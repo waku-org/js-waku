@@ -11,7 +11,7 @@ import type {
   SingleShardInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { Logger, singleTopicShardInfoToPubsubTopic } from "@waku/utils";
+import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 
 import { generateSymmetricKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
@@ -108,7 +108,7 @@ export function createEncoder({
 }: EncoderOptions): Encoder {
   return new Encoder(
     pubsubTopicShardInfo?.index
-      ? singleTopicShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
       : DefaultPubsubTopic,
     contentTopic,
     symKey,
@@ -201,7 +201,7 @@ export function createDecoder(
 ): Decoder {
   return new Decoder(
     pubsubTopicShardInfo?.index
-      ? singleTopicShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
       : DefaultPubsubTopic,
     contentTopic,
     symKey

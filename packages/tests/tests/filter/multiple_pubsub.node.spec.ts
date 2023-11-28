@@ -7,8 +7,8 @@ import type {
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
-  pubsubTopicToSingleTopicShardInfo,
-  singleTopicShardInfoToPubsubTopic
+  pubsubTopicToSingleShardInfo,
+  singleShardInfoToPubsubTopic
 } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -31,35 +31,29 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  const customPubsubTopic1 = singleTopicShardInfoToPubsubTopic({
+  const customPubsubTopic1 = singleShardInfoToPubsubTopic({
     cluster: 3,
     index: 1
   });
-  const customPubsubTopic2 = singleTopicShardInfoToPubsubTopic({
+  const customPubsubTopic2 = singleShardInfoToPubsubTopic({
     cluster: 3,
     index: 2
   });
   const shardInfo: ShardInfo = { cluster: 3, indexList: [1, 2] };
-  const singleTopicShardInfo1: SingleShardInfo = { cluster: 3, index: 1 };
-  const singleTopicShardInfo2: SingleShardInfo = { cluster: 3, index: 2 };
+  const singleShardInfo1: SingleShardInfo = { cluster: 3, index: 1 };
+  const singleShardInfo2: SingleShardInfo = { cluster: 3, index: 2 };
   const customContentTopic1 = "/test/2/waku-filter";
   const customContentTopic2 = "/test/3/waku-filter";
   const customEncoder1 = createEncoder({
-    pubsubTopicShardInfo: singleTopicShardInfo1,
+    pubsubTopicShardInfo: singleShardInfo1,
     contentTopic: customContentTopic1
   });
-  const customDecoder1 = createDecoder(
-    customContentTopic1,
-    singleTopicShardInfo1
-  );
+  const customDecoder1 = createDecoder(customContentTopic1, singleShardInfo1);
   const customEncoder2 = createEncoder({
-    pubsubTopicShardInfo: singleTopicShardInfo2,
+    pubsubTopicShardInfo: singleShardInfo2,
     contentTopic: customContentTopic2
   });
-  const customDecoder2 = createDecoder(
-    customContentTopic2,
-    singleTopicShardInfo2
-  );
+  const customDecoder2 = createDecoder(customContentTopic2, singleShardInfo2);
 
   this.beforeEach(async function () {
     this.timeout(15000);
@@ -69,7 +63,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
       shardInfo
     );
     subscription = await waku.filter.createSubscription(
-      pubsubTopicToSingleTopicShardInfo(customPubsubTopic1)
+      pubsubTopicToSingleShardInfo(customPubsubTopic1)
     );
     messageCollector = new MessageCollector();
   });
@@ -95,7 +89,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
 
     // Subscribe from the same lightnode to the 2nd pubsubtopic
     const subscription2 = await waku.filter.createSubscription(
-      pubsubTopicToSingleTopicShardInfo(customPubsubTopic2)
+      pubsubTopicToSingleShardInfo(customPubsubTopic2)
     );
 
     const messageCollector2 = new MessageCollector();
@@ -137,7 +131,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
 
     // Subscribe from the same lightnode to the new nwaku on the new pubsubtopic
     const subscription2 = await waku.filter.createSubscription(
-      pubsubTopicToSingleTopicShardInfo(customPubsubTopic2),
+      pubsubTopicToSingleShardInfo(customPubsubTopic2),
       await nwaku2.getPeerId()
     );
     await nwaku2.ensureSubscriptions([customPubsubTopic2]);
