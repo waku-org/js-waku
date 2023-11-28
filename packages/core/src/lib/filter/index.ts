@@ -139,8 +139,6 @@ class Filter extends BaseProtocol implements IReceiver {
 
     const subscription = await this.createSubscription(decodersArray);
 
-    await subscription.subscribe(decoders);
-
     const contentTopics = Array.from(
       groupByContentTopic(
         Array.isArray(decoders) ? decoders : [decoders]
