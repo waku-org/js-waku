@@ -19,7 +19,7 @@
 <h1>Function createDecoder</h1></div>
 <section class="tsd-panel">
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="createDecoder"><span class="tsd-kind-call-signature">create<wbr/>Decoder</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">contentTopic</span>, <span class="tsd-kind-parameter">symKey</span>, <span class="tsd-kind-parameter">pubsubTopic</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Decoder</span><a href="#createDecoder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="createDecoder"><span class="tsd-kind-call-signature">create<wbr/>Decoder</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">contentTopic</span>, <span class="tsd-kind-parameter">symKey</span>, <span class="tsd-kind-parameter">pubsubTopicShardInfo</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Decoder</span><a href="#createDecoder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Creates a decoder that decrypts messages using symmetric encryption, using
 the given key as defined in <a href="https://rfc.vac.dev/spec/26/">26/WAKU2-PAYLOAD</a>.</p>
@@ -42,11 +42,11 @@ decode incoming messages.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><span class="tsd-kind-parameter">pubsubTopic</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = DefaultPubsubTopic</span></h5></li></ul></div>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">pubsubTopicShardInfo</span>: <a href="../interfaces/_waku_sdk.SingleShardInfo.html" class="tsd-signature-type tsd-kind-interface">SingleShardInfo</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Decoder</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/7eb3375f5/packages/message-encryption/src/symmetric.ts#L194">packages/message-encryption/src/symmetric.ts:194</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/4cf2ffefa/packages/message-encryption/src/symmetric.ts#L197">packages/message-encryption/src/symmetric.ts:197</a></li></ul></aside></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

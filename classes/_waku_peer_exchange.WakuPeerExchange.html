@@ -31,7 +31,7 @@
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/_waku_sdk.IPeerExchange.html" class="tsd-signature-type tsd-kind-interface">IPeerExchange</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/7eb3375f5/packages/peer-exchange/src/waku_peer_exchange.ts#L25">packages/peer-exchange/src/waku_peer_exchange.ts:25</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/4cf2ffefa/packages/peer-exchange/src/waku_peer_exchange.ts#L25">packages/peer-exchange/src/waku_peer_exchange.ts:25</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -57,6 +57,7 @@
 <div class="tsd-index-list"><a href="_waku_peer_exchange.WakuPeerExchange.html#getPeer" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Peer</span></a>
 <a href="_waku_peer_exchange.WakuPeerExchange.html#getPeers" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Peers</span></a>
 <a href="_waku_peer_exchange.WakuPeerExchange.html#getStream" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Stream</span></a>
+<a href="_waku_peer_exchange.WakuPeerExchange.html#initializePubsubTopic" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>initialize<wbr/>Pubsub<wbr/>Topic</span></a>
 <a href="_waku_peer_exchange.WakuPeerExchange.html#peers" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>peers</span></a>
 <a href="_waku_peer_exchange.WakuPeerExchange.html#query" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>query</span></a>
 </div></section></div></details></section></section>
@@ -78,7 +79,7 @@
 <h4 class="tsd-returns-title">Returns <a href="_waku_peer_exchange.WakuPeerExchange.html" class="tsd-signature-type tsd-kind-class">WakuPeerExchange</a></h4><aside class="tsd-sources">
 <p>Overrides BaseProtocol.constructor</p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/7eb3375f5/packages/peer-exchange/src/waku_peer_exchange.ts#L29">packages/peer-exchange/src/waku_peer_exchange.ts:29</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/4cf2ffefa/packages/peer-exchange/src/waku_peer_exchange.ts#L29">packages/peer-exchange/src/waku_peer_exchange.ts:29</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="addLibp2pEventListener" class="tsd-anchor"></a>
@@ -229,6 +230,20 @@
 <p>Inherited from BaseProtocol.getStream</p>
 <ul>
 <li>Defined in packages/core/dist/lib/base_protocol.d.ts:18</li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="initializePubsubTopic" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>initialize<wbr/>Pubsub<wbr/>Topic</span><a href="#initializePubsubTopic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="initializePubsubTopic.initializePubsubTopic-1"><span class="tsd-kind-call-signature">initialize<wbr/>Pubsub<wbr/>Topic</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">shardInfo</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><a href="#initializePubsubTopic.initializePubsubTopic-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">shardInfo</span>: <a href="../interfaces/_waku_sdk.ShardInfo.html" class="tsd-signature-type tsd-kind-interface">ShardInfo</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
+<p>Inherited from BaseProtocol.initializePubsubTopic</p>
+<ul>
+<li>Defined in packages/core/dist/lib/base_protocol.d.ts:38</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="peers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>peers</span><a href="#peers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -260,7 +275,7 @@ peers.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/_waku_sdk.IPeerExchange.html">IPeerExchange</a>.<a href="../interfaces/_waku_sdk.IPeerExchange.html#query">query</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/7eb3375f5/packages/peer-exchange/src/waku_peer_exchange.ts#L36">packages/peer-exchange/src/waku_peer_exchange.ts:36</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/4cf2ffefa/packages/peer-exchange/src/waku_peer_exchange.ts#L36">packages/peer-exchange/src/waku_peer_exchange.ts:36</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -288,6 +303,7 @@ peers.</p>
 <li><a href="#getPeer" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Peer</span></a></li>
 <li><a href="#getPeers" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Peers</span></a></li>
 <li><a href="#getStream" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Stream</span></a></li>
+<li><a href="#initializePubsubTopic" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>initialize<wbr/>Pubsub<wbr/>Topic</span></a></li>
 <li><a href="#peers" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>peers</span></a></li>
 <li><a href="#query" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>query</span></a></li></ul></div></details></div>
 <div class="site-menu">

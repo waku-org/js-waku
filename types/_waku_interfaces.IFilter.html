@@ -16,27 +16,27 @@
 <li><a href="../modules/_waku_interfaces.html">@waku/interfaces</a></li>
 <li><a href="_waku_interfaces.IFilter.html">IFilter</a></li></ul>
 <h1>Type alias IFilter</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">IFilter</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/_waku_interfaces.IReceiver.html" class="tsd-signature-type tsd-kind-interface">IReceiver</a><span class="tsd-signature-symbol"> &amp; </span><a href="../interfaces/_waku_interfaces.IBaseProtocol.html" class="tsd-signature-type tsd-kind-interface">IBaseProtocol</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-call-signature">createSubscription</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">pubsubTopic</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">peerId</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_waku_interfaces.IFilterSubscription.html" class="tsd-signature-type tsd-kind-interface">IFilterSubscription</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">IFilter</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/_waku_interfaces.IReceiver.html" class="tsd-signature-type tsd-kind-interface">IReceiver</a><span class="tsd-signature-symbol"> &amp; </span><a href="../interfaces/_waku_interfaces.IBaseProtocol.html" class="tsd-signature-type tsd-kind-interface">IBaseProtocol</a><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-call-signature">createSubscription</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">pubsubTopicShardInfo</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">peerId</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_waku_interfaces.IFilterSubscription.html" class="tsd-signature-type tsd-kind-interface">IFilterSubscription</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
 <h5><span class="tsd-kind-method">create<wbr/>Subscription</span><span class="tsd-signature-symbol">:</span>function</h5>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link"><span class="tsd-kind-call-signature">create<wbr/>Subscription</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">pubsubTopic</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">peerId</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_waku_interfaces.IFilterSubscription.html" class="tsd-signature-type tsd-kind-interface">IFilterSubscription</a><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-signature tsd-anchor-link"><span class="tsd-kind-call-signature">create<wbr/>Subscription</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">pubsubTopicShardInfo</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">peerId</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_waku_interfaces.IFilterSubscription.html" class="tsd-signature-type tsd-kind-interface">IFilterSubscription</a><span class="tsd-signature-symbol">&gt;</span></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">pubsubTopic</span>: <span class="tsd-signature-type">string</span></h5></li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">pubsubTopicShardInfo</span>: <a href="../interfaces/_waku_interfaces.SingleShardInfo.html" class="tsd-signature-type tsd-kind-interface">SingleShardInfo</a></h5></li>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">peerId</span>: <span class="tsd-signature-type ">PeerId</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_waku_interfaces.IFilterSubscription.html" class="tsd-signature-type tsd-kind-interface">IFilterSubscription</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/7eb3375f5/packages/interfaces/src/filter.ts#L27">packages/interfaces/src/filter.ts:27</a></li></ul></aside></li></ul></li></ul></div><aside class="tsd-sources">
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/4cf2ffefa/packages/interfaces/src/filter.ts#L27">packages/interfaces/src/filter.ts:27</a></li></ul></aside></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/7eb3375f5/packages/interfaces/src/filter.ts#L25">packages/interfaces/src/filter.ts:25</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/waku-org/js-waku/blob/4cf2ffefa/packages/interfaces/src/filter.ts#L25">packages/interfaces/src/filter.ts:25</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
