@@ -9,9 +9,9 @@ import {
   encryptSymmetric,
   postCipher,
   preCipher
-} from "./waku_payload.js";
+} from "./encryption.js";
 
-describe("Waku Payload", function () {
+describe("Waku Encryption", function () {
   this.timeout(20000);
   it("Asymmetric encrypt & decrypt", async function () {
     await fc.assert(

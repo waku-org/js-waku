@@ -1,9 +1,9 @@
 import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
-import type { Libp2pOptions } from "libp2p";
 
 import type { ShardInfo } from "./enr.js";
+import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
 
 export enum Protocols {
@@ -47,7 +47,7 @@ export type ProtocolCreateOptions = {
    * allowing its omission and letting Waku set good defaults.
    * Notes that some values are overridden by {@link @waku/core!WakuNode} to ensure it implements the Waku protocol.
    */
-  libp2p?: Partial<Libp2pOptions>;
+  libp2p?: Partial<CreateLibp2pOptions>;
   /**
    * Byte array used as key for the noise protocol used for connection encryption
    * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
