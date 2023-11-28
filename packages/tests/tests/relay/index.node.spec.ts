@@ -1,15 +1,17 @@
 import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
 import { RelayNode } from "@waku/interfaces";
 import {
-  createDecoder as createEciesDecoder,
-  createEncoder as createEciesEncoder,
   generatePrivateKey,
+  generateSymmetricKey,
   getPublicKey
+} from "@waku/message-encryption";
+import {
+  createDecoder as createEciesDecoder,
+  createEncoder as createEciesEncoder
 } from "@waku/message-encryption/ecies";
 import {
   createDecoder as createSymDecoder,
-  createEncoder as createSymEncoder,
-  generateSymmetricKey
+  createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
 import { createRelayNode } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";

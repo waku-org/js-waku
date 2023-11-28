@@ -12,18 +12,23 @@ import type {
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
+import { generateSymmetricKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptSymmetric,
   encryptSymmetric,
   postCipher,
   preCipher
-} from "./waku_payload.js";
+} from "./encryption.js";
+import { OneMillion, Version } from "./misc.js";
 
-import { generateSymmetricKey, OneMillion, Version } from "./index.js";
-
-export { generateSymmetricKey };
-export type { DecodedMessage, Encoder, Decoder };
+export {
+  decryptSymmetric,
+  encryptSymmetric,
+  postCipher,
+  preCipher,
+  generateSymmetricKey
+};
 
 const log = new Logger("message-encryption:symmetric");
 

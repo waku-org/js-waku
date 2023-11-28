@@ -8,3 +8,7 @@ export const Symmetric = {
 export const Asymmetric = {
   keySize: 32
 };
+
+export const OneMillion = BigInt(1_000_000);
+
+export const Version = 1;
