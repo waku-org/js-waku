@@ -128,7 +128,7 @@ export function createEncoder({
   return new Encoder(
     contentTopic,
     ephemeral,
-    pubsubTopicShardInfo?.index
+    pubsubTopicShardInfo?.clusterId
       ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
       : DefaultPubsubTopic,
     metaSetter
@@ -193,7 +193,7 @@ export function createDecoder(
   pubsubTopicShardInfo?: SingleShardInfo
 ): Decoder {
   return new Decoder(
-    pubsubTopicShardInfo?.index
+    pubsubTopicShardInfo?.clusterId
       ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
       : DefaultPubsubTopic,
     contentTopic

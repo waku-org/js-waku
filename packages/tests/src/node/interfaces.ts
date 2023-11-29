@@ -24,6 +24,7 @@ export interface Args {
   discv5UdpPort?: number;
   // `legacyFilter` is required to enable filter v1 with go-waku
   legacyFilter?: boolean;
+  clusterId?: number;
 }
 
 export enum LogLevel {
