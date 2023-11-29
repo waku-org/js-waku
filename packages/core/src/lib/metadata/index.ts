@@ -1,10 +1,7 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
-import type {
-  IMetadata,
-  Libp2p,
-  MetadataQueryParams,
-  ShardInfo
-} from "@waku/interfaces";
+import { IncomingStreamData } from "@libp2p/interface/stream-handler";
+import type { IMetadata, Libp2p, ShardInfo } from "@waku/interfaces";
+import { proto_metadata } from "@waku/proto";
 import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -13,31 +10,32 @@ import { Uint8ArrayList } from "uint8arraylist";
 
 import { BaseProtocol } from "../base_protocol.js";
 
-import { MetadataRpc } from "./rpc.js";
-
 const log = new Logger("metadata");
 
 export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
 class Metadata extends BaseProtocol {
-  constructor(libp2p: Libp2p) {
+  private readonly shardInfo: ShardInfo;
+  constructor(shardInfo: ShardInfo, libp2p: Libp2p) {
     super(MetadataCodec, libp2p.components);
+    this.shardInfo = shardInfo;
+    void libp2p.handle(MetadataCodec, (streamData) => {
+      void this.onRequest(streamData);
+    });
   }
 
   /**
-   * Make a metadata query to a peer
+   * Handle an incoming metadata request
    */
-  async query(params: MetadataQueryParams, peerId: PeerId): Promise<ShardInfo> {
-    const rpcQuery = MetadataRpc.createRequest(params.clusterId, params.shards);
-
-    const peer = await this.getPeer(peerId);
-
-    const stream = await this.getStream(peer);
+  private async onRequest(streamData: IncomingStreamData): Promise<void> {
+    const encodedRpcQuery = proto_metadata.WakuMetadataRequest.encode(
+      this.shardInfo
+    );
 
     const res = await pipe(
-      [rpcQuery.encode()],
+      [encodedRpcQuery],
       lp.encode,
-      stream,
+      streamData.stream,
       lp.decode,
       async (source) => await all(source)
     );
@@ -48,23 +46,57 @@ class Metadata extends BaseProtocol {
         bytes.append(chunk);
       });
 
-      const { response } = MetadataRpc.decode(bytes);
-      if (!response) {
-        throw new Error("No response in query");
+      const shardInfoRes = proto_metadata.WakuMetadataResponse.decode(bytes);
+      if (!shardInfoRes) {
+        throw new Error("WakuMetadata response is undefined");
       }
-
-      const { shards, clusterId } = response;
-      return {
-        cluster: clusterId,
-        indexList: shards
-      } as ShardInfo;
+      if (!shardInfoRes.clusterId) {
+        throw new Error("WakuMetadata response clusterId is undefined");
+      }
     } catch (e) {
       log.error(`Error decoding response: ${e}`);
       throw e;
     }
   }
+
+  /**
+   * Make a metadata query to a peer
+   */
+  async query(peerId: PeerId): Promise<ShardInfo> {
+    const request = proto_metadata.WakuMetadataRequest.encode(this.shardInfo);
+
+    try {
+      const peer = await this.getPeer(peerId);
+
+      const stream = await this.getStream(peer);
+
+      const res = await pipe(
+        [request],
+        lp.encode,
+        stream,
+        lp.decode,
+        async (source) => await all(source)
+      );
+
+      const bytes = new Uint8ArrayList();
+      res.forEach((chunk) => {
+        bytes.append(chunk);
+      });
+      const response = proto_metadata.WakuMetadataResponse.decode(bytes);
+      if (!response) {
+        throw new Error("Error decoding metadata response");
+      }
+
+      return response as ShardInfo;
+    } catch (err) {
+      log.error("Error decoding metadata response", err);
+      throw err;
+    }
+  }
 }
 
-export function wakuMetadata(): (libp2p: Libp2p) => IMetadata {
-  return (libp2p: Libp2p) => new Metadata(libp2p);
+export function wakuMetadata(
+  shardInfo: ShardInfo
+): (libp2p: Libp2p) => IMetadata {
+  return (libp2p: Libp2p) => new Metadata(shardInfo, libp2p);
 }
