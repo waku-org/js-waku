@@ -8,6 +8,7 @@ import {
   DefaultUserAgent,
   wakuFilter,
   wakuLightPush,
+  wakuMetadata,
   WakuNode,
   WakuOptions,
   wakuStore
@@ -20,7 +21,8 @@ import type {
   Libp2pComponents,
   LightNode,
   ProtocolCreateOptions,
-  RelayNode
+  RelayNode,
+  ShardInfo
 } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
@@ -54,6 +56,7 @@ export async function createLightNode(
   }
 
   const libp2p = await defaultLibp2p(
+    options.shardInfo,
     undefined,
     libp2pOptions,
     options?.userAgent
@@ -90,6 +93,7 @@ export async function createRelayNode(
   }
 
   const libp2p = await defaultLibp2p(
+    options.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -134,6 +138,7 @@ export async function createFullNode(
   }
 
   const libp2p = await defaultLibp2p(
+    options.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -170,6 +175,7 @@ type PubsubService = {
 };
 
 export async function defaultLibp2p(
+  shardInfo?: ShardInfo,
   wakuGossipSub?: PubsubService["pubsub"],
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
@@ -191,6 +197,8 @@ export async function defaultLibp2p(
     ? { pubsub: wakuGossipSub }
     : {};
 
+  const metadataService = shardInfo && wakuMetadata(shardInfo);
+
   return createLibp2p({
     connectionManager: {
       minConnections: 1
@@ -204,6 +212,7 @@ export async function defaultLibp2p(
         agentVersion: userAgent ?? DefaultUserAgent
       }),
       ping: pingService(),
+      metadata: metadataService,
       ...pubsubService,
       ...options?.services
     }

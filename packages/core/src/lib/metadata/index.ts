@@ -1,6 +1,6 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { IncomingStreamData } from "@libp2p/interface/stream-handler";
-import type { IMetadata, Libp2p, ShardInfo } from "@waku/interfaces";
+import type { IMetadata, Libp2pComponents, ShardInfo } from "@waku/interfaces";
 import { proto_metadata } from "@waku/proto";
 import { Logger } from "@waku/utils";
 import all from "it-all";
@@ -16,10 +16,10 @@ export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
 class Metadata extends BaseProtocol {
   private readonly shardInfo: ShardInfo;
-  constructor(shardInfo: ShardInfo, libp2p: Libp2p) {
+  constructor(shardInfo: ShardInfo, libp2p: Libp2pComponents) {
     super(MetadataCodec, libp2p.components);
     this.shardInfo = shardInfo;
-    void libp2p.handle(MetadataCodec, (streamData) => {
+    void libp2p.registrar.handle(MetadataCodec, (streamData) => {
       void this.onRequest(streamData);
     });
   }
@@ -97,6 +97,6 @@ class Metadata extends BaseProtocol {
 
 export function wakuMetadata(
   shardInfo: ShardInfo
-): (libp2p: Libp2p) => IMetadata {
-  return (libp2p: Libp2p) => new Metadata(shardInfo, libp2p);
+): (components: Libp2pComponents) => IMetadata {
+  return (components: Libp2pComponents) => new Metadata(shardInfo, components);
 }

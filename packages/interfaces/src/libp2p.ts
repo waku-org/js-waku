@@ -4,8 +4,11 @@ import type { Libp2pInit, Libp2pOptions } from "libp2p";
 import type { identifyService } from "libp2p/identify";
 import type { PingService } from "libp2p/ping";
 
+import { IMetadata } from ".";
+
 export type Libp2pServices = {
   ping: PingService;
+  metadata?: IMetadata;
   pubsub?: GossipSub;
   identify: ReturnType<ReturnType<typeof identifyService>>;
 };

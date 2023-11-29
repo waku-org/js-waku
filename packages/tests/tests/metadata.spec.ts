@@ -1,4 +1,4 @@
-import { MetadataCodec, wakuMetadata } from "@waku/core";
+import { MetadataCodec } from "@waku/core";
 import type { LightNode, ShardInfo } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { shardInfoToPubsubTopics } from "@waku/utils";
@@ -40,12 +40,12 @@ describe("Metadata Protocol", () => {
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
       const nwaku1PeerId = await nwaku1.getPeerId();
 
-      waku = await createLightNode();
+      waku = await createLightNode({ shardInfo });
       await waku.start();
-      const metadata = wakuMetadata(shardInfo)(waku.libp2p);
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
-      const shardInfoRes = await metadata.query(nwaku1PeerId);
+      const shardInfoRes =
+        await waku.libp2p.services.metadata?.query(nwaku1PeerId);
       expect(shardInfoRes).to.not.be.undefined;
       expect(shardInfoRes?.clusterId).to.equal(shardInfo.clusterId);
       expect(shardInfoRes?.shards).to.deep.equal(shardInfo.shards);
