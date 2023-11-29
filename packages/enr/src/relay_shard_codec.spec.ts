@@ -6,7 +6,7 @@ import { decodeRelayShard, encodeRelayShard } from "./relay_shard_codec.js";
 describe("Relay Shard codec", () => {
   // Boundary test case
   it("should handle a minimal index list", () => {
-    const shardInfo = { cluster: 0, indexList: [0] };
+    const shardInfo = { clusterId: 0, shards: [0] };
     const encoded = encodeRelayShard(shardInfo);
     const decoded = decodeRelayShard(encoded);
     expect(decoded).to.deep.equal(
@@ -23,8 +23,8 @@ describe("Relay Shard codec", () => {
         fc
           .array(fc.nat(1023), { minLength: 1, maxLength: 63 }) // indexList
           .map((arr) => [...new Set(arr)].sort((a, b) => a - b)),
-        (cluster, indexList) => {
-          const shardInfo = { cluster, indexList };
+        (clusterId, shards) => {
+          const shardInfo = { clusterId, shards };
           const encoded = encodeRelayShard(shardInfo);
           const decoded = decodeRelayShard(encoded);
 
@@ -45,8 +45,8 @@ describe("Relay Shard codec", () => {
         fc
           .array(fc.nat(1023), { minLength: 64, maxLength: 1024 }) // indexList
           .map((arr) => [...new Set(arr)].sort((a, b) => a - b)),
-        (cluster, indexList) => {
-          const shardInfo = { cluster, indexList };
+        (clusterId, shards) => {
+          const shardInfo = { clusterId, shards };
           const encoded = encodeRelayShard(shardInfo);
           const decoded = decodeRelayShard(encoded);
 

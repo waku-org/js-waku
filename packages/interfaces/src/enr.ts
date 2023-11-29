@@ -19,8 +19,8 @@ export interface Waku2 {
 }
 
 export interface ShardInfo {
-  cluster: number;
-  indexList: number[];
+  clusterId: number;
+  shards: number[];
 }
 
 export interface IEnr extends Map<ENRKey, ENRValue> {

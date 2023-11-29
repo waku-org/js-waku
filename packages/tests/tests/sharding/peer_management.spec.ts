@@ -40,9 +40,9 @@ describe("Static Sharding: Peer Management", function () {
       this.timeout(100_000);
 
       const pubsubTopics = [
-        singleShardInfoToPubsubTopic({ cluster: 18, index: 2 })
+        singleShardInfoToPubsubTopic({ clusterId: 18, shard: 2 })
       ];
-      const shardInfo: ShardInfo = { cluster: 18, indexList: [2] };
+      const shardInfo: ShardInfo = { clusterId: 18, shards: [2] };
 
       await nwaku1.start({
         pubsubTopic: pubsubTopics,
@@ -112,11 +112,11 @@ describe("Static Sharding: Peer Management", function () {
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
       const pubsubTopicsToDial = [
-        singleShardInfoToPubsubTopic({ cluster: 18, index: 2 })
+        singleShardInfoToPubsubTopic({ clusterId: 18, shard: 2 })
       ];
-      const shardInfoToDial: ShardInfo = { cluster: 18, indexList: [2] };
+      const shardInfoToDial: ShardInfo = { clusterId: 18, shards: [2] };
       const pubsubTopicsToIgnore = [
-        singleShardInfoToPubsubTopic({ cluster: 18, index: 1 })
+        singleShardInfoToPubsubTopic({ clusterId: 18, shard: 1 })
       ];
 
       // this service node is not subscribed to the shard

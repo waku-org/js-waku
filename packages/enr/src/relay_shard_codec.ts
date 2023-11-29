@@ -8,9 +8,9 @@ export const decodeRelayShard = (bytes: Uint8Array): ShardInfo => {
   if (bytes.length < 3) throw new Error("Insufficient data");
 
   const view = new DataView(bytes.buffer);
-  const cluster = view.getUint16(0);
+  const clusterId = view.getUint16(0);
 
-  const indexList = [];
+  const shards = [];
 
   if (bytes.length === 130) {
     // rsv format (Bit Vector)
@@ -18,7 +18,7 @@ export const decodeRelayShard = (bytes: Uint8Array): ShardInfo => {
       const byteIndex = Math.floor(i / 8) + 2; // Adjusted for the 2-byte cluster field
       const bitIndex = 7 - (i % 8);
       if (view.getUint8(byteIndex) & (1 << bitIndex)) {
-        indexList.push(i);
+        shards.push(i);
       }
     }
   } else {
@@ -26,33 +26,33 @@ export const decodeRelayShard = (bytes: Uint8Array): ShardInfo => {
     const numIndices = view.getUint8(2);
     for (let i = 0, offset = 3; i < numIndices; i++, offset += 2) {
       if (offset + 1 >= bytes.length) throw new Error("Unexpected end of data");
-      indexList.push(view.getUint16(offset));
+      shards.push(view.getUint16(offset));
     }
   }
 
-  return { cluster, indexList };
+  return { clusterId, shards };
 };
 
 export const encodeRelayShard = (shardInfo: ShardInfo): Uint8Array => {
-  const { cluster, indexList } = shardInfo;
-  const totalLength = indexList.length >= 64 ? 130 : 3 + 2 * indexList.length;
+  const { clusterId, shards } = shardInfo;
+  const totalLength = shards.length >= 64 ? 130 : 3 + 2 * shards.length;
   const buffer = new ArrayBuffer(totalLength);
   const view = new DataView(buffer);
 
-  view.setUint16(0, cluster);
+  view.setUint16(0, clusterId);
 
-  if (indexList.length >= 64) {
+  if (shards.length >= 64) {
     // rsv format (Bit Vector)
-    for (const index of indexList) {
+    for (const index of shards) {
       const byteIndex = Math.floor(index / 8) + 2; // Adjusted for the 2-byte cluster field
       const bitIndex = 7 - (index % 8);
       view.setUint8(byteIndex, view.getUint8(byteIndex) | (1 << bitIndex));
     }
   } else {
     // rs format (Index List)
-    view.setUint8(2, indexList.length);
-    for (let i = 0, offset = 3; i < indexList.length; i++, offset += 2) {
-      view.setUint16(offset, indexList[i]);
+    view.setUint8(2, shards.length);
+    for (let i = 0, offset = 3; i < shards.length; i++, offset += 2) {
+      view.setUint16(offset, shards[i]);
     }
   }
 
