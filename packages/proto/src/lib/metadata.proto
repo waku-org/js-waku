@@ -1,13 +1,6 @@
 syntax = "proto3";
 
 
-message MetadataRpc {
-  string request_id = 1;
-  optional WakuMetadataRequest request = 2;
-  optional WakuMetadataResponse response = 3;
-}
-
-
 message WakuMetadataRequest {
   optional uint32 cluster_id = 1;
   repeated uint32 shards = 2;
