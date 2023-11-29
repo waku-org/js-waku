@@ -40,22 +40,17 @@ class Metadata extends BaseProtocol {
       async (source) => await all(source)
     );
 
-    try {
-      const bytes = new Uint8ArrayList();
-      res.forEach((chunk) => {
-        bytes.append(chunk);
-      });
+    const bytes = new Uint8ArrayList();
+    res.forEach((chunk) => {
+      bytes.append(chunk);
+    });
 
-      const shardInfoRes = proto_metadata.WakuMetadataResponse.decode(bytes);
-      if (!shardInfoRes) {
-        throw new Error("WakuMetadata response is undefined");
-      }
-      if (!shardInfoRes.clusterId) {
-        throw new Error("WakuMetadata response clusterId is undefined");
-      }
-    } catch (e) {
-      log.error(`Error decoding response: ${e}`);
-      throw e;
+    const shardInfoRes = proto_metadata.WakuMetadataResponse.decode(bytes);
+    if (!shardInfoRes) {
+      throw new Error("WakuMetadata response is undefined");
+    }
+    if (!shardInfoRes.clusterId) {
+      throw new Error("WakuMetadata response clusterId is undefined");
     }
   }
 
@@ -88,9 +83,9 @@ class Metadata extends BaseProtocol {
       }
 
       return response as ShardInfo;
-    } catch (err) {
-      log.error("Error decoding metadata response", err);
-      throw err;
+    } catch (error) {
+      log.error("Error decoding metadata response", error);
+      throw error;
     }
   }
 }
