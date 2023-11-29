@@ -17,6 +17,7 @@ import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
   CreateLibp2pOptions,
   FullNode,
+  IMetadata,
   Libp2p,
   Libp2pComponents,
   LightNode,
@@ -174,6 +175,10 @@ type PubsubService = {
   pubsub?: (components: Libp2pComponents) => GossipSub;
 };
 
+type MetadataService = {
+  metadata?: (components: Libp2pComponents) => IMetadata;
+};
+
 export async function defaultLibp2p(
   shardInfo?: ShardInfo,
   wakuGossipSub?: PubsubService["pubsub"],
@@ -197,7 +202,9 @@ export async function defaultLibp2p(
     ? { pubsub: wakuGossipSub }
     : {};
 
-  const metadataService = shardInfo && wakuMetadata(shardInfo);
+  const metadataService: MetadataService = shardInfo
+    ? { metadata: wakuMetadata(shardInfo) }
+    : {};
 
   return createLibp2p({
     connectionManager: {
@@ -212,7 +219,7 @@ export async function defaultLibp2p(
         agentVersion: userAgent ?? DefaultUserAgent
       }),
       ping: pingService(),
-      metadata: metadataService,
+      ...metadataService,
       ...pubsubService,
       ...options?.services
     }
