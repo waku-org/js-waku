@@ -4,7 +4,7 @@ import type { Libp2pInit, Libp2pOptions } from "libp2p";
 import type { identifyService } from "libp2p/identify";
 import type { PingService } from "libp2p/ping";
 
-import { IMetadata } from ".";
+import { IMetadata } from "./metadata";
 
 export type Libp2pServices = {
   ping: PingService;
