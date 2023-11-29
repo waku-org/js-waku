@@ -19,25 +19,25 @@ export const TestContentTopic = "/test/1/waku-store/utf8";
 export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 export const TestDecoder = createDecoder(TestContentTopic);
 export const customShardedPubsubTopic1 = singleShardInfoToPubsubTopic({
-  cluster: 3,
-  index: 1
+  clusterId: 3,
+  shard: 1
 });
 export const customShardedPubsubTopic2 = singleShardInfoToPubsubTopic({
-  cluster: 3,
-  index: 2
+  clusterId: 3,
+  shard: 2
 });
-export const shardInfo1: ShardInfo = { cluster: 3, indexList: [1] };
+export const shardInfo1: ShardInfo = { clusterId: 3, shards: [1] };
 export const customContentTopic1 = "/test/2/waku-store/utf8";
 export const customContentTopic2 = "/test/3/waku-store/utf8";
 export const customDecoder1 = createDecoder(customContentTopic1, {
-  cluster: 3,
-  index: 1
+  clusterId: 3,
+  shard: 1
 });
 export const customDecoder2 = createDecoder(customContentTopic2, {
-  cluster: 3,
-  index: 2
+  clusterId: 3,
+  shard: 2
 });
-export const shardInfoBothShards: ShardInfo = { cluster: 3, indexList: [1, 2] };
+export const shardInfoBothShards: ShardInfo = { clusterId: 3, shards: [1, 2] };
 export const totalMsgs = 20;
 export const messageText = "Store Push works!";
 

@@ -27,16 +27,16 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
   let nwaku2: NimGoNode;
   let messageCollector: MessageCollector;
   const customPubsubTopic1 = singleShardInfoToPubsubTopic({
-    cluster: 3,
-    index: 1
+    clusterId: 3,
+    shard: 1
   });
   const customPubsubTopic2 = singleShardInfoToPubsubTopic({
-    cluster: 3,
-    index: 2
+    clusterId: 3,
+    shard: 2
   });
-  const shardInfo: ShardInfo = { cluster: 3, indexList: [1, 2] };
-  const singleShardInfo1: SingleShardInfo = { cluster: 3, index: 1 };
-  const singleShardInfo2: SingleShardInfo = { cluster: 3, index: 2 };
+  const shardInfo: ShardInfo = { clusterId: 3, shards: [1, 2] };
+  const singleShardInfo1: SingleShardInfo = { clusterId: 3, shard: 1 };
+  const singleShardInfo2: SingleShardInfo = { clusterId: 3, shard: 2 };
   const customContentTopic1 = "/test/2/waku-light-push/utf8";
   const customContentTopic2 = "/test/3/waku-light-push/utf8";
   const customEncoder1 = createEncoder({

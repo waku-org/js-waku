@@ -27,24 +27,24 @@ describe("Waku Relay, multiple pubsub topics", function () {
   let waku3: RelayNode;
 
   const customPubsubTopic1 = singleShardInfoToPubsubTopic({
-    cluster: 3,
-    index: 1
+    clusterId: 3,
+    shard: 1
   });
   const customPubsubTopic2 = singleShardInfoToPubsubTopic({
-    cluster: 3,
-    index: 2
+    clusterId: 3,
+    shard: 2
   });
-  const shardInfo1: ShardInfo = { cluster: 3, indexList: [1] };
+  const shardInfo1: ShardInfo = { clusterId: 3, shards: [1] };
   const singleShardInfo1: SingleShardInfo = {
-    cluster: 3,
-    index: 1
+    clusterId: 3,
+    shard: 1
   };
   const customContentTopic1 = "/test/2/waku-relay/utf8";
   const customContentTopic2 = "/test/3/waku-relay/utf8";
-  const shardInfo2: ShardInfo = { cluster: 3, indexList: [2] };
+  const shardInfo2: ShardInfo = { clusterId: 3, shards: [2] };
   const singleShardInfo2: SingleShardInfo = {
-    cluster: 3,
-    index: 2
+    clusterId: 3,
+    shard: 2
   };
   const customEncoder1 = createEncoder({
     pubsubTopicShardInfo: singleShardInfo1,
@@ -56,7 +56,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
     contentTopic: customContentTopic2
   });
   const customDecoder2 = createDecoder(customContentTopic2, singleShardInfo2);
-  const shardInfoBothShards: ShardInfo = { cluster: 3, indexList: [1, 2] };
+  const shardInfoBothShards: ShardInfo = { clusterId: 3, shards: [1, 2] };
 
   afterEach(async function () {
     this.timeout(15000);

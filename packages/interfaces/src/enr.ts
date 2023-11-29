@@ -20,8 +20,8 @@ export interface Waku2 {
 
 //TODO: adhere to terminology from the metadata protocol
 export interface ShardInfo {
-  cluster: number;
-  indexList: number[];
+  clusterId: number;
+  shards: number[];
 }
 
 export interface IEnr extends Map<ENRKey, ENRValue> {

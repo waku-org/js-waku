@@ -1,8 +1,8 @@
 import type { PubsubTopic } from "./misc.js";
 
 export interface SingleShardInfo {
-  cluster: number;
-  index: number;
+  clusterId: number;
+  shard: number;
 }
 
 export interface IRateLimitProof {

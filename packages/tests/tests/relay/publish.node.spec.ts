@@ -128,7 +128,7 @@ describe("Waku Relay, Publish", function () {
 
   it("Fails to publish message with wrong pubsubtopic", async function () {
     const wrong_encoder = createEncoder({
-      pubsubTopicShardInfo: { cluster: 3, index: 1 },
+      pubsubTopicShardInfo: { clusterId: 3, shard: 1 },
       contentTopic: TestContentTopic
     });
     const pushResponse = await waku1.relay.send(wrong_encoder, {

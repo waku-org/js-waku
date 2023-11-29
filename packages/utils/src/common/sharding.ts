@@ -6,20 +6,20 @@ import { concat, utf8ToBytes } from "../bytes/index.js";
 export const singleShardInfoToPubsubTopic = (
   shardInfo: SingleShardInfo
 ): PubsubTopic => {
-  if (shardInfo.cluster === undefined || shardInfo.index === undefined)
+  if (shardInfo.clusterId === undefined || shardInfo.shard === undefined)
     throw new Error("Invalid shard");
 
-  return `/waku/2/rs/${shardInfo.cluster}/${shardInfo.index}`;
+  return `/waku/2/rs/${shardInfo.clusterId}/${shardInfo.shard}`;
 };
 
 export const shardInfoToPubsubTopics = (
   shardInfo: ShardInfo
 ): PubsubTopic[] => {
-  if (shardInfo.cluster === undefined || shardInfo.indexList === undefined)
+  if (shardInfo.clusterId === undefined || shardInfo.shards === undefined)
     throw new Error("Invalid shard");
 
-  return shardInfo.indexList.map(
-    (index) => `/waku/2/rs/${shardInfo.cluster}/${index}`
+  return shardInfo.shards.map(
+    (index) => `/waku/2/rs/${shardInfo.clusterId}/${index}`
   );
 };
 
@@ -27,13 +27,25 @@ export const pubsubTopicToSingleShardInfo = (
   pubsubTopics: PubsubTopic
 ): SingleShardInfo => {
   const parts = pubsubTopics.split("/");
-  if (parts.length != 6) throw new Error("Invalid pubsub topic");
 
-  const cluster = parseInt(parts[4]);
-  const index = parseInt(parts[5]);
-  if (isNaN(cluster) || isNaN(index)) throw new Error("Invalid pubsub topic");
+  if (
+    parts.length != 6 ||
+    parts[1] !== "waku" ||
+    parts[2] !== "2" ||
+    parts[3] !== "rs"
+  )
+    throw new Error("Invalid pubsub topic");
 
-  return { cluster, index };
+  const clusterId = parseInt(parts[4]);
+  const shard = parseInt(parts[5]);
+
+  if (isNaN(clusterId) || isNaN(shard))
+    throw new Error("Invalid clusterId or shard");
+
+  return {
+    clusterId,
+    shard
+  };
 };
 
 export function ensurePubsubTopicIsConfigured(

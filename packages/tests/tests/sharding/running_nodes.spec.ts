@@ -8,17 +8,17 @@ import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
 
 const PubsubTopic1 = singleShardInfoToPubsubTopic({
-  cluster: 0,
-  index: 2
+  clusterId: 0,
+  shard: 2
 });
 const PubsubTopic2 = singleShardInfoToPubsubTopic({
-  cluster: 0,
-  index: 3
+  clusterId: 0,
+  shard: 3
 });
-const shardInfoFirstShard: ShardInfo = { cluster: 0, indexList: [2] };
-const shardInfoBothShards: ShardInfo = { cluster: 0, indexList: [2, 3] };
-const singleShardInfo1: SingleShardInfo = { cluster: 0, index: 2 };
-const singleShardInfo2: SingleShardInfo = { cluster: 0, index: 3 };
+const shardInfoFirstShard: ShardInfo = { clusterId: 0, shards: [2] };
+const shardInfoBothShards: ShardInfo = { clusterId: 0, shards: [2, 3] };
+const singleShardInfo1: SingleShardInfo = { clusterId: 0, shard: 2 };
+const singleShardInfo2: SingleShardInfo = { clusterId: 0, shard: 3 };
 const ContentTopic = "/waku/2/content/test.js";
 
 describe("Static Sharding: Running Nodes", () => {
