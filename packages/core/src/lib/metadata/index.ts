@@ -47,10 +47,10 @@ class Metadata extends BaseProtocol {
 
     const shardInfoRes = proto_metadata.WakuMetadataResponse.decode(bytes);
     if (!shardInfoRes) {
-      throw new Error("WakuMetadata response is undefined");
+      log.error("WakuMetadata response is undefined");
     }
     if (!shardInfoRes.clusterId) {
-      throw new Error("WakuMetadata response clusterId is undefined");
+      log.error("WakuMetadata response clusterId is undefined");
     }
   }
 
@@ -60,33 +60,26 @@ class Metadata extends BaseProtocol {
   async query(peerId: PeerId): Promise<ShardInfo> {
     const request = proto_metadata.WakuMetadataRequest.encode(this.shardInfo);
 
-    try {
-      const peer = await this.getPeer(peerId);
+    const peer = await this.getPeer(peerId);
 
-      const stream = await this.getStream(peer);
+    const stream = await this.getStream(peer);
 
-      const res = await pipe(
-        [request],
-        lp.encode,
-        stream,
-        lp.decode,
-        async (source) => await all(source)
-      );
+    const res = await pipe(
+      [request],
+      lp.encode,
+      stream,
+      lp.decode,
+      async (source) => await all(source)
+    );
 
-      const bytes = new Uint8ArrayList();
-      res.forEach((chunk) => {
-        bytes.append(chunk);
-      });
-      const response = proto_metadata.WakuMetadataResponse.decode(bytes);
-      if (!response) {
-        throw new Error("Error decoding metadata response");
-      }
+    const bytes = new Uint8ArrayList();
+    res.forEach((chunk) => {
+      bytes.append(chunk);
+    });
+    const response = proto_metadata.WakuMetadataResponse.decode(bytes);
+    if (!response) log.error("Error decoding metadata response");
 
-      return response as ShardInfo;
-    } catch (error) {
-      log.error("Error decoding metadata response", error);
-      throw error;
-    }
+    return response as ShardInfo;
   }
 }
 
