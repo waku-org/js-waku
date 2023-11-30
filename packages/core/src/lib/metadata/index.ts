@@ -28,29 +28,14 @@ class Metadata extends BaseProtocol {
    * Handle an incoming metadata request
    */
   private async onRequest(streamData: IncomingStreamData): Promise<void> {
-    const encodedRpcQuery = proto_metadata.WakuMetadataRequest.encode(
-      this.shardInfo
-    );
+    try {
+      const encodedResponse = proto_metadata.WakuMetadataResponse.encode(
+        this.shardInfo
+      );
 
-    const res = await pipe(
-      [encodedRpcQuery],
-      lp.encode,
-      streamData.stream,
-      lp.decode,
-      async (source) => await all(source)
-    );
-
-    const bytes = new Uint8ArrayList();
-    res.forEach((chunk) => {
-      bytes.append(chunk);
-    });
-
-    const shardInfoRes = proto_metadata.WakuMetadataResponse.decode(bytes);
-    if (!shardInfoRes) {
-      log.error("WakuMetadata response is undefined");
-    }
-    if (!shardInfoRes.clusterId) {
-      log.error("WakuMetadata response clusterId is undefined");
+      await pipe([encodedResponse], lp.encode, streamData.stream);
+    } catch (error) {
+      log.error("Error handling metadata request", error);
     }
   }
 

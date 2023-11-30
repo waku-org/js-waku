@@ -8,7 +8,7 @@ import { tearDownNodes } from "../src/index.js";
 import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
-describe("Metadata Protocol", () => {
+describe.only("Metadata Protocol", () => {
   describe("Locally Run Nodes", () => {
     let waku: LightNode;
     let nwaku1: NimGoNode;
