@@ -63,7 +63,7 @@
     "p-retry": "^6.1.0",
     "p-timeout": "^6.1.0",
     "portfinder": "^1.0.32",
-    "sinon": "^16.0.0",
+    "sinon": "^17.0.1",
     "tail": "^2.2.6"
   },
   "devDependencies": {
@@ -71,7 +71,7 @@
     "@types/chai": "^4.3.11",
     "@types/dockerode": "^3.3.19",
     "@types/mocha": "^10.0.1",
-    "@types/sinon": "^10.0.16",
+    "@types/sinon": "^17.0.2",
     "@types/tail": "^2.2.1",
     "@waku/dns-discovery": "*",
     "@waku/message-encryption": "*",
