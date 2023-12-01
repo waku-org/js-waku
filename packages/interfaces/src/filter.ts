@@ -1,4 +1,3 @@
-import { EventEmitter } from "@libp2p/interface/events";
 import type { PeerId } from "@libp2p/interface/peer-id";
 
 import type { IDecodedMessage, IDecoder } from "./message.js";
@@ -19,8 +18,12 @@ export interface SubscriptionEventMap {
   [key: ContentTopic]: CustomEvent<EventDetail>;
 }
 
-export interface IFilterSubscription
-  extends EventEmitter<SubscriptionEventMap> {
+export interface IFilterSubscription {
+  addEventListener(
+    type: ContentTopic,
+    listener: (event: CustomEvent<EventDetail>) => void
+  ): void;
+
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<void>;

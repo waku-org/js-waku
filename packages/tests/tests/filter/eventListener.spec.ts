@@ -23,38 +23,23 @@ describe("Waku Filter V2: Susbcription: Event Listener", function () {
     await tearDownNodes(nwaku, waku);
   });
 
-  describe("should fail for invalid key", function () {
-    it("key: number", async function () {
-      const subscription = await waku.filter.createSubscription([TestDecoder]);
-      expect(() => {
-        subscription.addEventListener(1, collector.filterCallback);
-      }).to.throw();
-    });
-    it("key: random string", async function () {
-      const subscription = await waku.filter.createSubscription([TestDecoder]);
-      expect(() => {
-        subscription.addEventListener("fail", collector.filterCallback);
-      }).to.throw();
-    });
-    it("key: invalid content topic", async function () {
-      const subscription = await waku.filter.createSubscription([TestDecoder]);
-      expect(() => {
-        subscription.addEventListener(
-          "/waku/2/default-waku/test",
-          collector.filterCallback
-        );
-      }).to.throw();
-    });
+  it("should fail for invalid content topic", async function () {
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    expect(() => {
+      subscription.addEventListener(
+        "/waku/2/default-waku/test",
+        collector.filterCallback
+      );
+    }).to.throw();
   });
-  describe("should pass for a valid key", function () {
-    it("key: valid pubsub topic", async function () {
-      const subscription = await waku.filter.createSubscription([TestDecoder]);
-      expect(() => {
-        subscription.addEventListener(
-          TestDecoder.contentTopic,
-          collector.filterCallback
-        );
-      }).to.not.throw();
-    });
+
+  it("should pass for a valid pubsub topic", async function () {
+    const subscription = await waku.filter.createSubscription([TestDecoder]);
+    expect(() => {
+      subscription.addEventListener(
+        TestDecoder.contentTopic,
+        collector.filterCallback
+      );
+    }).to.not.throw();
   });
 });

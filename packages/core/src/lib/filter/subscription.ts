@@ -25,11 +25,12 @@ import { FilterSubscribeResponse, FilterSubscribeRpc } from "./filter_rpc.js";
 const log = new Logger("waku:filter-v2:subscription");
 
 // one subscription object per pubsub topic
-export class Subscription extends EventEmitter<SubscriptionEventMap> {
+export class Subscription {
   private readonly peer: Peer;
   private readonly pubsubTopic: PubsubTopic;
   private newStream: (peer: Peer) => Promise<Stream>;
   private readonly decoders: Map<ContentTopic, IDecoder<IDecodedMessage>[]>;
+  private readonly eventEmitter: EventEmitter<SubscriptionEventMap>;
 
   constructor(
     pubsubTopic: PubsubTopic,
@@ -37,7 +38,7 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
     newStream: (peer: Peer) => Promise<Stream>,
     decoders: IDecoder<IDecodedMessage>[]
   ) {
-    super();
+    this.eventEmitter = new EventEmitter();
     this.peer = remotePeer;
     this.pubsubTopic = pubsubTopic;
     this.newStream = newStream;
@@ -153,7 +154,7 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
 
       for (const decoders of this.decoders.values()) {
         for (const decoder of decoders) {
-          this.removeEventListener(decoder.contentTopic);
+          this.eventEmitter.removeEventListener(decoder.contentTopic);
         }
       }
     } catch (error) {
@@ -162,15 +163,11 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
     }
   }
 
-  addEventListener<K extends string | number>(
-    contentTopic: K,
-    listener: EventHandler<SubscriptionEventMap[K]> | null,
-    options?: boolean | AddEventListenerOptions | undefined
+  addEventListener(
+    contentTopic: string,
+    listener: EventHandler<CustomEvent<EventDetail>>
   ): void {
     try {
-      if (typeof contentTopic !== "string")
-        throw `Invalid event type. Expected content topic which should be a string but received ${contentTopic} of the type ${typeof contentTopic}`;
-
       const decoders = this.decoders.get(contentTopic);
       if (!decoders || decoders.length === 0)
         throw "No decoders found for content topic " + contentTopic;
@@ -182,7 +179,7 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
         }
       }
 
-      super.addEventListener(contentTopic, listener, options);
+      this.eventEmitter.addEventListener(contentTopic, listener);
     } catch (error) {
       const errorMsg = "Error adding event listener: " + error;
       this.dispatchError(this.pubsubTopic, errorMsg);
@@ -290,7 +287,7 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
         if (!decoders || decoders.length === 0)
           throw "No decoder found for content topic " + contentTopic;
         for (const decoder of decoders) {
-          this.removeEventListener(decoder.contentTopic);
+          this.eventEmitter.removeEventListener(decoder.contentTopic);
         }
         this.decoders.delete(contentTopic);
       } catch (error) {
@@ -304,13 +301,13 @@ export class Subscription extends EventEmitter<SubscriptionEventMap> {
     contentTopic: ContentTopic,
     data: IDecodedMessage
   ): void {
-    this.dispatchEvent(
+    this.eventEmitter.dispatchEvent(
       new CustomEvent<EventDetail>(contentTopic, { detail: { data } })
     );
   }
 
   private dispatchError(contentTopic: ContentTopic, errorMsg: string): void {
-    this.dispatchEvent(
+    this.eventEmitter.dispatchEvent(
       new CustomEvent<EventDetail>(contentTopic, {
         detail: { error: new Error(errorMsg) }
       })
