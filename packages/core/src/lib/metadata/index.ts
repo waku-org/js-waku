@@ -1,5 +1,6 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { IncomingStreamData } from "@libp2p/interface/stream-handler";
+import { encodeRelayShard } from "@waku/enr";
 import type { IMetadata, Libp2pComponents, ShardInfo } from "@waku/interfaces";
 import { proto_metadata } from "@waku/proto";
 import { Logger } from "@waku/utils";
@@ -16,8 +17,10 @@ export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
 class Metadata extends BaseProtocol {
   private readonly shardInfo: ShardInfo;
+  private libp2pComponents: Libp2pComponents;
   constructor(shardInfo: ShardInfo, libp2p: Libp2pComponents) {
     super(MetadataCodec, libp2p.components);
+    this.libp2pComponents = libp2p;
     this.shardInfo = shardInfo;
     void libp2p.registrar.handle(MetadataCodec, (streamData) => {
       void this.onRequest(streamData);
@@ -29,11 +32,28 @@ class Metadata extends BaseProtocol {
    */
   private async onRequest(streamData: IncomingStreamData): Promise<void> {
     try {
-      const encodedResponse = proto_metadata.WakuMetadataResponse.encode(
+      const { stream, connection } = streamData;
+      const encodedShardInfo = proto_metadata.WakuMetadataResponse.encode(
         this.shardInfo
       );
 
-      await pipe([encodedResponse], lp.encode, streamData.stream);
+      const encodedResponse = await pipe(
+        [encodedShardInfo],
+        lp.encode,
+        stream,
+        lp.decode,
+        async (source) => await all(source)
+      );
+
+      const remoteShardInfoResponse =
+        this.decodeMetadataResponse(encodedResponse);
+
+      // add or update the shardInfo to peer store
+      await this.libp2pComponents.peerStore.merge(connection.remotePeer, {
+        metadata: {
+          shardInfo: encodeRelayShard(remoteShardInfoResponse)
+        }
+      });
     } catch (error) {
       log.error("Error handling metadata request", error);
     }
@@ -49,7 +69,7 @@ class Metadata extends BaseProtocol {
 
     const stream = await this.getStream(peer);
 
-    const res = await pipe(
+    const encodedResponse = await pipe(
       [request],
       lp.encode,
       stream,
@@ -57,14 +77,24 @@ class Metadata extends BaseProtocol {
       async (source) => await all(source)
     );
 
+    const decodedResponse = this.decodeMetadataResponse(encodedResponse);
+
+    return decodedResponse;
+  }
+
+  private decodeMetadataResponse(encodedResponse: Uint8ArrayList[]): ShardInfo {
     const bytes = new Uint8ArrayList();
-    res.forEach((chunk) => {
+
+    encodedResponse.forEach((chunk) => {
       bytes.append(chunk);
     });
-    const response = proto_metadata.WakuMetadataResponse.decode(bytes);
+    const response = proto_metadata.WakuMetadataResponse.decode(
+      bytes
+    ) as ShardInfo;
+
     if (!response) log.error("Error decoding metadata response");
 
-    return response as ShardInfo;
+    return response;
   }
 }
 
