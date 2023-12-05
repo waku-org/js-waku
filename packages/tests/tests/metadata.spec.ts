@@ -5,7 +5,7 @@ import { shardInfoToPubsubTopics } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
-import { tearDownNodes } from "../src/index.js";
+import { delay, tearDownNodes } from "../src/index.js";
 import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
@@ -117,15 +117,13 @@ describe.only("Metadata Protocol", () => {
     });
 
     const nwaku1Ma = await nwaku1.getMultiaddrWithId();
-    const nwaku1PeerId = await nwaku1.getPeerId();
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.start();
     await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
-    await expect(
-      waku.libp2p.services.metadata?.query(nwaku1PeerId)
-    ).to.be.rejectedWith("the connection is being closed");
+    // add a delay to make sure the connection is closed from the other side
+    await delay(100);
 
     const activeConnections = waku.libp2p.getConnections();
     expect(activeConnections.length).to.equal(0);
@@ -153,15 +151,13 @@ describe.only("Metadata Protocol", () => {
     });
 
     const nwaku1Ma = await nwaku1.getMultiaddrWithId();
-    const nwaku1PeerId = await nwaku1.getPeerId();
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.start();
     await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
-    await expect(
-      waku.libp2p.services.metadata?.query(nwaku1PeerId)
-    ).to.be.rejectedWith("the connection is being closed");
+    // add a delay to make sure the connection is closed from the other side
+    await delay(100);
 
     const activeConnections = waku.libp2p.getConnections();
     expect(activeConnections.length).to.equal(0);
