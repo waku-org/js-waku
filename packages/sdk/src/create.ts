@@ -8,6 +8,7 @@ import {
   DefaultUserAgent,
   wakuFilter,
   wakuLightPush,
+  wakuMetadata,
   WakuNode,
   WakuOptions,
   wakuStore
@@ -16,11 +17,13 @@ import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
   CreateLibp2pOptions,
   FullNode,
+  IMetadata,
   Libp2p,
   Libp2pComponents,
   LightNode,
   ProtocolCreateOptions,
-  RelayNode
+  RelayNode,
+  ShardInfo
 } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
@@ -54,6 +57,7 @@ export async function createLightNode(
   }
 
   const libp2p = await defaultLibp2p(
+    options.shardInfo,
     undefined,
     libp2pOptions,
     options?.userAgent
@@ -90,6 +94,7 @@ export async function createRelayNode(
   }
 
   const libp2p = await defaultLibp2p(
+    options.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -134,6 +139,7 @@ export async function createFullNode(
   }
 
   const libp2p = await defaultLibp2p(
+    options.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -169,7 +175,12 @@ type PubsubService = {
   pubsub?: (components: Libp2pComponents) => GossipSub;
 };
 
+type MetadataService = {
+  metadata?: (components: Libp2pComponents) => IMetadata;
+};
+
 export async function defaultLibp2p(
+  shardInfo?: ShardInfo,
   wakuGossipSub?: PubsubService["pubsub"],
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
@@ -191,6 +202,10 @@ export async function defaultLibp2p(
     ? { pubsub: wakuGossipSub }
     : {};
 
+  const metadataService: MetadataService = shardInfo
+    ? { metadata: wakuMetadata(shardInfo) }
+    : {};
+
   return createLibp2p({
     connectionManager: {
       minConnections: 1
@@ -204,6 +219,7 @@ export async function defaultLibp2p(
         agentVersion: userAgent ?? DefaultUserAgent
       }),
       ping: pingService(),
+      ...metadataService,
       ...pubsubService,
       ...options?.services
     }
