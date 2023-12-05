@@ -11,7 +11,7 @@ import { NimGoNode } from "../src/node/node.js";
 
 chai.use(chaiAsPromised);
 
-describe("Metadata Protocol", () => {
+describe.only("Metadata Protocol", () => {
   let waku: LightNode;
   let nwaku1: NimGoNode;
 
@@ -52,6 +52,9 @@ describe("Metadata Protocol", () => {
     expect(shardInfoRes).to.not.be.undefined;
     expect(shardInfoRes?.clusterId).to.equal(shardInfo.clusterId);
     expect(shardInfoRes?.shards).to.deep.equal(shardInfo.shards);
+
+    const activeConnections = waku.libp2p.getConnections();
+    expect(activeConnections.length).to.equal(1);
   });
 
   it("same cluster, different shard: nodes connect", async function () {
@@ -87,6 +90,9 @@ describe("Metadata Protocol", () => {
     expect(shardInfoRes).to.not.be.undefined;
     expect(shardInfoRes?.clusterId).to.equal(shardInfo1.clusterId);
     expect(shardInfoRes?.shards).to.deep.equal(shardInfo1.shards);
+
+    const activeConnections = waku.libp2p.getConnections();
+    expect(activeConnections.length).to.equal(1);
   });
 
   it("different cluster, same shard: nodes don't connect", async function () {
@@ -120,6 +126,9 @@ describe("Metadata Protocol", () => {
     await expect(
       waku.libp2p.services.metadata?.query(nwaku1PeerId)
     ).to.be.rejectedWith("the connection is being closed");
+
+    const activeConnections = waku.libp2p.getConnections();
+    expect(activeConnections.length).to.equal(0);
   });
 
   it("different cluster, different shard: nodes don't connect", async function () {
@@ -153,5 +162,8 @@ describe("Metadata Protocol", () => {
     await expect(
       waku.libp2p.services.metadata?.query(nwaku1PeerId)
     ).to.be.rejectedWith("the connection is being closed");
+
+    const activeConnections = waku.libp2p.getConnections();
+    expect(activeConnections.length).to.equal(0);
   });
 });
