@@ -3,7 +3,6 @@ import type { PeerInfo } from "@libp2p/interface/peer-info";
 import type { Peer } from "@libp2p/interface/peer-store";
 import type { PeerStore } from "@libp2p/interface/peer-store";
 import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
-import { decodeRelayShard } from "@waku/enr";
 import {
   ConnectionManagerOptions,
   EConnectionStateEvents,
@@ -18,7 +17,7 @@ import {
   ShardInfo
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
-import { shardInfoToPubsubTopics } from "@waku/utils";
+import { decodeRelayShard, shardInfoToPubsubTopics } from "@waku/utils";
 import { Logger } from "@waku/utils";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";

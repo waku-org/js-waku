@@ -1,9 +1,8 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { IncomingStreamData } from "@libp2p/interface/stream-handler";
-import { encodeRelayShard } from "@waku/enr";
 import type { IMetadata, Libp2pComponents, ShardInfo } from "@waku/interfaces";
 import { proto_metadata } from "@waku/proto";
-import { Logger } from "@waku/utils";
+import { encodeRelayShard, Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -16,12 +15,10 @@ const log = new Logger("metadata");
 export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
 class Metadata extends BaseProtocol {
-  private readonly shardInfo: ShardInfo;
   private libp2pComponents: Libp2pComponents;
   constructor(shardInfo: ShardInfo, libp2p: Libp2pComponents) {
-    super(MetadataCodec, libp2p.components);
+    super(MetadataCodec, libp2p.components, shardInfo);
     this.libp2pComponents = libp2p;
-    this.shardInfo = shardInfo;
     void libp2p.registrar.handle(MetadataCodec, (streamData) => {
       void this.onRequest(streamData);
     });

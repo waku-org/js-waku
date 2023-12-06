@@ -48,6 +48,30 @@ export const pubsubTopicToSingleShardInfo = (
   };
 };
 
+export const pubsubTopicsToShardInfo = (
+  pubsubTopics: PubsubTopic[]
+): ShardInfo => {
+  if (pubsubTopics.length === 0) {
+    throw new Error("No pubsub topics provided");
+  }
+
+  const shardInfos = pubsubTopics.map(pubsubTopicToSingleShardInfo);
+  const clusterId = shardInfos[0].clusterId;
+  const shards: number[] = [];
+
+  shardInfos.forEach(({ clusterId, shard }) => {
+    if (clusterId !== clusterId) {
+      throw new Error("Pubsub topics must have the same clusterId");
+    }
+    shards.push(shard);
+  });
+
+  return {
+    clusterId,
+    shards
+  };
+};
+
 export function ensurePubsubTopicIsConfigured(
   pubsubTopic: PubsubTopic,
   configuredTopics: PubsubTopic[]

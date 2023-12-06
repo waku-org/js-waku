@@ -8,8 +8,12 @@ import type {
   PubsubTopic,
   ShardInfo
 } from "@waku/interfaces";
-import { shardInfoToPubsubTopics } from "@waku/utils";
-import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
+import { pubsubTopicsToShardInfo, shardInfoToPubsubTopics } from "@waku/utils";
+import {
+  getPeersForProtocol,
+  getPeersForShard,
+  selectPeerForProtocol
+} from "@waku/utils/libp2p";
 
 import { DefaultPubsubTopic } from "./constants.js";
 import { filterPeers } from "./filterPeers.js";
@@ -23,11 +27,15 @@ export class BaseProtocol implements IBaseProtocol {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
   protected streamManager: StreamManager;
+  protected pubsubTopics: PubsubTopic[];
 
   constructor(
     public multicodec: string,
-    private components: Libp2pComponents
+    private components: Libp2pComponents,
+    shardInfo?: ShardInfo
   ) {
+    this.pubsubTopics = this.initializePubsubTopic(shardInfo);
+
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events
     );
@@ -49,6 +57,10 @@ export class BaseProtocol implements IBaseProtocol {
 
   public get peerStore(): PeerStore {
     return this.components.peerStore;
+  }
+
+  public get shardInfo(): ShardInfo {
+    return pubsubTopicsToShardInfo(this.pubsubTopics);
   }
 
   /**
@@ -93,11 +105,24 @@ export class BaseProtocol implements IBaseProtocol {
       this.multicodec
     ]);
 
+    const peersForShard = (
+      await Promise.all(
+        this.shardInfo.shards.map((shard) =>
+          getPeersForShard(this.peerStore, shard)
+        )
+      )
+    ).flat();
+
+    // Find common peers
+    const peersWithShardAndProtocol = allPeersForProtocol.filter((peer) =>
+      peersForShard.includes(peer)
+    );
+
     // Filter the peers based on the specified criteria
-    return filterPeers(allPeersForProtocol, numPeers, maxBootstrapPeers);
+    return filterPeers(peersWithShardAndProtocol, numPeers, maxBootstrapPeers);
   }
 
-  initializePubsubTopic(shardInfo?: ShardInfo): PubsubTopic[] {
+  private initializePubsubTopic(shardInfo?: ShardInfo): PubsubTopic[] {
     return shardInfo
       ? shardInfoToPubsubTopics(shardInfo)
       : [DefaultPubsubTopic];

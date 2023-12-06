@@ -6,8 +6,7 @@ import {
   IDecoder,
   IStore,
   Libp2p,
-  ProtocolCreateOptions,
-  PubsubTopic
+  ProtocolCreateOptions
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
 import { ensurePubsubTopicIsConfigured, isDefined } from "@waku/utils";
@@ -74,12 +73,10 @@ export interface QueryOptions {
  * The Waku Store protocol can be used to retrieved historical messages.
  */
 class Store extends BaseProtocol implements IStore {
-  private readonly pubsubTopics: PubsubTopic[];
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(StoreCodec, libp2p.components);
-    this.pubsubTopics = this.initializePubsubTopic(options?.shardInfo);
+    super(StoreCodec, libp2p.components, options?.shardInfo);
   }
 
   /**

@@ -7,9 +7,8 @@ import type {
 import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { PeerInfo } from "@libp2p/interface/peer-info";
-import { encodeRelayShard } from "@waku/enr";
 import { Libp2pComponents, Tags } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { encodeRelayShard, Logger } from "@waku/utils";
 
 import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
 

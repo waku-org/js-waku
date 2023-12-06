@@ -3,6 +3,7 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 
 import { bytesToUtf8 } from "../bytes/index.js";
+import { decodeRelayShard } from "../common/relay_shard_codec.js";
 
 /**
  * Returns a pseudo-random peer that supports the given protocol.
@@ -45,6 +46,20 @@ export async function selectLowestLatencyPeer(
   return lowestLatencyResult.ping !== Infinity
     ? lowestLatencyResult.peer
     : undefined;
+}
+
+export async function getPeersForShard(
+  peerStore: PeerStore,
+  shard: number
+): Promise<Peer[]> {
+  const peers: Peer[] = [];
+  await peerStore.forEach((peer) => {
+    const peerShardInfo = peer.metadata.get("shardInfo");
+    if (peerShardInfo && Number(decodeRelayShard(peerShardInfo)) === shard) {
+      peers.push(peer);
+    }
+  });
+  return peers;
 }
 
 /**
