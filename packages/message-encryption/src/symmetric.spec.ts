@@ -31,6 +31,7 @@ describe("Symmetric Encryption", function () {
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.be.undefined;
+          expect(result.verifySignature(new Uint8Array())).to.be.false;
           expect(result.signaturePublicKey).to.be.undefined;
         }
       )
@@ -66,6 +67,7 @@ describe("Symmetric Encryption", function () {
           expect(result.version).to.equal(1);
           expect(result?.payload).to.deep.equal(payload);
           expect(result.signature).to.not.be.undefined;
+          expect(result.verifySignature(sigPubKey)).to.be.true;
           expect(result.signaturePublicKey).to.deep.eq(sigPubKey);
         }
       )
