@@ -1,35 +1,34 @@
 import { DefaultPubsubTopic } from "@waku/core";
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
+import { IMetaSetter, PubsubTopic } from "@waku/interfaces";
 import type {
   EncoderOptions as BaseEncoderOptions,
   IDecoder,
   IEncoder,
   IMessage,
-  IMetaSetter,
   IProtoMessage,
-  PubsubTopic,
   SingleShardInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 
-import { generatePrivateKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptAsymmetric,
   encryptAsymmetric,
   postCipher,
   preCipher
-} from "./encryption.js";
-import { OneMillion, Version } from "./misc.js";
+} from "./waku_payload.js";
 
-export {
-  decryptAsymmetric,
-  encryptAsymmetric,
-  postCipher,
-  preCipher,
-  generatePrivateKey
-};
+import {
+  generatePrivateKey,
+  getPublicKey,
+  OneMillion,
+  Version
+} from "./index.js";
+
+export { generatePrivateKey, getPublicKey };
+export type { Encoder, Decoder, DecodedMessage };
 
 const log = new Logger("message-encryption:ecies");
 

@@ -6,13 +6,7 @@ import {
 } from "@waku/core";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import {
-  ecies,
-  generatePrivateKey,
-  generateSymmetricKey,
-  getPublicKey,
-  symmetric
-} from "@waku/message-encryption";
+import { ecies, symmetric } from "@waku/message-encryption";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -73,8 +67,8 @@ describe("Waku Filter V2: Subscribe", function () {
   });
 
   it("Subscribe and receive ecies encrypted messages via lightPush", async function () {
-    const privateKey = generatePrivateKey();
-    const publicKey = getPublicKey(privateKey);
+    const privateKey = ecies.generatePrivateKey();
+    const publicKey = ecies.getPublicKey(privateKey);
     const encoder = ecies.createEncoder({
       contentTopic: TestContentTopic,
       publicKey
@@ -95,7 +89,7 @@ describe("Waku Filter V2: Subscribe", function () {
   });
 
   it("Subscribe and receive symmetrically encrypted messages via lightPush", async function () {
-    const symKey = generateSymmetricKey();
+    const symKey = symmetric.generateSymmetricKey();
     const encoder = symmetric.createEncoder({
       contentTopic: TestContentTopic,
       symKey
