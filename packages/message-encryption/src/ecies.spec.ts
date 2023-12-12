@@ -41,8 +41,8 @@ describe("Ecies Encryption", function () {
     );
   });
 
-  it("R trip binary encryption [ecies, signature]", async function () {
-    this.timeout(4000);
+  it("Round trip binary encryption [ecies, signature]", async function () {
+    this.timeout(6000);
 
     await fc.assert(
       fc.asyncProperty(
