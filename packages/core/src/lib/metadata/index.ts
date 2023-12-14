@@ -16,6 +16,8 @@ export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
 class Metadata extends BaseProtocol implements IMetadata {
   private libp2pComponents: Libp2pComponents;
+  handshakesConfirmed: PeerId[] = [];
+
   constructor(
     public shardInfo: ShardInfo,
     libp2p: Libp2pComponents
@@ -48,12 +50,10 @@ class Metadata extends BaseProtocol implements IMetadata {
       const remoteShardInfoResponse =
         this.decodeMetadataResponse(encodedResponse);
 
-      // add or update the shardInfo to peer store
-      await this.libp2pComponents.peerStore.merge(connection.remotePeer, {
-        metadata: {
-          shardInfo: encodeRelayShard(remoteShardInfoResponse)
-        }
-      });
+      await this.savePeerShardInfo(
+        connection.remotePeer,
+        remoteShardInfoResponse
+      );
     } catch (error) {
       log.error("Error handling metadata request", error);
     }
@@ -79,6 +79,8 @@ class Metadata extends BaseProtocol implements IMetadata {
 
     const decodedResponse = this.decodeMetadataResponse(encodedResponse);
 
+    await this.savePeerShardInfo(peerId, decodedResponse);
+
     return decodedResponse;
   }
 
@@ -95,6 +97,23 @@ class Metadata extends BaseProtocol implements IMetadata {
     if (!response) log.error("Error decoding metadata response");
 
     return response;
+  }
+
+  private async savePeerShardInfo(
+    peerId: PeerId,
+    shardInfo: ShardInfo
+  ): Promise<void> {
+    // add or update the shardInfo to peer store
+    await this.libp2pComponents.peerStore.merge(peerId, {
+      metadata: {
+        shardInfo: encodeRelayShard(shardInfo)
+      }
+    });
+
+    // add to the array removing duplicate
+    this.handshakesConfirmed = [
+      ...new Set([...this.handshakesConfirmed, peerId])
+    ];
   }
 }
 
