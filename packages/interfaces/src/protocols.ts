@@ -14,6 +14,7 @@ export enum Protocols {
 }
 
 export interface IBaseProtocol {
+  shardInfo?: ShardInfo;
   multicodec: string;
   peerStore: PeerStore;
   peers: () => Promise<Peer[]>;

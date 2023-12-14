@@ -8,7 +8,7 @@ import type {
   PubsubTopic,
   ShardInfo
 } from "@waku/interfaces";
-import { pubsubTopicsToShardInfo, shardInfoToPubsubTopics } from "@waku/utils";
+import { shardInfoToPubsubTopics } from "@waku/utils";
 import {
   getPeersForProtocol,
   getPeersForProtocolAndShard,
@@ -32,7 +32,7 @@ export class BaseProtocol implements IBaseProtocol {
   constructor(
     public multicodec: string,
     private components: Libp2pComponents,
-    shardInfo?: ShardInfo
+    public shardInfo?: ShardInfo
   ) {
     this.pubsubTopics = this.initializePubsubTopic(shardInfo);
 
@@ -57,10 +57,6 @@ export class BaseProtocol implements IBaseProtocol {
 
   public get peerStore(): PeerStore {
     return this.components.peerStore;
-  }
-
-  public get shardInfo(): ShardInfo {
-    return pubsubTopicsToShardInfo(this.pubsubTopics);
   }
 
   /**
@@ -100,7 +96,7 @@ export class BaseProtocol implements IBaseProtocol {
       numPeers: 0
     }
   ): Promise<Peer[]> {
-    // Retrieve all peers that support the protocol & shard
+    // Retrieve all peers that support the protocol & shard (if configured)
     const peersForProtocolAndShard = await getPeersForProtocolAndShard(
       this.peerStore,
       [this.multicodec],

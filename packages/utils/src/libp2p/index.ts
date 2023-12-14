@@ -51,20 +51,27 @@ export async function selectLowestLatencyPeer(
 
 /**
  * Returns the list of peers that supports the given protocol and shard.
+ * If shard is not configured, all peers that support the protocol are returned.
  */
 
 export async function getPeersForProtocolAndShard(
   peerStore: PeerStore,
   protocols: string[],
-  shardInfo: ShardInfo
+  shardInfo?: ShardInfo
 ): Promise<Peer[]> {
   const peers: Peer[] = [];
   await peerStore.forEach((peer) => {
-    const encodedPeerShardInfo = peer.metadata.get("shardInfo");
-    const peerShardInfo =
-      encodedPeerShardInfo && decodeRelayShard(encodedPeerShardInfo);
+    if (shardInfo) {
+      const encodedPeerShardInfo = peer.metadata.get("shardInfo");
+      const peerShardInfo =
+        encodedPeerShardInfo && decodeRelayShard(encodedPeerShardInfo);
 
-    if (peerShardInfo && shardInfo.clusterId === peerShardInfo.clusterId) {
+      if (peerShardInfo && shardInfo.clusterId === peerShardInfo.clusterId) {
+        if (protocols.some((protocol) => peer.protocols.includes(protocol))) {
+          peers.push(peer);
+        }
+      }
+    } else {
       if (protocols.some((protocol) => peer.protocols.includes(protocol))) {
         peers.push(peer);
       }

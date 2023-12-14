@@ -3,6 +3,8 @@ import type { PeerId } from "@libp2p/interface/peer-id";
 import type { ShardInfo } from "./enr.js";
 import type { IBaseProtocol } from "./protocols.js";
 
-export interface IMetadata extends IBaseProtocol {
+// IMetadata always has shardInfo defined while it is optionally undefined in IBaseProtocol
+export interface IMetadata extends Omit<IBaseProtocol, "shardInfo"> {
+  shardInfo: ShardInfo;
   query(peerId: PeerId): Promise<ShardInfo | undefined>;
 }

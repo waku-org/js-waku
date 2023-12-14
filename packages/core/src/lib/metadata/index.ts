@@ -14,9 +14,12 @@ const log = new Logger("metadata");
 
 export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
-class Metadata extends BaseProtocol {
+class Metadata extends BaseProtocol implements IMetadata {
   private libp2pComponents: Libp2pComponents;
-  constructor(shardInfo: ShardInfo, libp2p: Libp2pComponents) {
+  constructor(
+    public shardInfo: ShardInfo,
+    libp2p: Libp2pComponents
+  ) {
     super(MetadataCodec, libp2p.components, shardInfo);
     this.libp2pComponents = libp2p;
     void libp2p.registrar.handle(MetadataCodec, (streamData) => {
