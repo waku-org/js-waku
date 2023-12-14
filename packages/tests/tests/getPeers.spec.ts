@@ -9,7 +9,7 @@ import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 import { tearDownNodes } from "../src/teardown.js";
 
-describe.only("getPeersForProtocolAndShard", function () {
+describe("getPeersForProtocolAndShard", function () {
   let waku: LightNode;
   let serviceNode: NimGoNode;
 
