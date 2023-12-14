@@ -57,7 +57,7 @@ export class WakuNode implements Waku {
   constructor(
     options: WakuOptions,
     libp2p: Libp2p,
-    pubsubShardInfo?: ShardInfo,
+    private pubsubShardInfo?: ShardInfo,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
     filter?: (libp2p: Libp2p) => IFilter,
@@ -107,6 +107,10 @@ export class WakuNode implements Waku {
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
         .lightPush}, filter: ${!!this.filter}`
     );
+  }
+
+  get shardInfo(): ShardInfo | undefined {
+    return this.pubsubShardInfo;
   }
 
   /**

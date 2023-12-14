@@ -379,6 +379,8 @@ export class ConnectionManager
     },
     "peer:connect": (evt: CustomEvent<PeerId>): void => {
       void (async () => {
+        log.info(`Connected to peer ${evt.detail.toString()}`);
+
         const peerId = evt.detail;
 
         this.keepAliveManager.start(
