@@ -42,6 +42,7 @@ describe("getPeersForProtocolAndShard", function () {
     waku = await createLightNode({ shardInfo });
     await waku.start();
     await waku.libp2p.dialProtocol(serviceNodeMa, MetadataCodec);
+    // The delay is added to give time for the metadata protocol to be processed
     //TODO: remove delay
     await delay(100);
     const peers = await getPeersForProtocolAndShard(
