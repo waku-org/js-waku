@@ -1,5 +1,4 @@
 import type { IdentifyResult } from "@libp2p/interface";
-import type { PeerId } from "@libp2p/interface/peer-id";
 import type { IBaseProtocol, IMetadata, IRelay, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -85,12 +84,18 @@ async function waitForConnectedPeer(
   metadataService?: IMetadata
 ): Promise<void> {
   const codec = protocol.multicodec;
-  // const peers = await protocol.peers();
+  const peers = await protocol.connectedPeers();
 
-  // if (peers.length) {
-  //   log.info(`${codec} peer found: `, peers[0].id.toString());
-  //   return;
-  // }
+  if (peers.length) {
+    // once a peer is connected, we need to confirm the metadata handshake if sharding is enabled
+    metadataService &&
+      (await Promise.all(
+        peers.map((peer) => metadataService.confirmOrAttemptHandshake(peer.id))
+      ));
+
+    log.info(`${codec} peer found: `, peers[0].id.toString());
+    return;
+  }
 
   log.info(`Waiting for ${codec} peer`);
 
@@ -98,7 +103,8 @@ async function waitForConnectedPeer(
     const cb = (evt: CustomEvent<IdentifyResult>): void => {
       if (evt.detail?.protocols?.includes(codec)) {
         if (metadataService) {
-          waitForHandshakeConfirmation(metadataService, evt.detail.peerId)
+          metadataService
+            .confirmOrAttemptHandshake(evt.detail.peerId)
             .then(() => {
               protocol.removeLibp2pEventListener("peer:identify", cb);
               resolve();
@@ -113,27 +119,6 @@ async function waitForConnectedPeer(
       }
     };
     protocol.addLibp2pEventListener("peer:identify", cb);
-  });
-}
-
-/**
- * Wait for a peer to be confirmed by the metadata service.
- */
-async function waitForHandshakeConfirmation(
-  metadataService: IMetadata,
-  peerId: PeerId
-): Promise<void> {
-  await new Promise<void>((resolve) => {
-    const interval = setInterval(() => {
-      if (
-        metadataService.handshakesConfirmed.some(
-          (remotePeerId) => remotePeerId.toString() === peerId.toString()
-        )
-      ) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 10);
   });
 }
 

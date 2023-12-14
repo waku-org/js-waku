@@ -6,6 +6,6 @@ import type { IBaseProtocol } from "./protocols.js";
 // IMetadata always has shardInfo defined while it is optionally undefined in IBaseProtocol
 export interface IMetadata extends Omit<IBaseProtocol, "shardInfo"> {
   shardInfo: ShardInfo;
-  handshakesConfirmed: PeerId[];
+  confirmOrAttemptHandshake(peerId: PeerId): Promise<void>;
   query(peerId: PeerId): Promise<ShardInfo | undefined>;
 }

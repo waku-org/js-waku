@@ -64,8 +64,17 @@ export class BaseProtocol implements IBaseProtocol {
    * the class protocol. Waku may or may not be currently connected to these
    * peers.
    */
-  public async peers(): Promise<Peer[]> {
+  public async allPeers(): Promise<Peer[]> {
     return getPeersForProtocol(this.peerStore, [this.multicodec]);
+  }
+
+  public async connectedPeers(): Promise<Peer[]> {
+    const peers = await this.allPeers();
+    return peers.filter((peer) => {
+      return (
+        this.components.connectionManager.getConnections(peer.id).length > 0
+      );
+    });
   }
 
   protected async getPeer(peerId?: PeerId): Promise<Peer> {

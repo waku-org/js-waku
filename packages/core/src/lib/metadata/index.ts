@@ -16,7 +16,12 @@ export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
 class Metadata extends BaseProtocol implements IMetadata {
   private libp2pComponents: Libp2pComponents;
-  handshakesConfirmed: PeerId[] = [];
+  handshakesConfirmed: Set<PeerId> = new Set();
+
+  checkHandshake(peerId: PeerId): boolean {
+    const handshakesArr = [...this.handshakesConfirmed];
+    return handshakesArr.some((id) => id.equals(peerId));
+  }
 
   constructor(
     public shardInfo: ShardInfo,
@@ -84,6 +89,14 @@ class Metadata extends BaseProtocol implements IMetadata {
     return decodedResponse;
   }
 
+  public async confirmOrAttemptHandshake(peerId: PeerId): Promise<void> {
+    if (this.checkHandshake(peerId)) return;
+
+    await this.query(peerId);
+
+    return;
+  }
+
   private decodeMetadataResponse(encodedResponse: Uint8ArrayList[]): ShardInfo {
     const bytes = new Uint8ArrayList();
 
@@ -110,10 +123,7 @@ class Metadata extends BaseProtocol implements IMetadata {
       }
     });
 
-    // add to the array removing duplicate
-    this.handshakesConfirmed = [
-      ...new Set([...this.handshakesConfirmed, peerId])
-    ];
+    this.handshakesConfirmed.add(peerId);
   }
 }
 
