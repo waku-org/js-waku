@@ -1,10 +1,14 @@
-import { MetadataCodec } from "@waku/core";
-import { createLightNode, type LightNode, ShardInfo } from "@waku/sdk";
+import { LightPushCodec, waitForRemotePeer } from "@waku/core";
+import {
+  createLightNode,
+  type LightNode,
+  Protocols,
+  ShardInfo
+} from "@waku/sdk";
 import { shardInfoToPubsubTopics } from "@waku/utils";
 import { getPeersForProtocolAndShard } from "@waku/utils/libp2p";
 import { expect } from "chai";
 
-import { delay } from "../src/delay.js";
 import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 import { tearDownNodes } from "../src/teardown.js";
@@ -35,18 +39,16 @@ describe("getPeersForProtocolAndShard", function () {
       discv5Discovery: true,
       peerExchange: true,
       clusterId: shardInfo.clusterId,
-      pubsubTopic: shardInfoToPubsubTopics(shardInfo)
+      pubsubTopic: shardInfoToPubsubTopics(shardInfo),
+      lightpush: true
     });
 
     const serviceNodeMa = await serviceNode.getMultiaddrWithId();
 
     waku = await createLightNode({ shardInfo });
-    await waku.libp2p.dialProtocol(serviceNodeMa, MetadataCodec);
     await waku.start();
-    // The delay is added to give time for the metadata protocol to be processed
-    //TODO: remove delay
-    await delay(100);
-
+    await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
+    await waitForRemotePeer(waku, [Protocols.LightPush]);
     const peers = await getPeersForProtocolAndShard(
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
@@ -67,16 +69,16 @@ describe("getPeersForProtocolAndShard", function () {
       discv5Discovery: true,
       peerExchange: true,
       clusterId: shardInfo.clusterId,
-      pubsubTopic: shardInfoToPubsubTopics(shardInfo)
+      pubsubTopic: shardInfoToPubsubTopics(shardInfo),
+      lightpush: true
     });
 
     const serviceNodeMa = await serviceNode.getMultiaddrWithId();
 
     waku = await createLightNode({ shardInfo });
-    await waku.libp2p.dialProtocol(serviceNodeMa, MetadataCodec);
+    await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
     await waku.start();
-    // The delay is added to give time for the metadata protocol to be processed
-    await delay(100);
+    await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const peers = await getPeersForProtocolAndShard(
       waku.libp2p.peerStore,
@@ -103,16 +105,16 @@ describe("getPeersForProtocolAndShard", function () {
       discv5Discovery: true,
       peerExchange: true,
       clusterId: shardInfo1.clusterId,
-      pubsubTopic: shardInfoToPubsubTopics(shardInfo1)
+      pubsubTopic: shardInfoToPubsubTopics(shardInfo1),
+      lightpush: true
     });
 
     const serviceNodeMa = await serviceNode.getMultiaddrWithId();
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
-    await waku.libp2p.dialProtocol(serviceNodeMa, MetadataCodec);
+    await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
     await waku.start();
-    // add a delay to make sure the connection is closed from the other side
-    await delay(100);
+    await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const peers = await getPeersForProtocolAndShard(
       waku.libp2p.peerStore,
@@ -139,16 +141,16 @@ describe("getPeersForProtocolAndShard", function () {
       discv5Discovery: true,
       peerExchange: true,
       clusterId: shardInfo1.clusterId,
-      pubsubTopic: shardInfoToPubsubTopics(shardInfo1)
+      pubsubTopic: shardInfoToPubsubTopics(shardInfo1),
+      lightpush: true
     });
 
     const serviceNodeMa = await serviceNode.getMultiaddrWithId();
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
-    await waku.libp2p.dialProtocol(serviceNodeMa, MetadataCodec);
+    await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
     await waku.start();
-    // add a delay to make sure the connection is closed from the other side
-    await delay(100);
+    await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const peers = await getPeersForProtocolAndShard(
       waku.libp2p.peerStore,

@@ -1,9 +1,9 @@
 import type { IdentifyResult } from "@libp2p/interface";
-import type { IBaseProtocol, IRelay, Waku } from "@waku/interfaces";
+import type { PeerId } from "@libp2p/interface/peer-id";
+import type { IBaseProtocol, IMetadata, IRelay, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { pEvent } from "p-event";
-
 const log = new Logger("wait-for-remote-peer");
 
 /**
@@ -32,6 +32,11 @@ export async function waitForRemotePeer(
 ): Promise<void> {
   protocols = protocols ?? getEnabledProtocols(waku);
 
+  const isShardingEnabled = waku.shardInfo !== undefined;
+  const metadataService = isShardingEnabled
+    ? waku.libp2p.services.metadata
+    : undefined;
+
   if (!waku.isStarted()) return Promise.reject("Waku node is not started");
 
   const promises = [];
@@ -45,19 +50,19 @@ export async function waitForRemotePeer(
   if (protocols.includes(Protocols.Store)) {
     if (!waku.store)
       throw new Error("Cannot wait for Store peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.store));
+    promises.push(waitForConnectedPeer(waku.store, metadataService));
   }
 
   if (protocols.includes(Protocols.LightPush)) {
     if (!waku.lightPush)
       throw new Error("Cannot wait for LightPush peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.lightPush));
+    promises.push(waitForConnectedPeer(waku.lightPush, metadataService));
   }
 
   if (protocols.includes(Protocols.Filter)) {
     if (!waku.filter)
       throw new Error("Cannot wait for Filter peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.filter));
+    promises.push(waitForConnectedPeer(waku.filter, metadataService));
   }
 
   if (timeoutMs) {
@@ -73,24 +78,62 @@ export async function waitForRemotePeer(
 
 /**
  * Wait for a peer with the given protocol to be connected.
+ * If sharding is enabled on the node, it will also wait for the peer to be confirmed by the metadata service.
  */
-async function waitForConnectedPeer(protocol: IBaseProtocol): Promise<void> {
+async function waitForConnectedPeer(
+  protocol: IBaseProtocol,
+  metadataService?: IMetadata
+): Promise<void> {
   const codec = protocol.multicodec;
-  const peers = await protocol.peers();
+  // const peers = await protocol.peers();
 
-  if (peers.length) {
-    log.info(`${codec} peer found: `, peers[0].id.toString());
-    return;
-  }
+  // if (peers.length) {
+  //   log.info(`${codec} peer found: `, peers[0].id.toString());
+  //   return;
+  // }
+
+  log.info(`Waiting for ${codec} peer`);
 
   await new Promise<void>((resolve) => {
     const cb = (evt: CustomEvent<IdentifyResult>): void => {
       if (evt.detail?.protocols?.includes(codec)) {
-        protocol.removeLibp2pEventListener("peer:identify", cb);
-        resolve();
+        if (metadataService) {
+          waitForHandshakeConfirmation(metadataService, evt.detail.peerId)
+            .then(() => {
+              protocol.removeLibp2pEventListener("peer:identify", cb);
+              resolve();
+            })
+            .catch((e) => {
+              throw new Error(`Error waiting for handshake confirmation: ${e}`);
+            });
+        } else {
+          protocol.removeLibp2pEventListener("peer:identify", cb);
+          resolve();
+        }
       }
     };
     protocol.addLibp2pEventListener("peer:identify", cb);
+  });
+}
+
+/**
+ * Wait for a peer to be confirmed by the metadata service.
+ */
+async function waitForHandshakeConfirmation(
+  metadataService: IMetadata,
+  peerId: PeerId
+): Promise<void> {
+  await new Promise<void>((resolve) => {
+    const interval = setInterval(() => {
+      if (
+        metadataService.handshakesConfirmed.some(
+          (remotePeerId) => remotePeerId.toString() === peerId.toString()
+        )
+      ) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 10);
   });
 }
 
