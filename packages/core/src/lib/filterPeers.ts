@@ -9,11 +9,11 @@ import { Tags } from "@waku/interfaces";
  * @param maxBootstrapPeers - The maximum number of bootstrap peers to retrieve.
  * @returns A Promise that resolves to an array of peers based on the specified criteria.
  */
-export async function filterPeers(
+export function filterPeers(
   peers: Peer[],
   numPeers: number,
   maxBootstrapPeers: number
-): Promise<Peer[]> {
+): Peer[] {
   // Collect the bootstrap peers up to the specified maximum
   const bootstrapPeers = peers
     .filter((peer) => peer.tags.has(Tags.BOOTSTRAP))
