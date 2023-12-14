@@ -1,6 +1,7 @@
 import type { Connection } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
+import type { ShardInfo } from "@waku/interfaces";
 
 import { bytesToUtf8 } from "../bytes/index.js";
 import { decodeRelayShard } from "../common/relay_shard_codec.js";
@@ -48,15 +49,25 @@ export async function selectLowestLatencyPeer(
     : undefined;
 }
 
-export async function getPeersForShard(
+/**
+ * Returns the list of peers that supports the given protocol and shard.
+ */
+
+export async function getPeersForProtocolAndShard(
   peerStore: PeerStore,
-  shard: number
+  protocols: string[],
+  shardInfo: ShardInfo
 ): Promise<Peer[]> {
   const peers: Peer[] = [];
   await peerStore.forEach((peer) => {
-    const peerShardInfo = peer.metadata.get("shardInfo");
-    if (peerShardInfo && Number(decodeRelayShard(peerShardInfo)) === shard) {
-      peers.push(peer);
+    const encodedPeerShardInfo = peer.metadata.get("shardInfo");
+    const peerShardInfo =
+      encodedPeerShardInfo && decodeRelayShard(encodedPeerShardInfo);
+
+    if (peerShardInfo && shardInfo.clusterId === peerShardInfo.clusterId) {
+      if (protocols.some((protocol) => peer.protocols.includes(protocol))) {
+        peers.push(peer);
+      }
     }
   });
   return peers;

@@ -11,7 +11,7 @@ import type {
 import { pubsubTopicsToShardInfo, shardInfoToPubsubTopics } from "@waku/utils";
 import {
   getPeersForProtocol,
-  getPeersForShard,
+  getPeersForProtocolAndShard,
   selectPeerForProtocol
 } from "@waku/utils/libp2p";
 
@@ -100,26 +100,15 @@ export class BaseProtocol implements IBaseProtocol {
       numPeers: 0
     }
   ): Promise<Peer[]> {
-    // Retrieve all peers that support the protocol
-    const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
-      this.multicodec
-    ]);
-
-    const peersForShard = (
-      await Promise.all(
-        this.shardInfo.shards.map((shard) =>
-          getPeersForShard(this.peerStore, shard)
-        )
-      )
-    ).flat();
-
-    // Find common peers
-    const peersWithShardAndProtocol = allPeersForProtocol.filter((peer) =>
-      peersForShard.includes(peer)
+    // Retrieve all peers that support the protocol & shard
+    const peersForProtocolAndShard = await getPeersForProtocolAndShard(
+      this.peerStore,
+      [this.multicodec],
+      this.shardInfo
     );
 
     // Filter the peers based on the specified criteria
-    return filterPeers(peersWithShardAndProtocol, numPeers, maxBootstrapPeers);
+    return filterPeers(peersForProtocolAndShard, numPeers, maxBootstrapPeers);
   }
 
   private initializePubsubTopic(shardInfo?: ShardInfo): PubsubTopic[] {
