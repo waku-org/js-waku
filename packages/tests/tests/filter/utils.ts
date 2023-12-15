@@ -59,7 +59,8 @@ export async function runNodes(
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: pubsubTopics
+      pubsubTopic: pubsubTopics,
+      clusterId: shardInfo?.clusterId
     },
     { retries: 3 }
   );

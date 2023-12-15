@@ -17,6 +17,7 @@ import {
   customDecoder2,
   customShardedPubsubTopic1,
   customShardedPubsubTopic2,
+  customShardInfo1,
   processQueriedMessages,
   sendMessages,
   shardInfo1,
@@ -37,6 +38,7 @@ describe("Waku Store, custom pubsub topic", function () {
     await nwaku.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
+      clusterId: customShardInfo1.clusterId,
       relay: true
     });
     await nwaku.ensureSubscriptions([
