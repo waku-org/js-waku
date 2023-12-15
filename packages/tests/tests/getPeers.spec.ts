@@ -15,16 +15,18 @@ import { tearDownNodes } from "../src/teardown.js";
 
 describe("getPeersForProtocolAndShard", function () {
   let waku: LightNode;
-  let serviceNode: NimGoNode;
+  let serviceNode1: NimGoNode;
+  let serviceNode2: NimGoNode;
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    serviceNode = new NimGoNode(makeLogFileName(this) + "1");
+    serviceNode1 = new NimGoNode(makeLogFileName(this) + "1");
+    serviceNode2 = new NimGoNode(makeLogFileName(this) + "2");
   });
 
   afterEach(async function () {
     this.timeout(15000);
-    await tearDownNodes([serviceNode], waku);
+    await tearDownNodes([serviceNode1, serviceNode2], waku);
   });
 
   it("same cluster, same shard: nodes connect", async function () {
@@ -35,7 +37,7 @@ describe("getPeersForProtocolAndShard", function () {
       shards: [1]
     };
 
-    await serviceNode.start({
+    await serviceNode1.start({
       discv5Discovery: true,
       peerExchange: true,
       clusterId: shardInfo.clusterId,
@@ -43,7 +45,7 @@ describe("getPeersForProtocolAndShard", function () {
       lightpush: true
     });
 
-    const serviceNodeMa = await serviceNode.getMultiaddrWithId();
+    const serviceNodeMa = await serviceNode1.getMultiaddrWithId();
 
     waku = await createLightNode({ shardInfo });
     await waku.start();
@@ -65,7 +67,7 @@ describe("getPeersForProtocolAndShard", function () {
       shards: [1]
     };
 
-    await serviceNode.start({
+    await serviceNode1.start({
       discv5Discovery: true,
       peerExchange: true,
       clusterId: shardInfo.clusterId,
@@ -73,7 +75,7 @@ describe("getPeersForProtocolAndShard", function () {
       lightpush: true
     });
 
-    const serviceNodeMa = await serviceNode.getMultiaddrWithId();
+    const serviceNodeMa = await serviceNode1.getMultiaddrWithId();
 
     waku = await createLightNode({ shardInfo });
     await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
@@ -101,7 +103,8 @@ describe("getPeersForProtocolAndShard", function () {
       shards: [1]
     };
 
-    await serviceNode.start({
+    // we start one node in a separate cluster
+    await serviceNode1.start({
       discv5Discovery: true,
       peerExchange: true,
       clusterId: shardInfo1.clusterId,
@@ -109,10 +112,22 @@ describe("getPeersForProtocolAndShard", function () {
       lightpush: true
     });
 
-    const serviceNodeMa = await serviceNode.getMultiaddrWithId();
+    // and another node in the same cluster cluster as our node
+    await serviceNode2.start({
+      discv5Discovery: true,
+      peerExchange: true,
+      clusterId: shardInfo2.clusterId,
+      pubsubTopic: shardInfoToPubsubTopics(shardInfo2),
+      lightpush: true
+    });
+
+    const serviceNode1Ma = await serviceNode1.getMultiaddrWithId();
+    const serviceNode2Ma = await serviceNode2.getMultiaddrWithId();
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
-    await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
+    await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
+    await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
+
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
@@ -121,7 +136,7 @@ describe("getPeersForProtocolAndShard", function () {
       waku.libp2p.getProtocols(),
       shardInfo2
     );
-    expect(peers.length).to.be.equal(0);
+    expect(peers.length).to.be.equal(1);
   });
 
   it("different cluster, different shard: nodes don't connect", async function () {
@@ -137,7 +152,8 @@ describe("getPeersForProtocolAndShard", function () {
       shards: [2]
     };
 
-    await serviceNode.start({
+    // we start one node in a separate cluster
+    await serviceNode1.start({
       discv5Discovery: true,
       peerExchange: true,
       clusterId: shardInfo1.clusterId,
@@ -145,10 +161,22 @@ describe("getPeersForProtocolAndShard", function () {
       lightpush: true
     });
 
-    const serviceNodeMa = await serviceNode.getMultiaddrWithId();
+    // and another node in the same cluster cluster as our node
+    const serviceNode2 = new NimGoNode(makeLogFileName(this) + "2");
+    await serviceNode2.start({
+      discv5Discovery: true,
+      peerExchange: true,
+      clusterId: shardInfo2.clusterId,
+      pubsubTopic: shardInfoToPubsubTopics(shardInfo2),
+      lightpush: true
+    });
+
+    const serviceNodeMa1 = await serviceNode1.getMultiaddrWithId();
+    const serviceNodeMa2 = await serviceNode2.getMultiaddrWithId();
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
-    await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
+    await waku.libp2p.dialProtocol(serviceNodeMa1, LightPushCodec);
+    await waku.libp2p.dialProtocol(serviceNodeMa2, LightPushCodec);
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
@@ -157,6 +185,6 @@ describe("getPeersForProtocolAndShard", function () {
       waku.libp2p.getProtocols(),
       shardInfo2
     );
-    expect(peers.length).to.be.equal(0);
+    expect(peers.length).to.be.equal(1);
   });
 });

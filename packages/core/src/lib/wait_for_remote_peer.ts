@@ -87,18 +87,30 @@ async function waitForConnectedPeer(
   const peers = await protocol.connectedPeers();
 
   if (peers.length) {
-    // once a peer is connected, we need to confirm the metadata handshake if sharding is enabled
-    metadataService &&
-      (await Promise.all(
-        peers.map((peer) => metadataService.confirmOrAttemptHandshake(peer.id))
-      ));
+    if (!metadataService) {
+      log.info(`${codec} peer found: `, peers[0].id.toString());
+      return;
+    }
 
-    log.info(`${codec} peer found: `, peers[0].id.toString());
-    return;
+    // once a peer is connected, we need to confirm the metadata handshake with at least one of those peers if sharding is enabled
+    try {
+      await Promise.any(
+        peers.map((peer) => metadataService.confirmOrAttemptHandshake(peer.id))
+      );
+      return;
+    } catch (e) {
+      if ((e as any).code === "ERR_CONNECTION_BEING_CLOSED")
+        log.error(
+          `Connection with the peer was closed and possibly because it's on a different shard. Error: ${e}`
+        );
+
+      log.error(`Error waiting for handshake confirmation: ${e}`);
+    }
   }
 
   log.info(`Waiting for ${codec} peer`);
 
+  // else we'll just wait for the next peer to connect
   await new Promise<void>((resolve) => {
     const cb = (evt: CustomEvent<IdentifyResult>): void => {
       if (evt.detail?.protocols?.includes(codec)) {
@@ -110,7 +122,12 @@ async function waitForConnectedPeer(
               resolve();
             })
             .catch((e) => {
-              throw new Error(`Error waiting for handshake confirmation: ${e}`);
+              if (e.code === "ERR_CONNECTION_BEING_CLOSED")
+                log.error(
+                  `Connection with the peer was closed and possibly because it's on a different shard. Error: ${e}`
+                );
+
+              log.error(`Error waiting for handshake confirmation: ${e}`);
             });
         } else {
           protocol.removeLibp2pEventListener("peer:identify", cb);

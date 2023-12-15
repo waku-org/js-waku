@@ -20,7 +20,7 @@ import {
 
 import { messageText, runNodes } from "./utils.js";
 
-describe.only("Waku Light Push : Multiple PubsubTopics", function () {
+describe("Waku Light Push : Multiple PubsubTopics", function () {
   this.timeout(30000);
   let waku: LightNode;
   let nwaku: NimGoNode;
@@ -120,7 +120,7 @@ describe.only("Waku Light Push : Multiple PubsubTopics", function () {
     });
   });
 
-  it.only("Light push messages to 2 nwaku nodes each with different pubsubtopics", async function () {
+  it("Light push messages to 2 nwaku nodes each with different pubsubtopics", async function () {
     // Set up and start a new nwaku node with Default PubsubTopic
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     await nwaku2.start({
