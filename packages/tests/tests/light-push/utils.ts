@@ -27,7 +27,7 @@ export async function runNodes(
       lightpush: true,
       relay: true,
       pubsubTopic: pubsubTopics,
-      clusterId: shardInfo?.clusterId
+      ...(shardInfo && { clusterId: shardInfo.clusterId })
     },
     { retries: 3 }
   );
