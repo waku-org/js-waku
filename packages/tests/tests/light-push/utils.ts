@@ -5,7 +5,7 @@ import {
 } from "@waku/core";
 import { LightNode, Protocols, ShardInfo } from "@waku/interfaces";
 import { createLightNode, utf8ToBytes } from "@waku/sdk";
-import { Logger } from "@waku/utils";
+import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
 
 import { makeLogFileName, NimGoNode, NOISE_KEY_1 } from "../../src/index.js";
 
@@ -18,23 +18,32 @@ export const messagePayload = { payload: utf8ToBytes(messageText) };
 
 export async function runNodes(
   context: Mocha.Context,
-  pubsubTopics: string[],
   shardInfo?: ShardInfo
 ): Promise<[NimGoNode, LightNode]> {
   const nwaku = new NimGoNode(makeLogFileName(context));
+
+  const pubsubTopics = shardInfo
+    ? shardInfoToPubsubTopics(shardInfo)
+    : [DefaultPubsubTopic];
+
   await nwaku.start(
-    { lightpush: true, relay: true, pubsubTopic: pubsubTopics },
+    {
+      lightpush: true,
+      relay: true,
+      pubsubTopic: pubsubTopics,
+      ...(shardInfo && { clusterId: shardInfo.clusterId })
+    },
     { retries: 3 }
   );
 
   let waku: LightNode | undefined;
   try {
     waku = await createLightNode({
-      ...((pubsubTopics.length !== 1 ||
-        pubsubTopics[0] !== DefaultPubsubTopic) && {
+      staticNoiseKey: NOISE_KEY_1,
+      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+      ...(shardInfo && {
         shardInfo: shardInfo
-      }),
-      staticNoiseKey: NOISE_KEY_1
+      })
     });
     await waku.start();
   } catch (error) {

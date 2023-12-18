@@ -1,4 +1,3 @@
-import { DefaultPubsubTopic } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
 import { expect } from "chai";
 
@@ -14,7 +13,7 @@ describe("Waku Filter V2: Susbcription: Event Listener", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
+    [nwaku, waku] = await runNodes(this);
     collector = new MessageCollector();
   });
 

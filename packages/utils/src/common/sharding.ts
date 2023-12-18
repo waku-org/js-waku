@@ -12,6 +12,20 @@ export const singleShardInfoToPubsubTopic = (
   return `/waku/2/rs/${shardInfo.clusterId}/${shardInfo.shard}`;
 };
 
+export const singleShardInfosToShardInfo = (
+  shardInfos: SingleShardInfo[]
+): ShardInfo => {
+  if (shardInfos.length === 0) throw new Error("Invalid shard");
+
+  const clusterId = shardInfos[0].clusterId;
+  const shards = shardInfos.map((shardInfo) => shardInfo.shard);
+
+  return {
+    clusterId,
+    shards
+  };
+};
+
 export const shardInfoToPubsubTopics = (
   shardInfo: ShardInfo
 ): PubsubTopic[] => {

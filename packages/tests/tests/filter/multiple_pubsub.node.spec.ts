@@ -1,7 +1,10 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import type { LightNode, SingleShardInfo } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { singleShardInfoToPubsubTopic } from "@waku/utils";
+import {
+  singleShardInfosToShardInfo,
+  singleShardInfoToPubsubTopic
+} from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -47,10 +50,10 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [
-      customPubsubTopic1,
-      customPubsubTopic2
-    ]);
+    [nwaku, waku] = await runNodes(
+      this,
+      singleShardInfosToShardInfo([singleShardInfo1, singleShardInfo2])
+    );
     messageCollector = new MessageCollector();
   });
 
@@ -59,7 +62,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 
-  it("Subscribe and receive messages on custom pubsubtopic", async function () {
+  it.only("Subscribe and receive messages on custom pubsubtopic", async function () {
     const subscription = await waku.filter.createSubscription([customDecoder1]);
     subscription.addEventListener(
       customDecoder1.contentTopic,

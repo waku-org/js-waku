@@ -45,7 +45,7 @@ describe("Waku Filter V2: Subscribe", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
+    [nwaku, waku] = await runNodes(this);
     messageCollector = new MessageCollector();
 
     // Nwaku subscribe to the default pubsub topic
@@ -457,7 +457,6 @@ describe("Waku Filter V2: Subscribe", function () {
     const newDecoder = createDecoder(newContentTopic);
     const subscription2 = await waku.filter.createSubscription(
       [newDecoder],
-      DefaultPubsubTopic,
       await nwaku2.getPeerId()
     );
     subscription2.addEventListener(

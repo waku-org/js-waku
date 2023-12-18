@@ -11,7 +11,7 @@ import {
   ShardInfo
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { Logger } from "@waku/utils";
+import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { Context } from "mocha";
 
@@ -48,18 +48,21 @@ export async function validatePingError(
 
 export async function runNodes(
   context: Context,
-  //TODO: change this to use `ShardInfo` instead of `string[]`
-  pubsubTopics: string[],
   shardInfo?: ShardInfo
 ): Promise<[NimGoNode, LightNode]> {
   const nwaku = new NimGoNode(makeLogFileName(context));
+
+  const pubsubTopics = shardInfo
+    ? shardInfoToPubsubTopics(shardInfo)
+    : [DefaultPubsubTopic];
 
   await nwaku.start(
     {
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: pubsubTopics
+      pubsubTopic: pubsubTopics,
+      ...(shardInfo && { clusterId: shardInfo.clusterId })
     },
     { retries: 3 }
   );
@@ -67,8 +70,7 @@ export async function runNodes(
   const waku_options = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-    ...((pubsubTopics.length !== 1 ||
-      pubsubTopics[0] !== DefaultPubsubTopic) && {
+    ...(shardInfo && {
       shardInfo: shardInfo
     })
   };

@@ -52,11 +52,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(
-      this,
-      [customPubsubTopic1, customPubsubTopic2],
-      shardInfo
-    );
+    [nwaku, waku] = await runNodes(this, shardInfo);
     messageCollector = new MessageCollector(nwaku);
     nimPeerId = await nwaku.getPeerId();
   });

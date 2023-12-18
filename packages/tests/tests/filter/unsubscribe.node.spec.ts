@@ -1,4 +1,4 @@
-import { createDecoder, createEncoder, DefaultPubsubTopic } from "@waku/core";
+import { createDecoder, createEncoder } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -28,7 +28,7 @@ describe("Waku Filter V2: Unsubscribe", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
+    [nwaku, waku] = await runNodes(this);
     messageCollector = new MessageCollector();
 
     // Nwaku subscribe to the default pubsub topic
