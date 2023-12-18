@@ -54,23 +54,23 @@
     "@waku/utils": "0.0.13"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@types/chai": "^4.3.5",
-    "@types/debug": "^4.1.10",
+    "@types/chai": "^4.3.11",
+    "@types/debug": "^4.1.12",
     "@types/mocha": "^10.0.1",
     "@waku/build-utils": "*",
     "@waku/interfaces": "0.0.20",
-    "chai": "^4.3.7",
+    "chai": "^4.3.10",
     "cspell": "^7.3.2",
-    "fast-check": "^3.13.1",
+    "fast-check": "^3.14.0",
     "ignore-loader": "^0.1.2",
     "isomorphic-fetch": "^3.0.0",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
     "process": "^0.11.10",
-    "rollup": "^3.29.2"
+    "rollup": "^4.6.0"
   },
   "files": [
     "dist",

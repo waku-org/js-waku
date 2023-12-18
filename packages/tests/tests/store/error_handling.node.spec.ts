@@ -5,8 +5,8 @@ import { expect } from "chai";
 import { makeLogFileName, NimGoNode, tearDownNodes } from "../../src/index.js";
 
 import {
-  customPubsubTopic,
-  customTestDecoder,
+  customDecoder1,
+  customShardedPubsubTopic1,
   processQueriedMessages,
   startAndConnectLightNode,
   TestDecoder
@@ -33,7 +33,7 @@ describe("Waku Store, error handling", function () {
   it("Query Generator, Wrong PubsubTopic", async function () {
     try {
       for await (const msgPromises of waku.store.queryGenerator([
-        customTestDecoder
+        customDecoder1
       ])) {
         msgPromises;
       }
@@ -42,7 +42,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Pubsub topic ${customPubsubTopic} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
+          `Pubsub topic ${customShardedPubsubTopic1} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
         )
       ) {
         throw err;
@@ -54,7 +54,7 @@ describe("Waku Store, error handling", function () {
     try {
       for await (const msgPromises of waku.store.queryGenerator([
         TestDecoder,
-        customTestDecoder
+        customDecoder1
       ])) {
         msgPromises;
       }
@@ -99,7 +99,7 @@ describe("Waku Store, error handling", function () {
   it("Query with Ordered Callback, Wrong PubsubTopic", async function () {
     try {
       await waku.store.queryWithOrderedCallback(
-        [customTestDecoder],
+        [customDecoder1],
         async () => {}
       );
       throw new Error("QueryGenerator was successful but was expected to fail");
@@ -107,7 +107,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Pubsub topic ${customPubsubTopic} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
+          `Pubsub topic ${customShardedPubsubTopic1} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
         )
       ) {
         throw err;
@@ -118,7 +118,7 @@ describe("Waku Store, error handling", function () {
   it("Query with Ordered Callback, Multiple PubsubTopics", async function () {
     try {
       await waku.store.queryWithOrderedCallback(
-        [TestDecoder, customTestDecoder],
+        [TestDecoder, customDecoder1],
         async () => {}
       );
       throw new Error("QueryGenerator was successful but was expected to fail");
@@ -159,7 +159,7 @@ describe("Waku Store, error handling", function () {
   it("Query with Promise Callback, Wrong PubsubTopic", async function () {
     try {
       await waku.store.queryWithPromiseCallback(
-        [customTestDecoder],
+        [customDecoder1],
         async () => {}
       );
       throw new Error("QueryGenerator was successful but was expected to fail");
@@ -167,7 +167,7 @@ describe("Waku Store, error handling", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Pubsub topic ${customPubsubTopic} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
+          `Pubsub topic ${customShardedPubsubTopic1} has not been configured on this instance. Configured topics are: ${DefaultPubsubTopic}`
         )
       ) {
         throw err;
@@ -178,7 +178,7 @@ describe("Waku Store, error handling", function () {
   it("Query with Promise Callback, Multiple PubsubTopics", async function () {
     try {
       await waku.store.queryWithPromiseCallback(
-        [TestDecoder, customTestDecoder],
+        [TestDecoder, customDecoder1],
         async () => {}
       );
       throw new Error("QueryGenerator was successful but was expected to fail");

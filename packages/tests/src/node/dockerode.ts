@@ -208,8 +208,16 @@ export function argsToArray(args: Args): Array<string> {
       return "-" + capital.toLowerCase();
     });
 
-    const arg = `--${kebabKey}=${value}`;
-    array.push(arg);
+    if (Array.isArray(value)) {
+      // If the value is an array, create separate arguments for each element
+      value.forEach((val) => {
+        array.push(`--${kebabKey}=${val}`);
+      });
+    } else {
+      // Handle non-array values as before
+      const arg = `--${kebabKey}=${value}`;
+      array.push(arg);
+    }
   }
 
   return array;

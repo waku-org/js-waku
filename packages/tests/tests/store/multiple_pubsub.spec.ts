@@ -1,4 +1,4 @@
-import { DefaultPubsubTopic, waitForRemotePeer } from "@waku/core";
+import { waitForRemotePeer } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
 import { createLightNode, Protocols } from "@waku/sdk";
 import { expect } from "chai";
@@ -11,14 +11,17 @@ import {
 } from "../../src/index.js";
 
 import {
-  customContentTopic,
-  customPubsubTopic,
-  customTestDecoder,
+  customContentTopic1,
+  customContentTopic2,
+  customDecoder1,
+  customDecoder2,
+  customShardedPubsubTopic1,
+  customShardedPubsubTopic2,
   processQueriedMessages,
   sendMessages,
+  shardInfo1,
+  shardInfoBothShards,
   startAndConnectLightNode,
-  TestContentTopic,
-  TestDecoder,
   totalMsgs
 } from "./utils.js";
 
@@ -33,10 +36,13 @@ describe("Waku Store, custom pubsub topic", function () {
     nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
-      topic: [customPubsubTopic, DefaultPubsubTopic],
+      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
       relay: true
     });
-    await nwaku.ensureSubscriptions([customPubsubTopic, DefaultPubsubTopic]);
+    await nwaku.ensureSubscriptions([
+      customShardedPubsubTopic1,
+      customShardedPubsubTopic2
+    ]);
   });
 
   afterEach(async function () {
@@ -45,12 +51,17 @@ describe("Waku Store, custom pubsub topic", function () {
   });
 
   it("Generator, custom pubsub topic", async function () {
-    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubsubTopic);
-    waku = await startAndConnectLightNode(nwaku, [customPubsubTopic]);
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      customContentTopic1,
+      customShardedPubsubTopic1
+    );
+    waku = await startAndConnectLightNode(nwaku, [], shardInfo1);
     const messages = await processQueriedMessages(
       waku,
-      [customTestDecoder],
-      customPubsubTopic
+      [customDecoder1],
+      customShardedPubsubTopic1
     );
 
     expect(messages?.length).eq(totalMsgs);
@@ -64,18 +75,25 @@ describe("Waku Store, custom pubsub topic", function () {
     this.timeout(10000);
 
     const totalMsgs = 10;
-    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubsubTopic);
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      customContentTopic1,
+      customShardedPubsubTopic1
+    );
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      customContentTopic2,
+      customShardedPubsubTopic2
+    );
 
-    waku = await startAndConnectLightNode(nwaku, [
-      customPubsubTopic,
-      DefaultPubsubTopic
-    ]);
+    waku = await startAndConnectLightNode(nwaku, [], shardInfoBothShards);
 
     const customMessages = await processQueriedMessages(
       waku,
-      [customTestDecoder],
-      customPubsubTopic
+      [customDecoder1],
+      customShardedPubsubTopic1
     );
     expect(customMessages?.length).eq(totalMsgs);
     const result1 = customMessages?.findIndex((msg) => {
@@ -85,8 +103,8 @@ describe("Waku Store, custom pubsub topic", function () {
 
     const testMessages = await processQueriedMessages(
       waku,
-      [TestDecoder],
-      DefaultPubsubTopic
+      [customDecoder2],
+      customShardedPubsubTopic2
     );
     expect(testMessages?.length).eq(totalMsgs);
     const result2 = testMessages?.findIndex((msg) => {
@@ -102,18 +120,28 @@ describe("Waku Store, custom pubsub topic", function () {
     nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
-      topic: [DefaultPubsubTopic],
+      pubsubTopic: [customShardedPubsubTopic2],
       relay: true
     });
-    await nwaku2.ensureSubscriptions([DefaultPubsubTopic]);
+    await nwaku2.ensureSubscriptions([customShardedPubsubTopic2]);
 
     const totalMsgs = 10;
-    await sendMessages(nwaku, totalMsgs, customContentTopic, customPubsubTopic);
-    await sendMessages(nwaku2, totalMsgs, TestContentTopic, DefaultPubsubTopic);
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      customContentTopic1,
+      customShardedPubsubTopic1
+    );
+    await sendMessages(
+      nwaku2,
+      totalMsgs,
+      customContentTopic2,
+      customShardedPubsubTopic2
+    );
 
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      pubsubTopics: [customPubsubTopic, DefaultPubsubTopic]
+      shardInfo: shardInfoBothShards
     });
     await waku.start();
 
@@ -130,13 +158,13 @@ describe("Waku Store, custom pubsub topic", function () {
     ) {
       customMessages = await processQueriedMessages(
         waku,
-        [customTestDecoder],
-        customPubsubTopic
+        [customDecoder1],
+        customShardedPubsubTopic1
       );
       testMessages = await processQueriedMessages(
         waku,
-        [TestDecoder],
-        DefaultPubsubTopic
+        [customDecoder2],
+        customShardedPubsubTopic2
       );
     }
   });

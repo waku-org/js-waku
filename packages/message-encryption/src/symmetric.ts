@@ -7,23 +7,29 @@ import type {
   IMessage,
   IMetaSetter,
   IProtoMessage,
-  PubsubTopic
+  PubsubTopic,
+  SingleShardInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { Logger } from "@waku/utils";
+import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 
+import { generateSymmetricKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptSymmetric,
   encryptSymmetric,
   postCipher,
   preCipher
-} from "./waku_payload.js";
+} from "./encryption.js";
+import { OneMillion, Version } from "./misc.js";
 
-import { generateSymmetricKey, OneMillion, Version } from "./index.js";
-
-export { generateSymmetricKey };
-export type { DecodedMessage, Encoder, Decoder };
+export {
+  decryptSymmetric,
+  encryptSymmetric,
+  postCipher,
+  preCipher,
+  generateSymmetricKey
+};
 
 const log = new Logger("message-encryption:symmetric");
 
@@ -93,7 +99,7 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
-  pubsubTopic = DefaultPubsubTopic,
+  pubsubTopicShardInfo,
   contentTopic,
   symKey,
   sigPrivKey,
@@ -101,7 +107,9 @@ export function createEncoder({
   metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(
-    pubsubTopic,
+    pubsubTopicShardInfo
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic,
     contentTopic,
     symKey,
     sigPrivKey,
@@ -189,7 +197,13 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   symKey: Uint8Array,
-  pubsubTopic: PubsubTopic = DefaultPubsubTopic
+  pubsubTopicShardInfo?: SingleShardInfo
 ): Decoder {
-  return new Decoder(pubsubTopic, contentTopic, symKey);
+  return new Decoder(
+    pubsubTopicShardInfo
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic,
+    contentTopic,
+    symKey
+  );
 }

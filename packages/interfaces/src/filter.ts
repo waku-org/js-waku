@@ -39,7 +39,6 @@ export type IFilter = IReceiver &
   IBaseProtocol & {
     createSubscription(
       decoders: IDecoder<IDecodedMessage>[],
-      pubsubTopic?: string,
       peerId?: PeerId
     ): Promise<IFilterSubscription>;
   };

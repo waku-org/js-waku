@@ -2,9 +2,16 @@ import type { Libp2p } from "@libp2p/interface";
 import type { Stream } from "@libp2p/interface/connection";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { Peer, PeerStore } from "@libp2p/interface/peer-store";
-import type { IBaseProtocol, Libp2pComponents } from "@waku/interfaces";
+import type {
+  IBaseProtocol,
+  Libp2pComponents,
+  PubsubTopic,
+  ShardInfo
+} from "@waku/interfaces";
+import { shardInfoToPubsubTopics } from "@waku/utils";
 import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
 
+import { DefaultPubsubTopic } from "./constants.js";
 import { filterPeers } from "./filterPeers.js";
 import { StreamManager } from "./stream_manager.js";
 
@@ -88,5 +95,11 @@ export class BaseProtocol implements IBaseProtocol {
 
     // Filter the peers based on the specified criteria
     return filterPeers(allPeersForProtocol, numPeers, maxBootstrapPeers);
+  }
+
+  initializePubsubTopic(shardInfo?: ShardInfo): PubsubTopic[] {
+    return shardInfo
+      ? shardInfoToPubsubTopics(shardInfo)
+      : [DefaultPubsubTopic];
   }
 }

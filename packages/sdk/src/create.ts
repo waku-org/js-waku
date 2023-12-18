@@ -5,26 +5,29 @@ import { mplex } from "@libp2p/mplex";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
-  DefaultPubsubTopic,
   DefaultUserAgent,
   wakuFilter,
   wakuLightPush,
+  wakuMetadata,
   WakuNode,
   WakuOptions,
   wakuStore
 } from "@waku/core";
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import type {
+  CreateLibp2pOptions,
   FullNode,
+  IMetadata,
   Libp2p,
   Libp2pComponents,
   LightNode,
   ProtocolCreateOptions,
-  RelayNode
+  RelayNode,
+  ShardInfo
 } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
-import { createLibp2p, Libp2pOptions } from "libp2p";
+import { createLibp2p } from "libp2p";
 import { identifyService } from "libp2p/identify";
 import { pingService } from "libp2p/ping";
 
@@ -46,10 +49,6 @@ export async function createLightNode(
 ): Promise<LightNode> {
   options = options ?? {};
 
-  if (!options.pubsubTopics) {
-    options.pubsubTopics = [DefaultPubsubTopic];
-  }
-
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -58,6 +57,7 @@ export async function createLightNode(
   }
 
   const libp2p = await defaultLibp2p(
+    options.shardInfo,
     undefined,
     libp2pOptions,
     options?.userAgent
@@ -69,8 +69,8 @@ export async function createLightNode(
 
   return new WakuNode(
     options ?? {},
-    options.pubsubTopics,
     libp2p,
+    options.shardInfo,
     store,
     lightPush,
     filter
@@ -86,10 +86,6 @@ export async function createRelayNode(
 ): Promise<RelayNode> {
   options = options ?? {};
 
-  if (!options.pubsubTopics) {
-    options.pubsubTopics = [DefaultPubsubTopic];
-  }
-
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -98,6 +94,7 @@ export async function createRelayNode(
   }
 
   const libp2p = await defaultLibp2p(
+    options.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -107,8 +104,8 @@ export async function createRelayNode(
 
   return new WakuNode(
     options,
-    options.pubsubTopics,
     libp2p,
+    options.shardInfo,
     undefined,
     undefined,
     undefined,
@@ -134,10 +131,6 @@ export async function createFullNode(
 ): Promise<FullNode> {
   options = options ?? {};
 
-  if (!options.pubsubTopics) {
-    options.pubsubTopics = [DefaultPubsubTopic];
-  }
-
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -146,6 +139,7 @@ export async function createFullNode(
   }
 
   const libp2p = await defaultLibp2p(
+    options.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -158,8 +152,8 @@ export async function createFullNode(
 
   return new WakuNode(
     options ?? {},
-    options.pubsubTopics,
     libp2p,
+    options.shardInfo,
     store,
     lightPush,
     filter,
@@ -181,13 +175,35 @@ type PubsubService = {
   pubsub?: (components: Libp2pComponents) => GossipSub;
 };
 
+type MetadataService = {
+  metadata?: (components: Libp2pComponents) => IMetadata;
+};
+
 export async function defaultLibp2p(
+  shardInfo?: ShardInfo,
   wakuGossipSub?: PubsubService["pubsub"],
-  options?: Partial<Libp2pOptions>,
+  options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
+  if (!options?.hideWebSocketInfo) {
+    /* eslint-disable no-console */
+    console.info(
+      "%cIgnore WebSocket connection failures",
+      "background: gray; color: white; font-size: x-large"
+    );
+    console.info(
+      "%cWaku tries to discover peers and some of them are expected to fail",
+      "background: gray; color: white; font-size: x-large"
+    );
+    /* eslint-enable no-console */
+  }
+
   const pubsubService: PubsubService = wakuGossipSub
     ? { pubsub: wakuGossipSub }
+    : {};
+
+  const metadataService: MetadataService = shardInfo
+    ? { metadata: wakuMetadata(shardInfo) }
     : {};
 
   return createLibp2p({
@@ -203,6 +219,7 @@ export async function defaultLibp2p(
         agentVersion: userAgent ?? DefaultUserAgent
       }),
       ping: pingService(),
+      ...metadataService,
       ...pubsubService,
       ...options?.services
     }

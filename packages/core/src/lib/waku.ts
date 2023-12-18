@@ -8,12 +8,14 @@ import type {
   IStore,
   Libp2p,
   PubsubTopic,
+  ShardInfo,
   Waku
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
 
 import { ConnectionManager } from "./connection_manager.js";
+import { DefaultPubsubTopic } from "./constants.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -50,16 +52,23 @@ export class WakuNode implements Waku {
   public filter?: IFilter;
   public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
+  public readonly pubsubTopics: PubsubTopic[];
 
   constructor(
     options: WakuOptions,
-    public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p,
+    pubsubShardInfo?: ShardInfo,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
     filter?: (libp2p: Libp2p) => IFilter,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
+    if (!pubsubShardInfo) {
+      this.pubsubTopics = [DefaultPubsubTopic];
+    } else {
+      this.pubsubTopics = shardInfoToPubsubTopics(pubsubShardInfo);
+    }
+
     this.libp2p = libp2p;
 
     if (store) {
@@ -88,7 +97,7 @@ export class WakuNode implements Waku {
       peerId,
       libp2p,
       { pingKeepAlive, relayKeepAlive },
-      pubsubTopics,
+      this.pubsubTopics,
       this.relay
     );
 
@@ -176,6 +185,10 @@ export class WakuNode implements Waku {
 
   isStarted(): boolean {
     return this.libp2p.isStarted();
+  }
+
+  isConnected(): boolean {
+    return this.connectionManager.isConnected();
   }
 
   /**

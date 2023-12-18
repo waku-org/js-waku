@@ -1,7 +1,8 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
-import { createLightNode, LightNode, Tags } from "@waku/sdk";
+import { createLightNode, LightNode, ShardInfo, Tags } from "@waku/sdk";
+import { singleShardInfoToPubsubTopic } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import Sinon, { SinonSpy } from "sinon";
@@ -38,10 +39,13 @@ describe("Static Sharding: Peer Management", function () {
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
       this.timeout(100_000);
 
-      const pubsubTopics = ["/waku/2/rs/18/2"];
+      const pubsubTopics = [
+        singleShardInfoToPubsubTopic({ clusterId: 18, shard: 2 })
+      ];
+      const shardInfo: ShardInfo = { clusterId: 18, shards: [2] };
 
       await nwaku1.start({
-        topic: pubsubTopics,
+        pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         relay: true
@@ -50,7 +54,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        topic: pubsubTopics,
+        pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
@@ -60,7 +64,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr2 = (await nwaku2.info()).enrUri;
 
       await nwaku3.start({
-        topic: pubsubTopics,
+        pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
@@ -69,7 +73,7 @@ describe("Static Sharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        pubsubTopics,
+        shardInfo: shardInfo,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
@@ -107,12 +111,17 @@ describe("Static Sharding: Peer Management", function () {
 
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
-      const pubsubTopicsToDial = ["/waku/2/rs/18/2"];
-      const pubsubTopicsToIgnore = ["/waku/2/rs/18/3"];
+      const pubsubTopicsToDial = [
+        singleShardInfoToPubsubTopic({ clusterId: 18, shard: 2 })
+      ];
+      const shardInfoToDial: ShardInfo = { clusterId: 18, shards: [2] };
+      const pubsubTopicsToIgnore = [
+        singleShardInfoToPubsubTopic({ clusterId: 18, shard: 1 })
+      ];
 
       // this service node is not subscribed to the shard
       await nwaku1.start({
-        topic: pubsubTopicsToIgnore,
+        pubsubTopic: pubsubTopicsToIgnore,
         relay: true,
         discv5Discovery: true,
         peerExchange: true
@@ -121,7 +130,7 @@ describe("Static Sharding: Peer Management", function () {
       const enr1 = (await nwaku1.info()).enrUri;
 
       await nwaku2.start({
-        topic: pubsubTopicsToDial,
+        pubsubTopic: pubsubTopicsToDial,
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
@@ -139,7 +148,7 @@ describe("Static Sharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        pubsubTopics: pubsubTopicsToDial,
+        shardInfo: shardInfoToDial,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),

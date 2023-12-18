@@ -1,33 +1,35 @@
 import { DefaultPubsubTopic } from "@waku/core";
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
-import { IMetaSetter, PubsubTopic } from "@waku/interfaces";
 import type {
   EncoderOptions as BaseEncoderOptions,
   IDecoder,
   IEncoder,
   IMessage,
-  IProtoMessage
+  IMetaSetter,
+  IProtoMessage,
+  PubsubTopic,
+  SingleShardInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { Logger } from "@waku/utils";
+import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 
+import { generatePrivateKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
 import {
   decryptAsymmetric,
   encryptAsymmetric,
   postCipher,
   preCipher
-} from "./waku_payload.js";
+} from "./encryption.js";
+import { OneMillion, Version } from "./misc.js";
 
-import {
-  generatePrivateKey,
-  getPublicKey,
-  OneMillion,
-  Version
-} from "./index.js";
-
-export { generatePrivateKey, getPublicKey };
-export type { Encoder, Decoder, DecodedMessage };
+export {
+  decryptAsymmetric,
+  encryptAsymmetric,
+  postCipher,
+  preCipher,
+  generatePrivateKey
+};
 
 const log = new Logger("message-encryption:ecies");
 
@@ -97,7 +99,7 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
-  pubsubTopic = DefaultPubsubTopic,
+  pubsubTopicShardInfo,
   contentTopic,
   publicKey,
   sigPrivKey,
@@ -105,7 +107,9 @@ export function createEncoder({
   metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(
-    pubsubTopic,
+    pubsubTopicShardInfo
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic,
     contentTopic,
     publicKey,
     sigPrivKey,
@@ -193,7 +197,13 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   privateKey: Uint8Array,
-  pubsubTopic: PubsubTopic = DefaultPubsubTopic
+  pubsubTopicShardInfo?: SingleShardInfo
 ): Decoder {
-  return new Decoder(pubsubTopic, contentTopic, privateKey);
+  return new Decoder(
+    pubsubTopicShardInfo
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : DefaultPubsubTopic,
+    contentTopic,
+    privateKey
+  );
 }

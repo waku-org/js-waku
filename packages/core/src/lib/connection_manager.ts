@@ -6,8 +6,10 @@ import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
 import { decodeRelayShard } from "@waku/enr";
 import {
   ConnectionManagerOptions,
+  EConnectionStateEvents,
   EPeersByDiscoveryEvents,
   IConnectionManager,
+  IConnectionStateEvents,
   IPeersByDiscoveryEvents,
   IRelay,
   KeepAliveOptions,
@@ -28,7 +30,7 @@ export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
 export const DEFAULT_MAX_PARALLEL_DIALS = 3;
 
 export class ConnectionManager
-  extends EventEmitter<IPeersByDiscoveryEvents>
+  extends EventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents>
   implements IConnectionManager
 {
   private static instances = new Map<string, ConnectionManager>();
@@ -40,6 +42,33 @@ export class ConnectionManager
 
   private currentActiveParallelDialCount = 0;
   private pendingPeerDialQueue: Array<PeerId> = [];
+  private online: boolean = false;
+
+  public isConnected(): boolean {
+    return this.online;
+  }
+
+  private toggleOnline(): void {
+    if (!this.online) {
+      this.online = true;
+      this.dispatchEvent(
+        new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
+          detail: this.online
+        })
+      );
+    }
+  }
+
+  private toggleOffline(): void {
+    if (this.online && this.libp2p.getConnections().length == 0) {
+      this.online = false;
+      this.dispatchEvent(
+        new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
+          detail: this.online
+        })
+      );
+    }
+  }
 
   public static create(
     peerId: string,
@@ -393,12 +422,14 @@ export class ConnectionManager
             )
           );
         }
+        this.toggleOnline();
       })();
     },
-    "peer:disconnect": () => {
-      return (evt: CustomEvent<PeerId>): void => {
+    "peer:disconnect": (evt: CustomEvent<PeerId>): void => {
+      void (async () => {
         this.keepAliveManager.stop(evt.detail);
-      };
+        this.toggleOffline();
+      })();
     }
   };
 
@@ -427,7 +458,7 @@ export class ConnectionManager
       log.warn(
         `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
           this.configuredPubsubTopics
-        }). 
+        }).
             Not dialing.`
       );
       return false;

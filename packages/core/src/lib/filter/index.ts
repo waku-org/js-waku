@@ -21,7 +21,6 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
 import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubsubTopic } from "../constants.js";
 
 import { FilterPushRpc } from "./filter_rpc.js";
 import { Subscription } from "./subscription.js";
@@ -57,7 +56,7 @@ class Filter extends BaseProtocol implements IReceiver {
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(FilterCodecs.SUBSCRIBE, libp2p.components);
 
-    this.pubsubTopics = options?.pubsubTopics || [DefaultPubsubTopic];
+    this.pubsubTopics = this.initializePubsubTopic(options?.shardInfo);
 
     libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
       log.error("Failed to register ", FilterCodecs.PUSH, e);

@@ -7,15 +7,17 @@ import {
 import type { IMessage, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
-  createDecoder as createEciesDecoder,
-  createEncoder as createEciesEncoder,
   generatePrivateKey,
+  generateSymmetricKey,
   getPublicKey
+} from "@waku/message-encryption";
+import {
+  createDecoder as createEciesDecoder,
+  createEncoder as createEciesEncoder
 } from "@waku/message-encryption/ecies";
 import {
   createDecoder as createSymDecoder,
-  createEncoder as createSymEncoder,
-  generateSymmetricKey
+  createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -31,7 +33,7 @@ import {
 } from "../../src/index.js";
 
 import {
-  customContentTopic,
+  customContentTopic1,
   log,
   messageText,
   processQueriedMessages,
@@ -43,7 +45,7 @@ import {
   totalMsgs
 } from "./utils.js";
 
-const secondDecoder = createDecoder(customContentTopic, DefaultPubsubTopic);
+const secondDecoder = createDecoder(customContentTopic1);
 
 describe("Waku Store, general", function () {
   this.timeout(15000);
@@ -122,7 +124,7 @@ describe("Waku Store, general", function () {
     await nwaku.sendMessage(
       NimGoNode.toMessageRpcQuery({
         payload: utf8ToBytes("M2"),
-        contentTopic: customContentTopic
+        contentTopic: customContentTopic1
       }),
       DefaultPubsubTopic
     );
@@ -135,7 +137,7 @@ describe("Waku Store, general", function () {
       DefaultPubsubTopic
     );
     expect(messageCollector.hasMessage(TestContentTopic, "M1")).to.eq(true);
-    expect(messageCollector.hasMessage(customContentTopic, "M2")).to.eq(true);
+    expect(messageCollector.hasMessage(customContentTopic1, "M2")).to.eq(true);
   });
 
   it("Query generator for multiple messages with different content topic format", async function () {

@@ -1,14 +1,24 @@
-import { LightNode } from "@waku/interfaces";
+import { LightNode, ShardInfo, SingleShardInfo } from "@waku/interfaces";
 import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
+import { singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
 import { tearDownNodes } from "../../src/index.js";
 import { makeLogFileName } from "../../src/log_file.js";
 import { NimGoNode } from "../../src/node/node.js";
 
-const PubsubTopic1 = "/waku/2/rs/0/2";
-const PubsubTopic2 = "/waku/2/rs/0/3";
-
+const PubsubTopic1 = singleShardInfoToPubsubTopic({
+  clusterId: 0,
+  shard: 2
+});
+const PubsubTopic2 = singleShardInfoToPubsubTopic({
+  clusterId: 0,
+  shard: 3
+});
+const shardInfoFirstShard: ShardInfo = { clusterId: 0, shards: [2] };
+const shardInfoBothShards: ShardInfo = { clusterId: 0, shards: [2, 3] };
+const singleShardInfo1: SingleShardInfo = { clusterId: 0, shard: 2 };
+const singleShardInfo2: SingleShardInfo = { clusterId: 0, shard: 3 };
 const ContentTopic = "/waku/2/content/test.js";
 
 describe("Static Sharding: Running Nodes", () => {
@@ -29,17 +39,17 @@ describe("Static Sharding: Running Nodes", () => {
   it("configure the node with multiple pubsub topics", async function () {
     this.timeout(15_000);
     waku = await createLightNode({
-      pubsubTopics: [PubsubTopic1, PubsubTopic2]
+      shardInfo: shardInfoBothShards
     });
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: PubsubTopic1
+      pubsubTopicShardInfo: singleShardInfo1
     });
 
     const encoder2 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: PubsubTopic2
+      pubsubTopicShardInfo: singleShardInfo2
     });
 
     const request1 = await waku.lightPush.send(encoder1, {
@@ -57,13 +67,13 @@ describe("Static Sharding: Running Nodes", () => {
   it("using a protocol with unconfigured pubsub topic should fail", async function () {
     this.timeout(15_000);
     waku = await createLightNode({
-      pubsubTopics: [PubsubTopic1]
+      shardInfo: shardInfoFirstShard
     });
 
     // use a pubsub topic that is not configured
     const encoder = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopic: PubsubTopic2
+      pubsubTopicShardInfo: singleShardInfo2
     });
 
     try {

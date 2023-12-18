@@ -1,14 +1,51 @@
 import { sha256 } from "@noble/hashes/sha256";
-import type { PubsubTopic, ShardInfo } from "@waku/interfaces";
+import type { PubsubTopic, ShardInfo, SingleShardInfo } from "@waku/interfaces";
 
 import { concat, utf8ToBytes } from "../bytes/index.js";
+
+export const singleShardInfoToPubsubTopic = (
+  shardInfo: SingleShardInfo
+): PubsubTopic => {
+  if (shardInfo.clusterId === undefined || shardInfo.shard === undefined)
+    throw new Error("Invalid shard");
+
+  return `/waku/2/rs/${shardInfo.clusterId}/${shardInfo.shard}`;
+};
 
 export const shardInfoToPubsubTopics = (
   shardInfo: ShardInfo
 ): PubsubTopic[] => {
-  return shardInfo.indexList.map(
-    (index) => `/waku/2/rs/${shardInfo.cluster}/${index}`
+  if (shardInfo.clusterId === undefined || shardInfo.shards === undefined)
+    throw new Error("Invalid shard");
+
+  return shardInfo.shards.map(
+    (index) => `/waku/2/rs/${shardInfo.clusterId}/${index}`
   );
+};
+
+export const pubsubTopicToSingleShardInfo = (
+  pubsubTopics: PubsubTopic
+): SingleShardInfo => {
+  const parts = pubsubTopics.split("/");
+
+  if (
+    parts.length != 6 ||
+    parts[1] !== "waku" ||
+    parts[2] !== "2" ||
+    parts[3] !== "rs"
+  )
+    throw new Error("Invalid pubsub topic");
+
+  const clusterId = parseInt(parts[4]);
+  const shard = parseInt(parts[5]);
+
+  if (isNaN(clusterId) || isNaN(shard))
+    throw new Error("Invalid clusterId or shard");
+
+  return {
+    clusterId,
+    shard
+  };
 };
 
 export function ensurePubsubTopicIsConfigured(

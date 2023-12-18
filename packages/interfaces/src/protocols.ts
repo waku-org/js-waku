@@ -1,10 +1,10 @@
 import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface/peer-id";
 import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
-import type { Libp2pOptions } from "libp2p";
 
+import type { ShardInfo } from "./enr.js";
+import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
-import type { PubsubTopic } from "./misc.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -23,9 +23,9 @@ export interface IBaseProtocol {
 
 export type ProtocolCreateOptions = {
   /**
-   * Waku supports usage of multiple pubsub topics, but this is still in early stages.
-   * Waku implements sharding to achieve scalability
-   * The format of the sharded topic is `/waku/2/rs/<shard_cluster_index>/<shard_number>`
+   * Waku supports usage of multiple pubsub topics. This is achieved through static sharding for now, and auto-sharding in the future.
+   * The format to specify a shard is:
+   * clusterId: number, shards: number[]
    * To learn more about the sharding specifications implemented, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
    * The Pubsub Topic to use. Defaults to {@link @waku/core!DefaultPubsubTopic }.
    *
@@ -39,7 +39,7 @@ export type ProtocolCreateOptions = {
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
    */
-  pubsubTopics?: PubsubTopic[];
+  shardInfo?: ShardInfo;
   /**
    * You can pass options to the `Libp2p` instance used by {@link @waku/core!WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
@@ -47,7 +47,7 @@ export type ProtocolCreateOptions = {
    * allowing its omission and letting Waku set good defaults.
    * Notes that some values are overridden by {@link @waku/core!WakuNode} to ensure it implements the Waku protocol.
    */
-  libp2p?: Partial<Libp2pOptions>;
+  libp2p?: Partial<CreateLibp2pOptions>;
   /**
    * Byte array used as key for the noise protocol used for connection encryption
    * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)

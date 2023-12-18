@@ -22,7 +22,6 @@ import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
 import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubsubTopic } from "../constants.js";
 
 import { PushRpc } from "./push_rpc.js";
 
@@ -50,7 +49,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components);
-    this.pubsubTopics = options?.pubsubTopics ?? [DefaultPubsubTopic];
+    this.pubsubTopics = this.initializePubsubTopic(options?.shardInfo);
   }
 
   private async preparePushMessage(

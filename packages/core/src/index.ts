@@ -27,3 +27,5 @@ export { ConnectionManager } from "./lib/connection_manager.js";
 
 export { KeepAliveManager } from "./lib/keep_alive_manager.js";
 export { StreamManager } from "./lib/stream_manager.js";
+
+export { MetadataCodec, wakuMetadata } from "./lib/metadata/index.js";
