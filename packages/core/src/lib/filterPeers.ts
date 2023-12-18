@@ -2,14 +2,17 @@ import { Peer } from "@libp2p/interface/peer-store";
 import { Tags } from "@waku/interfaces";
 
 /**
- * Retrieves a list of peers based on the specified criteria.
+ * Retrieves a list of peers based on the specified criteria:
+ * 1. If numPeers is 0, return all peers
+ * 2. Bootstrap peers are prioritized
+ * 3. Non-bootstrap peers are randomly selected to fill up to numPeers
  *
  * @param peers - The list of peers to filter from.
  * @param numPeers - The total number of peers to retrieve. If 0, all peers are returned.
  * @param maxBootstrapPeers - The maximum number of bootstrap peers to retrieve.
  * @returns A Promise that resolves to an array of peers based on the specified criteria.
  */
-export async function filterPeers(
+export async function filterPeersByDiscovery(
   peers: Peer[],
   numPeers: number,
   maxBootstrapPeers: number

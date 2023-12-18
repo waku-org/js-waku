@@ -62,6 +62,7 @@ describe("Peer Exchange", () => {
       let peerInfos: PeerInfo[] = [];
       while (peerInfos.length <= 0) {
         peerInfos = (await peerExchange.query({
+          peerId: nwaku1PeerId,
           numPeers: numPeersToRequest
         })) as PeerInfo[];
         await delay(3000);

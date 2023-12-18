@@ -1,6 +1,5 @@
 import type { Libp2p } from "@libp2p/interface";
 import type { Stream } from "@libp2p/interface/connection";
-import type { PeerId } from "@libp2p/interface/peer-id";
 import { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type {
   IBaseProtocol,
@@ -9,10 +8,10 @@ import type {
   ShardInfo
 } from "@waku/interfaces";
 import { shardInfoToPubsubTopics } from "@waku/utils";
-import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
+import { getPeersForProtocol, sortPeersByLatency } from "@waku/utils/libp2p";
 
 import { DefaultPubsubTopic } from "./constants.js";
-import { filterPeers } from "./filterPeers.js";
+import { filterPeersByDiscovery } from "./filterPeers.js";
 import { StreamManager } from "./stream_manager.js";
 
 /**
@@ -60,15 +59,6 @@ export class BaseProtocol implements IBaseProtocol {
     return getPeersForProtocol(this.peerStore, [this.multicodec]);
   }
 
-  protected async getPeer(peerId?: PeerId): Promise<Peer> {
-    const { peer } = await selectPeerForProtocol(
-      this.peerStore,
-      [this.multicodec],
-      peerId
-    );
-    return peer;
-  }
-
   /**
    * Retrieves a list of peers based on the specified criteria.
    *
@@ -93,8 +83,19 @@ export class BaseProtocol implements IBaseProtocol {
       this.multicodec
     ]);
 
-    // Filter the peers based on the specified criteria
-    return filterPeers(allPeersForProtocol, numPeers, maxBootstrapPeers);
+    // Filter the peers based on discovery & number of peers requested
+    const filteredPeers = await filterPeersByDiscovery(
+      allPeersForProtocol,
+      numPeers,
+      maxBootstrapPeers
+    );
+
+    const sortedFilteredPeers = await sortPeersByLatency(
+      this.peerStore,
+      filteredPeers
+    );
+
+    return sortedFilteredPeers;
   }
 
   initializePubsubTopic(shardInfo?: ShardInfo): PubsubTopic[] {

@@ -65,7 +65,10 @@ class Metadata extends BaseProtocol {
   async query(peerId: PeerId): Promise<ShardInfo> {
     const request = proto_metadata.WakuMetadataRequest.encode(this.shardInfo);
 
-    const peer = await this.getPeer(peerId);
+    const peer = await this.peerStore.get(peerId);
+    if (!peer) {
+      throw new Error(`Peer ${peerId.toString()} not found`);
+    }
 
     const stream = await this.getStream(peer);
 

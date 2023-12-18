@@ -11,7 +11,7 @@ export interface IPeerExchange extends IBaseProtocol {
 
 export interface PeerExchangeQueryParams {
   numPeers: number;
-  peerId?: PeerId;
+  peerId: PeerId;
 }
 
 export interface PeerExchangeResponse {
