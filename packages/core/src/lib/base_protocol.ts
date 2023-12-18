@@ -94,7 +94,7 @@ export class BaseProtocol implements IBaseProtocol {
   ): Promise<Peer[]> {
     // Retrieve all connected peers that support the protocol
     const allPeersForProtocol = await getConnectedPeersForProtocol(
-      this.components.getConnections.bind(this.components),
+      this.components.connectionManager.getConnections(),
       this.peerStore,
       [this.multicodec]
     );

@@ -296,7 +296,7 @@ describe("getConnectedPeersForProtocol", function () {
 
   it("returns all connected peers that support the protocol", async function () {
     const peers = await getConnectedPeersForProtocol(
-      waku.libp2p.getConnections.bind(waku.libp2p),
+      waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       [LightPushCodec]
     );

@@ -67,12 +67,10 @@ export async function getPeersForProtocol(
 }
 
 export async function getConnectedPeersForProtocol(
-  getConnections: () => Connection[],
+  connections: Connection[],
   peerStore: PeerStore,
   protocols: string[]
 ): Promise<Peer[]> {
-  const connections = getConnections();
-
   const openConnections = connections.filter(
     (connection) => connection.status === "open"
   );
