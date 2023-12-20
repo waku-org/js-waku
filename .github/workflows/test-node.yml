@@ -92,6 +92,7 @@ jobs:
           path: debug.log
 
       - name: Sanitize log filenames
+        if: failure()
         run: |
           find packages/tests/log/ -type f | while read fname; do
               dir=$(dirname "$fname")
@@ -104,6 +105,7 @@ jobs:
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v3
+        if: failure()
         with:
           name: ${{ inputs.test_type }}-logs
           path: packages/tests/log/
