@@ -60,12 +60,13 @@ export class BaseProtocol implements IBaseProtocol {
   }
 
   /**
-   * Retrieves a list of peers based on the specified criteria.
+   * Retrieves a list of peers that support the protocol. The list is sorted by latency.
    *
    * @param numPeers - The total number of peers to retrieve. If 0, all peers are returned.
    * @param maxBootstrapPeers - The maximum number of bootstrap peers to retrieve.
-   * @returns A Promise that resolves to an array of peers based on the specified criteria.
-   */
+   
+  * @returns A list of peers that support the protocol sorted by latency.
+  */
   protected async getPeers(
     {
       numPeers,
