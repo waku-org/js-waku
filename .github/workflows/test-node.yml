@@ -97,12 +97,13 @@ jobs:
               dir=$(dirname "$fname")
               base=$(basename "$fname")
               sanitized_base=$(echo $base | tr -d '\"*:<>?|' | sed 's/[\\/\r\n]/_/g' | sed 's/_$//')
-              mv "$fname" "$dir/$sanitized_base"
+              if [ "$base" != "$sanitized_base" ]; then
+                  mv "$fname" "$dir/$sanitized_base"
+              fi
           done
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v3
-        if: failure()
         with:
           name: ${{ inputs.test_type }}-logs
           path: packages/tests/log/
