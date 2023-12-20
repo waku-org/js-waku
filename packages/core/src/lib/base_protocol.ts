@@ -91,6 +91,7 @@ export class BaseProtocol implements IBaseProtocol {
       maxBootstrapPeers
     );
 
+    // Sort the peers by latency
     const sortedFilteredPeers = await sortPeersByLatency(
       this.peerStore,
       filteredPeers
