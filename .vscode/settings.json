@@ -3,7 +3,7 @@
   "cSpell.enabled": true,
   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "source.fixAll.eslint": true
   },
   "editor.formatOnSave": false, // Disable general format on save
   "typescript.tsdk": "node_modules/typescript/lib",
