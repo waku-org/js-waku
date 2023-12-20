@@ -60,8 +60,8 @@
     "check:tsc": "tsc -p tsconfig.dev.json",
     "prepublish": "npm run build",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
-    "test": "run-s test:*",
-    "test:node": "TS_NODE_PROJECT=./tsconfig.dev.json mocha"
+    "test": "NODE_ENV=test run-s test:*",
+    "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha"
   },
   "engines": {
     "node": ">=18"
