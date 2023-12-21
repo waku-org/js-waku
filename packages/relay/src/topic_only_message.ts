@@ -1,4 +1,4 @@
-import { DefaultPubsubTopic } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import type {
   IDecodedMessage,
   IDecoder,

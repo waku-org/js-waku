@@ -1,14 +1,8 @@
 import type { PeerStore } from "@libp2p/interface/peer-store";
 import type { Peer } from "@libp2p/interface/peer-store";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
-import {
-  createDecoder,
-  createEncoder,
-  DefaultPubsubTopic,
-  waitForRemotePeer
-} from "@waku/core";
-import { LightNode } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
+import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
+import { DefaultPubsubTopic, LightNode, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { toAsyncIterator } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";

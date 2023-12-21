@@ -23,7 +23,7 @@ import type {
   LightNode,
   ProtocolCreateOptions,
   RelayNode,
-  ShardInfo
+  ShardingParams
 } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
@@ -180,7 +180,7 @@ type MetadataService = {
 };
 
 export async function defaultLibp2p(
-  shardInfo?: ShardInfo,
+  shardInfo?: ShardingParams,
   wakuGossipSub?: PubsubService["pubsub"],
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string

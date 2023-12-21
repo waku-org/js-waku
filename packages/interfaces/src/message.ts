@@ -2,7 +2,10 @@ import type { PubsubTopic } from "./misc.js";
 
 export interface SingleShardInfo {
   clusterId: number;
-  shard: number;
+  /**
+   * Specifying this field indicates to the encoder/decoder that static sharding must be used.
+   */
+  shard?: number;
 }
 
 export interface IRateLimitProof {

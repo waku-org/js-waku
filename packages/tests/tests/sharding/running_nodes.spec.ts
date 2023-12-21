@@ -20,6 +20,7 @@ const shardInfoBothShards: ShardInfo = { clusterId: 0, shards: [2, 3] };
 const singleShardInfo1: SingleShardInfo = { clusterId: 0, shard: 2 };
 const singleShardInfo2: SingleShardInfo = { clusterId: 0, shard: 3 };
 const ContentTopic = "/waku/2/content/test.js";
+const ContentTopic2 = "/myapp/1/latest/proto";
 
 describe("Static Sharding: Running Nodes", () => {
   let waku: LightNode;
@@ -91,5 +92,53 @@ describe("Static Sharding: Running Nodes", () => {
         throw err;
       }
     }
+  });
+});
+
+describe("Autosharding: Running Nodes", () => {
+  let waku: LightNode;
+  let nwaku: NimGoNode;
+
+  beforeEach(async function () {
+    this.timeout(15_000);
+    nwaku = new NimGoNode(makeLogFileName(this));
+    await nwaku.start({ store: true, lightpush: true, relay: true });
+  });
+
+  afterEach(async function () {
+    this.timeout(15000);
+    await tearDownNodes(nwaku, waku);
+  });
+
+  it("configure the node with multiple pubsub topics", async function () {
+    this.timeout(15_000);
+    waku = await createLightNode({
+      shardInfo: {
+        ...shardInfoBothShards,
+        // For autosharding, we configure multiple pubsub topics by using two content topics that hash to different shards
+        contentTopics: [ContentTopic, ContentTopic2]
+      }
+    });
+
+    const encoder1 = createEncoder({
+      contentTopic: ContentTopic,
+      pubsubTopicShardInfo: { clusterId: 0 }
+    });
+
+    const encoder2 = createEncoder({
+      contentTopic: ContentTopic,
+      pubsubTopicShardInfo: { clusterId: 0 }
+    });
+
+    const request1 = await waku.lightPush.send(encoder1, {
+      payload: utf8ToBytes("Hello World")
+    });
+
+    const request2 = await waku.lightPush.send(encoder2, {
+      payload: utf8ToBytes("Hello World")
+    });
+
+    expect(request1.recipients.length).to.eq(0);
+    expect(request2.recipients.length).to.eq(0);
   });
 });

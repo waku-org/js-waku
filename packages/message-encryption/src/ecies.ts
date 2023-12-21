@@ -1,4 +1,3 @@
-import { DefaultPubsubTopic } from "@waku/core";
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import type {
   EncoderOptions as BaseEncoderOptions,
@@ -11,7 +10,7 @@ import type {
   SingleShardInfo
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
-import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
+import { determinePubsubTopic, Logger } from "@waku/utils";
 
 import { generatePrivateKey } from "./crypto/utils.js";
 import { DecodedMessage } from "./decoded_message.js";
@@ -107,9 +106,7 @@ export function createEncoder({
   metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(
-    pubsubTopicShardInfo
-      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
-      : DefaultPubsubTopic,
+    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
     contentTopic,
     publicKey,
     sigPrivKey,
@@ -200,9 +197,7 @@ export function createDecoder(
   pubsubTopicShardInfo?: SingleShardInfo
 ): Decoder {
   return new Decoder(
-    pubsubTopicShardInfo
-      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
-      : DefaultPubsubTopic,
+    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
     contentTopic,
     privateKey
   );
