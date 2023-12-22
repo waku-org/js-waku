@@ -141,8 +141,15 @@ describe("Waku Light Push", function () {
   it("Fails to push message with large meta", async function () {
     const customTestEncoder = createEncoder({
       contentTopic: TestContentTopic,
-      metaSetter: () => new Uint8Array(10 ** 6)
+      metaSetter: () => new Uint8Array(105024) // see the note below ***
     });
+
+    // *** note: this test used 10 ** 6 when `nwaku` node had MaxWakuMessageSize == 1MiB ( 1*2^20 .)
+    // `nwaku` establishes the max lightpush msg size as `const MaxRpcSize* = MaxWakuMessageSize + 64 * 1024`
+    // see: https://github.com/waku-org/nwaku/blob/07beea02095035f4f4c234ec2dec1f365e6955b8/waku/waku_lightpush/rpc_codec.nim#L15
+    // In the PR https://github.com/waku-org/nwaku/pull/2298 we reduced the MaxWakuMessageSize
+    // from 1MiB to 150KiB. Therefore, the 105024 number comes from substracting ( 1*2^20 - 150*2^10 )
+    // to the original 10^6 that this test had when MaxWakuMessageSize == 1*2^20
 
     const pushResponse = await waku.lightPush.send(
       customTestEncoder,
