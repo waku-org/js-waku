@@ -1,14 +1,10 @@
+import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import {
-  createDecoder,
-  createEncoder,
   DefaultPubsubTopic,
-  waitForRemotePeer
-} from "@waku/core";
-import {
   IFilterSubscription,
   LightNode,
   Protocols,
-  ShardInfo
+  ShardingParams
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { Logger } from "@waku/utils";
@@ -50,7 +46,7 @@ export async function runNodes(
   context: Context,
   //TODO: change this to use `ShardInfo` instead of `string[]`
   pubsubTopics: string[],
-  shardInfo?: ShardInfo
+  shardInfo?: ShardingParams
 ): Promise<[NimGoNode, LightNode]> {
   const nwaku = new NimGoNode(makeLogFileName(context));
 

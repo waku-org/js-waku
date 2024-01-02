@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
-import { DefaultPubsubTopic } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import { isDefined } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
@@ -216,6 +216,16 @@ export class NimGoNode {
     ]);
   }
 
+  async ensureSubscriptionsAutosharding(
+    contentTopics: string[]
+  ): Promise<boolean> {
+    this.checkProcess();
+
+    return this.rpcCall<boolean>("post_waku_v2_relay_v1_auto_subscriptions", [
+      contentTopics
+    ]);
+  }
+
   async sendMessage(
     message: MessageRpcQuery,
     pubsubTopic: string = DefaultPubsubTopic
@@ -232,6 +242,18 @@ export class NimGoNode {
     ]);
   }
 
+  async sendMessageAutosharding(message: MessageRpcQuery): Promise<boolean> {
+    this.checkProcess();
+
+    if (typeof message.timestamp === "undefined") {
+      message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
+    }
+
+    return this.rpcCall<boolean>("post_waku_v2_relay_v1_auto_message", [
+      message
+    ]);
+  }
+
   async messages(
     pubsubTopic: string = DefaultPubsubTopic
   ): Promise<MessageRpcResponse[]> {
@@ -240,6 +262,19 @@ export class NimGoNode {
     const msgs = await this.rpcCall<MessageRpcResponse[]>(
       "get_waku_v2_relay_v1_messages",
       [pubsubTopic]
+    );
+
+    return msgs.filter(isDefined);
+  }
+
+  async messagesAutosharding(
+    contentTopic: string
+  ): Promise<MessageRpcResponse[]> {
+    this.checkProcess();
+
+    const msgs = await this.rpcCall<MessageRpcResponse[]>(
+      "get_waku_v2_relay_v1_auto_messages",
+      [contentTopic]
     );
 
     return msgs.filter(isDefined);

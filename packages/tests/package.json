@@ -73,7 +73,7 @@
     "@types/dockerode": "^3.3.19",
     "@types/mocha": "^10.0.1",
     "@types/sinon": "^17.0.2",
-    "@types/tail": "^2.2.1",
+    "@types/tail": "^2.2.3",
     "@waku/dns-discovery": "*",
     "@waku/message-encryption": "*",
     "@waku/peer-exchange": "*",

@@ -1,12 +1,10 @@
+import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import {
-  createDecoder,
-  createEncoder,
+  createLightNode,
   DefaultPubsubTopic,
-  waitForRemotePeer
-} from "@waku/core";
-import { LightNode } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
-import { createLightNode } from "@waku/sdk";
+  type LightNode,
+  Protocols
+} from "@waku/sdk";
 import { toAsyncIterator } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import chai, { expect } from "chai";

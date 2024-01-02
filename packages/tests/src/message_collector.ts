@@ -1,4 +1,5 @@
-import { DecodedMessage, DefaultPubsubTopic } from "@waku/core";
+import { DecodedMessage } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
@@ -78,6 +79,49 @@ export class MessageCollector {
       if (this.nwaku) {
         try {
           this.list = await this.nwaku.messages(pubsubTopic);
+        } catch (error) {
+          log.error(`Can't retrieve messages because of ${error}`);
+          await delay(10);
+        }
+      }
+
+      if (Date.now() - startTime > timeoutDuration * numMessages) {
+        return false;
+      }
+
+      await delay(10);
+    }
+
+    if (exact) {
+      if (this.count == numMessages) {
+        return true;
+      } else {
+        log.warn(`Was expecting exactly ${numMessages} messages`);
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }
+
+  async waitForMessagesAutosharding(
+    numMessages: number,
+    options?: {
+      contentTopic: string;
+      timeoutDuration?: number;
+      exact?: boolean;
+    }
+  ): Promise<boolean> {
+    const startTime = Date.now();
+    const timeoutDuration = options?.timeoutDuration || 400;
+    const exact = options?.exact || false;
+
+    while (this.count < numMessages) {
+      if (this.nwaku) {
+        try {
+          this.list = await this.nwaku.messagesAutosharding(
+            options!.contentTopic
+          );
         } catch (error) {
           log.error(`Can't retrieve messages because of ${error}`);
           await delay(10);
