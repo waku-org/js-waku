@@ -1,10 +1,6 @@
-import {
-  createDecoder,
-  createEncoder,
-  DefaultPubsubTopic,
-  waitForRemotePeer
-} from "@waku/core";
+import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
   ecies,

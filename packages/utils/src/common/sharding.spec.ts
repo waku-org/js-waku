@@ -1,6 +1,11 @@
 import { expect } from "chai";
 
-import { contentTopicToShardIndex, ensureValidContentTopic } from "./sharding";
+import {
+  contentTopicsByPubsubTopic,
+  contentTopicToPubsubTopic,
+  contentTopicToShardIndex,
+  ensureValidContentTopic
+} from "./sharding";
 
 const testInvalidCases = (
   contentTopics: string[],
@@ -91,10 +96,35 @@ describe("contentTopicToShardIndex", () => {
   it("converts content topics to expected shard index", () => {
     const contentTopics: [string, number][] = [
       ["/toychat/2/huilong/proto", 3],
-      ["/myapp/1/latest/proto", 0]
+      ["/myapp/1/latest/proto", 0],
+      ["/waku/2/content/test.js", 1]
     ];
     for (const [topic, shard] of contentTopics) {
       expect(contentTopicToShardIndex(topic)).to.eq(shard);
+    }
+  });
+
+  it("topics with same application and version share the same shard", () => {
+    const contentTopics: [string, string][] = [
+      ["/toychat/2/huilong/proto", "/toychat/2/othertopic/otherencoding"],
+      ["/myapp/1/latest/proto", "/myapp/1/new/proto"],
+      ["/waku/2/content/test.js", "/waku/2/users/proto"]
+    ];
+    for (const [topic1, topic2] of contentTopics) {
+      expect(contentTopicToShardIndex(topic1)).to.eq(
+        contentTopicToShardIndex(topic2)
+      );
+    }
+  });
+});
+
+describe("contentTopicsByPubsubTopic", () => {
+  it("groups content topics by expected pubsub topic", () => {
+    const contentTopics = ["/toychat/2/huilong/proto", "/myapp/1/latest/proto"];
+    const grouped = contentTopicsByPubsubTopic(contentTopics);
+    for (const contentTopic of contentTopics) {
+      const pubsubTopic = contentTopicToPubsubTopic(contentTopic);
+      expect(grouped.get(pubsubTopic)?.includes(contentTopic)).to.be.true;
     }
   });
 });

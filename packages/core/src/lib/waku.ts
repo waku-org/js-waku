@@ -8,14 +8,13 @@ import type {
   IStore,
   Libp2p,
   PubsubTopic,
-  ShardInfo,
+  ShardingParams,
   Waku
 } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
+import { DefaultPubsubTopic, Protocols } from "@waku/interfaces";
 import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
 
 import { ConnectionManager } from "./connection_manager.js";
-import { DefaultPubsubTopic } from "./constants.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -57,7 +56,7 @@ export class WakuNode implements Waku {
   constructor(
     options: WakuOptions,
     libp2p: Libp2p,
-    pubsubShardInfo?: ShardInfo,
+    pubsubShardInfo?: ShardingParams,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
     filter?: (libp2p: Libp2p) => IFilter,

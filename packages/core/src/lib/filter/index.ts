@@ -17,6 +17,7 @@ import type {
   SingleShardInfo,
   Unsubscribe
 } from "@waku/interfaces";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import {
   ensurePubsubTopicIsConfigured,
@@ -30,7 +31,6 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
 import { BaseProtocol } from "../base_protocol.js";
-import { DefaultPubsubTopic } from "../constants.js";
 
 import {
   FilterPushRpc,

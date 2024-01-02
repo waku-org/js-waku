@@ -3,10 +3,15 @@ import {
   createEncoder,
   DecodedMessage,
   Decoder,
-  DefaultPubsubTopic,
   waitForRemotePeer
 } from "@waku/core";
-import { LightNode, Protocols, ShardInfo } from "@waku/interfaces";
+import {
+  DefaultPubsubTopic,
+  LightNode,
+  Protocols,
+  ShardInfo,
+  ShardingParams
+} from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
@@ -61,6 +66,24 @@ export async function sendMessages(
   }
 }
 
+export async function sendMessagesAutosharding(
+  instance: NimGoNode,
+  numMessages: number,
+  contentTopic: string
+): Promise<void> {
+  for (let i = 0; i < numMessages; i++) {
+    expect(
+      await instance.sendMessageAutosharding(
+        NimGoNode.toMessageRpcQuery({
+          payload: new Uint8Array([i]),
+          contentTopic: contentTopic
+        })
+      )
+    ).to.eq(true);
+    await delay(1); // to ensure each timestamp is unique.
+  }
+}
+
 export async function processQueriedMessages(
   instance: LightNode,
   decoders: Array<Decoder>,
@@ -81,7 +104,7 @@ export async function processQueriedMessages(
 export async function startAndConnectLightNode(
   instance: NimGoNode,
   pubsubTopics: string[] = [DefaultPubsubTopic],
-  shardInfo?: ShardInfo
+  shardInfo?: ShardingParams
 ): Promise<LightNode> {
   const waku = await createLightNode({
     ...((pubsubTopics.length !== 1 ||

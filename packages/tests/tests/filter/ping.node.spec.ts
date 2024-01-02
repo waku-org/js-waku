@@ -1,4 +1,4 @@
-import { DefaultPubsubTopic } from "@waku/core";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";

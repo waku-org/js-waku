@@ -1,5 +1,5 @@
-import { createDecoder, createEncoder, DefaultPubsubTopic } from "@waku/core";
-import { RelayNode } from "@waku/interfaces";
+import { createDecoder, createEncoder } from "@waku/core";
+import { DefaultPubsubTopic, RelayNode } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
