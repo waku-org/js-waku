@@ -1,5 +1,10 @@
 import { sha256 } from "@noble/hashes/sha256";
-import type { PubsubTopic, ShardInfo, SingleShardInfo } from "@waku/interfaces";
+import {
+  DefaultPubsubTopic,
+  PubsubTopic,
+  ShardingParams,
+  SingleShardInfo
+} from "@waku/interfaces";
 
 import { concat, utf8ToBytes } from "../bytes/index.js";
 
@@ -13,14 +18,20 @@ export const singleShardInfoToPubsubTopic = (
 };
 
 export const shardInfoToPubsubTopics = (
-  shardInfo: ShardInfo
+  shardInfo: ShardingParams
 ): PubsubTopic[] => {
-  if (shardInfo.clusterId === undefined || shardInfo.shards === undefined)
-    throw new Error("Invalid shard");
-
-  return shardInfo.shards.map(
-    (index) => `/waku/2/rs/${shardInfo.clusterId}/${index}`
-  );
+  if (shardInfo.clusterId === undefined)
+    throw new Error("Cluster ID must be specified");
+  if ("contentTopics" in shardInfo) {
+    return shardInfo.contentTopics.map((contentTopic) =>
+      contentTopicToPubsubTopic(contentTopic, shardInfo.clusterId)
+    );
+  } else {
+    if (shardInfo.shards === undefined) throw new Error("Invalid shard");
+    return shardInfo.shards.map(
+      (index) => `/waku/2/rs/${shardInfo.clusterId}/${index}`
+    );
+  }
 };
 
 export const pubsubTopicToSingleShardInfo = (
@@ -139,4 +150,44 @@ export function contentTopicToPubsubTopic(
 ): string {
   const shardIndex = contentTopicToShardIndex(contentTopic, networkShards);
   return `/waku/2/rs/${clusterId}/${shardIndex}`;
+}
+
+/**
+ * Given an array of content topics, groups them together by their Pubsub topic as derived using the algorithm for autosharding.
+ * If any of the content topics are not properly formatted, the function will throw an error.
+ */
+export function contentTopicsByPubsubTopic(
+  contentTopics: string[],
+  clusterId: number = 1,
+  networkShards: number = 8
+): Map<string, Array<string>> {
+  const groupedContentTopics = new Map();
+  for (const contentTopic of contentTopics) {
+    const pubsubTopic = contentTopicToPubsubTopic(
+      contentTopic,
+      clusterId,
+      networkShards
+    );
+    let topics = groupedContentTopics.get(pubsubTopic);
+    if (!topics) {
+      groupedContentTopics.set(pubsubTopic, []);
+      topics = groupedContentTopics.get(pubsubTopic);
+    }
+    topics.push(contentTopic);
+  }
+  return groupedContentTopics;
+}
+
+/**
+ * Used when creating encoders/decoders to determine which pubsub topic to use
+ */
+export function determinePubsubTopic(
+  contentTopic: string,
+  pubsubTopicShardInfo?: SingleShardInfo
+): string {
+  return pubsubTopicShardInfo
+    ? pubsubTopicShardInfo.shard
+      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+      : contentTopicToPubsubTopic(contentTopic, pubsubTopicShardInfo.clusterId)
+    : DefaultPubsubTopic;
 }

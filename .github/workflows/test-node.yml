@@ -91,6 +91,18 @@ jobs:
           name: ${{ inputs.test_type }}-debug.log
           path: debug.log
 
+      - name: Sanitize log filenames
+        if: failure()
+        run: |
+          find packages/tests/log/ -type f | while read fname; do
+              dir=$(dirname "$fname")
+              base=$(basename "$fname")
+              sanitized_base=$(echo $base | tr -d '\"*:<>?|' | sed 's/[\\/\r\n]/_/g' | sed 's/_$//')
+              if [ "$base" != "$sanitized_base" ]; then
+                  mv "$fname" "$dir/$sanitized_base"
+              fi
+          done
+
       - name: Upload logs on failure
         uses: actions/upload-artifact@v3
         if: failure()
