@@ -69,6 +69,27 @@ export async function getPeersForProtocol(
   return peers;
 }
 
+export async function getConnectedPeersForProtocol(
+  connections: Connection[],
+  peerStore: PeerStore,
+  protocols: string[]
+): Promise<Peer[]> {
+  const openConnections = connections.filter(
+    (connection) => connection.status === "open"
+  );
+
+  const peerPromises = openConnections.map(async (connection) => {
+    const peer = await peerStore.get(connection.remotePeer);
+    const supportsProtocol = peer.protocols.some((protocol) =>
+      protocols.includes(protocol)
+    );
+    return supportsProtocol ? peer : null;
+  });
+
+  const peersWithNulls = await Promise.all(peerPromises);
+  return peersWithNulls.filter((peer): peer is Peer => peer !== null);
+}
+
 export function selectConnection(
   connections: Connection[]
 ): Connection | undefined {
