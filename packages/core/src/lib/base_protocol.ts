@@ -10,7 +10,11 @@ import type {
 } from "@waku/interfaces";
 import { DefaultPubsubTopic } from "@waku/interfaces";
 import { shardInfoToPubsubTopics } from "@waku/utils";
-import { getPeersForProtocol, selectPeerForProtocol } from "@waku/utils/libp2p";
+import {
+  getConnectedPeersForProtocol,
+  getPeersForProtocol,
+  selectPeerForProtocol
+} from "@waku/utils/libp2p";
 
 import { filterPeers } from "./filterPeers.js";
 import { StreamManager } from "./stream_manager.js";
@@ -70,7 +74,7 @@ export class BaseProtocol implements IBaseProtocol {
   }
 
   /**
-   * Retrieves a list of peers based on the specified criteria.
+   * Retrieves a list of connected peers based on the specified criteria.
    *
    * @param numPeers - The total number of peers to retrieve. If 0, all peers are returned.
    * @param maxBootstrapPeers - The maximum number of bootstrap peers to retrieve.
@@ -88,10 +92,12 @@ export class BaseProtocol implements IBaseProtocol {
       numPeers: 0
     }
   ): Promise<Peer[]> {
-    // Retrieve all peers that support the protocol
-    const allPeersForProtocol = await getPeersForProtocol(this.peerStore, [
-      this.multicodec
-    ]);
+    // Retrieve all connected peers that support the protocol
+    const allPeersForProtocol = await getConnectedPeersForProtocol(
+      this.components.connectionManager.getConnections(),
+      this.peerStore,
+      [this.multicodec]
+    );
 
     // Filter the peers based on the specified criteria
     return filterPeers(allPeersForProtocol, numPeers, maxBootstrapPeers);
