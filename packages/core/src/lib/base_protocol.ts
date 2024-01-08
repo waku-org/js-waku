@@ -103,6 +103,10 @@ export class BaseProtocol implements IBaseProtocol {
       filteredPeers
     );
 
+    if (sortedFilteredPeers.length === 0) {
+      throw new Error("No peers found");
+    }
+
     return sortedFilteredPeers;
   }
 

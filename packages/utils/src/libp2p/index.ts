@@ -30,12 +30,12 @@ export async function sortPeersByLatency(
     peers.map(async (peer) => {
       try {
         const pingBytes = (await peerStore.get(peer.id)).metadata.get("ping");
-        if (!pingBytes) return null;
+        if (!pingBytes) return { peer, ping: Infinity };
 
         const ping = Number(bytesToUtf8(pingBytes));
-        return isNaN(ping) ? null : { peer, ping };
+        return { peer, ping };
       } catch (error) {
-        return null;
+        return { peer, ping: Infinity };
       }
     })
   );
