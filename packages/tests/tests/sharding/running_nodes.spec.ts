@@ -1,5 +1,15 @@
-import { LightNode, ShardInfo, SingleShardInfo } from "@waku/interfaces";
-import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
+import {
+  LightNode,
+  Protocols,
+  ShardInfo,
+  SingleShardInfo
+} from "@waku/interfaces";
+import {
+  createEncoder,
+  createLightNode,
+  utf8ToBytes,
+  waitForRemotePeer
+} from "@waku/sdk";
 import { singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
@@ -42,6 +52,8 @@ describe("Static Sharding: Running Nodes", () => {
     waku = await createLightNode({
       shardInfo: shardInfoBothShards
     });
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
@@ -61,8 +73,8 @@ describe("Static Sharding: Running Nodes", () => {
       payload: utf8ToBytes("Hello World")
     });
 
-    expect(request1.recipients.length).to.eq(0);
-    expect(request2.recipients.length).to.eq(0);
+    expect(request1.recipients.length).to.eq(1);
+    expect(request2.recipients.length).to.eq(1);
   });
 
   it("using a protocol with unconfigured pubsub topic should fail", async function () {
@@ -119,6 +131,8 @@ describe("Autosharding: Running Nodes", () => {
         contentTopics: [ContentTopic, ContentTopic2]
       }
     });
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.LightPush]);
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
@@ -138,7 +152,7 @@ describe("Autosharding: Running Nodes", () => {
       payload: utf8ToBytes("Hello World")
     });
 
-    expect(request1.recipients.length).to.eq(0);
-    expect(request2.recipients.length).to.eq(0);
+    expect(request1.recipients.length).to.eq(1);
+    expect(request2.recipients.length).to.eq(1);
   });
 });
