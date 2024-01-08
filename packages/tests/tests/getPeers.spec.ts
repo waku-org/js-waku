@@ -1,13 +1,21 @@
+import type { Connection } from "@libp2p/interface/connection";
 import type { PeerStore } from "@libp2p/interface/peer-store";
 import type { Peer } from "@libp2p/interface/peer-store";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
-import { createLightNode, type LightNode, Tags, utf8ToBytes } from "@waku/sdk";
+import {
+  createLightNode,
+  Libp2pComponents,
+  type LightNode,
+  Tags,
+  utf8ToBytes
+} from "@waku/sdk";
 import { expect } from "chai";
 import fc from "fast-check";
 import Sinon from "sinon";
 
 describe("getPeers", function () {
   let peerStore: PeerStore;
+  let connectionManager: Libp2pComponents["connectionManager"];
   let waku: LightNode;
   const lowPingBytes = utf8ToBytes("50");
   const midPingBytes = utf8ToBytes("100");
@@ -30,6 +38,7 @@ describe("getPeers", function () {
     this.timeout(10_000);
     waku = await createLightNode();
     peerStore = waku.libp2p.peerStore;
+    connectionManager = waku.libp2p.components.connectionManager;
 
     const [
       lowPingBootstrapPeerId,
@@ -127,6 +136,18 @@ describe("getPeers", function () {
       for (const peer of allPeers) {
         callback(peer);
       }
+    });
+
+    // assume all peers have an opened connection
+    Sinon.stub(connectionManager, "getConnections").callsFake(() => {
+      const connections: Connection[] = [];
+      for (const peer of allPeers) {
+        connections.push({
+          status: "open",
+          remotePeer: peer.id
+        } as unknown as Connection);
+      }
+      return connections;
     });
   });
 
