@@ -24,7 +24,7 @@ class Metadata extends BaseProtocol {
   private readonly shardInfo: ShardingParams;
   private libp2pComponents: Libp2pComponents;
   constructor(shardInfo: ShardingParams, libp2p: Libp2pComponents) {
-    super(MetadataCodec, libp2p.components);
+    super(MetadataCodec, libp2p.components, log);
     this.libp2pComponents = libp2p;
     this.shardInfo = shardInfo;
     void libp2p.registrar.handle(MetadataCodec, (streamData) => {

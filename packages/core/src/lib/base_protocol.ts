@@ -8,7 +8,7 @@ import type {
   ShardingParams
 } from "@waku/interfaces";
 import { DefaultPubsubTopic } from "@waku/interfaces";
-import { shardInfoToPubsubTopics } from "@waku/utils";
+import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
 import {
   getConnectedPeersForProtocol,
   getPeersForProtocol,
@@ -29,7 +29,8 @@ export class BaseProtocol implements IBaseProtocol {
 
   constructor(
     public multicodec: string,
-    private components: Libp2pComponents
+    private components: Libp2pComponents,
+    private log: Logger
   ) {
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events
@@ -104,7 +105,9 @@ export class BaseProtocol implements IBaseProtocol {
     );
 
     if (sortedFilteredPeers.length === 0) {
-      throw new Error("No peers found");
+      this.log.warn(
+        "No peers found. Ensure you have a connection to the network."
+      );
     }
 
     return sortedFilteredPeers;

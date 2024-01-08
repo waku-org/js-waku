@@ -48,7 +48,7 @@ class LightPush extends BaseProtocol implements ILightPush {
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(LightPushCodec, libp2p.components);
+    super(LightPushCodec, libp2p.components, log);
     this.pubsubTopics = this.initializePubsubTopic(options?.shardInfo);
   }
 
