@@ -1,4 +1,5 @@
 import type { IdentifyResult } from "@libp2p/interface";
+import type { PeerId } from "@libp2p/interface/peer-id";
 import type { LightNode } from "@waku/interfaces";
 
 /**
@@ -12,8 +13,18 @@ import type { LightNode } from "@waku/interfaces";
  */
 export async function waitForRemotePeerWithCodec(
   waku: LightNode,
-  codec: string
+  codec: string,
+  nodePeerId: PeerId
 ): Promise<void> {
+  const connectedPeers = waku.libp2p
+    .getConnections()
+    .map((conn) => conn.remotePeer);
+  if (
+    connectedPeers.find((connectedPeer) => connectedPeer.equals(nodePeerId))
+  ) {
+    return;
+  }
+
   await new Promise<void>((resolve) => {
     const cb = (evt: CustomEvent<IdentifyResult>): void => {
       if (evt.detail.protocols.includes(codec)) {
