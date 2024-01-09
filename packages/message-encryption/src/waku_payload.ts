@@ -1,14 +1,12 @@
 import * as secp from "@noble/secp256k1";
 import { concat, hexToBytes } from "@waku/utils/bytes";
 
-import {
-  ecies,
-  keccak256,
-  randomBytes,
-  sign,
-  symmetric
-} from "./crypto/index.js";
-import { Symmetric } from "./misc.js";
+import { Symmetric } from "./constants.js";
+import * as ecies from "./crypto/ecies.js";
+import { keccak256, randomBytes, sign } from "./crypto/index.js";
+import * as symmetric from "./crypto/symmetric.js";
+
+import { Signature } from "./index.js";
 
 const FlagsLength = 1;
 const FlagMask = 3; // 0011
@@ -211,11 +209,6 @@ export async function preCipher(
 
   return envelope;
 }
-
-type Signature = {
-  signature: Uint8Array;
-  publicKey: Uint8Array | undefined;
-};
 
 /**
  * Decode a decrypted payload.

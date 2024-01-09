@@ -7,10 +7,10 @@ import {
 } from "@waku/core";
 import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { generateSymmetricKey } from "@waku/message-encryption";
 import {
   createDecoder,
-  createEncoder
+  createEncoder,
+  generateSymmetricKey
 } from "@waku/message-encryption/symmetric";
 import {
   createLightNode,

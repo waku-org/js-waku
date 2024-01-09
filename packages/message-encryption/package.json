@@ -16,10 +16,6 @@
     "./symmetric": {
       "types": "./dist/symmetric.d.ts",
       "import": "./dist/symmetric.js"
-    },
-    "./crypto": {
-      "types": "./dist/crypto/index.d.ts",
-      "import": "./dist/crypto/index.js"
     }
   },
   "typesVersions": {
