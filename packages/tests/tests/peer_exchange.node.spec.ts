@@ -77,14 +77,11 @@ describe("Peer Exchange", () => {
       expect(peerInfos[0].ENR).to.not.be.null;
       expect(peerInfos[0].ENR?.peerInfo?.multiaddrs).to.not.be.null;
 
-      let foundNodeMas: Multiaddr[] = [];
-      let foundNodePeerId: PeerId | undefined = undefined;
-      const doesPeerIdExistInResponse =
-        peerInfos.find(({ ENR }) => {
-          foundNodeMas = ENR?.peerInfo?.multiaddrs ?? [];
-          foundNodePeerId = ENR?.peerInfo?.id;
-          return ENR?.peerInfo?.id.toString() === nwaku1PeerId.toString();
-        }) !== undefined;
+      const foundNodeMultiaddrs: Multiaddr[] = [];
+      const foundNodePeerId: PeerId | undefined = undefined;
+      const doesPeerIdExistInResponse = peerInfos.some(
+        ({ ENR }) => ENR?.peerInfo?.id.toString() === nwaku1PeerId.toString()
+      );
 
       if (!foundNodePeerId) {
         throw new Error("Peer ID not found");
@@ -92,7 +89,7 @@ describe("Peer Exchange", () => {
 
       expect(doesPeerIdExistInResponse).to.be.equal(true);
 
-      await waku.libp2p.dialProtocol(foundNodeMas, PeerExchangeCodec);
+      await waku.libp2p.dialProtocol(foundNodeMultiaddrs, PeerExchangeCodec);
       await waitForRemotePeerWithCodec(
         waku,
         PeerExchangeCodec,
