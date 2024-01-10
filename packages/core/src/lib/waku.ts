@@ -110,7 +110,7 @@ export class WakuNode implements Waku {
     );
   }
 
-  get shardingParams(): ShardingParams | undefined {
+  get shardInfo(): ShardingParams | undefined {
     return this.pubsubShardInfo;
   }
 
