@@ -2,16 +2,12 @@ import type { PeerStore } from "@libp2p/interface/peer-store";
 import type { Peer } from "@libp2p/interface/peer-store";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
-import { LightPushCodec } from "@waku/core";
 import { DefaultPubsubTopic, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { toAsyncIterator } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
-import {
-  getConnectedPeersForProtocol,
-  selectPeerForProtocol
-} from "@waku/utils/libp2p";
+import { selectPeerForProtocol } from "@waku/utils/libp2p";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
@@ -287,15 +283,5 @@ describe("getConnectedPeersForProtocol", function () {
   afterEach(async function () {
     this.timeout(10000);
     await tearDownNodes(nwaku, waku);
-  });
-
-  it("returns all connected peers that support the protocol", async function () {
-    const peers = await getConnectedPeersForProtocol(
-      waku.libp2p.getConnections(),
-      waku.libp2p.peerStore,
-      [LightPushCodec]
-    );
-
-    expect(peers.length).to.eq(1);
   });
 });

@@ -6,14 +6,14 @@ import {
   ShardInfo
 } from "@waku/sdk";
 import { shardInfoToPubsubTopics } from "@waku/utils";
-import { getPeersForProtocolAndShard } from "@waku/utils/libp2p";
+import { getConnectedPeersForProtocolAndShard } from "@waku/utils/libp2p";
 import { expect } from "chai";
 
 import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 import { tearDownNodes } from "../src/teardown.js";
 
-describe("getPeersForProtocolAndShard", function () {
+describe("getConnectedPeersForProtocolAndShard", function () {
   let waku: LightNode;
   let serviceNode1: NimGoNode;
   let serviceNode2: NimGoNode;
@@ -51,7 +51,8 @@ describe("getPeersForProtocolAndShard", function () {
     await waku.start();
     await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
     await waitForRemotePeer(waku, [Protocols.LightPush]);
-    const peers = await getPeersForProtocolAndShard(
+    const peers = await getConnectedPeersForProtocolAndShard(
+      waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
       shardInfo
@@ -82,7 +83,8 @@ describe("getPeersForProtocolAndShard", function () {
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
-    const peers = await getPeersForProtocolAndShard(
+    const peers = await getConnectedPeersForProtocolAndShard(
+      waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
       shardInfo
@@ -131,7 +133,8 @@ describe("getPeersForProtocolAndShard", function () {
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
-    const peers = await getPeersForProtocolAndShard(
+    const peers = await getConnectedPeersForProtocolAndShard(
+      waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
       shardInfo2
@@ -180,7 +183,8 @@ describe("getPeersForProtocolAndShard", function () {
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
-    const peers = await getPeersForProtocolAndShard(
+    const peers = await getConnectedPeersForProtocolAndShard(
+      waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
       shardInfo2
