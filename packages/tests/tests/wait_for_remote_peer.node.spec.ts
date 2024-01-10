@@ -114,7 +114,9 @@ describe("Wait for remote peer", function () {
     await delay(1000);
     await waitForRemotePeer(waku2, [Protocols.Store]);
 
-    const peers = (await waku2.store.peers()).map((peer) => peer.id.toString());
+    const peers = (await waku2.store.connectedPeers()).map((peer) =>
+      peer.id.toString()
+    );
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -141,7 +143,9 @@ describe("Wait for remote peer", function () {
     await waku2.dial(multiAddrWithId);
     await waitPromise;
 
-    const peers = (await waku2.store.peers()).map((peer) => peer.id.toString());
+    const peers = (await waku2.store.connectedPeers()).map((peer) =>
+      peer.id.toString()
+    );
 
     const nimPeerId = multiAddrWithId.getPeerId();
 
@@ -167,7 +171,7 @@ describe("Wait for remote peer", function () {
     await waku2.dial(multiAddrWithId);
     await waitForRemotePeer(waku2, [Protocols.LightPush]);
 
-    const peers = (await waku2.lightPush.peers()).map((peer) =>
+    const peers = (await waku2.lightPush.connectedPeers()).map((peer) =>
       peer.id.toString()
     );
 
@@ -195,7 +199,7 @@ describe("Wait for remote peer", function () {
     await waku2.dial(multiAddrWithId);
     await waitForRemotePeer(waku2, [Protocols.Filter]);
 
-    const peers = (await waku2.filter.peers()).map((peer) =>
+    const peers = (await waku2.filter.connectedPeers()).map((peer) =>
       peer.id.toString()
     );
 
@@ -227,14 +231,14 @@ describe("Wait for remote peer", function () {
       Protocols.LightPush
     ]);
 
-    const filterPeers = (await waku2.filter.peers()).map((peer) =>
+    const filterPeers = (await waku2.filter.connectedPeers()).map((peer) =>
       peer.id.toString()
     );
-    const storePeers = (await waku2.store.peers()).map((peer) =>
+    const storePeers = (await waku2.store.connectedPeers()).map((peer) =>
       peer.id.toString()
     );
-    const lightPushPeers = (await waku2.lightPush.peers()).map((peer) =>
-      peer.id.toString()
+    const lightPushPeers = (await waku2.lightPush.connectedPeers()).map(
+      (peer) => peer.id.toString()
     );
 
     const nimPeerId = multiAddrWithId.getPeerId();

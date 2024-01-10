@@ -27,7 +27,7 @@ describe("filterPeers function", function () {
       }
     ] as unknown as Peer[];
 
-    const result = await filterPeers(mockPeers, 0, 10);
+    const result = filterPeers(mockPeers, 0, 10);
     expect(result.length).to.deep.equal(mockPeers.length);
   });
 
@@ -56,7 +56,7 @@ describe("filterPeers function", function () {
       }
     ] as unknown as Peer[];
 
-    const result = await filterPeers(mockPeers, 0, 0);
+    const result = filterPeers(mockPeers, 0, 0);
 
     // result should have no bootstrap peers, and a total of 2 peers
     expect(result.length).to.equal(2);
@@ -95,7 +95,7 @@ describe("filterPeers function", function () {
       }
     ] as unknown as Peer[];
 
-    const result = await filterPeers(mockPeers, 0, 1);
+    const result = filterPeers(mockPeers, 0, 1);
 
     // result should have 1 bootstrap peers, and a total of 4 peers
     expect(result.length).to.equal(4);
@@ -134,7 +134,7 @@ describe("filterPeers function", function () {
       }
     ] as unknown as Peer[];
 
-    const result = await filterPeers(mockPeers, 5, 2);
+    const result = filterPeers(mockPeers, 5, 2);
 
     // check that result has at least 2 bootstrap peers and no more than 5 peers
     expect(result.length).to.be.at.least(2);

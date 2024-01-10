@@ -57,7 +57,7 @@ export class WakuNode implements Waku {
     options: WakuOptions,
     pubsubTopics: PubsubTopic[] = [],
     libp2p: Libp2p,
-    pubsubShardInfo?: ShardingParams,
+    private pubsubShardInfo?: ShardingParams,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
     filter?: (libp2p: Libp2p) => IFilter,
@@ -108,6 +108,10 @@ export class WakuNode implements Waku {
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
         .lightPush}, filter: ${!!this.filter}`
     );
+  }
+
+  get shardingParams(): ShardingParams | undefined {
+    return this.pubsubShardInfo;
   }
 
   /**

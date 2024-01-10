@@ -10,7 +10,8 @@ import {
   LightNode,
   Protocols,
   ShardInfo,
-  ShardingParams
+  ShardingParams,
+  type SingleShardInfo
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
@@ -23,14 +24,13 @@ export const log = new Logger("test:store");
 export const TestContentTopic = "/test/1/waku-store/utf8";
 export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 export const TestDecoder = createDecoder(TestContentTopic);
-export const customShardedPubsubTopic1 = singleShardInfoToPubsubTopic({
-  clusterId: 3,
-  shard: 1
-});
-export const customShardedPubsubTopic2 = singleShardInfoToPubsubTopic({
-  clusterId: 3,
-  shard: 2
-});
+export const customShardInfo1: SingleShardInfo = { clusterId: 3, shard: 1 };
+export const customShardedPubsubTopic1 =
+  singleShardInfoToPubsubTopic(customShardInfo1);
+
+export const customShardInfo2: SingleShardInfo = { clusterId: 3, shard: 2 };
+export const customShardedPubsubTopic2 =
+  singleShardInfoToPubsubTopic(customShardInfo2);
 export const shardInfo1: ShardInfo = { clusterId: 3, shards: [1] };
 export const customContentTopic1 = "/test/2/waku-store/utf8";
 export const customContentTopic2 = "/test/3/waku-store/utf8";

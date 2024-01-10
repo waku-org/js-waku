@@ -18,6 +18,8 @@ import {
   customDecoder2,
   customShardedPubsubTopic1,
   customShardedPubsubTopic2,
+  customShardInfo1,
+  customShardInfo2,
   processQueriedMessages,
   sendMessages,
   sendMessagesAutosharding,
@@ -39,6 +41,7 @@ describe("Waku Store, custom pubsub topic", function () {
     await nwaku.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
+      clusterId: customShardInfo1.clusterId,
       relay: true
     });
     await nwaku.ensureSubscriptions([
@@ -123,6 +126,7 @@ describe("Waku Store, custom pubsub topic", function () {
     await nwaku2.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic2],
+      clusterId: customShardInfo2.clusterId,
       relay: true
     });
     await nwaku2.ensureSubscriptions([customShardedPubsubTopic2]);

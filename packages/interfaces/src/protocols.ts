@@ -15,9 +15,11 @@ export enum Protocols {
 }
 
 export interface IBaseProtocol {
+  shardInfo?: ShardInfo;
   multicodec: string;
   peerStore: PeerStore;
-  peers: () => Promise<Peer[]>;
+  allPeers: () => Promise<Peer[]>;
+  connectedPeers: () => Promise<Peer[]>;
   addLibp2pEventListener: Libp2p["addEventListener"];
   removeLibp2pEventListener: Libp2p["removeEventListener"];
 }

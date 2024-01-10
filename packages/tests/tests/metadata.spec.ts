@@ -1,7 +1,7 @@
 import { MetadataCodec } from "@waku/core";
-import { decodeRelayShard } from "@waku/enr";
 import type { LightNode, ShardInfo } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
+import { decodeRelayShard } from "@waku/utils";
 import { shardInfoToPubsubTopics } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";

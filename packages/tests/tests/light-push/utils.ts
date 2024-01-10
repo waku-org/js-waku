@@ -24,7 +24,12 @@ export async function runNodes(
 ): Promise<[NimGoNode, LightNode]> {
   const nwaku = new NimGoNode(makeLogFileName(context));
   await nwaku.start(
-    { lightpush: true, relay: true, pubsubTopic: pubsubTopics },
+    {
+      lightpush: true,
+      relay: true,
+      pubsubTopic: pubsubTopics,
+      ...(shardInfo && { clusterId: shardInfo.clusterId })
+    },
     { retries: 3 }
   );
 

@@ -393,7 +393,6 @@ describe("ENR", function () {
 
     it("should properly create peer info with all multiaddrs", () => {
       const peerInfo = enr.peerInfo!;
-      console.log(peerInfo);
       expect(peerInfo.id.toString()).to.equal(peerId.toString());
       expect(peerInfo.multiaddrs.length).to.equal(5);
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
