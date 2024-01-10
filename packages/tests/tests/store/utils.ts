@@ -111,6 +111,7 @@ export async function startAndConnectLightNode(
       pubsubTopics[0] !== DefaultPubsubTopic) && {
       shardInfo: shardInfo
     }),
+    pubsubTopics: shardInfo ? undefined : pubsubTopics,
     staticNoiseKey: NOISE_KEY_1
   });
   await waku.start();

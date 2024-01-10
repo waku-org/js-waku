@@ -5,6 +5,7 @@ import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type { ShardInfo } from "./enr.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
+import { PubsubTopic } from "./misc.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -26,9 +27,20 @@ export type ContentTopicInfo = {
   contentTopics: string[];
 };
 
-export type ShardingParams = ShardInfo | ContentTopicInfo;
+export type ApplicationInfo = {
+  clusterId: number;
+  application: string;
+  version: string;
+};
+
+export type ShardingParams = ShardInfo | ContentTopicInfo | ApplicationInfo;
 
 export type ProtocolCreateOptions = {
+  /**
+   * @deprecated
+   * Waku will stop supporting named sharding. Only static sharding and autosharding will be supported moving forward.
+   */
+  pubsubTopics?: PubsubTopic[];
   /**
    * Waku supports usage of multiple pubsub topics. This is achieved through static sharding for now, and auto-sharding in the future.
    * The format to specify a shard is:
