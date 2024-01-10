@@ -26,6 +26,7 @@ import { StreamManager } from "./stream_manager.js";
 export class BaseProtocol implements IBaseProtocol {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
+  readonly NUM_PEERS_TO_USE = 3;
   protected streamManager: StreamManager;
 
   constructor(

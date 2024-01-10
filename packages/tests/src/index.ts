@@ -13,3 +13,4 @@ export * from "./node/node.js";
 export * from "./teardown.js";
 export * from "./message_collector.js";
 export * from "./utils.js";
+export * from "./waitForConnections.js";

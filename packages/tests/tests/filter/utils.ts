@@ -3,6 +3,7 @@ import {
   DefaultPubsubTopic,
   IFilterSubscription,
   LightNode,
+  ProtocolCreateOptions,
   Protocols,
   ShardingParams
 } from "@waku/interfaces";
@@ -60,7 +61,7 @@ export async function runNodes(
     { retries: 3 }
   );
 
-  const waku_options = {
+  const waku_options: ProtocolCreateOptions = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     pubsubTopics: shardInfo ? undefined : pubsubTopics,
@@ -84,6 +85,66 @@ export async function runNodes(
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
     await nwaku.ensureSubscriptions(pubsubTopics);
     return [nwaku, waku];
+  } else {
+    throw new Error("Failed to initialize waku");
+  }
+}
+
+export async function runMultipleNodes(
+  context: Context,
+  //TODO: change this to use `ShardInfo` instead of `string[]`
+  pubsubTopics: string[],
+  shardInfo?: ShardingParams,
+  numServiceNodes = 1
+): Promise<[NimGoNode[], LightNode]> {
+  // create numServiceNodes nodes
+  const serviceNodes = [...Array(numServiceNodes).keys()].map(
+    (num) => new NimGoNode(makeLogFileName(context) + `-${num}`)
+  );
+
+  await Promise.all(
+    serviceNodes.map(async (nwaku) => {
+      await nwaku.start(
+        {
+          filter: true,
+          lightpush: true,
+          relay: true,
+          pubsubTopic: pubsubTopics
+        },
+        { retries: 3 }
+      );
+      return nwaku;
+    })
+  );
+
+  const waku_options: ProtocolCreateOptions = {
+    staticNoiseKey: NOISE_KEY_1,
+    libp2p: {
+      addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
+    },
+    pubsubTopics: shardInfo ? undefined : pubsubTopics,
+    ...((pubsubTopics.length !== 1 ||
+      pubsubTopics[0] !== DefaultPubsubTopic) && {
+      shardInfo: shardInfo
+    })
+  };
+
+  log.info("Starting js waku node with :", JSON.stringify(waku_options));
+  let waku: LightNode | undefined;
+  try {
+    waku = await createLightNode(waku_options);
+    await waku.start();
+  } catch (error) {
+    log.error("jswaku node failed to start:", error);
+  }
+
+  if (waku) {
+    for (const node of serviceNodes) {
+      await waku.dial(await node.getMultiaddrWithId());
+      await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+      await node.ensureSubscriptions(pubsubTopics);
+    }
+    return [serviceNodes, waku];
   } else {
     throw new Error("Failed to initialize waku");
   }
