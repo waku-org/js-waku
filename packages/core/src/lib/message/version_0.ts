@@ -118,6 +118,7 @@ export class Encoder implements IEncoder {
  * messages.
  */
 export function createEncoder({
+  pubsubTopic,
   pubsubTopicShardInfo,
   contentTopic,
   ephemeral,
@@ -126,7 +127,7 @@ export function createEncoder({
   return new Encoder(
     contentTopic,
     ephemeral,
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
+    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
     metaSetter
   );
 }
@@ -186,7 +187,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
  */
 export function createDecoder(
   contentTopic: string,
-  pubsubTopicShardInfo?: SingleShardInfo
+  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
 ): Decoder {
   return new Decoder(
     determinePubsubTopic(contentTopic, pubsubTopicShardInfo),

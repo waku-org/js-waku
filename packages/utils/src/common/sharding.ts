@@ -23,14 +23,31 @@ export const shardInfoToPubsubTopics = (
   if (shardInfo.clusterId === undefined)
     throw new Error("Cluster ID must be specified");
   if ("contentTopics" in shardInfo) {
-    return shardInfo.contentTopics.map((contentTopic) =>
-      contentTopicToPubsubTopic(contentTopic, shardInfo.clusterId)
+    // Autosharding: explicitly defined content topics
+    return Array.from(
+      new Set(
+        shardInfo.contentTopics.map((contentTopic) =>
+          contentTopicToPubsubTopic(contentTopic, shardInfo.clusterId)
+        )
+      )
+    );
+  } else if ("shards" in shardInfo) {
+    // Static sharding
+    if (shardInfo.shards === undefined) throw new Error("Invalid shard");
+    return Array.from(
+      new Set(
+        shardInfo.shards.map(
+          (index) => `/waku/2/rs/${shardInfo.clusterId}/${index}`
+        )
+      )
     );
   } else {
-    if (shardInfo.shards === undefined) throw new Error("Invalid shard");
-    return shardInfo.shards.map(
-      (index) => `/waku/2/rs/${shardInfo.clusterId}/${index}`
-    );
+    // Autosharding: single shard from application and version
+    return [
+      contentTopicToPubsubTopic(
+        `/${shardInfo.application}/${shardInfo.version}/default/default`
+      )
+    ];
   }
 };
 
@@ -183,11 +200,18 @@ export function contentTopicsByPubsubTopic(
  */
 export function determinePubsubTopic(
   contentTopic: string,
-  pubsubTopicShardInfo?: SingleShardInfo
+  pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
 ): string {
-  return pubsubTopicShardInfo
-    ? pubsubTopicShardInfo.shard
-      ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
-      : contentTopicToPubsubTopic(contentTopic, pubsubTopicShardInfo.clusterId)
-    : DefaultPubsubTopic;
+  if (typeof pubsubTopicShardInfo == "string") {
+    return pubsubTopicShardInfo;
+  } else {
+    return pubsubTopicShardInfo
+      ? pubsubTopicShardInfo.shard
+        ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+        : contentTopicToPubsubTopic(
+            contentTopic,
+            pubsubTopicShardInfo.clusterId
+          )
+      : DefaultPubsubTopic;
+  }
 }

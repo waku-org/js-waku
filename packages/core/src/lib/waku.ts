@@ -55,6 +55,7 @@ export class WakuNode implements Waku {
 
   constructor(
     options: WakuOptions,
+    pubsubTopics: PubsubTopic[] = [],
     libp2p: Libp2p,
     pubsubShardInfo?: ShardingParams,
     store?: (libp2p: Libp2p) => IStore,
@@ -63,7 +64,8 @@ export class WakuNode implements Waku {
     relay?: (libp2p: Libp2p) => IRelay
   ) {
     if (!pubsubShardInfo) {
-      this.pubsubTopics = [DefaultPubsubTopic];
+      this.pubsubTopics =
+        pubsubTopics.length > 0 ? pubsubTopics : [DefaultPubsubTopic];
     } else {
       this.pubsubTopics = shardInfoToPubsubTopics(pubsubShardInfo);
     }

@@ -128,3 +128,14 @@ describe("contentTopicsByPubsubTopic", () => {
     }
   });
 });
+
+describe("contentTopicsByPubsubTopic", () => {
+  it("groups content topics by expected pubsub topic", () => {
+    const contentTopics = ["/toychat/2/huilong/proto", "/myapp/1/latest/proto"];
+    const grouped = contentTopicsByPubsubTopic(contentTopics);
+    for (const contentTopic of contentTopics) {
+      const pubsubTopic = contentTopicToPubsubTopic(contentTopic);
+      expect(grouped.get(pubsubTopic)?.includes(contentTopic)).to.be.true;
+    }
+  });
+});
