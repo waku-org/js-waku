@@ -47,6 +47,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.22](https://github.com/waku-org/js-waku/compare/sdk-v0.0.21...sdk-v0.0.22) (2024-01-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* add support for sharded pubsub topics & remove support for named pubsub topics ([#1697](https://github.com/waku-org/js-waku/issues/1697))
+* change all instances of `PubSubTopic` to `PubsubTopic` ([#1703](https://github.com/waku-org/js-waku/issues/1703))
+
+### Features
+
+* Add support for autosharded pubsub topics ([2bc3735](https://github.com/waku-org/js-waku/commit/2bc3735e4dcf85f06b3dee542024d7f20a40fac2))
+* Add support for sharded pubsub topics & remove support for named pubsub topics ([#1697](https://github.com/waku-org/js-waku/issues/1697)) ([4cf2ffe](https://github.com/waku-org/js-waku/commit/4cf2ffefa75e0571805036b71644d2cdd4fe3192))
+* Metadata protocol ([#1732](https://github.com/waku-org/js-waku/issues/1732)) ([9ac2a3f](https://github.com/waku-org/js-waku/commit/9ac2a3f36352523b79fcd8f8a94bd6e0e109fc30))
+
+
+### Miscellaneous Chores
+
+* Change all instances of `PubSubTopic` to `PubsubTopic` ([#1703](https://github.com/waku-org/js-waku/issues/1703)) ([3166a51](https://github.com/waku-org/js-waku/commit/3166a5135e77583da4fa722ee2aa47c785854a38))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.13 to 0.0.14
+    * @waku/relay bumped from 0.0.8 to 0.0.9
+    * @waku/core bumped from 0.0.25 to 0.0.26
+    * @waku/dns-discovery bumped from 0.0.19 to 0.0.20
+    * @waku/interfaces bumped from 0.0.20 to 0.0.21
+    * @waku/peer-exchange bumped from ^0.0.18 to ^0.0.19
+
 ## [0.0.20](https://github.com/waku-org/js-waku/compare/sdk-v0.0.19...sdk-v0.0.20) (2023-10-16)
 
 
