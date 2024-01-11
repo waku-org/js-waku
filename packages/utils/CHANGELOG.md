@@ -12,6 +12,33 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.14](https://github.com/waku-org/js-waku/compare/utils-v0.0.13...utils-v0.0.14) (2024-01-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* add support for sharded pubsub topics & remove support for named pubsub topics ([#1697](https://github.com/waku-org/js-waku/issues/1697))
+* change all instances of `PubSubTopic` to `PubsubTopic` ([#1703](https://github.com/waku-org/js-waku/issues/1703))
+
+### Features
+
+* Add function for determining shard index from content topic ([86da696](https://github.com/waku-org/js-waku/commit/86da6962bac91a8719de1f9cd60e9f7bc13e48f1))
+* Add function to validate autoshard content topic ([1bc1eb5](https://github.com/waku-org/js-waku/commit/1bc1eb509166e6dfcb24c59a90eb05f5dc16de78))
+* Add support for autosharded pubsub topics ([2bc3735](https://github.com/waku-org/js-waku/commit/2bc3735e4dcf85f06b3dee542024d7f20a40fac2))
+* Add support for sharded pubsub topics & remove support for named pubsub topics ([#1697](https://github.com/waku-org/js-waku/issues/1697)) ([4cf2ffe](https://github.com/waku-org/js-waku/commit/4cf2ffefa75e0571805036b71644d2cdd4fe3192))
+
+
+### Miscellaneous Chores
+
+* Change all instances of `PubSubTopic` to `PubsubTopic` ([#1703](https://github.com/waku-org/js-waku/issues/1703)) ([3166a51](https://github.com/waku-org/js-waku/commit/3166a5135e77583da4fa722ee2aa47c785854a38))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.20 to 0.0.21
+
 ## [0.0.13](https://github.com/waku-org/js-waku/compare/utils-v0.0.12...utils-v0.0.13) (2023-11-01)
 
 

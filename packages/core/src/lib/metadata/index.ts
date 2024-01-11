@@ -32,7 +32,7 @@ class Metadata extends BaseProtocol implements IMetadata {
     public shardInfo: ShardingParams,
     libp2p: Libp2pComponents
   ) {
-    super(MetadataCodec, libp2p.components, shardInfo && { shardInfo });
+    super(MetadataCodec, libp2p.components, log, shardInfo && { shardInfo });
     this.libp2pComponents = libp2p;
     void libp2p.registrar.handle(MetadataCodec, (streamData) => {
       void this.onRequest(streamData);
@@ -75,7 +75,10 @@ class Metadata extends BaseProtocol implements IMetadata {
   async query(peerId: PeerId): Promise<ShardInfo> {
     const request = proto_metadata.WakuMetadataRequest.encode(this.shardInfo);
 
-    const peer = await this.getPeer(peerId);
+    const peer = await this.peerStore.get(peerId);
+    if (!peer) {
+      throw new Error(`Peer ${peerId.toString()} not found`);
+    }
 
     const stream = await this.getStream(peer);
 

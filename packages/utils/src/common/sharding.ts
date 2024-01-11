@@ -22,6 +22,7 @@ export const shardInfoToPubsubTopics = (
 ): PubsubTopic[] => {
   if (shardInfo.clusterId === undefined)
     throw new Error("Cluster ID must be specified");
+
   if ("contentTopics" in shardInfo) {
     // Autosharding: explicitly defined content topics
     return Array.from(

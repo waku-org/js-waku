@@ -1,6 +1,5 @@
 import type { Libp2p } from "@libp2p/interface";
 import type { Stream } from "@libp2p/interface/connection";
-import type { PeerId } from "@libp2p/interface/peer-id";
 import { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type {
   IBaseProtocol,
@@ -9,14 +8,14 @@ import type {
   PubsubTopic
 } from "@waku/interfaces";
 import { DefaultPubsubTopic } from "@waku/interfaces";
-import { shardInfoToPubsubTopics } from "@waku/utils";
+import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
 import {
   getConnectedPeersForProtocolAndShard,
   getPeersForProtocol,
-  selectPeerForProtocol
+  sortPeersByLatency
 } from "@waku/utils/libp2p";
 
-import { filterPeers } from "./filterPeers.js";
+import { filterPeersByDiscovery } from "./filterPeers.js";
 import { StreamManager } from "./stream_manager.js";
 
 /**
@@ -32,7 +31,8 @@ export class BaseProtocol implements IBaseProtocol {
   constructor(
     public multicodec: string,
     private components: Libp2pComponents,
-    public options?: ProtocolCreateOptions
+    private log: Logger,
+    private options?: ProtocolCreateOptions
   ) {
     this.pubsubTopics = this.initializePubsubTopic(options);
 
@@ -77,22 +77,14 @@ export class BaseProtocol implements IBaseProtocol {
     });
   }
 
-  protected async getPeer(peerId?: PeerId): Promise<Peer> {
-    const { peer } = await selectPeerForProtocol(
-      this.peerStore,
-      [this.multicodec],
-      peerId
-    );
-    return peer;
-  }
-
   /**
-   * Retrieves a list of connected peers based on the specified criteria.
+   * Retrieves a list of connected peers that support the protocol. The list is sorted by latency.
    *
    * @param numPeers - The total number of peers to retrieve. If 0, all peers are returned.
    * @param maxBootstrapPeers - The maximum number of bootstrap peers to retrieve.
-   * @returns A Promise that resolves to an array of peers based on the specified criteria.
-   */
+   
+  * @returns A list of peers that support the protocol sorted by latency.
+  */
   protected async getPeers(
     {
       numPeers,
@@ -110,15 +102,30 @@ export class BaseProtocol implements IBaseProtocol {
       await getConnectedPeersForProtocolAndShard(
         this.components.connectionManager.getConnections(),
         this.peerStore,
-        [this.multicodec]
+        [this.multicodec],
+        this.options?.shardInfo
       );
 
-    // Filter the peers based on the specified criteria
-    return filterPeers(
+    // Filter the peers based on discovery & number of peers requested
+    const filteredPeers = filterPeersByDiscovery(
       connectedPeersForProtocolAndShard,
       numPeers,
       maxBootstrapPeers
     );
+
+    // Sort the peers by latency
+    const sortedFilteredPeers = await sortPeersByLatency(
+      this.peerStore,
+      filteredPeers
+    );
+
+    if (sortedFilteredPeers.length === 0) {
+      this.log.warn(
+        "No peers found. Ensure you have a connection to the network."
+      );
+    }
+
+    return sortedFilteredPeers;
   }
 
   private initializePubsubTopic(

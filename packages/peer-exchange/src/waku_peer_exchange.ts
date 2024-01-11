@@ -27,7 +27,7 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
    * @param components - libp2p components
    */
   constructor(components: Libp2pComponents) {
-    super(PeerExchangeCodec, components);
+    super(PeerExchangeCodec, components, log);
   }
 
   /**
@@ -42,7 +42,10 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
       numPeers: BigInt(numPeers)
     });
 
-    const peer = await this.getPeer(params.peerId);
+    const peer = await this.peerStore.get(params.peerId);
+    if (!peer) {
+      throw new Error(`Peer ${params.peerId.toString()} not found`);
+    }
 
     const stream = await this.getStream(peer);
 
