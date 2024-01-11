@@ -79,7 +79,7 @@ class Store extends BaseProtocol implements IStore {
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components, log);
-    this.pubsubTopics = this.initializePubsubTopic(options?.shardInfo);
+    this.pubsubTopics = this.initializePubsubTopic(options);
   }
 
   /**

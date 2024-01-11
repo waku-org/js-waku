@@ -63,6 +63,7 @@ export async function runNodes(
   const waku_options = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+    pubsubTopics: shardInfo ? undefined : pubsubTopics,
     ...((pubsubTopics.length !== 1 ||
       pubsubTopics[0] !== DefaultPubsubTopic) && {
       shardInfo: shardInfo

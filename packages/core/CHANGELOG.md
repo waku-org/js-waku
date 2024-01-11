@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.26](https://github.com/waku-org/js-waku/compare/core-v0.0.25...core-v0.0.26) (2024-01-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* add support for sharded pubsub topics & remove support for named pubsub topics ([#1697](https://github.com/waku-org/js-waku/issues/1697))
+* change all instances of `PubSubTopic` to `PubsubTopic` ([#1703](https://github.com/waku-org/js-waku/issues/1703))
+
+### Features
+
+* Add support for autosharded pubsub topics ([2bc3735](https://github.com/waku-org/js-waku/commit/2bc3735e4dcf85f06b3dee542024d7f20a40fac2))
+* Add support for sharded pubsub topics & remove support for named pubsub topics ([#1697](https://github.com/waku-org/js-waku/issues/1697)) ([4cf2ffe](https://github.com/waku-org/js-waku/commit/4cf2ffefa75e0571805036b71644d2cdd4fe3192))
+* Metadata protocol ([#1732](https://github.com/waku-org/js-waku/issues/1732)) ([9ac2a3f](https://github.com/waku-org/js-waku/commit/9ac2a3f36352523b79fcd8f8a94bd6e0e109fc30))
+* Track node connection state ([#1719](https://github.com/waku-org/js-waku/issues/1719)) ([1d0e2ac](https://github.com/waku-org/js-waku/commit/1d0e2ace7fa5b44ab192505c7ebce01a7ce343e0))
+
+
+### Miscellaneous Chores
+
+* Change all instances of `PubSubTopic` to `PubsubTopic` ([#1703](https://github.com/waku-org/js-waku/issues/1703)) ([3166a51](https://github.com/waku-org/js-waku/commit/3166a5135e77583da4fa722ee2aa47c785854a38))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.19 to ^0.0.20
+    * @waku/interfaces bumped from 0.0.20 to 0.0.21
+    * @waku/proto bumped from 0.0.5 to 0.0.6
+    * @waku/utils bumped from 0.0.13 to 0.0.14
+
 ## [0.0.25](https://github.com/waku-org/js-waku/compare/core-v0.0.24...core-v0.0.25) (2023-11-01)
 
 

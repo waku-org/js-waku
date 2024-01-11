@@ -49,7 +49,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components, log);
-    this.pubsubTopics = this.initializePubsubTopic(options?.shardInfo);
+    this.pubsubTopics = this.initializePubsubTopic(options);
   }
 
   private async preparePushMessage(

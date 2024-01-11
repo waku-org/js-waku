@@ -4,8 +4,8 @@ import { Peer, PeerStore } from "@libp2p/interface/peer-store";
 import type {
   IBaseProtocol,
   Libp2pComponents,
-  PubsubTopic,
-  ShardingParams
+  ProtocolCreateOptions,
+  PubsubTopic
 } from "@waku/interfaces";
 import { DefaultPubsubTopic } from "@waku/interfaces";
 import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
@@ -113,9 +113,12 @@ export class BaseProtocol implements IBaseProtocol {
     return sortedFilteredPeers;
   }
 
-  initializePubsubTopic(shardInfo?: ShardingParams): PubsubTopic[] {
-    return shardInfo
-      ? shardInfoToPubsubTopics(shardInfo)
-      : [DefaultPubsubTopic];
+  initializePubsubTopic(options?: ProtocolCreateOptions): PubsubTopic[] {
+    return (
+      options?.pubsubTopics ??
+      (options?.shardInfo
+        ? shardInfoToPubsubTopics(options.shardInfo)
+        : [DefaultPubsubTopic])
+    );
   }
 }
