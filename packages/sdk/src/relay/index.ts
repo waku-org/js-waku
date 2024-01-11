@@ -37,6 +37,7 @@ export async function createRelayNode(
 
   return new WakuNode(
     options,
+    options.pubsubTopics,
     libp2p,
     options.shardInfo,
     undefined,
