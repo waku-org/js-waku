@@ -77,11 +77,17 @@ describe("Peer Exchange", () => {
       expect(peerInfos[0].ENR).to.not.be.null;
       expect(peerInfos[0].ENR?.peerInfo?.multiaddrs).to.not.be.null;
 
-      const foundNodeMultiaddrs: Multiaddr[] = [];
-      const foundNodePeerId: PeerId | undefined = undefined;
-      const doesPeerIdExistInResponse = peerInfos.some(
-        ({ ENR }) => ENR?.peerInfo?.id.toString() === nwaku1PeerId.toString()
-      );
+      let foundNodeMultiaddrs: Multiaddr[] = [];
+      let foundNodePeerId: PeerId | undefined = undefined;
+      const doesPeerIdExistInResponse = peerInfos.some(({ ENR }) => {
+        foundNodeMultiaddrs = ENR?.peerInfo?.multiaddrs ?? [];
+        foundNodePeerId = ENR?.peerInfo?.id;
+        return ENR?.peerInfo?.id.toString() === nwaku1PeerId.toString();
+      });
+
+      if (!foundNodePeerId) {
+        throw new Error("Peer ID not found");
+      }
 
       if (!foundNodePeerId) {
         throw new Error("Peer ID not found");
