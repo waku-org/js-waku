@@ -5,11 +5,11 @@
   "workspaces": [
     "packages/interfaces",
     "packages/utils",
+    "packages/message-hash",
     "packages/proto",
     "packages/enr",
     "packages/core",
     "packages/relay",
-    "packages/message-hash",
     "packages/peer-exchange",
     "packages/dns-discovery",
     "packages/message-encryption",
