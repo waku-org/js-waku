@@ -14,9 +14,9 @@ import {
 } from "@waku/message-encryption/symmetric";
 import {
   createLightNode,
-  createEncoder as createPlainEncoder,
-  createRelayNode
+  createEncoder as createPlainEncoder
 } from "@waku/sdk";
+import { createRelayNode } from "@waku/sdk/relay";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 

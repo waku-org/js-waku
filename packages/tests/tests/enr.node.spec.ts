@@ -2,7 +2,7 @@ import { waitForRemotePeer } from "@waku/core";
 import { EnrDecoder } from "@waku/enr";
 import type { RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { createRelayNode } from "@waku/sdk";
+import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
 import { makeLogFileName, NOISE_KEY_1, tearDownNodes } from "../src/index.js";
