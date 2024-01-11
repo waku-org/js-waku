@@ -38,15 +38,30 @@ const DEFAULT_NODE_REQUIREMENTS = {
 
 export { Libp2pComponents };
 
+const ensureShardingConfigured = (shardInfo: ShardingParams): void => {
+  if (
+    ("shards" in shardInfo && shardInfo.shards.length < 1) ||
+    ("contentTopics" in shardInfo && shardInfo.contentTopics.length < 1)
+  ) {
+    throw new Error(
+      "Missing required configuration options for static sharding or autosharding."
+    );
+  }
+};
+
 /**
- * Create a Waku node that uses Waku Light Push, Filter and Store to send and
- * receive messages, enabling low resource consumption.
- * Uses Waku Filter V2 by default.
+ * Create a Waku node configured to use autosharding or static sharding.
  */
-export async function createLightNode(
-  options?: ProtocolCreateOptions & WakuOptions
+export async function createNode(
+  options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
 ): Promise<LightNode> {
   options = options ?? {};
+
+  if (!options.shardInfo) {
+    throw new Error("Shard info must be set");
+  }
+
+  ensureShardingConfigured(options.shardInfo);
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -56,8 +71,8 @@ export async function createLightNode(
   }
 
   const libp2p = await defaultLibp2p(
-    options.shardInfo,
     undefined,
+    wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
   );
@@ -68,6 +83,50 @@ export async function createLightNode(
 
   return new WakuNode(
     options ?? {},
+    [],
+    libp2p,
+    options.shardInfo,
+    store,
+    lightPush,
+    filter
+  ) as LightNode;
+}
+
+/**
+ * Create a Waku node that uses Waku Light Push, Filter and Store to send and
+ * receive messages, enabling low resource consumption.
+ * Uses Waku Filter V2 by default.
+ */
+export async function createLightNode(
+  options?: ProtocolCreateOptions & WakuOptions
+): Promise<LightNode> {
+  options = options ?? {};
+
+  if (options.shardInfo) {
+    ensureShardingConfigured(options.shardInfo);
+  }
+
+  const libp2pOptions = options?.libp2p ?? {};
+  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
+  if (options?.defaultBootstrap) {
+    peerDiscovery.push(...defaultPeerDiscoveries());
+    Object.assign(libp2pOptions, { peerDiscovery });
+  }
+
+  const libp2p = await defaultLibp2p(
+    options.shardInfo,
+    wakuGossipSub(options),
+    libp2pOptions,
+    options?.userAgent
+  );
+
+  const store = wakuStore(options);
+  const lightPush = wakuLightPush(options);
+  const filter = wakuFilter(options);
+
+  return new WakuNode(
+    options ?? {},
+    options.pubsubTopics,
     libp2p,
     options.shardInfo,
     store,
@@ -94,6 +153,10 @@ export async function createFullNode(
 ): Promise<FullNode> {
   options = options ?? {};
 
+  if (options.shardInfo) {
+    ensureShardingConfigured(options.shardInfo);
+  }
+
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
   if (options?.defaultBootstrap) {
@@ -115,6 +178,7 @@ export async function createFullNode(
 
   return new WakuNode(
     options ?? {},
+    options.pubsubTopics,
     libp2p,
     options.shardInfo,
     store,

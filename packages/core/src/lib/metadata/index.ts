@@ -24,7 +24,7 @@ class Metadata extends BaseProtocol {
   private readonly shardInfo: ShardingParams;
   private libp2pComponents: Libp2pComponents;
   constructor(shardInfo: ShardingParams, libp2p: Libp2pComponents) {
-    super(MetadataCodec, libp2p.components);
+    super(MetadataCodec, libp2p.components, log);
     this.libp2pComponents = libp2p;
     this.shardInfo = shardInfo;
     void libp2p.registrar.handle(MetadataCodec, (streamData) => {
@@ -70,7 +70,10 @@ class Metadata extends BaseProtocol {
   async query(peerId: PeerId): Promise<ShardInfo> {
     const request = proto_metadata.WakuMetadataRequest.encode(this.shardInfo);
 
-    const peer = await this.getPeer(peerId);
+    const peer = await this.peerStore.get(peerId);
+    if (!peer) {
+      throw new Error(`Peer ${peerId.toString()} not found`);
+    }
 
     const stream = await this.getStream(peer);
 

@@ -78,8 +78,8 @@ class Store extends BaseProtocol implements IStore {
   private readonly NUM_PEERS_PROTOCOL = 1;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(StoreCodec, libp2p.components);
-    this.pubsubTopics = this.initializePubsubTopic(options?.shardInfo);
+    super(StoreCodec, libp2p.components, log);
+    this.pubsubTopics = this.initializePubsubTopic(options);
   }
 
   /**

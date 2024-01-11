@@ -35,6 +35,7 @@ export async function runNodes(
         pubsubTopics[0] !== DefaultPubsubTopic) && {
         shardInfo: shardInfo
       }),
+      pubsubTopics: shardInfo ? undefined : pubsubTopics,
       staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();

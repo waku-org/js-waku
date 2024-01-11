@@ -46,6 +46,10 @@ export interface IMetaSetter {
 }
 
 export interface EncoderOptions {
+  /**
+   * @deprecated
+   */
+  pubsubTopic?: PubsubTopic;
   pubsubTopicShardInfo?: SingleShardInfo;
   /** The content topic to set on outgoing messages. */
   contentTopic: string;
