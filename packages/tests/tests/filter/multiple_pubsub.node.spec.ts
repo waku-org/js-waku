@@ -387,10 +387,14 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [
-      customPubsubTopic1,
-      customPubsubTopic2
-    ]);
+    [nwaku, waku] = await runNodes(
+      this,
+      [customPubsubTopic1, customPubsubTopic2],
+      {
+        clusterId: 3,
+        shards: [1, 2]
+      }
+    );
     subscription = await waku.filter.createSubscription(customPubsubTopic1);
     messageCollector = new MessageCollector();
   });

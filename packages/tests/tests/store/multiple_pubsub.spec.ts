@@ -322,7 +322,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
   });
 });
 
-describe("Waku Store (named sharding), custom pubsub topic", function () {
+describe.only("Waku Store (named sharding), custom pubsub topic", function () {
   this.timeout(15000);
   let waku: LightNode;
   let nwaku: NimGoNode;
@@ -342,18 +342,22 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     nwaku = new NimGoNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
-      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
-      relay: true
+      relay: true,
+      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2]
     });
     await nwaku.ensureSubscriptions([
       customShardedPubsubTopic1,
       customShardedPubsubTopic2
     ]);
 
-    waku = await startAndConnectLightNode(nwaku, [
-      customShardedPubsubTopic1,
-      customShardedPubsubTopic2
-    ]);
+    waku = await startAndConnectLightNode(
+      nwaku,
+      [customShardedPubsubTopic1, customShardedPubsubTopic2],
+      {
+        clusterId: 3,
+        shards: [1, 2]
+      }
+    );
   });
 
   afterEach(async function () {
