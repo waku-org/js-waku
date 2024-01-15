@@ -15,6 +15,7 @@ import { expect } from "chai";
 import {
   delay,
   generateTestData,
+  isNwakuAtLeast,
   makeLogFileName,
   MessageCollector,
   NimGoNode,
@@ -222,7 +223,10 @@ describe("Waku Filter V2: Subscribe", function () {
 
   it("Subscribe to 100 topics at once and receives messages", async function () {
     this.timeout(50000);
-    const topicCount = 100;
+    let topicCount = 30;
+    if (isNwakuAtLeast("0.24.0")) {
+      topicCount = 100;
+    }
     const td = generateTestData(topicCount);
 
     // Subscribe to all 100 topics.
@@ -254,7 +258,10 @@ describe("Waku Filter V2: Subscribe", function () {
   });
 
   it("Error when try to subscribe to more than 101 topics", async function () {
-    const topicCount = 101;
+    let topicCount = 31;
+    if (isNwakuAtLeast("0.24.0")) {
+      topicCount = 101;
+    }
     const td = generateTestData(topicCount);
 
     // Attempt to subscribe to 101 topics
@@ -266,7 +273,9 @@ describe("Waku Filter V2: Subscribe", function () {
     } catch (err) {
       if (
         err instanceof Error &&
-        err.message.includes("exceeds maximum content topics: 100")
+        err.message.includes(
+          `exceeds maximum content topics: ${topicCount - 1}`
+        )
       ) {
         return;
       } else {
