@@ -79,12 +79,22 @@ export async function runNodes(
     log.error("jswaku node failed to start:", error);
   }
 
-  if (waku) {
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-    await nwaku.ensureSubscriptions(pubsubTopics);
-    return [nwaku, waku];
-  } else {
+  if (!waku) {
     throw new Error("Failed to initialize waku");
   }
+
+  await waku.dial(await nwaku.getMultiaddrWithId());
+  await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+  await nwaku.ensureSubscriptions(pubsubTopics);
+
+  const wakuPeers = await waku.libp2p.peerStore.all();
+  const nwakuPeers = await nwaku.peers();
+
+  if (wakuPeers.length < 1 || nwakuPeers.length < 1) {
+    throw new Error(
+      `Expected at least 1 peer in each node. Got waku: ${wakuPeers.length} and nwaku: ${nwakuPeers.length}`
+    );
+  }
+
+  return [nwaku, waku];
 }
