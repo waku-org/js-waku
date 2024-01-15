@@ -322,7 +322,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
   });
 });
 
-describe.only("Waku Store (named sharding), custom pubsub topic", function () {
+describe("Waku Store (named sharding), custom pubsub topic", function () {
   this.timeout(15000);
   let waku: LightNode;
   let nwaku: NimGoNode;
