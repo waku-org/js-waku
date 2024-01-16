@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerId } from "@libp2p/interface";
 import type { ENRKey, ENRValue } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 

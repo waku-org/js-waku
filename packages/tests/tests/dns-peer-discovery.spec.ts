@@ -1,5 +1,6 @@
-import { EventEmitter } from "@libp2p/interface/events";
+import { TypedEventEmitter } from "@libp2p/interface";
 import tests from "@libp2p/interface-compliance-tests/peer-discovery";
+import { prefixLogger } from "@libp2p/logger";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { PersistentPeerStore } from "@libp2p/peer-store";
 import {
@@ -24,9 +25,10 @@ describe("DNS Discovery: Compliance Test", function () {
       // create libp2p mock peerStore
       const components = {
         peerStore: new PersistentPeerStore({
-          events: new EventEmitter(),
+          events: new TypedEventEmitter(),
           peerId: await createSecp256k1PeerId(),
-          datastore: new MemoryDatastore()
+          datastore: new MemoryDatastore(),
+          logger: prefixLogger("dns-peer-discovery.spec.ts")
         })
       } as unknown as Libp2pComponents;
 

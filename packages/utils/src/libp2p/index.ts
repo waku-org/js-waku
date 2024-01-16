@@ -1,5 +1,4 @@
-import type { Connection } from "@libp2p/interface/connection";
-import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
+import type { Connection, Peer, PeerStore } from "@libp2p/interface";
 
 import { bytesToUtf8 } from "../bytes/index.js";
 
