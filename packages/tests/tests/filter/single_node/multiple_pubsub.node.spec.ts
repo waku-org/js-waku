@@ -20,7 +20,7 @@ import {
   MessageCollector,
   ServiceNode,
   tearDownNodes
-} from "../../src/index.js";
+} from "../../../src/index.js";
 
 import { runNodes } from "./utils.js";
 

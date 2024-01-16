@@ -9,16 +9,16 @@ import {
   MessageCollector,
   ServiceNode,
   tearDownNodes
-} from "../../src/index.js";
-
+} from "../../../src/index.js";
 import {
   messagePayload,
   messageText,
-  runNodes,
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./utils.js";
+} from "../utils.js";
+
+import { runNodes } from "./utils.js";
 
 describe("Waku Filter V2: Unsubscribe", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
