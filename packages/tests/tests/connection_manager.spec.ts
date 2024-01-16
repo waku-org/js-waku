@@ -14,7 +14,7 @@ import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 
-import { delay } from "../dist/delay.js";
+import { delay } from "../src/index.js";
 import { makeLogFileName, ServiceNode, tearDownNodes } from "../src/index.js";
 
 const TEST_TIMEOUT = 10_000;

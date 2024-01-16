@@ -93,7 +93,7 @@ describe("Waku Store, general", function () {
     }
 
     waku = await startAndConnectLightNode(nwaku);
-    const messageCollector = new MessageCollector();
+    const messageCollector = new MessageCollector(nwaku);
     messageCollector.list = await processQueriedMessages(
       waku,
       [TestDecoder],
@@ -125,7 +125,7 @@ describe("Waku Store, general", function () {
     );
     waku = await startAndConnectLightNode(nwaku);
 
-    const messageCollector = new MessageCollector();
+    const messageCollector = new MessageCollector(nwaku);
     messageCollector.list = await processQueriedMessages(
       waku,
       [TestDecoder, secondDecoder],

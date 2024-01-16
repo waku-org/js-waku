@@ -5,9 +5,8 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
-import { MessageRpcResponse } from "./types.js";
-
-import { base64ToUtf8, delay, ServiceNode } from "./index.js";
+import { base64ToUtf8, delay, ServiceNode } from "../index.js";
+import { MessageRpcResponse } from "../types.js";
 
 const log = new Logger("test:message-collector");
 

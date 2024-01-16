@@ -28,3 +28,5 @@ export async function waitForFile(path: string): Promise<void> {
     }
   } while (!found);
 }
+
+export * from "./log_file.js";

@@ -2,7 +2,7 @@ import { Waku } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import pRetry from "p-retry";
 
-import { ServiceNode } from "../index.js";
+import { ServiceNode } from "../lib/service_node.js";
 
 const log = new Logger("test:teardown");
 
