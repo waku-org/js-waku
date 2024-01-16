@@ -3,7 +3,8 @@ import type { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
-import { MessageCollector, NimGoNode, tearDownNodes } from "../../src/index.js";
+import { ServiceNode, tearDownNodes } from "../../src/index.js";
+import { MessageCollector } from "../../src/message_collector.js";
 
 import {
   runNodes,
@@ -17,7 +18,7 @@ describe("Waku Filter V2: Ping", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(10000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 

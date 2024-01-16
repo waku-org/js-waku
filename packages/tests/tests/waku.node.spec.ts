@@ -24,18 +24,18 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
+  ServiceNode,
   tearDownNodes
 } from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
 
 const TestEncoder = createPlainEncoder({ contentTopic: TestContentTopic });
 
 describe("Waku Dial [node only]", function () {
-  describe("Interop: NimGoNode", function () {
+  describe("Interop: ServiceNode", function () {
     let waku: LightNode;
-    let nwaku: NimGoNode;
+    let nwaku: ServiceNode;
 
     afterEach(async function () {
       this.timeout(15000);
@@ -44,7 +44,7 @@ describe("Waku Dial [node only]", function () {
 
     it("connects to nwaku", async function () {
       this.timeout(20_000);
-      nwaku = new NimGoNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({
         filter: true,
         store: true,
@@ -77,7 +77,7 @@ describe("Waku Dial [node only]", function () {
         expect.fail("uncaughtException", e)
       );
 
-      nwaku = new NimGoNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({
         filter: true,
         store: true,
@@ -100,7 +100,7 @@ describe("Waku Dial [node only]", function () {
 
   describe("Bootstrap", function () {
     let waku: LightNode;
-    let nwaku: NimGoNode;
+    let nwaku: ServiceNode;
 
     afterEach(async function () {
       this.timeout(15000);
@@ -110,7 +110,7 @@ describe("Waku Dial [node only]", function () {
     it("Passing an array", async function () {
       this.timeout(10_000);
 
-      nwaku = new NimGoNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start();
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
       waku = await createLightNode({
@@ -133,7 +133,7 @@ describe("Waku Dial [node only]", function () {
     it("Using a function", async function () {
       this.timeout(10_000);
 
-      nwaku = new NimGoNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start();
 
       const nwakuMa = await nwaku.getMultiaddrWithId();

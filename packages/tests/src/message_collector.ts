@@ -5,9 +5,9 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
-import { MessageRpcResponse } from "./node/interfaces.js";
+import { MessageRpcResponse } from "./types.js";
 
-import { base64ToUtf8, delay, NimGoNode } from "./index.js";
+import { base64ToUtf8, delay, ServiceNode } from "./index.js";
 
 const log = new Logger("test:message-collector");
 
@@ -20,7 +20,7 @@ export class MessageCollector {
   list: Array<MessageRpcResponse | DecodedMessage> = [];
   callback: (msg: DecodedMessage) => void = () => {};
 
-  constructor(private nwaku?: NimGoNode) {
+  constructor(private nwaku?: ServiceNode) {
     if (!this.nwaku) {
       this.callback = (msg: DecodedMessage): void => {
         log.info("Got a message");

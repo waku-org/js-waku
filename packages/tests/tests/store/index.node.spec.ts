@@ -22,7 +22,7 @@ import {
   delay,
   makeLogFileName,
   MessageCollector,
-  NimGoNode,
+  ServiceNode,
   tearDownNodes,
   TEST_STRING
 } from "../../src/index.js";
@@ -46,11 +46,11 @@ describe("Waku Store, general", function () {
   this.timeout(15000);
   let waku: LightNode;
   let waku2: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
 
   beforeEach(async function () {
     this.timeout(15000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({ store: true, lightpush: true, relay: true });
     await nwaku.ensureSubscriptions();
   });
@@ -82,7 +82,7 @@ describe("Waku Store, general", function () {
     for (const testItem of TEST_STRING) {
       expect(
         await nwaku.sendMessage(
-          NimGoNode.toMessageRpcQuery({
+          ServiceNode.toMessageRpcQuery({
             payload: utf8ToBytes(testItem["value"]),
             contentTopic: TestContentTopic
           }),
@@ -110,14 +110,14 @@ describe("Waku Store, general", function () {
 
   it("Query generator for multiple messages with multiple decoders", async function () {
     await nwaku.sendMessage(
-      NimGoNode.toMessageRpcQuery({
+      ServiceNode.toMessageRpcQuery({
         payload: utf8ToBytes("M1"),
         contentTopic: TestContentTopic
       }),
       DefaultPubsubTopic
     );
     await nwaku.sendMessage(
-      NimGoNode.toMessageRpcQuery({
+      ServiceNode.toMessageRpcQuery({
         payload: utf8ToBytes("M2"),
         contentTopic: customContentTopic1
       }),
@@ -139,7 +139,7 @@ describe("Waku Store, general", function () {
     for (const testItem of TEST_STRING) {
       expect(
         await nwaku.sendMessage(
-          NimGoNode.toMessageRpcQuery({
+          ServiceNode.toMessageRpcQuery({
             payload: utf8ToBytes(messageText),
             contentTopic: testItem["value"]
           }),

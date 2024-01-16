@@ -2,12 +2,12 @@ import { Waku } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import pRetry from "p-retry";
 
-import { NimGoNode } from "./index.js";
+import { ServiceNode } from "../index.js";
 
 const log = new Logger("test:teardown");
 
 export async function tearDownNodes(
-  nwakuNodes: NimGoNode | NimGoNode[],
+  nwakuNodes: ServiceNode | ServiceNode[],
   wakuNodes: Waku | Waku[]
 ): Promise<void> {
   const nNodes = Array.isArray(nwakuNodes) ? nwakuNodes : [nwakuNodes];
