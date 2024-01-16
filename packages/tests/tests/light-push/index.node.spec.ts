@@ -9,12 +9,12 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  generateRandomUint8Array,
   MessageCollector,
-  NimGoNode,
+  ServiceNode,
   tearDownNodes,
   TEST_STRING
 } from "../../src/index.js";
-import { generateRandomUint8Array } from "../../src/random_array.js";
 
 import {
   messagePayload,
@@ -28,7 +28,7 @@ describe("Waku Light Push", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(15000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
   let messageCollector: MessageCollector;
 
   this.beforeEach(async function () {

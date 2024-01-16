@@ -1,6 +1,6 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import { DefaultPubsubTopic, RelayNode } from "@waku/interfaces";
-import { createRelayNode } from "@waku/sdk";
+import { createRelayNode } from "@waku/sdk/relay";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -46,7 +46,7 @@ describe("Waku Relay, Subscribe", function () {
     });
     await waku1.dial(waku2.libp2p.peerId);
     log.info("before each hook done");
-    messageCollector = new MessageCollector();
+    messageCollector = new MessageCollector(this.nwaku);
   });
 
   afterEach(async function () {

@@ -1,6 +1,6 @@
 {
   "name": "@waku/peer-exchange",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "description": "Peer Exchange (https://rfc.vac.dev/spec/34/) protocol for Waku",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -49,14 +49,14 @@
   },
   "dependencies": {
     "@libp2p/interfaces": "^3.3.2",
-    "@waku/core": "0.0.25",
-    "@waku/enr": "0.0.19",
-    "@waku/interfaces": "0.0.20",
-    "@waku/proto": "0.0.5",
-    "@waku/utils": "0.0.13",
+    "@waku/core": "0.0.26",
+    "@waku/enr": "0.0.20",
+    "@waku/interfaces": "0.0.21",
+    "@waku/proto": "0.0.6",
+    "@waku/utils": "0.0.14",
     "debug": "^4.3.4",
     "it-all": "^3.0.4",
-    "it-length-prefixed": "^9.0.1",
+    "it-length-prefixed": "^9.0.4",
     "it-pipe": "^3.0.1"
   },
   "devDependencies": {

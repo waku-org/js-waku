@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.6](https://github.com/waku-org/js-waku/compare/proto-v0.0.5...proto-v0.0.6) (2024-01-10)
+
+
+### Features
+
+* Metadata protocol ([#1732](https://github.com/waku-org/js-waku/issues/1732)) ([9ac2a3f](https://github.com/waku-org/js-waku/commit/9ac2a3f36352523b79fcd8f8a94bd6e0e109fc30))
+
 ## [0.0.5](https://github.com/waku-org/js-waku/compare/proto-v0.0.4...proto-v0.0.5) (2023-05-26)
 
 

@@ -1,26 +1,27 @@
 import type { PeerId } from "@libp2p/interface/peer-id";
 import { DecodedMessage, waitForRemotePeer } from "@waku/core";
 import { DefaultPubsubTopic, Protocols, RelayNode } from "@waku/interfaces";
-import { createRelayNode } from "@waku/sdk";
+import { createRelayNode } from "@waku/sdk/relay";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  base64ToUtf8,
   delay,
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
+  ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
-import { MessageRpcResponse } from "../../src/node/interfaces.js";
-import { base64ToUtf8, NimGoNode } from "../../src/node/node.js";
+import { MessageRpcResponse } from "../../src/types.js";
 
 import { TestContentTopic, TestDecoder, TestEncoder } from "./utils.js";
 
 describe("Waku Relay, Interop", function () {
   this.timeout(15000);
   let waku: RelayNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
 
   beforeEach(async function () {
     this.timeout(30000);
@@ -29,7 +30,7 @@ describe("Waku Relay, Interop", function () {
     });
     await waku.start();
 
-    nwaku = new NimGoNode(this.test?.ctx?.currentTest?.title + "");
+    nwaku = new ServiceNode(this.test?.ctx?.currentTest?.title + "");
     await nwaku.start({ relay: true });
 
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -89,7 +90,7 @@ describe("Waku Relay, Interop", function () {
     );
 
     await nwaku.sendMessage(
-      NimGoNode.toMessageRpcQuery({
+      ServiceNode.toMessageRpcQuery({
         contentTopic: TestContentTopic,
         payload: utf8ToBytes(messageText)
       })
@@ -105,7 +106,7 @@ describe("Waku Relay, Interop", function () {
   describe("Two nodes connected to nwaku", function () {
     let waku1: RelayNode;
     let waku2: RelayNode;
-    let nwaku: NimGoNode;
+    let nwaku: ServiceNode;
 
     afterEach(async function () {
       await tearDownNodes(nwaku, [waku1, waku2]);
@@ -122,7 +123,7 @@ describe("Waku Relay, Interop", function () {
         }).then((waku) => waku.start().then(() => waku))
       ]);
 
-      nwaku = new NimGoNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({ relay: true });
 
       const nwakuMultiaddr = await nwaku.getMultiaddrWithId();

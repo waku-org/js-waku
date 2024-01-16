@@ -3,7 +3,7 @@ import fs from "fs";
 import { Logger } from "@waku/utils";
 import Docker from "dockerode";
 
-import { Args } from "./interfaces.js";
+import { Args } from "../types.js";
 
 const log = new Logger("test:docker");
 

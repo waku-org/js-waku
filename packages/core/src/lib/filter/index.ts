@@ -355,7 +355,7 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(FilterCodecs.SUBSCRIBE, libp2p.components);
+    super(FilterCodecs.SUBSCRIBE, libp2p.components, log);
 
     this.pubsubTopics = this.initializePubsubTopic(options);
 

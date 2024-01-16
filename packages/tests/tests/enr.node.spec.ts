@@ -2,15 +2,19 @@ import { waitForRemotePeer } from "@waku/core";
 import { EnrDecoder } from "@waku/enr";
 import type { RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { createRelayNode } from "@waku/sdk";
+import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
-import { makeLogFileName, NOISE_KEY_1, tearDownNodes } from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
+import {
+  makeLogFileName,
+  NOISE_KEY_1,
+  ServiceNode,
+  tearDownNodes
+} from "../src/index.js";
 
-describe("ENR Interop: NimGoNode", function () {
+describe("ENR Interop: ServiceNode", function () {
   let waku: RelayNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
 
   afterEach(async function () {
     this.timeout(15000);
@@ -19,7 +23,7 @@ describe("ENR Interop: NimGoNode", function () {
 
   it("Relay", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: false,
@@ -51,7 +55,7 @@ describe("ENR Interop: NimGoNode", function () {
 
   it("Relay + Store", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: true,
@@ -83,7 +87,7 @@ describe("ENR Interop: NimGoNode", function () {
 
   it("All", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: true,

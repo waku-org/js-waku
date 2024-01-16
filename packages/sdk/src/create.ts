@@ -22,7 +22,6 @@ import type {
   Libp2pComponents,
   LightNode,
   ProtocolCreateOptions,
-  RelayNode,
   ShardingParams
 } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
@@ -134,47 +133,6 @@ export async function createLightNode(
     lightPush,
     filter
   ) as LightNode;
-}
-
-/**
- * Create a Waku node that uses Waku Relay to send and receive messages,
- * enabling some privacy preserving properties.
- */
-export async function createRelayNode(
-  options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
-): Promise<RelayNode> {
-  options = options ?? {};
-
-  if (options.shardInfo) {
-    ensureShardingConfigured(options.shardInfo);
-  }
-
-  const libp2pOptions = options?.libp2p ?? {};
-  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
-  if (options?.defaultBootstrap) {
-    peerDiscovery.push(...defaultPeerDiscoveries());
-    Object.assign(libp2pOptions, { peerDiscovery });
-  }
-
-  const libp2p = await defaultLibp2p(
-    options.shardInfo,
-    wakuGossipSub(options),
-    libp2pOptions,
-    options?.userAgent
-  );
-
-  const relay = wakuRelay(options);
-
-  return new WakuNode(
-    options,
-    options.pubsubTopics,
-    libp2p,
-    options.shardInfo,
-    undefined,
-    undefined,
-    undefined,
-    relay
-  ) as RelayNode;
 }
 
 /**

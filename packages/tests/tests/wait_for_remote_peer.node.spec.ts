@@ -1,21 +1,22 @@
 import { waitForRemotePeer } from "@waku/core";
 import type { LightNode, RelayNode } from "@waku/interfaces";
 import { DefaultPubsubTopic, Protocols } from "@waku/interfaces";
-import { createLightNode, createRelayNode } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
+import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
 import {
   delay,
   makeLogFileName,
   NOISE_KEY_1,
+  ServiceNode,
   tearDownNodes
 } from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
 
 describe("Wait for remote peer", function () {
   let waku1: RelayNode;
   let waku2: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
 
   afterEach(async function () {
     this.timeout(15000);
@@ -24,7 +25,7 @@ describe("Wait for remote peer", function () {
 
   it("Relay - dialed first", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: false,
@@ -49,7 +50,7 @@ describe("Wait for remote peer", function () {
 
   it("Relay - dialed after", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: false,
@@ -97,7 +98,7 @@ describe("Wait for remote peer", function () {
 
   it("Store - dialed first", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
       relay: false,
@@ -123,7 +124,7 @@ describe("Wait for remote peer", function () {
 
   it("Store - dialed after - with timeout", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
       relay: false,
@@ -151,7 +152,7 @@ describe("Wait for remote peer", function () {
 
   it("LightPush", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       lightpush: true,
       filter: false,
@@ -179,7 +180,7 @@ describe("Wait for remote peer", function () {
 
   it("Filter", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       filter: true,
       lightpush: false,
@@ -207,7 +208,7 @@ describe("Wait for remote peer", function () {
 
   it("Light Node - default protocols", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       filter: true,
       lightpush: true,
@@ -247,7 +248,7 @@ describe("Wait for remote peer", function () {
 
   it("Privacy Node - default protocol", async function () {
     this.timeout(20_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       filter: false,
       lightpush: false,
