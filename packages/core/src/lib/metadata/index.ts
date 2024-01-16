@@ -3,6 +3,7 @@ import { IncomingStreamData } from "@libp2p/interface/stream-handler";
 import type {
   IMetadata,
   Libp2pComponents,
+  PeerIdStr,
   ShardInfo,
   ShardingParams
 } from "@waku/interfaces";
@@ -21,12 +22,7 @@ export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
 class Metadata extends BaseProtocol implements IMetadata {
   private libp2pComponents: Libp2pComponents;
-  handshakesConfirmed: Set<PeerId> = new Set();
-
-  checkHandshake(peerId: PeerId): boolean {
-    const handshakesArr = [...this.handshakesConfirmed];
-    return handshakesArr.some((id) => id.equals(peerId));
-  }
+  handshakesConfirmed: Set<PeerIdStr> = new Set();
 
   constructor(
     public shardInfo: ShardingParams,
@@ -98,7 +94,7 @@ class Metadata extends BaseProtocol implements IMetadata {
   }
 
   public async confirmOrAttemptHandshake(peerId: PeerId): Promise<void> {
-    if (this.checkHandshake(peerId)) return;
+    if (this.handshakesConfirmed.has(peerId.toString())) return;
 
     await this.query(peerId);
 
@@ -131,7 +127,7 @@ class Metadata extends BaseProtocol implements IMetadata {
       }
     });
 
-    this.handshakesConfirmed.add(peerId);
+    this.handshakesConfirmed.add(peerId.toString());
   }
 }
 
