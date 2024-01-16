@@ -5,14 +5,16 @@ import {
   LightNode,
   ProtocolCreateOptions,
   Protocols,
-  ShardingParams
+  ShardingParams,
+  Waku
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { Logger } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { Context } from "mocha";
+import pRetry from "p-retry";
 
-import { makeLogFileName, NOISE_KEY_1, ServiceNode } from "../../src/index.js";
+import { NOISE_KEY_1, ServiceNodes } from "../../src/index.js";
 
 // Constants for test configuration.
 export const log = new Logger("test:filter");
@@ -43,78 +45,20 @@ export async function validatePingError(
   }
 }
 
-export async function runNodes(
-  context: Context,
-  //TODO: change this to use `ShardInfo` instead of `string[]`
-  pubsubTopics: string[],
-  shardInfo?: ShardingParams
-): Promise<[ServiceNode, LightNode]> {
-  const nwaku = new ServiceNode(makeLogFileName(context));
-
-  await nwaku.start(
-    {
-      filter: true,
-      lightpush: true,
-      relay: true,
-      pubsubTopic: pubsubTopics
-    },
-    { retries: 3 }
-  );
-
-  const waku_options: ProtocolCreateOptions = {
-    staticNoiseKey: NOISE_KEY_1,
-    libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-    pubsubTopics: shardInfo ? undefined : pubsubTopics,
-    ...((pubsubTopics.length !== 1 ||
-      pubsubTopics[0] !== DefaultPubsubTopic) && {
-      shardInfo: shardInfo
-    })
-  };
-
-  log.info("Starting js waku node with :", JSON.stringify(waku_options));
-  let waku: LightNode | undefined;
-  try {
-    waku = await createLightNode(waku_options);
-    await waku.start();
-  } catch (error) {
-    log.error("jswaku node failed to start:", error);
-  }
-
-  if (waku) {
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-    await nwaku.ensureSubscriptions(pubsubTopics);
-    return [nwaku, waku];
-  } else {
-    throw new Error("Failed to initialize waku");
-  }
-}
-
 export async function runMultipleNodes(
   context: Context,
   //TODO: change this to use `ShardInfo` instead of `string[]`
   pubsubTopics: string[],
   shardInfo?: ShardingParams,
   numServiceNodes = 1
-): Promise<[NimGoNode[], LightNode]> {
+): Promise<[ServiceNodes, LightNode]> {
   // create numServiceNodes nodes
-  const serviceNodes = [...Array(numServiceNodes).keys()].map(
-    (num) => new NimGoNode(makeLogFileName(context) + `-${num}`)
-  );
-
-  await Promise.all(
-    serviceNodes.map(async (nwaku) => {
-      await nwaku.start(
-        {
-          filter: true,
-          lightpush: true,
-          relay: true,
-          pubsubTopic: pubsubTopics
-        },
-        { retries: 3 }
-      );
-      return nwaku;
-    })
+  const serviceNodes = await ServiceNodes.createAndRun(
+    context,
+    pubsubTopics,
+    numServiceNodes,
+    shardInfo,
+    undefined
   );
 
   const waku_options: ProtocolCreateOptions = {
@@ -139,7 +83,7 @@ export async function runMultipleNodes(
   }
 
   if (waku) {
-    for (const node of serviceNodes) {
+    for (const node of serviceNodes.nodes) {
       await waku.dial(await node.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
       await node.ensureSubscriptions(pubsubTopics);
@@ -148,4 +92,43 @@ export async function runMultipleNodes(
   } else {
     throw new Error("Failed to initialize waku");
   }
+}
+
+export async function teardownNodesWithRedundancy(
+  serviceNodes: ServiceNodes,
+  wakuNodes: Waku | Waku[]
+): Promise<void> {
+  const wNodes = Array.isArray(wakuNodes) ? wakuNodes : [wakuNodes];
+
+  const stopNwakuNodes = serviceNodes.nodes.map(async (node) => {
+    await pRetry(
+      async () => {
+        try {
+          await node.stop();
+        } catch (error) {
+          log.error("Service Node failed to stop:", error);
+          throw error;
+        }
+      },
+      { retries: 3 }
+    );
+  });
+
+  const stopWakuNodes = wNodes.map(async (waku) => {
+    if (waku) {
+      await pRetry(
+        async () => {
+          try {
+            await waku.stop();
+          } catch (error) {
+            log.error("Waku failed to stop:", error);
+            throw error;
+          }
+        },
+        { retries: 3 }
+      );
+    }
+  });
+
+  await Promise.all([...stopNwakuNodes, ...stopWakuNodes]);
 }
