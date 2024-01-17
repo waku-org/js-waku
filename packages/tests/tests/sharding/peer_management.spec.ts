@@ -1,5 +1,5 @@
 import { bootstrap } from "@libp2p/bootstrap";
-import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerId } from "@libp2p/interface";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import {
   ContentTopicInfo,

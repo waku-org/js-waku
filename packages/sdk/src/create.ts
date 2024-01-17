@@ -1,7 +1,9 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
-import type { PeerDiscovery } from "@libp2p/interface/peer-discovery";
+import { identify } from "@libp2p/identify";
+import type { PeerDiscovery } from "@libp2p/interface";
 import { mplex } from "@libp2p/mplex";
+import { ping } from "@libp2p/ping";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import {
@@ -27,8 +29,6 @@ import type {
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { createLibp2p } from "libp2p";
-import { identifyService } from "libp2p/identify";
-import { pingService } from "libp2p/ping";
 
 const DEFAULT_NODE_REQUIREMENTS = {
   lightPush: 1,
@@ -242,10 +242,10 @@ export async function defaultLibp2p(
     connectionEncryption: [noise()],
     ...options,
     services: {
-      identify: identifyService({
+      identify: identify({
         agentVersion: userAgent ?? DefaultUserAgent
       }),
-      ping: pingService(),
+      ping: ping(),
       ...metadataService,
       ...pubsubService,
       ...options?.services

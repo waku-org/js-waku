@@ -1,5 +1,4 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
-import type { PeerInfo } from "@libp2p/interface/peer-info";
+import type { PeerId, PeerInfo } from "@libp2p/interface";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import type {
   ENRKey,
@@ -116,8 +115,7 @@ export class ENR extends RawEnr implements IEnr {
     if (!id) return;
     return {
       id,
-      multiaddrs: this.getAllLocationMultiaddrs(),
-      protocols: []
+      multiaddrs: this.getAllLocationMultiaddrs()
     };
   }
 

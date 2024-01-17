@@ -1,6 +1,5 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
-import type { PeerInfo } from "@libp2p/interface/peer-info";
-import { CustomEvent } from "@libp2p/interfaces/events";
+import type { PeerId, PeerInfo } from "@libp2p/interface";
+import { CustomEvent } from "@libp2p/interface";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { Multiaddr } from "@multiformats/multiaddr";
 import {
@@ -62,8 +61,7 @@ describe("ConnectionManager", function () {
           new CustomEvent<PeerInfo>("peer:discovery", {
             detail: {
               id: peerIdBootstrap,
-              multiaddrs: [],
-              protocols: []
+              multiaddrs: []
             }
           })
         );
@@ -96,8 +94,7 @@ describe("ConnectionManager", function () {
           new CustomEvent<PeerInfo>("peer:discovery", {
             detail: {
               id: peerIdPx,
-              multiaddrs: [],
-              protocols: []
+              multiaddrs: []
             }
           })
         );
@@ -312,8 +309,7 @@ describe("ConnectionManager", function () {
             new CustomEvent<PeerInfo>("peer:discovery", {
               detail: {
                 id: await createSecp256k1PeerId(),
-                multiaddrs: [],
-                protocols: []
+                multiaddrs: []
               }
             })
           );
@@ -377,7 +373,7 @@ describe("ConnectionManager", function () {
           // emit a peer:discovery event
           waku.libp2p.dispatchEvent(
             new CustomEvent<PeerInfo>("peer:discovery", {
-              detail: { id: bootstrapPeer, multiaddrs: [], protocols: [] }
+              detail: { id: bootstrapPeer, multiaddrs: [] }
             })
           );
 
@@ -399,8 +395,7 @@ describe("ConnectionManager", function () {
             new CustomEvent<PeerInfo>("peer:discovery", {
               detail: {
                 id: await createSecp256k1PeerId(),
-                multiaddrs: [],
-                protocols: []
+                multiaddrs: []
               }
             })
           );
@@ -417,8 +412,7 @@ describe("ConnectionManager", function () {
               new CustomEvent<PeerInfo>("peer:discovery", {
                 detail: {
                   id: await createSecp256k1PeerId(),
-                  multiaddrs: [],
-                  protocols: []
+                  multiaddrs: []
                 }
               })
             );
@@ -443,8 +437,7 @@ describe("ConnectionManager", function () {
             new CustomEvent<PeerInfo>("peer:discovery", {
               detail: {
                 id: pxPeer,
-                multiaddrs: [],
-                protocols: []
+                multiaddrs: []
               }
             })
           );
@@ -469,8 +462,7 @@ describe("ConnectionManager", function () {
               new CustomEvent<PeerInfo>("peer:discovery", {
                 detail: {
                   id: await createSecp256k1PeerId(),
-                  multiaddrs: [],
-                  protocols: []
+                  multiaddrs: []
                 }
               })
             );
