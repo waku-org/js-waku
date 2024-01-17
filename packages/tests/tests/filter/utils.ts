@@ -14,7 +14,11 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
-import { NOISE_KEY_1, ServiceNodes } from "../../src/index.js";
+import {
+  NOISE_KEY_1,
+  ServiceNodes,
+  waitForConnections
+} from "../../src/index.js";
 
 // Constants for test configuration.
 export const log = new Logger("test:filter");
@@ -51,7 +55,7 @@ export async function runMultipleNodes(
   pubsubTopics: string[],
   strictChecking: boolean = false,
   shardInfo?: ShardingParams,
-  numServiceNodes = 1
+  numServiceNodes = 3
 ): Promise<[ServiceNodes, LightNode]> {
   // create numServiceNodes nodes
   const serviceNodes = await ServiceNodes.createAndRun(
@@ -90,6 +94,8 @@ export async function runMultipleNodes(
       await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
       await node.ensureSubscriptions(pubsubTopics);
     }
+    await waitForConnections(numServiceNodes, waku);
+
     return [serviceNodes, waku];
   } else {
     throw new Error("Failed to initialize waku");

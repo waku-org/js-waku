@@ -6,7 +6,7 @@ import {
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { Args, MessageRpcQuery } from "../types";
+import { Args, MessageRpcQuery, MessageRpcResponse } from "../types";
 import { delay, makeLogFileName } from "../utils/index.js";
 
 import { MessageCollector } from "./message_collector.js";
@@ -80,13 +80,38 @@ export class ServiceNodes {
     );
   }
 
+  get type(): "go-waku" | "nwaku" {
+    const nodeType = new Set(
+      this.nodes.map((node) => {
+        return node.type();
+      })
+    );
+    if (nodeType.size > 1) {
+      throw new Error("Multiple node types");
+    }
+    return nodeType.values().next().value;
+  }
+
+  async start(): Promise<void> {
+    const startPromises = this.nodes.map((node) => node.start());
+    await Promise.all(startPromises);
+  }
+
   async sendRelayMessage(
     message: MessageRpcQuery,
-    pubsubTopic: string = DefaultPubsubTopic
+    pubsubTopic: string = DefaultPubsubTopic,
+    raw = false
   ): Promise<boolean> {
-    const relayMessagePromises = this.nodes.map((node) =>
-      node.sendMessage(message, pubsubTopic)
-    );
+    let relayMessagePromises: Promise<boolean>[];
+    if (raw) {
+      relayMessagePromises = this.nodes.map((node) =>
+        node.rpcCall<boolean>("post_waku_v2_relay_v1_message", [message])
+      );
+    } else {
+      relayMessagePromises = this.nodes.map((node) =>
+        node.sendMessage(message, pubsubTopic)
+      );
+    }
     const relayMessages = await Promise.all(relayMessagePromises);
     return relayMessages.every((message) => message);
   }
@@ -115,6 +140,10 @@ class MultipleNodesMessageCollector {
         collector.hasMessage(topic, text)
       );
     }
+  }
+
+  getMessage(index: number): MessageRpcResponse | DecodedMessage {
+    return this.messageList[index];
   }
 
   /**
