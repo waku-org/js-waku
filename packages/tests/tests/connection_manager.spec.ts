@@ -14,8 +14,8 @@ import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 
-import { delay } from "../dist/delay.js";
-import { makeLogFileName, NimGoNode, tearDownNodes } from "../src/index.js";
+import { delay } from "../src/index.js";
+import { makeLogFileName, ServiceNode, tearDownNodes } from "../src/index.js";
 
 const TEST_TIMEOUT = 10_000;
 const DELAY_MS = 1_000;
@@ -486,15 +486,15 @@ describe("ConnectionManager", function () {
 
   describe("Connection state", () => {
     this.timeout(20_000);
-    let nwaku1: NimGoNode;
-    let nwaku2: NimGoNode;
+    let nwaku1: ServiceNode;
+    let nwaku2: ServiceNode;
     let nwaku1PeerId: Multiaddr;
     let nwaku2PeerId: Multiaddr;
 
     beforeEach(async () => {
       this.timeout(20_000);
-      nwaku1 = new NimGoNode(makeLogFileName(this.ctx) + "1");
-      nwaku2 = new NimGoNode(makeLogFileName(this.ctx) + "2");
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
       await nwaku1.start({
         filter: true
       });

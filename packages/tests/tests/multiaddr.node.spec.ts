@@ -11,13 +11,13 @@ import Sinon, { SinonSpy, SinonStub } from "sinon";
 import {
   delay,
   makeLogFileName,
-  NimGoNode,
+  ServiceNode,
   tearDownNodes
 } from "../src/index.js";
 
 describe("multiaddr: dialing", function () {
   let waku: Waku;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
   let dialPeerSpy: SinonSpy;
   let isPeerTopicConfigured: SinonStub;
 
@@ -56,7 +56,7 @@ describe("multiaddr: dialing", function () {
 
     beforeEach(async function () {
       this.timeout(10_000);
-      nwaku = new NimGoNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start();
 
       waku = await createLightNode();

@@ -6,18 +6,21 @@ import { shardInfoToPubsubTopics } from "@waku/utils";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
-import { delay, tearDownNodes } from "../src/index.js";
-import { makeLogFileName } from "../src/log_file.js";
-import { NimGoNode } from "../src/node/node.js";
+import {
+  delay,
+  makeLogFileName,
+  ServiceNode,
+  tearDownNodes
+} from "../src/index.js";
 
 chai.use(chaiAsPromised);
 
 describe("Metadata Protocol", () => {
   let waku: LightNode;
-  let nwaku1: NimGoNode;
+  let nwaku1: ServiceNode;
 
   beforeEach(function () {
-    nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
+    nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
   });
 
   afterEach(async function () {

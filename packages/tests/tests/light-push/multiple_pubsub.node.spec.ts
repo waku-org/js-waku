@@ -18,7 +18,7 @@ import { expect } from "chai";
 import {
   makeLogFileName,
   MessageCollector,
-  NimGoNode,
+  ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
 
@@ -27,8 +27,8 @@ import { messageText, runNodes } from "./utils.js";
 describe("Waku Light Push : Multiple PubsubTopics", function () {
   this.timeout(30000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
-  let nwaku2: NimGoNode;
+  let nwaku: ServiceNode;
+  let nwaku2: ServiceNode;
   let messageCollector: MessageCollector;
   const customPubsubTopic1 = singleShardInfoToPubsubTopic({
     clusterId: 3,
@@ -126,7 +126,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
 
   it("Light push messages to 2 nwaku nodes each with different pubsubtopics", async function () {
     // Set up and start a new nwaku node with Default PubsubTopic
-    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,
@@ -180,8 +180,8 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
 describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   this.timeout(30000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
-  let nwaku2: NimGoNode;
+  let nwaku: ServiceNode;
+  let nwaku2: ServiceNode;
   let messageCollector: MessageCollector;
 
   // When using lightpush, we have to use a cluster id of 1 because that is the default cluster id for autosharding
@@ -285,7 +285,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
 
   it("Light push messages to 2 nwaku nodes each with different pubsubtopics", async function () {
     // Set up and start a new nwaku node with Default PubsubTopic
-    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,
@@ -337,8 +337,8 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
 describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () {
   this.timeout(30000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
-  let nwaku2: NimGoNode;
+  let nwaku: ServiceNode;
+  let nwaku2: ServiceNode;
   let messageCollector: MessageCollector;
 
   // When using lightpush, we have to use a cluster id of 1 because that is the default cluster id for autosharding
@@ -438,7 +438,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
 
   it("Light push messages to 2 nwaku nodes each with different pubsubtopics", async function () {
     // Set up and start a new nwaku node with Default PubsubTopic
-    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,

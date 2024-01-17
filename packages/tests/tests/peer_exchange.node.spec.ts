@@ -10,20 +10,23 @@ import {
 import { createLightNode, Libp2pComponents } from "@waku/sdk";
 import { expect } from "chai";
 
-import { delay } from "../src/delay.js";
-import { tearDownNodes, waitForRemotePeerWithCodec } from "../src/index.js";
-import { makeLogFileName } from "../src/log_file.js";
-import { NimGoNode } from "../src/node/node.js";
+import {
+  delay,
+  makeLogFileName,
+  ServiceNode,
+  tearDownNodes,
+  waitForRemotePeerWithCodec
+} from "../src/index.js";
 
 describe("Peer Exchange", () => {
   describe("Locally Run Nodes", () => {
     let waku: LightNode;
-    let nwaku1: NimGoNode;
-    let nwaku2: NimGoNode;
+    let nwaku1: ServiceNode;
+    let nwaku2: ServiceNode;
 
     beforeEach(function () {
-      nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
-      nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     });
 
     afterEach(async function () {
@@ -111,12 +114,12 @@ describe("Peer Exchange", () => {
     this.timeout(55_000);
 
     let waku: LightNode;
-    let nwaku1: NimGoNode;
-    let nwaku2: NimGoNode;
+    let nwaku1: ServiceNode;
+    let nwaku2: ServiceNode;
 
     beforeEach(async function () {
-      nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
-      nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     });
 
     tests({

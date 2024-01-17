@@ -6,8 +6,8 @@ import { expect } from "chai";
 
 import {
   makeLogFileName,
-  NimGoNode,
   NOISE_KEY_1,
+  ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
 
@@ -32,12 +32,12 @@ import {
 describe("Waku Store, custom pubsub topic", function () {
   this.timeout(15000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
-  let nwaku2: NimGoNode;
+  let nwaku: ServiceNode;
+  let nwaku2: ServiceNode;
 
   beforeEach(async function () {
     this.timeout(15000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
@@ -122,7 +122,7 @@ describe("Waku Store, custom pubsub topic", function () {
     this.timeout(10000);
 
     // Set up and start a new nwaku node with Default Pubsubtopic
-    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic2],
@@ -179,8 +179,8 @@ describe("Waku Store, custom pubsub topic", function () {
 describe("Waku Store (Autosharding), custom pubsub topic", function () {
   this.timeout(15000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
-  let nwaku2: NimGoNode;
+  let nwaku: ServiceNode;
+  let nwaku2: ServiceNode;
 
   const customContentTopic1 = "/waku/2/content/utf8";
   const customContentTopic2 = "/myapp/1/latest/proto";
@@ -210,7 +210,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
 
   beforeEach(async function () {
     this.timeout(15000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
@@ -284,7 +284,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     this.timeout(10000);
 
     // Set up and start a new nwaku node with Default Pubsubtopic
-    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic2],
@@ -331,8 +331,8 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
 describe("Waku Store (named sharding), custom pubsub topic", function () {
   this.timeout(15000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
-  let nwaku2: NimGoNode;
+  let nwaku: ServiceNode;
+  let nwaku2: ServiceNode;
 
   const customDecoder1 = createDecoder(
     customContentTopic1,
@@ -345,7 +345,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
 
   beforeEach(async function () {
     this.timeout(15000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
@@ -435,7 +435,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     this.timeout(10000);
 
     // Set up and start a new nwaku node with Default Pubsubtopic
-    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic2],
