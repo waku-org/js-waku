@@ -142,17 +142,10 @@ class Subscription {
         );
       }
     });
+
     const results = await Promise.allSettled(promises);
 
-    const errors = results.filter((result) => result.status === "rejected");
-
-    if (errors && errors.length) {
-      // TODO: handle renewing faulty peers with new peers
-      log.warn(
-        "Some subscriptions failed. These will be refreshed with new peers",
-        errors
-      );
-    }
+    this.handleErrors(results, "subscribe");
 
     // Save the callback functions by content topics so they
     // can easily be removed (reciprocally replaced) if `unsubscribe` (reciprocally `subscribe`)
@@ -182,7 +175,7 @@ class Subscription {
       try {
         await pipe([unsubscribeRequest.encode()], lp.encode, stream.sink);
       } catch (error) {
-        throw new Error("Error subscribing: " + error);
+        throw new Error("Error unsubscribing: " + error);
       }
 
       contentTopics.forEach((contentTopic: string) => {
@@ -192,15 +185,7 @@ class Subscription {
 
     const results = await Promise.allSettled(promises);
 
-    const errors = results.filter((result) => result.status === "rejected");
-
-    if (errors && errors.length) {
-      // TODO: handle renewing faulty peers with new peers
-      log.warn(
-        "Some subscriptions failed. These will be refreshed with new peers",
-        errors
-      );
-    }
+    this.handleErrors(results, "unsubscribe");
   }
 
   async ping(): Promise<void> {
@@ -232,25 +217,16 @@ class Subscription {
             `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
           );
         }
-
         log.info(`Ping successful for peer ${peer.id.toString()}`);
       } catch (error) {
         log.error("Error pinging: ", error);
-        throw new Error("Error pinging: " + error);
+        throw error; // Rethrow the actual error instead of wrapping it
       }
     });
 
     const results = await Promise.allSettled(promises);
 
-    const errors = results.filter((result) => result.status === "rejected");
-
-    if (errors && errors.length) {
-      // TODO: handle renewing faulty peers with new peers
-      log.warn(
-        "Some subscriptions failed. These will be refreshed with new peers",
-        errors
-      );
-    }
+    this.handleErrors(results, "ping");
   }
 
   async unsubscribeAll(): Promise<void> {
@@ -298,15 +274,7 @@ class Subscription {
 
     const results = await Promise.allSettled(promises);
 
-    const errors = results.filter((result) => result.status === "rejected");
-
-    if (errors && errors.length) {
-      // TODO: handle renewing faulty peers with new peers
-      log.warn(
-        "Some subscriptions failed. These will be refreshed with new peers",
-        errors
-      );
-    }
+    this.handleErrors(results, "unsubscribeAll");
   }
 
   async processMessage(message: WakuMessage): Promise<void> {
@@ -333,6 +301,42 @@ class Subscription {
       this.pubsubTopic
     );
     await pushMessage(subscriptionCallback, this.pubsubTopic, message);
+  }
+
+  // Filter out only the rejected promises and extract & handle their reasons
+  private handleErrors(
+    results: PromiseSettledResult<void>[],
+    type: "ping" | "subscribe" | "unsubscribe" | "unsubscribeAll"
+  ): void {
+    const errors = results
+      .filter(
+        (result): result is PromiseRejectedResult =>
+          result.status === "rejected"
+      )
+      .map((rejectedResult) => rejectedResult.reason);
+
+    if (errors.length === this.peers.length) {
+      const errorCounts = new Map<string, number>();
+      // TODO: streamline error logging with https://github.com/orgs/waku-org/projects/2/views/1?pane=issue&itemId=42849952
+      errors.forEach((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        errorCounts.set(message, (errorCounts.get(message) || 0) + 1);
+      });
+
+      const uniqueErrorMessages = Array.from(
+        errorCounts,
+        ([message, count]) => `${message} (occurred ${count} times)`
+      ).join(", ");
+      throw new Error(`Error ${type} all peers: ${uniqueErrorMessages}`);
+    } else if (errors.length > 0) {
+      // TODO: handle renewing faulty peers with new peers
+      log.warn(
+        `Some ${type} failed. These will be refreshed with new peers`,
+        errors
+      );
+    } else {
+      log.info(`${type} successful for all peers`);
+    }
   }
 }
 
