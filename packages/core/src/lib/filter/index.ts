@@ -1,6 +1,6 @@
-import { Stream } from "@libp2p/interface/connection";
-import type { Peer } from "@libp2p/interface/peer-store";
-import type { IncomingStreamData } from "@libp2p/interface-internal/registrar";
+import { Stream } from "@libp2p/interface";
+import type { Peer } from "@libp2p/interface";
+import type { IncomingStreamData } from "@libp2p/interface-internal";
 import type {
   Callback,
   ContentTopic,

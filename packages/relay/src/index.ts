@@ -6,8 +6,7 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import type { PeerId } from "@libp2p/interface/peer-id";
-import type { PubSub as Libp2pPubsub } from "@libp2p/interface/pubsub";
+import type { PubSub as Libp2pPubsub, PeerId } from "@libp2p/interface";
 import { sha256 } from "@noble/hashes/sha256";
 import {
   ActiveSubscriptions,

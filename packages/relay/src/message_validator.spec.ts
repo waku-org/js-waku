@@ -1,5 +1,5 @@
-import { TopicValidatorResult } from "@libp2p/interface/pubsub";
-import type { UnsignedMessage } from "@libp2p/interface/pubsub";
+import { TopicValidatorResult } from "@libp2p/interface";
+import type { UnsignedMessage } from "@libp2p/interface";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { createEncoder } from "@waku/core";
 import { expect } from "chai";

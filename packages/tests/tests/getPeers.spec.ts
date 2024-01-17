@@ -1,6 +1,4 @@
-import type { Connection } from "@libp2p/interface/connection";
-import type { PeerStore } from "@libp2p/interface/peer-store";
-import type { Peer } from "@libp2p/interface/peer-store";
+import type { Connection, Peer, PeerStore } from "@libp2p/interface";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import {
   createLightNode,

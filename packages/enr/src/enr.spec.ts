@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerId } from "@libp2p/interface";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { multiaddr } from "@multiformats/multiaddr";
 import * as secp from "@noble/secp256k1";

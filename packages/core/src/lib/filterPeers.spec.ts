@@ -1,5 +1,5 @@
-import { Peer } from "@libp2p/interface/peer-store";
-import type { Tag } from "@libp2p/interface/peer-store";
+import { Peer } from "@libp2p/interface";
+import type { Tag } from "@libp2p/interface";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { Tags } from "@waku/interfaces";
 import { expect } from "chai";
