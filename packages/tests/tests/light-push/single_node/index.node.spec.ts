@@ -14,15 +14,14 @@ import {
   ServiceNode,
   tearDownNodes,
   TEST_STRING
-} from "../../src/index.js";
-
+} from "../../../src/index.js";
 import {
   messagePayload,
   messageText,
   runNodes,
   TestContentTopic,
   TestEncoder
-} from "./utils.js";
+} from "../utils.js";
 
 describe("Waku Light Push", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
