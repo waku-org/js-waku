@@ -89,12 +89,6 @@ export async function getConnectedPeersForProtocolAndShard(
 
     if (supportsProtocol) {
       if (shardInfo) {
-        //TODO: support auto-sharding
-        if (!("shards" in shardInfo)) {
-          throw new Error(
-            `Connections Manager only supports static sharding for now. Autosharding is not supported.`
-          );
-        }
         const encodedPeerShardInfo = peer.metadata.get("shardInfo");
         const peerShardInfo =
           encodedPeerShardInfo && decodeRelayShard(encodedPeerShardInfo);

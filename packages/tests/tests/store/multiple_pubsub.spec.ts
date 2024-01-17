@@ -214,7 +214,8 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     await nwaku.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
-      relay: true
+      relay: true,
+      clusterId
     });
     await nwaku.ensureSubscriptionsAutosharding([
       customContentTopic1,
@@ -287,7 +288,8 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     await nwaku2.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic2],
-      relay: true
+      relay: true,
+      clusterId
     });
     await nwaku2.ensureSubscriptionsAutosharding([customContentTopic2]);
 
