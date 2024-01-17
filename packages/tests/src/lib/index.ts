@@ -100,13 +100,16 @@ export class ServiceNodes {
 
   async sendRelayMessage(
     message: MessageRpcQuery,
-    pubsubTopic: string = DefaultPubsubTopic,
+    pubsubTopic?: string,
     raw = false
   ): Promise<boolean> {
     let relayMessagePromises: Promise<boolean>[];
     if (raw) {
       relayMessagePromises = this.nodes.map((node) =>
-        node.rpcCall<boolean>("post_waku_v2_relay_v1_message", [message])
+        node.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
+          pubsubTopic && pubsubTopic,
+          message
+        ])
       );
     } else {
       relayMessagePromises = this.nodes.map((node) =>

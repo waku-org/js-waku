@@ -266,7 +266,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     }
   });
 
-  it("Overlapping topic subscription", async function () {
+  it.only("Overlapping topic subscription", async function () {
     // Define two sets of test data with overlapping topics.
     const topicCount1 = 2;
     const td1 = generateTestData(topicCount1);
@@ -281,7 +281,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
 
     // Send messages to the first set of topics.
     for (let i = 0; i < topicCount1; i++) {
-      const messageText = `Message for Topic ${i + 1}`;
+      const messageText = `Topic Set 1: Message Number: ${i + 1}`;
       await waku.lightPush.send(td1.encoders[i], {
         payload: utf8ToBytes(messageText)
       });
@@ -289,7 +289,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
 
     // Send messages to the second set of topics.
     for (let i = 0; i < topicCount2; i++) {
-      const messageText = `Message for Topic ${i + 1}`;
+      const messageText = `Topic Set 2: Message Number: ${i + 1}`;
+
       await waku.lightPush.send(td2.encoders[i], {
         payload: utf8ToBytes(messageText)
       });
