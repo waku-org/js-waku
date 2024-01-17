@@ -49,6 +49,7 @@ export async function runMultipleNodes(
   context: Context,
   //TODO: change this to use `ShardInfo` instead of `string[]`
   pubsubTopics: string[],
+  strictChecking: boolean = false,
   shardInfo?: ShardingParams,
   numServiceNodes = 1
 ): Promise<[ServiceNodes, LightNode]> {
@@ -57,6 +58,7 @@ export async function runMultipleNodes(
     context,
     pubsubTopics,
     numServiceNodes,
+    strictChecking,
     shardInfo,
     undefined
   );

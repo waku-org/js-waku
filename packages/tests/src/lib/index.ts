@@ -6,7 +6,7 @@ import {
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { Args } from "../types";
+import { Args, MessageRpcQuery } from "../types";
 import { delay, makeLogFileName } from "../utils/index.js";
 
 import { MessageCollector } from "./message_collector.js";
@@ -25,6 +25,7 @@ export class ServiceNodes {
     mochaContext: Mocha.Context,
     pubsubTopics: PubsubTopic[],
     nodesToCreate: number = 3,
+    strictChecking: boolean = false,
     shardInfo?: ShardingParams,
     _args?: Args,
     relay = false
@@ -47,13 +48,26 @@ export class ServiceNodes {
     );
 
     const nodes = await Promise.all(serviceNodePromises);
-    return new ServiceNodes(nodes, relay);
+    return new ServiceNodes(nodes, relay, strictChecking);
+  }
+
+  /**
+   * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
+   * by the nwaku JSON-RPC API.
+   */
+  static toMessageRpcQuery(message: {
+    payload: Uint8Array;
+    contentTopic: string;
+    timestamp?: Date;
+  }): MessageRpcQuery {
+    return ServiceNode.toMessageRpcQuery(message);
   }
 
   public messageCollector: MultipleNodesMessageCollector;
   private constructor(
     public nodes: ServiceNode[],
-    relay: boolean
+    relay: boolean,
+    strictChecking: boolean
   ) {
     const _messageCollectors: MessageCollector[] = [];
     this.nodes.forEach((node) => {
@@ -61,8 +75,20 @@ export class ServiceNodes {
     });
     this.messageCollector = new MultipleNodesMessageCollector(
       _messageCollectors,
-      relay ? this.nodes : undefined
+      relay ? this.nodes : undefined,
+      strictChecking
     );
+  }
+
+  async sendRelayMessage(
+    message: MessageRpcQuery,
+    pubsubTopic: string = DefaultPubsubTopic
+  ): Promise<boolean> {
+    const relayMessagePromises = this.nodes.map((node) =>
+      node.sendMessage(message, pubsubTopic)
+    );
+    const relayMessages = await Promise.all(relayMessagePromises);
+    return relayMessages.every((message) => message);
   }
 }
 
@@ -71,7 +97,8 @@ class MultipleNodesMessageCollector {
   messageList: Array<DecodedMessage> = [];
   constructor(
     private messageCollectors: MessageCollector[],
-    private relayNodes?: ServiceNode[]
+    private relayNodes?: ServiceNode[],
+    private strictChecking: boolean = false
   ) {
     this.callback = (msg: DecodedMessage): void => {
       log.info("Got a message");
@@ -79,9 +106,15 @@ class MultipleNodesMessageCollector {
     };
   }
   public hasMessage(topic: string, text: string): boolean {
-    return this.messageCollectors.some((collector) =>
-      collector.hasMessage(topic, text)
-    );
+    if (this.strictChecking) {
+      return this.messageCollectors.every((collector) =>
+        collector.hasMessage(topic, text)
+      );
+    } else {
+      return this.messageCollectors.some((collector) =>
+        collector.hasMessage(topic, text)
+      );
+    }
   }
 
   /**
@@ -101,14 +134,25 @@ class MultipleNodesMessageCollector {
       checkTimestamp?: boolean;
     }
   ): boolean {
-    return this.messageCollectors.some((collector) => {
-      try {
-        collector.verifyReceivedMessage(index, options);
-        return true; // Verification successful
-      } catch (error) {
-        return false; // Verification failed, continue with the next collector
-      }
-    });
+    if (this.strictChecking) {
+      return this.messageCollectors.every((collector) => {
+        try {
+          collector.verifyReceivedMessage(index, options);
+          return true; // Verification successful
+        } catch (error) {
+          return false; // Verification failed, continue with the next collector
+        }
+      });
+    } else {
+      return this.messageCollectors.some((collector) => {
+        try {
+          collector.verifyReceivedMessage(index, options);
+          return true; // Verification successful
+        } catch (error) {
+          return false; // Verification failed, continue with the next collector
+        }
+      });
+    }
   }
 
   /**
@@ -129,9 +173,17 @@ class MultipleNodesMessageCollector {
 
     while (this.messageList.length < numMessages) {
       if (this.relayNodes) {
-        for (const node of this.relayNodes) {
-          const msgs = await node.messages(pubsubTopic);
-          if (msgs.length >= numMessages) return true;
+        if (this.strictChecking) {
+          this.relayNodes.every(async (node) => {
+            const msgs = await node.messages(pubsubTopic);
+            if (msgs.length >= numMessages) return true;
+            return false;
+          });
+        } else {
+          for (const node of this.relayNodes) {
+            const msgs = await node.messages(pubsubTopic);
+            if (msgs.length >= numMessages) return true;
+          }
         }
       }
 

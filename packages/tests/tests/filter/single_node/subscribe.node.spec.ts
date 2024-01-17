@@ -31,7 +31,7 @@ import {
 
 import { runNodes } from "./utils.js";
 
-describe("Waku Filter V2: Subscribe", function () {
+describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(10000);
   let waku: LightNode;
