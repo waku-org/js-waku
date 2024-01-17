@@ -1,13 +1,17 @@
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
+import { createDecoder, createEncoder } from "@waku/core";
+import {
+  DefaultPubsubTopic,
+  IFilterSubscription,
+  LightNode
+} from "@waku/interfaces";
 import {
   ecies,
   generatePrivateKey,
   generateSymmetricKey,
   getPublicKey,
   symmetric
-} from "@waku/message-encryption";
-import { createDecoder, createEncoder, utf8ToBytes } from "@waku/sdk";
+} from "@waku/message-encryption/dist";
+import { utf8ToBytes } from "@waku/sdk/dist";
 import { expect } from "chai";
 
 import {

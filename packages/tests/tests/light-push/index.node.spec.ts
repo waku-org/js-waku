@@ -5,15 +5,14 @@ import {
   LightNode,
   SendError
 } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import { utf8ToBytes } from "@waku/sdk/dist";
 import { expect } from "chai";
 
+import { generateRandomUint8Array, ServiceNodes, TEST_STRING } from "../../src";
 import {
-  generateRandomUint8Array,
-  ServiceNodes,
-  TEST_STRING
-} from "../../src/index.js";
-import { runMultipleNodes, teardownNodesWithRedundancy } from "../filter/utils";
+  runMultipleNodes,
+  teardownNodesWithRedundancy
+} from "../filter/utils.js";
 
 import {
   messagePayload,

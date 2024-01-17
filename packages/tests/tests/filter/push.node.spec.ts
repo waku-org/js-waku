@@ -1,11 +1,19 @@
 import { waitForRemotePeer } from "@waku/core";
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import {
+  DefaultPubsubTopic,
+  IFilterSubscription,
+  LightNode,
+  Protocols
+} from "@waku/interfaces";
+import { utf8ToBytes } from "@waku/sdk/dist";
 import { expect } from "chai";
 
-import { delay, ServiceNodes, TEST_STRING, TEST_TIMESTAMPS } from "../../src";
+import {
+  delay,
+  ServiceNodes,
+  TEST_STRING,
+  TEST_TIMESTAMPS
+} from "../../src/index.js";
 
 import {
   messageText,
@@ -14,7 +22,7 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./utils";
+} from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
   describe(`Waku Filter V2: FilterPush: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {

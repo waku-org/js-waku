@@ -1,6 +1,9 @@
-import { DefaultPubsubTopic } from "@waku/interfaces";
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import {
+  DefaultPubsubTopic,
+  IFilterSubscription,
+  LightNode
+} from "@waku/interfaces";
+import { utf8ToBytes } from "@waku/sdk/dist";
 import { expect } from "chai";
 
 import { ServiceNodes } from "../../src/index.js";
@@ -12,7 +15,7 @@ import {
   TestDecoder,
   TestEncoder,
   validatePingError
-} from "./utils.js";
+} from "./utils";
 
 const runTests = (strictCheckNodes: boolean): void => {
   describe(`Waku Filter V2: Ping: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {

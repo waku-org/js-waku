@@ -1,7 +1,7 @@
 import { createDecoder, createEncoder } from "@waku/core";
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import { DefaultPubsubTopic, IFilterSubscription } from "@waku/interfaces";
+import { LightNode } from "@waku/interfaces/dist/waku";
+import { utf8ToBytes } from "@waku/sdk/dist";
 import { expect } from "chai";
 
 import {
@@ -10,6 +10,7 @@ import {
   ServiceNode,
   tearDownNodes
 } from "../../../src/index.js";
+import { runNodes } from "../../light-push/utils";
 import {
   messagePayload,
   messageText,
@@ -17,8 +18,6 @@ import {
   TestDecoder,
   TestEncoder
 } from "../utils.js";
-
-import { runNodes } from "./utils.js";
 
 describe("Waku Filter V2: Unsubscribe", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level

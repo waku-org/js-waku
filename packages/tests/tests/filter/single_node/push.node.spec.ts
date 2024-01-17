@@ -1,8 +1,11 @@
 import { waitForRemotePeer } from "@waku/core";
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import {
+  DefaultPubsubTopic,
+  IFilterSubscription,
+  LightNode,
+  Protocols
+} from "@waku/interfaces";
+import { utf8ToBytes } from "@waku/sdk/dist";
 import { expect } from "chai";
 
 import {
@@ -13,14 +16,13 @@ import {
   TEST_STRING,
   TEST_TIMESTAMPS
 } from "../../../src/index.js";
+import { runNodes } from "../../light-push/utils";
 import {
   messageText,
   TestContentTopic,
   TestDecoder,
   TestEncoder
 } from "../utils.js";
-
-import { runNodes } from "./utils.js";
 
 describe("Waku Filter V2: FilterPush", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level

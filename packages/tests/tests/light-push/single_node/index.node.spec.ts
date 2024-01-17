@@ -5,7 +5,7 @@ import {
   LightNode,
   SendError
 } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import { utf8ToBytes } from "@waku/sdk/dist";
 import { expect } from "chai";
 
 import {

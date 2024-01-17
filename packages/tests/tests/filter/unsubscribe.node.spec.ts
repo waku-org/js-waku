@@ -1,10 +1,13 @@
 import { createDecoder, createEncoder } from "@waku/core";
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import {
+  DefaultPubsubTopic,
+  IFilterSubscription,
+  LightNode
+} from "@waku/interfaces";
+import { utf8ToBytes } from "@waku/sdk/dist";
 import { expect } from "chai";
 
-import { generateTestData, ServiceNodes } from "../../src";
+import { generateTestData, ServiceNodes } from "../../src/index.js";
 
 import {
   messagePayload,
@@ -14,7 +17,7 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./utils";
+} from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
   describe(`Waku Filter V2: Unsubscribe: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {
