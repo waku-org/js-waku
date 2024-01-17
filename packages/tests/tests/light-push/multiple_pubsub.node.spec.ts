@@ -290,7 +290,8 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: [autoshardingPubsubTopic2]
+      pubsubTopic: [autoshardingPubsubTopic2],
+      clusterId: shardInfo.clusterId
     });
     await nwaku2.ensureSubscriptionsAutosharding([customContentTopic2]);
     await waku.dial(await nwaku2.getMultiaddrWithId());
@@ -353,10 +354,6 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
     customContentTopic2,
     clusterId
   );
-  const contentTopicInfo: ContentTopicInfo = {
-    clusterId,
-    contentTopics: [customContentTopic1, customContentTopic2]
-  };
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
     pubsubTopicShardInfo: {
@@ -372,11 +369,10 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(
-      this,
-      [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
-      contentTopicInfo
-    );
+    [nwaku, waku] = await runNodes(this, [
+      autoshardingPubsubTopic1,
+      autoshardingPubsubTopic2
+    ]);
     messageCollector = new MessageCollector(nwaku);
     nimPeerId = await nwaku.getPeerId();
   });
