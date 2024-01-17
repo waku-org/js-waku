@@ -16,7 +16,6 @@ import { makeLogFileName } from "../src/log_file.js";
 import { NimGoNode } from "../src/node/node.js";
 
 describe("Peer Exchange", () => {
-  // TODO: fails for a long time
   describe("Locally Run Nodes", () => {
     let waku: LightNode;
     let nwaku1: NimGoNode;
