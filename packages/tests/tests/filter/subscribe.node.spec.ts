@@ -28,7 +28,7 @@ import {
 } from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
-  describe.only(`Waku Filter V2: Subscribe: Multiple Service Nodes: Strict Check mode: ${strictCheckNodes}`, function () {
+  describe(`Waku Filter V2: Subscribe: Multiple Service Nodes: Strict Check mode: ${strictCheckNodes}`, function () {
     this.timeout(100000);
     let waku: LightNode;
     let serviceNodes: ServiceNodes;
@@ -335,7 +335,6 @@ const runTests = (strictCheckNodes: boolean): void => {
           "Subscribe to 31 topics was successful but was expected to fail with a specific error."
         );
       } catch (err) {
-        console.log("error caught", err);
         if (
           err instanceof Error &&
           err.message.includes("exceeds maximum content topics: 30")
@@ -368,7 +367,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
       // Send messages to the first set of topics.
       for (let i = 0; i < topicCount1; i++) {
-        const messageText = `Message for Topic ${i + 1}`;
+        const messageText = `Topic Set 1: Message Number: ${i + 1}`;
         await waku.lightPush.send(td1.encoders[i], {
           payload: utf8ToBytes(messageText)
         });
@@ -376,7 +375,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
       // Send messages to the second set of topics.
       for (let i = 0; i < topicCount2; i++) {
-        const messageText = `Message for Topic ${i + 1}`;
+        const messageText = `Topic Set 2: Message Number: ${i + 1}`;
         await waku.lightPush.send(td2.encoders[i], {
           payload: utf8ToBytes(messageText)
         });

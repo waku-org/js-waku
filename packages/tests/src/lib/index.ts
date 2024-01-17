@@ -198,7 +198,10 @@ class MultipleNodesMessageCollector {
       if (this.messageList.length == numMessages) {
         return true;
       } else {
-        log.warn(`Was expecting exactly ${numMessages} messages`);
+        log.warn(
+          `Was expecting exactly ${numMessages} messages. Received: ${this.messageList.length}`
+        );
+
         return false;
       }
     } else {
