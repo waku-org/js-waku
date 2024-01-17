@@ -56,7 +56,7 @@
     "@waku/utils": "0.0.14",
     "debug": "^4.3.4",
     "it-all": "^3.0.4",
-    "it-length-prefixed": "^9.0.1",
+    "it-length-prefixed": "^9.0.4",
     "it-pipe": "^3.0.1"
   },
   "devDependencies": {
