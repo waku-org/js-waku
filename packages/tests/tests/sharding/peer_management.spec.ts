@@ -16,27 +16,29 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import Sinon, { SinonSpy } from "sinon";
 
-import { delay } from "../../src/delay.js";
-import { makeLogFileName } from "../../src/log_file.js";
-import { NimGoNode } from "../../src/node/node.js";
-import { tearDownNodes } from "../../src/teardown.js";
+import {
+  delay,
+  makeLogFileName,
+  ServiceNode,
+  tearDownNodes
+} from "../../src/index.js";
 
 chai.use(chaiAsPromised);
 
 describe("Static Sharding: Peer Management", function () {
   describe("Peer Exchange", function () {
     let waku: LightNode;
-    let nwaku1: NimGoNode;
-    let nwaku2: NimGoNode;
-    let nwaku3: NimGoNode;
+    let nwaku1: ServiceNode;
+    let nwaku2: ServiceNode;
+    let nwaku3: ServiceNode;
 
     let dialPeerSpy: SinonSpy;
 
     beforeEach(async function () {
       this.timeout(15000);
-      nwaku1 = new NimGoNode(makeLogFileName(this) + "1");
-      nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
-      nwaku3 = new NimGoNode(makeLogFileName(this) + "3");
+      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+      nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
     });
 
     afterEach(async function () {
@@ -199,17 +201,17 @@ describe("Autosharding: Peer Management", function () {
 
   describe("Peer Exchange", function () {
     let waku: LightNode;
-    let nwaku1: NimGoNode;
-    let nwaku2: NimGoNode;
-    let nwaku3: NimGoNode;
+    let nwaku1: ServiceNode;
+    let nwaku2: ServiceNode;
+    let nwaku3: ServiceNode;
 
     let dialPeerSpy: SinonSpy;
 
     beforeEach(async function () {
       this.timeout(15000);
-      nwaku1 = new NimGoNode(makeLogFileName(this) + "1_auto");
-      nwaku2 = new NimGoNode(makeLogFileName(this) + "2_auto");
-      nwaku3 = new NimGoNode(makeLogFileName(this) + "3_auto");
+      nwaku1 = new ServiceNode(makeLogFileName(this) + "1_auto");
+      nwaku2 = new ServiceNode(makeLogFileName(this) + "2_auto");
+      nwaku3 = new ServiceNode(makeLogFileName(this) + "3_auto");
     });
 
     afterEach(async function () {
