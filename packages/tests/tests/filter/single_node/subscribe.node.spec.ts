@@ -266,7 +266,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     }
   });
 
-  it.only("Overlapping topic subscription", async function () {
+  it("Overlapping topic subscription", async function () {
     // Define two sets of test data with overlapping topics.
     const topicCount1 = 2;
     const td1 = generateTestData(topicCount1);

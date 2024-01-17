@@ -20,9 +20,8 @@ import {
   MessageCollector,
   ServiceNode,
   tearDownNodes
-} from "../../src/index.js";
-
-import { messageText, runNodes } from "./utils.js";
+} from "../../../src/index.js";
+import { messageText, runNodes } from "../utils.js";
 
 describe("Waku Light Push : Multiple PubsubTopics", function () {
   this.timeout(30000);

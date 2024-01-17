@@ -55,7 +55,8 @@ export async function runMultipleNodes(
   pubsubTopics: string[],
   strictChecking: boolean = false,
   shardInfo?: ShardingParams,
-  numServiceNodes = 3
+  numServiceNodes = 3,
+  withoutFilter = false
 ): Promise<[ServiceNodes, LightNode]> {
   // create numServiceNodes nodes
   const serviceNodes = await ServiceNodes.createAndRun(
@@ -64,7 +65,8 @@ export async function runMultipleNodes(
     numServiceNodes,
     strictChecking,
     shardInfo,
-    undefined
+    undefined,
+    withoutFilter
   );
 
   const waku_options: ProtocolCreateOptions = {

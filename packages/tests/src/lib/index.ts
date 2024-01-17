@@ -29,7 +29,7 @@ export class ServiceNodes {
     strictChecking: boolean = false,
     shardInfo?: ShardingParams,
     _args?: Args,
-    relay = false
+    withoutFilter = false
   ): Promise<ServiceNodes> {
     const serviceNodePromises = Array.from(
       { length: nodesToCreate },
@@ -49,7 +49,7 @@ export class ServiceNodes {
     );
 
     const nodes = await Promise.all(serviceNodePromises);
-    return new ServiceNodes(nodes, relay, strictChecking);
+    return new ServiceNodes(nodes, withoutFilter, strictChecking);
   }
 
   /**
@@ -128,11 +128,17 @@ export class ServiceNodes {
         )
       );
     } else {
-      await Promise.race(
-        this.nodes.map(async (node) =>
-          expect(await node.messages()).to.have.length(numMessages)
-        )
+      // Wait for all promises to resolve and check if any meets the condition
+      const results = await Promise.all(
+        this.nodes.map(async (node) => {
+          const msgs = await node.messages();
+          return msgs.length === numMessages;
+        })
       );
+
+      // Check if at least one result meets the condition
+      const conditionMet = results.some((result) => result);
+      expect(conditionMet).to.be.true;
     }
   }
 }
@@ -228,16 +234,21 @@ class MultipleNodesMessageCollector {
     while (this.messageList.length < numMessages) {
       if (this.relayNodes) {
         if (this.strictChecking) {
-          this.relayNodes.every(async (node) => {
-            const msgs = await node.messages(pubsubTopic);
-            if (msgs.length >= numMessages) return true;
-            return false;
-          });
+          const results = await Promise.all(
+            this.relayNodes.map(async (node) => {
+              const msgs = await node.messages(pubsubTopic);
+              return msgs.length >= numMessages;
+            })
+          );
+          return results.every((result) => result);
         } else {
-          for (const node of this.relayNodes) {
-            const msgs = await node.messages(pubsubTopic);
-            if (msgs.length >= numMessages) return true;
-          }
+          const results = await Promise.all(
+            this.relayNodes.map(async (node) => {
+              const msgs = await node.messages(pubsubTopic);
+              return msgs.length >= numMessages;
+            })
+          );
+          return results.some((result) => result);
         }
       }
 
