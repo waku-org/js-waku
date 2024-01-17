@@ -61,19 +61,21 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@chainsafe/libp2p-noise": "^13.0.4",
-    "@libp2p/mplex": "^9.0.10",
-    "@libp2p/websockets": "^7.0.5",
-    "@waku/utils": "0.0.14",
-    "@waku/relay": "0.0.9",
+    "@chainsafe/libp2p-noise": "^14.1.0",
+    "@libp2p/identify": "^1.0.10",
+    "@libp2p/mplex": "^10.0.11",
+    "@libp2p/ping": "^1.0.9",
+    "@libp2p/websockets": "^8.0.11",
     "@waku/core": "0.0.26",
     "@waku/dns-discovery": "0.0.20",
     "@waku/interfaces": "0.0.21",
     "@waku/peer-exchange": "^0.0.19",
-    "libp2p": "^0.46.14"
+    "@waku/relay": "0.0.9",
+    "@waku/utils": "0.0.14",
+    "libp2p": "^1.1.2"
   },
   "devDependencies": {
-    "@chainsafe/libp2p-gossipsub": "^10.1.1",
+    "@chainsafe/libp2p-gossipsub": "^11.0.1",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",

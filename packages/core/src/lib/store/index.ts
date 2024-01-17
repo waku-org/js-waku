@@ -1,4 +1,4 @@
-import type { Stream } from "@libp2p/interface/connection";
+import type { Stream } from "@libp2p/interface";
 import { sha256 } from "@noble/hashes/sha256";
 import {
   Cursor,

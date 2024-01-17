@@ -1,4 +1,4 @@
-import { Peer } from "@libp2p/interface/peer-store";
+import { Peer } from "@libp2p/interface";
 import { Tags } from "@waku/interfaces";
 
 /**

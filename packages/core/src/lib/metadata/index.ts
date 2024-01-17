@@ -1,5 +1,5 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
-import { IncomingStreamData } from "@libp2p/interface/stream-handler";
+import type { PeerId } from "@libp2p/interface";
+import { IncomingStreamData } from "@libp2p/interface";
 import { encodeRelayShard } from "@waku/enr";
 import type {
   IMetadata,

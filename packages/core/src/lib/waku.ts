@@ -1,5 +1,5 @@
-import type { Stream } from "@libp2p/interface/connection";
-import { isPeerId, PeerId } from "@libp2p/interface/peer-id";
+import type { Stream } from "@libp2p/interface";
+import { isPeerId, PeerId } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import type {
   IFilter,
@@ -185,7 +185,7 @@ export class WakuNode implements Waku {
   }
 
   isStarted(): boolean {
-    return this.libp2p.isStarted();
+    return this.libp2p.status == "started";
   }
 
   isConnected(): boolean {
