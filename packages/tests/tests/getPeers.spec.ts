@@ -19,20 +19,18 @@ import { expect } from "chai";
 import fc from "fast-check";
 import Sinon from "sinon";
 
-import { makeLogFileName } from "../src/log_file.js";
-import { NimGoNode } from "../src/node/node.js";
-import { tearDownNodes } from "../src/teardown.js";
+import { makeLogFileName, ServiceNode, tearDownNodes } from "../src/index.js";
 
 describe("getConnectedPeersForProtocolAndShard", function () {
   let waku: LightNode;
-  let serviceNode1: NimGoNode;
-  let serviceNode2: NimGoNode;
+  let serviceNode1: ServiceNode;
+  let serviceNode2: ServiceNode;
   const contentTopic = "/test/2/waku-light-push/utf8";
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    serviceNode1 = new NimGoNode(makeLogFileName(this) + "1");
-    serviceNode2 = new NimGoNode(makeLogFileName(this) + "2");
+    serviceNode1 = new ServiceNode(makeLogFileName(this) + "1");
+    serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
   });
 
   afterEach(async function () {
@@ -186,7 +184,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     });
 
     // and another node in the same cluster cluster as our node
-    const serviceNode2 = new NimGoNode(makeLogFileName(this) + "2");
+    const serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
     await serviceNode2.start({
       discv5Discovery: true,
       peerExchange: true,
@@ -374,7 +372,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     });
 
     // and another node in the same cluster cluster as our node
-    const serviceNode2 = new NimGoNode(makeLogFileName(this) + "2");
+    const serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
     await serviceNode2.start({
       discv5Discovery: true,
       peerExchange: true,
