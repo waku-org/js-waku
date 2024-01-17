@@ -39,9 +39,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       [serviceNodes, waku] = await runMultipleNodes(
         this,
         [DefaultPubsubTopic],
-        strictCheckNodes,
-        undefined,
-        3
+        strictCheckNodes
       );
       subscription = await waku.filter.createSubscription();
     });
@@ -69,12 +67,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedContentTopic: TestContentTopic
       });
 
-      // either of the service nodes need to have the message
-      await Promise.race(
-        serviceNodes.nodes.map(async (node) =>
-          expect(await node.messages()).to.have.length(1)
-        )
-      );
+      await serviceNodes.confirmMessageLength(1);
     });
 
     it("Subscribe and receive ecies encrypted messages via lightPush", async function () {
@@ -101,12 +94,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedContentTopic: TestContentTopic,
         expectedVersion: 1
       });
-      // either of the service nodes need to have the message
-      await Promise.race(
-        serviceNodes.nodes.map(async (node) =>
-          expect(await node.messages()).to.have.length(1)
-        )
-      );
+
+      await serviceNodes.confirmMessageLength(1);
     });
 
     it("Subscribe and receive symmetrically encrypted messages via lightPush", async function () {
@@ -132,12 +121,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedContentTopic: TestContentTopic,
         expectedVersion: 1
       });
-      // either of the service nodes need to have the message
-      await Promise.race(
-        serviceNodes.nodes.map(async (node) =>
-          expect(await node.messages()).to.have.length(1)
-        )
-      );
+
+      await serviceNodes.confirmMessageLength(1);
     });
 
     it("Subscribe and receive messages via waku relay post", async function () {
@@ -162,12 +147,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic
       });
-      // either of the service nodes need to have the message
-      await Promise.race(
-        serviceNodes.nodes.map(async (node) =>
-          expect(await node.messages()).to.have.length(1)
-        )
-      );
+
+      await serviceNodes.confirmMessageLength(1);
     });
 
     it("Subscribe and receive 2 messages on the same topic", async function () {
@@ -200,12 +181,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedMessageText: newMessageText,
         expectedContentTopic: TestContentTopic
       });
-      // either of the service nodes need to have the message
-      await Promise.race(
-        serviceNodes.nodes.map(async (node) =>
-          expect(await node.messages()).to.have.length(2)
-        )
-      );
+
+      await serviceNodes.confirmMessageLength(2);
     });
 
     it("Subscribe and receive messages on 2 different content topics", async function () {
@@ -253,12 +230,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedMessageText: newMessageText,
         expectedContentTopic: TestContentTopic
       });
-      // either of the service nodes need to have the message
-      await Promise.race(
-        serviceNodes.nodes.map(async (node) =>
-          expect(await node.messages()).to.have.length(3)
-        )
-      );
+
+      await serviceNodes.confirmMessageLength(3);
     });
 
     it("Subscribe and receives messages on 20 topics", async function () {

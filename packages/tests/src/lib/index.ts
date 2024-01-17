@@ -5,6 +5,7 @@ import {
   ShardingParams
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
+import { expect } from "chai";
 
 import { Args, MessageRpcQuery, MessageRpcResponse } from "../types";
 import { delay, makeLogFileName } from "../utils/index.js";
@@ -67,7 +68,7 @@ export class ServiceNodes {
   private constructor(
     public nodes: ServiceNode[],
     relay: boolean,
-    strictChecking: boolean
+    private strictChecking: boolean
   ) {
     const _messageCollectors: MessageCollector[] = [];
     this.nodes.forEach((node) => {
@@ -115,6 +116,22 @@ export class ServiceNodes {
     const relayMessages = await Promise.all(relayMessagePromises);
     return relayMessages.every((message) => message);
   }
+
+  async confirmMessageLength(numMessages: number): Promise<void> {
+    if (this.strictChecking) {
+      await Promise.all(
+        this.nodes.map(async (node) =>
+          expect(await node.messages()).to.have.length(numMessages)
+        )
+      );
+    } else {
+      await Promise.race(
+        this.nodes.map(async (node) =>
+          expect(await node.messages()).to.have.length(numMessages)
+        )
+      );
+    }
+  }
 }
 
 class MultipleNodesMessageCollector {
@@ -130,6 +147,11 @@ class MultipleNodesMessageCollector {
       this.messageList.push(msg);
     };
   }
+
+  get count(): number {
+    return this.messageList.length;
+  }
+
   public hasMessage(topic: string, text: string): boolean {
     if (this.strictChecking) {
       return this.messageCollectors.every((collector) =>
