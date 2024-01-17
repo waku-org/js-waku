@@ -14,18 +14,27 @@ describe("Create node", () => {
 
   afterEach(async () => {
     consoleInfoSpy.restore();
+    sinon.restore();
     await tearDownNodes([], waku);
   });
 
-  it("should log info about WebSocket failures to console when hideWebSocketInfo disabled", async () => {
+  it("should log info about WebSocket failures to console when hideWebSocketInfo disabled and NODE_ENV is not test", async () => {
+    sinon.stub(process.env, "NODE_ENV").value("undefined");
     waku = await createLightNode();
     expect(consoleInfoSpy.callCount).to.be.equal(2);
   });
 
-  it("should not log info about WebSocket failures to console when hideWebSocketInfo enabled", async () => {
-    waku = await createLightNode({
-      libp2p: { hideWebSocketInfo: true }
+  [
+    ["test", false],
+    ["test", true],
+    [undefined, true]
+  ].map(([env, hideWebSocketInfo]) => {
+    it(`should not log info about WebSocket failures to console when NODE_ENV=${env} and hideWebSocketInfo=${hideWebSocketInfo}`, async () => {
+      sinon.stub(process.env, "NODE_ENV").value(env);
+      waku = await createLightNode({
+        libp2p: { hideWebSocketInfo: !!hideWebSocketInfo }
+      });
+      expect(consoleInfoSpy.callCount).to.be.equal(0);
     });
-    expect(consoleInfoSpy.callCount).to.be.equal(0);
   });
 });

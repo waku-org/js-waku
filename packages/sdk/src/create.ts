@@ -212,8 +212,7 @@ export async function defaultLibp2p(
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
-  // Log the info log unless we are running tests or the user has disabled it
-  if (!options?.hideWebSocketInfo || process.env.NODE_ENV !== "test") {
+  if (!options?.hideWebSocketInfo && process.env.NODE_ENV !== "test") {
     /* eslint-disable no-console */
     console.info(
       "%cIgnore WebSocket connection failures",
