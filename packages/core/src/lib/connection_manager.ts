@@ -165,8 +165,6 @@ export class ConnectionManager
       log.error(`Unexpected error while dialing peer store peers`, error)
     );
   }
-  #private: any;
-  #private: any;
 
   private async dialPeerStorePeers(): Promise<void> {
     const peerInfos = await this.libp2p.peerStore.all();
