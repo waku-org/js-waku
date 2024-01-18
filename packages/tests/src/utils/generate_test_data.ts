@@ -23,7 +23,7 @@ export function generateTestData(topicCount: number): {
   };
 }
 
-// Utility to add test conditions based on nwaku/gowaku versions
+// Utility to add test conditions based on nwaku/go-waku versions
 export function isNwakuAtLeast(requiredVersion: string): boolean {
   const versionRegex = /(?:v)?(\d+\.\d+(?:\.\d+)?)/;
   const match = DOCKER_IMAGE_NAME.match(versionRegex);
