@@ -5,7 +5,7 @@ export interface SingleShardInfo {
   /**
    * Specifying this field indicates to the encoder/decoder that static sharding must be used.
    */
-  shard?: number;
+  shard: number;
 }
 
 export interface IRateLimitProof {

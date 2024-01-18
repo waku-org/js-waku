@@ -132,7 +132,7 @@ class Metadata extends BaseProtocol implements IMetadata {
 }
 
 export function wakuMetadata(
-  shardInfo: ShardingParams
+  shardInfo: ShardInfo
 ): (components: Libp2pComponents) => IMetadata {
   return (components: Libp2pComponents) => new Metadata(shardInfo, components);
 }

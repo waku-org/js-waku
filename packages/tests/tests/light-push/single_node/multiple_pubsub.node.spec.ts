@@ -10,6 +10,8 @@ import {
 } from "@waku/interfaces";
 import {
   contentTopicToPubsubTopic,
+  contentTopicToShardIndex,
+  pubsubTopicToSingleShardInfo,
   singleShardInfoToPubsubTopic
 } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -202,11 +204,11 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   };
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
-    pubsubTopicShardInfo: shardInfo
+    pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
   });
   const customEncoder2 = createEncoder({
     contentTopic: customContentTopic2,
-    pubsubTopicShardInfo: shardInfo
+    pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(autoshardingPubsubTopic2)
   });
 
   let nimPeerId: PeerId;
@@ -356,12 +358,16 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
     pubsubTopicShardInfo: {
-      clusterId
+      clusterId,
+      shard: contentTopicToShardIndex(customContentTopic1)
     }
   });
   const customEncoder2 = createEncoder({
     contentTopic: customContentTopic2,
-    pubsubTopicShardInfo: { clusterId }
+    pubsubTopicShardInfo: {
+      clusterId,
+      shard: contentTopicToShardIndex(customContentTopic2)
+    }
   });
 
   let nimPeerId: PeerId;

@@ -3,6 +3,7 @@ import type { ContentTopicInfo, IMessage, LightNode } from "@waku/interfaces";
 import { createLightNode, Protocols } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
+  pubsubTopicToSingleShardInfo,
   singleShardInfosToShardInfo
 } from "@waku/utils";
 import { expect } from "chai";
@@ -200,12 +201,14 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     clusterId,
     contentTopics: [customContentTopic1]
   };
-  const customDecoder1 = createDecoder(customContentTopic1, {
-    clusterId
-  });
-  const customDecoder2 = createDecoder(customContentTopic2, {
-    clusterId
-  });
+  const customDecoder1 = createDecoder(
+    customContentTopic1,
+    pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
+  );
+  const customDecoder2 = createDecoder(
+    customContentTopic2,
+    pubsubTopicToSingleShardInfo(autoshardingPubsubTopic2)
+  );
   const contentTopicInfoBothShards: ContentTopicInfo = {
     clusterId,
     contentTopics: [customContentTopic1, customContentTopic2]
