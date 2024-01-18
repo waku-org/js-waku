@@ -34,7 +34,7 @@ export function isNwakuAtLeast(requiredVersion: string): boolean {
       version.localeCompare(requiredVersion, undefined, { numeric: true }) >= 0
     );
   } else {
-    // If there is no match we assume that it's a version closed to master so we return True
+    // If there is no match we assume that it's a version close to master so we return True
     return true;
   }
 }

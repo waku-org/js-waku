@@ -221,14 +221,13 @@ describe("Waku Filter V2: Subscribe", function () {
   });
 
   it("Subscribe to 100 topics at once and receives messages", async function () {
-    this.timeout(50000);
     let topicCount = 30;
     if (isNwakuAtLeast("0.24.0")) {
+      this.timeout(50000);
       topicCount = 100;
     }
     const td = generateTestData(topicCount);
 
-    // Subscribe to all 100 topics.
     await subscription.subscribe(td.decoders, messageCollector.callback);
 
     // Send a unique message on each topic.
@@ -239,7 +238,7 @@ describe("Waku Filter V2: Subscribe", function () {
     }
 
     // Open issue here: https://github.com/waku-org/js-waku/issues/1790
-    // That's why the try catch block
+    // That's why we use the try catch block
     try {
       // Verify that each message was received on the corresponding topic.
       expect(await messageCollector.waitForMessages(topicCount)).to.eq(true);
@@ -263,7 +262,6 @@ describe("Waku Filter V2: Subscribe", function () {
     }
     const td = generateTestData(topicCount);
 
-    // Attempt to subscribe to 101 topics
     try {
       await subscription.subscribe(td.decoders, messageCollector.callback);
       throw new Error(
