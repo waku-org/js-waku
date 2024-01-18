@@ -27,7 +27,8 @@ const WAKU_SERVICE_NODE_PARAMS =
   process.env.WAKU_SERVICE_NODE_PARAMS ?? undefined;
 const NODE_READY_LOG_LINE = "Node setup complete";
 
-const DOCKER_IMAGE_NAME = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.22.0";
+export const DOCKER_IMAGE_NAME =
+  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.22.0";
 
 const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
 
