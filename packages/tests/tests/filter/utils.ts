@@ -90,18 +90,28 @@ export async function runMultipleNodes(
     log.error("jswaku node failed to start:", error);
   }
 
-  if (waku) {
-    for (const node of serviceNodes.nodes) {
-      await waku.dial(await node.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-      await node.ensureSubscriptions(pubsubTopics);
-    }
-    await waitForConnections(numServiceNodes, waku);
-
-    return [serviceNodes, waku];
-  } else {
+  if (!waku) {
     throw new Error("Failed to initialize waku");
   }
+
+  for (const node of serviceNodes.nodes) {
+    await waku.dial(await node.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+    await node.ensureSubscriptions(pubsubTopics);
+
+    const wakuConnections = waku.libp2p.getConnections();
+    const nodePeers = await node.peers();
+
+    if (wakuConnections.length < 1 || nodePeers.length < 1) {
+      throw new Error(
+        `Expected at least 1 peer in each node. Got waku connections: ${wakuConnections.length} and service nodes: ${nodePeers.length}`
+      );
+    }
+  }
+
+  await waitForConnections(numServiceNodes, waku);
+
+  return [serviceNodes, waku];
 }
 
 export async function teardownNodesWithRedundancy(
