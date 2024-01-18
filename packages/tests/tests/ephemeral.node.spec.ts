@@ -29,9 +29,9 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
+  ServiceNode,
   tearDownNodes
 } from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
 
 const log = new Logger("test:ephemeral");
 
@@ -43,7 +43,7 @@ const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Waku Message Ephemeral field", () => {
   let waku: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
 
   let subscription: IFilterSubscription;
 
@@ -54,7 +54,7 @@ describe("Waku Message Ephemeral field", () => {
 
   beforeEach(async function () {
     this.timeout(15_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       filter: true,
       lightpush: true,

@@ -14,9 +14,9 @@ import {
   delay,
   makeLogFileName,
   NOISE_KEY_1,
+  ServiceNode,
   tearDownNodes
 } from "../src/index.js";
-import { NimGoNode } from "../src/node/node.js";
 
 chai.use(chaiAsPromised);
 
@@ -26,11 +26,11 @@ const TestDecoder = createDecoder(TestContentTopic);
 
 describe("Util: toAsyncIterator: Filter", () => {
   let waku: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
 
   beforeEach(async function () {
     this.timeout(15000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       filter: true,
       lightpush: true,

@@ -1,6 +1,5 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
-import type { PeerInfo } from "@libp2p/interface/peer-info";
-import { CustomEvent } from "@libp2p/interfaces/events";
+import type { PeerId, PeerInfo } from "@libp2p/interface";
+import { CustomEvent } from "@libp2p/interface";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import { Multiaddr } from "@multiformats/multiaddr";
 import {
@@ -14,8 +13,8 @@ import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 
-import { delay } from "../dist/delay.js";
-import { makeLogFileName, NimGoNode, tearDownNodes } from "../src/index.js";
+import { delay } from "../src/index.js";
+import { makeLogFileName, ServiceNode, tearDownNodes } from "../src/index.js";
 
 const TEST_TIMEOUT = 10_000;
 const DELAY_MS = 1_000;
@@ -62,8 +61,7 @@ describe("ConnectionManager", function () {
           new CustomEvent<PeerInfo>("peer:discovery", {
             detail: {
               id: peerIdBootstrap,
-              multiaddrs: [],
-              protocols: []
+              multiaddrs: []
             }
           })
         );
@@ -96,8 +94,7 @@ describe("ConnectionManager", function () {
           new CustomEvent<PeerInfo>("peer:discovery", {
             detail: {
               id: peerIdPx,
-              multiaddrs: [],
-              protocols: []
+              multiaddrs: []
             }
           })
         );
@@ -312,8 +309,7 @@ describe("ConnectionManager", function () {
             new CustomEvent<PeerInfo>("peer:discovery", {
               detail: {
                 id: await createSecp256k1PeerId(),
-                multiaddrs: [],
-                protocols: []
+                multiaddrs: []
               }
             })
           );
@@ -377,7 +373,7 @@ describe("ConnectionManager", function () {
           // emit a peer:discovery event
           waku.libp2p.dispatchEvent(
             new CustomEvent<PeerInfo>("peer:discovery", {
-              detail: { id: bootstrapPeer, multiaddrs: [], protocols: [] }
+              detail: { id: bootstrapPeer, multiaddrs: [] }
             })
           );
 
@@ -399,8 +395,7 @@ describe("ConnectionManager", function () {
             new CustomEvent<PeerInfo>("peer:discovery", {
               detail: {
                 id: await createSecp256k1PeerId(),
-                multiaddrs: [],
-                protocols: []
+                multiaddrs: []
               }
             })
           );
@@ -417,8 +412,7 @@ describe("ConnectionManager", function () {
               new CustomEvent<PeerInfo>("peer:discovery", {
                 detail: {
                   id: await createSecp256k1PeerId(),
-                  multiaddrs: [],
-                  protocols: []
+                  multiaddrs: []
                 }
               })
             );
@@ -443,8 +437,7 @@ describe("ConnectionManager", function () {
             new CustomEvent<PeerInfo>("peer:discovery", {
               detail: {
                 id: pxPeer,
-                multiaddrs: [],
-                protocols: []
+                multiaddrs: []
               }
             })
           );
@@ -469,8 +462,7 @@ describe("ConnectionManager", function () {
               new CustomEvent<PeerInfo>("peer:discovery", {
                 detail: {
                   id: await createSecp256k1PeerId(),
-                  multiaddrs: [],
-                  protocols: []
+                  multiaddrs: []
                 }
               })
             );
@@ -486,15 +478,15 @@ describe("ConnectionManager", function () {
 
   describe("Connection state", () => {
     this.timeout(20_000);
-    let nwaku1: NimGoNode;
-    let nwaku2: NimGoNode;
+    let nwaku1: ServiceNode;
+    let nwaku2: ServiceNode;
     let nwaku1PeerId: Multiaddr;
     let nwaku2PeerId: Multiaddr;
 
     beforeEach(async () => {
       this.timeout(20_000);
-      nwaku1 = new NimGoNode(makeLogFileName(this.ctx) + "1");
-      nwaku2 = new NimGoNode(makeLogFileName(this.ctx) + "2");
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
       await nwaku1.start({
         filter: true
       });

@@ -1,6 +1,6 @@
-import { CustomEvent } from "@libp2p/interface/events";
-import type { PeerId } from "@libp2p/interface/peer-id";
-import type { PeerInfo } from "@libp2p/interface/peer-info";
+import type { PeerId } from "@libp2p/interface";
+import type { PeerInfo } from "@libp2p/interface";
+import { CustomEvent } from "@libp2p/interface";
 import { multiaddr } from "@multiformats/multiaddr";
 import type { Multiaddr } from "@multiformats/multiaddr";
 import type { Waku } from "@waku/interfaces";
@@ -11,13 +11,13 @@ import Sinon, { SinonSpy, SinonStub } from "sinon";
 import {
   delay,
   makeLogFileName,
-  NimGoNode,
+  ServiceNode,
   tearDownNodes
 } from "../src/index.js";
 
 describe("multiaddr: dialing", function () {
   let waku: Waku;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
   let dialPeerSpy: SinonSpy;
   let isPeerTopicConfigured: SinonStub;
 
@@ -56,7 +56,7 @@ describe("multiaddr: dialing", function () {
 
     beforeEach(async function () {
       this.timeout(10_000);
-      nwaku = new NimGoNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start();
 
       waku = await createLightNode();
@@ -84,7 +84,6 @@ describe("multiaddr: dialing", function () {
           new CustomEvent<PeerInfo>("peer:discovery", {
             detail: {
               id: peerId,
-              protocols: [],
               multiaddrs: [multiaddr]
             }
           })

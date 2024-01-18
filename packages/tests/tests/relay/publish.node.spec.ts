@@ -6,13 +6,13 @@ import { expect } from "chai";
 
 import {
   delay,
+  generateRandomUint8Array,
   MessageCollector,
   NOISE_KEY_1,
   NOISE_KEY_2,
   tearDownNodes,
   TEST_STRING
 } from "../../src/index.js";
-import { generateRandomUint8Array } from "../../src/random_array.js";
 
 import {
   log,

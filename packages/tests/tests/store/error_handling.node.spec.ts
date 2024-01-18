@@ -2,7 +2,11 @@ import { DefaultPubsubTopic } from "@waku/interfaces";
 import { IMessage, type LightNode } from "@waku/interfaces";
 import { expect } from "chai";
 
-import { makeLogFileName, NimGoNode, tearDownNodes } from "../../src/index.js";
+import {
+  makeLogFileName,
+  ServiceNode,
+  tearDownNodes
+} from "../../src/index.js";
 
 import {
   customDecoder1,
@@ -15,11 +19,11 @@ import {
 describe("Waku Store, error handling", function () {
   this.timeout(15000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
 
   beforeEach(async function () {
     this.timeout(15000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({ store: true, lightpush: true, relay: true });
     await nwaku.ensureSubscriptions();
     waku = await startAndConnectLightNode(nwaku);
