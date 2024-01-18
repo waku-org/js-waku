@@ -309,6 +309,10 @@ class Filter extends BaseProtocol implements IReceiver {
       })
     )[0];
 
+    if (!peer) {
+      throw new Error("No peer found to initiate subscription.");
+    }
+
     const subscription =
       this.getActiveSubscription(pubsubTopic, peer.id.toString()) ??
       this.setActiveSubscription(

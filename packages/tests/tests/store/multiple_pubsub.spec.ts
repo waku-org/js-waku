@@ -342,13 +342,22 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
-      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
-      relay: true
+      relay: true,
+      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2]
     });
     await nwaku.ensureSubscriptions([
       customShardedPubsubTopic1,
       customShardedPubsubTopic2
     ]);
+
+    waku = await startAndConnectLightNode(
+      nwaku,
+      [customShardedPubsubTopic1, customShardedPubsubTopic2],
+      {
+        clusterId: 3,
+        shards: [1, 2]
+      }
+    );
   });
 
   afterEach(async function () {
@@ -363,10 +372,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
       customContentTopic1,
       customShardedPubsubTopic1
     );
-    waku = await startAndConnectLightNode(nwaku, [
-      customShardedPubsubTopic1,
-      customShardedPubsubTopic2
-    ]);
+
     const messages = await processQueriedMessages(
       waku,
       [customDecoder1],
@@ -396,11 +402,6 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
       customContentTopic2,
       customShardedPubsubTopic2
     );
-
-    waku = await startAndConnectLightNode(nwaku, [
-      customShardedPubsubTopic1,
-      customShardedPubsubTopic2
-    ]);
 
     const customMessages = await processQueriedMessages(
       waku,
@@ -451,13 +452,6 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
       customShardedPubsubTopic2
     );
 
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
-      pubsubTopics: [customShardedPubsubTopic1, customShardedPubsubTopic2]
-    });
-    await waku.start();
-
-    await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Store]);
 
