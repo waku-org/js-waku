@@ -1,6 +1,6 @@
 import { createDecoder, createEncoder, Decoder, Encoder } from "@waku/core";
 
-import { DOCKER_IMAGE_NAME } from "./node/node";
+import { DOCKER_IMAGE_NAME } from "../lib/service_node";
 
 // Utility to generate test data for multiple topics tests.
 export function generateTestData(topicCount: number): {
