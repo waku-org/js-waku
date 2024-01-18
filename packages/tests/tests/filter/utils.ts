@@ -11,7 +11,7 @@ import { Logger } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { Context } from "mocha";
 
-import { makeLogFileName, NimGoNode, NOISE_KEY_1 } from "../../src/index.js";
+import { makeLogFileName, NOISE_KEY_1, ServiceNode } from "../../src/index.js";
 
 // Constants for test configuration.
 export const log = new Logger("test:filter");
@@ -47,8 +47,8 @@ export async function runNodes(
   //TODO: change this to use `ShardInfo` instead of `string[]`
   pubsubTopics: string[],
   shardInfo?: ShardingParams
-): Promise<[NimGoNode, LightNode]> {
-  const nwaku = new NimGoNode(makeLogFileName(context));
+): Promise<[ServiceNode, LightNode]> {
+  const nwaku = new ServiceNode(makeLogFileName(context));
 
   await nwaku.start(
     {
@@ -79,12 +79,22 @@ export async function runNodes(
     log.error("jswaku node failed to start:", error);
   }
 
-  if (waku) {
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-    await nwaku.ensureSubscriptions(pubsubTopics);
-    return [nwaku, waku];
-  } else {
+  if (!waku) {
     throw new Error("Failed to initialize waku");
   }
+
+  await waku.dial(await nwaku.getMultiaddrWithId());
+  await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+  await nwaku.ensureSubscriptions(pubsubTopics);
+
+  const wakuConnections = waku.libp2p.getConnections();
+  const nwakuPeers = await nwaku.peers();
+
+  if (wakuConnections.length < 1 || nwakuPeers.length < 1) {
+    throw new Error(
+      `Expected at least 1 peer in each node. Got waku connections: ${wakuConnections.length} and nwaku: ${nwakuPeers.length}`
+    );
+  }
+
+  return [nwaku, waku];
 }

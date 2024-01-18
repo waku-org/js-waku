@@ -1,6 +1,6 @@
 import type { Libp2p } from "@libp2p/interface";
-import type { PeerId } from "@libp2p/interface/peer-id";
-import type { Peer, PeerStore } from "@libp2p/interface/peer-store";
+import type { PeerId } from "@libp2p/interface";
+import type { Peer, PeerStore } from "@libp2p/interface";
 
 import type { ShardInfo } from "./enr.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";

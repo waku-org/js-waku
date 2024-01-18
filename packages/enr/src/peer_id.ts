@@ -1,6 +1,6 @@
 import { unmarshalPrivateKey, unmarshalPublicKey } from "@libp2p/crypto/keys";
 import { supportedKeys } from "@libp2p/crypto/keys";
-import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerId } from "@libp2p/interface";
 import { peerIdFromKeys } from "@libp2p/peer-id";
 
 export function createPeerIdFromPublicKey(

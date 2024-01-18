@@ -1,4 +1,4 @@
-import { PeerStore } from "@libp2p/interface/peer-store";
+import { PeerStore } from "@libp2p/interface";
 
 export type SearchContext = {
   domain: string;

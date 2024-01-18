@@ -18,11 +18,10 @@ import {
   isNwakuAtLeast,
   makeLogFileName,
   MessageCollector,
-  NimGoNode,
+  ServiceNode,
   tearDownNodes,
   TEST_STRING
-} from "../../src/index.js";
-
+} from "../../../src/index.js";
 import {
   messagePayload,
   messageText,
@@ -30,14 +29,14 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./utils.js";
+} from "../utils.js";
 
 describe("Waku Filter V2: Subscribe", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(10000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
-  let nwaku2: NimGoNode;
+  let nwaku: ServiceNode;
+  let nwaku2: ServiceNode;
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
@@ -119,7 +118,7 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Send a test message using the relay post method.
     await nwaku.sendMessage(
-      NimGoNode.toMessageRpcQuery({
+      ServiceNode.toMessageRpcQuery({
         contentTopic: TestContentTopic,
         payload: utf8ToBytes(messageText)
       })
@@ -388,7 +387,7 @@ describe("Waku Filter V2: Subscribe", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
 
     // Set up and start a new nwaku node
-    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,

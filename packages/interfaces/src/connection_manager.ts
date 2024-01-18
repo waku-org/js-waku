@@ -1,6 +1,4 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
-import type { Peer } from "@libp2p/interface/peer-store";
-import type { EventEmitter } from "@libp2p/interfaces/events";
+import type { Peer, PeerId, TypedEventEmitter } from "@libp2p/interface";
 
 export enum Tags {
   BOOTSTRAP = "bootstrap",
@@ -59,7 +57,7 @@ export interface IConnectionStateEvents {
 }
 
 export interface IConnectionManager
-  extends EventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents> {
+  extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents> {
   getPeersByDiscovery(): Promise<PeersByDiscoveryResult>;
   stop(): void;
 }

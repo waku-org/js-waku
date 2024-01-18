@@ -8,25 +8,24 @@ import { expect } from "chai";
 import {
   delay,
   MessageCollector,
-  NimGoNode,
+  ServiceNode,
   tearDownNodes,
   TEST_STRING,
   TEST_TIMESTAMPS
-} from "../../src/index.js";
-
+} from "../../../src/index.js";
 import {
   messageText,
   runNodes,
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./utils.js";
+} from "../utils.js";
 
 describe("Waku Filter V2: FilterPush", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(10000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 

@@ -1,12 +1,12 @@
-import type { IdentifyResult } from "@libp2p/interface";
-import { CustomEvent, EventEmitter } from "@libp2p/interface/events";
+import { CustomEvent, TypedEventEmitter } from "@libp2p/interface";
+import { peerDiscoverySymbol as symbol } from "@libp2p/interface";
 import type {
+  IdentifyResult,
   PeerDiscovery,
-  PeerDiscoveryEvents
-} from "@libp2p/interface/peer-discovery";
-import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
-import type { PeerId } from "@libp2p/interface/peer-id";
-import type { PeerInfo } from "@libp2p/interface/peer-info";
+  PeerDiscoveryEvents,
+  PeerId,
+  PeerInfo
+} from "@libp2p/interface";
 import { encodeRelayShard } from "@waku/enr";
 import { Libp2pComponents, Tags } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -51,7 +51,7 @@ const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
 const DEFAULT_PEER_EXCHANGE_TAG_TTL = 100_000_000;
 
 export class PeerExchangeDiscovery
-  extends EventEmitter<PeerDiscoveryEvents>
+  extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery
 {
   private readonly components: Libp2pComponents;
@@ -206,7 +206,6 @@ export class PeerExchangeDiscovery
         new CustomEvent<PeerInfo>("peer", {
           detail: {
             id: peerId,
-            protocols: [],
             multiaddrs: peerInfo.multiaddrs
           }
         })

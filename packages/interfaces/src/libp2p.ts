@@ -1,8 +1,8 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
+import type { identify } from "@libp2p/identify";
 import type { Libp2p as BaseLibp2p } from "@libp2p/interface";
+import type { PingService } from "@libp2p/ping";
 import type { Libp2pInit, Libp2pOptions } from "libp2p";
-import type { identifyService } from "libp2p/identify";
-import type { PingService } from "libp2p/ping";
 
 import { IMetadata } from "./metadata";
 
@@ -10,7 +10,7 @@ export type Libp2pServices = {
   ping: PingService;
   metadata?: IMetadata;
   pubsub?: GossipSub;
-  identify: ReturnType<ReturnType<typeof identifyService>>;
+  identify: ReturnType<ReturnType<typeof identify>>;
 };
 
 // TODO: Get libp2p to export this.
