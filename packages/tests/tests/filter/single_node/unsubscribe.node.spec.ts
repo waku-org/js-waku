@@ -1,7 +1,7 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import { DefaultPubsubTopic, IFilterSubscription } from "@waku/interfaces";
-import { LightNode } from "@waku/interfaces/dist/waku";
-import { utf8ToBytes } from "@waku/sdk/dist";
+import { LightNode } from "@waku/interfaces";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {

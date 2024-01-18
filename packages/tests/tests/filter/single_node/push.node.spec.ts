@@ -5,7 +5,7 @@ import {
   LightNode,
   Protocols
 } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/sdk/dist";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {

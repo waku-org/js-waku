@@ -10,8 +10,8 @@ import {
   generateSymmetricKey,
   getPublicKey,
   symmetric
-} from "@waku/message-encryption/dist";
-import { utf8ToBytes } from "@waku/sdk/dist";
+} from "@waku/message-encryption";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {

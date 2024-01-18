@@ -5,7 +5,14 @@ import {
   LightNode,
   Protocols
 } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/sdk/dist";
+import {
+  ecies,
+  generatePrivateKey,
+  generateSymmetricKey,
+  getPublicKey,
+  symmetric
+} from "@waku/message-encryption";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
@@ -24,6 +31,8 @@ import {
   TestDecoder,
   TestEncoder
 } from "../utils.js";
+
+import { runNodes } from "./utils.js";
 
 describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level

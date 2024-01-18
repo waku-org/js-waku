@@ -4,7 +4,7 @@ import {
   IFilterSubscription,
   LightNode
 } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/sdk/dist";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import { generateTestData, ServiceNodes } from "../../src/index.js";
