@@ -54,7 +54,7 @@ describe("Metadata Protocol", () => {
 
       const shardInfoRes =
         await waku.libp2p.services.metadata?.query(nwaku1PeerId);
-      expect(shardInfoRes).to.not.be.undefined;
+      expect(shardInfoRes).to.not.eq(undefined);
       expect(shardInfoRes?.clusterId).to.equal(shardInfo.clusterId);
       expect(shardInfoRes?.shards).to.deep.equal(shardInfo.shards);
 
@@ -92,7 +92,7 @@ describe("Metadata Protocol", () => {
 
       const shardInfoRes =
         await waku.libp2p.services.metadata?.query(nwaku1PeerId);
-      expect(shardInfoRes).to.not.be.undefined;
+      expect(shardInfoRes).to.not.eq(undefined);
       expect(shardInfoRes?.clusterId).to.equal(shardInfo1.clusterId);
       expect(shardInfoRes?.shards).to.deep.equal(shardInfo1.shards);
 
@@ -196,10 +196,10 @@ describe("Metadata Protocol", () => {
     const encodedShardInfo = (
       await waku.libp2p.peerStore.get(nwaku1PeerId)
     ).metadata.get("shardInfo");
-    expect(encodedShardInfo).to.not.be.undefined;
+    expect(encodedShardInfo).to.not.eq(undefined);
 
     const metadataShardInfo = decodeRelayShard(encodedShardInfo!);
-    expect(metadataShardInfo).not.be.undefined;
+    expect(metadataShardInfo).to.not.eq(undefined);
 
     expect(metadataShardInfo!.clusterId).to.eq(shardInfo.clusterId);
     expect(metadataShardInfo.shards).to.deep.eq(shardInfo.shards);

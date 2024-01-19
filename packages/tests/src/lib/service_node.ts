@@ -264,6 +264,10 @@ export class ServiceNode {
       [pubsubTopic]
     );
 
+    if (!msgs) {
+      return [];
+    }
+
     return msgs.filter(isDefined);
   }
 
@@ -276,6 +280,10 @@ export class ServiceNode {
       "get_waku_v2_relay_v1_auto_messages",
       [contentTopic]
     );
+
+    if (!msgs) {
+      return [];
+    }
 
     return msgs.filter(isDefined);
   }
