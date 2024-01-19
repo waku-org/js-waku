@@ -1,9 +1,8 @@
 import type { IdentifyResult } from "@libp2p/interface";
-import type { IBaseProtocol, IRelay, Waku } from "@waku/interfaces";
+import type { IBaseProtocol, IMetadata, IRelay, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { pEvent } from "p-event";
-
 const log = new Logger("wait-for-remote-peer");
 
 /**
@@ -32,6 +31,11 @@ export async function waitForRemotePeer(
 ): Promise<void> {
   protocols = protocols ?? getEnabledProtocols(waku);
 
+  const isShardingEnabled = waku.shardInfo !== undefined;
+  const metadataService = isShardingEnabled
+    ? waku.libp2p.services.metadata
+    : undefined;
+
   if (!waku.isStarted()) return Promise.reject("Waku node is not started");
 
   const promises = [];
@@ -45,19 +49,19 @@ export async function waitForRemotePeer(
   if (protocols.includes(Protocols.Store)) {
     if (!waku.store)
       throw new Error("Cannot wait for Store peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.store));
+    promises.push(waitForConnectedPeer(waku.store, metadataService));
   }
 
   if (protocols.includes(Protocols.LightPush)) {
     if (!waku.lightPush)
       throw new Error("Cannot wait for LightPush peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.lightPush));
+    promises.push(waitForConnectedPeer(waku.lightPush, metadataService));
   }
 
   if (protocols.includes(Protocols.Filter)) {
     if (!waku.filter)
       throw new Error("Cannot wait for Filter peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.filter));
+    promises.push(waitForConnectedPeer(waku.filter, metadataService));
   }
 
   if (timeoutMs) {
@@ -73,21 +77,62 @@ export async function waitForRemotePeer(
 
 /**
  * Wait for a peer with the given protocol to be connected.
+ * If sharding is enabled on the node, it will also wait for the peer to be confirmed by the metadata service.
  */
-async function waitForConnectedPeer(protocol: IBaseProtocol): Promise<void> {
+async function waitForConnectedPeer(
+  protocol: IBaseProtocol,
+  metadataService?: IMetadata
+): Promise<void> {
   const codec = protocol.multicodec;
-  const peers = await protocol.peers();
+  const peers = await protocol.connectedPeers();
 
   if (peers.length) {
-    log.info(`${codec} peer found: `, peers[0].id.toString());
-    return;
+    if (!metadataService) {
+      log.info(`${codec} peer found: `, peers[0].id.toString());
+      return;
+    }
+
+    // once a peer is connected, we need to confirm the metadata handshake with at least one of those peers if sharding is enabled
+    try {
+      await Promise.any(
+        peers.map((peer) => metadataService.confirmOrAttemptHandshake(peer.id))
+      );
+      return;
+    } catch (e) {
+      if ((e as any).code === "ERR_CONNECTION_BEING_CLOSED")
+        log.error(
+          `Connection with the peer was closed and possibly because it's on a different shard. Error: ${e}`
+        );
+
+      log.error(`Error waiting for handshake confirmation: ${e}`);
+    }
   }
 
+  log.info(`Waiting for ${codec} peer`);
+
+  // else we'll just wait for the next peer to connect
   await new Promise<void>((resolve) => {
     const cb = (evt: CustomEvent<IdentifyResult>): void => {
       if (evt.detail?.protocols?.includes(codec)) {
-        protocol.removeLibp2pEventListener("peer:identify", cb);
-        resolve();
+        if (metadataService) {
+          metadataService
+            .confirmOrAttemptHandshake(evt.detail.peerId)
+            .then(() => {
+              protocol.removeLibp2pEventListener("peer:identify", cb);
+              resolve();
+            })
+            .catch((e) => {
+              if (e.code === "ERR_CONNECTION_BEING_CLOSED")
+                log.error(
+                  `Connection with the peer was closed and possibly because it's on a different shard. Error: ${e}`
+                );
+
+              log.error(`Error waiting for handshake confirmation: ${e}`);
+            });
+        } else {
+          protocol.removeLibp2pEventListener("peer:identify", cb);
+          resolve();
+        }
       }
     };
     protocol.addLibp2pEventListener("peer:identify", cb);

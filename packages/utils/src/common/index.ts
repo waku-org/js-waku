@@ -5,6 +5,7 @@ export * from "./to_async_iterator.js";
 export * from "./is_size_valid.js";
 export * from "./sharding.js";
 export * from "./push_or_init_map.js";
+export * from "./relay_shard_codec.js";
 
 export function removeItemFromArray(arr: unknown[], value: unknown): unknown[] {
   const index = arr.indexOf(value);

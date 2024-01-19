@@ -1,7 +1,10 @@
 import { createDecoder, waitForRemotePeer } from "@waku/core";
 import type { ContentTopicInfo, IMessage, LightNode } from "@waku/interfaces";
 import { createLightNode, Protocols } from "@waku/sdk";
-import { contentTopicToPubsubTopic } from "@waku/utils";
+import {
+  contentTopicToPubsubTopic,
+  singleShardInfosToShardInfo
+} from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -18,6 +21,8 @@ import {
   customDecoder2,
   customShardedPubsubTopic1,
   customShardedPubsubTopic2,
+  customShardInfo1,
+  customShardInfo2,
   processQueriedMessages,
   sendMessages,
   sendMessagesAutosharding,
@@ -39,6 +44,7 @@ describe("Waku Store, custom pubsub topic", function () {
     await nwaku.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
+      clusterId: customShardInfo1.clusterId,
       relay: true
     });
     await nwaku.ensureSubscriptions([
@@ -123,6 +129,7 @@ describe("Waku Store, custom pubsub topic", function () {
     await nwaku2.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic2],
+      clusterId: customShardInfo2.clusterId,
       relay: true
     });
     await nwaku2.ensureSubscriptions([customShardedPubsubTopic2]);
@@ -210,7 +217,8 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     await nwaku.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
-      relay: true
+      relay: true,
+      clusterId
     });
     await nwaku.ensureSubscriptionsAutosharding([
       customContentTopic1,
@@ -283,7 +291,8 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     await nwaku2.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic2],
-      relay: true
+      relay: true,
+      clusterId
     });
     await nwaku2.ensureSubscriptionsAutosharding([customContentTopic2]);
 
@@ -339,11 +348,18 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
 
   beforeEach(async function () {
     this.timeout(15000);
+
+    const shardInfo = singleShardInfosToShardInfo([
+      customShardInfo1,
+      customShardInfo2
+    ]);
+
     nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       store: true,
       relay: true,
-      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2]
+      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
+      clusterId: shardInfo.clusterId
     });
     await nwaku.ensureSubscriptions([
       customShardedPubsubTopic1,
@@ -353,10 +369,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     waku = await startAndConnectLightNode(
       nwaku,
       [customShardedPubsubTopic1, customShardedPubsubTopic2],
-      {
-        clusterId: 3,
-        shards: [1, 2]
-      }
+      shardInfo
     );
   });
 
@@ -434,7 +447,8 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     await nwaku2.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic2],
-      relay: true
+      relay: true,
+      clusterId: customShardInfo2.clusterId
     });
     await nwaku2.ensureSubscriptions([customShardedPubsubTopic2]);
 

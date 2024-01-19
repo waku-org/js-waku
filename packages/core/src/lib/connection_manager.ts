@@ -1,6 +1,5 @@
 import type { Peer, PeerId, PeerInfo, PeerStore } from "@libp2p/interface";
 import { CustomEvent, TypedEventEmitter } from "@libp2p/interface";
-import { decodeRelayShard } from "@waku/enr";
 import {
   ConnectionManagerOptions,
   EConnectionStateEvents,
@@ -15,7 +14,7 @@ import {
   ShardInfo
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
-import { shardInfoToPubsubTopics } from "@waku/utils";
+import { decodeRelayShard, shardInfoToPubsubTopics } from "@waku/utils";
 import { Logger } from "@waku/utils";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
@@ -377,6 +376,8 @@ export class ConnectionManager
     },
     "peer:connect": (evt: CustomEvent<PeerId>): void => {
       void (async () => {
+        log.info(`Connected to peer ${evt.detail.toString()}`);
+
         const peerId = evt.detail;
 
         this.keepAliveManager.start(

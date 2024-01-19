@@ -6,14 +6,13 @@ import {
 } from "@libp2p/interface";
 import { peerDiscoverySymbol as symbol } from "@libp2p/interface";
 import type { PeerInfo } from "@libp2p/interface";
-import { encodeRelayShard } from "@waku/enr";
 import type {
   DnsDiscOptions,
   DnsDiscoveryComponents,
   IEnr,
   NodeCapabilityCount
 } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { encodeRelayShard, Logger } from "@waku/utils";
 
 import {
   DEFAULT_BOOTSTRAP_TAG_NAME,
