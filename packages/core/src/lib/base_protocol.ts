@@ -110,6 +110,12 @@ export class BaseProtocol implements IBaseProtocol {
       );
     }
 
+    if (sortedFilteredPeers.length < numPeers) {
+      this.log.warn(
+        `Only ${sortedFilteredPeers.length} peers found. Requested ${numPeers}.`
+      );
+    }
+
     return sortedFilteredPeers;
   }
 

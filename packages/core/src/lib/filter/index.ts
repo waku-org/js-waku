@@ -397,7 +397,7 @@ class Filter extends BaseProtocol implements IReceiver {
       peers.map((peer) => peer.id.toString())
     );
 
-    if (!peer) {
+    if (peers.length === 0) {
       throw new Error("No peer found to initiate subscription.");
     }
 
