@@ -1,6 +1,5 @@
 import type { Libp2p } from "@libp2p/interface";
-import type { Stream } from "@libp2p/interface/connection";
-import { Peer, PeerStore } from "@libp2p/interface/peer-store";
+import type { Peer, PeerStore, Stream } from "@libp2p/interface";
 import type {
   IBaseProtocol,
   Libp2pComponents,
@@ -82,7 +81,7 @@ export class BaseProtocol implements IBaseProtocol {
    *
    * @param numPeers - The total number of peers to retrieve. If 0, all peers are returned.
    * @param maxBootstrapPeers - The maximum number of bootstrap peers to retrieve.
-   
+
   * @returns A list of peers that support the protocol sorted by latency.
   */
   protected async getPeers(

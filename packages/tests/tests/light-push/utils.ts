@@ -8,7 +8,7 @@ import {
 import { createLightNode, utf8ToBytes } from "@waku/sdk";
 import { Logger } from "@waku/utils";
 
-import { makeLogFileName, NimGoNode, NOISE_KEY_1 } from "../../src/index.js";
+import { makeLogFileName, NOISE_KEY_1, ServiceNode } from "../../src/index.js";
 
 // Constants for test configuration.
 export const log = new Logger("test:lightpush");
@@ -21,8 +21,8 @@ export async function runNodes(
   context: Mocha.Context,
   pubsubTopics: string[],
   shardInfo?: ShardingParams
-): Promise<[NimGoNode, LightNode]> {
-  const nwaku = new NimGoNode(makeLogFileName(context));
+): Promise<[ServiceNode, LightNode]> {
+  const nwaku = new ServiceNode(makeLogFileName(context));
   await nwaku.start(
     {
       lightpush: true,

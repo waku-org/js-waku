@@ -17,7 +17,7 @@ import { createLightNode } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
-import { delay, NimGoNode, NOISE_KEY_1 } from "../../src";
+import { delay, NOISE_KEY_1, ServiceNode } from "../../src";
 
 export const log = new Logger("test:store");
 
@@ -47,7 +47,7 @@ export const totalMsgs = 20;
 export const messageText = "Store Push works!";
 
 export async function sendMessages(
-  instance: NimGoNode,
+  instance: ServiceNode,
   numMessages: number,
   contentTopic: string,
   pubsubTopic: string
@@ -55,7 +55,7 @@ export async function sendMessages(
   for (let i = 0; i < numMessages; i++) {
     expect(
       await instance.sendMessage(
-        NimGoNode.toMessageRpcQuery({
+        ServiceNode.toMessageRpcQuery({
           payload: new Uint8Array([i]),
           contentTopic: contentTopic
         }),
@@ -67,14 +67,14 @@ export async function sendMessages(
 }
 
 export async function sendMessagesAutosharding(
-  instance: NimGoNode,
+  instance: ServiceNode,
   numMessages: number,
   contentTopic: string
 ): Promise<void> {
   for (let i = 0; i < numMessages; i++) {
     expect(
       await instance.sendMessageAutosharding(
-        NimGoNode.toMessageRpcQuery({
+        ServiceNode.toMessageRpcQuery({
           payload: new Uint8Array([i]),
           contentTopic: contentTopic
         })
@@ -102,21 +102,32 @@ export async function processQueriedMessages(
 }
 
 export async function startAndConnectLightNode(
-  instance: NimGoNode,
+  instance: ServiceNode,
   pubsubTopics: string[] = [DefaultPubsubTopic],
   shardInfo?: ShardingParams
 ): Promise<LightNode> {
   const waku = await createLightNode({
+    pubsubTopics: shardInfo ? undefined : pubsubTopics,
+    staticNoiseKey: NOISE_KEY_1,
+    libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     ...((pubsubTopics.length !== 1 ||
       pubsubTopics[0] !== DefaultPubsubTopic) && {
       shardInfo: shardInfo
-    }),
-    pubsubTopics: shardInfo ? undefined : pubsubTopics,
-    staticNoiseKey: NOISE_KEY_1
+    })
   });
   await waku.start();
   await waku.dial(await instance.getMultiaddrWithId());
   await waitForRemotePeer(waku, [Protocols.Store]);
+
+  const wakuConnections = waku.libp2p.getConnections();
+  const nwakuPeers = await instance.peers();
+
+  if (wakuConnections.length < 1 || nwakuPeers.length < 1) {
+    throw new Error(
+      `Expected at least 1 peer in each node. Got waku connections: ${wakuConnections.length} and nwaku: ${nwakuPeers.length}`
+    );
+  }
+
   log.info("Waku node created");
   return waku;
 }

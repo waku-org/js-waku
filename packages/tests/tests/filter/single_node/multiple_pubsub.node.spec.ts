@@ -18,18 +18,17 @@ import { expect } from "chai";
 import {
   makeLogFileName,
   MessageCollector,
-  NimGoNode,
+  ServiceNode,
   tearDownNodes
-} from "../../src/index.js";
-
-import { runNodes } from "./utils.js";
+} from "../../../src/index.js";
+import { runNodes } from "../utils.js";
 
 describe("Waku Filter V2: Multiple PubsubTopics", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(30000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
-  let nwaku2: NimGoNode;
+  let nwaku: ServiceNode;
+  let nwaku2: ServiceNode;
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
@@ -121,7 +120,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Set up and start a new nwaku node with customPubsubTopic1
-    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,
@@ -185,8 +184,8 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(30000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
-  let nwaku2: NimGoNode;
+  let nwaku: ServiceNode;
+  let nwaku2: ServiceNode;
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
@@ -295,7 +294,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Set up and start a new nwaku node with customPubsubTopic1
-    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,
@@ -359,8 +358,8 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(30000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
-  let nwaku2: NimGoNode;
+  let nwaku: ServiceNode;
+  let nwaku2: ServiceNode;
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
@@ -387,10 +386,14 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [
-      customPubsubTopic1,
-      customPubsubTopic2
-    ]);
+    [nwaku, waku] = await runNodes(
+      this,
+      [customPubsubTopic1, customPubsubTopic2],
+      {
+        clusterId: 3,
+        shards: [1, 2]
+      }
+    );
     subscription = await waku.filter.createSubscription(customPubsubTopic1);
     messageCollector = new MessageCollector();
   });
@@ -446,7 +449,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Set up and start a new nwaku node with customPubsubTopic1
-    nwaku2 = new NimGoNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,

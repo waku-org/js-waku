@@ -7,10 +7,9 @@ import { expect } from "chai";
 import {
   generateTestData,
   MessageCollector,
-  NimGoNode,
+  ServiceNode,
   tearDownNodes
-} from "../../src/index.js";
-
+} from "../../../src/index.js";
 import {
   messagePayload,
   messageText,
@@ -18,13 +17,13 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder
-} from "./utils.js";
+} from "../utils.js";
 
 describe("Waku Filter V2: Unsubscribe", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(10000);
   let waku: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
