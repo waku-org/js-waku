@@ -4,11 +4,11 @@ import { LightNode } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { makeLogFileName, NimGoNode, tearDownNodes } from "../src/index.js";
+import { makeLogFileName, ServiceNode, tearDownNodes } from "../src/index.js";
 
 describe("Use static and several ENR trees for bootstrap", function () {
   let waku: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
 
   afterEach(async function () {
     this.timeout(15000);
@@ -18,7 +18,7 @@ describe("Use static and several ENR trees for bootstrap", function () {
   it("", async function () {
     this.timeout(10_000);
 
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start();
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 

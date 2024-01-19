@@ -13,9 +13,11 @@ import {
 import { singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
-import { tearDownNodes } from "../../src/index.js";
-import { makeLogFileName } from "../../src/log_file.js";
-import { NimGoNode } from "../../src/node/node.js";
+import {
+  makeLogFileName,
+  ServiceNode,
+  tearDownNodes
+} from "../../src/index.js";
 
 const PubsubTopic1 = singleShardInfoToPubsubTopic({
   clusterId: 0,
@@ -34,11 +36,11 @@ const ContentTopic2 = "/myapp/1/latest/proto";
 
 describe("Static Sharding: Running Nodes", () => {
   let waku: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
 
   beforeEach(async function () {
     this.timeout(15_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({ store: true, lightpush: true, relay: true });
   });
 
@@ -109,11 +111,11 @@ describe("Static Sharding: Running Nodes", () => {
 
 describe("Autosharding: Running Nodes", () => {
   let waku: LightNode;
-  let nwaku: NimGoNode;
+  let nwaku: ServiceNode;
 
   beforeEach(async function () {
     this.timeout(15_000);
-    nwaku = new NimGoNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({ store: true, lightpush: true, relay: true });
   });
 

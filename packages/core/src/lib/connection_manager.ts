@@ -1,8 +1,5 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
-import type { PeerInfo } from "@libp2p/interface/peer-info";
-import type { Peer } from "@libp2p/interface/peer-store";
-import type { PeerStore } from "@libp2p/interface/peer-store";
-import { CustomEvent, EventEmitter } from "@libp2p/interfaces/events";
+import type { Peer, PeerId, PeerInfo, PeerStore } from "@libp2p/interface";
+import { CustomEvent, TypedEventEmitter } from "@libp2p/interface";
 import {
   ConnectionManagerOptions,
   EConnectionStateEvents,
@@ -17,8 +14,7 @@ import {
   ShardInfo
 } from "@waku/interfaces";
 import { Libp2p, Tags } from "@waku/interfaces";
-import { decodeRelayShard, shardInfoToPubsubTopics } from "@waku/utils";
-import { Logger } from "@waku/utils";
+import { decodeRelayShard, Logger, shardInfoToPubsubTopics } from "@waku/utils";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
 
@@ -29,7 +25,7 @@ export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
 export const DEFAULT_MAX_PARALLEL_DIALS = 3;
 
 export class ConnectionManager
-  extends EventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents>
+  extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents>
   implements IConnectionManager
 {
   private static instances = new Map<string, ConnectionManager>();

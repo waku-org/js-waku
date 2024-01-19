@@ -1,5 +1,4 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
-import { IncomingStreamData } from "@libp2p/interface/stream-handler";
+import { IncomingStreamData, type PeerId } from "@libp2p/interface";
 import type {
   IMetadata,
   Libp2pComponents,

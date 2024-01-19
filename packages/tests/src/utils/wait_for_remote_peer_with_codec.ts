@@ -1,5 +1,5 @@
 import type { IdentifyResult } from "@libp2p/interface";
-import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerId } from "@libp2p/interface";
 import type { LightNode } from "@waku/interfaces";
 
 /**

@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import { DefaultPubsubTopic } from "@waku/interfaces";
@@ -8,18 +8,18 @@ import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
 
-import { existsAsync, mkdirAsync, openAsync } from "../async_fs.js";
-import { delay } from "../delay.js";
-import waitForLine from "../log_file.js";
-
-import Dockerode from "./dockerode.js";
 import {
   Args,
   KeyPair,
   LogLevel,
   MessageRpcQuery,
   MessageRpcResponse
-} from "./interfaces.js";
+} from "../types.js";
+import { existsAsync, mkdirAsync, openAsync } from "../utils/async_fs.js";
+import { delay } from "../utils/delay.js";
+import waitForLine from "../utils/log_file.js";
+
+import Dockerode from "./dockerode.js";
 
 const log = new Logger("test:node");
 
@@ -27,7 +27,8 @@ const WAKU_SERVICE_NODE_PARAMS =
   process.env.WAKU_SERVICE_NODE_PARAMS ?? undefined;
 const NODE_READY_LOG_LINE = "Node setup complete";
 
-const DOCKER_IMAGE_NAME = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.22.0";
+export const DOCKER_IMAGE_NAME =
+  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.22.0";
 
 const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
 
@@ -41,7 +42,7 @@ BigInt.prototype.toJSON = function toJSON() {
   return Number(this);
 };
 
-export class NimGoNode {
+export class ServiceNode {
   private docker?: Dockerode;
   private peerId?: PeerId;
   private multiaddrWithId?: Multiaddr;
@@ -463,8 +464,4 @@ interface RpcInfoResponse {
   // multiaddrs including peer id.
   listenAddresses: string[];
   enrUri?: string;
-}
-
-export function base64ToUtf8(b64: string): string {
-  return Buffer.from(b64, "base64").toString("utf-8");
 }

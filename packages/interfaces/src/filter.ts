@@ -1,4 +1,4 @@
-import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerId } from "@libp2p/interface";
 
 import type { IDecodedMessage, IDecoder, SingleShardInfo } from "./message.js";
 import type { ContentTopic, PubsubTopic } from "./misc.js";

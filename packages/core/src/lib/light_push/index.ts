@@ -1,5 +1,4 @@
-import type { Stream } from "@libp2p/interface/connection";
-import type { PeerId } from "@libp2p/interface/peer-id";
+import type { PeerId, Stream } from "@libp2p/interface";
 import {
   IEncoder,
   ILightPush,

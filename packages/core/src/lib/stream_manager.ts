@@ -1,6 +1,5 @@
-import type { PeerUpdate } from "@libp2p/interface";
-import type { Stream } from "@libp2p/interface/connection";
-import { Peer } from "@libp2p/interface/peer-store";
+import type { PeerUpdate, Stream } from "@libp2p/interface";
+import { Peer } from "@libp2p/interface";
 import { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { selectConnection } from "@waku/utils/libp2p";

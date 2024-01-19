@@ -1,10 +1,11 @@
-import { CustomEvent, EventEmitter } from "@libp2p/interface/events";
-import type {
+import {
+  CustomEvent,
   PeerDiscovery,
-  PeerDiscoveryEvents
-} from "@libp2p/interface/peer-discovery";
-import { peerDiscovery as symbol } from "@libp2p/interface/peer-discovery";
-import type { PeerInfo } from "@libp2p/interface/peer-info";
+  PeerDiscoveryEvents,
+  type PeerInfo,
+  peerDiscoverySymbol as symbol,
+  TypedEventEmitter
+} from "@libp2p/interface";
 import type {
   DnsDiscOptions,
   DnsDiscoveryComponents,
@@ -27,7 +28,7 @@ const log = new Logger("peer-discovery-dns");
  * Parse options and expose function to return bootstrap peer addresses.
  */
 export class PeerDiscoveryDns
-  extends EventEmitter<PeerDiscoveryEvents>
+  extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery
 {
   private nextPeer: (() => AsyncGenerator<IEnr>) | undefined;
