@@ -26,6 +26,7 @@ export async function runNodes(
   await nwaku.start(
     {
       lightpush: true,
+      filter: true,
       relay: true,
       pubsubTopic: pubsubTopics,
       ...(shardInfo && { clusterId: shardInfo.clusterId })

@@ -387,14 +387,14 @@ class Filter extends BaseProtocol implements IReceiver {
       maxBootstrapPeers: 1,
       numPeers: this.NUM_PEERS_TO_USE
     });
+    if (peers.length === 0) {
+      throw new Error("No peer found to initiate subscription.");
+    }
+
     log.info(
       `Creating filter subscription with ${peers.length} peers: `,
       peers.map((peer) => peer.id.toString())
     );
-
-    if (peers.length === 0) {
-      throw new Error("No peer found to initiate subscription.");
-    }
 
     const subscription =
       this.getActiveSubscription(pubsubTopic) ??
