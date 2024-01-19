@@ -49,7 +49,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@chainsafe/libp2p-gossipsub": "^11.0.1",
+    "@chainsafe/libp2p-gossipsub": "^11.1.0",
     "@noble/hashes": "^1.3.2",
     "@waku/core": "0.0.26",
     "@waku/interfaces": "0.0.21",
@@ -64,7 +64,7 @@
     "@waku/build-utils": "*",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "rollup": "^4.6.0"
+    "rollup": "^4.9.5"
   },
   "files": [
     "dist",

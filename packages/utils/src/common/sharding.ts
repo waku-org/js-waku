@@ -2,6 +2,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import {
   DefaultPubsubTopic,
   PubsubTopic,
+  ShardInfo,
   ShardingParams,
   SingleShardInfo
 } from "@waku/interfaces";
@@ -15,6 +16,26 @@ export const singleShardInfoToPubsubTopic = (
     throw new Error("Invalid shard");
 
   return `/waku/2/rs/${shardInfo.clusterId}/${shardInfo.shard}`;
+};
+
+export const singleShardInfosToShardInfo = (
+  singleShardInfos: SingleShardInfo[]
+): ShardInfo => {
+  if (singleShardInfos.length === 0) throw new Error("Invalid shard");
+
+  const clusterIds = singleShardInfos.map((shardInfo) => shardInfo.clusterId);
+  if (new Set(clusterIds).size !== 1) {
+    throw new Error("Passed shard infos have different clusterIds");
+  }
+
+  const shards = singleShardInfos
+    .map((shardInfo) => shardInfo.shard)
+    .filter((shard): shard is number => shard !== undefined);
+
+  return {
+    clusterId: singleShardInfos[0].clusterId,
+    shards
+  };
 };
 
 export const shardInfoToPubsubTopics = (
