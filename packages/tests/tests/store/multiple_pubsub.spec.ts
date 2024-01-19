@@ -439,7 +439,8 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     await nwaku2.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic2],
-      relay: true
+      relay: true,
+      clusterId: customShardInfo2.clusterId
     });
     await nwaku2.ensureSubscriptions([customShardedPubsubTopic2]);
 
