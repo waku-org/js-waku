@@ -258,6 +258,7 @@ describe("Waku Filter V2: Subscribe", function () {
     }
   });
 
+  //TODO: remove test when WAKUNODE_IMAGE is 0.24.0
   it("Subscribe to 30 topics (old limit) at once and receives messages", async function () {
     let topicCount: number;
     if (isNwakuAtLeast("0.24.0")) {
@@ -325,6 +326,7 @@ describe("Waku Filter V2: Subscribe", function () {
     }
   });
 
+  //TODO: remove test when WAKUNODE_IMAGE is 0.24.0
   it("Error when try to subscribe to more than 31 topics (old limit)", async function () {
     let topicCount: number;
     if (isNwakuAtLeast("0.24.0")) {
