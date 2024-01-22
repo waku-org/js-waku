@@ -1,0 +1,78 @@
+{
+  "name": "@waku/local-storage-discovery",
+  "version": "0.0.1",
+  "description": "Local Storage Discovery acts as a way to fetch (healthy) peers that you have previously successfully connected to, and act as a faster way to bootstrap your way into the network.",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "type": "module",
+  "author": "Waku Team",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/local-storage#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/waku-org/js-waku.git"
+  },
+  "bugs": {
+    "url": "https://github.com/waku-org/js-waku/issues"
+  },
+  "license": "MIT OR Apache-2.0",
+  "keywords": [
+    "waku",
+    "decentralized",
+    "secure",
+    "communication",
+    "web3",
+    "ethereum",
+    "dapps",
+    "privacy"
+  ],
+  "scripts": {
+    "build": "run-s build:**",
+    "build:esm": "tsc",
+    "build:bundle": "rollup --config rollup.config.js",
+    "fix": "run-s fix:*",
+    "fix:lint": "eslint src *.js --fix",
+    "check": "run-s check:*",
+    "check:lint": "eslint src --ext .ts",
+    "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
+    "check:tsc": "tsc -p tsconfig.dev.json",
+    "prepublish": "npm run build",
+    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
+    "test": "NODE_ENV=test run-s test:*",
+    "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha",
+    "test:browser": "NODE_ENV=test karma start karma.conf.cjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@types/chai": "^4.3.11",
+    "chai": "^4.3.10",
+    "@waku/build-utils": "*",
+    "cspell": "^7.3.2",
+    "mocha": "^10.2.0",
+    "npm-run-all": "^4.1.5",
+    "rollup": "^4.9.5"
+  },
+  "files": [
+    "dist",
+    "bundle",
+    "src/**/*.ts",
+    "!**/*.spec.*",
+    "!**/*.json",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ]
+}

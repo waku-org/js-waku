@@ -12,6 +12,7 @@
     "packages/message-hash",
     "packages/peer-exchange",
     "packages/dns-discovery",
+    "packages/local-storage-discovery",
     "packages/message-encryption",
     "packages/sdk",
     "packages/tests",
