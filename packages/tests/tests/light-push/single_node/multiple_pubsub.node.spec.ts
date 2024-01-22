@@ -33,10 +33,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
     clusterId: 3,
     shard: 1
   });
-  const customPubsubTopic2 = singleShardInfoToPubsubTopic({
-    clusterId: 3,
-    shard: 2
-  });
+
   const shardInfo: ShardInfo = { clusterId: 3, shards: [1, 2] };
   const singleShardInfo1: SingleShardInfo = { clusterId: 3, shard: 1 };
   const singleShardInfo2: SingleShardInfo = { clusterId: 3, shard: 2 };
@@ -57,7 +54,10 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
     this.timeout(15000);
     [nwaku, waku] = await runNodes(
       this,
-      [customPubsubTopic1, customPubsubTopic2],
+      [
+        singleShardInfoToPubsubTopic(singleShardInfo1),
+        singleShardInfoToPubsubTopic(singleShardInfo2)
+      ],
       shardInfo
     );
     messageCollector = new MessageCollector(nwaku);
@@ -107,7 +107,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
 
     expect(
       await messageCollector2.waitForMessages(1, {
-        pubsubTopic: customPubsubTopic2
+        pubsubTopic: singleShardInfoToPubsubTopic(singleShardInfo2)
       })
     ).to.eq(true);
 
@@ -130,9 +130,12 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: [customPubsubTopic2]
+      pubsubTopic: [singleShardInfoToPubsubTopic(singleShardInfo2)],
+      clusterId: singleShardInfo2.clusterId
     });
-    await nwaku2.ensureSubscriptions([customPubsubTopic2]);
+    await nwaku2.ensureSubscriptions([
+      singleShardInfoToPubsubTopic(singleShardInfo2)
+    ]);
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
@@ -147,7 +150,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
         pubsubTopic: customPubsubTopic1
       })) ||
       !(await messageCollector2.waitForMessages(1, {
-        pubsubTopic: customPubsubTopic2
+        pubsubTopic: singleShardInfoToPubsubTopic(singleShardInfo2)
       })) ||
       pushResponse1!.recipients[0].toString() ===
         pushResponse2!.recipients[0].toString()
@@ -168,7 +171,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
     messageCollector2.verifyReceivedMessage(0, {
       expectedMessageText: "M2",
       expectedContentTopic: customContentTopic2,
-      expectedPubsubTopic: customPubsubTopic2
+      expectedPubsubTopic: singleShardInfoToPubsubTopic(singleShardInfo2)
     });
   });
 });
@@ -286,7 +289,8 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: [autoshardingPubsubTopic2]
+      pubsubTopic: [autoshardingPubsubTopic2],
+      clusterId: shardInfo.clusterId
     });
     await nwaku2.ensureSubscriptionsAutosharding([customContentTopic2]);
     await waku.dial(await nwaku2.getMultiaddrWithId());
@@ -349,10 +353,6 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
     customContentTopic2,
     clusterId
   );
-  const contentTopicInfo: ContentTopicInfo = {
-    clusterId,
-    contentTopics: [customContentTopic1, customContentTopic2]
-  };
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
     pubsubTopicShardInfo: {
@@ -368,11 +368,10 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
 
   this.beforeEach(async function () {
     this.timeout(15000);
-    [nwaku, waku] = await runNodes(
-      this,
-      [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
-      contentTopicInfo
-    );
+    [nwaku, waku] = await runNodes(this, [
+      autoshardingPubsubTopic1,
+      autoshardingPubsubTopic2
+    ]);
     messageCollector = new MessageCollector(nwaku);
     nimPeerId = await nwaku.getPeerId();
   });
