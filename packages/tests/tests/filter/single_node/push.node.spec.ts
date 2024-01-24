@@ -1,8 +1,11 @@
 import { waitForRemotePeer } from "@waku/core";
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import {
+  DefaultPubsubTopic,
+  IFilterSubscription,
+  LightNode,
+  Protocols
+} from "@waku/interfaces";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
@@ -13,9 +16,9 @@ import {
   TEST_STRING,
   TEST_TIMESTAMPS
 } from "../../../src/index.js";
+import { runNodes } from "../../light-push/utils";
 import {
   messageText,
-  runNodes,
   TestContentTopic,
   TestDecoder,
   TestEncoder

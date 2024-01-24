@@ -21,7 +21,8 @@ import {
   ServiceNode,
   tearDownNodes
 } from "../../../src/index.js";
-import { runNodes } from "../utils.js";
+
+import { runNodes } from "./utils.js";
 
 describe("Waku Filter V2: Multiple PubsubTopics", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level

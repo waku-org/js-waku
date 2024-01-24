@@ -5,8 +5,11 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
-import { base64ToUtf8, delay, ServiceNode } from "../index.js";
 import { MessageRpcResponse } from "../types.js";
+import { base64ToUtf8 } from "../utils/base64_utf8.js";
+import { delay } from "../utils/delay.js";
+
+import { ServiceNode } from "./service_node.js";
 
 const log = new Logger("test:message-collector");
 
