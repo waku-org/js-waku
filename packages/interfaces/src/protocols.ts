@@ -70,6 +70,14 @@ export type ProtocolCreateOptions = {
    */
   libp2p?: Partial<CreateLibp2pOptions>;
   /**
+   * Number of peers to connect to, for the usage of the protocol.
+   * This is used by:
+   * - Light Push to send messages,
+   * - Filter to retrieve messages.
+   * Defaults to 3.
+   */
+  numPeersToUse?: number;
+  /**
    * Byte array used as key for the noise protocol used for connection encryption
    * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * This is only used for test purposes to not run out of entropy during CI runs.

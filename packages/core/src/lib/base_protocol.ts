@@ -17,6 +17,8 @@ import {
 import { filterPeersByDiscovery } from "./filterPeers.js";
 import { StreamManager } from "./stream_manager.js";
 
+const DEFAULT_NUM_PEERS_TO_USE = 3;
+
 /**
  * A class with predefined helpers, to be used as a base to implement Waku
  * Protocols.
@@ -24,7 +26,7 @@ import { StreamManager } from "./stream_manager.js";
 export class BaseProtocol implements IBaseProtocol {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
-  readonly NUM_PEERS_TO_USE = 3;
+  readonly numPeersTouse: number;
   protected streamManager: StreamManager;
   protected pubsubTopics: PubsubTopic[];
 
@@ -35,6 +37,8 @@ export class BaseProtocol implements IBaseProtocol {
     private options?: ProtocolCreateOptions
   ) {
     this.pubsubTopics = this.initializePubsubTopic(options);
+
+    this.numPeersTouse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
 
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events
