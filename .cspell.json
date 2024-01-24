@@ -96,6 +96,7 @@
     "secp",
     "sharded",
     "sscanf",
+    "Startable",
     "staticnode",
     "statusim",
     "statusteam",
@@ -125,7 +126,15 @@
     "Привет",
     "مرحبا"
   ],
-  "flagWords": ["pubSub: pubsub", "pubSubTopics: pubsubTopics", "pubSubTopic: pubsubTopic", "PubSub: Pubsub", "PubSubTopics: PubsubTopics", "PubSubTopic: PubsubTopic", "DefaultPubSubTopic: DefaultPubsubTopic"],
+  "flagWords": [
+    "pubSub: pubsub",
+    "pubSubTopics: pubsubTopics",
+    "pubSubTopic: pubsubTopic",
+    "PubSub: Pubsub",
+    "PubSubTopics: PubsubTopics",
+    "PubSubTopic: PubsubTopic",
+    "DefaultPubSubTopic: DefaultPubsubTopic"
+  ],
   "ignorePaths": [
     "package.json",
     "package-lock.json",
