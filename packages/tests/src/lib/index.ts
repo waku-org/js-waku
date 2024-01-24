@@ -21,7 +21,7 @@ const log = new Logger("test:message-collector");
  * This class is a wrapper over the ServiceNode & MessageCollector class
  * that allows for the creation & handling of multiple ServiceNodes
  */
-export class ServiceNodes {
+export class ServiceNodesFleet {
   static async createAndRun(
     mochaContext: Mocha.Context,
     pubsubTopics: PubsubTopic[],
@@ -30,7 +30,7 @@ export class ServiceNodes {
     shardInfo?: ShardingParams,
     _args?: Args,
     withoutFilter = false
-  ): Promise<ServiceNodes> {
+  ): Promise<ServiceNodesFleet> {
     const serviceNodePromises = Array.from(
       { length: nodesToCreate },
       async () => {
@@ -49,7 +49,7 @@ export class ServiceNodes {
     );
 
     const nodes = await Promise.all(serviceNodePromises);
-    return new ServiceNodes(nodes, withoutFilter, strictChecking);
+    return new ServiceNodesFleet(nodes, withoutFilter, strictChecking);
   }
 
   /**

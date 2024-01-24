@@ -16,7 +16,7 @@ import pRetry from "p-retry";
 
 import {
   NOISE_KEY_1,
-  ServiceNodes,
+  ServiceNodesFleet,
   waitForConnections
 } from "../../src/index.js";
 
@@ -57,9 +57,9 @@ export async function runMultipleNodes(
   shardInfo?: ShardingParams,
   numServiceNodes = 3,
   withoutFilter = false
-): Promise<[ServiceNodes, LightNode]> {
+): Promise<[ServiceNodesFleet, LightNode]> {
   // create numServiceNodes nodes
-  const serviceNodes = await ServiceNodes.createAndRun(
+  const serviceNodes = await ServiceNodesFleet.createAndRun(
     context,
     pubsubTopics,
     numServiceNodes,
@@ -115,7 +115,7 @@ export async function runMultipleNodes(
 }
 
 export async function teardownNodesWithRedundancy(
-  serviceNodes: ServiceNodes,
+  serviceNodes: ServiceNodesFleet,
   wakuNodes: Waku | Waku[]
 ): Promise<void> {
   const wNodes = Array.isArray(wakuNodes) ? wakuNodes : [wakuNodes];

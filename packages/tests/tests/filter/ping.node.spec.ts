@@ -6,7 +6,7 @@ import {
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
-import { ServiceNodes } from "../../src/index.js";
+import { ServiceNodesFleet } from "../../src/index.js";
 
 import {
   runMultipleNodes,
@@ -22,7 +22,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
     this.timeout(10000);
     let waku: LightNode;
-    let serviceNodes: ServiceNodes;
+    let serviceNodes: ServiceNodesFleet;
     let subscription: IFilterSubscription;
 
     this.beforeEach(async function () {

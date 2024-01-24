@@ -329,7 +329,7 @@ class Subscription {
       ).join(", ");
       throw new Error(`Error ${type} all peers: ${uniqueErrorMessages}`);
     } else if (errors.length > 0) {
-      // TODO: handle renewing faulty peers with new peers
+      // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
       log.warn(
         `Some ${type} failed. These will be refreshed with new peers`,
         errors

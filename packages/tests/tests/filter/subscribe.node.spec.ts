@@ -17,7 +17,7 @@ import { expect } from "chai";
 import {
   delay,
   generateTestData,
-  ServiceNodes,
+  ServiceNodesFleet,
   TEST_STRING
 } from "../../src/index.js";
 
@@ -35,7 +35,7 @@ const runTests = (strictCheckNodes: boolean): void => {
   describe(`Waku Filter V2: Subscribe: Multiple Service Nodes: Strict Check mode: ${strictCheckNodes}`, function () {
     this.timeout(100000);
     let waku: LightNode;
-    let serviceNodes: ServiceNodes;
+    let serviceNodes: ServiceNodesFleet;
     let subscription: IFilterSubscription;
 
     this.beforeEach(async function () {
@@ -138,7 +138,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       await delay(400);
 
       // Send a test message using the relay post method.
-      const relayMessage = ServiceNodes.toMessageRpcQuery({
+      const relayMessage = ServiceNodesFleet.toMessageRpcQuery({
         contentTopic: TestContentTopic,
         payload: utf8ToBytes(messageText)
       });

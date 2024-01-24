@@ -8,7 +8,11 @@ import {
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
-import { generateRandomUint8Array, ServiceNodes, TEST_STRING } from "../../src";
+import {
+  generateRandomUint8Array,
+  ServiceNodesFleet,
+  TEST_STRING
+} from "../../src";
 import {
   runMultipleNodes,
   teardownNodesWithRedundancy
@@ -27,7 +31,7 @@ const runTests = (strictNodeCheck: boolean): void => {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
     this.timeout(15000);
     let waku: LightNode;
-    let serviceNodes: ServiceNodes;
+    let serviceNodes: ServiceNodesFleet;
 
     this.beforeEach(async function () {
       this.timeout(15000);

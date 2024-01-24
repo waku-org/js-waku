@@ -171,7 +171,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
     const results = await Promise.allSettled(promises);
 
-    // TODO: handle renewing faulty peers with new peers
+    // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
     const errors = results
       .filter(
         (
