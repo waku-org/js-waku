@@ -7,7 +7,11 @@ import type {
   PubsubTopic
 } from "@waku/interfaces";
 import { DefaultPubsubTopic } from "@waku/interfaces";
-import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
+import {
+  ensureShardingConfigured,
+  Logger,
+  shardInfoToPubsubTopics
+} from "@waku/utils";
 import {
   getConnectedPeersForProtocolAndShard,
   getPeersForProtocol,
@@ -108,6 +112,8 @@ export class BaseProtocol implements IBaseProtocol {
         this.peerStore,
         [this.multicodec],
         this.options?.shardInfo
+          ? ensureShardingConfigured(this.options.shardInfo).shardInfo
+          : undefined
       );
 
     // Filter the peers based on discovery & number of peers requested

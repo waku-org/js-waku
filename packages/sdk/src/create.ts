@@ -16,18 +16,19 @@ import {
   wakuStore
 } from "@waku/core";
 import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
-import type {
-  CreateLibp2pOptions,
-  FullNode,
-  IMetadata,
-  Libp2p,
-  Libp2pComponents,
-  LightNode,
-  ProtocolCreateOptions,
-  ShardingParams
+import {
+  type CreateLibp2pOptions,
+  type FullNode,
+  type IMetadata,
+  type Libp2p,
+  type Libp2pComponents,
+  type LightNode,
+  type ProtocolCreateOptions,
+  type ShardInfo
 } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
+import { ensureShardingConfigured } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
 const DEFAULT_NODE_REQUIREMENTS = {
@@ -37,17 +38,6 @@ const DEFAULT_NODE_REQUIREMENTS = {
 };
 
 export { Libp2pComponents };
-
-const ensureShardingConfigured = (shardInfo: ShardingParams): void => {
-  if (
-    ("shards" in shardInfo && shardInfo.shards.length < 1) ||
-    ("contentTopics" in shardInfo && shardInfo.contentTopics.length < 1)
-  ) {
-    throw new Error(
-      "Missing required configuration options for static sharding or autosharding."
-    );
-  }
-};
 
 /**
  * Create a Waku node configured to use autosharding or static sharding.
@@ -61,7 +51,7 @@ export async function createNode(
     throw new Error("Shard info must be set");
   }
 
-  ensureShardingConfigured(options.shardInfo);
+  const shardInfo = ensureShardingConfigured(options.shardInfo);
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -71,7 +61,7 @@ export async function createNode(
   }
 
   const libp2p = await defaultLibp2p(
-    undefined,
+    shardInfo.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -85,7 +75,7 @@ export async function createNode(
     options ?? {},
     [],
     libp2p,
-    options.shardInfo,
+    shardInfo.shardInfo,
     store,
     lightPush,
     filter
@@ -102,9 +92,9 @@ export async function createLightNode(
 ): Promise<LightNode> {
   options = options ?? {};
 
-  if (options.shardInfo) {
-    ensureShardingConfigured(options.shardInfo);
-  }
+  const shardInfo = options.shardInfo
+    ? ensureShardingConfigured(options.shardInfo)
+    : undefined;
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -114,7 +104,7 @@ export async function createLightNode(
   }
 
   const libp2p = await defaultLibp2p(
-    options.shardInfo,
+    shardInfo?.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -128,7 +118,7 @@ export async function createLightNode(
     options ?? {},
     options.pubsubTopics,
     libp2p,
-    options.shardInfo,
+    shardInfo?.shardingParams,
     store,
     lightPush,
     filter
@@ -153,9 +143,9 @@ export async function createFullNode(
 ): Promise<FullNode> {
   options = options ?? {};
 
-  if (options.shardInfo) {
-    ensureShardingConfigured(options.shardInfo);
-  }
+  const shardInfo = options.shardInfo
+    ? ensureShardingConfigured(options.shardInfo)
+    : undefined;
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -165,7 +155,7 @@ export async function createFullNode(
   }
 
   const libp2p = await defaultLibp2p(
-    options.shardInfo,
+    shardInfo?.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -180,7 +170,7 @@ export async function createFullNode(
     options ?? {},
     options.pubsubTopics,
     libp2p,
-    options.shardInfo,
+    shardInfo?.shardingParams,
     store,
     lightPush,
     filter,
@@ -207,7 +197,7 @@ type MetadataService = {
 };
 
 export async function defaultLibp2p(
-  shardInfo?: ShardingParams,
+  shardInfo?: ShardInfo,
   wakuGossipSub?: PubsubService["pubsub"],
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string

@@ -10,7 +10,10 @@ import {
   utf8ToBytes,
   waitForRemotePeer
 } from "@waku/sdk";
-import { singleShardInfoToPubsubTopic } from "@waku/utils";
+import {
+  contentTopicToShardIndex,
+  singleShardInfoToPubsubTopic
+} from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -138,12 +141,18 @@ describe("Autosharding: Running Nodes", () => {
 
     const encoder1 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopicShardInfo: { clusterId: 0 }
+      pubsubTopicShardInfo: {
+        clusterId: 0,
+        shard: contentTopicToShardIndex(ContentTopic)
+      }
     });
 
     const encoder2 = createEncoder({
       contentTopic: ContentTopic,
-      pubsubTopicShardInfo: { clusterId: 0 }
+      pubsubTopicShardInfo: {
+        clusterId: 0,
+        shard: contentTopicToShardIndex(ContentTopic2)
+      }
     });
 
     const request1 = await waku.lightPush.send(encoder1, {

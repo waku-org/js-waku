@@ -11,7 +11,7 @@ import {
   Tags,
   utf8ToBytes
 } from "@waku/sdk";
-import { shardInfoToPubsubTopics } from "@waku/utils";
+import { ensureShardingConfigured, shardInfoToPubsubTopics } from "@waku/utils";
 import { getConnectedPeersForProtocolAndShard } from "@waku/utils/libp2p";
 import { expect } from "chai";
 import fc from "fast-check";
@@ -237,7 +237,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
-      shardInfo
+      ensureShardingConfigured(shardInfo).shardInfo
     );
     expect(peers.length).to.be.greaterThan(0);
   });
@@ -289,7 +289,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
-      shardInfo2
+      ensureShardingConfigured(shardInfo2).shardInfo
     );
     expect(peers.length).to.be.equal(1);
   });
@@ -341,7 +341,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
-      shardInfo2
+      ensureShardingConfigured(shardInfo2).shardInfo
     );
     expect(peers.length).to.be.equal(1);
   });
@@ -393,7 +393,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
-      shardInfo2
+      ensureShardingConfigured(shardInfo2).shardInfo
     );
     expect(peers.length).to.be.equal(1);
   });

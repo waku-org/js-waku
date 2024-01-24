@@ -14,6 +14,7 @@ import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk/relay";
 import {
   contentTopicToPubsubTopic,
+  pubsubTopicToSingleShardInfo,
   singleShardInfoToPubsubTopic
 } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
@@ -340,16 +341,20 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
   };
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
-    pubsubTopicShardInfo: {
-      clusterId: 3
-    }
+    pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
   });
-  const customDecoder1 = createDecoder(customContentTopic1, { clusterId: 3 });
+  const customDecoder1 = createDecoder(
+    customContentTopic1,
+    pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
+  );
   const customEncoder2 = createEncoder({
     contentTopic: customContentTopic2,
-    pubsubTopicShardInfo: { clusterId: 3 }
+    pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(autoshardingPubsubTopic2)
   });
-  const customDecoder2 = createDecoder(customContentTopic2, { clusterId: 3 });
+  const customDecoder2 = createDecoder(
+    customContentTopic2,
+    pubsubTopicToSingleShardInfo(autoshardingPubsubTopic2)
+  );
   const contentTopicInfoBothShards: ContentTopicInfo = {
     clusterId: 3,
     contentTopics: [customContentTopic1, customContentTopic2]

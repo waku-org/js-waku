@@ -1,6 +1,7 @@
 import { WakuNode, WakuOptions } from "@waku/core";
 import type { ProtocolCreateOptions, RelayNode } from "@waku/interfaces";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
+import { ensureShardingConfigured } from "@waku/utils";
 
 import { defaultLibp2p, defaultPeerDiscoveries } from "../create.js";
 
@@ -26,8 +27,12 @@ export async function createRelayNode(
     Object.assign(libp2pOptions, { peerDiscovery });
   }
 
+  const shardInfo = options.shardInfo
+    ? ensureShardingConfigured(options.shardInfo)
+    : undefined;
+
   const libp2p = await defaultLibp2p(
-    options.shardInfo,
+    shardInfo?.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -39,7 +44,7 @@ export async function createRelayNode(
     options,
     options.pubsubTopics,
     libp2p,
-    options.shardInfo,
+    shardInfo?.shardingParams,
     undefined,
     undefined,
     undefined,

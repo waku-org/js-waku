@@ -1,5 +1,5 @@
 import type { Connection, Peer, PeerStore } from "@libp2p/interface";
-import { ShardingParams } from "@waku/interfaces";
+import { ShardInfo } from "@waku/interfaces";
 
 import { bytesToUtf8 } from "../bytes/index.js";
 import { decodeRelayShard } from "../common/relay_shard_codec.js";
@@ -74,7 +74,7 @@ export async function getConnectedPeersForProtocolAndShard(
   connections: Connection[],
   peerStore: PeerStore,
   protocols: string[],
-  shardInfo?: ShardingParams
+  shardInfo?: ShardInfo
 ): Promise<Peer[]> {
   const openConnections = connections.filter(
     (connection) => connection.status === "open"
