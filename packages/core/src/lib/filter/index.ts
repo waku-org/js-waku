@@ -385,7 +385,7 @@ class Filter extends BaseProtocol implements IReceiver {
 
     const peers = await this.getPeers({
       maxBootstrapPeers: 1,
-      numPeers: this.numPeersTouse
+      numPeers: this.numPeersToUse
     });
     if (peers.length === 0) {
       throw new Error("No peer found to initiate subscription.");

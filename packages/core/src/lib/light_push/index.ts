@@ -104,7 +104,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
     const peers = await this.getPeers({
       maxBootstrapPeers: 1,
-      numPeers: this.numPeersTouse
+      numPeers: this.numPeersToUse
     });
 
     if (!peers.length) {

@@ -26,7 +26,7 @@ const DEFAULT_NUM_PEERS_TO_USE = 3;
 export class BaseProtocol implements IBaseProtocol {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
-  readonly numPeersTouse: number;
+  readonly numPeersToUse: number;
   protected streamManager: StreamManager;
   protected pubsubTopics: PubsubTopic[];
 
@@ -38,7 +38,7 @@ export class BaseProtocol implements IBaseProtocol {
   ) {
     this.pubsubTopics = this.initializePubsubTopic(options);
 
-    this.numPeersTouse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
+    this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
 
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events
