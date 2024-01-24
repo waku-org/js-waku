@@ -17,7 +17,6 @@ import type {
   Unsubscribe
 } from "@waku/interfaces";
 import { DefaultPubsubTopic } from "@waku/interfaces";
-import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
 import {
   ensurePubsubTopicIsConfigured,
@@ -31,6 +30,7 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 
 import { BaseProtocol } from "../base_protocol.js";
+import { messageHashStr } from "../message_hash.js";
 
 import {
   FilterPushRpc,
