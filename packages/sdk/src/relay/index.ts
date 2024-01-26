@@ -1,5 +1,9 @@
 import { WakuNode, WakuOptions } from "@waku/core";
-import type { ProtocolCreateOptions, RelayNode } from "@waku/interfaces";
+import {
+  DefaultPubsubTopic,
+  type ProtocolCreateOptions,
+  type RelayNode
+} from "@waku/interfaces";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { ensureShardingConfigured } from "@waku/utils";
 
@@ -16,20 +20,26 @@ import { defaultLibp2p, defaultPeerDiscoveries } from "../create.js";
  * or use this function with caution.
  */
 export async function createRelayNode(
-  options?: ProtocolCreateOptions & WakuOptions & Partial<RelayCreateOptions>
+  options?: ProtocolCreateOptions &
+    Partial<WakuOptions> &
+    Partial<RelayCreateOptions>
 ): Promise<RelayNode> {
-  options = options ?? {};
+  options = options ?? { pubsubTopics: [] };
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
-  if (options?.defaultBootstrap) {
-    peerDiscovery.push(...defaultPeerDiscoveries());
-    Object.assign(libp2pOptions, { peerDiscovery });
-  }
 
   const shardInfo = options.shardInfo
     ? ensureShardingConfigured(options.shardInfo)
     : undefined;
+
+  options.pubsubTopics = shardInfo?.pubsubTopics ??
+    options.pubsubTopics ?? [DefaultPubsubTopic];
+
+  if (options?.defaultBootstrap) {
+    peerDiscovery.push(...defaultPeerDiscoveries(options.pubsubTopics));
+    Object.assign(libp2pOptions, { peerDiscovery });
+  }
 
   const libp2p = await defaultLibp2p(
     shardInfo?.shardInfo,
@@ -38,13 +48,11 @@ export async function createRelayNode(
     options?.userAgent
   );
 
-  const relay = wakuRelay(options);
+  const relay = wakuRelay(options.pubsubTopics);
 
   return new WakuNode(
-    options,
-    options.pubsubTopics,
+    options as WakuOptions,
     libp2p,
-    shardInfo?.shardingParams,
     undefined,
     undefined,
     undefined,

@@ -63,7 +63,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
-      shardInfo
+      ensureShardingConfigured(shardInfo).shardInfo
     );
     expect(peers.length).to.be.greaterThan(0);
   });

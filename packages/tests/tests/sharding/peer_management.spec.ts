@@ -88,7 +88,7 @@ describe("Static Sharding: Peer Management", function () {
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
-            wakuPeerExchangeDiscovery()
+            wakuPeerExchangeDiscovery(pubsubTopics)
           ]
         }
       });
@@ -163,7 +163,7 @@ describe("Static Sharding: Peer Management", function () {
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
-            wakuPeerExchangeDiscovery()
+            wakuPeerExchangeDiscovery(pubsubTopicsToDial)
           ]
         }
       });
@@ -262,7 +262,7 @@ describe("Autosharding: Peer Management", function () {
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
-            wakuPeerExchangeDiscovery()
+            wakuPeerExchangeDiscovery(pubsubTopics)
           ]
         }
       });
@@ -336,7 +336,7 @@ describe("Autosharding: Peer Management", function () {
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
-            wakuPeerExchangeDiscovery()
+            wakuPeerExchangeDiscovery(pubsubTopicsToDial)
           ]
         }
       });

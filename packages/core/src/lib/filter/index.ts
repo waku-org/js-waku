@@ -358,7 +358,13 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(FilterCodecs.SUBSCRIBE, libp2p.components, log, options);
+    super(
+      FilterCodecs.SUBSCRIBE,
+      libp2p.components,
+      log,
+      options!.pubsubTopics!,
+      options
+    );
 
     libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
       log.error("Failed to register ", FilterCodecs.PUSH, e);
@@ -493,7 +499,7 @@ class Filter extends BaseProtocol implements IReceiver {
 }
 
 export function wakuFilter(
-  init: Partial<ProtocolCreateOptions> = {}
+  init: ProtocolCreateOptions = { pubsubTopics: [] }
 ): (libp2p: Libp2p) => IFilter {
   return (libp2p: Libp2p) => new Filter(libp2p, init);
 }
