@@ -61,7 +61,7 @@
     "js-sha3": "^0.9.2"
   },
   "devDependencies": {
-    "@libp2p/peer-id-factory": "^4.0.4",
+    "@libp2p/peer-id-factory": "^4.0.5",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
