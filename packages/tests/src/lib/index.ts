@@ -103,21 +103,18 @@ export class ServiceNodesFleet {
     pubsubTopic?: string,
     raw = false
   ): Promise<boolean> {
-    let relayMessagePromises: Promise<boolean>[];
-    if (raw) {
-      relayMessagePromises = this.nodes.map((node) =>
-        node.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
-          pubsubTopic && pubsubTopic,
+    const relayMessagePromises = this.nodes.map((node) => {
+      if (raw) {
+        return node.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
+          pubsubTopic ?? pubsubTopic,
           message
-        ])
-      );
-    } else {
-      relayMessagePromises = this.nodes.map((node) =>
-        node.sendMessage(message, pubsubTopic)
-      );
-    }
+        ]);
+      }
+      return node.sendMessage(message, pubsubTopic);
+    });
+
     const relayMessages = await Promise.all(relayMessagePromises);
-    return relayMessages.every((message) => message);
+    return relayMessages.every(Boolean); // More concise way to check all true
   }
 
   async confirmMessageLength(numMessages: number): Promise<void> {
