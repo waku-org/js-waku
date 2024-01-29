@@ -155,7 +155,7 @@ describe("Waku Light Push: Single Node", function () {
       messagePayload
     );
 
-    if (nwaku.type() == "go-waku") {
+    if (nwaku.type == "go-waku") {
       expect(pushResponse.recipients.length).to.eq(1);
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
