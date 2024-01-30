@@ -392,7 +392,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
       payload: utf8ToBytes(messageText)
     });
 
-    expect(pushResponse.recipients[0].toString()).to.eq(nimPeerId.toString());
+    expect(pushResponse.recipients[0]?.toString()).to.eq(nimPeerId.toString());
 
     expect(
       await messageCollector.waitForMessages(1, {

@@ -133,12 +133,7 @@ class Subscription {
         );
       } catch (e) {
         throw new Error(
-          "Error subscribing to peer: " +
-            peer.id.toString() +
-            " for content topics: " +
-            contentTopics +
-            ": " +
-            e
+          "Error subscribing to peer: " + peer.id.toString() + ": " + e
         );
       }
     });
