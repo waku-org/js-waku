@@ -13,4 +13,4 @@ test-results
 playwright-report
 example
 allure-results
-tests/mock_local_storage
+packages/tests/mock_local_storage
