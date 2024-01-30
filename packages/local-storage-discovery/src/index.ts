@@ -1,5 +1,6 @@
 import { TypedEventEmitter } from "@libp2p/interface";
-import type {
+import {
+  CustomEvent,
   PeerDiscovery,
   PeerDiscoveryEvents,
   PeerInfo,
@@ -8,15 +9,14 @@ import type {
 } from "@libp2p/interface";
 import { createFromJSON } from "@libp2p/peer-id-factory";
 import { multiaddr } from "@multiformats/multiaddr";
-import { Libp2pComponents, Tags } from "@waku/interfaces";
+import {
+  type Libp2pComponents,
+  type LocalStoragePeerInfo,
+  Tags
+} from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 const log = new Logger("peer-exchange-discovery");
-
-type LocalStoragePeerInfo = {
-  id: string;
-  address: string;
-};
 
 type LocalStorageDiscoveryOptions = {
   tagValue?: number;
@@ -27,7 +27,7 @@ export const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
 const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
 const DEFAULT_PEER_EXCHANGE_TAG_TTL = 100_000_000;
 
-class LocalStorageDiscovery
+export class LocalStorageDiscovery
   extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery, Startable
 {

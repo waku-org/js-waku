@@ -26,6 +26,7 @@ import type {
   ProtocolCreateOptions,
   ShardingParams
 } from "@waku/interfaces";
+import { wakuLocalStorageDiscovery } from "@waku/local-storage-discovery";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { createLibp2p } from "libp2p";
@@ -193,7 +194,8 @@ export function defaultPeerDiscoveries(): ((
 ) => PeerDiscovery)[] {
   const discoveries = [
     wakuDnsDiscovery([enrTree["PROD"]], DEFAULT_NODE_REQUIREMENTS),
-    wakuPeerExchangeDiscovery()
+    wakuPeerExchangeDiscovery(),
+    wakuLocalStorageDiscovery()
   ];
   return discoveries;
 }
