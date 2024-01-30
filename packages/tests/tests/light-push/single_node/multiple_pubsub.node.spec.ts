@@ -342,9 +342,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
   let nwaku2: ServiceNode;
   let messageCollector: MessageCollector;
 
-  // When using lightpush, we have to use a cluster id of 1 because that is the default cluster id for autosharding
-  // With a different cluster id, we never find a viable peer
-  const clusterId = 1;
+  const clusterId = 0;
   const customContentTopic1 = "/waku/2/content/utf8";
   const customContentTopic2 = "/myapp/1/latest/proto";
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
