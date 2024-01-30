@@ -4,8 +4,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { encodeMessage, decodeMessage, message, enumeration } from 'protons-runtime'
-import type { Codec } from 'protons-runtime'
+import { type Codec, decodeMessage, encodeMessage, enumeration, message } from 'protons-runtime'
+import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface Index {
@@ -50,7 +50,7 @@ export namespace Index {
         }
       }, (reader, length) => {
         const obj: any = {
-          digest: new Uint8Array(0),
+          digest: uint8ArrayAlloc(0),
           receiverTime: 0n,
           senderTime: 0n,
           pubsubTopic: ''
@@ -62,21 +62,26 @@ export namespace Index {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.digest = reader.bytes()
               break
-            case 2:
+            }
+            case 2: {
               obj.receiverTime = reader.sint64()
               break
-            case 3:
+            }
+            case 3: {
               obj.senderTime = reader.sint64()
               break
-            case 4:
+            }
+            case 4: {
               obj.pubsubTopic = reader.string()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -155,18 +160,22 @@ export namespace PagingInfo {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.pageSize = reader.uint64()
               break
-            case 2:
+            }
+            case 2: {
               obj.cursor = Index.codec().decode(reader, reader.uint32())
               break
-            case 3:
+            }
+            case 3: {
               obj.direction = PagingInfo.Direction.codec().decode(reader)
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -219,12 +228,14 @@ export namespace ContentFilter {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.contentTopic = reader.string()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -303,24 +314,30 @@ export namespace HistoryQuery {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 2:
+            case 2: {
               obj.pubsubTopic = reader.string()
               break
-            case 3:
+            }
+            case 3: {
               obj.contentFilters.push(ContentFilter.codec().decode(reader, reader.uint32()))
               break
-            case 4:
+            }
+            case 4: {
               obj.pagingInfo = PagingInfo.codec().decode(reader, reader.uint32())
               break
-            case 5:
+            }
+            case 5: {
               obj.startTime = reader.sint64()
               break
-            case 6:
+            }
+            case 6: {
               obj.endTime = reader.sint64()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -404,18 +421,22 @@ export namespace HistoryResponse {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 2:
+            case 2: {
               obj.messages.push(WakuMessage.codec().decode(reader, reader.uint32()))
               break
-            case 3:
+            }
+            case 3: {
               obj.pagingInfo = PagingInfo.codec().decode(reader, reader.uint32())
               break
-            case 4:
+            }
+            case 4: {
               obj.error = HistoryResponse.HistoryError.codec().decode(reader)
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -480,18 +501,22 @@ export namespace HistoryRpc {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.requestId = reader.string()
               break
-            case 2:
+            }
+            case 2: {
               obj.query = HistoryQuery.codec().decode(reader, reader.uint32())
               break
-            case 3:
+            }
+            case 3: {
               obj.response = HistoryResponse.codec().decode(reader, reader.uint32())
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -571,13 +596,13 @@ export namespace RateLimitProof {
         }
       }, (reader, length) => {
         const obj: any = {
-          proof: new Uint8Array(0),
-          merkleRoot: new Uint8Array(0),
-          epoch: new Uint8Array(0),
-          shareX: new Uint8Array(0),
-          shareY: new Uint8Array(0),
-          nullifier: new Uint8Array(0),
-          rlnIdentifier: new Uint8Array(0)
+          proof: uint8ArrayAlloc(0),
+          merkleRoot: uint8ArrayAlloc(0),
+          epoch: uint8ArrayAlloc(0),
+          shareX: uint8ArrayAlloc(0),
+          shareY: uint8ArrayAlloc(0),
+          nullifier: uint8ArrayAlloc(0),
+          rlnIdentifier: uint8ArrayAlloc(0)
         }
 
         const end = length == null ? reader.len : reader.pos + length
@@ -586,30 +611,38 @@ export namespace RateLimitProof {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.proof = reader.bytes()
               break
-            case 2:
+            }
+            case 2: {
               obj.merkleRoot = reader.bytes()
               break
-            case 3:
+            }
+            case 3: {
               obj.epoch = reader.bytes()
               break
-            case 4:
+            }
+            case 4: {
               obj.shareX = reader.bytes()
               break
-            case 5:
+            }
+            case 5: {
               obj.shareY = reader.bytes()
               break
-            case 6:
+            }
+            case 6: {
               obj.nullifier = reader.bytes()
               break
-            case 7:
+            }
+            case 7: {
               obj.rlnIdentifier = reader.bytes()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -689,7 +722,7 @@ export namespace WakuMessage {
         }
       }, (reader, length) => {
         const obj: any = {
-          payload: new Uint8Array(0),
+          payload: uint8ArrayAlloc(0),
           contentTopic: ''
         }
 
@@ -699,30 +732,38 @@ export namespace WakuMessage {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.payload = reader.bytes()
               break
-            case 2:
+            }
+            case 2: {
               obj.contentTopic = reader.string()
               break
-            case 3:
+            }
+            case 3: {
               obj.version = reader.uint32()
               break
-            case 10:
+            }
+            case 10: {
               obj.timestamp = reader.sint64()
               break
-            case 11:
+            }
+            case 11: {
               obj.meta = reader.bytes()
               break
-            case 21:
+            }
+            case 21: {
               obj.rateLimitProof = RateLimitProof.codec().decode(reader, reader.uint32())
               break
-            case 31:
+            }
+            case 31: {
               obj.ephemeral = reader.bool()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
