@@ -41,10 +41,5 @@ module.exports = [
     name: "History retrieval protocols",
     path: "packages/core/bundle/index.js",
     import: "{ wakuStore }",
-  },
-  {
-    name: "Deterministic Message Hashing",
-    path: "packages/message-hash/bundle/index.js",
-    import: "{ messageHash }",
-  },
+  }
 ];
