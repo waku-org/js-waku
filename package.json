@@ -5,7 +5,6 @@
   "workspaces": [
     "packages/interfaces",
     "packages/utils",
-    "packages/message-hash",
     "packages/proto",
     "packages/enr",
     "packages/core",
