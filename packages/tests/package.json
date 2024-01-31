@@ -50,7 +50,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@libp2p/interface-compliance-tests": "^5.1.2",
+    "@libp2p/interface-compliance-tests": "^5.2.0",
     "@libp2p/peer-id": "^4.0.4",
     "@waku/core": "*",
     "@waku/enr": "*",
