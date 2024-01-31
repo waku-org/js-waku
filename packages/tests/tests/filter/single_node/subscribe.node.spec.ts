@@ -226,7 +226,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
 
   it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
     let topicCount: number;
-    if (isNwakuAtLeast("0.24.0")) {
+    if (isNwakuAtLeast("0.25.0")) {
       this.timeout(50000);
       topicCount = 100;
     } else {
@@ -262,10 +262,10 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     }
   });
 
-  //TODO: remove test when WAKUNODE_IMAGE is 0.24.0
+  //TODO: remove test when WAKUNODE_IMAGE is 0.25.0
   it("Subscribe to 30 topics (old limit) at once and receives messages", async function () {
     let topicCount: number;
-    if (isNwakuAtLeast("0.24.0")) {
+    if (isNwakuAtLeast("0.25.0")) {
       // skipping for new versions where the new limit is 100
       this.skip();
     } else {
@@ -303,7 +303,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
 
   it("Error when try to subscribe to more than 101 topics (new limit)", async function () {
     let topicCount: number;
-    if (isNwakuAtLeast("0.24.0")) {
+    if (isNwakuAtLeast("0.25.0")) {
       topicCount = 101;
     } else {
       // skipping for old versions where the limit is 30
@@ -330,10 +330,10 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     }
   });
 
-  //TODO: remove test when WAKUNODE_IMAGE is 0.24.0
+  //TODO: remove test when WAKUNODE_IMAGE is 0.25.0
   it("Error when try to subscribe to more than 31 topics (old limit)", async function () {
     let topicCount: number;
-    if (isNwakuAtLeast("0.24.0")) {
+    if (isNwakuAtLeast("0.25.0")) {
       // skipping for new versions where the new limit is 100
       this.skip();
     } else {
