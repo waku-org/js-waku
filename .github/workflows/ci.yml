@@ -82,13 +82,6 @@ jobs:
       nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'wakuorg/nwaku:v0.24.0' }}
       test_type: node-optional
 
-  node_with_go_waku_master:
-    uses: ./.github/workflows/test-node.yml
-    with:
-      nim_wakunode_image: harbor.status.im/wakuorg/go-waku:latest
-      test_type: go-waku-master
-      debug: waku*
-
   node_with_nwaku_master:
     uses: ./.github/workflows/test-node.yml
     with:
