@@ -98,7 +98,7 @@
     "@types/uuid": "^9.0.7",
     "@waku/build-utils": "*",
     "chai": "^4.3.10",
-    "cspell": "^7.3.2",
+    "cspell": "^8.3.2",
     "fast-check": "^3.14.0",
     "ignore-loader": "^0.1.2",
     "isomorphic-fetch": "^3.0.0",
