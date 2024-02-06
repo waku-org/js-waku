@@ -54,7 +54,7 @@ describe("Waku Store, page size", function () {
       if (pageSize === 0) {
         effectivePageSize = 20;
       } else if (pageSize > 100) {
-        if (nwaku.type() == "go-waku") {
+        if (nwaku.type == "go-waku") {
           effectivePageSize = 20;
         } else {
           effectivePageSize = 100;

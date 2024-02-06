@@ -396,19 +396,19 @@ describe("ENR", function () {
       expect(peerInfo.id.toString()).to.equal(peerId.toString());
       expect(peerInfo.multiaddrs.length).to.equal(5);
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
-        multiaddr(`/ip4/${ip4}/tcp/${tcp}`).toString()
+        multiaddr(`/ip4/${ip4}/tcp/${tcp}/p2p/${peerId}`).toString()
       );
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
-        multiaddr(`/ip6/${ip6}/tcp/${tcp}`).toString()
+        multiaddr(`/ip6/${ip6}/tcp/${tcp}/p2p/${peerId}`).toString()
       );
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
-        multiaddr(`/ip4/${ip4}/udp/${udp}`).toString()
+        multiaddr(`/ip4/${ip4}/udp/${udp}/p2p/${peerId}`).toString()
       );
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
-        multiaddr(`/ip6/${ip6}/udp/${udp}`).toString()
+        multiaddr(`/ip6/${ip6}/udp/${udp}/p2p/${peerId}`).toString()
       );
       expect(peerInfo.multiaddrs.map((ma) => ma.toString())).to.contain(
-        wsMultiaddr.toString()
+        `${wsMultiaddr.toString()}/p2p/${peerId}`
       );
     });
   });
