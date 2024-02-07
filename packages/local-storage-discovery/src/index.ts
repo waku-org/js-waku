@@ -23,9 +23,9 @@ type LocalStorageDiscoveryOptions = {
   tagTTL?: number;
 };
 
-export const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
-const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
-const DEFAULT_PEER_EXCHANGE_TAG_TTL = 100_000_000;
+export const DEFAULT_LOCAL_TAG_NAME = Tags.LOCAL;
+const DEFAULT_LOCAL_TAG_VALUE = 50;
+const DEFAULT_LOCAL_TAG_TTL = 100_000_000;
 
 export class LocalStorageDiscovery
   extends TypedEventEmitter<PeerDiscoveryEvents>
@@ -51,13 +51,10 @@ export class LocalStorageDiscovery
 
     log.info("Starting Local Storage Discovery");
 
-    // only listen to healthy connected peers that have identified themselves
     this.components.events.addEventListener("peer:update", this.handleNewPeers);
 
-    // get all peers from local storage
     const localStoragePeers = this.getPeersFromLocalStorage();
 
-    //  update the tags of the peers in the peer store & dispatch them
     for (const { id: idStr, address } of localStoragePeers) {
       const peerId = await createFromJSON({
         id: idStr
@@ -65,9 +62,9 @@ export class LocalStorageDiscovery
 
       await this.components.peerStore.save(peerId, {
         tags: {
-          [DEFAULT_PEER_EXCHANGE_TAG_NAME]: {
-            value: this.options?.tagValue ?? DEFAULT_PEER_EXCHANGE_TAG_VALUE,
-            ttl: this.options?.tagTTL ?? DEFAULT_PEER_EXCHANGE_TAG_TTL
+          [DEFAULT_LOCAL_TAG_NAME]: {
+            value: this.options?.tagValue ?? DEFAULT_LOCAL_TAG_VALUE,
+            ttl: this.options?.tagTTL ?? DEFAULT_LOCAL_TAG_TTL
           }
         }
       });
