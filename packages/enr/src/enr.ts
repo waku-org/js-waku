@@ -105,7 +105,12 @@ export class ENR extends RawEnr implements IEnr {
 
     const _multiaddrs = this.multiaddrs ?? [];
 
-    return multiaddrs.concat(_multiaddrs);
+    return multiaddrs.concat(_multiaddrs).map((ma) => {
+      if (this.peerId) {
+        return ma.encapsulate(`/p2p/${this.peerId.toString()}`);
+      }
+      return ma;
+    });
   }
 
   get peerInfo(): PeerInfo | undefined {

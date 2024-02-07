@@ -79,7 +79,7 @@ export class ServiceNode {
     this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
   }
 
-  type(): "go-waku" | "nwaku" {
+  get type(): "go-waku" | "nwaku" {
     return isGoWaku ? "go-waku" : "nwaku";
   }
 

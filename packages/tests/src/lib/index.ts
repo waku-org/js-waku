@@ -84,7 +84,7 @@ export class ServiceNodesFleet {
   get type(): "go-waku" | "nwaku" {
     const nodeType = new Set(
       this.nodes.map((node) => {
-        return node.type();
+        return node.type;
       })
     );
     if (nodeType.size > 1) {
