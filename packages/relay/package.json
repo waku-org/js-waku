@@ -35,7 +35,7 @@
     "fix": "run-s fix:*",
     "fix:lint": "eslint src *.js --fix",
     "check": "run-s check:*",
-    "check:tsc": "tsc -p tsconfig.dev.json",
+    "check:tsc": "tsc -p tsconfig.json",
     "check:lint": "eslint src *.js",
     "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
     "test": "NODE_ENV=test run-s test:*",
