@@ -1,3 +1,5 @@
+import type { Address } from "@libp2p/interface";
+
 export * from "./is_defined.js";
 export * from "./random_subset.js";
 export * from "./group_by.js";
@@ -13,4 +15,14 @@ export function removeItemFromArray(arr: unknown[], value: unknown): unknown[] {
     arr.splice(index, 1);
   }
   return arr;
+}
+
+export function getWsMultiaddrFromMultiaddrs(multiaddrs: Address[]): Address {
+  const wsMultiaddr = multiaddrs.find((m) =>
+    m.multiaddr.toString().includes("ws" || "wss")
+  );
+  if (!wsMultiaddr) {
+    throw new Error("No ws multiaddr found in the given multiaddrs");
+  }
+  return wsMultiaddr;
 }

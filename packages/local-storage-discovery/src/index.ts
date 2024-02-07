@@ -14,7 +14,7 @@ import {
   type LocalStoragePeerInfo,
   Tags
 } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { getWsMultiaddrFromMultiaddrs, Logger } from "@waku/utils";
 
 const log = new Logger("peer-exchange-discovery");
 
@@ -98,10 +98,7 @@ export class LocalStorageDiscovery
   handleNewPeers = (event: CustomEvent<PeerUpdate>): void => {
     const { peer } = event.detail;
 
-    const websocketMultiaddr = peer.addresses.find((addr) =>
-      addr.toString().includes("ws" || "wss")
-    );
-    if (!websocketMultiaddr) return;
+    const websocketMultiaddr = getWsMultiaddrFromMultiaddrs(peer.addresses);
 
     const localStoragePeers = this.getPeersFromLocalStorage();
 
