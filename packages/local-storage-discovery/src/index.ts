@@ -40,6 +40,7 @@ export class LocalStorageDiscovery
     super();
     this.isStarted = false;
   }
+
   get [Symbol.toStringTag](): string {
     return "@waku/local-storage-discovery";
   }
@@ -95,29 +96,21 @@ export class LocalStorageDiscovery
   handleNewPeers = (event: CustomEvent<PeerUpdate>): void => {
     const { peer } = event.detail;
 
-    // Extract the websocket ma
     const websocketMultiaddr = peer.addresses.find((addr) =>
       addr.toString().includes("ws" || "wss")
     );
     if (!websocketMultiaddr) return;
 
-    // Retrieve peers from local storage
-    const storedPeersData = localStorage.getItem("waku:peers");
-    const localStoragePeers = (
-      storedPeersData ? JSON.parse(storedPeersData) : []
-    ) as LocalStoragePeerInfo[];
+    const localStoragePeers = this.getPeersFromLocalStorage();
 
-    // Find if the peer already exists
     const existingPeerIndex = localStoragePeers.findIndex(
       (_peer) => _peer.id === peer.id.toString()
     );
 
     if (existingPeerIndex >= 0) {
-      // Update existing peer's address
       localStoragePeers[existingPeerIndex].address =
         websocketMultiaddr.toString();
     } else {
-      // Add new peer
       localStoragePeers.push({
         id: peer.id.toString(),
         address: websocketMultiaddr.toString()
@@ -128,16 +121,29 @@ export class LocalStorageDiscovery
   };
 
   private getPeersFromLocalStorage(): LocalStoragePeerInfo[] {
-    const storedPeersData = localStorage.getItem("waku:peers");
-    const localStoragePeers = (
-      storedPeersData ? JSON.parse(storedPeersData) : []
-    ) as LocalStoragePeerInfo[];
-    return localStoragePeers;
+    try {
+      const storedPeersData = localStorage.getItem("waku:peers");
+      if (!storedPeersData) return [];
+      const peers = JSON.parse(storedPeersData);
+      return peers.filter(isValidStoredPeer);
+    } catch (error) {
+      log.error("Error parsing peers from local storage:", error);
+      return [];
+    }
   }
 
   private setPeersInLocalStorage(peers: LocalStoragePeerInfo[]): void {
     localStorage.setItem("waku:peers", JSON.stringify(peers));
   }
+}
+
+function isValidStoredPeer(peer: any): peer is LocalStoragePeerInfo {
+  return (
+    peer &&
+    typeof peer === "object" &&
+    typeof peer.id === "string" &&
+    typeof peer.address === "string"
+  );
 }
 
 export function wakuLocalStorageDiscovery(): (
