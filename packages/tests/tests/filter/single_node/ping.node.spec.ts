@@ -1,6 +1,9 @@
-import { DefaultPubsubTopic } from "@waku/interfaces";
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import {
+  DefaultPubsubTopic,
+  IFilterSubscription,
+  LightNode
+} from "@waku/interfaces";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
@@ -9,12 +12,13 @@ import {
   tearDownNodes
 } from "../../../src/index.js";
 import {
-  runNodes,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
   validatePingError
 } from "../utils.js";
+
+import { runNodes } from "./utils.js";
 
 describe("Waku Filter V2: Ping", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level

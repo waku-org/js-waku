@@ -42,8 +42,6 @@ type PreparePushMessageResult =
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 class LightPush extends BaseProtocol implements ILightPush {
-  private readonly NUM_PEERS_PROTOCOL = 1;
-
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(LightPushCodec, libp2p.components, log, options);
   }
@@ -106,7 +104,7 @@ class LightPush extends BaseProtocol implements ILightPush {
 
     const peers = await this.getPeers({
       maxBootstrapPeers: 1,
-      numPeers: this.NUM_PEERS_PROTOCOL
+      numPeers: this.numPeersToUse
     });
 
     if (!peers.length) {
@@ -172,6 +170,8 @@ class LightPush extends BaseProtocol implements ILightPush {
     });
 
     const results = await Promise.allSettled(promises);
+
+    // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
     const errors = results
       .filter(
         (

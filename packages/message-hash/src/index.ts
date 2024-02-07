@@ -1,6 +1,6 @@
 import { sha256 } from "@noble/hashes/sha256";
 import type { IProtoMessage } from "@waku/interfaces";
-import { concat, utf8ToBytes } from "@waku/utils/bytes";
+import { bytesToUtf8, concat, utf8ToBytes } from "@waku/utils/bytes";
 
 /**
  * Deterministic Message Hashing as defined in
@@ -26,4 +26,13 @@ export function messageHash(
     bytes = concat([pubsubTopicBytes, message.payload, contentTopicBytes]);
   }
   return sha256(bytes);
+}
+
+export function messageHashStr(
+  pubsubTopic: string,
+  message: IProtoMessage
+): string {
+  const hash = messageHash(pubsubTopic, message);
+  const hashStr = bytesToUtf8(hash);
+  return hashStr;
 }

@@ -9,6 +9,7 @@ import type {
 import { Protocols } from "@waku/interfaces";
 import {
   contentTopicToPubsubTopic,
+  contentTopicToShardIndex,
   pubsubTopicToSingleShardInfo,
   singleShardInfoToPubsubTopic
 } from "@waku/utils";
@@ -21,7 +22,8 @@ import {
   ServiceNode,
   tearDownNodes
 } from "../../../src/index.js";
-import { runNodes } from "../utils.js";
+
+import { runNodes } from "./utils.js";
 
 describe("Waku Filter V2: Multiple PubsubTopics", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
@@ -206,17 +208,25 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
     pubsubTopicShardInfo: {
-      clusterId: 3
+      clusterId: 3,
+      shard: contentTopicToShardIndex(customContentTopic1)
     }
   });
-  const customDecoder1 = createDecoder(customContentTopic1, { clusterId: 3 });
+  const customDecoder1 = createDecoder(customContentTopic1, {
+    clusterId: 3,
+    shard: contentTopicToShardIndex(customContentTopic1)
+  });
   const customEncoder2 = createEncoder({
     contentTopic: customContentTopic2,
     pubsubTopicShardInfo: {
-      clusterId: 3
+      clusterId: 3,
+      shard: contentTopicToShardIndex(customContentTopic2)
     }
   });
-  const customDecoder2 = createDecoder(customContentTopic2, { clusterId: 3 });
+  const customDecoder2 = createDecoder(customContentTopic2, {
+    clusterId: 3,
+    shard: contentTopicToShardIndex(customContentTopic2)
+  });
 
   this.beforeEach(async function () {
     this.timeout(15000);

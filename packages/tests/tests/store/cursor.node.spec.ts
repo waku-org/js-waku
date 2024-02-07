@@ -162,7 +162,7 @@ describe("Waku Store, cursor", function () {
       expect(messagesAfterCursor.length).to.eql(0);
     } catch (error) {
       if (
-        nwaku.type() === "go-waku" &&
+        nwaku.type === "go-waku" &&
         typeof error === "string" &&
         error.includes("History response contains an Error: INVALID_CURSOR")
       ) {

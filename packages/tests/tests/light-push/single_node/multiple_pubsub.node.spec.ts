@@ -10,6 +10,8 @@ import {
 } from "@waku/interfaces";
 import {
   contentTopicToPubsubTopic,
+  contentTopicToShardIndex,
+  pubsubTopicToSingleShardInfo,
   singleShardInfoToPubsubTopic
 } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -202,11 +204,11 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   };
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
-    pubsubTopicShardInfo: shardInfo
+    pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
   });
   const customEncoder2 = createEncoder({
     contentTopic: customContentTopic2,
-    pubsubTopicShardInfo: shardInfo
+    pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(autoshardingPubsubTopic2)
   });
 
   let nimPeerId: PeerId;
@@ -340,9 +342,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
   let nwaku2: ServiceNode;
   let messageCollector: MessageCollector;
 
-  // When using lightpush, we have to use a cluster id of 1 because that is the default cluster id for autosharding
-  // With a different cluster id, we never find a viable peer
-  const clusterId = 1;
+  const clusterId = 0;
   const customContentTopic1 = "/waku/2/content/utf8";
   const customContentTopic2 = "/myapp/1/latest/proto";
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
@@ -356,12 +356,16 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
     pubsubTopicShardInfo: {
-      clusterId
+      clusterId,
+      shard: contentTopicToShardIndex(customContentTopic1)
     }
   });
   const customEncoder2 = createEncoder({
     contentTopic: customContentTopic2,
-    pubsubTopicShardInfo: { clusterId }
+    pubsubTopicShardInfo: {
+      clusterId,
+      shard: contentTopicToShardIndex(customContentTopic2)
+    }
   });
 
   let nimPeerId: PeerId;

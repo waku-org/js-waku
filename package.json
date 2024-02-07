@@ -5,11 +5,11 @@
   "workspaces": [
     "packages/interfaces",
     "packages/utils",
+    "packages/message-hash",
     "packages/proto",
     "packages/enr",
     "packages/core",
     "packages/relay",
-    "packages/message-hash",
     "packages/peer-exchange",
     "packages/dns-discovery",
     "packages/local-storage-discovery",
@@ -62,7 +62,7 @@
     "size-limit": "^11.0.1",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.25.1",
+    "typedoc": "^0.25.7",
     "typescript": "^5.3.2"
   },
   "lint-staged": {

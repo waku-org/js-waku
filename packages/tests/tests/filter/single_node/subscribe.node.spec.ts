@@ -1,7 +1,10 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
-import type { IFilterSubscription, LightNode } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
+import {
+  DefaultPubsubTopic,
+  IFilterSubscription,
+  LightNode,
+  Protocols
+} from "@waku/interfaces";
 import {
   ecies,
   generatePrivateKey,
@@ -9,7 +12,7 @@ import {
   getPublicKey,
   symmetric
 } from "@waku/message-encryption";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
@@ -25,13 +28,14 @@ import {
 import {
   messagePayload,
   messageText,
-  runNodes,
   TestContentTopic,
   TestDecoder,
   TestEncoder
 } from "../utils.js";
 
-describe("Waku Filter V2: Subscribe", function () {
+import { runNodes } from "./utils.js";
+
+describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(10000);
   let waku: LightNode;
@@ -222,7 +226,7 @@ describe("Waku Filter V2: Subscribe", function () {
 
   it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
     let topicCount: number;
-    if (isNwakuAtLeast("0.24.0")) {
+    if (isNwakuAtLeast("0.25.0")) {
       this.timeout(50000);
       topicCount = 100;
     } else {
@@ -258,10 +262,10 @@ describe("Waku Filter V2: Subscribe", function () {
     }
   });
 
-  //TODO: remove test when WAKUNODE_IMAGE is 0.24.0
+  //TODO: remove test when WAKUNODE_IMAGE is 0.25.0
   it("Subscribe to 30 topics (old limit) at once and receives messages", async function () {
     let topicCount: number;
-    if (isNwakuAtLeast("0.24.0")) {
+    if (isNwakuAtLeast("0.25.0")) {
       // skipping for new versions where the new limit is 100
       this.skip();
     } else {
@@ -299,7 +303,7 @@ describe("Waku Filter V2: Subscribe", function () {
 
   it("Error when try to subscribe to more than 101 topics (new limit)", async function () {
     let topicCount: number;
-    if (isNwakuAtLeast("0.24.0")) {
+    if (isNwakuAtLeast("0.25.0")) {
       topicCount = 101;
     } else {
       // skipping for old versions where the limit is 30
@@ -326,10 +330,10 @@ describe("Waku Filter V2: Subscribe", function () {
     }
   });
 
-  //TODO: remove test when WAKUNODE_IMAGE is 0.24.0
+  //TODO: remove test when WAKUNODE_IMAGE is 0.25.0
   it("Error when try to subscribe to more than 31 topics (old limit)", async function () {
     let topicCount: number;
-    if (isNwakuAtLeast("0.24.0")) {
+    if (isNwakuAtLeast("0.25.0")) {
       // skipping for new versions where the new limit is 100
       this.skip();
     } else {
@@ -371,7 +375,7 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Send messages to the first set of topics.
     for (let i = 0; i < topicCount1; i++) {
-      const messageText = `Message for Topic ${i + 1}`;
+      const messageText = `Topic Set 1: Message Number: ${i + 1}`;
       await waku.lightPush.send(td1.encoders[i], {
         payload: utf8ToBytes(messageText)
       });
@@ -379,7 +383,8 @@ describe("Waku Filter V2: Subscribe", function () {
 
     // Send messages to the second set of topics.
     for (let i = 0; i < topicCount2; i++) {
-      const messageText = `Message for Topic ${i + 1}`;
+      const messageText = `Topic Set 2: Message Number: ${i + 1}`;
+
       await waku.lightPush.send(td2.encoders[i], {
         payload: utf8ToBytes(messageText)
       });

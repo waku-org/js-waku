@@ -60,7 +60,7 @@ export type ProtocolCreateOptions = {
    * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
    *
    */
-  shardInfo?: ShardingParams;
+  shardInfo?: Partial<ShardingParams>;
   /**
    * You can pass options to the `Libp2p` instance used by {@link @waku/core!WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
@@ -69,6 +69,14 @@ export type ProtocolCreateOptions = {
    * Notes that some values are overridden by {@link @waku/core!WakuNode} to ensure it implements the Waku protocol.
    */
   libp2p?: Partial<CreateLibp2pOptions>;
+  /**
+   * Number of peers to connect to, for the usage of the protocol.
+   * This is used by:
+   * - Light Push to send messages,
+   * - Filter to retrieve messages.
+   * Defaults to 3.
+   */
+  numPeersToUse?: number;
   /**
    * Byte array used as key for the noise protocol used for connection encryption
    * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)

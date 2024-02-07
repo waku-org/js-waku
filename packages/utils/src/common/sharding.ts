@@ -1,5 +1,6 @@
 import { sha256 } from "@noble/hashes/sha256";
 import {
+  DEFAULT_CLUSTER_ID,
   DefaultPubsubTopic,
   PubsubTopic,
   ShardInfo,
@@ -39,12 +40,9 @@ export const singleShardInfosToShardInfo = (
 };
 
 export const shardInfoToPubsubTopics = (
-  shardInfo: ShardingParams
+  shardInfo: Partial<ShardingParams>
 ): PubsubTopic[] => {
-  if (shardInfo.clusterId === undefined)
-    throw new Error("Cluster ID must be specified");
-
-  if ("contentTopics" in shardInfo) {
+  if ("contentTopics" in shardInfo && shardInfo.contentTopics) {
     // Autosharding: explicitly defined content topics
     return Array.from(
       new Set(
@@ -59,17 +57,20 @@ export const shardInfoToPubsubTopics = (
     return Array.from(
       new Set(
         shardInfo.shards.map(
-          (index) => `/waku/2/rs/${shardInfo.clusterId}/${index}`
+          (index) =>
+            `/waku/2/rs/${shardInfo.clusterId ?? DEFAULT_CLUSTER_ID}/${index}`
         )
       )
     );
-  } else {
+  } else if ("application" in shardInfo && "version" in shardInfo) {
     // Autosharding: single shard from application and version
     return [
       contentTopicToPubsubTopic(
         `/${shardInfo.application}/${shardInfo.version}/default/default`
       )
     ];
+  } else {
+    throw new Error("Missing required configuration in shard parameters");
   }
 };
 
@@ -184,7 +185,7 @@ export function contentTopicToShardIndex(
 
 export function contentTopicToPubsubTopic(
   contentTopic: string,
-  clusterId: number = 1,
+  clusterId: number = DEFAULT_CLUSTER_ID,
   networkShards: number = 8
 ): string {
   const shardIndex = contentTopicToShardIndex(contentTopic, networkShards);
@@ -197,7 +198,7 @@ export function contentTopicToPubsubTopic(
  */
 export function contentTopicsByPubsubTopic(
   contentTopics: string[],
-  clusterId: number = 1,
+  clusterId: number = DEFAULT_CLUSTER_ID,
   networkShards: number = 8
 ): Map<string, Array<string>> {
   const groupedContentTopics = new Map();
@@ -237,3 +238,74 @@ export function determinePubsubTopic(
       : DefaultPubsubTopic;
   }
 }
+
+/**
+ * Validates sharding configuration and sets defaults where possible.
+ * @returns Validated sharding parameters, with any missing values set to defaults
+ */
+export const ensureShardingConfigured = (
+  shardInfo: Partial<ShardingParams>
+): {
+  shardingParams: ShardingParams;
+  shardInfo: ShardInfo;
+  pubsubTopics: PubsubTopic[];
+} => {
+  const clusterId = shardInfo.clusterId ?? DEFAULT_CLUSTER_ID;
+  const shards = "shards" in shardInfo ? shardInfo.shards : [];
+  const contentTopics =
+    "contentTopics" in shardInfo ? shardInfo.contentTopics : [];
+  const [application, version] =
+    "application" in shardInfo && "version" in shardInfo
+      ? [shardInfo.application, shardInfo.version]
+      : [undefined, undefined];
+
+  const isShardsConfigured = shards && shards.length > 0;
+  const isContentTopicsConfigured = contentTopics && contentTopics.length > 0;
+  const isApplicationVersionConfigured = application && version;
+
+  if (isShardsConfigured) {
+    return {
+      shardingParams: { clusterId, shards },
+      shardInfo: { clusterId, shards },
+      pubsubTopics: shardInfoToPubsubTopics({ clusterId, shards })
+    };
+  }
+
+  if (isContentTopicsConfigured) {
+    const pubsubTopics = Array.from(
+      new Set(
+        contentTopics.map((topic) =>
+          contentTopicToPubsubTopic(topic, clusterId)
+        )
+      )
+    );
+    const shards = Array.from(
+      new Set(
+        contentTopics.map((topic) => contentTopicToShardIndex(topic, clusterId))
+      )
+    );
+    return {
+      shardingParams: { clusterId, contentTopics },
+      shardInfo: { clusterId, shards },
+      pubsubTopics
+    };
+  }
+
+  if (isApplicationVersionConfigured) {
+    const pubsubTopic = contentTopicToPubsubTopic(
+      `/${application}/${version}/default/default`
+    );
+    return {
+      shardingParams: { clusterId, application, version },
+      shardInfo: {
+        clusterId,
+        shards: [pubsubTopicToSingleShardInfo(pubsubTopic).shard]
+      },
+      pubsubTopics: [pubsubTopic]
+    };
+  }
+
+  throw new Error(
+    "Missing minimum required configuration options for static sharding or autosharding."
+  );
+};

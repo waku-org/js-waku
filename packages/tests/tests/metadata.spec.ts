@@ -15,11 +15,13 @@ import {
 
 chai.use(chaiAsPromised);
 
-describe("Metadata Protocol", () => {
+describe("Metadata Protocol", function () {
+  this.timeout(55000);
   let waku: LightNode;
   let nwaku1: ServiceNode;
 
   beforeEach(function () {
+    this.timeout(15000);
     nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
   });
 
@@ -30,8 +32,6 @@ describe("Metadata Protocol", () => {
 
   describe("connections", function () {
     it("same cluster, same shard: nodes connect", async function () {
-      this.timeout(55_000);
-
       const shardInfo: ShardInfo = {
         clusterId: 1,
         shards: [1]
@@ -63,8 +63,6 @@ describe("Metadata Protocol", () => {
     });
 
     it("same cluster, different shard: nodes connect", async function () {
-      this.timeout(55_000);
-
       const shardInfo1: ShardInfo = {
         clusterId: 1,
         shards: [1]
@@ -101,8 +99,6 @@ describe("Metadata Protocol", () => {
     });
 
     it("different cluster, same shard: nodes don't connect", async function () {
-      this.timeout(55_000);
-
       const shardInfo1: ShardInfo = {
         clusterId: 1,
         shards: [1]
@@ -135,8 +131,6 @@ describe("Metadata Protocol", () => {
     });
 
     it("different cluster, different shard: nodes don't connect", async function () {
-      this.timeout(55_000);
-
       const shardInfo1: ShardInfo = {
         clusterId: 1,
         shards: [1]

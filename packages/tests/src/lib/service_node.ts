@@ -28,7 +28,7 @@ const WAKU_SERVICE_NODE_PARAMS =
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 export const DOCKER_IMAGE_NAME =
-  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.22.0";
+  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.24.0";
 
 const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
 
@@ -79,7 +79,7 @@ export class ServiceNode {
     this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
   }
 
-  type(): "go-waku" | "nwaku" {
+  get type(): "go-waku" | "nwaku" {
     return isGoWaku ? "go-waku" : "nwaku";
   }
 

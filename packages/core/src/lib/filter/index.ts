@@ -11,13 +11,13 @@ import type {
   IProtoMessage,
   IReceiver,
   Libp2p,
-  PeerIdStr,
   ProtocolCreateOptions,
   PubsubTopic,
   SingleShardInfo,
   Unsubscribe
 } from "@waku/interfaces";
 import { DefaultPubsubTopic } from "@waku/interfaces";
+import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
 import {
   ensurePubsubTopicIsConfigured,
@@ -50,10 +50,14 @@ export const FilterCodecs = {
   PUSH: "/vac/waku/filter-push/2.0.0-beta1"
 };
 
+/**
+ * A subscription object refers to a subscription to a given pubsub topic.
+ */
 class Subscription {
-  private readonly peer: Peer;
+  readonly peers: Peer[];
   private readonly pubsubTopic: PubsubTopic;
   private newStream: (peer: Peer) => Promise<Stream>;
+  readonly receivedMessagesHashStr: string[] = [];
 
   private subscriptionCallbacks: Map<
     ContentTopic,
@@ -62,10 +66,10 @@ class Subscription {
 
   constructor(
     pubsubTopic: PubsubTopic,
-    remotePeer: Peer,
+    remotePeers: Peer[],
     newStream: (peer: Peer) => Promise<Stream>
   ) {
-    this.peer = remotePeer;
+    this.peers = remotePeers;
     this.pubsubTopic = pubsubTopic;
     this.newStream = newStream;
     this.subscriptionCallbacks = new Map();
@@ -89,53 +93,59 @@ class Subscription {
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
     const contentTopics = Array.from(decodersGroupedByCT.keys());
 
-    const stream = await this.newStream(this.peer);
+    const promises = this.peers.map(async (peer) => {
+      const stream = await this.newStream(peer);
 
-    const request = FilterSubscribeRpc.createSubscribeRequest(
-      this.pubsubTopic,
-      contentTopics
-    );
-
-    try {
-      const res = await pipe(
-        [request.encode()],
-        lp.encode,
-        stream,
-        lp.decode,
-        async (source) => await all(source)
-      );
-
-      if (!res || !res.length) {
-        throw Error(
-          `No response received for request ${request.requestId}: ${res}`
-        );
-      }
-
-      const { statusCode, requestId, statusDesc } =
-        FilterSubscribeResponse.decode(res[0].slice());
-
-      if (statusCode < 200 || statusCode >= 300) {
-        throw new Error(
-          `Filter subscribe request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
-        );
-      }
-
-      log.info(
-        "Subscribed to peer ",
-        this.peer.id.toString(),
-        "for content topics",
+      const request = FilterSubscribeRpc.createSubscribeRequest(
+        this.pubsubTopic,
         contentTopics
       );
-    } catch (e) {
-      throw new Error(
-        "Error subscribing to peer: " +
-          this.peer.id.toString() +
-          " for content topics: " +
-          contentTopics +
-          ": " +
-          e
-      );
-    }
+
+      try {
+        const res = await pipe(
+          [request.encode()],
+          lp.encode,
+          stream,
+          lp.decode,
+          async (source) => await all(source)
+        );
+
+        if (!res || !res.length) {
+          throw Error(
+            `No response received for request ${request.requestId}: ${res}`
+          );
+        }
+
+        const { statusCode, requestId, statusDesc } =
+          FilterSubscribeResponse.decode(res[0].slice());
+
+        if (statusCode < 200 || statusCode >= 300) {
+          throw new Error(
+            `Filter subscribe request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
+          );
+        }
+
+        log.info(
+          "Subscribed to peer ",
+          peer.id.toString(),
+          "for content topics",
+          contentTopics
+        );
+      } catch (e) {
+        throw new Error(
+          "Error subscribing to peer: " +
+            peer.id.toString() +
+            " for content topics: " +
+            contentTopics +
+            ": " +
+            e
+        );
+      }
+    });
+
+    const results = await Promise.allSettled(promises);
+
+    this.handleErrors(results, "subscribe");
 
     // Save the callback functions by content topics so they
     // can easily be removed (reciprocally replaced) if `unsubscribe` (reciprocally `subscribe`)
@@ -155,125 +165,195 @@ class Subscription {
   }
 
   async unsubscribe(contentTopics: ContentTopic[]): Promise<void> {
-    const stream = await this.newStream(this.peer);
-    const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
-      this.pubsubTopic,
-      contentTopics
-    );
+    const promises = this.peers.map(async (peer) => {
+      const stream = await this.newStream(peer);
+      const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
+        this.pubsubTopic,
+        contentTopics
+      );
 
-    try {
-      await pipe([unsubscribeRequest.encode()], lp.encode, stream.sink);
-    } catch (error) {
-      throw new Error("Error subscribing: " + error);
-    }
+      try {
+        await pipe([unsubscribeRequest.encode()], lp.encode, stream.sink);
+      } catch (error) {
+        throw new Error("Error unsubscribing: " + error);
+      }
 
-    contentTopics.forEach((contentTopic: string) => {
-      this.subscriptionCallbacks.delete(contentTopic);
+      contentTopics.forEach((contentTopic: string) => {
+        this.subscriptionCallbacks.delete(contentTopic);
+      });
     });
+
+    const results = await Promise.allSettled(promises);
+
+    this.handleErrors(results, "unsubscribe");
   }
 
   async ping(): Promise<void> {
-    const stream = await this.newStream(this.peer);
+    const promises = this.peers.map(async (peer) => {
+      const stream = await this.newStream(peer);
 
-    const request = FilterSubscribeRpc.createSubscriberPingRequest();
+      const request = FilterSubscribeRpc.createSubscriberPingRequest();
 
-    try {
-      const res = await pipe(
-        [request.encode()],
-        lp.encode,
-        stream,
-        lp.decode,
-        async (source) => await all(source)
-      );
-
-      if (!res || !res.length) {
-        throw Error(
-          `No response received for request ${request.requestId}: ${res}`
+      try {
+        const res = await pipe(
+          [request.encode()],
+          lp.encode,
+          stream,
+          lp.decode,
+          async (source) => await all(source)
         );
+
+        if (!res || !res.length) {
+          throw Error(
+            `No response received for request ${request.requestId}: ${res}`
+          );
+        }
+
+        const { statusCode, requestId, statusDesc } =
+          FilterSubscribeResponse.decode(res[0].slice());
+
+        if (statusCode < 200 || statusCode >= 300) {
+          throw new Error(
+            `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
+          );
+        }
+        log.info(`Ping successful for peer ${peer.id.toString()}`);
+      } catch (error) {
+        log.error("Error pinging: ", error);
+        throw error; // Rethrow the actual error instead of wrapping it
       }
+    });
 
-      const { statusCode, requestId, statusDesc } =
-        FilterSubscribeResponse.decode(res[0].slice());
+    const results = await Promise.allSettled(promises);
 
-      if (statusCode < 200 || statusCode >= 300) {
-        throw new Error(
-          `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
-        );
-      }
-
-      log.info("Ping successful");
-    } catch (error) {
-      log.error("Error pinging: ", error);
-      throw new Error("Error pinging: " + error);
-    }
+    this.handleErrors(results, "ping");
   }
 
   async unsubscribeAll(): Promise<void> {
-    const stream = await this.newStream(this.peer);
+    const promises = this.peers.map(async (peer) => {
+      const stream = await this.newStream(peer);
 
-    const request = FilterSubscribeRpc.createUnsubscribeAllRequest(
-      this.pubsubTopic
-    );
-
-    try {
-      const res = await pipe(
-        [request.encode()],
-        lp.encode,
-        stream,
-        lp.decode,
-        async (source) => await all(source)
+      const request = FilterSubscribeRpc.createUnsubscribeAllRequest(
+        this.pubsubTopic
       );
 
-      if (!res || !res.length) {
-        throw Error(
-          `No response received for request ${request.requestId}: ${res}`
+      try {
+        const res = await pipe(
+          [request.encode()],
+          lp.encode,
+          stream,
+          lp.decode,
+          async (source) => await all(source)
         );
-      }
 
-      const { statusCode, requestId, statusDesc } =
-        FilterSubscribeResponse.decode(res[0].slice());
+        if (!res || !res.length) {
+          throw Error(
+            `No response received for request ${request.requestId}: ${res}`
+          );
+        }
 
-      if (statusCode < 200 || statusCode >= 300) {
+        const { statusCode, requestId, statusDesc } =
+          FilterSubscribeResponse.decode(res[0].slice());
+
+        if (statusCode < 200 || statusCode >= 300) {
+          throw new Error(
+            `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
+          );
+        }
+
+        this.subscriptionCallbacks.clear();
+        log.info(
+          `Unsubscribed from all content topics for pubsub topic ${this.pubsubTopic}`
+        );
+      } catch (error) {
         throw new Error(
-          `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
+          "Error unsubscribing from all content topics: " + error
         );
       }
+    });
 
-      this.subscriptionCallbacks.clear();
-      log.info("Unsubscribed from all content topics");
-    } catch (error) {
-      throw new Error("Error unsubscribing from all content topics: " + error);
-    }
+    const results = await Promise.allSettled(promises);
+
+    this.handleErrors(results, "unsubscribeAll");
   }
 
   async processMessage(message: WakuMessage): Promise<void> {
-    const contentTopic = message.contentTopic;
+    const hashedMessageStr = messageHashStr(
+      this.pubsubTopic,
+      message as IProtoMessage
+    );
+    if (this.receivedMessagesHashStr.includes(hashedMessageStr)) {
+      log.info("Message already received, skipping");
+      return;
+    }
+    this.receivedMessagesHashStr.push(hashedMessageStr);
+
+    const { contentTopic } = message;
     const subscriptionCallback = this.subscriptionCallbacks.get(contentTopic);
     if (!subscriptionCallback) {
       log.error("No subscription callback available for ", contentTopic);
       return;
     }
+    log.info(
+      "Processing message with content topic ",
+      contentTopic,
+      " on pubsub topic ",
+      this.pubsubTopic
+    );
     await pushMessage(subscriptionCallback, this.pubsubTopic, message);
+  }
+
+  // Filter out only the rejected promises and extract & handle their reasons
+  private handleErrors(
+    results: PromiseSettledResult<void>[],
+    type: "ping" | "subscribe" | "unsubscribe" | "unsubscribeAll"
+  ): void {
+    const errors = results
+      .filter(
+        (result): result is PromiseRejectedResult =>
+          result.status === "rejected"
+      )
+      .map((rejectedResult) => rejectedResult.reason);
+
+    if (errors.length === this.peers.length) {
+      const errorCounts = new Map<string, number>();
+      // TODO: streamline error logging with https://github.com/orgs/waku-org/projects/2/views/1?pane=issue&itemId=42849952
+      errors.forEach((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        errorCounts.set(message, (errorCounts.get(message) || 0) + 1);
+      });
+
+      const uniqueErrorMessages = Array.from(
+        errorCounts,
+        ([message, count]) => `${message} (occurred ${count} times)`
+      ).join(", ");
+      throw new Error(`Error ${type} all peers: ${uniqueErrorMessages}`);
+    } else if (errors.length > 0) {
+      // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
+      log.warn(
+        `Some ${type} failed. These will be refreshed with new peers`,
+        errors
+      );
+    } else {
+      log.info(`${type} successful for all peers`);
+    }
   }
 }
 
 class Filter extends BaseProtocol implements IReceiver {
   private activeSubscriptions = new Map<string, Subscription>();
-  private readonly NUM_PEERS_PROTOCOL = 1;
 
   private getActiveSubscription(
-    pubsubTopic: PubsubTopic,
-    peerIdStr: PeerIdStr
+    pubsubTopic: PubsubTopic
   ): Subscription | undefined {
-    return this.activeSubscriptions.get(`${pubsubTopic}_${peerIdStr}`);
+    return this.activeSubscriptions.get(pubsubTopic);
   }
 
   private setActiveSubscription(
     pubsubTopic: PubsubTopic,
-    peerIdStr: PeerIdStr,
     subscription: Subscription
   ): Subscription {
-    this.activeSubscriptions.set(`${pubsubTopic}_${peerIdStr}`, subscription);
+    this.activeSubscriptions.set(pubsubTopic, subscription);
     return subscription;
   }
 
@@ -287,6 +367,12 @@ class Filter extends BaseProtocol implements IReceiver {
     this.activeSubscriptions = new Map();
   }
 
+  /**
+   * Creates a new subscription to the given pubsub topic.
+   * The subscription is made to multiple peers for decentralization.
+   * @param pubsubTopicShardInfo The pubsub topic to subscribe to.
+   * @returns The subscription object.
+   */
   async createSubscription(
     pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
   ): Promise<Subscription> {
@@ -297,23 +383,24 @@ class Filter extends BaseProtocol implements IReceiver {
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.pubsubTopics);
 
-    const peer = (
-      await this.getPeers({
-        maxBootstrapPeers: 1,
-        numPeers: this.NUM_PEERS_PROTOCOL
-      })
-    )[0];
-
-    if (!peer) {
+    const peers = await this.getPeers({
+      maxBootstrapPeers: 1,
+      numPeers: this.numPeersToUse
+    });
+    if (peers.length === 0) {
       throw new Error("No peer found to initiate subscription.");
     }
 
+    log.info(
+      `Creating filter subscription with ${peers.length} peers: `,
+      peers.map((peer) => peer.id.toString())
+    );
+
     const subscription =
-      this.getActiveSubscription(pubsubTopic, peer.id.toString()) ??
+      this.getActiveSubscription(pubsubTopic) ??
       this.setActiveSubscription(
         pubsubTopic,
-        peer.id.toString(),
-        new Subscription(pubsubTopic, peer, this.getStream.bind(this, peer))
+        new Subscription(pubsubTopic, peers, this.getStream.bind(this))
       );
 
     return subscription;
@@ -360,8 +447,11 @@ class Filter extends BaseProtocol implements IReceiver {
   }
 
   private onRequest(streamData: IncomingStreamData): void {
+    const { connection, stream } = streamData;
+    const { remotePeer } = connection;
+    log.info(`Received message from ${remotePeer.toString()}`);
     try {
-      pipe(streamData.stream, lp.decode, async (source) => {
+      pipe(stream, lp.decode, async (source) => {
         for await (const bytes of source) {
           const response = FilterPushRpc.decode(bytes.slice());
 
@@ -377,11 +467,7 @@ class Filter extends BaseProtocol implements IReceiver {
             return;
           }
 
-          const peerIdStr = streamData.connection.remotePeer.toString();
-          const subscription = this.getActiveSubscription(
-            pubsubTopic,
-            peerIdStr
-          );
+          const subscription = this.getActiveSubscription(pubsubTopic);
 
           if (!subscription) {
             log.error(

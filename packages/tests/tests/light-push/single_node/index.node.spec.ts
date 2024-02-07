@@ -5,7 +5,7 @@ import {
   LightNode,
   SendError
 } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/utils/bytes";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
@@ -23,7 +23,7 @@ import {
   TestEncoder
 } from "../utils.js";
 
-describe("Waku Light Push", function () {
+describe("Waku Light Push: Single Node", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(15000);
   let waku: LightNode;
@@ -155,7 +155,7 @@ describe("Waku Light Push", function () {
       messagePayload
     );
 
-    if (nwaku.type() == "go-waku") {
+    if (nwaku.type == "go-waku") {
       expect(pushResponse.recipients.length).to.eq(1);
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
