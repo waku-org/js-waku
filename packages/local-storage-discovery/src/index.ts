@@ -61,6 +61,8 @@ export class LocalStorageDiscovery
         id: idStr
       });
 
+      if (await this.components.peerStore.has(peerId)) return;
+
       await this.components.peerStore.save(peerId, {
         tags: {
           [DEFAULT_LOCAL_TAG_NAME]: {
