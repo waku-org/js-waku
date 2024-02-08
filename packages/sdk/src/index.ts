@@ -1,9 +1,4 @@
-export {
-  waitForRemotePeer,
-  createEncoder,
-  createDecoder,
-  WakuNode
-} from "@waku/core";
+export { waitForRemotePeer, createEncoder, createDecoder } from "@waku/core";
 export {
   DecodedMessage,
   Decoder,
@@ -12,6 +7,8 @@ export {
 
 export { utf8ToBytes, bytesToUtf8 } from "@waku/utils/bytes";
 
+export * from "./content_topic.js";
+export * from "./waku.js";
 export * from "./create.js";
 export * as waku from "@waku/core";
 export * as utils from "@waku/utils";
