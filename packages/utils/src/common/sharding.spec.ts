@@ -63,7 +63,9 @@ describe("ensureValidContentTopic", () => {
         "/1/myapp/1/mytopic/cbor",
         "/2/myapp/1/mytopic/cbor",
         "/3/myapp/1/mytopic/cbor",
-        "/1000/myapp/1/mytopic/cbor"
+        "/1000/myapp/1/mytopic/cbor",
+        "/1/toychat/2/huilong/proto",
+        "/1/statusim/1/community/cbor"
       ],
       "Generation greater than 0 is not supported"
     );
@@ -97,7 +99,11 @@ describe("contentTopicToShardIndex", () => {
     const contentTopics: [string, number][] = [
       ["/toychat/2/huilong/proto", 3],
       ["/myapp/1/latest/proto", 0],
-      ["/waku/2/content/test.js", 1]
+      ["/waku/2/content/test.js", 1],
+      ["/toychat/2/huilong/proto", 3],
+      ["/0/toychat/2/huilong/proto", 3],
+      ["/statusim/1/community/cbor", 4],
+      ["/0/statusim/1/community/cbor", 4]
     ];
     for (const [topic, shard] of contentTopics) {
       expect(contentTopicToShardIndex(topic)).to.eq(shard);
