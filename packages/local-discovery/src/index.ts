@@ -42,7 +42,7 @@ export class LocalStorageDiscovery
   }
 
   get [Symbol.toStringTag](): string {
-    return "@waku/local-storage-discovery";
+    return "@waku/local-discovery";
   }
 
   async start(): Promise<void> {
