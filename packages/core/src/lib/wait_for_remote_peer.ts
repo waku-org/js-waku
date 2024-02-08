@@ -31,11 +31,6 @@ export async function waitForRemotePeer(
 ): Promise<void> {
   protocols = protocols ?? getEnabledProtocols(waku);
 
-  const isShardingEnabled = waku.shardInfo !== undefined;
-  const metadataService = isShardingEnabled
-    ? waku.libp2p.services.metadata
-    : undefined;
-
   if (!waku.isStarted()) return Promise.reject("Waku node is not started");
 
   const promises = [];
@@ -49,19 +44,25 @@ export async function waitForRemotePeer(
   if (protocols.includes(Protocols.Store)) {
     if (!waku.store)
       throw new Error("Cannot wait for Store peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.store, metadataService));
+    promises.push(
+      waitForConnectedPeer(waku.store, waku.libp2p.services.metadata)
+    );
   }
 
   if (protocols.includes(Protocols.LightPush)) {
     if (!waku.lightPush)
       throw new Error("Cannot wait for LightPush peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.lightPush, metadataService));
+    promises.push(
+      waitForConnectedPeer(waku.lightPush, waku.libp2p.services.metadata)
+    );
   }
 
   if (protocols.includes(Protocols.Filter)) {
     if (!waku.filter)
       throw new Error("Cannot wait for Filter peer: protocol not mounted");
-    promises.push(waitForConnectedPeer(waku.filter, metadataService));
+    promises.push(
+      waitForConnectedPeer(waku.filter, waku.libp2p.services.metadata)
+    );
   }
 
   if (timeoutMs) {

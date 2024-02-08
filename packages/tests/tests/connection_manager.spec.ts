@@ -24,7 +24,9 @@ describe("ConnectionManager", function () {
   let waku: LightNode;
 
   beforeEach(async function () {
-    waku = await createLightNode();
+    waku = await createLightNode({
+      shardInfo: { shards: [0] }
+    });
   });
 
   afterEach(async () => {
@@ -271,7 +273,7 @@ describe("ConnectionManager", function () {
 
     this.beforeEach(async function () {
       this.timeout(15000);
-      waku = await createLightNode();
+      waku = await createLightNode({ shardInfo: { shards: [0] } });
       isPeerTopicConfigured = sinon.stub(
         waku.connectionManager as any,
         "isPeerTopicConfigured"

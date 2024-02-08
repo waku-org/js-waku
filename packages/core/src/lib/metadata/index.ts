@@ -4,11 +4,10 @@ import type {
   IMetadata,
   Libp2pComponents,
   PeerIdStr,
-  ShardInfo,
-  ShardingParams
+  ShardInfo
 } from "@waku/interfaces";
 import { proto_metadata } from "@waku/proto";
-import { encodeRelayShard, Logger } from "@waku/utils";
+import { encodeRelayShard, Logger, shardInfoToPubsubTopics } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -25,10 +24,15 @@ class Metadata extends BaseProtocol implements IMetadata {
   handshakesConfirmed: Set<PeerIdStr> = new Set();
 
   constructor(
-    public shardInfo: ShardingParams,
+    public shardInfo: ShardInfo,
     libp2p: Libp2pComponents
   ) {
-    super(MetadataCodec, libp2p.components, log, shardInfo && { shardInfo });
+    super(
+      MetadataCodec,
+      libp2p.components,
+      log,
+      shardInfoToPubsubTopics(shardInfo)
+    );
     this.libp2pComponents = libp2p;
     void libp2p.registrar.handle(MetadataCodec, (streamData) => {
       void this.onRequest(streamData);

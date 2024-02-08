@@ -7,7 +7,7 @@ import type {
   PeerId,
   PeerInfo
 } from "@libp2p/interface";
-import { Libp2pComponents, Tags } from "@waku/interfaces";
+import { Libp2pComponents, PubsubTopic, Tags } from "@waku/interfaces";
 import { encodeRelayShard, Logger } from "@waku/utils";
 
 import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
@@ -77,10 +77,14 @@ export class PeerExchangeDiscovery
     );
   };
 
-  constructor(components: Libp2pComponents, options: Options = {}) {
+  constructor(
+    components: Libp2pComponents,
+    pubsubTopics: PubsubTopic[],
+    options: Options = {}
+  ) {
     super();
     this.components = components;
-    this.peerExchange = new WakuPeerExchange(components);
+    this.peerExchange = new WakuPeerExchange(components, pubsubTopics);
     this.options = options;
     this.isStarted = false;
   }
@@ -219,9 +223,9 @@ export class PeerExchangeDiscovery
   }
 }
 
-export function wakuPeerExchangeDiscovery(): (
-  components: Libp2pComponents
-) => PeerExchangeDiscovery {
+export function wakuPeerExchangeDiscovery(
+  pubsubTopics: PubsubTopic[]
+): (components: Libp2pComponents) => PeerExchangeDiscovery {
   return (components: Libp2pComponents) =>
-    new PeerExchangeDiscovery(components);
+    new PeerExchangeDiscovery(components, pubsubTopics);
 }
