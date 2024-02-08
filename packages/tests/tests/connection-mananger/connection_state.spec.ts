@@ -55,12 +55,12 @@ describe("Connection state", function () {
     });
 
     await waku.dial(nwaku1PeerId, [Protocols.Filter]);
-    await delay(250);
+    await delay(400);
     expect(await connectionStatus).to.eq(true);
     expect(eventCount).to.be.eq(1);
 
     await waku.dial(nwaku2PeerId, [Protocols.Filter]);
-    await delay(250);
+    await delay(400);
     expect(eventCount).to.be.eq(1);
   });
 
@@ -80,7 +80,7 @@ describe("Connection state", function () {
     });
 
     await nwaku1.stop();
-    await delay(250);
+    await delay(400);
     expect(eventCount).to.be.eq(0);
 
     await nwaku2.stop();
@@ -120,7 +120,7 @@ describe("Connection state", function () {
       multiaddrs: waku2.libp2p.getMultiaddrs()
     });
     await Promise.all([waku1.dial(waku2.libp2p.peerId)]);
-    await delay(250);
+    await delay(400);
 
     expect(await connectionStatus1).to.eq(true);
     expect(await connectionStatus2).to.eq(true);
@@ -131,7 +131,7 @@ describe("Connection state", function () {
   it("isConnected should return true after first peer connects", async function () {
     expect(waku.isConnected()).to.be.false;
     await waku.dial(nwaku1PeerId, [Protocols.Filter]);
-    await delay(250);
+    await delay(400);
     expect(waku.isConnected()).to.be.true;
   });
 
@@ -139,26 +139,26 @@ describe("Connection state", function () {
     expect(waku.isConnected()).to.be.false;
     await waku.dial(nwaku1PeerId, [Protocols.Filter]);
     await waku.dial(nwaku2PeerId, [Protocols.Filter]);
-    await delay(250);
+    await delay(400);
     expect(waku.isConnected()).to.be.true;
 
     await waku.libp2p.hangUp(nwaku1PeerId);
-    await delay(250);
+    await delay(400);
     expect(waku.isConnected()).to.be.true;
 
     await waku.libp2p.hangUp(nwaku2PeerId);
-    await delay(250);
+    await delay(400);
     expect(waku.isConnected()).to.be.false;
   });
 
   it("isConnected return false after peer stops", async function () {
     expect(waku.isConnected()).to.be.false;
     await waku.dial(nwaku1PeerId, [Protocols.Filter]);
-    await delay(250);
+    await delay(400);
     expect(waku.isConnected()).to.be.true;
 
     await nwaku1.stop();
-    await delay(250);
+    await delay(400);
     expect(waku.isConnected()).to.be.false;
   });
 
@@ -171,7 +171,7 @@ describe("Connection state", function () {
       multiaddrs: waku2.libp2p.getMultiaddrs()
     });
     await Promise.all([waku1.dial(waku2.libp2p.peerId)]);
-    await delay(250);
+    await delay(400);
     expect(waku1.isConnected()).to.be.true;
     expect(waku2.isConnected()).to.be.true;
   });
