@@ -145,17 +145,6 @@ describe("Connection state", function () {
     expect(waku.isConnected()).to.be.false;
   });
 
-  it("isConnected should return false after all peers disconnect2", async function () {
-    await waku.dial(nwaku1PeerId, [Protocols.Filter]);
-    await waku.dial(nwaku2PeerId, [Protocols.Filter]);
-    await delay(250);
-    expect(waku.isConnected()).to.be.true;
-
-    await waku.libp2p.hangUp(nwaku1PeerId);
-    await waku.libp2p.hangUp(nwaku2PeerId);
-    expect(waku.isConnected()).to.be.false;
-  });
-
   it("isConnected return false after peer stops", async function () {
     expect(waku.isConnected()).to.be.false;
     await waku.dial(nwaku1PeerId, [Protocols.Filter]);
