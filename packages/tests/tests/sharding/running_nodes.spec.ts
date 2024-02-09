@@ -131,7 +131,7 @@ describe("Autosharding: Running Nodes", () => {
     this.timeout(15_000);
     waku = await createLightNode({
       shardInfo: {
-        ...shardInfoBothShards,
+        clusterId: 0,
         // For autosharding, we configure multiple pubsub topics by using two content topics that hash to different shards
         contentTopics: [ContentTopic, ContentTopic2]
       }

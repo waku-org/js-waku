@@ -5,7 +5,7 @@ import {
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import type { LightNode } from "@waku/interfaces";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
-import { createLightNode } from "@waku/sdk";
+import { createLightNode, DefaultPubsubTopic } from "@waku/sdk";
 import { expect } from "chai";
 
 import { tearDownNodes } from "../src";
@@ -33,7 +33,7 @@ describe("Peer Exchange", () => {
           libp2p: {
             peerDiscovery: [
               bootstrap({ list: predefinedNodes }),
-              wakuPeerExchangeDiscovery()
+              wakuPeerExchangeDiscovery([DefaultPubsubTopic])
             ]
           }
         });

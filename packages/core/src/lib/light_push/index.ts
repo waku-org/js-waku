@@ -43,7 +43,13 @@ type PreparePushMessageResult =
  */
 class LightPush extends BaseProtocol implements ILightPush {
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(LightPushCodec, libp2p.components, log, options);
+    super(
+      LightPushCodec,
+      libp2p.components,
+      log,
+      options!.pubsubTopics!,
+      options
+    );
   }
 
   private async preparePushMessage(

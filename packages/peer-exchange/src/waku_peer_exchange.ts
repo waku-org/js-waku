@@ -4,7 +4,8 @@ import type {
   IPeerExchange,
   Libp2pComponents,
   PeerExchangeQueryParams,
-  PeerInfo
+  PeerInfo,
+  PubsubTopic
 } from "@waku/interfaces";
 import { isDefined } from "@waku/utils";
 import { Logger } from "@waku/utils";
@@ -26,8 +27,8 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
   /**
    * @param components - libp2p components
    */
-  constructor(components: Libp2pComponents) {
-    super(PeerExchangeCodec, components, log);
+  constructor(components: Libp2pComponents, pubsubTopics: PubsubTopic[]) {
+    super(PeerExchangeCodec, components, log, pubsubTopics);
   }
 
   /**
@@ -91,8 +92,9 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
  *
  * @returns A function that creates a new peer exchange protocol
  */
-export function wakuPeerExchange(): (
-  components: Libp2pComponents
-) => WakuPeerExchange {
-  return (components: Libp2pComponents) => new WakuPeerExchange(components);
+export function wakuPeerExchange(
+  pubsubTopics: PubsubTopic[]
+): (components: Libp2pComponents) => WakuPeerExchange {
+  return (components: Libp2pComponents) =>
+    new WakuPeerExchange(components, pubsubTopics);
 }
