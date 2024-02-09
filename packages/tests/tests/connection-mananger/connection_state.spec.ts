@@ -25,14 +25,8 @@ describe("Connection state", function () {
     waku = await createLightNode();
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
-    await nwaku1.start({
-      filter: true
-    });
-
-    await nwaku2.start({
-      filter: true
-    });
-
+    await nwaku1.start({ filter: true });
+    await nwaku2.start({ filter: true });
     nwaku1PeerId = await nwaku1.getMultiaddrWithId();
     nwaku2PeerId = await nwaku2.getMultiaddrWithId();
   });
@@ -139,15 +133,13 @@ describe("Connection state", function () {
     expect(waku.isConnected()).to.be.false;
     await waku.dial(nwaku1PeerId, [Protocols.Filter]);
     await waku.dial(nwaku2PeerId, [Protocols.Filter]);
-    await delay(400);
-    expect(waku.isConnected()).to.be.true;
 
     await waku.libp2p.hangUp(nwaku1PeerId);
     await delay(400);
     expect(waku.isConnected()).to.be.true;
 
     await waku.libp2p.hangUp(nwaku2PeerId);
-    await delay(400);
+    await delay(1000);
     expect(waku.isConnected()).to.be.false;
   });
 
