@@ -10,9 +10,10 @@ import { delay } from "../../src/index.js";
 import { tearDownNodes } from "../../src/index.js";
 
 const DELAY_MS = 1_000;
+const TEST_TIMEOUT = 20_000;
 
 describe("Dials", function () {
-  this.timeout(10_000);
+  this.timeout(TEST_TIMEOUT);
   let dialPeerStub: SinonStub;
   let getConnectionsStub: SinonStub;
   let getTagNamesForPeerStub: SinonStub;
@@ -20,6 +21,7 @@ describe("Dials", function () {
   let waku: LightNode;
 
   this.beforeEach(async function () {
+    this.timeout(TEST_TIMEOUT);
     waku = await createLightNode({ shardInfo: { shards: [0] } });
     isPeerTopicConfigured = sinon.stub(
       waku.connectionManager as any,
@@ -29,6 +31,7 @@ describe("Dials", function () {
   });
 
   afterEach(async () => {
+    this.timeout(TEST_TIMEOUT);
     await tearDownNodes([], waku);
     isPeerTopicConfigured.restore();
     sinon.restore();

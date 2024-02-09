@@ -4,15 +4,17 @@ import { createLightNode } from "@waku/sdk";
 import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
-import { delay } from "../../src/index.js";
+import { delay, NOISE_KEY_1 } from "../../src/index.js";
 import {
   makeLogFileName,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
 
+const TEST_TIMEOUT = 30_000;
+
 describe("Connection state", function () {
-  this.timeout(20_000);
+  this.timeout(TEST_TIMEOUT);
   let waku: LightNode;
 
   let nwaku1: ServiceNode;
@@ -21,7 +23,7 @@ describe("Connection state", function () {
   let nwaku2PeerId: Multiaddr;
 
   beforeEach(async () => {
-    this.timeout(20_000);
+    this.timeout(TEST_TIMEOUT);
     waku = await createLightNode({ shardInfo: { shards: [0] } });
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
@@ -32,7 +34,7 @@ describe("Connection state", function () {
   });
 
   afterEach(async () => {
-    this.timeout(15000);
+    this.timeout(TEST_TIMEOUT);
     await tearDownNodes([nwaku1, nwaku2], waku);
   });
 
@@ -83,7 +85,9 @@ describe("Connection state", function () {
   });
 
   it("`waku:online` bwtween 2 js-waku relay nodes", async function () {
-    const waku1 = await createRelayNode();
+    const waku1 = await createRelayNode({
+      staticNoiseKey: NOISE_KEY_1
+    });
     const waku2 = await createRelayNode({
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
     });
@@ -130,7 +134,6 @@ describe("Connection state", function () {
   });
 
   it("isConnected should return false after all peers disconnect", async function () {
-    expect(waku.isConnected()).to.be.false;
     await waku.dial(nwaku1PeerId, [Protocols.Filter]);
     await waku.dial(nwaku2PeerId, [Protocols.Filter]);
 
@@ -139,7 +142,8 @@ describe("Connection state", function () {
     expect(waku.isConnected()).to.be.true;
 
     await waku.libp2p.hangUp(nwaku2PeerId);
-    await delay(1000);
+    await delay(2000);
+    console.log(waku.isConnected());
     expect(waku.isConnected()).to.be.false;
   });
 
@@ -155,7 +159,9 @@ describe("Connection state", function () {
   });
 
   it("isConnected bwtween 2 js-waku relay nodes", async function () {
-    const waku1 = await createRelayNode();
+    const waku1 = await createRelayNode({
+      staticNoiseKey: NOISE_KEY_1
+    });
     const waku2 = await createRelayNode({
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
     });

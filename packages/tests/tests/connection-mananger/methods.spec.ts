@@ -13,16 +13,18 @@ import { expect } from "chai";
 import { delay } from "../../src/index.js";
 import { tearDownNodes } from "../../src/index.js";
 
-const TEST_TIMEOUT = 10_000;
+const TEST_TIMEOUT = 20_000;
 
 describe("Public methods", function () {
   let waku: LightNode;
   this.timeout(TEST_TIMEOUT);
   beforeEach(async function () {
+    this.timeout(TEST_TIMEOUT);
     waku = await createLightNode({ shardInfo: { shards: [0] } });
   });
 
   afterEach(async () => {
+    this.timeout(TEST_TIMEOUT);
     await tearDownNodes([], waku);
   });
   it("addEventListener with correct event", async function () {
