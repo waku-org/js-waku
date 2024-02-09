@@ -17,7 +17,7 @@ describe("Events", function () {
   let waku: LightNode;
   this.timeout(10_000);
   beforeEach(async function () {
-    waku = await createLightNode();
+    waku = await createLightNode({ shardInfo: { shards: [0] } });
   });
 
   afterEach(async () => {

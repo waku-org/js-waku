@@ -20,7 +20,7 @@ describe("Dials", function () {
   let waku: LightNode;
 
   this.beforeEach(async function () {
-    waku = await createLightNode();
+    waku = await createLightNode({ shardInfo: { shards: [0] } });
     isPeerTopicConfigured = sinon.stub(
       waku.connectionManager as any,
       "isPeerTopicConfigured"

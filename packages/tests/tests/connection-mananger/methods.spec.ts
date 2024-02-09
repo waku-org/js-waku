@@ -19,7 +19,7 @@ describe("Public methods", function () {
   let waku: LightNode;
   this.timeout(TEST_TIMEOUT);
   beforeEach(async function () {
-    waku = await createLightNode();
+    waku = await createLightNode({ shardInfo: { shards: [0] } });
   });
 
   afterEach(async () => {

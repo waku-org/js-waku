@@ -22,7 +22,7 @@ describe("Connection state", function () {
 
   beforeEach(async () => {
     this.timeout(20_000);
-    waku = await createLightNode();
+    waku = await createLightNode({ shardInfo: { shards: [0] } });
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku1.start({ filter: true });
