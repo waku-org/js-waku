@@ -27,12 +27,12 @@ describe("Connection state", function () {
   let nwaku1PeerId: Multiaddr;
   let nwaku2PeerId: Multiaddr;
 
-  beforeEach(async (done) => {
+  this.beforeEach(function (done) {
     this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runNodes: () => Promise<void> = async () => {
       waku = await createLightNode({ shardInfo: { shards: [0] } });
-      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
-      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
       await nwaku1.start({ filter: true });
       await nwaku2.start({ filter: true });
       nwaku1PeerId = await nwaku1.getMultiaddrWithId();
