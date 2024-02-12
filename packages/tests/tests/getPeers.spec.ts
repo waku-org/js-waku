@@ -19,6 +19,7 @@ import Sinon from "sinon";
 
 import {
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   withGracefulTimeout
@@ -31,12 +32,13 @@ describe("getConnectedPeersForProtocolAndShard", function () {
   const contentTopic = "/test/2/waku-light-push/utf8";
 
   this.beforeEach(async function () {
-    this.timeout(15000);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     serviceNode1 = new ServiceNode(makeLogFileName(this) + "1");
     serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([serviceNode1, serviceNode2], waku);
     };
@@ -427,7 +429,7 @@ describe("getPeers", function () {
   let allPeers: Peer[];
 
   beforeEach(async function () {
-    this.timeout(10_000);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     waku = await createLightNode();
     peerStore = waku.libp2p.peerStore;
     connectionManager = waku.libp2p.components.connectionManager;
@@ -544,6 +546,7 @@ describe("getPeers", function () {
   });
 
   this.afterEach(function () {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     Sinon.restore();
   });
 

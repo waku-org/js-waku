@@ -9,6 +9,7 @@ import {
   base64ToUtf8,
   delay,
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   ServiceNode,
@@ -25,6 +26,7 @@ describe("Waku Relay, Interop", function () {
   let nwaku: ServiceNode;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       waku = await createRelayNode({
         staticNoiseKey: NOISE_KEY_1
@@ -44,6 +46,7 @@ describe("Waku Relay, Interop", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
@@ -114,6 +117,7 @@ describe("Waku Relay, Interop", function () {
     let nwaku: ServiceNode;
 
     this.afterEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const teardown: () => Promise<void> = async () => {
         await tearDownNodes(nwaku, [waku1, waku2]);
       };

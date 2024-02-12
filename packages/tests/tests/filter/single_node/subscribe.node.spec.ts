@@ -21,6 +21,7 @@ import {
   isNwakuAtLeast,
   makeLogFileName,
   MessageCollector,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   TEST_STRING,
@@ -46,6 +47,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   let messageCollector: MessageCollector;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
       subscription = await waku.filter.createSubscription();
@@ -58,6 +60,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };

@@ -22,6 +22,7 @@ import {
   delay,
   makeLogFileName,
   MessageCollector,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   TEST_STRING,
@@ -50,6 +51,7 @@ describe("Waku Store, general", function () {
   let nwaku: ServiceNode;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({ store: true, lightpush: true, relay: true });
@@ -59,6 +61,7 @@ describe("Waku Store, general", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, [waku, waku2]);
     };

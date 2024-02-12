@@ -4,6 +4,7 @@ import { DefaultPubsubTopic } from "@waku/interfaces";
 
 import {
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   withGracefulTimeout
@@ -23,6 +24,7 @@ describe("Waku Store, sorting", function () {
   let nwaku: ServiceNode;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({ store: true, lightpush: true, relay: true });
@@ -32,6 +34,7 @@ describe("Waku Store, sorting", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };

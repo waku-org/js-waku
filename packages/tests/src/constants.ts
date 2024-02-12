@@ -61,3 +61,5 @@ export const TEST_TIMESTAMPS = [
   1949153314000,
   undefined
 ];
+
+export const MOCHA_HOOK_MAX_TIMEOUT = 50_000;

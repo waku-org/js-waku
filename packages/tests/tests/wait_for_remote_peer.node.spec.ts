@@ -8,6 +8,7 @@ import { expect } from "chai";
 import {
   delay,
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   ServiceNode,
   tearDownNodes,
@@ -20,6 +21,7 @@ describe("Wait for remote peer", function () {
   let nwaku: ServiceNode;
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, [waku1, waku2]);
     };

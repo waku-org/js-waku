@@ -27,6 +27,7 @@ import { expect } from "chai";
 import {
   delay,
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   ServiceNode,
@@ -49,6 +50,7 @@ describe("Waku Message Ephemeral field", function () {
   let subscription: IFilterSubscription;
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
@@ -56,6 +58,7 @@ describe("Waku Message Ephemeral field", function () {
   });
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runNodes: () => Promise<void> = async () => {
       nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({

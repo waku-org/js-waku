@@ -4,7 +4,12 @@ import { createLightNode } from "@waku/sdk";
 import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
-import { delay, NOISE_KEY_1, withGracefulTimeout } from "../../src/index.js";
+import {
+  delay,
+  MOCHA_HOOK_MAX_TIMEOUT,
+  NOISE_KEY_1,
+  withGracefulTimeout
+} from "../../src/index.js";
 import {
   makeLogFileName,
   ServiceNode,
@@ -23,6 +28,7 @@ describe("Connection state", function () {
   let nwaku2PeerId: Multiaddr;
 
   beforeEach(async (done) => {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runNodes: () => Promise<void> = async () => {
       waku = await createLightNode({ shardInfo: { shards: [0] } });
       nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
@@ -36,6 +42,7 @@ describe("Connection state", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku1, nwaku2], waku);
     };

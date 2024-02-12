@@ -19,6 +19,7 @@ import Sinon, { SinonSpy } from "sinon";
 import {
   delay,
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   withGracefulTimeout
@@ -36,6 +37,7 @@ describe("Static Sharding: Peer Management", function () {
     let dialPeerSpy: SinonSpy;
 
     this.beforeEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const runAllNodes: () => Promise<void> = async () => {
         nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
         nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
@@ -45,6 +47,7 @@ describe("Static Sharding: Peer Management", function () {
     });
 
     this.afterEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const teardown: () => Promise<void> = async () => {
         await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
         dialPeerSpy && dialPeerSpy.restore();
@@ -213,6 +216,7 @@ describe("Autosharding: Peer Management", function () {
     let dialPeerSpy: SinonSpy;
 
     this.beforeEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const runAllNodes: () => Promise<void> = async () => {
         nwaku1 = new ServiceNode(makeLogFileName(this) + "1_auto");
         nwaku2 = new ServiceNode(makeLogFileName(this) + "2_auto");
@@ -222,6 +226,7 @@ describe("Autosharding: Peer Management", function () {
     });
 
     this.afterEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const teardown: () => Promise<void> = async () => {
         await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
         dialPeerSpy && dialPeerSpy.restore();

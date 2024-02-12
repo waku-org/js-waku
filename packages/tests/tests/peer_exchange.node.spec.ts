@@ -18,6 +18,7 @@ import { expect } from "chai";
 import {
   delay,
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   waitForRemotePeerWithCodec,
@@ -31,12 +32,13 @@ describe("Peer Exchange", function () {
     let nwaku2: ServiceNode;
 
     beforeEach(function () {
-      this.timeout(10_000);
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
       nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     });
 
     this.afterEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const teardown: () => Promise<void> = async () => {
         await tearDownNodes([nwaku1, nwaku2], waku);
       };
@@ -131,7 +133,7 @@ describe("Peer Exchange", function () {
     let nwaku2: ServiceNode;
 
     beforeEach(function () {
-      this.timeout(10_000);
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
       nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     });

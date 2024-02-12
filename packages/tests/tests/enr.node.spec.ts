@@ -7,6 +7,7 @@ import { expect } from "chai";
 
 import {
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   ServiceNode,
   tearDownNodes,
@@ -18,6 +19,7 @@ describe("ENR Interop: ServiceNode", function () {
   let nwaku: ServiceNode;
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };

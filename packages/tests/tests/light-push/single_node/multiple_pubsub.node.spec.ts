@@ -20,6 +20,7 @@ import { expect } from "chai";
 import {
   makeLogFileName,
   MessageCollector,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   withGracefulTimeout
@@ -54,6 +55,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
   let nimPeerId: PeerId;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       [nwaku, waku] = await runNodes(
         this,
@@ -70,6 +72,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
@@ -219,6 +222,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   let nimPeerId: PeerId;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       [nwaku, waku] = await runNodes(
         this,
@@ -232,6 +236,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
@@ -380,6 +385,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
   let nimPeerId: PeerId;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       [nwaku, waku] = await runNodes(this, [
         autoshardingPubsubTopic1,
@@ -392,6 +398,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };

@@ -10,7 +10,7 @@ import {
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { delay } from "../../src/index.js";
+import { delay, MOCHA_HOOK_MAX_TIMEOUT } from "../../src/index.js";
 import { tearDownNodes } from "../../src/index.js";
 
 const TEST_TIMEOUT = 20_000;
@@ -19,12 +19,12 @@ describe("Events", function () {
   let waku: LightNode;
   this.timeout(TEST_TIMEOUT);
   beforeEach(async function () {
-    this.timeout(TEST_TIMEOUT);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     waku = await createLightNode({ shardInfo: { shards: [0] } });
   });
 
   afterEach(async () => {
-    this.timeout(TEST_TIMEOUT);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     await tearDownNodes([], waku);
   });
 

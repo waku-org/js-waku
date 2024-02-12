@@ -9,6 +9,7 @@ import { expect } from "chai";
 
 import {
   generateTestData,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNodesFleet,
   withGracefulTimeout
 } from "../../src/index.js";
@@ -32,6 +33,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     let subscription: IFilterSubscription;
 
     this.beforeEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const runNodes: () => Promise<void> = async () => {
         [serviceNodes, waku] = await runMultipleNodes(this, [
           DefaultPubsubTopic
@@ -42,6 +44,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     this.afterEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const teardown: () => Promise<void> = async () => {
         await teardownNodesWithRedundancy(serviceNodes, waku);
       };

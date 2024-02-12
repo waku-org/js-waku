@@ -7,6 +7,7 @@ import { expect } from "chai";
 import {
   generateTestData,
   MessageCollector,
+  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   tearDownNodes,
@@ -29,7 +30,7 @@ describe("Waku Relay, Subscribe", function () {
   let messageCollector: MessageCollector;
 
   beforeEach(async function () {
-    this.timeout(10000);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({
@@ -50,7 +51,7 @@ describe("Waku Relay, Subscribe", function () {
   });
 
   afterEach(async function () {
-    this.timeout(15000);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     await tearDownNodes([], [waku1, waku2]);
   });
 

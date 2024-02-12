@@ -13,6 +13,7 @@ import chaiAsPromised from "chai-as-promised";
 import {
   delay,
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   ServiceNode,
   tearDownNodes,
@@ -30,6 +31,7 @@ describe("Util: toAsyncIterator: Filter", function () {
   let nwaku: ServiceNode;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runNodes: () => Promise<void> = async () => {
       nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({
@@ -49,6 +51,7 @@ describe("Util: toAsyncIterator: Filter", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };

@@ -7,6 +7,7 @@ import { expect } from "chai";
 import {
   generateTestData,
   MessageCollector,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   withGracefulTimeout
@@ -29,6 +30,7 @@ describe("Waku Filter V2: Unsubscribe", function () {
   let messageCollector: MessageCollector;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
       subscription = await waku.filter.createSubscription();
@@ -41,6 +43,7 @@ describe("Waku Filter V2: Unsubscribe", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };

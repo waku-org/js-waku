@@ -10,6 +10,7 @@ import { expect } from "chai";
 
 import {
   generateRandomUint8Array,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNodesFleet,
   TEST_STRING,
   withGracefulTimeout
@@ -35,6 +36,7 @@ const runTests = (strictNodeCheck: boolean): void => {
     let serviceNodes: ServiceNodesFleet;
 
     this.beforeEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const runAllNodes: () => Promise<void> = async () => {
         [serviceNodes, waku] = await runMultipleNodes(
           this,
@@ -49,6 +51,7 @@ const runTests = (strictNodeCheck: boolean): void => {
     });
 
     this.afterEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const teardown: () => Promise<void> = async () => {
         await teardownNodesWithRedundancy(serviceNodes, waku);
       };

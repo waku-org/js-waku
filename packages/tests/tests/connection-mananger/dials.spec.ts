@@ -6,7 +6,7 @@ import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 
-import { delay } from "../../src/index.js";
+import { delay, MOCHA_HOOK_MAX_TIMEOUT } from "../../src/index.js";
 import { tearDownNodes } from "../../src/index.js";
 
 const DELAY_MS = 1_000;
@@ -21,7 +21,7 @@ describe("Dials", function () {
   let waku: LightNode;
 
   this.beforeEach(async function () {
-    this.timeout(TEST_TIMEOUT);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     waku = await createLightNode({ shardInfo: { shards: [0] } });
     isPeerTopicConfigured = sinon.stub(
       waku.connectionManager as any,
@@ -31,7 +31,7 @@ describe("Dials", function () {
   });
 
   afterEach(async () => {
-    this.timeout(TEST_TIMEOUT);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     await tearDownNodes([], waku);
     isPeerTopicConfigured.restore();
     sinon.restore();
@@ -41,10 +41,12 @@ describe("Dials", function () {
     let attemptDialSpy: SinonSpy;
 
     beforeEach(function () {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       attemptDialSpy = sinon.spy(waku.connectionManager as any, "attemptDial");
     });
 
     afterEach(function () {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       attemptDialSpy.restore();
     });
 
@@ -74,6 +76,7 @@ describe("Dials", function () {
     let peerStoreHasStub: SinonStub;
     let dialAttemptsForPeerHasStub: SinonStub;
     beforeEach(function () {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       getConnectionsStub = sinon.stub(
         (waku.connectionManager as any).libp2p,
         "getConnections"
@@ -103,6 +106,7 @@ describe("Dials", function () {
     });
 
     afterEach(function () {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       dialPeerStub.restore();
       getTagNamesForPeerStub.restore();
       getConnectionsStub.restore();

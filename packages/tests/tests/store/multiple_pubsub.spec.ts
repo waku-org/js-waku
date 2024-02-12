@@ -10,6 +10,7 @@ import { expect } from "chai";
 
 import {
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   ServiceNode,
   tearDownNodes,
@@ -41,6 +42,7 @@ describe("Waku Store, custom pubsub topic", function () {
   let nwaku2: ServiceNode;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({
@@ -58,6 +60,7 @@ describe("Waku Store, custom pubsub topic", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
@@ -220,6 +223,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
   };
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({
@@ -237,6 +241,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
@@ -359,6 +364,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
   );
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       const shardInfo = singleShardInfosToShardInfo([
         customShardInfo1,
@@ -387,6 +393,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };

@@ -22,6 +22,7 @@ import { expect } from "chai";
 
 import {
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   ServiceNode,
@@ -39,6 +40,7 @@ describe("Waku Dial [node only]", function () {
     let nwaku: ServiceNode;
 
     this.afterEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const teardown: () => Promise<void> = async () => {
         await tearDownNodes(nwaku, waku);
       };
@@ -106,6 +108,7 @@ describe("Waku Dial [node only]", function () {
     let nwaku: ServiceNode;
 
     this.afterEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const teardown: () => Promise<void> = async () => {
         await tearDownNodes(nwaku, waku);
       };
@@ -165,6 +168,7 @@ describe("Waku Dial [node only]", function () {
 
 describe("Decryption Keys", () => {
   afterEach(function () {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     if (this.currentTest?.state === "failed") {
       console.log(`Test failed, log file name is ${makeLogFileName(this)}`);
     }
@@ -173,7 +177,7 @@ describe("Decryption Keys", () => {
   let waku1: RelayNode;
   let waku2: RelayNode;
   beforeEach(async function () {
-    this.timeout(10000);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     [waku1, waku2] = await Promise.all([
       createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
         waku.start().then(() => waku)
@@ -196,7 +200,7 @@ describe("Decryption Keys", () => {
   });
 
   afterEach(async function () {
-    this.timeout(15000);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     await tearDownNodes([], [waku1, waku2]);
   });
 
@@ -238,7 +242,7 @@ describe("User Agent", () => {
   let waku2: Waku;
 
   afterEach(async function () {
-    this.timeout(15000);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     await tearDownNodes([], [waku1, waku2]);
   });
 

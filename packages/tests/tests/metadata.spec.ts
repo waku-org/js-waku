@@ -9,6 +9,7 @@ import chaiAsPromised from "chai-as-promised";
 import {
   delay,
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   withGracefulTimeout
@@ -22,11 +23,12 @@ describe("Metadata Protocol", function () {
   let nwaku1: ServiceNode;
 
   beforeEach(function () {
-    this.timeout(15000);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku1], waku);
     };

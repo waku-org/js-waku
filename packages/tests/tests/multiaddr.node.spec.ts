@@ -11,6 +11,7 @@ import Sinon, { SinonSpy, SinonStub } from "sinon";
 import {
   delay,
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   withGracefulTimeout
@@ -23,6 +24,7 @@ describe("multiaddr: dialing", function () {
   let isPeerTopicConfigured: SinonStub;
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
@@ -58,6 +60,7 @@ describe("multiaddr: dialing", function () {
     let multiaddr: Multiaddr;
 
     this.beforeEach(function (done) {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       const runNodes: () => Promise<void> = async () => {
         nwaku = new ServiceNode(makeLogFileName(this));
         await nwaku.start();
@@ -78,6 +81,7 @@ describe("multiaddr: dialing", function () {
     });
 
     afterEach(function () {
+      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
       dialPeerSpy.restore();
     });
 

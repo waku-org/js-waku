@@ -19,6 +19,7 @@ import { expect } from "chai";
 
 import {
   delay,
+  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   tearDownNodes
@@ -32,7 +33,7 @@ describe("Waku Relay", function () {
   let waku2: RelayNode;
 
   beforeEach(async function () {
-    this.timeout(10000);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
@@ -54,7 +55,7 @@ describe("Waku Relay", function () {
   });
 
   afterEach(async function () {
-    this.timeout(15000);
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     await tearDownNodes([], [waku1, waku2]);
   });
 

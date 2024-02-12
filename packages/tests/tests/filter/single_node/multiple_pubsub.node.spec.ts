@@ -19,6 +19,7 @@ import { expect } from "chai";
 import {
   makeLogFileName,
   MessageCollector,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   withGracefulTimeout
@@ -60,6 +61,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   const customDecoder2 = createDecoder(customContentTopic2, singleShardInfo2);
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       [nwaku, waku] = await runNodes(
         this,
@@ -75,6 +77,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
@@ -234,6 +237,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   });
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       [nwaku, waku] = await runNodes(
         this,
@@ -249,6 +253,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
@@ -404,6 +409,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
   const customDecoder2 = createDecoder(customContentTopic2, customPubsubTopic2);
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       [nwaku, waku] = await runNodes(
         this,
@@ -420,6 +426,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };

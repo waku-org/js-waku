@@ -6,6 +6,7 @@ import { expect } from "chai";
 
 import {
   makeLogFileName,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   withGracefulTimeout
@@ -16,6 +17,7 @@ describe("Use static and several ENR trees for bootstrap", function () {
   let nwaku: ServiceNode;
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };

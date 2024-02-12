@@ -11,6 +11,7 @@ import { expect } from "chai";
 import {
   generateRandomUint8Array,
   MessageCollector,
+  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
   TEST_STRING,
@@ -32,6 +33,7 @@ describe("Waku Light Push: Single Node", function () {
   let messageCollector: MessageCollector;
 
   this.beforeEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const runAllNodes: () => Promise<void> = async () => {
       [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
       messageCollector = new MessageCollector(nwaku);
@@ -42,6 +44,7 @@ describe("Waku Light Push: Single Node", function () {
   });
 
   this.afterEach(function (done) {
+    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
