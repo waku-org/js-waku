@@ -4,15 +4,22 @@ import { LightNode } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { makeLogFileName, ServiceNode, tearDownNodes } from "../src/index.js";
+import {
+  makeLogFileName,
+  ServiceNode,
+  tearDownNodes,
+  withGracefulTimeout
+} from "../src/index.js";
 
 describe("Use static and several ENR trees for bootstrap", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes(nwaku, waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes(nwaku, waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("", async function () {

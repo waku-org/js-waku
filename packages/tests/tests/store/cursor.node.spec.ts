@@ -7,7 +7,8 @@ import { expect } from "chai";
 import {
   makeLogFileName,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../../src/index.js";
 
 import {
@@ -25,16 +26,20 @@ describe("Waku Store, cursor", function () {
   let waku2: LightNode;
   let nwaku: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(15000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({ store: true, lightpush: true, relay: true });
-    await nwaku.ensureSubscriptions();
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      nwaku = new ServiceNode(makeLogFileName(this));
+      await nwaku.start({ store: true, lightpush: true, relay: true });
+      await nwaku.ensureSubscriptions();
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes(nwaku, [waku, waku2]);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes(nwaku, [waku, waku2]);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   [

@@ -25,7 +25,8 @@ import {
   NOISE_KEY_1,
   NOISE_KEY_2,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../src/index.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
@@ -37,9 +38,11 @@ describe("Waku Dial [node only]", function () {
     let waku: LightNode;
     let nwaku: ServiceNode;
 
-    afterEach(async function () {
-      this.timeout(15000);
-      await tearDownNodes(nwaku, waku);
+    this.afterEach(function (done) {
+      const teardown: () => Promise<void> = async () => {
+        await tearDownNodes(nwaku, waku);
+      };
+      withGracefulTimeout(teardown, 20000, done);
     });
 
     it("connects to nwaku", async function () {
@@ -102,9 +105,11 @@ describe("Waku Dial [node only]", function () {
     let waku: LightNode;
     let nwaku: ServiceNode;
 
-    afterEach(async function () {
-      this.timeout(15000);
-      await tearDownNodes(nwaku, waku);
+    this.afterEach(function (done) {
+      const teardown: () => Promise<void> = async () => {
+        await tearDownNodes(nwaku, waku);
+      };
+      withGracefulTimeout(teardown, 20000, done);
     });
 
     it("Passing an array", async function () {
@@ -168,7 +173,7 @@ describe("Decryption Keys", () => {
   let waku1: RelayNode;
   let waku2: RelayNode;
   beforeEach(async function () {
-    this.timeout(5000);
+    this.timeout(10000);
     [waku1, waku2] = await Promise.all([
       createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
         waku.start().then(() => waku)

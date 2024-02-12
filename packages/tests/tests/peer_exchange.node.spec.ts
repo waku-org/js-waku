@@ -20,23 +20,27 @@ import {
   makeLogFileName,
   ServiceNode,
   tearDownNodes,
-  waitForRemotePeerWithCodec
+  waitForRemotePeerWithCodec,
+  withGracefulTimeout
 } from "../src/index.js";
 
-describe("Peer Exchange", () => {
+describe("Peer Exchange", function () {
   describe("Locally Run Nodes", () => {
     let waku: LightNode;
     let nwaku1: ServiceNode;
     let nwaku2: ServiceNode;
 
     beforeEach(function () {
+      this.timeout(10_000);
       nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
       nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     });
 
-    afterEach(async function () {
-      this.timeout(15000);
-      await tearDownNodes([nwaku1, nwaku2], waku);
+    this.afterEach(function (done) {
+      const teardown: () => Promise<void> = async () => {
+        await tearDownNodes([nwaku1, nwaku2], waku);
+      };
+      withGracefulTimeout(teardown, 20000, done);
     });
 
     it.skip("nwaku interop", async function () {
@@ -126,7 +130,8 @@ describe("Peer Exchange", () => {
     let nwaku1: ServiceNode;
     let nwaku2: ServiceNode;
 
-    beforeEach(async function () {
+    beforeEach(function () {
+      this.timeout(10_000);
       nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
       nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     });

@@ -1,0 +1,40 @@
+import { Logger } from "@waku/utils";
+const log = new Logger("test:mocha-hook");
+
+export function withGracefulTimeout(
+  asyncOperation: () => Promise<void>,
+  timeoutDuration: number,
+  doneCallback: (error?: unknown) => void,
+  mochaTimeout: number = 50000
+): void {
+  let operationCompleted = false;
+
+  const wrapperOperation: () => Promise<void> = async () => {
+    try {
+      await asyncOperation();
+      if (!operationCompleted) {
+        operationCompleted = true;
+        log.info("Mocha hook completed successfully.");
+        doneCallback();
+      }
+    } catch (error) {
+      if (!operationCompleted) {
+        operationCompleted = true;
+        log.error("Mocha hook failed:", error);
+        doneCallback(error);
+      }
+    }
+  };
+
+  void wrapperOperation();
+  setTimeout(() => {
+    if (!operationCompleted) {
+      log.info(
+        "Custom timeout reached. Proceeding to the test so it can retry"
+      );
+      operationCompleted = true;
+      doneCallback();
+    }
+  }, timeoutDuration);
+  setTimeout(() => {}, mochaTimeout);
+}

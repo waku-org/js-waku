@@ -20,7 +20,8 @@ import {
   delay,
   makeLogFileName,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../../src/index.js";
 
 chai.use(chaiAsPromised);
@@ -34,17 +35,21 @@ describe("Static Sharding: Peer Management", function () {
 
     let dialPeerSpy: SinonSpy;
 
-    beforeEach(async function () {
-      this.timeout(15000);
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
-      nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
+    this.beforeEach(function (done) {
+      const runAllNodes: () => Promise<void> = async () => {
+        nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
+        nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+        nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
+      };
+      withGracefulTimeout(runAllNodes, 20000, done);
     });
 
-    afterEach(async function () {
-      this.timeout(15000);
-      await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
-      dialPeerSpy && dialPeerSpy.restore();
+    this.afterEach(function (done) {
+      const teardown: () => Promise<void> = async () => {
+        await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
+        dialPeerSpy && dialPeerSpy.restore();
+      };
+      withGracefulTimeout(teardown, 20000, done);
     });
 
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
@@ -207,17 +212,21 @@ describe("Autosharding: Peer Management", function () {
 
     let dialPeerSpy: SinonSpy;
 
-    beforeEach(async function () {
-      this.timeout(15000);
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1_auto");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2_auto");
-      nwaku3 = new ServiceNode(makeLogFileName(this) + "3_auto");
+    this.beforeEach(function (done) {
+      const runAllNodes: () => Promise<void> = async () => {
+        nwaku1 = new ServiceNode(makeLogFileName(this) + "1_auto");
+        nwaku2 = new ServiceNode(makeLogFileName(this) + "2_auto");
+        nwaku3 = new ServiceNode(makeLogFileName(this) + "3_auto");
+      };
+      withGracefulTimeout(runAllNodes, 20000, done);
     });
 
-    afterEach(async function () {
-      this.timeout(15000);
-      await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
-      dialPeerSpy && dialPeerSpy.restore();
+    this.afterEach(function (done) {
+      const teardown: () => Promise<void> = async () => {
+        await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
+        dialPeerSpy && dialPeerSpy.restore();
+      };
+      withGracefulTimeout(teardown, 20000, done);
     });
 
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {

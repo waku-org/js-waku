@@ -20,7 +20,8 @@ import {
   makeLogFileName,
   MessageCollector,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../../../src/index.js";
 
 import { runNodes } from "./utils.js";
@@ -58,22 +59,26 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   });
   const customDecoder2 = createDecoder(customContentTopic2, singleShardInfo2);
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(
-      this,
-      [customPubsubTopic1, customPubsubTopic2],
-      shardInfo
-    );
-    subscription = await waku.filter.createSubscription(
-      pubsubTopicToSingleShardInfo(customPubsubTopic1)
-    );
-    messageCollector = new MessageCollector();
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      [nwaku, waku] = await runNodes(
+        this,
+        [customPubsubTopic1, customPubsubTopic2],
+        shardInfo
+      );
+      subscription = await waku.filter.createSubscription(
+        pubsubTopicToSingleShardInfo(customPubsubTopic1)
+      );
+      messageCollector = new MessageCollector();
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([nwaku, nwaku2], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Subscribe and receive messages on custom pubsubtopic", async function () {
@@ -228,22 +233,26 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
     shard: contentTopicToShardIndex(customContentTopic2)
   });
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(
-      this,
-      [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
-      contentTopicInfo
-    );
-    subscription = await waku.filter.createSubscription(
-      pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
-    );
-    messageCollector = new MessageCollector();
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      [nwaku, waku] = await runNodes(
+        this,
+        [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
+        contentTopicInfo
+      );
+      subscription = await waku.filter.createSubscription(
+        pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
+      );
+      messageCollector = new MessageCollector();
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([nwaku, nwaku2], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Subscribe and receive messages on autosharded pubsubtopic", async function () {
@@ -394,23 +403,27 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
   });
   const customDecoder2 = createDecoder(customContentTopic2, customPubsubTopic2);
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(
-      this,
-      [customPubsubTopic1, customPubsubTopic2],
-      {
-        clusterId: 3,
-        shards: [1, 2]
-      }
-    );
-    subscription = await waku.filter.createSubscription(customPubsubTopic1);
-    messageCollector = new MessageCollector();
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      [nwaku, waku] = await runNodes(
+        this,
+        [customPubsubTopic1, customPubsubTopic2],
+        {
+          clusterId: 3,
+          shards: [1, 2]
+        }
+      );
+      subscription = await waku.filter.createSubscription(customPubsubTopic1);
+      messageCollector = new MessageCollector();
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([nwaku, nwaku2], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Subscribe and receive messages on custom pubsubtopic", async function () {

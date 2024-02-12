@@ -10,7 +10,8 @@ import {
   delay,
   makeLogFileName,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../src/index.js";
 
 chai.use(chaiAsPromised);
@@ -25,9 +26,11 @@ describe("Metadata Protocol", function () {
     nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([nwaku1], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([nwaku1], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   describe("connections", function () {

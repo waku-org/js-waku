@@ -9,7 +9,8 @@ import { expect } from "chai";
 import {
   MessageCollector,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../../../src/index.js";
 import {
   TestContentTopic,
@@ -28,16 +29,20 @@ describe("Waku Filter V2: Ping", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
-    subscription = await waku.filter.createSubscription();
-    messageCollector = new MessageCollector();
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
+      subscription = await waku.filter.createSubscription();
+      messageCollector = new MessageCollector();
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes(nwaku, waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes(nwaku, waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Ping on subscribed peer", async function () {

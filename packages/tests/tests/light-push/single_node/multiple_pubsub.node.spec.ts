@@ -21,7 +21,8 @@ import {
   makeLogFileName,
   MessageCollector,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../../../src/index.js";
 import { messageText, runNodes } from "../utils.js";
 
@@ -52,23 +53,27 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
 
   let nimPeerId: PeerId;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(
-      this,
-      [
-        singleShardInfoToPubsubTopic(singleShardInfo1),
-        singleShardInfoToPubsubTopic(singleShardInfo2)
-      ],
-      shardInfo
-    );
-    messageCollector = new MessageCollector(nwaku);
-    nimPeerId = await nwaku.getPeerId();
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      [nwaku, waku] = await runNodes(
+        this,
+        [
+          singleShardInfoToPubsubTopic(singleShardInfo1),
+          singleShardInfoToPubsubTopic(singleShardInfo2)
+        ],
+        shardInfo
+      );
+      messageCollector = new MessageCollector(nwaku);
+      nimPeerId = await nwaku.getPeerId();
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([nwaku, nwaku2], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Push message on custom pubsubTopic", async function () {
@@ -213,20 +218,24 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
 
   let nimPeerId: PeerId;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(
-      this,
-      [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
-      shardInfo
-    );
-    messageCollector = new MessageCollector(nwaku);
-    nimPeerId = await nwaku.getPeerId();
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      [nwaku, waku] = await runNodes(
+        this,
+        [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
+        shardInfo
+      );
+      messageCollector = new MessageCollector(nwaku);
+      nimPeerId = await nwaku.getPeerId();
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([nwaku, nwaku2], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Push message on custom pubsubTopic", async function () {
@@ -370,19 +379,23 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
 
   let nimPeerId: PeerId;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [
-      autoshardingPubsubTopic1,
-      autoshardingPubsubTopic2
-    ]);
-    messageCollector = new MessageCollector(nwaku);
-    nimPeerId = await nwaku.getPeerId();
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      [nwaku, waku] = await runNodes(this, [
+        autoshardingPubsubTopic1,
+        autoshardingPubsubTopic2
+      ]);
+      messageCollector = new MessageCollector(nwaku);
+      nimPeerId = await nwaku.getPeerId();
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([nwaku, nwaku2], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Push message on custom pubsubTopic", async function () {

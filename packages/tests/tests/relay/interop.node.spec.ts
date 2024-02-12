@@ -12,7 +12,8 @@ import {
   NOISE_KEY_1,
   NOISE_KEY_2,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../../src/index.js";
 import { MessageRpcResponse } from "../../src/types.js";
 
@@ -23,26 +24,30 @@ describe("Waku Relay, Interop", function () {
   let waku: RelayNode;
   let nwaku: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(30000);
-    waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku.start();
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      waku = await createRelayNode({
+        staticNoiseKey: NOISE_KEY_1
+      });
+      await waku.start();
 
-    nwaku = new ServiceNode(this.test?.ctx?.currentTest?.title + "");
-    await nwaku.start({ relay: true });
+      nwaku = new ServiceNode(this.test?.ctx?.currentTest?.title + "");
+      await nwaku.start({ relay: true });
 
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Relay]);
+      await waku.dial(await nwaku.getMultiaddrWithId());
+      await waitForRemotePeer(waku, [Protocols.Relay]);
 
-    // Nwaku subscribe to the default pubsub topic
-    await nwaku.ensureSubscriptions();
+      // Nwaku subscribe to the default pubsub topic
+      await nwaku.ensureSubscriptions();
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes(nwaku, waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes(nwaku, waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("nwaku subscribes", async function () {
@@ -108,8 +113,11 @@ describe("Waku Relay, Interop", function () {
     let waku2: RelayNode;
     let nwaku: ServiceNode;
 
-    afterEach(async function () {
-      await tearDownNodes(nwaku, [waku1, waku2]);
+    this.afterEach(function (done) {
+      const teardown: () => Promise<void> = async () => {
+        await tearDownNodes(nwaku, [waku1, waku2]);
+      };
+      withGracefulTimeout(teardown, 20000, done);
     });
 
     it("Js publishes, other Js receives", async function () {

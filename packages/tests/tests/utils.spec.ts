@@ -15,7 +15,8 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../src/index.js";
 
 chai.use(chaiAsPromised);
@@ -24,30 +25,34 @@ const TestContentTopic = "/test/1/waku-filter";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
-describe("Util: toAsyncIterator: Filter", () => {
+describe("Util: toAsyncIterator: Filter", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(15000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
-      filter: true,
-      lightpush: true,
-      relay: true
-    });
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
-      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+  this.beforeEach(function (done) {
+    const runNodes: () => Promise<void> = async () => {
+      nwaku = new ServiceNode(makeLogFileName(this));
+      await nwaku.start({
+        filter: true,
+        lightpush: true,
+        relay: true
+      });
+      waku = await createLightNode({
+        staticNoiseKey: NOISE_KEY_1,
+        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+      });
+      await waku.start();
+      await waku.dial(await nwaku.getMultiaddrWithId());
+      await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+    };
+    withGracefulTimeout(runNodes, 20000, done);
   });
 
-  afterEach(async function () {
-    this.timeout(10000);
-    await tearDownNodes(nwaku, waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes(nwaku, waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("creates an iterator", async function () {

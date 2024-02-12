@@ -12,7 +12,8 @@ import {
   delay,
   makeLogFileName,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../src/index.js";
 
 describe("multiaddr: dialing", function () {
@@ -21,9 +22,11 @@ describe("multiaddr: dialing", function () {
   let dialPeerSpy: SinonSpy;
   let isPeerTopicConfigured: SinonStub;
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes(nwaku, waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes(nwaku, waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("can dial TLS multiaddrs", async function () {
@@ -54,22 +57,24 @@ describe("multiaddr: dialing", function () {
     let peerId: PeerId;
     let multiaddr: Multiaddr;
 
-    beforeEach(async function () {
-      this.timeout(10_000);
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start();
+    this.beforeEach(function (done) {
+      const runNodes: () => Promise<void> = async () => {
+        nwaku = new ServiceNode(makeLogFileName(this));
+        await nwaku.start();
 
-      waku = await createLightNode();
+        waku = await createLightNode();
 
-      peerId = await nwaku.getPeerId();
-      multiaddr = await nwaku.getMultiaddrWithId();
+        peerId = await nwaku.getPeerId();
+        multiaddr = await nwaku.getMultiaddrWithId();
 
-      isPeerTopicConfigured = Sinon.stub(
-        waku.connectionManager as any,
-        "isPeerTopicConfigured"
-      );
-      isPeerTopicConfigured.resolves(true);
-      dialPeerSpy = Sinon.spy(waku.connectionManager as any, "dialPeer");
+        isPeerTopicConfigured = Sinon.stub(
+          waku.connectionManager as any,
+          "isPeerTopicConfigured"
+        );
+        isPeerTopicConfigured.resolves(true);
+        dialPeerSpy = Sinon.spy(waku.connectionManager as any, "dialPeer");
+      };
+      withGracefulTimeout(runNodes, 20000, done);
     });
 
     afterEach(function () {

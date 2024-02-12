@@ -5,3 +5,4 @@ export * from "./wait_for_remote_peer_with_codec.js";
 export * from "./delay.js";
 export * from "./base64_utf8.js";
 export * from "./waitForConnections.js";
+export * from "./withGracefulTimeout.js";

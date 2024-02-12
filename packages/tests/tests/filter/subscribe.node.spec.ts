@@ -19,7 +19,8 @@ import {
   generateTestData,
   isNwakuAtLeast,
   ServiceNodesFleet,
-  TEST_STRING
+  TEST_STRING,
+  withGracefulTimeout
 } from "../../src/index.js";
 
 import {
@@ -39,19 +40,23 @@ const runTests = (strictCheckNodes: boolean): void => {
     let serviceNodes: ServiceNodesFleet;
     let subscription: IFilterSubscription;
 
-    this.beforeEach(async function () {
-      this.timeout(15000);
-      [serviceNodes, waku] = await runMultipleNodes(
-        this,
-        [DefaultPubsubTopic],
-        strictCheckNodes
-      );
-      subscription = await waku.filter.createSubscription();
+    this.beforeEach(function (done) {
+      const runNodes: () => Promise<void> = async () => {
+        [serviceNodes, waku] = await runMultipleNodes(
+          this,
+          [DefaultPubsubTopic],
+          strictCheckNodes
+        );
+        subscription = await waku.filter.createSubscription();
+      };
+      withGracefulTimeout(runNodes, 20000, done);
     });
 
-    this.afterEach(async function () {
-      this.timeout(15000);
-      await teardownNodesWithRedundancy(serviceNodes, waku);
+    this.afterEach(function (done) {
+      const teardownNodes: () => Promise<void> = async () => {
+        await teardownNodesWithRedundancy(serviceNodes, waku);
+      };
+      withGracefulTimeout(teardownNodes, 20000, done);
     });
 
     it("Subscribe and receive messages via lightPush", async function () {

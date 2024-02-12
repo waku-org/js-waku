@@ -10,7 +10,8 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../src/index.js";
 
 describe("Wait for remote peer", function () {
@@ -18,9 +19,11 @@ describe("Wait for remote peer", function () {
   let waku2: LightNode;
   let nwaku: ServiceNode;
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes(nwaku, [waku1, waku2]);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes(nwaku, [waku1, waku2]);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Relay - dialed first", async function () {

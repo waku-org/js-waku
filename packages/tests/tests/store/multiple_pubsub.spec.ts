@@ -12,7 +12,8 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../../src/index.js";
 
 import {
@@ -39,24 +40,28 @@ describe("Waku Store, custom pubsub topic", function () {
   let nwaku: ServiceNode;
   let nwaku2: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(15000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
-      store: true,
-      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
-      clusterId: customShardInfo1.clusterId,
-      relay: true
-    });
-    await nwaku.ensureSubscriptions([
-      customShardedPubsubTopic1,
-      customShardedPubsubTopic2
-    ]);
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      nwaku = new ServiceNode(makeLogFileName(this));
+      await nwaku.start({
+        store: true,
+        pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
+        clusterId: customShardInfo1.clusterId,
+        relay: true
+      });
+      await nwaku.ensureSubscriptions([
+        customShardedPubsubTopic1,
+        customShardedPubsubTopic2
+      ]);
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([nwaku, nwaku2], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Generator, custom pubsub topic", async function () {
@@ -214,24 +219,28 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     contentTopics: [customContentTopic1, customContentTopic2]
   };
 
-  beforeEach(async function () {
-    this.timeout(15000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
-      store: true,
-      pubsubTopic: [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
-      relay: true,
-      clusterId
-    });
-    await nwaku.ensureSubscriptionsAutosharding([
-      customContentTopic1,
-      customContentTopic2
-    ]);
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      nwaku = new ServiceNode(makeLogFileName(this));
+      await nwaku.start({
+        store: true,
+        pubsubTopic: [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
+        relay: true,
+        clusterId
+      });
+      await nwaku.ensureSubscriptionsAutosharding([
+        customContentTopic1,
+        customContentTopic2
+      ]);
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([nwaku, nwaku2], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Generator, custom pubsub topic", async function () {
@@ -349,36 +358,39 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     customShardedPubsubTopic2
   );
 
-  beforeEach(async function () {
-    this.timeout(15000);
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      const shardInfo = singleShardInfosToShardInfo([
+        customShardInfo1,
+        customShardInfo2
+      ]);
 
-    const shardInfo = singleShardInfosToShardInfo([
-      customShardInfo1,
-      customShardInfo2
-    ]);
+      nwaku = new ServiceNode(makeLogFileName(this));
+      await nwaku.start({
+        store: true,
+        relay: true,
+        pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
+        clusterId: shardInfo.clusterId
+      });
+      await nwaku.ensureSubscriptions([
+        customShardedPubsubTopic1,
+        customShardedPubsubTopic2
+      ]);
 
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
-      store: true,
-      relay: true,
-      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
-      clusterId: shardInfo.clusterId
-    });
-    await nwaku.ensureSubscriptions([
-      customShardedPubsubTopic1,
-      customShardedPubsubTopic2
-    ]);
-
-    waku = await startAndConnectLightNode(
-      nwaku,
-      [customShardedPubsubTopic1, customShardedPubsubTopic2],
-      shardInfo
-    );
+      waku = await startAndConnectLightNode(
+        nwaku,
+        [customShardedPubsubTopic1, customShardedPubsubTopic2],
+        shardInfo
+      );
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([nwaku, nwaku2], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([nwaku, nwaku2], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Generator, custom pubsub topic", async function () {

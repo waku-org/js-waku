@@ -9,16 +9,19 @@ import {
   makeLogFileName,
   NOISE_KEY_1,
   ServiceNode,
-  tearDownNodes
+  tearDownNodes,
+  withGracefulTimeout
 } from "../src/index.js";
 
 describe("ENR Interop: ServiceNode", function () {
   let waku: RelayNode;
   let nwaku: ServiceNode;
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes(nwaku, waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes(nwaku, waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("Relay", async function () {

@@ -11,7 +11,8 @@ import { expect } from "chai";
 import {
   generateRandomUint8Array,
   ServiceNodesFleet,
-  TEST_STRING
+  TEST_STRING,
+  withGracefulTimeout
 } from "../../src";
 import {
   runMultipleNodes,
@@ -33,21 +34,25 @@ const runTests = (strictNodeCheck: boolean): void => {
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
 
-    this.beforeEach(async function () {
-      this.timeout(15000);
-      [serviceNodes, waku] = await runMultipleNodes(
-        this,
-        [DefaultPubsubTopic],
-        strictNodeCheck,
-        undefined,
-        numServiceNodes,
-        true
-      );
+    this.beforeEach(function (done) {
+      const runAllNodes: () => Promise<void> = async () => {
+        [serviceNodes, waku] = await runMultipleNodes(
+          this,
+          [DefaultPubsubTopic],
+          strictNodeCheck,
+          undefined,
+          numServiceNodes,
+          true
+        );
+      };
+      withGracefulTimeout(runAllNodes, 20000, done);
     });
 
-    this.afterEach(async function () {
-      this.timeout(15000);
-      await teardownNodesWithRedundancy(serviceNodes, waku);
+    this.afterEach(function (done) {
+      const teardown: () => Promise<void> = async () => {
+        await teardownNodesWithRedundancy(serviceNodes, waku);
+      };
+      withGracefulTimeout(teardown, 20000, done);
     });
 
     TEST_STRING.forEach((testItem) => {

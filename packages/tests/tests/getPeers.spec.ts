@@ -17,7 +17,12 @@ import { expect } from "chai";
 import fc from "fast-check";
 import Sinon from "sinon";
 
-import { makeLogFileName, ServiceNode, tearDownNodes } from "../src/index.js";
+import {
+  makeLogFileName,
+  ServiceNode,
+  tearDownNodes,
+  withGracefulTimeout
+} from "../src/index.js";
 
 describe("getConnectedPeersForProtocolAndShard", function () {
   let waku: LightNode;
@@ -31,9 +36,11 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes([serviceNode1, serviceNode2], waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes([serviceNode1, serviceNode2], waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   it("same cluster, same shard: nodes connect", async function () {

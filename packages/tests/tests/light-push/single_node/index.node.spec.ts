@@ -13,7 +13,8 @@ import {
   MessageCollector,
   ServiceNode,
   tearDownNodes,
-  TEST_STRING
+  TEST_STRING,
+  withGracefulTimeout
 } from "../../../src/index.js";
 import {
   messagePayload,
@@ -30,17 +31,21 @@ describe("Waku Light Push: Single Node", function () {
   let nwaku: ServiceNode;
   let messageCollector: MessageCollector;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
-    messageCollector = new MessageCollector(nwaku);
+  this.beforeEach(function (done) {
+    const runAllNodes: () => Promise<void> = async () => {
+      [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
+      messageCollector = new MessageCollector(nwaku);
 
-    await nwaku.ensureSubscriptions();
+      await nwaku.ensureSubscriptions();
+    };
+    withGracefulTimeout(runAllNodes, 20000, done);
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
-    await tearDownNodes(nwaku, waku);
+  this.afterEach(function (done) {
+    const teardown: () => Promise<void> = async () => {
+      await tearDownNodes(nwaku, waku);
+    };
+    withGracefulTimeout(teardown, 20000, done);
   });
 
   TEST_STRING.forEach((testItem) => {
