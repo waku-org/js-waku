@@ -17,12 +17,14 @@ export function removeItemFromArray(arr: unknown[], value: unknown): unknown[] {
   return arr;
 }
 
-export function getWsMultiaddrFromMultiaddrs(multiaddrs: Address[]): Address {
-  const wsMultiaddr = multiaddrs.find((m) =>
-    m.multiaddr.toString().includes("ws" || "wss")
+export function getWsMultiaddrFromMultiaddrs(addresses: Address[]): Address {
+  const wsMultiaddr = addresses.find(
+    (addr) =>
+      addr.multiaddr.toString().includes("ws") ||
+      addr.multiaddr.toString().includes("wss")
   );
   if (!wsMultiaddr) {
-    throw new Error("No ws multiaddr found in the given multiaddrs");
+    throw new Error("No ws multiaddr found in the given addresses");
   }
   return wsMultiaddr;
 }

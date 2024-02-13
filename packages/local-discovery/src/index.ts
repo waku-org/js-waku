@@ -64,6 +64,7 @@ export class LocalStorageDiscovery
       if (await this.components.peerStore.has(peerId)) return;
 
       await this.components.peerStore.save(peerId, {
+        multiaddrs: [multiaddr(address)],
         tags: {
           [DEFAULT_LOCAL_TAG_NAME]: {
             value: this.options?.tagValue ?? DEFAULT_LOCAL_TAG_VALUE,
@@ -98,7 +99,9 @@ export class LocalStorageDiscovery
   handleNewPeers = (event: CustomEvent<PeerUpdate>): void => {
     const { peer } = event.detail;
 
-    const websocketMultiaddr = getWsMultiaddrFromMultiaddrs(peer.addresses);
+    const { multiaddr: websocketMultiaddr } = getWsMultiaddrFromMultiaddrs(
+      peer.addresses
+    );
 
     const localStoragePeers = this.getPeersFromLocalStorage();
 
