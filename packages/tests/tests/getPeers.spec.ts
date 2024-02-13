@@ -40,8 +40,8 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo: ShardInfo = {
-      clusterId: 1,
-      shards: [1]
+      clusterId: 2,
+      shards: [2]
     };
 
     await serviceNode1.start({

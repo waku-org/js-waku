@@ -188,7 +188,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
 
   const customContentTopic1 = "/waku/2/content/utf8";
   const customContentTopic2 = "/myapp/1/latest/proto";
-  const clusterId = 1;
+  const clusterId = 2;
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
     customContentTopic1,
     clusterId

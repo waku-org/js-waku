@@ -165,7 +165,7 @@ describe("Metadata Protocol", function () {
 
   it("PeerStore has remote peer's shard info after successful connection", async function () {
     const shardInfo: ShardInfo = {
-      clusterId: 1,
+      clusterId: 2,
       shards: [1]
     };
 

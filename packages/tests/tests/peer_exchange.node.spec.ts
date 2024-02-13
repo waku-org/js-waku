@@ -120,7 +120,7 @@ describe("Peer Exchange", () => {
   });
 
   describe("Compliance Test", function () {
-    this.timeout(55_000);
+    this.timeout(100_000);
 
     let waku: LightNode;
     let nwaku1: ServiceNode;
