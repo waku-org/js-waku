@@ -61,10 +61,13 @@
     "@types/chai": "^4.3.11",
     "@waku/build-utils": "*",
     "chai": "^4.3.10",
+    "chai-as-promised": "^7.1.1",
     "cspell": "^7.3.2",
     "mocha": "^10.2.0",
+    "node-localstorage": "^3.0.5",
     "npm-run-all": "^4.1.5",
-    "rollup": "^4.9.5"
+    "rollup": "^4.9.5",
+    "sinon": "^17.0.1"
   },
   "files": [
     "dist",

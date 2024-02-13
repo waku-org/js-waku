@@ -8,12 +8,13 @@ import { PersistentPeerStore } from "@libp2p/peer-store";
 import { multiaddr } from "@multiformats/multiaddr";
 import { Libp2pComponents } from "@waku/interfaces";
 import { LocalStoragePeerInfo } from "@waku/interfaces";
-import { LocalStorageDiscovery } from "@waku/local-discovery";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MemoryDatastore } from "datastore-core/memory";
 import { LocalStorage } from "node-localstorage";
 import sinon from "sinon";
+
+import { LocalStorageDiscovery } from "./index.js";
 
 chai.use(chaiAsPromised);
 
