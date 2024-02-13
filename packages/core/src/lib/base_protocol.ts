@@ -6,12 +6,7 @@ import type {
   ProtocolCreateOptions,
   PubsubTopic
 } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
-import {
-  ensureShardingConfigured,
-  Logger,
-  shardInfoToPubsubTopics
-} from "@waku/utils";
+import { ensureShardingConfigured, Logger } from "@waku/utils";
 import {
   getConnectedPeersForProtocolAndShard,
   getPeersForProtocol,
@@ -32,16 +27,14 @@ export class BaseProtocol implements IBaseProtocol {
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
   readonly numPeersToUse: number;
   protected streamManager: StreamManager;
-  protected pubsubTopics: PubsubTopic[];
 
   constructor(
     public multicodec: string,
     private components: Libp2pComponents,
     private log: Logger,
+    protected pubsubTopics: PubsubTopic[],
     private options?: ProtocolCreateOptions
   ) {
-    this.pubsubTopics = this.initializePubsubTopic(options);
-
     this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
 
     this.addLibp2pEventListener = components.events.addEventListener.bind(
@@ -142,16 +135,5 @@ export class BaseProtocol implements IBaseProtocol {
     }
 
     return sortedFilteredPeers;
-  }
-
-  private initializePubsubTopic(
-    options?: ProtocolCreateOptions
-  ): PubsubTopic[] {
-    return (
-      options?.pubsubTopics ??
-      (options?.shardInfo
-        ? shardInfoToPubsubTopics(options.shardInfo)
-        : [DefaultPubsubTopic])
-    );
   }
 }
