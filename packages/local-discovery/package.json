@@ -12,7 +12,7 @@
   },
   "type": "module",
   "author": "Waku Team",
-  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/local-storage#readme",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/local-discovery#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/waku-org/js-waku.git"
