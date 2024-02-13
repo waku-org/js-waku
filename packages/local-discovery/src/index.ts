@@ -1,10 +1,10 @@
 import { TypedEventEmitter } from "@libp2p/interface";
 import {
   CustomEvent,
+  IdentifyResult,
   PeerDiscovery,
   PeerDiscoveryEvents,
   PeerInfo,
-  PeerUpdate,
   Startable
 } from "@libp2p/interface";
 import { createFromJSON } from "@libp2p/peer-id-factory";
@@ -52,7 +52,10 @@ export class LocalStorageDiscovery
 
     log.info("Starting Local Storage Discovery");
 
-    this.components.events.addEventListener("peer:update", this.handleNewPeers);
+    this.components.events.addEventListener(
+      "peer:identify",
+      this.handleNewPeers
+    );
 
     const localStoragePeers = this.getPeersFromLocalStorage();
 
@@ -90,23 +93,21 @@ export class LocalStorageDiscovery
     if (!this.isStarted) return;
     log.info("Stopping Local Storage Discovery");
     this.components.events.removeEventListener(
-      "peer:update",
+      "peer:identify",
       this.handleNewPeers
     );
     this.isStarted = false;
   }
 
-  handleNewPeers = (event: CustomEvent<PeerUpdate>): void => {
-    const { peer } = event.detail;
+  handleNewPeers = (event: CustomEvent<IdentifyResult>): void => {
+    const peer = event.detail;
 
-    const { multiaddr: websocketMultiaddr } = getWsMultiaddrFromMultiaddrs(
-      peer.addresses
-    );
+    const websocketMultiaddr = getWsMultiaddrFromMultiaddrs(peer.listenAddrs);
 
     const localStoragePeers = this.getPeersFromLocalStorage();
 
     const existingPeerIndex = localStoragePeers.findIndex(
-      (_peer) => _peer.id === peer.id.toString()
+      (_peer) => _peer.id === peer.peerId.toString()
     );
 
     if (existingPeerIndex >= 0) {
@@ -114,7 +115,7 @@ export class LocalStorageDiscovery
         websocketMultiaddr.toString();
     } else {
       localStoragePeers.push({
-        id: peer.id.toString(),
+        id: peer.peerId.toString(),
         address: websocketMultiaddr.toString()
       });
     }
