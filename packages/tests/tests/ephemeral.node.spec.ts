@@ -54,7 +54,7 @@ describe("Waku Message Ephemeral field", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   this.beforeEach(function (done) {
@@ -82,7 +82,7 @@ describe("Waku Message Ephemeral field", function () {
 
       subscription = await waku.filter.createSubscription();
     };
-    withGracefulTimeout(runNodes, 20000, done);
+    withGracefulTimeout(runNodes, done);
   });
 
   it("Ephemeral messages are not stored", async function () {

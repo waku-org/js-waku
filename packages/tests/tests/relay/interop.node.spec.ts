@@ -42,7 +42,7 @@ describe("Waku Relay, Interop", function () {
       // Nwaku subscribe to the default pubsub topic
       await nwaku.ensureSubscriptions();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -50,7 +50,7 @@ describe("Waku Relay, Interop", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("nwaku subscribes", async function () {
@@ -121,7 +121,7 @@ describe("Waku Relay, Interop", function () {
       const teardown: () => Promise<void> = async () => {
         await tearDownNodes(nwaku, [waku1, waku2]);
       };
-      withGracefulTimeout(teardown, 20000, done);
+      withGracefulTimeout(teardown, done);
     });
 
     it("Js publishes, other Js receives", async function () {

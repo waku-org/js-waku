@@ -40,7 +40,7 @@ describe("Waku Light Push: Single Node", function () {
 
       await nwaku.ensureSubscriptions();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -48,7 +48,7 @@ describe("Waku Light Push: Single Node", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   TEST_STRING.forEach((testItem) => {

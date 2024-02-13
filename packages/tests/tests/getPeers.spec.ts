@@ -42,7 +42,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([serviceNode1, serviceNode2], waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("same cluster, same shard: nodes connect", async function () {

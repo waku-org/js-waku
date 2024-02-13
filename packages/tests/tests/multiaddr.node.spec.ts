@@ -28,7 +28,7 @@ describe("multiaddr: dialing", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("can dial TLS multiaddrs", async function () {
@@ -77,7 +77,7 @@ describe("multiaddr: dialing", function () {
         isPeerTopicConfigured.resolves(true);
         dialPeerSpy = Sinon.spy(waku.connectionManager as any, "dialPeer");
       };
-      withGracefulTimeout(runNodes, 20000, done);
+      withGracefulTimeout(runNodes, done);
     });
 
     afterEach(function () {

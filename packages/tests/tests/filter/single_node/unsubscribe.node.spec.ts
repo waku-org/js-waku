@@ -39,7 +39,7 @@ describe("Waku Filter V2: Unsubscribe", function () {
       // Nwaku subscribe to the default pubsub topic
       await nwaku.ensureSubscriptions();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -47,7 +47,7 @@ describe("Waku Filter V2: Unsubscribe", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Unsubscribe 1 topic - node subscribed to 1 topic", async function () {

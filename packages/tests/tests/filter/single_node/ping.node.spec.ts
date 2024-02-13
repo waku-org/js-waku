@@ -37,7 +37,7 @@ describe("Waku Filter V2: Ping", function () {
       subscription = await waku.filter.createSubscription();
       messageCollector = new MessageCollector();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -45,7 +45,7 @@ describe("Waku Filter V2: Ping", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Ping on subscribed peer", async function () {

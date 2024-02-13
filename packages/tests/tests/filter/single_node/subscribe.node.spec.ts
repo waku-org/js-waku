@@ -56,7 +56,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
       // Nwaku subscribe to the default pubsub topic
       await nwaku.ensureSubscriptions();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -64,7 +64,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Subscribe and receive messages via lightPush", async function () {

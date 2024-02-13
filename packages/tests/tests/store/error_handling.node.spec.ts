@@ -31,7 +31,7 @@ describe("Waku Store, error handling", function () {
       await nwaku.ensureSubscriptions();
       waku = await startAndConnectLightNode(nwaku);
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -39,7 +39,7 @@ describe("Waku Store, error handling", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Query Generator, Wrong PubsubTopic", async function () {

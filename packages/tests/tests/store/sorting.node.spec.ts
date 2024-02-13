@@ -30,7 +30,7 @@ describe("Waku Store, sorting", function () {
       await nwaku.start({ store: true, lightpush: true, relay: true });
       await nwaku.ensureSubscriptions();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -38,7 +38,7 @@ describe("Waku Store, sorting", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   [PageDirection.FORWARD, PageDirection.BACKWARD].forEach((pageDirection) => {

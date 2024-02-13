@@ -47,7 +47,7 @@ const runTests = (strictNodeCheck: boolean): void => {
           true
         );
       };
-      withGracefulTimeout(runAllNodes, 20000, done);
+      withGracefulTimeout(runAllNodes, done);
     });
 
     this.afterEach(function (done) {
@@ -55,7 +55,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       const teardown: () => Promise<void> = async () => {
         await teardownNodesWithRedundancy(serviceNodes, waku);
       };
-      withGracefulTimeout(teardown, 20000, done);
+      withGracefulTimeout(teardown, done);
     });
 
     TEST_STRING.forEach((testItem) => {

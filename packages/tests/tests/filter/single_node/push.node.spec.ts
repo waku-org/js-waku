@@ -41,7 +41,7 @@ describe("Waku Filter V2: FilterPush", function () {
       subscription = await waku.filter.createSubscription();
       messageCollector = new MessageCollector();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -49,7 +49,7 @@ describe("Waku Filter V2: FilterPush", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   TEST_STRING.forEach((testItem) => {

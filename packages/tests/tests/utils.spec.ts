@@ -47,7 +47,7 @@ describe("Util: toAsyncIterator: Filter", function () {
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
     };
-    withGracefulTimeout(runNodes, 20000, done);
+    withGracefulTimeout(runNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -55,7 +55,7 @@ describe("Util: toAsyncIterator: Filter", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("creates an iterator", async function () {

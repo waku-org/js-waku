@@ -43,7 +43,7 @@ describe("Static Sharding: Peer Management", function () {
         nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
         nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
       };
-      withGracefulTimeout(runAllNodes, 20000, done);
+      withGracefulTimeout(runAllNodes, done);
     });
 
     this.afterEach(function (done) {
@@ -52,7 +52,7 @@ describe("Static Sharding: Peer Management", function () {
         await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
         dialPeerSpy && dialPeerSpy.restore();
       };
-      withGracefulTimeout(teardown, 20000, done);
+      withGracefulTimeout(teardown, done);
     });
 
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
@@ -222,7 +222,7 @@ describe("Autosharding: Peer Management", function () {
         nwaku2 = new ServiceNode(makeLogFileName(this) + "2_auto");
         nwaku3 = new ServiceNode(makeLogFileName(this) + "3_auto");
       };
-      withGracefulTimeout(runAllNodes, 20000, done);
+      withGracefulTimeout(runAllNodes, done);
     });
 
     this.afterEach(function (done) {
@@ -231,7 +231,7 @@ describe("Autosharding: Peer Management", function () {
         await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
         dialPeerSpy && dialPeerSpy.restore();
       };
-      withGracefulTimeout(teardown, 20000, done);
+      withGracefulTimeout(teardown, done);
     });
 
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {

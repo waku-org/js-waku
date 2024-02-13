@@ -56,7 +56,7 @@ describe("Waku Store, custom pubsub topic", function () {
         customShardedPubsubTopic2
       ]);
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -64,7 +64,7 @@ describe("Waku Store, custom pubsub topic", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Generator, custom pubsub topic", async function () {
@@ -237,7 +237,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
         customContentTopic2
       ]);
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -245,7 +245,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Generator, custom pubsub topic", async function () {
@@ -389,7 +389,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
         shardInfo
       );
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -397,7 +397,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Generator, custom pubsub topic", async function () {

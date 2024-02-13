@@ -29,7 +29,7 @@ describe("Waku Store, page size", function () {
       await nwaku.start({ store: true, lightpush: true, relay: true });
       await nwaku.ensureSubscriptions();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -37,7 +37,7 @@ describe("Waku Store, page size", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   [

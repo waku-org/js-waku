@@ -25,7 +25,7 @@ describe("Wait for remote peer", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, [waku1, waku2]);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Relay - dialed first", async function () {

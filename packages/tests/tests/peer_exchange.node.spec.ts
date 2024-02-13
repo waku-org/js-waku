@@ -42,7 +42,7 @@ describe("Peer Exchange", function () {
       const teardown: () => Promise<void> = async () => {
         await tearDownNodes([nwaku1, nwaku2], waku);
       };
-      withGracefulTimeout(teardown, 20000, done);
+      withGracefulTimeout(teardown, done);
     });
 
     it.skip("nwaku interop", async function () {

@@ -1,10 +1,12 @@
 import { Logger } from "@waku/utils";
+
+import { MOCHA_HOOK_MAX_TIMEOUT } from "../constants";
 const log = new Logger("test:mocha-hook");
 
 export function withGracefulTimeout(
   asyncOperation: () => Promise<void>,
-  timeoutDuration: number,
-  doneCallback: (error?: unknown) => void
+  doneCallback: (error?: unknown) => void,
+  timeoutDuration: number = MOCHA_HOOK_MAX_TIMEOUT
 ): void {
   let operationCompleted = false;
 

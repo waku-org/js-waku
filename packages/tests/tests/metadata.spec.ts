@@ -32,7 +32,7 @@ describe("Metadata Protocol", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku1], waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   describe("connections", function () {

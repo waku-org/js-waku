@@ -44,7 +44,7 @@ describe("Waku Dial [node only]", function () {
       const teardown: () => Promise<void> = async () => {
         await tearDownNodes(nwaku, waku);
       };
-      withGracefulTimeout(teardown, 20000, done);
+      withGracefulTimeout(teardown, done);
     });
 
     it("connects to nwaku", async function () {
@@ -112,7 +112,7 @@ describe("Waku Dial [node only]", function () {
       const teardown: () => Promise<void> = async () => {
         await tearDownNodes(nwaku, waku);
       };
-      withGracefulTimeout(teardown, 20000, done);
+      withGracefulTimeout(teardown, done);
     });
 
     it("Passing an array", async function () {

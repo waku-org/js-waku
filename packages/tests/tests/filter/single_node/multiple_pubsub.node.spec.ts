@@ -73,7 +73,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
       );
       messageCollector = new MessageCollector();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -81,7 +81,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Subscribe and receive messages on custom pubsubtopic", async function () {
@@ -249,7 +249,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
       );
       messageCollector = new MessageCollector();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -257,7 +257,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Subscribe and receive messages on autosharded pubsubtopic", async function () {
@@ -422,7 +422,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
       subscription = await waku.filter.createSubscription(customPubsubTopic1);
       messageCollector = new MessageCollector();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -430,7 +430,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku, nwaku2], waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("Subscribe and receive messages on custom pubsubtopic", async function () {

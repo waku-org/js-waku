@@ -49,7 +49,7 @@ describe("Static Sharding: Running Nodes", function () {
       nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({ store: true, lightpush: true, relay: true });
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -57,7 +57,7 @@ describe("Static Sharding: Running Nodes", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("configure the node with multiple pubsub topics", async function () {
@@ -130,7 +130,7 @@ describe("Autosharding: Running Nodes", function () {
       nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({ store: true, lightpush: true, relay: true });
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -138,7 +138,7 @@ describe("Autosharding: Running Nodes", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("configure the node with multiple pubsub topics", async function () {

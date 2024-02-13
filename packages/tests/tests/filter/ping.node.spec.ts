@@ -37,7 +37,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         ]);
         subscription = await waku.filter.createSubscription();
       };
-      withGracefulTimeout(runNodes, 20000, done);
+      withGracefulTimeout(runNodes, done);
     });
 
     this.afterEach(function (done) {
@@ -45,7 +45,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const teardown: () => Promise<void> = async () => {
         await teardownNodesWithRedundancy(serviceNodes, waku);
       };
-      withGracefulTimeout(teardown, 20000, done);
+      withGracefulTimeout(teardown, done);
     });
 
     it("Ping on subscribed peer", async function () {

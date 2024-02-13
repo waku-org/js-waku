@@ -51,7 +51,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         );
         subscription = await waku.filter.createSubscription();
       };
-      withGracefulTimeout(runNodes, 20000, done);
+      withGracefulTimeout(runNodes, done);
     });
 
     this.afterEach(function (done) {
@@ -59,7 +59,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       const teardownNodes: () => Promise<void> = async () => {
         await teardownNodesWithRedundancy(serviceNodes, waku);
       };
-      withGracefulTimeout(teardownNodes, 20000, done);
+      withGracefulTimeout(teardownNodes, done);
     });
 
     it("Subscribe and receive messages via lightPush", async function () {

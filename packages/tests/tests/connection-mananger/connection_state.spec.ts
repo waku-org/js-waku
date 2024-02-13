@@ -38,7 +38,7 @@ describe("Connection state", function () {
       nwaku1PeerId = await nwaku1.getMultiaddrWithId();
       nwaku2PeerId = await nwaku2.getMultiaddrWithId();
     };
-    withGracefulTimeout(runNodes, 20000, done);
+    withGracefulTimeout(runNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -46,7 +46,7 @@ describe("Connection state", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes([nwaku1, nwaku2], waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("should emit `waku:online` event only when first peer is connected", async function () {

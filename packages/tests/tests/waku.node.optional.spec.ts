@@ -21,7 +21,7 @@ describe("Use static and several ENR trees for bootstrap", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   it("", async function () {

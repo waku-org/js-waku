@@ -28,7 +28,7 @@ describe("Waku Store, time filter", function () {
       await nwaku.start({ store: true, lightpush: true, relay: true });
       await nwaku.ensureSubscriptions();
     };
-    withGracefulTimeout(runAllNodes, 20000, done);
+    withGracefulTimeout(runAllNodes, done);
   });
 
   this.afterEach(function (done) {
@@ -36,7 +36,7 @@ describe("Waku Store, time filter", function () {
     const teardown: () => Promise<void> = async () => {
       await tearDownNodes(nwaku, waku);
     };
-    withGracefulTimeout(teardown, 20000, done);
+    withGracefulTimeout(teardown, done);
   });
 
   [
