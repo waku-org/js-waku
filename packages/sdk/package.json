@@ -72,7 +72,7 @@
     "@waku/peer-exchange": "^0.0.19",
     "@waku/relay": "0.0.9",
     "@waku/utils": "0.0.14",
-    "libp2p": "^1.1.2"
+    "libp2p": "^1.2.3"
   },
   "devDependencies": {
     "@chainsafe/libp2p-gossipsub": "^11.1.0",
