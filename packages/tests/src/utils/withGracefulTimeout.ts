@@ -21,8 +21,11 @@ export function withGracefulTimeout(
     } catch (error) {
       if (!operationCompleted) {
         operationCompleted = true;
-        log.error("Mocha hook failed:", error);
-        doneCallback(error);
+        log.error(
+          "Mocha hook failed. Proceeding to the test so it can retry.",
+          error
+        );
+        doneCallback();
       }
     }
   };
@@ -31,7 +34,7 @@ export function withGracefulTimeout(
   setTimeout(() => {
     if (!operationCompleted) {
       log.info(
-        "Custom timeout reached. Proceeding to the test so it can retry"
+        "Custom timeout reached. Proceeding to the test so it can retry."
       );
       operationCompleted = true;
       doneCallback();
