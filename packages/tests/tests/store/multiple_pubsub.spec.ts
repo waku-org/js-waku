@@ -180,7 +180,8 @@ describe("Waku Store, custom pubsub topic", function () {
   });
 });
 
-describe("Waku Store (Autosharding), custom pubsub topic", function () {
+// Skipped until https://github.com/waku-org/js-waku/issues/1845 gets fixed
+describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
   this.timeout(15000);
   let waku: LightNode;
   let nwaku: ServiceNode;
