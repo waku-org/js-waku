@@ -26,7 +26,7 @@ function withGracefulTimeout(
           "Mocha hook failed. Proceeding to the test so it can retry.",
           error
         );
-        doneCallback(error);
+        doneCallback();
       }
     }
   };
