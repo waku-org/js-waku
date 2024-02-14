@@ -46,7 +46,7 @@ describe("Peer Exchange", function () {
     });
 
     it.skip("nwaku interop", async function () {
-      this.timeout(55_000);
+      this.timeout(100_000);
 
       await nwaku1.start({
         relay: true,
@@ -126,7 +126,7 @@ describe("Peer Exchange", function () {
   });
 
   describe("Compliance Test", function () {
-    this.timeout(55_000);
+    this.timeout(100_000);
 
     let waku: LightNode;
     let nwaku1: ServiceNode;

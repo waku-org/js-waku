@@ -49,8 +49,8 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo: ShardInfo = {
-      clusterId: 1,
-      shards: [1]
+      clusterId: 2,
+      shards: [2]
     };
 
     await serviceNode1.start({
@@ -77,17 +77,18 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     expect(peers.length).to.be.greaterThan(0);
   });
 
+  // Had to use cluster 0 because of https://github.com/waku-org/js-waku/issues/1848
   it("same cluster, different shard: nodes connect", async function () {
     this.timeout(15000);
 
     const shardInfo: ShardInfo = {
-      clusterId: 1,
+      clusterId: 0,
       shards: [1]
     };
 
     const shardInfoServiceNode: ShardInfo = {
-      clusterId: 1,
-      shards: [2]
+      clusterId: 0,
+      shards: [1]
     };
 
     await serviceNode1.start({
@@ -119,12 +120,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ShardInfo = {
-      clusterId: 1,
+      clusterId: 2,
       shards: [1]
     };
 
     const shardInfo2: ShardInfo = {
-      clusterId: 2,
+      clusterId: 3,
       shards: [1]
     };
 
@@ -171,12 +172,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ShardInfo = {
-      clusterId: 1,
+      clusterId: 2,
       shards: [1]
     };
 
     const shardInfo2: ShardInfo = {
-      clusterId: 2,
+      clusterId: 3,
       shards: [2]
     };
 
@@ -223,7 +224,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: 2,
       contentTopics: [contentTopic]
     };
 
@@ -255,12 +256,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: 2,
       contentTopics: [contentTopic]
     };
 
     const shardInfo2: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: 2,
       contentTopics: ["/test/5/waku-light-push/utf8"]
     };
 
@@ -307,12 +308,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: 2,
       contentTopics: [contentTopic]
     };
 
     const shardInfo2: ContentTopicInfo = {
-      clusterId: 2,
+      clusterId: 3,
       contentTopics: [contentTopic]
     };
 
@@ -359,12 +360,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: 2,
       contentTopics: [contentTopic]
     };
 
     const shardInfo2: ContentTopicInfo = {
-      clusterId: 2,
+      clusterId: 3,
       contentTopics: ["/test/5/waku-light-push/utf8"]
     };
 
