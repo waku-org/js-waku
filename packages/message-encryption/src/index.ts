@@ -10,4 +10,4 @@ export type { DecodedMessage };
 
 export * as ecies from "./ecies.js";
 export * as symmetric from "./symmetric.js";
-export * as crypto from "./crypto";
+export * as crypto from "./crypto/index.js";
