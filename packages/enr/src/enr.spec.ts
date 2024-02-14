@@ -197,7 +197,7 @@ describe("ENR", function () {
     let privateKey: Uint8Array;
     let record: ENR;
 
-    beforeEachCustom(this, async () => {
+    beforeEach(async function () {
       const seq = BigInt(1);
       privateKey = hexToBytes(
         "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
@@ -419,7 +419,7 @@ describe("ENR", function () {
     let waku2Protocols: Waku2;
     let privateKey: Uint8Array;
 
-    beforeEachCustom(this, async () => {
+    beforeEach(async function () {
       peerId = await createSecp256k1PeerId();
       enr = await EnrCreator.fromPeerId(peerId);
       privateKey = await getPrivateKeyFromPeerId(peerId);
