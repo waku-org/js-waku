@@ -127,7 +127,8 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: [customPubsubTopic2]
+      pubsubTopic: [customPubsubTopic2],
+      clusterId: 3
     });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
@@ -309,7 +310,8 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: [autoshardingPubsubTopic2]
+      pubsubTopic: [autoshardingPubsubTopic2],
+      clusterId: 3
     });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
@@ -464,7 +466,8 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: [customPubsubTopic2]
+      pubsubTopic: [customPubsubTopic2],
+      clusterId: 3
     });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);

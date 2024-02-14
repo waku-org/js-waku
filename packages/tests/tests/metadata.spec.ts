@@ -33,7 +33,7 @@ describe("Metadata Protocol", function () {
   describe("connections", function () {
     it("same cluster, same shard: nodes connect", async function () {
       const shardInfo: ShardInfo = {
-        clusterId: 1,
+        clusterId: 2,
         shards: [1]
       };
 
@@ -62,14 +62,15 @@ describe("Metadata Protocol", function () {
       expect(activeConnections.length).to.equal(1);
     });
 
+    // Had to use cluster 0 because of https://github.com/waku-org/js-waku/issues/1848
     it("same cluster, different shard: nodes connect", async function () {
       const shardInfo1: ShardInfo = {
-        clusterId: 1,
+        clusterId: 0,
         shards: [1]
       };
 
       const shardInfo2: ShardInfo = {
-        clusterId: 1,
+        clusterId: 0,
         shards: [2]
       };
 
@@ -100,12 +101,12 @@ describe("Metadata Protocol", function () {
 
     it("different cluster, same shard: nodes don't connect", async function () {
       const shardInfo1: ShardInfo = {
-        clusterId: 1,
+        clusterId: 2,
         shards: [1]
       };
 
       const shardInfo2: ShardInfo = {
-        clusterId: 2,
+        clusterId: 3,
         shards: [1]
       };
 
@@ -132,12 +133,12 @@ describe("Metadata Protocol", function () {
 
     it("different cluster, different shard: nodes don't connect", async function () {
       const shardInfo1: ShardInfo = {
-        clusterId: 1,
+        clusterId: 2,
         shards: [1]
       };
 
       const shardInfo2: ShardInfo = {
-        clusterId: 2,
+        clusterId: 3,
         shards: [2]
       };
 
@@ -165,7 +166,7 @@ describe("Metadata Protocol", function () {
 
   it("PeerStore has remote peer's shard info after successful connection", async function () {
     const shardInfo: ShardInfo = {
-      clusterId: 1,
+      clusterId: 2,
       shards: [1]
     };
 
