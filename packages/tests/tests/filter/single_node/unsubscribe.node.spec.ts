@@ -5,12 +5,12 @@ import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   generateTestData,
   MessageCollector,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../../../src/index.js";
 import { runNodes } from "../../light-push/utils";
 import {
@@ -29,25 +29,17 @@ describe("Waku Filter V2: Unsubscribe", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
-      subscription = await waku.filter.createSubscription();
-      messageCollector = new MessageCollector();
+  beforeEachCustom(this, async () => {
+    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
+    subscription = await waku.filter.createSubscription();
+    messageCollector = new MessageCollector();
 
-      // Nwaku subscribe to the default pubsub topic
-      await nwaku.ensureSubscriptions();
-    };
-    withGracefulTimeout(runAllNodes, done);
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.ensureSubscriptions();
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes(nwaku, waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, waku);
   });
 
   it("Unsubscribe 1 topic - node subscribed to 1 topic", async function () {

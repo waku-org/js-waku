@@ -11,13 +11,13 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../src/index.js";
 
 chai.use(chaiAsPromised);
@@ -30,32 +30,24 @@ describe("Util: toAsyncIterator: Filter", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runNodes: () => Promise<void> = async () => {
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({
-        filter: true,
-        lightpush: true,
-        relay: true
-      });
-      waku = await createLightNode({
-        staticNoiseKey: NOISE_KEY_1,
-        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-      });
-      await waku.start();
-      await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-    };
-    withGracefulTimeout(runNodes, done);
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    await nwaku.start({
+      filter: true,
+      lightpush: true,
+      relay: true
+    });
+    waku = await createLightNode({
+      staticNoiseKey: NOISE_KEY_1,
+      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+    });
+    await waku.start();
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes(nwaku, waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, waku);
   });
 
   it("creates an iterator", async function () {

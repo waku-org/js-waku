@@ -18,8 +18,9 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
-  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   tearDownNodes
@@ -32,8 +33,7 @@ describe("Waku Relay", function () {
   let waku1: RelayNode;
   let waku2: RelayNode;
 
-  beforeEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  beforeEachCustom(this, async () => {
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
@@ -54,8 +54,7 @@ describe("Waku Relay", function () {
     log.info("before each hook done");
   });
 
-  afterEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2]);
   });
 

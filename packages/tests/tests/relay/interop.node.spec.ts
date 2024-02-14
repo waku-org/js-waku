@@ -6,15 +6,15 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
   base64ToUtf8,
+  beforeEachCustom,
   delay,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../../src/index.js";
 import { MessageRpcResponse } from "../../src/types.js";
 
@@ -25,32 +25,24 @@ describe("Waku Relay, Interop", function () {
   let waku: RelayNode;
   let nwaku: ServiceNode;
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      waku = await createRelayNode({
-        staticNoiseKey: NOISE_KEY_1
-      });
-      await waku.start();
+  beforeEachCustom(this, async () => {
+    waku = await createRelayNode({
+      staticNoiseKey: NOISE_KEY_1
+    });
+    await waku.start();
 
-      nwaku = new ServiceNode(this.test?.ctx?.currentTest?.title + "");
-      await nwaku.start({ relay: true });
+    nwaku = new ServiceNode(this.ctx.test?.ctx?.currentTest?.title + "");
+    await nwaku.start({ relay: true });
 
-      await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.Relay]);
+    await waku.dial(await nwaku.getMultiaddrWithId());
+    await waitForRemotePeer(waku, [Protocols.Relay]);
 
-      // Nwaku subscribe to the default pubsub topic
-      await nwaku.ensureSubscriptions();
-    };
-    withGracefulTimeout(runAllNodes, done);
+    // Nwaku subscribe to the default pubsub topic
+    await nwaku.ensureSubscriptions();
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes(nwaku, waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, waku);
   });
 
   it("nwaku subscribes", async function () {
@@ -116,12 +108,8 @@ describe("Waku Relay, Interop", function () {
     let waku2: RelayNode;
     let nwaku: ServiceNode;
 
-    this.afterEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const teardown: () => Promise<void> = async () => {
-        await tearDownNodes(nwaku, [waku1, waku2]);
-      };
-      withGracefulTimeout(teardown, done);
+    afterEachCustom(this, async () => {
+      await tearDownNodes(nwaku, [waku1, waku2]);
     });
 
     it("Js publishes, other Js receives", async function () {
@@ -135,7 +123,7 @@ describe("Waku Relay, Interop", function () {
         }).then((waku) => waku.start().then(() => waku))
       ]);
 
-      nwaku = new ServiceNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this.ctx));
       await nwaku.start({ relay: true });
 
       const nwakuMultiaddr = await nwaku.getMultiaddrWithId();

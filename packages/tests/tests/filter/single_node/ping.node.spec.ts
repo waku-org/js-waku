@@ -7,11 +7,11 @@ import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   MessageCollector,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../../../src/index.js";
 import {
   TestContentTopic,
@@ -30,22 +30,14 @@ describe("Waku Filter V2: Ping", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
-      subscription = await waku.filter.createSubscription();
-      messageCollector = new MessageCollector();
-    };
-    withGracefulTimeout(runAllNodes, done);
+  beforeEachCustom(this, async () => {
+    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
+    subscription = await waku.filter.createSubscription();
+    messageCollector = new MessageCollector();
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes(nwaku, waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, waku);
   });
 
   it("Ping on subscribed peer", async function () {

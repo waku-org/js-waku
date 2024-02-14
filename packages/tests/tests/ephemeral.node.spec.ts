@@ -25,14 +25,14 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../src/index.js";
 
 const log = new Logger("test:ephemeral");
@@ -49,40 +49,32 @@ describe("Waku Message Ephemeral field", function () {
 
   let subscription: IFilterSubscription;
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes(nwaku, waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, waku);
   });
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runNodes: () => Promise<void> = async () => {
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({
-        filter: true,
-        lightpush: true,
-        store: true,
-        relay: true
-      });
-      waku = await createLightNode({
-        staticNoiseKey: NOISE_KEY_1,
-        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-      });
-      await waku.start();
-      await waku.dial(await nwaku.getMultiaddrWithId());
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    await nwaku.start({
+      filter: true,
+      lightpush: true,
+      store: true,
+      relay: true
+    });
+    waku = await createLightNode({
+      staticNoiseKey: NOISE_KEY_1,
+      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+    });
+    await waku.start();
+    await waku.dial(await nwaku.getMultiaddrWithId());
 
-      await waitForRemotePeer(waku, [
-        Protocols.Filter,
-        Protocols.LightPush,
-        Protocols.Store
-      ]);
+    await waitForRemotePeer(waku, [
+      Protocols.Filter,
+      Protocols.LightPush,
+      Protocols.Store
+    ]);
 
-      subscription = await waku.filter.createSubscription();
-    };
-    withGracefulTimeout(runNodes, done);
+    subscription = await waku.filter.createSubscription();
   });
 
   it("Ephemeral messages are not stored", async function () {

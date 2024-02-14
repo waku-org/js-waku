@@ -9,12 +9,12 @@ import {
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../../src/index.js";
 
 import {
@@ -41,30 +41,22 @@ describe("Waku Store, custom pubsub topic", function () {
   let nwaku: ServiceNode;
   let nwaku2: ServiceNode;
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({
-        store: true,
-        pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
-        clusterId: customShardInfo1.clusterId,
-        relay: true
-      });
-      await nwaku.ensureSubscriptions([
-        customShardedPubsubTopic1,
-        customShardedPubsubTopic2
-      ]);
-    };
-    withGracefulTimeout(runAllNodes, done);
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    await nwaku.start({
+      store: true,
+      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
+      clusterId: customShardInfo1.clusterId,
+      relay: true
+    });
+    await nwaku.ensureSubscriptions([
+      customShardedPubsubTopic1,
+      customShardedPubsubTopic2
+    ]);
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes([nwaku, nwaku2], waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Generator, custom pubsub topic", async function () {
@@ -134,7 +126,7 @@ describe("Waku Store, custom pubsub topic", function () {
     this.timeout(10000);
 
     // Set up and start a new nwaku node with Default Pubsubtopic
-    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku2.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic2],
@@ -223,30 +215,22 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
     contentTopics: [customContentTopic1, customContentTopic2]
   };
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({
-        store: true,
-        pubsubTopic: [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
-        relay: true,
-        clusterId
-      });
-      await nwaku.ensureSubscriptionsAutosharding([
-        customContentTopic1,
-        customContentTopic2
-      ]);
-    };
-    withGracefulTimeout(runAllNodes, done);
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    await nwaku.start({
+      store: true,
+      pubsubTopic: [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
+      relay: true,
+      clusterId
+    });
+    await nwaku.ensureSubscriptionsAutosharding([
+      customContentTopic1,
+      customContentTopic2
+    ]);
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes([nwaku, nwaku2], waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Generator, custom pubsub topic", async function () {
@@ -305,7 +289,7 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
     this.timeout(10000);
 
     // Set up and start a new nwaku node with Default Pubsubtopic
-    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku2.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic2],
@@ -364,41 +348,33 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     customShardedPubsubTopic2
   );
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      const shardInfo = singleShardInfosToShardInfo([
-        customShardInfo1,
-        customShardInfo2
-      ]);
+  beforeEachCustom(this, async () => {
+    const shardInfo = singleShardInfosToShardInfo([
+      customShardInfo1,
+      customShardInfo2
+    ]);
 
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({
-        store: true,
-        relay: true,
-        pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
-        clusterId: shardInfo.clusterId
-      });
-      await nwaku.ensureSubscriptions([
-        customShardedPubsubTopic1,
-        customShardedPubsubTopic2
-      ]);
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    await nwaku.start({
+      store: true,
+      relay: true,
+      pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
+      clusterId: shardInfo.clusterId
+    });
+    await nwaku.ensureSubscriptions([
+      customShardedPubsubTopic1,
+      customShardedPubsubTopic2
+    ]);
 
-      waku = await startAndConnectLightNode(
-        nwaku,
-        [customShardedPubsubTopic1, customShardedPubsubTopic2],
-        shardInfo
-      );
-    };
-    withGracefulTimeout(runAllNodes, done);
+    waku = await startAndConnectLightNode(
+      nwaku,
+      [customShardedPubsubTopic1, customShardedPubsubTopic2],
+      shardInfo
+    );
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes([nwaku, nwaku2], waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Generator, custom pubsub topic", async function () {
@@ -466,7 +442,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     this.timeout(10000);
 
     // Set up and start a new nwaku node with Default Pubsubtopic
-    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku2.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic2],

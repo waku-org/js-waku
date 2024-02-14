@@ -15,13 +15,13 @@ import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   generateTestData,
   isNwakuAtLeast,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNodesFleet,
-  TEST_STRING,
-  withGracefulTimeout
+  TEST_STRING
 } from "../../src/index.js";
 
 import {
@@ -41,25 +41,17 @@ const runTests = (strictCheckNodes: boolean): void => {
     let serviceNodes: ServiceNodesFleet;
     let subscription: IFilterSubscription;
 
-    this.beforeEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const runNodes: () => Promise<void> = async () => {
-        [serviceNodes, waku] = await runMultipleNodes(
-          this,
-          [DefaultPubsubTopic],
-          strictCheckNodes
-        );
-        subscription = await waku.filter.createSubscription();
-      };
-      withGracefulTimeout(runNodes, done);
+    beforeEachCustom(this, async () => {
+      [serviceNodes, waku] = await runMultipleNodes(
+        this.ctx,
+        [DefaultPubsubTopic],
+        strictCheckNodes
+      );
+      subscription = await waku.filter.createSubscription();
     });
 
-    this.afterEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const teardownNodes: () => Promise<void> = async () => {
-        await teardownNodesWithRedundancy(serviceNodes, waku);
-      };
-      withGracefulTimeout(teardownNodes, done);
+    afterEachCustom(this, async () => {
+      await teardownNodesWithRedundancy(serviceNodes, waku);
     });
 
     it("Subscribe and receive messages via lightPush", async function () {

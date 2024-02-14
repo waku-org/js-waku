@@ -8,14 +8,13 @@ import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { createLightNode, DefaultPubsubTopic } from "@waku/sdk";
 import { expect } from "chai";
 
-import { MOCHA_HOOK_MAX_TIMEOUT, tearDownNodes } from "../src";
+import { afterEachCustom, tearDownNodes } from "../src";
 
 describe("Peer Exchange", () => {
   describe("Auto Discovery", function () {
     let waku: LightNode;
 
-    afterEach(async function () {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+    afterEachCustom(this, async () => {
       await tearDownNodes([], waku);
     });
 

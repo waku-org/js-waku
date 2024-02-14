@@ -5,29 +5,24 @@ import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../src/index.js";
 
 describe("Use static and several ENR trees for bootstrap", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes(nwaku, waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, waku);
   });
 
   it("", async function () {
     this.timeout(10_000);
 
-    nwaku = new ServiceNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start();
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 

@@ -18,11 +18,11 @@ import fc from "fast-check";
 import Sinon from "sinon";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../src/index.js";
 
 describe("getConnectedPeersForProtocolAndShard", function () {
@@ -31,18 +31,13 @@ describe("getConnectedPeersForProtocolAndShard", function () {
   let serviceNode2: ServiceNode;
   const contentTopic = "/test/2/waku-light-push/utf8";
 
-  this.beforeEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    serviceNode1 = new ServiceNode(makeLogFileName(this) + "1");
-    serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
+  beforeEachCustom(this, async () => {
+    serviceNode1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+    serviceNode2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes([serviceNode1, serviceNode2], waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes([serviceNode1, serviceNode2], waku);
   });
 
   it("same cluster, same shard: nodes connect", async function () {
@@ -192,7 +187,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     });
 
     // and another node in the same cluster cluster as our node
-    const serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
+    const serviceNode2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await serviceNode2.start({
       discv5Discovery: true,
       peerExchange: true,
@@ -380,7 +375,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     });
 
     // and another node in the same cluster cluster as our node
-    const serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
+    const serviceNode2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await serviceNode2.start({
       discv5Discovery: true,
       peerExchange: true,
@@ -429,8 +424,7 @@ describe("getPeers", function () {
   let nonBootstrapPeers: Peer[];
   let allPeers: Peer[];
 
-  beforeEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  beforeEachCustom(this, async () => {
     waku = await createLightNode();
     peerStore = waku.libp2p.peerStore;
     connectionManager = waku.libp2p.components.connectionManager;
@@ -546,8 +540,7 @@ describe("getPeers", function () {
     });
   });
 
-  this.afterEach(function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  afterEachCustom(this, async () => {
     Sinon.restore();
   });
 

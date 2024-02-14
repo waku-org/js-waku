@@ -19,14 +19,14 @@ import { expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
   MessageCollector,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
-  TEST_STRING,
-  withGracefulTimeout
+  TEST_STRING
 } from "../../src/index.js";
 
 import {
@@ -50,22 +50,14 @@ describe("Waku Store, general", function () {
   let waku2: LightNode;
   let nwaku: ServiceNode;
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({ store: true, lightpush: true, relay: true });
-      await nwaku.ensureSubscriptions();
-    };
-    withGracefulTimeout(runAllNodes, done);
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    await nwaku.start({ store: true, lightpush: true, relay: true });
+    await nwaku.ensureSubscriptions();
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes(nwaku, [waku, waku2]);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, [waku, waku2]);
   });
 
   it("Query generator for multiple messages", async function () {

@@ -2,19 +2,21 @@ import { createLightNode, LightNode } from "@waku/sdk";
 import { expect } from "chai";
 import sinon, { SinonSpy } from "sinon";
 
-import { MOCHA_HOOK_MAX_TIMEOUT, tearDownNodes } from "../src/index.js";
+import {
+  afterEachCustom,
+  beforeEachCustom,
+  tearDownNodes
+} from "../src/index.js";
 
 describe("Create node", function () {
   let waku: LightNode;
   let consoleInfoSpy: SinonSpy;
 
-  beforeEach(() => {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  beforeEachCustom(this, async () => {
     consoleInfoSpy = sinon.spy(console as any, "info");
   });
 
-  afterEach(async () => {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  afterEachCustom(this, async () => {
     consoleInfoSpy.restore();
     sinon.restore();
     await tearDownNodes([], waku);

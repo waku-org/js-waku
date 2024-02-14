@@ -21,8 +21,8 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
   MessageCollector,
-  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   NOISE_KEY_3,
@@ -68,8 +68,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
   const customDecoder2 = createDecoder(customContentTopic2, singleShardInfo2);
   const shardInfoBothShards: ShardInfo = { clusterId: 3, shards: [1, 2] };
 
-  afterEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2, waku3]);
   });
 
@@ -361,8 +360,7 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
     contentTopics: [customContentTopic1, customContentTopic2]
   };
 
-  afterEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2, waku3]);
   });
 
@@ -672,8 +670,7 @@ describe("Waku Relay (named sharding), multiple pubsub topics", function () {
   });
   const customDecoder2 = createDecoder(customContentTopic2, customPubsubTopic2);
 
-  afterEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2, waku3]);
   });
 

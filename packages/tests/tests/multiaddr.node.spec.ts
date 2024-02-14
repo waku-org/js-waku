@@ -9,12 +9,12 @@ import { expect } from "chai";
 import Sinon, { SinonSpy, SinonStub } from "sinon";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../src/index.js";
 
 describe("multiaddr: dialing", function () {
@@ -23,12 +23,8 @@ describe("multiaddr: dialing", function () {
   let dialPeerSpy: SinonSpy;
   let isPeerTopicConfigured: SinonStub;
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes(nwaku, waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, waku);
   });
 
   it("can dial TLS multiaddrs", async function () {
@@ -59,29 +55,24 @@ describe("multiaddr: dialing", function () {
     let peerId: PeerId;
     let multiaddr: Multiaddr;
 
-    this.beforeEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const runNodes: () => Promise<void> = async () => {
-        nwaku = new ServiceNode(makeLogFileName(this));
-        await nwaku.start();
+    beforeEachCustom(this, async () => {
+      nwaku = new ServiceNode(makeLogFileName(this.ctx));
+      await nwaku.start();
 
-        waku = await createLightNode();
+      waku = await createLightNode();
 
-        peerId = await nwaku.getPeerId();
-        multiaddr = await nwaku.getMultiaddrWithId();
+      peerId = await nwaku.getPeerId();
+      multiaddr = await nwaku.getMultiaddrWithId();
 
-        isPeerTopicConfigured = Sinon.stub(
-          waku.connectionManager as any,
-          "isPeerTopicConfigured"
-        );
-        isPeerTopicConfigured.resolves(true);
-        dialPeerSpy = Sinon.spy(waku.connectionManager as any, "dialPeer");
-      };
-      withGracefulTimeout(runNodes, done);
+      isPeerTopicConfigured = Sinon.stub(
+        waku.connectionManager as any,
+        "isPeerTopicConfigured"
+      );
+      isPeerTopicConfigured.resolves(true);
+      dialPeerSpy = Sinon.spy(waku.connectionManager as any, "dialPeer");
     });
 
-    afterEach(function () {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+    afterEachCustom(this, async () => {
       dialPeerSpy.restore();
     });
 

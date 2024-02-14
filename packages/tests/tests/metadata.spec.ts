@@ -7,12 +7,12 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../src/index.js";
 
 chai.use(chaiAsPromised);
@@ -22,17 +22,12 @@ describe("Metadata Protocol", function () {
   let waku: LightNode;
   let nwaku1: ServiceNode;
 
-  beforeEach(function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
+  beforeEachCustom(this, async () => {
+    nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes([nwaku1], waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes([nwaku1], waku);
   });
 
   describe("connections", function () {

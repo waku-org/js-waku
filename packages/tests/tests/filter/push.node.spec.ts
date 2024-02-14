@@ -9,12 +9,12 @@ import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNodesFleet,
   TEST_STRING,
-  TEST_TIMESTAMPS,
-  withGracefulTimeout
+  TEST_TIMESTAMPS
 } from "../../src/index.js";
 
 import {
@@ -34,23 +34,15 @@ const runTests = (strictCheckNodes: boolean): void => {
     let serviceNodes: ServiceNodesFleet;
     let subscription: IFilterSubscription;
 
-    this.beforeEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const runNodes: () => Promise<void> = async () => {
-        [serviceNodes, waku] = await runMultipleNodes(this, [
-          DefaultPubsubTopic
-        ]);
-        subscription = await waku.filter.createSubscription();
-      };
-      withGracefulTimeout(runNodes, done);
+    beforeEachCustom(this, async () => {
+      [serviceNodes, waku] = await runMultipleNodes(this.ctx, [
+        DefaultPubsubTopic
+      ]);
+      subscription = await waku.filter.createSubscription();
     });
 
-    this.afterEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const teardown: () => Promise<void> = async () => {
-        await teardownNodesWithRedundancy(serviceNodes, waku);
-      };
-      withGracefulTimeout(teardown, done);
+    afterEachCustom(this, async () => {
+      await teardownNodesWithRedundancy(serviceNodes, waku);
     });
 
     TEST_STRING.forEach((testItem) => {

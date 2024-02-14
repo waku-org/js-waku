@@ -16,16 +16,16 @@ import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   generateTestData,
   isNwakuAtLeast,
   makeLogFileName,
   MessageCollector,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
-  TEST_STRING,
-  withGracefulTimeout
+  TEST_STRING
 } from "../../../src/index.js";
 import {
   messagePayload,
@@ -46,25 +46,15 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
-      subscription = await waku.filter.createSubscription();
-      messageCollector = new MessageCollector();
-
-      // Nwaku subscribe to the default pubsub topic
-      await nwaku.ensureSubscriptions();
-    };
-    withGracefulTimeout(runAllNodes, done);
+  beforeEachCustom(this, async () => {
+    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
+    subscription = await waku.filter.createSubscription();
+    messageCollector = new MessageCollector();
+    await nwaku.ensureSubscriptions();
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes([nwaku, nwaku2], waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Subscribe and receive messages via lightPush", async function () {
@@ -473,7 +463,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
 
     // Set up and start a new nwaku node
-    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,

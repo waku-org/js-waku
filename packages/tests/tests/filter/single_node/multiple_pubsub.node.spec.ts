@@ -17,12 +17,12 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
   MessageCollector,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../../../src/index.js";
 
 import { runNodes } from "./utils.js";
@@ -60,28 +60,20 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   });
   const customDecoder2 = createDecoder(customContentTopic2, singleShardInfo2);
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      [nwaku, waku] = await runNodes(
-        this,
-        [customPubsubTopic1, customPubsubTopic2],
-        shardInfo
-      );
-      subscription = await waku.filter.createSubscription(
-        pubsubTopicToSingleShardInfo(customPubsubTopic1)
-      );
-      messageCollector = new MessageCollector();
-    };
-    withGracefulTimeout(runAllNodes, done);
+  beforeEachCustom(this, async () => {
+    [nwaku, waku] = await runNodes(
+      this.ctx,
+      [customPubsubTopic1, customPubsubTopic2],
+      shardInfo
+    );
+    subscription = await waku.filter.createSubscription(
+      pubsubTopicToSingleShardInfo(customPubsubTopic1)
+    );
+    messageCollector = new MessageCollector();
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes([nwaku, nwaku2], waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Subscribe and receive messages on custom pubsubtopic", async function () {
@@ -130,7 +122,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Set up and start a new nwaku node with customPubsubTopic1
-    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,
@@ -237,28 +229,20 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
     shard: contentTopicToShardIndex(customContentTopic2)
   });
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      [nwaku, waku] = await runNodes(
-        this,
-        [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
-        contentTopicInfo
-      );
-      subscription = await waku.filter.createSubscription(
-        pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
-      );
-      messageCollector = new MessageCollector();
-    };
-    withGracefulTimeout(runAllNodes, done);
+  beforeEachCustom(this, async () => {
+    [nwaku, waku] = await runNodes(
+      this.ctx,
+      [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
+      contentTopicInfo
+    );
+    subscription = await waku.filter.createSubscription(
+      pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
+    );
+    messageCollector = new MessageCollector();
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes([nwaku, nwaku2], waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Subscribe and receive messages on autosharded pubsubtopic", async function () {
@@ -319,7 +303,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Set up and start a new nwaku node with customPubsubTopic1
-    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,
@@ -410,29 +394,21 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
   });
   const customDecoder2 = createDecoder(customContentTopic2, customPubsubTopic2);
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      [nwaku, waku] = await runNodes(
-        this,
-        [customPubsubTopic1, customPubsubTopic2],
-        {
-          clusterId: 3,
-          shards: [1, 2]
-        }
-      );
-      subscription = await waku.filter.createSubscription(customPubsubTopic1);
-      messageCollector = new MessageCollector();
-    };
-    withGracefulTimeout(runAllNodes, done);
+  beforeEachCustom(this, async () => {
+    [nwaku, waku] = await runNodes(
+      this.ctx,
+      [customPubsubTopic1, customPubsubTopic2],
+      {
+        clusterId: 3,
+        shards: [1, 2]
+      }
+    );
+    subscription = await waku.filter.createSubscription(customPubsubTopic1);
+    messageCollector = new MessageCollector();
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes([nwaku, nwaku2], waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes([nwaku, nwaku2], waku);
   });
 
   it("Subscribe and receive messages on custom pubsubtopic", async function () {
@@ -481,7 +457,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Set up and start a new nwaku node with customPubsubTopic1
-    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,

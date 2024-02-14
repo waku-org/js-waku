@@ -5,10 +5,11 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   generateRandomUint8Array,
   MessageCollector,
-  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   tearDownNodes,
@@ -30,8 +31,7 @@ describe("Waku Relay, Publish", function () {
   let waku2: RelayNode;
   let messageCollector: MessageCollector;
 
-  beforeEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  beforeEachCustom(this, async () => {
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({
@@ -53,8 +53,7 @@ describe("Waku Relay, Publish", function () {
     await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
   });
 
-  afterEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2]);
   });
 

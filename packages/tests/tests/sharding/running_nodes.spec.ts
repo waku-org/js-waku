@@ -17,11 +17,11 @@ import {
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../../src/index.js";
 
 const PubsubTopic1 = singleShardInfoToPubsubTopic({
@@ -43,21 +43,13 @@ describe("Static Sharding: Running Nodes", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({ store: true, lightpush: true, relay: true });
-    };
-    withGracefulTimeout(runAllNodes, done);
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    await nwaku.start({ store: true, lightpush: true, relay: true });
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes(nwaku, waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, waku);
   });
 
   it("configure the node with multiple pubsub topics", async function () {
@@ -124,21 +116,13 @@ describe("Autosharding: Running Nodes", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runAllNodes: () => Promise<void> = async () => {
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({ store: true, lightpush: true, relay: true });
-    };
-    withGracefulTimeout(runAllNodes, done);
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    await nwaku.start({ store: true, lightpush: true, relay: true });
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes(nwaku, waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes(nwaku, waku);
   });
 
   it("configure the node with multiple pubsub topics", async function () {

@@ -16,13 +16,13 @@ import {
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
   tearDownNodes,
-  waitForRemotePeerWithCodec,
-  withGracefulTimeout
+  waitForRemotePeerWithCodec
 } from "../src/index.js";
 
 describe("Peer Exchange", function () {
@@ -31,18 +31,13 @@ describe("Peer Exchange", function () {
     let nwaku1: ServiceNode;
     let nwaku2: ServiceNode;
 
-    beforeEach(function () {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    beforeEachCustom(this, async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     });
 
-    this.afterEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const teardown: () => Promise<void> = async () => {
-        await tearDownNodes([nwaku1, nwaku2], waku);
-      };
-      withGracefulTimeout(teardown, done);
+    afterEachCustom(this, async () => {
+      await tearDownNodes([nwaku1, nwaku2], waku);
     });
 
     it.skip("nwaku interop", async function () {
@@ -132,10 +127,9 @@ describe("Peer Exchange", function () {
     let nwaku1: ServiceNode;
     let nwaku2: ServiceNode;
 
-    beforeEach(function () {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    beforeEachCustom(this, async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     });
 
     tests({

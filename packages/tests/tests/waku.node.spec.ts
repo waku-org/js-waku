@@ -21,13 +21,13 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   NOISE_KEY_1,
   NOISE_KEY_2,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../src/index.js";
 
 const TestContentTopic = "/test/1/waku/utf8";
@@ -39,17 +39,13 @@ describe("Waku Dial [node only]", function () {
     let waku: LightNode;
     let nwaku: ServiceNode;
 
-    this.afterEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const teardown: () => Promise<void> = async () => {
-        await tearDownNodes(nwaku, waku);
-      };
-      withGracefulTimeout(teardown, done);
+    afterEachCustom(this, async () => {
+      await tearDownNodes(nwaku, waku);
     });
 
     it("connects to nwaku", async function () {
       this.timeout(20_000);
-      nwaku = new ServiceNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this.ctx));
       await nwaku.start({
         filter: true,
         store: true,
@@ -82,7 +78,7 @@ describe("Waku Dial [node only]", function () {
         expect.fail("uncaughtException", e)
       );
 
-      nwaku = new ServiceNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this.ctx));
       await nwaku.start({
         filter: true,
         store: true,
@@ -107,18 +103,14 @@ describe("Waku Dial [node only]", function () {
     let waku: LightNode;
     let nwaku: ServiceNode;
 
-    this.afterEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const teardown: () => Promise<void> = async () => {
-        await tearDownNodes(nwaku, waku);
-      };
-      withGracefulTimeout(teardown, done);
+    afterEachCustom(this, async () => {
+      await tearDownNodes(nwaku, waku);
     });
 
     it("Passing an array", async function () {
       this.timeout(10_000);
 
-      nwaku = new ServiceNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this.ctx));
       await nwaku.start();
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
       waku = await createLightNode({
@@ -141,7 +133,7 @@ describe("Waku Dial [node only]", function () {
     it("Using a function", async function () {
       this.timeout(10_000);
 
-      nwaku = new ServiceNode(makeLogFileName(this));
+      nwaku = new ServiceNode(makeLogFileName(this.ctx));
       await nwaku.start();
 
       const nwakuMa = await nwaku.getMultiaddrWithId();
@@ -166,18 +158,16 @@ describe("Waku Dial [node only]", function () {
   });
 });
 
-describe("Decryption Keys", () => {
-  afterEach(function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    if (this.currentTest?.state === "failed") {
-      console.log(`Test failed, log file name is ${makeLogFileName(this)}`);
+describe("Decryption Keys", function () {
+  afterEachCustom(this, async () => {
+    if (this.ctx.currentTest?.state === "failed") {
+      console.log(`Test failed, log file name is ${makeLogFileName(this.ctx)}`);
     }
   });
 
   let waku1: RelayNode;
   let waku2: RelayNode;
-  beforeEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  beforeEachCustom(this, async () => {
     [waku1, waku2] = await Promise.all([
       createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
         waku.start().then(() => waku)
@@ -199,8 +189,7 @@ describe("Decryption Keys", () => {
     ]);
   });
 
-  afterEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2]);
   });
 
@@ -237,12 +226,11 @@ describe("Decryption Keys", () => {
   });
 });
 
-describe("User Agent", () => {
+describe("User Agent", function () {
   let waku1: Waku;
   let waku2: Waku;
 
-  afterEach(async function () {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2]);
   });
 

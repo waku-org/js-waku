@@ -17,12 +17,12 @@ import chaiAsPromised from "chai-as-promised";
 import Sinon, { SinonSpy } from "sinon";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
-  MOCHA_HOOK_MAX_TIMEOUT,
   ServiceNode,
-  tearDownNodes,
-  withGracefulTimeout
+  tearDownNodes
 } from "../../src/index.js";
 
 chai.use(chaiAsPromised);
@@ -37,23 +37,15 @@ describe("Static Sharding: Peer Management", function () {
     let dialPeerSpy: SinonSpy;
     const clusterId = 18;
 
-    this.beforeEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const runAllNodes: () => Promise<void> = async () => {
-        nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
-        nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
-        nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
-      };
-      withGracefulTimeout(runAllNodes, done);
+    beforeEachCustom(this, async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+      nwaku3 = new ServiceNode(makeLogFileName(this.ctx) + "3");
     });
 
-    this.afterEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const teardown: () => Promise<void> = async () => {
-        await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
-        dialPeerSpy && dialPeerSpy.restore();
-      };
-      withGracefulTimeout(teardown, done);
+    afterEachCustom(this, async () => {
+      await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
+      dialPeerSpy && dialPeerSpy.restore();
     });
 
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
@@ -224,23 +216,15 @@ describe("Autosharding: Peer Management", function () {
 
     let dialPeerSpy: SinonSpy;
 
-    this.beforeEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const runAllNodes: () => Promise<void> = async () => {
-        nwaku1 = new ServiceNode(makeLogFileName(this) + "1_auto");
-        nwaku2 = new ServiceNode(makeLogFileName(this) + "2_auto");
-        nwaku3 = new ServiceNode(makeLogFileName(this) + "3_auto");
-      };
-      withGracefulTimeout(runAllNodes, done);
+    beforeEachCustom(this, async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1_auto");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2_auto");
+      nwaku3 = new ServiceNode(makeLogFileName(this.ctx) + "3_auto");
     });
 
-    this.afterEach(function (done) {
-      this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-      const teardown: () => Promise<void> = async () => {
-        await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
-        dialPeerSpy && dialPeerSpy.restore();
-      };
-      withGracefulTimeout(teardown, done);
+    afterEachCustom(this, async () => {
+      await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
+      dialPeerSpy && dialPeerSpy.restore();
     });
 
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {

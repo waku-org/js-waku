@@ -5,10 +5,10 @@ import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
-  MOCHA_HOOK_MAX_TIMEOUT,
-  NOISE_KEY_1,
-  withGracefulTimeout
+  NOISE_KEY_1
 } from "../../src/index.js";
 import {
   makeLogFileName,
@@ -27,26 +27,18 @@ describe("Connection state", function () {
   let nwaku1PeerId: Multiaddr;
   let nwaku2PeerId: Multiaddr;
 
-  this.beforeEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const runNodes: () => Promise<void> = async () => {
-      waku = await createLightNode({ shardInfo: { shards: [0] } });
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
-      await nwaku1.start({ filter: true });
-      await nwaku2.start({ filter: true });
-      nwaku1PeerId = await nwaku1.getMultiaddrWithId();
-      nwaku2PeerId = await nwaku2.getMultiaddrWithId();
-    };
-    withGracefulTimeout(runNodes, done);
+  beforeEachCustom(this, async () => {
+    waku = await createLightNode({ shardInfo: { shards: [0] } });
+    nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    await nwaku1.start({ filter: true });
+    await nwaku2.start({ filter: true });
+    nwaku1PeerId = await nwaku1.getMultiaddrWithId();
+    nwaku2PeerId = await nwaku2.getMultiaddrWithId();
   });
 
-  this.afterEach(function (done) {
-    this.timeout(MOCHA_HOOK_MAX_TIMEOUT);
-    const teardown: () => Promise<void> = async () => {
-      await tearDownNodes([nwaku1, nwaku2], waku);
-    };
-    withGracefulTimeout(teardown, done);
+  afterEachCustom(this, async () => {
+    await tearDownNodes([nwaku1, nwaku2], waku);
   });
 
   it("should emit `waku:online` event only when first peer is connected", async function () {

@@ -1,9 +1,10 @@
 import { Logger } from "@waku/utils";
+import { Suite } from "mocha";
 
 import { MOCHA_HOOK_MAX_TIMEOUT } from "../constants";
 const log = new Logger("test:mocha-hook");
 
-export function withGracefulTimeout(
+function withGracefulTimeout(
   asyncOperation: () => Promise<void>,
   doneCallback: (error?: unknown) => void,
   timeoutDuration: number = MOCHA_HOOK_MAX_TIMEOUT
@@ -25,7 +26,7 @@ export function withGracefulTimeout(
           "Mocha hook failed. Proceeding to the test so it can retry.",
           error
         );
-        doneCallback();
+        doneCallback(error);
       }
     }
   };
@@ -41,3 +42,23 @@ export function withGracefulTimeout(
     }
   }, timeoutDuration);
 }
+
+export const beforeEachCustom = function (
+  context: Suite,
+  cb: () => Promise<void>
+): void {
+  context.beforeEach((done) => {
+    context.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+    withGracefulTimeout(cb, done);
+  });
+};
+
+export const afterEachCustom = function (
+  context: Suite,
+  cb: () => Promise<void>
+): void {
+  context.afterEach((done) => {
+    context.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+    withGracefulTimeout(cb, done);
+  });
+};
