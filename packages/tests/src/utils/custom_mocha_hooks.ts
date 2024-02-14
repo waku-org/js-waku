@@ -44,21 +44,25 @@ function withGracefulTimeout(
 }
 
 export const beforeEachCustom = function (
-  context: Suite,
+  suite: Suite,
   cb: () => Promise<void>
 ): void {
-  context.beforeEach((done) => {
-    context.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  const timeoutBefore = suite.timeout();
+  suite.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  suite.beforeEach((done) => {
     withGracefulTimeout(cb, done);
   });
+  suite.timeout(timeoutBefore); // restore timeout to the original value
 };
 
 export const afterEachCustom = function (
-  context: Suite,
+  suite: Suite,
   cb: () => Promise<void>
 ): void {
-  context.afterEach((done) => {
-    context.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  const timeoutBefore = suite.timeout();
+  suite.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  suite.afterEach((done) => {
     withGracefulTimeout(cb, done);
   });
+  suite.timeout(timeoutBefore); // restore timeout to the original value
 };
