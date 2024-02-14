@@ -23,7 +23,7 @@ describe("ENR Interop: ServiceNode", function () {
 
   it("Relay", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: false,
@@ -55,7 +55,7 @@ describe("ENR Interop: ServiceNode", function () {
 
   it("Relay + Store", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: true,
@@ -87,7 +87,7 @@ describe("ENR Interop: ServiceNode", function () {
 
   it("All", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start({
       relay: true,
       store: true,

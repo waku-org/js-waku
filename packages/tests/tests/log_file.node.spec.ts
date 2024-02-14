@@ -5,7 +5,7 @@ import { beforeEachCustom, makeLogFileName } from "../src/index.js";
 describe("This", function () {
   describe("Is", function () {
     it("A test", function () {
-      expect(makeLogFileName(this.ctx)).to.equal("This_Is_A_test");
+      expect(makeLogFileName(this)).to.equal("This_Is_A_test");
     });
   });
 

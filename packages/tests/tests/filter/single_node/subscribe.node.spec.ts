@@ -463,7 +463,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
 
     // Set up and start a new nwaku node
-    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,

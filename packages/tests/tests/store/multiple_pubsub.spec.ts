@@ -126,7 +126,7 @@ describe("Waku Store, custom pubsub topic", function () {
     this.timeout(10000);
 
     // Set up and start a new nwaku node with Default Pubsubtopic
-    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic2],
@@ -289,7 +289,7 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
     this.timeout(10000);
 
     // Set up and start a new nwaku node with Default Pubsubtopic
-    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic2],
@@ -442,7 +442,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     this.timeout(10000);
 
     // Set up and start a new nwaku node with Default Pubsubtopic
-    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic2],

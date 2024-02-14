@@ -45,7 +45,7 @@ describe("Waku Dial [node only]", function () {
 
     it("connects to nwaku", async function () {
       this.timeout(20_000);
-      nwaku = new ServiceNode(makeLogFileName(this.ctx));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({
         filter: true,
         store: true,
@@ -78,7 +78,7 @@ describe("Waku Dial [node only]", function () {
         expect.fail("uncaughtException", e)
       );
 
-      nwaku = new ServiceNode(makeLogFileName(this.ctx));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({
         filter: true,
         store: true,
@@ -110,7 +110,7 @@ describe("Waku Dial [node only]", function () {
     it("Passing an array", async function () {
       this.timeout(10_000);
 
-      nwaku = new ServiceNode(makeLogFileName(this.ctx));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start();
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
       waku = await createLightNode({
@@ -133,7 +133,7 @@ describe("Waku Dial [node only]", function () {
     it("Using a function", async function () {
       this.timeout(10_000);
 
-      nwaku = new ServiceNode(makeLogFileName(this.ctx));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start();
 
       const nwakuMa = await nwaku.getMultiaddrWithId();

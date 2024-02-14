@@ -187,7 +187,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     });
 
     // and another node in the same cluster cluster as our node
-    const serviceNode2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    const serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
     await serviceNode2.start({
       discv5Discovery: true,
       peerExchange: true,
@@ -375,7 +375,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     });
 
     // and another node in the same cluster cluster as our node
-    const serviceNode2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    const serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
     await serviceNode2.start({
       discv5Discovery: true,
       peerExchange: true,

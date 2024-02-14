@@ -22,7 +22,7 @@ describe("Use static and several ENR trees for bootstrap", function () {
   it("", async function () {
     this.timeout(10_000);
 
-    nwaku = new ServiceNode(makeLogFileName(this.ctx));
+    nwaku = new ServiceNode(makeLogFileName(this));
     await nwaku.start();
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 

@@ -123,7 +123,7 @@ describe("Waku Relay, Interop", function () {
         }).then((waku) => waku.start().then(() => waku))
       ]);
 
-      nwaku = new ServiceNode(makeLogFileName(this.ctx));
+      nwaku = new ServiceNode(makeLogFileName(this));
       await nwaku.start({ relay: true });
 
       const nwakuMultiaddr = await nwaku.getMultiaddrWithId();

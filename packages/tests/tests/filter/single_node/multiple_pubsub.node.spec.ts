@@ -122,7 +122,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Set up and start a new nwaku node with customPubsubTopic1
-    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,
@@ -303,7 +303,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Set up and start a new nwaku node with customPubsubTopic1
-    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,
@@ -457,7 +457,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Set up and start a new nwaku node with customPubsubTopic1
-    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
     await nwaku2.start({
       filter: true,
       lightpush: true,
