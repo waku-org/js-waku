@@ -17,7 +17,13 @@ import { expect } from "chai";
 import fc from "fast-check";
 import Sinon from "sinon";
 
-import { makeLogFileName, ServiceNode, tearDownNodes } from "../src/index.js";
+import {
+  afterEachCustom,
+  beforeEachCustom,
+  makeLogFileName,
+  ServiceNode,
+  tearDownNodes
+} from "../src/index.js";
 
 describe("getConnectedPeersForProtocolAndShard", function () {
   let waku: LightNode;
@@ -25,14 +31,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
   let serviceNode2: ServiceNode;
   const contentTopic = "/test/2/waku-light-push/utf8";
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    serviceNode1 = new ServiceNode(makeLogFileName(this) + "1");
-    serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
+  beforeEachCustom(this, async () => {
+    serviceNode1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+    serviceNode2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([serviceNode1, serviceNode2], waku);
   });
 
@@ -420,8 +424,7 @@ describe("getPeers", function () {
   let nonBootstrapPeers: Peer[];
   let allPeers: Peer[];
 
-  beforeEach(async function () {
-    this.timeout(10_000);
+  beforeEachCustom(this, async () => {
     waku = await createLightNode();
     peerStore = waku.libp2p.peerStore;
     connectionManager = waku.libp2p.components.connectionManager;
@@ -537,7 +540,7 @@ describe("getPeers", function () {
     });
   });
 
-  this.afterEach(function () {
+  afterEachCustom(this, async () => {
     Sinon.restore();
   });
 

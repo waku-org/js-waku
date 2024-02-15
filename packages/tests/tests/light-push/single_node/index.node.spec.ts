@@ -9,6 +9,8 @@ import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   generateRandomUint8Array,
   MessageCollector,
   ServiceNode,
@@ -30,16 +32,14 @@ describe("Waku Light Push: Single Node", function () {
   let nwaku: ServiceNode;
   let messageCollector: MessageCollector;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
+  beforeEachCustom(this, async () => {
+    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
     messageCollector = new MessageCollector(nwaku);
 
     await nwaku.ensureSubscriptions();
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
 

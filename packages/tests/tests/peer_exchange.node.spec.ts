@@ -16,6 +16,8 @@ import {
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
   ServiceNode,
@@ -23,19 +25,18 @@ import {
   waitForRemotePeerWithCodec
 } from "../src/index.js";
 
-describe("Peer Exchange", () => {
+describe("Peer Exchange", function () {
   describe("Locally Run Nodes", () => {
     let waku: LightNode;
     let nwaku1: ServiceNode;
     let nwaku2: ServiceNode;
 
-    beforeEach(function () {
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    beforeEachCustom(this, async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     });
 
-    afterEach(async function () {
-      this.timeout(15000);
+    afterEachCustom(this, async () => {
       await tearDownNodes([nwaku1, nwaku2], waku);
     });
 
@@ -126,9 +127,9 @@ describe("Peer Exchange", () => {
     let nwaku1: ServiceNode;
     let nwaku2: ServiceNode;
 
-    beforeEach(async function () {
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    beforeEachCustom(this, async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     });
 
     tests({

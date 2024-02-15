@@ -6,6 +6,7 @@ import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
   makeLogFileName,
   NOISE_KEY_1,
   ServiceNode,
@@ -16,8 +17,7 @@ describe("ENR Interop: ServiceNode", function () {
   let waku: RelayNode;
   let nwaku: ServiceNode;
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
 

@@ -7,6 +7,8 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
   ServiceNode,
@@ -20,13 +22,11 @@ describe("Metadata Protocol", function () {
   let waku: LightNode;
   let nwaku1: ServiceNode;
 
-  beforeEach(function () {
-    this.timeout(15000);
-    nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
+  beforeEachCustom(this, async () => {
+    nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku1], waku);
   });
 

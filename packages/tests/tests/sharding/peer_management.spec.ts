@@ -17,6 +17,8 @@ import chaiAsPromised from "chai-as-promised";
 import Sinon, { SinonSpy } from "sinon";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
   ServiceNode,
@@ -35,15 +37,13 @@ describe("Static Sharding: Peer Management", function () {
     let dialPeerSpy: SinonSpy;
     const clusterId = 18;
 
-    beforeEach(async function () {
-      this.timeout(15000);
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
-      nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
+    beforeEachCustom(this, async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+      nwaku3 = new ServiceNode(makeLogFileName(this.ctx) + "3");
     });
 
-    afterEach(async function () {
-      this.timeout(15000);
+    afterEachCustom(this, async () => {
       await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
       dialPeerSpy && dialPeerSpy.restore();
     });
@@ -216,15 +216,13 @@ describe("Autosharding: Peer Management", function () {
 
     let dialPeerSpy: SinonSpy;
 
-    beforeEach(async function () {
-      this.timeout(15000);
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1_auto");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2_auto");
-      nwaku3 = new ServiceNode(makeLogFileName(this) + "3_auto");
+    beforeEachCustom(this, async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1_auto");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2_auto");
+      nwaku3 = new ServiceNode(makeLogFileName(this.ctx) + "3_auto");
     });
 
-    afterEach(async function () {
-      this.timeout(15000);
+    afterEachCustom(this, async () => {
       await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
       dialPeerSpy && dialPeerSpy.restore();
     });

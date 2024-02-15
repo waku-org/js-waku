@@ -17,6 +17,8 @@ import {
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
   ServiceNode,
   tearDownNodes
@@ -37,18 +39,16 @@ const singleShardInfo2: SingleShardInfo = { clusterId: 0, shard: 3 };
 const ContentTopic = "/waku/2/content/test.js";
 const ContentTopic2 = "/myapp/1/latest/proto";
 
-describe("Static Sharding: Running Nodes", () => {
+describe("Static Sharding: Running Nodes", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(15_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start({ store: true, lightpush: true, relay: true });
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
 
@@ -112,18 +112,16 @@ describe("Static Sharding: Running Nodes", () => {
   });
 });
 
-describe("Autosharding: Running Nodes", () => {
+describe("Autosharding: Running Nodes", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(15_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start({ store: true, lightpush: true, relay: true });
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
 
