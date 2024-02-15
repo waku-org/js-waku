@@ -72,7 +72,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@libp2p/ping": "^1.0.9",
+    "@libp2p/ping": "^1.0.11",
     "@noble/hashes": "^1.3.2",
     "@waku/enr": "^0.0.20",
     "@waku/interfaces": "0.0.21",
