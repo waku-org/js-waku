@@ -9,7 +9,11 @@ import {
   Waku
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { Logger } from "@waku/utils";
+import {
+  ensureShardingConfigured,
+  Logger,
+  shardInfoToPubsubTopics
+} from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { Context } from "mocha";
 import pRetry from "p-retry";
@@ -64,7 +68,7 @@ export async function runMultipleNodes(
     pubsubTopics,
     numServiceNodes,
     strictChecking,
-    shardInfo,
+    shardInfo ? ensureShardingConfigured(shardInfo).shardInfo : shardInfo,
     undefined,
     withoutFilter
   );
@@ -74,7 +78,7 @@ export async function runMultipleNodes(
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
     },
-    pubsubTopics: shardInfo ? undefined : pubsubTopics,
+    pubsubTopics: shardInfo ? shardInfoToPubsubTopics(shardInfo) : pubsubTopics,
     ...((pubsubTopics.length !== 1 ||
       pubsubTopics[0] !== DefaultPubsubTopic) && {
       shardInfo: shardInfo

@@ -16,6 +16,7 @@ describe("nwaku", () => {
       "--relay=false",
       "--rest=true",
       "--rpc-admin=true",
+      "--rest-admin=true",
       "--websocket-support=true",
       "--log-level=TRACE",
       "--ports-shift=42"

@@ -79,8 +79,7 @@ const runTests = (strictCheckNodes: boolean): void => {
             payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
             timestamp: testItem as any
           },
-          DefaultPubsubTopic,
-          true
+          DefaultPubsubTopic
         );
 
         expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -118,8 +117,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
           timestamp: "2023-09-06T12:05:38.609Z" as any
         },
-        DefaultPubsubTopic,
-        true
+        DefaultPubsubTopic
       );
 
       // Verify that no message was received
@@ -142,28 +140,6 @@ const runTests = (strictCheckNodes: boolean): void => {
           timestamp: BigInt(Date.now()) * BigInt(1000000)
         },
         "DefaultPubsubTopic"
-      );
-
-      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-        false
-      );
-    });
-
-    it("Check message with no pubsub topic is not received", async function () {
-      await subscription.subscribe(
-        [TestDecoder],
-        serviceNodes.messageCollector.callback
-      );
-      await delay(400);
-
-      await serviceNodes.sendRelayMessage(
-        {
-          contentTopic: TestContentTopic,
-          payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
-          timestamp: BigInt(Date.now()) * BigInt(1000000)
-        },
-        undefined,
-        true
       );
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -204,8 +180,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           timestamp: BigInt(Date.now()) * BigInt(1000000),
           payload: undefined as any
         },
-        DefaultPubsubTopic,
-        true
+        DefaultPubsubTopic
       );
 
       // For go-waku the message is received (it is possible to send a message with no payload)

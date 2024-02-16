@@ -4,13 +4,11 @@ import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import { DefaultPubsubTopic } from "@waku/interfaces";
 import { isDefined } from "@waku/utils";
 import { Logger } from "@waku/utils";
-import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
 
 import {
   Args,
-  KeyPair,
   LogLevel,
   MessageRpcQuery,
   MessageRpcResponse,
@@ -210,13 +208,26 @@ export class ServiceNode {
   async peers(): Promise<string[]> {
     this.checkProcess();
 
-    return this.rpcCall<string[]>("get_waku_v2_admin_v1_peers", []);
+    return this.restCall<string[]>(
+      "/admin/v1/peers",
+      "GET",
+      undefined,
+      async (response) => {
+        const data = await response.json();
+        return data?.length ? data : [];
+      }
+    );
   }
 
   async info(): Promise<RpcInfoResponse> {
     this.checkProcess();
 
-    return this.rpcCall<RpcInfoResponse>("get_waku_v2_debug_v1_info", []);
+    return this.restCall<RpcInfoResponse>(
+      "/debug/v1/info",
+      "GET",
+      undefined,
+      async (response) => await response.json()
+    );
   }
 
   async ensureSubscriptions(
@@ -233,9 +244,8 @@ export class ServiceNode {
   async messages(
     pubsubTopic: string = DefaultPubsubTopic
   ): Promise<MessageRpcResponse[]> {
-    pubsubTopic = encodeURIComponent(pubsubTopic);
     return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/messages/${pubsubTopic}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
       "GET",
       null,
       async (response) => {
@@ -268,10 +278,12 @@ export class ServiceNode {
       message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
     }
 
-    return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
-      pubsubTopic,
-      message
-    ]);
+    return this.restCall<boolean>(
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
+      "POST",
+      message,
+      async (response) => response.status === 200
+    );
   }
 
   async sendMessageAutosharding(message: MessageRpcQuery): Promise<boolean> {
@@ -281,9 +293,12 @@ export class ServiceNode {
       message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
     }
 
-    return this.rpcCall<boolean>("post_waku_v2_relay_v1_auto_message", [
-      message
-    ]);
+    return this.restCall<boolean>(
+      `/relay/v1/auto/message`,
+      "POST",
+      message,
+      async (response) => response.status === 200
+    );
   }
 
   async messagesAutosharding(
@@ -291,108 +306,14 @@ export class ServiceNode {
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
-    contentTopic = encodeURIComponent(contentTopic);
     return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/auto/messages/${contentTopic}`,
+      `/relay/v1/auto/messages/${encodeURIComponent(contentTopic)}`,
       "GET",
       null,
       async (response) => {
         const data = await response.json();
         return data?.length ? data.filter(isDefined) : [];
       }
-    );
-  }
-
-  async getAsymmetricKeyPair(): Promise<KeyPair> {
-    this.checkProcess();
-
-    const { privateKey, publicKey, seckey, pubkey } = await this.rpcCall<{
-      seckey: string;
-      pubkey: string;
-      privateKey: string;
-      publicKey: string;
-    }>("get_waku_v2_private_v1_asymmetric_keypair", []);
-
-    // To be removed once https://github.com/vacp2p/rfc/issues/507 is fixed
-    if (seckey) {
-      return { privateKey: seckey, publicKey: pubkey };
-    } else {
-      return { privateKey, publicKey };
-    }
-  }
-
-  async postAsymmetricMessage(
-    message: MessageRpcQuery,
-    publicKey: Uint8Array,
-    pubsubTopic?: string
-  ): Promise<boolean> {
-    this.checkProcess();
-
-    if (!message.payload) {
-      throw "Attempting to send empty message";
-    }
-
-    return this.rpcCall<boolean>("post_waku_v2_private_v1_asymmetric_message", [
-      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
-      message,
-      "0x" + bytesToHex(publicKey)
-    ]);
-  }
-
-  async getAsymmetricMessages(
-    privateKey: Uint8Array,
-    pubsubTopic?: string
-  ): Promise<MessageRpcResponse[]> {
-    this.checkProcess();
-
-    return await this.rpcCall<MessageRpcResponse[]>(
-      "get_waku_v2_private_v1_asymmetric_messages",
-      [
-        pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
-        "0x" + bytesToHex(privateKey)
-      ]
-    );
-  }
-
-  async getSymmetricKey(): Promise<Uint8Array> {
-    this.checkProcess();
-
-    return this.rpcCall<string>(
-      "get_waku_v2_private_v1_symmetric_key",
-      []
-    ).then(hexToBytes);
-  }
-
-  async postSymmetricMessage(
-    message: MessageRpcQuery,
-    symKey: Uint8Array,
-    pubsubTopic?: string
-  ): Promise<boolean> {
-    this.checkProcess();
-
-    if (!message.payload) {
-      throw "Attempting to send empty message";
-    }
-
-    return this.rpcCall<boolean>("post_waku_v2_private_v1_symmetric_message", [
-      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
-      message,
-      "0x" + bytesToHex(symKey)
-    ]);
-  }
-
-  async getSymmetricMessages(
-    symKey: Uint8Array,
-    pubsubTopic?: string
-  ): Promise<MessageRpcResponse[]> {
-    this.checkProcess();
-
-    return await this.rpcCall<MessageRpcResponse[]>(
-      "get_waku_v2_private_v1_symmetric_messages",
-      [
-        pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
-        "0x" + bytesToHex(symKey)
-      ]
     );
   }
 
@@ -437,37 +358,6 @@ export class ServiceNode {
     return `http://127.0.0.1:${this.restPort}`;
   }
 
-  async rpcCall<T>(
-    method: string,
-    params: Array<string | number | unknown>
-  ): Promise<T> {
-    return await pRetry(
-      async () => {
-        try {
-          log.info("Making an RPC Query: ", method, params);
-          const res = await fetch(this.rpcUrl, {
-            method: "POST",
-            body: JSON.stringify({
-              jsonrpc: "2.0",
-              id: 1,
-              method,
-              params
-            }),
-            headers: new Headers({ "Content-Type": "application/json" })
-          });
-          const json = await res.json();
-          log.info(`Received RPC Response: `, JSON.stringify(json));
-          return json.result;
-        } catch (error) {
-          log.error(`${this.rpcUrl} failed with error:`, error);
-          await delay(10);
-          throw error;
-        }
-      },
-      { retries: 5 }
-    );
-  }
-
   async restCall<T>(
     endpoint: string,
     method: "GET" | "POST",
@@ -507,6 +397,7 @@ export function defaultArgs(): Args {
     relay: false,
     rest: true,
     rpcAdmin: true,
+    restAdmin: true,
     websocketSupport: true,
     logLevel: LogLevel.Trace
   };
