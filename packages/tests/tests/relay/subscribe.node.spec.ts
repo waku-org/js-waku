@@ -5,6 +5,8 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   generateTestData,
   MessageCollector,
   NOISE_KEY_1,
@@ -28,8 +30,7 @@ describe("Waku Relay, Subscribe", function () {
   let waku2: RelayNode;
   let messageCollector: MessageCollector;
 
-  beforeEach(async function () {
-    this.timeout(10000);
+  beforeEachCustom(this, async () => {
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({
@@ -46,11 +47,10 @@ describe("Waku Relay, Subscribe", function () {
     });
     await waku1.dial(waku2.libp2p.peerId);
     log.info("before each hook done");
-    messageCollector = new MessageCollector(this.nwaku);
+    messageCollector = new MessageCollector(this.ctx.nwaku);
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2]);
   });
 

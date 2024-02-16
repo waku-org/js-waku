@@ -16,6 +16,8 @@ import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   generateTestData,
   isNwakuAtLeast,
@@ -44,18 +46,14 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
+  beforeEachCustom(this, async () => {
+    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
     subscription = await waku.filter.createSubscription();
     messageCollector = new MessageCollector();
-
-    // Nwaku subscribe to the default pubsub topic
     await nwaku.ensureSubscriptions();
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 

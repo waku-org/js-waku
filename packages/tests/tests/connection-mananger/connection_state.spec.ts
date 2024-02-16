@@ -4,7 +4,12 @@ import { createLightNode } from "@waku/sdk";
 import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
-import { delay, NOISE_KEY_1 } from "../../src/index.js";
+import {
+  afterEachCustom,
+  beforeEachCustom,
+  delay,
+  NOISE_KEY_1
+} from "../../src/index.js";
 import {
   makeLogFileName,
   ServiceNode,
@@ -22,8 +27,7 @@ describe("Connection state", function () {
   let nwaku1PeerId: Multiaddr;
   let nwaku2PeerId: Multiaddr;
 
-  beforeEach(async () => {
-    this.timeout(TEST_TIMEOUT);
+  beforeEachCustom(this, async () => {
     waku = await createLightNode({ shardInfo: { shards: [0] } });
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
@@ -33,8 +37,7 @@ describe("Connection state", function () {
     nwaku2PeerId = await nwaku2.getMultiaddrWithId();
   });
 
-  afterEach(async () => {
-    this.timeout(TEST_TIMEOUT);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku1, nwaku2], waku);
   });
 

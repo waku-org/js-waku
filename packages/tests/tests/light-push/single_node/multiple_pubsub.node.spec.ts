@@ -18,6 +18,8 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
   MessageCollector,
   ServiceNode,
@@ -52,10 +54,9 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
 
   let nimPeerId: PeerId;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
+  beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(
-      this,
+      this.ctx,
       [
         singleShardInfoToPubsubTopic(singleShardInfo1),
         singleShardInfoToPubsubTopic(singleShardInfo2)
@@ -66,8 +67,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
     nimPeerId = await nwaku.getPeerId();
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 
@@ -185,9 +185,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   let nwaku2: ServiceNode;
   let messageCollector: MessageCollector;
 
-  // When using lightpush, we have to use a cluster id of 1 because that is the default cluster id for autosharding
-  // With a different cluster id, we never find a viable peer
-  const clusterId = 1;
+  const clusterId = 2;
   const customContentTopic1 = "/waku/2/content/test.js";
   const customContentTopic2 = "/myapp/1/latest/proto";
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
@@ -213,10 +211,9 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
 
   let nimPeerId: PeerId;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
+  beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(
-      this,
+      this.ctx,
       [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
       shardInfo
     );
@@ -224,8 +221,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
     nimPeerId = await nwaku.getPeerId();
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 
@@ -370,9 +366,8 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
 
   let nimPeerId: PeerId;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [
+  beforeEachCustom(this, async () => {
+    [nwaku, waku] = await runNodes(this.ctx, [
       autoshardingPubsubTopic1,
       autoshardingPubsubTopic2
     ]);
@@ -380,8 +375,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
     nimPeerId = await nwaku.getPeerId();
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 

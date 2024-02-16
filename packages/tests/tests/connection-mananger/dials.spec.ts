@@ -6,7 +6,7 @@ import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import sinon, { SinonSpy, SinonStub } from "sinon";
 
-import { delay } from "../../src/index.js";
+import { afterEachCustom, beforeEachCustom, delay } from "../../src/index.js";
 import { tearDownNodes } from "../../src/index.js";
 
 const DELAY_MS = 1_000;
@@ -20,8 +20,7 @@ describe("Dials", function () {
   let isPeerTopicConfigured: SinonStub;
   let waku: LightNode;
 
-  this.beforeEach(async function () {
-    this.timeout(TEST_TIMEOUT);
+  beforeEachCustom(this, async () => {
     waku = await createLightNode({ shardInfo: { shards: [0] } });
     isPeerTopicConfigured = sinon.stub(
       waku.connectionManager as any,
@@ -30,8 +29,7 @@ describe("Dials", function () {
     isPeerTopicConfigured.resolves(true);
   });
 
-  afterEach(async () => {
-    this.timeout(TEST_TIMEOUT);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], waku);
     isPeerTopicConfigured.restore();
     sinon.restore();
@@ -40,11 +38,11 @@ describe("Dials", function () {
   describe("attemptDial method", function () {
     let attemptDialSpy: SinonSpy;
 
-    beforeEach(function () {
+    beforeEachCustom(this, async () => {
       attemptDialSpy = sinon.spy(waku.connectionManager as any, "attemptDial");
     });
 
-    afterEach(function () {
+    afterEachCustom(this, async () => {
       attemptDialSpy.restore();
     });
 
@@ -73,7 +71,7 @@ describe("Dials", function () {
   describe("dialPeer method", function () {
     let peerStoreHasStub: SinonStub;
     let dialAttemptsForPeerHasStub: SinonStub;
-    beforeEach(function () {
+    beforeEachCustom(this, async () => {
       getConnectionsStub = sinon.stub(
         (waku.connectionManager as any).libp2p,
         "getConnections"
@@ -102,7 +100,7 @@ describe("Dials", function () {
       dialAttemptsForPeerHasStub.returns(false);
     });
 
-    afterEach(function () {
+    afterEachCustom(this, async () => {
       dialPeerStub.restore();
       getTagNamesForPeerStub.restore();
       getConnectionsStub.restore();

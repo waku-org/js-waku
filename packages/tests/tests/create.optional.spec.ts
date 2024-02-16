@@ -2,17 +2,21 @@ import { createLightNode, LightNode } from "@waku/sdk";
 import { expect } from "chai";
 import sinon, { SinonSpy } from "sinon";
 
-import { tearDownNodes } from "../src/index.js";
+import {
+  afterEachCustom,
+  beforeEachCustom,
+  tearDownNodes
+} from "../src/index.js";
 
-describe("Create node", () => {
+describe("Create node", function () {
   let waku: LightNode;
   let consoleInfoSpy: SinonSpy;
 
-  beforeEach(() => {
+  beforeEachCustom(this, async () => {
     consoleInfoSpy = sinon.spy(console as any, "info");
   });
 
-  afterEach(async () => {
+  afterEachCustom(this, async () => {
     consoleInfoSpy.restore();
     sinon.restore();
     await tearDownNodes([], waku);

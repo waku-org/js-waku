@@ -5,6 +5,8 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   generateRandomUint8Array,
   MessageCollector,
@@ -29,8 +31,7 @@ describe("Waku Relay, Publish", function () {
   let waku2: RelayNode;
   let messageCollector: MessageCollector;
 
-  beforeEach(async function () {
-    this.timeout(10000);
+  beforeEachCustom(this, async () => {
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({
@@ -52,8 +53,7 @@ describe("Waku Relay, Publish", function () {
     await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2]);
   });
 
