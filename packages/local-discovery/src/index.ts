@@ -94,7 +94,7 @@ export class LocalStorageDiscovery
     );
     this.isStarted = false;
 
-    this.setPeersInLocalStorage();
+    this.savePeersToLocalStorage();
   }
 
   handleNewPeers = (event: CustomEvent<IdentifyResult>): void => {
@@ -118,7 +118,7 @@ export class LocalStorageDiscovery
       });
     }
 
-    this.setPeersInLocalStorage();
+    this.savePeersToLocalStorage();
   };
 
   private getPeersFromLocalStorage(): LocalStoragePeerInfo[] {
@@ -133,7 +133,7 @@ export class LocalStorageDiscovery
     }
   }
 
-  private setPeersInLocalStorage(): void {
+  private savePeersToLocalStorage(): void {
     localStorage.setItem("waku:peers", JSON.stringify(this.peers));
   }
 }
