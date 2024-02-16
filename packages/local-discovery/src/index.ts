@@ -19,6 +19,7 @@ import { getWsMultiaddrFromMultiaddrs, Logger } from "@waku/utils";
 const log = new Logger("peer-exchange-discovery");
 
 type LocalStorageDiscoveryOptions = {
+  tagName?: string;
   tagValue?: number;
   tagTTL?: number;
 };
@@ -63,7 +64,7 @@ export class LocalStorageDiscovery
       await this.components.peerStore.save(peerId, {
         multiaddrs: [multiaddr(address)],
         tags: {
-          [DEFAULT_LOCAL_TAG_NAME]: {
+          [this.options?.tagName ?? DEFAULT_LOCAL_TAG_NAME]: {
             value: this.options?.tagValue ?? DEFAULT_LOCAL_TAG_VALUE,
             ttl: this.options?.tagTTL ?? DEFAULT_LOCAL_TAG_TTL
           }
