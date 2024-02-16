@@ -1,31 +1,18 @@
 {
-  "name": "@waku/sdk",
-  "version": "0.0.22",
-  "description": "A unified SDK for easy creation and management of js-waku nodes.",
+  "name": "@waku/local-discovery",
+  "version": "0.0.1",
+  "description": "Local Discovery keeps records of healthy peers in the browser's local storage for quicker bootstrapping.",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./relay": {
-      "types": "./dist/relay/index.d.ts",
-      "import": "./dist/relay/index.js"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "*",
-        "dist/*",
-        "dist/*/index"
-      ]
     }
   },
   "type": "module",
   "author": "Waku Team",
-  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/sdk#readme",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/local-discovery#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/waku-org/js-waku.git"
@@ -51,40 +38,37 @@
     "fix": "run-s fix:*",
     "fix:lint": "eslint src *.js --fix",
     "check": "run-s check:*",
-    "check:lint": "eslint src *.js",
+    "check:lint": "eslint src --ext .ts",
     "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
     "prepublish": "npm run build",
-    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
+    "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
+    "test": "NODE_ENV=test run-s test:*",
+    "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "@chainsafe/libp2p-noise": "^14.1.0",
-    "@libp2p/identify": "^1.0.11",
-    "@libp2p/mplex": "^10.0.12",
-    "@libp2p/ping": "^1.0.11",
-    "@libp2p/websockets": "^8.0.11",
-    "@waku/core": "0.0.26",
-    "@waku/dns-discovery": "0.0.20",
-    "@waku/interfaces": "0.0.21",
-    "@waku/local-discovery": "^0.0.1",
-    "@waku/peer-exchange": "^0.0.19",
-    "@waku/relay": "0.0.9",
-    "@waku/utils": "0.0.14",
-    "libp2p": "^1.1.2"
+    "@libp2p/interface": "^1.1.2",
+    "@waku/interfaces": "^0.0.21",
+    "@waku/utils": "^0.0.14"
   },
   "devDependencies": {
-    "@chainsafe/libp2p-gossipsub": "^11.1.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@types/chai": "^4.3.11",
+    "@types/node-localstorage": "^1.3.3",
     "@waku/build-utils": "*",
-    "cspell": "^8.3.2",
-    "interface-datastore": "^8.2.10",
+    "chai": "^4.3.10",
+    "chai-as-promised": "^7.1.1",
+    "cspell": "^7.3.2",
+    "mocha": "^10.2.0",
+    "node-localstorage": "^3.0.5",
     "npm-run-all": "^4.1.5",
-    "rollup": "^4.9.5"
+    "rollup": "^4.9.5",
+    "sinon": "^17.0.1"
   },
   "files": [
     "dist",

@@ -97,8 +97,11 @@ export class ConnectionManager
 
     const peersDiscoveredByBootstrap: Peer[] = [];
     const peersDiscoveredByPeerExchange: Peer[] = [];
+    const peersDiscoveredByLocal: Peer[] = [];
+
     const peersConnectedByBootstrap: Peer[] = [];
     const peersConnectedByPeerExchange: Peer[] = [];
+    const peersConnectedByLocal: Peer[] = [];
 
     for (const peer of peersDiscovered) {
       const tags = await this.getTagNamesForPeer(peer.id);
@@ -107,6 +110,8 @@ export class ConnectionManager
         peersDiscoveredByBootstrap.push(peer);
       } else if (tags.includes(Tags.PEER_EXCHANGE)) {
         peersDiscoveredByPeerExchange.push(peer);
+      } else if (tags.includes(Tags.LOCAL)) {
+        peersDiscoveredByLocal.push(peer);
       }
     }
 
@@ -118,17 +123,21 @@ export class ConnectionManager
         peersConnectedByBootstrap.push(peer);
       } else if (tags.includes(Tags.PEER_EXCHANGE)) {
         peersConnectedByPeerExchange.push(peer);
+      } else if (tags.includes(Tags.LOCAL)) {
+        peersConnectedByLocal.push(peer);
       }
     }
 
     return {
       DISCOVERED: {
         [Tags.BOOTSTRAP]: peersDiscoveredByBootstrap,
-        [Tags.PEER_EXCHANGE]: peersDiscoveredByPeerExchange
+        [Tags.PEER_EXCHANGE]: peersDiscoveredByPeerExchange,
+        [Tags.LOCAL]: peersDiscoveredByLocal
       },
       CONNECTED: {
         [Tags.BOOTSTRAP]: peersConnectedByBootstrap,
-        [Tags.PEER_EXCHANGE]: peersConnectedByPeerExchange
+        [Tags.PEER_EXCHANGE]: peersConnectedByPeerExchange,
+        [Tags.LOCAL]: peersConnectedByLocal
       }
     };
   }

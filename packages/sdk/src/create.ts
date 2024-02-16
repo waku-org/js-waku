@@ -28,6 +28,7 @@ import {
   PubsubTopic,
   type ShardInfo
 } from "@waku/interfaces";
+import { wakuLocalStorageDiscovery } from "@waku/local-discovery";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { ensureShardingConfigured } from "@waku/utils";
@@ -193,6 +194,7 @@ export function defaultPeerDiscoveries(
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
   const discoveries = [
     wakuDnsDiscovery([enrTree["PROD"]], DEFAULT_NODE_REQUIREMENTS),
+    wakuLocalStorageDiscovery(),
     wakuPeerExchangeDiscovery(pubsubTopics)
   ];
   return discoveries;
