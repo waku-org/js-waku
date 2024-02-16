@@ -32,6 +32,7 @@ export class LocalStorageDiscovery
   implements PeerDiscovery, Startable
 {
   private isStarted: boolean;
+  private peers: LocalStoragePeerInfo[] = [];
 
   constructor(
     private readonly components: Libp2pComponents,
@@ -39,6 +40,7 @@ export class LocalStorageDiscovery
   ) {
     super();
     this.isStarted = false;
+    this.peers = this.getPeersFromLocalStorage();
   }
 
   get [Symbol.toStringTag](): string {
@@ -46,25 +48,17 @@ export class LocalStorageDiscovery
   }
 
   async start(): Promise<void> {
-    if (this.isStarted) {
-      return;
-    }
+    if (this.isStarted) return;
 
     log.info("Starting Local Storage Discovery");
-
     this.components.events.addEventListener(
       "peer:identify",
       this.handleNewPeers
     );
 
-    const localStoragePeers = this.getPeersFromLocalStorage();
-
-    for (const { id: idStr, address } of localStoragePeers) {
-      const peerId = await createFromJSON({
-        id: idStr
-      });
-
-      if (await this.components.peerStore.has(peerId)) return;
+    for (const { id: idStr, address } of this.peers) {
+      const peerId = await createFromJSON({ id: idStr });
+      if (await this.components.peerStore.has(peerId)) continue;
 
       await this.components.peerStore.save(peerId, {
         multiaddrs: [multiaddr(address)],
@@ -86,7 +80,9 @@ export class LocalStorageDiscovery
       );
     }
 
-    log.info(`Discovered ${localStoragePeers.length} peers`);
+    log.info(`Discovered ${this.peers.length} peers`);
+
+    this.isStarted = true;
   }
 
   stop(): void | Promise<void> {
@@ -97,6 +93,8 @@ export class LocalStorageDiscovery
       this.handleNewPeers
     );
     this.isStarted = false;
+
+    this.setPeersInLocalStorage();
   }
 
   handleNewPeers = (event: CustomEvent<IdentifyResult>): void => {
@@ -120,7 +118,7 @@ export class LocalStorageDiscovery
       });
     }
 
-    this.setPeersInLocalStorage(localStoragePeers);
+    this.setPeersInLocalStorage();
   };
 
   private getPeersFromLocalStorage(): LocalStoragePeerInfo[] {
@@ -135,8 +133,8 @@ export class LocalStorageDiscovery
     }
   }
 
-  private setPeersInLocalStorage(peers: LocalStoragePeerInfo[]): void {
-    localStorage.setItem("waku:peers", JSON.stringify(peers));
+  private setPeersInLocalStorage(): void {
+    localStorage.setItem("waku:peers", JSON.stringify(this.peers));
   }
 }
 
