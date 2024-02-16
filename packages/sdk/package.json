@@ -68,7 +68,6 @@
     "@libp2p/websockets": "^8.0.11",
     "@waku/core": "0.0.26",
     "@waku/interfaces": "0.0.21",
-    "@waku/local-discovery": "^0.0.1",
     "@waku/discovery": "*",
     "@waku/relay": "0.0.9",
     "@waku/utils": "0.0.14",
