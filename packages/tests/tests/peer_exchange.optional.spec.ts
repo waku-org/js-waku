@@ -3,8 +3,8 @@ import {
   Fleet,
   getPredefinedBootstrapNodes
 } from "@waku/core/lib/predefined_bootstrap_nodes";
+import { wakuPeerExchangeDiscovery } from "@waku/discovery";
 import type { LightNode } from "@waku/interfaces";
-import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { createLightNode, DefaultPubsubTopic } from "@waku/sdk";
 import { expect } from "chai";
 

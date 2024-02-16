@@ -15,7 +15,12 @@ import {
   WakuOptions,
   wakuStore
 } from "@waku/core";
-import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
+import {
+  enrTree,
+  wakuDnsDiscovery,
+  wakuLocalStorageDiscovery,
+  wakuPeerExchangeDiscovery
+} from "@waku/discovery";
 import {
   type CreateLibp2pOptions,
   DefaultPubsubTopic,
@@ -28,8 +33,6 @@ import {
   PubsubTopic,
   type ShardInfo
 } from "@waku/interfaces";
-import { wakuLocalStorageDiscovery } from "@waku/local-discovery";
-import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { ensureShardingConfigured } from "@waku/utils";
 import { createLibp2p } from "libp2p";

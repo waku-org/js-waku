@@ -1,12 +1,12 @@
 import type { PeerId } from "@libp2p/interface";
 import tests from "@libp2p/interface-compliance-tests/peer-discovery";
 import type { Multiaddr } from "@multiformats/multiaddr";
-import type { LightNode, PeerInfo } from "@waku/interfaces";
 import {
   PeerExchangeCodec,
   PeerExchangeDiscovery,
   WakuPeerExchange
-} from "@waku/peer-exchange";
+} from "@waku/discovery";
+import type { LightNode, PeerInfo } from "@waku/interfaces";
 import {
   createLightNode,
   DEFAULT_CLUSTER_ID,
