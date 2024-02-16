@@ -17,6 +17,8 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
   MessageCollector,
   ServiceNode,
@@ -58,10 +60,9 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   });
   const customDecoder2 = createDecoder(customContentTopic2, singleShardInfo2);
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
+  beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(
-      this,
+      this.ctx,
       [customPubsubTopic1, customPubsubTopic2],
       shardInfo
     );
@@ -71,8 +72,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
     messageCollector = new MessageCollector();
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 
@@ -127,7 +127,8 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: [customPubsubTopic2]
+      pubsubTopic: [customPubsubTopic2],
+      clusterId: 3
     });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
@@ -228,10 +229,9 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
     shard: contentTopicToShardIndex(customContentTopic2)
   });
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
+  beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(
-      this,
+      this.ctx,
       [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
       contentTopicInfo
     );
@@ -241,8 +241,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
     messageCollector = new MessageCollector();
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 
@@ -309,7 +308,8 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: [autoshardingPubsubTopic2]
+      pubsubTopic: [autoshardingPubsubTopic2],
+      clusterId: 3
     });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
@@ -394,10 +394,9 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
   });
   const customDecoder2 = createDecoder(customContentTopic2, customPubsubTopic2);
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
+  beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(
-      this,
+      this.ctx,
       [customPubsubTopic1, customPubsubTopic2],
       {
         clusterId: 3,
@@ -408,8 +407,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
     messageCollector = new MessageCollector();
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 
@@ -464,7 +462,8 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
       filter: true,
       lightpush: true,
       relay: true,
-      pubsubTopic: [customPubsubTopic2]
+      pubsubTopic: [customPubsubTopic2],
+      clusterId: 3
     });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);

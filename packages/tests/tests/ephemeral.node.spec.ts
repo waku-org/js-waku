@@ -25,6 +25,8 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
   NOISE_KEY_1,
@@ -41,20 +43,18 @@ const TestEncoder = createEncoder({
 });
 const TestDecoder = createDecoder(TestContentTopic);
 
-describe("Waku Message Ephemeral field", () => {
+describe("Waku Message Ephemeral field", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
   let subscription: IFilterSubscription;
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
 
-  beforeEach(async function () {
-    this.timeout(15_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start({
       filter: true,
       lightpush: true,

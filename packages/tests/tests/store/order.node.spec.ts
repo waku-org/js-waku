@@ -4,6 +4,8 @@ import { DefaultPubsubTopic } from "@waku/interfaces";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
   ServiceNode,
   tearDownNodes
@@ -23,15 +25,13 @@ describe("Waku Store, order", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(15000);
-    nwaku = new ServiceNode(makeLogFileName(this));
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start({ store: true, lightpush: true, relay: true });
     await nwaku.ensureSubscriptions();
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
 

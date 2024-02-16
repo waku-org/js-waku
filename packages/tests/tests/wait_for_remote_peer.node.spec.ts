@@ -6,6 +6,7 @@ import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
   delay,
   makeLogFileName,
   NOISE_KEY_1,
@@ -18,8 +19,7 @@ describe("Wait for remote peer", function () {
   let waku2: LightNode;
   let nwaku: ServiceNode;
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, [waku1, waku2]);
   });
 

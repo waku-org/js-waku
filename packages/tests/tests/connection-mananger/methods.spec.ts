@@ -10,7 +10,7 @@ import {
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 
-import { delay } from "../../src/index.js";
+import { afterEachCustom, beforeEachCustom, delay } from "../../src/index.js";
 import { tearDownNodes } from "../../src/index.js";
 
 const TEST_TIMEOUT = 20_000;
@@ -18,13 +18,11 @@ const TEST_TIMEOUT = 20_000;
 describe("Public methods", function () {
   let waku: LightNode;
   this.timeout(TEST_TIMEOUT);
-  beforeEach(async function () {
-    this.timeout(TEST_TIMEOUT);
+  beforeEachCustom(this, async () => {
     waku = await createLightNode({ shardInfo: { shards: [0] } });
   });
 
-  afterEach(async () => {
-    this.timeout(TEST_TIMEOUT);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], waku);
   });
   it("addEventListener with correct event", async function () {

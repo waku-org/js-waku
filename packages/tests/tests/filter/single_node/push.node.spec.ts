@@ -9,6 +9,8 @@ import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   MessageCollector,
   ServiceNode,
@@ -32,15 +34,13 @@ describe("Waku Filter V2: FilterPush", function () {
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    [nwaku, waku] = await runNodes(this, [DefaultPubsubTopic]);
+  beforeEachCustom(this, async () => {
+    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
     subscription = await waku.filter.createSubscription();
     messageCollector = new MessageCollector();
   });
 
-  this.afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
 

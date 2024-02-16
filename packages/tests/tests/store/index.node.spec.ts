@@ -19,6 +19,8 @@ import { expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
   MessageCollector,
@@ -48,15 +50,13 @@ describe("Waku Store, general", function () {
   let waku2: LightNode;
   let nwaku: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(15000);
-    nwaku = new ServiceNode(makeLogFileName(this));
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start({ store: true, lightpush: true, relay: true });
     await nwaku.ensureSubscriptions();
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, [waku, waku2]);
   });
 

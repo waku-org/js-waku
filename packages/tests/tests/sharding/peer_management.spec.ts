@@ -17,6 +17,8 @@ import chaiAsPromised from "chai-as-promised";
 import Sinon, { SinonSpy } from "sinon";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
   ServiceNode,
@@ -33,16 +35,15 @@ describe("Static Sharding: Peer Management", function () {
     let nwaku3: ServiceNode;
 
     let dialPeerSpy: SinonSpy;
+    const clusterId = 18;
 
-    beforeEach(async function () {
-      this.timeout(15000);
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
-      nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
+    beforeEachCustom(this, async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+      nwaku3 = new ServiceNode(makeLogFileName(this.ctx) + "3");
     });
 
-    afterEach(async function () {
-      this.timeout(15000);
+    afterEachCustom(this, async () => {
       await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
       dialPeerSpy && dialPeerSpy.restore();
     });
@@ -51,15 +52,16 @@ describe("Static Sharding: Peer Management", function () {
       this.timeout(100_000);
 
       const pubsubTopics = [
-        singleShardInfoToPubsubTopic({ clusterId: 18, shard: 2 })
+        singleShardInfoToPubsubTopic({ clusterId: clusterId, shard: 2 })
       ];
-      const shardInfo: ShardInfo = { clusterId: 18, shards: [2] };
+      const shardInfo: ShardInfo = { clusterId: clusterId, shards: [2] };
 
       await nwaku1.start({
         pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
-        relay: true
+        relay: true,
+        clusterId: clusterId
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
@@ -69,7 +71,8 @@ describe("Static Sharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
-        relay: true
+        relay: true,
+        clusterId: clusterId
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
@@ -79,7 +82,8 @@ describe("Static Sharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
-        relay: true
+        relay: true,
+        clusterId: clusterId
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
@@ -123,11 +127,11 @@ describe("Static Sharding: Peer Management", function () {
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
       const pubsubTopicsToDial = [
-        singleShardInfoToPubsubTopic({ clusterId: 18, shard: 2 })
+        singleShardInfoToPubsubTopic({ clusterId: clusterId, shard: 2 })
       ];
-      const shardInfoToDial: ShardInfo = { clusterId: 18, shards: [2] };
+      const shardInfoToDial: ShardInfo = { clusterId: clusterId, shards: [2] };
       const pubsubTopicsToIgnore = [
-        singleShardInfoToPubsubTopic({ clusterId: 18, shard: 1 })
+        singleShardInfoToPubsubTopic({ clusterId: clusterId, shard: 1 })
       ];
 
       // this service node is not subscribed to the shard
@@ -135,7 +139,8 @@ describe("Static Sharding: Peer Management", function () {
         pubsubTopic: pubsubTopicsToIgnore,
         relay: true,
         discv5Discovery: true,
-        peerExchange: true
+        peerExchange: true,
+        clusterId: clusterId
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
@@ -145,16 +150,19 @@ describe("Static Sharding: Peer Management", function () {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
-        discv5BootstrapNode: enr1
+        discv5BootstrapNode: enr1,
+        clusterId: clusterId
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
 
       await nwaku3.start({
+        pubsubTopic: pubsubTopicsToDial,
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
-        discv5BootstrapNode: enr2
+        discv5BootstrapNode: enr2,
+        clusterId: clusterId
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
@@ -198,6 +206,7 @@ describe("Static Sharding: Peer Management", function () {
 
 describe("Autosharding: Peer Management", function () {
   const ContentTopic = "/waku/2/content/test.js";
+  const clusterId = 2;
 
   describe("Peer Exchange", function () {
     let waku: LightNode;
@@ -207,15 +216,13 @@ describe("Autosharding: Peer Management", function () {
 
     let dialPeerSpy: SinonSpy;
 
-    beforeEach(async function () {
-      this.timeout(15000);
-      nwaku1 = new ServiceNode(makeLogFileName(this) + "1_auto");
-      nwaku2 = new ServiceNode(makeLogFileName(this) + "2_auto");
-      nwaku3 = new ServiceNode(makeLogFileName(this) + "3_auto");
+    beforeEachCustom(this, async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1_auto");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2_auto");
+      nwaku3 = new ServiceNode(makeLogFileName(this.ctx) + "3_auto");
     });
 
-    afterEach(async function () {
-      this.timeout(15000);
+    afterEachCustom(this, async () => {
       await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
       dialPeerSpy && dialPeerSpy.restore();
     });
@@ -223,9 +230,9 @@ describe("Autosharding: Peer Management", function () {
     it("all px service nodes subscribed to the shard topic should be dialed", async function () {
       this.timeout(100_000);
 
-      const pubsubTopics = [contentTopicToPubsubTopic(ContentTopic, 1)];
+      const pubsubTopics = [contentTopicToPubsubTopic(ContentTopic, clusterId)];
       const contentTopicInfo: ContentTopicInfo = {
-        clusterId: 1,
+        clusterId: clusterId,
         contentTopics: [ContentTopic]
       };
 
@@ -233,7 +240,8 @@ describe("Autosharding: Peer Management", function () {
         pubsubTopic: pubsubTopics,
         discv5Discovery: true,
         peerExchange: true,
-        relay: true
+        relay: true,
+        clusterId: clusterId
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
@@ -243,7 +251,8 @@ describe("Autosharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
-        relay: true
+        relay: true,
+        clusterId: clusterId
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
@@ -253,7 +262,8 @@ describe("Autosharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
-        relay: true
+        relay: true,
+        clusterId: clusterId
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
@@ -296,19 +306,22 @@ describe("Autosharding: Peer Management", function () {
 
     it("px service nodes not subscribed to the shard should not be dialed", async function () {
       this.timeout(100_000);
-      const pubsubTopicsToDial = [contentTopicToPubsubTopic(ContentTopic, 1)];
+      const pubsubTopicsToDial = [
+        contentTopicToPubsubTopic(ContentTopic, clusterId)
+      ];
       const contentTopicInfoToDial: ContentTopicInfo = {
-        clusterId: 1,
+        clusterId: clusterId,
         contentTopics: [ContentTopic]
       };
-      const pubsubTopicsToIgnore = [contentTopicToPubsubTopic(ContentTopic, 2)];
+      const pubsubTopicsToIgnore = [contentTopicToPubsubTopic(ContentTopic, 3)];
 
       // this service node is not subscribed to the shard
       await nwaku1.start({
         pubsubTopic: pubsubTopicsToIgnore,
         relay: true,
         discv5Discovery: true,
-        peerExchange: true
+        peerExchange: true,
+        clusterId: 3
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
@@ -318,16 +331,19 @@ describe("Autosharding: Peer Management", function () {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
-        discv5BootstrapNode: enr1
+        discv5BootstrapNode: enr1,
+        clusterId: clusterId
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
 
       await nwaku3.start({
+        pubsubTopic: pubsubTopicsToDial,
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
-        discv5BootstrapNode: enr2
+        discv5BootstrapNode: enr2,
+        clusterId: clusterId
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 

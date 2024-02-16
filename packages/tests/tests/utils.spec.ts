@@ -11,6 +11,8 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
   NOISE_KEY_1,
@@ -24,13 +26,12 @@ const TestContentTopic = "/test/1/waku-filter";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 
-describe("Util: toAsyncIterator: Filter", () => {
+describe("Util: toAsyncIterator: Filter", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(15000);
-    nwaku = new ServiceNode(makeLogFileName(this));
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start({
       filter: true,
       lightpush: true,
@@ -45,8 +46,7 @@ describe("Util: toAsyncIterator: Filter", () => {
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
   });
 
-  afterEach(async function () {
-    this.timeout(10000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
 

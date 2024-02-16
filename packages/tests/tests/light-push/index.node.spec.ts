@@ -9,6 +9,8 @@ import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   generateRandomUint8Array,
   ServiceNodesFleet,
   TEST_STRING
@@ -33,10 +35,9 @@ const runTests = (strictNodeCheck: boolean): void => {
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
 
-    this.beforeEach(async function () {
-      this.timeout(15000);
+    beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(
-        this,
+        this.ctx,
         [DefaultPubsubTopic],
         strictNodeCheck,
         undefined,
@@ -45,8 +46,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       );
     });
 
-    this.afterEach(async function () {
-      this.timeout(15000);
+    afterEachCustom(this, async () => {
       await teardownNodesWithRedundancy(serviceNodes, waku);
     });
 
