@@ -119,6 +119,7 @@ export class LocalStorageDiscovery
       });
     }
 
+    this.peers = localStoragePeers;
     this.savePeersToLocalStorage();
   };
 
