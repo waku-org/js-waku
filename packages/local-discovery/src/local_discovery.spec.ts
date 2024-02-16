@@ -39,7 +39,7 @@ async function setPeersInLocalStorage(
   localStorage.setItem("waku:peers", JSON.stringify(peers));
 }
 
-describe.only("Local Storage Discovery", function () {
+describe("Local Storage Discovery", function () {
   this.timeout(25_000);
   let components: Libp2pComponents;
 
