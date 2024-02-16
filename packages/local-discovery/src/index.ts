@@ -98,14 +98,14 @@ export class LocalStorageDiscovery
   }
 
   handleNewPeers = (event: CustomEvent<IdentifyResult>): void => {
-    const peer = event.detail;
+    const { peerId, listenAddrs } = event.detail;
 
-    const websocketMultiaddr = getWsMultiaddrFromMultiaddrs(peer.listenAddrs);
+    const websocketMultiaddr = getWsMultiaddrFromMultiaddrs(listenAddrs);
 
     const localStoragePeers = this.getPeersFromLocalStorage();
 
     const existingPeerIndex = localStoragePeers.findIndex(
-      (_peer) => _peer.id === peer.peerId.toString()
+      (_peer) => _peer.id === peerId.toString()
     );
 
     if (existingPeerIndex >= 0) {
@@ -113,7 +113,7 @@ export class LocalStorageDiscovery
         websocketMultiaddr.toString();
     } else {
       localStoragePeers.push({
-        id: peer.peerId.toString(),
+        id: peerId.toString(),
         address: websocketMultiaddr.toString()
       });
     }
