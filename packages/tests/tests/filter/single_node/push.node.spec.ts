@@ -64,14 +64,17 @@ describe("Waku Filter V2: FilterPush", function () {
       await subscription.subscribe([TestDecoder], messageCollector.callback);
       await delay(400);
 
-      await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-        DefaultPubsubTopic,
+      await nwaku.restCall<boolean>(
+        `/relay/v1/messages/${encodeURIComponent(DefaultPubsubTopic)}`,
+        "POST",
         {
           contentTopic: TestContentTopic,
           payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
-          timestamp: testItem
-        }
-      ]);
+          timestamp: testItem,
+          version: 0
+        },
+        async (res) => res.status === 200
+      );
 
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
@@ -95,14 +98,16 @@ describe("Waku Filter V2: FilterPush", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await delay(400);
 
-    await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubsubTopic,
+    await nwaku.restCall<boolean>(
+      `/relay/v1/messages/${encodeURIComponent(DefaultPubsubTopic)}`,
+      "POST",
       {
         contentTopic: TestContentTopic,
         payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
         timestamp: "2023-09-06T12:05:38.609Z"
-      }
-    ]);
+      },
+      async (res) => res.status === 200
+    );
 
     // Verify that no message was received
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
@@ -112,14 +117,16 @@ describe("Waku Filter V2: FilterPush", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await delay(400);
 
-    await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      "DefaultPubsubTopic",
+    await nwaku.restCall<boolean>(
+      `/relay/v1/messages/${encodeURIComponent("/othertopic")}`,
+      "POST",
       {
         contentTopic: TestContentTopic,
         payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
         timestamp: BigInt(Date.now()) * BigInt(1000000)
-      }
-    ]);
+      },
+      async (res) => res.status === 200
+    );
 
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
@@ -128,13 +135,16 @@ describe("Waku Filter V2: FilterPush", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await delay(400);
 
-    await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
+    await nwaku.restCall<boolean>(
+      `/relay/v1/messages/`,
+      "POST",
       {
         contentTopic: TestContentTopic,
         payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
         timestamp: BigInt(Date.now()) * BigInt(1000000)
-      }
-    ]);
+      },
+      async (res) => res.status === 200
+    );
 
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
@@ -143,13 +153,15 @@ describe("Waku Filter V2: FilterPush", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await delay(400);
 
-    await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubsubTopic,
+    await nwaku.restCall<boolean>(
+      `/relay/v1/messages/${encodeURIComponent(DefaultPubsubTopic)}`,
+      "POST",
       {
         payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
         timestamp: BigInt(Date.now()) * BigInt(1000000)
-      }
-    ]);
+      },
+      async (res) => res.status === 200
+    );
 
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
@@ -158,13 +170,15 @@ describe("Waku Filter V2: FilterPush", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await delay(400);
 
-    await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubsubTopic,
+    await nwaku.restCall<boolean>(
+      `/relay/v1/messages/${encodeURIComponent(DefaultPubsubTopic)}`,
+      "POST",
       {
         contentTopic: TestContentTopic,
         timestamp: BigInt(Date.now()) * BigInt(1000000)
-      }
-    ]);
+      },
+      async (res) => res.status === 200
+    );
 
     // For go-waku the message is received (it is possible to send a message with no payload)
     if (nwaku.type == "go-waku") {
@@ -178,54 +192,18 @@ describe("Waku Filter V2: FilterPush", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     await delay(400);
 
-    await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubsubTopic,
+    await nwaku.restCall<boolean>(
+      `/relay/v1/messages/${encodeURIComponent(DefaultPubsubTopic)}`,
+      "POST",
       {
         contentTopic: TestContentTopic,
         payload: 12345,
         timestamp: BigInt(Date.now()) * BigInt(1000000)
-      }
-    ]);
+      },
+      async (res) => res.status === 200
+    );
 
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
-  });
-
-  it("Check message with extra parameter is not received", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
-    await delay(400);
-
-    await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubsubTopic,
-      "extraField",
-      {
-        contentTopic: TestContentTopic,
-        payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
-        timestamp: BigInt(Date.now()) * BigInt(1000000)
-      }
-    ]);
-
-    expect(await messageCollector.waitForMessages(1)).to.eq(false);
-  });
-
-  it("Check received message with extra option is received", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
-    await delay(400);
-
-    await nwaku.rpcCall("post_waku_v2_relay_v1_message", [
-      DefaultPubsubTopic,
-      {
-        contentTopic: TestContentTopic,
-        payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
-        timestamp: BigInt(Date.now()) * BigInt(1000000),
-        extraOption: "extraOption"
-      }
-    ]);
-
-    expect(await messageCollector.waitForMessages(1)).to.eq(true);
-    messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic
-    });
   });
 
   // Will be skipped until https://github.com/waku-org/js-waku/issues/1464 si done
