@@ -26,6 +26,7 @@ describe("Events", function () {
     await tearDownNodes([], waku);
   });
 
+  //TODO: add tests for local discovery
   describe("peer:discovery", () => {
     it("should emit `peer:discovery:bootstrap` event when a peer is discovered", async function () {
       const peerIdBootstrap = await createSecp256k1PeerId();

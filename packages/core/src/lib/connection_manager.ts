@@ -395,11 +395,26 @@ export class ConnectionManager
           this.libp2p.peerStore
         );
 
-        const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
-          Tags.BOOTSTRAP
-        );
+        // const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
+        //   Tags.BOOTSTRAP
+        // );
+        const tags = await this.getTagNamesForPeer(peerId);
 
-        if (isBootstrap) {
+        let tag: Tags;
+        if (tags.includes(Tags.BOOTSTRAP)) {
+          tag = Tags.BOOTSTRAP;
+        } else if (tags.includes(Tags.PEER_EXCHANGE)) {
+          tag = Tags.PEER_EXCHANGE;
+        } else if (tags.includes(Tags.LOCAL)) {
+          tag = Tags.LOCAL;
+        } else {
+          log.warn(
+            `Peer ${peerId.toString()} has no discovery tag. Not dispatching discovery event`
+          );
+          return;
+        }
+
+        if (tag === Tags.BOOTSTRAP) {
           const bootstrapConnections = this.libp2p
             .getConnections()
             .filter((conn) => conn.tags.includes(Tags.BOOTSTRAP));
@@ -420,13 +435,23 @@ export class ConnectionManager
             );
           }
         } else {
+          let discoveryTagName: EPeersByDiscoveryEvents;
+          if (tag === Tags.PEER_EXCHANGE) {
+            discoveryTagName =
+              EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE;
+          } else if (tag === Tags.LOCAL) {
+            discoveryTagName = EPeersByDiscoveryEvents.PEER_CONNECT_LOCAL;
+          } else {
+            log.warn(
+              `Peer ${peerId.toString()} has no discovery tag. Not dispatching discovery event`
+            );
+            return;
+          }
+
           this.dispatchEvent(
-            new CustomEvent<PeerId>(
-              EPeersByDiscoveryEvents.PEER_CONNECT_PEER_EXCHANGE,
-              {
-                detail: peerId
-              }
-            )
+            new CustomEvent<PeerId>(discoveryTagName, {
+              detail: peerId
+            })
           );
         }
         this.toggleOnline();
@@ -518,19 +543,26 @@ export class ConnectionManager
   }
 
   private async dispatchDiscoveryEvent(peerId: PeerId): Promise<void> {
-    const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
-      Tags.BOOTSTRAP
-    );
+    const tags = await this.getTagNamesForPeer(peerId);
+
+    let tag: Tags;
+    if (tags.includes(Tags.BOOTSTRAP)) {
+      tag = Tags.BOOTSTRAP;
+    } else if (tags.includes(Tags.PEER_EXCHANGE)) {
+      tag = Tags.PEER_EXCHANGE;
+    } else if (tags.includes(Tags.LOCAL)) {
+      tag = Tags.LOCAL;
+    } else {
+      log.warn(
+        `Peer ${peerId.toString()} has no discovery tag. Not dispatching discovery event`
+      );
+      return;
+    }
 
     this.dispatchEvent(
-      new CustomEvent<PeerId>(
-        isBootstrap
-          ? EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP
-          : EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
-        {
-          detail: peerId
-        }
-      )
+      new CustomEvent<PeerId>(tag, {
+        detail: peerId
+      })
     );
   }
 
