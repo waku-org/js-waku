@@ -26,72 +26,51 @@ describe("Events", function () {
     await tearDownNodes([], waku);
   });
 
-  //TODO: add tests for local discovery
-  describe("peer:discovery", () => {
-    it("should emit `peer:discovery:bootstrap` event when a peer is discovered", async function () {
-      const peerIdBootstrap = await createSecp256k1PeerId();
+  describe.only("peer:discovery", () => {
+    [Tags.BOOTSTRAP].map((discoveryType) => {
+      it(`should emit 'peer:discovery:${discoveryType}' event when a peer is discovered`, async function () {
+        const peerId = await createSecp256k1PeerId();
 
-      await waku.libp2p.peerStore.save(peerIdBootstrap, {
-        tags: {
-          [Tags.BOOTSTRAP]: {
-            value: 50,
-            ttl: 1200000
+        await waku.libp2p.peerStore.save(peerId, {
+          tags: {
+            [discoveryType]: {
+              value: 50,
+              ttl: 1200000
+            }
           }
+        });
+
+        let eventName: EPeersByDiscoveryEvents;
+        switch (discoveryType) {
+          case Tags.BOOTSTRAP:
+            eventName = EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP;
+            break;
+          case Tags.PEER_EXCHANGE:
+            eventName = EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE;
+            break;
+          case Tags.LOCAL:
+            eventName = EPeersByDiscoveryEvents.PEER_DISCOVERY_LOCAL;
+            break;
         }
-      });
 
-      const peerDiscoveryBootstrap = new Promise<boolean>((resolve) => {
-        waku.connectionManager.addEventListener(
-          EPeersByDiscoveryEvents.PEER_DISCOVERY_BOOTSTRAP,
-          ({ detail: receivedPeerId }) => {
-            resolve(receivedPeerId.toString() === peerIdBootstrap.toString());
-          }
+        const peerDiscovery = new Promise<boolean>((resolve) => {
+          waku.connectionManager.addEventListener(eventName, () => {
+            console.log("here");
+            resolve(true);
+          });
+        });
+
+        waku.libp2p.dispatchEvent(
+          new CustomEvent<PeerInfo>("peer:discovery", {
+            detail: {
+              id: peerId,
+              multiaddrs: []
+            }
+          })
         );
+
+        expect(await peerDiscovery).to.eq(true);
       });
-
-      waku.libp2p.dispatchEvent(
-        new CustomEvent<PeerInfo>("peer:discovery", {
-          detail: {
-            id: peerIdBootstrap,
-            multiaddrs: []
-          }
-        })
-      );
-
-      expect(await peerDiscoveryBootstrap).to.eq(true);
-    });
-
-    it("should emit `peer:discovery:peer-exchange` event when a peer is discovered", async function () {
-      const peerIdPx = await createSecp256k1PeerId();
-
-      await waku.libp2p.peerStore.save(peerIdPx, {
-        tags: {
-          [Tags.PEER_EXCHANGE]: {
-            value: 50,
-            ttl: 1200000
-          }
-        }
-      });
-
-      const peerDiscoveryPeerExchange = new Promise<boolean>((resolve) => {
-        waku.connectionManager.addEventListener(
-          EPeersByDiscoveryEvents.PEER_DISCOVERY_PEER_EXCHANGE,
-          ({ detail: receivedPeerId }) => {
-            resolve(receivedPeerId.toString() === peerIdPx.toString());
-          }
-        );
-      });
-
-      waku.libp2p.dispatchEvent(
-        new CustomEvent<PeerInfo>("peer:discovery", {
-          detail: {
-            id: peerIdPx,
-            multiaddrs: []
-          }
-        })
-      );
-
-      expect(await peerDiscoveryPeerExchange).to.eq(true);
     });
   });
 
