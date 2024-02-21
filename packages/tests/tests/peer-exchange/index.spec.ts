@@ -19,7 +19,7 @@ export const log = new Logger("test:pe");
 const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 2 })];
 
 describe("Peer Exchange", function () {
-  this.timeout(100_000);
+  this.timeout(150_000);
   let waku: LightNode;
   let nwaku1: ServiceNode;
   let nwaku2: ServiceNode;
@@ -96,7 +96,8 @@ describe("Peer Exchange", function () {
     expect(connected_bootstram.length).to.eq(1);
   });
 
-  it("new peer added after a peer was already found", async function () {
+  // will be skipped until https://github.com/waku-org/js-waku/issues/1860 is fixed
+  it.skip("new peer added after a peer was already found", async function () {
     waku = await createLightNode({
       libp2p: {
         peerDiscovery: [

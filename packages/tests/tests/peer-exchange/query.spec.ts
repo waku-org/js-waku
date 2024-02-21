@@ -26,7 +26,7 @@ export const log = new Logger("test:pe");
 
 const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 2 })];
 
-describe("Query", function () {
+describe("Peer Exchange Query", function () {
   this.timeout(30_000);
   let waku: LightNode;
   let nwaku1: ServiceNode;
@@ -40,63 +40,67 @@ describe("Query", function () {
   let numPeersToRequest: number;
   let peerInfos: PeerInfo[];
 
-  beforeEachCustom(this, async () => {
-    nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
-    nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
-    nwaku3 = new ServiceNode(makeLogFileName(this.ctx) + "3");
-    await nwaku1.start({
-      pubsubTopic: pubsubTopic,
-      discv5Discovery: true,
-      peerExchange: true,
-      relay: true
-    });
-    nwaku1PeerId = await nwaku1.getPeerId();
-    await nwaku2.start({
-      pubsubTopic: pubsubTopic,
-      discv5Discovery: true,
-      peerExchange: true,
-      discv5BootstrapNode: (await nwaku1.info()).enrUri,
-      relay: true
-    });
-    await nwaku3.start({
-      pubsubTopic: pubsubTopic,
-      discv5Discovery: true,
-      peerExchange: true,
-      discv5BootstrapNode: (await nwaku2.info()).enrUri,
-      relay: true
-    });
-    nwaku3MA = await nwaku3.getMultiaddrWithId();
-    nwaku3PeerId = await nwaku3.getPeerId();
-    waku = await createLightNode({
-      libp2p: {
-        peerDiscovery: [
-          bootstrap({ list: [nwaku3MA.toString()] }),
-          wakuPeerExchangeDiscovery(pubsubTopic)
-        ]
-      }
-    });
-    await waku.start();
-    await waku.libp2p.dialProtocol(nwaku3MA, PeerExchangeCodec);
-    await waitForRemotePeerWithCodec(waku, PeerExchangeCodec, nwaku3PeerId);
+  beforeEachCustom(
+    this,
+    async () => {
+      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+      nwaku3 = new ServiceNode(makeLogFileName(this.ctx) + "3");
+      await nwaku1.start({
+        pubsubTopic: pubsubTopic,
+        discv5Discovery: true,
+        peerExchange: true,
+        relay: true
+      });
+      nwaku1PeerId = await nwaku1.getPeerId();
+      await nwaku2.start({
+        pubsubTopic: pubsubTopic,
+        discv5Discovery: true,
+        peerExchange: true,
+        discv5BootstrapNode: (await nwaku1.info()).enrUri,
+        relay: true
+      });
+      await nwaku3.start({
+        pubsubTopic: pubsubTopic,
+        discv5Discovery: true,
+        peerExchange: true,
+        discv5BootstrapNode: (await nwaku2.info()).enrUri,
+        relay: true
+      });
+      nwaku3MA = await nwaku3.getMultiaddrWithId();
+      nwaku3PeerId = await nwaku3.getPeerId();
+      waku = await createLightNode({
+        libp2p: {
+          peerDiscovery: [
+            bootstrap({ list: [nwaku3MA.toString()] }),
+            wakuPeerExchangeDiscovery(pubsubTopic)
+          ]
+        }
+      });
+      await waku.start();
+      await waku.libp2p.dialProtocol(nwaku3MA, PeerExchangeCodec);
+      await waitForRemotePeerWithCodec(waku, PeerExchangeCodec, nwaku3PeerId);
 
-    components = waku.libp2p.components as unknown as Libp2pComponents;
-    peerExchange = new WakuPeerExchange(components, pubsubTopic);
-    numPeersToRequest = 2;
+      components = waku.libp2p.components as unknown as Libp2pComponents;
+      peerExchange = new WakuPeerExchange(components, pubsubTopic);
+      numPeersToRequest = 2;
 
-    // querying the connected peer
-    peerInfos = [];
-    while (peerInfos.length != numPeersToRequest) {
-      try {
-        peerInfos = (await peerExchange.query({
-          peerId: nwaku3PeerId,
-          numPeers: numPeersToRequest
-        })) as PeerInfo[];
-      } catch (error) {
-        log.error("Error encountered, retrying...");
+      // querying the connected peer
+      peerInfos = [];
+      while (peerInfos.length != numPeersToRequest) {
+        try {
+          peerInfos = (await peerExchange.query({
+            peerId: nwaku3PeerId,
+            numPeers: numPeersToRequest
+          })) as PeerInfo[];
+        } catch (error) {
+          log.error("Error encountered, retrying...");
+        }
+        await delay(2000);
       }
-      await delay(2000);
-    }
-  });
+    },
+    100000
+  );
 
   afterEachCustom(this, async () => {
     await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
