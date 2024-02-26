@@ -17,3 +17,5 @@ export * as waku from "@waku/core";
 export * as utils from "@waku/utils";
 export * from "@waku/interfaces";
 export * as relay from "@waku/relay";
+
+export { bootstrap } from "@libp2p/bootstrap";
