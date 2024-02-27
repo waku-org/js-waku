@@ -5,6 +5,7 @@ export interface Args {
   relay?: boolean;
   rest?: boolean;
   rpc?: boolean;
+  restAdmin?: boolean;
   rpcAdmin?: boolean;
   nodekey?: string;
   portsShift?: number;
