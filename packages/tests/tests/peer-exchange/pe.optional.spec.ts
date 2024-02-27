@@ -8,7 +8,7 @@ import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { createLightNode, DefaultPubsubTopic } from "@waku/sdk";
 import { expect } from "chai";
 
-import { afterEachCustom, tearDownNodes } from "../src";
+import { afterEachCustom, tearDownNodes } from "../../src";
 
 describe("Peer Exchange", () => {
   describe("Auto Discovery", function () {

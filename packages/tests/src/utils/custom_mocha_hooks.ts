@@ -7,7 +7,7 @@ const log = new Logger("test:mocha-hook");
 function withGracefulTimeout(
   asyncOperation: () => Promise<void>,
   doneCallback: (error?: unknown) => void,
-  timeoutDuration: number = MOCHA_HOOK_MAX_TIMEOUT
+  timeoutDuration = MOCHA_HOOK_MAX_TIMEOUT
 ): void {
   let operationCompleted = false;
 
@@ -45,24 +45,26 @@ function withGracefulTimeout(
 
 export const beforeEachCustom = function (
   suite: Suite,
-  cb: () => Promise<void>
+  cb: () => Promise<void>,
+  timeout = MOCHA_HOOK_MAX_TIMEOUT
 ): void {
   const timeoutBefore = suite.timeout();
-  suite.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  suite.timeout(timeout);
   suite.beforeEach((done) => {
-    withGracefulTimeout(cb, done);
+    withGracefulTimeout(cb, done, timeout);
   });
   suite.timeout(timeoutBefore); // restore timeout to the original value
 };
 
 export const afterEachCustom = function (
   suite: Suite,
-  cb: () => Promise<void>
+  cb: () => Promise<void>,
+  timeout = MOCHA_HOOK_MAX_TIMEOUT
 ): void {
   const timeoutBefore = suite.timeout();
-  suite.timeout(MOCHA_HOOK_MAX_TIMEOUT);
+  suite.timeout(timeout);
   suite.afterEach((done) => {
-    withGracefulTimeout(cb, done);
+    withGracefulTimeout(cb, done, timeout);
   });
   suite.timeout(timeoutBefore); // restore timeout to the original value
 };
