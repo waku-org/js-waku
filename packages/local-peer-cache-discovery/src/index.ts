@@ -18,7 +18,7 @@ import { getWsMultiaddrFromMultiaddrs, Logger } from "@waku/utils";
 
 const log = new Logger("peer-exchange-discovery");
 
-type LocalStorageDiscoveryOptions = {
+type LocalPeerCacheDiscoveryOptions = {
   tagName?: string;
   tagValue?: number;
   tagTTL?: number;
@@ -28,7 +28,7 @@ export const DEFAULT_LOCAL_TAG_NAME = Tags.LOCAL;
 const DEFAULT_LOCAL_TAG_VALUE = 50;
 const DEFAULT_LOCAL_TAG_TTL = 100_000_000;
 
-export class LocalStorageDiscovery
+export class LocalPeerCacheDiscovery
   extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery, Startable
 {
@@ -37,7 +37,7 @@ export class LocalStorageDiscovery
 
   constructor(
     private readonly components: Libp2pComponents,
-    private readonly options?: LocalStorageDiscoveryOptions
+    private readonly options?: LocalPeerCacheDiscoveryOptions
   ) {
     super();
     this.isStarted = false;
@@ -45,7 +45,7 @@ export class LocalStorageDiscovery
   }
 
   get [Symbol.toStringTag](): string {
-    return "@waku/local-discovery";
+    return "@waku/local-peer-cache-discovery";
   }
 
   async start(): Promise<void> {
@@ -149,12 +149,12 @@ function isValidStoredPeer(peer: any): peer is LocalStoragePeerInfo {
   );
 }
 
-export function wakuLocalStorageDiscovery(): (
+export function wakuLocalPeerCacheDiscovery(): (
   components: Libp2pComponents,
-  options?: LocalStorageDiscoveryOptions
-) => LocalStorageDiscovery {
+  options?: LocalPeerCacheDiscoveryOptions
+) => LocalPeerCacheDiscovery {
   return (
     components: Libp2pComponents,
-    options?: LocalStorageDiscoveryOptions
-  ) => new LocalStorageDiscovery(components, options);
+    options?: LocalPeerCacheDiscoveryOptions
+  ) => new LocalPeerCacheDiscovery(components, options);
 }

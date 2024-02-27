@@ -12,7 +12,7 @@
     "packages/relay",
     "packages/peer-exchange",
     "packages/dns-discovery",
-    "packages/local-discovery",
+    "packages/local-peer-cache-discovery",
     "packages/message-encryption",
     "packages/sdk",
     "packages/tests",

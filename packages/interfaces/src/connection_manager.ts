@@ -3,7 +3,7 @@ import type { Peer, PeerId, TypedEventEmitter } from "@libp2p/interface";
 export enum Tags {
   BOOTSTRAP = "bootstrap",
   PEER_EXCHANGE = "peer-exchange",
-  LOCAL = "local"
+  LOCAL = "local-peer-cache"
 }
 
 export interface ConnectionManagerOptions {
