@@ -87,7 +87,7 @@ describe("Peer Exchange Query", function () {
 
       // querying the connected peer
       peerInfos = [];
-      while (peerInfos.length != numPeersToRequest) {
+      while (!peerInfos || peerInfos.length != numPeersToRequest) {
         await delay(2000);
         try {
           peerInfos = (await peerExchange.query({
