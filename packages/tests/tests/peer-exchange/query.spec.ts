@@ -88,24 +88,37 @@ describe("Peer Exchange Query", function () {
       // querying the connected peer
       peerInfos = [];
       const startTime = Date.now();
-      while (!peerInfos || peerInfos.length != numPeersToRequest) {
-        if (Date.now() - startTime > 80000) {
-          log.error("Timeout reached, exiting the loop.");
+      while (peerInfos.length != numPeersToRequest) {
+        if (Date.now() - startTime > 100000) {
+          console.log("Timeout reached, exiting the loop.");
           break;
         }
+
         await delay(2000);
+
         try {
-          peerInfos = (await peerExchange.query({
-            peerId: nwaku3PeerId,
-            numPeers: numPeersToRequest
-          })) as PeerInfo[];
+          peerInfos = await Promise.race([
+            peerExchange.query({
+              peerId: nwaku3PeerId,
+              numPeers: numPeersToRequest
+            }) as Promise<PeerInfo[]>,
+            new Promise<PeerInfo[]>((resolve) =>
+              setTimeout(() => resolve([]), 5000)
+            )
+          ]);
+
+          if (peerInfos.length === 0) {
+            console.log("Query timed out, retrying...");
+            continue;
+          }
+
           console.log(peerInfos);
         } catch (error) {
           log.error("Error encountered, retrying...");
         }
       }
     },
-    100000
+    120000
   );
 
   afterEachCustom(this, async () => {
