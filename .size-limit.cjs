@@ -1,7 +1,7 @@
 module.exports = [
   {
-    name: "Waku core",
-    path: "packages/core/bundle/index.js",
+    name: "Waku node",
+    path: "packages/sdk/bundle/index.js",
     import: "{ WakuNode }",
   },
   {
