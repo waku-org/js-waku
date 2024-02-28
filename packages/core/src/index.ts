@@ -1,4 +1,3 @@
-export { DefaultUserAgent } from "./lib/waku.js";
 export { createEncoder, createDecoder } from "./lib/message/version_0.js";
 export type {
   Encoder,
@@ -6,9 +5,6 @@ export type {
   DecodedMessage
 } from "./lib/message/version_0.js";
 export * as message from "./lib/message/index.js";
-
-export * as waku from "./lib/waku.js";
-export { WakuNode, WakuOptions } from "./lib/waku.js";
 
 export * as waku_filter from "./lib/filter/index.js";
 export { wakuFilter, FilterCodecs } from "./lib/filter/index.js";
