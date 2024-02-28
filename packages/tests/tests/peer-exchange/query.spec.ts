@@ -87,7 +87,12 @@ describe("Peer Exchange Query", function () {
 
       // querying the connected peer
       peerInfos = [];
+      const startTime = Date.now();
       while (!peerInfos || peerInfos.length != numPeersToRequest) {
+        if (Date.now() - startTime > 80000) {
+          log.error("Timeout reached, exiting the loop.");
+          break;
+        }
         await delay(2000);
         try {
           peerInfos = (await peerExchange.query({
