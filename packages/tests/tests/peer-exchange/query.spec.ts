@@ -174,7 +174,13 @@ describe("Peer Exchange Query", function () {
       });
       throw new Error("Query on not connected peer succeeded unexpectedly.");
     } catch (error) {
-      if (!(error instanceof Error && error.message === "Not Found")) {
+      if (
+        !(
+          error instanceof Error &&
+          (error.message === "Not Found" ||
+            error.message === "Failed to get a connection to the peer")
+        )
+      ) {
         throw error;
       }
     }
