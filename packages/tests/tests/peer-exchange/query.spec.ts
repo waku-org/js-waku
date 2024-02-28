@@ -24,7 +24,7 @@ export const log = new Logger("test:pe");
 
 const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 2 })];
 
-describe.only("Peer Exchange Query", function () {
+describe("Peer Exchange Query", function () {
   this.timeout(120_000);
   let waku: LightNode;
   let nwaku1: ServiceNode;
