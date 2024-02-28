@@ -26,7 +26,7 @@ export const log = new Logger("test:pe");
 
 const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 2 })];
 
-describe("Peer Exchange Query", function () {
+describe.only("Peer Exchange Query", function () {
   this.timeout(30_000);
   let waku: LightNode;
   let nwaku1: ServiceNode;
@@ -88,15 +88,16 @@ describe("Peer Exchange Query", function () {
       // querying the connected peer
       peerInfos = [];
       while (peerInfos.length != numPeersToRequest) {
+        await delay(2000);
         try {
           peerInfos = (await peerExchange.query({
             peerId: nwaku3PeerId,
             numPeers: numPeersToRequest
           })) as PeerInfo[];
+          console.log(peerInfos);
         } catch (error) {
           log.error("Error encountered, retrying...");
         }
-        await delay(2000);
       }
     },
     100000
