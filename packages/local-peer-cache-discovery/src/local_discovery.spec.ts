@@ -14,7 +14,7 @@ import { MemoryDatastore } from "datastore-core/memory";
 import { LocalStorage } from "node-localstorage";
 import sinon from "sinon";
 
-import { LocalStorageDiscovery } from "./index.js";
+import { LocalPeerCacheDiscovery } from "./index.js";
 
 chai.use(chaiAsPromised);
 
@@ -63,17 +63,17 @@ describe("Local Storage Discovery", function () {
 
     tests({
       async setup() {
-        return new LocalStorageDiscovery(components);
+        return new LocalPeerCacheDiscovery(components);
       },
       async teardown() {}
     });
   });
 
   describe("Unit Tests", function () {
-    let discovery: LocalStorageDiscovery;
+    let discovery: LocalPeerCacheDiscovery;
 
     beforeEach(async function () {
-      discovery = new LocalStorageDiscovery(components);
+      discovery = new LocalPeerCacheDiscovery(components);
       await setPeersInLocalStorage(mockPeers);
     });
 
