@@ -88,9 +88,9 @@ describe("Peer Exchange Query", function () {
       // querying the connected peer
       peerInfos = [];
       const startTime = Date.now();
-      while (peerInfos.length != numPeersToRequest) {
+      while (!peerInfos || peerInfos.length != numPeersToRequest) {
         if (Date.now() - startTime > 100000) {
-          log.error("Timeout reached, exiting the loop.");
+          console.log("Timeout reached, exiting the loop.");
           break;
         }
 
@@ -108,11 +108,13 @@ describe("Peer Exchange Query", function () {
           ]);
 
           if (peerInfos.length === 0) {
-            log.warn("Query timed out, retrying...");
+            console.log("Query timed out, retrying...");
             continue;
           }
+
+          console.log(peerInfos);
         } catch (error) {
-          log.warn("Error encountered, retrying...");
+          log.error("Error encountered, retrying...");
         }
       }
     },
