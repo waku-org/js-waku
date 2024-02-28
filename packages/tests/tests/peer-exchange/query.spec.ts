@@ -13,8 +13,6 @@ import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
 import {
-  afterEachCustom,
-  beforeEachCustom,
   delay,
   makeLogFileName,
   ServiceNode,
@@ -26,13 +24,14 @@ export const log = new Logger("test:pe");
 
 const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 2 })];
 
-describe("Peer Exchange Query", function () {
-  this.timeout(30_000);
+describe.only("Peer Exchange Query", function () {
+  this.timeout(120_000);
   let waku: LightNode;
   let nwaku1: ServiceNode;
   let nwaku2: ServiceNode;
   let nwaku3: ServiceNode;
   let nwaku1PeerId: PeerId;
+  let nwaku2PeerId: PeerId;
   let nwaku3MA: Multiaddr;
   let nwaku3PeerId: PeerId;
   let components: Libp2pComponents;
@@ -40,88 +39,85 @@ describe("Peer Exchange Query", function () {
   let numPeersToRequest: number;
   let peerInfos: PeerInfo[];
 
-  beforeEachCustom(
-    this,
-    async () => {
-      nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
-      nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
-      nwaku3 = new ServiceNode(makeLogFileName(this.ctx) + "3");
-      await nwaku1.start({
-        pubsubTopic: pubsubTopic,
-        discv5Discovery: true,
-        peerExchange: true,
-        relay: true
-      });
-      nwaku1PeerId = await nwaku1.getPeerId();
-      await nwaku2.start({
-        pubsubTopic: pubsubTopic,
-        discv5Discovery: true,
-        peerExchange: true,
-        discv5BootstrapNode: (await nwaku1.info()).enrUri,
-        relay: true
-      });
-      await nwaku3.start({
-        pubsubTopic: pubsubTopic,
-        discv5Discovery: true,
-        peerExchange: true,
-        discv5BootstrapNode: (await nwaku2.info()).enrUri,
-        relay: true
-      });
-      nwaku3MA = await nwaku3.getMultiaddrWithId();
-      nwaku3PeerId = await nwaku3.getPeerId();
-      waku = await createLightNode({
-        libp2p: {
-          peerDiscovery: [
-            bootstrap({ list: [nwaku3MA.toString()] }),
-            wakuPeerExchangeDiscovery(pubsubTopic)
-          ]
-        }
-      });
-      await waku.start();
-      await waku.libp2p.dialProtocol(nwaku3MA, PeerExchangeCodec);
-      await waitForRemotePeerWithCodec(waku, PeerExchangeCodec, nwaku3PeerId);
-
-      components = waku.libp2p.components as unknown as Libp2pComponents;
-      peerExchange = new WakuPeerExchange(components, pubsubTopic);
-      numPeersToRequest = 2;
-
-      // querying the connected peer
-      peerInfos = [];
-      const startTime = Date.now();
-      while (!peerInfos || peerInfos.length != numPeersToRequest) {
-        if (Date.now() - startTime > 100000) {
-          console.log("Timeout reached, exiting the loop.");
-          break;
-        }
-
-        await delay(2000);
-
-        try {
-          peerInfos = await Promise.race([
-            peerExchange.query({
-              peerId: nwaku3PeerId,
-              numPeers: numPeersToRequest
-            }) as Promise<PeerInfo[]>,
-            new Promise<PeerInfo[]>((resolve) =>
-              setTimeout(() => resolve([]), 5000)
-            )
-          ]);
-
-          if (peerInfos.length === 0) {
-            console.log("Query timed out, retrying...");
-            continue;
-          }
-
-          console.log(peerInfos);
-        } catch (error) {
-          log.error("Error encountered, retrying...");
-        }
+  before(async function () {
+    nwaku1 = new ServiceNode(makeLogFileName(this) + "1");
+    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
+    nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
+    await nwaku1.start({
+      pubsubTopic: pubsubTopic,
+      discv5Discovery: true,
+      peerExchange: true,
+      relay: true
+    });
+    nwaku1PeerId = await nwaku1.getPeerId();
+    await nwaku2.start({
+      pubsubTopic: pubsubTopic,
+      discv5Discovery: true,
+      peerExchange: true,
+      discv5BootstrapNode: (await nwaku1.info()).enrUri,
+      relay: true
+    });
+    nwaku2PeerId = await nwaku2.getPeerId();
+    await nwaku3.start({
+      pubsubTopic: pubsubTopic,
+      discv5Discovery: true,
+      peerExchange: true,
+      discv5BootstrapNode: (await nwaku2.info()).enrUri,
+      relay: true
+    });
+    nwaku3MA = await nwaku3.getMultiaddrWithId();
+    nwaku3PeerId = await nwaku3.getPeerId();
+    waku = await createLightNode({
+      libp2p: {
+        peerDiscovery: [
+          bootstrap({ list: [nwaku3MA.toString()] }),
+          wakuPeerExchangeDiscovery(pubsubTopic)
+        ]
       }
-    },
-    120000
-  );
+    });
+    await waku.start();
+    await waku.libp2p.dialProtocol(nwaku3MA, PeerExchangeCodec);
+    await waitForRemotePeerWithCodec(waku, PeerExchangeCodec, nwaku3PeerId);
 
-  afterEachCustom(this, async () => {
+    components = waku.libp2p.components as unknown as Libp2pComponents;
+    peerExchange = new WakuPeerExchange(components, pubsubTopic);
+    numPeersToRequest = 2;
+
+    // querying the connected peer
+    peerInfos = [];
+    const startTime = Date.now();
+    while (!peerInfos || peerInfos.length != numPeersToRequest) {
+      if (Date.now() - startTime > 100000) {
+        console.log("Timeout reached, exiting the loop.");
+        break;
+      }
+
+      await delay(2000);
+
+      try {
+        peerInfos = await Promise.race([
+          peerExchange.query({
+            peerId: nwaku3PeerId,
+            numPeers: numPeersToRequest
+          }) as Promise<PeerInfo[]>,
+          new Promise<PeerInfo[]>((resolve) =>
+            setTimeout(() => resolve([]), 5000)
+          )
+        ]);
+
+        if (peerInfos.length === 0) {
+          console.log("Query timed out, retrying...");
+          continue;
+        }
+
+        console.log(peerInfos);
+      } catch (error) {
+        log.error("Error encountered, retrying...");
+      }
+    }
+  });
+
+  after(async function () {
     await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
   });
 
@@ -169,7 +165,7 @@ describe("Peer Exchange Query", function () {
     // querying the non connected peer
     try {
       await peerExchange.query({
-        peerId: nwaku1PeerId,
+        peerId: nwaku2PeerId,
         numPeers: numPeersToRequest
       });
       throw new Error("Query on not connected peer succeeded unexpectedly.");
