@@ -26,7 +26,7 @@ export const log = new Logger("test:pe");
 
 const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 2 })];
 
-describe.skip("Peer Exchange Query", function () {
+describe("Peer Exchange Query", function () {
   this.timeout(30_000);
   let waku: LightNode;
   let nwaku1: ServiceNode;
@@ -147,7 +147,8 @@ describe.skip("Peer Exchange Query", function () {
     await waitForRemotePeerWithCodec(waku, PeerExchangeCodec, foundNodePeerId);
   });
 
-  it("more peers than existing", async function () {
+  // slow and flaky in CI
+  it.skip("more peers than existing", async function () {
     const peerInfo = await peerExchange.query({
       peerId: nwaku3PeerId,
       numPeers: 5
@@ -155,7 +156,8 @@ describe.skip("Peer Exchange Query", function () {
     expect(peerInfo?.length).to.be.eq(numPeersToRequest);
   });
 
-  it("less peers than existing", async function () {
+  // slow and flaky in CI
+  it.skip("less peers than existing", async function () {
     const peerInfo = await peerExchange.query({
       peerId: nwaku3PeerId,
       numPeers: 1
@@ -163,7 +165,8 @@ describe.skip("Peer Exchange Query", function () {
     expect(peerInfo?.length).to.be.eq(1);
   });
 
-  it("non connected peers", async function () {
+  // slow and flaky in CI
+  it.skip("non connected peers", async function () {
     // querying the non connected peer
     try {
       await peerExchange.query({
