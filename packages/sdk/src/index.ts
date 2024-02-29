@@ -7,6 +7,7 @@ export {
 
 export { utf8ToBytes, bytesToUtf8 } from "@waku/utils/bytes";
 
+export { defaultLibp2p } from "./utils/libp2p.js";
 export * from "./utils/content_topic.js";
 export * from "./waku.js";
 export * from "./create.js";

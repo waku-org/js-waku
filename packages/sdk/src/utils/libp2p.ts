@@ -31,7 +31,7 @@ type MetadataService = {
   metadata?: (components: Libp2pComponents) => IMetadata;
 };
 
-async function defaultLibp2p(
+export async function defaultLibp2p(
   shardInfo?: ShardInfo,
   wakuGossipSub?: PubsubService["pubsub"],
   options?: Partial<CreateLibp2pOptions>,
