@@ -8,14 +8,19 @@ import { all as filterAll } from "@libp2p/websockets/filters";
 import { wakuMetadata } from "@waku/core";
 import {
   type CreateLibp2pOptions,
+  DefaultPubsubTopic,
   type IMetadata,
   type Libp2p,
   type Libp2pComponents,
   type ShardInfo
 } from "@waku/interfaces";
+import { wakuGossipSub } from "@waku/relay";
+import { ensureShardingConfigured } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
-import { DefaultUserAgent } from "../waku.js";
+import { CreateWakuNodeOptions, DefaultUserAgent } from "../waku.js";
+
+import { defaultPeerDiscoveries } from "./discovery.js";
 
 type PubsubService = {
   pubsub?: (components: Libp2pComponents) => GossipSub;
@@ -25,7 +30,7 @@ type MetadataService = {
   metadata?: (components: Libp2pComponents) => IMetadata;
 };
 
-export async function defaultLibp2p(
+async function defaultLibp2p(
   shardInfo?: ShardInfo,
   wakuGossipSub?: PubsubService["pubsub"],
   options?: Partial<CreateLibp2pOptions>,
@@ -70,4 +75,32 @@ export async function defaultLibp2p(
       ...options?.services
     }
   }) as any as Libp2p; // TODO: make libp2p include it;
+}
+
+export async function createLibp2pAndUpdateOptions(
+  options: CreateWakuNodeOptions,
+  initGossipSub?: boolean
+): Promise<Libp2p> {
+  const shardInfo = options.shardInfo
+    ? ensureShardingConfigured(options.shardInfo)
+    : undefined;
+
+  options.pubsubTopics = shardInfo?.pubsubTopics ??
+    options.pubsubTopics ?? [DefaultPubsubTopic];
+
+  const libp2pOptions = options?.libp2p ?? {};
+  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
+  if (options?.defaultBootstrap) {
+    peerDiscovery.push(...defaultPeerDiscoveries(options.pubsubTopics));
+    Object.assign(libp2pOptions, { peerDiscovery });
+  }
+
+  const libp2p = await defaultLibp2p(
+    shardInfo?.shardInfo,
+    initGossipSub ? wakuGossipSub(options) : undefined,
+    libp2pOptions,
+    options?.userAgent
+  );
+
+  return libp2p;
 }

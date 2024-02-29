@@ -1,14 +1,8 @@
 import { wakuFilter, wakuLightPush, wakuStore } from "@waku/core";
-import {
-  DefaultPubsubTopic,
-  type FullNode,
-  type RelayNode
-} from "@waku/interfaces";
-import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
-import { ensureShardingConfigured } from "@waku/utils";
+import { type FullNode, type RelayNode } from "@waku/interfaces";
+import { RelayCreateOptions, wakuRelay } from "@waku/relay";
 
-import { defaultPeerDiscoveries } from "../create.js";
-import { defaultLibp2p } from "../utils/libp2p.js";
+import { createLibp2pAndUpdateOptions } from "../utils/libp2p.js";
 import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "../waku.js";
 
 /**
@@ -26,29 +20,9 @@ export async function createRelayNode(
     pubsubTopics: []
   }
 ): Promise<RelayNode> {
-  const libp2pOptions = options?.libp2p ?? {};
-  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
+  const libp2p = await createLibp2pAndUpdateOptions(options, true);
 
-  const shardInfo = options.shardInfo
-    ? ensureShardingConfigured(options.shardInfo)
-    : undefined;
-
-  options.pubsubTopics = shardInfo?.pubsubTopics ??
-    options.pubsubTopics ?? [DefaultPubsubTopic];
-
-  if (options?.defaultBootstrap) {
-    peerDiscovery.push(...defaultPeerDiscoveries(options.pubsubTopics));
-    Object.assign(libp2pOptions, { peerDiscovery });
-  }
-
-  const libp2p = await defaultLibp2p(
-    shardInfo?.shardInfo,
-    wakuGossipSub(options),
-    libp2pOptions,
-    options?.userAgent
-  );
-
-  const relay = wakuRelay(options.pubsubTopics);
+  const relay = wakuRelay(options?.pubsubTopics || []);
 
   return new WakuNode(
     options as WakuOptions,
@@ -78,33 +52,12 @@ export async function createFullNode(
     pubsubTopics: []
   }
 ): Promise<FullNode> {
-  const shardInfo = options.shardInfo
-    ? ensureShardingConfigured(options.shardInfo)
-    : undefined;
-
-  const pubsubTopics = shardInfo?.pubsubTopics ??
-    options.pubsubTopics ?? [DefaultPubsubTopic];
-  options.pubsubTopics = pubsubTopics;
-  options.shardInfo = shardInfo?.shardInfo;
-
-  const libp2pOptions = options?.libp2p ?? {};
-  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
-  if (options?.defaultBootstrap) {
-    peerDiscovery.push(...defaultPeerDiscoveries(pubsubTopics));
-    Object.assign(libp2pOptions, { peerDiscovery });
-  }
-
-  const libp2p = await defaultLibp2p(
-    shardInfo?.shardInfo,
-    wakuGossipSub(options),
-    libp2pOptions,
-    options?.userAgent
-  );
+  const libp2p = await createLibp2pAndUpdateOptions(options, true);
 
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);
   const filter = wakuFilter(options);
-  const relay = wakuRelay(pubsubTopics);
+  const relay = wakuRelay(options?.pubsubTopics || []);
 
   return new WakuNode(
     options as WakuOptions,
