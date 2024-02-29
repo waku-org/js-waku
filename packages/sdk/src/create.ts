@@ -11,7 +11,6 @@ import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
 import {
   type CreateLibp2pOptions,
   DefaultPubsubTopic,
-  type FullNode,
   type IMetadata,
   type Libp2p,
   type Libp2pComponents,
@@ -22,7 +21,6 @@ import {
 } from "@waku/interfaces";
 import { wakuLocalPeerCacheDiscovery } from "@waku/local-peer-cache-discovery";
 import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
-import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { ensureShardingConfigured } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
@@ -40,9 +38,7 @@ export { Libp2pComponents };
  * Create a Waku node configured to use autosharding or static sharding.
  */
 export async function createNode(
-  options?: ProtocolCreateOptions &
-    Partial<WakuOptions> &
-    Partial<RelayCreateOptions>
+  options?: ProtocolCreateOptions & Partial<WakuOptions>
 ): Promise<LightNode> {
   options = options ?? { pubsubTopics: [] };
 
@@ -63,7 +59,7 @@ export async function createNode(
 
   const libp2p = await defaultLibp2p(
     shardInfo.shardInfo,
-    wakuGossipSub(options),
+    undefined,
     libp2pOptions,
     options?.userAgent
   );
@@ -107,7 +103,7 @@ export async function createLightNode(
 
   const libp2p = await defaultLibp2p(
     shardInfo?.shardInfo,
-    wakuGossipSub(options),
+    undefined,
     libp2pOptions,
     options?.userAgent
   );
@@ -123,64 +119,6 @@ export async function createLightNode(
     lightPush,
     filter
   ) as LightNode;
-}
-
-/**
- * Create a Waku node that uses all Waku protocols.
- *
- * This helper is not recommended except if:
- * - you are interfacing with nwaku v0.11 or below
- * - you are doing some form of testing
- *
- * If you are building a full node, it is recommended to use
- * [nwaku](github.com/status-im/nwaku) and its JSON RPC API or wip REST API.
- *
- * @see https://github.com/status-im/nwaku/issues/1085
- * @internal
- */
-export async function createFullNode(
-  options?: ProtocolCreateOptions &
-    Partial<WakuOptions> &
-    Partial<RelayCreateOptions>
-): Promise<FullNode> {
-  options = options ?? { pubsubTopics: [] };
-
-  const shardInfo = options.shardInfo
-    ? ensureShardingConfigured(options.shardInfo)
-    : undefined;
-
-  const pubsubTopics = shardInfo?.pubsubTopics ??
-    options.pubsubTopics ?? [DefaultPubsubTopic];
-  options.pubsubTopics = pubsubTopics;
-  options.shardInfo = shardInfo?.shardInfo;
-
-  const libp2pOptions = options?.libp2p ?? {};
-  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
-  if (options?.defaultBootstrap) {
-    peerDiscovery.push(...defaultPeerDiscoveries(pubsubTopics));
-    Object.assign(libp2pOptions, { peerDiscovery });
-  }
-
-  const libp2p = await defaultLibp2p(
-    shardInfo?.shardInfo,
-    wakuGossipSub(options),
-    libp2pOptions,
-    options?.userAgent
-  );
-
-  const store = wakuStore(options);
-  const lightPush = wakuLightPush(options);
-  const filter = wakuFilter(options);
-  const relay = wakuRelay(pubsubTopics);
-
-  return new WakuNode(
-    options as WakuOptions,
-    libp2p,
-    store,
-    lightPush,
-    filter,
-    relay
-  ) as FullNode;
 }
 
 export function defaultPeerDiscoveries(

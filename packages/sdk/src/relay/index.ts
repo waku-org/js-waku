@@ -1,5 +1,7 @@
+import { wakuFilter, wakuLightPush, wakuStore } from "@waku/core";
 import {
   DefaultPubsubTopic,
+  type FullNode,
   type ProtocolCreateOptions,
   type RelayNode
 } from "@waku/interfaces";
@@ -58,4 +60,62 @@ export async function createRelayNode(
     undefined,
     relay
   ) as RelayNode;
+}
+
+/**
+ * Create a Waku node that uses all Waku protocols.
+ *
+ * This helper is not recommended except if:
+ * - you are interfacing with nwaku v0.11 or below
+ * - you are doing some form of testing
+ *
+ * If you are building a full node, it is recommended to use
+ * [nwaku](github.com/status-im/nwaku) and its JSON RPC API or wip REST API.
+ *
+ * @see https://github.com/status-im/nwaku/issues/1085
+ * @internal
+ */
+export async function createFullNode(
+  options?: ProtocolCreateOptions &
+    Partial<WakuOptions> &
+    Partial<RelayCreateOptions>
+): Promise<FullNode> {
+  options = options ?? { pubsubTopics: [] };
+
+  const shardInfo = options.shardInfo
+    ? ensureShardingConfigured(options.shardInfo)
+    : undefined;
+
+  const pubsubTopics = shardInfo?.pubsubTopics ??
+    options.pubsubTopics ?? [DefaultPubsubTopic];
+  options.pubsubTopics = pubsubTopics;
+  options.shardInfo = shardInfo?.shardInfo;
+
+  const libp2pOptions = options?.libp2p ?? {};
+  const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
+  if (options?.defaultBootstrap) {
+    peerDiscovery.push(...defaultPeerDiscoveries(pubsubTopics));
+    Object.assign(libp2pOptions, { peerDiscovery });
+  }
+
+  const libp2p = await defaultLibp2p(
+    shardInfo?.shardInfo,
+    wakuGossipSub(options),
+    libp2pOptions,
+    options?.userAgent
+  );
+
+  const store = wakuStore(options);
+  const lightPush = wakuLightPush(options);
+  const filter = wakuFilter(options);
+  const relay = wakuRelay(pubsubTopics);
+
+  return new WakuNode(
+    options as WakuOptions,
+    libp2p,
+    store,
+    lightPush,
+    filter,
+    relay
+  ) as FullNode;
 }
