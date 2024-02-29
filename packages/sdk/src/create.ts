@@ -7,7 +7,11 @@ import { ping } from "@libp2p/ping";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import { wakuFilter, wakuLightPush, wakuMetadata, wakuStore } from "@waku/core";
-import { enrTree, wakuDnsDiscovery } from "@waku/discovery";
+import {
+  enrTree,
+  wakuDnsDiscovery,
+  wakuPeerExchangeDiscovery
+} from "@waku/discovery";
 import {
   type CreateLibp2pOptions,
   DefaultPubsubTopic,
@@ -21,7 +25,6 @@ import {
   type ShardInfo
 } from "@waku/interfaces";
 import { wakuLocalPeerCacheDiscovery } from "@waku/local-peer-cache-discovery";
-import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { ensureShardingConfigured } from "@waku/utils";
 import { createLibp2p } from "libp2p";

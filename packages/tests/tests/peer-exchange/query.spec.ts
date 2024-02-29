@@ -2,12 +2,12 @@ import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
 import { multiaddr } from "@multiformats/multiaddr";
 import type { Multiaddr } from "@multiformats/multiaddr";
-import type { LightNode, PeerInfo } from "@waku/interfaces";
 import {
   PeerExchangeCodec,
   WakuPeerExchange,
   wakuPeerExchangeDiscovery
-} from "@waku/peer-exchange";
+} from "@waku/discovery";
+import type { LightNode, PeerInfo } from "@waku/interfaces";
 import { createLightNode, Libp2pComponents } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";

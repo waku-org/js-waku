@@ -76,7 +76,6 @@
     "@types/tail": "^2.2.3",
     "@waku/discovery": "*",
     "@waku/message-encryption": "*",
-    "@waku/peer-exchange": "*",
     "@waku/sdk": "*",
     "allure-commandline": "^2.24.1",
     "allure-mocha": "^2.9.2",
