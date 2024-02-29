@@ -22,10 +22,10 @@ import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "../waku.js";
  * or use this function with caution.
  */
 export async function createRelayNode(
-  options?: CreateWakuNodeOptions & Partial<RelayCreateOptions>
+  options: CreateWakuNodeOptions & Partial<RelayCreateOptions> = {
+    pubsubTopics: []
+  }
 ): Promise<RelayNode> {
-  options = options ?? { pubsubTopics: [] };
-
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
 
@@ -74,10 +74,10 @@ export async function createRelayNode(
  * @internal
  */
 export async function createFullNode(
-  options?: CreateWakuNodeOptions & Partial<RelayCreateOptions>
+  options: CreateWakuNodeOptions & Partial<RelayCreateOptions> = {
+    pubsubTopics: []
+  }
 ): Promise<FullNode> {
-  options = options ?? { pubsubTopics: [] };
-
   const shardInfo = options.shardInfo
     ? ensureShardingConfigured(options.shardInfo)
     : undefined;

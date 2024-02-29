@@ -26,10 +26,8 @@ export { Libp2pComponents };
  * Create a Waku node configured to use autosharding or static sharding.
  */
 export async function createNode(
-  options?: CreateWakuNodeOptions
+  options: CreateWakuNodeOptions = { pubsubTopics: [] }
 ): Promise<LightNode> {
-  options = options ?? { pubsubTopics: [] };
-
   if (!options.shardInfo) {
     throw new Error("Shard info must be set");
   }
@@ -71,10 +69,8 @@ export async function createNode(
  * Uses Waku Filter V2 by default.
  */
 export async function createLightNode(
-  options?: CreateWakuNodeOptions
+  options: CreateWakuNodeOptions = {}
 ): Promise<LightNode> {
-  options = options ?? {};
-
   const shardInfo = options.shardInfo
     ? ensureShardingConfigured(options.shardInfo)
     : undefined;
