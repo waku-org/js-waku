@@ -1,6 +1,7 @@
 import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
 import type { Peer, PeerStore } from "@libp2p/interface";
+import type { MultiaddrInput } from "@multiformats/multiaddr";
 
 import type { ShardInfo } from "./enr.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
@@ -87,6 +88,10 @@ export type ProtocolCreateOptions = {
    * Use recommended bootstrap method to discovery and connect to new nodes.
    */
   defaultBootstrap?: boolean;
+  /**
+   * List of peers to use to bootstrap the node. Ignored if defaultBootstrap is turned on.
+   */
+  bootstrapPeers?: MultiaddrInput[];
 };
 
 export type Callback<T extends IDecodedMessage> = (

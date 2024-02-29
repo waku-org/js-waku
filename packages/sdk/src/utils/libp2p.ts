@@ -1,5 +1,6 @@
 import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
+import { bootstrap } from "@libp2p/bootstrap";
 import { identify } from "@libp2p/identify";
 import { mplex } from "@libp2p/mplex";
 import { ping } from "@libp2p/ping";
@@ -90,10 +91,14 @@ export async function createLibp2pAndUpdateOptions(
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
+
   if (options?.defaultBootstrap) {
     peerDiscovery.push(...defaultPeerDiscoveries(options.pubsubTopics));
-    Object.assign(libp2pOptions, { peerDiscovery });
+  } else if (options?.bootstrapPeers) {
+    peerDiscovery.push(bootstrap(options.bootstrapPeers));
   }
+
+  libp2pOptions.peerDiscovery = peerDiscovery;
 
   const libp2p = await defaultLibp2p(
     shardInfo?.shardInfo,
