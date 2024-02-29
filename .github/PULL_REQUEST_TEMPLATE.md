@@ -24,3 +24,4 @@ Contribution checklist:
 - [ ] covered by unit tests;
 - [ ] covered by e2e test;
 - [ ] linked with parent issue;
+- [ ] add `!` in title if breaks public API;
