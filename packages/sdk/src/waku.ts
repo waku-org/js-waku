@@ -18,7 +18,7 @@ import type {
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { subscribeToContentTopic } from "./content_topic.js";
+import { subscribeToContentTopic } from "./utils/content_topic.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
