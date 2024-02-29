@@ -10,6 +10,7 @@ import { wakuFilter, wakuLightPush, wakuMetadata, wakuStore } from "@waku/core";
 import {
   enrTree,
   wakuDnsDiscovery,
+  wakuLocalPeerCacheDiscovery,
   wakuPeerExchangeDiscovery
 } from "@waku/discovery";
 import {
@@ -24,7 +25,6 @@ import {
   PubsubTopic,
   type ShardInfo
 } from "@waku/interfaces";
-import { wakuLocalPeerCacheDiscovery } from "@waku/local-peer-cache-discovery";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { ensureShardingConfigured } from "@waku/utils";
 import { createLibp2p } from "libp2p";

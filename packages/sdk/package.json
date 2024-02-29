@@ -69,7 +69,6 @@
     "@waku/core": "0.0.26",
     "@waku/discovery": "0.0.1",
     "@waku/interfaces": "0.0.21",
-    "@waku/local-peer-cache-discovery": "^0.0.1",
     "@waku/relay": "0.0.9",
     "@waku/utils": "0.0.14",
     "libp2p": "^1.1.2"
