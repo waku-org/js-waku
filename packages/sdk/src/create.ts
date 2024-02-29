@@ -7,7 +7,7 @@ import { ping } from "@libp2p/ping";
 import { webSockets } from "@libp2p/websockets";
 import { all as filterAll } from "@libp2p/websockets/filters";
 import { wakuFilter, wakuLightPush, wakuMetadata, wakuStore } from "@waku/core";
-import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
+import { enrTree, wakuDnsDiscovery } from "@waku/discovery";
 import {
   type CreateLibp2pOptions,
   DefaultPubsubTopic,

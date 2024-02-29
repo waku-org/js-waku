@@ -74,7 +74,7 @@
     "@types/mocha": "^10.0.6",
     "@types/sinon": "^17.0.3",
     "@types/tail": "^2.2.3",
-    "@waku/dns-discovery": "*",
+    "@waku/discovery": "*",
     "@waku/message-encryption": "*",
     "@waku/peer-exchange": "*",
     "@waku/sdk": "*",
