@@ -8,7 +8,8 @@ import {
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { ensureShardingConfigured } from "@waku/utils";
 
-import { defaultLibp2p, defaultPeerDiscoveries } from "../create.js";
+import { defaultPeerDiscoveries } from "../create.js";
+import { defaultLibp2p } from "../utils/libp2p.js";
 import { WakuNode, WakuOptions } from "../waku.js";
 
 /**

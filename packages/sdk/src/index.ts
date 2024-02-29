@@ -7,7 +7,7 @@ export {
 
 export { utf8ToBytes, bytesToUtf8 } from "@waku/utils/bytes";
 
-export * from "./content_topic.js";
+export * from "./utils/content_topic.js";
 export * from "./waku.js";
 export * from "./create.js";
 export * as waku from "@waku/core";
