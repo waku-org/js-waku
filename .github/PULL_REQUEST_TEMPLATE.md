@@ -19,3 +19,9 @@ If this is a bug fix, please describe why the old behavior was problematic.
 
 - Resolves <issue number>
 - Related to <link to specs>
+
+
+Contribution checklist:
+- [ ] covered by unit tests;
+- [ ] covered by e2e test;
+- [ ] linked with parent issue;
