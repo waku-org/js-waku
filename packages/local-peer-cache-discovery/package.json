@@ -1,7 +1,7 @@
 {
-  "name": "@waku/local-discovery",
+  "name": "@waku/local-peer-cache-discovery",
   "version": "0.0.1",
-  "description": "Local Discovery keeps records of healthy peers in the browser's local storage for quicker bootstrapping.",
+  "description": "Local Peer Cache keeps records of healthy peers in the browser's local storage for quicker bootstrapping.",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "exports": {
@@ -12,7 +12,7 @@
   },
   "type": "module",
   "author": "Waku Team",
-  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/local-discovery#readme",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/local-peer-cache-discovery#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/waku-org/js-waku.git"
@@ -67,7 +67,7 @@
     "mocha": "^10.2.0",
     "node-localstorage": "^3.0.5",
     "npm-run-all": "^4.1.5",
-    "rollup": "^4.9.5",
+    "rollup": "^4.12.0",
     "sinon": "^17.0.1"
   },
   "files": [

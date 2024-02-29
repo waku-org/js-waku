@@ -8,7 +8,7 @@ const log = new Logger("wait-for-remote-peer");
 /**
  * Wait for a remote peer to be ready given the passed protocols.
  * Must be used after attempting to connect to nodes, using
- * {@link @waku/core!WakuNode.dial} or a bootstrap method with
+ * {@link @waku/sdk!WakuNode.dial} or a bootstrap method with
  * {@link @waku/sdk!createLightNode}.
  *
  * If the passed protocols is a GossipSub protocol, then it resolves only once

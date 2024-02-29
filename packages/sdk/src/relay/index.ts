@@ -1,4 +1,3 @@
-import { WakuNode, WakuOptions } from "@waku/core";
 import {
   DefaultPubsubTopic,
   type ProtocolCreateOptions,
@@ -8,6 +7,7 @@ import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
 import { ensureShardingConfigured } from "@waku/utils";
 
 import { defaultLibp2p, defaultPeerDiscoveries } from "../create.js";
+import { WakuNode, WakuOptions } from "../waku.js";
 
 /**
  * Create a Waku node that uses Waku Relay to send and receive messages,
