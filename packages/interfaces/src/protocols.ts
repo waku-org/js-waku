@@ -89,7 +89,7 @@ export type ProtocolCreateOptions = {
    */
   defaultBootstrap?: boolean;
   /**
-   * List of peers to use to bootstrap the node. Ignored if defaultBootstrap is turned on.
+   * List of peers to use to bootstrap the node. Ignored if defaultBootstrap is set to true.
    */
   bootstrapPeers?: MultiaddrInput[];
 };

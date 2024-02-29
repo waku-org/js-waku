@@ -95,7 +95,7 @@ export async function createLibp2pAndUpdateOptions(
   if (options?.defaultBootstrap) {
     peerDiscovery.push(...defaultPeerDiscoveries(options.pubsubTopics));
   } else if (options?.bootstrapPeers) {
-    peerDiscovery.push(bootstrap(options.bootstrapPeers));
+    peerDiscovery.push(bootstrap({ list: options.bootstrapPeers }));
   }
 
   libp2pOptions.peerDiscovery = peerDiscovery;
