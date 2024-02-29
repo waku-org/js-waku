@@ -11,6 +11,7 @@ import type {
   IStore,
   Libp2p,
   LightNode,
+  ProtocolCreateOptions,
   PubsubTopic,
   Waku
 } from "@waku/interfaces";
@@ -47,6 +48,9 @@ export interface WakuOptions {
   userAgent?: string;
   pubsubTopics: PubsubTopic[];
 }
+
+export type CreateWakuNodeOptions = ProtocolCreateOptions &
+  Partial<WakuOptions>;
 
 export class WakuNode implements Waku {
   public libp2p: Libp2p;

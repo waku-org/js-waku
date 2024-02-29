@@ -5,7 +5,6 @@ import {
   DefaultPubsubTopic,
   type Libp2pComponents,
   type LightNode,
-  type ProtocolCreateOptions,
   PubsubTopic
 } from "@waku/interfaces";
 import { wakuLocalPeerCacheDiscovery } from "@waku/local-peer-cache-discovery";
@@ -13,7 +12,7 @@ import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { ensureShardingConfigured } from "@waku/utils";
 
 import { defaultLibp2p } from "./utils/libp2p.js";
-import { WakuNode, WakuOptions } from "./waku.js";
+import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "./waku.js";
 
 const DEFAULT_NODE_REQUIREMENTS = {
   lightPush: 1,
@@ -27,7 +26,7 @@ export { Libp2pComponents };
  * Create a Waku node configured to use autosharding or static sharding.
  */
 export async function createNode(
-  options?: ProtocolCreateOptions & Partial<WakuOptions>
+  options?: CreateWakuNodeOptions
 ): Promise<LightNode> {
   options = options ?? { pubsubTopics: [] };
 
@@ -72,7 +71,7 @@ export async function createNode(
  * Uses Waku Filter V2 by default.
  */
 export async function createLightNode(
-  options?: ProtocolCreateOptions & Partial<WakuOptions>
+  options?: CreateWakuNodeOptions
 ): Promise<LightNode> {
   options = options ?? {};
 

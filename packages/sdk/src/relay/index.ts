@@ -2,7 +2,6 @@ import { wakuFilter, wakuLightPush, wakuStore } from "@waku/core";
 import {
   DefaultPubsubTopic,
   type FullNode,
-  type ProtocolCreateOptions,
   type RelayNode
 } from "@waku/interfaces";
 import { RelayCreateOptions, wakuGossipSub, wakuRelay } from "@waku/relay";
@@ -10,7 +9,7 @@ import { ensureShardingConfigured } from "@waku/utils";
 
 import { defaultPeerDiscoveries } from "../create.js";
 import { defaultLibp2p } from "../utils/libp2p.js";
-import { WakuNode, WakuOptions } from "../waku.js";
+import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "../waku.js";
 
 /**
  * Create a Waku node that uses Waku Relay to send and receive messages,
@@ -23,9 +22,7 @@ import { WakuNode, WakuOptions } from "../waku.js";
  * or use this function with caution.
  */
 export async function createRelayNode(
-  options?: ProtocolCreateOptions &
-    Partial<WakuOptions> &
-    Partial<RelayCreateOptions>
+  options?: CreateWakuNodeOptions & Partial<RelayCreateOptions>
 ): Promise<RelayNode> {
   options = options ?? { pubsubTopics: [] };
 
@@ -77,9 +74,7 @@ export async function createRelayNode(
  * @internal
  */
 export async function createFullNode(
-  options?: ProtocolCreateOptions &
-    Partial<WakuOptions> &
-    Partial<RelayCreateOptions>
+  options?: CreateWakuNodeOptions & Partial<RelayCreateOptions>
 ): Promise<FullNode> {
   options = options ?? { pubsubTopics: [] };
 
