@@ -4,8 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { encodeMessage, decodeMessage, message } from 'protons-runtime'
-import type { Codec } from 'protons-runtime'
+import { type Codec, CodeError, decodeMessage, type DecodeOptions, encodeMessage, message } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface PeerInfo {
@@ -30,7 +29,7 @@ export namespace PeerInfo {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {}
 
         const end = length == null ? reader.len : reader.pos + length
@@ -39,12 +38,14 @@ export namespace PeerInfo {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.enr = reader.bytes()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -59,8 +60,8 @@ export namespace PeerInfo {
     return encodeMessage(obj, PeerInfo.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): PeerInfo => {
-    return decodeMessage(buf, PeerInfo.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<PeerInfo>): PeerInfo => {
+    return decodeMessage(buf, PeerInfo.codec(), opts)
   }
 }
 
@@ -86,7 +87,7 @@ export namespace PeerExchangeQuery {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {}
 
         const end = length == null ? reader.len : reader.pos + length
@@ -95,12 +96,14 @@ export namespace PeerExchangeQuery {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.numPeers = reader.uint64()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -115,8 +118,8 @@ export namespace PeerExchangeQuery {
     return encodeMessage(obj, PeerExchangeQuery.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): PeerExchangeQuery => {
-    return decodeMessage(buf, PeerExchangeQuery.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<PeerExchangeQuery>): PeerExchangeQuery => {
+    return decodeMessage(buf, PeerExchangeQuery.codec(), opts)
   }
 }
 
@@ -144,7 +147,7 @@ export namespace PeerExchangeResponse {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
           peerInfos: []
         }
@@ -155,12 +158,20 @@ export namespace PeerExchangeResponse {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
-              obj.peerInfos.push(PeerInfo.codec().decode(reader, reader.uint32()))
+            case 1: {
+              if (opts.limits?.peerInfos != null && obj.peerInfos.length === opts.limits.peerInfos) {
+                throw new CodeError('decode error - map field "peerInfos" had too many elements', 'ERR_MAX_LENGTH')
+              }
+
+              obj.peerInfos.push(PeerInfo.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.peerInfos$
+              }))
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -175,8 +186,8 @@ export namespace PeerExchangeResponse {
     return encodeMessage(obj, PeerExchangeResponse.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): PeerExchangeResponse => {
-    return decodeMessage(buf, PeerExchangeResponse.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<PeerExchangeResponse>): PeerExchangeResponse => {
+    return decodeMessage(buf, PeerExchangeResponse.codec(), opts)
   }
 }
 
@@ -208,7 +219,7 @@ export namespace PeerExchangeRPC {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {}
 
         const end = length == null ? reader.len : reader.pos + length
@@ -217,15 +228,22 @@ export namespace PeerExchangeRPC {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
-              obj.query = PeerExchangeQuery.codec().decode(reader, reader.uint32())
+            case 1: {
+              obj.query = PeerExchangeQuery.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.query
+              })
               break
-            case 2:
-              obj.response = PeerExchangeResponse.codec().decode(reader, reader.uint32())
+            }
+            case 2: {
+              obj.response = PeerExchangeResponse.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.response
+              })
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -240,7 +258,7 @@ export namespace PeerExchangeRPC {
     return encodeMessage(obj, PeerExchangeRPC.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): PeerExchangeRPC => {
-    return decodeMessage(buf, PeerExchangeRPC.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<PeerExchangeRPC>): PeerExchangeRPC => {
+    return decodeMessage(buf, PeerExchangeRPC.codec(), opts)
   }
 }
