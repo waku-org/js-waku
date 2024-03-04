@@ -87,6 +87,10 @@ export type ProtocolCreateOptions = {
    * Use recommended bootstrap method to discovery and connect to new nodes.
    */
   defaultBootstrap?: boolean;
+  /**
+   * List of peers to use to bootstrap the node. Ignored if defaultBootstrap is set to true.
+   */
+  bootstrapPeers?: string[];
 };
 
 export type Callback<T extends IDecodedMessage> = (

@@ -11,13 +11,14 @@ import type {
   IStore,
   Libp2p,
   LightNode,
+  ProtocolCreateOptions,
   PubsubTopic,
   Waku
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { subscribeToContentTopic } from "./content_topic.js";
+import { subscribeToContentTopic } from "./utils/content_topic.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -47,6 +48,9 @@ export interface WakuOptions {
   userAgent?: string;
   pubsubTopics: PubsubTopic[];
 }
+
+export type CreateWakuNodeOptions = ProtocolCreateOptions &
+  Partial<WakuOptions>;
 
 export class WakuNode implements Waku {
   public libp2p: Libp2p;

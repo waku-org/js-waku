@@ -201,9 +201,9 @@ export class ServiceNode {
     return waitForLine(this.logPath, msg, timeout);
   }
 
-  /** Calls nwaku JSON-RPC API `get_waku_v2_admin_v1_peers` to check
-   * for known peers
-   * @throws if WakuNode isn't started.
+  /**
+   * Calls nwaku REST API "/admin/v1/peers" to check for known peers
+   * @throws
    */
   async peers(): Promise<string[]> {
     this.checkProcess();
