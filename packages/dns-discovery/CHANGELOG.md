@@ -55,6 +55,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * devDependencies
     * @waku/interfaces bumped from 0.0.20 to 0.0.21
 
+## [0.0.21](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.20...dns-discovery-v0.0.21) (2024-03-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* protocols filter peers as per configured shard ([#1756](https://github.com/waku-org/js-waku/issues/1756))
+
+### Features
+
+* Protocols filter peers as per configured shard ([#1756](https://github.com/waku-org/js-waku/issues/1756)) ([477c2a5](https://github.com/waku-org/js-waku/commit/477c2a5918f2f75cd2c14bc6ed75e1687c5a09b4))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from 0.0.20 to 0.0.21
+    * @waku/utils bumped from 0.0.14 to 0.0.15
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.21 to 0.0.22
+
 ## [0.0.19](https://github.com/waku-org/js-waku/compare/dns-discovery-v0.0.18...dns-discovery-v0.0.19) (2023-11-01)
 
 

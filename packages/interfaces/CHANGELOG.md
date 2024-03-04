@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.22](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.21...interfaces-v0.0.22) (2024-03-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* rename local-discovery to local-peer-cache-discovery ([#1867](https://github.com/waku-org/js-waku/issues/1867))
+* protocols filter peers as per configured shard ([#1756](https://github.com/waku-org/js-waku/issues/1756))
+
+### Features
+
+* Add bootstrapPeers option and refactor sdk ([#1871](https://github.com/waku-org/js-waku/issues/1871)) ([9f198dd](https://github.com/waku-org/js-waku/commit/9f198dd149ef299e3edce69b93cc2942c6f24846))
+* Create node and subscription by content topic ([ee2d417](https://github.com/waku-org/js-waku/commit/ee2d4176f8cca45a51b7dac0009f0eb01952f540))
+* Decouple sharding params out of core ([e138b4f](https://github.com/waku-org/js-waku/commit/e138b4f5c49a35a37830e31e8be87d824f53249f))
+* Lightpush & filter send requests to multiple peers ([#1779](https://github.com/waku-org/js-waku/issues/1779)) ([7affbe2](https://github.com/waku-org/js-waku/commit/7affbe222dd30ccb6619839f4bc5eb86433a80f7))
+* Local discovery ([#1811](https://github.com/waku-org/js-waku/issues/1811)) ([199f6ab](https://github.com/waku-org/js-waku/commit/199f6ab2ff83694b93e94e935e2925537e01e281))
+* Make ShardingParams optional in sdk, required internally ([68d3229](https://github.com/waku-org/js-waku/commit/68d3229644f395bd84b2e2a7067c7b51e9da3dd0))
+* Protocols filter peers as per configured shard ([#1756](https://github.com/waku-org/js-waku/issues/1756)) ([477c2a5](https://github.com/waku-org/js-waku/commit/477c2a5918f2f75cd2c14bc6ed75e1687c5a09b4))
+
+
+### Miscellaneous Chores
+
+* Rename local-discovery to local-peer-cache-discovery ([#1867](https://github.com/waku-org/js-waku/issues/1867)) ([f3cb10d](https://github.com/waku-org/js-waku/commit/f3cb10d484bac134377b8cfd77e077ffc33bd319))
+
 ## [0.0.21](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.20...interfaces-v0.0.21) (2024-01-10)
 
 

@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.27](https://github.com/waku-org/js-waku/compare/core-v0.0.26...core-v0.0.27) (2024-03-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* protocols filter peers as per configured shard ([#1756](https://github.com/waku-org/js-waku/issues/1756))
+
+### Features
+
+* Create node and subscription by content topic ([ee2d417](https://github.com/waku-org/js-waku/commit/ee2d4176f8cca45a51b7dac0009f0eb01952f540))
+* Decouple sharding params out of core ([e138b4f](https://github.com/waku-org/js-waku/commit/e138b4f5c49a35a37830e31e8be87d824f53249f))
+* Lightpush & filter send requests to multiple peers ([#1779](https://github.com/waku-org/js-waku/issues/1779)) ([7affbe2](https://github.com/waku-org/js-waku/commit/7affbe222dd30ccb6619839f4bc5eb86433a80f7))
+* Local discovery ([#1811](https://github.com/waku-org/js-waku/issues/1811)) ([199f6ab](https://github.com/waku-org/js-waku/commit/199f6ab2ff83694b93e94e935e2925537e01e281))
+* Make ShardingParams optional in sdk, required internally ([68d3229](https://github.com/waku-org/js-waku/commit/68d3229644f395bd84b2e2a7067c7b51e9da3dd0))
+* Protocols filter peers as per configured shard ([#1756](https://github.com/waku-org/js-waku/issues/1756)) ([477c2a5](https://github.com/waku-org/js-waku/commit/477c2a5918f2f75cd2c14bc6ed75e1687c5a09b4))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.20 to ^0.0.21
+    * @waku/interfaces bumped from 0.0.21 to 0.0.22
+    * @waku/message-hash bumped from ^0.1.10 to ^0.1.11
+    * @waku/utils bumped from 0.0.14 to 0.0.15
+
 ## [0.0.26](https://github.com/waku-org/js-waku/compare/core-v0.0.25...core-v0.0.26) (2024-01-10)
 
 
