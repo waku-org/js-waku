@@ -20,7 +20,7 @@ export async function createRelayNode(
     pubsubTopics: []
   }
 ): Promise<RelayNode> {
-  const libp2p = await createLibp2pAndUpdateOptions(options, true);
+  const libp2p = await createLibp2pAndUpdateOptions(options);
 
   const relay = wakuRelay(options?.pubsubTopics || []);
 
@@ -52,7 +52,7 @@ export async function createFullNode(
     pubsubTopics: []
   }
 ): Promise<FullNode> {
-  const libp2p = await createLibp2pAndUpdateOptions(options, true);
+  const libp2p = await createLibp2pAndUpdateOptions(options);
 
   const store = wakuStore(options);
   const lightPush = wakuLightPush(options);

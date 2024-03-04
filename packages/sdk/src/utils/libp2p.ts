@@ -79,8 +79,7 @@ export async function defaultLibp2p(
 }
 
 export async function createLibp2pAndUpdateOptions(
-  options: CreateWakuNodeOptions,
-  initGossipSub?: boolean
+  options: CreateWakuNodeOptions
 ): Promise<Libp2p> {
   const shardInfo = options.shardInfo
     ? ensureShardingConfigured(options.shardInfo)
@@ -104,7 +103,7 @@ export async function createLibp2pAndUpdateOptions(
 
   const libp2p = await defaultLibp2p(
     shardInfo?.shardInfo,
-    initGossipSub ? wakuGossipSub(options) : undefined,
+    wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
   );
