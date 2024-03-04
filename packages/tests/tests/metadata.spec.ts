@@ -62,7 +62,6 @@ describe("Metadata Protocol", function () {
       expect(activeConnections.length).to.equal(1);
     });
 
-    // Had to use cluster 0 because of https://github.com/waku-org/js-waku/issues/1848
     it("same cluster, different shard: nodes connect", async function () {
       const shardInfo1: ShardInfo = {
         clusterId: 0,

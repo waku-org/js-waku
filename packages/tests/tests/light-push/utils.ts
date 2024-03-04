@@ -1,5 +1,6 @@
 import { createEncoder, waitForRemotePeer } from "@waku/core";
 import {
+  ContentTopicInfo,
   DefaultPubsubTopic,
   LightNode,
   Protocols,
@@ -23,13 +24,23 @@ export async function runNodes(
   shardInfo?: ShardingParams
 ): Promise<[ServiceNode, LightNode]> {
   const nwaku = new ServiceNode(makeLogFileName(context));
+
+  function isContentTopicInfo(info: ShardingParams): info is ContentTopicInfo {
+    return (info as ContentTopicInfo).contentTopics !== undefined;
+  }
+
   await nwaku.start(
     {
       lightpush: true,
       filter: true,
       relay: true,
       pubsubTopic: pubsubTopics,
-      ...(shardInfo && { clusterId: shardInfo.clusterId })
+      // Conditionally include clusterId if shardInfo exists
+      ...(shardInfo && { clusterId: shardInfo.clusterId }),
+      // Conditionally include contentTopic if shardInfo exists and clusterId is 1
+      ...(shardInfo &&
+        isContentTopicInfo(shardInfo) &&
+        shardInfo.clusterId === 1 && { contentTopic: shardInfo.contentTopics })
     },
     { retries: 3 }
   );

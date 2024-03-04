@@ -317,6 +317,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
 
 describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
   this.timeout(15000);
+  const clusterID = 1;
   let waku1: RelayNode;
   let waku2: RelayNode;
   let waku3: RelayNode;
@@ -325,18 +326,18 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
   const customContentTopic2 = "/myapp/1/latest/proto";
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
     customContentTopic1,
-    3
+    clusterID
   );
   const autoshardingPubsubTopic2 = contentTopicToPubsubTopic(
     customContentTopic2,
-    3
+    clusterID
   );
   const contentTopicInfo1: ContentTopicInfo = {
-    clusterId: 3,
+    clusterId: clusterID,
     contentTopics: [customContentTopic1]
   };
   const contentTopicInfo2: ContentTopicInfo = {
-    clusterId: 3,
+    clusterId: clusterID,
     contentTopics: [customContentTopic2]
   };
   const customEncoder1 = createEncoder({
@@ -356,7 +357,7 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
     pubsubTopicToSingleShardInfo(autoshardingPubsubTopic2)
   );
   const contentTopicInfoBothShards: ContentTopicInfo = {
-    clusterId: 3,
+    clusterId: clusterID,
     contentTopics: [customContentTopic1, customContentTopic2]
   };
 

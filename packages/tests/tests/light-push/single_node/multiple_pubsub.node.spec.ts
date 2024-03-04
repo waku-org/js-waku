@@ -185,7 +185,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   let nwaku2: ServiceNode;
   let messageCollector: MessageCollector;
 
-  const clusterId = 2;
+  const clusterId = 1;
   const customContentTopic1 = "/waku/2/content/test.js";
   const customContentTopic2 = "/myapp/1/latest/proto";
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(

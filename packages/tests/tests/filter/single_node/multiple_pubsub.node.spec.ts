@@ -186,6 +186,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
 describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(30000);
+  const clusterId = 1;
   let waku: LightNode;
   let nwaku: ServiceNode;
   let nwaku2: ServiceNode;
@@ -196,36 +197,36 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   const customContentTopic2 = "/myapp/1/latest/proto";
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
     customContentTopic1,
-    3
+    clusterId
   );
   const autoshardingPubsubTopic2 = contentTopicToPubsubTopic(
     customContentTopic2,
-    3
+    clusterId
   );
   const contentTopicInfo: ContentTopicInfo = {
-    clusterId: 3,
+    clusterId: clusterId,
     contentTopics: [customContentTopic1, customContentTopic2]
   };
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
     pubsubTopicShardInfo: {
-      clusterId: 3,
+      clusterId: clusterId,
       shard: contentTopicToShardIndex(customContentTopic1)
     }
   });
   const customDecoder1 = createDecoder(customContentTopic1, {
-    clusterId: 3,
+    clusterId: clusterId,
     shard: contentTopicToShardIndex(customContentTopic1)
   });
   const customEncoder2 = createEncoder({
     contentTopic: customContentTopic2,
     pubsubTopicShardInfo: {
-      clusterId: 3,
+      clusterId: clusterId,
       shard: contentTopicToShardIndex(customContentTopic2)
     }
   });
   const customDecoder2 = createDecoder(customContentTopic2, {
-    clusterId: 3,
+    clusterId: clusterId,
     shard: contentTopicToShardIndex(customContentTopic2)
   });
 
@@ -309,7 +310,8 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
       lightpush: true,
       relay: true,
       pubsubTopic: [autoshardingPubsubTopic2],
-      clusterId: 3
+      clusterId: clusterId,
+      contentTopic: [customContentTopic2]
     });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);

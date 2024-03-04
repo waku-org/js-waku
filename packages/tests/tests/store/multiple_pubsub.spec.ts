@@ -180,8 +180,7 @@ describe("Waku Store, custom pubsub topic", function () {
   });
 });
 
-// Skipped until https://github.com/waku-org/js-waku/issues/1845 gets fixed
-describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
+describe("Waku Store (Autosharding), custom pubsub topic", function () {
   this.timeout(15000);
   let waku: LightNode;
   let nwaku: ServiceNode;
@@ -189,7 +188,7 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
 
   const customContentTopic1 = "/waku/2/content/utf8";
   const customContentTopic2 = "/myapp/1/latest/proto";
-  const clusterId = 2;
+  const clusterId = 1;
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
     customContentTopic1,
     clusterId
@@ -220,6 +219,7 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
     await nwaku.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
+      contentTopic: [customContentTopic1, customContentTopic2],
       relay: true,
       clusterId
     });
@@ -293,6 +293,7 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
     await nwaku2.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic2],
+      contentTopic: [customContentTopic2],
       relay: true,
       clusterId
     });

@@ -206,7 +206,7 @@ describe("Static Sharding: Peer Management", function () {
 
 describe("Autosharding: Peer Management", function () {
   const ContentTopic = "/waku/2/content/test.js";
-  const clusterId = 2;
+  const clusterId = 1;
 
   describe("Peer Exchange", function () {
     let waku: LightNode;
@@ -241,7 +241,8 @@ describe("Autosharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         relay: true,
-        clusterId: clusterId
+        clusterId: clusterId,
+        contentTopic: [ContentTopic]
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
@@ -252,7 +253,8 @@ describe("Autosharding: Peer Management", function () {
         peerExchange: true,
         discv5BootstrapNode: enr1,
         relay: true,
-        clusterId: clusterId
+        clusterId: clusterId,
+        contentTopic: [ContentTopic]
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
@@ -263,7 +265,8 @@ describe("Autosharding: Peer Management", function () {
         peerExchange: true,
         discv5BootstrapNode: enr2,
         relay: true,
-        clusterId: clusterId
+        clusterId: clusterId,
+        contentTopic: [ContentTopic]
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
@@ -332,7 +335,8 @@ describe("Autosharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
-        clusterId: clusterId
+        clusterId: clusterId,
+        contentTopic: [ContentTopic]
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
@@ -343,7 +347,8 @@ describe("Autosharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
-        clusterId: clusterId
+        clusterId: clusterId,
+        contentTopic: [ContentTopic]
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 

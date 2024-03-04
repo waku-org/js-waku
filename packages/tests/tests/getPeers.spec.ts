@@ -72,7 +72,6 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     expect(peers.length).to.be.greaterThan(0);
   });
 
-  // Had to use cluster 0 because of https://github.com/waku-org/js-waku/issues/1848
   it("same cluster, different shard: nodes connect", async function () {
     this.timeout(15000);
 
@@ -219,7 +218,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo: ContentTopicInfo = {
-      clusterId: 2,
+      clusterId: 1,
       contentTopics: [contentTopic]
     };
 
@@ -228,6 +227,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       peerExchange: true,
       clusterId: shardInfo.clusterId,
       pubsubTopic: shardInfoToPubsubTopics(shardInfo),
+      contentTopic: [contentTopic],
       lightpush: true,
       relay: true
     });
@@ -251,12 +251,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 2,
+      clusterId: 1,
       contentTopics: [contentTopic]
     };
 
     const shardInfo2: ContentTopicInfo = {
-      clusterId: 2,
+      clusterId: 1,
       contentTopics: ["/test/5/waku-light-push/utf8"]
     };
 
@@ -266,6 +266,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       peerExchange: true,
       clusterId: shardInfo1.clusterId,
       pubsubTopic: shardInfoToPubsubTopics(shardInfo1),
+      contentTopic: [contentTopic],
       lightpush: true,
       relay: true
     });
@@ -276,6 +277,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       peerExchange: true,
       clusterId: shardInfo2.clusterId,
       pubsubTopic: shardInfoToPubsubTopics(shardInfo2),
+      contentTopic: [contentTopic],
       lightpush: true,
       relay: true
     });
@@ -303,12 +305,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 2,
+      clusterId: 1,
       contentTopics: [contentTopic]
     };
 
     const shardInfo2: ContentTopicInfo = {
-      clusterId: 3,
+      clusterId: 2,
       contentTopics: [contentTopic]
     };
 
@@ -318,6 +320,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       peerExchange: true,
       clusterId: shardInfo1.clusterId,
       pubsubTopic: shardInfoToPubsubTopics(shardInfo1),
+      contentTopic: [contentTopic],
       lightpush: true,
       relay: true
     });
@@ -355,12 +358,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 2,
+      clusterId: 1,
       contentTopics: [contentTopic]
     };
 
     const shardInfo2: ContentTopicInfo = {
-      clusterId: 3,
+      clusterId: 2,
       contentTopics: ["/test/5/waku-light-push/utf8"]
     };
 
@@ -370,6 +373,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       peerExchange: true,
       clusterId: shardInfo1.clusterId,
       pubsubTopic: shardInfoToPubsubTopics(shardInfo1),
+      contentTopic: [contentTopic],
       lightpush: true,
       relay: true
     });
