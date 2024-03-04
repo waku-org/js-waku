@@ -11,14 +11,21 @@ import { LocalStoragePeerInfo } from "@waku/interfaces";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MemoryDatastore } from "datastore-core/memory";
-import { LocalStorage } from "node-localstorage";
 import sinon from "sinon";
 
 import { LocalPeerCacheDiscovery } from "./index.js";
 
 chai.use(chaiAsPromised);
 
-global.localStorage = new LocalStorage("./mock_local_storage");
+// dynamically importing the local storage polyfill for node
+if (typeof window === "undefined") {
+  try {
+    const { LocalStorage } = await import("node-localstorage");
+    global.localStorage = new LocalStorage("./scratch");
+  } catch (error) {
+    console.error("Failed to load localStorage polyfill:", error);
+  }
+}
 
 const mockPeers = [
   {
