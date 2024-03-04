@@ -25,6 +25,22 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.10](https://github.com/waku-org/js-waku/compare/relay-v0.0.9...relay-v0.0.10) (2024-03-04)
+
+
+### Features
+
+* Decouple sharding params out of core ([e138b4f](https://github.com/waku-org/js-waku/commit/e138b4f5c49a35a37830e31e8be87d824f53249f))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.26 to 0.0.27
+    * @waku/interfaces bumped from 0.0.21 to 0.0.22
+    * @waku/utils bumped from 0.0.14 to 0.0.15
+
 ## [0.0.9](https://github.com/waku-org/js-waku/compare/relay-v0.0.8...relay-v0.0.9) (2024-01-10)
 
 

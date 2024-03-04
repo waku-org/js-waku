@@ -12,6 +12,27 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.15](https://github.com/waku-org/js-waku/compare/utils-v0.0.14...utils-v0.0.15) (2024-03-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* protocols filter peers as per configured shard ([#1756](https://github.com/waku-org/js-waku/issues/1756))
+
+### Features
+
+* Decouple sharding params out of core ([e138b4f](https://github.com/waku-org/js-waku/commit/e138b4f5c49a35a37830e31e8be87d824f53249f))
+* Local discovery ([#1811](https://github.com/waku-org/js-waku/issues/1811)) ([199f6ab](https://github.com/waku-org/js-waku/commit/199f6ab2ff83694b93e94e935e2925537e01e281))
+* Make ShardingParams optional in sdk, required internally ([68d3229](https://github.com/waku-org/js-waku/commit/68d3229644f395bd84b2e2a7067c7b51e9da3dd0))
+* Protocols filter peers as per configured shard ([#1756](https://github.com/waku-org/js-waku/issues/1756)) ([477c2a5](https://github.com/waku-org/js-waku/commit/477c2a5918f2f75cd2c14bc6ed75e1687c5a09b4))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.21 to 0.0.22
+
 ## [0.0.14](https://github.com/waku-org/js-waku/compare/utils-v0.0.13...utils-v0.0.14) (2024-01-10)
 
 
