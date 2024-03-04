@@ -47,6 +47,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.23](https://github.com/waku-org/js-waku/compare/sdk-v0.0.22...sdk-v0.0.23) (2024-03-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* rename local-discovery to local-peer-cache-discovery ([#1867](https://github.com/waku-org/js-waku/issues/1867))
+* discourage the use of relay in browsers ([#1778](https://github.com/waku-org/js-waku/issues/1778))
+
+### Features
+
+* Add bootstrapPeers option and refactor sdk ([#1871](https://github.com/waku-org/js-waku/issues/1871)) ([9f198dd](https://github.com/waku-org/js-waku/commit/9f198dd149ef299e3edce69b93cc2942c6f24846))
+* Create node and subscription by content topic ([ee2d417](https://github.com/waku-org/js-waku/commit/ee2d4176f8cca45a51b7dac0009f0eb01952f540))
+* Decouple sharding params out of core ([e138b4f](https://github.com/waku-org/js-waku/commit/e138b4f5c49a35a37830e31e8be87d824f53249f))
+* Local discovery ([#1811](https://github.com/waku-org/js-waku/issues/1811)) ([199f6ab](https://github.com/waku-org/js-waku/commit/199f6ab2ff83694b93e94e935e2925537e01e281))
+* Make ShardingParams optional in sdk, required internally ([68d3229](https://github.com/waku-org/js-waku/commit/68d3229644f395bd84b2e2a7067c7b51e9da3dd0))
+
+
+### Miscellaneous Chores
+
+* Discourage the use of relay in browsers ([#1778](https://github.com/waku-org/js-waku/issues/1778)) ([906c933](https://github.com/waku-org/js-waku/commit/906c93329e4094c79e3f7f5c56e1b78afd778e1a))
+* Rename local-discovery to local-peer-cache-discovery ([#1867](https://github.com/waku-org/js-waku/issues/1867)) ([f3cb10d](https://github.com/waku-org/js-waku/commit/f3cb10d484bac134377b8cfd77e077ffc33bd319))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.26 to 0.0.27
+    * @waku/dns-discovery bumped from 0.0.20 to 0.0.21
+    * @waku/interfaces bumped from 0.0.21 to 0.0.22
+    * @waku/peer-exchange bumped from ^0.0.19 to ^0.0.20
+    * @waku/relay bumped from 0.0.9 to 0.0.10
+    * @waku/utils bumped from 0.0.14 to 0.0.15
+
 ## [0.0.22](https://github.com/waku-org/js-waku/compare/sdk-v0.0.21...sdk-v0.0.22) (2024-01-10)
 
 
