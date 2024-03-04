@@ -47,7 +47,6 @@ export class ServiceNode {
   private multiaddrWithId?: Multiaddr;
   private websocketPort?: number;
   private readonly logPath: string;
-  private rpcPort?: number;
   private restPort?: number;
 
   /**
@@ -117,14 +116,13 @@ export class ServiceNode {
           const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
 
           const ports: Ports = await new Promise((resolve, reject) => {
-            portfinder.getPorts(5, { port: startPort }, (err, ports) => {
+            portfinder.getPorts(4, { port: startPort }, (err, ports) => {
               if (err) reject(err);
               resolve({
-                rpcPort: ports[0],
-                tcpPort: ports[1],
-                websocketPort: ports[2],
-                restPort: ports[3],
-                discv5UdpPort: ports[4]
+                tcpPort: ports[0],
+                websocketPort: ports[1],
+                restPort: ports[2],
+                discv5UdpPort: ports[3]
               });
             });
           });
@@ -133,10 +131,8 @@ export class ServiceNode {
             args.logLevel = LogLevel.Debug;
           }
 
-          const { rpcPort, tcpPort, websocketPort, restPort, discv5UdpPort } =
-            ports;
+          const { tcpPort, websocketPort, restPort, discv5UdpPort } = ports;
           this.restPort = restPort;
-          this.rpcPort = rpcPort;
           this.websocketPort = websocketPort;
 
           // `legacyFilter` is required to enable filter v1 with go-waku
@@ -148,13 +144,12 @@ export class ServiceNode {
             {
               rest: true,
               restPort,
-              rpcPort,
               tcpPort,
               websocketPort,
               ...(args?.peerExchange && { discv5UdpPort }),
               ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter })
             },
-            { rpcAddress: "0.0.0.0", restAddress: "0.0.0.0" },
+            { restAddress: "0.0.0.0" },
             _args
           );
 
@@ -350,10 +345,6 @@ export class ServiceNode {
     return this.peerId;
   }
 
-  get rpcUrl(): string {
-    return `http://127.0.0.1:${this.rpcPort}/`;
-  }
-
   get httpUrl(): string {
     return `http://127.0.0.1:${this.restPort}`;
   }
@@ -393,10 +384,8 @@ export class ServiceNode {
 export function defaultArgs(): Args {
   return {
     listenAddress: "0.0.0.0",
-    rpc: true,
     relay: false,
     rest: true,
-    rpcAdmin: true,
     restAdmin: true,
     websocketSupport: true,
     logLevel: LogLevel.Trace
