@@ -1,8 +1,8 @@
 import { wakuFilter, wakuLightPush, wakuStore } from "@waku/core";
 import { type Libp2pComponents, type LightNode } from "@waku/interfaces";
 
-import { createLibp2pAndUpdateOptions } from "./utils/libp2p.js";
-import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "./waku.js";
+import { createLibp2pAndUpdateOptions } from "../utils/libp2p.js";
+import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "../waku.js";
 
 export { Libp2pComponents };
 
