@@ -74,6 +74,28 @@
     * @waku/proto bumped from 0.0.5 to 0.0.6
     * @waku/utils bumped from 0.0.13 to 0.0.14
 
+## [0.0.20](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.19...peer-exchange-v0.0.20) (2024-03-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* protocols filter peers as per configured shard ([#1756](https://github.com/waku-org/js-waku/issues/1756))
+
+### Features
+
+* Decouple sharding params out of core ([e138b4f](https://github.com/waku-org/js-waku/commit/e138b4f5c49a35a37830e31e8be87d824f53249f))
+* Protocols filter peers as per configured shard ([#1756](https://github.com/waku-org/js-waku/issues/1756)) ([477c2a5](https://github.com/waku-org/js-waku/commit/477c2a5918f2f75cd2c14bc6ed75e1687c5a09b4))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.26 to 0.0.27
+    * @waku/enr bumped from 0.0.20 to 0.0.21
+    * @waku/interfaces bumped from 0.0.21 to 0.0.22
+    * @waku/utils bumped from 0.0.14 to 0.0.15
+
 ## [0.0.18](https://github.com/waku-org/js-waku/compare/peer-exchange-v0.0.17...peer-exchange-v0.0.18) (2023-11-01)
 
 
