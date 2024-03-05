@@ -33,9 +33,14 @@ module.exports = [
     import: "{ wakuRelay }",
   },
   {
-    name: "Light protocols",
+    name: "Waku Filter",
     path: "packages/core/bundle/index.js",
-    import: "{ wakuLightPush, wakuFilter }",
+    import: "{ wakuFilter }",
+  },
+  {
+    name: "Waku LightPush",
+    path: "packages/sdk/bundle/index.js",
+    import: "{ wakuLightPush }",
   },
   {
     name: "History retrieval protocols",
