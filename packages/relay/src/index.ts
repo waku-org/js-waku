@@ -100,14 +100,18 @@ class Relay implements IRelay {
    * Send Waku message.
    */
   public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
-    const recipients: PeerId[] = [];
+    const successes: PeerId[] = [];
 
     const { pubsubTopic } = encoder;
     if (!this.pubsubTopics.has(pubsubTopic)) {
       log.error("Failed to send waku relay: topic not configured");
       return {
-        recipients,
-        errors: [SendError.TOPIC_NOT_CONFIGURED]
+        successes,
+        failures: [
+          {
+            error: SendError.TOPIC_NOT_CONFIGURED
+          }
+        ]
       };
     }
 
@@ -115,20 +119,31 @@ class Relay implements IRelay {
     if (!msg) {
       log.error("Failed to encode message, aborting publish");
       return {
-        recipients,
-        errors: [SendError.ENCODE_FAILED]
+        successes,
+        failures: [
+          {
+            error: SendError.ENCODE_FAILED
+          }
+        ]
       };
     }
 
     if (!isWireSizeUnderCap(msg)) {
       log.error("Failed to send waku relay: message is bigger that 1MB");
       return {
-        recipients,
-        errors: [SendError.SIZE_TOO_BIG]
+        successes,
+        failures: [
+          {
+            error: SendError.SIZE_TOO_BIG
+          }
+        ]
       };
     }
 
-    return this.gossipSub.publish(pubsubTopic, msg);
+    const { recipients } = await this.gossipSub.publish(pubsubTopic, msg);
+    return {
+      successes: recipients
+    };
   }
 
   public subscribe<T extends IDecodedMessage>(
