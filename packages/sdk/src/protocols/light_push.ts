@@ -10,7 +10,7 @@ import {
   SendError,
   type SendResult
 } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
 
 import { BaseProtocolSDK } from "./base_protocol.js";
 
@@ -28,6 +28,21 @@ export class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
   async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
     const successes: PeerId[] = [];
     const failures: Failure[] = [];
+
+    const { pubsubTopic } = encoder;
+    try {
+      ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
+    } catch (error) {
+      log.error("Failed to send waku light push: pubsub topic not configured");
+      return {
+        failures: [
+          {
+            error: SendError.TOPIC_NOT_CONFIGURED
+          }
+        ],
+        successes: []
+      };
+    }
 
     const peers = await this.protocol.getPeers();
     if (!peers.length) {

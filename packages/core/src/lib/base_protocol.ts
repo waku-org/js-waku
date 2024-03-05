@@ -29,7 +29,7 @@ export class BaseProtocol implements IBaseProtocolCore {
     public multicodec: string,
     private components: Libp2pComponents,
     private log: Logger,
-    protected pubsubTopics: PubsubTopic[],
+    public readonly pubsubTopics: PubsubTopic[],
     private options?: ProtocolCreateOptions
   ) {
     this.addLibp2pEventListener = components.events.addEventListener.bind(

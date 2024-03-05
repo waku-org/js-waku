@@ -9,10 +9,7 @@ import {
   SendError
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
-import {
-  ensurePubsubTopicIsConfigured,
-  isMessageSizeUnderCap
-} from "@waku/utils";
+import { isMessageSizeUnderCap } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -64,8 +61,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
 
   private async preparePushMessage(
     encoder: IEncoder,
-    message: IMessage,
-    pubsubTopic: string
+    message: IMessage
   ): Promise<PreparePushMessageResult> {
     try {
       if (!message.payload || message.payload.length === 0) {
@@ -87,7 +83,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
         };
       }
 
-      const query = PushRpc.createRequest(protoMessage, pubsubTopic);
+      const query = PushRpc.createRequest(protoMessage, encoder.pubsubTopic);
       return { query, error: null };
     } catch (error) {
       log.error("Failed to prepare push message", error);
@@ -104,13 +100,9 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
     message: IMessage,
     peer: Peer
   ): Promise<CoreSendResult> {
-    const { pubsubTopic } = encoder;
-    ensurePubsubTopicIsConfigured(pubsubTopic, this.pubsubTopics);
-
     const { query, error: preparationError } = await this.preparePushMessage(
       encoder,
-      message,
-      pubsubTopic
+      message
     );
 
     if (preparationError || !query) {
