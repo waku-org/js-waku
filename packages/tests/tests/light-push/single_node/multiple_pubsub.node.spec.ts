@@ -76,7 +76,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
       payload: utf8ToBytes(messageText)
     });
 
-    expect(pushResponse.recipients[0].toString()).to.eq(nimPeerId.toString());
+    expect(pushResponse.successes[0].toString()).to.eq(nimPeerId.toString());
 
     expect(
       await messageCollector.waitForMessages(1, {
@@ -96,8 +96,8 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
     const pushResponse2 = await waku.lightPush.send(customEncoder2, {
       payload: utf8ToBytes("M2")
     });
-    expect(pushResponse1.recipients[0].toString()).to.eq(nimPeerId.toString());
-    expect(pushResponse2.recipients[0].toString()).to.eq(nimPeerId.toString());
+    expect(pushResponse1.successes[0].toString()).to.eq(nimPeerId.toString());
+    expect(pushResponse2.successes[0].toString()).to.eq(nimPeerId.toString());
 
     const messageCollector2 = new MessageCollector(nwaku);
 
@@ -154,8 +154,8 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
       !(await messageCollector2.waitForMessages(1, {
         pubsubTopic: singleShardInfoToPubsubTopic(singleShardInfo2)
       })) ||
-      pushResponse1!.recipients[0].toString() ===
-        pushResponse2!.recipients[0].toString()
+      pushResponse1!.successes[0].toString() ===
+        pushResponse2!.successes[0].toString()
     ) {
       pushResponse1 = await waku.lightPush.send(customEncoder1, {
         payload: utf8ToBytes("M1")
@@ -230,8 +230,8 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
       payload: utf8ToBytes(messageText)
     });
 
-    expect(pushResponse.errors).to.be.empty;
-    expect(pushResponse.recipients[0].toString()).to.eq(nimPeerId.toString());
+    expect(pushResponse.failures).to.be.empty;
+    expect(pushResponse.successes[0].toString()).to.eq(nimPeerId.toString());
 
     expect(
       await messageCollector.waitForMessagesAutosharding(1, {
@@ -251,8 +251,8 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
     const pushResponse2 = await waku.lightPush.send(customEncoder2, {
       payload: utf8ToBytes("M2")
     });
-    expect(pushResponse1.recipients[0].toString()).to.eq(nimPeerId.toString());
-    expect(pushResponse2.recipients[0].toString()).to.eq(nimPeerId.toString());
+    expect(pushResponse1.successes[0].toString()).to.eq(nimPeerId.toString());
+    expect(pushResponse2.successes[0].toString()).to.eq(nimPeerId.toString());
 
     const messageCollector2 = new MessageCollector(nwaku);
 
@@ -307,8 +307,8 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
       !(await messageCollector2.waitForMessagesAutosharding(1, {
         contentTopic: customContentTopic2
       })) ||
-      pushResponse1!.recipients[0].toString() ===
-        pushResponse2!.recipients[0].toString()
+      pushResponse1!.successes[0].toString() ===
+        pushResponse2!.successes[0].toString()
     ) {
       pushResponse1 = await waku.lightPush.send(customEncoder1, {
         payload: utf8ToBytes("M1")
@@ -384,7 +384,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
       payload: utf8ToBytes(messageText)
     });
 
-    expect(pushResponse.recipients[0].toString()).to.eq(nimPeerId.toString());
+    expect(pushResponse.successes[0].toString()).to.eq(nimPeerId.toString());
 
     expect(
       await messageCollector.waitForMessages(1, {
@@ -404,8 +404,8 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
     const pushResponse2 = await waku.lightPush.send(customEncoder2, {
       payload: utf8ToBytes("M2")
     });
-    expect(pushResponse1.recipients[0].toString()).to.eq(nimPeerId.toString());
-    expect(pushResponse2.recipients[0].toString()).to.eq(nimPeerId.toString());
+    expect(pushResponse1.successes[0].toString()).to.eq(nimPeerId.toString());
+    expect(pushResponse2.successes[0].toString()).to.eq(nimPeerId.toString());
 
     const messageCollector2 = new MessageCollector(nwaku);
 
@@ -459,8 +459,8 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
       !(await messageCollector2.waitForMessages(1, {
         pubsubTopic: autoshardingPubsubTopic2
       })) ||
-      pushResponse1!.recipients[0].toString() ===
-        pushResponse2!.recipients[0].toString()
+      pushResponse1!.successes[0].toString() ===
+        pushResponse2!.successes[0].toString()
     ) {
       pushResponse1 = await waku.lightPush.send(customEncoder1, {
         payload: utf8ToBytes("M1")

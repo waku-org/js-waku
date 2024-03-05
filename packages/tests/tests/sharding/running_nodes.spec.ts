@@ -78,8 +78,8 @@ describe("Static Sharding: Running Nodes", function () {
       payload: utf8ToBytes("Hello World")
     });
 
-    expect(request1.recipients.length).to.eq(1);
-    expect(request2.recipients.length).to.eq(1);
+    expect(request1.successes.length).to.eq(1);
+    expect(request2.successes.length).to.eq(1);
   });
 
   it("using a protocol with unconfigured pubsub topic should fail", async function () {
@@ -161,7 +161,7 @@ describe("Autosharding: Running Nodes", function () {
       payload: utf8ToBytes("Hello World")
     });
 
-    expect(request1.recipients.length).to.eq(1);
-    expect(request2.recipients.length).to.eq(1);
+    expect(request1.successes.length).to.eq(1);
+    expect(request2.successes.length).to.eq(1);
   });
 });
