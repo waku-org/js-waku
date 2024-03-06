@@ -23,5 +23,4 @@ If this is a bug fix, please describe why the old behavior was problematic.
 Contribution checklist:
 - [ ] covered by unit tests;
 - [ ] covered by e2e test;
-- [ ] linked with parent issue;
 - [ ] add `!` in title if breaks public API;
