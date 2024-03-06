@@ -48,6 +48,22 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.20 to 0.0.21
 
+## [0.1.11](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.10...message-hash-v0.1.11) (2024-03-04)
+
+
+### Features
+
+* Lightpush & filter send requests to multiple peers ([#1779](https://github.com/waku-org/js-waku/issues/1779)) ([7affbe2](https://github.com/waku-org/js-waku/commit/7affbe222dd30ccb6619839f4bc5eb86433a80f7))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.14 to 0.0.15
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.21 to 0.0.22
+
 ## [0.1.8](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.7...message-hash-v0.1.8) (2023-10-16)
 
 

@@ -16,6 +16,7 @@
     "packages/dns-discovery": {},
     "packages/message-encryption": {},
     "packages/sdk": {},
-    "packages/relay": {}
+    "packages/relay": {},
+    "packages/local-peer-cache-discovery": {}
   }
 }

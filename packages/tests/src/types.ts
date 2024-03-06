@@ -4,9 +4,7 @@ export interface Args {
   listenAddress?: string;
   relay?: boolean;
   rest?: boolean;
-  rpc?: boolean;
   restAdmin?: boolean;
-  rpcAdmin?: boolean;
   nodekey?: string;
   portsShift?: number;
   logLevel?: LogLevel;
@@ -17,11 +15,9 @@ export interface Args {
   discv5Discovery?: boolean;
   storeMessageDbUrl?: string;
   pubsubTopic?: Array<string>;
-  rpcPrivate?: boolean;
   websocketSupport?: boolean;
   tcpPort?: number;
   restPort?: number;
-  rpcPort?: number;
   websocketPort?: number;
   discv5BootstrapNode?: string;
   discv5UdpPort?: number;
@@ -31,7 +27,6 @@ export interface Args {
 }
 
 export interface Ports {
-  rpcPort: number;
   tcpPort: number;
   websocketPort: number;
   restPort: number;

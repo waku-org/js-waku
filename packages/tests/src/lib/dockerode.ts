@@ -92,7 +92,7 @@ export default class Dockerode {
     logPath: string,
     wakuServiceNodeParams?: string
   ): Promise<Docker.Container> {
-    const { rpcPort, restPort, tcpPort, websocketPort, discv5UdpPort } = ports;
+    const { restPort, tcpPort, websocketPort, discv5UdpPort } = ports;
 
     await this.confirmImageExistsOrPull();
 
@@ -110,7 +110,6 @@ export default class Dockerode {
         AutoRemove: true,
         PortBindings: {
           [`${restPort}/tcp`]: [{ HostPort: restPort.toString() }],
-          [`${rpcPort}/tcp`]: [{ HostPort: rpcPort.toString() }],
           [`${tcpPort}/tcp`]: [{ HostPort: tcpPort.toString() }],
           [`${websocketPort}/tcp`]: [{ HostPort: websocketPort.toString() }],
           ...(args?.peerExchange && {
@@ -120,7 +119,6 @@ export default class Dockerode {
       },
       ExposedPorts: {
         [`${restPort}/tcp`]: {},
-        [`${rpcPort}/tcp`]: {},
         [`${tcpPort}/tcp`]: {},
         [`${websocketPort}/tcp`]: {},
         ...(args?.peerExchange && {
