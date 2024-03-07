@@ -97,7 +97,7 @@ export type Callback<T extends IDecodedMessage> = (
   msg: T
 ) => void | Promise<void>;
 
-export enum SendError {
+export enum ProtocolError {
   /** Could not determine the origin of the fault. Best to check connectivity and try again */
   GENERIC_FAIL = "Generic error",
   /**
@@ -146,6 +146,6 @@ export enum SendError {
 }
 
 export interface SendResult {
-  errors?: SendError[];
+  errors?: ProtocolError[];
   recipients: PeerId[];
 }
