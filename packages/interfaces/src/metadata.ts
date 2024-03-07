@@ -1,11 +1,25 @@
 import type { PeerId } from "@libp2p/interface";
 
 import type { ShardInfo } from "./enr.js";
-import type { IBaseProtocol, ShardingParams } from "./protocols.js";
+import type {
+  IBaseProtocol,
+  ProtocolError,
+  ShardingParams
+} from "./protocols.js";
+
+export type QueryResult =
+  | {
+      shardInfo: ShardInfo;
+      error: null;
+    }
+  | {
+      shardInfo: null;
+      error: ProtocolError;
+    };
 
 // IMetadata always has shardInfo defined while it is optionally undefined in IBaseProtocol
 export interface IMetadata extends Omit<IBaseProtocol, "shardInfo"> {
   shardInfo: ShardingParams;
-  confirmOrAttemptHandshake(peerId: PeerId): Promise<void>;
-  query(peerId: PeerId): Promise<ShardInfo | undefined>;
+  confirmOrAttemptHandshake(peerId: PeerId): Promise<QueryResult>;
+  query(peerId: PeerId): Promise<QueryResult>;
 }
