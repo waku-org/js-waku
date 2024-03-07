@@ -22,6 +22,7 @@ import {
   beforeEachCustom,
   makeLogFileName,
   MessageCollector,
+  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../../../src/index.js";
@@ -185,7 +186,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   let nwaku2: ServiceNode;
   let messageCollector: MessageCollector;
 
-  const clusterId = 1;
+  const clusterId = resolveAutoshardingCluster(4);
   const customContentTopic1 = "/waku/2/content/test.js";
   const customContentTopic2 = "/myapp/1/latest/proto";
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(

@@ -13,6 +13,7 @@ import {
   beforeEachCustom,
   makeLogFileName,
   NOISE_KEY_1,
+  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
@@ -188,7 +189,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
 
   const customContentTopic1 = "/waku/2/content/utf8";
   const customContentTopic2 = "/myapp/1/latest/proto";
-  const clusterId = 1;
+  const clusterId = resolveAutoshardingCluster(5);
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
     customContentTopic1,
     clusterId

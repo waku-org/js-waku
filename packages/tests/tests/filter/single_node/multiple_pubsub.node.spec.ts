@@ -21,6 +21,7 @@ import {
   beforeEachCustom,
   makeLogFileName,
   MessageCollector,
+  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../../../src/index.js";
@@ -186,7 +187,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
 describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(30000);
-  const clusterId = 1;
+  const clusterId = resolveAutoshardingCluster(3);
   let waku: LightNode;
   let nwaku: ServiceNode;
   let nwaku2: ServiceNode;

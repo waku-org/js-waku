@@ -26,6 +26,7 @@ import {
   NOISE_KEY_1,
   NOISE_KEY_2,
   NOISE_KEY_3,
+  resolveAutoshardingCluster,
   tearDownNodes
 } from "../../src/index.js";
 import { TestDecoder } from "../filter/utils.js";
@@ -317,7 +318,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
 
 describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
   this.timeout(15000);
-  const clusterID = 1;
+  const clusterId = resolveAutoshardingCluster(7);
   let waku1: RelayNode;
   let waku2: RelayNode;
   let waku3: RelayNode;
@@ -326,18 +327,18 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
   const customContentTopic2 = "/myapp/1/latest/proto";
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
     customContentTopic1,
-    clusterID
+    clusterId
   );
   const autoshardingPubsubTopic2 = contentTopicToPubsubTopic(
     customContentTopic2,
-    clusterID
+    clusterId
   );
   const contentTopicInfo1: ContentTopicInfo = {
-    clusterId: clusterID,
+    clusterId: clusterId,
     contentTopics: [customContentTopic1]
   };
   const contentTopicInfo2: ContentTopicInfo = {
-    clusterId: clusterID,
+    clusterId: clusterId,
     contentTopics: [customContentTopic2]
   };
   const customEncoder1 = createEncoder({
@@ -357,7 +358,7 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
     pubsubTopicToSingleShardInfo(autoshardingPubsubTopic2)
   );
   const contentTopicInfoBothShards: ContentTopicInfo = {
-    clusterId: clusterID,
+    clusterId: clusterId,
     contentTopics: [customContentTopic1, customContentTopic2]
   };
 

@@ -21,6 +21,7 @@ import {
   beforeEachCustom,
   delay,
   makeLogFileName,
+  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
@@ -206,7 +207,7 @@ describe("Static Sharding: Peer Management", function () {
 
 describe("Autosharding: Peer Management", function () {
   const ContentTopic = "/waku/2/content/test.js";
-  const clusterId = 1;
+  const clusterId = resolveAutoshardingCluster(8);
 
   describe("Peer Exchange", function () {
     let waku: LightNode;

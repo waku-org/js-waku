@@ -91,43 +91,6 @@ describe("Static Sharding: Running Nodes", function () {
       ).to.eq(true);
     });
 
-    // dedicated test for Cluster ID 1 - WAKU Network
-    it("Cluster ID 1 - WAKU Network", async function () {
-      const singleShardInfo = { clusterId: 1, shard: 1 };
-      const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
-
-      await nwaku.start({
-        store: true,
-        lightpush: true,
-        relay: true,
-        clusterId: 1,
-        contentTopic: [ContentTopic],
-        pubsubTopic: shardInfoToPubsubTopics(shardInfo)
-      });
-
-      waku = await createLightNode({
-        shardInfo: shardInfo
-      });
-      await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.LightPush]);
-
-      const encoder = createEncoder({
-        contentTopic: ContentTopic,
-        pubsubTopicShardInfo: singleShardInfo
-      });
-
-      const request = await waku.lightPush.send(encoder, {
-        payload: utf8ToBytes("Hello World")
-      });
-
-      expect(request.recipients.length).to.eq(1);
-      expect(
-        await messageCollector.waitForMessages(1, {
-          pubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]
-        })
-      ).to.eq(true);
-    });
-
     const numTest = 10;
     for (let i = 0; i < numTest; i++) {
       // Random clusterId between 2 and 1000

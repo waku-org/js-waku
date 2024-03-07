@@ -16,6 +16,7 @@ import {
   beforeEachCustom,
   makeLogFileName,
   MessageCollector,
+  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
@@ -25,7 +26,7 @@ const ContentTopic2 = "/myapp/1/latest/proto";
 
 describe("Autosharding: Running Nodes", function () {
   this.timeout(50000);
-  const clusterId = 1;
+  const clusterId = resolveAutoshardingCluster(10);
   let waku: LightNode;
   let nwaku: ServiceNode;
   let messageCollector: MessageCollector;

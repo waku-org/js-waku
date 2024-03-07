@@ -21,6 +21,7 @@ import {
   afterEachCustom,
   beforeEachCustom,
   makeLogFileName,
+  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../src/index.js";
@@ -30,6 +31,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
   let serviceNode1: ServiceNode;
   let serviceNode2: ServiceNode;
   const contentTopic = "/test/2/waku-light-push/utf8";
+  const autoshardingClusterId = resolveAutoshardingCluster(6);
 
   beforeEachCustom(this, async () => {
     serviceNode1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
@@ -218,7 +220,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: autoshardingClusterId,
       contentTopics: [contentTopic]
     };
 
@@ -251,12 +253,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: autoshardingClusterId,
       contentTopics: [contentTopic]
     };
 
     const shardInfo2: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: autoshardingClusterId,
       contentTopics: ["/test/5/waku-light-push/utf8"]
     };
 
@@ -305,7 +307,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: autoshardingClusterId,
       contentTopics: [contentTopic]
     };
 
@@ -358,7 +360,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: autoshardingClusterId,
       contentTopics: [contentTopic]
     };
 
