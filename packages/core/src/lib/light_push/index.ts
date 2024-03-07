@@ -6,6 +6,7 @@ import {
   Libp2p,
   ProtocolCreateOptions,
   ProtocolError,
+  ProtocolResult,
   SendResult
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
@@ -28,15 +29,7 @@ const log = new Logger("light-push");
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 
-type PreparePushMessageResult =
-  | {
-      query: PushRpc;
-      error: null;
-    }
-  | {
-      query: null;
-      error: ProtocolError;
-    };
+type PreparePushMessageResult = ProtocolResult<"query", PushRpc>;
 
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
