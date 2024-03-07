@@ -20,13 +20,13 @@ export function isNwakuAtLeast(requiredVersion: string): boolean {
   }
 }
 
-// Utility to resolve authosharding cluster ID
+// Utility to resolve autosharding cluster ID
 export function resolveAutoshardingCluster(clusterId: number): number {
   if (isNwakuAtLeast("0.26.0")) {
     log.info(`Using clusterID ${clusterId} for autosharding`);
     return clusterId;
   } else {
-    // for versions older than 0.26.0 the authosharding cluster was hardcoded to 1
+    // for versions older than 0.26.0 the autosharding cluster was hardcoded to 1
     // https://github.com/waku-org/nwaku/pull/2505
     log.warn("Falling back to clusterID 1 for autosharding");
     return 1;
