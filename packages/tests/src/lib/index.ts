@@ -2,9 +2,10 @@ import { DecodedMessage } from "@waku/core";
 import {
   DefaultPubsubTopic,
   PubsubTopic,
+  ShardInfo,
   ShardingParams
 } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { ensureShardingConfigured, Logger } from "@waku/utils";
 import { expect } from "chai";
 
 import { Args, MessageRpcQuery, MessageRpcResponse } from "../types";
@@ -27,7 +28,7 @@ export class ServiceNodesFleet {
     pubsubTopics: PubsubTopic[],
     nodesToCreate: number = 3,
     strictChecking: boolean = false,
-    shardInfo?: ShardingParams,
+    shardInfo?: ShardInfo,
     _args?: Args,
     withoutFilter = false
   ): Promise<ServiceNodesFleet> {
@@ -39,6 +40,9 @@ export class ServiceNodesFleet {
             Math.random().toString(36).substring(7)
         );
 
+        shardInfo = shardInfo
+          ? ensureShardingConfigured(shardInfo).shardInfo
+          : undefined;
         const args = getArgs(pubsubTopics, shardInfo, _args);
         await node.start(args, {
           retries: 3
@@ -100,22 +104,11 @@ export class ServiceNodesFleet {
 
   async sendRelayMessage(
     message: MessageRpcQuery,
-    pubsubTopic?: string,
-    raw = false
+    pubsubTopic: string = DefaultPubsubTopic
   ): Promise<boolean> {
-    let relayMessagePromises: Promise<boolean>[];
-    if (raw) {
-      relayMessagePromises = this.nodes.map((node) =>
-        node.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
-          pubsubTopic && pubsubTopic,
-          message
-        ])
-      );
-    } else {
-      relayMessagePromises = this.nodes.map((node) =>
-        node.sendMessage(message, pubsubTopic)
-      );
-    }
+    const relayMessagePromises: Promise<boolean>[] = this.nodes.map((node) =>
+      node.sendMessage(message, pubsubTopic)
+    );
     const relayMessages = await Promise.all(relayMessagePromises);
     return relayMessages.every((message) => message);
   }

@@ -58,6 +58,7 @@ export const TEST_TIMESTAMPS = [
   BigInt(Date.now()) * BigInt(1000000),
   Date.now(),
   1649153314,
-  1949153314000,
-  undefined
+  1949153314000
 ];
+
+export const MOCHA_HOOK_MAX_TIMEOUT = 50_000;

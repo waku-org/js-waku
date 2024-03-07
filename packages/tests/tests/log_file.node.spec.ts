@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { makeLogFileName } from "../src/index.js";
+import { beforeEachCustom, makeLogFileName } from "../src/index.js";
 
 describe("This", function () {
   describe("Is", function () {
@@ -11,8 +11,8 @@ describe("This", function () {
 
   describe("Is also", function () {
     let testName: string;
-    beforeEach(function () {
-      testName = makeLogFileName(this);
+    beforeEachCustom(this, async () => {
+      testName = makeLogFileName(this.ctx);
     });
     it("A test", function () {
       expect(testName).to.equal("This_Is_also_A_test");

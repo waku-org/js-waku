@@ -4,16 +4,15 @@ import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
 import { DefaultPubsubTopic } from "@waku/interfaces";
 import { isDefined } from "@waku/utils";
 import { Logger } from "@waku/utils";
-import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
 
 import {
   Args,
-  KeyPair,
   LogLevel,
   MessageRpcQuery,
-  MessageRpcResponse
+  MessageRpcResponse,
+  Ports
 } from "../types.js";
 import { existsAsync, mkdirAsync, openAsync } from "../utils/async_fs.js";
 import { delay } from "../utils/delay.js";
@@ -28,7 +27,7 @@ const WAKU_SERVICE_NODE_PARAMS =
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 export const DOCKER_IMAGE_NAME =
-  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.24.0";
+  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.25.0";
 
 const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
 
@@ -48,7 +47,7 @@ export class ServiceNode {
   private multiaddrWithId?: Multiaddr;
   private websocketPort?: number;
   private readonly logPath: string;
-  private rpcPort?: number;
+  private restPort?: number;
 
   /**
    * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
@@ -116,10 +115,15 @@ export class ServiceNode {
           // we also randomize the first port that portfinder will try
           const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
 
-          const ports: number[] = await new Promise((resolve, reject) => {
+          const ports: Ports = await new Promise((resolve, reject) => {
             portfinder.getPorts(4, { port: startPort }, (err, ports) => {
               if (err) reject(err);
-              resolve(ports);
+              resolve({
+                tcpPort: ports[0],
+                websocketPort: ports[1],
+                restPort: ports[2],
+                discv5UdpPort: ports[3]
+              });
             });
           });
 
@@ -127,8 +131,8 @@ export class ServiceNode {
             args.logLevel = LogLevel.Debug;
           }
 
-          const [rpcPort, tcpPort, websocketPort, discv5UdpPort] = ports;
-          this.rpcPort = rpcPort;
+          const { tcpPort, websocketPort, restPort, discv5UdpPort } = ports;
+          this.restPort = restPort;
           this.websocketPort = websocketPort;
 
           // `legacyFilter` is required to enable filter v1 with go-waku
@@ -138,13 +142,14 @@ export class ServiceNode {
           Object.assign(
             mergedArgs,
             {
-              rpcPort,
+              rest: true,
+              restPort,
               tcpPort,
               websocketPort,
               ...(args?.peerExchange && { discv5UdpPort }),
               ...(isGoWaku && { minRelayPeersToPublish: 0, legacyFilter })
             },
-            { rpcAddress: "0.0.0.0" },
+            { restAddress: "0.0.0.0" },
             _args
           );
 
@@ -191,30 +196,58 @@ export class ServiceNode {
     return waitForLine(this.logPath, msg, timeout);
   }
 
-  /** Calls nwaku JSON-RPC API `get_waku_v2_admin_v1_peers` to check
-   * for known peers
-   * @throws if WakuNode isn't started.
+  /**
+   * Calls nwaku REST API "/admin/v1/peers" to check for known peers
+   * @throws
    */
   async peers(): Promise<string[]> {
     this.checkProcess();
 
-    return this.rpcCall<string[]>("get_waku_v2_admin_v1_peers", []);
+    return this.restCall<string[]>(
+      "/admin/v1/peers",
+      "GET",
+      undefined,
+      async (response) => {
+        const data = await response.json();
+        return data?.length ? data : [];
+      }
+    );
   }
 
   async info(): Promise<RpcInfoResponse> {
     this.checkProcess();
 
-    return this.rpcCall<RpcInfoResponse>("get_waku_v2_debug_v1_info", []);
+    return this.restCall<RpcInfoResponse>(
+      "/debug/v1/info",
+      "GET",
+      undefined,
+      async (response) => await response.json()
+    );
   }
 
   async ensureSubscriptions(
     pubsubTopics: string[] = [DefaultPubsubTopic]
   ): Promise<boolean> {
-    this.checkProcess();
+    return this.restCall<boolean>(
+      "/relay/v1/subscriptions",
+      "POST",
+      pubsubTopics,
+      async (response) => response.status === 200
+    );
+  }
 
-    return this.rpcCall<boolean>("post_waku_v2_relay_v1_subscriptions", [
-      pubsubTopics
-    ]);
+  async messages(
+    pubsubTopic: string = DefaultPubsubTopic
+  ): Promise<MessageRpcResponse[]> {
+    return this.restCall<MessageRpcResponse[]>(
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
+      "GET",
+      null,
+      async (response) => {
+        const data = await response.json();
+        return data?.length ? data : [];
+      }
+    );
   }
 
   async ensureSubscriptionsAutosharding(
@@ -222,9 +255,12 @@ export class ServiceNode {
   ): Promise<boolean> {
     this.checkProcess();
 
-    return this.rpcCall<boolean>("post_waku_v2_relay_v1_auto_subscriptions", [
-      contentTopics
-    ]);
+    return this.restCall<boolean>(
+      "/relay/v1/subscriptions",
+      "POST",
+      contentTopics,
+      async (response) => response.status === 200
+    );
   }
 
   async sendMessage(
@@ -237,10 +273,12 @@ export class ServiceNode {
       message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
     }
 
-    return this.rpcCall<boolean>("post_waku_v2_relay_v1_message", [
-      pubsubTopic,
-      message
-    ]);
+    return this.restCall<boolean>(
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
+      "POST",
+      message,
+      async (response) => response.status === 200
+    );
   }
 
   async sendMessageAutosharding(message: MessageRpcQuery): Promise<boolean> {
@@ -250,22 +288,12 @@ export class ServiceNode {
       message.timestamp = BigInt(new Date().valueOf()) * OneMillion;
     }
 
-    return this.rpcCall<boolean>("post_waku_v2_relay_v1_auto_message", [
-      message
-    ]);
-  }
-
-  async messages(
-    pubsubTopic: string = DefaultPubsubTopic
-  ): Promise<MessageRpcResponse[]> {
-    this.checkProcess();
-
-    const msgs = await this.rpcCall<MessageRpcResponse[]>(
-      "get_waku_v2_relay_v1_messages",
-      [pubsubTopic]
+    return this.restCall<boolean>(
+      `/relay/v1/auto/message`,
+      "POST",
+      message,
+      async (response) => response.status === 200
     );
-
-    return msgs.filter(isDefined);
   }
 
   async messagesAutosharding(
@@ -273,104 +301,14 @@ export class ServiceNode {
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
 
-    const msgs = await this.rpcCall<MessageRpcResponse[]>(
-      "get_waku_v2_relay_v1_auto_messages",
-      [contentTopic]
-    );
-
-    return msgs.filter(isDefined);
-  }
-
-  async getAsymmetricKeyPair(): Promise<KeyPair> {
-    this.checkProcess();
-
-    const { privateKey, publicKey, seckey, pubkey } = await this.rpcCall<{
-      seckey: string;
-      pubkey: string;
-      privateKey: string;
-      publicKey: string;
-    }>("get_waku_v2_private_v1_asymmetric_keypair", []);
-
-    // To be removed once https://github.com/vacp2p/rfc/issues/507 is fixed
-    if (seckey) {
-      return { privateKey: seckey, publicKey: pubkey };
-    } else {
-      return { privateKey, publicKey };
-    }
-  }
-
-  async postAsymmetricMessage(
-    message: MessageRpcQuery,
-    publicKey: Uint8Array,
-    pubsubTopic?: string
-  ): Promise<boolean> {
-    this.checkProcess();
-
-    if (!message.payload) {
-      throw "Attempting to send empty message";
-    }
-
-    return this.rpcCall<boolean>("post_waku_v2_private_v1_asymmetric_message", [
-      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
-      message,
-      "0x" + bytesToHex(publicKey)
-    ]);
-  }
-
-  async getAsymmetricMessages(
-    privateKey: Uint8Array,
-    pubsubTopic?: string
-  ): Promise<MessageRpcResponse[]> {
-    this.checkProcess();
-
-    return await this.rpcCall<MessageRpcResponse[]>(
-      "get_waku_v2_private_v1_asymmetric_messages",
-      [
-        pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
-        "0x" + bytesToHex(privateKey)
-      ]
-    );
-  }
-
-  async getSymmetricKey(): Promise<Uint8Array> {
-    this.checkProcess();
-
-    return this.rpcCall<string>(
-      "get_waku_v2_private_v1_symmetric_key",
-      []
-    ).then(hexToBytes);
-  }
-
-  async postSymmetricMessage(
-    message: MessageRpcQuery,
-    symKey: Uint8Array,
-    pubsubTopic?: string
-  ): Promise<boolean> {
-    this.checkProcess();
-
-    if (!message.payload) {
-      throw "Attempting to send empty message";
-    }
-
-    return this.rpcCall<boolean>("post_waku_v2_private_v1_symmetric_message", [
-      pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
-      message,
-      "0x" + bytesToHex(symKey)
-    ]);
-  }
-
-  async getSymmetricMessages(
-    symKey: Uint8Array,
-    pubsubTopic?: string
-  ): Promise<MessageRpcResponse[]> {
-    this.checkProcess();
-
-    return await this.rpcCall<MessageRpcResponse[]>(
-      "get_waku_v2_private_v1_symmetric_messages",
-      [
-        pubsubTopic ? pubsubTopic : DefaultPubsubTopic,
-        "0x" + bytesToHex(symKey)
-      ]
+    return this.restCall<MessageRpcResponse[]>(
+      `/relay/v1/auto/messages/${encodeURIComponent(contentTopic)}`,
+      "GET",
+      null,
+      async (response) => {
+        const data = await response.json();
+        return data?.length ? data.filter(isDefined) : [];
+      }
     );
   }
 
@@ -407,39 +345,33 @@ export class ServiceNode {
     return this.peerId;
   }
 
-  get rpcUrl(): string {
-    return `http://127.0.0.1:${this.rpcPort}/`;
+  get httpUrl(): string {
+    return `http://127.0.0.1:${this.restPort}`;
   }
 
-  async rpcCall<T>(
-    method: string,
-    params: Array<string | number | unknown>
+  async restCall<T>(
+    endpoint: string,
+    method: "GET" | "POST",
+    body: any = null,
+    processResponse: (response: Response) => Promise<T>
   ): Promise<T> {
-    return await pRetry(
-      async () => {
-        try {
-          log.info("Making an RPC Query: ", method, params);
-          const res = await fetch(this.rpcUrl, {
-            method: "POST",
-            body: JSON.stringify({
-              jsonrpc: "2.0",
-              id: 1,
-              method,
-              params
-            }),
-            headers: new Headers({ "Content-Type": "application/json" })
-          });
-          const json = await res.json();
-          log.info(`Received RPC Response: `, JSON.stringify(json));
-          return json.result;
-        } catch (error) {
-          log.error(`${this.rpcUrl} failed with error:`, error);
-          await delay(10);
-          throw error;
-        }
-      },
-      { retries: 5 }
-    );
+    this.checkProcess();
+
+    try {
+      log.info("Making a REST Call: ", endpoint, body);
+      const options: RequestInit = {
+        method,
+        headers: new Headers({ "Content-Type": "application/json" })
+      };
+      if (body) options.body = JSON.stringify(body);
+
+      const response = await fetch(`${this.httpUrl}${endpoint}`, options);
+      log.info(`Received REST Response: `, response.status);
+      return await processResponse(response);
+    } catch (error) {
+      log.error(`${this.httpUrl} failed with error:`, error);
+      throw error;
+    }
   }
 
   private checkProcess(): void {
@@ -452,9 +384,9 @@ export class ServiceNode {
 export function defaultArgs(): Args {
   return {
     listenAddress: "0.0.0.0",
-    rpc: true,
     relay: false,
-    rpcAdmin: true,
+    rest: true,
+    restAdmin: true,
     websocketSupport: true,
     logLevel: LogLevel.Trace
   };

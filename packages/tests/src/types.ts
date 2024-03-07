@@ -3,8 +3,8 @@ export interface Args {
   nat?: "none";
   listenAddress?: string;
   relay?: boolean;
-  rpc?: boolean;
-  rpcAdmin?: boolean;
+  rest?: boolean;
+  restAdmin?: boolean;
   nodekey?: string;
   portsShift?: number;
   logLevel?: LogLevel;
@@ -15,16 +15,22 @@ export interface Args {
   discv5Discovery?: boolean;
   storeMessageDbUrl?: string;
   pubsubTopic?: Array<string>;
-  rpcPrivate?: boolean;
   websocketSupport?: boolean;
   tcpPort?: number;
-  rpcPort?: number;
+  restPort?: number;
   websocketPort?: number;
   discv5BootstrapNode?: string;
   discv5UdpPort?: number;
   // `legacyFilter` is required to enable filter v1 with go-waku
   legacyFilter?: boolean;
   clusterId?: number;
+}
+
+export interface Ports {
+  tcpPort: number;
+  websocketPort: number;
+  restPort: number;
+  discv5UdpPort: number;
 }
 
 export enum LogLevel {

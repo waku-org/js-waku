@@ -1,3 +1,4 @@
+import type { Multiaddr } from "@multiformats/multiaddr";
 export * from "./is_defined.js";
 export * from "./random_subset.js";
 export * from "./group_by.js";
@@ -13,4 +14,16 @@ export function removeItemFromArray(arr: unknown[], value: unknown): unknown[] {
     arr.splice(index, 1);
   }
   return arr;
+}
+
+export function getWsMultiaddrFromMultiaddrs(
+  addresses: Multiaddr[]
+): Multiaddr {
+  const wsMultiaddr = addresses.find(
+    (addr) => addr.toString().includes("ws") || addr.toString().includes("wss")
+  );
+  if (!wsMultiaddr) {
+    throw new Error("No ws multiaddr found in the given addresses");
+  }
+  return wsMultiaddr;
 }

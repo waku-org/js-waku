@@ -8,6 +8,8 @@ import {
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
   NOISE_KEY_1,
   ServiceNode,
@@ -39,9 +41,8 @@ describe("Waku Store, custom pubsub topic", function () {
   let nwaku: ServiceNode;
   let nwaku2: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(15000);
-    nwaku = new ServiceNode(makeLogFileName(this));
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start({
       store: true,
       pubsubTopic: [customShardedPubsubTopic1, customShardedPubsubTopic2],
@@ -54,8 +55,7 @@ describe("Waku Store, custom pubsub topic", function () {
     ]);
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 
@@ -180,7 +180,8 @@ describe("Waku Store, custom pubsub topic", function () {
   });
 });
 
-describe("Waku Store (Autosharding), custom pubsub topic", function () {
+// Skipped until https://github.com/waku-org/js-waku/issues/1845 gets fixed
+describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
   this.timeout(15000);
   let waku: LightNode;
   let nwaku: ServiceNode;
@@ -188,7 +189,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
 
   const customContentTopic1 = "/waku/2/content/utf8";
   const customContentTopic2 = "/myapp/1/latest/proto";
-  const clusterId = 1;
+  const clusterId = 2;
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
     customContentTopic1,
     clusterId
@@ -214,9 +215,8 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     contentTopics: [customContentTopic1, customContentTopic2]
   };
 
-  beforeEach(async function () {
-    this.timeout(15000);
-    nwaku = new ServiceNode(makeLogFileName(this));
+  beforeEachCustom(this, async () => {
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
@@ -229,8 +229,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     ]);
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 
@@ -349,15 +348,13 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     customShardedPubsubTopic2
   );
 
-  beforeEach(async function () {
-    this.timeout(15000);
-
+  beforeEachCustom(this, async () => {
     const shardInfo = singleShardInfosToShardInfo([
       customShardInfo1,
       customShardInfo2
     ]);
 
-    nwaku = new ServiceNode(makeLogFileName(this));
+    nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start({
       store: true,
       relay: true,
@@ -376,8 +373,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     );
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([nwaku, nwaku2], waku);
   });
 

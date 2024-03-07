@@ -17,7 +17,13 @@ import { expect } from "chai";
 import fc from "fast-check";
 import Sinon from "sinon";
 
-import { makeLogFileName, ServiceNode, tearDownNodes } from "../src/index.js";
+import {
+  afterEachCustom,
+  beforeEachCustom,
+  makeLogFileName,
+  ServiceNode,
+  tearDownNodes
+} from "../src/index.js";
 
 describe("getConnectedPeersForProtocolAndShard", function () {
   let waku: LightNode;
@@ -25,14 +31,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
   let serviceNode2: ServiceNode;
   const contentTopic = "/test/2/waku-light-push/utf8";
 
-  this.beforeEach(async function () {
-    this.timeout(15000);
-    serviceNode1 = new ServiceNode(makeLogFileName(this) + "1");
-    serviceNode2 = new ServiceNode(makeLogFileName(this) + "2");
+  beforeEachCustom(this, async () => {
+    serviceNode1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
+    serviceNode2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([serviceNode1, serviceNode2], waku);
   });
 
@@ -40,8 +44,8 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo: ShardInfo = {
-      clusterId: 1,
-      shards: [1]
+      clusterId: 2,
+      shards: [2]
     };
 
     await serviceNode1.start({
@@ -63,22 +67,23 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
-      shardInfo
+      ensureShardingConfigured(shardInfo).shardInfo
     );
     expect(peers.length).to.be.greaterThan(0);
   });
 
+  // Had to use cluster 0 because of https://github.com/waku-org/js-waku/issues/1848
   it("same cluster, different shard: nodes connect", async function () {
     this.timeout(15000);
 
     const shardInfo: ShardInfo = {
-      clusterId: 1,
+      clusterId: 0,
       shards: [1]
     };
 
     const shardInfoServiceNode: ShardInfo = {
-      clusterId: 1,
-      shards: [2]
+      clusterId: 0,
+      shards: [1]
     };
 
     await serviceNode1.start({
@@ -110,12 +115,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ShardInfo = {
-      clusterId: 1,
+      clusterId: 2,
       shards: [1]
     };
 
     const shardInfo2: ShardInfo = {
-      clusterId: 2,
+      clusterId: 3,
       shards: [1]
     };
 
@@ -162,12 +167,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ShardInfo = {
-      clusterId: 1,
+      clusterId: 2,
       shards: [1]
     };
 
     const shardInfo2: ShardInfo = {
-      clusterId: 2,
+      clusterId: 3,
       shards: [2]
     };
 
@@ -214,7 +219,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: 2,
       contentTopics: [contentTopic]
     };
 
@@ -246,12 +251,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: 2,
       contentTopics: [contentTopic]
     };
 
     const shardInfo2: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: 2,
       contentTopics: ["/test/5/waku-light-push/utf8"]
     };
 
@@ -298,12 +303,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: 2,
       contentTopics: [contentTopic]
     };
 
     const shardInfo2: ContentTopicInfo = {
-      clusterId: 2,
+      clusterId: 3,
       contentTopics: [contentTopic]
     };
 
@@ -350,12 +355,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     this.timeout(15000);
 
     const shardInfo1: ContentTopicInfo = {
-      clusterId: 1,
+      clusterId: 2,
       contentTopics: [contentTopic]
     };
 
     const shardInfo2: ContentTopicInfo = {
-      clusterId: 2,
+      clusterId: 3,
       contentTopics: ["/test/5/waku-light-push/utf8"]
     };
 
@@ -419,8 +424,7 @@ describe("getPeers", function () {
   let nonBootstrapPeers: Peer[];
   let allPeers: Peer[];
 
-  beforeEach(async function () {
-    this.timeout(10_000);
+  beforeEachCustom(this, async () => {
     waku = await createLightNode();
     peerStore = waku.libp2p.peerStore;
     connectionManager = waku.libp2p.components.connectionManager;
@@ -536,7 +540,7 @@ describe("getPeers", function () {
     });
   });
 
-  this.afterEach(function () {
+  afterEachCustom(this, async () => {
     Sinon.restore();
   });
 

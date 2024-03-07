@@ -9,6 +9,8 @@ import { expect } from "chai";
 import Sinon, { SinonSpy, SinonStub } from "sinon";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   makeLogFileName,
   ServiceNode,
@@ -21,8 +23,7 @@ describe("multiaddr: dialing", function () {
   let dialPeerSpy: SinonSpy;
   let isPeerTopicConfigured: SinonStub;
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
 
@@ -54,9 +55,8 @@ describe("multiaddr: dialing", function () {
     let peerId: PeerId;
     let multiaddr: Multiaddr;
 
-    beforeEach(async function () {
-      this.timeout(10_000);
-      nwaku = new ServiceNode(makeLogFileName(this));
+    beforeEachCustom(this, async () => {
+      nwaku = new ServiceNode(makeLogFileName(this.ctx));
       await nwaku.start();
 
       waku = await createLightNode();
@@ -72,7 +72,7 @@ describe("multiaddr: dialing", function () {
       dialPeerSpy = Sinon.spy(waku.connectionManager as any, "dialPeer");
     });
 
-    afterEach(function () {
+    afterEachCustom(this, async () => {
       dialPeerSpy.restore();
     });
 

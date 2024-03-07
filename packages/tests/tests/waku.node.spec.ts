@@ -1,10 +1,6 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
-import {
-  DecodedMessage,
-  DefaultUserAgent,
-  waitForRemotePeer
-} from "@waku/core";
+import { DecodedMessage, waitForRemotePeer } from "@waku/core";
 import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { generateSymmetricKey } from "@waku/message-encryption";
@@ -14,13 +10,16 @@ import {
 } from "@waku/message-encryption/symmetric";
 import {
   createLightNode,
-  createEncoder as createPlainEncoder
+  createEncoder as createPlainEncoder,
+  DefaultUserAgent
 } from "@waku/sdk";
 import { createRelayNode } from "@waku/sdk/relay";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
@@ -37,8 +36,7 @@ describe("Waku Dial [node only]", function () {
     let waku: LightNode;
     let nwaku: ServiceNode;
 
-    afterEach(async function () {
-      this.timeout(15000);
+    afterEachCustom(this, async () => {
       await tearDownNodes(nwaku, waku);
     });
 
@@ -102,8 +100,7 @@ describe("Waku Dial [node only]", function () {
     let waku: LightNode;
     let nwaku: ServiceNode;
 
-    afterEach(async function () {
-      this.timeout(15000);
+    afterEachCustom(this, async () => {
       await tearDownNodes(nwaku, waku);
     });
 
@@ -158,17 +155,16 @@ describe("Waku Dial [node only]", function () {
   });
 });
 
-describe("Decryption Keys", () => {
-  afterEach(function () {
-    if (this.currentTest?.state === "failed") {
-      console.log(`Test failed, log file name is ${makeLogFileName(this)}`);
+describe("Decryption Keys", function () {
+  afterEachCustom(this, async () => {
+    if (this.ctx.currentTest?.state === "failed") {
+      console.log(`Test failed, log file name is ${makeLogFileName(this.ctx)}`);
     }
   });
 
   let waku1: RelayNode;
   let waku2: RelayNode;
-  beforeEach(async function () {
-    this.timeout(5000);
+  beforeEachCustom(this, async () => {
     [waku1, waku2] = await Promise.all([
       createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
         waku.start().then(() => waku)
@@ -190,8 +186,7 @@ describe("Decryption Keys", () => {
     ]);
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2]);
   });
 
@@ -228,12 +223,11 @@ describe("Decryption Keys", () => {
   });
 });
 
-describe("User Agent", () => {
+describe("User Agent", function () {
   let waku1: Waku;
   let waku2: Waku;
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2]);
   });
 

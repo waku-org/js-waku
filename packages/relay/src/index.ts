@@ -24,11 +24,7 @@ import {
   SendError,
   SendResult
 } from "@waku/interfaces";
-import {
-  isWireSizeUnderCap,
-  shardInfoToPubsubTopics,
-  toAsyncIterator
-} from "@waku/utils";
+import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
 import { Logger } from "@waku/utils";
 
@@ -63,7 +59,7 @@ class Relay implements IRelay {
    */
   private observers: Map<PubsubTopic, Map<ContentTopic, Set<unknown>>>;
 
-  constructor(libp2p: Libp2p, options?: Partial<RelayCreateOptions>) {
+  constructor(libp2p: Libp2p, pubsubTopics: PubsubTopic[]) {
     if (!this.isRelayPubsub(libp2p.services.pubsub)) {
       throw Error(
         `Failed to initialize Relay. libp2p.pubsub does not support ${Relay.multicodec}`
@@ -71,11 +67,7 @@ class Relay implements IRelay {
     }
 
     this.gossipSub = libp2p.services.pubsub as GossipSub;
-    this.pubsubTopics = new Set(
-      options?.shardInfo
-        ? shardInfoToPubsubTopics(options.shardInfo)
-        : options?.pubsubTopics ?? [DefaultPubsubTopic]
-    );
+    this.pubsubTopics = new Set(pubsubTopics);
 
     if (this.gossipSub.isStarted()) {
       this.subscribeToAllTopics();
@@ -283,9 +275,9 @@ class Relay implements IRelay {
 }
 
 export function wakuRelay(
-  init: Partial<ProtocolCreateOptions> = {}
+  pubsubTopics: PubsubTopic[]
 ): (libp2p: Libp2p) => IRelay {
-  return (libp2p: Libp2p) => new Relay(libp2p, init);
+  return (libp2p: Libp2p) => new Relay(libp2p, pubsubTopics);
 }
 
 export function wakuGossipSub(

@@ -1,20 +1,24 @@
 import type { Stream } from "@libp2p/interface";
 import { isPeerId, PeerId } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
+import { ConnectionManager, DecodedMessage } from "@waku/core";
 import type {
+  Callback,
   IFilter,
+  IFilterSubscription,
   ILightPush,
   IRelay,
   IStore,
   Libp2p,
+  LightNode,
+  ProtocolCreateOptions,
   PubsubTopic,
-  ShardingParams,
   Waku
 } from "@waku/interfaces";
-import { DefaultPubsubTopic, Protocols } from "@waku/interfaces";
-import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
+import { Protocols } from "@waku/interfaces";
+import { Logger } from "@waku/utils";
 
-import { ConnectionManager } from "./connection_manager.js";
+import { subscribeToContentTopic } from "./utils/content_topic.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -42,7 +46,11 @@ export interface WakuOptions {
    * @default {@link @waku/core.DefaultUserAgent}
    */
   userAgent?: string;
+  pubsubTopics: PubsubTopic[];
 }
+
+export type CreateWakuNodeOptions = ProtocolCreateOptions &
+  Partial<WakuOptions>;
 
 export class WakuNode implements Waku {
   public libp2p: Libp2p;
@@ -55,20 +63,16 @@ export class WakuNode implements Waku {
 
   constructor(
     options: WakuOptions,
-    pubsubTopics: PubsubTopic[] = [],
     libp2p: Libp2p,
-    private pubsubShardInfo?: ShardingParams,
     store?: (libp2p: Libp2p) => IStore,
     lightPush?: (libp2p: Libp2p) => ILightPush,
     filter?: (libp2p: Libp2p) => IFilter,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
-    if (!pubsubShardInfo) {
-      this.pubsubTopics =
-        pubsubTopics.length > 0 ? pubsubTopics : [DefaultPubsubTopic];
-    } else {
-      this.pubsubTopics = shardInfoToPubsubTopics(pubsubShardInfo);
+    if (options.pubsubTopics.length == 0) {
+      throw new Error("At least one pubsub topic must be provided");
     }
+    this.pubsubTopics = options.pubsubTopics;
 
     this.libp2p = libp2p;
 
@@ -108,10 +112,6 @@ export class WakuNode implements Waku {
       `relay: ${!!this.relay}, store: ${!!this.store}, light push: ${!!this
         .lightPush}, filter: ${!!this.filter}`
     );
-  }
-
-  get shardInfo(): ShardingParams | undefined {
-    return this.pubsubShardInfo;
   }
 
   /**
@@ -186,6 +186,19 @@ export class WakuNode implements Waku {
   async stop(): Promise<void> {
     this.connectionManager.stop();
     await this.libp2p.stop();
+  }
+
+  async subscribeToContentTopic(
+    contentTopic: string,
+    peer: Multiaddr,
+    callback: Callback<DecodedMessage>
+  ): Promise<IFilterSubscription> {
+    return (
+      await subscribeToContentTopic(contentTopic, callback, {
+        waku: this as LightNode,
+        peer
+      })
+    ).subscription;
   }
 
   isStarted(): boolean {

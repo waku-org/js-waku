@@ -264,9 +264,7 @@ export const ensureShardingConfigured = (
       )
     );
     const shards = Array.from(
-      new Set(
-        contentTopics.map((topic) => contentTopicToShardIndex(topic, clusterId))
-      )
+      new Set(contentTopics.map((topic) => contentTopicToShardIndex(topic)))
     );
     return {
       shardingParams: { clusterId, contentTopics },

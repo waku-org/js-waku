@@ -15,6 +15,8 @@ import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
+  beforeEachCustom,
   delay,
   generateTestData,
   isNwakuAtLeast,
@@ -39,18 +41,16 @@ const runTests = (strictCheckNodes: boolean): void => {
     let serviceNodes: ServiceNodesFleet;
     let subscription: IFilterSubscription;
 
-    this.beforeEach(async function () {
-      this.timeout(15000);
+    beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(
-        this,
+        this.ctx,
         [DefaultPubsubTopic],
         strictCheckNodes
       );
       subscription = await waku.filter.createSubscription();
     });
 
-    this.afterEach(async function () {
-      this.timeout(15000);
+    afterEachCustom(this, async () => {
       await teardownNodesWithRedundancy(serviceNodes, waku);
     });
 

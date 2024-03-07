@@ -6,7 +6,9 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
+  afterEachCustom,
   base64ToUtf8,
+  beforeEachCustom,
   delay,
   makeLogFileName,
   NOISE_KEY_1,
@@ -23,14 +25,13 @@ describe("Waku Relay, Interop", function () {
   let waku: RelayNode;
   let nwaku: ServiceNode;
 
-  beforeEach(async function () {
-    this.timeout(30000);
+  beforeEachCustom(this, async () => {
     waku = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1
     });
     await waku.start();
 
-    nwaku = new ServiceNode(this.test?.ctx?.currentTest?.title + "");
+    nwaku = new ServiceNode(this.ctx.test?.ctx?.currentTest?.title + "");
     await nwaku.start({ relay: true });
 
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -40,8 +41,7 @@ describe("Waku Relay, Interop", function () {
     await nwaku.ensureSubscriptions();
   });
 
-  afterEach(async function () {
-    this.timeout(15000);
+  afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
 
@@ -108,7 +108,7 @@ describe("Waku Relay, Interop", function () {
     let waku2: RelayNode;
     let nwaku: ServiceNode;
 
-    afterEach(async function () {
+    afterEachCustom(this, async () => {
       await tearDownNodes(nwaku, [waku1, waku2]);
     });
 

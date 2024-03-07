@@ -3,7 +3,7 @@ import fs from "fs";
 import { Logger } from "@waku/utils";
 import Docker from "dockerode";
 
-import { Args } from "../types.js";
+import { Args, Ports } from "../types.js";
 
 const log = new Logger("test:docker");
 
@@ -87,12 +87,12 @@ export default class Dockerode {
   }
 
   async startContainer(
-    ports: number[],
+    ports: Ports,
     args: Args,
     logPath: string,
     wakuServiceNodeParams?: string
   ): Promise<Docker.Container> {
-    const [rpcPort, tcpPort, websocketPort, discv5UdpPort] = ports;
+    const { restPort, tcpPort, websocketPort, discv5UdpPort } = ports;
 
     await this.confirmImageExistsOrPull();
 
@@ -109,7 +109,7 @@ export default class Dockerode {
       HostConfig: {
         AutoRemove: true,
         PortBindings: {
-          [`${rpcPort}/tcp`]: [{ HostPort: rpcPort.toString() }],
+          [`${restPort}/tcp`]: [{ HostPort: restPort.toString() }],
           [`${tcpPort}/tcp`]: [{ HostPort: tcpPort.toString() }],
           [`${websocketPort}/tcp`]: [{ HostPort: websocketPort.toString() }],
           ...(args?.peerExchange && {
@@ -118,7 +118,7 @@ export default class Dockerode {
         }
       },
       ExposedPorts: {
-        [`${rpcPort}/tcp`]: {},
+        [`${restPort}/tcp`]: {},
         [`${tcpPort}/tcp`]: {},
         [`${websocketPort}/tcp`]: {},
         ...(args?.peerExchange && {

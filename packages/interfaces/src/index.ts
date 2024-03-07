@@ -16,3 +16,4 @@ export * from "./keep_alive_manager.js";
 export * from "./dns_discovery.js";
 export * from "./metadata.js";
 export * from "./constants.js";
+export * from "./local_storage.js";
