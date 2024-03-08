@@ -232,8 +232,7 @@ describe("Public methods", function () {
     ).to.eq(0);
   });
 
-  // Will be skipped until https://github.com/waku-org/js-waku/issues/1835 is fixed
-  it.skip("dispatchEvent via connectionManager", async function () {
+  it("dispatchEvent via connectionManager", async function () {
     const peerIdBootstrap = await createSecp256k1PeerId();
     await waku.libp2p.peerStore.save(peerIdBootstrap, {
       tags: {
@@ -252,7 +251,9 @@ describe("Public methods", function () {
       );
     });
     waku.connectionManager.dispatchEvent(
-      new CustomEvent<PeerId>("peer:connect", { detail: peerIdBootstrap })
+      new CustomEvent<PeerId>(EPeersByDiscoveryEvents.PEER_CONNECT_BOOTSTRAP, {
+        detail: peerIdBootstrap
+      })
     );
     expect(await peerConnectedBootstrap).to.eq(true);
   });
