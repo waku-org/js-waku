@@ -4,8 +4,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { encodeMessage, decodeMessage, message } from 'protons-runtime'
-import type { Codec } from 'protons-runtime'
+import { type Codec, decodeMessage, type DecodeOptions, encodeMessage, message } from 'protons-runtime'
+import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface RateLimitProof {
@@ -66,15 +66,15 @@ export namespace RateLimitProof {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
-          proof: new Uint8Array(0),
-          merkleRoot: new Uint8Array(0),
-          epoch: new Uint8Array(0),
-          shareX: new Uint8Array(0),
-          shareY: new Uint8Array(0),
-          nullifier: new Uint8Array(0),
-          rlnIdentifier: new Uint8Array(0)
+          proof: uint8ArrayAlloc(0),
+          merkleRoot: uint8ArrayAlloc(0),
+          epoch: uint8ArrayAlloc(0),
+          shareX: uint8ArrayAlloc(0),
+          shareY: uint8ArrayAlloc(0),
+          nullifier: uint8ArrayAlloc(0),
+          rlnIdentifier: uint8ArrayAlloc(0)
         }
 
         const end = length == null ? reader.len : reader.pos + length
@@ -83,30 +83,38 @@ export namespace RateLimitProof {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.proof = reader.bytes()
               break
-            case 2:
+            }
+            case 2: {
               obj.merkleRoot = reader.bytes()
               break
-            case 3:
+            }
+            case 3: {
               obj.epoch = reader.bytes()
               break
-            case 4:
+            }
+            case 4: {
               obj.shareX = reader.bytes()
               break
-            case 5:
+            }
+            case 5: {
               obj.shareY = reader.bytes()
               break
-            case 6:
+            }
+            case 6: {
               obj.nullifier = reader.bytes()
               break
-            case 7:
+            }
+            case 7: {
               obj.rlnIdentifier = reader.bytes()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -121,8 +129,8 @@ export namespace RateLimitProof {
     return encodeMessage(obj, RateLimitProof.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): RateLimitProof => {
-    return decodeMessage(buf, RateLimitProof.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<RateLimitProof>): RateLimitProof => {
+    return decodeMessage(buf, RateLimitProof.codec(), opts)
   }
 }
 
@@ -184,9 +192,9 @@ export namespace WakuMessage {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
-          payload: new Uint8Array(0),
+          payload: uint8ArrayAlloc(0),
           contentTopic: ''
         }
 
@@ -196,30 +204,40 @@ export namespace WakuMessage {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.payload = reader.bytes()
               break
-            case 2:
+            }
+            case 2: {
               obj.contentTopic = reader.string()
               break
-            case 3:
+            }
+            case 3: {
               obj.version = reader.uint32()
               break
-            case 10:
+            }
+            case 10: {
               obj.timestamp = reader.sint64()
               break
-            case 11:
+            }
+            case 11: {
               obj.meta = reader.bytes()
               break
-            case 21:
-              obj.rateLimitProof = RateLimitProof.codec().decode(reader, reader.uint32())
+            }
+            case 21: {
+              obj.rateLimitProof = RateLimitProof.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.rateLimitProof
+              })
               break
-            case 31:
+            }
+            case 31: {
               obj.ephemeral = reader.bool()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -234,7 +252,7 @@ export namespace WakuMessage {
     return encodeMessage(obj, WakuMessage.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): WakuMessage => {
-    return decodeMessage(buf, WakuMessage.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<WakuMessage>): WakuMessage => {
+    return decodeMessage(buf, WakuMessage.codec(), opts)
   }
 }

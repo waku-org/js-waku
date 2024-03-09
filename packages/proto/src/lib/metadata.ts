@@ -4,8 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { encodeMessage, decodeMessage, message } from 'protons-runtime'
-import type { Codec } from 'protons-runtime'
+import { type Codec, CodeError, decodeMessage, type DecodeOptions, encodeMessage, message } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface WakuMetadataRequest {
@@ -38,7 +37,7 @@ export namespace WakuMetadataRequest {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
           shards: []
         }
@@ -49,15 +48,22 @@ export namespace WakuMetadataRequest {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.clusterId = reader.uint32()
               break
-            case 2:
+            }
+            case 2: {
+              if (opts.limits?.shards != null && obj.shards.length === opts.limits.shards) {
+                throw new CodeError('decode error - map field "shards" had too many elements', 'ERR_MAX_LENGTH')
+              }
+
               obj.shards.push(reader.uint32())
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -72,8 +78,8 @@ export namespace WakuMetadataRequest {
     return encodeMessage(obj, WakuMetadataRequest.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): WakuMetadataRequest => {
-    return decodeMessage(buf, WakuMetadataRequest.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<WakuMetadataRequest>): WakuMetadataRequest => {
+    return decodeMessage(buf, WakuMetadataRequest.codec(), opts)
   }
 }
 
@@ -107,7 +113,7 @@ export namespace WakuMetadataResponse {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
           shards: []
         }
@@ -118,15 +124,22 @@ export namespace WakuMetadataResponse {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.clusterId = reader.uint32()
               break
-            case 2:
+            }
+            case 2: {
+              if (opts.limits?.shards != null && obj.shards.length === opts.limits.shards) {
+                throw new CodeError('decode error - map field "shards" had too many elements', 'ERR_MAX_LENGTH')
+              }
+
               obj.shards.push(reader.uint32())
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -141,7 +154,7 @@ export namespace WakuMetadataResponse {
     return encodeMessage(obj, WakuMetadataResponse.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): WakuMetadataResponse => {
-    return decodeMessage(buf, WakuMetadataResponse.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<WakuMetadataResponse>): WakuMetadataResponse => {
+    return decodeMessage(buf, WakuMetadataResponse.codec(), opts)
   }
 }
