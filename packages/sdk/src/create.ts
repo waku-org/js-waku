@@ -6,6 +6,15 @@ import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "./waku.js";
 
 export { Libp2pComponents };
 
+export async function createApplicationNode(
+  application: string,
+  version: string,
+  options: CreateWakuNodeOptions = { pubsubTopics: [] }
+): Promise<LightNode> {
+  options = options ?? {};
+  options.shardInfo = { application, version };
+  return createNode(options);
+}
 /**
  * Create a Waku node configured to use autosharding or static sharding.
  */
