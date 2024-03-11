@@ -1,7 +1,7 @@
 {
   "name": "@waku/discovery",
   "version": "0.0.1",
-  "description": "All peer discovery implementations available for Waku",
+  "description": "Contains various discovery mechanisms: DNS Discovery (EIP-1459, Peer Exchange, Local Peer Cache Discovery.",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "exports": {
