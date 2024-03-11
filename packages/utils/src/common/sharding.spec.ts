@@ -231,8 +231,8 @@ describe("contentTopicsByPubsubTopic", () => {
 
 describe("singleShardInfoToPubsubTopic", () => {
   it("should convert a SingleShardInfo object to the correct PubsubTopic", () => {
-    const singleShardInfo = { clusterId: 1, shard: 2 };
-    const expectedTopic = "/waku/2/rs/1/2";
+    const singleShardInfo = { clusterId: 2, shard: 2 };
+    const expectedTopic = "/waku/2/rs/2/2";
     expect(singleShardInfoToPubsubTopic(singleShardInfo)).to.equal(
       expectedTopic
     );
@@ -289,6 +289,21 @@ describe("shardInfoToPubsubTopics", () => {
     const topics = shardInfoToPubsubTopics(shardInfo);
     expect(topics).to.be.an("array").that.includes("/waku/2/rs/1/4");
     expect(topics.length).to.equal(1);
+  });
+
+  [0, 1, 6].forEach((clusterId) => {
+    it(`should handle clusterId, application and version for autosharding with cluster iD ${clusterId}`, () => {
+      const shardInfo = {
+        clusterId: clusterId,
+        application: "app",
+        version: "v1"
+      };
+      const topics = shardInfoToPubsubTopics(shardInfo);
+      expect(topics)
+        .to.be.an("array")
+        .that.includes(`/waku/2/rs/${clusterId}/4`);
+      expect(topics.length).to.equal(1);
+    });
   });
 
   it("should return empty list for no shard", () => {
@@ -457,6 +472,29 @@ describe("ensureShardingConfigured", () => {
     expect(result.shardInfo.shards).to.include(
       pubsubTopicToSingleShardInfo(expectedPubsubTopic).shard
     );
+  });
+
+  [0, 1, 4].forEach((clusterId) => {
+    it(`should configure sharding based on clusterId, application and version for autosharding with cluster iD ${clusterId}`, () => {
+      const shardInfo = {
+        clusterId: clusterId,
+        application: "app",
+        version: "v1"
+      };
+      const result = ensureShardingConfigured(shardInfo);
+      expect(result.shardingParams).to.deep.include({
+        application: "app",
+        version: "v1"
+      });
+      const expectedPubsubTopic = contentTopicToPubsubTopic(
+        `/app/v1/default/default`,
+        shardInfo.clusterId
+      );
+      expect(result.pubsubTopics).to.include(expectedPubsubTopic);
+      expect(result.shardInfo.shards).to.include(
+        pubsubTopicToSingleShardInfo(expectedPubsubTopic).shard
+      );
+    });
   });
 
   it("should throw an error for missing sharding configuration", () => {
