@@ -1,10 +1,16 @@
 import type { IdentifyResult } from "@libp2p/interface";
-import type { IBaseProtocol, IMetadata, IRelay, Waku } from "@waku/interfaces";
+import type {
+  IBaseProtocolCore,
+  IMetadata,
+  IRelay,
+  Waku
+} from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { pEvent } from "p-event";
 const log = new Logger("wait-for-remote-peer");
 
+//TODO: move this function within the Waku class: https://github.com/waku-org/js-waku/issues/1761
 /**
  * Wait for a remote peer to be ready given the passed protocols.
  * Must be used after attempting to connect to nodes, using
@@ -53,7 +59,10 @@ export async function waitForRemotePeer(
     if (!waku.lightPush)
       throw new Error("Cannot wait for LightPush peer: protocol not mounted");
     promises.push(
-      waitForConnectedPeer(waku.lightPush, waku.libp2p.services.metadata)
+      waitForConnectedPeer(
+        waku.lightPush.protocol,
+        waku.libp2p.services.metadata
+      )
     );
   }
 
@@ -76,12 +85,13 @@ export async function waitForRemotePeer(
   }
 }
 
+//TODO: move this function within protocol SDK class: https://github.com/waku-org/js-waku/issues/1761
 /**
  * Wait for a peer with the given protocol to be connected.
  * If sharding is enabled on the node, it will also wait for the peer to be confirmed by the metadata service.
  */
 async function waitForConnectedPeer(
-  protocol: IBaseProtocol,
+  protocol: IBaseProtocolCore,
   metadataService?: IMetadata
 ): Promise<void> {
   const codec = protocol.multicodec;

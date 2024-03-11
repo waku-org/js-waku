@@ -10,8 +10,8 @@
       "import": "./dist/index.js"
     },
     "./relay": {
-      "types": "./dist/relay/index.d.ts",
-      "import": "./dist/relay/index.js"
+      "types": "./dist/relay-node/index.d.ts",
+      "import": "./dist/relay-node/index.js"
     }
   },
   "typesVersions": {

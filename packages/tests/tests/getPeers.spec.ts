@@ -463,37 +463,37 @@ describe("getPeers", function () {
 
     lowPingBootstrapPeer = {
       id: lowPingBootstrapPeerId,
-      protocols: [waku.lightPush.multicodec],
+      protocols: [waku.lightPush.protocol.multicodec],
       metadata: new Map().set("ping", lowPingBytes),
       tags: new Map().set(Tags.BOOTSTRAP, {})
     } as Peer;
     lowPingNonBootstrapPeer = {
       id: lowPingNonBootstrapPeerId,
-      protocols: [waku.lightPush.multicodec],
+      protocols: [waku.lightPush.protocol.multicodec],
       metadata: new Map().set("ping", lowPingBytes),
       tags: new Map().set(Tags.PEER_EXCHANGE, {})
     } as Peer;
     midPingBootstrapPeer = {
       id: midPingBootstrapPeerId,
-      protocols: [waku.lightPush.multicodec],
+      protocols: [waku.lightPush.protocol.multicodec],
       metadata: new Map().set("ping", midPingBytes),
       tags: new Map().set(Tags.BOOTSTRAP, {})
     } as Peer;
     midPingNonBootstrapPeer = {
       id: midPingNonBootstrapPeerId,
-      protocols: [waku.lightPush.multicodec],
+      protocols: [waku.lightPush.protocol.multicodec],
       metadata: new Map().set("ping", midPingBytes),
       tags: new Map().set(Tags.PEER_EXCHANGE, {})
     } as Peer;
     highPingBootstrapPeer = {
       id: highPingBootstrapPeerId,
-      protocols: [waku.lightPush.multicodec],
+      protocols: [waku.lightPush.protocol.multicodec],
       metadata: new Map().set("ping", highPingBytes),
       tags: new Map().set(Tags.BOOTSTRAP, {})
     } as Peer;
     highPingNonBootstrapPeer = {
       id: highPingNonBootstrapPeerId,
-      protocols: [waku.lightPush.multicodec],
+      protocols: [waku.lightPush.protocol.multicodec],
       metadata: new Map().set("ping", highPingBytes),
       tags: new Map().set(Tags.PEER_EXCHANGE, {})
     } as Peer;
@@ -562,7 +562,7 @@ describe("getPeers", function () {
     maxBootstrapPeersValues.forEach((maxBootstrapPeers) => {
       describe(`maxBootstrapPeers=${maxBootstrapPeers}`, function () {
         it(`numPeers=1 -- returns one bootstrap peer `, async function () {
-          const result = (await (waku.lightPush as any).getPeers({
+          const result = (await (waku.lightPush.protocol as any).getPeers({
             numPeers: 1,
             maxBootstrapPeers
           })) as Peer[];
@@ -574,15 +574,16 @@ describe("getPeers", function () {
           expect(result[0].tags.has(Tags.BOOTSTRAP)).to.be.true;
 
           // Peer should be of the same protocol
-          expect(result[0].protocols.includes(waku.lightPush.multicodec)).to.be
-            .true;
+          expect(
+            result[0].protocols.includes(waku.lightPush.protocol.multicodec)
+          ).to.be.true;
 
           // Peer should have the lowest ping
           expect(result[0].metadata.get("ping")).to.equal(lowPingBytes);
         });
 
         it(`numPeers=2 -- returns total 2 peers, with max ${maxBootstrapPeers} bootstrap peers`, async function () {
-          const result = (await (waku.lightPush as any).getPeers({
+          const result = (await (waku.lightPush.protocol as any).getPeers({
             numPeers: 2,
             maxBootstrapPeers
           })) as Peer[];
@@ -598,7 +599,7 @@ describe("getPeers", function () {
           // Should return peers with the same protocol
           expect(
             result.every((peer: Peer) =>
-              peer.protocols.includes(waku.lightPush.multicodec)
+              peer.protocols.includes(waku.lightPush.protocol.multicodec)
             )
           ).to.be.true;
 
@@ -608,7 +609,7 @@ describe("getPeers", function () {
         });
 
         it(`numPeers=3 -- returns total 3 peers, with max ${maxBootstrapPeers} bootstrap peers`, async function () {
-          const result = (await (waku.lightPush as any).getPeers({
+          const result = (await (waku.lightPush.protocol as any).getPeers({
             numPeers: 3,
             maxBootstrapPeers
           })) as Peer[];
@@ -624,7 +625,7 @@ describe("getPeers", function () {
           // Should return peers with the same protocol
           expect(
             result.every((peer: Peer) =>
-              peer.protocols.includes(waku.lightPush.multicodec)
+              peer.protocols.includes(waku.lightPush.protocol.multicodec)
             )
           ).to.be.true;
 
@@ -634,7 +635,7 @@ describe("getPeers", function () {
         });
 
         it(`numPeers=4 -- returns total 4 peers, with max ${maxBootstrapPeers} bootstrap peers`, async function () {
-          const result = (await (waku.lightPush as any).getPeers({
+          const result = (await (waku.lightPush.protocol as any).getPeers({
             numPeers: 4,
             maxBootstrapPeers
           })) as Peer[];
@@ -650,7 +651,7 @@ describe("getPeers", function () {
           // Should return peers with the same protocol
           expect(
             result.every((peer: Peer) =>
-              peer.protocols.includes(waku.lightPush.multicodec)
+              peer.protocols.includes(waku.lightPush.protocol.multicodec)
             )
           ).to.be.true;
 
@@ -660,7 +661,7 @@ describe("getPeers", function () {
         });
 
         it(`numPeers=0 -- returns all peers including all non-bootstrap with maxBootstrapPeers: ${maxBootstrapPeers}`, async function () {
-          const result = (await (waku.lightPush as any).getPeers({
+          const result = (await (waku.lightPush.protocol as any).getPeers({
             numPeers: 0,
             maxBootstrapPeers
           })) as Peer[];
@@ -686,7 +687,7 @@ describe("getPeers", function () {
           // Peers should be of the same protocol
           expect(
             result.every((peer: Peer) =>
-              peer.protocols.includes(waku.lightPush.multicodec)
+              peer.protocols.includes(waku.lightPush.protocol.multicodec)
             )
           ).to.be.true;
 
@@ -707,7 +708,7 @@ describe("getPeers", function () {
           //numPeers
           fc.integer({ min: 0, max: 100 }),
           async (maxBootstrapPeers, numPeers) => {
-            const result = (await (waku.lightPush as any).getPeers({
+            const result = (await (waku.lightPush.protocol as any).getPeers({
               numPeers,
               maxBootstrapPeers
             })) as Peer[];

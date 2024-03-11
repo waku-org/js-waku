@@ -2,7 +2,7 @@ import type { PeerId } from "@libp2p/interface";
 
 import type { IDecodedMessage, IDecoder, SingleShardInfo } from "./message.js";
 import type { ContentTopic, PubsubTopic } from "./misc.js";
-import type { Callback, IBaseProtocol } from "./protocols.js";
+import type { Callback, IBaseProtocolCore } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
 
 export type ContentFilter = {
@@ -23,7 +23,7 @@ export interface IFilterSubscription {
 }
 
 export type IFilter = IReceiver &
-  IBaseProtocol & {
+  IBaseProtocolCore & {
     createSubscription(
       pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic,
       peerId?: PeerId

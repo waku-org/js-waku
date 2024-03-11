@@ -6,7 +6,7 @@ import type {
   Callback,
   IFilter,
   IFilterSubscription,
-  ILightPush,
+  ILightPushSDK,
   IRelay,
   IStore,
   Libp2p,
@@ -57,7 +57,7 @@ export class WakuNode implements Waku {
   public relay?: IRelay;
   public store?: IStore;
   public filter?: IFilter;
-  public lightPush?: ILightPush;
+  public lightPush?: ILightPushSDK;
   public connectionManager: ConnectionManager;
   public readonly pubsubTopics: PubsubTopic[];
 
@@ -65,7 +65,7 @@ export class WakuNode implements Waku {
     options: WakuOptions,
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStore,
-    lightPush?: (libp2p: Libp2p) => ILightPush,
+    lightPush?: (libp2p: Libp2p) => ILightPushSDK,
     filter?: (libp2p: Libp2p) => IFilter,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
@@ -157,7 +157,7 @@ export class WakuNode implements Waku {
     }
     if (_protocols.includes(Protocols.LightPush)) {
       if (this.lightPush) {
-        codecs.push(this.lightPush.multicodec);
+        codecs.push(this.lightPush.protocol.multicodec);
       } else {
         log.error(
           "Light Push codec not included in dial codec: protocol not mounted locally"

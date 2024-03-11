@@ -14,7 +14,7 @@ export enum Protocols {
   Filter = "filter"
 }
 
-export interface IBaseProtocol {
+export type IBaseProtocolCore = {
   shardInfo?: ShardInfo;
   multicodec: string;
   peerStore: PeerStore;
@@ -22,7 +22,11 @@ export interface IBaseProtocol {
   connectedPeers: () => Promise<Peer[]>;
   addLibp2pEventListener: Libp2p["addEventListener"];
   removeLibp2pEventListener: Libp2p["removeEventListener"];
-}
+};
+
+export type IBaseProtocolSDK = {
+  numPeers: number;
+};
 
 export type ContentTopicInfo = {
   clusterId: number;
@@ -145,7 +149,12 @@ export enum SendError {
   REMOTE_PEER_REJECTED = "Remote peer rejected"
 }
 
+export interface Failure {
+  error: SendError;
+  peerId?: PeerId;
+}
+
 export interface SendResult {
-  errors?: SendError[];
-  recipients: PeerId[];
+  failures?: Failure[];
+  successes: PeerId[];
 }
