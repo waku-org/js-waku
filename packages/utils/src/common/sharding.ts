@@ -66,7 +66,8 @@ export const shardInfoToPubsubTopics = (
     // Autosharding: single shard from application and version
     return [
       contentTopicToPubsubTopic(
-        `/${shardInfo.application}/${shardInfo.version}/default/default`
+        `/${shardInfo.application}/${shardInfo.version}/default/default`,
+        shardInfo.clusterId
       )
     ];
   } else {
@@ -291,7 +292,8 @@ export const ensureShardingConfigured = (
 
   if (isApplicationVersionConfigured) {
     const pubsubTopic = contentTopicToPubsubTopic(
-      `/${application}/${version}/default/default`
+      `/${application}/${version}/default/default`,
+      clusterId
     );
     return {
       shardingParams: { clusterId, application, version },
