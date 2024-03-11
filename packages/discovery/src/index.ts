@@ -11,9 +11,7 @@ export {
 } from "./peer-exchange/waku_peer_exchange.js";
 export {
   wakuPeerExchangeDiscovery,
-  PeerExchangeDiscovery,
-  Options,
-  DEFAULT_PEER_EXCHANGE_TAG_NAME
+  PeerExchangeDiscovery
 } from "./peer-exchange/waku_peer_exchange_discovery.js";
 
 // Local Peer Cache Discovery
