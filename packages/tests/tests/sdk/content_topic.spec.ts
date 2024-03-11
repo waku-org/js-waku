@@ -3,7 +3,6 @@ import {
   bytesToUtf8,
   createEncoder,
   createLightNode,
-  DEFAULT_CLUSTER_ID,
   defaultLibp2p,
   LightNode,
   Protocols,
@@ -20,11 +19,17 @@ import {
 } from "@waku/utils";
 import { expect } from "chai";
 
-import { makeLogFileName, ServiceNode, tearDownNodes } from "../../src";
+import {
+  makeLogFileName,
+  resolveAutoshardingCluster,
+  ServiceNode,
+  tearDownNodes
+} from "../../src";
 
 describe("SDK: Creating by Content Topic", function () {
   const ContentTopic = "/myapp/1/latest/proto";
   const testMessage = "Test123";
+  const clusterId = resolveAutoshardingCluster(2);
   let nwaku: ServiceNode;
   let waku: LightNode;
   let waku2: LightNode;
@@ -33,13 +38,13 @@ describe("SDK: Creating by Content Topic", function () {
     this.timeout(15000);
     nwaku = new ServiceNode(makeLogFileName(this) + "1");
     await nwaku.start({
-      pubsubTopic: [contentTopicToPubsubTopic(ContentTopic)],
+      pubsubTopic: [contentTopicToPubsubTopic(ContentTopic, clusterId)],
       lightpush: true,
       relay: true,
       filter: true,
       discv5Discovery: true,
       peerExchange: true,
-      clusterId: DEFAULT_CLUSTER_ID
+      clusterId: clusterId
     });
   });
 
@@ -49,7 +54,10 @@ describe("SDK: Creating by Content Topic", function () {
   });
 
   it("given a content topic, creates a waku node and filter subscription", async function () {
-    const expectedPubsubTopic = contentTopicToPubsubTopic(ContentTopic);
+    const expectedPubsubTopic = contentTopicToPubsubTopic(
+      ContentTopic,
+      clusterId
+    );
 
     waku = (
       await subscribeToContentTopic(ContentTopic, () => {}, {
@@ -61,7 +69,10 @@ describe("SDK: Creating by Content Topic", function () {
   });
 
   it("given a waku node and content topic, creates a filter subscription", async function () {
-    const expectedPubsubTopic = contentTopicToPubsubTopic(ContentTopic);
+    const expectedPubsubTopic = contentTopicToPubsubTopic(
+      ContentTopic,
+      clusterId
+    );
 
     waku = await createLightNode({
       shardInfo: { contentTopics: [ContentTopic] }
@@ -95,7 +106,7 @@ describe("SDK: Creating by Content Topic", function () {
     await waitForRemotePeer(waku2, [Protocols.LightPush]);
     const encoder = createEncoder({
       pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(
-        contentTopicToPubsubTopic(ContentTopic)
+        contentTopicToPubsubTopic(ContentTopic, clusterId)
       ),
       contentTopic: ContentTopic
     });
@@ -135,7 +146,7 @@ describe("SDK: Creating by Content Topic", function () {
     await waitForRemotePeer(waku2, [Protocols.LightPush]);
     const encoder = createEncoder({
       pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(
-        contentTopicToPubsubTopic(ContentTopic)
+        contentTopicToPubsubTopic(ContentTopic, clusterId)
       ),
       contentTopic: ContentTopic
     });
@@ -160,7 +171,7 @@ describe("SDK: Creating by Content Topic", function () {
 
     const encoder = createEncoder({
       pubsubTopicShardInfo: pubsubTopicToSingleShardInfo(
-        contentTopicToPubsubTopic(ContentTopic)
+        contentTopicToPubsubTopic(ContentTopic, clusterId)
       ),
       contentTopic: ContentTopic
     });
