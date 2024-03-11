@@ -74,32 +74,45 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     expect(peers.length).to.be.greaterThan(0);
   });
 
-  it("same cluster, different shard: nodes connect", async function () {
+  it("same cluster, different shard: nodes don't connect", async function () {
     this.timeout(15000);
 
-    const shardInfo: ShardInfo = {
-      clusterId: 0,
+    const shardInfo1: ShardInfo = {
+      clusterId: 2,
       shards: [1]
     };
 
-    const shardInfoServiceNode: ShardInfo = {
-      clusterId: 0,
-      shards: [1]
+    const shardInfo2: ShardInfo = {
+      clusterId: 2,
+      shards: [2]
     };
 
+    // Separate shard
     await serviceNode1.start({
       discv5Discovery: true,
       peerExchange: true,
-      clusterId: shardInfoServiceNode.clusterId,
-      pubsubTopic: shardInfoToPubsubTopics(shardInfoServiceNode),
+      clusterId: shardInfo1.clusterId,
+      pubsubTopic: shardInfoToPubsubTopics(shardInfo1),
       lightpush: true,
       relay: true
     });
 
-    const serviceNodeMa = await serviceNode1.getMultiaddrWithId();
+    // Same shard
+    await serviceNode2.start({
+      discv5Discovery: true,
+      peerExchange: true,
+      clusterId: shardInfo2.clusterId,
+      pubsubTopic: shardInfoToPubsubTopics(shardInfo2),
+      lightpush: true,
+      relay: true
+    });
 
-    waku = await createLightNode({ shardInfo });
-    await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
+    const serviceNode1Ma = await serviceNode1.getMultiaddrWithId();
+    const serviceNode2Ma = await serviceNode2.getMultiaddrWithId();
+
+    waku = await createLightNode({ shardInfo: shardInfo2 });
+    await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
+    await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
 
@@ -107,9 +120,9 @@ describe("getConnectedPeersForProtocolAndShard", function () {
       waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
       waku.libp2p.getProtocols(),
-      shardInfo
+      ensureShardingConfigured(shardInfo2).shardInfo
     );
-    expect(peers.length).to.be.greaterThan(0);
+    expect(peers.length).to.be.equal(1);
   });
 
   it("different cluster, same shard: nodes don't connect", async function () {
