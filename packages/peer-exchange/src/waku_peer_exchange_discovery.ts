@@ -7,7 +7,12 @@ import type {
   PeerId,
   PeerInfo
 } from "@libp2p/interface";
-import { Libp2pComponents, PubsubTopic, Tags } from "@waku/interfaces";
+import {
+  Libp2pComponents,
+  PeerExchangeResult,
+  PubsubTopic,
+  Tags
+} from "@waku/interfaces";
 import { encodeRelayShard, Logger } from "@waku/utils";
 
 import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
@@ -160,15 +165,15 @@ export class PeerExchangeDiscovery
     }, queryInterval * currentAttempt);
   };
 
-  private async query(peerId: PeerId): Promise<void> {
-    const peerInfos = await this.peerExchange.query({
+  private async query(peerId: PeerId): Promise<PeerExchangeResult> {
+    const { error, peerInfos } = await this.peerExchange.query({
       numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
       peerId
     });
 
-    if (!peerInfos) {
-      log.error("Peer exchange query failed, no peer info returned");
-      return;
+    if (error) {
+      log.error("Peer exchange query failed", error);
+      return { error, peerInfos: null };
     }
 
     for (const _peerInfo of peerInfos) {
@@ -214,6 +219,8 @@ export class PeerExchangeDiscovery
         })
       );
     }
+
+    return { error: null, peerInfos };
   }
 
   private abortQueriesForPeer(peerIdStr: string): void {

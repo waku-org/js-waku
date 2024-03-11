@@ -20,8 +20,8 @@ import {
   IRelay,
   Libp2p,
   ProtocolCreateOptions,
+  ProtocolError,
   PubsubTopic,
-  SendError,
   SendResult
 } from "@waku/interfaces";
 import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
@@ -107,7 +107,7 @@ class Relay implements IRelay {
       log.error("Failed to send waku relay: topic not configured");
       return {
         recipients,
-        errors: [SendError.TOPIC_NOT_CONFIGURED]
+        errors: [ProtocolError.TOPIC_NOT_CONFIGURED]
       };
     }
 
@@ -116,7 +116,7 @@ class Relay implements IRelay {
       log.error("Failed to encode message, aborting publish");
       return {
         recipients,
-        errors: [SendError.ENCODE_FAILED]
+        errors: [ProtocolError.ENCODE_FAILED]
       };
     }
 
@@ -124,7 +124,7 @@ class Relay implements IRelay {
       log.error("Failed to send waku relay: message is bigger that 1MB");
       return {
         recipients,
-        errors: [SendError.SIZE_TOO_BIG]
+        errors: [ProtocolError.SIZE_TOO_BIG]
       };
     }
 
