@@ -35,7 +35,7 @@
     "build": "run-s build:**",
     "build:esm": "tsc",
     "build:bundle": "rollup --config rollup.config.js",
-    "proto": "rimraf src/lib/*.ts; protons src/lib/*.proto",
+    "proto": "rimraf src/generated/*.ts && mkdir -p src/generated && protons src/lib/*.proto -o src/generated",
     "check:tsc": "tsc -p tsconfig.dev.json",
     "prepublish": "npm run build",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
@@ -44,7 +44,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "protons-runtime": "^5.0.2"
+    "protons-runtime": "^5.4.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
