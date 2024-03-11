@@ -1,5 +1,5 @@
 <!-- Delete all but one category --> 
-This is a **bug report/feature or change request/support request**
+This is a **bug report/feature request/support request/change request**
 
 ## Problem
 

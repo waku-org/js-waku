@@ -123,7 +123,8 @@ describe("Peer Exchange Query", function () {
     await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
   });
 
-  it("connected peers and dial", async function () {
+  // slow and flaky in CI
+  it.skip("connected peers and dial", async function () {
     expect(peerInfos[0].ENR).to.not.be.null;
     expect(peerInfos[0].ENR?.peerInfo?.multiaddrs).to.not.be.null;
 

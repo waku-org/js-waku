@@ -113,7 +113,8 @@ export class ServiceNode {
 
           // waku nodes takes some time to bind port so to decrease chances of conflict
           // we also randomize the first port that portfinder will try
-          const startPort = Math.floor(Math.random() * (65535 - 1025) + 1025);
+          // depending on getPorts count adjust the random function in such a way that max port is 65535
+          const startPort = Math.floor(Math.random() * (65530 - 1025) + 1025);
 
           const ports: Ports = await new Promise((resolve, reject) => {
             portfinder.getPorts(4, { port: startPort }, (err, ports) => {
