@@ -3,7 +3,7 @@ import {
   DefaultPubsubTopic,
   IRateLimitProof,
   LightNode,
-  SendError
+  ProtocolError
 } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
@@ -97,7 +97,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       expect(pushResponse.successes.length).to.eq(0);
       console.log("validated 1");
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-        SendError.EMPTY_PAYLOAD
+        ProtocolError.EMPTY_PAYLOAD
       );
       console.log("validated 2");
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -190,7 +190,7 @@ const runTests = (strictNodeCheck: boolean): void => {
         expect(pushResponse.successes.length).to.eq(0);
         expect(
           pushResponse.failures?.map((failure) => failure.error)
-        ).to.include(SendError.REMOTE_PEER_REJECTED);
+        ).to.include(ProtocolError.REMOTE_PEER_REJECTED);
         expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
           false
         );
@@ -262,7 +262,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       });
       expect(pushResponse.successes.length).to.eq(0);
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-        SendError.SIZE_TOO_BIG
+        ProtocolError.SIZE_TOO_BIG
       );
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         false

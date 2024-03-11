@@ -1,7 +1,7 @@
 import {
   LightNode,
+  ProtocolError,
   Protocols,
-  SendError,
   ShardInfo,
   SingleShardInfo
 } from "@waku/interfaces";
@@ -93,7 +93,7 @@ describe("Static Sharding: Running Nodes", function () {
     }
 
     const errors = failures?.map((failure) => failure.error);
-    expect(errors).to.include(SendError.TOPIC_NOT_CONFIGURED);
+    expect(errors).to.include(ProtocolError.TOPIC_NOT_CONFIGURED);
   });
 });
 

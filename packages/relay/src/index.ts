@@ -20,8 +20,8 @@ import {
   IRelay,
   Libp2p,
   ProtocolCreateOptions,
+  ProtocolError,
   PubsubTopic,
-  SendError,
   SendResult
 } from "@waku/interfaces";
 import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
@@ -109,7 +109,7 @@ class Relay implements IRelay {
         successes,
         failures: [
           {
-            error: SendError.TOPIC_NOT_CONFIGURED
+            error: ProtocolError.TOPIC_NOT_CONFIGURED
           }
         ]
       };
@@ -122,7 +122,7 @@ class Relay implements IRelay {
         successes,
         failures: [
           {
-            error: SendError.ENCODE_FAILED
+            error: ProtocolError.ENCODE_FAILED
           }
         ]
       };
@@ -134,7 +134,7 @@ class Relay implements IRelay {
         successes,
         failures: [
           {
-            error: SendError.SIZE_TOO_BIG
+            error: ProtocolError.SIZE_TOO_BIG
           }
         ]
       };
