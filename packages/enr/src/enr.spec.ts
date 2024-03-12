@@ -26,8 +26,8 @@ describe("ENR", function () {
       const privateKey = await getPrivateKeyFromPeerId(peerId);
       enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
       enr.multiaddrs = [
-        multiaddr("/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"),
-        multiaddr("/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"),
+        multiaddr("/dns4/node-01.do-ams3.waku.test.status.im/tcp/443/wss"),
+        multiaddr("/dns6/node-01.ac-cn-hongkong-c.waku.test.status.im/tcp/443/wss"),
         multiaddr(
           "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
         )
@@ -53,10 +53,10 @@ describe("ENR", function () {
       expect(enr2.multiaddrs!.length).to.be.equal(3);
       const multiaddrsAsStr = enr2.multiaddrs!.map((ma) => ma.toString());
       expect(multiaddrsAsStr).to.include(
-        "/dns4/node1.do-ams.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns4/node-01.do-ams3.waku.test.status.im/tcp/443/wss"
       );
       expect(multiaddrsAsStr).to.include(
-        "/dns6/node2.ac-chi.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns6/node-01.ac-cn-hongkong-c.waku.test.status.im/tcp/443/wss"
       );
       expect(multiaddrsAsStr).to.include(
         "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
@@ -87,10 +87,10 @@ describe("ENR", function () {
       expect(enr.multiaddrs!.length).to.be.equal(3);
       const multiaddrsAsStr = enr.multiaddrs!.map((ma) => ma.toString());
       expect(multiaddrsAsStr).to.include(
-        "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns4/node-01.do-ams3.waku.test.status.im/tcp/443/wss"
       );
       expect(multiaddrsAsStr).to.include(
-        "/dns6/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss"
+        "/dns6/node-01.ac-cn-hongkong-c.waku.test.status.im/tcp/443/wss"
       );
       expect(multiaddrsAsStr).to.include(
         "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
@@ -312,7 +312,7 @@ describe("ENR", function () {
     const tcp = 8080;
     const udp = 8080;
     const wsMultiaddr = multiaddr(
-      "/dns4/node-01.do-ams3.wakuv2.prod.statusim.net/tcp/8000/wss"
+      "/dns4/node-01.do-ams3.waku.sandbox.status.im/tcp/8000/wss"
     );
     let peerId: PeerId;
     let enr: ENR;
