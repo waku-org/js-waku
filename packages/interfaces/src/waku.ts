@@ -4,7 +4,7 @@ import type { Multiaddr } from "@multiformats/multiaddr";
 import { IConnectionManager } from "./connection_manager.js";
 import type { IFilter } from "./filter.js";
 import type { Libp2p } from "./libp2p.js";
-import type { ILightPush } from "./light_push.js";
+import type { ILightPushSDK } from "./light_push.js";
 import { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { IStore } from "./store.js";
@@ -14,7 +14,7 @@ export interface Waku {
   relay?: IRelay;
   store?: IStore;
   filter?: IFilter;
-  lightPush?: ILightPush;
+  lightPush?: ILightPushSDK;
 
   connectionManager: IConnectionManager;
 
@@ -33,7 +33,7 @@ export interface LightNode extends Waku {
   relay: undefined;
   store: IStore;
   filter: IFilter;
-  lightPush: ILightPush;
+  lightPush: ILightPushSDK;
 }
 
 export interface RelayNode extends Waku {
@@ -47,5 +47,5 @@ export interface FullNode extends Waku {
   relay: IRelay;
   store: IStore;
   filter: IFilter;
-  lightPush: ILightPush;
+  lightPush: ILightPushSDK;
 }

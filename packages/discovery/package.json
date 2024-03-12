@@ -79,6 +79,22 @@
     "rollup": "^4.12.0",
     "sinon": "^17.0.1"
   },
+  "peerDependencies": {
+    "@waku/core": "0.0.27",
+    "@waku/enr": "0.0.21",
+    "@waku/interfaces": "0.0.22",
+    "@waku/proto": "0.0.6",
+    "@waku/utils": "0.0.15",
+    "@libp2p/interface": "^1.1.2"
+  },
+  "peerDependenciesMeta": {
+    "@waku/interfaces": {
+      "optional": true
+    },
+    "@libp2p/interface": {
+      "optional": true
+    }
+  },
   "files": [
     "dist",
     "bundle",

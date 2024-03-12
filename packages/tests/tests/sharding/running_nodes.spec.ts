@@ -1,6 +1,7 @@
 import {
   LightNode,
   Protocols,
+  SendError,
   ShardInfo,
   SingleShardInfo
 } from "@waku/interfaces";
@@ -10,10 +11,7 @@ import {
   utf8ToBytes,
   waitForRemotePeer
 } from "@waku/sdk";
-import {
-  contentTopicToShardIndex,
-  singleShardInfoToPubsubTopic
-} from "@waku/utils";
+import { contentTopicToShardIndex } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -24,14 +22,6 @@ import {
   tearDownNodes
 } from "../../src/index.js";
 
-const PubsubTopic1 = singleShardInfoToPubsubTopic({
-  clusterId: 0,
-  shard: 2
-});
-const PubsubTopic2 = singleShardInfoToPubsubTopic({
-  clusterId: 0,
-  shard: 3
-});
 const shardInfoFirstShard: ShardInfo = { clusterId: 0, shards: [2] };
 const shardInfoBothShards: ShardInfo = { clusterId: 0, shards: [2, 3] };
 const singleShardInfo1: SingleShardInfo = { clusterId: 0, shard: 2 };
@@ -78,8 +68,8 @@ describe("Static Sharding: Running Nodes", function () {
       payload: utf8ToBytes("Hello World")
     });
 
-    expect(request1.recipients.length).to.eq(1);
-    expect(request2.recipients.length).to.eq(1);
+    expect(request1.successes.length).to.eq(1);
+    expect(request2.successes.length).to.eq(1);
   });
 
   it("using a protocol with unconfigured pubsub topic should fail", async function () {
@@ -94,21 +84,16 @@ describe("Static Sharding: Running Nodes", function () {
       pubsubTopicShardInfo: singleShardInfo2
     });
 
-    try {
-      await waku.lightPush.send(encoder, {
-        payload: utf8ToBytes("Hello World")
-      });
+    const { successes, failures } = await waku.lightPush.send(encoder, {
+      payload: utf8ToBytes("Hello World")
+    });
+
+    if (successes.length > 0 || failures?.length === 0) {
       throw new Error("The request should've thrown an error");
-    } catch (err) {
-      if (
-        !(err instanceof Error) ||
-        !err.message.includes(
-          `Pubsub topic ${PubsubTopic2} has not been configured on this instance. Configured topics are: ${PubsubTopic1}`
-        )
-      ) {
-        throw err;
-      }
     }
+
+    const errors = failures?.map((failure) => failure.error);
+    expect(errors).to.include(SendError.TOPIC_NOT_CONFIGURED);
   });
 });
 
@@ -161,7 +146,7 @@ describe("Autosharding: Running Nodes", function () {
       payload: utf8ToBytes("Hello World")
     });
 
-    expect(request1.recipients.length).to.eq(1);
-    expect(request2.recipients.length).to.eq(1);
+    expect(request1.successes.length).to.eq(1);
+    expect(request2.successes.length).to.eq(1);
   });
 });

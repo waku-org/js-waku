@@ -77,7 +77,7 @@
     "@waku/discovery": "*",
     "@waku/message-encryption": "*",
     "@waku/sdk": "*",
-    "allure-commandline": "^2.24.1",
+    "allure-commandline": "^2.27.0",
     "allure-mocha": "^2.9.2",
     "chai": "^4.3.10",
     "cspell": "^8.3.2",

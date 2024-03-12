@@ -139,16 +139,16 @@ describe("Waku Relay, multiple pubsub topics", function () {
         payload: utf8ToBytes("M3")
       });
 
-      expect(relayResponse1.recipients[0].toString()).to.eq(
+      expect(relayResponse1.successes[0].toString()).to.eq(
         waku2.libp2p.peerId.toString()
       );
-      expect(relayResponse3.recipients[0].toString()).to.eq(
+      expect(relayResponse3.successes[0].toString()).to.eq(
         waku2.libp2p.peerId.toString()
       );
-      expect(relayResponse2.recipients.map((r) => r.toString())).to.include(
+      expect(relayResponse2.successes.map((r) => r.toString())).to.include(
         waku1.libp2p.peerId.toString()
       );
-      expect(relayResponse2.recipients.map((r) => r.toString())).to.include(
+      expect(relayResponse2.successes.map((r) => r.toString())).to.include(
         waku3.libp2p.peerId.toString()
       );
 
@@ -431,16 +431,16 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
         payload: utf8ToBytes("M3")
       });
 
-      expect(relayResponse1.recipients[0].toString()).to.eq(
+      expect(relayResponse1.successes[0].toString()).to.eq(
         waku2.libp2p.peerId.toString()
       );
-      expect(relayResponse3.recipients[0].toString()).to.eq(
+      expect(relayResponse3.successes[0].toString()).to.eq(
         waku2.libp2p.peerId.toString()
       );
-      expect(relayResponse2.recipients.map((r) => r.toString())).to.include(
+      expect(relayResponse2.successes.map((r) => r.toString())).to.include(
         waku1.libp2p.peerId.toString()
       );
-      expect(relayResponse2.recipients.map((r) => r.toString())).to.include(
+      expect(relayResponse2.successes.map((r) => r.toString())).to.include(
         waku3.libp2p.peerId.toString()
       );
 
@@ -739,16 +739,16 @@ describe("Waku Relay (named sharding), multiple pubsub topics", function () {
         payload: utf8ToBytes("M3")
       });
 
-      expect(relayResponse1.recipients[0].toString()).to.eq(
+      expect(relayResponse1.successes[0].toString()).to.eq(
         waku2.libp2p.peerId.toString()
       );
-      expect(relayResponse3.recipients[0].toString()).to.eq(
+      expect(relayResponse3.successes[0].toString()).to.eq(
         waku2.libp2p.peerId.toString()
       );
-      expect(relayResponse2.recipients.map((r) => r.toString())).to.include(
+      expect(relayResponse2.successes.map((r) => r.toString())).to.include(
         waku1.libp2p.peerId.toString()
       );
-      expect(relayResponse2.recipients.map((r) => r.toString())).to.include(
+      expect(relayResponse2.successes.map((r) => r.toString())).to.include(
         waku3.libp2p.peerId.toString()
       );
 
