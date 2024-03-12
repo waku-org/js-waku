@@ -1,4 +1,4 @@
-import { LightNode, Protocols } from "@waku/interfaces";
+import { LightNode, ProtocolError, Protocols } from "@waku/interfaces";
 import {
   createEncoder,
   createLightNode,
@@ -287,26 +287,16 @@ describe("Autosharding: Running Nodes", function () {
         }
       });
 
-      try {
-        await waku.lightPush.send(encoder, {
-          payload: utf8ToBytes("Hello World")
-        });
+      const { successes, failures } = await waku.lightPush.send(encoder, {
+        payload: utf8ToBytes("Hello World")
+      });
+
+      if (successes.length > 0 || failures?.length === 0) {
         throw new Error("The request should've thrown an error");
-      } catch (err) {
-        if (
-          !(err instanceof Error) ||
-          !err.message.includes(
-            `Pubsub topic ${contentTopicToPubsubTopic(
-              ContentTopic2,
-              clusterId
-            )} has not been configured on this instance. Configured topics are: ${
-              pubsubTopics[0]
-            }`
-          )
-        ) {
-          throw err;
-        }
       }
+
+      const errors = failures?.map((failure) => failure.error);
+      expect(errors).to.include(ProtocolError.TOPIC_NOT_CONFIGURED);
     });
 
     it("start node with ApplicationInfo", async function () {

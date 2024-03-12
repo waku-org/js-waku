@@ -1,5 +1,6 @@
 import {
   LightNode,
+  ProtocolError,
   Protocols,
   ShardInfo,
   SingleShardInfo
@@ -146,14 +147,6 @@ describe("Static Sharding: Running Nodes", function () {
     const clusterId = 2;
     let shardInfo: ShardInfo;
 
-    const PubsubTopic1 = singleShardInfoToPubsubTopic({
-      clusterId: clusterId,
-      shard: 2
-    });
-    const PubsubTopic2 = singleShardInfoToPubsubTopic({
-      clusterId: clusterId,
-      shard: 3
-    });
     const shardInfoFirstShard: ShardInfo = {
       clusterId: clusterId,
       shards: [2]
@@ -229,6 +222,7 @@ describe("Static Sharding: Running Nodes", function () {
     });
 
     it("using a protocol with unconfigured pubsub topic should fail", async function () {
+      this.timeout(15_000);
       waku = await createLightNode({
         shardInfo: shardInfoFirstShard
       });
@@ -239,21 +233,16 @@ describe("Static Sharding: Running Nodes", function () {
         pubsubTopicShardInfo: singleShardInfo2
       });
 
-      try {
-        await waku.lightPush.send(encoder, {
-          payload: utf8ToBytes("Hello World")
-        });
+      const { successes, failures } = await waku.lightPush.send(encoder, {
+        payload: utf8ToBytes("Hello World")
+      });
+
+      if (successes.length > 0 || failures?.length === 0) {
         throw new Error("The request should've thrown an error");
-      } catch (err) {
-        if (
-          !(err instanceof Error) ||
-          !err.message.includes(
-            `Pubsub topic ${PubsubTopic2} has not been configured on this instance. Configured topics are: ${PubsubTopic1}`
-          )
-        ) {
-          throw err;
-        }
       }
+
+      const errors = failures?.map((failure) => failure.error);
+      expect(errors).to.include(ProtocolError.TOPIC_NOT_CONFIGURED);
     });
 
     it("start node with empty shard", async function () {
