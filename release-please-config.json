@@ -11,12 +11,10 @@
     "packages/interfaces": {},
     "packages/message-hash": {},
     "packages/enr": {},
-    "packages/peer-exchange": {},
     "packages/core": {},
-    "packages/dns-discovery": {},
     "packages/message-encryption": {},
     "packages/sdk": {},
     "packages/relay": {},
-    "packages/local-peer-cache-discovery": {}
+    "packages/discovery": {}
   }
 }

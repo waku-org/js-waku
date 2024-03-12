@@ -66,6 +66,7 @@
     "@libp2p/mplex": "^10.0.12",
     "@libp2p/ping": "^1.0.12",
     "@libp2p/websockets": "^8.0.11",
+    "@waku/discovery": "0.0.1",
     "@waku/core": "0.0.27",
     "@waku/dns-discovery": "0.0.21",
     "@waku/interfaces": "0.0.22",

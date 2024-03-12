@@ -52,11 +52,22 @@ describe("Metadata Protocol", function () {
       await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
-      const shardInfoRes =
-        await waku.libp2p.services.metadata?.query(nwaku1PeerId);
+      if (!waku.libp2p.services.metadata) {
+        expect(waku.libp2p.services.metadata).to.not.be.undefined;
+        return;
+      }
+
+      const { error, shardInfo: shardInfoRes } =
+        await waku.libp2p.services.metadata.query(nwaku1PeerId);
+
+      if (error) {
+        expect(error).to.be.null;
+        return;
+      }
+
       expect(shardInfoRes).to.not.be.undefined;
-      expect(shardInfoRes?.clusterId).to.equal(shardInfo.clusterId);
-      expect(shardInfoRes?.shards).to.deep.equal(shardInfo.shards);
+      expect(shardInfoRes.clusterId).to.equal(shardInfo.clusterId);
+      expect(shardInfoRes.shards).to.deep.equal(shardInfo.shards);
 
       const activeConnections = waku.libp2p.getConnections();
       expect(activeConnections.length).to.equal(1);
@@ -89,11 +100,22 @@ describe("Metadata Protocol", function () {
       await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
-      const shardInfoRes =
-        await waku.libp2p.services.metadata?.query(nwaku1PeerId);
+      if (!waku.libp2p.services.metadata) {
+        expect(waku.libp2p.services.metadata).to.not.be.undefined;
+        return;
+      }
+
+      const { error, shardInfo: shardInfoRes } =
+        await waku.libp2p.services.metadata.query(nwaku1PeerId);
+
+      if (error) {
+        expect(error).to.be.null;
+        return;
+      }
+
       expect(shardInfoRes).to.not.be.undefined;
-      expect(shardInfoRes?.clusterId).to.equal(shardInfo1.clusterId);
-      expect(shardInfoRes?.shards).to.deep.equal(shardInfo1.shards);
+      expect(shardInfoRes.clusterId).to.equal(shardInfo1.clusterId);
+      expect(shardInfoRes.shards).to.deep.equal(shardInfo1.shards);
 
       const activeConnections = waku.libp2p.getConnections();
       expect(activeConnections.length).to.equal(1);
