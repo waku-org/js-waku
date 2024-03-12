@@ -11,7 +11,6 @@
     }
   },
   "type": "module",
-  "repository": "https://github.com/waku-org/js-rln",
   "license": "MIT OR Apache-2.0",
   "keywords": [
     "waku",
@@ -22,7 +21,6 @@
     "dapps"
   ],
   "scripts": {
-    "prepare": "husky install",
     "build": "run-s build:**",
     "build:codegen": "node ./scripts/schema_validator_codegen.js",
     "build:tsc": "tsc",
@@ -46,10 +44,6 @@
   "engines": {
     "node": ">=18"
   },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-json": "^4.1.0",
@@ -68,8 +62,6 @@
     "@types/node": "^17.0.6",
     "@types/tail": "^2.0.0",
     "@types/uuid": "^8.3.0",
-    "@typescript-eslint/eslint-plugin": "^6.6.0",
-    "@typescript-eslint/parser": "^6.21.0",
     "@waku/interfaces": "^0.0.22",
     "@waku/message-encryption": "^0.0.25",
     "@web/rollup-plugin-import-meta-assets": "^1.0.7",
@@ -82,12 +74,6 @@
     "chai-subset": "^1.6.0",
     "cspell": "^5.14.0",
     "deep-equal-in-any-order": "^2.0.6",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-functional": "^6.0.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-prettier": "^5.0.1",
     "fast-check": "^2.25.0",
     "gh-pages": "^3.2.3",
     "husky": "^7.0.4",
@@ -95,26 +81,13 @@
     "isomorphic-fetch": "^3.0.0",
     "jsdom": "^19.0.0",
     "jsdom-global": "^3.0.2",
-    "karma": "^6.4.2",
-    "karma-chrome-launcher": "^3.2.0",
-    "karma-firefox-launcher": "^2.1.2",
-    "karma-mocha": "^2.0.1",
-    "karma-webkit-launcher": "^2.4.0",
-    "karma-webpack": "github:codymikol/karma-webpack#2337a82beb078c0d8e25ae8333a06249b8e72828",
-    "lint-staged": "^13.0.3",
     "mocha": "10.1.0",
     "npm-run-all": "^4.1.5",
     "p-timeout": "^4.1.0",
-    "playwright": "^1.40.1",
     "process": "^0.11.10",
     "rollup": "^2.75.0",
     "rollup-plugin-copy": "^3.4.0",
-    "size-limit": "^8.0.0",
-    "tail": "^2.2.0",
-    "ts-loader": "^9.3.1",
-    "ts-node": "^10.9.1",
-    "typedoc": "^0.25.7",
-    "typescript": "^5.3.2"
+    "tail": "^2.2.0"
   },
   "files": [
     "dist",
@@ -127,11 +100,6 @@
     "LICENSE",
     "README.md"
   ],
-  "lint-staged": {
-    "*.ts": [
-      "eslint --fix"
-    ]
-  },
   "dependencies": {
     "@chainsafe/bls-keystore": "^3.0.0",
     "@waku/core": "^0.0.27",
