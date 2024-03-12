@@ -1,6 +1,6 @@
 import tests from "@libp2p/interface-compliance-tests/peer-discovery";
+import { PeerExchangeCodec, PeerExchangeDiscovery } from "@waku/discovery";
 import type { LightNode } from "@waku/interfaces";
-import { PeerExchangeCodec, PeerExchangeDiscovery } from "@waku/peer-exchange";
 import { createLightNode } from "@waku/sdk";
 import { singleShardInfoToPubsubTopic } from "@waku/utils";
 

@@ -13,4 +13,4 @@ test-results
 playwright-report
 example
 allure-results
-packages/local-peer-cache-discovery/mock_local_storage
+packages/discovery/mock_local_storage
