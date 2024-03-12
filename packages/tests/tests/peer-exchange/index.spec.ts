@@ -1,7 +1,7 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
+import { wakuPeerExchangeDiscovery } from "@waku/discovery";
 import type { LightNode, PeersByDiscoveryResult } from "@waku/interfaces";
-import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 import { createLightNode, Tags } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";

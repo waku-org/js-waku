@@ -4,11 +4,8 @@
   "packages/interfaces": "0.0.22",
   "packages/message-hash": "0.1.11",
   "packages/enr": "0.0.21",
-  "packages/peer-exchange": "0.0.20",
   "packages/core": "0.0.27",
-  "packages/dns-discovery": "0.0.21",
   "packages/message-encryption": "0.0.25",
   "packages/relay": "0.0.10",
-  "packages/sdk": "0.0.23",
-  "packages/local-peer-cache-discovery": "1.0.0"
+  "packages/sdk": "0.0.23"
 }

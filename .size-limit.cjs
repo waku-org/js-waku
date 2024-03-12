@@ -24,8 +24,18 @@ module.exports = [
   },
   {
     name: "DNS discovery",
-    path: "packages/dns-discovery/bundle/index.js",
+    path: "packages/discovery/bundle/index.js",
     import: "{ PeerDiscoveryDns }",
+  },
+  {
+    name: "Peer Exchange discovery",
+    path: "packages/discovery/bundle/index.js",
+    import: "{ wakuPeerExchangeDiscovery }",
+  },
+  {
+    name: "Local Peer Cache Discovery",
+    path: "packages/discovery/bundle/index.js",
+    import: "{ wakuLocalPeerCacheDiscovery }",
   },
   {
     name: "Privacy preserving protocols",
