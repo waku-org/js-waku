@@ -74,6 +74,16 @@
     "npm-run-all": "^4.1.5",
     "rollup": "^4.12.0"
   },
+  "peerDependencies": {
+    "@waku/enr": "0.0.21",
+    "@waku/utils": "0.0.15",
+    "@waku/interfaces": "0.0.22"
+  },
+  "peerDependenciesMeta": {
+    "@waku/interfaces": {
+      "optional": true
+    }
+  },
   "files": [
     "dist",
     "bundle",
