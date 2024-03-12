@@ -10,5 +10,6 @@
   "packages/message-encryption": "0.0.25",
   "packages/relay": "0.0.10",
   "packages/sdk": "0.0.23",
-  "packages/local-peer-cache-discovery": "1.0.0"
+  "packages/local-peer-cache-discovery": "1.0.0",
+  "packages/rln": "0.1.2"
 }

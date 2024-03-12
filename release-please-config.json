@@ -17,6 +17,7 @@
     "packages/message-encryption": {},
     "packages/sdk": {},
     "packages/relay": {},
-    "packages/local-peer-cache-discovery": {}
+    "packages/local-peer-cache-discovery": {},
+    "packages/rln": {}
   }
 }
