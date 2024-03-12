@@ -231,7 +231,7 @@ export function determinePubsubTopic(
     return pubsubTopicShardInfo;
   } else {
     return pubsubTopicShardInfo
-      ? pubsubTopicShardInfo.shard
+      ? pubsubTopicShardInfo.shard !== undefined
         ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
         : contentTopicToPubsubTopic(
             contentTopic,
@@ -299,7 +299,7 @@ export const ensureShardingConfigured = (
       shardingParams: { clusterId, application, version },
       shardInfo: {
         clusterId,
-        shards: [pubsubTopicToSingleShardInfo(pubsubTopic).shard]
+        shards: [pubsubTopicToSingleShardInfo(pubsubTopic).shard!]
       },
       pubsubTopics: [pubsubTopic]
     };
