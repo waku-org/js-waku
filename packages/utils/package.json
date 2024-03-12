@@ -83,6 +83,14 @@
     "fast-check": "^3.15.1",
     "rollup": "^4.12.0"
   },
+  "peerDependencies": {
+    "@waku/interfaces": "0.0.22"
+  },
+  "peerDependenciesMeta": {
+    "@waku/interfaces": {
+      "optional": true
+    }
+  },
   "files": [
     "dist",
     "bundle",

@@ -78,6 +78,19 @@
     "rollup": "^4.12.0",
     "uint8arrays": "^5.0.1"
   },
+  "peerDependencies": {
+    "@waku/utils": "0.0.15",
+    "@waku/interfaces": "0.0.22",
+    "@multiformats/multiaddr": "^12.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@waku/interfaces": {
+      "optional": true
+    },
+    "@multiformats/multiaddr": {
+      "optional": true
+    }
+  },
   "files": [
     "dist",
     "bundle",

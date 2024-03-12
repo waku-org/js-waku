@@ -100,7 +100,7 @@ export const pubsubTopicToSingleShardInfo = (
 };
 
 //TODO: move part of BaseProtocol instead of utils
-// return `SendError.TOPIC_NOT_CONFIGURED` instead of throwing
+// return `ProtocolError.TOPIC_NOT_CONFIGURED` instead of throwing
 export function ensurePubsubTopicIsConfigured(
   pubsubTopic: PubsubTopic,
   configuredTopics: PubsubTopic[]

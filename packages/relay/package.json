@@ -66,6 +66,21 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "rollup": "^4.12.0"
   },
+  "peerDependencies": {
+    "@waku/core": "0.0.27",
+    "@waku/interfaces": "0.0.22",
+    "@waku/proto": "0.0.6",
+    "@waku/utils": "0.0.15",
+    "@chainsafe/libp2p-gossipsub": "^12.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@waku/interfaces": {
+      "optional": true
+    },
+    "@chainsafe/libp2p-gossipsub": {
+      "optional": true
+    }
+  },
   "files": [
     "dist",
     "bundle",
