@@ -83,7 +83,7 @@ describe("Static Sharding: Running Nodes", function () {
         payload: utf8ToBytes("Hello World")
       });
 
-      expect(request.recipients.length).to.eq(1);
+      expect(request.successes.length).to.eq(1);
       expect(
         await messageCollector.waitForMessages(1, {
           pubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]
@@ -132,7 +132,7 @@ describe("Static Sharding: Running Nodes", function () {
           payload: utf8ToBytes("Hello World")
         });
 
-        expect(request.recipients.length).to.eq(1);
+        expect(request.successes.length).to.eq(1);
         expect(
           await messageCollector.waitForMessages(1, {
             pubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]
@@ -210,7 +210,7 @@ describe("Static Sharding: Running Nodes", function () {
       const request1 = await waku.lightPush.send(encoder1, {
         payload: utf8ToBytes("Hello World2")
       });
-      expect(request1.recipients.length).to.eq(1);
+      expect(request1.successes.length).to.eq(1);
       expect(
         await messageCollector.waitForMessages(1, {
           pubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]
@@ -220,7 +220,7 @@ describe("Static Sharding: Running Nodes", function () {
       const request2 = await waku.lightPush.send(encoder2, {
         payload: utf8ToBytes("Hello World3")
       });
-      expect(request2.recipients.length).to.eq(1);
+      expect(request2.successes.length).to.eq(1);
       expect(
         await messageCollector.waitForMessages(1, {
           pubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]

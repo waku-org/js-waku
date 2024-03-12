@@ -206,7 +206,7 @@ describe("Static Sharding: Peer Management", function () {
 });
 
 describe("Autosharding: Peer Management", function () {
-  const ContentTopic = "/waku/2/content/test.js";
+  const ContentTopic = "/myapp/1/latest/proto";
   const clusterId = resolveAutoshardingCluster(8);
 
   describe("Peer Exchange", function () {
