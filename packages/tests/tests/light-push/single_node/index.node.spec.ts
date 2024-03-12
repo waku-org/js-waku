@@ -3,7 +3,7 @@ import {
   DefaultPubsubTopic,
   IRateLimitProof,
   LightNode,
-  SendError
+  ProtocolError
 } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
@@ -85,7 +85,7 @@ describe("Waku Light Push: Single Node", function () {
 
     expect(pushResponse.successes.length).to.eq(0);
     expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-      SendError.EMPTY_PAYLOAD
+      ProtocolError.EMPTY_PAYLOAD
     );
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
@@ -167,7 +167,7 @@ describe("Waku Light Push: Single Node", function () {
     } else {
       expect(pushResponse.successes.length).to.eq(0);
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-        SendError.REMOTE_PEER_REJECTED
+        ProtocolError.REMOTE_PEER_REJECTED
       );
       expect(await messageCollector.waitForMessages(1)).to.eq(false);
     }
@@ -234,7 +234,7 @@ describe("Waku Light Push: Single Node", function () {
     });
     expect(pushResponse.successes.length).to.eq(0);
     expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-      SendError.SIZE_TOO_BIG
+      ProtocolError.SIZE_TOO_BIG
     );
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });

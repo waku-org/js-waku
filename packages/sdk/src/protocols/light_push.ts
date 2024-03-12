@@ -7,7 +7,7 @@ import {
   type IMessage,
   type Libp2p,
   type ProtocolCreateOptions,
-  SendError,
+  ProtocolError,
   type SendResult
 } from "@waku/interfaces";
 import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
@@ -37,7 +37,7 @@ export class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
       return {
         failures: [
           {
-            error: SendError.TOPIC_NOT_CONFIGURED
+            error: ProtocolError.TOPIC_NOT_CONFIGURED
           }
         ],
         successes: []
@@ -48,7 +48,7 @@ export class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
     if (!peers.length) {
       return {
         successes,
-        failures: [{ error: SendError.NO_PEER_AVAILABLE }]
+        failures: [{ error: ProtocolError.NO_PEER_AVAILABLE }]
       };
     }
 
@@ -69,7 +69,7 @@ export class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
         }
       } else {
         log.error("Failed to send message to peer", result.reason);
-        failures.push({ error: SendError.GENERIC_FAIL });
+        failures.push({ error: ProtocolError.GENERIC_FAIL });
         // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
       }
     }

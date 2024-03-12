@@ -1,5 +1,5 @@
 import { createEncoder } from "@waku/core";
-import { IRateLimitProof, RelayNode, SendError } from "@waku/interfaces";
+import { IRateLimitProof, ProtocolError, RelayNode } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk/relay";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -135,7 +135,7 @@ describe("Waku Relay, Publish", function () {
       payload: utf8ToBytes("")
     });
     expect(pushResponse.failures?.[0].error).to.eq(
-      SendError.TOPIC_NOT_CONFIGURED
+      ProtocolError.TOPIC_NOT_CONFIGURED
     );
     await delay(400);
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
@@ -148,7 +148,7 @@ describe("Waku Relay, Publish", function () {
       });
       expect(pushResponse.successes.length).to.eq(0);
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
-        SendError.SIZE_TOO_BIG
+        ProtocolError.SIZE_TOO_BIG
       );
       await delay(400);
       expect(await messageCollector.waitForMessages(1)).to.eq(false);

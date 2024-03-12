@@ -1,10 +1,12 @@
 import type { PeerId } from "@libp2p/interface";
 import { IncomingStreamData } from "@libp2p/interface";
-import type {
-  IMetadata,
-  Libp2pComponents,
-  PeerIdStr,
-  ShardInfo
+import {
+  type IMetadata,
+  type Libp2pComponents,
+  type PeerIdStr,
+  ProtocolError,
+  QueryResult,
+  type ShardInfo
 } from "@waku/interfaces";
 import { proto_metadata } from "@waku/proto";
 import { encodeRelayShard, Logger, shardInfoToPubsubTopics } from "@waku/utils";
@@ -21,7 +23,7 @@ export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
 class Metadata extends BaseProtocol implements IMetadata {
   private libp2pComponents: Libp2pComponents;
-  handshakesConfirmed: Set<PeerIdStr> = new Set();
+  handshakesConfirmed: Map<PeerIdStr, ShardInfo> = new Map();
 
   constructor(
     public shardInfo: ShardInfo,
@@ -57,13 +59,13 @@ class Metadata extends BaseProtocol implements IMetadata {
         async (source) => await all(source)
       );
 
-      const remoteShardInfoResponse =
-        this.decodeMetadataResponse(encodedResponse);
+      const { error, shardInfo } = this.decodeMetadataResponse(encodedResponse);
 
-      await this.savePeerShardInfo(
-        connection.remotePeer,
-        remoteShardInfoResponse
-      );
+      if (error) {
+        return;
+      }
+
+      await this.savePeerShardInfo(connection.remotePeer, shardInfo);
     } catch (error) {
       log.error("Error handling metadata request", error);
     }
@@ -72,12 +74,15 @@ class Metadata extends BaseProtocol implements IMetadata {
   /**
    * Make a metadata query to a peer
    */
-  async query(peerId: PeerId): Promise<ShardInfo> {
+  async query(peerId: PeerId): Promise<QueryResult> {
     const request = proto_metadata.WakuMetadataRequest.encode(this.shardInfo);
 
     const peer = await this.peerStore.get(peerId);
     if (!peer) {
-      throw new Error(`Peer ${peerId.toString()} not found`);
+      return {
+        shardInfo: null,
+        error: ProtocolError.NO_PEER_AVAILABLE
+      };
     }
 
     const stream = await this.getStream(peer);
@@ -90,22 +95,38 @@ class Metadata extends BaseProtocol implements IMetadata {
       async (source) => await all(source)
     );
 
-    const decodedResponse = this.decodeMetadataResponse(encodedResponse);
+    const { error, shardInfo } = this.decodeMetadataResponse(encodedResponse);
 
-    await this.savePeerShardInfo(peerId, decodedResponse);
+    if (error) {
+      return {
+        shardInfo: null,
+        error
+      };
+    }
 
-    return decodedResponse;
+    await this.savePeerShardInfo(peerId, shardInfo);
+
+    return {
+      shardInfo,
+      error: null
+    };
   }
 
-  public async confirmOrAttemptHandshake(peerId: PeerId): Promise<void> {
-    if (this.handshakesConfirmed.has(peerId.toString())) return;
+  public async confirmOrAttemptHandshake(peerId: PeerId): Promise<QueryResult> {
+    const shardInfo = this.handshakesConfirmed.get(peerId.toString());
+    if (shardInfo) {
+      return {
+        shardInfo,
+        error: null
+      };
+    }
 
-    await this.query(peerId);
-
-    return;
+    return await this.query(peerId);
   }
 
-  private decodeMetadataResponse(encodedResponse: Uint8ArrayList[]): ShardInfo {
+  private decodeMetadataResponse(
+    encodedResponse: Uint8ArrayList[]
+  ): QueryResult {
     const bytes = new Uint8ArrayList();
 
     encodedResponse.forEach((chunk) => {
@@ -115,9 +136,18 @@ class Metadata extends BaseProtocol implements IMetadata {
       bytes
     ) as ShardInfo;
 
-    if (!response) log.error("Error decoding metadata response");
+    if (!response) {
+      log.error("Error decoding metadata response");
+      return {
+        shardInfo: null,
+        error: ProtocolError.DECODE_FAILED
+      };
+    }
 
-    return response;
+    return {
+      shardInfo: response,
+      error: null
+    };
   }
 
   private async savePeerShardInfo(
@@ -131,7 +161,7 @@ class Metadata extends BaseProtocol implements IMetadata {
       }
     });
 
-    this.handshakesConfirmed.add(peerId.toString());
+    this.handshakesConfirmed.set(peerId.toString(), shardInfo);
   }
 }
 
