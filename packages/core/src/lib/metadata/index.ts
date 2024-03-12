@@ -62,7 +62,6 @@ class Metadata extends BaseProtocol implements IMetadata {
       const { error, shardInfo } = this.decodeMetadataResponse(encodedResponse);
 
       if (error) {
-        log.error("Error decoding metadata response from peer", error);
         return;
       }
 
@@ -99,7 +98,6 @@ class Metadata extends BaseProtocol implements IMetadata {
     const { error, shardInfo } = this.decodeMetadataResponse(encodedResponse);
 
     if (error) {
-      log.error("Error decoding metadata response from peer", error);
       return {
         shardInfo: null,
         error
