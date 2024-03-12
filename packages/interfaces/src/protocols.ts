@@ -167,7 +167,12 @@ export enum ProtocolError {
    * is logged. Review message validity, or mitigation for `NO_PEER_AVAILABLE`
    * or `DECODE_FAILED` can be used.
    */
-  REMOTE_PEER_REJECTED = "Remote peer rejected"
+  REMOTE_PEER_REJECTED = "Remote peer rejected",
+  /**
+   * The protocol request timed out without a response. This may be due to a connection issue.
+   * Mitigation can be: retrying after a given time period
+   */
+  REQUEST_TIMEOUT = "Request timeout"
 }
 
 export interface Failure {

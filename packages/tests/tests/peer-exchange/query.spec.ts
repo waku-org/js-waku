@@ -7,8 +7,8 @@ import {
   WakuPeerExchange,
   wakuPeerExchangeDiscovery
 } from "@waku/discovery";
-import type { LightNode, PeerInfo } from "@waku/interfaces";
-import { createLightNode, Libp2pComponents } from "@waku/sdk";
+import type { LightNode, PeerExchangeResult } from "@waku/interfaces";
+import { createLightNode, Libp2pComponents, ProtocolError } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
@@ -38,7 +38,7 @@ describe("Peer Exchange Query", function () {
   let components: Libp2pComponents;
   let peerExchange: WakuPeerExchange;
   let numPeersToRequest: number;
-  let peerInfos: PeerInfo[];
+  let queryResult: PeerExchangeResult;
 
   beforeEachCustom(
     this,
@@ -85,11 +85,14 @@ describe("Peer Exchange Query", function () {
       peerExchange = new WakuPeerExchange(components, pubsubTopic);
       numPeersToRequest = 2;
 
-      // querying the connected peer
-      peerInfos = [];
       const startTime = Date.now();
-      while (!peerInfos || peerInfos.length != numPeersToRequest) {
-        if (Date.now() - startTime > 100000) {
+      while (
+        !queryResult ||
+        queryResult.error !== null ||
+        !queryResult.peerInfos ||
+        queryResult.peerInfos.length !== numPeersToRequest
+      ) {
+        if (Date.now() - startTime > 100_000) {
           log.error("Timeout reached, exiting the loop.");
           break;
         }
@@ -97,26 +100,37 @@ describe("Peer Exchange Query", function () {
         await delay(2000);
 
         try {
-          peerInfos = await Promise.race([
+          queryResult = await Promise.race([
             peerExchange.query({
               peerId: nwaku3PeerId,
               numPeers: numPeersToRequest
-            }) as Promise<PeerInfo[]>,
-            new Promise<PeerInfo[]>((resolve) =>
-              setTimeout(() => resolve([]), 5000)
+            }),
+            new Promise<PeerExchangeResult>((resolve) =>
+              setTimeout(
+                () =>
+                  resolve({
+                    peerInfos: null,
+                    error: ProtocolError.REQUEST_TIMEOUT
+                  }),
+                5000
+              )
             )
           ]);
 
-          if (peerInfos.length === 0) {
+          if (queryResult.error === ProtocolError.REQUEST_TIMEOUT) {
             log.warn("Query timed out, retrying...");
             continue;
           }
+
+          if (queryResult.error) {
+            log.error("Error encountered, retrying...", queryResult.error);
+          }
         } catch (error) {
-          log.warn("Error encountered, retrying...");
+          log.warn("Error encountered, retrying...", error);
         }
       }
     },
-    120000
+    120_000
   );
 
   afterEachCustom(this, async () => {
@@ -125,17 +139,19 @@ describe("Peer Exchange Query", function () {
 
   // slow and flaky in CI
   it.skip("connected peers and dial", async function () {
-    expect(peerInfos[0].ENR).to.not.be.null;
-    expect(peerInfos[0].ENR?.peerInfo?.multiaddrs).to.not.be.null;
+    expect(queryResult.error).to.be.null;
 
-    const peerWsMA = peerInfos[0].ENR?.peerInfo?.multiaddrs[2];
+    expect(queryResult.peerInfos?.[0].ENR).to.not.be.null;
+    expect(queryResult.peerInfos?.[0].ENR?.peerInfo?.multiaddrs).to.not.be.null;
+
+    const peerWsMA = queryResult.peerInfos?.[0].ENR?.peerInfo?.multiaddrs[2];
     const localPeerWsMAAsString = peerWsMA
       ?.toString()
       .replace(/\/ip4\/[\d.]+\//, "/ip4/127.0.0.1/");
     const localPeerWsMA = multiaddr(localPeerWsMAAsString);
 
     let foundNodePeerId: PeerId | undefined = undefined;
-    const doesPeerIdExistInResponse = peerInfos.some(({ ENR }) => {
+    const doesPeerIdExistInResponse = queryResult.peerInfos?.some(({ ENR }) => {
       foundNodePeerId = ENR?.peerInfo?.id;
       return ENR?.peerInfo?.id.toString() === nwaku1PeerId.toString();
     });
@@ -150,41 +166,32 @@ describe("Peer Exchange Query", function () {
 
   // slow and flaky in CI
   it.skip("more peers than existing", async function () {
-    const peerInfo = await peerExchange.query({
+    const result = await peerExchange.query({
       peerId: nwaku3PeerId,
       numPeers: 5
     });
-    expect(peerInfo?.length).to.be.eq(numPeersToRequest);
+    expect(result.error).to.be.null;
+    expect(result.peerInfos?.length).to.be.eq(numPeersToRequest);
   });
 
   // slow and flaky in CI
   it.skip("less peers than existing", async function () {
-    const peerInfo = await peerExchange.query({
+    const result = await peerExchange.query({
       peerId: nwaku3PeerId,
       numPeers: 1
     });
-    expect(peerInfo?.length).to.be.eq(1);
+    expect(result.error).to.be.null;
+    expect(result.peerInfos?.length).to.be.eq(1);
   });
 
   // slow and flaky in CI
   it.skip("non connected peers", async function () {
     // querying the non connected peer
-    try {
-      await peerExchange.query({
-        peerId: nwaku1PeerId,
-        numPeers: numPeersToRequest
-      });
-      throw new Error("Query on not connected peer succeeded unexpectedly.");
-    } catch (error) {
-      if (
-        !(
-          error instanceof Error &&
-          (error.message === "Not Found" ||
-            error.message === "Failed to get a connection to the peer")
-        )
-      ) {
-        throw error;
-      }
-    }
+    const result = await peerExchange.query({
+      peerId: nwaku1PeerId,
+      numPeers: numPeersToRequest
+    });
+    expect(result.error).to.be.eq(ProtocolError.NO_PEER_AVAILABLE);
+    expect(result.peerInfos).to.be.null;
   });
 });
