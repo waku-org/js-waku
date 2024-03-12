@@ -6,7 +6,8 @@ import {
   IMessage,
   Libp2p,
   ProtocolCreateOptions,
-  ProtocolError
+  ProtocolError,
+  ProtocolResult
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
 import { isMessageSizeUnderCap } from "@waku/utils";
@@ -25,25 +26,9 @@ const log = new Logger("light-push");
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 
-type PreparePushMessageResult =
-  | {
-      query: PushRpc;
-      error: null;
-    }
-  | {
-      query: null;
-      error: ProtocolError;
-    };
+type PreparePushMessageResult = ProtocolResult<"query", PushRpc>;
 
-type CoreSendResult =
-  | {
-      success: null;
-      failure: Failure;
-    }
-  | {
-      success: PeerId;
-      failure: null;
-    };
+type CoreSendResult = ProtocolResult<"success", PeerId, "failure", Failure>;
 
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
