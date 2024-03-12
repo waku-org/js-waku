@@ -49,7 +49,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@chainsafe/libp2p-gossipsub": "^12.0.0",
+    "@chainsafe/libp2p-gossipsub": "^13.0.0",
     "@noble/hashes": "^1.3.2",
     "@waku/core": "0.0.27",
     "@waku/interfaces": "0.0.22",
@@ -71,7 +71,7 @@
     "@waku/interfaces": "0.0.22",
     "@waku/proto": "0.0.6",
     "@waku/utils": "0.0.15",
-    "@chainsafe/libp2p-gossipsub": "^12.0.0"
+    "@chainsafe/libp2p-gossipsub": "^13.0.0"
   },
   "peerDependenciesMeta": {
     "@waku/interfaces": {
