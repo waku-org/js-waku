@@ -101,6 +101,16 @@ export type Callback<T extends IDecodedMessage> = (
   msg: T
 ) => void | Promise<void>;
 
+// K = key name
+// T = value type
+export type ProtocolResult<K extends string, T> =
+  | ({
+      [key in K]: T;
+    } & { error: null })
+  | ({
+      [key in K]: null;
+    } & { error: ProtocolError });
+
 export enum ProtocolError {
   /** Could not determine the origin of the fault. Best to check connectivity and try again */
   GENERIC_FAIL = "Generic error",
