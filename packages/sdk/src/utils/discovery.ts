@@ -14,7 +14,7 @@ export function defaultPeerDiscoveries(
   pubsubTopics: PubsubTopic[]
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
   const discoveries = [
-    wakuDnsDiscovery([enrTree["PROD"]], DEFAULT_NODE_REQUIREMENTS),
+    wakuDnsDiscovery([enrTree["SANDBOX"]], DEFAULT_NODE_REQUIREMENTS),
     wakuLocalPeerCacheDiscovery(),
     wakuPeerExchangeDiscovery(pubsubTopics)
   ];

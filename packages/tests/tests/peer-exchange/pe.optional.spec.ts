@@ -20,7 +20,7 @@ describe("Peer Exchange", () => {
 
     const testCases: [Fleet, number][] = [
       [Fleet.Test, 2], // on test fleet there are only 3 peers
-      [Fleet.Prod, 3]
+      [Fleet.Sandbox, 3]
     ];
 
     testCases.map(([name, nodes]) => {
