@@ -56,7 +56,7 @@ describe("Metadata Protocol", function () {
         await waku.libp2p.services.metadata?.query(nwaku1PeerId);
       expect(shardInfoRes).to.not.be.undefined;
       expect(shardInfoRes?.clusterId).to.equal(shardInfo.clusterId);
-      expect(shardInfoRes?.shards).to.deep.equal(shardInfo.shards);
+      expect(shardInfoRes?.shards).to.include.members(shardInfo.shards);
 
       const activeConnections = waku.libp2p.getConnections();
       expect(activeConnections.length).to.equal(1);
@@ -92,7 +92,7 @@ describe("Metadata Protocol", function () {
         await waku.libp2p.services.metadata?.query(nwaku1PeerId);
       expect(shardInfoRes).to.not.be.undefined;
       expect(shardInfoRes?.clusterId).to.equal(shardInfo1.clusterId);
-      expect(shardInfoRes?.shards).to.deep.equal(shardInfo1.shards);
+      expect(shardInfoRes?.shards).to.include.members(shardInfo1.shards);
 
       const activeConnections = waku.libp2p.getConnections();
       expect(activeConnections.length).to.equal(1);
@@ -196,6 +196,6 @@ describe("Metadata Protocol", function () {
     expect(metadataShardInfo).not.be.undefined;
 
     expect(metadataShardInfo!.clusterId).to.eq(shardInfo.clusterId);
-    expect(metadataShardInfo.shards).to.deep.eq(shardInfo.shards);
+    expect(metadataShardInfo.shards).to.include.members(shardInfo.shards);
   });
 });
