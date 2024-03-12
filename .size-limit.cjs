@@ -24,8 +24,18 @@ module.exports = [
   },
   {
     name: "DNS discovery",
-    path: "packages/dns-discovery/bundle/index.js",
+    path: "packages/discovery/bundle/index.js",
     import: "{ PeerDiscoveryDns }",
+  },
+  {
+    name: "Peer Exchange discovery",
+    path: "packages/discovery/bundle/index.js",
+    import: "{ wakuPeerExchangeDiscovery }",
+  },
+  {
+    name: "Local Peer Cache Discovery",
+    path: "packages/discovery/bundle/index.js",
+    import: "{ wakuLocalPeerCacheDiscovery }",
   },
   {
     name: "Privacy preserving protocols",
@@ -33,9 +43,14 @@ module.exports = [
     import: "{ wakuRelay }",
   },
   {
-    name: "Light protocols",
+    name: "Waku Filter",
     path: "packages/core/bundle/index.js",
-    import: "{ wakuLightPush, wakuFilter }",
+    import: "{ wakuFilter }",
+  },
+  {
+    name: "Waku LightPush",
+    path: "packages/sdk/bundle/index.js",
+    import: "{ wakuLightPush }",
   },
   {
     name: "History retrieval protocols",

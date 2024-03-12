@@ -3,7 +3,7 @@ import {
   DefaultPubsubTopic,
   IRateLimitProof,
   LightNode,
-  SendError
+  ProtocolError
 } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
@@ -48,7 +48,7 @@ describe("Waku Light Push: Single Node", function () {
       const pushResponse = await waku.lightPush.send(TestEncoder, {
         payload: utf8ToBytes(testItem.value)
       });
-      expect(pushResponse.recipients.length).to.eq(1);
+      expect(pushResponse.successes.length).to.eq(1);
 
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
@@ -65,7 +65,7 @@ describe("Waku Light Push: Single Node", function () {
       const pushResponse = await waku.lightPush.send(TestEncoder, {
         payload: utf8ToBytes(generateMessageText(i))
       });
-      expect(pushResponse.recipients.length).to.eq(1);
+      expect(pushResponse.successes.length).to.eq(1);
     }
 
     expect(await messageCollector.waitForMessages(30)).to.eq(true);
@@ -83,8 +83,10 @@ describe("Waku Light Push: Single Node", function () {
       payload: new Uint8Array()
     });
 
-    expect(pushResponse.recipients.length).to.eq(0);
-    expect(pushResponse.errors).to.include(SendError.EMPTY_PAYLOAD);
+    expect(pushResponse.successes.length).to.eq(0);
+    expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
+      ProtocolError.EMPTY_PAYLOAD
+    );
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 
@@ -97,7 +99,7 @@ describe("Waku Light Push: Single Node", function () {
         customEncoder,
         messagePayload
       );
-      expect(pushResponse.recipients.length).to.eq(1);
+      expect(pushResponse.successes.length).to.eq(1);
 
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
@@ -128,7 +130,7 @@ describe("Waku Light Push: Single Node", function () {
       customTestEncoder,
       messagePayload
     );
-    expect(pushResponse.recipients.length).to.eq(1);
+    expect(pushResponse.successes.length).to.eq(1);
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
@@ -156,15 +158,17 @@ describe("Waku Light Push: Single Node", function () {
     );
 
     if (nwaku.type == "go-waku") {
-      expect(pushResponse.recipients.length).to.eq(1);
+      expect(pushResponse.successes.length).to.eq(1);
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic
       });
     } else {
-      expect(pushResponse.recipients.length).to.eq(0);
-      expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_REJECTED);
+      expect(pushResponse.successes.length).to.eq(0);
+      expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
+        ProtocolError.REMOTE_PEER_REJECTED
+      );
       expect(await messageCollector.waitForMessages(1)).to.eq(false);
     }
   });
@@ -184,7 +188,7 @@ describe("Waku Light Push: Single Node", function () {
       payload: utf8ToBytes(messageText),
       rateLimitProof: rateLimitProof
     });
-    expect(pushResponse.recipients.length).to.eq(1);
+    expect(pushResponse.successes.length).to.eq(1);
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
@@ -203,7 +207,7 @@ describe("Waku Light Push: Single Node", function () {
         payload: utf8ToBytes(messageText),
         timestamp: new Date(testItem)
       });
-      expect(pushResponse.recipients.length).to.eq(1);
+      expect(pushResponse.successes.length).to.eq(1);
 
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
@@ -219,7 +223,7 @@ describe("Waku Light Push: Single Node", function () {
     const pushResponse = await waku.lightPush.send(TestEncoder, {
       payload: bigPayload
     });
-    expect(pushResponse.recipients.length).to.greaterThan(0);
+    expect(pushResponse.successes.length).to.greaterThan(0);
   });
 
   it("Fails to push message bigger that 1MB", async function () {
@@ -228,8 +232,10 @@ describe("Waku Light Push: Single Node", function () {
     const pushResponse = await waku.lightPush.send(TestEncoder, {
       payload: generateRandomUint8Array(MB + 65536)
     });
-    expect(pushResponse.recipients.length).to.eq(0);
-    expect(pushResponse.errors).to.include(SendError.SIZE_TOO_BIG);
+    expect(pushResponse.successes.length).to.eq(0);
+    expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
+      ProtocolError.SIZE_TOO_BIG
+    );
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
 });

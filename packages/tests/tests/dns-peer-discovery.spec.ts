@@ -8,7 +8,7 @@ import {
   enrTree,
   PeerDiscoveryDns,
   wakuDnsDiscovery
-} from "@waku/dns-discovery";
+} from "@waku/discovery";
 import { Libp2pComponents } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";

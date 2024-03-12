@@ -1,5 +1,5 @@
 import { bootstrap } from "@libp2p/bootstrap";
-import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
+import { enrTree, wakuDnsDiscovery } from "@waku/discovery";
 import { LightNode } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";

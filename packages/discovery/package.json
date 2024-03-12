@@ -1,7 +1,7 @@
 {
-  "name": "@waku/local-peer-cache-discovery",
-  "version": "1.0.0",
-  "description": "Local Peer Cache keeps records of healthy peers in the browser's local storage for quicker bootstrapping.",
+  "name": "@waku/discovery",
+  "version": "0.0.1",
+  "description": "Contains various discovery mechanisms: DNS Discovery (EIP-1459, Peer Exchange, Local Peer Cache Discovery.",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "exports": {
@@ -12,7 +12,7 @@
   },
   "type": "module",
   "author": "Waku Team",
-  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/local-peer-cache-discovery#readme",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/discovery#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/waku-org/js-waku.git"
@@ -44,17 +44,26 @@
     "prepublish": "npm run build",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
     "test": "NODE_ENV=test run-s test:*",
-    "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha"
+    "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha",
+    "test:browser": "NODE_ENV=test karma start karma.conf.cjs"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "@libp2p/interface": "^1.1.2",
-    "@waku/interfaces": "^0.0.22",
-    "@waku/utils": "^0.0.15"
+    "@waku/interfaces": "0.0.22",
+    "@waku/proto": "^0.0.6",
+    "@waku/enr": "0.0.21",
+    "@waku/utils": "0.0.15",
+    "debug": "^4.3.4",
+    "dns-query": "^0.11.2",
+    "hi-base32": "^0.5.1",
+    "uint8arrays": "^5.0.1"
   },
   "devDependencies": {
+    "@libp2p/peer-id": "^4.0.4",
+    "@libp2p/peer-id-factory": "^4.0.5",
+    "@multiformats/multiaddr": "^12.0.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
@@ -63,12 +72,28 @@
     "@waku/build-utils": "*",
     "chai": "^4.3.10",
     "chai-as-promised": "^7.1.1",
-    "cspell": "^7.3.2",
-    "mocha": "^10.2.0",
+    "cspell": "^8.3.2",
+    "mocha": "^10.3.0",
     "node-localstorage": "^3.0.5",
     "npm-run-all": "^4.1.5",
     "rollup": "^4.12.0",
     "sinon": "^17.0.1"
+  },
+  "peerDependencies": {
+    "@waku/core": "0.0.27",
+    "@waku/enr": "0.0.21",
+    "@waku/interfaces": "0.0.22",
+    "@waku/proto": "0.0.6",
+    "@waku/utils": "0.0.15",
+    "@libp2p/interface": "^1.1.2"
+  },
+  "peerDependenciesMeta": {
+    "@waku/interfaces": {
+      "optional": true
+    },
+    "@libp2p/interface": {
+      "optional": true
+    }
   },
   "files": [
     "dist",

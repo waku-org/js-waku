@@ -1,4 +1,5 @@
-import type { IBaseProtocol } from "./protocols.js";
+import { IBaseProtocolCore, IBaseProtocolSDK } from "./protocols.js";
 import type { ISender } from "./sender.js";
 
-export type ILightPush = ISender & IBaseProtocol;
+export type ILightPushSDK = ISender &
+  IBaseProtocolSDK & { protocol: IBaseProtocolCore };

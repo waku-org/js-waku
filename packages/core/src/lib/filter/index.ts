@@ -340,6 +340,8 @@ class Subscription {
   }
 }
 
+const DEFAULT_NUM_PEERS = 3;
+
 class Filter extends BaseProtocol implements IReceiver {
   private activeSubscriptions = new Map<string, Subscription>();
 
@@ -357,6 +359,9 @@ class Filter extends BaseProtocol implements IReceiver {
     return subscription;
   }
 
+  //TODO: Remove when FilterCore and FilterSDK are introduced
+  private readonly numPeersToUse: number;
+
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(
       FilterCodecs.SUBSCRIBE,
@@ -365,6 +370,8 @@ class Filter extends BaseProtocol implements IReceiver {
       options!.pubsubTopics!,
       options
     );
+
+    this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS;
 
     libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
       log.error("Failed to register ", FilterCodecs.PUSH, e);

@@ -1,6 +1,6 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
-import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
+import { wakuPeerExchangeDiscovery } from "@waku/discovery";
 import {
   ContentTopicInfo,
   createLightNode,

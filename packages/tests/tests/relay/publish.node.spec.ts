@@ -1,5 +1,5 @@
 import { createEncoder } from "@waku/core";
-import { IRateLimitProof, RelayNode, SendError } from "@waku/interfaces";
+import { IRateLimitProof, ProtocolError, RelayNode } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk/relay";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -62,8 +62,8 @@ describe("Waku Relay, Publish", function () {
       const pushResponse = await waku1.relay.send(TestEncoder, {
         payload: utf8ToBytes(testItem.value)
       });
-      expect(pushResponse.recipients.length).to.eq(1);
-      expect(pushResponse.recipients[0].toString()).to.eq(
+      expect(pushResponse.successes.length).to.eq(1);
+      expect(pushResponse.successes[0].toString()).to.eq(
         waku2.libp2p.peerId.toString()
       );
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
@@ -86,8 +86,8 @@ describe("Waku Relay, Publish", function () {
         timestamp: testItem
       });
 
-      expect(pushResponse.recipients.length).to.eq(1);
-      expect(pushResponse.recipients[0].toString()).to.eq(
+      expect(pushResponse.successes.length).to.eq(1);
+      expect(pushResponse.successes[0].toString()).to.eq(
         waku2.libp2p.peerId.toString()
       );
 
@@ -134,7 +134,9 @@ describe("Waku Relay, Publish", function () {
     const pushResponse = await waku1.relay.send(wrong_encoder, {
       payload: utf8ToBytes("")
     });
-    expect(pushResponse.errors?.[0]).to.eq("Topic not configured");
+    expect(pushResponse.failures?.[0].error).to.eq(
+      ProtocolError.TOPIC_NOT_CONFIGURED
+    );
     await delay(400);
     expect(await messageCollector.waitForMessages(1)).to.eq(false);
   });
@@ -144,8 +146,10 @@ describe("Waku Relay, Publish", function () {
       const pushResponse = await waku1.relay.send(TestEncoder, {
         payload: generateRandomUint8Array(testItem)
       });
-      expect(pushResponse.recipients.length).to.eq(0);
-      expect(pushResponse.errors).to.include(SendError.SIZE_TOO_BIG);
+      expect(pushResponse.successes.length).to.eq(0);
+      expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
+        ProtocolError.SIZE_TOO_BIG
+      );
       await delay(400);
       expect(await messageCollector.waitForMessages(1)).to.eq(false);
     });
@@ -169,8 +173,8 @@ describe("Waku Relay, Publish", function () {
     const pushResponse = await waku1.relay.send(TestEncoder, {
       payload: utf8ToBytes("m2")
     });
-    expect(pushResponse.recipients.length).to.eq(1);
-    expect(pushResponse.recipients[0].toString()).to.eq(
+    expect(pushResponse.successes.length).to.eq(1);
+    expect(pushResponse.successes[0].toString()).to.eq(
       waku2.libp2p.peerId.toString()
     );
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
@@ -194,8 +198,8 @@ describe("Waku Relay, Publish", function () {
     const pushResponse = await waku1.relay.send(TestEncoder, {
       payload: utf8ToBytes("m2")
     });
-    expect(pushResponse.recipients.length).to.eq(1);
-    expect(pushResponse.recipients[0].toString()).to.eq(
+    expect(pushResponse.successes.length).to.eq(1);
+    expect(pushResponse.successes[0].toString()).to.eq(
       waku2.libp2p.peerId.toString()
     );
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
@@ -210,8 +214,8 @@ describe("Waku Relay, Publish", function () {
     const pushResponse = await waku1.relay.send(customTestEncoder, {
       payload: utf8ToBytes(messageText)
     });
-    expect(pushResponse.recipients.length).to.eq(1);
-    expect(pushResponse.recipients[0].toString()).to.eq(
+    expect(pushResponse.successes.length).to.eq(1);
+    expect(pushResponse.successes[0].toString()).to.eq(
       waku2.libp2p.peerId.toString()
     );
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
@@ -232,7 +236,7 @@ describe("Waku Relay, Publish", function () {
       payload: utf8ToBytes(messageText),
       rateLimitProof: rateLimitProof
     });
-    expect(pushResponse.recipients.length).to.eq(1);
+    expect(pushResponse.successes.length).to.eq(1);
 
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {

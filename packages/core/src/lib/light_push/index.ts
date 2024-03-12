@@ -1,18 +1,15 @@
-import type { PeerId, Stream } from "@libp2p/interface";
+import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import {
+  Failure,
+  IBaseProtocolCore,
   IEncoder,
-  ILightPush,
   IMessage,
   Libp2p,
   ProtocolCreateOptions,
-  SendError,
-  SendResult
+  ProtocolError
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
-import {
-  ensurePubsubTopicIsConfigured,
-  isMessageSizeUnderCap
-} from "@waku/utils";
+import { isMessageSizeUnderCap } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -35,13 +32,23 @@ type PreparePushMessageResult =
     }
   | {
       query: null;
-      error: SendError;
+      error: ProtocolError;
+    };
+
+type CoreSendResult =
+  | {
+      success: null;
+      failure: Failure;
+    }
+  | {
+      success: PeerId;
+      failure: null;
     };
 
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
-class LightPush extends BaseProtocol implements ILightPush {
+export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(
       LightPushCodec,
@@ -54,18 +61,17 @@ class LightPush extends BaseProtocol implements ILightPush {
 
   private async preparePushMessage(
     encoder: IEncoder,
-    message: IMessage,
-    pubsubTopic: string
+    message: IMessage
   ): Promise<PreparePushMessageResult> {
     try {
       if (!message.payload || message.payload.length === 0) {
         log.error("Failed to send waku light push: payload is empty");
-        return { query: null, error: SendError.EMPTY_PAYLOAD };
+        return { query: null, error: ProtocolError.EMPTY_PAYLOAD };
       }
 
       if (!(await isMessageSizeUnderCap(encoder, message))) {
         log.error("Failed to send waku light push: message is bigger than 1MB");
-        return { query: null, error: SendError.SIZE_TOO_BIG };
+        return { query: null, error: ProtocolError.SIZE_TOO_BIG };
       }
 
       const protoMessage = await encoder.toProtoObj(message);
@@ -73,132 +79,120 @@ class LightPush extends BaseProtocol implements ILightPush {
         log.error("Failed to encode to protoMessage, aborting push");
         return {
           query: null,
-          error: SendError.ENCODE_FAILED
+          error: ProtocolError.ENCODE_FAILED
         };
       }
 
-      const query = PushRpc.createRequest(protoMessage, pubsubTopic);
+      const query = PushRpc.createRequest(protoMessage, encoder.pubsubTopic);
       return { query, error: null };
     } catch (error) {
       log.error("Failed to prepare push message", error);
 
       return {
         query: null,
-        error: SendError.GENERIC_FAIL
+        error: ProtocolError.GENERIC_FAIL
       };
     }
   }
 
-  async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
-    const { pubsubTopic } = encoder;
-    ensurePubsubTopicIsConfigured(pubsubTopic, this.pubsubTopics);
-
-    const recipients: PeerId[] = [];
-
+  async send(
+    encoder: IEncoder,
+    message: IMessage,
+    peer: Peer
+  ): Promise<CoreSendResult> {
     const { query, error: preparationError } = await this.preparePushMessage(
       encoder,
-      message,
-      pubsubTopic
+      message
     );
 
     if (preparationError || !query) {
       return {
-        recipients,
-        errors: [preparationError]
+        success: null,
+        failure: {
+          error: preparationError,
+          peerId: peer.id
+        }
       };
     }
 
-    const peers = await this.getPeers({
-      maxBootstrapPeers: 1,
-      numPeers: this.numPeersToUse
-    });
-
-    if (!peers.length) {
+    let stream: Stream | undefined;
+    try {
+      stream = await this.getStream(peer);
+    } catch (err) {
+      log.error(
+        `Failed to get a stream for remote peer${peer.id.toString()}`,
+        err
+      );
       return {
-        recipients,
-        errors: [SendError.NO_PEER_AVAILABLE]
+        success: null,
+        failure: {
+          error: ProtocolError.REMOTE_PEER_FAULT,
+          peerId: peer.id
+        }
       };
     }
 
-    const promises = peers.map(async (peer) => {
-      let stream: Stream | undefined;
-      try {
-        stream = await this.getStream(peer);
-      } catch (err) {
-        log.error(
-          `Failed to get a stream for remote peer${peer.id.toString()}`,
-          err
-        );
-        return { recipients, error: SendError.REMOTE_PEER_FAULT };
-      }
+    let res: Uint8ArrayList[] | undefined;
+    try {
+      res = await pipe(
+        [query.encode()],
+        lp.encode,
+        stream,
+        lp.decode,
+        async (source) => await all(source)
+      );
+    } catch (err) {
+      log.error("Failed to send waku light push request", err);
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.GENERIC_FAIL,
+          peerId: peer.id
+        }
+      };
+    }
 
-      let res: Uint8ArrayList[] | undefined;
-      try {
-        res = await pipe(
-          [query.encode()],
-          lp.encode,
-          stream,
-          lp.decode,
-          async (source) => await all(source)
-        );
-      } catch (err) {
-        log.error("Failed to send waku light push request", err);
-        return { recipients, error: SendError.GENERIC_FAIL };
-      }
-
-      const bytes = new Uint8ArrayList();
-      res.forEach((chunk) => {
-        bytes.append(chunk);
-      });
-
-      let response: PushResponse | undefined;
-      try {
-        response = PushRpc.decode(bytes).response;
-      } catch (err) {
-        log.error("Failed to decode push reply", err);
-        return { recipients, error: SendError.DECODE_FAILED };
-      }
-
-      if (!response) {
-        log.error("Remote peer fault: No response in PushRPC");
-        return { recipients, error: SendError.REMOTE_PEER_FAULT };
-      }
-
-      if (!response.isSuccess) {
-        log.error("Remote peer rejected the message: ", response.info);
-        return { recipients, error: SendError.REMOTE_PEER_REJECTED };
-      }
-
-      recipients.some((recipient) => recipient.equals(peer.id)) ||
-        recipients.push(peer.id);
-
-      return { recipients };
+    const bytes = new Uint8ArrayList();
+    res.forEach((chunk) => {
+      bytes.append(chunk);
     });
 
-    const results = await Promise.allSettled(promises);
+    let response: PushResponse | undefined;
+    try {
+      response = PushRpc.decode(bytes).response;
+    } catch (err) {
+      log.error("Failed to decode push reply", err);
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.DECODE_FAILED,
+          peerId: peer.id
+        }
+      };
+    }
 
-    // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
-    const errors = results
-      .filter(
-        (
-          result
-        ): result is PromiseFulfilledResult<{
-          recipients: PeerId[];
-          error: SendError | undefined;
-        }> => result.status === "fulfilled"
-      )
-      .map((result) => result.value.error)
-      .filter((error) => error !== undefined) as SendError[];
+    if (!response) {
+      log.error("Remote peer fault: No response in PushRPC");
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.REMOTE_PEER_FAULT,
+          peerId: peer.id
+        }
+      };
+    }
 
-    return {
-      recipients,
-      errors
-    };
+    if (!response.isSuccess) {
+      log.error("Remote peer rejected the message: ", response.info);
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.REMOTE_PEER_REJECTED,
+          peerId: peer.id
+        }
+      };
+    }
+
+    return { success: peer.id, failure: null };
   }
-}
-
-export function wakuLightPush(
-  init: Partial<ProtocolCreateOptions> = {}
-): (libp2p: Libp2p) => ILightPush {
-  return (libp2p: Libp2p) => new LightPush(libp2p, init);
 }

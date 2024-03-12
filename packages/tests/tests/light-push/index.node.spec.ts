@@ -3,7 +3,7 @@ import {
   DefaultPubsubTopic,
   IRateLimitProof,
   LightNode,
-  SendError
+  ProtocolError
 } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
@@ -55,7 +55,7 @@ const runTests = (strictNodeCheck: boolean): void => {
         const pushResponse = await waku.lightPush.send(TestEncoder, {
           payload: utf8ToBytes(testItem.value)
         });
-        expect(pushResponse.recipients.length).to.eq(numServiceNodes);
+        expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
         expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
           true
@@ -74,7 +74,7 @@ const runTests = (strictNodeCheck: boolean): void => {
         const pushResponse = await waku.lightPush.send(TestEncoder, {
           payload: utf8ToBytes(generateMessageText(i))
         });
-        expect(pushResponse.recipients.length).to.eq(numServiceNodes);
+        expect(pushResponse.successes.length).to.eq(numServiceNodes);
       }
 
       expect(await serviceNodes.messageCollector.waitForMessages(30)).to.eq(
@@ -94,9 +94,11 @@ const runTests = (strictNodeCheck: boolean): void => {
         payload: new Uint8Array()
       });
 
-      expect(pushResponse.recipients.length).to.eq(0);
+      expect(pushResponse.successes.length).to.eq(0);
       console.log("validated 1");
-      expect(pushResponse.errors).to.include(SendError.EMPTY_PAYLOAD);
+      expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
+        ProtocolError.EMPTY_PAYLOAD
+      );
       console.log("validated 2");
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         false
@@ -113,7 +115,7 @@ const runTests = (strictNodeCheck: boolean): void => {
           customEncoder,
           messagePayload
         );
-        expect(pushResponse.recipients.length).to.eq(numServiceNodes);
+        expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
         expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
           true
@@ -146,7 +148,7 @@ const runTests = (strictNodeCheck: boolean): void => {
         customTestEncoder,
         messagePayload
       );
-      expect(pushResponse.recipients.length).to.eq(numServiceNodes);
+      expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         true
@@ -176,7 +178,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       );
 
       if (serviceNodes.type == "go-waku") {
-        expect(pushResponse.recipients.length).to.eq(numServiceNodes);
+        expect(pushResponse.successes.length).to.eq(numServiceNodes);
         expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
           true
         );
@@ -185,8 +187,10 @@ const runTests = (strictNodeCheck: boolean): void => {
           expectedContentTopic: TestContentTopic
         });
       } else {
-        expect(pushResponse.recipients.length).to.eq(0);
-        expect(pushResponse.errors).to.include(SendError.REMOTE_PEER_REJECTED);
+        expect(pushResponse.successes.length).to.eq(0);
+        expect(
+          pushResponse.failures?.map((failure) => failure.error)
+        ).to.include(ProtocolError.REMOTE_PEER_REJECTED);
         expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
           false
         );
@@ -208,7 +212,7 @@ const runTests = (strictNodeCheck: boolean): void => {
         payload: utf8ToBytes(messageText),
         rateLimitProof: rateLimitProof
       });
-      expect(pushResponse.recipients.length).to.eq(numServiceNodes);
+      expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         true
@@ -229,7 +233,7 @@ const runTests = (strictNodeCheck: boolean): void => {
           payload: utf8ToBytes(messageText),
           timestamp: new Date(testItem)
         });
-        expect(pushResponse.recipients.length).to.eq(numServiceNodes);
+        expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
         expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
           true
@@ -247,7 +251,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       const pushResponse = await waku.lightPush.send(TestEncoder, {
         payload: bigPayload
       });
-      expect(pushResponse.recipients.length).to.greaterThan(0);
+      expect(pushResponse.successes.length).to.greaterThan(0);
     });
 
     it("Fails to push message bigger that 1MB", async function () {
@@ -256,8 +260,10 @@ const runTests = (strictNodeCheck: boolean): void => {
       const pushResponse = await waku.lightPush.send(TestEncoder, {
         payload: generateRandomUint8Array(MB + 65536)
       });
-      expect(pushResponse.recipients.length).to.eq(0);
-      expect(pushResponse.errors).to.include(SendError.SIZE_TOO_BIG);
+      expect(pushResponse.successes.length).to.eq(0);
+      expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
+        ProtocolError.SIZE_TOO_BIG
+      );
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         false
       );

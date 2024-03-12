@@ -1,7 +1,7 @@
 import type { Libp2p } from "@libp2p/interface";
 import type { Peer, PeerStore, Stream } from "@libp2p/interface";
 import type {
-  IBaseProtocol,
+  IBaseProtocolCore,
   Libp2pComponents,
   ProtocolCreateOptions,
   PubsubTopic
@@ -16,27 +16,22 @@ import {
 import { filterPeersByDiscovery } from "./filterPeers.js";
 import { StreamManager } from "./stream_manager.js";
 
-const DEFAULT_NUM_PEERS_TO_USE = 3;
-
 /**
  * A class with predefined helpers, to be used as a base to implement Waku
  * Protocols.
  */
-export class BaseProtocol implements IBaseProtocol {
+export class BaseProtocol implements IBaseProtocolCore {
   public readonly addLibp2pEventListener: Libp2p["addEventListener"];
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
-  readonly numPeersToUse: number;
   protected streamManager: StreamManager;
 
   constructor(
     public multicodec: string,
     private components: Libp2pComponents,
     private log: Logger,
-    protected pubsubTopics: PubsubTopic[],
+    public readonly pubsubTopics: PubsubTopic[],
     private options?: ProtocolCreateOptions
   ) {
-    this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
-
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events
     );
@@ -86,7 +81,7 @@ export class BaseProtocol implements IBaseProtocol {
 
   * @returns A list of peers that support the protocol sorted by latency.
   */
-  protected async getPeers(
+  async getPeers(
     {
       numPeers,
       maxBootstrapPeers
