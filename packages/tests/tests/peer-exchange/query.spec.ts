@@ -137,7 +137,7 @@ describe("Peer Exchange Query", function () {
     await tearDownNodes([nwaku1, nwaku2, nwaku3], waku);
   });
 
-  // slow and flaky in CI
+  // slow and flaky in CI: https://github.com/waku-org/js-waku/issues/1911
   it.skip("connected peers and dial", async function () {
     expect(queryResult.error).to.be.null;
 
@@ -164,7 +164,7 @@ describe("Peer Exchange Query", function () {
     await waitForRemotePeerWithCodec(waku, PeerExchangeCodec, foundNodePeerId);
   });
 
-  // slow and flaky in CI
+  // slow and flaky in CI: https://github.com/waku-org/js-waku/issues/1911
   it.skip("more peers than existing", async function () {
     const result = await peerExchange.query({
       peerId: nwaku3PeerId,
@@ -174,7 +174,7 @@ describe("Peer Exchange Query", function () {
     expect(result.peerInfos?.length).to.be.eq(numPeersToRequest);
   });
 
-  // slow and flaky in CI
+  // slow and flaky in CI: https://github.com/waku-org/js-waku/issues/1911
   it.skip("less peers than existing", async function () {
     const result = await peerExchange.query({
       peerId: nwaku3PeerId,
@@ -184,7 +184,7 @@ describe("Peer Exchange Query", function () {
     expect(result.peerInfos?.length).to.be.eq(1);
   });
 
-  // slow and flaky in CI
+  // slow and flaky in CI: https://github.com/waku-org/js-waku/issues/1911
   it.skip("non connected peers", async function () {
     // querying the non connected peer
     const result = await peerExchange.query({
