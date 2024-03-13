@@ -86,19 +86,13 @@ describe("Peer Exchange Query", function () {
       numPeersToRequest = 2;
 
       const startTime = Date.now();
-      while (
-        !queryResult ||
-        queryResult.error !== null ||
-        !queryResult.peerInfos ||
-        queryResult.peerInfos.length !== numPeersToRequest
-      ) {
+
+      while (true) {
         if (Date.now() - startTime > 100_000) {
           log.error("Timeout reached, exiting the loop.");
           break;
         }
-
         await delay(2000);
-
         try {
           queryResult = await Promise.race([
             peerExchange.query({
@@ -116,15 +110,25 @@ describe("Peer Exchange Query", function () {
               )
             )
           ]);
-
-          if (queryResult.error === ProtocolError.REQUEST_TIMEOUT) {
-            log.warn("Query timed out, retrying...");
+          const hasErrors = queryResult?.error !== null;
+          const hasPeerInfos =
+            queryResult?.peerInfos &&
+            queryResult.peerInfos.length === numPeersToRequest;
+          if (hasErrors) {
+            if (queryResult.error === ProtocolError.REQUEST_TIMEOUT) {
+              log.warn("Query timed out, retrying...");
+            } else {
+              log.error("Error encountered, retrying...", queryResult.error);
+            }
             continue;
           }
-
-          if (queryResult.error) {
-            log.error("Error encountered, retrying...", queryResult.error);
+          if (!hasPeerInfos) {
+            log.warn(
+              "Peer info not available or does not match the requested number of peers, retrying..."
+            );
+            continue;
           }
+          break;
         } catch (error) {
           log.warn("Error encountered, retrying...", error);
         }
