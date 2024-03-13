@@ -1,3 +1,5 @@
+import { proto_store as proto } from "@waku/proto";
+
 import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { IBaseProtocolCore, IBaseProtocolSDK } from "./protocols.js";
 
@@ -42,7 +44,7 @@ export type StoreQueryOptions = {
    * Cursor as an index to start a query from. Must be generated from a Waku
    * Message.
    */
-  cursor?: Cursor;
+  cursor?: proto.Index;
 };
 
 export interface IStoreCore extends IBaseProtocolCore {}

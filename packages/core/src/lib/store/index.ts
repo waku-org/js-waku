@@ -75,8 +75,7 @@ export default class StoreCore extends BaseProtocol implements IStoreCore {
   async *queryPerPage<T extends IDecodedMessage>(
     queryOpts: Params,
     decoders: Map<string, IDecoder<T>>,
-    peer: Peer,
-    cursor?: Cursor
+    peer: Peer
   ): AsyncGenerator<Promise<T | undefined>[]> {
     if (
       queryOpts.contentTopics.toString() !==
@@ -87,7 +86,7 @@ export default class StoreCore extends BaseProtocol implements IStoreCore {
       );
     }
 
-    let currentCursor = cursor;
+    let currentCursor = queryOpts.cursor;
     while (true) {
       queryOpts.cursor = currentCursor;
 
