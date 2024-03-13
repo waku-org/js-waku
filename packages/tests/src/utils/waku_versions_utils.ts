@@ -22,7 +22,7 @@ export function isNwakuAtLeast(requiredVersion: string): boolean {
 
 // Utility to resolve autosharding cluster ID
 export function resolveAutoshardingCluster(clusterId: number): number {
-  if (isNwakuAtLeast("0.26.0")) {
+  if (isNwakuAtLeast("0.27.0")) {
     log.info(`Using clusterID ${clusterId} for autosharding`);
     return clusterId;
   } else {
