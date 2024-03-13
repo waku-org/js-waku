@@ -22,7 +22,8 @@ import { expect } from "chai";
 
 import { makeLogFileName, ServiceNode, tearDownNodes } from "../../src";
 
-describe("SDK: Creating by Content Topic", function () {
+// skipped: https://github.com/waku-org/js-waku/issues/1914
+describe.skip("SDK: Creating by Content Topic", function () {
   const ContentTopic = "/myapp/1/latest/proto";
   const testMessage = "Test123";
   let nwaku: ServiceNode;
