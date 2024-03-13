@@ -101,6 +101,27 @@ export type Callback<T extends IDecodedMessage> = (
   msg: T
 ) => void | Promise<void>;
 
+// SK = success key name
+// SV = success value type
+// EK = error key name (default: "error")
+// EV = error value type (default: ProtocolError)
+export type ProtocolResult<
+  SK extends string,
+  SV,
+  EK extends string = "error",
+  EV = ProtocolError
+> =
+  | ({
+      [key in SK]: SV;
+    } & {
+      [key in EK]: null;
+    })
+  | ({
+      [key in SK]: null;
+    } & {
+      [key in EK]: EV;
+    });
+
 export enum ProtocolError {
   /** Could not determine the origin of the fault. Best to check connectivity and try again */
   GENERIC_FAIL = "Generic error",
@@ -146,7 +167,12 @@ export enum ProtocolError {
    * is logged. Review message validity, or mitigation for `NO_PEER_AVAILABLE`
    * or `DECODE_FAILED` can be used.
    */
-  REMOTE_PEER_REJECTED = "Remote peer rejected"
+  REMOTE_PEER_REJECTED = "Remote peer rejected",
+  /**
+   * The protocol request timed out without a response. This may be due to a connection issue.
+   * Mitigation can be: retrying after a given time period
+   */
+  REQUEST_TIMEOUT = "Request timeout"
 }
 
 export interface Failure {
