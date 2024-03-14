@@ -26,7 +26,7 @@ export function resolveAutoshardingCluster(clusterId: number): number {
     log.info(`Using clusterID ${clusterId} for autosharding`);
     return clusterId;
   } else {
-    // for versions older than 0.26.0 the autosharding cluster was hardcoded to 1
+    // for versions older than 0.27.0 the autosharding cluster was hardcoded to 1
     // https://github.com/waku-org/nwaku/pull/2505
     log.warn("Falling back to clusterID 1 for autosharding");
     return 1;

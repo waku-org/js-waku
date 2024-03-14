@@ -11,6 +11,7 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
+  isNwakuAtLeast,
   makeLogFileName,
   NOISE_KEY_1,
   resolveAutoshardingCluster,
@@ -214,6 +215,12 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
     clusterId,
     contentTopics: [customContentTopic1, customContentTopic2]
   };
+
+  before(async () => {
+    if (!isNwakuAtLeast("0.27.0")) {
+      this.ctx.skip();
+    }
+  });
 
   beforeEachCustom(this, async () => {
     nwaku = new ServiceNode(makeLogFileName(this.ctx));

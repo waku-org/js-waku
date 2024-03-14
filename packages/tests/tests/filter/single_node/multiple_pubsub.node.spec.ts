@@ -19,6 +19,7 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
+  isNwakuAtLeast,
   makeLogFileName,
   MessageCollector,
   resolveAutoshardingCluster,
@@ -229,6 +230,12 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   const customDecoder2 = createDecoder(customContentTopic2, {
     clusterId: clusterId,
     shard: contentTopicToShardIndex(customContentTopic2)
+  });
+
+  before(async () => {
+    if (!isNwakuAtLeast("0.27.0")) {
+      this.ctx.skip();
+    }
   });
 
   beforeEachCustom(this, async () => {

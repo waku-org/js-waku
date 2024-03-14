@@ -20,6 +20,7 @@ import Sinon from "sinon";
 import {
   afterEachCustom,
   beforeEachCustom,
+  isNwakuAtLeast,
   makeLogFileName,
   resolveAutoshardingCluster,
   ServiceNode,
@@ -32,6 +33,12 @@ describe("getConnectedPeersForProtocolAndShard", function () {
   let serviceNode2: ServiceNode;
   const contentTopic = "/test/2/waku-light-push/utf8";
   const autoshardingClusterId = resolveAutoshardingCluster(6);
+
+  before(async () => {
+    if (!isNwakuAtLeast("0.27.0")) {
+      this.ctx.skip();
+    }
+  });
 
   beforeEachCustom(this, async () => {
     serviceNode1 = new ServiceNode(makeLogFileName(this.ctx) + "1");

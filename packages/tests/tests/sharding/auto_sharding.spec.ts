@@ -14,6 +14,7 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
+  isNwakuAtLeast,
   makeLogFileName,
   MessageCollector,
   resolveAutoshardingCluster,
@@ -30,6 +31,12 @@ describe("Autosharding: Running Nodes", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
   let messageCollector: MessageCollector;
+
+  before(async () => {
+    if (!isNwakuAtLeast("0.27.0")) {
+      this.ctx.skip();
+    }
+  });
 
   beforeEachCustom(this, async () => {
     nwaku = new ServiceNode(makeLogFileName(this.ctx));

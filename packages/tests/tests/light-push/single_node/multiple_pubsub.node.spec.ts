@@ -19,6 +19,7 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
+  isNwakuAtLeast,
   makeLogFileName,
   MessageCollector,
   resolveAutoshardingCluster,
@@ -203,6 +204,12 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   });
 
   let nimPeerId: PeerId;
+
+  before(async () => {
+    if (!isNwakuAtLeast("0.27.0")) {
+      this.ctx.skip();
+    }
+  });
 
   beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(
