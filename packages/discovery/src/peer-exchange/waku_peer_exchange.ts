@@ -1,10 +1,11 @@
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
 import { EnrDecoder } from "@waku/enr";
-import type {
+import {
   IPeerExchange,
   Libp2pComponents,
   PeerExchangeQueryParams,
-  PeerInfo,
+  PeerExchangeResult,
+  ProtocolError,
   PubsubTopic
 } from "@waku/interfaces";
 import { isDefined } from "@waku/utils";
@@ -34,18 +35,18 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
   /**
    * Make a peer exchange query to a peer
    */
-  async query(
-    params: PeerExchangeQueryParams
-  ): Promise<PeerInfo[] | undefined> {
+  async query(params: PeerExchangeQueryParams): Promise<PeerExchangeResult> {
     const { numPeers } = params;
-
     const rpcQuery = PeerExchangeRPC.createRequest({
       numPeers: BigInt(numPeers)
     });
 
     const peer = await this.peerStore.get(params.peerId);
     if (!peer) {
-      throw new Error(`Peer ${params.peerId.toString()} not found`);
+      return {
+        peerInfos: null,
+        error: ProtocolError.NO_PEER_AVAILABLE
+      };
     }
 
     const stream = await this.getStream(peer);
@@ -65,15 +66,17 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
       });
 
       const { response } = PeerExchangeRPC.decode(bytes);
-
       if (!response) {
         log.error(
           "PeerExchangeRPC message did not contains a `response` field"
         );
-        return;
+        return {
+          peerInfos: null,
+          error: ProtocolError.EMPTY_PAYLOAD
+        };
       }
 
-      return Promise.all(
+      const peerInfos = await Promise.all(
         response.peerInfos
           .map((peerInfo) => peerInfo.enr)
           .filter(isDefined)
@@ -81,9 +84,17 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
             return { ENR: await EnrDecoder.fromRLP(enr) };
           })
       );
+
+      return {
+        peerInfos,
+        error: null
+      };
     } catch (err) {
       log.error("Failed to decode push reply", err);
-      return;
+      return {
+        peerInfos: null,
+        error: ProtocolError.DECODE_FAILED
+      };
     }
   }
 }
