@@ -20,6 +20,7 @@ import {
   afterEachCustom,
   beforeEachCustom,
   delay,
+  isNwakuAtLeast,
   makeLogFileName,
   resolveAutoshardingCluster,
   ServiceNode,
@@ -208,6 +209,12 @@ describe("Static Sharding: Peer Management", function () {
 describe("Autosharding: Peer Management", function () {
   const ContentTopic = "/myapp/1/latest/proto";
   const clusterId = resolveAutoshardingCluster(8);
+
+  before(async () => {
+    if (!isNwakuAtLeast("0.27.0")) {
+      this.ctx.skip();
+    }
+  });
 
   describe("Peer Exchange", function () {
     let waku: LightNode;
