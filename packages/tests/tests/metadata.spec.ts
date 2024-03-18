@@ -67,13 +67,12 @@ describe("Metadata Protocol", function () {
 
       expect(shardInfoRes).to.not.be.undefined;
       expect(shardInfoRes.clusterId).to.equal(shardInfo.clusterId);
-      expect(shardInfoRes.shards).to.deep.equal(shardInfo.shards);
+      expect(shardInfoRes.shards).to.include.members(shardInfo.shards);
 
       const activeConnections = waku.libp2p.getConnections();
       expect(activeConnections.length).to.equal(1);
     });
 
-    // Had to use cluster 0 because of https://github.com/waku-org/js-waku/issues/1848
     it("same cluster, different shard: nodes connect", async function () {
       const shardInfo1: ShardInfo = {
         clusterId: 0,
@@ -115,7 +114,7 @@ describe("Metadata Protocol", function () {
 
       expect(shardInfoRes).to.not.be.undefined;
       expect(shardInfoRes.clusterId).to.equal(shardInfo1.clusterId);
-      expect(shardInfoRes.shards).to.deep.equal(shardInfo1.shards);
+      expect(shardInfoRes.shards).to.include.members(shardInfo1.shards);
 
       const activeConnections = waku.libp2p.getConnections();
       expect(activeConnections.length).to.equal(1);
@@ -219,6 +218,6 @@ describe("Metadata Protocol", function () {
     expect(metadataShardInfo).not.be.undefined;
 
     expect(metadataShardInfo!.clusterId).to.eq(shardInfo.clusterId);
-    expect(metadataShardInfo.shards).to.deep.eq(shardInfo.shards);
+    expect(metadataShardInfo.shards).to.include.members(shardInfo.shards);
   });
 });

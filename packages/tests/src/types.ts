@@ -15,6 +15,7 @@ export interface Args {
   discv5Discovery?: boolean;
   storeMessageDbUrl?: string;
   pubsubTopic?: Array<string>;
+  contentTopic?: Array<string>;
   websocketSupport?: boolean;
   tcpPort?: number;
   restPort?: number;

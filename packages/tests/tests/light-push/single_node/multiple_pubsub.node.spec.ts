@@ -19,8 +19,10 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
+  isNwakuAtLeast,
   makeLogFileName,
   MessageCollector,
+  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../../../src/index.js";
@@ -177,7 +179,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   let nwaku2: ServiceNode;
   let messageCollector: MessageCollector;
 
-  const clusterId = 2;
+  const clusterId = resolveAutoshardingCluster(4);
   const customContentTopic1 = "/waku/2/content/test.js";
   const customContentTopic2 = "/myapp/1/latest/proto";
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
@@ -202,6 +204,12 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   });
 
   let nimPeerId: PeerId;
+
+  before(async () => {
+    if (!isNwakuAtLeast("0.27.0")) {
+      this.ctx.skip();
+    }
+  });
 
   beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(

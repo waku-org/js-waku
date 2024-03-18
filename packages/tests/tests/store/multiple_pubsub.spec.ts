@@ -11,8 +11,10 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
+  isNwakuAtLeast,
   makeLogFileName,
   NOISE_KEY_1,
+  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
@@ -180,8 +182,7 @@ describe("Waku Store, custom pubsub topic", function () {
   });
 });
 
-// Skipped until https://github.com/waku-org/js-waku/issues/1845 gets fixed
-describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
+describe("Waku Store (Autosharding), custom pubsub topic", function () {
   this.timeout(15000);
   let waku: LightNode;
   let nwaku: ServiceNode;
@@ -189,7 +190,7 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
 
   const customContentTopic1 = "/waku/2/content/utf8";
   const customContentTopic2 = "/myapp/1/latest/proto";
-  const clusterId = 2;
+  const clusterId = resolveAutoshardingCluster(5);
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
     customContentTopic1,
     clusterId
@@ -215,11 +216,18 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
     contentTopics: [customContentTopic1, customContentTopic2]
   };
 
+  before(async () => {
+    if (!isNwakuAtLeast("0.27.0")) {
+      this.ctx.skip();
+    }
+  });
+
   beforeEachCustom(this, async () => {
     nwaku = new ServiceNode(makeLogFileName(this.ctx));
     await nwaku.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
+      contentTopic: [customContentTopic1, customContentTopic2],
       relay: true,
       clusterId
     });
@@ -293,6 +301,7 @@ describe.skip("Waku Store (Autosharding), custom pubsub topic", function () {
     await nwaku2.start({
       store: true,
       pubsubTopic: [autoshardingPubsubTopic2],
+      contentTopic: [customContentTopic2],
       relay: true,
       clusterId
     });

@@ -290,7 +290,7 @@ export class ServiceNode {
     }
 
     return this.restCall<boolean>(
-      `/relay/v1/auto/message`,
+      `/relay/v1/auto/messages`,
       "POST",
       message,
       async (response) => response.status === 200
