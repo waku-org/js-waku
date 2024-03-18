@@ -4,7 +4,9 @@
     "outDir": "dist/",
     "rootDir": "src",
     "tsBuildInfoFile": "dist/.tsbuildinfo",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "include": ["src/index.ts", "src/lib/**/*.proto"],
   "exclude": ["src/generated/**/*.ts"]
