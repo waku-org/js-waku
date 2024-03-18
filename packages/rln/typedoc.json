@@ -1,0 +1,10 @@
+{
+  "entryPoints": ["./src/index.ts"],
+  "out": "build/docs",
+  "exclude": "**/*.spec.ts",
+  "excludeInternal": true,
+  "validation": {
+    "invalidLink": true,
+    "notExported": true
+  }
+}
