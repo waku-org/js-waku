@@ -79,7 +79,7 @@
     "@waku/sdk": "*",
     "allure-commandline": "^2.27.0",
     "allure-mocha": "^2.9.2",
-    "chai": "^4.3.10",
+    "chai": "^5.1.0",
     "cspell": "^8.3.2",
     "datastore-core": "^9.2.7",
     "debug": "^4.3.4",
