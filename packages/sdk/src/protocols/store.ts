@@ -1,4 +1,5 @@
 import { sha256 } from "@noble/hashes/sha256";
+import { StoreCore, waku_store } from "@waku/core";
 import {
   Cursor,
   IDecodedMessage,
@@ -11,8 +12,6 @@ import {
 import { ensurePubsubTopicIsConfigured, isDefined } from "@waku/utils";
 import { concat } from "@waku/utils/bytes";
 
-import { Params } from "../../../core/dist/lib/store/history_rpc.js";
-import StoreCore, { QueryOptions } from "../../../core/dist/lib/store/index.js";
 import { utf8ToBytes } from "../index.js";
 
 import { BaseProtocolSDK } from "./base_protocol.js";
@@ -55,7 +54,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
    */
   async *queryGenerator<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
-    options?: QueryOptions
+    options?: waku_store.QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
     const { pubsubTopic, contentTopics, decodersAsMap } =
       this.validateDecodersAndPubsubTopic(decoders, options);
@@ -109,7 +108,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   async queryWithOrderedCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
-    options?: QueryOptions
+    options?: waku_store.QueryOptions
   ): Promise<void> {
     for await (const promises of this.queryGenerator(decoders, options)) {
       if (await this.processMessages(promises, callback, options)) break;
@@ -138,7 +137,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     callback: (
       message: Promise<T | undefined>
     ) => Promise<void | boolean> | boolean | void,
-    options?: QueryOptions
+    options?: waku_store.QueryOptions
   ): Promise<void> {
     let abort = false;
     for await (const page of this.queryGenerator(decoders, options)) {
@@ -178,7 +177,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
 
   private validateDecodersAndPubsubTopic<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
-    options?: QueryOptions
+    options?: waku_store.QueryOptions
   ): {
     pubsubTopic: string;
     contentTopics: string[];
@@ -245,8 +244,8 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   private constructOptions(
     pubsubTopic: string,
     contentTopics: string[],
-    options: QueryOptions = {}
-  ): Params {
+    options: waku_store.QueryOptions = {}
+  ): waku_store.Params {
     let startTime, endTime;
 
     if (options?.timeFilter) {
@@ -274,7 +273,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   private async processMessages<T extends IDecodedMessage>(
     messages: Promise<T | undefined>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
-    options?: QueryOptions
+    options?: waku_store.QueryOptions
   ): Promise<boolean> {
     let abort = false;
     const messagesOrUndef: Array<T | undefined> = await Promise.all(messages);
@@ -303,7 +302,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
    *
    * @private
    */
-  private shouldReverseOrder(options?: QueryOptions): boolean {
+  private shouldReverseOrder(options?: waku_store.QueryOptions): boolean {
     return (
       typeof options?.pageDirection === "undefined" ||
       options?.pageDirection === PageDirection.BACKWARD

@@ -25,7 +25,7 @@ const log = new Logger("store");
 
 export const StoreCodec = "/vac/waku/store/2.0.0-beta4";
 
-export { PageDirection };
+export { PageDirection, Params };
 
 export interface TimeFilter {
   startTime: Date;
@@ -67,7 +67,7 @@ export interface QueryOptions {
  *
  * The Waku Store protocol can be used to retrieved historical messages.
  */
-export default class StoreCore extends BaseProtocol implements IStoreCore {
+export class StoreCore extends BaseProtocol implements IStoreCore {
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components, log, options!.pubsubTopics!, options);
   }
