@@ -15,6 +15,7 @@
     "packages/message-encryption": {},
     "packages/sdk": {},
     "packages/relay": {},
-    "packages/discovery": {}
+    "packages/discovery": {},
+    "packages/react": {}
   }
 }
