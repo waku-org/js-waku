@@ -15,7 +15,8 @@
     "packages/sdk",
     "packages/tests",
     "packages/browser-tests",
-    "packages/build-utils"
+    "packages/build-utils",
+    "packages/polyfills"
   ],
   "scripts": {
     "prepare": "husky install",
