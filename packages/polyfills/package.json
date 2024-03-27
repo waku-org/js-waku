@@ -50,20 +50,21 @@
     "node": ">=18"
   },
   "dependencies": {
-    "text-encoding-polyfill": "^0.6.7",
+    "event-target-polyfill": "^0.0.4",
     "react-native-url-polyfill": "^2.0.0",
-    "event-target-polyfill": "^0.0.4"
+    "text-encoding-polyfill": "^0.6.7"
   },
   "devDependencies": {
-    "expo": "~50.0.13",
     "@rollup/plugin-commonjs": "^25.0.7",
-    "@waku/build-utils": "*",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@waku/build-utils": "*",
+    "expo": "~50.0.13",
     "rollup": "^4.12.0"
   },
   "peerDependencies": {
-    "expo": "~50.0.13"
+    "expo": "~50.0.13",
+    "react-native": "0.73.6"
   },
   "files": [
     "dist",

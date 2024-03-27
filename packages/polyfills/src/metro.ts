@@ -1,6 +1,8 @@
 import type { MetroConfig } from "expo/metro-config";
 
-export function setupWakuMetroConfig(config: MetroConfig): void {
+type Writeable<T> = { -readonly [P in keyof T]: Writeable<T[P]> };
+
+export function setupWakuMetroConfig(config: Writeable<MetroConfig>): void {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const path = require("path");
 
