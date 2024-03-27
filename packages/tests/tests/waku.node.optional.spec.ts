@@ -37,7 +37,7 @@ describe("Use static and several ENR trees for bootstrap", function () {
         peerDiscovery: [
           bootstrap({ list: [multiAddrWithId.toString()] }),
           wakuDnsDiscovery(
-            [enrTree["PROD"], enrTree["TEST"]],
+            [enrTree["SANDBOX"], enrTree["TEST"]],
             NODE_REQUIREMENTS
           )
         ]
