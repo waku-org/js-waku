@@ -24,7 +24,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   public readonly protocol: StoreCore;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    // options.numPeersToUse is disregarded: https://github.com/waku-org/js-waku/issues/1685
+    // TODO: options.numPeersToUse is disregarded: https://github.com/waku-org/js-waku/issues/1685
     super({ numPeersToUse: DEFAULT_NUM_PEERS });
 
     this.protocol = new StoreCore(libp2p, options);
