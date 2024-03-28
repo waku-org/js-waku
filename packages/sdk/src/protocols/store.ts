@@ -72,6 +72,8 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
       })
     )[0];
 
+    if (!peer) throw new Error("No peers available to query");
+
     const responseGenerator = this.protocol.queryPerPage(
       queryOpts,
       decodersAsMap,
