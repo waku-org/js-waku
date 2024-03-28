@@ -47,7 +47,7 @@ export type StoreQueryOptions = {
   cursor?: proto.Index;
 };
 
-export interface IStoreCore extends IBaseProtocolCore {}
+export type IStoreCore = IBaseProtocolCore;
 
 export type IStoreSDK = IBaseProtocolSDK & {
   protocol: IBaseProtocolCore;
