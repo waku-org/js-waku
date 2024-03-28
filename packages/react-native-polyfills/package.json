@@ -28,11 +28,8 @@
   "scripts": {
     "build": "run-s build:**",
     "build:esm": "tsc",
-    "fix": "run-s fix:*",
-    "fix:lint": "eslint src *.js --fix",
     "check": "run-s check:*",
     "check:tsc": "tsc -p tsconfig.dev.json",
-    "check:lint": "eslint src *.js",
     "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
     "prepublish": "npm run build"
   },
