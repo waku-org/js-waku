@@ -84,11 +84,6 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   }
 
   /**
-   * @deprecated Use `queryWithOrderedCallback` instead
-   **/
-  queryOrderedCallback = this.queryWithOrderedCallback;
-
-  /**
    * Do a query to a Waku Store to retrieve historical/missed messages.
    *
    * The callback function takes a `WakuMessage` in input,
