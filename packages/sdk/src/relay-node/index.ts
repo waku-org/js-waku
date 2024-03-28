@@ -1,8 +1,9 @@
-import { wakuFilter, wakuStore } from "@waku/core";
+import { wakuFilter } from "@waku/core";
 import { type FullNode, type RelayNode } from "@waku/interfaces";
 import { RelayCreateOptions, wakuRelay } from "@waku/relay";
 
 import { wakuLightPush } from "../protocols/light_push.js";
+import { wakuStore } from "../protocols/store.js";
 import { createLibp2pAndUpdateOptions } from "../utils/libp2p.js";
 import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "../waku.js";
 

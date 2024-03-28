@@ -51,7 +51,7 @@ export async function waitForRemotePeer(
     if (!waku.store)
       throw new Error("Cannot wait for Store peer: protocol not mounted");
     promises.push(
-      waitForConnectedPeer(waku.store, waku.libp2p.services.metadata)
+      waitForConnectedPeer(waku.store.protocol, waku.libp2p.services.metadata)
     );
   }
 

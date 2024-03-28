@@ -8,7 +8,7 @@ import type {
   IFilterSubscription,
   ILightPushSDK,
   IRelay,
-  IStore,
+  IStoreSDK,
   Libp2p,
   LightNode,
   ProtocolCreateOptions,
@@ -55,7 +55,7 @@ export type CreateWakuNodeOptions = ProtocolCreateOptions &
 export class WakuNode implements Waku {
   public libp2p: Libp2p;
   public relay?: IRelay;
-  public store?: IStore;
+  public store?: IStoreSDK;
   public filter?: IFilter;
   public lightPush?: ILightPushSDK;
   public connectionManager: ConnectionManager;
@@ -64,7 +64,7 @@ export class WakuNode implements Waku {
   constructor(
     options: WakuOptions,
     libp2p: Libp2p,
-    store?: (libp2p: Libp2p) => IStore,
+    store?: (libp2p: Libp2p) => IStoreSDK,
     lightPush?: (libp2p: Libp2p) => ILightPushSDK,
     filter?: (libp2p: Libp2p) => IFilter,
     relay?: (libp2p: Libp2p) => IRelay
@@ -148,7 +148,7 @@ export class WakuNode implements Waku {
     }
     if (_protocols.includes(Protocols.Store)) {
       if (this.store) {
-        codecs.push(this.store.multicodec);
+        codecs.push(this.store.protocol.multicodec);
       } else {
         log.error(
           "Store codec not included in dial codec: protocol not mounted locally"

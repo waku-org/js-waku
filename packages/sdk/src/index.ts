@@ -13,6 +13,7 @@ export * from "./waku.js";
 
 export { createLightNode, createNode } from "./light-node/index.js";
 export { wakuLightPush } from "./protocols/light_push.js";
+export { wakuStore } from "./protocols/store.js";
 
 export * as waku from "@waku/core";
 export * as utils from "@waku/utils";

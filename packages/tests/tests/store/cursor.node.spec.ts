@@ -1,4 +1,4 @@
-import { createCursor, DecodedMessage } from "@waku/core";
+import { DecodedMessage } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
 import { DefaultPubsubTopic } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
@@ -63,7 +63,7 @@ describe("Waku Store, cursor", function () {
       }
 
       // create cursor to extract messages after the cursorIndex
-      const cursor = await createCursor(messages[cursorIndex]);
+      const cursor = waku.store.createCursor(messages[cursorIndex]);
 
       const messagesAfterCursor: DecodedMessage[] = [];
       for await (const page of waku.store.queryGenerator([TestDecoder], {
@@ -108,7 +108,7 @@ describe("Waku Store, cursor", function () {
     }
 
     // create cursor to extract messages after the cursorIndex
-    const cursor = await createCursor(messages[5]);
+    const cursor = waku.store.createCursor(messages[5]);
 
     // query node2 with the cursor from node1
     const messagesAfterCursor: DecodedMessage[] = [];
@@ -142,7 +142,7 @@ describe("Waku Store, cursor", function () {
         messages.push(msg as DecodedMessage);
       }
     }
-    const cursor = await createCursor(messages[5]);
+    const cursor = waku.store.createCursor(messages[5]);
 
     // setting a wrong digest
     cursor.digest = new Uint8Array([]);
@@ -185,7 +185,7 @@ describe("Waku Store, cursor", function () {
       }
     }
     messages[5].pubsubTopic = customShardedPubsubTopic1;
-    const cursor = await createCursor(messages[5]);
+    const cursor = waku.store.createCursor(messages[5]);
 
     try {
       for await (const page of waku.store.queryGenerator([TestDecoder], {
