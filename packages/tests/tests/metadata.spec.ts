@@ -149,7 +149,6 @@ describe("Metadata Protocol", function () {
       let counter = 0;
       while (waku.libp2p.getConnections().length !== 0) {
         if (counter > 10) {
-          console.error("Connection was not closed");
           break;
         }
         await delay(100);
