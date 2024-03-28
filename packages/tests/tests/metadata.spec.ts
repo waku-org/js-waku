@@ -145,11 +145,17 @@ describe("Metadata Protocol", function () {
       await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
-      // add a delay to make sure the connection is closed from the other side
-      await delay(100);
+      // ensure the connection is closed from the other side
+      let counter = 0;
+      while (waku.libp2p.getConnections().length !== 0) {
+        if (counter > 10) {
+          break;
+        }
+        await delay(100);
+        counter++;
+      }
 
-      const activeConnections = waku.libp2p.getConnections();
-      expect(activeConnections.length).to.equal(0);
+      expect(waku.libp2p.getConnections().length).to.equal(0);
     });
 
     it("different cluster, different shard: nodes don't connect", async function () {
@@ -177,11 +183,18 @@ describe("Metadata Protocol", function () {
       await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
-      // add a delay to make sure the connection is closed from the other side
-      await delay(100);
+      // ensure the connection is closed from the other side
+      let counter = 0;
+      while (waku.libp2p.getConnections().length !== 0) {
+        if (counter > 10) {
+          console.error("Connection was not closed");
+          break;
+        }
+        await delay(100);
+        counter++;
+      }
 
-      const activeConnections = waku.libp2p.getConnections();
-      expect(activeConnections.length).to.equal(0);
+      expect(waku.libp2p.getConnections().length).to.equal(0);
     });
   });
 

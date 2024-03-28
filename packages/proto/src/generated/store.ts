@@ -4,8 +4,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { encodeMessage, decodeMessage, message, enumeration } from 'protons-runtime'
-import type { Codec } from 'protons-runtime'
+import { type Codec, CodeError, decodeMessage, type DecodeOptions, encodeMessage, enumeration, message } from 'protons-runtime'
+import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface Index {
@@ -48,9 +48,9 @@ export namespace Index {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
-          digest: new Uint8Array(0),
+          digest: uint8ArrayAlloc(0),
           receiverTime: 0n,
           senderTime: 0n,
           pubsubTopic: ''
@@ -62,21 +62,26 @@ export namespace Index {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.digest = reader.bytes()
               break
-            case 2:
+            }
+            case 2: {
               obj.receiverTime = reader.sint64()
               break
-            case 3:
+            }
+            case 3: {
               obj.senderTime = reader.sint64()
               break
-            case 4:
+            }
+            case 4: {
               obj.pubsubTopic = reader.string()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -91,8 +96,8 @@ export namespace Index {
     return encodeMessage(obj, Index.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): Index => {
-    return decodeMessage(buf, Index.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<Index>): Index => {
+    return decodeMessage(buf, Index.codec(), opts)
   }
 }
 
@@ -146,7 +151,7 @@ export namespace PagingInfo {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {}
 
         const end = length == null ? reader.len : reader.pos + length
@@ -155,18 +160,24 @@ export namespace PagingInfo {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.pageSize = reader.uint64()
               break
-            case 2:
-              obj.cursor = Index.codec().decode(reader, reader.uint32())
+            }
+            case 2: {
+              obj.cursor = Index.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.cursor
+              })
               break
-            case 3:
+            }
+            case 3: {
               obj.direction = PagingInfo.Direction.codec().decode(reader)
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -181,8 +192,8 @@ export namespace PagingInfo {
     return encodeMessage(obj, PagingInfo.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): PagingInfo => {
-    return decodeMessage(buf, PagingInfo.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<PagingInfo>): PagingInfo => {
+    return decodeMessage(buf, PagingInfo.codec(), opts)
   }
 }
 
@@ -208,7 +219,7 @@ export namespace ContentFilter {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
           contentTopic: ''
         }
@@ -219,12 +230,14 @@ export namespace ContentFilter {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.contentTopic = reader.string()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -239,8 +252,8 @@ export namespace ContentFilter {
     return encodeMessage(obj, ContentFilter.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): ContentFilter => {
-    return decodeMessage(buf, ContentFilter.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<ContentFilter>): ContentFilter => {
+    return decodeMessage(buf, ContentFilter.codec(), opts)
   }
 }
 
@@ -292,7 +305,7 @@ export namespace HistoryQuery {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
           contentFilters: []
         }
@@ -303,24 +316,38 @@ export namespace HistoryQuery {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 2:
+            case 2: {
               obj.pubsubTopic = reader.string()
               break
-            case 3:
-              obj.contentFilters.push(ContentFilter.codec().decode(reader, reader.uint32()))
+            }
+            case 3: {
+              if (opts.limits?.contentFilters != null && obj.contentFilters.length === opts.limits.contentFilters) {
+                throw new CodeError('decode error - map field "contentFilters" had too many elements', 'ERR_MAX_LENGTH')
+              }
+
+              obj.contentFilters.push(ContentFilter.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.contentFilters$
+              }))
               break
-            case 4:
-              obj.pagingInfo = PagingInfo.codec().decode(reader, reader.uint32())
+            }
+            case 4: {
+              obj.pagingInfo = PagingInfo.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.pagingInfo
+              })
               break
-            case 5:
+            }
+            case 5: {
               obj.startTime = reader.sint64()
               break
-            case 6:
+            }
+            case 6: {
               obj.endTime = reader.sint64()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -335,8 +362,8 @@ export namespace HistoryQuery {
     return encodeMessage(obj, HistoryQuery.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): HistoryQuery => {
-    return decodeMessage(buf, HistoryQuery.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<HistoryQuery>): HistoryQuery => {
+    return decodeMessage(buf, HistoryQuery.codec(), opts)
   }
 }
 
@@ -392,7 +419,7 @@ export namespace HistoryResponse {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
           messages: [],
           error: HistoryError.NONE
@@ -404,18 +431,30 @@ export namespace HistoryResponse {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 2:
-              obj.messages.push(WakuMessage.codec().decode(reader, reader.uint32()))
+            case 2: {
+              if (opts.limits?.messages != null && obj.messages.length === opts.limits.messages) {
+                throw new CodeError('decode error - map field "messages" had too many elements', 'ERR_MAX_LENGTH')
+              }
+
+              obj.messages.push(WakuMessage.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.messages$
+              }))
               break
-            case 3:
-              obj.pagingInfo = PagingInfo.codec().decode(reader, reader.uint32())
+            }
+            case 3: {
+              obj.pagingInfo = PagingInfo.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.pagingInfo
+              })
               break
-            case 4:
+            }
+            case 4: {
               obj.error = HistoryResponse.HistoryError.codec().decode(reader)
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -430,8 +469,8 @@ export namespace HistoryResponse {
     return encodeMessage(obj, HistoryResponse.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): HistoryResponse => {
-    return decodeMessage(buf, HistoryResponse.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<HistoryResponse>): HistoryResponse => {
+    return decodeMessage(buf, HistoryResponse.codec(), opts)
   }
 }
 
@@ -469,7 +508,7 @@ export namespace HistoryRpc {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
           requestId: ''
         }
@@ -480,18 +519,26 @@ export namespace HistoryRpc {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.requestId = reader.string()
               break
-            case 2:
-              obj.query = HistoryQuery.codec().decode(reader, reader.uint32())
+            }
+            case 2: {
+              obj.query = HistoryQuery.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.query
+              })
               break
-            case 3:
-              obj.response = HistoryResponse.codec().decode(reader, reader.uint32())
+            }
+            case 3: {
+              obj.response = HistoryResponse.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.response
+              })
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -506,8 +553,8 @@ export namespace HistoryRpc {
     return encodeMessage(obj, HistoryRpc.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): HistoryRpc => {
-    return decodeMessage(buf, HistoryRpc.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<HistoryRpc>): HistoryRpc => {
+    return decodeMessage(buf, HistoryRpc.codec(), opts)
   }
 }
 
@@ -569,15 +616,15 @@ export namespace RateLimitProof {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
-          proof: new Uint8Array(0),
-          merkleRoot: new Uint8Array(0),
-          epoch: new Uint8Array(0),
-          shareX: new Uint8Array(0),
-          shareY: new Uint8Array(0),
-          nullifier: new Uint8Array(0),
-          rlnIdentifier: new Uint8Array(0)
+          proof: uint8ArrayAlloc(0),
+          merkleRoot: uint8ArrayAlloc(0),
+          epoch: uint8ArrayAlloc(0),
+          shareX: uint8ArrayAlloc(0),
+          shareY: uint8ArrayAlloc(0),
+          nullifier: uint8ArrayAlloc(0),
+          rlnIdentifier: uint8ArrayAlloc(0)
         }
 
         const end = length == null ? reader.len : reader.pos + length
@@ -586,30 +633,38 @@ export namespace RateLimitProof {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.proof = reader.bytes()
               break
-            case 2:
+            }
+            case 2: {
               obj.merkleRoot = reader.bytes()
               break
-            case 3:
+            }
+            case 3: {
               obj.epoch = reader.bytes()
               break
-            case 4:
+            }
+            case 4: {
               obj.shareX = reader.bytes()
               break
-            case 5:
+            }
+            case 5: {
               obj.shareY = reader.bytes()
               break
-            case 6:
+            }
+            case 6: {
               obj.nullifier = reader.bytes()
               break
-            case 7:
+            }
+            case 7: {
               obj.rlnIdentifier = reader.bytes()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -624,8 +679,8 @@ export namespace RateLimitProof {
     return encodeMessage(obj, RateLimitProof.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): RateLimitProof => {
-    return decodeMessage(buf, RateLimitProof.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<RateLimitProof>): RateLimitProof => {
+    return decodeMessage(buf, RateLimitProof.codec(), opts)
   }
 }
 
@@ -687,9 +742,9 @@ export namespace WakuMessage {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
-          payload: new Uint8Array(0),
+          payload: uint8ArrayAlloc(0),
           contentTopic: ''
         }
 
@@ -699,30 +754,40 @@ export namespace WakuMessage {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 1:
+            case 1: {
               obj.payload = reader.bytes()
               break
-            case 2:
+            }
+            case 2: {
               obj.contentTopic = reader.string()
               break
-            case 3:
+            }
+            case 3: {
               obj.version = reader.uint32()
               break
-            case 10:
+            }
+            case 10: {
               obj.timestamp = reader.sint64()
               break
-            case 11:
+            }
+            case 11: {
               obj.meta = reader.bytes()
               break
-            case 21:
-              obj.rateLimitProof = RateLimitProof.codec().decode(reader, reader.uint32())
+            }
+            case 21: {
+              obj.rateLimitProof = RateLimitProof.codec().decode(reader, reader.uint32(), {
+                limits: opts.limits?.rateLimitProof
+              })
               break
-            case 31:
+            }
+            case 31: {
               obj.ephemeral = reader.bool()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -737,7 +802,7 @@ export namespace WakuMessage {
     return encodeMessage(obj, WakuMessage.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): WakuMessage => {
-    return decodeMessage(buf, WakuMessage.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<WakuMessage>): WakuMessage => {
+    return decodeMessage(buf, WakuMessage.codec(), opts)
   }
 }

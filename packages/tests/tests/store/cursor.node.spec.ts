@@ -191,7 +191,7 @@ describe("Waku Store, cursor", function () {
       for await (const page of waku.store.queryGenerator([TestDecoder], {
         cursor
       })) {
-        page;
+        void page;
       }
       throw new Error("Cursor with wrong pubsubtopic was accepted");
     } catch (err) {

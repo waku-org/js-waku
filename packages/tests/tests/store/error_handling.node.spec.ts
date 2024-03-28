@@ -39,7 +39,7 @@ describe("Waku Store, error handling", function () {
       for await (const msgPromises of waku.store.queryGenerator([
         customDecoder1
       ])) {
-        msgPromises;
+        void msgPromises;
       }
       throw new Error("QueryGenerator was successful but was expected to fail");
     } catch (err) {
@@ -60,7 +60,7 @@ describe("Waku Store, error handling", function () {
         TestDecoder,
         customDecoder1
       ])) {
-        msgPromises;
+        void msgPromises;
       }
       throw new Error("QueryGenerator was successful but was expected to fail");
     } catch (err) {
@@ -78,7 +78,7 @@ describe("Waku Store, error handling", function () {
   it("Query Generator, No Decoder", async function () {
     try {
       for await (const msgPromises of waku.store.queryGenerator([])) {
-        msgPromises;
+        void msgPromises;
       }
       throw new Error("QueryGenerator was successful but was expected to fail");
     } catch (err) {
