@@ -18,8 +18,6 @@ import { BaseProtocolSDK } from "./base_protocol.js";
 
 export const DefaultPageSize = 10;
 
-// const log = new Logger("sdk:store");
-
 const DEFAULT_NUM_PEERS = 1;
 
 export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
