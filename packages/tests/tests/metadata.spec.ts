@@ -120,7 +120,7 @@ describe("Metadata Protocol", function () {
       expect(activeConnections.length).to.equal(1);
     });
 
-    it.only("different cluster, same shard: nodes don't connect", async function () {
+    it("different cluster, same shard: nodes don't connect", async function () {
       const shardInfo1: ShardInfo = {
         clusterId: 2,
         shards: [1]
@@ -159,7 +159,7 @@ describe("Metadata Protocol", function () {
       expect(waku.libp2p.getConnections().length).to.equal(0);
     });
 
-    it.only("different cluster, different shard: nodes don't connect", async function () {
+    it("different cluster, different shard: nodes don't connect", async function () {
       const shardInfo1: ShardInfo = {
         clusterId: 2,
         shards: [1]
