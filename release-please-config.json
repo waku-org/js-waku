@@ -16,6 +16,6 @@
     "packages/sdk": {},
     "packages/relay": {},
     "packages/discovery": {},
-    "packages/polyfills": {}
+    "packages/react-native-polyfills": {}
   }
 }

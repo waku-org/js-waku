@@ -1,5 +1,5 @@
 {
-  "name": "@waku/polyfills",
+  "name": "@waku/react-native-polyfills",
   "version": "0.0.1",
   "description": "Set of polyfills for Waku for React Native environment",
   "module": "./dist/index.js",
@@ -8,7 +8,7 @@
     "./metro": "./dist/metro.js"
   },
   "type": "module",
-  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/polyfills#readme",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/react-native-polyfills#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/waku-org/js-waku.git"

@@ -16,7 +16,7 @@
     "packages/tests",
     "packages/browser-tests",
     "packages/build-utils",
-    "packages/polyfills"
+    "packages/react-native-polyfills"
   ],
   "scripts": {
     "prepare": "husky install",
