@@ -6,13 +6,13 @@ export type {
 } from "./lib/message/version_0.js";
 export * as message from "./lib/message/index.js";
 
-export * as waku_filter from "./lib/filter/index.js";
+export * as wakuFilterModule from "./lib/filter/index.js";
 export { wakuFilter, FilterCodecs } from "./lib/filter/index.js";
 
-export * as waku_light_push from "./lib/light_push/index.js";
+export * as wakuLightPushModule from "./lib/light_push/index.js";
 export { LightPushCodec, LightPushCore } from "./lib/light_push/index.js";
 
-export * as waku_store from "./lib/store/index.js";
+export * as wakuStoreModule from "./lib/store/index.js";
 
 export { PageDirection, wakuStore, createCursor } from "./lib/store/index.js";
 
