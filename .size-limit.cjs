@@ -54,7 +54,7 @@ module.exports = [
   },
   {
     name: "History retrieval protocols",
-    path: "packages/core/bundle/index.js",
+    path: "packages/sdk/bundle/index.js",
     import: "{ wakuStore }",
   },
   {

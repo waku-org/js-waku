@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "packages/proto",
     "packages/interfaces",
     "packages/utils",
     "packages/message-hash",
-    "packages/proto",
     "packages/enr",
     "packages/core",
     "packages/relay",
