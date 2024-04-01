@@ -8,7 +8,7 @@ import {
   Libp2p,
   ProtocolCreateOptions
 } from "@waku/interfaces";
-import { proto_store as proto } from "@waku/proto";
+import { protoStore as proto } from "@waku/proto";
 import { ensurePubsubTopicIsConfigured, isDefined } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import { concat, utf8ToBytes } from "@waku/utils/bytes";

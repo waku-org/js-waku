@@ -8,7 +8,7 @@ import {
   QueryResult,
   type ShardInfo
 } from "@waku/interfaces";
-import { proto_metadata } from "@waku/proto";
+import { protoMetadata } from "@waku/proto";
 import { encodeRelayShard, Logger, shardInfoToPubsubTopics } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -47,7 +47,7 @@ class Metadata extends BaseProtocol implements IMetadata {
   private async onRequest(streamData: IncomingStreamData): Promise<void> {
     try {
       const { stream, connection } = streamData;
-      const encodedShardInfo = proto_metadata.WakuMetadataResponse.encode(
+      const encodedShardInfo = protoMetadata.WakuMetadataResponse.encode(
         this.shardInfo
       );
 
@@ -75,7 +75,7 @@ class Metadata extends BaseProtocol implements IMetadata {
    * Make a metadata query to a peer
    */
   async query(peerId: PeerId): Promise<QueryResult> {
-    const request = proto_metadata.WakuMetadataRequest.encode(this.shardInfo);
+    const request = protoMetadata.WakuMetadataRequest.encode(this.shardInfo);
 
     const peer = await this.peerStore.get(peerId);
     if (!peer) {
@@ -132,7 +132,7 @@ class Metadata extends BaseProtocol implements IMetadata {
     encodedResponse.forEach((chunk) => {
       bytes.append(chunk);
     });
-    const response = proto_metadata.WakuMetadataResponse.decode(
+    const response = protoMetadata.WakuMetadataResponse.decode(
       bytes
     ) as ShardInfo;
 

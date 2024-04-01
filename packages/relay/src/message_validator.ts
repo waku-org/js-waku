@@ -1,6 +1,6 @@
 import type { Message, PeerId } from "@libp2p/interface";
 import { TopicValidatorResult } from "@libp2p/interface";
-import { proto_message as proto } from "@waku/proto";
+import { protoMessage as proto } from "@waku/proto";
 import { Logger } from "@waku/utils";
 
 const log = new Logger("relay");

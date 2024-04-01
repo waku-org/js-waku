@@ -1,4 +1,4 @@
-import { proto_peer_exchange as proto } from "@waku/proto";
+import { protoPeerExchange as proto } from "@waku/proto";
 import type { Uint8ArrayList } from "uint8arraylist";
 
 /**

@@ -10,7 +10,7 @@ import type {
   PubsubTopic,
   SingleShardInfo
 } from "@waku/interfaces";
-import { proto_message as proto } from "@waku/proto";
+import { protoMessage as proto } from "@waku/proto";
 import { determinePubsubTopic, Logger } from "@waku/utils";
 
 const log = new Logger("message:version-0");
