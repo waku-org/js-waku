@@ -9,7 +9,7 @@ import {
   PageDirection,
   type ProtocolCreateOptions
 } from "@waku/interfaces";
-import { ensurePubsubTopicIsConfigured, isDefined } from "@waku/utils";
+import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
 import { concat } from "@waku/utils/bytes";
 
 import { utf8ToBytes } from "../index.js";
@@ -19,6 +19,8 @@ import { BaseProtocolSDK } from "./base_protocol.js";
 export const DefaultPageSize = 10;
 
 const DEFAULT_NUM_PEERS = 1;
+
+const log = new Logger("waku:store:protocol");
 
 export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   public readonly protocol: StoreCore;
@@ -246,6 +248,13 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     if (options?.timeFilter) {
       startTime = options.timeFilter.startTime;
       endTime = options.timeFilter.endTime;
+    }
+
+    if (!startTime) {
+      log.warn("No start time provided");
+    }
+    if (!endTime) {
+      log.warn("No end time provided");
     }
 
     const queryOpts = Object.assign(
