@@ -1,5 +1,7 @@
+import { proto_store as proto } from "@waku/proto";
+
 import type { IDecodedMessage, IDecoder } from "./message.js";
-import type { IBaseProtocolCore } from "./protocols.js";
+import type { IBaseProtocolCore, IBaseProtocolSDK } from "./protocols.js";
 
 export enum PageDirection {
   BACKWARD = "backward",
@@ -42,10 +44,19 @@ export type StoreQueryOptions = {
    * Cursor as an index to start a query from. Must be generated from a Waku
    * Message.
    */
-  cursor?: Cursor;
+  cursor?: proto.Index;
 };
 
-export interface IStore extends IBaseProtocolCore {
+export type IStoreCore = IBaseProtocolCore;
+
+export type IStoreSDK = IBaseProtocolSDK & {
+  protocol: IBaseProtocolCore;
+  createCursor(message: IDecodedMessage): Cursor;
+  queryGenerator: <T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
+    options?: StoreQueryOptions
+  ) => AsyncGenerator<Promise<T | undefined>[]>;
+
   queryWithOrderedCallback: <T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
@@ -58,8 +69,4 @@ export interface IStore extends IBaseProtocolCore {
     ) => Promise<void | boolean> | boolean | void,
     options?: StoreQueryOptions
   ) => Promise<void>;
-  queryGenerator: <T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
-    options?: StoreQueryOptions
-  ) => AsyncGenerator<Promise<T | undefined>[]>;
-}
+};

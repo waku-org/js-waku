@@ -62,5 +62,8 @@
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
-  ]
+  ],
+  "dependencies": {
+    "@waku/proto": "^0.0.6"
+  }
 }
