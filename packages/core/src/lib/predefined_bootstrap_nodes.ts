@@ -3,22 +3,22 @@ import { getPseudoRandomSubset } from "@waku/utils";
 export const DefaultWantedNumber = 1;
 
 export enum Fleet {
-  Prod = "prod",
+  Sandbox = "sandbox",
   Test = "test"
 }
 
 /**
  * Return list of pre-defined (hardcoded) bootstrap nodes.
  *
- * Default behavior is to return nodes of the nwaku Status Prod fleet.
+ * Default behavior is to return nodes of the nwaku Status Sandbox fleet.
  *
- * @param fleet The fleet to be returned. Defaults to production fleet.
+ * @param fleet The fleet to be returned. Defaults to sandbox fleet.
  * @param wantedNumber The number of connections desired. Defaults to {@link DefaultWantedNumber}.
  *
  * @returns An array of multiaddresses.
  */
 export function getPredefinedBootstrapNodes(
-  fleet: Fleet = Fleet.Prod,
+  fleet: Fleet = Fleet.Sandbox,
   wantedNumber: number = DefaultWantedNumber
 ): string[] {
   if (wantedNumber <= 0) {
@@ -27,14 +27,14 @@ export function getPredefinedBootstrapNodes(
 
   let nodes;
   switch (fleet) {
-    case Fleet.Prod:
-      nodes = fleets.fleets["wakuv2.prod"]["waku-websocket"];
+    case Fleet.Sandbox:
+      nodes = fleets.fleets["waku.sandbox"]["waku-websocket"];
       break;
     case Fleet.Test:
-      nodes = fleets.fleets["wakuv2.test"]["waku-websocket"];
+      nodes = fleets.fleets["waku.test"]["waku-websocket"];
       break;
     default:
-      nodes = fleets.fleets["wakuv2.prod"]["waku-websocket"];
+      nodes = fleets.fleets["waku.sandbox"]["waku-websocket"];
   }
 
   nodes = Object.values(nodes) as string[];
@@ -44,24 +44,24 @@ export function getPredefinedBootstrapNodes(
 
 export const fleets = {
   fleets: {
-    "wakuv2.prod": {
+    "waku.sandbox": {
       "waku-websocket": {
-        "node-01.ac-cn-hongkong-c.wakuv2.prod":
-          "/dns4/node-01.ac-cn-hongkong-c.wakuv2.prod.statusim.net/tcp/8000/wss/p2p/16Uiu2HAm4v86W3bmT1BiH6oSPzcsSr24iDQpSN5Qa992BCjjwgrD",
-        "node-01.do-ams3.wakuv2.prod":
-          "/dns4/node-01.do-ams3.wakuv2.prod.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmL5okWopX7NqZWBUKVqW8iUxCEmd5GMHLVPwCgzYzQv3e",
-        "node-01.gc-us-central1-a.wakuv2.prod":
-          "/dns4/node-01.gc-us-central1-a.wakuv2.prod.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmVkKntsECaYfefR1V2yCR79CegLATuTPE6B9TxgxBiiiA"
+        "node-01.ac-cn-hongkong-c.waku.sandbox":
+          "/dns4/node-01.ac-cn-hongkong-c.waku.sandbox.status.im/tcp/8000/wss/p2p/16Uiu2HAmSJvSJphxRdbnigUV5bjRRZFBhTtWFTSyiKaQByCjwmpV",
+        "node-01.do-ams3.waku.sandbox":
+          "/dns4/node-01.do-ams3.waku.sandbox.status.im/tcp/8000/wss/p2p/16Uiu2HAmQSMNExfUYUqfuXWkD5DaNZnMYnigRxFKbk3tcEFQeQeE",
+        "node-01.gc-us-central1-a.waku.sandbox":
+          "/dns4/node-01.gc-us-central1-a.waku.sandbox.status.im/tcp/8000/wss/p2p/16Uiu2HAm6fyqE1jB5MonzvoMdU8v76bWV8ZeNpncDamY1MQXfjdB"
       }
     },
-    "wakuv2.test": {
+    "waku.test": {
       "waku-websocket": {
-        "node-01.ac-cn-hongkong-c.wakuv2.test":
-          "/dns4/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAkvWiyFsgRhuJEb9JfjYxEkoHLgnUQmr1N5mKWnYjxYRVm",
-        "node-01.do-ams3.wakuv2.test":
-          "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmPLe7Mzm8TsYUubgCAW1aJoeFScxrLj8ppHFivPo97bUZ",
-        "node-01.gc-us-central1-a.wakuv2.test":
-          "/dns4/node-01.gc-us-central1-a.wakuv2.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmJb2e28qLXxT5kZxVUUoJt72EMzNGXB47Rxx5hw3q4YjS"
+        "node-01.ac-cn-hongkong-c.waku.test":
+          "/dns4/node-01.ac-cn-hongkong-c.waku.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAkzHaTP5JsUwfR9NR8Rj9HC24puS6ocaU8wze4QrXr9iXp",
+        "node-01.do-ams3.waku.test":
+          "/dns4/node-01.do-ams3.waku.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAkykgaECHswi3YKJ5dMLbq2kPVCo89fcyTd38UcQD6ej5W",
+        "node-01.gc-us-central1-a.waku.test":
+          "/dns4/node-01.gc-us-central1-a.waku.test.statusim.net/tcp/8000/wss/p2p/16Uiu2HAmDCp8XJ9z1ev18zuv8NHekAsjNyezAvmMfFEJkiharitG"
       }
     }
   }
