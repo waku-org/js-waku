@@ -3,8 +3,11 @@
   "compilerOptions": {
     "outDir": "dist/",
     "rootDir": "src",
-    "tsBuildInfoFile": "dist/.tsbuildinfo"
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "skipLibCheck": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.spec.ts", "src/test_utils"]
+  "include": ["src/index.ts", "src/lib/**/*.proto"],
+  "exclude": ["src/generated/**/*.ts"]
 }

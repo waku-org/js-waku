@@ -4,8 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { encodeMessage, decodeMessage, message } from 'protons-runtime'
-import type { Codec } from 'protons-runtime'
+import { type Codec, decodeMessage, type DecodeOptions, encodeMessage, message } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface TopicOnlyMessage {
@@ -30,7 +29,7 @@ export namespace TopicOnlyMessage {
         if (opts.lengthDelimited !== false) {
           w.ldelim()
         }
-      }, (reader, length) => {
+      }, (reader, length, opts = {}) => {
         const obj: any = {
           contentTopic: ''
         }
@@ -41,12 +40,14 @@ export namespace TopicOnlyMessage {
           const tag = reader.uint32()
 
           switch (tag >>> 3) {
-            case 2:
+            case 2: {
               obj.contentTopic = reader.string()
               break
-            default:
+            }
+            default: {
               reader.skipType(tag & 7)
               break
+            }
           }
         }
 
@@ -61,7 +62,7 @@ export namespace TopicOnlyMessage {
     return encodeMessage(obj, TopicOnlyMessage.codec())
   }
 
-  export const decode = (buf: Uint8Array | Uint8ArrayList): TopicOnlyMessage => {
-    return decodeMessage(buf, TopicOnlyMessage.codec())
+  export const decode = (buf: Uint8Array | Uint8ArrayList, opts?: DecodeOptions<TopicOnlyMessage>): TopicOnlyMessage => {
+    return decodeMessage(buf, TopicOnlyMessage.codec(), opts)
   }
 }
