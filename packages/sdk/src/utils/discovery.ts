@@ -1,8 +1,8 @@
 import type { PeerDiscovery } from "@libp2p/interface";
-import { enrTree, wakuDnsDiscovery } from "@waku/dns-discovery";
+import { enrTree, wakuDnsDiscovery } from "@waku/discovery";
+import { wakuLocalPeerCacheDiscovery } from "@waku/discovery";
+import { wakuPeerExchangeDiscovery } from "@waku/discovery";
 import { type Libp2pComponents, PubsubTopic } from "@waku/interfaces";
-import { wakuLocalPeerCacheDiscovery } from "@waku/local-peer-cache-discovery";
-import { wakuPeerExchangeDiscovery } from "@waku/peer-exchange";
 
 const DEFAULT_NODE_REQUIREMENTS = {
   lightPush: 1,
