@@ -1,7 +1,10 @@
 import type { PeerDiscovery } from "@libp2p/interface";
-import { enrTree, wakuDnsDiscovery } from "@waku/discovery";
-import { wakuLocalPeerCacheDiscovery } from "@waku/discovery";
-import { wakuPeerExchangeDiscovery } from "@waku/discovery";
+import {
+  enrTree,
+  wakuDnsDiscovery,
+  wakuLocalPeerCacheDiscovery,
+  wakuPeerExchangeDiscovery
+} from "@waku/discovery";
 import { type Libp2pComponents, PubsubTopic } from "@waku/interfaces";
 
 const DEFAULT_NODE_REQUIREMENTS = {
@@ -14,7 +17,7 @@ export function defaultPeerDiscoveries(
   pubsubTopics: PubsubTopic[]
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
   const discoveries = [
-    wakuDnsDiscovery([enrTree["PROD"]], DEFAULT_NODE_REQUIREMENTS),
+    wakuDnsDiscovery([enrTree["SANDBOX"]], DEFAULT_NODE_REQUIREMENTS),
     wakuLocalPeerCacheDiscovery(),
     wakuPeerExchangeDiscovery(pubsubTopics)
   ];
