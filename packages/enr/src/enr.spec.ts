@@ -89,10 +89,10 @@ describe("ENR", function () {
       expect(enr.multiaddrs!.length).to.be.equal(3);
       const multiaddrsAsStr = enr.multiaddrs!.map((ma) => ma.toString());
       expect(multiaddrsAsStr).to.include(
-        "/dns4/node-01.do-ams3.waku.test.status.im/tcp/443/wss"
+        "/dns4/node-01.do-ams3.wakuv2.test.statusim.net/tcp/443/wss"
       );
       expect(multiaddrsAsStr).to.include(
-        "/dns6/node-01.ac-cn-hongkong-c.waku.test.status.im/tcp/443/wss"
+        "/dns6/node-01.ac-cn-hongkong-c.wakuv2.test.statusim.net/tcp/443/wss"
       );
       expect(multiaddrsAsStr).to.include(
         "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
