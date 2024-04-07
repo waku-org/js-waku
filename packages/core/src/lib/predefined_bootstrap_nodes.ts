@@ -4,7 +4,7 @@ export const DefaultWantedNumber = 1;
 
 export enum Fleet {
   Sandbox = "sandbox",
-  Test    = "test"
+  Test = "test"
 }
 
 /**
