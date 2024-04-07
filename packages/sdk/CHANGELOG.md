@@ -47,6 +47,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.24](https://github.com/waku-org/js-waku/compare/sdk-v0.0.23...sdk-v0.0.24) (2024-04-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* **store:** move protocol implementation opinions to `@waku/sdk` ([#1913](https://github.com/waku-org/js-waku/issues/1913))
+* @waku/discovery ([#1876](https://github.com/waku-org/js-waku/issues/1876))
+* **lightpush:** move protocol implementation opinions to `@waku/sdk` ([#1887](https://github.com/waku-org/js-waku/issues/1887))
+
+### Features
+
+* @waku/discovery ([#1876](https://github.com/waku-org/js-waku/issues/1876)) ([1e86c3d](https://github.com/waku-org/js-waku/commit/1e86c3d63e6532dabbe10e01376d42dc6bcb0b85))
+* Add cross peer dependency for [@waku](https://github.com/waku) packages ([#1889](https://github.com/waku-org/js-waku/issues/1889)) ([8f86740](https://github.com/waku-org/js-waku/commit/8f867404e3e950b6e491c8831068962c6968ed4e))
+* **metadata:** Use error codes ([#1904](https://github.com/waku-org/js-waku/issues/1904)) ([1882023](https://github.com/waku-org/js-waku/commit/1882023c58c830fc31921fe786bce734536ac1da))
+
+
+### Miscellaneous Chores
+
+* **lightpush:** Move protocol implementation opinions to `@waku/sdk` ([#1887](https://github.com/waku-org/js-waku/issues/1887)) ([8deab11](https://github.com/waku-org/js-waku/commit/8deab11890160b40a22e7d11926a2307afb93af4))
+* **store:** Move protocol implementation opinions to `@waku/sdk` ([#1913](https://github.com/waku-org/js-waku/issues/1913)) ([bf42c8f](https://github.com/waku-org/js-waku/commit/bf42c8f53a291172d6af64cbf72c4092146899df))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.27 to 0.0.28
+    * @waku/discovery bumped from 0.0.1 to 1.0.0
+    * @waku/interfaces bumped from 0.0.22 to 0.0.23
+    * @waku/relay bumped from 0.0.10 to 0.0.11
+    * @waku/utils bumped from 0.0.15 to 0.0.16
+
 ## [0.0.23](https://github.com/waku-org/js-waku/compare/sdk-v0.0.22...sdk-v0.0.23) (2024-03-04)
 
 
