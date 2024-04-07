@@ -27,7 +27,9 @@ describe("ENR", function () {
       enr.setLocationMultiaddr(multiaddr("/ip4/18.223.219.100/udp/9000"));
       enr.multiaddrs = [
         multiaddr("/dns4/node-01.do-ams3.waku.test.status.im/tcp/443/wss"),
-        multiaddr("/dns6/node-01.ac-cn-hongkong-c.waku.test.status.im/tcp/443/wss"),
+        multiaddr(
+          "/dns6/node-01.ac-cn-hongkong-c.waku.test.status.im/tcp/443/wss"
+        ),
         multiaddr(
           "/onion3/vww6ybal4bd7szmgncyruucpgfkqahzddi37ktceo3ah7ngmcopnpyyd:1234/wss"
         )
