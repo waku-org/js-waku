@@ -65,7 +65,9 @@ describe("DNS Node Discovery [live data]", function () {
 
     const waku = await createLightNode({
       libp2p: {
-        peerDiscovery: [wakuDnsDiscovery([enrTree["SANDBOX"]], nodeRequirements)]
+        peerDiscovery: [
+          wakuDnsDiscovery([enrTree["SANDBOX"]], nodeRequirements)
+        ]
       }
     });
 
