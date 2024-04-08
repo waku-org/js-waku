@@ -1,6 +1,6 @@
 {
   "name": "@waku/react-native-polyfills",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Set of polyfills for Waku for React Native environment",
   "module": "./dist/index.js",
   "exports": {
