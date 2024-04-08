@@ -15,7 +15,7 @@
     "packages/message-encryption": {},
     "packages/sdk": {},
     "packages/relay": {},
-    "packages/discovery": { "release-as": "0.0.1" },
-    "packages/react-native-polyfills": { "release-as": "0.0.1" }
+    "packages/discovery": { },
+    "packages/react-native-polyfills": { }
   }
 }
