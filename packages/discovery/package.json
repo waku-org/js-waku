@@ -51,10 +51,10 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@waku/interfaces": "0.0.22",
+    "@waku/interfaces": "0.0.23",
     "@waku/proto": "^0.0.6",
-    "@waku/enr": "0.0.21",
-    "@waku/utils": "0.0.15",
+    "@waku/enr": "0.0.22",
+    "@waku/utils": "0.0.16",
     "debug": "^4.3.4",
     "dns-query": "^0.11.2",
     "hi-base32": "^0.5.1",
