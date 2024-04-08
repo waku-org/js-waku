@@ -25,6 +25,32 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.11](https://github.com/waku-org/js-waku/compare/relay-v0.0.10...relay-v0.0.11) (2024-04-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* **lightpush:** move protocol implementation opinions to `@waku/sdk` ([#1887](https://github.com/waku-org/js-waku/issues/1887))
+
+### Features
+
+* Add cross peer dependency for [@waku](https://github.com/waku) packages ([#1889](https://github.com/waku-org/js-waku/issues/1889)) ([8f86740](https://github.com/waku-org/js-waku/commit/8f867404e3e950b6e491c8831068962c6968ed4e))
+* **metadata:** Use error codes ([#1904](https://github.com/waku-org/js-waku/issues/1904)) ([1882023](https://github.com/waku-org/js-waku/commit/1882023c58c830fc31921fe786bce734536ac1da))
+
+
+### Miscellaneous Chores
+
+* **lightpush:** Move protocol implementation opinions to `@waku/sdk` ([#1887](https://github.com/waku-org/js-waku/issues/1887)) ([8deab11](https://github.com/waku-org/js-waku/commit/8deab11890160b40a22e7d11926a2307afb93af4))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.27 to 0.0.28
+    * @waku/interfaces bumped from 0.0.22 to 0.0.23
+    * @waku/utils bumped from 0.0.15 to 0.0.16
+
 ## [0.0.10](https://github.com/waku-org/js-waku/compare/relay-v0.0.9...relay-v0.0.10) (2024-03-04)
 
 

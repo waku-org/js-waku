@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.23](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.22...interfaces-v0.0.23) (2024-04-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* **store:** move protocol implementation opinions to `@waku/sdk` ([#1913](https://github.com/waku-org/js-waku/issues/1913))
+* **lightpush:** move protocol implementation opinions to `@waku/sdk` ([#1887](https://github.com/waku-org/js-waku/issues/1887))
+
+### Features
+
+* **metadata:** Use error codes ([#1904](https://github.com/waku-org/js-waku/issues/1904)) ([1882023](https://github.com/waku-org/js-waku/commit/1882023c58c830fc31921fe786bce734536ac1da))
+* Peer-exchange uses error codes ([#1907](https://github.com/waku-org/js-waku/issues/1907)) ([877fe1d](https://github.com/waku-org/js-waku/commit/877fe1dc1daf6826b60ac5011af2915c47864d90))
+
+
+### Miscellaneous Chores
+
+* **lightpush:** Move protocol implementation opinions to `@waku/sdk` ([#1887](https://github.com/waku-org/js-waku/issues/1887)) ([8deab11](https://github.com/waku-org/js-waku/commit/8deab11890160b40a22e7d11926a2307afb93af4))
+* **store:** Move protocol implementation opinions to `@waku/sdk` ([#1913](https://github.com/waku-org/js-waku/issues/1913)) ([bf42c8f](https://github.com/waku-org/js-waku/commit/bf42c8f53a291172d6af64cbf72c4092146899df))
+
 ## [0.0.22](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.21...interfaces-v0.0.22) (2024-03-04)
 
 
