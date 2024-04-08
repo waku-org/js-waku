@@ -7,7 +7,5 @@
   "packages/core": "0.0.27",
   "packages/message-encryption": "0.0.25",
   "packages/relay": "0.0.10",
-  "packages/sdk": "0.0.23",
-  "packages/react-native-polyfills": "0.0.0",
-  "packages/discovery": "0.0.0"
+  "packages/sdk": "0.0.23"
 }
