@@ -48,6 +48,22 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.20 to 0.0.21
 
+## [0.1.12](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.11...message-hash-v0.1.12) (2024-04-09)
+
+
+### Features
+
+* Add cross peer dependency for [@waku](https://github.com/waku) packages ([#1889](https://github.com/waku-org/js-waku/issues/1889)) ([8f86740](https://github.com/waku-org/js-waku/commit/8f867404e3e950b6e491c8831068962c6968ed4e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.15 to 0.0.16
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.22 to 0.0.23
+
 ## [0.1.11](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.10...message-hash-v0.1.11) (2024-03-04)
 
 
