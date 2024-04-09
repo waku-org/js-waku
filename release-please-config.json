@@ -1,6 +1,12 @@
 {
   "bootstrap-sha": "aead369227b49ea9c4619dec48f079ebfc0c85db",
-  "plugins": ["node-workspace", "sentence-case"],
+  "plugins": [
+    {
+      "type": "node-workspace",
+      "updatePeerDependencies": true
+    },
+    "sentence-case"
+  ],
   "release-type": "node",
   "separate-pull-requests": false,
   "versioning": "always-bump-patch",
@@ -15,7 +21,11 @@
     "packages/message-encryption": {},
     "packages/sdk": {},
     "packages/relay": {},
-    "packages/discovery": { "release-as": "0.0.1" },
-    "packages/react-native-polyfills": { "release-as": "0.0.1" }
+    "packages/discovery": {
+      "release-as": "0.0.1"
+    },
+    "packages/react-native-polyfills": {
+      "release-as": "0.0.1"
+    }
   }
 }
