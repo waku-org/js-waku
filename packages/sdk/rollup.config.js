@@ -17,12 +17,12 @@ export default {
   plugins: [
     commonjs(),
     json(),
-    replace({
-      "process.env.NODE_ENV": JSON.stringify("production")
-    }),
     nodeResolve({
       browser: true,
       preferBuiltins: false
+    }),
+    replace({
+      "process?.env?.NODE_ENV": JSON.stringify("production")
     })
   ]
 };
