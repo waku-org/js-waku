@@ -136,7 +136,11 @@ export class LocalPeerCacheDiscovery
   }
 
   private savePeersToLocalStorage(): void {
-    localStorage.setItem("waku:peers", JSON.stringify(this.peers));
+    try {
+      localStorage.setItem("waku:peers", JSON.stringify(this.peers));
+    } catch (error) {
+      log.error("Error saving peers to local storage:", error);
+    }
   }
 }
 
