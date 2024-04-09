@@ -42,6 +42,8 @@ message HistoryResponse {
   enum HistoryError {
     NONE = 0;
     INVALID_CURSOR = 1;
+    TOO_MANY_RESULTS = 429;
+    SERVICE_UNAVAILABLE = 503;
   }
   HistoryError error = 4;
 }
