@@ -1,5 +1,5 @@
 import type { PeerId, Stream } from "@libp2p/interface";
-import type { Multiaddr } from "@multiformats/multiaddr";
+import type { MultiaddrInput } from "@multiformats/multiaddr";
 
 import { IConnectionManager } from "./connection_manager.js";
 import type { IFilter } from "./filter.js";
@@ -18,7 +18,7 @@ export interface Waku {
 
   connectionManager: IConnectionManager;
 
-  dial(peer: PeerId | Multiaddr, protocols?: Protocols[]): Promise<Stream>;
+  dial(peer: PeerId | MultiaddrInput, protocols?: Protocols[]): Promise<Stream>;
 
   start(): Promise<void>;
 
