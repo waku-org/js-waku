@@ -444,7 +444,9 @@ class Filter extends BaseProtocol implements IReceiver {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): Promise<Unsubscribe> {
-    const subscription = await this.createSubscription();
+    const subscription = await this.createSubscription(
+      this.pubsubTopics?.[0] || DefaultPubsubTopic
+    );
 
     await subscription.subscribe(decoders, callback);
 
