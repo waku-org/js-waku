@@ -29,7 +29,7 @@ export type IBaseProtocolSDK = {
 };
 
 export type ContentTopicInfo = {
-  clusterId: number;
+  clusterId?: number;
   contentTopics: string[];
 };
 
@@ -61,10 +61,16 @@ export type ProtocolCreateOptions = {
    * - WakuRelay to receive, route and send messages,
    * - WakuLightPush to send messages,
    * - WakuStore to retrieve messages.
-   * See [Waku v2 Topic Usage Recommendations](https://rfc.vac.dev/spec/23/) for details.
+   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md) for details.
    *
    */
   shardInfo?: Partial<ShardingParams>;
+  /**
+   * Content topics are used to determine pubsubTopics
+   * If not provided pubsubTopics will be determined based on shardInfo
+   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md) for details.
+   */
+  contentTopics?: string[];
   /**
    * You can pass options to the `Libp2p` instance used by {@link @waku/sdk!WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)

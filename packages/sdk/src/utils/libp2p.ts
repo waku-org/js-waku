@@ -81,6 +81,10 @@ export async function defaultLibp2p(
 export async function createLibp2pAndUpdateOptions(
   options: CreateWakuNodeOptions
 ): Promise<Libp2p> {
+  if (options.contentTopics) {
+    options.shardInfo = { contentTopics: options.contentTopics };
+  }
+
   const shardInfo = options.shardInfo
     ? ensureShardingConfigured(options.shardInfo)
     : undefined;
