@@ -71,6 +71,7 @@
     "@waku/core": "0.0.28",
     "@waku/discovery": "0.0.1",
     "@waku/interfaces": "0.0.23",
+    "@waku/proto": "^0.0.6",
     "@waku/relay": "0.0.11",
     "@waku/utils": "0.0.16",
     "libp2p": "^1.1.2"
@@ -91,10 +92,9 @@
     "@libp2p/bootstrap": "^10",
     "@waku/core": "0.0.28",
     "@waku/interfaces": "0.0.23",
+    "@waku/message-hash": "^0.1.12",
     "@waku/relay": "0.0.11",
-    "@waku/utils": "0.0.16",
-    "@waku/message-hash": "^0.1.12"
-
+    "@waku/utils": "0.0.16"
   },
   "peerDependenciesMeta": {
     "@waku/interfaces": {
