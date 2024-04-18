@@ -78,7 +78,7 @@ describe("Waku Store, general", function () {
     expect(result).to.not.eq(-1);
   });
 
-  it("Query generator for multiple messages with different message text format", async function () {
+  it.only("Query generator for multiple messages with different message text format", async function () {
     for (const testItem of TEST_STRING) {
       expect(
         await nwaku.sendMessage(

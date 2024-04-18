@@ -14,14 +14,13 @@ import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
 
 import { BaseProtocolSDK } from "./base_protocol.js";
 
-const DEFAULT_NUM_PEERS = 3;
 const log = new Logger("sdk:light-push");
 
 export class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
   public readonly protocol: LightPushCore;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super({ numPeersToUse: options?.numPeersToUse ?? DEFAULT_NUM_PEERS });
+    super({ numPeersToUse: options?.numPeersToUse });
     this.protocol = new LightPushCore(libp2p, options);
   }
 

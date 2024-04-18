@@ -26,8 +26,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   public readonly protocol: StoreCore;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    // TODO: options.numPeersToUse is disregarded: https://github.com/waku-org/js-waku/issues/1685
-    super({ numPeersToUse: DEFAULT_NUM_PEERS });
+    super({ numPeersToUse: options?.numPeersToUse ?? DEFAULT_NUM_PEERS });
 
     this.protocol = new StoreCore(libp2p, options);
   }
@@ -65,23 +64,21 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
       options
     );
 
-    const peer = (
-      await this.protocol.getPeers({
-        numPeers: this.numPeers,
-        maxBootstrapPeers: 1
-      })
-    )[0];
+    const peers = await this.protocol.getPeers({
+      numPeers: this.numPeers,
+      maxBootstrapPeers: 1
+    });
 
-    if (!peer) throw new Error("No peers available to query");
+    if (!peers.length) throw new Error("No peers available to query");
 
-    const responseGenerator = this.protocol.queryPerPage(
-      queryOpts,
-      decodersAsMap,
-      peer
+    const responseGenerators = peers.map((peer) =>
+      this.protocol.queryPerPage(queryOpts, decodersAsMap, peer)
     );
 
-    for await (const messages of responseGenerator) {
-      yield messages;
+    for (const responseGenerator of responseGenerators) {
+      for await (const messages of responseGenerator) {
+        yield messages;
+      }
     }
   }
 
