@@ -527,7 +527,9 @@ class Filter extends BaseProtocol implements IReceiver {
       return [];
     }
 
-    return decoders.map((d) => d.pubsubTopic);
+    const pubsubTopics = new Set(decoders.map((d) => d.pubsubTopic));
+
+    return [...pubsubTopics];
   }
 }
 
