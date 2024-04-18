@@ -44,7 +44,7 @@ module.exports = [
   },
   {
     name: "Waku Filter",
-    path: "packages/core/bundle/index.js",
+    path: "packages/sdk/bundle/index.js",
     import: "{ wakuFilter }",
   },
   {
