@@ -1,7 +1,6 @@
 import { sha256 } from "@noble/hashes/sha256";
 import {
   DEFAULT_CLUSTER_ID,
-  DefaultPubsubTopic,
   PubsubTopic,
   ShardInfo,
   ShardingParams,
@@ -226,20 +225,18 @@ export function contentTopicsByPubsubTopic(
  */
 export function determinePubsubTopic(
   contentTopic: string,
-  pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
+  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
 ): string {
   if (typeof pubsubTopicShardInfo == "string") {
     return pubsubTopicShardInfo;
-  } else {
-    return pubsubTopicShardInfo
-      ? pubsubTopicShardInfo.shard
-        ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
-        : contentTopicToPubsubTopic(
-            contentTopic,
-            pubsubTopicShardInfo.clusterId
-          )
-      : DefaultPubsubTopic;
   }
+
+  return pubsubTopicShardInfo?.shard
+    ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+    : contentTopicToPubsubTopic(
+        contentTopic,
+        pubsubTopicShardInfo?.clusterId || DEFAULT_CLUSTER_ID
+      );
 }
 
 /**

@@ -444,9 +444,21 @@ class Filter extends BaseProtocol implements IReceiver {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): Promise<Unsubscribe> {
-    const subscription = await this.createSubscription(
-      this.pubsubTopics?.[0] || DefaultPubsubTopic
-    );
+    const pubsubTopics = this.getPubsubTopics(decoders);
+
+    if (pubsubTopics.length === 0) {
+      throw Error(
+        "Failed to subscribe: no pubsubTopic found on decoders provided."
+      );
+    }
+
+    if (pubsubTopics.length > 1) {
+      throw Error(
+        "Failed to subscribe: all decoders should have the same pubsub topic. Use createSubscription to be more agile."
+      );
+    }
+
+    const subscription = await this.createSubscription(pubsubTopics[0]);
 
     await subscription.subscribe(decoders, callback);
 
@@ -504,6 +516,18 @@ class Filter extends BaseProtocol implements IReceiver {
     } catch (e) {
       log.error("Error decoding message", e);
     }
+  }
+
+  private getPubsubTopics(decoders: IDecoder<any> | IDecoder<any>[]): string[] {
+    if (!Array.isArray(decoders)) {
+      return [decoders.pubsubTopic];
+    }
+
+    if (decoders.length === 0) {
+      return [];
+    }
+
+    return decoders.map((d) => d.pubsubTopic);
   }
 }
 
