@@ -1,19 +1,21 @@
 import { IProtoMessage } from "@waku/interfaces";
+import { contentTopicToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 import fc from "fast-check";
 
 import { getPublicKey } from "./crypto/index.js";
 import { createDecoder, createEncoder } from "./symmetric.js";
 
+const contentTopic = "/js-waku/1/tests/bytes";
+const pubsubTopic = contentTopicToPubsubTopic(contentTopic);
+
 describe("Symmetric Encryption", function () {
   it("Round trip binary encryption [symmetric, no signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1 }),
-        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubsubTopic, contentTopic, payload, symKey) => {
+        async (payload, symKey) => {
           const encoder = createEncoder({
             contentTopic,
             symKey
@@ -41,12 +43,10 @@ describe("Symmetric Encryption", function () {
   it("Round trip binary encryption [symmetric, signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1 }),
-        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubsubTopic, contentTopic, payload, sigPrivKey, symKey) => {
+        async (payload, sigPrivKey, symKey) => {
           const sigPubKey = getPublicKey(sigPrivKey);
 
           const encoder = createEncoder({
@@ -77,11 +77,9 @@ describe("Symmetric Encryption", function () {
   it("Check meta is set [symmetric]", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1 }),
-        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubsubTopic, contentTopic, payload, symKey) => {
+        async (payload, symKey) => {
           const metaSetter = (
             msg: IProtoMessage & { meta: undefined }
           ): Uint8Array => {
