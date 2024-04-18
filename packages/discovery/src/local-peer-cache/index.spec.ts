@@ -17,16 +17,6 @@ import { LocalPeerCacheDiscovery } from "./index.js";
 
 chai.use(chaiAsPromised);
 
-// dynamically importing the local storage polyfill for node
-if (typeof window === "undefined") {
-  try {
-    const { LocalStorage } = await import("node-localstorage");
-    global.localStorage = new LocalStorage("./scratch");
-  } catch (error) {
-    console.error("Failed to load localStorage polyfill:", error);
-  }
-}
-
 const mockPeers = [
   {
     id: "16Uiu2HAm4v86W3bmT1BiH6oSPzcsSr24iDQpSN5Qa992BCjjwgrD",

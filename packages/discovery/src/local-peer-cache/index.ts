@@ -28,6 +28,16 @@ export const DEFAULT_LOCAL_TAG_NAME = Tags.LOCAL;
 const DEFAULT_LOCAL_TAG_VALUE = 50;
 const DEFAULT_LOCAL_TAG_TTL = 100_000_000;
 
+// dynamically importing the local storage polyfill for node environments
+if (typeof window === "undefined") {
+  try {
+    const { LocalStorage } = await import("node-localstorage");
+    global.localStorage = new LocalStorage("./mock-localstorage");
+  } catch (error) {
+    log.error("Failed to load localStorage polyfill:", error);
+  }
+}
+
 export class LocalPeerCacheDiscovery
   extends TypedEventEmitter<PeerDiscoveryEvents>
   implements PeerDiscovery, Startable
