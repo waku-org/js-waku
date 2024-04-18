@@ -190,6 +190,10 @@ export function contentTopicToPubsubTopic(
   clusterId: number = DEFAULT_CLUSTER_ID,
   networkShards: number = 8
 ): string {
+  if (!contentTopic) {
+    throw Error("Content topic must be specified");
+  }
+
   const shardIndex = contentTopicToShardIndex(contentTopic, networkShards);
   return `/waku/2/rs/${clusterId}/${shardIndex}`;
 }
