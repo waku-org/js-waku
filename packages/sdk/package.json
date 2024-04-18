@@ -89,10 +89,12 @@
   },
   "peerDependencies": {
     "@libp2p/bootstrap": "^10",
-    "@waku/core": "0.0.27",
-    "@waku/interfaces": "0.0.22",
-    "@waku/relay": "0.0.10",
-    "@waku/utils": "0.0.15"
+    "@waku/core": "0.0.28",
+    "@waku/interfaces": "0.0.23",
+    "@waku/relay": "0.0.11",
+    "@waku/utils": "0.0.16",
+    "@waku/message-hash": "^0.1.12"
+
   },
   "peerDependenciesMeta": {
     "@waku/interfaces": {
