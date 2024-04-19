@@ -200,7 +200,7 @@ describe("Wait for remote peer", function () {
     await waku2.dial(multiAddrWithId);
     await waitForRemotePeer(waku2, [Protocols.Filter]);
 
-    const peers = (await waku2.filter.connectedPeers()).map((peer) =>
+    const peers = (await waku2.filter.protocol.connectedPeers()).map((peer) =>
       peer.id.toString()
     );
 
@@ -232,8 +232,8 @@ describe("Wait for remote peer", function () {
       Protocols.LightPush
     ]);
 
-    const filterPeers = (await waku2.filter.connectedPeers()).map((peer) =>
-      peer.id.toString()
+    const filterPeers = (await waku2.filter.protocol.connectedPeers()).map(
+      (peer) => peer.id.toString()
     );
     const storePeers = (await waku2.store.protocol.connectedPeers()).map(
       (peer) => peer.id.toString()
