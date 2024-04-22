@@ -13,6 +13,7 @@ import {
   type ProtocolCreateOptions,
   type PubsubTopic,
   type SingleShardInfo,
+  type SubscribeOptions,
   type Unsubscribe
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
@@ -34,10 +35,16 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
 
 const log = new Logger("sdk:filter");
 
+const MINUTE = 60 * 1000;
+const DEFAULT_SUBSCRIBE_OPTIONS = {
+  keepAlive: MINUTE
+};
+
 export class SubscriptionManager {
   private readonly pubsubTopic: PubsubTopic;
   readonly peers: Peer[];
   readonly receivedMessagesHashStr: string[] = [];
+  private keepAliveTimer: number | null = null;
 
   private subscriptionCallbacks: Map<
     ContentTopic,
@@ -56,7 +63,8 @@ export class SubscriptionManager {
 
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+    callback: Callback<T>,
+    options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<void> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
@@ -95,6 +103,10 @@ export class SubscriptionManager {
       // purpose as the user may call `subscribe` to refresh the subscription
       this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
     });
+
+    if (options?.keepAlive) {
+      this.startKeepAlivePings(options.keepAlive);
+    }
   }
 
   async unsubscribe(contentTopics: ContentTopic[]): Promise<void> {
@@ -109,6 +121,10 @@ export class SubscriptionManager {
     const results = await Promise.allSettled(promises);
 
     this.handleErrors(results, "unsubscribe");
+
+    if (this.subscriptionCallbacks.size === 0 && this.keepAliveTimer) {
+      this.stopKeepAlivePings();
+    }
   }
 
   async ping(): Promise<void> {
@@ -122,6 +138,10 @@ export class SubscriptionManager {
   }
 
   async unsubscribeAll(): Promise<void> {
+    if (this.keepAliveTimer) {
+      this.stopKeepAlivePings();
+    }
+
     const promises = this.peers.map(async (peer) => {
       await this.protocol.unsubscribeAll(this.pubsubTopic, peer);
     });
@@ -193,6 +213,38 @@ export class SubscriptionManager {
     } else {
       log.info(`${type} successful for all peers`);
     }
+  }
+
+  private startKeepAlivePings(interval: number): void {
+    if (this.keepAliveTimer) {
+      log.info("Recurring pings already set up.");
+      return;
+    }
+
+    this.keepAliveTimer = window.setInterval(() => {
+      const run = async (): Promise<void> => {
+        try {
+          log.info("Recurring ping to peers.");
+          await this.ping();
+        } catch (error) {
+          log.error("Stopping recurring pings due to failure", error);
+          this.stopKeepAlivePings();
+        }
+      };
+
+      void run();
+    }, interval);
+  }
+
+  private stopKeepAlivePings(): void {
+    if (!this.keepAliveTimer) {
+      log.info("Already stopped recurring pings.");
+      return;
+    }
+
+    log.info("Stopping recurring pings.");
+    window.clearInterval(this.keepAliveTimer);
+    this.keepAliveTimer = null;
   }
 }
 
@@ -292,7 +344,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    */
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+    callback: Callback<T>,
+    options: SubscribeOptions = {}
   ): Promise<Unsubscribe> {
     const pubsubTopics = this.getPubsubTopics(decoders);
 
@@ -310,7 +363,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
     const subscription = await this.createSubscription(pubsubTopics[0]);
 
-    await subscription.subscribe(decoders, callback);
+    await subscription.subscribe(decoders, callback, options);
 
     const contentTopics = Array.from(
       groupByContentTopic(
