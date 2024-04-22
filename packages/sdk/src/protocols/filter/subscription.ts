@@ -2,39 +2,24 @@ import type { Peer } from "@libp2p/interface";
 import { FilterCore } from "@waku/core";
 import {
   type Callback,
-  ContentTopic,
-  DefaultPubsubTopic,
-  type IAsyncIterator,
+  type ContentTopic,
   type IDecodedMessage,
   type IDecoder,
-  type IFilterSDK,
-  IProtoMessage,
-  type Libp2p,
-  type ProtocolCreateOptions,
-  type PubsubTopic,
-  type SingleShardInfo,
-  type Unsubscribe
+  type IProtoMessage,
+  type PubsubTopic
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
-import {
-  ensurePubsubTopicIsConfigured,
-  groupByContentTopic,
-  Logger,
-  singleShardInfoToPubsubTopic,
-  toAsyncIterator
-} from "@waku/utils";
-
-import { BaseProtocolSDK } from "./base_protocol";
+import { groupByContentTopic, Logger } from "@waku/utils";
 
 type SubscriptionCallback<T extends IDecodedMessage> = {
   decoders: IDecoder<T>[];
   callback: Callback<T>;
 };
 
-const log = new Logger("sdk:filter");
+const log = new Logger("sdk:filter:subscription");
 
-export class SubscriptionManager {
+export class Subscription {
   private readonly pubsubTopic: PubsubTopic;
   readonly peers: Peer[];
   readonly receivedMessagesHashStr: string[] = [];
@@ -194,132 +179,6 @@ export class SubscriptionManager {
       log.info(`${type} successful for all peers`);
     }
   }
-}
-
-class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
-  public readonly protocol: FilterCore;
-
-  private activeSubscriptions = new Map<string, SubscriptionManager>();
-  private async handleIncomingMessage(
-    pubsubTopic: PubsubTopic,
-    wakuMessage: WakuMessage
-  ): Promise<void> {
-    const subscription = this.getActiveSubscription(pubsubTopic);
-    if (!subscription) {
-      log.error(`No subscription locally registered for topic ${pubsubTopic}`);
-      return;
-    }
-
-    await subscription.processIncomingMessage(wakuMessage);
-  }
-
-  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super({ numPeersToUse: options?.numPeersToUse });
-    this.protocol = new FilterCore(
-      this.handleIncomingMessage.bind(this),
-      libp2p,
-      options
-    );
-    this.activeSubscriptions = new Map();
-  }
-
-  //TODO: move to SubscriptionManager
-  private getActiveSubscription(
-    pubsubTopic: PubsubTopic
-  ): SubscriptionManager | undefined {
-    return this.activeSubscriptions.get(pubsubTopic);
-  }
-
-  private setActiveSubscription(
-    pubsubTopic: PubsubTopic,
-    subscription: SubscriptionManager
-  ): SubscriptionManager {
-    this.activeSubscriptions.set(pubsubTopic, subscription);
-    return subscription;
-  }
-
-  /**
-   * Creates a new subscription to the given pubsub topic.
-   * The subscription is made to multiple peers for decentralization.
-   * @param pubsubTopicShardInfo The pubsub topic to subscribe to.
-   * @returns The subscription object.
-   */
-  async createSubscription(
-    pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
-  ): Promise<SubscriptionManager> {
-    const pubsubTopic =
-      typeof pubsubTopicShardInfo == "string"
-        ? pubsubTopicShardInfo
-        : singleShardInfoToPubsubTopic(pubsubTopicShardInfo);
-
-    ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
-
-    const peers = await this.protocol.getPeers();
-    if (peers.length === 0) {
-      throw new Error("No peer found to initiate subscription.");
-    }
-
-    log.info(
-      `Creating filter subscription with ${peers.length} peers: `,
-      peers.map((peer) => peer.id.toString())
-    );
-
-    const subscription =
-      this.getActiveSubscription(pubsubTopic) ??
-      this.setActiveSubscription(
-        pubsubTopic,
-        new SubscriptionManager(pubsubTopic, peers, this.protocol)
-      );
-
-    return subscription;
-  }
-
-  //TODO: remove this dependency on IReceiver
-  /**
-   * This method is used to satisfy the `IReceiver` interface.
-   *
-   * @hidden
-   *
-   * @param decoders The decoders to use for the subscription.
-   * @param callback The callback function to use for the subscription.
-   * @param opts Optional protocol options for the subscription.
-   *
-   * @returns A Promise that resolves to a function that unsubscribes from the subscription.
-   *
-   * @remarks
-   * This method should not be used directly.
-   * Instead, use `createSubscription` to create a new subscription.
-   */
-  async subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
-  ): Promise<Unsubscribe> {
-    const subscription = await this.createSubscription();
-
-    await subscription.subscribe(decoders, callback);
-
-    const contentTopics = Array.from(
-      groupByContentTopic(
-        Array.isArray(decoders) ? decoders : [decoders]
-      ).keys()
-    );
-
-    return async () => {
-      await subscription.unsubscribe(contentTopics);
-    };
-  }
-
-  public toSubscriptionIterator<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
-  ): Promise<IAsyncIterator<T>> {
-    return toAsyncIterator(this, decoders);
-  }
-}
-
-export function wakuFilter(
-  init: ProtocolCreateOptions
-): (libp2p: Libp2p) => IFilterSDK {
-  return (libp2p: Libp2p) => new FilterSDK(libp2p, init);
 }
 
 async function pushMessage<T extends IDecodedMessage>(
