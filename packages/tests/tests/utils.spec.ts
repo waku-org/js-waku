@@ -22,7 +22,7 @@ import {
 
 chai.use(chaiAsPromised);
 
-const TestContentTopic = "/test/1/waku-filter";
+const TestContentTopic = "/test/1/waku-filter/default";
 const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 const TestDecoder = createDecoder(TestContentTopic);
 

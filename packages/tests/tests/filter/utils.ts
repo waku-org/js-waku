@@ -26,7 +26,7 @@ import {
 
 // Constants for test configuration.
 export const log = new Logger("test:filter");
-export const TestContentTopic = "/test/1/waku-filter";
+export const TestContentTopic = "/test/1/waku-filter/default";
 export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
 export const TestDecoder = createDecoder(TestContentTopic);
 export const messageText = "Filtering works!";
