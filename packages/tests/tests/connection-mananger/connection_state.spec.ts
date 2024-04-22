@@ -18,7 +18,7 @@ import {
 
 const TEST_TIMEOUT = 30_000;
 
-describe.only("Connection state", function () {
+describe("Connection state", function () {
   this.timeout(TEST_TIMEOUT);
   let waku: LightNode;
 
