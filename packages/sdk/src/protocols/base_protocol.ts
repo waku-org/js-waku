@@ -1,4 +1,4 @@
-import { IBaseProtocolSDK } from "..";
+import { IBaseProtocolSDK } from "@waku/interfaces";
 
 interface Options {
   numPeersToUse?: number;

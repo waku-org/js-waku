@@ -1,4 +1,4 @@
-import { wakuFilter } from "@waku/core";
+import { wakuFilter } from "@waku/sdk";
 import {
   bytesToUtf8,
   createEncoder,
