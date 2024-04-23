@@ -22,7 +22,7 @@ import {
   ProtocolCreateOptions,
   ProtocolError,
   PubsubTopic,
-  SendResult
+  SDKProtocolResult
 } from "@waku/interfaces";
 import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
@@ -99,7 +99,10 @@ class Relay implements IRelay {
   /**
    * Send Waku message.
    */
-  public async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
+  public async send(
+    encoder: IEncoder,
+    message: IMessage
+  ): Promise<SDKProtocolResult> {
     const successes: PeerId[] = [];
 
     const { pubsubTopic } = encoder;
@@ -142,7 +145,8 @@ class Relay implements IRelay {
 
     const { recipients } = await this.gossipSub.publish(pubsubTopic, msg);
     return {
-      successes: recipients
+      successes: recipients,
+      failures: []
     };
   }
 

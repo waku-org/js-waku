@@ -8,8 +8,8 @@ import type {
   PeerInfo
 } from "@libp2p/interface";
 import {
-  Libp2pComponents,
-  PeerExchangeResult,
+  type Libp2pComponents,
+  type PeerExchangeQueryResult,
   PubsubTopic,
   Tags
 } from "@waku/interfaces";
@@ -165,7 +165,7 @@ export class PeerExchangeDiscovery
     }, queryInterval * currentAttempt);
   };
 
-  private async query(peerId: PeerId): Promise<PeerExchangeResult> {
+  private async query(peerId: PeerId): Promise<PeerExchangeQueryResult> {
     const { error, peerInfos } = await this.peerExchange.query({
       numPeers: DEFAULT_PEER_EXCHANGE_REQUEST_NODES,
       peerId

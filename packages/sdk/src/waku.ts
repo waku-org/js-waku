@@ -5,10 +5,10 @@ import { ConnectionManager, DecodedMessage } from "@waku/core";
 import type {
   Callback,
   IFilterSDK,
-  IFilterSubscriptionSDK,
   ILightPushSDK,
   IRelay,
   IStoreSDK,
+  ISubscriptionSDK,
   Libp2p,
   LightNode,
   ProtocolCreateOptions,
@@ -192,7 +192,7 @@ export class WakuNode implements Waku {
     contentTopic: string,
     peer: Multiaddr,
     callback: Callback<DecodedMessage>
-  ): Promise<IFilterSubscriptionSDK> {
+  ): Promise<ISubscriptionSDK> {
     return (
       await subscribeToContentTopic(contentTopic, callback, {
         waku: this as LightNode,
