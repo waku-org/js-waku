@@ -4,12 +4,14 @@ import {
   type Callback,
   ContentTopic,
   CoreProtocolResult,
+  CreateSubscriptionResult,
   DefaultPubsubTopic,
   type IAsyncIterator,
   type IDecodedMessage,
   type IDecoder,
   type IFilterSDK,
   IProtoMessage,
+  ISubscriptionSDK,
   type Libp2p,
   type ProtocolCreateOptions,
   ProtocolError,
@@ -37,7 +39,7 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
 
 const log = new Logger("sdk:filter");
 
-export class SubscriptionManager {
+export class SubscriptionManager implements ISubscriptionSDK {
   private readonly pubsubTopic: PubsubTopic;
   readonly peers: Peer[];
   readonly receivedMessagesHashStr: string[] = [];
@@ -258,7 +260,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    */
   async createSubscription(
     pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
-  ): Promise<SubscriptionManager> {
+  ): Promise<CreateSubscriptionResult> {
     const pubsubTopic =
       typeof pubsubTopicShardInfo == "string"
         ? pubsubTopicShardInfo
@@ -266,9 +268,21 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
-    const peers = await this.protocol.getPeers();
+    let peers: Peer[] = [];
+    try {
+      peers = await this.protocol.getPeers();
+    } catch (error) {
+      log.error("Error getting peers to initiate subscription: ", error);
+      return {
+        error: ProtocolError.GENERIC_FAIL,
+        subscription: null
+      };
+    }
     if (peers.length === 0) {
-      throw new Error("No peer found to initiate subscription.");
+      return {
+        error: ProtocolError.NO_PEER_AVAILABLE,
+        subscription: null
+      };
     }
 
     log.info(
@@ -283,7 +297,10 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
         new SubscriptionManager(pubsubTopic, peers, this.protocol)
       );
 
-    return subscription;
+    return {
+      error: null,
+      subscription
+    };
   }
 
   //TODO: remove this dependency on IReceiver
@@ -306,7 +323,11 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): Promise<Unsubscribe> {
-    const subscription = await this.createSubscription();
+    const { subscription } = await this.createSubscription();
+    //TODO: throw will be removed when `subscribe()` is removed from IReceiver
+    if (!subscription) {
+      throw new Error("Failed to create subscription");
+    }
 
     await subscription.subscribe(decoders, callback);
 
