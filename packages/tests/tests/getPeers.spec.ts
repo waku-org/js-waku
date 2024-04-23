@@ -225,7 +225,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNodeMa1, LightPushCodec);
-    await delay(500); // Small delay between dials
+    await delay(500);
     await waku.libp2p.dialProtocol(serviceNodeMa2, LightPushCodec);
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
