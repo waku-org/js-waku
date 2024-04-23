@@ -1,17 +1,20 @@
-import type { Peer } from "@libp2p/interface";
+import type { Peer, Stream } from "@libp2p/interface";
 import type { IncomingStreamData } from "@libp2p/interface-internal";
-import type {
-  ContentTopic,
-  IBaseProtocolCore,
-  Libp2p,
-  ProtocolCreateOptions,
-  PubsubTopic
+import {
+  type ContentTopic,
+  type IBaseProtocolCore,
+  type Libp2p,
+  type ProtocolCreateOptions,
+  ProtocolError,
+  type ProtocolRequestResult,
+  type PubsubTopic
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
+import { Uint8ArrayList } from "uint8arraylist";
 
 import { BaseProtocol } from "../base_protocol.js";
 
@@ -90,7 +93,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     pubsubTopic: PubsubTopic,
     peer: Peer,
     contentTopics: ContentTopic[]
-  ): Promise<void> {
+  ): Promise<ProtocolRequestResult> {
     const stream = await this.getStream(peer);
 
     const request = FilterSubscribeRpc.createSubscribeRequest(
@@ -107,36 +110,87 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     );
 
     if (!res || !res.length) {
-      throw Error(
-        `No response received for request ${request.requestId}: ${res}`
-      );
+      return {
+        failure: {
+          error: ProtocolError.REMOTE_PEER_FAULT,
+          peerId: peer.id
+        },
+        success: null
+      };
     }
 
     const { statusCode, requestId, statusDesc } =
       FilterSubscribeResponse.decode(res[0].slice());
 
     if (statusCode < 200 || statusCode >= 300) {
-      throw new Error(
+      log.error(
         `Filter subscribe request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
       );
+      return {
+        failure: {
+          error: ProtocolError.REMOTE_PEER_REJECTED,
+          peerId: peer.id
+        },
+        success: null
+      };
     }
+
+    return {
+      failure: null,
+      success: peer.id
+    };
   }
 
   async unsubscribe(
     pubsubTopic: PubsubTopic,
     peer: Peer,
     contentTopics: ContentTopic[]
-  ): Promise<void> {
-    const stream = await this.getStream(peer);
+  ): Promise<ProtocolRequestResult> {
+    let stream: Stream | undefined;
+    try {
+      stream = await this.getStream(peer);
+    } catch (error) {
+      log.error(
+        `Failed to get a stream for remote peer${peer.id.toString()}`,
+        error
+      );
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.REMOTE_PEER_FAULT,
+          peerId: peer.id
+        }
+      };
+    }
+
     const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
       pubsubTopic,
       contentTopics
     );
 
-    await pipe([unsubscribeRequest.encode()], lp.encode, stream.sink);
+    try {
+      await pipe([unsubscribeRequest.encode()], lp.encode, stream.sink);
+    } catch (error) {
+      log.error("Failed to send unsubscribe request", error);
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.GENERIC_FAIL,
+          peerId: peer.id
+        }
+      };
+    }
+
+    return {
+      success: peer.id,
+      failure: null
+    };
   }
 
-  async unsubscribeAll(pubsubTopic: PubsubTopic, peer: Peer): Promise<void> {
+  async unsubscribeAll(
+    pubsubTopic: PubsubTopic,
+    peer: Peer
+  ): Promise<ProtocolRequestResult> {
     const stream = await this.getStream(peer);
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(pubsubTopic);
@@ -150,53 +204,105 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     );
 
     if (!res || !res.length) {
-      throw Error(
-        `No response received for request ${request.requestId}: ${res}`
-      );
+      return {
+        failure: {
+          error: ProtocolError.REMOTE_PEER_FAULT,
+          peerId: peer.id
+        },
+        success: null
+      };
     }
 
     const { statusCode, requestId, statusDesc } =
       FilterSubscribeResponse.decode(res[0].slice());
 
     if (statusCode < 200 || statusCode >= 300) {
-      throw new Error(
+      log.error(
         `Filter unsubscribe all request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
       );
+      return {
+        failure: {
+          error: ProtocolError.REMOTE_PEER_REJECTED,
+          peerId: peer.id
+        },
+        success: null
+      };
     }
+
+    return {
+      failure: null,
+      success: peer.id
+    };
   }
 
-  async ping(peer: Peer): Promise<void> {
-    const stream = await this.getStream(peer);
+  async ping(peer: Peer): Promise<ProtocolRequestResult> {
+    let stream: Stream | undefined;
+    try {
+      stream = await this.getStream(peer);
+    } catch (error) {
+      log.error(
+        `Failed to get a stream for remote peer${peer.id.toString()}`,
+        error
+      );
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.REMOTE_PEER_FAULT,
+          peerId: peer.id
+        }
+      };
+    }
 
     const request = FilterSubscribeRpc.createSubscriberPingRequest();
 
+    let res: Uint8ArrayList[] | undefined;
     try {
-      const res = await pipe(
+      res = await pipe(
         [request.encode()],
         lp.encode,
         stream,
         lp.decode,
         async (source) => await all(source)
       );
-
-      if (!res || !res.length) {
-        throw Error(
-          `No response received for request ${request.requestId}: ${res}`
-        );
-      }
-
-      const { statusCode, requestId, statusDesc } =
-        FilterSubscribeResponse.decode(res[0].slice());
-
-      if (statusCode < 200 || statusCode >= 300) {
-        throw new Error(
-          `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
-        );
-      }
-      log.info(`Ping successful for peer ${peer.id.toString()}`);
     } catch (error) {
-      log.error("Error pinging: ", error);
-      throw error; // Rethrow the actual error instead of wrapping it
+      log.error("Failed to send ping request", error);
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.GENERIC_FAIL,
+          peerId: peer.id
+        }
+      };
     }
+
+    if (!res || !res.length) {
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.REMOTE_PEER_FAULT,
+          peerId: peer.id
+        }
+      };
+    }
+
+    const { statusCode, requestId, statusDesc } =
+      FilterSubscribeResponse.decode(res[0].slice());
+
+    if (statusCode < 200 || statusCode >= 300) {
+      log.error(
+        `Filter ping request ${requestId} failed with status code ${statusCode}: ${statusDesc}`
+      );
+      return {
+        success: null,
+        failure: {
+          error: ProtocolError.REMOTE_PEER_REJECTED,
+          peerId: peer.id
+        }
+      };
+    }
+    return {
+      success: peer.id,
+      failure: null
+    };
   }
 }
