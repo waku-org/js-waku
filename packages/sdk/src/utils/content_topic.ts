@@ -3,7 +3,7 @@ import { createDecoder, DecodedMessage, waitForRemotePeer } from "@waku/core";
 import {
   Callback,
   IDecoder,
-  IFilterSubscription,
+  IFilterSubscriptionSDK,
   LightNode,
   Protocols
 } from "@waku/interfaces";
@@ -27,7 +27,7 @@ async function prepareSubscription(
   peer: Multiaddr
 ): Promise<{
   decoder: IDecoder<DecodedMessage>;
-  subscription: IFilterSubscription;
+  subscription: IFilterSubscriptionSDK;
 }> {
   // Validate that the Waku node matches assumptions
   if (!waku.filter) {
@@ -86,10 +86,11 @@ export async function streamContentTopic(
         controller.enqueue(message);
       });
     },
-    cancel() {
-      return subscription.unsubscribe([contentTopic]);
+    async cancel() {
+      await subscription.unsubscribe([contentTopic]);
     }
   });
+
   return [messageStream, opts.waku];
 }
 
@@ -105,7 +106,7 @@ export async function subscribeToContentTopic(
   contentTopic: string,
   callback: Callback<DecodedMessage>,
   opts: CreateTopicOptions
-): Promise<{ subscription: IFilterSubscription; waku: LightNode }> {
+): Promise<{ subscription: IFilterSubscriptionSDK; waku: LightNode }> {
   opts.waku =
     opts.waku ??
     (await createLightNode({

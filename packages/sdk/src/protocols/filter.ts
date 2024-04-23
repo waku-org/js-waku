@@ -3,6 +3,7 @@ import { FilterCore } from "@waku/core";
 import {
   type Callback,
   ContentTopic,
+  CoreProtocolResult,
   DefaultPubsubTopic,
   type IAsyncIterator,
   type IDecodedMessage,
@@ -11,7 +12,9 @@ import {
   IProtoMessage,
   type Libp2p,
   type ProtocolCreateOptions,
+  ProtocolError,
   type PubsubTopic,
+  SDKProtocolResult,
   type SingleShardInfo,
   type Unsubscribe
 } from "@waku/interfaces";
@@ -57,28 +60,37 @@ export class SubscriptionManager {
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
-  ): Promise<void> {
+  ): Promise<SDKProtocolResult> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
     // check that all decoders are configured for the same pubsub topic as this subscription
-    decodersArray.forEach((decoder) => {
+    for (const decoder of decodersArray) {
       if (decoder.pubsubTopic !== this.pubsubTopic) {
-        throw new Error(
-          `Pubsub topic not configured: decoder is configured for pubsub topic ${decoder.pubsubTopic} but this subscription is for pubsub topic ${this.pubsubTopic}. Please create a new Subscription for the different pubsub topic.`
-        );
+        return {
+          failures: [
+            {
+              error: ProtocolError.TOPIC_DECODER_MISMATCH
+            }
+          ],
+          successes: []
+        };
       }
-    });
+    }
 
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
     const contentTopics = Array.from(decodersGroupedByCT.keys());
 
     const promises = this.peers.map(async (peer) => {
-      await this.protocol.subscribe(this.pubsubTopic, peer, contentTopics);
+      return await this.protocol.subscribe(
+        this.pubsubTopic,
+        peer,
+        contentTopics
+      );
     });
 
     const results = await Promise.allSettled(promises);
 
-    this.handleErrors(results, "subscribe");
+    const finalResult = this.handleResult(results, "subscribe");
 
     // Save the callback functions by content topics so they
     // can easily be removed (reciprocally replaced) if `unsubscribe` (reciprocally `subscribe`)
@@ -95,42 +107,50 @@ export class SubscriptionManager {
       // purpose as the user may call `subscribe` to refresh the subscription
       this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
     });
+
+    return finalResult;
   }
 
-  async unsubscribe(contentTopics: ContentTopic[]): Promise<void> {
+  async unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult> {
     const promises = this.peers.map(async (peer) => {
-      await this.protocol.unsubscribe(this.pubsubTopic, peer, contentTopics);
+      const response = await this.protocol.unsubscribe(
+        this.pubsubTopic,
+        peer,
+        contentTopics
+      );
 
       contentTopics.forEach((contentTopic: string) => {
         this.subscriptionCallbacks.delete(contentTopic);
       });
+
+      return response;
     });
 
     const results = await Promise.allSettled(promises);
 
-    this.handleErrors(results, "unsubscribe");
+    return this.handleResult(results, "unsubscribe");
   }
 
-  async ping(): Promise<void> {
+  async ping(): Promise<SDKProtocolResult> {
     const promises = this.peers.map(async (peer) => {
-      await this.protocol.ping(peer);
+      return await this.protocol.ping(peer);
     });
 
     const results = await Promise.allSettled(promises);
 
-    this.handleErrors(results, "ping");
+    return this.handleResult(results, "ping");
   }
 
-  async unsubscribeAll(): Promise<void> {
+  async unsubscribeAll(): Promise<SDKProtocolResult> {
     const promises = this.peers.map(async (peer) => {
-      await this.protocol.unsubscribeAll(this.pubsubTopic, peer);
+      return await this.protocol.unsubscribeAll(this.pubsubTopic, peer);
     });
 
     const results = await Promise.allSettled(promises);
 
     this.subscriptionCallbacks.clear();
 
-    this.handleErrors(results, "unsubscribeAll");
+    return this.handleResult(results, "unsubscribeAll");
   }
 
   async processIncomingMessage(message: WakuMessage): Promise<void> {
@@ -159,40 +179,32 @@ export class SubscriptionManager {
     await pushMessage(subscriptionCallback, this.pubsubTopic, message);
   }
 
-  // Filter out only the rejected promises and extract & handle their reasons
-  private handleErrors(
-    results: PromiseSettledResult<void>[],
+  private handleResult(
+    results: PromiseSettledResult<CoreProtocolResult>[],
     type: "ping" | "subscribe" | "unsubscribe" | "unsubscribeAll"
-  ): void {
-    const errors = results
-      .filter(
-        (result): result is PromiseRejectedResult =>
-          result.status === "rejected"
-      )
-      .map((rejectedResult) => rejectedResult.reason);
+  ): SDKProtocolResult {
+    const result: SDKProtocolResult = { failures: [], successes: [] };
 
-    if (errors.length === this.peers.length) {
-      const errorCounts = new Map<string, number>();
-      // TODO: streamline error logging with https://github.com/orgs/waku-org/projects/2/views/1?pane=issue&itemId=42849952
-      errors.forEach((error) => {
-        const message = error instanceof Error ? error.message : String(error);
-        errorCounts.set(message, (errorCounts.get(message) || 0) + 1);
-      });
-
-      const uniqueErrorMessages = Array.from(
-        errorCounts,
-        ([message, count]) => `${message} (occurred ${count} times)`
-      ).join(", ");
-      throw new Error(`Error ${type} all peers: ${uniqueErrorMessages}`);
-    } else if (errors.length > 0) {
-      // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
-      log.warn(
-        `Some ${type} failed. These will be refreshed with new peers`,
-        errors
-      );
-    } else {
-      log.info(`${type} successful for all peers`);
+    for (const promiseResult of results) {
+      if (promiseResult.status === "rejected") {
+        log.error(
+          `Failed to resolve ${type} promise successfully: `,
+          promiseResult.reason
+        );
+        result.failures.push({ error: ProtocolError.GENERIC_FAIL });
+      } else {
+        const coreResult = promiseResult.value;
+        if (coreResult.failure) {
+          result.failures.push(coreResult.failure);
+        } else {
+          result.successes.push(coreResult.success);
+        }
+      }
     }
+
+    // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
+
+    return result;
   }
 }
 

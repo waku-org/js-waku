@@ -5,7 +5,8 @@ import type { ContentTopic, PubsubTopic } from "./misc.js";
 import type {
   Callback,
   IBaseProtocolCore,
-  IBaseProtocolSDK
+  IBaseProtocolSDK,
+  SDKProtocolResult
 } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
 
@@ -13,25 +14,25 @@ export type ContentFilter = {
   contentTopic: string;
 };
 
-export interface IFilterSubscription {
+export type IFilter = IReceiver & IBaseProtocolCore;
+
+export interface IFilterSubscriptionSDK {
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
-  ): Promise<void>;
+  ): Promise<SDKProtocolResult>;
 
-  unsubscribe(contentTopics: ContentTopic[]): Promise<void>;
+  unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult>;
 
-  ping(): Promise<void>;
+  ping(): Promise<SDKProtocolResult>;
 
-  unsubscribeAll(): Promise<void>;
+  unsubscribeAll(): Promise<SDKProtocolResult>;
 }
-
-export type IFilter = IReceiver & IBaseProtocolCore;
 
 export type IFilterSDK = IReceiver &
   IBaseProtocolSDK & { protocol: IBaseProtocolCore } & {
     createSubscription(
       pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic,
       peerId?: PeerId
-    ): Promise<IFilterSubscription>;
+    ): Promise<IFilterSubscriptionSDK>;
   };
