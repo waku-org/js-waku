@@ -1,7 +1,7 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import {
   DefaultPubsubTopic,
-  IFilterSubscription,
+  ISubscriptionSDK,
   LightNode,
   Protocols
 } from "@waku/interfaces";
@@ -43,12 +43,15 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
   let nwaku2: ServiceNode;
-  let subscription: IFilterSubscription;
+  let subscription: ISubscriptionSDK;
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
-    subscription = await waku.filter.createSubscription();
+    const { error, subscription: _subscription } =
+      await waku.filter.createSubscription();
+    if (!error) subscription = _subscription;
+
     messageCollector = new MessageCollector();
     await nwaku.ensureSubscriptions();
   });
@@ -439,7 +442,11 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
 
     // Create a second subscription on a different topic
-    const subscription2 = await waku.filter.createSubscription();
+    const { error, subscription: subscription2 } =
+      await waku.filter.createSubscription();
+    if (error) {
+      throw error;
+    }
     const newContentTopic = "/test/2/waku-filter";
     const newEncoder = createEncoder({ contentTopic: newContentTopic });
     const newDecoder = createDecoder(newContentTopic);
@@ -471,10 +478,11 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     });
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-    const subscription2 = await waku.filter.createSubscription(
-      undefined,
-      await nwaku2.getPeerId()
-    );
+    const { error, subscription: subscription2 } =
+      await waku.filter.createSubscription(undefined, await nwaku2.getPeerId());
+    if (error) {
+      throw error;
+    }
     await nwaku2.ensureSubscriptions([DefaultPubsubTopic]);
     // Send a message using the new subscription
     const newContentTopic = "/test/2/waku-filter";

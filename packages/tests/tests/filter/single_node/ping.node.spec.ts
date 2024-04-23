@@ -1,6 +1,6 @@
 import {
   DefaultPubsubTopic,
-  IFilterSubscription,
+  ISubscriptionSDK,
   LightNode
 } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
@@ -27,12 +27,14 @@ describe("Waku Filter V2: Ping", function () {
   this.timeout(10000);
   let waku: LightNode;
   let nwaku: ServiceNode;
-  let subscription: IFilterSubscription;
+  let subscription: ISubscriptionSDK;
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
-    subscription = await waku.filter.createSubscription();
+    const { error, subscription: _subscription } =
+      await waku.filter.createSubscription();
+    if (!error) subscription = _subscription;
     messageCollector = new MessageCollector();
   });
 

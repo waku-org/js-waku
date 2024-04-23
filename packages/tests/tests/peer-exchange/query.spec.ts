@@ -7,7 +7,7 @@ import {
   WakuPeerExchange,
   wakuPeerExchangeDiscovery
 } from "@waku/discovery";
-import type { LightNode, PeerExchangeResult } from "@waku/interfaces";
+import type { LightNode, PeerExchangeQueryResult } from "@waku/interfaces";
 import { createLightNode, Libp2pComponents, ProtocolError } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
@@ -38,7 +38,7 @@ describe("Peer Exchange Query", function () {
   let components: Libp2pComponents;
   let peerExchange: WakuPeerExchange;
   let numPeersToRequest: number;
-  let queryResult: PeerExchangeResult;
+  let queryResult: PeerExchangeQueryResult;
 
   beforeEachCustom(
     this,
@@ -99,7 +99,7 @@ describe("Peer Exchange Query", function () {
               peerId: nwaku3PeerId,
               numPeers: numPeersToRequest
             }),
-            new Promise<PeerExchangeResult>((resolve) =>
+            new Promise<PeerExchangeQueryResult>((resolve) =>
               setTimeout(
                 () =>
                   resolve({

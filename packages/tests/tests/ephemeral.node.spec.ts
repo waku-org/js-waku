@@ -4,7 +4,7 @@ import {
   DecodedMessage,
   waitForRemotePeer
 } from "@waku/core";
-import { IFilterSubscription, Protocols } from "@waku/interfaces";
+import { ISubscriptionSDK, Protocols } from "@waku/interfaces";
 import type { LightNode } from "@waku/interfaces";
 import {
   generatePrivateKey,
@@ -47,7 +47,7 @@ describe("Waku Message Ephemeral field", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  let subscription: IFilterSubscription;
+  let subscription: ISubscriptionSDK;
 
   afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
@@ -74,7 +74,9 @@ describe("Waku Message Ephemeral field", function () {
       Protocols.Store
     ]);
 
-    subscription = await waku.filter.createSubscription();
+    const { error, subscription: _subscription } =
+      await waku.filter.createSubscription();
+    if (!error) subscription = _subscription;
   });
 
   it("Ephemeral messages are not stored", async function () {

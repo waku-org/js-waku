@@ -1,7 +1,7 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import {
   DefaultPubsubTopic,
-  IFilterSubscription,
+  ISubscriptionSDK,
   LightNode
 } from "@waku/interfaces";
 import {
@@ -39,7 +39,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     this.timeout(100000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
-    let subscription: IFilterSubscription;
+    let subscription: ISubscriptionSDK;
 
     beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(
@@ -47,7 +47,12 @@ const runTests = (strictCheckNodes: boolean): void => {
         [DefaultPubsubTopic],
         strictCheckNodes
       );
-      subscription = await waku.filter.createSubscription();
+      const { error, subscription: _subscription } =
+        await waku.filter.createSubscription();
+
+      if (!error) {
+        subscription = _subscription;
+      }
     });
 
     afterEachCustom(this, async () => {
@@ -522,7 +527,11 @@ const runTests = (strictCheckNodes: boolean): void => {
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
 
       // Create a second subscription on a different topic
-      const subscription2 = await waku.filter.createSubscription();
+      const { error, subscription: subscription2 } =
+        await waku.filter.createSubscription();
+      if (error) {
+        throw error;
+      }
       const newContentTopic = "/test/2/waku-filter";
       const newEncoder = createEncoder({ contentTopic: newContentTopic });
       const newDecoder = createDecoder(newContentTopic);

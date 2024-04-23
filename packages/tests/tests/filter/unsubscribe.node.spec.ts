@@ -1,7 +1,7 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import {
   DefaultPubsubTopic,
-  IFilterSubscription,
+  ISubscriptionSDK,
   LightNode
 } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
@@ -30,13 +30,18 @@ const runTests = (strictCheckNodes: boolean): void => {
     this.timeout(10000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
-    let subscription: IFilterSubscription;
+    let subscription: ISubscriptionSDK;
 
     beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(this.ctx, [
         DefaultPubsubTopic
       ]);
-      subscription = await waku.filter.createSubscription();
+      const { error, subscription: _subscription } =
+        await waku.filter.createSubscription();
+
+      if (!error) {
+        subscription = _subscription;
+      }
     });
 
     afterEachCustom(this, async () => {

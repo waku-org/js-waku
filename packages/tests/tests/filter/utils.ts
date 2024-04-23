@@ -1,7 +1,7 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import {
   DefaultPubsubTopic,
-  IFilterSubscription,
+  ISubscriptionSDK,
   LightNode,
   ProtocolCreateOptions,
   Protocols,
@@ -34,7 +34,7 @@ export const messagePayload = { payload: utf8ToBytes(messageText) };
 
 // Utility to validate errors related to pings in the subscription.
 export async function validatePingError(
-  subscription: IFilterSubscription
+  subscription: ISubscriptionSDK
 ): Promise<void> {
   try {
     await subscription.ping();
