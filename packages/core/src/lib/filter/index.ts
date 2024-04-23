@@ -2,11 +2,11 @@ import type { Peer, Stream } from "@libp2p/interface";
 import type { IncomingStreamData } from "@libp2p/interface-internal";
 import {
   type ContentTopic,
+  CoreProtocolResult,
   type IBaseProtocolCore,
   type Libp2p,
   type ProtocolCreateOptions,
   ProtocolError,
-  type ProtocolRequestResult,
   type PubsubTopic
 } from "@waku/interfaces";
 import { WakuMessage } from "@waku/proto";
@@ -93,7 +93,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     pubsubTopic: PubsubTopic,
     peer: Peer,
     contentTopics: ContentTopic[]
-  ): Promise<ProtocolRequestResult> {
+  ): Promise<CoreProtocolResult> {
     const stream = await this.getStream(peer);
 
     const request = FilterSubscribeRpc.createSubscribeRequest(
@@ -145,7 +145,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     pubsubTopic: PubsubTopic,
     peer: Peer,
     contentTopics: ContentTopic[]
-  ): Promise<ProtocolRequestResult> {
+  ): Promise<CoreProtocolResult> {
     let stream: Stream | undefined;
     try {
       stream = await this.getStream(peer);
@@ -190,7 +190,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
   async unsubscribeAll(
     pubsubTopic: PubsubTopic,
     peer: Peer
-  ): Promise<ProtocolRequestResult> {
+  ): Promise<CoreProtocolResult> {
     const stream = await this.getStream(peer);
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(pubsubTopic);
@@ -235,7 +235,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     };
   }
 
-  async ping(peer: Peer): Promise<ProtocolRequestResult> {
+  async ping(peer: Peer): Promise<CoreProtocolResult> {
     let stream: Stream | undefined;
     try {
       stream = await this.getStream(peer);

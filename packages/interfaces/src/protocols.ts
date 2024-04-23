@@ -5,7 +5,7 @@ import type { Peer, PeerStore } from "@libp2p/interface";
 import type { ShardInfo } from "./enr.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
-import { PubsubTopic } from "./misc.js";
+import { PubsubTopic, ThisAndThat, ThisOrThat } from "./misc.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -101,27 +101,6 @@ export type Callback<T extends IDecodedMessage> = (
   msg: T
 ) => void | Promise<void>;
 
-// SK = success key name
-// SV = success value type
-// EK = error key name (default: "error")
-// EV = error value type (default: ProtocolError)
-export type ResultWithError<
-  SK extends string,
-  SV,
-  EK extends string = "error",
-  EV = ProtocolError
-> =
-  | ({
-      [key in SK]: SV;
-    } & {
-      [key in EK]: null;
-    })
-  | ({
-      [key in SK]: null;
-    } & {
-      [key in EK]: EV;
-    });
-
 export enum ProtocolError {
   /** Could not determine the origin of the fault. Best to check connectivity and try again */
   GENERIC_FAIL = "Generic error",
@@ -150,6 +129,11 @@ export enum ProtocolError {
    * Please ensure that the PubsubTopic is used when initializing the Waku node.
    */
   TOPIC_NOT_CONFIGURED = "Topic not configured",
+  /**
+   * The pubsub topic configured on the decoder does not match the pubsub topic setup on the protocol.
+   * Ensure that the pubsub topic used for decoder creation is the same as the one used for protocol.
+   */
+  TOPIC_DECODER_MISMATCH = "Topic decoder mismatch",
   /**
    * Failure to find a peer with suitable protocols. This may due to a connection issue.
    * Mitigation can be: retrying after a given time period, display connectivity issue
@@ -180,14 +164,16 @@ export interface Failure {
   peerId?: PeerId;
 }
 
-export interface SendResult {
-  failures?: Failure[];
-  successes: PeerId[];
-}
-
-export type ProtocolRequestResult = ResultWithError<
+export type CoreProtocolResult = ThisOrThat<
   "success",
   PeerId,
   "failure",
   Failure
+>;
+
+export type SDKProtocolResult = ThisAndThat<
+  "successes",
+  PeerId[],
+  "failures",
+  Failure[]
 >;
