@@ -105,7 +105,7 @@ export type Callback<T extends IDecodedMessage> = (
 // SV = success value type
 // EK = error key name (default: "error")
 // EV = error value type (default: ProtocolError)
-export type ProtocolResult<
+export type ResultWithError<
   SK extends string,
   SV,
   EK extends string = "error",
@@ -184,3 +184,10 @@ export interface SendResult {
   failures?: Failure[];
   successes: PeerId[];
 }
+
+export type ProtocolRequestResult = ResultWithError<
+  "success",
+  PeerId,
+  "failure",
+  Failure
+>;

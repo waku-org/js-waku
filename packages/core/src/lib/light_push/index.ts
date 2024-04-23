@@ -1,13 +1,13 @@
-import type { Peer, PeerId, Stream } from "@libp2p/interface";
+import type { Peer, Stream } from "@libp2p/interface";
 import {
-  Failure,
-  IBaseProtocolCore,
-  IEncoder,
-  IMessage,
-  Libp2p,
-  ProtocolCreateOptions,
+  type IBaseProtocolCore,
+  type IEncoder,
+  type IMessage,
+  type Libp2p,
+  type ProtocolCreateOptions,
   ProtocolError,
-  ProtocolResult
+  ProtocolRequestResult,
+  type ResultWithError
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
 import { isMessageSizeUnderCap } from "@waku/utils";
@@ -26,9 +26,7 @@ const log = new Logger("light-push");
 export const LightPushCodec = "/vac/waku/lightpush/2.0.0-beta1";
 export { PushResponse };
 
-type PreparePushMessageResult = ProtocolResult<"query", PushRpc>;
-
-type CoreSendResult = ProtocolResult<"success", PeerId, "failure", Failure>;
+type PreparePushMessageResult = ResultWithError<"query", PushRpc>;
 
 /**
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
@@ -84,7 +82,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
     encoder: IEncoder,
     message: IMessage,
     peer: Peer
-  ): Promise<CoreSendResult> {
+  ): Promise<ProtocolRequestResult> {
     const { query, error: preparationError } = await this.preparePushMessage(
       encoder,
       message
