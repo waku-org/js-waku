@@ -27,6 +27,10 @@ import {
 export const log = new Logger("test:filter");
 export const TestContentTopic = "/test/1/waku-filter/default";
 export const ClusterId = 2;
+export const TestShardInfo = {
+  contentTopics: [TestContentTopic],
+  clusterId: ClusterId
+};
 export const TestPubsubTopic = contentTopicToPubsubTopic(
   TestContentTopic,
   ClusterId

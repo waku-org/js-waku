@@ -1,14 +1,13 @@
 import { waitForRemotePeer } from "@waku/core";
 import {
   ContentTopicInfo,
-  DefaultPubsubTopic,
   LightNode,
   ProtocolCreateOptions,
   Protocols,
   ShardingParams
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { Logger } from "@waku/utils";
+import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
 import { Context } from "mocha";
 
 import {
@@ -21,11 +20,10 @@ export const log = new Logger("test:filter:single_node");
 
 export async function runNodes(
   context: Context,
-  //TODO: change this to use `ShardInfo` instead of `string[]`
-  pubsubTopics: string[],
-  shardInfo?: ShardingParams
+  shardInfo: ShardingParams
 ): Promise<[ServiceNode, LightNode]> {
   const nwaku = new ServiceNode(makeLogFileName(context));
+  const pubsubTopics = shardInfoToPubsubTopics(shardInfo);
 
   function isContentTopicInfo(info: ShardingParams): info is ContentTopicInfo {
     return (info as ContentTopicInfo).contentTopics !== undefined;
@@ -49,11 +47,7 @@ export async function runNodes(
   const waku_options: ProtocolCreateOptions = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-    pubsubTopics: shardInfo ? undefined : pubsubTopics,
-    ...((pubsubTopics.length !== 1 ||
-      pubsubTopics[0] !== DefaultPubsubTopic) && {
-      shardInfo: shardInfo
-    })
+    shardInfo
   };
 
   log.info("Starting js waku node with :", JSON.stringify(waku_options));

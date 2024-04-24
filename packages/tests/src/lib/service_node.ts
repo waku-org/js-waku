@@ -267,7 +267,7 @@ export class ServiceNode {
 
   async sendMessage(
     message: MessageRpcQuery,
-    pubsubTopic: string = DefaultPubsubTopic
+    pubsubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -276,7 +276,7 @@ export class ServiceNode {
     }
 
     return this.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(this.args?.pubsubTopic?.[0] || pubsubTopic || DefaultPubsubTopic)}`,
       "POST",
       message,
       async (response) => response.status === 200
