@@ -1,8 +1,4 @@
-import {
-  DefaultPubsubTopic,
-  IFilterSubscription,
-  LightNode
-} from "@waku/interfaces";
+import { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -18,11 +14,12 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder,
+  TestShardInfo,
   validatePingError
 } from "./utils";
 
 const runTests = (strictCheckNodes: boolean): void => {
-  describe(`Waku Filter V2: Ping: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {
+  describe.only(`Waku Filter V2: Ping: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
     this.timeout(10000);
     let waku: LightNode;
@@ -30,10 +27,8 @@ const runTests = (strictCheckNodes: boolean): void => {
     let subscription: IFilterSubscription;
 
     beforeEachCustom(this, async () => {
-      [serviceNodes, waku] = await runMultipleNodes(this.ctx, [
-        DefaultPubsubTopic
-      ]);
-      subscription = await waku.filter.createSubscription();
+      [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo);
+      subscription = await waku.filter.createSubscription(TestShardInfo);
     });
 
     afterEachCustom(this, async () => {
