@@ -48,6 +48,7 @@ export class ServiceNode {
   private websocketPort?: number;
   private readonly logPath: string;
   private restPort?: number;
+  private args?: Args;
 
   /**
    * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
@@ -166,6 +167,8 @@ export class ServiceNode {
             this.logPath,
             WAKU_SERVICE_NODE_PARAMS
           );
+
+          this.args = mergedArgs;
         } catch (error) {
           log.error("Nwaku node failed to start:", error);
           await this.stop();
@@ -237,11 +240,9 @@ export class ServiceNode {
     );
   }
 
-  async messages(
-    pubsubTopic: string = DefaultPubsubTopic
-  ): Promise<MessageRpcResponse[]> {
+  async messages(pubsubTopic?: string): Promise<MessageRpcResponse[]> {
     return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(this?.args?.pubsubTopic?.[0] || pubsubTopic || DefaultPubsubTopic)}`,
       "GET",
       null,
       async (response) => {

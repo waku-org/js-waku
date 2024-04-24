@@ -2,7 +2,6 @@ import { DecodedMessage } from "@waku/core";
 import {
   DefaultPubsubTopic,
   PubsubTopic,
-  ShardInfo,
   ShardingParams
 } from "@waku/interfaces";
 import { ensureShardingConfigured, Logger } from "@waku/utils";
@@ -28,7 +27,7 @@ export class ServiceNodesFleet {
     pubsubTopics: PubsubTopic[],
     nodesToCreate: number = 3,
     strictChecking: boolean = false,
-    shardInfo?: ShardInfo,
+    shardInfo?: ShardingParams,
     _args?: Args,
     withoutFilter = false
   ): Promise<ServiceNodesFleet> {
