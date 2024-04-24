@@ -33,7 +33,7 @@ import {
 
 import { runNodes } from "./utils.js";
 
-describe.only("Waku Filter V2: Subscribe: Single Service Node", function () {
+describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(10000);
   let waku: LightNode;
@@ -412,7 +412,7 @@ describe.only("Waku Filter V2: Subscribe: Single Service Node", function () {
     });
   });
 
-  it.only("Subscribe and receive messages from multiple nwaku nodes", async function () {
+  it("Subscribe and receive messages from multiple nwaku nodes", async function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
 
     // Set up and start a new nwaku node
