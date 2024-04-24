@@ -1,19 +1,18 @@
 import type { Peer } from "@libp2p/interface";
 import { FilterCore } from "@waku/core";
-import {
-  type Callback,
+import type {
+  Callback,
   ContentTopic,
-  DefaultPubsubTopic,
-  type IAsyncIterator,
-  type IDecodedMessage,
-  type IDecoder,
-  type IFilterSDK,
+  IAsyncIterator,
+  IDecodedMessage,
+  IDecoder,
+  IFilterSDK,
   IProtoMessage,
-  type Libp2p,
-  type ProtocolCreateOptions,
-  type PubsubTopic,
-  type SingleShardInfo,
-  type Unsubscribe
+  Libp2p,
+  ProtocolCreateOptions,
+  PubsubTopic,
+  ShardingParams,
+  Unsubscribe
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
@@ -21,7 +20,7 @@ import {
   ensurePubsubTopicIsConfigured,
   groupByContentTopic,
   Logger,
-  singleShardInfoToPubsubTopic,
+  shardInfoToPubsubTopics,
   toAsyncIterator
 } from "@waku/utils";
 
@@ -245,12 +244,12 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    * @returns The subscription object.
    */
   async createSubscription(
-    pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
+    pubsubTopicShardInfo: ShardingParams | PubsubTopic
   ): Promise<SubscriptionManager> {
     const pubsubTopic =
       typeof pubsubTopicShardInfo == "string"
         ? pubsubTopicShardInfo
-        : singleShardInfoToPubsubTopic(pubsubTopicShardInfo);
+        : shardInfoToPubsubTopics(pubsubTopicShardInfo)?.[0];
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
