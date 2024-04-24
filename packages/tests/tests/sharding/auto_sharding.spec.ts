@@ -14,10 +14,8 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
-  isNwakuAtLeast,
   makeLogFileName,
   MessageCollector,
-  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
@@ -27,16 +25,10 @@ const ContentTopic2 = "/myapp/1/latest/proto";
 
 describe("Autosharding: Running Nodes", function () {
   this.timeout(50000);
-  const clusterId = resolveAutoshardingCluster(10);
+  const clusterId = 10;
   let waku: LightNode;
   let nwaku: ServiceNode;
   let messageCollector: MessageCollector;
-
-  before(async () => {
-    if (!isNwakuAtLeast("0.27.0")) {
-      this.ctx.skip();
-    }
-  });
 
   beforeEachCustom(this, async () => {
     nwaku = new ServiceNode(makeLogFileName(this.ctx));
@@ -48,88 +40,6 @@ describe("Autosharding: Running Nodes", function () {
   });
 
   describe("Different clusters and topics", function () {
-    // js-waku allows autosharding for cluster IDs different than 1
-    // we have 2 dedicated tests for this case
-    it("Cluster ID 0 - Default/Global Cluster", async function () {
-      const clusterId = 0;
-      const pubsubTopics = [contentTopicToPubsubTopic(ContentTopic, clusterId)];
-      await nwaku.start({
-        store: true,
-        lightpush: true,
-        relay: true,
-        clusterId: clusterId,
-        pubsubTopic: pubsubTopics
-      });
-
-      waku = await createLightNode({
-        shardInfo: {
-          clusterId: clusterId,
-          contentTopics: [ContentTopic]
-        }
-      });
-      await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.LightPush]);
-
-      const encoder = createEncoder({
-        contentTopic: ContentTopic,
-        pubsubTopicShardInfo: {
-          clusterId: clusterId,
-          shard: contentTopicToShardIndex(ContentTopic)
-        }
-      });
-
-      const request = await waku.lightPush.send(encoder, {
-        payload: utf8ToBytes("Hello World")
-      });
-
-      expect(request.successes.length).to.eq(1);
-      expect(
-        await messageCollector.waitForMessagesAutosharding(1, {
-          contentTopic: ContentTopic
-        })
-      ).to.eq(true);
-    });
-
-    it("Non Autosharding Cluster", async function () {
-      const clusterId = 5;
-      const pubsubTopics = [contentTopicToPubsubTopic(ContentTopic, clusterId)];
-      await nwaku.start({
-        store: true,
-        lightpush: true,
-        relay: true,
-        clusterId: clusterId,
-        pubsubTopic: pubsubTopics
-      });
-
-      waku = await createLightNode({
-        shardInfo: {
-          clusterId: clusterId,
-          contentTopics: [ContentTopic]
-        }
-      });
-      await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.LightPush]);
-
-      const encoder = createEncoder({
-        contentTopic: ContentTopic,
-        pubsubTopicShardInfo: {
-          clusterId: clusterId,
-          shard: contentTopicToShardIndex(ContentTopic)
-        }
-      });
-
-      const request = await waku.lightPush.send(encoder, {
-        payload: utf8ToBytes("Hello World")
-      });
-
-      expect(request.successes.length).to.eq(1);
-      expect(
-        await messageCollector.waitForMessagesAutosharding(1, {
-          contentTopic: ContentTopic
-        })
-      ).to.eq(true);
-    });
-
     const numTest = 10;
     for (let i = 0; i < numTest; i++) {
       // Random ContentTopic

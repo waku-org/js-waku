@@ -19,10 +19,8 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
-  isNwakuAtLeast,
   makeLogFileName,
   MessageCollector,
-  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../../../src/index.js";
@@ -188,7 +186,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
 describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(30000);
-  const clusterId = resolveAutoshardingCluster(3);
+  const clusterId = 3;
   let waku: LightNode;
   let nwaku: ServiceNode;
   let nwaku2: ServiceNode;
@@ -230,12 +228,6 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   const customDecoder2 = createDecoder(customContentTopic2, {
     clusterId: clusterId,
     shard: contentTopicToShardIndex(customContentTopic2)
-  });
-
-  before(async () => {
-    if (!isNwakuAtLeast("0.27.0")) {
-      this.ctx.skip();
-    }
   });
 
   beforeEachCustom(this, async () => {
