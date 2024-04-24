@@ -69,6 +69,8 @@ describe("Static Sharding: Running Nodes", function () {
         pubsubTopic: shardInfoToPubsubTopics(shardInfo)
       });
 
+      await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
+
       waku = await createLightNode({
         shardInfo: shardInfo
       });
