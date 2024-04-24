@@ -21,9 +21,7 @@ import {
   afterEachCustom,
   beforeEachCustom,
   delay,
-  isNwakuAtLeast,
   makeLogFileName,
-  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../src/index.js";
@@ -33,13 +31,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
   let serviceNode1: ServiceNode;
   let serviceNode2: ServiceNode;
   const contentTopic = "/test/2/waku-light-push/utf8";
-  const autoshardingClusterId = resolveAutoshardingCluster(6);
-
-  before(async () => {
-    if (!isNwakuAtLeast("0.27.0")) {
-      this.ctx.skip();
-    }
-  });
+  const autoshardingClusterId = 6;
 
   beforeEachCustom(this, async () => {
     serviceNode1 = new ServiceNode(makeLogFileName(this.ctx) + "1");

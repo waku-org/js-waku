@@ -19,7 +19,6 @@ import {
   beforeEachCustom,
   delay,
   generateTestData,
-  isNwakuAtLeast,
   ServiceNodesFleet,
   TEST_STRING
 } from "../../src/index.js";
@@ -271,58 +270,8 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
-      let topicCount: number;
-      if (isNwakuAtLeast("0.25.0")) {
-        this.timeout(50000);
-        topicCount = 100;
-      } else {
-        // skipping for old versions where the limit is 30
-        this.skip();
-      }
-      const td = generateTestData(topicCount);
-
-      await subscription.subscribe(
-        td.decoders,
-        serviceNodes.messageCollector.callback
-      );
-
-      // Send a unique message on each topic.
-      for (let i = 0; i < topicCount; i++) {
-        await waku.lightPush.send(td.encoders[i], {
-          payload: utf8ToBytes(`Message for Topic ${i + 1}`)
-        });
-      }
-
-      // Open issue here: https://github.com/waku-org/js-waku/issues/1790
-      // That's why we use the try catch block
-      try {
-        // Verify that each message was received on the corresponding topic.
-        expect(
-          await serviceNodes.messageCollector.waitForMessages(topicCount)
-        ).to.eq(true);
-        td.contentTopics.forEach((topic, index) => {
-          serviceNodes.messageCollector.verifyReceivedMessage(index, {
-            expectedContentTopic: topic,
-            expectedMessageText: `Message for Topic ${index + 1}`
-          });
-        });
-      } catch (error) {
-        console.warn(
-          "This test still fails because of https://github.com/waku-org/js-waku/issues/1790"
-        );
-      }
-    });
-
-    //TODO: remove test when WAKUNODE_IMAGE is 0.25.0
-    it("Subscribe to 30 topics (old limit) at once and receives messages", async function () {
-      let topicCount: number;
-      if (isNwakuAtLeast("0.25.0")) {
-        // skipping for new versions where the new limit is 100
-        this.skip();
-      } else {
-        topicCount = 30;
-      }
-
+      this.timeout(50000);
+      const topicCount = 100;
       const td = generateTestData(topicCount);
 
       await subscription.subscribe(
@@ -358,46 +307,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Error when try to subscribe to more than 101 topics (new limit)", async function () {
-      let topicCount: number;
-      if (isNwakuAtLeast("0.25.0")) {
-        topicCount = 101;
-      } else {
-        // skipping for old versions where the limit is 30
-        this.skip();
-      }
-      const td = generateTestData(topicCount);
-
-      try {
-        await subscription.subscribe(
-          td.decoders,
-          serviceNodes.messageCollector.callback
-        );
-        throw new Error(
-          `Subscribe to ${topicCount} topics was successful but was expected to fail with a specific error.`
-        );
-      } catch (err) {
-        if (
-          err instanceof Error &&
-          err.message.includes(
-            `exceeds maximum content topics: ${topicCount - 1}`
-          )
-        ) {
-          return;
-        } else {
-          throw err;
-        }
-      }
-    });
-
-    //TODO: remove test when WAKUNODE_IMAGE is 0.25.0
-    it("Error when try to subscribe to more than 31 topics (old limit)", async function () {
-      let topicCount: number;
-      if (isNwakuAtLeast("0.25.0")) {
-        // skipping for new versions where the new limit is 100
-        this.skip();
-      } else {
-        topicCount = 31;
-      }
+      const topicCount = 101;
       const td = generateTestData(topicCount);
 
       try {
