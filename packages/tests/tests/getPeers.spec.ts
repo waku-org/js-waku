@@ -20,6 +20,7 @@ import Sinon from "sinon";
 import {
   afterEachCustom,
   beforeEachCustom,
+  delay,
   isNwakuAtLeast,
   makeLogFileName,
   resolveAutoshardingCluster,
@@ -170,6 +171,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
+    await delay(500);
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
 
     await waku.start();
@@ -223,6 +225,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNodeMa1, LightPushCodec);
+    await delay(500);
     await waku.libp2p.dialProtocol(serviceNodeMa2, LightPushCodec);
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
@@ -362,6 +365,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
+    await delay(500);
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
 
     await waku.start();
@@ -416,6 +420,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNodeMa1, LightPushCodec);
+    await delay(500);
     await waku.libp2p.dialProtocol(serviceNodeMa2, LightPushCodec);
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
