@@ -22,10 +22,14 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder,
+  TestExpectOptions,
+  TestPubsubTopic,
+  TestShardInfo,
+  TestWaitMessageOptions,
   waitForAllRemotePeers
 } from "./utils.js";
 
-describe("Waku Relay, Publish", function () {
+describe.only("Waku Relay, Publish", function () {
   this.timeout(15000);
   let waku1: RelayNode;
   let waku2: RelayNode;
@@ -35,10 +39,12 @@ describe("Waku Relay, Publish", function () {
     log.info("Starting JS Waku instances");
     [waku1, waku2] = await Promise.all([
       createRelayNode({
-        staticNoiseKey: NOISE_KEY_1
+        staticNoiseKey: NOISE_KEY_1,
+        shardInfo: TestShardInfo
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
+        shardInfo: TestShardInfo,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
     ]);
@@ -66,10 +72,12 @@ describe("Waku Relay, Publish", function () {
       expect(pushResponse.successes[0].toString()).to.eq(
         waku2.libp2p.peerId.toString()
       );
-      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      expect(
+        await messageCollector.waitForMessages(1, TestWaitMessageOptions)
+      ).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
-        expectedMessageText: testItem.value,
-        expectedContentTopic: TestContentTopic
+        ...TestExpectOptions,
+        expectedMessageText: testItem.value
       });
     });
   });
@@ -91,11 +99,13 @@ describe("Waku Relay, Publish", function () {
         waku2.libp2p.peerId.toString()
       );
 
-      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      expect(
+        await messageCollector.waitForMessages(1, TestWaitMessageOptions)
+      ).to.eq(true);
 
       messageCollector.verifyReceivedMessage(0, {
+        ...TestExpectOptions,
         expectedMessageText: messageText,
-        expectedContentTopic: TestContentTopic,
         expectedTimestamp: testItem.valueOf()
       });
     });
@@ -115,20 +125,30 @@ describe("Waku Relay, Publish", function () {
   it("Fails to publish message with empty text", async function () {
     await waku1.relay.send(TestEncoder, { payload: utf8ToBytes("") });
     await delay(400);
-    expect(await messageCollector.waitForMessages(1)).to.eq(false);
+    expect(
+      await messageCollector.waitForMessages(1, TestWaitMessageOptions)
+    ).to.eq(false);
   });
 
   it("Fails to publish message with wrong content topic", async function () {
-    const wrong_encoder = createEncoder({ contentTopic: "wrong" });
+    const wrong_encoder = createEncoder({
+      contentTopic: "/test/1/wrong/utf8",
+      pubsubTopic: TestPubsubTopic
+    });
     await waku1.relay.send(wrong_encoder, {
       payload: utf8ToBytes("")
     });
-    expect(await messageCollector.waitForMessages(1)).to.eq(false);
+    expect(
+      await messageCollector.waitForMessages(1, TestWaitMessageOptions)
+    ).to.eq(false);
   });
 
   it("Fails to publish message with wrong pubsubtopic", async function () {
     const wrong_encoder = createEncoder({
-      pubsubTopicShardInfo: { clusterId: 3, shard: 1 },
+      pubsubTopicShardInfo: {
+        clusterId: TestShardInfo.clusterId,
+        shard: TestShardInfo.shards[0] + 1
+      },
       contentTopic: TestContentTopic
     });
     const pushResponse = await waku1.relay.send(wrong_encoder, {
@@ -138,7 +158,9 @@ describe("Waku Relay, Publish", function () {
       ProtocolError.TOPIC_NOT_CONFIGURED
     );
     await delay(400);
-    expect(await messageCollector.waitForMessages(1)).to.eq(false);
+    expect(
+      await messageCollector.waitForMessages(1, TestWaitMessageOptions)
+    ).to.eq(false);
   });
 
   [1024 ** 2 + 65536, 2 * 1024 ** 2].forEach((testItem) => {
@@ -151,7 +173,9 @@ describe("Waku Relay, Publish", function () {
         ProtocolError.SIZE_TOO_BIG
       );
       await delay(400);
-      expect(await messageCollector.waitForMessages(1)).to.eq(false);
+      expect(
+        await messageCollector.waitForMessages(1, TestWaitMessageOptions)
+      ).to.eq(false);
     });
   });
 
@@ -177,7 +201,9 @@ describe("Waku Relay, Publish", function () {
     expect(pushResponse.successes[0].toString()).to.eq(
       waku2.libp2p.peerId.toString()
     );
-    expect(await messageCollector.waitForMessages(2)).to.eq(true);
+    expect(
+      await messageCollector.waitForMessages(2, TestWaitMessageOptions)
+    ).to.eq(true);
   });
 
   // Will be skipped until https://github.com/waku-org/js-waku/issues/1464 si done
@@ -202,12 +228,15 @@ describe("Waku Relay, Publish", function () {
     expect(pushResponse.successes[0].toString()).to.eq(
       waku2.libp2p.peerId.toString()
     );
-    expect(await messageCollector.waitForMessages(2)).to.eq(true);
+    expect(
+      await messageCollector.waitForMessages(2, TestWaitMessageOptions)
+    ).to.eq(true);
   });
 
   it("Publish message with large meta", async function () {
     const customTestEncoder = createEncoder({
       contentTopic: TestContentTopic,
+      pubsubTopic: TestPubsubTopic,
       metaSetter: () => new Uint8Array(10 ** 6)
     });
 
@@ -218,7 +247,9 @@ describe("Waku Relay, Publish", function () {
     expect(pushResponse.successes[0].toString()).to.eq(
       waku2.libp2p.peerId.toString()
     );
-    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    expect(
+      await messageCollector.waitForMessages(1, TestWaitMessageOptions)
+    ).to.eq(true);
   });
 
   it("Publish message with rate limit", async function () {
@@ -238,10 +269,12 @@ describe("Waku Relay, Publish", function () {
     });
     expect(pushResponse.successes.length).to.eq(1);
 
-    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    expect(
+      await messageCollector.waitForMessages(1, TestWaitMessageOptions)
+    ).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
-      expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic
+      ...TestExpectOptions,
+      expectedMessageText: messageText
     });
   });
 });
