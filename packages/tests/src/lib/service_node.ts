@@ -351,6 +351,10 @@ export class ServiceNode {
     return `http://127.0.0.1:${this.restPort}`;
   }
 
+  get pubsubTopics(): string[] {
+    return this.args?.pubsubTopic ?? [];
+  }
+
   async restCall<T>(
     endpoint: string,
     method: "GET" | "POST",
