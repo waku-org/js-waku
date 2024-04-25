@@ -1,6 +1,5 @@
 import { createEncoder } from "@waku/core";
 import { IRateLimitProof, ProtocolError, RelayNode } from "@waku/interfaces";
-import { createRelayNode } from "@waku/sdk/relay";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -10,15 +9,13 @@ import {
   delay,
   generateRandomUint8Array,
   MessageCollector,
-  NOISE_KEY_1,
-  NOISE_KEY_2,
   tearDownNodes,
   TEST_STRING
 } from "../../src/index.js";
 
 import {
-  log,
   messageText,
+  runNodes,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
@@ -29,32 +26,14 @@ import {
   waitForAllRemotePeers
 } from "./utils.js";
 
-describe.only("Waku Relay, Publish", function () {
+describe("Waku Relay, Publish", function () {
   this.timeout(15000);
   let waku1: RelayNode;
   let waku2: RelayNode;
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
-    log.info("Starting JS Waku instances");
-    [waku1, waku2] = await Promise.all([
-      createRelayNode({
-        staticNoiseKey: NOISE_KEY_1,
-        shardInfo: TestShardInfo
-      }).then((waku) => waku.start().then(() => waku)),
-      createRelayNode({
-        staticNoiseKey: NOISE_KEY_2,
-        shardInfo: TestShardInfo,
-        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-      }).then((waku) => waku.start().then(() => waku))
-    ]);
-    log.info("Instances started, adding waku2 to waku1's address book");
-    await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
-      multiaddrs: waku2.libp2p.getMultiaddrs()
-    });
-    await waku1.dial(waku2.libp2p.peerId);
-    log.info("before each hook done");
-    await waitForAllRemotePeers(waku1, waku2);
+    [waku1, waku2] = await runNodes();
     messageCollector = new MessageCollector();
     await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
   });

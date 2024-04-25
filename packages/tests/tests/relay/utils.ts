@@ -1,6 +1,9 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import { Protocols, RelayNode, ShardInfo } from "@waku/interfaces";
+import { createRelayNode } from "@waku/sdk/relay";
 import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
+
+import { NOISE_KEY_1, NOISE_KEY_2 } from "../../src/index.js";
 
 export const messageText = "Relay works!";
 export const TestContentTopic = "/test/1/waku-relay/utf8";
@@ -29,6 +32,32 @@ export async function waitForAllRemotePeers(
 ): Promise<void> {
   log.info("Wait for mutual pubsub subscription");
   await Promise.all(
-    nodes.map((node) => waitForRemotePeer(node, [Protocols.Relay]))
+    nodes.map(
+      (node): Promise<void> => waitForRemotePeer(node, [Protocols.Relay])
+    )
   );
+}
+
+export async function runNodes(): Promise<[RelayNode, RelayNode]> {
+  log.info("Starting JS Waku instances");
+  const [waku1, waku2] = await Promise.all([
+    createRelayNode({
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: TestShardInfo
+    }).then((waku) => waku.start().then(() => waku)),
+    createRelayNode({
+      staticNoiseKey: NOISE_KEY_2,
+      shardInfo: TestShardInfo,
+      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+    }).then((waku) => waku.start().then(() => waku))
+  ]);
+  log.info("Instances started, adding waku2 to waku1's address book");
+  await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
+    multiaddrs: waku2.libp2p.getMultiaddrs()
+  });
+  await waku1.dial(waku2.libp2p.peerId);
+  log.info("before each hook done");
+  await waitForAllRemotePeers(waku1, waku2);
+
+  return [waku1, waku2];
 }
