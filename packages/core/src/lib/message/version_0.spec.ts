@@ -137,3 +137,27 @@ describe("Ensures content topic is defined", () => {
     expect(wrapper).to.throw("Content topic must be specified");
   });
 });
+
+describe("Sets sharding configuration correctly", () => {
+  it("uses static shard pubsub topic instead of autosharding when set", async () => {
+    // Create an encoder setup to use autosharding
+    const ContentTopic = "/waku/2/content/test.js";
+    const autoshardingEncoder = createEncoder({
+      pubsubTopicShardInfo: { clusterId: 0 },
+      contentTopic: ContentTopic
+    });
+
+    // When autosharding is enabled, we expect the shard index to be 1
+    expect(autoshardingEncoder.pubsubTopic).to.be.eq("/waku/2/rs/0/1");
+
+    // Create an encoder setup to use static sharding with the same content topic
+    const singleShardInfo = { clusterId: 0, shard: 0 };
+    const staticshardingEncoder = createEncoder({
+      contentTopic: ContentTopic,
+      pubsubTopicShardInfo: singleShardInfo
+    });
+
+    // When static sharding is enabled, we expect the shard index to be 0
+    expect(staticshardingEncoder.pubsubTopic).to.be.eq("/waku/2/rs/0/0");
+  });
+});

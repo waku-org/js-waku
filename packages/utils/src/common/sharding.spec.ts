@@ -409,7 +409,7 @@ describe("determinePubsubTopic", () => {
 
   it("should process correctly when SingleShardInfo has no clusterId but has a shard", () => {
     const info = { shard: 0 };
-    const expectedTopic = `/waku/2/rs/${DEFAULT_CLUSTER_ID}/6`;
+    const expectedTopic = `/waku/2/rs/${DEFAULT_CLUSTER_ID}/0`;
     expect(determinePubsubTopic(contentTopic, info as any)).to.equal(
       expectedTopic
     );
