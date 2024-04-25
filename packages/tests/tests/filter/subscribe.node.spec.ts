@@ -32,7 +32,7 @@ import {
 } from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
-  describe.only(`Waku Filter V2: Subscribe: Multiple Service Nodes: Strict Check mode: ${strictCheckNodes}`, function () {
+  describe(`Waku Filter V2: Subscribe: Multiple Service Nodes: Strict Check mode: ${strictCheckNodes}`, function () {
     this.timeout(100000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
@@ -152,14 +152,15 @@ const runTests = (strictCheckNodes: boolean): void => {
         contentTopic: TestContentTopic,
         payload: utf8ToBytes(messageText)
       });
-      await serviceNodes.sendRelayMessage(relayMessage);
+      await serviceNodes.sendRelayMessage(relayMessage, TestPubsubTopic);
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         true
       );
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
 
       await serviceNodes.confirmMessageLength(1);
