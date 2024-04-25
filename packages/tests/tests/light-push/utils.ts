@@ -7,14 +7,26 @@ import {
   ShardingParams
 } from "@waku/interfaces";
 import { createLightNode, utf8ToBytes } from "@waku/sdk";
-import { Logger } from "@waku/utils";
+import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
 
 import { makeLogFileName, NOISE_KEY_1, ServiceNode } from "../../src/index.js";
 
 // Constants for test configuration.
 export const log = new Logger("test:lightpush");
 export const TestContentTopic = "/test/1/waku-light-push/utf8";
-export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
+export const ClusterId = 3;
+export const TestPubsubTopic = contentTopicToPubsubTopic(
+  TestContentTopic,
+  ClusterId
+);
+export const TestShardInfo = {
+  contentTopics: [TestContentTopic],
+  clusterId: ClusterId
+};
+export const TestEncoder = createEncoder({
+  contentTopic: TestContentTopic,
+  pubsubTopic: TestPubsubTopic
+});
 export const messageText = "Light Push works!";
 export const messagePayload = { payload: utf8ToBytes(messageText) };
 
