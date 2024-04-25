@@ -238,7 +238,7 @@ export function determinePubsubTopic(
     ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
     : contentTopicToPubsubTopic(
         contentTopic,
-        pubsubTopicShardInfo?.clusterId || DEFAULT_CLUSTER_ID
+        pubsubTopicShardInfo?.clusterId ?? DEFAULT_CLUSTER_ID
       );
 }
 
