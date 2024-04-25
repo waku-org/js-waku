@@ -242,7 +242,7 @@ export class ServiceNode {
 
   async messages(pubsubTopic?: string): Promise<MessageRpcResponse[]> {
     return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/messages/${encodeURIComponent(this?.args?.pubsubTopic?.[0] || pubsubTopic || DefaultPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this?.args?.pubsubTopic?.[0] || DefaultPubsubTopic)}`,
       "GET",
       null,
       async (response) => {
