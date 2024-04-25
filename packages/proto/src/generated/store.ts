@@ -377,14 +377,14 @@ export namespace HistoryResponse {
   export enum HistoryError {
     NONE = 'NONE',
     INVALID_CURSOR = 'INVALID_CURSOR',
-    TOO_MANY_RESULTS = 'TOO_MANY_RESULTS',
+    TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
     SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE'
   }
 
   enum __HistoryErrorValues {
     NONE = 0,
     INVALID_CURSOR = 1,
-    TOO_MANY_RESULTS = 429,
+    TOO_MANY_REQUESTS = 429,
     SERVICE_UNAVAILABLE = 503
   }
 

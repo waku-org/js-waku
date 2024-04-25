@@ -12,10 +12,9 @@ import { concat, utf8ToBytes } from "../bytes/index.js";
 export const singleShardInfoToPubsubTopic = (
   shardInfo: SingleShardInfo
 ): PubsubTopic => {
-  if (shardInfo.clusterId === undefined || shardInfo.shard === undefined)
-    throw new Error("Invalid shard");
+  if (shardInfo.shard === undefined) throw new Error("Invalid shard");
 
-  return `/waku/2/rs/${shardInfo.clusterId}/${shardInfo.shard}`;
+  return `/waku/2/rs/${shardInfo.clusterId ?? DEFAULT_CLUSTER_ID}/${shardInfo.shard}`;
 };
 
 export const singleShardInfosToShardInfo = (
@@ -235,7 +234,7 @@ export function determinePubsubTopic(
     return pubsubTopicShardInfo;
   }
 
-  return pubsubTopicShardInfo?.shard
+  return pubsubTopicShardInfo?.shard !== undefined
     ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
     : contentTopicToPubsubTopic(
         contentTopic,
@@ -302,7 +301,7 @@ export const ensureShardingConfigured = (
       shardingParams: { clusterId, application, version },
       shardInfo: {
         clusterId,
-        shards: [pubsubTopicToSingleShardInfo(pubsubTopic).shard]
+        shards: [pubsubTopicToSingleShardInfo(pubsubTopic).shard!]
       },
       pubsubTopics: [pubsubTopic]
     };
