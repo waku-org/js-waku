@@ -23,20 +23,19 @@ import {
 
 import { BaseProtocolSDK } from "../base_protocol";
 
-import type { Subscription } from "./subscription";
-import { SubscriptionManager } from "./subscription_manager";
+import { Subscription } from "./subscription";
 
 const log = new Logger("sdk:filter");
 
 class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
   public readonly protocol: FilterCore;
-  public readonly subscriptionManager: SubscriptionManager;
+  private subscriptions: Map<string, Subscription>;
 
   private async handleIncomingMessage(
     pubsubTopic: PubsubTopic,
     wakuMessage: WakuMessage
   ): Promise<void> {
-    const subscription = this.subscriptionManager.getSubscription(pubsubTopic);
+    const subscription = this.getSubscription(pubsubTopic);
     if (!subscription) {
       log.error(`No subscription locally registered for topic ${pubsubTopic}`);
       return;
@@ -52,17 +51,44 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
       libp2p,
       options
     );
-    this.subscriptionManager = SubscriptionManager.createInstance(
-      this.protocol
-    );
+    this.subscriptions = new Map();
   }
 
-  /**
-   * Creates a new subscription to the given pubsub topic.
-   * The subscription is made to multiple peers for decentralization.
-   * @param pubsubTopicShardInfo The pubsub topic to subscribe to.
-   * @returns The subscription object.
-   */
+  private getSubscription(pubsubTopic: PubsubTopic): Subscription | undefined {
+    return this.subscriptions.get(pubsubTopic);
+  }
+
+  private setSubscription(
+    pubsubTopic: PubsubTopic,
+    subscription: Subscription
+  ): Subscription {
+    this.subscriptions.set(pubsubTopic, subscription);
+    return subscription;
+  }
+
+  private async getOrCreateSubscription(
+    pubsubTopic: PubsubTopic
+  ): Promise<Subscription> {
+    const subscription = this.getSubscription(pubsubTopic);
+    if (subscription) {
+      return subscription;
+    }
+
+    log.info("Creating filter subscription.");
+
+    const peers = await this.protocol.getPeers();
+    if (peers.length === 0) {
+      throw new Error("No peer found to initiate subscription.");
+    }
+    log.info(
+      `Created filter subscription with ${peers.length} peers: `,
+      peers.map((peer) => peer.id.toString())
+    );
+
+    const newSubscription = new Subscription(pubsubTopic, peers, this.protocol);
+    return this.setSubscription(pubsubTopic, newSubscription);
+  }
+
   async createSubscription(
     pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
   ): Promise<Subscription> {
@@ -73,25 +99,9 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
-    return this.subscriptionManager.getOrCreate(pubsubTopic);
+    return this.getOrCreateSubscription(pubsubTopic);
   }
 
-  //TODO: remove this dependency on IReceiver
-  /**
-   * This method is used to satisfy the `IReceiver` interface.
-   *
-   * @hidden
-   *
-   * @param decoders The decoders to use for the subscription.
-   * @param callback The callback function to use for the subscription.
-   * @param opts Optional protocol options for the subscription.
-   *
-   * @returns A Promise that resolves to a function that unsubscribes from the subscription.
-   *
-   * @remarks
-   * This method should not be used directly.
-   * Instead, use `createSubscription` to create a new subscription.
-   */
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
