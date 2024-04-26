@@ -1,23 +1,22 @@
 import { DecodedMessage } from "@waku/core";
 import type { LightNode } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
 import { bytesToUtf8 } from "@waku/utils/bytes";
 import { expect } from "chai";
 
 import {
   afterEachCustom,
   beforeEachCustom,
-  makeLogFileName,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
 
 import {
-  customShardedPubsubTopic1,
+  runStoreNodes,
   sendMessages,
   startAndConnectLightNode,
-  TestContentTopic,
   TestDecoder,
+  TestDecoder2,
+  TestShardInfo,
   totalMsgs
 } from "./utils.js";
 
@@ -28,9 +27,7 @@ describe("Waku Store, cursor", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    nwaku = new ServiceNode(makeLogFileName(this.ctx));
-    await nwaku.start({ store: true, lightpush: true, relay: true });
-    await nwaku.ensureSubscriptions();
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
   });
 
   afterEachCustom(this, async () => {
@@ -49,10 +46,9 @@ describe("Waku Store, cursor", function () {
       await sendMessages(
         nwaku,
         messageCount,
-        TestContentTopic,
-        DefaultPubsubTopic
+        TestDecoder.contentTopic,
+        TestDecoder.pubsubTopic
       );
-      waku = await startAndConnectLightNode(nwaku);
 
       // messages in reversed order (first message at last index)
       const messages: DecodedMessage[] = [];
@@ -95,9 +91,13 @@ describe("Waku Store, cursor", function () {
   });
 
   it("Reusing cursor across nodes", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
-    waku = await startAndConnectLightNode(nwaku);
-    waku2 = await startAndConnectLightNode(nwaku);
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      TestDecoder.contentTopic,
+      TestDecoder.pubsubTopic
+    );
+    waku2 = await startAndConnectLightNode(nwaku, TestShardInfo);
 
     // messages in reversed order (first message at last index)
     const messages: DecodedMessage[] = [];
@@ -133,8 +133,12 @@ describe("Waku Store, cursor", function () {
   });
 
   it("Passing cursor with wrong message digest", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
-    waku = await startAndConnectLightNode(nwaku);
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      TestDecoder.contentTopic,
+      TestDecoder.pubsubTopic
+    );
 
     const messages: DecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder])) {
@@ -175,8 +179,12 @@ describe("Waku Store, cursor", function () {
   });
 
   it("Passing cursor with wrong pubsubTopic", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
-    waku = await startAndConnectLightNode(nwaku);
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      TestDecoder.contentTopic,
+      TestDecoder.pubsubTopic
+    );
 
     const messages: DecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder])) {
@@ -184,7 +192,7 @@ describe("Waku Store, cursor", function () {
         messages.push(msg as DecodedMessage);
       }
     }
-    messages[5].pubsubTopic = customShardedPubsubTopic1;
+    messages[5].pubsubTopic = TestDecoder2.pubsubTopic;
     const cursor = waku.store.createCursor(messages[5]);
 
     try {
@@ -198,7 +206,7 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Cursor pubsub topic (${customShardedPubsubTopic1}) does not match decoder pubsub topic (${DefaultPubsubTopic})`
+          `Cursor pubsub topic (${TestDecoder2.pubsubTopic}) does not match decoder pubsub topic (${TestDecoder.pubsubTopic})`
         )
       ) {
         throw err;

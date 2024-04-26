@@ -41,6 +41,7 @@ export async function runNodes<T>(
       filter: true,
       lightpush: true,
       relay: true,
+      store: true,
       pubsubTopic: pubsubTopics,
       // Conditionally include clusterId if shardInfo exists
       ...(shardInfo && { clusterId: shardInfo.clusterId }),

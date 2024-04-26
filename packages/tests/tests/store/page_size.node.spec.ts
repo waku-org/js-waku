@@ -1,20 +1,18 @@
-import { DefaultPubsubTopic } from "@waku/interfaces";
 import type { LightNode } from "@waku/interfaces";
 import { expect } from "chai";
 
 import {
   afterEachCustom,
   beforeEachCustom,
-  makeLogFileName,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
 
 import {
+  runStoreNodes,
   sendMessages,
-  startAndConnectLightNode,
-  TestContentTopic,
-  TestDecoder
+  TestDecoder,
+  TestShardInfo
 } from "./utils.js";
 
 describe("Waku Store, page size", function () {
@@ -23,9 +21,7 @@ describe("Waku Store, page size", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    nwaku = new ServiceNode(makeLogFileName(this.ctx));
-    await nwaku.start({ store: true, lightpush: true, relay: true });
-    await nwaku.ensureSubscriptions();
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
   });
 
   afterEachCustom(this, async () => {
@@ -45,8 +41,8 @@ describe("Waku Store, page size", function () {
       await sendMessages(
         nwaku,
         messageCount,
-        TestContentTopic,
-        DefaultPubsubTopic
+        TestDecoder.contentTopic,
+        TestDecoder.pubsubTopic
       );
 
       // Determine effectivePageSize for test expectations
@@ -61,7 +57,6 @@ describe("Waku Store, page size", function () {
         }
       }
 
-      waku = await startAndConnectLightNode(nwaku);
       let messagesRetrieved = 0;
       for await (const query of waku.store.queryGenerator([TestDecoder], {
         pageSize: pageSize
@@ -86,8 +81,12 @@ describe("Waku Store, page size", function () {
 
   // Possible issue here because pageSize differs across implementations
   it("Default pageSize", async function () {
-    await sendMessages(nwaku, 20, TestContentTopic, DefaultPubsubTopic);
-    waku = await startAndConnectLightNode(nwaku);
+    await sendMessages(
+      nwaku,
+      20,
+      TestDecoder.contentTopic,
+      TestDecoder.pubsubTopic
+    );
 
     let messagesRetrieved = 0;
     for await (const query of waku.store.queryGenerator([TestDecoder])) {
