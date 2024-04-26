@@ -16,6 +16,7 @@ import {
 } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
+import { Context } from "mocha";
 
 import {
   afterEachCustom,
@@ -307,11 +308,13 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
 describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () {
   this.timeout(30000);
   let waku: LightNode;
+  let waku2: LightNode;
   let nwaku: ServiceNode;
   let nwaku2: ServiceNode;
   let messageCollector: MessageCollector;
+  let ctx: Context;
 
-  const clusterId = 0;
+  const clusterId = 3;
   const customContentTopic1 = "/waku/2/content/utf8";
   const customContentTopic2 = "/myapp/1/latest/proto";
   const autoshardingPubsubTopic1 = contentTopicToPubsubTopic(
@@ -322,20 +325,25 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
     customContentTopic2,
     clusterId
   );
+
+  const shardInfo1 = {
+    clusterId,
+    shards: [contentTopicToShardIndex(customContentTopic1)]
+  };
   const customEncoder1 = createEncoder({
     contentTopic: customContentTopic1,
-    pubsubTopicShardInfo: {
-      clusterId,
-      shard: contentTopicToShardIndex(customContentTopic1)
-    }
+    pubsubTopicShardInfo: shardInfo1
   });
+
+  const shardInfo2 = {
+    clusterId,
+    shards: [contentTopicToShardIndex(customContentTopic2)]
+  };
   const customEncoder2 = createEncoder({
     contentTopic: customContentTopic2,
-    pubsubTopicShardInfo: {
-      clusterId,
-      shard: contentTopicToShardIndex(customContentTopic2)
-    }
+    pubsubTopicShardInfo: shardInfo2
   });
+
   const testShardInfo: ShardingParams = {
     clusterId,
     shards: [
@@ -347,13 +355,14 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
   let nimPeerId: PeerId;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runNodes(this.ctx, testShardInfo);
+    ctx = this.ctx;
+    [nwaku, waku] = await runNodes(ctx, testShardInfo);
     messageCollector = new MessageCollector(nwaku);
     nimPeerId = await nwaku.getPeerId();
   });
 
   afterEachCustom(this, async () => {
-    await tearDownNodes([nwaku, nwaku2], waku);
+    await tearDownNodes([nwaku, nwaku2], [waku, waku2]);
   });
 
   it("Push message on custom pubsubTopic", async function () {
@@ -412,13 +421,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
 
   it("Light push messages to 2 nwaku nodes each with different pubsubtopics", async function () {
     // Set up and start a new nwaku node with Default PubsubTopic
-    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
-    await nwaku2.start({
-      filter: true,
-      lightpush: true,
-      relay: true,
-      pubsubTopic: [autoshardingPubsubTopic2]
-    });
+    [nwaku2, waku2] = await runNodes(ctx, shardInfo2);
     await nwaku2.ensureSubscriptions([autoshardingPubsubTopic2]);
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.LightPush]);
