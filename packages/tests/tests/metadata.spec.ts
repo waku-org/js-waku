@@ -233,4 +233,35 @@ describe("Metadata Protocol", function () {
     expect(metadataShardInfo!.clusterId).to.eq(shardInfo.clusterId);
     expect(metadataShardInfo.shards).to.include.members(shardInfo.shards);
   });
+
+  it("receiving a ping from a peer does not overwrite shard info", async function () {
+    const shardInfo: ShardInfo = {
+      clusterId: 2,
+      shards: [1]
+    };
+
+    await nwaku1.start({
+      relay: true,
+      discv5Discovery: true,
+      peerExchange: true,
+      clusterId: shardInfo.clusterId,
+      pubsubTopic: shardInfoToPubsubTopics(shardInfo)
+    });
+
+    const nwaku1Ma = await nwaku1.getMultiaddrWithId();
+    const nwaku1PeerId = await nwaku1.getPeerId();
+
+    waku = await createLightNode({ shardInfo, pingKeepAlive: 1 });
+    await waku.start();
+    await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
+
+    // delay to ensure the connection is estabilished, shardInfo is updated, and there is a ping
+    await delay(1500);
+
+    const metadata = (await waku.libp2p.peerStore.get(nwaku1PeerId)).metadata;
+    expect(metadata.get("shardInfo")).to.not.be.undefined;
+
+    const pingInfo = metadata.get("ping");
+    expect(pingInfo).to.not.be.undefined;
+  });
 });
