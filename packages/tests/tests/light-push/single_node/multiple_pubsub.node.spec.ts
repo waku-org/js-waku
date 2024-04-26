@@ -305,7 +305,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
   });
 });
 
-describe.only("Waku Light Push (named sharding): Multiple PubsubTopics", function () {
+describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () {
   this.timeout(30000);
   let waku: LightNode;
   let waku2: LightNode;
