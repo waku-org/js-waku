@@ -29,7 +29,7 @@ const TestEncoder = createEncoder({
 });
 const TestDecoder = createDecoder(TestContentTopic, TestShardInfo);
 
-describe.only("Util: toAsyncIterator: Filter", function () {
+describe("Util: toAsyncIterator: Filter", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
