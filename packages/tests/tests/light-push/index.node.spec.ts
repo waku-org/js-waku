@@ -22,7 +22,7 @@ import {
   TestEncoder,
   TestPubsubTopic,
   TestShardInfo
-} from "./utils";
+} from "./utils.js";
 
 const runTests = (strictNodeCheck: boolean): void => {
   const numServiceNodes = 3;
@@ -53,9 +53,11 @@ const runTests = (strictNodeCheck: boolean): void => {
         });
         expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
-        expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-          true
-        );
+        expect(
+          await serviceNodes.messageCollector.waitForMessages(1, {
+            pubsubTopic: TestPubsubTopic
+          })
+        ).to.eq(true);
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: testItem.value,
           expectedContentTopic: TestContentTopic,
@@ -74,9 +76,11 @@ const runTests = (strictNodeCheck: boolean): void => {
         expect(pushResponse.successes.length).to.eq(numServiceNodes);
       }
 
-      expect(await serviceNodes.messageCollector.waitForMessages(30)).to.eq(
-        true
-      );
+      expect(
+        await serviceNodes.messageCollector.waitForMessages(30, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(true);
 
       for (let i = 0; i < 30; i++) {
         serviceNodes.messageCollector.verifyReceivedMessage(i, {
@@ -98,9 +102,11 @@ const runTests = (strictNodeCheck: boolean): void => {
         ProtocolError.EMPTY_PAYLOAD
       );
 
-      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-        false
-      );
+      expect(
+        await serviceNodes.messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(false);
     });
 
     TEST_STRING.forEach((testItem) => {
@@ -115,9 +121,11 @@ const runTests = (strictNodeCheck: boolean): void => {
         );
         expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
-        expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-          true
-        );
+        expect(
+          await serviceNodes.messageCollector.waitForMessages(1, {
+            pubsubTopic: TestPubsubTopic
+          })
+        ).to.eq(true);
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: messageText,
           expectedContentTopic: testItem.value,
@@ -150,9 +158,11 @@ const runTests = (strictNodeCheck: boolean): void => {
       );
       expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
-      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-        true
-      );
+      expect(
+        await serviceNodes.messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(true);
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic,
@@ -181,9 +191,11 @@ const runTests = (strictNodeCheck: boolean): void => {
 
       if (serviceNodes.type == "go-waku") {
         expect(pushResponse.successes.length).to.eq(numServiceNodes);
-        expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-          true
-        );
+        expect(
+          await serviceNodes.messageCollector.waitForMessages(1, {
+            pubsubTopic: TestPubsubTopic
+          })
+        ).to.eq(true);
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: messageText,
           expectedContentTopic: TestContentTopic,
@@ -194,9 +206,11 @@ const runTests = (strictNodeCheck: boolean): void => {
         expect(
           pushResponse.failures?.map((failure) => failure.error)
         ).to.include(ProtocolError.REMOTE_PEER_REJECTED);
-        expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-          false
-        );
+        expect(
+          await serviceNodes.messageCollector.waitForMessages(1, {
+            pubsubTopic: TestPubsubTopic
+          })
+        ).to.eq(false);
       }
     });
 
@@ -217,9 +231,11 @@ const runTests = (strictNodeCheck: boolean): void => {
       });
       expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
-      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-        true
-      );
+      expect(
+        await serviceNodes.messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(true);
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic,
@@ -239,9 +255,11 @@ const runTests = (strictNodeCheck: boolean): void => {
         });
         expect(pushResponse.successes.length).to.eq(numServiceNodes);
 
-        expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-          true
-        );
+        expect(
+          await serviceNodes.messageCollector.waitForMessages(1, {
+            pubsubTopic: TestPubsubTopic
+          })
+        ).to.eq(true);
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: messageText,
           expectedTimestamp: testItem,
@@ -269,9 +287,11 @@ const runTests = (strictNodeCheck: boolean): void => {
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
         ProtocolError.SIZE_TOO_BIG
       );
-      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-        false
-      );
+      expect(
+        await serviceNodes.messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(false);
     });
   });
 };
