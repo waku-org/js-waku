@@ -456,6 +456,17 @@ export class ConnectionManager
       return false;
     }
 
+    const peer = await this.libp2p.peerStore.get(peerId);
+
+    if (
+      !peer.addresses.some((val) => val.multiaddr.toString().includes("/wss/"))
+    ) {
+      log.info(
+        `Peer ${peerId.toString()} does not have a multiaddr that supports wss, not dialing.`
+      );
+      return false;
+    }
+
     // if the peer is not part of any of the configured pubsub topics, don't dial
     if (!(await this.isPeerTopicConfigured(peerId))) {
       const shardInfo = await this.getPeerShardInfo(
