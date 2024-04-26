@@ -16,7 +16,7 @@ import {
 
 import {
   messageText,
-  runNodes,
+  runJSNodes,
   TestDecoder,
   TestEncoder,
   TestExpectOptions,
@@ -33,7 +33,7 @@ describe("Waku Relay, Subscribe", function () {
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
-    [waku1, waku2] = await runNodes();
+    [waku1, waku2] = await runJSNodes();
     messageCollector = new MessageCollector(this.ctx.nwaku);
   });
 

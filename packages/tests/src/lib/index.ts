@@ -11,9 +11,11 @@ import { Args, MessageRpcQuery, MessageRpcResponse } from "../types";
 import { delay, makeLogFileName } from "../utils/index.js";
 
 import { MessageCollector } from "./message_collector.js";
+import { runNodes } from "./runNodes.js";
 import { defaultArgs, ServiceNode } from "./service_node.js";
 
 export { ServiceNode, MessageCollector, defaultArgs };
+export { runNodes };
 
 const log = new Logger("test:message-collector");
 

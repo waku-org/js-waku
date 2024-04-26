@@ -1,9 +1,20 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
-import { Protocols, RelayNode, ShardInfo } from "@waku/interfaces";
+import {
+  Protocols,
+  RelayNode,
+  ShardInfo,
+  ShardingParams
+} from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk/relay";
 import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
+import { Context } from "mocha";
 
-import { NOISE_KEY_1, NOISE_KEY_2 } from "../../src/index.js";
+import {
+  NOISE_KEY_1,
+  NOISE_KEY_2,
+  runNodes,
+  ServiceNode
+} from "../../src/index.js";
 
 export const messageText = "Relay works!";
 export const TestContentTopic = "/test/1/waku-relay/utf8";
@@ -27,18 +38,29 @@ export const TestExpectOptions = {
 };
 export const log = new Logger("test:relay");
 
+const RELAY_PROTOCOLS = [Protocols.Relay];
+
 export async function waitForAllRemotePeers(
   ...nodes: RelayNode[]
 ): Promise<void> {
   log.info("Wait for mutual pubsub subscription");
   await Promise.all(
-    nodes.map(
-      (node): Promise<void> => waitForRemotePeer(node, [Protocols.Relay])
-    )
+    nodes.map((node): Promise<void> => waitForRemotePeer(node, RELAY_PROTOCOLS))
   );
 }
 
-export async function runNodes(): Promise<[RelayNode, RelayNode]> {
+export const runRelayNodes = (
+  context: Context,
+  shardInfo: ShardingParams
+): Promise<[ServiceNode, RelayNode]> =>
+  runNodes<RelayNode>({
+    shardInfo,
+    context,
+    protocols: RELAY_PROTOCOLS,
+    createNode: createRelayNode
+  });
+
+export async function runJSNodes(): Promise<[RelayNode, RelayNode]> {
   log.info("Starting JS Waku instances");
   const [waku1, waku2] = await Promise.all([
     createRelayNode({
