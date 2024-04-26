@@ -1,19 +1,11 @@
 import { sha256 } from "@noble/hashes/sha256";
 import type { IProtoMessage } from "@waku/interfaces";
-import { bytesToUtf8, concat, utf8ToBytes } from "@waku/utils/bytes";
-
-function numberToBytes(value: number | bigint): Uint8Array {
-  const buffer = new ArrayBuffer(8);
-  const view = new DataView(buffer);
-
-  if (typeof value === "number") {
-    view.setFloat64(0, value, false);
-  } else {
-    view.setBigInt64(0, value, false);
-  }
-
-  return new Uint8Array(buffer);
-}
+import {
+  bytesToUtf8,
+  concat,
+  numberToBytes,
+  utf8ToBytes
+} from "@waku/utils/bytes";
 
 /**
  * Deterministic Message Hashing as defined in
