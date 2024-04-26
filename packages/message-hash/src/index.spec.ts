@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { messageHash } from "./index.js";
 
 // https://rfc.vac.dev/spec/14/#test-vectors
-describe.only("RFC Test Vectors", () => {
+describe("RFC Test Vectors", () => {
   it("Waku message hash computation (meta size of 12 bytes)", () => {
     const expectedHash =
       "64cce733fed134e83da02b02c6f689814872b1a0ac97ea56b76095c3c72bfe05";
