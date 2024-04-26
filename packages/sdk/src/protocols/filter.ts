@@ -293,7 +293,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): Promise<Unsubscribe> {
-    const pubsubTopics = this.getPubsubTopics(decoders);
+    const pubsubTopics = this.getPubsubTopics<T>(decoders);
 
     if (pubsubTopics.length === 0) {
       throw Error(
@@ -328,7 +328,9 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     return toAsyncIterator(this, decoders);
   }
 
-  private getPubsubTopics(decoders: IDecoder<any> | IDecoder<any>[]): string[] {
+  private getPubsubTopics<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[]
+  ): string[] {
     if (!Array.isArray(decoders)) {
       return [decoders.pubsubTopic];
     }
