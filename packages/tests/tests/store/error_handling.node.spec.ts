@@ -1,6 +1,6 @@
 import { createDecoder } from "@waku/core";
-import { DefaultPubsubTopic } from "@waku/interfaces";
 import { IMessage, type LightNode } from "@waku/interfaces";
+import { determinePubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -92,10 +92,11 @@ describe("Waku Store, error handling", function () {
   });
 
   it("Query Generator, No message returned", async function () {
+    const WrongTestPubsubTopic = determinePubsubTopic("/test/1/wrong/utf8");
     const messages = await processQueriedMessages(
       waku,
       [TestDecoder],
-      DefaultPubsubTopic
+      WrongTestPubsubTopic
     );
     expect(messages?.length).eq(0);
   });

@@ -162,7 +162,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   });
 
   it("Should fail to subscribe with decoder with wrong pubsubTopic", async function () {
-    // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
+    // this subscription object is set up with the `customPubsubTopic1` but we're passing it a Decoder with the `customPubsubTopic2`
     try {
       await subscription.subscribe([customDecoder2], messageCollector.callback);
     } catch (error) {
@@ -340,7 +340,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   });
 
   it("Should fail to subscribe with decoder with wrong pubsubTopic", async function () {
-    // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
+    // this subscription object is set up with the `customPubsubTopic1` but we're passing it a Decoder with the `customPubsubTopic2`
     try {
       await subscription.subscribe([customDecoder2], messageCollector.callback);
     } catch (error) {
@@ -488,7 +488,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
   });
 
   it("Should fail to subscribe with decoder with wrong pubsubTopic", async function () {
-    // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
+    // this subscription object is set up with the `customPubsubTopic1` but we're passing it a Decoder with the `customPubsubTopic2`
     try {
       await subscription.subscribe([customDecoder2], messageCollector.callback);
     } catch (error) {

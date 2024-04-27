@@ -1,4 +1,4 @@
-import { DEFAULT_CLUSTER_ID, DefaultPubsubTopic } from "@waku/interfaces";
+import { DEFAULT_CLUSTER_ID } from "@waku/interfaces";
 import { expect } from "chai";
 
 import {
@@ -404,7 +404,7 @@ describe("determinePubsubTopic", () => {
   });
 
   it("should fall back to default pubsub topic when pubsubTopicShardInfo is not provided", () => {
-    expect(determinePubsubTopic(contentTopic)).to.equal(DefaultPubsubTopic);
+    expect(determinePubsubTopic(contentTopic)).to.equal("/waku/2/rs/1/6");
   });
 
   it("should process correctly when SingleShardInfo has no clusterId but has a shard", () => {
