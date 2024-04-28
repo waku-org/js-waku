@@ -45,9 +45,25 @@ describe("Static Sharding: Running Nodes", function () {
   });
 
   describe("Different clusters and shards", function () {
-    // Will be skipped until https://github.com/waku-org/js-waku/issues/1874 is fixed
-    it.skip("shard 0", async function () {
+    it("shard 0", async function () {
       const singleShardInfo = { clusterId: 0, shard: 0 };
+      const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
+
+      await nwaku.start({
+        store: true,
+        lightpush: true,
+        relay: true,
+        pubsubTopic: shardInfoToPubsubTopics(shardInfo)
+      });
+
+      await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
+
+      waku = await createLightNode({
+        shardInfo: shardInfo
+      });
+      await waku.dial(await nwaku.getMultiaddrWithId());
+      await waitForRemotePeer(waku, [Protocols.LightPush]);
+
       const encoder = createEncoder({
         contentTopic: ContentTopic,
         pubsubTopicShardInfo: singleShardInfo
@@ -55,6 +71,17 @@ describe("Static Sharding: Running Nodes", function () {
       expect(encoder.pubsubTopic).to.eq(
         singleShardInfoToPubsubTopic(singleShardInfo)
       );
+
+      const request = await waku.lightPush.send(encoder, {
+        payload: utf8ToBytes("Hello World")
+      });
+
+      expect(request.successes.length).to.eq(1);
+      expect(
+        await messageCollector.waitForMessages(1, {
+          pubsubTopic: shardInfoToPubsubTopics(shardInfo)[0]
+        })
+      ).to.eq(true);
     });
 
     // dedicated test for Default Cluster ID 0
@@ -68,6 +95,8 @@ describe("Static Sharding: Running Nodes", function () {
         relay: true,
         pubsubTopic: shardInfoToPubsubTopics(shardInfo)
       });
+
+      await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
 
       waku = await createLightNode({
         shardInfo: shardInfo
