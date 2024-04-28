@@ -10,7 +10,6 @@ import { Protocols } from "@waku/interfaces";
 import {
   contentTopicToPubsubTopic,
   contentTopicToShardIndex,
-  pubsubTopicToSingleShardInfo,
   singleShardInfoToPubsubTopic
 } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -61,14 +60,8 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   const customDecoder2 = createDecoder(customContentTopic2, singleShardInfo2);
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runNodes(
-      this.ctx,
-      [customPubsubTopic1, customPubsubTopic2],
-      shardInfo
-    );
-    subscription = await waku.filter.createSubscription(
-      pubsubTopicToSingleShardInfo(customPubsubTopic1)
-    );
+    [nwaku, waku] = await runNodes(this.ctx, shardInfo);
+    subscription = await waku.filter.createSubscription(shardInfo);
     messageCollector = new MessageCollector();
   });
 
@@ -91,9 +84,8 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Subscribe from the same lightnode to the 2nd pubsubtopic
-    const subscription2 = await waku.filter.createSubscription(
-      pubsubTopicToSingleShardInfo(customPubsubTopic2)
-    );
+    const subscription2 =
+      await waku.filter.createSubscription(customPubsubTopic2);
 
     const messageCollector2 = new MessageCollector();
 
@@ -134,10 +126,8 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
 
     // Subscribe from the same lightnode to the new nwaku on the new pubsubtopic
-    const subscription2 = await waku.filter.createSubscription(
-      pubsubTopicToSingleShardInfo(customPubsubTopic2),
-      await nwaku2.getPeerId()
-    );
+    const subscription2 =
+      await waku.filter.createSubscription(customPubsubTopic2);
     await nwaku2.ensureSubscriptions([customPubsubTopic2]);
 
     const messageCollector2 = new MessageCollector();
@@ -172,7 +162,7 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
   });
 
   it("Should fail to subscribe with decoder with wrong pubsubTopic", async function () {
-    // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
+    // this subscription object is set up with the `customPubsubTopic1` but we're passing it a Decoder with the `customPubsubTopic2`
     try {
       await subscription.subscribe([customDecoder2], messageCollector.callback);
     } catch (error) {
@@ -231,13 +221,9 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   });
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runNodes(
-      this.ctx,
-      [autoshardingPubsubTopic1, autoshardingPubsubTopic2],
-      contentTopicInfo
-    );
+    [nwaku, waku] = await runNodes(this.ctx, contentTopicInfo);
     subscription = await waku.filter.createSubscription(
-      pubsubTopicToSingleShardInfo(autoshardingPubsubTopic1)
+      autoshardingPubsubTopic1
     );
     messageCollector = new MessageCollector();
   });
@@ -266,7 +252,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
 
     // Subscribe from the same lightnode to the 2nd pubsubtopic
     const subscription2 = await waku.filter.createSubscription(
-      pubsubTopicToSingleShardInfo(autoshardingPubsubTopic2)
+      autoshardingPubsubTopic2
     );
 
     const messageCollector2 = new MessageCollector();
@@ -318,8 +304,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
 
     // Subscribe from the same lightnode to the new nwaku on the new pubsubtopic
     const subscription2 = await waku.filter.createSubscription(
-      pubsubTopicToSingleShardInfo(autoshardingPubsubTopic2),
-      await nwaku2.getPeerId()
+      autoshardingPubsubTopic2
     );
     await nwaku2.ensureSubscriptionsAutosharding([customContentTopic2]);
 
@@ -355,7 +340,7 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
   });
 
   it("Should fail to subscribe with decoder with wrong pubsubTopic", async function () {
-    // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
+    // this subscription object is set up with the `customPubsubTopic1` but we're passing it a Decoder with the `customPubsubTopic2`
     try {
       await subscription.subscribe([customDecoder2], messageCollector.callback);
     } catch (error) {
@@ -383,6 +368,10 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
     clusterId: 3,
     shard: 2
   });
+  const shardInfo = {
+    clusterId: 3,
+    shards: [1, 2]
+  };
   const customContentTopic1 = "/test/2/waku-filter";
   const customContentTopic2 = "/test/3/waku-filter";
   const customEncoder1 = createEncoder({
@@ -397,14 +386,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
   const customDecoder2 = createDecoder(customContentTopic2, customPubsubTopic2);
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runNodes(
-      this.ctx,
-      [customPubsubTopic1, customPubsubTopic2],
-      {
-        clusterId: 3,
-        shards: [1, 2]
-      }
-    );
+    [nwaku, waku] = await runNodes(this.ctx, shardInfo);
     subscription = await waku.filter.createSubscription(customPubsubTopic1);
     messageCollector = new MessageCollector();
   });
@@ -428,9 +410,8 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
     await subscription.subscribe([customDecoder1], messageCollector.callback);
 
     // Subscribe from the same lightnode to the 2nd pubsubtopic
-    const subscription2 = await waku.filter.createSubscription(
-      pubsubTopicToSingleShardInfo(customPubsubTopic2)
-    );
+    const subscription2 =
+      await waku.filter.createSubscription(customPubsubTopic2);
 
     const messageCollector2 = new MessageCollector();
 
@@ -471,10 +452,8 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
 
     // Subscribe from the same lightnode to the new nwaku on the new pubsubtopic
-    const subscription2 = await waku.filter.createSubscription(
-      pubsubTopicToSingleShardInfo(customPubsubTopic2),
-      await nwaku2.getPeerId()
-    );
+    const subscription2 =
+      await waku.filter.createSubscription(customPubsubTopic2);
     await nwaku2.ensureSubscriptions([customPubsubTopic2]);
 
     const messageCollector2 = new MessageCollector();
@@ -509,7 +488,7 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
   });
 
   it("Should fail to subscribe with decoder with wrong pubsubTopic", async function () {
-    // this subscription object is set up with the `customPubsubTopic` but we're passing it a Decoder with the `DefaultPubsubTopic`
+    // this subscription object is set up with the `customPubsubTopic1` but we're passing it a Decoder with the `customPubsubTopic2`
     try {
       await subscription.subscribe([customDecoder2], messageCollector.callback);
     } catch (error) {

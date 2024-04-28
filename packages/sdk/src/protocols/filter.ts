@@ -1,19 +1,18 @@
 import type { Peer } from "@libp2p/interface";
 import { FilterCore } from "@waku/core";
-import {
-  type Callback,
+import type {
+  Callback,
   ContentTopic,
-  DefaultPubsubTopic,
-  type IAsyncIterator,
-  type IDecodedMessage,
-  type IDecoder,
-  type IFilterSDK,
+  IAsyncIterator,
+  IDecodedMessage,
+  IDecoder,
+  IFilterSDK,
   IProtoMessage,
-  type Libp2p,
-  type ProtocolCreateOptions,
-  type PubsubTopic,
-  type SingleShardInfo,
-  type Unsubscribe
+  Libp2p,
+  ProtocolCreateOptions,
+  PubsubTopic,
+  ShardingParams,
+  Unsubscribe
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
@@ -21,7 +20,7 @@ import {
   ensurePubsubTopicIsConfigured,
   groupByContentTopic,
   Logger,
-  singleShardInfoToPubsubTopic,
+  shardInfoToPubsubTopics,
   toAsyncIterator
 } from "@waku/utils";
 
@@ -245,12 +244,12 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    * @returns The subscription object.
    */
   async createSubscription(
-    pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
+    pubsubTopicShardInfo: ShardingParams | PubsubTopic
   ): Promise<SubscriptionManager> {
     const pubsubTopic =
       typeof pubsubTopicShardInfo == "string"
         ? pubsubTopicShardInfo
-        : singleShardInfoToPubsubTopic(pubsubTopicShardInfo);
+        : shardInfoToPubsubTopics(pubsubTopicShardInfo)?.[0];
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
@@ -294,7 +293,21 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): Promise<Unsubscribe> {
-    const subscription = await this.createSubscription();
+    const pubsubTopics = this.getPubsubTopics<T>(decoders);
+
+    if (pubsubTopics.length === 0) {
+      throw Error(
+        "Failed to subscribe: no pubsubTopic found on decoders provided."
+      );
+    }
+
+    if (pubsubTopics.length > 1) {
+      throw Error(
+        "Failed to subscribe: all decoders should have the same pubsub topic. Use createSubscription to be more agile."
+      );
+    }
+
+    const subscription = await this.createSubscription(pubsubTopics[0]);
 
     await subscription.subscribe(decoders, callback);
 
@@ -313,6 +326,22 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<IAsyncIterator<T>> {
     return toAsyncIterator(this, decoders);
+  }
+
+  private getPubsubTopics<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[]
+  ): string[] {
+    if (!Array.isArray(decoders)) {
+      return [decoders.pubsubTopic];
+    }
+
+    if (decoders.length === 0) {
+      return [];
+    }
+
+    const pubsubTopics = new Set(decoders.map((d) => d.pubsubTopic));
+
+    return [...pubsubTopics];
   }
 }
 

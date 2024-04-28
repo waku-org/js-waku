@@ -73,7 +73,7 @@ export class MessageCollector {
     }
   ): Promise<boolean> {
     const startTime = Date.now();
-    const pubsubTopic = options?.pubsubTopic || DefaultPubsubTopic;
+    const pubsubTopic = this.getPubsubTopicToUse(options?.pubsubTopic);
     const timeoutDuration = options?.timeoutDuration || 400;
     const exact = options?.exact || false;
 
@@ -237,12 +237,13 @@ export class MessageCollector {
         `Message text mismatch. Expected: ${options.expectedMessageText}. Got: ${receivedMessageText}`
       );
     } else {
+      const pubsubTopicToUse = this.getPubsubTopicToUse(
+        options.expectedPubsubTopic
+      );
       // js-waku message specific assertions
       expect(message.pubsubTopic).to.eq(
-        options.expectedPubsubTopic || DefaultPubsubTopic,
-        `Message pub/sub topic mismatch. Expected: ${
-          options.expectedPubsubTopic || DefaultPubsubTopic
-        }. Got: ${message.pubsubTopic}`
+        pubsubTopicToUse,
+        `Message pub/sub topic mismatch. Expected: ${pubsubTopicToUse}. Got: ${message.pubsubTopic}`
       );
 
       expect(bytesToUtf8(message.payload)).to.eq(
@@ -265,5 +266,9 @@ export class MessageCollector {
         }. Got: ${JSON.stringify(message.meta)}`
       );
     }
+  }
+
+  private getPubsubTopicToUse(pubsubTopic: string | undefined): string {
+    return pubsubTopic || this.nwaku?.pubsubTopics?.[0] || DefaultPubsubTopic;
   }
 }

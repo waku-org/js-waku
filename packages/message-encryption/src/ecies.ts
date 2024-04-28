@@ -1,7 +1,6 @@
 import { Decoder as DecoderV0 } from "@waku/core/lib/message/version_0";
 import {
   type EncoderOptions as BaseEncoderOptions,
-  DefaultPubsubTopic,
   type IDecoder,
   type IEncoder,
   type IMessage,
@@ -200,7 +199,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
 export function createDecoder(
   contentTopic: string,
   privateKey: Uint8Array,
-  pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
+  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
 ): Decoder {
   return new Decoder(
     determinePubsubTopic(contentTopic, pubsubTopicShardInfo),

@@ -1,7 +1,6 @@
 import { sha256 } from "@noble/hashes/sha256";
 import {
   DEFAULT_CLUSTER_ID,
-  DefaultPubsubTopic,
   PubsubTopic,
   ShardInfo,
   ShardingParams,
@@ -190,6 +189,10 @@ export function contentTopicToPubsubTopic(
   clusterId: number = DEFAULT_CLUSTER_ID,
   networkShards: number = 8
 ): string {
+  if (!contentTopic) {
+    throw Error("Content topic must be specified");
+  }
+
   const shardIndex = contentTopicToShardIndex(contentTopic, networkShards);
   return `/waku/2/rs/${clusterId}/${shardIndex}`;
 }
@@ -225,20 +228,18 @@ export function contentTopicsByPubsubTopic(
  */
 export function determinePubsubTopic(
   contentTopic: string,
-  pubsubTopicShardInfo: SingleShardInfo | PubsubTopic = DefaultPubsubTopic
+  pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
 ): string {
   if (typeof pubsubTopicShardInfo == "string") {
     return pubsubTopicShardInfo;
-  } else {
-    return pubsubTopicShardInfo
-      ? pubsubTopicShardInfo.shard !== undefined
-        ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
-        : contentTopicToPubsubTopic(
-            contentTopic,
-            pubsubTopicShardInfo.clusterId
-          )
-      : DefaultPubsubTopic;
   }
+
+  return pubsubTopicShardInfo?.shard !== undefined
+    ? singleShardInfoToPubsubTopic(pubsubTopicShardInfo)
+    : contentTopicToPubsubTopic(
+        contentTopic,
+        pubsubTopicShardInfo?.clusterId ?? DEFAULT_CLUSTER_ID
+      );
 }
 
 /**

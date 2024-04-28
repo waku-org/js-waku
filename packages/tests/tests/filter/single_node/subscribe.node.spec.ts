@@ -1,10 +1,5 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
-import {
-  DefaultPubsubTopic,
-  IFilterSubscription,
-  LightNode,
-  Protocols
-} from "@waku/interfaces";
+import { IFilterSubscription, LightNode, Protocols } from "@waku/interfaces";
 import {
   ecies,
   generatePrivateKey,
@@ -14,13 +9,13 @@ import {
 } from "@waku/message-encryption";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
+import type { Context } from "mocha";
 
 import {
   afterEachCustom,
   beforeEachCustom,
   delay,
   generateTestData,
-  makeLogFileName,
   MessageCollector,
   ServiceNode,
   tearDownNodes,
@@ -31,7 +26,9 @@ import {
   messageText,
   TestContentTopic,
   TestDecoder,
-  TestEncoder
+  TestEncoder,
+  TestPubsubTopic,
+  TestShardInfo
 } from "../utils.js";
 
 import { runNodes } from "./utils.js";
@@ -40,20 +37,23 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(10000);
   let waku: LightNode;
+  let waku2: LightNode;
   let nwaku: ServiceNode;
   let nwaku2: ServiceNode;
   let subscription: IFilterSubscription;
   let messageCollector: MessageCollector;
+  let ctx: Context;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
-    subscription = await waku.filter.createSubscription();
+    ctx = this.ctx;
+    [nwaku, waku] = await runNodes(this.ctx, TestShardInfo);
+    subscription = await waku.filter.createSubscription(TestShardInfo);
     messageCollector = new MessageCollector();
-    await nwaku.ensureSubscriptions();
+    await nwaku.ensureSubscriptions([TestPubsubTopic]);
   });
 
   afterEachCustom(this, async () => {
-    await tearDownNodes([nwaku, nwaku2], waku);
+    await tearDownNodes([nwaku, nwaku2], [waku, waku2]);
   });
 
   it("Subscribe and receive messages via lightPush", async function () {
@@ -64,7 +64,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
     expect((await nwaku.messages()).length).to.eq(1);
   });
@@ -74,9 +75,14 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     const publicKey = getPublicKey(privateKey);
     const encoder = ecies.createEncoder({
       contentTopic: TestContentTopic,
-      publicKey
+      publicKey,
+      pubsubTopic: TestPubsubTopic
     });
-    const decoder = ecies.createDecoder(TestContentTopic, privateKey);
+    const decoder = ecies.createDecoder(
+      TestContentTopic,
+      privateKey,
+      TestPubsubTopic
+    );
 
     await subscription.subscribe([decoder], messageCollector.callback);
 
@@ -86,7 +92,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
       expectedContentTopic: TestContentTopic,
-      expectedVersion: 1
+      expectedVersion: 1,
+      expectedPubsubTopic: TestPubsubTopic
     });
     expect((await nwaku.messages()).length).to.eq(1);
   });
@@ -95,9 +102,14 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     const symKey = generateSymmetricKey();
     const encoder = symmetric.createEncoder({
       contentTopic: TestContentTopic,
-      symKey
+      symKey,
+      pubsubTopic: TestPubsubTopic
     });
-    const decoder = symmetric.createDecoder(TestContentTopic, symKey);
+    const decoder = symmetric.createDecoder(
+      TestContentTopic,
+      symKey,
+      TestPubsubTopic
+    );
 
     await subscription.subscribe([decoder], messageCollector.callback);
 
@@ -107,7 +119,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
       expectedContentTopic: TestContentTopic,
-      expectedVersion: 1
+      expectedVersion: 1,
+      expectedPubsubTopic: TestPubsubTopic
     });
     expect((await nwaku.messages()).length).to.eq(1);
   });
@@ -128,7 +141,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
     expect((await nwaku.messages()).length).to.eq(1);
   });
@@ -141,7 +155,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
 
     // Send another message on the same topic.
@@ -154,7 +169,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage(1, {
       expectedMessageText: newMessageText,
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
     expect((await nwaku.messages()).length).to.eq(2);
   });
@@ -166,15 +182,19 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
 
     // Modify subscription to include a new content topic and send a message.
     const newMessageText = "Filtering still works!";
     const newMessagePayload = { payload: utf8ToBytes(newMessageText) };
-    const newContentTopic = "/test/2/waku-filter";
-    const newEncoder = createEncoder({ contentTopic: newContentTopic });
-    const newDecoder = createDecoder(newContentTopic);
+    const newContentTopic = "/test/2/waku-filter/default";
+    const newEncoder = createEncoder({
+      contentTopic: newContentTopic,
+      pubsubTopic: TestPubsubTopic
+    });
+    const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
     await subscription.subscribe([newDecoder], messageCollector.callback);
     await waku.lightPush.send(newEncoder, {
       payload: utf8ToBytes(newMessageText)
@@ -182,7 +202,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage(1, {
       expectedContentTopic: newContentTopic,
-      expectedMessageText: newMessageText
+      expectedMessageText: newMessageText,
+      expectedPubsubTopic: TestPubsubTopic
     });
 
     // Send another message on the initial content topic to verify it still works.
@@ -190,14 +211,15 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     expect(await messageCollector.waitForMessages(3)).to.eq(true);
     messageCollector.verifyReceivedMessage(2, {
       expectedMessageText: newMessageText,
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
     expect((await nwaku.messages()).length).to.eq(3);
   });
 
   it("Subscribe and receives messages on 20 topics", async function () {
     const topicCount = 20;
-    const td = generateTestData(topicCount);
+    const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
     // Subscribe to all 20 topics.
     for (let i = 0; i < topicCount; i++) {
@@ -216,7 +238,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     td.contentTopics.forEach((topic, index) => {
       messageCollector.verifyReceivedMessage(index, {
         expectedContentTopic: topic,
-        expectedMessageText: `Message for Topic ${index + 1}`
+        expectedMessageText: `Message for Topic ${index + 1}`,
+        expectedPubsubTopic: TestPubsubTopic
       });
     });
   });
@@ -224,7 +247,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
     this.timeout(50000);
     const topicCount = 100;
-    const td = generateTestData(topicCount);
+    const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
     await subscription.subscribe(td.decoders, messageCollector.callback);
 
@@ -243,7 +266,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
       td.contentTopics.forEach((topic, index) => {
         messageCollector.verifyReceivedMessage(index, {
           expectedContentTopic: topic,
-          expectedMessageText: `Message for Topic ${index + 1}`
+          expectedMessageText: `Message for Topic ${index + 1}`,
+          expectedPubsubTopic: TestPubsubTopic
         });
       });
     } catch (error) {
@@ -255,7 +279,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
 
   it("Error when try to subscribe to more than 101 topics (new limit)", async function () {
     const topicCount = 101;
-    const td = generateTestData(topicCount);
+    const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
     try {
       await subscription.subscribe(td.decoders, messageCollector.callback);
@@ -279,9 +303,9 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   it("Overlapping topic subscription", async function () {
     // Define two sets of test data with overlapping topics.
     const topicCount1 = 2;
-    const td1 = generateTestData(topicCount1);
+    const td1 = generateTestData(topicCount1, { pubsubTopic: TestPubsubTopic });
     const topicCount2 = 4;
-    const td2 = generateTestData(topicCount2);
+    const td2 = generateTestData(topicCount2, { pubsubTopic: TestPubsubTopic });
 
     // Subscribe to the first set of topics.
     await subscription.subscribe(td1.decoders, messageCollector.callback);
@@ -327,19 +351,24 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     );
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1",
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
     messageCollector.verifyReceivedMessage(1, {
       expectedMessageText: "M2",
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
   });
 
   TEST_STRING.forEach((testItem) => {
     it(`Subscribe to topic containing ${testItem.description} and receive message`, async function () {
       const newContentTopic = testItem.value;
-      const newEncoder = createEncoder({ contentTopic: newContentTopic });
-      const newDecoder = createDecoder(newContentTopic);
+      const newEncoder = createEncoder({
+        contentTopic: newContentTopic,
+        pubsubTopic: TestPubsubTopic
+      });
+      const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
 
       await subscription.subscribe([newDecoder], messageCollector.callback);
       await waku.lightPush.send(newEncoder, messagePayload);
@@ -347,7 +376,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
       expect(await messageCollector.waitForMessages(1)).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
-        expectedContentTopic: newContentTopic
+        expectedContentTopic: newContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
     });
   });
@@ -357,10 +387,13 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
 
     // Create a second subscription on a different topic
-    const subscription2 = await waku.filter.createSubscription();
-    const newContentTopic = "/test/2/waku-filter";
-    const newEncoder = createEncoder({ contentTopic: newContentTopic });
-    const newDecoder = createDecoder(newContentTopic);
+    const subscription2 = await waku.filter.createSubscription(TestShardInfo);
+    const newContentTopic = "/test/2/waku-filter/default";
+    const newEncoder = createEncoder({
+      contentTopic: newContentTopic,
+      pubsubTopic: TestPubsubTopic
+    });
+    const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
     await subscription2.subscribe([newDecoder], messageCollector.callback);
 
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
@@ -369,11 +402,13 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: "M1",
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
     messageCollector.verifyReceivedMessage(1, {
       expectedContentTopic: newContentTopic,
-      expectedMessageText: "M2"
+      expectedMessageText: "M2",
+      expectedPubsubTopic: TestPubsubTopic
     });
   });
 
@@ -381,23 +416,18 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
 
     // Set up and start a new nwaku node
-    nwaku2 = new ServiceNode(makeLogFileName(this) + "2");
-    await nwaku2.start({
-      filter: true,
-      lightpush: true,
-      relay: true
-    });
+    [nwaku2, waku2] = await runNodes(ctx, TestShardInfo);
     await waku.dial(await nwaku2.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-    const subscription2 = await waku.filter.createSubscription(
-      undefined,
-      await nwaku2.getPeerId()
-    );
-    await nwaku2.ensureSubscriptions([DefaultPubsubTopic]);
+    const subscription2 = await waku.filter.createSubscription(TestShardInfo);
+    await nwaku2.ensureSubscriptions([TestPubsubTopic]);
     // Send a message using the new subscription
-    const newContentTopic = "/test/2/waku-filter";
-    const newEncoder = createEncoder({ contentTopic: newContentTopic });
-    const newDecoder = createDecoder(newContentTopic);
+    const newContentTopic = "/test/2/waku-filter/default";
+    const newEncoder = createEncoder({
+      contentTopic: newContentTopic,
+      pubsubTopic: TestPubsubTopic
+    });
+    const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
     await subscription2.subscribe([newDecoder], messageCollector.callback);
 
     // Making sure that messages are send and reveiced for both subscriptions
