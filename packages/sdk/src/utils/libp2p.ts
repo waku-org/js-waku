@@ -97,10 +97,9 @@ export async function createLibp2pAndUpdateOptions(
   }
 
   if (!options.pubsubTopics) {
-    const shardInfo = options.shardInfo
-      ? ensureShardingConfigured(options.shardInfo)
-      : DefaultShardInfo;
-
+    const shardInfo = ensureShardingConfigured(
+      options.shardInfo ?? DefaultShardInfo
+    );
     options.pubsubTopics = shardInfo.pubsubTopics;
   }
 
