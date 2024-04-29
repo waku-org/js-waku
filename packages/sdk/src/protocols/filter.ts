@@ -12,8 +12,8 @@ import type {
   ProtocolCreateOptions,
   PubsubTopic,
   ShardingParams,
-  Unsubscribe,
-  SubscribeOptions
+  SubscribeOptions,
+  Unsubscribe
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
@@ -137,10 +137,6 @@ export class SubscriptionManager {
   }
 
   async unsubscribeAll(): Promise<void> {
-    if (this.keepAliveTimer) {
-      this.stopKeepAlivePings();
-    }
-
     const promises = this.peers.map(async (peer) => {
       await this.protocol.unsubscribeAll(this.pubsubTopic, peer);
     });
@@ -150,6 +146,10 @@ export class SubscriptionManager {
     this.subscriptionCallbacks.clear();
 
     this.handleErrors(results, "unsubscribeAll");
+
+    if (this.keepAliveTimer) {
+      this.stopKeepAlivePings();
+    }
   }
 
   async processIncomingMessage(message: WakuMessage): Promise<void> {
@@ -220,7 +220,7 @@ export class SubscriptionManager {
       return;
     }
 
-    this.keepAliveTimer = window.setInterval(() => {
+    this.keepAliveTimer = setInterval(() => {
       const run = async (): Promise<void> => {
         try {
           log.info("Recurring ping to peers.");
@@ -232,7 +232,7 @@ export class SubscriptionManager {
       };
 
       void run();
-    }, interval);
+    }, interval) as unknown as number;
   }
 
   private stopKeepAlivePings(): void {
@@ -242,7 +242,7 @@ export class SubscriptionManager {
     }
 
     log.info("Stopping recurring pings.");
-    window.clearInterval(this.keepAliveTimer);
+    clearInterval(this.keepAliveTimer);
     this.keepAliveTimer = null;
   }
 }
