@@ -2,7 +2,6 @@ import { DecodedMessage } from "@waku/core";
 import {
   DefaultPubsubTopic,
   PubsubTopic,
-  ShardInfo,
   ShardingParams
 } from "@waku/interfaces";
 import { ensureShardingConfigured, Logger } from "@waku/utils";
@@ -12,9 +11,11 @@ import { Args, MessageRpcQuery, MessageRpcResponse } from "../types";
 import { delay, makeLogFileName } from "../utils/index.js";
 
 import { MessageCollector } from "./message_collector.js";
+import { runNodes } from "./runNodes.js";
 import { defaultArgs, ServiceNode } from "./service_node.js";
 
 export { ServiceNode, MessageCollector, defaultArgs };
+export { runNodes };
 
 const log = new Logger("test:message-collector");
 
@@ -28,7 +29,7 @@ export class ServiceNodesFleet {
     pubsubTopics: PubsubTopic[],
     nodesToCreate: number = 3,
     strictChecking: boolean = false,
-    shardInfo?: ShardInfo,
+    shardInfo?: ShardingParams,
     _args?: Args,
     withoutFilter = false
   ): Promise<ServiceNodesFleet> {

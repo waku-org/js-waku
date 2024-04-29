@@ -1,20 +1,18 @@
 import { DecodedMessage, PageDirection } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
 
 import {
   afterEachCustom,
   beforeEachCustom,
-  makeLogFileName,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
 
 import {
+  runStoreNodes,
   sendMessages,
-  startAndConnectLightNode,
-  TestContentTopic,
   TestDecoder,
+  TestShardInfo,
   totalMsgs
 } from "./utils.js";
 
@@ -24,9 +22,7 @@ describe("Waku Store, sorting", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    nwaku = new ServiceNode(makeLogFileName(this.ctx));
-    await nwaku.start({ store: true, lightpush: true, relay: true });
-    await nwaku.ensureSubscriptions();
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
   });
 
   afterEachCustom(this, async () => {
@@ -38,10 +34,9 @@ describe("Waku Store, sorting", function () {
       await sendMessages(
         nwaku,
         totalMsgs,
-        TestContentTopic,
-        DefaultPubsubTopic
+        TestDecoder.contentTopic,
+        TestDecoder.pubsubTopic
       );
-      waku = await startAndConnectLightNode(nwaku);
 
       for await (const query of waku.store.queryGenerator([TestDecoder], {
         pageDirection: PageDirection.FORWARD
@@ -73,10 +68,9 @@ describe("Waku Store, sorting", function () {
       await sendMessages(
         nwaku,
         totalMsgs,
-        TestContentTopic,
-        DefaultPubsubTopic
+        TestDecoder.contentTopic,
+        TestDecoder.pubsubTopic
       );
-      waku = await startAndConnectLightNode(nwaku);
 
       const messages: IMessage[] = [];
       await waku.store.queryWithOrderedCallback(

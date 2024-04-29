@@ -70,7 +70,7 @@ export async function waitForRemotePeer(
     if (!waku.filter)
       throw new Error("Cannot wait for Filter peer: protocol not mounted");
     promises.push(
-      waitForConnectedPeer(waku.filter, waku.libp2p.services.metadata)
+      waitForConnectedPeer(waku.filter.protocol, waku.libp2p.services.metadata)
     );
   }
 

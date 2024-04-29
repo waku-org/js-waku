@@ -1,9 +1,5 @@
 import { createDecoder, createEncoder } from "@waku/core";
-import {
-  DefaultPubsubTopic,
-  IFilterSubscription,
-  LightNode
-} from "@waku/interfaces";
+import { IFilterSubscription, LightNode } from "@waku/interfaces";
 import {
   ecies,
   generatePrivateKey,
@@ -19,7 +15,6 @@ import {
   beforeEachCustom,
   delay,
   generateTestData,
-  isNwakuAtLeast,
   ServiceNodesFleet,
   TEST_STRING
 } from "../../src/index.js";
@@ -31,7 +26,9 @@ import {
   teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
-  TestEncoder
+  TestEncoder,
+  TestPubsubTopic,
+  TestShardInfo
 } from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
@@ -44,10 +41,10 @@ const runTests = (strictCheckNodes: boolean): void => {
     beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
-        [DefaultPubsubTopic],
+        TestShardInfo,
         strictCheckNodes
       );
-      subscription = await waku.filter.createSubscription();
+      subscription = await waku.filter.createSubscription(TestShardInfo);
     });
 
     afterEachCustom(this, async () => {
@@ -80,9 +77,14 @@ const runTests = (strictCheckNodes: boolean): void => {
       const publicKey = getPublicKey(privateKey);
       const encoder = ecies.createEncoder({
         contentTopic: TestContentTopic,
-        publicKey
+        publicKey,
+        pubsubTopic: TestPubsubTopic
       });
-      const decoder = ecies.createDecoder(TestContentTopic, privateKey);
+      const decoder = ecies.createDecoder(
+        TestContentTopic,
+        privateKey,
+        TestPubsubTopic
+      );
 
       await subscription.subscribe(
         [decoder],
@@ -97,7 +99,8 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic,
-        expectedVersion: 1
+        expectedVersion: 1,
+        expectedPubsubTopic: TestPubsubTopic
       });
 
       await serviceNodes.confirmMessageLength(1);
@@ -107,9 +110,14 @@ const runTests = (strictCheckNodes: boolean): void => {
       const symKey = generateSymmetricKey();
       const encoder = symmetric.createEncoder({
         contentTopic: TestContentTopic,
-        symKey
+        symKey,
+        pubsubTopic: TestPubsubTopic
       });
-      const decoder = symmetric.createDecoder(TestContentTopic, symKey);
+      const decoder = symmetric.createDecoder(
+        TestContentTopic,
+        symKey,
+        TestPubsubTopic
+      );
 
       await subscription.subscribe(
         [decoder],
@@ -124,7 +132,8 @@ const runTests = (strictCheckNodes: boolean): void => {
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedContentTopic: TestContentTopic,
-        expectedVersion: 1
+        expectedVersion: 1,
+        expectedPubsubTopic: TestPubsubTopic
       });
 
       await serviceNodes.confirmMessageLength(1);
@@ -143,14 +152,15 @@ const runTests = (strictCheckNodes: boolean): void => {
         contentTopic: TestContentTopic,
         payload: utf8ToBytes(messageText)
       });
-      await serviceNodes.sendRelayMessage(relayMessage);
+      await serviceNodes.sendRelayMessage(relayMessage, TestPubsubTopic);
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         true
       );
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
 
       await serviceNodes.confirmMessageLength(1);
@@ -202,15 +212,19 @@ const runTests = (strictCheckNodes: boolean): void => {
       );
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
 
       // Modify subscription to include a new content topic and send a message.
       const newMessageText = "Filtering still works!";
       const newMessagePayload = { payload: utf8ToBytes(newMessageText) };
-      const newContentTopic = "/test/2/waku-filter";
-      const newEncoder = createEncoder({ contentTopic: newContentTopic });
-      const newDecoder = createDecoder(newContentTopic);
+      const newContentTopic = "/test/2/waku-filter/default";
+      const newEncoder = createEncoder({
+        contentTopic: newContentTopic,
+        pubsubTopic: TestPubsubTopic
+      });
+      const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
       await subscription.subscribe(
         [newDecoder],
         serviceNodes.messageCollector.callback
@@ -223,7 +237,8 @@ const runTests = (strictCheckNodes: boolean): void => {
       );
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedContentTopic: newContentTopic,
-        expectedMessageText: newMessageText
+        expectedMessageText: newMessageText,
+        expectedPubsubTopic: TestPubsubTopic
       });
 
       // Send another message on the initial content topic to verify it still works.
@@ -233,7 +248,8 @@ const runTests = (strictCheckNodes: boolean): void => {
       );
       serviceNodes.messageCollector.verifyReceivedMessage(2, {
         expectedMessageText: newMessageText,
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
 
       await serviceNodes.confirmMessageLength(3);
@@ -241,7 +257,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     it("Subscribe and receives messages on 20 topics", async function () {
       const topicCount = 20;
-      const td = generateTestData(topicCount);
+      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
       // Subscribe to all 20 topics.
       for (let i = 0; i < topicCount; i++) {
@@ -265,21 +281,16 @@ const runTests = (strictCheckNodes: boolean): void => {
       td.contentTopics.forEach((topic, index) => {
         serviceNodes.messageCollector.verifyReceivedMessage(index, {
           expectedContentTopic: topic,
-          expectedMessageText: `Message for Topic ${index + 1}`
+          expectedMessageText: `Message for Topic ${index + 1}`,
+          expectedPubsubTopic: TestPubsubTopic
         });
       });
     });
 
     it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
-      let topicCount: number;
-      if (isNwakuAtLeast("0.25.0")) {
-        this.timeout(50000);
-        topicCount = 100;
-      } else {
-        // skipping for old versions where the limit is 30
-        this.skip();
-      }
-      const td = generateTestData(topicCount);
+      this.timeout(50000);
+      const topicCount = 100;
+      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
       await subscription.subscribe(
         td.decoders,
@@ -303,51 +314,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         td.contentTopics.forEach((topic, index) => {
           serviceNodes.messageCollector.verifyReceivedMessage(index, {
             expectedContentTopic: topic,
-            expectedMessageText: `Message for Topic ${index + 1}`
-          });
-        });
-      } catch (error) {
-        console.warn(
-          "This test still fails because of https://github.com/waku-org/js-waku/issues/1790"
-        );
-      }
-    });
-
-    //TODO: remove test when WAKUNODE_IMAGE is 0.25.0
-    it("Subscribe to 30 topics (old limit) at once and receives messages", async function () {
-      let topicCount: number;
-      if (isNwakuAtLeast("0.25.0")) {
-        // skipping for new versions where the new limit is 100
-        this.skip();
-      } else {
-        topicCount = 30;
-      }
-
-      const td = generateTestData(topicCount);
-
-      await subscription.subscribe(
-        td.decoders,
-        serviceNodes.messageCollector.callback
-      );
-
-      // Send a unique message on each topic.
-      for (let i = 0; i < topicCount; i++) {
-        await waku.lightPush.send(td.encoders[i], {
-          payload: utf8ToBytes(`Message for Topic ${i + 1}`)
-        });
-      }
-
-      // Open issue here: https://github.com/waku-org/js-waku/issues/1790
-      // That's why we use the try catch block
-      try {
-        // Verify that each message was received on the corresponding topic.
-        expect(
-          await serviceNodes.messageCollector.waitForMessages(topicCount)
-        ).to.eq(true);
-        td.contentTopics.forEach((topic, index) => {
-          serviceNodes.messageCollector.verifyReceivedMessage(index, {
-            expectedContentTopic: topic,
-            expectedMessageText: `Message for Topic ${index + 1}`
+            expectedMessageText: `Message for Topic ${index + 1}`,
+            expectedPubsubTopic: TestPubsubTopic
           });
         });
       } catch (error) {
@@ -358,47 +326,8 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Error when try to subscribe to more than 101 topics (new limit)", async function () {
-      let topicCount: number;
-      if (isNwakuAtLeast("0.25.0")) {
-        topicCount = 101;
-      } else {
-        // skipping for old versions where the limit is 30
-        this.skip();
-      }
-      const td = generateTestData(topicCount);
-
-      try {
-        await subscription.subscribe(
-          td.decoders,
-          serviceNodes.messageCollector.callback
-        );
-        throw new Error(
-          `Subscribe to ${topicCount} topics was successful but was expected to fail with a specific error.`
-        );
-      } catch (err) {
-        if (
-          err instanceof Error &&
-          err.message.includes(
-            `exceeds maximum content topics: ${topicCount - 1}`
-          )
-        ) {
-          return;
-        } else {
-          throw err;
-        }
-      }
-    });
-
-    //TODO: remove test when WAKUNODE_IMAGE is 0.25.0
-    it("Error when try to subscribe to more than 31 topics (old limit)", async function () {
-      let topicCount: number;
-      if (isNwakuAtLeast("0.25.0")) {
-        // skipping for new versions where the new limit is 100
-        this.skip();
-      } else {
-        topicCount = 31;
-      }
-      const td = generateTestData(topicCount);
+      const topicCount = 101;
+      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
       try {
         await subscription.subscribe(
@@ -425,9 +354,13 @@ const runTests = (strictCheckNodes: boolean): void => {
     it("Overlapping topic subscription", async function () {
       // Define two sets of test data with overlapping topics.
       const topicCount1 = 2;
-      const td1 = generateTestData(topicCount1);
+      const td1 = generateTestData(topicCount1, {
+        pubsubTopic: TestPubsubTopic
+      });
       const topicCount2 = 4;
-      const td2 = generateTestData(topicCount2);
+      const td2 = generateTestData(topicCount2, {
+        pubsubTopic: TestPubsubTopic
+      });
 
       // Subscribe to the first set of topics.
       await subscription.subscribe(
@@ -484,19 +417,24 @@ const runTests = (strictCheckNodes: boolean): void => {
       ).to.eq(true);
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: "M1",
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedMessageText: "M2",
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
     });
 
     TEST_STRING.forEach((testItem) => {
       it(`Subscribe to topic containing ${testItem.description} and receive message`, async function () {
         const newContentTopic = testItem.value;
-        const newEncoder = createEncoder({ contentTopic: newContentTopic });
-        const newDecoder = createDecoder(newContentTopic);
+        const newEncoder = createEncoder({
+          contentTopic: newContentTopic,
+          pubsubTopic: TestPubsubTopic
+        });
+        const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
 
         await subscription.subscribe(
           [newDecoder],
@@ -509,7 +447,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         );
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: messageText,
-          expectedContentTopic: newContentTopic
+          expectedContentTopic: newContentTopic,
+          expectedPubsubTopic: TestPubsubTopic
         });
       });
     });
@@ -522,10 +461,13 @@ const runTests = (strictCheckNodes: boolean): void => {
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
 
       // Create a second subscription on a different topic
-      const subscription2 = await waku.filter.createSubscription();
-      const newContentTopic = "/test/2/waku-filter";
-      const newEncoder = createEncoder({ contentTopic: newContentTopic });
-      const newDecoder = createDecoder(newContentTopic);
+      const subscription2 = await waku.filter.createSubscription(TestShardInfo);
+      const newContentTopic = "/test/2/waku-filter/default";
+      const newEncoder = createEncoder({
+        contentTopic: newContentTopic,
+        pubsubTopic: TestPubsubTopic
+      });
+      const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
       await subscription2.subscribe(
         [newDecoder],
         serviceNodes.messageCollector.callback
@@ -539,11 +481,13 @@ const runTests = (strictCheckNodes: boolean): void => {
       );
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: "M1",
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedContentTopic: newContentTopic,
-        expectedMessageText: "M2"
+        expectedMessageText: "M2",
+        expectedPubsubTopic: TestPubsubTopic
       });
     });
   });

@@ -1,10 +1,5 @@
 import { waitForRemotePeer } from "@waku/core";
-import {
-  DefaultPubsubTopic,
-  IFilterSubscription,
-  LightNode,
-  Protocols
-} from "@waku/interfaces";
+import { IFilterSubscription, LightNode, Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -23,7 +18,9 @@ import {
   messageText,
   TestContentTopic,
   TestDecoder,
-  TestEncoder
+  TestEncoder,
+  TestPubsubTopic,
+  TestShardInfo
 } from "../utils.js";
 
 describe("Waku Filter V2: FilterPush", function () {
@@ -35,9 +32,9 @@ describe("Waku Filter V2: FilterPush", function () {
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
-    subscription = await waku.filter.createSubscription();
-    messageCollector = new MessageCollector();
+    [nwaku, waku] = await runNodes(this.ctx, TestShardInfo);
+    subscription = await waku.filter.createSubscription(TestShardInfo);
+    messageCollector = new MessageCollector(nwaku);
   });
 
   afterEachCustom(this, async () => {
@@ -65,7 +62,7 @@ describe("Waku Filter V2: FilterPush", function () {
       await delay(400);
 
       await nwaku.restCall<boolean>(
-        `/relay/v1/messages/${encodeURIComponent(DefaultPubsubTopic)}`,
+        `/relay/v1/messages/${encodeURIComponent(TestPubsubTopic)}`,
         "POST",
         {
           contentTopic: TestContentTopic,
@@ -99,7 +96,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(DefaultPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(TestPubsubTopic)}`,
       "POST",
       {
         contentTopic: TestContentTopic,
@@ -154,7 +151,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(DefaultPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(TestPubsubTopic)}`,
       "POST",
       {
         payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
@@ -171,7 +168,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(DefaultPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(TestPubsubTopic)}`,
       "POST",
       {
         contentTopic: TestContentTopic,
@@ -193,7 +190,7 @@ describe("Waku Filter V2: FilterPush", function () {
     await delay(400);
 
     await nwaku.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(DefaultPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(TestPubsubTopic)}`,
       "POST",
       {
         contentTopic: TestContentTopic,

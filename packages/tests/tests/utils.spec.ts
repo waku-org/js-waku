@@ -1,10 +1,5 @@
-import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
-import {
-  DefaultPubsubTopic,
-  type LightNode,
-  Protocols
-} from "@waku/interfaces";
-import { createLightNode } from "@waku/sdk";
+import { createDecoder, createEncoder } from "@waku/core";
+import { type LightNode } from "@waku/interfaces";
 import { toAsyncIterator } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import chai, { expect } from "chai";
@@ -14,36 +9,32 @@ import {
   afterEachCustom,
   beforeEachCustom,
   delay,
-  makeLogFileName,
-  NOISE_KEY_1,
   ServiceNode,
   tearDownNodes
 } from "../src/index.js";
 
+import { runNodes } from "./filter/single_node/utils.js";
+
 chai.use(chaiAsPromised);
 
-const TestContentTopic = "/test/1/waku-filter";
-const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
-const TestDecoder = createDecoder(TestContentTopic);
+const TestContentTopic = "/test/1/waku-filter/default";
+const TestShardInfo = {
+  contentTopics: [TestContentTopic],
+  clusterId: 3
+};
+
+const TestEncoder = createEncoder({
+  contentTopic: TestContentTopic,
+  pubsubTopicShardInfo: TestShardInfo
+});
+const TestDecoder = createDecoder(TestContentTopic, TestShardInfo);
 
 describe("Util: toAsyncIterator: Filter", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    nwaku = new ServiceNode(makeLogFileName(this.ctx));
-    await nwaku.start({
-      filter: true,
-      lightpush: true,
-      relay: true
-    });
-    waku = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1,
-      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-    });
-    await waku.start();
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+    [nwaku, waku] = await runNodes(this.ctx, TestShardInfo);
   });
 
   afterEachCustom(this, async () => {
@@ -63,7 +54,7 @@ describe("Util: toAsyncIterator: Filter", function () {
     const { value } = await iterator.next();
 
     expect(value.contentTopic).to.eq(TestContentTopic);
-    expect(value.pubsubTopic).to.eq(DefaultPubsubTopic);
+    expect(value.pubsubTopic).to.eq(TestDecoder.pubsubTopic);
     expect(bytesToUtf8(value.payload)).to.eq(messageText);
   });
 

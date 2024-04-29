@@ -1,6 +1,6 @@
 import type { PeerId } from "@libp2p/interface";
 import { DecodedMessage, waitForRemotePeer } from "@waku/core";
-import { DefaultPubsubTopic, Protocols, RelayNode } from "@waku/interfaces";
+import { Protocols, RelayNode } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk/relay";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -10,15 +10,20 @@ import {
   base64ToUtf8,
   beforeEachCustom,
   delay,
-  makeLogFileName,
-  NOISE_KEY_1,
   NOISE_KEY_2,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
 import { MessageRpcResponse } from "../../src/types.js";
 
-import { TestContentTopic, TestDecoder, TestEncoder } from "./utils.js";
+import {
+  TestContentTopic,
+  TestDecoder,
+  TestEncoder,
+  TestPubsubTopic,
+  TestShardInfo
+} from "./utils.js";
+import { runRelayNodes } from "./utils.js";
 
 describe("Waku Relay, Interop", function () {
   this.timeout(15000);
@@ -26,19 +31,7 @@ describe("Waku Relay, Interop", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku.start();
-
-    nwaku = new ServiceNode(this.ctx.test?.ctx?.currentTest?.title + "");
-    await nwaku.start({ relay: true });
-
-    await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Relay]);
-
-    // Nwaku subscribe to the default pubsub topic
-    await nwaku.ensureSubscriptions();
+    [nwaku, waku] = await runRelayNodes(this.ctx, TestShardInfo);
   });
 
   afterEachCustom(this, async () => {
@@ -51,7 +44,7 @@ describe("Waku Relay, Interop", function () {
     while (subscribers.length === 0) {
       await delay(200);
       subscribers =
-        waku.libp2p.services.pubsub!.getSubscribers(DefaultPubsubTopic);
+        waku.libp2p.services.pubsub!.getSubscribers(TestPubsubTopic);
     }
 
     const nimPeerId = await nwaku.getPeerId();
@@ -103,63 +96,38 @@ describe("Waku Relay, Interop", function () {
     expect(bytesToUtf8(receivedMsg.payload!)).to.eq(messageText);
   });
 
-  describe("Two nodes connected to nwaku", function () {
-    let waku1: RelayNode;
-    let waku2: RelayNode;
-    let nwaku: ServiceNode;
-
-    afterEachCustom(this, async () => {
-      await tearDownNodes(nwaku, [waku1, waku2]);
+  it("Js publishes, other Js receives", async function () {
+    const waku2 = await createRelayNode({
+      staticNoiseKey: NOISE_KEY_2,
+      emitSelf: true,
+      shardInfo: TestShardInfo
     });
+    await waku2.start();
 
-    it("Js publishes, other Js receives", async function () {
-      [waku1, waku2] = await Promise.all([
-        createRelayNode({
-          staticNoiseKey: NOISE_KEY_1,
-          emitSelf: true
-        }).then((waku) => waku.start().then(() => waku)),
-        createRelayNode({
-          staticNoiseKey: NOISE_KEY_2
-        }).then((waku) => waku.start().then(() => waku))
-      ]);
+    const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
+    await waku2.dial(nwakuMultiaddr);
 
-      nwaku = new ServiceNode(makeLogFileName(this));
-      await nwaku.start({ relay: true });
+    await waitForRemotePeer(waku2, [Protocols.Relay]);
 
-      const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
-      await Promise.all([
-        waku1.dial(nwakuMultiaddr),
-        waku2.dial(nwakuMultiaddr)
-      ]);
+    await delay(2000);
+    // Check that the two JS peers are NOT directly connected
+    expect(await waku.libp2p.peerStore.has(waku2.libp2p.peerId)).to.eq(false);
+    expect(await waku2.libp2p.peerStore.has(waku.libp2p.peerId)).to.eq(false);
 
-      // Wait for identify protocol to finish
-      await Promise.all([
-        waitForRemotePeer(waku1, [Protocols.Relay]),
-        waitForRemotePeer(waku2, [Protocols.Relay])
-      ]);
+    const msgStr = "Hello there!";
+    const message = { payload: utf8ToBytes(msgStr) };
 
-      await delay(2000);
-      // Check that the two JS peers are NOT directly connected
-      expect(await waku1.libp2p.peerStore.has(waku2.libp2p.peerId)).to.eq(
-        false
-      );
-      expect(await waku2.libp2p.peerStore.has(waku1.libp2p.peerId)).to.eq(
-        false
-      );
+    const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
+      (resolve) => {
+        void waku2.relay.subscribe(TestDecoder, resolve);
+      }
+    );
 
-      const msgStr = "Hello there!";
-      const message = { payload: utf8ToBytes(msgStr) };
+    await waku.relay.send(TestEncoder, message);
+    const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
 
-      const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
-        (resolve) => {
-          void waku2.relay.subscribe(TestDecoder, resolve);
-        }
-      );
+    expect(bytesToUtf8(waku2ReceivedMsg.payload)).to.eq(msgStr);
 
-      await waku1.relay.send(TestEncoder, message);
-      const waku2ReceivedMsg = await waku2ReceivedMsgPromise;
-
-      expect(bytesToUtf8(waku2ReceivedMsg.payload)).to.eq(msgStr);
-    });
+    await tearDownNodes([], waku);
   });
 });

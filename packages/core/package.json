@@ -75,7 +75,6 @@
     "@libp2p/ping": "^1.0.12",
     "@waku/enr": "^0.0.22",
     "@waku/interfaces": "0.0.23",
-    "@waku/message-hash": "^0.1.12",
     "@waku/proto": "0.0.6",
     "@waku/utils": "0.0.16",
     "debug": "^4.3.4",
@@ -111,7 +110,6 @@
     "libp2p": "^1.1.2",
     "@waku/enr": "^0.0.21",
     "@waku/interfaces": "0.0.22",
-    "@waku/message-hash": "^0.1.11",
     "@waku/proto": "0.0.6",
     "@waku/utils": "0.0.15"
   },

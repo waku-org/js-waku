@@ -75,12 +75,12 @@ describe("Metadata Protocol", function () {
 
     it("same cluster, different shard: nodes connect", async function () {
       const shardInfo1: ShardInfo = {
-        clusterId: 0,
+        clusterId: 2,
         shards: [1]
       };
 
       const shardInfo2: ShardInfo = {
-        clusterId: 0,
+        clusterId: 2,
         shards: [2]
       };
 
