@@ -193,10 +193,6 @@ export function contentTopicToPubsubTopic(
     throw Error("Content topic must be specified");
   }
 
-  if (!contentTopic) {
-    throw Error("Content topic must be specified");
-  }
-
   const shardIndex = contentTopicToShardIndex(contentTopic, networkShards);
   return `/waku/2/rs/${clusterId}/${shardIndex}`;
 }
