@@ -2,47 +2,46 @@ import {
   createDecoder,
   createEncoder,
   DecodedMessage,
-  Decoder,
-  waitForRemotePeer
+  Decoder
 } from "@waku/core";
 import {
-  DefaultPubsubTopic,
   LightNode,
   Protocols,
   ShardInfo,
   ShardingParams,
   type SingleShardInfo
 } from "@waku/interfaces";
-import { createLightNode } from "@waku/sdk";
+import { createLightNode, waitForRemotePeer } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
+import { Context } from "mocha";
 
-import { delay, NOISE_KEY_1, ServiceNode } from "../../src";
+import { delay, NOISE_KEY_1, runNodes, ServiceNode } from "../../src";
 
 export const log = new Logger("test:store");
 
-export const TestContentTopic = "/test/1/waku-store/utf8";
-export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
-export const TestDecoder = createDecoder(TestContentTopic);
-export const customShardInfo1: SingleShardInfo = { clusterId: 3, shard: 1 };
-export const customShardedPubsubTopic1 =
-  singleShardInfoToPubsubTopic(customShardInfo1);
+export const TestClusterId = 3;
+export const TestShardInfo: ShardInfo = {
+  clusterId: TestClusterId,
+  shards: [1, 2]
+};
 
-export const customShardInfo2: SingleShardInfo = { clusterId: 3, shard: 2 };
-export const customShardedPubsubTopic2 =
-  singleShardInfoToPubsubTopic(customShardInfo2);
-export const shardInfo1: ShardInfo = { clusterId: 3, shards: [1] };
-export const customContentTopic1 = "/test/2/waku-store/utf8";
-export const customContentTopic2 = "/test/3/waku-store/utf8";
-export const customDecoder1 = createDecoder(customContentTopic1, {
-  clusterId: 3,
-  shard: 1
+export const TestShardInfo1: SingleShardInfo = { clusterId: 3, shard: 1 };
+export const TestPubsubTopic1 = singleShardInfoToPubsubTopic(TestShardInfo1);
+
+export const TestShardInfo2: SingleShardInfo = { clusterId: 3, shard: 2 };
+export const TestPubsubTopic2 = singleShardInfoToPubsubTopic(TestShardInfo2);
+
+export const TestContentTopic1 = "/test/1/waku-store/utf8";
+export const TestEncoder = createEncoder({
+  contentTopic: TestContentTopic1,
+  pubsubTopicShardInfo: TestShardInfo1
 });
-export const customDecoder2 = createDecoder(customContentTopic2, {
-  clusterId: 3,
-  shard: 2
-});
-export const shardInfoBothShards: ShardInfo = { clusterId: 3, shards: [1, 2] };
+export const TestDecoder = createDecoder(TestContentTopic1, TestPubsubTopic1);
+
+export const TestContentTopic2 = "/test/3/waku-store/utf8";
+export const TestDecoder2 = createDecoder(TestContentTopic2, TestPubsubTopic2);
+
 export const totalMsgs = 20;
 export const messageText = "Store Push works!";
 
@@ -103,17 +102,12 @@ export async function processQueriedMessages(
 
 export async function startAndConnectLightNode(
   instance: ServiceNode,
-  pubsubTopics: string[] = [DefaultPubsubTopic],
-  shardInfo?: ShardingParams
+  shardInfo: ShardingParams
 ): Promise<LightNode> {
   const waku = await createLightNode({
-    pubsubTopics: shardInfo ? undefined : pubsubTopics,
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-    ...((pubsubTopics.length !== 1 ||
-      pubsubTopics[0] !== DefaultPubsubTopic) && {
-      shardInfo: shardInfo
-    })
+    shardInfo: shardInfo
   });
   await waku.start();
   await waku.dial(await instance.getMultiaddrWithId());
@@ -148,3 +142,14 @@ export const adjustDate = (baseDate: Date, adjustMs: number): Date => {
   adjusted.setTime(adjusted.getTime() + adjustMs);
   return adjusted;
 };
+
+export const runStoreNodes = (
+  context: Context,
+  shardInfo: ShardingParams
+): Promise<[ServiceNode, LightNode]> =>
+  runNodes({
+    context,
+    shardInfo,
+    createNode: createLightNode,
+    protocols: [Protocols.Store]
+  });

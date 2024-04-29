@@ -1,8 +1,4 @@
-import {
-  DefaultPubsubTopic,
-  IFilterSubscription,
-  LightNode
-} from "@waku/interfaces";
+import { IFilterSubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -18,6 +14,7 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder,
+  TestShardInfo,
   validatePingError
 } from "./utils";
 
@@ -30,10 +27,8 @@ const runTests = (strictCheckNodes: boolean): void => {
     let subscription: IFilterSubscription;
 
     beforeEachCustom(this, async () => {
-      [serviceNodes, waku] = await runMultipleNodes(this.ctx, [
-        DefaultPubsubTopic
-      ]);
-      subscription = await waku.filter.createSubscription();
+      [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo);
+      subscription = await waku.filter.createSubscription(TestShardInfo);
     });
 
     afterEachCustom(this, async () => {

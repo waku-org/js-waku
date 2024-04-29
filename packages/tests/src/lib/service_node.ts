@@ -27,7 +27,7 @@ const WAKU_SERVICE_NODE_PARAMS =
 const NODE_READY_LOG_LINE = "Node setup complete";
 
 export const DOCKER_IMAGE_NAME =
-  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.26.0";
+  process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.27.0";
 
 const isGoWaku = DOCKER_IMAGE_NAME.includes("go-waku");
 
@@ -48,6 +48,7 @@ export class ServiceNode {
   private websocketPort?: number;
   private readonly logPath: string;
   private restPort?: number;
+  private args?: Args;
 
   /**
    * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
@@ -166,6 +167,8 @@ export class ServiceNode {
             this.logPath,
             WAKU_SERVICE_NODE_PARAMS
           );
+
+          this.args = mergedArgs;
         } catch (error) {
           log.error("Nwaku node failed to start:", error);
           await this.stop();
@@ -237,11 +240,9 @@ export class ServiceNode {
     );
   }
 
-  async messages(
-    pubsubTopic: string = DefaultPubsubTopic
-  ): Promise<MessageRpcResponse[]> {
+  async messages(pubsubTopic?: string): Promise<MessageRpcResponse[]> {
     return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this?.args?.pubsubTopic?.[0] || DefaultPubsubTopic)}`,
       "GET",
       null,
       async (response) => {
@@ -266,7 +267,7 @@ export class ServiceNode {
 
   async sendMessage(
     message: MessageRpcQuery,
-    pubsubTopic: string = DefaultPubsubTopic
+    pubsubTopic?: string
   ): Promise<boolean> {
     this.checkProcess();
 
@@ -275,7 +276,7 @@ export class ServiceNode {
     }
 
     return this.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this.args?.pubsubTopic?.[0] || DefaultPubsubTopic)}`,
       "POST",
       message,
       async (response) => response.status === 200
@@ -348,6 +349,10 @@ export class ServiceNode {
 
   get httpUrl(): string {
     return `http://127.0.0.1:${this.restPort}`;
+  }
+
+  get pubsubTopics(): string[] {
+    return this.args?.pubsubTopic ?? [];
   }
 
   async restCall<T>(

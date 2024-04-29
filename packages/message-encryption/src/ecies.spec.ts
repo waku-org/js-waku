@@ -1,20 +1,22 @@
 import { IProtoMessage } from "@waku/interfaces";
+import { contentTopicToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 import fc from "fast-check";
 
 import { getPublicKey } from "./crypto/index.js";
 import { createDecoder, createEncoder } from "./ecies.js";
 
+const contentTopic = "/js-waku/1/tests/bytes";
+const pubsubTopic = contentTopicToPubsubTopic(contentTopic);
+
 describe("Ecies Encryption", function () {
   this.timeout(20000);
   it("Round trip binary encryption [ecies, no signature]", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1 }),
-        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubsubTopic, contentTopic, payload, privateKey) => {
+        async (payload, privateKey) => {
           const publicKey = getPublicKey(privateKey);
 
           const encoder = createEncoder({
@@ -46,18 +48,10 @@ describe("Ecies Encryption", function () {
 
     await fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1 }),
-        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (
-          pubsubTopic,
-          contentTopic,
-          payload,
-          alicePrivateKey,
-          bobPrivateKey
-        ) => {
+        async (payload, alicePrivateKey, bobPrivateKey) => {
           const alicePublicKey = getPublicKey(alicePrivateKey);
           const bobPublicKey = getPublicKey(bobPrivateKey);
 
@@ -89,11 +83,9 @@ describe("Ecies Encryption", function () {
   it("Check meta is set [ecies]", async function () {
     await fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1 }),
-        fc.string({ minLength: 1 }),
         fc.uint8Array({ minLength: 1 }),
         fc.uint8Array({ min: 1, minLength: 32, maxLength: 32 }),
-        async (pubsubTopic, contentTopic, payload, privateKey) => {
+        async (payload, privateKey) => {
           const publicKey = getPublicKey(privateKey);
           const metaSetter = (
             msg: IProtoMessage & { meta: undefined }

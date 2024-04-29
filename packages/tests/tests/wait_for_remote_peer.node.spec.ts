@@ -1,6 +1,6 @@
 import { waitForRemotePeer } from "@waku/core";
 import type { LightNode, RelayNode } from "@waku/interfaces";
-import { DefaultPubsubTopic, Protocols } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
@@ -14,6 +14,12 @@ import {
   tearDownNodes
 } from "../src/index.js";
 
+import {
+  runRelayNodes,
+  TestPubsubTopic,
+  TestShardInfo
+} from "./relay/utils.js";
+
 describe("Wait for remote peer", function () {
   let waku1: RelayNode;
   let waku2: LightNode;
@@ -25,23 +31,10 @@ describe("Wait for remote peer", function () {
 
   it("Relay - dialed first", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
-      relay: true,
-      store: false,
-      filter: false,
-      lightpush: false
-    });
+    [nwaku, waku1] = await runRelayNodes(this, TestShardInfo);
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku1 = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku1.start();
-    await waku1.dial(multiAddrWithId);
-    await delay(1000);
-    await waitForRemotePeer(waku1, [Protocols.Relay]);
-    const peers = waku1.relay.getMeshPeers(DefaultPubsubTopic);
+    const peers = waku1.relay.getMeshPeers(TestPubsubTopic);
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -200,7 +193,7 @@ describe("Wait for remote peer", function () {
     await waku2.dial(multiAddrWithId);
     await waitForRemotePeer(waku2, [Protocols.Filter]);
 
-    const peers = (await waku2.filter.connectedPeers()).map((peer) =>
+    const peers = (await waku2.filter.protocol.connectedPeers()).map((peer) =>
       peer.id.toString()
     );
 
@@ -232,8 +225,8 @@ describe("Wait for remote peer", function () {
       Protocols.LightPush
     ]);
 
-    const filterPeers = (await waku2.filter.connectedPeers()).map((peer) =>
-      peer.id.toString()
+    const filterPeers = (await waku2.filter.protocol.connectedPeers()).map(
+      (peer) => peer.id.toString()
     );
     const storePeers = (await waku2.store.protocol.connectedPeers()).map(
       (peer) => peer.id.toString()
@@ -252,23 +245,10 @@ describe("Wait for remote peer", function () {
 
   it("Privacy Node - default protocol", async function () {
     this.timeout(20_000);
-    nwaku = new ServiceNode(makeLogFileName(this));
-    await nwaku.start({
-      filter: false,
-      lightpush: false,
-      relay: true,
-      store: false
-    });
+    [nwaku, waku1] = await runRelayNodes(this, TestShardInfo);
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
-    waku1 = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
-    });
-    await waku1.start();
-    await waku1.dial(multiAddrWithId);
-    await waitForRemotePeer(waku1);
-
-    const peers = waku1.relay.getMeshPeers(DefaultPubsubTopic);
+    const peers = waku1.relay.getMeshPeers(TestPubsubTopic);
 
     const nimPeerId = multiAddrWithId.getPeerId();
 

@@ -1,6 +1,6 @@
 import { createDecoder, DecodedMessage, waitForRemotePeer } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
-import { DefaultPubsubTopic, Protocols } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import {
   generatePrivateKey,
   generateSymmetricKey,
@@ -22,7 +22,6 @@ import {
   afterEachCustom,
   beforeEachCustom,
   delay,
-  makeLogFileName,
   MessageCollector,
   ServiceNode,
   tearDownNodes,
@@ -30,19 +29,20 @@ import {
 } from "../../src/index.js";
 
 import {
-  customContentTopic1,
   log,
   messageText,
   processQueriedMessages,
+  runStoreNodes,
   sendMessages,
   startAndConnectLightNode,
-  TestContentTopic,
+  TestContentTopic1,
   TestDecoder,
+  TestDecoder2,
   TestEncoder,
+  TestPubsubTopic1,
+  TestShardInfo,
   totalMsgs
 } from "./utils.js";
-
-const secondDecoder = createDecoder(customContentTopic1);
 
 describe("Waku Store, general", function () {
   this.timeout(15000);
@@ -51,9 +51,7 @@ describe("Waku Store, general", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    nwaku = new ServiceNode(makeLogFileName(this.ctx));
-    await nwaku.start({ store: true, lightpush: true, relay: true });
-    await nwaku.ensureSubscriptions();
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
   });
 
   afterEachCustom(this, async () => {
@@ -61,12 +59,17 @@ describe("Waku Store, general", function () {
   });
 
   it("Query generator for multiple messages", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
-    waku = await startAndConnectLightNode(nwaku);
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      TestDecoder.contentTopic,
+      TestDecoder.pubsubTopic
+    );
+
     const messages = await processQueriedMessages(
       waku,
       [TestDecoder],
-      DefaultPubsubTopic
+      TestDecoder.pubsubTopic
     );
 
     expect(messages?.length).eq(totalMsgs);
@@ -84,55 +87,62 @@ describe("Waku Store, general", function () {
         await nwaku.sendMessage(
           ServiceNode.toMessageRpcQuery({
             payload: utf8ToBytes(testItem["value"]),
-            contentTopic: TestContentTopic
+            contentTopic: TestDecoder.contentTopic
           }),
-          DefaultPubsubTopic
+          TestDecoder.pubsubTopic
         )
       ).to.eq(true);
       await delay(1); // to ensure each timestamp is unique.
     }
 
-    waku = await startAndConnectLightNode(nwaku);
     const messageCollector = new MessageCollector(nwaku);
     messageCollector.list = await processQueriedMessages(
       waku,
       [TestDecoder],
-      DefaultPubsubTopic
+      TestDecoder.pubsubTopic
     );
 
     // checking that all message sent were retrieved
     TEST_STRING.forEach((testItem) => {
       expect(
-        messageCollector.hasMessage(TestContentTopic, testItem["value"])
+        messageCollector.hasMessage(TestDecoder.contentTopic, testItem["value"])
       ).to.eq(true);
     });
   });
 
   it("Query generator for multiple messages with multiple decoders", async function () {
+    const SecondDecoder = createDecoder(
+      TestDecoder2.contentTopic,
+      TestDecoder.pubsubTopic
+    );
+
     await nwaku.sendMessage(
       ServiceNode.toMessageRpcQuery({
         payload: utf8ToBytes("M1"),
-        contentTopic: TestContentTopic
+        contentTopic: TestDecoder.contentTopic
       }),
-      DefaultPubsubTopic
+      TestDecoder.pubsubTopic
     );
     await nwaku.sendMessage(
       ServiceNode.toMessageRpcQuery({
         payload: utf8ToBytes("M2"),
-        contentTopic: customContentTopic1
+        contentTopic: SecondDecoder.contentTopic
       }),
-      DefaultPubsubTopic
+      SecondDecoder.pubsubTopic
     );
-    waku = await startAndConnectLightNode(nwaku);
 
     const messageCollector = new MessageCollector(nwaku);
     messageCollector.list = await processQueriedMessages(
       waku,
-      [TestDecoder, secondDecoder],
-      DefaultPubsubTopic
+      [TestDecoder, SecondDecoder],
+      TestDecoder.pubsubTopic
     );
-    expect(messageCollector.hasMessage(TestContentTopic, "M1")).to.eq(true);
-    expect(messageCollector.hasMessage(customContentTopic1, "M2")).to.eq(true);
+    expect(messageCollector.hasMessage(TestDecoder.contentTopic, "M1")).to.eq(
+      true
+    );
+    expect(messageCollector.hasMessage(SecondDecoder.contentTopic, "M2")).to.eq(
+      true
+    );
   });
 
   it("Query generator for multiple messages with different content topic format", async function () {
@@ -143,17 +153,15 @@ describe("Waku Store, general", function () {
             payload: utf8ToBytes(messageText),
             contentTopic: testItem["value"]
           }),
-          DefaultPubsubTopic
+          TestDecoder.pubsubTopic
         )
       ).to.eq(true);
       await delay(1); // to ensure each timestamp is unique.
     }
 
-    waku = await startAndConnectLightNode(nwaku);
-
     for (const testItem of TEST_STRING) {
       for await (const query of waku.store.queryGenerator([
-        createDecoder(testItem["value"])
+        createDecoder(testItem["value"], TestDecoder.pubsubTopic)
       ])) {
         for await (const msg of query) {
           expect(equals(msg!.payload, utf8ToBytes(messageText))).to.eq(true);
@@ -163,8 +171,12 @@ describe("Waku Store, general", function () {
   });
 
   it("Callback on promise", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
-    waku = await startAndConnectLightNode(nwaku);
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      TestDecoder.contentTopic,
+      TestDecoder.pubsubTopic
+    );
 
     const messages: IMessage[] = [];
     await waku.store.queryWithPromiseCallback(
@@ -185,8 +197,12 @@ describe("Waku Store, general", function () {
   });
 
   it("Callback on promise, aborts when callback returns true", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
-    waku = await startAndConnectLightNode(nwaku);
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      TestDecoder.contentTopic,
+      TestDecoder.pubsubTopic
+    );
 
     const desiredMsgs = 14;
     const messages: IMessage[] = [];
@@ -237,33 +253,35 @@ describe("Waku Store, general", function () {
 
     const eciesEncoder = createEciesEncoder({
       contentTopic: asymTopic,
-      publicKey
+      publicKey,
+      pubsubTopic: TestPubsubTopic1
     });
     const symEncoder = createSymEncoder({
       contentTopic: symTopic,
-      symKey
+      symKey,
+      pubsubTopic: TestPubsubTopic1
     });
 
     const otherEncoder = createEciesEncoder({
-      contentTopic: TestContentTopic,
+      contentTopic: TestContentTopic1,
+      pubsubTopic: TestPubsubTopic1,
       publicKey: getPublicKey(generatePrivateKey())
     });
 
-    const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
-    const symDecoder = createSymDecoder(symTopic, symKey);
+    const eciesDecoder = createEciesDecoder(
+      asymTopic,
+      privateKey,
+      TestDecoder.pubsubTopic
+    );
+    const symDecoder = createSymDecoder(
+      symTopic,
+      symKey,
+      TestDecoder.pubsubTopic
+    );
 
-    waku = await startAndConnectLightNode(nwaku);
-    waku2 = await startAndConnectLightNode(nwaku);
+    waku2 = await startAndConnectLightNode(nwaku, TestShardInfo);
     const nimWakuMultiaddr = await nwaku.getMultiaddrWithId();
-
-    await Promise.all([
-      waku.dial(nimWakuMultiaddr),
-      waku2.dial(nimWakuMultiaddr)
-    ]);
-
-    log.info("Waku nodes connected to nwaku");
-
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku2.dial(nimWakuMultiaddr);
 
     log.info("Sending messages using light push");
     await Promise.all([
@@ -298,8 +316,12 @@ describe("Waku Store, general", function () {
   });
 
   it("Ordered callback, aborts when callback returns true", async function () {
-    await sendMessages(nwaku, totalMsgs, TestContentTopic, DefaultPubsubTopic);
-    waku = await startAndConnectLightNode(nwaku);
+    await sendMessages(
+      nwaku,
+      totalMsgs,
+      TestDecoder.contentTopic,
+      TestDecoder.pubsubTopic
+    );
 
     const desiredMsgs = 14;
     const messages: IMessage[] = [];
@@ -317,12 +339,17 @@ describe("Waku Store, general", function () {
 
   it("Query generator for 2000 messages", async function () {
     this.timeout(40000);
-    await sendMessages(nwaku, 2000, TestContentTopic, DefaultPubsubTopic);
-    waku = await startAndConnectLightNode(nwaku);
+    await sendMessages(
+      nwaku,
+      2000,
+      TestDecoder.contentTopic,
+      TestDecoder.pubsubTopic
+    );
+
     const messages = await processQueriedMessages(
       waku,
       [TestDecoder],
-      DefaultPubsubTopic
+      TestDecoder.pubsubTopic
     );
 
     expect(messages?.length).eq(2000);

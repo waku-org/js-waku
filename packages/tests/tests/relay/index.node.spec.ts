@@ -13,7 +13,6 @@ import {
   createDecoder as createSymDecoder,
   createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
-import { createRelayNode } from "@waku/sdk/relay";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -21,12 +20,10 @@ import {
   afterEachCustom,
   beforeEachCustom,
   delay,
-  NOISE_KEY_1,
-  NOISE_KEY_2,
   tearDownNodes
 } from "../../src/index.js";
 
-import { log, waitForAllRemotePeers } from "./utils.js";
+import { runJSNodes, TestPubsubTopic } from "./utils.js";
 
 describe("Waku Relay", function () {
   this.timeout(15000);
@@ -34,24 +31,7 @@ describe("Waku Relay", function () {
   let waku2: RelayNode;
 
   beforeEachCustom(this, async () => {
-    log.info("Starting JS Waku instances");
-    [waku1, waku2] = await Promise.all([
-      createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
-        waku.start().then(() => waku)
-      ),
-      createRelayNode({
-        staticNoiseKey: NOISE_KEY_2,
-        libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
-      }).then((waku) => waku.start().then(() => waku))
-    ]);
-    log.info("Instances started, adding waku2 to waku1's address book");
-    await waku1.libp2p.peerStore.merge(waku2.libp2p.peerId, {
-      multiaddrs: waku2.libp2p.getMultiaddrs()
-    });
-    await waku1.dial(waku2.libp2p.peerId);
-
-    await waitForAllRemotePeers(waku1, waku2);
-    log.info("before each hook done");
+    [waku1, waku2] = await runJSNodes();
   });
 
   afterEachCustom(this, async () => {
@@ -70,15 +50,21 @@ describe("Waku Relay", function () {
 
     const eciesEncoder = createEciesEncoder({
       contentTopic: asymTopic,
-      publicKey
+      publicKey,
+      pubsubTopic: TestPubsubTopic
     });
     const symEncoder = createSymEncoder({
       contentTopic: symTopic,
-      symKey
+      symKey,
+      pubsubTopic: TestPubsubTopic
     });
 
-    const eciesDecoder = createEciesDecoder(asymTopic, privateKey);
-    const symDecoder = createSymDecoder(symTopic, symKey);
+    const eciesDecoder = createEciesDecoder(
+      asymTopic,
+      privateKey,
+      TestPubsubTopic
+    );
+    const symDecoder = createSymDecoder(symTopic, symKey, TestPubsubTopic);
 
     const msgs: DecodedMessage[] = [];
     void waku2.relay.subscribe([eciesDecoder], (wakuMsg) => {
@@ -106,7 +92,7 @@ describe("Waku Relay", function () {
     const messageText =
       "Published on content topic with added then deleted observer";
 
-    const contentTopic = "added-then-deleted-observer";
+    const contentTopic = "/test/1/observer/proto";
 
     // The promise **fails** if we receive a message on this observer.
     const receivedMsgPromise: Promise<DecodedMessage> = new Promise(

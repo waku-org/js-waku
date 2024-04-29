@@ -7,7 +7,7 @@ export type {
 export * as message from "./lib/message/index.js";
 
 export * as waku_filter from "./lib/filter/index.js";
-export { wakuFilter, FilterCodecs } from "./lib/filter/index.js";
+export { FilterCore, FilterCodecs } from "./lib/filter/index.js";
 
 export * as waku_light_push from "./lib/light_push/index.js";
 export { LightPushCodec, LightPushCore } from "./lib/light_push/index.js";

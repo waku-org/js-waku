@@ -4,7 +4,7 @@ import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, DecodedMessage } from "@waku/core";
 import type {
   Callback,
-  IFilter,
+  IFilterSDK,
   IFilterSubscription,
   ILightPushSDK,
   IRelay,
@@ -56,7 +56,7 @@ export class WakuNode implements Waku {
   public libp2p: Libp2p;
   public relay?: IRelay;
   public store?: IStoreSDK;
-  public filter?: IFilter;
+  public filter?: IFilterSDK;
   public lightPush?: ILightPushSDK;
   public connectionManager: ConnectionManager;
   public readonly pubsubTopics: PubsubTopic[];
@@ -66,7 +66,7 @@ export class WakuNode implements Waku {
     libp2p: Libp2p,
     store?: (libp2p: Libp2p) => IStoreSDK,
     lightPush?: (libp2p: Libp2p) => ILightPushSDK,
-    filter?: (libp2p: Libp2p) => IFilter,
+    filter?: (libp2p: Libp2p) => IFilterSDK,
     relay?: (libp2p: Libp2p) => IRelay
   ) {
     if (options.pubsubTopics.length == 0) {
@@ -166,7 +166,7 @@ export class WakuNode implements Waku {
     }
     if (_protocols.includes(Protocols.Filter)) {
       if (this.filter) {
-        codecs.push(this.filter.multicodec);
+        codecs.push(this.filter.protocol.multicodec);
       } else {
         log.error(
           "Filter codec not included in dial codec: protocol not mounted locally"
