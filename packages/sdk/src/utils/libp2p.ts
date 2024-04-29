@@ -9,7 +9,7 @@ import { all as filterAll } from "@libp2p/websockets/filters";
 import { wakuMetadata } from "@waku/core";
 import {
   type CreateLibp2pOptions,
-  DefaultShardInfo,
+  DefaultPubsubTopic,
   type IMetadata,
   type Libp2p,
   type Libp2pComponents,
@@ -96,14 +96,12 @@ export async function createLibp2pAndUpdateOptions(
     options.shardInfo = { contentTopics: options.contentTopics };
   }
 
-  if (!options.pubsubTopics) {
-    const shardInfo = ensureShardingConfigured(
-      options.shardInfo ?? DefaultShardInfo
-    );
+  const shardInfo = options.shardInfo
+    ? ensureShardingConfigured(options.shardInfo)
+    : undefined;
 
-    options.shardInfo = shardInfo.shardInfo;
-    options.pubsubTopics = shardInfo.pubsubTopics;
-  }
+  options.pubsubTopics = shardInfo?.pubsubTopics ??
+    options.pubsubTopics ?? [DefaultPubsubTopic];
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -119,7 +117,7 @@ export async function createLibp2pAndUpdateOptions(
   libp2pOptions.peerDiscovery = peerDiscovery;
 
   const libp2p = await defaultLibp2p(
-    options?.shardInfo as ShardInfo,
+    shardInfo?.shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
