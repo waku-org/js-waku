@@ -56,7 +56,7 @@ export class KeepAliveManager {
             }
 
             try {
-              await peerStore.patch(peerId, {
+              await peerStore.merge(peerId, {
                 metadata: {
                   ping: utf8ToBytes(ping.toString())
                 }
