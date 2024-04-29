@@ -1,9 +1,5 @@
 import { createDecoder, createEncoder } from "@waku/core";
-import {
-  DefaultPubsubTopic,
-  ISubscriptionSDK,
-  LightNode
-} from "@waku/interfaces";
+import { ISubscriptionSDK, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -15,13 +11,15 @@ import {
 } from "../../src/index.js";
 
 import {
+  ClusterId,
   messagePayload,
   messageText,
   runMultipleNodes,
   teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
-  TestEncoder
+  TestEncoder,
+  TestPubsubTopic
 } from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
@@ -33,11 +31,15 @@ const runTests = (strictCheckNodes: boolean): void => {
     let subscription: ISubscriptionSDK;
 
     beforeEachCustom(this, async () => {
-      [serviceNodes, waku] = await runMultipleNodes(this.ctx, [
-        DefaultPubsubTopic
-      ]);
+      [serviceNodes, waku] = await runMultipleNodes(this.ctx, {
+        contentTopics: [TestContentTopic],
+        clusterId: ClusterId
+      });
       const { error, subscription: _subscription } =
-        await waku.filter.createSubscription();
+        await waku.filter.createSubscription({
+          contentTopics: [TestContentTopic],
+          clusterId: ClusterId
+        });
 
       if (!error) {
         subscription = _subscription;
@@ -82,8 +84,11 @@ const runTests = (strictCheckNodes: boolean): void => {
         serviceNodes.messageCollector.callback
       );
       const newContentTopic = "/test/2/waku-filter";
-      const newEncoder = createEncoder({ contentTopic: newContentTopic });
-      const newDecoder = createDecoder(newContentTopic);
+      const newEncoder = createEncoder({
+        contentTopic: newContentTopic,
+        pubsubTopic: TestPubsubTopic
+      });
+      const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
       await subscription.subscribe(
         [newDecoder],
         serviceNodes.messageCollector.callback
@@ -114,8 +119,11 @@ const runTests = (strictCheckNodes: boolean): void => {
         serviceNodes.messageCollector.callback
       );
       const newContentTopic = "/test/2/waku-filter";
-      const newEncoder = createEncoder({ contentTopic: newContentTopic });
-      const newDecoder = createDecoder(newContentTopic);
+      const newEncoder = createEncoder({
+        contentTopic: newContentTopic,
+        pubsubTopic: TestPubsubTopic
+      });
+      const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
       await subscription.subscribe(
         [newDecoder],
         serviceNodes.messageCollector.callback
@@ -191,7 +199,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     it("Unsubscribes all - node subscribed to 10 topics", async function () {
       // Subscribe to 10 topics and send message
       const topicCount = 10;
-      const td = generateTestData(topicCount);
+      const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
       await subscription.subscribe(
         td.decoders,
         serviceNodes.messageCollector.callback

@@ -1,5 +1,5 @@
 import { createDecoder, createEncoder } from "@waku/core";
-import { DefaultPubsubTopic, ISubscriptionSDK } from "@waku/interfaces";
+import { ISubscriptionSDK } from "@waku/interfaces";
 import { LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
@@ -18,7 +18,9 @@ import {
   messageText,
   TestContentTopic,
   TestDecoder,
-  TestEncoder
+  TestEncoder,
+  TestPubsubTopic,
+  TestShardInfo
 } from "../utils.js";
 
 describe("Waku Filter V2: Unsubscribe", function () {
@@ -30,14 +32,13 @@ describe("Waku Filter V2: Unsubscribe", function () {
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
+    [nwaku, waku] = await runNodes(this.ctx, TestShardInfo);
+
     const { error, subscription: _subscription } =
-      await waku.filter.createSubscription();
+      await waku.filter.createSubscription(TestShardInfo);
     if (!error) subscription = _subscription;
     messageCollector = new MessageCollector();
-
-    // Nwaku subscribe to the default pubsub topic
-    await nwaku.ensureSubscriptions();
+    await nwaku.ensureSubscriptions([TestPubsubTopic]);
   });
 
   afterEachCustom(this, async () => {
@@ -57,7 +58,8 @@ describe("Waku Filter V2: Unsubscribe", function () {
     // Check that from 2 messages send only the 1st was received
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
     expect(messageCollector.count).to.eq(1);
     expect((await nwaku.messages()).length).to.eq(2);
@@ -67,8 +69,11 @@ describe("Waku Filter V2: Unsubscribe", function () {
     // Subscribe to 2 topics and send messages
     await subscription.subscribe([TestDecoder], messageCollector.callback);
     const newContentTopic = "/test/2/waku-filter";
-    const newEncoder = createEncoder({ contentTopic: newContentTopic });
-    const newDecoder = createDecoder(newContentTopic);
+    const newEncoder = createEncoder({
+      contentTopic: newContentTopic,
+      pubsubTopic: TestPubsubTopic
+    });
+    const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
     await subscription.subscribe([newDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
@@ -88,9 +93,12 @@ describe("Waku Filter V2: Unsubscribe", function () {
   it("Unsubscribe 2 topics - node subscribed to 2 topics", async function () {
     // Subscribe to 2 topics and send messages
     await subscription.subscribe([TestDecoder], messageCollector.callback);
-    const newContentTopic = "/test/2/waku-filter";
-    const newEncoder = createEncoder({ contentTopic: newContentTopic });
-    const newDecoder = createDecoder(newContentTopic);
+    const newContentTopic = "/test/2/waku-filter/default";
+    const newEncoder = createEncoder({
+      contentTopic: newContentTopic,
+      pubsubTopic: TestPubsubTopic
+    });
+    const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
     await subscription.subscribe([newDecoder], messageCollector.callback);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
     await waku.lightPush.send(newEncoder, { payload: utf8ToBytes("M2") });
@@ -117,7 +125,7 @@ describe("Waku Filter V2: Unsubscribe", function () {
 
     // Unsubscribe from topics that the node is not not subscribed to and send again
     await subscription.unsubscribe([]);
-    await subscription.unsubscribe(["/test/2/waku-filter"]);
+    await subscription.unsubscribe(["/test/2/waku-filter/default"]);
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
     expect(await messageCollector.waitForMessages(2)).to.eq(true);
 
@@ -145,7 +153,7 @@ describe("Waku Filter V2: Unsubscribe", function () {
   it("Unsubscribes all - node subscribed to 10 topics", async function () {
     // Subscribe to 10 topics and send message
     const topicCount = 10;
-    const td = generateTestData(topicCount);
+    const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
     await subscription.subscribe(td.decoders, messageCollector.callback);
     for (let i = 0; i < topicCount; i++) {
       await waku.lightPush.send(td.encoders[i], {

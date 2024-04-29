@@ -1,6 +1,5 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import {
-  DefaultPubsubTopic,
   ISubscriptionSDK,
   LightNode,
   ProtocolCreateOptions,
@@ -10,7 +9,7 @@ import {
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import {
-  ensureShardingConfigured,
+  contentTopicToPubsubTopic,
   Logger,
   shardInfoToPubsubTopics
 } from "@waku/utils";
@@ -26,9 +25,21 @@ import {
 
 // Constants for test configuration.
 export const log = new Logger("test:filter");
-export const TestContentTopic = "/test/1/waku-filter";
-export const TestEncoder = createEncoder({ contentTopic: TestContentTopic });
-export const TestDecoder = createDecoder(TestContentTopic);
+export const TestContentTopic = "/test/1/waku-filter/default";
+export const ClusterId = 2;
+export const TestShardInfo = {
+  contentTopics: [TestContentTopic],
+  clusterId: ClusterId
+};
+export const TestPubsubTopic = contentTopicToPubsubTopic(
+  TestContentTopic,
+  ClusterId
+);
+export const TestEncoder = createEncoder({
+  contentTopic: TestContentTopic,
+  pubsubTopic: TestPubsubTopic
+});
+export const TestDecoder = createDecoder(TestContentTopic, TestPubsubTopic);
 export const messageText = "Filtering works!";
 export const messagePayload = { payload: utf8ToBytes(messageText) };
 
@@ -55,20 +66,19 @@ export async function validatePingError(
 
 export async function runMultipleNodes(
   context: Context,
-  //TODO: change this to use `ShardInfo` instead of `string[]`
-  pubsubTopics: string[],
+  shardInfo: ShardingParams,
   strictChecking: boolean = false,
-  shardInfo?: ShardingParams,
   numServiceNodes = 3,
   withoutFilter = false
 ): Promise<[ServiceNodesFleet, LightNode]> {
+  const pubsubTopics = shardInfoToPubsubTopics(shardInfo);
   // create numServiceNodes nodes
   const serviceNodes = await ServiceNodesFleet.createAndRun(
     context,
     pubsubTopics,
     numServiceNodes,
     strictChecking,
-    shardInfo ? ensureShardingConfigured(shardInfo).shardInfo : shardInfo,
+    shardInfo,
     undefined,
     withoutFilter
   );
@@ -78,11 +88,8 @@ export async function runMultipleNodes(
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
     },
-    pubsubTopics: shardInfo ? shardInfoToPubsubTopics(shardInfo) : pubsubTopics,
-    ...((pubsubTopics.length !== 1 ||
-      pubsubTopics[0] !== DefaultPubsubTopic) && {
-      shardInfo: shardInfo
-    })
+    pubsubTopics,
+    shardInfo
   };
 
   log.info("Starting js waku node with :", JSON.stringify(waku_options));

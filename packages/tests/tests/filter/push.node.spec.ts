@@ -1,10 +1,5 @@
 import { waitForRemotePeer } from "@waku/core";
-import {
-  DefaultPubsubTopic,
-  ISubscriptionSDK,
-  LightNode,
-  Protocols
-} from "@waku/interfaces";
+import { ISubscriptionSDK, LightNode, Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -23,7 +18,9 @@ import {
   teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
-  TestEncoder
+  TestEncoder,
+  TestPubsubTopic,
+  TestShardInfo
 } from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
@@ -35,11 +32,10 @@ const runTests = (strictCheckNodes: boolean): void => {
     let subscription: ISubscriptionSDK;
 
     beforeEachCustom(this, async () => {
-      [serviceNodes, waku] = await runMultipleNodes(this.ctx, [
-        DefaultPubsubTopic
-      ]);
+      [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo);
+
       const { error, subscription: _subscription } =
-        await waku.filter.createSubscription();
+        await waku.filter.createSubscription(TestShardInfo);
       if (!error) subscription = _subscription;
     });
 
@@ -62,7 +58,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         );
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: testItem.value,
-          expectedContentTopic: TestContentTopic
+          expectedContentTopic: TestContentTopic,
+          expectedPubsubTopic: TestPubsubTopic
         });
       });
     });
@@ -81,7 +78,7 @@ const runTests = (strictCheckNodes: boolean): void => {
             payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
             timestamp: testItem as any
           },
-          DefaultPubsubTopic
+          TestPubsubTopic
         );
 
         expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -90,7 +87,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         serviceNodes.messageCollector.verifyReceivedMessage(0, {
           expectedMessageText: messageText,
           checkTimestamp: false,
-          expectedContentTopic: TestContentTopic
+          expectedContentTopic: TestContentTopic,
+          expectedPubsubTopic: TestPubsubTopic
         });
 
         // Check if the timestamp matches
@@ -119,7 +117,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
           timestamp: "2023-09-06T12:05:38.609Z" as any
         },
-        DefaultPubsubTopic
+        TestPubsubTopic
       );
 
       // Verify that no message was received
@@ -141,12 +139,14 @@ const runTests = (strictCheckNodes: boolean): void => {
           payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
           timestamp: BigInt(Date.now()) * BigInt(1000000)
         },
-        "DefaultPubsubTopic"
+        "WrongContentTopic"
       );
 
-      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
-        false
-      );
+      expect(
+        await serviceNodes.messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(false);
     });
 
     it("Check message with no content topic is not received", async function () {
@@ -161,7 +161,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           payload: Buffer.from(utf8ToBytes(messageText)).toString("base64"),
           timestamp: BigInt(Date.now()) * BigInt(1000000)
         },
-        DefaultPubsubTopic
+        TestPubsubTopic
       );
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -182,7 +182,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           timestamp: BigInt(Date.now()) * BigInt(1000000),
           payload: undefined as any
         },
-        DefaultPubsubTopic
+        TestPubsubTopic
       );
 
       // For go-waku the message is received (it is possible to send a message with no payload)
@@ -210,7 +210,7 @@ const runTests = (strictCheckNodes: boolean): void => {
           payload: 12345 as unknown as string,
           timestamp: BigInt(Date.now()) * BigInt(1000000)
         },
-        DefaultPubsubTopic
+        TestPubsubTopic
       );
 
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
@@ -242,7 +242,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
       }
       const { error, subscription: _subscription } =
-        await waku.filter.createSubscription();
+        await waku.filter.createSubscription(TestShardInfo);
       if (!error) subscription = _subscription;
       await subscription.subscribe(
         [TestDecoder],
@@ -257,11 +257,13 @@ const runTests = (strictCheckNodes: boolean): void => {
       );
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: "M1",
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedMessageText: "M2",
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
     });
 
@@ -289,11 +291,13 @@ const runTests = (strictCheckNodes: boolean): void => {
       );
       serviceNodes.messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: "M1",
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
       serviceNodes.messageCollector.verifyReceivedMessage(1, {
         expectedMessageText: "M2",
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
     });
   });

@@ -12,15 +12,15 @@ import {
   getPublicKey
 } from "@waku/message-encryption";
 import {
-  createDecoder as eciesDecoder,
-  createEncoder as eciesEncoder
+  createDecoder as createEciesDecoder,
+  createEncoder as createEciesEncoder
 } from "@waku/message-encryption/ecies";
 import {
-  createDecoder as symDecoder,
-  createEncoder as symEncoder
+  createDecoder as createSymDecoder,
+  createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
 import { createLightNode } from "@waku/sdk";
-import { Logger } from "@waku/utils";
+import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -37,11 +37,47 @@ import {
 
 const log = new Logger("test:ephemeral");
 
+const ClusterId = 2;
 const TestContentTopic = "/test/1/ephemeral/utf8";
+const PubsubTopic = contentTopicToPubsubTopic(TestContentTopic, ClusterId);
+
 const TestEncoder = createEncoder({
-  contentTopic: TestContentTopic
+  contentTopic: TestContentTopic,
+  pubsubTopic: PubsubTopic
 });
-const TestDecoder = createDecoder(TestContentTopic);
+const TestDecoder = createDecoder(TestContentTopic, PubsubTopic);
+
+const privateKey = generatePrivateKey();
+const symKey = generateSymmetricKey();
+const publicKey = getPublicKey(privateKey);
+
+const AsymContentTopic = "/test/1/ephemeral-asym/utf8";
+const SymContentTopic = "/test/1/ephemeral-sym/utf8";
+
+const AsymEncoder = createEciesEncoder({
+  contentTopic: AsymContentTopic,
+  publicKey,
+  ephemeral: true,
+  pubsubTopic: PubsubTopic
+});
+const SymEncoder = createSymEncoder({
+  contentTopic: SymContentTopic,
+  symKey,
+  ephemeral: true,
+  pubsubTopic: PubsubTopic
+});
+const ClearEncoder = createEncoder({
+  contentTopic: TestContentTopic,
+  ephemeral: true,
+  pubsubTopic: PubsubTopic
+});
+
+const AsymDecoder = createEciesDecoder(
+  AsymContentTopic,
+  privateKey,
+  PubsubTopic
+);
+const SymDecoder = createSymDecoder(SymContentTopic, symKey, PubsubTopic);
 
 describe("Waku Message Ephemeral field", function () {
   let waku: LightNode;
@@ -59,11 +95,24 @@ describe("Waku Message Ephemeral field", function () {
       filter: true,
       lightpush: true,
       store: true,
-      relay: true
+      relay: true,
+      pubsubTopic: [PubsubTopic],
+      contentTopic: [TestContentTopic, AsymContentTopic, SymContentTopic],
+      clusterId: ClusterId
     });
+    await nwaku.ensureSubscriptionsAutosharding([
+      TestContentTopic,
+      AsymContentTopic,
+      SymContentTopic
+    ]);
+
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+      shardInfo: {
+        contentTopics: [TestContentTopic, AsymContentTopic, SymContentTopic],
+        clusterId: ClusterId
+      }
     });
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
@@ -75,7 +124,7 @@ describe("Waku Message Ephemeral field", function () {
     ]);
 
     const { error, subscription: _subscription } =
-      await waku.filter.createSubscription();
+      await waku.filter.createSubscription(TestEncoder.pubsubTopic);
     if (!error) subscription = _subscription;
   });
 
@@ -96,37 +145,20 @@ describe("Waku Message Ephemeral field", function () {
       payload: utf8ToBytes(clearText)
     };
 
-    const privateKey = generatePrivateKey();
-    const symKey = generateSymmetricKey();
-    const publicKey = getPublicKey(privateKey);
-
-    const AsymContentTopic = "/test/1/ephemeral-asym/utf8";
-    const SymContentTopic = "/test/1/ephemeral-sym/utf8";
-
-    const asymEncoder = eciesEncoder({
-      contentTopic: AsymContentTopic,
-      publicKey,
-      ephemeral: true
-    });
-    const symEncoder = eciesEncoder({
-      contentTopic: SymContentTopic,
-      publicKey: symKey,
-      ephemeral: true
-    });
-    const clearEncoder = createEncoder({
-      contentTopic: TestContentTopic,
-      ephemeral: true
-    });
-
-    const asymDecoder = eciesDecoder(AsymContentTopic, privateKey);
-    const symDecoder = eciesDecoder(SymContentTopic, symKey);
-
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createLightNode({
-        staticNoiseKey: NOISE_KEY_1
+        staticNoiseKey: NOISE_KEY_1,
+        shardInfo: {
+          contentTopics: [TestContentTopic, AsymContentTopic, SymContentTopic],
+          clusterId: ClusterId
+        }
       }).then((waku) => waku.start().then(() => waku)),
       createLightNode({
-        staticNoiseKey: NOISE_KEY_2
+        staticNoiseKey: NOISE_KEY_2,
+        shardInfo: {
+          contentTopics: [TestContentTopic, AsymContentTopic, SymContentTopic],
+          clusterId: ClusterId
+        }
       }).then((waku) => waku.start().then(() => waku)),
       nwaku.getMultiaddrWithId()
     ]);
@@ -144,9 +176,9 @@ describe("Waku Message Ephemeral field", function () {
 
     log.info("Sending messages using light push");
     await Promise.all([
-      waku1.lightPush.send(asymEncoder, asymMsg),
-      waku1.lightPush.send(symEncoder, symMsg),
-      waku1.lightPush.send(clearEncoder, clearMsg)
+      waku1.lightPush.send(AsymEncoder, asymMsg),
+      waku1.lightPush.send(SymEncoder, symMsg),
+      waku1.lightPush.send(ClearEncoder, clearMsg)
     ]);
 
     await waitForRemotePeer(waku2, [Protocols.Store]);
@@ -155,8 +187,8 @@ describe("Waku Message Ephemeral field", function () {
 
     log.info("Retrieving messages from store");
     for await (const msgPromises of waku2.store.queryGenerator([
-      asymDecoder,
-      symDecoder,
+      AsymDecoder,
+      SymDecoder,
       TestDecoder
     ])) {
       for (const promise of msgPromises) {
@@ -177,7 +209,8 @@ describe("Waku Message Ephemeral field", function () {
 
     const ephemeralEncoder = createEncoder({
       contentTopic: TestContentTopic,
-      ephemeral: true
+      ephemeral: true,
+      pubsubTopic: PubsubTopic
     });
 
     const messages: DecodedMessage[] = [];
@@ -189,12 +222,16 @@ describe("Waku Message Ephemeral field", function () {
     await delay(200);
     const normalTxt = "Normal message";
     const ephemeralTxt = "Ephemeral Message";
-    await waku.lightPush.send(TestEncoder, {
-      payload: utf8ToBytes(normalTxt)
-    });
-    await waku.lightPush.send(ephemeralEncoder, {
-      payload: utf8ToBytes(ephemeralTxt)
-    });
+
+    await Promise.all([
+      waku.lightPush.send(TestEncoder, {
+        payload: utf8ToBytes(normalTxt)
+      }),
+      waku.lightPush.send(ephemeralEncoder, {
+        payload: utf8ToBytes(ephemeralTxt)
+      })
+    ]);
+
     while (messages.length < 2) {
       await delay(250);
     }
@@ -216,18 +253,12 @@ describe("Waku Message Ephemeral field", function () {
   it("Ephemeral field is preserved - symmetric encryption", async function () {
     this.timeout(10000);
 
-    const symKey = generateSymmetricKey();
-
-    const ephemeralEncoder = symEncoder({
-      contentTopic: TestContentTopic,
+    const encoder = createSymEncoder({
+      contentTopic: SymContentTopic,
       symKey,
-      ephemeral: true
+      pubsubTopic: PubsubTopic
     });
-    const encoder = symEncoder({
-      contentTopic: TestContentTopic,
-      symKey
-    });
-    const decoder = symDecoder(TestContentTopic, symKey);
+    const decoder = createSymDecoder(SymContentTopic, symKey, PubsubTopic);
 
     const messages: DecodedMessage[] = [];
     const callback = (msg: DecodedMessage): void => {
@@ -238,12 +269,16 @@ describe("Waku Message Ephemeral field", function () {
     await delay(200);
     const normalTxt = "Normal message";
     const ephemeralTxt = "Ephemeral Message";
-    await waku.lightPush.send(encoder, {
-      payload: utf8ToBytes(normalTxt)
-    });
-    await waku.lightPush.send(ephemeralEncoder, {
-      payload: utf8ToBytes(ephemeralTxt)
-    });
+
+    await Promise.all([
+      waku.lightPush.send(encoder, {
+        payload: utf8ToBytes(normalTxt)
+      }),
+      waku.lightPush.send(SymEncoder, {
+        payload: utf8ToBytes(ephemeralTxt)
+      })
+    ]);
+
     while (messages.length < 2) {
       await delay(250);
     }
@@ -265,19 +300,16 @@ describe("Waku Message Ephemeral field", function () {
   it("Ephemeral field is preserved - asymmetric encryption", async function () {
     this.timeout(10000);
 
-    const privKey = generatePrivateKey();
-    const pubKey = getPublicKey(privKey);
-
-    const ephemeralEncoder = eciesEncoder({
-      contentTopic: TestContentTopic,
-      publicKey: pubKey,
-      ephemeral: true
+    const encoder = createEciesEncoder({
+      contentTopic: AsymContentTopic,
+      publicKey: publicKey,
+      pubsubTopic: PubsubTopic
     });
-    const encoder = eciesEncoder({
-      contentTopic: TestContentTopic,
-      publicKey: pubKey
-    });
-    const decoder = eciesDecoder(TestContentTopic, privKey);
+    const decoder = createEciesDecoder(
+      AsymContentTopic,
+      privateKey,
+      PubsubTopic
+    );
 
     const messages: DecodedMessage[] = [];
     const callback = (msg: DecodedMessage): void => {
@@ -288,12 +320,16 @@ describe("Waku Message Ephemeral field", function () {
     await delay(200);
     const normalTxt = "Normal message";
     const ephemeralTxt = "Ephemeral Message";
-    await waku.lightPush.send(encoder, {
-      payload: utf8ToBytes(normalTxt)
-    });
-    await waku.lightPush.send(ephemeralEncoder, {
-      payload: utf8ToBytes(ephemeralTxt)
-    });
+
+    await Promise.all([
+      waku.lightPush.send(encoder, {
+        payload: utf8ToBytes(normalTxt)
+      }),
+      waku.lightPush.send(AsymEncoder, {
+        payload: utf8ToBytes(ephemeralTxt)
+      })
+    ]);
+
     while (messages.length < 2) {
       await delay(250);
     }

@@ -87,7 +87,7 @@ describe("Connection state", function () {
     expect(eventCount).to.be.eq(1);
   });
 
-  it("`waku:online` bwtween 2 js-waku relay nodes", async function () {
+  it("`waku:online` between 2 js-waku relay nodes", async function () {
     const waku1 = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1
     });
@@ -159,7 +159,7 @@ describe("Connection state", function () {
     expect(waku.isConnected()).to.be.false;
   });
 
-  it("isConnected bwtween 2 js-waku relay nodes", async function () {
+  it("isConnected between 2 js-waku relay nodes", async function () {
     const waku1 = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1
     });

@@ -1,8 +1,4 @@
-import {
-  DefaultPubsubTopic,
-  ISubscriptionSDK,
-  LightNode
-} from "@waku/interfaces";
+import { ISubscriptionSDK, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -17,6 +13,7 @@ import {
   TestContentTopic,
   TestDecoder,
   TestEncoder,
+  TestShardInfo,
   validatePingError
 } from "../utils.js";
 
@@ -31,9 +28,10 @@ describe("Waku Filter V2: Ping", function () {
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
+    [nwaku, waku] = await runNodes(this.ctx, TestShardInfo);
+
     const { error, subscription: _subscription } =
-      await waku.filter.createSubscription();
+      await waku.filter.createSubscription(TestShardInfo);
     if (!error) subscription = _subscription;
     messageCollector = new MessageCollector();
   });
