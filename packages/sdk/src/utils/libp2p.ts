@@ -100,6 +100,8 @@ export async function createLibp2pAndUpdateOptions(
     const shardInfo = ensureShardingConfigured(
       options.shardInfo ?? DefaultShardInfo
     );
+
+    options.shardInfo = shardInfo.shardInfo;
     options.pubsubTopics = shardInfo.pubsubTopics;
   }
 
