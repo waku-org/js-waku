@@ -119,7 +119,7 @@ export async function createLibp2pAndUpdateOptions(
   libp2pOptions.peerDiscovery = peerDiscovery;
 
   const libp2p = await defaultLibp2p(
-    options?.shardInfo,
+    options?.shardInfo as ShardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
