@@ -1,13 +1,12 @@
-import type { PeerId } from "@libp2p/interface";
-
-import type { IDecodedMessage, IDecoder, SingleShardInfo } from "./message.js";
+import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { ContentTopic, PubsubTopic, ThisOrThat } from "./misc.js";
 import type {
   Callback,
   IBaseProtocolCore,
   IBaseProtocolSDK,
   ProtocolError,
-  SDKProtocolResult
+  SDKProtocolResult,
+  ShardingParams
 } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
 
@@ -33,8 +32,7 @@ export interface ISubscriptionSDK {
 export type IFilterSDK = IReceiver &
   IBaseProtocolSDK & { protocol: IBaseProtocolCore } & {
     createSubscription(
-      pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic,
-      peerId?: PeerId
+      pubsubTopicShardInfo?: ShardingParams | PubsubTopic
     ): Promise<CreateSubscriptionResult>;
   };
 
