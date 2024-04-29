@@ -16,10 +16,6 @@ export { Libp2pComponents };
 export async function createLightNode(
   options: CreateWakuNodeOptions = {}
 ): Promise<LightNode> {
-  if (!options.shardInfo || !options.contentTopics) {
-    throw new Error("Shard info must be set");
-  }
-
   const libp2p = await createLibp2pAndUpdateOptions(options);
 
   const store = wakuStore(options);
