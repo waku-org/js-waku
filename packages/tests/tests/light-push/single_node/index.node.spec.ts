@@ -1,10 +1,5 @@
 import { createEncoder } from "@waku/core";
-import {
-  DefaultPubsubTopic,
-  IRateLimitProof,
-  LightNode,
-  ProtocolError
-} from "@waku/interfaces";
+import { IRateLimitProof, LightNode, ProtocolError } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -22,7 +17,9 @@ import {
   messageText,
   runNodes,
   TestContentTopic,
-  TestEncoder
+  TestEncoder,
+  TestPubsubTopic,
+  TestShardInfo
 } from "../utils.js";
 
 describe("Waku Light Push: Single Node", function () {
@@ -33,10 +30,10 @@ describe("Waku Light Push: Single Node", function () {
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
-    [nwaku, waku] = await runNodes(this.ctx, [DefaultPubsubTopic]);
+    [nwaku, waku] = await runNodes(this.ctx, TestShardInfo);
     messageCollector = new MessageCollector(nwaku);
 
-    await nwaku.ensureSubscriptions();
+    await nwaku.ensureSubscriptions([TestPubsubTopic]);
   });
 
   afterEachCustom(this, async () => {
@@ -50,10 +47,15 @@ describe("Waku Light Push: Single Node", function () {
       });
       expect(pushResponse.successes.length).to.eq(1);
 
-      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      expect(
+        await messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: testItem.value,
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
     });
   });
@@ -68,12 +70,17 @@ describe("Waku Light Push: Single Node", function () {
       expect(pushResponse.successes.length).to.eq(1);
     }
 
-    expect(await messageCollector.waitForMessages(30)).to.eq(true);
+    expect(
+      await messageCollector.waitForMessages(30, {
+        pubsubTopic: TestPubsubTopic
+      })
+    ).to.eq(true);
 
     for (let i = 0; i < 30; i++) {
       messageCollector.verifyReceivedMessage(i, {
         expectedMessageText: generateMessageText(i),
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
     }
   });
@@ -87,13 +94,18 @@ describe("Waku Light Push: Single Node", function () {
     expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
       ProtocolError.EMPTY_PAYLOAD
     );
-    expect(await messageCollector.waitForMessages(1)).to.eq(false);
+    expect(
+      await messageCollector.waitForMessages(1, {
+        pubsubTopic: TestPubsubTopic
+      })
+    ).to.eq(false);
   });
 
   TEST_STRING.forEach((testItem) => {
     it(`Push message with content topic containing ${testItem.description}`, async function () {
       const customEncoder = createEncoder({
-        contentTopic: testItem.value
+        contentTopic: testItem.value,
+        pubsubTopic: TestPubsubTopic
       });
       const pushResponse = await waku.lightPush.send(
         customEncoder,
@@ -101,10 +113,15 @@ describe("Waku Light Push: Single Node", function () {
       );
       expect(pushResponse.successes.length).to.eq(1);
 
-      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      expect(
+        await messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
-        expectedContentTopic: testItem.value
+        expectedContentTopic: testItem.value,
+        expectedPubsubTopic: TestPubsubTopic
       });
     });
   });
@@ -123,7 +140,8 @@ describe("Waku Light Push: Single Node", function () {
   it("Push message with meta", async function () {
     const customTestEncoder = createEncoder({
       contentTopic: TestContentTopic,
-      metaSetter: () => new Uint8Array(10)
+      metaSetter: () => new Uint8Array(10),
+      pubsubTopic: TestPubsubTopic
     });
 
     const pushResponse = await waku.lightPush.send(
@@ -132,16 +150,22 @@ describe("Waku Light Push: Single Node", function () {
     );
     expect(pushResponse.successes.length).to.eq(1);
 
-    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    expect(
+      await messageCollector.waitForMessages(1, {
+        pubsubTopic: TestPubsubTopic
+      })
+    ).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
   });
 
   it("Fails to push message with large meta", async function () {
     const customTestEncoder = createEncoder({
       contentTopic: TestContentTopic,
+      pubsubTopic: TestPubsubTopic,
       metaSetter: () => new Uint8Array(105024) // see the note below ***
     });
 
@@ -159,17 +183,26 @@ describe("Waku Light Push: Single Node", function () {
 
     if (nwaku.type == "go-waku") {
       expect(pushResponse.successes.length).to.eq(1);
-      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      expect(
+        await messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
     } else {
       expect(pushResponse.successes.length).to.eq(0);
       expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
         ProtocolError.REMOTE_PEER_REJECTED
       );
-      expect(await messageCollector.waitForMessages(1)).to.eq(false);
+      expect(
+        await messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(false);
     }
   });
 
@@ -190,10 +223,15 @@ describe("Waku Light Push: Single Node", function () {
     });
     expect(pushResponse.successes.length).to.eq(1);
 
-    expect(await messageCollector.waitForMessages(1)).to.eq(true);
+    expect(
+      await messageCollector.waitForMessages(1, {
+        pubsubTopic: TestPubsubTopic
+      })
+    ).to.eq(true);
     messageCollector.verifyReceivedMessage(0, {
       expectedMessageText: messageText,
-      expectedContentTopic: TestContentTopic
+      expectedContentTopic: TestContentTopic,
+      expectedPubsubTopic: TestPubsubTopic
     });
   });
 
@@ -209,11 +247,16 @@ describe("Waku Light Push: Single Node", function () {
       });
       expect(pushResponse.successes.length).to.eq(1);
 
-      expect(await messageCollector.waitForMessages(1)).to.eq(true);
+      expect(
+        await messageCollector.waitForMessages(1, {
+          pubsubTopic: TestPubsubTopic
+        })
+      ).to.eq(true);
       messageCollector.verifyReceivedMessage(0, {
         expectedMessageText: messageText,
         expectedTimestamp: testItem,
-        expectedContentTopic: TestContentTopic
+        expectedContentTopic: TestContentTopic,
+        expectedPubsubTopic: TestPubsubTopic
       });
     });
   });
@@ -236,6 +279,10 @@ describe("Waku Light Push: Single Node", function () {
     expect(pushResponse.failures?.map((failure) => failure.error)).to.include(
       ProtocolError.SIZE_TOO_BIG
     );
-    expect(await messageCollector.waitForMessages(1)).to.eq(false);
+    expect(
+      await messageCollector.waitForMessages(1, {
+        pubsubTopic: TestPubsubTopic
+      })
+    ).to.eq(false);
   });
 });

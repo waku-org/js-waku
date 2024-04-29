@@ -19,18 +19,13 @@ import {
 } from "@waku/utils";
 import { expect } from "chai";
 
-import {
-  makeLogFileName,
-  resolveAutoshardingCluster,
-  ServiceNode,
-  tearDownNodes
-} from "../../src";
+import { makeLogFileName, ServiceNode, tearDownNodes } from "../../src";
 
 // skipped: https://github.com/waku-org/js-waku/issues/1914
 describe.skip("SDK: Creating by Content Topic", function () {
   const ContentTopic = "/myapp/1/latest/proto";
   const testMessage = "Test123";
-  const clusterId = resolveAutoshardingCluster(2);
+  const clusterId = 2;
   let nwaku: ServiceNode;
   let waku: LightNode;
   let waku2: LightNode;

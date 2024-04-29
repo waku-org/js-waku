@@ -4,16 +4,15 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
-  makeLogFileName,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
 
 import {
   adjustDate,
-  startAndConnectLightNode,
-  TestContentTopic,
-  TestDecoder
+  runStoreNodes,
+  TestDecoder,
+  TestShardInfo
 } from "./utils.js";
 
 describe("Waku Store, time filter", function () {
@@ -22,9 +21,7 @@ describe("Waku Store, time filter", function () {
   let nwaku: ServiceNode;
 
   beforeEachCustom(this, async () => {
-    nwaku = new ServiceNode(makeLogFileName(this.ctx));
-    await nwaku.start({ store: true, lightpush: true, relay: true });
-    await nwaku.ensureSubscriptions();
+    [nwaku, waku] = await runStoreNodes(this.ctx, TestShardInfo);
   });
 
   afterEachCustom(this, async () => {
@@ -48,13 +45,11 @@ describe("Waku Store, time filter", function () {
         await nwaku.sendMessage(
           ServiceNode.toMessageRpcQuery({
             payload: new Uint8Array([0]),
-            contentTopic: TestContentTopic,
+            contentTopic: TestDecoder.contentTopic,
             timestamp: msgTimestamp
           })
         )
       ).to.eq(true);
-
-      waku = await startAndConnectLightNode(nwaku);
 
       const messages: IMessage[] = [];
       await waku.store.queryWithOrderedCallback(
@@ -93,13 +88,11 @@ describe("Waku Store, time filter", function () {
         await nwaku.sendMessage(
           ServiceNode.toMessageRpcQuery({
             payload: new Uint8Array([0]),
-            contentTopic: TestContentTopic,
+            contentTopic: TestDecoder.contentTopic,
             timestamp: msgTimestamp
           })
         )
       ).to.eq(true);
-
-      waku = await startAndConnectLightNode(nwaku);
 
       const messages: IMessage[] = [];
       await waku.store.queryWithOrderedCallback(

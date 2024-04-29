@@ -20,9 +20,8 @@ import Sinon from "sinon";
 import {
   afterEachCustom,
   beforeEachCustom,
-  isNwakuAtLeast,
+  delay,
   makeLogFileName,
-  resolveAutoshardingCluster,
   ServiceNode,
   tearDownNodes
 } from "../src/index.js";
@@ -32,13 +31,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
   let serviceNode1: ServiceNode;
   let serviceNode2: ServiceNode;
   const contentTopic = "/test/2/waku-light-push/utf8";
-  const autoshardingClusterId = resolveAutoshardingCluster(6);
-
-  before(async () => {
-    if (!isNwakuAtLeast("0.27.0")) {
-      this.ctx.skip();
-    }
-  });
+  const autoshardingClusterId = 6;
 
   beforeEachCustom(this, async () => {
     serviceNode1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
@@ -170,6 +163,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
+    await delay(500);
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
 
     await waku.start();
@@ -223,6 +217,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNodeMa1, LightPushCodec);
+    await delay(500);
     await waku.libp2p.dialProtocol(serviceNodeMa2, LightPushCodec);
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
@@ -362,6 +357,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
+    await delay(500);
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
 
     await waku.start();
@@ -416,6 +412,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     waku = await createLightNode({ shardInfo: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNodeMa1, LightPushCodec);
+    await delay(500);
     await waku.libp2p.dialProtocol(serviceNodeMa2, LightPushCodec);
     await waku.start();
     await waitForRemotePeer(waku, [Protocols.LightPush]);
