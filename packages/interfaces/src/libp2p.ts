@@ -29,4 +29,5 @@ export type CreateLibp2pOptions = Libp2pOptions & {
    * @default false
    */
   hideWebSocketInfo?: boolean;
+  pingMaxInboundStreams?: number;
 };
