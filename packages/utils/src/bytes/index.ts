@@ -14,6 +14,19 @@ export function hexToBytes(hex: string | Uint8Array): Uint8Array {
   return hex;
 }
 
+export function numberToBytes(value: number | bigint): Uint8Array {
+  const buffer = new ArrayBuffer(8);
+  const view = new DataView(buffer);
+
+  if (typeof value === "number") {
+    view.setFloat64(0, value, false);
+  } else {
+    view.setBigInt64(0, value, false);
+  }
+
+  return new Uint8Array(buffer);
+}
+
 /**
  * Convert byte array to hex string (no `0x` prefix).
  */

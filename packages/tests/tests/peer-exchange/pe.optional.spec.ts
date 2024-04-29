@@ -5,7 +5,11 @@ import {
 } from "@waku/core/lib/predefined_bootstrap_nodes";
 import { wakuPeerExchangeDiscovery } from "@waku/discovery";
 import type { LightNode } from "@waku/interfaces";
-import { createLightNode, DefaultPubsubTopic } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
+import {
+  singleShardInfosToShardInfo,
+  singleShardInfoToPubsubTopic
+} from "@waku/utils";
 import { expect } from "chai";
 
 import { afterEachCustom, tearDownNodes } from "../../src";
@@ -28,13 +32,17 @@ describe("Peer Exchange", () => {
         this.timeout(50_000);
         const predefinedNodes = getPredefinedBootstrapNodes(name, nodes);
 
+        const singleShardInfo = { clusterId: 1, shard: 1 };
+        const shardInfo = singleShardInfosToShardInfo([singleShardInfo]);
+        const pubsubTopic = singleShardInfoToPubsubTopic(singleShardInfo);
         waku = await createLightNode({
           libp2p: {
             peerDiscovery: [
               bootstrap({ list: predefinedNodes }),
-              wakuPeerExchangeDiscovery([DefaultPubsubTopic])
+              wakuPeerExchangeDiscovery([pubsubTopic])
             ]
-          }
+          },
+          shardInfo: shardInfo
         });
 
         await waku.start();

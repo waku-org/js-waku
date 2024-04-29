@@ -19,7 +19,11 @@ import { wakuGossipSub } from "@waku/relay";
 import { ensureShardingConfigured } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
-import { CreateWakuNodeOptions, DefaultUserAgent } from "../waku.js";
+import {
+  CreateWakuNodeOptions,
+  DefaultPingMaxInboundStreams,
+  DefaultUserAgent
+} from "../waku.js";
 
 import { defaultPeerDiscoveries } from "./discovery.js";
 
@@ -70,7 +74,10 @@ export async function defaultLibp2p(
       identify: identify({
         agentVersion: userAgent ?? DefaultUserAgent
       }),
-      ping: ping(),
+      ping: ping({
+        maxInboundStreams:
+          options?.pingMaxInboundStreams ?? DefaultPingMaxInboundStreams
+      }),
       ...metadataService,
       ...pubsubService,
       ...options?.services

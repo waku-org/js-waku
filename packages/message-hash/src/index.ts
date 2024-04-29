@@ -1,6 +1,12 @@
 import { sha256 } from "@noble/hashes/sha256";
 import type { IProtoMessage } from "@waku/interfaces";
-import { bytesToUtf8, concat, utf8ToBytes } from "@waku/utils/bytes";
+import { isDefined } from "@waku/utils";
+import {
+  bytesToUtf8,
+  concat,
+  numberToBytes,
+  utf8ToBytes
+} from "@waku/utils/bytes";
 
 /**
  * Deterministic Message Hashing as defined in
@@ -12,19 +18,20 @@ export function messageHash(
 ): Uint8Array {
   const pubsubTopicBytes = utf8ToBytes(pubsubTopic);
   const contentTopicBytes = utf8ToBytes(message.contentTopic);
+  const timestampBytes = message.timestamp
+    ? numberToBytes(message.timestamp)
+    : undefined;
 
-  let bytes;
-
-  if (message.meta) {
-    bytes = concat([
+  const bytes = concat(
+    [
       pubsubTopicBytes,
       message.payload,
       contentTopicBytes,
-      message.meta
-    ]);
-  } else {
-    bytes = concat([pubsubTopicBytes, message.payload, contentTopicBytes]);
-  }
+      message.meta,
+      timestampBytes
+    ].filter(isDefined)
+  );
+
   return sha256(bytes);
 }
 
