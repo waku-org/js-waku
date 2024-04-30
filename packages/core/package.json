@@ -95,7 +95,7 @@
     "@types/mocha": "^10.0.6",
     "@types/uuid": "^9.0.8",
     "@waku/build-utils": "*",
-    "chai": "^4.3.10",
+    "chai": "^5.0.3",
     "cspell": "^8.6.1",
     "fast-check": "^3.15.1",
     "ignore-loader": "^0.1.2",
