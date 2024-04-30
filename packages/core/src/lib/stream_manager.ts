@@ -9,7 +9,7 @@ const RETRY_BACKOFF_BASE = 1_000;
 const MAX_RETRIES = 3;
 
 export class StreamManager {
-  private streamPool: Map<string, Promise<Stream | void>>;
+  private readonly streamPool: Map<string, Promise<Stream | void>>;
   private readonly log: Logger;
 
   constructor(
@@ -18,12 +18,10 @@ export class StreamManager {
     public addEventListener: Libp2p["addEventListener"]
   ) {
     this.log = new Logger(`stream-manager:${multicodec}`);
-    this.addEventListener(
-      "peer:update",
-      this.handlePeerUpdateStreamPool.bind(this)
-    );
-    this.getStream = this.getStream.bind(this);
     this.streamPool = new Map();
+
+    this.addEventListener("peer:update", this.handlePeerUpdateStreamPool);
+    this.getStream = this.getStream.bind(this);
   }
 
   public async getStream(peer: Peer): Promise<Stream | null> {
@@ -70,16 +68,14 @@ export class StreamManager {
     }
 
     try {
-      const stream = await connection.newStream(this.multicodec);
-      return stream;
+      return await connection.newStream(this.multicodec);
     } catch (error) {
       if (retries < MAX_RETRIES) {
         const backoff = RETRY_BACKOFF_BASE * Math.pow(2, retries);
         await new Promise((resolve) => setTimeout(resolve, backoff));
         return this.newStream(peer, retries + 1);
-      } else {
-        throw error;
       }
+      throw error;
     }
   }
 
@@ -105,8 +101,10 @@ export class StreamManager {
 
   private handlePeerUpdateStreamPool = (evt: CustomEvent<PeerUpdate>): void => {
     const { peer } = evt.detail;
+
     if (peer.protocols.includes(this.multicodec)) {
       const status = this.getConnectionStatus(peer.id);
+
       if (status === "connected") {
         this.log.info(`Preemptively opening a stream to ${peer.id.toString()}`);
         this.prepareNewStream(peer);
