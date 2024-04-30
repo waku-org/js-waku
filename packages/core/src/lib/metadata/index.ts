@@ -86,6 +86,12 @@ class Metadata extends BaseProtocol implements IMetadata {
     }
 
     const stream = await this.getStream(peer);
+    if (!stream) {
+      return {
+        shardInfo: null,
+        error: ProtocolError.NO_STREAM_AVAILABLE
+      };
+    }
 
     const encodedResponse = await pipe(
       [request],

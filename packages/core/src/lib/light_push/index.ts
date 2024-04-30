@@ -1,4 +1,4 @@
-import type { Peer, PeerId, Stream } from "@libp2p/interface";
+import type { Peer, PeerId } from "@libp2p/interface";
 import {
   Failure,
   IBaseProtocolCore,
@@ -100,18 +100,12 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
       };
     }
 
-    let stream: Stream | undefined;
-    try {
-      stream = await this.getStream(peer);
-    } catch (err) {
-      log.error(
-        `Failed to get a stream for remote peer${peer.id.toString()}`,
-        err
-      );
+    const stream = await this.getStream(peer);
+    if (!stream) {
       return {
         success: null,
         failure: {
-          error: ProtocolError.REMOTE_PEER_FAULT,
+          error: ProtocolError.NO_STREAM_AVAILABLE,
           peerId: peer.id
         }
       };

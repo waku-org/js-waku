@@ -92,6 +92,9 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     contentTopics: ContentTopic[]
   ): Promise<void> {
     const stream = await this.getStream(peer);
+    if (!stream) {
+      throw new Error(`Failed to get stream for peer ${peer.id.toString()}`);
+    }
 
     const request = FilterSubscribeRpc.createSubscribeRequest(
       pubsubTopic,
@@ -128,6 +131,10 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     contentTopics: ContentTopic[]
   ): Promise<void> {
     const stream = await this.getStream(peer);
+    if (!stream) {
+      throw new Error(`Failed to get stream for peer ${peer.id.toString()}`);
+    }
+
     const unsubscribeRequest = FilterSubscribeRpc.createUnsubscribeRequest(
       pubsubTopic,
       contentTopics
@@ -138,6 +145,9 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
 
   async unsubscribeAll(pubsubTopic: PubsubTopic, peer: Peer): Promise<void> {
     const stream = await this.getStream(peer);
+    if (!stream) {
+      throw new Error(`Failed to get stream for peer ${peer.id.toString()}`);
+    }
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(pubsubTopic);
 
@@ -167,6 +177,9 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
 
   async ping(peer: Peer): Promise<void> {
     const stream = await this.getStream(peer);
+    if (!stream) {
+      throw new Error(`Failed to get stream for peer ${peer.id.toString()}`);
+    }
 
     const request = FilterSubscribeRpc.createSubscriberPingRequest();
 
