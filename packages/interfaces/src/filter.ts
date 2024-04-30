@@ -10,8 +10,8 @@ import type {
 } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
 
-export type ContentFilter = {
-  contentTopic: string;
+export type SubscribeOptions = {
+  keepAlive?: number;
 };
 
 export type IFilter = IReceiver & IBaseProtocolCore;
@@ -19,7 +19,8 @@ export type IFilter = IReceiver & IBaseProtocolCore;
 export interface ISubscriptionSDK {
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+    callback: Callback<T>,
+    options?: SubscribeOptions
   ): Promise<SDKProtocolResult>;
 
   unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult>;
@@ -32,7 +33,8 @@ export interface ISubscriptionSDK {
 export type IFilterSDK = IReceiver &
   IBaseProtocolSDK & { protocol: IBaseProtocolCore } & {
     createSubscription(
-      pubsubTopicShardInfo?: ShardingParams | PubsubTopic
+      pubsubTopicShardInfo?: ShardingParams | PubsubTopic,
+      options?: SubscribeOptions
     ): Promise<CreateSubscriptionResult>;
   };
 

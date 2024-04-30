@@ -16,10 +16,14 @@ import {
   type ShardInfo
 } from "@waku/interfaces";
 import { wakuGossipSub } from "@waku/relay";
-import { ensureShardingConfigured } from "@waku/utils";
+import { ensureShardingConfigured, Logger } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
-import { CreateWakuNodeOptions, DefaultUserAgent } from "../waku.js";
+import {
+  CreateWakuNodeOptions,
+  DefaultPingMaxInboundStreams,
+  DefaultUserAgent
+} from "../waku.js";
 
 import { defaultPeerDiscoveries } from "./discovery.js";
 
@@ -30,6 +34,8 @@ type PubsubService = {
 type MetadataService = {
   metadata?: (components: Libp2pComponents) => IMetadata;
 };
+
+const logger = new Logger("sdk:create");
 
 export async function defaultLibp2p(
   shardInfo?: ShardInfo,
@@ -70,7 +76,10 @@ export async function defaultLibp2p(
       identify: identify({
         agentVersion: userAgent ?? DefaultUserAgent
       }),
-      ping: ping(),
+      ping: ping({
+        maxInboundStreams:
+          options?.pingMaxInboundStreams ?? DefaultPingMaxInboundStreams
+      }),
       ...metadataService,
       ...pubsubService,
       ...options?.services
@@ -81,6 +90,12 @@ export async function defaultLibp2p(
 export async function createLibp2pAndUpdateOptions(
   options: CreateWakuNodeOptions
 ): Promise<Libp2p> {
+  logWhichShardInfoIsUsed(options);
+
+  if (options.contentTopics) {
+    options.shardInfo = { contentTopics: options.contentTopics };
+  }
+
   const shardInfo = options.shardInfo
     ? ensureShardingConfigured(options.shardInfo)
     : undefined;
@@ -109,4 +124,23 @@ export async function createLibp2pAndUpdateOptions(
   );
 
   return libp2p;
+}
+
+function logWhichShardInfoIsUsed(options: CreateWakuNodeOptions): void {
+  if (options.pubsubTopics) {
+    logger.info("Using pubsubTopics array to bootstrap the node.");
+    return;
+  }
+
+  if (options.contentTopics) {
+    logger.info(
+      "Using contentTopics and default cluster ID (1) to bootstrap the node."
+    );
+    return;
+  }
+
+  if (options.shardInfo) {
+    logger.info("Using shardInfo parameters to bootstrap the node.");
+    return;
+  }
 }

@@ -23,6 +23,7 @@ import { subscribeToContentTopic } from "./utils/content_topic.js";
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 export const DefaultUserAgent = "js-waku";
+export const DefaultPingMaxInboundStreams = 10;
 
 const log = new Logger("waku");
 

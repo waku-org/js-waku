@@ -17,6 +17,7 @@ import {
   type PubsubTopic,
   SDKProtocolResult,
   type ShardingParams,
+  SubscribeOptions,
   type Unsubscribe
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
@@ -38,10 +39,15 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
 
 const log = new Logger("sdk:filter");
 
+const MINUTE = 60 * 1000;
+const DEFAULT_SUBSCRIBE_OPTIONS = {
+  keepAlive: MINUTE
+};
 export class SubscriptionManager implements ISubscriptionSDK {
   private readonly pubsubTopic: PubsubTopic;
   readonly peers: Peer[];
   readonly receivedMessagesHashStr: string[] = [];
+  private keepAliveTimer: number | null = null;
 
   private subscriptionCallbacks: Map<
     ContentTopic,
@@ -60,7 +66,8 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+    callback: Callback<T>,
+    options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<SDKProtocolResult> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
@@ -109,6 +116,10 @@ export class SubscriptionManager implements ISubscriptionSDK {
       this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
     });
 
+    if (options?.keepAlive) {
+      this.startKeepAlivePings(options.keepAlive);
+    }
+
     return finalResult;
   }
 
@@ -128,8 +139,13 @@ export class SubscriptionManager implements ISubscriptionSDK {
     });
 
     const results = await Promise.allSettled(promises);
+    const finalResult = this.handleResult(results, "unsubscribe");
 
-    return this.handleResult(results, "unsubscribe");
+    if (this.subscriptionCallbacks.size === 0 && this.keepAliveTimer) {
+      this.stopKeepAlivePings();
+    }
+
+    return finalResult;
   }
 
   async ping(): Promise<SDKProtocolResult> {
@@ -151,7 +167,13 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
     this.subscriptionCallbacks.clear();
 
-    return this.handleResult(results, "unsubscribeAll");
+    const finalResult = this.handleResult(results, "unsubscribeAll");
+
+    if (this.keepAliveTimer) {
+      this.stopKeepAlivePings();
+    }
+
+    return finalResult;
   }
 
   async processIncomingMessage(message: WakuMessage): Promise<void> {
@@ -206,6 +228,38 @@ export class SubscriptionManager implements ISubscriptionSDK {
     // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
 
     return result;
+  }
+
+  private startKeepAlivePings(interval: number): void {
+    if (this.keepAliveTimer) {
+      log.info("Recurring pings already set up.");
+      return;
+    }
+
+    this.keepAliveTimer = setInterval(() => {
+      const run = async (): Promise<void> => {
+        try {
+          log.info("Recurring ping to peers.");
+          await this.ping();
+        } catch (error) {
+          log.error("Stopping recurring pings due to failure", error);
+          this.stopKeepAlivePings();
+        }
+      };
+
+      void run();
+    }, interval) as unknown as number;
+  }
+
+  private stopKeepAlivePings(): void {
+    if (!this.keepAliveTimer) {
+      log.info("Already stopped recurring pings.");
+      return;
+    }
+
+    log.info("Stopping recurring pings.");
+    clearInterval(this.keepAliveTimer);
+    this.keepAliveTimer = null;
   }
 }
 
@@ -320,7 +374,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    */
   async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
+    callback: Callback<T>,
+    options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<Unsubscribe> {
     const uniquePubsubTopics = this.getUniquePubsubTopics<T>(decoders);
 
@@ -344,7 +399,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
       throw Error(`Failed to create subscription: ${error}`);
     }
 
-    await subscription.subscribe(decoders, callback);
+    await subscription.subscribe(decoders, callback, options);
 
     const contentTopics = Array.from(
       groupByContentTopic(
