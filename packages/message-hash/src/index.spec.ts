@@ -102,7 +102,7 @@ describe("RFC Test Vectors", () => {
       pubsubTopic,
       contentTopic: "/waku/2/default-content/proto",
       meta: hexToBytes("0x73757065722d736563726574"),
-      timestamp: undefined,
+      timestamp: new Date(),
       ephemeral: undefined,
       rateLimitProof: undefined
     };
