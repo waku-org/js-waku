@@ -95,14 +95,14 @@ describe("RFC Test Vectors", () => {
 
   it("Waku message hash computation (message is IDecodedMessage)", () => {
     const expectedHash =
-      "aa5c1c625e71e50a16a22925be8c8ac78cb91279c94e0d7479d4290693531191";
+      "bd81b27902ad51f49e8f73ff8db4a96994040c9421da88b7ee8ba07bd39070b2";
     const pubsubTopic = "/waku/2/default-waku/proto";
     const message: IDecodedMessage = {
       payload: new Uint8Array(),
       pubsubTopic,
       contentTopic: "/waku/2/default-content/proto",
       meta: hexToBytes("0x73757065722d736563726574"),
-      timestamp: new Date(),
+      timestamp: new Date("2024-04-30T10:54:14.978Z"),
       ephemeral: undefined,
       rateLimitProof: undefined
     };
