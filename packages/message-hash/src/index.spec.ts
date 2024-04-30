@@ -1,4 +1,4 @@
-import type { IProtoMessage } from "@waku/interfaces";
+import type { IDecodedMessage, IProtoMessage } from "@waku/interfaces";
 import { bytesToHex, hexToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -71,6 +71,40 @@ describe("RFC Test Vectors", () => {
       ephemeral: undefined,
       rateLimitProof: undefined,
       version: undefined
+    };
+    const hash = messageHash(pubsubTopic, message);
+    expect(bytesToHex(hash)).to.equal(expectedHash);
+  });
+
+  it("Waku message hash computation (no timestamp)", () => {
+    const expectedHash =
+      "e1a9596237dbe2cc8aaf4b838c46a7052df6bc0d42ba214b998a8bfdbe8487d6";
+    const pubsubTopic = "/waku/2/default-waku/proto";
+    const message: IProtoMessage = {
+      payload: new Uint8Array(),
+      contentTopic: "/waku/2/default-content/proto",
+      meta: hexToBytes("0x73757065722d736563726574"),
+      timestamp: undefined,
+      ephemeral: undefined,
+      rateLimitProof: undefined,
+      version: undefined
+    };
+    const hash = messageHash(pubsubTopic, message);
+    expect(bytesToHex(hash)).to.equal(expectedHash);
+  });
+
+  it("Waku message hash computation (message is IDecodedMessage)", () => {
+    const expectedHash =
+      "bd81b27902ad51f49e8f73ff8db4a96994040c9421da88b7ee8ba07bd39070b2";
+    const pubsubTopic = "/waku/2/default-waku/proto";
+    const message: IDecodedMessage = {
+      payload: new Uint8Array(),
+      pubsubTopic,
+      contentTopic: "/waku/2/default-content/proto",
+      meta: hexToBytes("0x73757065722d736563726574"),
+      timestamp: new Date("2024-04-30T10:54:14.978Z"),
+      ephemeral: undefined,
+      rateLimitProof: undefined
     };
     const hash = messageHash(pubsubTopic, message);
     expect(bytesToHex(hash)).to.equal(expectedHash);
