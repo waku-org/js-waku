@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.29](https://github.com/waku-org/js-waku/compare/core-v0.0.28...core-v0.0.29) (2024-04-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* use ShardingParams on subscriptions, make Decoder/Encoder auto sharding friendly by default ([#1958](https://github.com/waku-org/js-waku/issues/1958))
+* **lightpush:** move protocol implementation to `@waku/sdk` (1/n) ([#1964](https://github.com/waku-org/js-waku/issues/1964))
+
+### Features
+
+* Use ShardingParams on subscriptions, make Decoder/Encoder auto sharding friendly by default ([#1958](https://github.com/waku-org/js-waku/issues/1958)) ([f3627c4](https://github.com/waku-org/js-waku/commit/f3627c46a4c231013c5ffa4aa6f1ecbe3c06c5e3))
+
+
+### Bug Fixes
+
+* Only override ping metadata in peer store ([#1984](https://github.com/waku-org/js-waku/issues/1984)) ([fb34b72](https://github.com/waku-org/js-waku/commit/fb34b7262a8d85fdf76cb30774d14bcd3a150f58))
+* Use correct shard index when creating encoder ([9514653](https://github.com/waku-org/js-waku/commit/95146534288f842ff1cf180fc62850d539937a05))
+
+
+### Miscellaneous Chores
+
+* **lightpush:** Move protocol implementation to `@waku/sdk` (1/n) ([#1964](https://github.com/waku-org/js-waku/issues/1964)) ([5fb1006](https://github.com/waku-org/js-waku/commit/5fb100602b347ad13718c85c52d22a932c15aa18))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.22 to ^0.0.23
+    * @waku/interfaces bumped from 0.0.23 to 0.0.24
+    * @waku/proto bumped from 0.0.6 to 0.0.7
+    * @waku/utils bumped from 0.0.16 to 0.0.17
+
 ## [0.0.28](https://github.com/waku-org/js-waku/compare/core-v0.0.27...core-v0.0.28) (2024-04-09)
 
 
