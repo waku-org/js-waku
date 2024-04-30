@@ -1,8 +1,12 @@
 import type { PeerUpdate, Stream } from "@libp2p/interface";
-import { Peer } from "@libp2p/interface";
+import type { Peer, PeerId } from "@libp2p/interface";
 import { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { selectConnection } from "@waku/utils/libp2p";
+
+const CONNECTION_TIMEOUT = 5_000;
+const RETRY_BACKOFF_BASE = 1_000;
+const MAX_RETRIES = 3;
 
 export class StreamManager {
   private streamPool: Map<string, Promise<Stream | void>>;
@@ -22,52 +26,102 @@ export class StreamManager {
     this.streamPool = new Map();
   }
 
-  public async getStream(peer: Peer): Promise<Stream> {
+  public async getStream(peer: Peer): Promise<Stream | null> {
     const peerIdStr = peer.id.toString();
     const streamPromise = this.streamPool.get(peerIdStr);
 
     if (!streamPromise) {
-      return this.newStream(peer); // fallback by creating a new stream on the spot
+      return this.createStream(peer);
     }
 
-    // We have the stream, let's remove it from the map
     this.streamPool.delete(peerIdStr);
-
     this.prepareNewStream(peer);
 
-    const stream = await streamPromise;
-
-    if (!stream || stream.status === "closed") {
-      return this.newStream(peer); // fallback by creating a new stream on the spot
+    try {
+      const stream = await streamPromise;
+      if (stream && stream.status !== "closed") {
+        return stream;
+      }
+    } catch (error) {
+      this.log.error(`Failed to get stream for ${peerIdStr} -- `, error);
     }
 
-    return stream;
+    return this.createStream(peer);
   }
 
-  private async newStream(peer: Peer): Promise<Stream> {
+  private async createStream(peer: Peer): Promise<Stream | null> {
+    try {
+      return await this.newStream(peer);
+    } catch (error) {
+      this.log.error(
+        `Failed to create a new stream for ${peer.id.toString()} -- `,
+        error
+      );
+      return null;
+    }
+  }
+
+  private async newStream(peer: Peer, retries = 0): Promise<Stream> {
     const connections = this.getConnections(peer.id);
     const connection = selectConnection(connections);
+
     if (!connection) {
       throw new Error("Failed to get a connection to the peer");
     }
-    return connection.newStream(this.multicodec);
+
+    try {
+      const stream = await connection.newStream(this.multicodec);
+      return stream;
+    } catch (error) {
+      if (retries < MAX_RETRIES) {
+        const backoff = RETRY_BACKOFF_BASE * Math.pow(2, retries);
+        await new Promise((resolve) => setTimeout(resolve, backoff));
+        return this.newStream(peer, retries + 1);
+      } else {
+        throw error;
+      }
+    }
   }
 
   private prepareNewStream(peer: Peer): void {
-    const streamPromise = this.newStream(peer).catch(() => {
-      // No error thrown as this call is not triggered by the user
+    const timeoutPromise = new Promise<void>((resolve) =>
+      setTimeout(resolve, CONNECTION_TIMEOUT)
+    );
+
+    const streamPromise = Promise.race([
+      this.newStream(peer),
+      timeoutPromise.then(() => {
+        throw new Error("Connection timeout");
+      })
+    ]).catch((error) => {
       this.log.error(
-        `Failed to prepare a new stream for ${peer.id.toString()}`
+        `Failed to prepare a new stream for ${peer.id.toString()} -- `,
+        error
       );
     });
+
     this.streamPool.set(peer.id.toString(), streamPromise);
   }
 
   private handlePeerUpdateStreamPool = (evt: CustomEvent<PeerUpdate>): void => {
-    const peer = evt.detail.peer;
+    const { peer } = evt.detail;
     if (peer.protocols.includes(this.multicodec)) {
-      this.log.info(`Preemptively opening a stream to ${peer.id.toString()}`);
-      this.prepareNewStream(peer);
+      const status = this.getConnectionStatus(peer.id);
+      if (status === "connected") {
+        this.log.info(`Preemptively opening a stream to ${peer.id.toString()}`);
+        this.prepareNewStream(peer);
+      } else if (status === "disconnected") {
+        const peerIdStr = peer.id.toString();
+        this.streamPool.delete(peerIdStr);
+        this.log.info(
+          `Removed pending stream for disconnected peer ${peerIdStr}`
+        );
+      }
     }
   };
+
+  private getConnectionStatus(peerId: PeerId): "connected" | "disconnected" {
+    const connections = this.getConnections(peerId);
+    return connections && connections.length > 0 ? "connected" : "disconnected";
+  }
 }
