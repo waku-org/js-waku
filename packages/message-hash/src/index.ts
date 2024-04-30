@@ -18,9 +18,7 @@ export function messageHash(
 ): Uint8Array {
   const pubsubTopicBytes = utf8ToBytes(pubsubTopic);
   const contentTopicBytes = utf8ToBytes(message.contentTopic);
-  const timestampBytes = message.timestamp
-    ? numberToBytes(message.timestamp)
-    : undefined;
+  const timestampBytes = tryConvertTimestampToBytes(message.timestamp);
 
   const bytes = concat(
     [
@@ -33,6 +31,16 @@ export function messageHash(
   );
 
   return sha256(bytes);
+}
+
+function tryConvertTimestampToBytes(
+  timestamp: Date | number | bigint | undefined
+): undefined | Uint8Array {
+  if (!timestamp) {
+    return;
+  }
+
+  return numberToBytes(timestamp.valueOf());
 }
 
 export function messageHashStr(
