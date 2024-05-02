@@ -68,6 +68,53 @@ jobs:
       - run: npm run build:esm
       - run: npm run test:browser
 
+  build_rln_tree:
+    if: false # This condition disables the job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: waku-org/js-waku
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_JS }}
+      - name: Check for existing RLN tree artifact
+        id: check-artifact
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifact = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+            console.log(artifact);
+            const foundArtifact = artifact.data.artifacts.find(art => art.name === 'rln_tree.tar.gz');
+            if (foundArtifact) {
+              core.setOutput('artifact_id', foundArtifact.id);
+              core.setOutput('artifact_found', 'true');
+            } else {
+              core.setOutput('artifact_found', 'false');
+            }
+      - name: Download RLN tree artifact
+        if: steps.check-artifact.outputs.artifact_found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: rln_tree.tar.gz
+          path: /tmp
+      - uses: ./.github/actions/npm
+      - name: Sync rln tree and save artifact
+        run: |
+          mkdir -p /tmp/rln_tree.db
+          npm run build:esm
+          npm run sync-rln-tree
+          tar -czf rln_tree.tar.gz -C /tmp/rln_tree.db .
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rln_tree.tar.gz
+          path: rln_tree.tar.gz
+
   node:
     uses: ./.github/workflows/test-node.yml
     secrets: inherit
