@@ -5,7 +5,7 @@ import { identify } from "@libp2p/identify";
 import { mplex } from "@libp2p/mplex";
 import { ping } from "@libp2p/ping";
 import { webSockets } from "@libp2p/websockets";
-import { all as filterAll } from "@libp2p/websockets/filters";
+import { all as filterAll, wss } from "@libp2p/websockets/filters";
 import { wakuMetadata } from "@waku/core";
 import {
   type CreateLibp2pOptions,
@@ -64,11 +64,13 @@ export async function defaultLibp2p(
     ? { metadata: wakuMetadata(shardInfo) }
     : {};
 
+  const filter = process?.env?.NODE_ENV === "test" ? filterAll : wss;
+
   return createLibp2p({
     connectionManager: {
       minConnections: 1
     },
-    transports: [webSockets({ filter: filterAll })],
+    transports: [webSockets({ filter })],
     streamMuxers: [mplex()],
     connectionEncryption: [noise()],
     ...options,
