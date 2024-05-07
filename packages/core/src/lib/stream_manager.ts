@@ -19,9 +19,7 @@ export class StreamManager {
   ) {
     this.log = new Logger(`stream-manager:${multicodec}`);
     this.streamPool = new Map();
-
     this.addEventListener("peer:update", this.handlePeerUpdateStreamPool);
-    this.getStream = this.getStream.bind(this);
   }
 
   public async getStream(peer: Peer): Promise<Stream> {
@@ -33,7 +31,7 @@ export class StreamManager {
     }
 
     this.streamPool.delete(peerIdStr);
-    this.prepareNewStream(peer);
+    this.prepareStream(peer);
 
     try {
       const stream = await streamPromise;
@@ -41,23 +39,14 @@ export class StreamManager {
         return stream;
       }
     } catch (error) {
-      this.log.error(`Failed to get stream for ${peerIdStr} -- `, error);
+      this.log.warn(`Failed to get stream for ${peerIdStr} -- `, error);
+      this.log.warn("Attempting to create a new stream for the peer");
     }
 
     return this.createStream(peer);
   }
 
-  private async createStream(peer: Peer): Promise<Stream> {
-    try {
-      return await this.newStream(peer);
-    } catch (error) {
-      throw new Error(
-        `Failed to create a new stream for ${peer.id.toString()} -- ` + error
-      );
-    }
-  }
-
-  private async newStream(peer: Peer, retries = 0): Promise<Stream> {
+  private async createStream(peer: Peer, retries = 0): Promise<Stream> {
     const connections = this.getConnections(peer.id);
     const connection = selectConnection(connections);
 
@@ -71,19 +60,21 @@ export class StreamManager {
       if (retries < MAX_RETRIES) {
         const backoff = RETRY_BACKOFF_BASE * Math.pow(2, retries);
         await new Promise((resolve) => setTimeout(resolve, backoff));
-        return this.newStream(peer, retries + 1);
+        return this.createStream(peer, retries + 1);
       }
-      throw error;
+      throw new Error(
+        `Failed to create a new stream for ${peer.id.toString()} -- ` + error
+      );
     }
   }
 
-  private prepareNewStream(peer: Peer): void {
+  private prepareStream(peer: Peer): void {
     const timeoutPromise = new Promise<void>((resolve) =>
       setTimeout(resolve, CONNECTION_TIMEOUT)
     );
 
     const streamPromise = Promise.race([
-      this.newStream(peer),
+      this.createStream(peer),
       timeoutPromise.then(() => {
         throw new Error("Connection timeout");
       })
@@ -105,7 +96,7 @@ export class StreamManager {
 
       if (isConnected) {
         this.log.info(`Preemptively opening a stream to ${peer.id.toString()}`);
-        this.prepareNewStream(peer);
+        this.prepareStream(peer);
       } else {
         const peerIdStr = peer.id.toString();
         this.streamPool.delete(peerIdStr);
