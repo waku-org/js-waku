@@ -103,12 +103,12 @@ export class StreamManager {
     const { peer } = evt.detail;
 
     if (peer.protocols.includes(this.multicodec)) {
-      const status = this.getConnectionStatus(peer.id);
+      const isConnected = this.isConnectedTo(peer.id);
 
-      if (status === "connected") {
+      if (isConnected) {
         this.log.info(`Preemptively opening a stream to ${peer.id.toString()}`);
         this.prepareNewStream(peer);
-      } else if (status === "disconnected") {
+      } else {
         const peerIdStr = peer.id.toString();
         this.streamPool.delete(peerIdStr);
         this.log.info(
@@ -118,8 +118,8 @@ export class StreamManager {
     }
   };
 
-  private getConnectionStatus(peerId: PeerId): "connected" | "disconnected" {
+  private isConnectedTo(peerId: PeerId): boolean {
     const connections = this.getConnections(peerId);
-    return connections && connections.length > 0 ? "connected" : "disconnected";
+    return connections.some((connection) => connection.status === "open");
   }
 }
