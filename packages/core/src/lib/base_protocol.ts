@@ -48,7 +48,7 @@ export class BaseProtocol implements IBaseProtocolCore {
     );
   }
   protected async getStream(peer: Peer): Promise<Stream> {
-    return await this.streamManager.getStream(peer);
+    return this.streamManager.getStream(peer);
   }
 
   public get peerStore(): PeerStore {
