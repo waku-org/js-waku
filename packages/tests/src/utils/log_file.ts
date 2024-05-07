@@ -50,8 +50,11 @@ function clean(str: string): string {
   return str.replace(/ /g, "_").replace(/[':()/]/g, "");
 }
 
-export function makeLogFileName(ctx: Context): string {
-  const unitTest = ctx?.currentTest ? ctx!.currentTest : ctx.test;
+export function makeLogFileName(ctx: Context | undefined): string {
+  if (!ctx) {
+    return "unknown";
+  }
+  const unitTest = ctx.currentTest ? ctx.currentTest : ctx.test;
   let name = clean(unitTest!.title);
   let suite = unitTest?.parent;
 
