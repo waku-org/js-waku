@@ -88,13 +88,9 @@ export class SubscriptionManager implements ISubscriptionSDK {
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
     const contentTopics = Array.from(decodersGroupedByCT.keys());
 
-    const promises = this.peers.map(async (peer) => {
-      return await this.protocol.subscribe(
-        this.pubsubTopic,
-        peer,
-        contentTopics
-      );
-    });
+    const promises = this.peers.map(async (peer) =>
+      this.protocol.subscribe(this.pubsubTopic, peer, contentTopics)
+    );
 
     const results = await Promise.allSettled(promises);
 
@@ -149,9 +145,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
   }
 
   async ping(): Promise<SDKProtocolResult> {
-    const promises = this.peers.map(async (peer) => {
-      return await this.protocol.ping(peer);
-    });
+    const promises = this.peers.map(async (peer) => this.protocol.ping(peer));
 
     const results = await Promise.allSettled(promises);
 
@@ -159,9 +153,9 @@ export class SubscriptionManager implements ISubscriptionSDK {
   }
 
   async unsubscribeAll(): Promise<SDKProtocolResult> {
-    const promises = this.peers.map(async (peer) => {
-      return await this.protocol.unsubscribeAll(this.pubsubTopic, peer);
-    });
+    const promises = this.peers.map(async (peer) =>
+      this.protocol.unsubscribeAll(this.pubsubTopic, peer)
+    );
 
     const results = await Promise.allSettled(promises);
 
