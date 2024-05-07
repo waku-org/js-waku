@@ -30,7 +30,8 @@ const runTests = (strictCheckNodes: boolean): void => {
       [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo);
       const { error, subscription: _subscription } =
         await waku.filter.createSubscription(TestShardInfo);
-      if (!error) subscription = _subscription;
+      if (error) throw error;
+      subscription = _subscription;
     });
 
     afterEachCustom(this, async () => {

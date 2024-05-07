@@ -2,7 +2,7 @@ import type { Peer, Stream } from "@libp2p/interface";
 import type { IncomingStreamData } from "@libp2p/interface-internal";
 import {
   type ContentTopic,
-  CoreProtocolResult,
+  type CoreProtocolResult,
   type IBaseProtocolCore,
   type Libp2p,
   type ProtocolCreateOptions,
@@ -101,21 +101,23 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       contentTopics
     );
 
-    const res = await pipe(
-      [request.encode()],
-      lp.encode,
-      stream,
-      lp.decode,
-      async (source) => await all(source)
-    );
-
-    if (!res || !res.length) {
+    let res: Uint8ArrayList[] | undefined;
+    try {
+      res = await pipe(
+        [request.encode()],
+        lp.encode,
+        stream,
+        lp.decode,
+        async (source) => await all(source)
+      );
+    } catch (error) {
+      log.error("Failed to send subscribe request", error);
       return {
+        success: null,
         failure: {
-          error: ProtocolError.REMOTE_PEER_FAULT,
+          error: ProtocolError.GENERIC_FAIL,
           peerId: peer.id
-        },
-        success: null
+        }
       };
     }
 

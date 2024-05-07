@@ -125,7 +125,8 @@ describe("Waku Message Ephemeral field", function () {
 
     const { error, subscription: _subscription } =
       await waku.filter.createSubscription(TestEncoder.pubsubTopic);
-    if (!error) subscription = _subscription;
+    if (error) throw error;
+    subscription = _subscription;
   });
 
   it("Ephemeral messages are not stored", async function () {

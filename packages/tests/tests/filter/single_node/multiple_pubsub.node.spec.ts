@@ -64,7 +64,8 @@ describe("Waku Filter V2: Multiple PubsubTopics", function () {
 
     const { error, subscription: _subscription } =
       await waku.filter.createSubscription(shardInfo);
-    if (!error) subscription = _subscription;
+    if (error) throw error;
+    subscription = _subscription;
 
     messageCollector = new MessageCollector();
   });
@@ -236,7 +237,8 @@ describe("Waku Filter V2 (Autosharding): Multiple PubsubTopics", function () {
     [nwaku, waku] = await runNodes(this.ctx, contentTopicInfo);
     const { error, subscription: _subscription } =
       await waku.filter.createSubscription(autoshardingPubsubTopic1);
-    if (!error) subscription = _subscription;
+    if (error) throw error;
+    subscription = _subscription;
     messageCollector = new MessageCollector();
   });
 
@@ -408,7 +410,8 @@ describe("Waku Filter V2 (Named sharding): Multiple PubsubTopics", function () {
     [nwaku, waku] = await runNodes(this.ctx, shardInfo);
     const { error, subscription: _subscription } =
       await waku.filter.createSubscription(customPubsubTopic1);
-    if (!error) subscription = _subscription;
+    if (error) throw error;
+    subscription = _subscription;
 
     messageCollector = new MessageCollector();
   });

@@ -49,7 +49,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
 
     const { error, subscription: _subscription } =
       await waku.filter.createSubscription(TestShardInfo);
-    if (!error) subscription = _subscription;
+    if (error) throw error;
+    subscription = _subscription;
 
     messageCollector = new MessageCollector();
     await nwaku.ensureSubscriptions([TestPubsubTopic]);

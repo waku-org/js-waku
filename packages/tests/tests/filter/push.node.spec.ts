@@ -36,7 +36,8 @@ const runTests = (strictCheckNodes: boolean): void => {
 
       const { error, subscription: _subscription } =
         await waku.filter.createSubscription(TestShardInfo);
-      if (!error) subscription = _subscription;
+      if (error) throw error;
+      subscription = _subscription;
     });
 
     afterEachCustom(this, async () => {
@@ -243,7 +244,8 @@ const runTests = (strictCheckNodes: boolean): void => {
       }
       const { error, subscription: _subscription } =
         await waku.filter.createSubscription(TestShardInfo);
-      if (!error) subscription = _subscription;
+      if (error) throw error;
+      subscription = _subscription;
       await subscription.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback

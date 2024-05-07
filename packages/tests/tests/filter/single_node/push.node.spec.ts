@@ -36,7 +36,8 @@ describe("Waku Filter V2: FilterPush", function () {
 
     const { error, subscription: _subscription } =
       await waku.filter.createSubscription(TestShardInfo);
-    if (!error) subscription = _subscription;
+    if (error) throw error;
+    subscription = _subscription;
 
     messageCollector = new MessageCollector(nwaku);
   });
@@ -225,7 +226,8 @@ describe("Waku Filter V2: FilterPush", function () {
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
     const { error, subscription: _subscription } =
       await waku.filter.createSubscription();
-    if (!error) subscription = _subscription;
+    if (error) throw error;
+    subscription = _subscription;
     await subscription.subscribe([TestDecoder], messageCollector.callback);
 
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
