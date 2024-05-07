@@ -48,10 +48,12 @@ export async function validatePingError(
   subscription: ISubscriptionSDK
 ): Promise<void> {
   try {
-    await subscription.ping();
-    throw new Error(
-      "Ping was successful but was expected to fail with a specific error."
-    );
+    const { failures, successes } = await subscription.ping();
+    if (failures.length === 0 || successes.length > 0) {
+      throw new Error(
+        "Ping was successful but was expected to fail with a specific error."
+      );
+    }
   } catch (err) {
     if (
       err instanceof Error &&

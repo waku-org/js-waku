@@ -335,13 +335,15 @@ const runTests = (strictCheckNodes: boolean): void => {
       const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
       try {
-        await subscription.subscribe(
+        const { failures, successes } = await subscription.subscribe(
           td.decoders,
           serviceNodes.messageCollector.callback
         );
-        throw new Error(
-          `Subscribe to ${topicCount} topics was successful but was expected to fail with a specific error.`
-        );
+        if (failures.length === 0 || successes.length > 0) {
+          throw new Error(
+            `Subscribe to ${topicCount} topics was successful but was expected to fail with a specific error.`
+          );
+        }
       } catch (err) {
         if (
           err instanceof Error &&

@@ -285,10 +285,15 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
     try {
-      await subscription.subscribe(td.decoders, messageCollector.callback);
-      throw new Error(
-        `Subscribe to ${topicCount} topics was successful but was expected to fail with a specific error.`
+      const { failures, successes } = await subscription.subscribe(
+        td.decoders,
+        messageCollector.callback
       );
+      if (failures.length === 0 || successes.length > 0) {
+        throw new Error(
+          `Subscribe to ${topicCount} topics was successful but was expected to fail with a specific error.`
+        );
+      }
     } catch (err) {
       if (
         err instanceof Error &&
