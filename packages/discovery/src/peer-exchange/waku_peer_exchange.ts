@@ -49,11 +49,14 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
       };
     }
 
-    const stream = await this.getStream(peer);
-    if (!stream) {
+    let stream;
+    try {
+      stream = await this.getStream(peer);
+    } catch (err) {
+      log.error("Failed to get stream", err);
       return {
-        error: ProtocolError.NO_STREAM_AVAILABLE,
-        peerInfos: null
+        peerInfos: null,
+        error: ProtocolError.NO_STREAM_AVAILABLE
       };
     }
 

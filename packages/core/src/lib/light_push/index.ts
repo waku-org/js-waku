@@ -1,4 +1,4 @@
-import type { Peer, PeerId } from "@libp2p/interface";
+import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import {
   Failure,
   IBaseProtocolCore,
@@ -100,8 +100,11 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
       };
     }
 
-    const stream = await this.getStream(peer);
-    if (!stream) {
+    let stream: Stream;
+    try {
+      stream = await this.getStream(peer);
+    } catch (error) {
+      log.error("Failed to get stream", error);
       return {
         success: null,
         failure: {

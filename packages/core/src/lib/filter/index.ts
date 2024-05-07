@@ -1,4 +1,4 @@
-import type { Peer } from "@libp2p/interface";
+import type { Peer, Stream } from "@libp2p/interface";
 import type { IncomingStreamData } from "@libp2p/interface-internal";
 import type {
   ContentTopic,
@@ -91,8 +91,10 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     peer: Peer,
     contentTopics: ContentTopic[]
   ): Promise<void> {
-    const stream = await this.getStream(peer);
-    if (!stream) {
+    let stream: Stream;
+    try {
+      stream = await this.getStream(peer);
+    } catch (error) {
       throw new Error(`Failed to get stream for peer ${peer.id.toString()}`);
     }
 
@@ -130,8 +132,10 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     peer: Peer,
     contentTopics: ContentTopic[]
   ): Promise<void> {
-    const stream = await this.getStream(peer);
-    if (!stream) {
+    let stream: Stream;
+    try {
+      stream = await this.getStream(peer);
+    } catch (error) {
       throw new Error(`Failed to get stream for peer ${peer.id.toString()}`);
     }
 
@@ -144,8 +148,10 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
   }
 
   async unsubscribeAll(pubsubTopic: PubsubTopic, peer: Peer): Promise<void> {
-    const stream = await this.getStream(peer);
-    if (!stream) {
+    let stream: Stream;
+    try {
+      stream = await this.getStream(peer);
+    } catch (error) {
       throw new Error(`Failed to get stream for peer ${peer.id.toString()}`);
     }
 
@@ -176,8 +182,10 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
   }
 
   async ping(peer: Peer): Promise<void> {
-    const stream = await this.getStream(peer);
-    if (!stream) {
+    let stream: Stream;
+    try {
+      stream = await this.getStream(peer);
+    } catch (error) {
       throw new Error(`Failed to get stream for peer ${peer.id.toString()}`);
     }
 

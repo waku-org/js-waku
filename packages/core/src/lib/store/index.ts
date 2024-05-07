@@ -92,9 +92,12 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
 
       const historyRpcQuery = HistoryRpc.createQuery(queryOpts);
 
-      const stream = await this.getStream(peer);
-      if (!stream) {
-        throw new Error(`Failed to get stream to peer ${peer.id.toString()}`);
+      let stream;
+      try {
+        stream = await this.getStream(peer);
+      } catch (e) {
+        log.error("Failed to get stream", e);
+        break;
       }
 
       const res = await pipe(

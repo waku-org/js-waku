@@ -47,11 +47,8 @@ export class BaseProtocol implements IBaseProtocolCore {
       this.addLibp2pEventListener
     );
   }
-  protected async getStream(peer: Peer): Promise<Stream | null> {
-    const stream = await this.streamManager.getStream(peer);
-
-    if (!stream) return null;
-    return stream;
+  protected async getStream(peer: Peer): Promise<Stream> {
+    return await this.streamManager.getStream(peer);
   }
 
   public get peerStore(): PeerStore {

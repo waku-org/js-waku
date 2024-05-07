@@ -24,7 +24,7 @@ export class StreamManager {
     this.getStream = this.getStream.bind(this);
   }
 
-  public async getStream(peer: Peer): Promise<Stream | null> {
+  public async getStream(peer: Peer): Promise<Stream> {
     const peerIdStr = peer.id.toString();
     const streamPromise = this.streamPool.get(peerIdStr);
 
@@ -47,15 +47,13 @@ export class StreamManager {
     return this.createStream(peer);
   }
 
-  private async createStream(peer: Peer): Promise<Stream | null> {
+  private async createStream(peer: Peer): Promise<Stream> {
     try {
       return await this.newStream(peer);
     } catch (error) {
-      this.log.error(
-        `Failed to create a new stream for ${peer.id.toString()} -- `,
-        error
+      throw new Error(
+        `Failed to create a new stream for ${peer.id.toString()} -- ` + error
       );
-      return null;
     }
   }
 
