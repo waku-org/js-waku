@@ -25,7 +25,7 @@ export type IBaseProtocolCore = {
 };
 
 export type IBaseProtocolSDK = {
-  numPeers: number;
+  numPeersToUse: number;
 };
 
 export type ContentTopicInfo = {

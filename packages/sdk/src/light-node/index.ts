@@ -1,8 +1,5 @@
 import { type Libp2pComponents, type LightNode } from "@waku/interfaces";
 
-import { wakuFilter } from "../protocols/filter.js";
-import { wakuLightPush } from "../protocols/light_push.js";
-import { wakuStore } from "../protocols/store.js";
 import { createLibp2pAndUpdateOptions } from "../utils/libp2p.js";
 import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "../waku.js";
 
@@ -18,15 +15,9 @@ export async function createLightNode(
 ): Promise<LightNode> {
   const libp2p = await createLibp2pAndUpdateOptions(options);
 
-  const store = wakuStore(options);
-  const lightPush = wakuLightPush(options);
-  const filter = wakuFilter(options);
-
-  return new WakuNode(
-    options as WakuOptions,
-    libp2p,
-    store,
-    lightPush,
-    filter
-  ) as LightNode;
+  return new WakuNode(options as WakuOptions, libp2p, {
+    store: true,
+    lightpush: true,
+    filter: true
+  }) as LightNode;
 }
