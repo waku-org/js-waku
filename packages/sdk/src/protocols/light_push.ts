@@ -10,7 +10,7 @@ import {
   ProtocolError,
   SDKProtocolResult
 } from "@waku/interfaces";
-import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
+import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
 
 import { BaseProtocolSDK } from "./base_protocol.js";
 
@@ -51,10 +51,12 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
     }
 
     if (!this.peers.length) {
-      return {
-        successes,
-        failures: [{ error: ProtocolError.NO_PEER_AVAILABLE }]
-      };
+      await this.maintainPeers();
+      if (!this.peers.length)
+        return {
+          successes,
+          failures: [{ error: ProtocolError.NO_PEER_AVAILABLE }]
+        };
     }
 
     const sendPromises = this.peers.map((peer) =>
@@ -70,17 +72,15 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
           successes.push(success);
         }
         if (failure) {
+          if (failure.peerId) {
+            await this.renewPeer(failure.peerId);
+          }
+
           failures.push(failure);
         }
       } else {
         log.error("Failed to send message to peer", result.reason);
         failures.push({ error: ProtocolError.GENERIC_FAIL });
-
-        // renew peers
-        const peerIds = failures.map((f) => f.peerId).filter(isDefined);
-        for (const peerId of peerIds) {
-          await this.renewPeer(peerId);
-        }
       }
     }
 
