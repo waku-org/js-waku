@@ -9,29 +9,33 @@ interface Options {
   maintainPeersInterval?: number;
 }
 
-const log = new Logger("sdk:base-protocol");
-
 const DEFAULT_NUM_PEERS_TO_USE = 3;
-const DEFAULT_MAINTAIN_PEERS_INTERVAL = 60000;
+const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 
 export class BaseProtocolSDK implements IBaseProtocolSDK {
   public readonly numPeersToUse: number;
   public peers: Peer[] = [];
   private maintainPeersIntervalId: NodeJS.Timeout | undefined;
+  log = new Logger("sdk:base-protocol");
 
   constructor(
     protected core: BaseProtocol,
     private connectionManager: ConnectionManager,
     options: Options
   ) {
+    this.log = new Logger(`sdk:${core.multicodec}`);
     this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
     const maintainPeersInterval =
       options?.maintainPeersInterval ?? DEFAULT_MAINTAIN_PEERS_INTERVAL;
 
     this.startMaintainPeersInterval(maintainPeersInterval).catch((error) => {
-      log.error("Error starting maintain peers interval:", error);
+      this.log.error("Error starting maintain peers interval:", error);
       throw error;
     });
+  }
+
+  get connectedPeers(): Peer[] {
+    return this.peers;
   }
 
   /**
@@ -39,18 +43,18 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * @param peerToDisconnect The peer to disconnect from.
    */
   public async renewPeer(peerToDisconnect: PeerId): Promise<void> {
-    log.info(`Renewing peer ${peerToDisconnect}`);
+    this.log.info(`Renewing peer ${peerToDisconnect}`);
     try {
       await this.connectionManager.dropConnection(peerToDisconnect);
       this.peers = this.peers.filter((peer) => peer.id !== peerToDisconnect);
-      log.info(
+      this.log.info(
         `Peer ${peerToDisconnect} disconnected and removed from the peer list`
       );
 
       await this.findAndAddPeers();
     } catch (error) {
-      log.error(`Error renewing peer ${peerToDisconnect}:`, error);
-      log.info(
+      this.log.error(`Error renewing peer ${peerToDisconnect}:`, error);
+      this.log.info(
         "Peer renewal failed, relying on the interval to find a new peer"
       );
     }
@@ -61,10 +65,10 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    */
   public stopMaintainPeersInterval(): void {
     if (this.maintainPeersIntervalId) {
-      log.info("Stopping maintain peers interval");
+      this.log.info("Stopping maintain peers interval");
       clearInterval(this.maintainPeersIntervalId);
       this.maintainPeersIntervalId = undefined;
-      log.info("Maintain peers interval stopped");
+      this.log.info("Maintain peers interval stopped");
     }
   }
 
@@ -73,17 +77,19 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * @param interval The interval in milliseconds to maintain the peers.
    */
   private async startMaintainPeersInterval(interval: number): Promise<void> {
-    log.info("Starting maintain peers interval");
+    this.log.info("Starting maintain peers interval");
     try {
       await this.maintainPeers();
       this.maintainPeersIntervalId = setInterval(() => {
         this.maintainPeers().catch((error) => {
-          log.error("Error during maintain peers interval:", error);
+          this.log.error("Error during maintain peers interval:", error);
         });
       }, interval);
-      log.info(`Maintain peers interval started with interval ${interval}ms`);
+      this.log.info(
+        `Maintain peers interval started with interval ${interval}ms`
+      );
     } catch (error) {
-      log.error("Error starting maintain peers interval:", error);
+      this.log.error("Error starting maintain peers interval:", error);
       throw error;
     }
   }
@@ -91,18 +97,18 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   /**
    * Maintains the peers list to `numPeersToUse`.
    */
-  private async maintainPeers(): Promise<void> {
-    log.info(`Maintaining peers, current count: ${this.peers.length}`);
+  protected async maintainPeers(): Promise<void> {
+    this.log.info(`Maintaining peers, current count: ${this.peers.length}`);
     try {
       const numPeersToAdd = this.numPeersToUse - this.peers.length;
       if (numPeersToAdd > 0) {
         await this.findAndAddPeers(numPeersToAdd);
       }
-      log.info(
+      this.log.info(
         `Peer maintenance completed, current count: ${this.peers.length}`
       );
     } catch (error) {
-      log.error("Error maintaining peers:", error);
+      this.log.error("Error maintaining peers:", error);
       throw error;
     }
   }
@@ -112,15 +118,15 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * @param numPeers The number of peers to find and add.
    */
   private async findAndAddPeers(numPeers: number = 1): Promise<void> {
-    log.info(`Finding and adding ${numPeers} new peers`);
+    this.log.info(`Finding and adding ${numPeers} new peers`);
     try {
       const additionalPeers = await this.findAdditionalPeers(numPeers);
       this.peers = [...this.peers, ...additionalPeers];
-      log.info(
+      this.log.info(
         `Added ${additionalPeers.length} new peers, total peers: ${this.peers.length}`
       );
     } catch (error) {
-      log.error("Error finding and adding new peers:", error);
+      this.log.error("Error finding and adding new peers:", error);
       throw error;
     }
   }
@@ -133,7 +139,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * @param numPeers The number of peers to find.
    */
   private async findAdditionalPeers(numPeers: number): Promise<Peer[]> {
-    log.info(`Finding ${numPeers} additional peers`);
+    this.log.info(`Finding ${numPeers} additional peers`);
     try {
       let newPeers = await this.core.getPeers({
         maxBootstrapPeers: 0,
@@ -141,7 +147,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       });
 
       if (newPeers.length === 0) {
-        log.warn("No new peers found, trying with bootstrap peers");
+        this.log.warn("No new peers found, trying with bootstrap peers");
         newPeers = await this.core.getPeers({
           maxBootstrapPeers: 1,
           numPeers: numPeers
@@ -151,10 +157,10 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       const additionalPeers = newPeers.filter(
         (peer) => this.peers.some((p) => p.id === peer.id) === false
       );
-      log.info(`Found ${additionalPeers.length} additional peers`);
+      this.log.info(`Found ${additionalPeers.length} additional peers`);
       return additionalPeers;
     } catch (error) {
-      log.error("Error finding additional peers:", error);
+      this.log.error("Error finding additional peers:", error);
       throw error;
     }
   }
