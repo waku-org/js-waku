@@ -111,17 +111,17 @@ export class WakuNode implements Waku {
     );
 
     if (protocolsEnabled.store) {
-      const store = wakuStore(this.connectionManager);
+      const store = wakuStore(this.connectionManager, options);
       this.store = store(libp2p);
     }
 
     if (protocolsEnabled.lightpush) {
-      const lightPush = wakuLightPush(this.connectionManager);
+      const lightPush = wakuLightPush(this.connectionManager, options);
       this.lightPush = lightPush(libp2p);
     }
 
     if (protocolsEnabled.filter) {
-      const filter = wakuFilter(this.connectionManager);
+      const filter = wakuFilter(this.connectionManager, options);
       this.filter = filter(libp2p);
     }
 
