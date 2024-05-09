@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.0.2](https://github.com/waku-org/js-waku/compare/discovery-v0.0.1...discovery-v0.0.2) (2024-04-30)
+
+
+### Bug Fixes
+
+* Add try catch to local store ([#1956](https://github.com/waku-org/js-waku/issues/1956)) ([e5e8cd5](https://github.com/waku-org/js-waku/commit/e5e8cd5e170defc1c50ec785568b92764e904dd5))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.23 to 0.0.24
+    * @waku/proto bumped from ^0.0.6 to ^0.0.7
+    * @waku/enr bumped from 0.0.22 to 0.0.23
+    * @waku/core bumped from 0.0.28 to 0.0.29
+    * @waku/utils bumped from 0.0.16 to 0.0.17
+
 ## 0.0.1 (2024-04-09)
 
 

@@ -12,6 +12,30 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.17](https://github.com/waku-org/js-waku/compare/utils-v0.0.16...utils-v0.0.17) (2024-04-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* use ShardingParams on subscriptions, make Decoder/Encoder auto sharding friendly by default ([#1958](https://github.com/waku-org/js-waku/issues/1958))
+
+### Features
+
+* Use ShardingParams on subscriptions, make Decoder/Encoder auto sharding friendly by default ([#1958](https://github.com/waku-org/js-waku/issues/1958)) ([f3627c4](https://github.com/waku-org/js-waku/commit/f3627c46a4c231013c5ffa4aa6f1ecbe3c06c5e3))
+
+
+### Bug Fixes
+
+* **message-hash:** Account for `timestamp` ([#1986](https://github.com/waku-org/js-waku/issues/1986)) ([73d4f19](https://github.com/waku-org/js-waku/commit/73d4f197467fe3e58fc49e3264f73e00a79004f9))
+* Use correct shard index when creating encoder ([9514653](https://github.com/waku-org/js-waku/commit/95146534288f842ff1cf180fc62850d539937a05))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.23 to 0.0.24
+
 ## [0.0.16](https://github.com/waku-org/js-waku/compare/utils-v0.0.15...utils-v0.0.16) (2024-04-09)
 
 

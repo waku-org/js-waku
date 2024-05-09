@@ -47,6 +47,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.25](https://github.com/waku-org/js-waku/compare/sdk-v0.0.24...sdk-v0.0.25) (2024-04-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* use ShardingParams on subscriptions, make Decoder/Encoder auto sharding friendly by default ([#1958](https://github.com/waku-org/js-waku/issues/1958))
+* **lightpush:** move protocol implementation to `@waku/sdk` (1/n) ([#1964](https://github.com/waku-org/js-waku/issues/1964))
+
+### Features
+
+* Add keep alive to Filter ([#1970](https://github.com/waku-org/js-waku/issues/1970)) ([1a6bc4f](https://github.com/waku-org/js-waku/commit/1a6bc4f8ce5d3409b3e82b8b0685beb80f48269a))
+* Add libp2p option for max ping connections ([fa523b7](https://github.com/waku-org/js-waku/commit/fa523b78afa8e87d705c98d1be92f8e6ae1f4ed2))
+* Lift contentTopics and make shardInfo mandatory for createLight… ([#1959](https://github.com/waku-org/js-waku/issues/1959)) ([5b03709](https://github.com/waku-org/js-waku/commit/5b03709dfe683b1cb001fe67c5bd013e664b4d89))
+* Use ShardingParams on subscriptions, make Decoder/Encoder auto sharding friendly by default ([#1958](https://github.com/waku-org/js-waku/issues/1958)) ([f3627c4](https://github.com/waku-org/js-waku/commit/f3627c46a4c231013c5ffa4aa6f1ecbe3c06c5e3))
+
+
+### Miscellaneous Chores
+
+* **lightpush:** Move protocol implementation to `@waku/sdk` (1/n) ([#1964](https://github.com/waku-org/js-waku/issues/1964)) ([5fb1006](https://github.com/waku-org/js-waku/commit/5fb100602b347ad13718c85c52d22a932c15aa18))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.28 to 0.0.29
+    * @waku/discovery bumped from 0.0.1 to 0.0.2
+    * @waku/interfaces bumped from 0.0.23 to 0.0.24
+    * @waku/proto bumped from ^0.0.6 to ^0.0.7
+    * @waku/relay bumped from 0.0.11 to 0.0.12
+    * @waku/utils bumped from 0.0.16 to 0.0.17
+
 ## [0.0.24](https://github.com/waku-org/js-waku/compare/sdk-v0.0.23...sdk-v0.0.24) (2024-04-09)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.7](https://github.com/waku-org/js-waku/compare/proto-v0.0.6...proto-v0.0.7) (2024-04-30)
+
+
+### Bug Fixes
+
+* Use correct error message for store rate limit ([6990e6f](https://github.com/waku-org/js-waku/commit/6990e6f4e04d57ac06ef370c8c3642a17911cdf3))
+
 ## [0.0.6](https://github.com/waku-org/js-waku/compare/proto-v0.0.5...proto-v0.0.6) (2024-01-10)
 
 
