@@ -61,7 +61,8 @@ describe("Static Sharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         relay: true,
-        clusterId: clusterId
+        clusterId: clusterId,
+        shard: [2]
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
@@ -72,7 +73,8 @@ describe("Static Sharding: Peer Management", function () {
         peerExchange: true,
         discv5BootstrapNode: enr1,
         relay: true,
-        clusterId: clusterId
+        clusterId: clusterId,
+        shard: [2]
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
@@ -83,7 +85,8 @@ describe("Static Sharding: Peer Management", function () {
         peerExchange: true,
         discv5BootstrapNode: enr2,
         relay: true,
-        clusterId: clusterId
+        clusterId: clusterId,
+        shard: [2]
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
@@ -140,7 +143,8 @@ describe("Static Sharding: Peer Management", function () {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
-        clusterId: clusterId
+        clusterId: clusterId,
+        shard: [1]
       });
 
       const enr1 = (await nwaku1.info()).enrUri;
@@ -151,7 +155,8 @@ describe("Static Sharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr1,
-        clusterId: clusterId
+        clusterId: clusterId,
+        shard: [2]
       });
 
       const enr2 = (await nwaku2.info()).enrUri;
@@ -162,7 +167,8 @@ describe("Static Sharding: Peer Management", function () {
         discv5Discovery: true,
         peerExchange: true,
         discv5BootstrapNode: enr2,
-        clusterId: clusterId
+        clusterId: clusterId,
+        shard: [2]
       });
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 

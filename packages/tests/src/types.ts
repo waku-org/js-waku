@@ -25,6 +25,7 @@ export interface Args {
   // `legacyFilter` is required to enable filter v1 with go-waku
   legacyFilter?: boolean;
   clusterId?: number;
+  shard?: Array<number>;
 }
 
 export interface Ports {
