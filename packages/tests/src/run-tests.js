@@ -26,7 +26,11 @@ async function main() {
 
   // Run mocha tests
   const mocha = spawn("npx", mochaArgs, {
-    stdio: "inherit"
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      NODE_ENV: "test"
+    }
   });
 
   mocha.on("error", (error) => {
