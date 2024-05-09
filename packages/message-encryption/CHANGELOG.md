@@ -76,6 +76,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.21 to 0.0.22
     * @waku/utils bumped from 0.0.14 to 0.0.15
 
+## [0.0.27](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.26...message-encryption-v0.0.27) (2024-04-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* use ShardingParams on subscriptions, make Decoder/Encoder auto sharding friendly by default ([#1958](https://github.com/waku-org/js-waku/issues/1958))
+
+### Features
+
+* Use ShardingParams on subscriptions, make Decoder/Encoder auto sharding friendly by default ([#1958](https://github.com/waku-org/js-waku/issues/1958)) ([f3627c4](https://github.com/waku-org/js-waku/commit/f3627c46a4c231013c5ffa4aa6f1ecbe3c06c5e3))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.28 to 0.0.29
+    * @waku/interfaces bumped from 0.0.23 to 0.0.24
+    * @waku/proto bumped from 0.0.6 to 0.0.7
+    * @waku/utils bumped from 0.0.16 to 0.0.17
+
 ## [0.0.26](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.25...message-encryption-v0.0.26) (2024-04-09)
 
 

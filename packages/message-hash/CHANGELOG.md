@@ -48,6 +48,27 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.20 to 0.0.21
 
+## [0.1.13](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.12...message-hash-v0.1.13) (2024-04-30)
+
+
+### Features
+
+* Make message hash compatible with decoded message ([#1993](https://github.com/waku-org/js-waku/issues/1993)) ([e529335](https://github.com/waku-org/js-waku/commit/e5293356d86231f413810f97e41d02430732f15c))
+
+
+### Bug Fixes
+
+* **message-hash:** Account for `timestamp` ([#1986](https://github.com/waku-org/js-waku/issues/1986)) ([73d4f19](https://github.com/waku-org/js-waku/commit/73d4f197467fe3e58fc49e3264f73e00a79004f9))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/utils bumped from 0.0.16 to 0.0.17
+  * devDependencies
+    * @waku/interfaces bumped from 0.0.23 to 0.0.24
+
 ## [0.1.12](https://github.com/waku-org/js-waku/compare/message-hash-v0.1.11...message-hash-v0.1.12) (2024-04-09)
 
 

@@ -25,6 +25,27 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.12](https://github.com/waku-org/js-waku/compare/relay-v0.0.11...relay-v0.0.12) (2024-04-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* use ShardingParams on subscriptions, make Decoder/Encoder auto sharding friendly by default ([#1958](https://github.com/waku-org/js-waku/issues/1958))
+
+### Features
+
+* Use ShardingParams on subscriptions, make Decoder/Encoder auto sharding friendly by default ([#1958](https://github.com/waku-org/js-waku/issues/1958)) ([f3627c4](https://github.com/waku-org/js-waku/commit/f3627c46a4c231013c5ffa4aa6f1ecbe3c06c5e3))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.28 to 0.0.29
+    * @waku/interfaces bumped from 0.0.23 to 0.0.24
+    * @waku/proto bumped from 0.0.6 to 0.0.7
+    * @waku/utils bumped from 0.0.16 to 0.0.17
+
 ## [0.0.11](https://github.com/waku-org/js-waku/compare/relay-v0.0.10...relay-v0.0.11) (2024-04-09)
 
 
