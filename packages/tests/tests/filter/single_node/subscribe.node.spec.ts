@@ -425,7 +425,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     });
   });
 
-  it.only("Subscribe and receive messages from multiple nwaku nodes", async function () {
+  it("Subscribe and receive messages from multiple nwaku nodes", async function () {
     await subscription.subscribe([TestDecoder], messageCollector.callback);
 
     // Set up and start a new nwaku node
