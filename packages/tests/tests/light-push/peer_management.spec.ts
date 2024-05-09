@@ -8,9 +8,12 @@ import {
   beforeEachCustom,
   ServiceNodesFleet
 } from "../../src/index.js";
-import { runMultipleNodes, teardownNodesWithRedundancy } from "../filter/utils";
+import {
+  runMultipleNodes,
+  teardownNodesWithRedundancy
+} from "../filter/utils.js";
 
-describe("Waku Light Push: Peer Management", function () {
+describe("Waku Light Push: Peer Management: E2E", function () {
   this.timeout(15000);
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
