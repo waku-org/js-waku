@@ -1,4 +1,4 @@
-import { IFilterSubscription, LightNode } from "@waku/interfaces";
+import { ISubscriptionSDK, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -24,11 +24,14 @@ const runTests = (strictCheckNodes: boolean): void => {
     this.timeout(10000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
-    let subscription: IFilterSubscription;
+    let subscription: ISubscriptionSDK;
 
     beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo);
-      subscription = await waku.filter.createSubscription(TestShardInfo);
+      const { error, subscription: _subscription } =
+        await waku.filter.createSubscription(TestShardInfo);
+      if (error) throw error;
+      subscription = _subscription;
     });
 
     afterEachCustom(this, async () => {

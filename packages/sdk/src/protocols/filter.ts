@@ -1,19 +1,24 @@
 import type { Peer } from "@libp2p/interface";
 import { FilterCore } from "@waku/core";
-import type {
-  Callback,
-  ContentTopic,
-  IAsyncIterator,
-  IDecodedMessage,
-  IDecoder,
-  IFilterSDK,
-  IProtoMessage,
-  Libp2p,
-  ProtocolCreateOptions,
-  PubsubTopic,
-  ShardingParams,
+import {
+  type Callback,
+  type ContentTopic,
+  CoreProtocolResult,
+  CreateSubscriptionResult,
+  type IAsyncIterator,
+  type IDecodedMessage,
+  type IDecoder,
+  type IFilterSDK,
+  type IProtoMessage,
+  type ISubscriptionSDK,
+  type Libp2p,
+  type ProtocolCreateOptions,
+  ProtocolError,
+  type PubsubTopic,
+  SDKProtocolResult,
+  type ShardingParams,
   SubscribeOptions,
-  Unsubscribe
+  type Unsubscribe
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
@@ -38,8 +43,7 @@ const MINUTE = 60 * 1000;
 const DEFAULT_SUBSCRIBE_OPTIONS = {
   keepAlive: MINUTE
 };
-
-export class SubscriptionManager {
+export class SubscriptionManager implements ISubscriptionSDK {
   private readonly pubsubTopic: PubsubTopic;
   readonly peers: Peer[];
   readonly receivedMessagesHashStr: string[] = [];
@@ -64,28 +68,33 @@ export class SubscriptionManager {
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
     options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
-  ): Promise<void> {
+  ): Promise<SDKProtocolResult> {
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
     // check that all decoders are configured for the same pubsub topic as this subscription
-    decodersArray.forEach((decoder) => {
+    for (const decoder of decodersArray) {
       if (decoder.pubsubTopic !== this.pubsubTopic) {
-        throw new Error(
-          `Pubsub topic not configured: decoder is configured for pubsub topic ${decoder.pubsubTopic} but this subscription is for pubsub topic ${this.pubsubTopic}. Please create a new Subscription for the different pubsub topic.`
-        );
+        return {
+          failures: [
+            {
+              error: ProtocolError.TOPIC_DECODER_MISMATCH
+            }
+          ],
+          successes: []
+        };
       }
-    });
+    }
 
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
     const contentTopics = Array.from(decodersGroupedByCT.keys());
 
-    const promises = this.peers.map(async (peer) => {
-      await this.protocol.subscribe(this.pubsubTopic, peer, contentTopics);
-    });
+    const promises = this.peers.map(async (peer) =>
+      this.protocol.subscribe(this.pubsubTopic, peer, contentTopics)
+    );
 
     const results = await Promise.allSettled(promises);
 
-    this.handleErrors(results, "subscribe");
+    const finalResult = this.handleResult(results, "subscribe");
 
     // Save the callback functions by content topics so they
     // can easily be removed (reciprocally replaced) if `unsubscribe` (reciprocally `subscribe`)
@@ -106,50 +115,59 @@ export class SubscriptionManager {
     if (options?.keepAlive) {
       this.startKeepAlivePings(options.keepAlive);
     }
+
+    return finalResult;
   }
 
-  async unsubscribe(contentTopics: ContentTopic[]): Promise<void> {
+  async unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult> {
     const promises = this.peers.map(async (peer) => {
-      await this.protocol.unsubscribe(this.pubsubTopic, peer, contentTopics);
+      const response = await this.protocol.unsubscribe(
+        this.pubsubTopic,
+        peer,
+        contentTopics
+      );
 
       contentTopics.forEach((contentTopic: string) => {
         this.subscriptionCallbacks.delete(contentTopic);
       });
+
+      return response;
     });
 
     const results = await Promise.allSettled(promises);
-
-    this.handleErrors(results, "unsubscribe");
+    const finalResult = this.handleResult(results, "unsubscribe");
 
     if (this.subscriptionCallbacks.size === 0 && this.keepAliveTimer) {
       this.stopKeepAlivePings();
     }
+
+    return finalResult;
   }
 
-  async ping(): Promise<void> {
-    const promises = this.peers.map(async (peer) => {
-      await this.protocol.ping(peer);
-    });
+  async ping(): Promise<SDKProtocolResult> {
+    const promises = this.peers.map(async (peer) => this.protocol.ping(peer));
 
     const results = await Promise.allSettled(promises);
 
-    this.handleErrors(results, "ping");
+    return this.handleResult(results, "ping");
   }
 
-  async unsubscribeAll(): Promise<void> {
-    const promises = this.peers.map(async (peer) => {
-      await this.protocol.unsubscribeAll(this.pubsubTopic, peer);
-    });
+  async unsubscribeAll(): Promise<SDKProtocolResult> {
+    const promises = this.peers.map(async (peer) =>
+      this.protocol.unsubscribeAll(this.pubsubTopic, peer)
+    );
 
     const results = await Promise.allSettled(promises);
 
     this.subscriptionCallbacks.clear();
 
-    this.handleErrors(results, "unsubscribeAll");
+    const finalResult = this.handleResult(results, "unsubscribeAll");
 
     if (this.keepAliveTimer) {
       this.stopKeepAlivePings();
     }
+
+    return finalResult;
   }
 
   async processIncomingMessage(message: WakuMessage): Promise<void> {
@@ -178,40 +196,32 @@ export class SubscriptionManager {
     await pushMessage(subscriptionCallback, this.pubsubTopic, message);
   }
 
-  // Filter out only the rejected promises and extract & handle their reasons
-  private handleErrors(
-    results: PromiseSettledResult<void>[],
+  private handleResult(
+    results: PromiseSettledResult<CoreProtocolResult>[],
     type: "ping" | "subscribe" | "unsubscribe" | "unsubscribeAll"
-  ): void {
-    const errors = results
-      .filter(
-        (result): result is PromiseRejectedResult =>
-          result.status === "rejected"
-      )
-      .map((rejectedResult) => rejectedResult.reason);
+  ): SDKProtocolResult {
+    const result: SDKProtocolResult = { failures: [], successes: [] };
 
-    if (errors.length === this.peers.length) {
-      const errorCounts = new Map<string, number>();
-      // TODO: streamline error logging with https://github.com/orgs/waku-org/projects/2/views/1?pane=issue&itemId=42849952
-      errors.forEach((error) => {
-        const message = error instanceof Error ? error.message : String(error);
-        errorCounts.set(message, (errorCounts.get(message) || 0) + 1);
-      });
-
-      const uniqueErrorMessages = Array.from(
-        errorCounts,
-        ([message, count]) => `${message} (occurred ${count} times)`
-      ).join(", ");
-      throw new Error(`Error ${type} all peers: ${uniqueErrorMessages}`);
-    } else if (errors.length > 0) {
-      // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
-      log.warn(
-        `Some ${type} failed. These will be refreshed with new peers`,
-        errors
-      );
-    } else {
-      log.info(`${type} successful for all peers`);
+    for (const promiseResult of results) {
+      if (promiseResult.status === "rejected") {
+        log.error(
+          `Failed to resolve ${type} promise successfully: `,
+          promiseResult.reason
+        );
+        result.failures.push({ error: ProtocolError.GENERIC_FAIL });
+      } else {
+        const coreResult = promiseResult.value;
+        if (coreResult.failure) {
+          result.failures.push(coreResult.failure);
+        } else {
+          result.successes.push(coreResult.success);
+        }
+      }
     }
+
+    // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
+
+    return result;
   }
 
   private startKeepAlivePings(interval: number): void {
@@ -297,7 +307,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    */
   async createSubscription(
     pubsubTopicShardInfo: ShardingParams | PubsubTopic
-  ): Promise<SubscriptionManager> {
+  ): Promise<CreateSubscriptionResult> {
     const pubsubTopic =
       typeof pubsubTopicShardInfo == "string"
         ? pubsubTopicShardInfo
@@ -305,9 +315,21 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
-    const peers = await this.protocol.getPeers();
+    let peers: Peer[] = [];
+    try {
+      peers = await this.protocol.getPeers();
+    } catch (error) {
+      log.error("Error getting peers to initiate subscription: ", error);
+      return {
+        error: ProtocolError.GENERIC_FAIL,
+        subscription: null
+      };
+    }
     if (peers.length === 0) {
-      throw new Error("No peer found to initiate subscription.");
+      return {
+        error: ProtocolError.NO_PEER_AVAILABLE,
+        subscription: null
+      };
     }
 
     log.info(
@@ -322,7 +344,10 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
         new SubscriptionManager(pubsubTopic, peers, this.protocol)
       );
 
-    return subscription;
+    return {
+      error: null,
+      subscription
+    };
   }
 
   //TODO: remove this dependency on IReceiver
@@ -346,21 +371,27 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     callback: Callback<T>,
     options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<Unsubscribe> {
-    const pubsubTopics = this.getPubsubTopics<T>(decoders);
+    const uniquePubsubTopics = this.getUniquePubsubTopics<T>(decoders);
 
-    if (pubsubTopics.length === 0) {
+    if (uniquePubsubTopics.length === 0) {
       throw Error(
         "Failed to subscribe: no pubsubTopic found on decoders provided."
       );
     }
 
-    if (pubsubTopics.length > 1) {
+    if (uniquePubsubTopics.length > 1) {
       throw Error(
         "Failed to subscribe: all decoders should have the same pubsub topic. Use createSubscription to be more agile."
       );
     }
 
-    const subscription = await this.createSubscription(pubsubTopics[0]);
+    const { subscription, error } = await this.createSubscription(
+      uniquePubsubTopics[0]
+    );
+
+    if (error) {
+      throw Error(`Failed to create subscription: ${error}`);
+    }
 
     await subscription.subscribe(decoders, callback, options);
 
@@ -381,7 +412,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     return toAsyncIterator(this, decoders);
   }
 
-  private getPubsubTopics<T extends IDecodedMessage>(
+  private getUniquePubsubTopics<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[]
   ): string[] {
     if (!Array.isArray(decoders)) {

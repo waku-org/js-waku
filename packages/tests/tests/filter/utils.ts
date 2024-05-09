@@ -1,6 +1,6 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import {
-  IFilterSubscription,
+  ISubscriptionSDK,
   LightNode,
   ProtocolCreateOptions,
   Protocols,
@@ -45,13 +45,15 @@ export const messagePayload = { payload: utf8ToBytes(messageText) };
 
 // Utility to validate errors related to pings in the subscription.
 export async function validatePingError(
-  subscription: IFilterSubscription
+  subscription: ISubscriptionSDK
 ): Promise<void> {
   try {
-    await subscription.ping();
-    throw new Error(
-      "Ping was successful but was expected to fail with a specific error."
-    );
+    const { failures, successes } = await subscription.ping();
+    if (failures.length === 0 || successes.length > 0) {
+      throw new Error(
+        "Ping was successful but was expected to fail with a specific error."
+      );
+    }
   } catch (err) {
     if (
       err instanceof Error &&

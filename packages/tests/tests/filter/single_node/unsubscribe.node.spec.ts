@@ -1,5 +1,5 @@
 import { createDecoder, createEncoder } from "@waku/core";
-import { IFilterSubscription } from "@waku/interfaces";
+import { ISubscriptionSDK } from "@waku/interfaces";
 import { LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
@@ -28,12 +28,16 @@ describe("Waku Filter V2: Unsubscribe", function () {
   this.timeout(10000);
   let waku: LightNode;
   let nwaku: ServiceNode;
-  let subscription: IFilterSubscription;
+  let subscription: ISubscriptionSDK;
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(this.ctx, TestShardInfo);
-    subscription = await waku.filter.createSubscription(TestShardInfo);
+
+    const { error, subscription: _subscription } =
+      await waku.filter.createSubscription(TestShardInfo);
+    if (error) throw error;
+    subscription = _subscription;
     messageCollector = new MessageCollector();
     await nwaku.ensureSubscriptions([TestPubsubTopic]);
   });

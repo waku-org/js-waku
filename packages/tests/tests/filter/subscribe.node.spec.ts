@@ -1,5 +1,5 @@
 import { createDecoder, createEncoder } from "@waku/core";
-import { IFilterSubscription, LightNode } from "@waku/interfaces";
+import { ISubscriptionSDK, LightNode } from "@waku/interfaces";
 import {
   ecies,
   generatePrivateKey,
@@ -36,7 +36,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     this.timeout(100000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
-    let subscription: IFilterSubscription;
+    let subscription: ISubscriptionSDK;
 
     beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(
@@ -44,7 +44,12 @@ const runTests = (strictCheckNodes: boolean): void => {
         TestShardInfo,
         strictCheckNodes
       );
-      subscription = await waku.filter.createSubscription(TestShardInfo);
+      const { error, subscription: _subscription } =
+        await waku.filter.createSubscription(TestShardInfo);
+
+      if (!error) {
+        subscription = _subscription;
+      }
     });
 
     afterEachCustom(this, async () => {
@@ -330,13 +335,15 @@ const runTests = (strictCheckNodes: boolean): void => {
       const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 
       try {
-        await subscription.subscribe(
+        const { failures, successes } = await subscription.subscribe(
           td.decoders,
           serviceNodes.messageCollector.callback
         );
-        throw new Error(
-          `Subscribe to ${topicCount} topics was successful but was expected to fail with a specific error.`
-        );
+        if (failures.length === 0 || successes.length > 0) {
+          throw new Error(
+            `Subscribe to ${topicCount} topics was successful but was expected to fail with a specific error.`
+          );
+        }
       } catch (err) {
         if (
           err instanceof Error &&
@@ -461,7 +468,11 @@ const runTests = (strictCheckNodes: boolean): void => {
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
 
       // Create a second subscription on a different topic
-      const subscription2 = await waku.filter.createSubscription(TestShardInfo);
+      const { error, subscription: subscription2 } =
+        await waku.filter.createSubscription(TestShardInfo);
+      if (error) {
+        throw error;
+      }
       const newContentTopic = "/test/2/waku-filter/default";
       const newEncoder = createEncoder({
         contentTopic: newContentTopic,
