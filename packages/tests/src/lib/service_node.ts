@@ -87,6 +87,10 @@ export class ServiceNode {
     return isGoWaku ? "go-waku" : "nwaku";
   }
 
+  get containerName(): string | undefined {
+    return this.docker?.container?.id;
+  }
+
   async start(
     args: Args = {},
     options: {
@@ -226,6 +230,17 @@ export class ServiceNode {
       "GET",
       undefined,
       async (response) => await response.json()
+    );
+  }
+
+  async healthy(): Promise<boolean> {
+    this.checkProcess();
+
+    return this.restCall<boolean>(
+      "/health",
+      "GET",
+      undefined,
+      async (response) => response.status === 200
     );
   }
 

@@ -26,6 +26,7 @@ export interface Args {
   legacyFilter?: boolean;
   clusterId?: number;
   shard?: Array<number>;
+  rlnRelayEthClientAddress?: string;
 }
 
 export interface Ports {

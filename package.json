@@ -36,7 +36,8 @@
     "doc": "run-s doc:*",
     "doc:html": "typedoc --options typedoc.cjs",
     "doc:cname": "echo 'js.waku.org' > docs/CNAME",
-    "publish": "node ./ci/publish.js"
+    "publish": "node ./ci/publish.js",
+    "sync-rln-tree": "node ./packages/tests/src/sync-rln-tree.js"
   },
   "devDependencies": {
     "@size-limit/preset-big-lib": "^11.0.2",
