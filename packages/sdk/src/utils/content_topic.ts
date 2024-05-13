@@ -3,7 +3,7 @@ import { createDecoder, DecodedMessage, waitForRemotePeer } from "@waku/core";
 import {
   Callback,
   IDecoder,
-  IFilterSubscription,
+  ISubscriptionSDK,
   LightNode,
   Protocols
 } from "@waku/interfaces";
@@ -27,7 +27,7 @@ async function prepareSubscription(
   peer: Multiaddr
 ): Promise<{
   decoder: IDecoder<DecodedMessage>;
-  subscription: IFilterSubscription;
+  subscription: ISubscriptionSDK;
 }> {
   // Validate that the Waku node matches assumptions
   if (!waku.filter) {
@@ -52,7 +52,10 @@ async function prepareSubscription(
   // Create decoder and subscription
   let decoder = createDecoder(contentTopic, pubsubTopic);
   if (decoder) decoder = decoder ?? decoder;
-  const subscription = await waku.filter.createSubscription(pubsubTopic);
+  const { subscription, error } =
+    await waku.filter.createSubscription(pubsubTopic);
+  if (error)
+    throw new Error("Failed to create subscription for content topic.");
 
   return { decoder, subscription };
 }
@@ -86,10 +89,11 @@ export async function streamContentTopic(
         controller.enqueue(message);
       });
     },
-    cancel() {
-      return subscription.unsubscribe([contentTopic]);
+    async cancel() {
+      await subscription.unsubscribe([contentTopic]);
     }
   });
+
   return [messageStream, opts.waku];
 }
 
@@ -105,7 +109,7 @@ export async function subscribeToContentTopic(
   contentTopic: string,
   callback: Callback<DecodedMessage>,
   opts: CreateTopicOptions
-): Promise<{ subscription: IFilterSubscription; waku: LightNode }> {
+): Promise<{ subscription: ISubscriptionSDK; waku: LightNode }> {
   opts.waku =
     opts.waku ??
     (await createLightNode({

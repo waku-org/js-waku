@@ -3,9 +3,9 @@ import { IncomingStreamData } from "@libp2p/interface";
 import {
   type IMetadata,
   type Libp2pComponents,
+  type MetadataQueryResult,
   type PeerIdStr,
   ProtocolError,
-  QueryResult,
   type ShardInfo
 } from "@waku/interfaces";
 import { proto_metadata } from "@waku/proto";
@@ -74,7 +74,7 @@ class Metadata extends BaseProtocol implements IMetadata {
   /**
    * Make a metadata query to a peer
    */
-  async query(peerId: PeerId): Promise<QueryResult> {
+  async query(peerId: PeerId): Promise<MetadataQueryResult> {
     const request = proto_metadata.WakuMetadataRequest.encode(this.shardInfo);
 
     const peer = await this.peerStore.get(peerId);
@@ -121,7 +121,9 @@ class Metadata extends BaseProtocol implements IMetadata {
     };
   }
 
-  public async confirmOrAttemptHandshake(peerId: PeerId): Promise<QueryResult> {
+  public async confirmOrAttemptHandshake(
+    peerId: PeerId
+  ): Promise<MetadataQueryResult> {
     const shardInfo = this.handshakesConfirmed.get(peerId.toString());
     if (shardInfo) {
       return {
@@ -135,7 +137,7 @@ class Metadata extends BaseProtocol implements IMetadata {
 
   private decodeMetadataResponse(
     encodedResponse: Uint8ArrayList[]
-  ): QueryResult {
+  ): MetadataQueryResult {
     const bytes = new Uint8ArrayList();
 
     encodedResponse.forEach((chunk) => {

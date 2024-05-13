@@ -8,7 +8,7 @@ import {
   type Libp2p,
   type ProtocolCreateOptions,
   ProtocolError,
-  type SendResult
+  SDKProtocolResult
 } from "@waku/interfaces";
 import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
 
@@ -24,7 +24,7 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
     this.protocol = new LightPushCore(libp2p, options);
   }
 
-  async send(encoder: IEncoder, message: IMessage): Promise<SendResult> {
+  async send(encoder: IEncoder, message: IMessage): Promise<SDKProtocolResult> {
     const successes: PeerId[] = [];
     const failures: Failure[] = [];
 

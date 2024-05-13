@@ -1,5 +1,5 @@
 import { waitForRemotePeer } from "@waku/core";
-import { IFilterSubscription, LightNode, Protocols } from "@waku/interfaces";
+import { ISubscriptionSDK, LightNode, Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -29,11 +29,15 @@ const runTests = (strictCheckNodes: boolean): void => {
     this.timeout(10000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
-    let subscription: IFilterSubscription;
+    let subscription: ISubscriptionSDK;
 
     beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo);
-      subscription = await waku.filter.createSubscription(TestShardInfo);
+
+      const { error, subscription: _subscription } =
+        await waku.filter.createSubscription(TestShardInfo);
+      if (error) throw error;
+      subscription = _subscription;
     });
 
     afterEachCustom(this, async () => {
@@ -238,7 +242,10 @@ const runTests = (strictCheckNodes: boolean): void => {
         await waku.dial(await node.getMultiaddrWithId());
         await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
       }
-      subscription = await waku.filter.createSubscription(TestShardInfo);
+      const { error, subscription: _subscription } =
+        await waku.filter.createSubscription(TestShardInfo);
+      if (error) throw error;
+      subscription = _subscription;
       await subscription.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback

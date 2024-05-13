@@ -4,7 +4,7 @@ import {
   IPeerExchange,
   Libp2pComponents,
   PeerExchangeQueryParams,
-  PeerExchangeResult,
+  PeerExchangeQueryResult,
   ProtocolError,
   PubsubTopic
 } from "@waku/interfaces";
@@ -35,7 +35,9 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
   /**
    * Make a peer exchange query to a peer
    */
-  async query(params: PeerExchangeQueryParams): Promise<PeerExchangeResult> {
+  async query(
+    params: PeerExchangeQueryParams
+  ): Promise<PeerExchangeQueryResult> {
     const { numPeers } = params;
     const rpcQuery = PeerExchangeRPC.createRequest({
       numPeers: BigInt(numPeers)

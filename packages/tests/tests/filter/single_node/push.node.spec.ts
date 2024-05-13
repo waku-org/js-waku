@@ -1,5 +1,5 @@
 import { waitForRemotePeer } from "@waku/core";
-import { IFilterSubscription, LightNode, Protocols } from "@waku/interfaces";
+import { ISubscriptionSDK, LightNode, Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -28,12 +28,17 @@ describe("Waku Filter V2: FilterPush", function () {
   this.timeout(10000);
   let waku: LightNode;
   let nwaku: ServiceNode;
-  let subscription: IFilterSubscription;
+  let subscription: ISubscriptionSDK;
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(this.ctx, TestShardInfo);
-    subscription = await waku.filter.createSubscription(TestShardInfo);
+
+    const { error, subscription: _subscription } =
+      await waku.filter.createSubscription(TestShardInfo);
+    if (error) throw error;
+    subscription = _subscription;
+
     messageCollector = new MessageCollector(nwaku);
   });
 
@@ -219,7 +224,10 @@ describe("Waku Filter V2: FilterPush", function () {
     // Redo the connection and create a new subscription
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
-    subscription = await waku.filter.createSubscription();
+    const { error, subscription: _subscription } =
+      await waku.filter.createSubscription();
+    if (error) throw error;
+    subscription = _subscription;
     await subscription.subscribe([TestDecoder], messageCollector.callback);
 
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });

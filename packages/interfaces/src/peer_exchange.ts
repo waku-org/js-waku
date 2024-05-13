@@ -3,13 +3,14 @@ import type { PeerStore } from "@libp2p/interface";
 import type { ConnectionManager } from "@libp2p/interface-internal";
 
 import { IEnr } from "./enr.js";
-import { IBaseProtocolCore, ProtocolResult } from "./protocols.js";
+import { ThisOrThat } from "./misc.js";
+import { IBaseProtocolCore } from "./protocols.js";
 
 export interface IPeerExchange extends IBaseProtocolCore {
-  query(params: PeerExchangeQueryParams): Promise<PeerExchangeResult>;
+  query(params: PeerExchangeQueryParams): Promise<PeerExchangeQueryResult>;
 }
 
-export type PeerExchangeResult = ProtocolResult<"peerInfos", PeerInfo[]>;
+export type PeerExchangeQueryResult = ThisOrThat<"peerInfos", PeerInfo[]>;
 
 export interface PeerExchangeQueryParams {
   numPeers: number;

@@ -1,9 +1,11 @@
 import type { IDecodedMessage, IDecoder } from "./message.js";
-import type { ContentTopic, PubsubTopic } from "./misc.js";
+import type { ContentTopic, PubsubTopic, ThisOrThat } from "./misc.js";
 import type {
   Callback,
   IBaseProtocolCore,
   IBaseProtocolSDK,
+  ProtocolError,
+  SDKProtocolResult,
   ShardingParams
 } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
@@ -12,18 +14,20 @@ export type SubscribeOptions = {
   keepAlive?: number;
 };
 
-export interface IFilterSubscription {
+export type IFilter = IReceiver & IBaseProtocolCore;
+
+export interface ISubscriptionSDK {
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
     options?: SubscribeOptions
-  ): Promise<void>;
+  ): Promise<SDKProtocolResult>;
 
-  unsubscribe(contentTopics: ContentTopic[]): Promise<void>;
+  unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult>;
 
-  ping(): Promise<void>;
+  ping(): Promise<SDKProtocolResult>;
 
-  unsubscribeAll(): Promise<void>;
+  unsubscribeAll(): Promise<SDKProtocolResult>;
 }
 
 export type IFilterSDK = IReceiver &
@@ -31,5 +35,12 @@ export type IFilterSDK = IReceiver &
     createSubscription(
       pubsubTopicShardInfo?: ShardingParams | PubsubTopic,
       options?: SubscribeOptions
-    ): Promise<IFilterSubscription>;
+    ): Promise<CreateSubscriptionResult>;
   };
+
+export type CreateSubscriptionResult = ThisOrThat<
+  "subscription",
+  ISubscriptionSDK,
+  "error",
+  ProtocolError
+>;
