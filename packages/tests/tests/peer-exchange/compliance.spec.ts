@@ -51,7 +51,7 @@ describe("Peer Exchange", function () {
         // we do this because we want peer-exchange discovery to get initialised before we dial the peer which contains info about the other peer
         setTimeout(() => {
           void waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
-        }, 1000);
+        }, 5000);
 
         return new PeerExchangeDiscovery(waku.libp2p.components, pubsubTopic);
       },
