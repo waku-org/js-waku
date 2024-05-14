@@ -5,7 +5,11 @@ import {
   wakuLocalPeerCacheDiscovery,
   wakuPeerExchangeDiscovery
 } from "@waku/discovery";
-import { type Libp2pComponents, PubsubTopic } from "@waku/interfaces";
+import {
+  DefaultPubsubTopic,
+  type Libp2pComponents,
+  PubsubTopic
+} from "@waku/interfaces";
 
 const DEFAULT_NODE_REQUIREMENTS = {
   lightPush: 1,
@@ -16,8 +20,13 @@ const DEFAULT_NODE_REQUIREMENTS = {
 export function defaultPeerDiscoveries(
   pubsubTopics: PubsubTopic[]
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
+  // TODO: add a check to see if it is indeed TWN or if it is a custom network
+  const dnsFleet = pubsubTopics.includes(DefaultPubsubTopic)
+    ? enrTree["TEST"]
+    : enrTree["SANDBOX"];
+
   const discoveries = [
-    wakuDnsDiscovery([enrTree["SANDBOX"]], DEFAULT_NODE_REQUIREMENTS),
+    wakuDnsDiscovery([dnsFleet], DEFAULT_NODE_REQUIREMENTS),
     wakuLocalPeerCacheDiscovery(),
     wakuPeerExchangeDiscovery(pubsubTopics)
   ];
