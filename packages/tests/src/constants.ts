@@ -62,3 +62,6 @@ export const TEST_TIMESTAMPS = [
 ];
 
 export const MOCHA_HOOK_MAX_TIMEOUT = 50_000;
+
+export const SEPOLIA_RPC_URL =
+  process.env.SEPOLIA_RPC_URL || "https://sepolia.gateway.tenderly.co";

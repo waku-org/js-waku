@@ -115,7 +115,17 @@ export default class Dockerode {
           ...(args?.peerExchange && {
             [`${discv5UdpPort}/udp`]: [{ HostPort: discv5UdpPort.toString() }]
           })
-        }
+        },
+        Mounts: args.rlnRelayEthClientAddress
+          ? [
+              {
+                Type: "bind",
+                ReadOnly: false,
+                Source: "/tmp/rln_tree.db",
+                Target: "/rln_tree.db"
+              }
+            ]
+          : []
       },
       ExposedPorts: {
         [`${restPort}/tcp`]: {},
