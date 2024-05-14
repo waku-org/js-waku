@@ -82,13 +82,20 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    */
   protected hasPeers = async (): Promise<boolean> => {
     let attempts = 0;
-    while (this.peers.length === 0) {
+    while (this.peers.length === 0 || this.peers.length < this.numPeersToUse) {
       attempts++;
       await this.maintainPeers();
       await new Promise((resolve) => setTimeout(resolve, 1000));
       if (attempts > 5) {
-        this.log.error("Failed to find peers to send message to");
-        return false;
+        if (this.peers.length === 0) {
+          this.log.error("Failed to find peers to send message to");
+          return false;
+        } else {
+          this.log.warn(
+            `Found only ${this.peers.length} peers, expected ${this.numPeersToUse}`
+          );
+          return true;
+        }
       }
     }
     return true;
