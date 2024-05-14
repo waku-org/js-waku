@@ -81,12 +81,12 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * If peers are found, returns true.
    */
   protected hasPeers = async (): Promise<boolean> => {
+    let success = await this.maintainPeers();
     let attempts = 0;
-    while (this.peers.length === 0 || this.peers.length < this.numPeersToUse) {
+    while (!success || this.peers.length === 0) {
       attempts++;
-      await this.maintainPeers();
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (attempts > 5) {
+      success = await this.maintainPeers();
+      if (attempts > 3) {
         if (this.peers.length === 0) {
           this.log.error("Failed to find peers to send message to");
           return false;
@@ -97,6 +97,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
           return true;
         }
       }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     return true;
   };
@@ -126,10 +127,10 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   /**
    * Maintains the peers list to `numPeersToUse`.
    */
-  private async maintainPeers(): Promise<void> {
+  private async maintainPeers(): Promise<boolean> {
     if (this.maintainPeersLock) {
       this.log.info("Maintain peers already in progress, skipping");
-      return;
+      return false;
     }
 
     this.maintainPeersLock = true;
@@ -148,6 +149,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     } finally {
       this.maintainPeersLock = false;
     }
+    return true;
   }
 
   /**
