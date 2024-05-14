@@ -30,7 +30,7 @@ import {
   toAsyncIterator
 } from "@waku/utils";
 
-import { BaseProtocolSDK } from "./base_protocol";
+import { BaseProtocolSDK } from "./base_protocol.js";
 
 type SubscriptionCallback<T extends IDecodedMessage> = {
   decoders: IDecoder<T>[];
