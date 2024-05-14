@@ -18,6 +18,8 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   private maintainPeersIntervalId: NodeJS.Timeout | undefined;
   log = new Logger("sdk:base-protocol");
 
+  maintainPeersLock = false;
+
   constructor(
     protected core: BaseProtocol,
     private connectionManager: ConnectionManager,
@@ -73,6 +75,26 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   }
 
   /**
+   * Checks if there are peers to send a message to.
+   * If there are no peers, tries to find new peers.
+   * If no peers are found, returns false.
+   * If peers are found, returns true.
+   */
+  protected hasPeers = async (): Promise<boolean> => {
+    let attempts = 0;
+    while (this.peers.length === 0) {
+      attempts++;
+      await this.maintainPeers();
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (attempts > 5) {
+        this.log.error("Failed to find peers to send message to");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  /**
    * Starts an interval to maintain the peers list to `numPeersToUse`.
    * @param interval The interval in milliseconds to maintain the peers.
    */
@@ -97,7 +119,13 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   /**
    * Maintains the peers list to `numPeersToUse`.
    */
-  protected async maintainPeers(): Promise<void> {
+  private async maintainPeers(): Promise<void> {
+    if (this.maintainPeersLock) {
+      this.log.info("Maintain peers already in progress, skipping");
+      return;
+    }
+
+    this.maintainPeersLock = true;
     this.log.info(`Maintaining peers, current count: ${this.peers.length}`);
     try {
       const numPeersToAdd = this.numPeersToUse - this.peers.length;
@@ -110,6 +138,8 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     } catch (error) {
       this.log.error("Error maintaining peers:", error);
       throw error;
+    } finally {
+      this.maintainPeersLock = false;
     }
   }
 

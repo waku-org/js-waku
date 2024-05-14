@@ -50,13 +50,16 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
       };
     }
 
-    if (!this.peers.length) {
-      await this.maintainPeers();
-      if (!this.peers.length)
-        return {
-          successes,
-          failures: [{ error: ProtocolError.NO_PEER_AVAILABLE }]
-        };
+    const peersFound = await this.hasPeers();
+    if (!peersFound) {
+      return {
+        successes,
+        failures: [
+          {
+            error: ProtocolError.NO_PEER_AVAILABLE
+          }
+        ]
+      };
     }
 
     const sendPromises = this.peers.map((peer) =>

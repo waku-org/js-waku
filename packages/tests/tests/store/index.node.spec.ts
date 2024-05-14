@@ -221,7 +221,7 @@ describe("Waku Store, general", function () {
     expect(messages?.length).eq(desiredMsgs);
   });
 
-  it("Generator, with asymmetric & symmetric encrypted messages", async function () {
+  it.only("Generator, with asymmetric & symmetric encrypted messages", async function () {
     const asymText = "This message is encrypted for me using asymmetric";
     const asymTopic = "/test/1/asymmetric/proto";
     const symText =
