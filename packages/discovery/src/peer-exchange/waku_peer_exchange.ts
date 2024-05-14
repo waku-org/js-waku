@@ -51,7 +51,16 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
       };
     }
 
-    const stream = await this.getStream(peer);
+    let stream;
+    try {
+      stream = await this.getStream(peer);
+    } catch (err) {
+      log.error("Failed to get stream", err);
+      return {
+        peerInfos: null,
+        error: ProtocolError.NO_STREAM_AVAILABLE
+      };
+    }
 
     const res = await pipe(
       [rpcQuery.encode()],

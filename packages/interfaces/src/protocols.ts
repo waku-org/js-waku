@@ -148,6 +148,11 @@ export enum ProtocolError {
    */
   NO_PEER_AVAILABLE = "No peer available",
   /**
+   * Failure to find a stream to the peer. This may be because the connection with the peer is not still alive.
+   * Mitigation can be: retrying after a given time period, or mitigation for `NO_PEER_AVAILABLE` can be used.
+   */
+  NO_STREAM_AVAILABLE = "No stream available",
+  /**
    * The remote peer did not behave as expected. Mitigation for `NO_PEER_AVAILABLE`
    * or `DECODE_FAILED` can be used.
    */

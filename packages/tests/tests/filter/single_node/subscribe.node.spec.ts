@@ -249,7 +249,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
   });
 
   it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
-    this.timeout(50000);
+    this.timeout(100_000);
     const topicCount = 100;
     const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
 

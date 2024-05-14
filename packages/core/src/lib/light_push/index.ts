@@ -98,18 +98,15 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
       };
     }
 
-    let stream: Stream | undefined;
+    let stream: Stream;
     try {
       stream = await this.getStream(peer);
-    } catch (err) {
-      log.error(
-        `Failed to get a stream for remote peer${peer.id.toString()}`,
-        err
-      );
+    } catch (error) {
+      log.error("Failed to get stream", error);
       return {
         success: null,
         failure: {
-          error: ProtocolError.REMOTE_PEER_FAULT,
+          error: ProtocolError.NO_STREAM_AVAILABLE,
           peerId: peer.id
         }
       };
