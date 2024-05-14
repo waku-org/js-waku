@@ -21,6 +21,7 @@ export function defaultPeerDiscoveries(
   pubsubTopics: PubsubTopic[]
 ): ((components: Libp2pComponents) => PeerDiscovery)[] {
   // TODO: add a check to see if it is indeed TWN or if it is a custom network
+  // https://github.com/waku-org/js-waku/issues/2014
   const dnsFleet = pubsubTopics.includes(DefaultPubsubTopic)
     ? enrTree["TEST"]
     : enrTree["SANDBOX"];
