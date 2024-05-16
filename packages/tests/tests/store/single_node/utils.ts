@@ -16,7 +16,7 @@ import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 import { Context } from "mocha";
 
-import { delay, NOISE_KEY_1, runNodes, ServiceNode } from "../../src";
+import { delay, NOISE_KEY_1, runNodes, ServiceNode } from "../../../src";
 
 export const log = new Logger("test:store");
 

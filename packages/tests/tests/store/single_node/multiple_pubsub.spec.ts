@@ -7,14 +7,14 @@ import {
 } from "@waku/utils";
 import { expect } from "chai";
 
+import { NOISE_KEY_1 } from "../../../src/constants.js";
 import {
   afterEachCustom,
   beforeEachCustom,
   makeLogFileName,
-  NOISE_KEY_1,
   ServiceNode,
   tearDownNodes
-} from "../../src/index.js";
+} from "../../../src/index.js";
 
 import {
   processQueriedMessages,

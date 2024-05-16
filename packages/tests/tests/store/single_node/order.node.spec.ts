@@ -7,7 +7,7 @@ import {
   beforeEachCustom,
   ServiceNode,
   tearDownNodes
-} from "../../src/index.js";
+} from "../../../src/index.js";
 
 import {
   chunkAndReverseArray,

@@ -18,15 +18,15 @@ import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
+import { TEST_STRING } from "../../../src/constants.js";
 import {
   afterEachCustom,
   beforeEachCustom,
   delay,
   MessageCollector,
   ServiceNode,
-  tearDownNodes,
-  TEST_STRING
-} from "../../src/index.js";
+  tearDownNodes
+} from "../../../src/index.js";
 
 import {
   log,
