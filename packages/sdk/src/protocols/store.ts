@@ -89,7 +89,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
 
       for (const peerPage of peerPages) {
         if (peerPage.done) {
-          this.removePeerGenerator(peerGenerators, peerPage);
+          peerGenerators.splice(peerGenerators.indexOf(peerPage.value), 1);
           continue;
         }
 
@@ -290,18 +290,6 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     );
 
     return queryOpts;
-  }
-
-  private removePeerGenerator<T extends IDecodedMessage>(
-    peerGenerators: AsyncGenerator<Promise<T | undefined>[]>[],
-    peerPage: IteratorResult<Promise<T | undefined>[]>
-  ): void {
-    const index = peerGenerators.findIndex(
-      (generator) => generator === peerPage.value
-    );
-    if (index !== -1) {
-      peerGenerators.splice(index, 1);
-    }
   }
 
   private async getUniqueMessages<T extends IDecodedMessage>(
