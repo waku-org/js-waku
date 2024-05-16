@@ -49,19 +49,20 @@ export async function sendMessages(
   instance: ServiceNode,
   numMessages: number,
   contentTopic: string,
-  pubsubTopic: string
+  pubsubTopic: string,
+  timestamp?: Date
 ): Promise<void> {
   for (let i = 0; i < numMessages; i++) {
     expect(
       await instance.sendMessage(
         ServiceNode.toMessageRpcQuery({
           payload: new Uint8Array([i]),
-          contentTopic: contentTopic
+          contentTopic: contentTopic,
+          timestamp: timestamp
         }),
         pubsubTopic
       )
     ).to.eq(true);
-    await delay(1); // to ensure each timestamp is unique.
   }
 }
 
