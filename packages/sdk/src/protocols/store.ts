@@ -9,6 +9,7 @@ import {
   PageDirection,
   type ProtocolCreateOptions
 } from "@waku/interfaces";
+import { messageHashStr } from "@waku/message-hash";
 import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
 import { concat } from "@waku/utils/bytes";
 
@@ -18,7 +19,7 @@ import { BaseProtocolSDK } from "./base_protocol.js";
 
 export const DefaultPageSize = 10;
 
-const DEFAULT_NUM_PEERS = 1;
+const DEFAULT_NUM_PEERS = 3;
 
 const log = new Logger("waku:store:protocol");
 
@@ -26,8 +27,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   public readonly protocol: StoreCore;
 
   constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    // TODO: options.numPeersToUse is disregarded: https://github.com/waku-org/js-waku/issues/1685
-    super({ numPeersToUse: DEFAULT_NUM_PEERS });
+    super({ numPeersToUse: options?.numPeersToUse ?? DEFAULT_NUM_PEERS });
 
     this.protocol = new StoreCore(libp2p, options);
   }
@@ -52,7 +52,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
    * @throws If no decoders are provided.
    * @throws If no decoders are found for the provided pubsub topic.
    */
-  async *queryGenerator<T extends IDecodedMessage>(
+  public async *queryGenerator<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     options?: waku_store.QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
@@ -65,23 +65,45 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
       options
     );
 
-    const peer = (
-      await this.protocol.getPeers({
-        numPeers: this.numPeers,
-        maxBootstrapPeers: 1
-      })
-    )[0];
+    const peers = await this.protocol.getPeers({
+      numPeers: this.numPeers,
+      maxBootstrapPeers: 1
+    });
 
-    if (!peer) throw new Error("No peers available to query");
+    if (peers.length === 0) {
+      throw new Error("No peers available to query");
+    }
 
-    const responseGenerator = this.protocol.queryPerPage(
-      queryOpts,
-      decodersAsMap,
-      peer
+    const peerGenerators = peers.map((peer) =>
+      this.protocol.queryPerPage(queryOpts, decodersAsMap, peer)
     );
 
-    for await (const messages of responseGenerator) {
-      yield messages;
+    const seenHashes = new Set<string>();
+
+    while (peerGenerators.length > 0) {
+      const peerPages = await Promise.all(
+        peerGenerators.map((generator) => generator.next())
+      );
+
+      const uniqueMessagesForPage: Promise<T | undefined>[] = [];
+
+      for (const peerPage of peerPages) {
+        if (peerPage.done) {
+          this.removePeerGenerator(peerGenerators, peerPage);
+          continue;
+        }
+
+        const pageMessages = await this.getUniqueMessages(
+          peerPage.value,
+          pubsubTopic,
+          seenHashes
+        );
+        uniqueMessagesForPage.push(...pageMessages);
+      }
+
+      if (uniqueMessagesForPage.length > 0) {
+        yield uniqueMessagesForPage;
+      }
     }
   }
 
@@ -102,7 +124,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryWithOrderedCallback<T extends IDecodedMessage>(
+  public async queryWithOrderedCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: waku_store.QueryOptions
@@ -129,7 +151,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryWithPromiseCallback<T extends IDecodedMessage>(
+  public async queryWithPromiseCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (
       message: Promise<T | undefined>
@@ -148,7 +170,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     }
   }
 
-  createCursor(message: IDecodedMessage): Cursor {
+  public createCursor(message: IDecodedMessage): Cursor {
     if (
       !message ||
       !message.timestamp ||
@@ -268,6 +290,39 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     );
 
     return queryOpts;
+  }
+
+  private removePeerGenerator<T extends IDecodedMessage>(
+    peerGenerators: AsyncGenerator<Promise<T | undefined>[]>[],
+    peerPage: IteratorResult<Promise<T | undefined>[]>
+  ): void {
+    const index = peerGenerators.findIndex(
+      (generator) => generator === peerPage.value
+    );
+    if (index !== -1) {
+      peerGenerators.splice(index, 1);
+    }
+  }
+
+  private async getUniqueMessages<T extends IDecodedMessage>(
+    page: Promise<T | undefined>[],
+    pubsubTopic: string,
+    seenHashes: Set<string>
+  ): Promise<Promise<T | undefined>[]> {
+    const uniqueMessages: Promise<T | undefined>[] = [];
+
+    for (const msgPromise of page) {
+      const message = await msgPromise;
+      if (message) {
+        const hash = messageHashStr(pubsubTopic, message);
+        if (!seenHashes.has(hash)) {
+          seenHashes.add(hash);
+          uniqueMessages.push(Promise.resolve(message));
+        }
+      }
+    }
+
+    return uniqueMessages;
   }
 
   /**
