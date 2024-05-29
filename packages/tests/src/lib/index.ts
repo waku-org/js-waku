@@ -107,6 +107,11 @@ export class ServiceNodesFleet {
     message: MessageRpcQuery,
     pubsubTopic: string = DefaultPubsubTopic
   ): Promise<boolean> {
+    message = {
+      ...message,
+      timestamp:
+        message.timestamp || BigInt(new Date().valueOf()) * BigInt(1_000_000)
+    };
     const relayMessagePromises: Promise<boolean>[] = this.nodes.map((node) =>
       node.sendMessage(message, pubsubTopic)
     );
@@ -141,7 +146,7 @@ class MultipleNodesMessageCollector {
   callback: (msg: DecodedMessage) => void = () => {};
   messageList: Array<DecodedMessage> = [];
   constructor(
-    private messageCollectors: MessageCollector[],
+    public messageCollectors: MessageCollector[],
     private relayNodes?: ServiceNode[],
     private strictChecking: boolean = false
   ) {
