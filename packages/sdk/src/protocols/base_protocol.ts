@@ -16,9 +16,9 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   public readonly numPeersToUse: number;
   private peers: Peer[] = [];
   private maintainPeersIntervalId: NodeJS.Timeout | undefined;
-  log = new Logger("sdk:base-protocol");
+  log: Logger;
 
-  maintainPeersLock = false;
+  private maintainPeersLock = false;
 
   constructor(
     protected core: BaseProtocol,
@@ -30,10 +30,11 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     const maintainPeersInterval =
       options?.maintainPeersInterval ?? DEFAULT_MAINTAIN_PEERS_INTERVAL;
 
-    this.startMaintainPeersInterval(maintainPeersInterval).catch((error) => {
-      this.log.error("Error starting maintain peers interval:", error);
-      throw error;
-    });
+    void this.startMaintainPeersInterval(maintainPeersInterval).catch(
+      (error) => {
+        this.log.error("Error starting maintain peers interval:", error);
+      }
+    );
   }
 
   get connectedPeers(): Peer[] {
@@ -55,7 +56,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
 
       await this.findAndAddPeers();
     } catch (error) {
-      this.log.error(`Error renewing peer ${peerToDisconnect}:`, error);
       this.log.info(
         "Peer renewal failed, relying on the interval to find a new peer"
       );
@@ -67,7 +67,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    */
   public stopMaintainPeersInterval(): void {
     if (this.maintainPeersIntervalId) {
-      this.log.info("Stopping maintain peers interval");
       clearInterval(this.maintainPeersIntervalId);
       this.maintainPeersIntervalId = undefined;
       this.log.info("Maintain peers interval stopped");
@@ -143,9 +142,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       this.log.info(
         `Peer maintenance completed, current count: ${this.peers.length}`
       );
-    } catch (error) {
-      this.log.error("Error maintaining peers:", error);
-      throw error;
     } finally {
       this.maintainPeersLock = false;
     }
@@ -188,16 +184,16 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       if (newPeers.length === 0) {
         this.log.warn("No new peers found, trying with bootstrap peers");
         newPeers = await this.core.getPeers({
-          maxBootstrapPeers: 1,
+          maxBootstrapPeers: numPeers,
           numPeers: numPeers
         });
       }
 
-      const additionalPeers = newPeers.filter(
+      newPeers = newPeers.filter(
         (peer) => this.peers.some((p) => p.id === peer.id) === false
       );
-      this.log.info(`Found ${additionalPeers.length} additional peers`);
-      return additionalPeers;
+      this.log.info(`Found ${newPeers.length} additional peers`);
+      return newPeers;
     } catch (error) {
       this.log.error("Error finding additional peers:", error);
       throw error;

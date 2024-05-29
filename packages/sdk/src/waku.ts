@@ -85,7 +85,6 @@ export class WakuNode implements Waku {
 
     this.libp2p = libp2p;
 
-    //for each protocolsEnabled, set default false if not provided
     protocolsEnabled = {
       filter: false,
       lightpush: false,
