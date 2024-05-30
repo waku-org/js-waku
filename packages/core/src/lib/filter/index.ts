@@ -48,9 +48,13 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       options
     );
 
-    libp2p.handle(FilterCodecs.PUSH, this.onRequest.bind(this)).catch((e) => {
-      log.error("Failed to register ", FilterCodecs.PUSH, e);
-    });
+    libp2p
+      .handle(FilterCodecs.PUSH, this.onRequest.bind(this), {
+        maxInboundStreams: 100
+      })
+      .catch((e) => {
+        log.error("Failed to register ", FilterCodecs.PUSH, e);
+      });
   }
 
   private onRequest(streamData: IncomingStreamData): void {
