@@ -9,10 +9,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./lib/predefined_bootstrap_nodes": {
-      "types": "./dist/lib/predefined_bootstrap_nodes.d.ts",
-      "import": "./dist/lib/predefined_bootstrap_nodes.js"
-    },
     "./lib/message/version_0": {
       "types": "./dist/lib/message/version_0.d.ts",
       "import": "./dist/lib/message/version_0.js"
