@@ -309,25 +309,17 @@ const runTests = (strictCheckNodes: boolean): void => {
         });
       }
 
-      // Open issue here: https://github.com/waku-org/js-waku/issues/1790
-      // That's why we use the try catch block
-      try {
-        // Verify that each message was received on the corresponding topic.
-        expect(
-          await serviceNodes.messageCollector.waitForMessages(topicCount)
-        ).to.eq(true);
-        td.contentTopics.forEach((topic, index) => {
-          serviceNodes.messageCollector.verifyReceivedMessage(index, {
-            expectedContentTopic: topic,
-            expectedMessageText: `Message for Topic ${index + 1}`,
-            expectedPubsubTopic: TestPubsubTopic
-          });
+      // Verify that each message was received on the corresponding topic.
+      expect(
+        await serviceNodes.messageCollector.waitForMessages(topicCount)
+      ).to.eq(true);
+      td.contentTopics.forEach((topic, index) => {
+        serviceNodes.messageCollector.verifyReceivedMessage(index, {
+          expectedContentTopic: topic,
+          expectedMessageText: `Message for Topic ${index + 1}`,
+          expectedPubsubTopic: TestPubsubTopic
         });
-      } catch (error) {
-        console.warn(
-          "This test still fails because of https://github.com/waku-org/js-waku/issues/1790"
-        );
-      }
+      });
     });
 
     it("Error when try to subscribe to more than 101 topics (new limit)", async function () {
