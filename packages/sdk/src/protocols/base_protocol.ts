@@ -30,6 +30,17 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     const maintainPeersInterval =
       options?.maintainPeersInterval ?? DEFAULT_MAINTAIN_PEERS_INTERVAL;
 
+    /**
+     * Trigger maintainPeers when a new peer is identified.
+     * This is useful to make the process of finding and adding new peers more dynamic and efficient,
+     * instead of relying on the interval only.
+     */
+    this.core.addLibp2pEventListener("peer:identify", (evt) => {
+      const { protocols } = evt.detail;
+      if (protocols.includes(core.multicodec)) {
+        void this.maintainPeers();
+      }
+    });
     void this.startMaintainPeersInterval(maintainPeersInterval);
   }
 
@@ -76,9 +87,11 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * If peers are found, returns true.
    */
   protected hasPeers = async (): Promise<boolean> => {
+    if (this.connectedPeers.length > 0) return true;
+
     let success = await this.maintainPeers();
     let attempts = 0;
-    while (!success || this.peers.length === 0) {
+    while (!success) {
       attempts++;
       success = await this.maintainPeers();
       if (attempts > 3) {
