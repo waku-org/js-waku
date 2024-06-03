@@ -30,11 +30,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     const maintainPeersInterval =
       options?.maintainPeersInterval ?? DEFAULT_MAINTAIN_PEERS_INTERVAL;
 
-    void this.startMaintainPeersInterval(maintainPeersInterval).catch(
-      (error) => {
-        this.log.error("Error starting maintain peers interval:", error);
-      }
-    );
+    void this.startMaintainPeersInterval(maintainPeersInterval);
   }
 
   get connectedPeers(): Peer[] {
@@ -54,7 +50,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
         `Peer ${peerToDisconnect} disconnected and removed from the peer list`
       );
 
-      await this.findAndAddPeers();
+      await this.findAndAddPeers(1);
     } catch (error) {
       this.log.info(
         "Peer renewal failed, relying on the interval to find a new peer"
@@ -128,7 +124,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    */
   private async maintainPeers(): Promise<boolean> {
     if (this.maintainPeersLock) {
-      this.log.info("Maintain peers already in progress, skipping");
       return false;
     }
 
@@ -152,7 +147,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * Finds and adds new peers to the peers list.
    * @param numPeers The number of peers to find and add.
    */
-  private async findAndAddPeers(numPeers: number = 1): Promise<void> {
+  private async findAndAddPeers(numPeers: number): Promise<void> {
     this.log.info(`Finding and adding ${numPeers} new peers`);
     try {
       const additionalPeers = await this.findAdditionalPeers(numPeers);
@@ -192,7 +187,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       newPeers = newPeers.filter(
         (peer) => this.peers.some((p) => p.id === peer.id) === false
       );
-      this.log.info(`Found ${newPeers.length} additional peers`);
       return newPeers;
     } catch (error) {
       this.log.error("Error finding additional peers:", error);
