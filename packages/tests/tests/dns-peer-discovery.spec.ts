@@ -33,7 +33,7 @@ describe("DNS Discovery: Compliance Test", function () {
       } as unknown as Libp2pComponents;
 
       return new PeerDiscoveryDns(components, {
-        enrUrls: [enrTree["SANDBOX"]],
+        enrUrls: [enrTree["TWN_SANDBOX"]],
         wantedNodeCapabilityCount: {
           filter: 1
         }
@@ -66,7 +66,7 @@ describe("DNS Node Discovery [live data]", function () {
     const waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
-          wakuDnsDiscovery([enrTree["SANDBOX"]], nodeRequirements)
+          wakuDnsDiscovery([enrTree["TWN_SANDBOX"]], nodeRequirements)
         ]
       }
     });
@@ -93,7 +93,7 @@ describe("DNS Node Discovery [live data]", function () {
     // Google's dns server address. Needs to be set explicitly to run in CI
     const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
 
-    const peers = await dnsNodeDiscovery.getPeers([enrTree["SANDBOX"]], {
+    const peers = await dnsNodeDiscovery.getPeers([enrTree["TWN_SANDBOX"]], {
       relay: maxQuantity,
       store: maxQuantity,
       filter: maxQuantity,
@@ -120,7 +120,7 @@ describe("DNS Node Discovery [live data]", function () {
     const waku = await createLightNode({
       libp2p: {
         peerDiscovery: [
-          wakuDnsDiscovery([enrTree["SANDBOX"], enrTree["TEST"]], {
+          wakuDnsDiscovery([enrTree["TWN_SANDBOX"], enrTree["TWN_TEST"]], {
             filter: nodesToConnect
           })
         ]

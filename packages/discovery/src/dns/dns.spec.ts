@@ -275,7 +275,7 @@ describe("DNS Node Discovery [live data]", function () {
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
     const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
-    const peers = await dnsNodeDiscovery.getPeers([enrTree.TEST], {
+    const peers = await dnsNodeDiscovery.getPeers([enrTree.TWN_TEST], {
       relay: maxQuantity,
       store: maxQuantity,
       filter: maxQuantity,
@@ -298,7 +298,7 @@ describe("DNS Node Discovery [live data]", function () {
     this.timeout(10000);
     // Google's dns server address. Needs to be set explicitly to run in CI
     const dnsNodeDiscovery = await DnsNodeDiscovery.dnsOverHttp();
-    const peers = await dnsNodeDiscovery.getPeers([enrTree.SANDBOX], {
+    const peers = await dnsNodeDiscovery.getPeers([enrTree.TWN_SANDBOX], {
       relay: maxQuantity,
       store: maxQuantity,
       filter: maxQuantity,
