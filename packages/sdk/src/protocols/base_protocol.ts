@@ -15,7 +15,9 @@ const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 export class BaseProtocolSDK implements IBaseProtocolSDK {
   public readonly numPeersToUse: number;
   private peers: Peer[] = [];
-  private maintainPeersIntervalId: NodeJS.Timeout | undefined;
+  private maintainPeersIntervalId: ReturnType<
+    typeof window.setInterval
+  > | null = null;
   log: Logger;
 
   private maintainPeersLock = false;
@@ -75,7 +77,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   public stopMaintainPeersInterval(): void {
     if (this.maintainPeersIntervalId) {
       clearInterval(this.maintainPeersIntervalId);
-      this.maintainPeersIntervalId = undefined;
+      this.maintainPeersIntervalId = null;
       this.log.info("Maintain peers interval stopped");
     }
   }
