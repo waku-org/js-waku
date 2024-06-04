@@ -27,7 +27,7 @@ export function defaultPeerDiscoveries(
   );
 
   //TODO: Add support for The Waku Network
-  //TODO: add issue here
+  //https://github.com/waku-org/nwaku/issues/2593
   const isDefaultPubsub = pubsubTopics.includes(DefaultPubsubTopic);
   if (isDefaultPubsub) {
     discoveries.push(
