@@ -1,6 +1,4 @@
 // Protocol identifier: /vac/waku/store-query/3.0.0
-package waku.store.v3;
-
 syntax = "proto3";
 
 import "message.proto";
