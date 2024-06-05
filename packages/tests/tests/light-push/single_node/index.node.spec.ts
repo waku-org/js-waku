@@ -60,7 +60,7 @@ describe("Waku Light Push: Single Node", function () {
     });
   });
 
-  it.only("Push 30 different messages", async function () {
+  it("Push 30 different messages", async function () {
     const generateMessageText = (index: number): string => `M${index}`;
 
     for (let i = 0; i < 30; i++) {

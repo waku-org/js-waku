@@ -50,7 +50,8 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
       };
     }
 
-    if (!(await this.hasPeers())) {
+    const hasPeers = await this.hasPeers();
+    if (!hasPeers) {
       return {
         successes,
         failures: [
