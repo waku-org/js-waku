@@ -31,9 +31,18 @@ export function defaultPeerDiscoveries(
   const isDefaultPubsub = pubsubTopics.includes(DefaultPubsubTopic);
   if (isDefaultPubsub) {
     discoveries.push(
-      wakuDnsDiscovery([enrTree["DEFAULT_PUBSUB"]], DEFAULT_NODE_REQUIREMENTS)
+      wakuDnsDiscovery([enrTree["DEPRECATED_DEFAULT_PUBSUB"]], DEFAULT_NODE_REQUIREMENTS)
     );
   }
 
   return discoveries;
+}
+
+
+export function xdefaultPeerDiscoveries(
+  pubsubTopics: PubsubTopic[]
+): ((components: Libp2pComponents) => PeerDiscovery)[] {
+  const isDefaultPubsubTopic = pubsubTopics.includes(DefaultPubsubTopic);
+
+  const dnsEnrTree = isDefaultPubsubTopic ? enrTree["DEPRECATED_DEFAULT_PUBSUB"] : undefined;
 }
