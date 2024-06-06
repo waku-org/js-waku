@@ -1,9 +1,16 @@
 import type { NodeCapabilityCount } from "@waku/interfaces";
 
+/**
+ * The ENR tree for the different fleets.
+ * SANDBOX and TEST fleets are for The Waku Network.
+ * DEPRECATED_DEFAULT_PUBSUB is the fleet of nodes supporting the now deprecated DefaultPubsubTopic.
+ */
 export const enrTree = {
-  TEST: "enrtree://AOGYWMBYOUIMOENHXCHILPKY3ZRFEULMFI4DOM442QSZ73TT2A7VI@test.waku.nodes.status.im",
   SANDBOX:
-    "enrtree://AIRVQ5DDA4FFWLRBCHJWUWOO6X6S4ZTZ5B667LQ6AJU6PEYDLRD5O@sandbox.waku.nodes.status.im"
+    "enrtree://AIRVQ5DDA4FFWLRBCHJWUWOO6X6S4ZTZ5B667LQ6AJU6PEYDLRD5O@sandbox.waku.nodes.status.im",
+  TEST: "enrtree://AOGYWMBYOUIMOENHXCHILPKY3ZRFEULMFI4DOM442QSZ73TT2A7VI@test.waku.nodes.status.im",
+  DEPRECATED_DEFAULT_PUBSUB:
+    "enrtree://ANEDLO25QVUGJOUTQFRYKWX6P4Z4GKVESBMHML7DZ6YK4LGS5FC5O@prod.wakuv2.nodes.status.im"
 };
 
 export const DEFAULT_BOOTSTRAP_TAG_NAME = "bootstrap";
