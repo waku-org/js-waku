@@ -90,7 +90,6 @@ export async function runMultipleNodes(
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
     },
-    pubsubTopics,
     shardInfo
   };
 
