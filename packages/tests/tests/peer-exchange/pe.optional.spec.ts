@@ -57,11 +57,9 @@ describe("Peer Exchange", () => {
       const foundPxPeer = await new Promise<boolean>((resolve) => {
         waku.libp2p.addEventListener("peer:discovery", (evt) => {
           const peerId = evt.detail.id.toString();
-          console.log({ peerId });
           const isBootstrapNode = predefinedNodes.find((n) =>
             n.includes(peerId)
           );
-          console.log({ isBootstrapNode });
           if (!isBootstrapNode) {
             resolve(true);
           }
