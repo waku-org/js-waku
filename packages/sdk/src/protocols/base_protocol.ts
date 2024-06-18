@@ -1,8 +1,8 @@
 import type { Peer, PeerId } from "@libp2p/interface";
 import { ConnectionManager } from "@waku/core";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
-import { IBaseProtocolSDK } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
+import { IBaseProtocolSDK, SendOptions } from "@waku/interfaces";
+import { delay, Logger } from "@waku/utils";
 
 interface Options {
   numPeersToUse?: number;
@@ -73,29 +73,49 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
 
   /**
    * Checks if there are peers to send a message to.
-   * If there are no peers, tries to find new peers from the ConnectionManager.
-   * If no peers are found, returns false.
-   * If peers are found, returns true.
+   * If there are connected peers, returns `true`.
+   * If `autoRetry` is `false`, returns `false`.
+   * If `autoRetry` is `true`, tries to find new peers from the ConnectionManager.
+   * If no peers are found after retries, returns `false`.
+   * If peers are found, returns `true`.
+   * @param autoRetry Optional flag to enable auto-retry with exponential backoff (default: false)
    */
-  protected hasPeers = async (): Promise<boolean> => {
+  protected hasPeers = async (
+    options: Partial<SendOptions> = {}
+  ): Promise<boolean> => {
+    const {
+      autoRetry,
+      initialDelay: _initialDelay,
+      maxAttempts: _maxAttempts,
+      maxDelay: _maxDelay
+    } = options;
     if (this.connectedPeers.length > 0) return true;
+    if (!autoRetry) return false;
 
     let success = await this.maintainPeers();
     let attempts = 0;
-    while (!success) {
+
+    const initialDelay = _initialDelay ?? 10;
+    const maxAttempts = _maxAttempts ?? 3;
+    const maxDelay = _maxDelay ?? 100;
+
+    while (!success && attempts < maxAttempts) {
       attempts++;
+      const delayMs = Math.min(
+        initialDelay * Math.pow(2, attempts - 1),
+        maxDelay
+      );
+      await delay(delayMs);
       success = await this.maintainPeers();
-      if (attempts > 3) {
-        if (this.peers.length === 0) {
-          this.log.error("Failed to find peers to send message to");
-          return false;
-        } else {
-          this.log.warn(
-            `Found only ${this.peers.length} peers, expected ${this.numPeersToUse}`
-          );
-          return true;
-        }
-      }
+    }
+
+    if (this.peers.length === 0) {
+      this.log.error("Failed to find peers to send message to");
+      return false;
+    } else if (this.peers.length < this.numPeersToUse) {
+      this.log.warn(
+        `Found only ${this.peers.length} peers, expected ${this.numPeersToUse}`
+      );
     }
     return true;
   };
