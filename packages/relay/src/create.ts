@@ -28,7 +28,7 @@ export async function createRelayNode(
     libp2p: {
       ...options.libp2p,
       services: {
-        pubsub: wakuGossipSub
+        pubsub: wakuGossipSub(options)
       }
     }
   });
