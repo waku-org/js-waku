@@ -1,11 +1,11 @@
 import type { Peer } from "@libp2p/interface";
 import {
-  Cursor,
   IDecodedMessage,
   IDecoder,
   IStoreCore,
   Libp2p,
-  ProtocolCreateOptions
+  ProtocolCreateOptions,
+  store_v2
 } from "@waku/interfaces";
 import { proto_store as proto } from "@waku/proto";
 import { Logger } from "@waku/utils";
@@ -59,7 +59,7 @@ export interface QueryOptions {
    * The cursor index will be exclusive (i.e. the message at the cursor index will not be included in the result).
    * If undefined, the query will start from the beginning or end of the history, depending on the page direction.
    */
-  cursor?: Cursor;
+  cursor?: store_v2.Cursor;
 }
 
 /**
