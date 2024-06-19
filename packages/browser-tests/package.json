@@ -14,6 +14,6 @@
     "@playwright/test": "^1.40.1",
     "@waku/create-app": "^0.1.1-504bcd4",
     "dotenv-flow": "^4.1.0",
-    "serve": "^14.2.1"
+    "serve": "^14.2.3"
   }
 }
