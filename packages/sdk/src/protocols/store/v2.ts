@@ -1,20 +1,23 @@
 import { sha256 } from "@noble/hashes/sha256";
-import { ConnectionManager, StoreCore, waku_store } from "@waku/core";
+import {
+  ConnectionManager,
+  StoreCoreV2 as StoreCore,
+  waku_store_v2 as waku_store,
+  waku_store_v2
+} from "@waku/core";
 import {
   Cursor,
   IDecodedMessage,
   IDecoder,
   IStoreSDK,
-  type Libp2p,
   PageDirection,
+  type Libp2p,
   type ProtocolCreateOptions
 } from "@waku/interfaces";
 import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
-import { concat } from "@waku/utils/bytes";
+import { concat, utf8ToBytes } from "@waku/utils/bytes";
 
-import { utf8ToBytes } from "../index.js";
-
-import { BaseProtocolSDK } from "./base_protocol.js";
+import { BaseProtocolSDK } from "../base_protocol";
 
 export const DefaultPageSize = 10;
 
@@ -111,7 +114,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   public async queryWithOrderedCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
-    options?: waku_store.QueryOptions
+    options?: waku_store_v2.QueryOptions
   ): Promise<void> {
     for await (const promises of this.queryGenerator(decoders, options)) {
       if (await this.processMessages(promises, callback, options)) break;
@@ -140,7 +143,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     callback: (
       message: Promise<T | undefined>
     ) => Promise<void | boolean> | boolean | void,
-    options?: waku_store.QueryOptions
+    options?: waku_store_v2.QueryOptions
   ): Promise<void> {
     let abort = false;
     for await (const page of this.queryGenerator(decoders, options)) {
