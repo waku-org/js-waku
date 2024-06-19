@@ -1,5 +1,6 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import {
+  DefaultPubsubTopic,
   ISubscriptionSDK,
   LightNode,
   ProtocolCreateOptions,
@@ -68,12 +69,14 @@ export async function validatePingError(
 
 export async function runMultipleNodes(
   context: Context,
-  shardInfo: ShardingParams,
+  shardInfo?: ShardingParams,
   strictChecking: boolean = false,
   numServiceNodes = 3,
   withoutFilter = false
 ): Promise<[ServiceNodesFleet, LightNode]> {
-  const pubsubTopics = shardInfoToPubsubTopics(shardInfo);
+  const pubsubTopics = shardInfo
+    ? shardInfoToPubsubTopics(shardInfo)
+    : [DefaultPubsubTopic];
   // create numServiceNodes nodes
   const serviceNodes = await ServiceNodesFleet.createAndRun(
     context,

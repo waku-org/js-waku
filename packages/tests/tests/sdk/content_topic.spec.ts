@@ -1,4 +1,3 @@
-import { wakuFilter } from "@waku/sdk";
 import {
   bytesToUtf8,
   createEncoder,
@@ -123,9 +122,9 @@ describe.skip("SDK: Creating by Content Topic", function () {
         pubsubTopics: shardInfo.pubsubTopics
       },
       await defaultLibp2p(shardInfo.shardInfo, undefined, {}, undefined),
-      undefined,
-      undefined,
-      wakuFilter({ pubsubTopics: shardInfo.pubsubTopics })
+      {
+        filter: true
+      }
     );
     await wakuContentTopic.subscribeToContentTopic(
       ContentTopic,

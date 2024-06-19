@@ -1,9 +1,6 @@
 import { type FullNode, type RelayNode } from "@waku/interfaces";
-import { RelayCreateOptions, wakuRelay } from "@waku/relay";
+import { RelayCreateOptions } from "@waku/relay";
 
-import { wakuFilter } from "../protocols/filter.js";
-import { wakuLightPush } from "../protocols/light_push.js";
-import { wakuStore } from "../protocols/store.js";
 import { createLibp2pAndUpdateOptions } from "../utils/libp2p.js";
 import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "../waku.js";
 
@@ -24,16 +21,9 @@ export async function createRelayNode(
 ): Promise<RelayNode> {
   const libp2p = await createLibp2pAndUpdateOptions(options);
 
-  const relay = wakuRelay(options?.pubsubTopics || []);
-
-  return new WakuNode(
-    options as WakuOptions,
-    libp2p,
-    undefined,
-    undefined,
-    undefined,
-    relay
-  ) as RelayNode;
+  return new WakuNode(options as WakuOptions, libp2p, {
+    relay: true
+  }) as RelayNode;
 }
 
 /**
@@ -56,17 +46,10 @@ export async function createFullNode(
 ): Promise<FullNode> {
   const libp2p = await createLibp2pAndUpdateOptions(options);
 
-  const store = wakuStore(options);
-  const lightPush = wakuLightPush(options);
-  const filter = wakuFilter(options);
-  const relay = wakuRelay(options?.pubsubTopics || []);
-
-  return new WakuNode(
-    options as WakuOptions,
-    libp2p,
-    store,
-    lightPush,
-    filter,
-    relay
-  ) as FullNode;
+  return new WakuNode(options as WakuOptions, libp2p, {
+    filter: true,
+    lightpush: true,
+    relay: true,
+    store: true
+  }) as FullNode;
 }

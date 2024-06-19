@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import { LightPushCore } from "@waku/core";
+import { ConnectionManager, LightPushCore } from "@waku/core";
 import {
   Failure,
   type IEncoder,
@@ -8,7 +8,8 @@ import {
   type Libp2p,
   type ProtocolCreateOptions,
   ProtocolError,
-  SDKProtocolResult
+  SDKProtocolResult,
+  SendOptions
 } from "@waku/interfaces";
 import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
 
@@ -19,12 +20,28 @@ const log = new Logger("sdk:light-push");
 class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
   public readonly protocol: LightPushCore;
 
-  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super({ numPeersToUse: options?.numPeersToUse });
-    this.protocol = new LightPushCore(libp2p, options);
+  constructor(
+    connectionManager: ConnectionManager,
+    libp2p: Libp2p,
+    options?: ProtocolCreateOptions
+  ) {
+    super(new LightPushCore(libp2p, options), connectionManager, {
+      numPeersToUse: options?.numPeersToUse
+    });
+
+    this.protocol = this.core as LightPushCore;
   }
 
-  async send(encoder: IEncoder, message: IMessage): Promise<SDKProtocolResult> {
+  async send(
+    encoder: IEncoder,
+    message: IMessage,
+    _options?: SendOptions
+  ): Promise<SDKProtocolResult> {
+    const options = {
+      autoRetry: true,
+      ..._options
+    } as SendOptions;
+
     const successes: PeerId[] = [];
     const failures: Failure[] = [];
 
@@ -43,15 +60,19 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
       };
     }
 
-    const peers = await this.protocol.getPeers();
-    if (!peers.length) {
+    const hasPeers = await this.hasPeers(options);
+    if (!hasPeers) {
       return {
         successes,
-        failures: [{ error: ProtocolError.NO_PEER_AVAILABLE }]
+        failures: [
+          {
+            error: ProtocolError.NO_PEER_AVAILABLE
+          }
+        ]
       };
     }
 
-    const sendPromises = peers.map((peer) =>
+    const sendPromises = this.connectedPeers.map((peer) =>
       this.protocol.send(encoder, message, peer)
     );
 
@@ -64,12 +85,15 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
           successes.push(success);
         }
         if (failure) {
+          if (failure.peerId) {
+            await this.renewPeer(failure.peerId);
+          }
+
           failures.push(failure);
         }
       } else {
         log.error("Failed to send message to peer", result.reason);
         failures.push({ error: ProtocolError.GENERIC_FAIL });
-        // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
       }
     }
 
@@ -81,7 +105,8 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
 }
 
 export function wakuLightPush(
+  connectionManager: ConnectionManager,
   init: Partial<ProtocolCreateOptions> = {}
 ): (libp2p: Libp2p) => ILightPushSDK {
-  return (libp2p: Libp2p) => new LightPushSDK(libp2p, init);
+  return (libp2p: Libp2p) => new LightPushSDK(connectionManager, libp2p, init);
 }
