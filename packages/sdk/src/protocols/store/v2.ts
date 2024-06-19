@@ -6,13 +6,11 @@ import {
   waku_store_v2
 } from "@waku/core";
 import {
-  Cursor,
   IDecodedMessage,
   IDecoder,
-  IStoreSDK,
-  PageDirection,
   type Libp2p,
-  type ProtocolCreateOptions
+  type ProtocolCreateOptions,
+  store_v2
 } from "@waku/interfaces";
 import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
 import { concat, utf8ToBytes } from "@waku/utils/bytes";
@@ -25,7 +23,7 @@ const DEFAULT_NUM_PEERS = 1;
 
 const log = new Logger("waku:store:protocol");
 
-export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
+export class StoreSDK extends BaseProtocolSDK implements store_v2.IStoreSDK {
   public readonly protocol: StoreCore;
 
   constructor(
@@ -157,7 +155,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     }
   }
 
-  createCursor(message: IDecodedMessage): Cursor {
+  createCursor(message: IDecodedMessage): store_v2.Cursor {
     if (
       !message ||
       !message.timestamp ||
@@ -269,7 +267,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     const queryOpts = Object.assign(
       {
         pubsubTopic: pubsubTopic,
-        pageDirection: PageDirection.BACKWARD,
+        pageDirection: store_v2.PageDirection.BACKWARD,
         pageSize: DefaultPageSize
       },
       options,
@@ -318,7 +316,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   private shouldReverseOrder(options?: waku_store.QueryOptions): boolean {
     return (
       typeof options?.pageDirection === "undefined" ||
-      options?.pageDirection === PageDirection.BACKWARD
+      options?.pageDirection === store_v2.PageDirection.BACKWARD
     );
   }
 }
@@ -326,6 +324,6 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
 export function wakuStore(
   connectionManager: ConnectionManager,
   init: Partial<ProtocolCreateOptions> = {}
-): (libp2p: Libp2p) => IStoreSDK {
+): (libp2p: Libp2p) => store_v2.IStoreSDK {
   return (libp2p: Libp2p) => new StoreSDK(connectionManager, libp2p, init);
 }
