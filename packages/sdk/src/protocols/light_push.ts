@@ -35,10 +35,13 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
   async send(
     encoder: IEncoder,
     message: IMessage,
-    options: SendOptions = {
-      autoRetry: true
-    }
+    _options?: SendOptions
   ): Promise<SDKProtocolResult> {
+    const options = {
+      autoRetry: true,
+      ..._options
+    } as SendOptions;
+
     const successes: PeerId[] = [];
     const failures: Failure[] = [];
 
