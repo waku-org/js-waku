@@ -1,7 +1,7 @@
 import { proto_store as proto } from "@waku/proto";
 
-import type { IDecodedMessage, IDecoder } from "./message.js";
-import type { IBaseProtocolCore, IBaseProtocolSDK } from "./protocols.js";
+import type { IDecodedMessage, IDecoder } from "../message.js";
+import type { IBaseProtocolCore, IBaseProtocolSDK } from "../protocols.js";
 
 export enum PageDirection {
   BACKWARD = "backward",
