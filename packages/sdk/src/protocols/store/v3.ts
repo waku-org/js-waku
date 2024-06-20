@@ -46,12 +46,12 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
    */
   public async *queryGenerator<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
-    options?: QueryRequestParams
+    options?: Partial<QueryRequestParams>
   ): AsyncGenerator<Promise<T | undefined>[]> {
     const { pubsubTopic, contentTopics, decodersAsMap } =
       this.validateDecodersAndPubsubTopic(decoders);
 
-    options = {
+    const queryOpts = {
       pubsubTopic,
       contentTopics,
       includeData: true,
@@ -72,7 +72,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
 
     log.info(`Querying store with options: ${JSON.stringify(options)}`);
     const responseGenerator = this.protocol.queryPerPage(
-      options,
+      queryOpts,
       decodersAsMap,
       peer
     );
@@ -93,7 +93,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   public async queryWithOrderedCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
-    options?: QueryRequestParams
+    options?: Partial<QueryRequestParams>
   ): Promise<void> {
     log.info("Querying store with ordered callback");
     for await (const promises of this.queryGenerator(decoders, options)) {
@@ -141,7 +141,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     callback: (
       message: Promise<T | undefined>
     ) => Promise<void | boolean> | boolean | void,
-    options?: QueryRequestParams
+    options?: Partial<QueryRequestParams>
   ): Promise<void> {
     log.info("Querying store with promise callback");
     let abort = false;
