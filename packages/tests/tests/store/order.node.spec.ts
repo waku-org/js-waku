@@ -1,4 +1,4 @@
-import { DecodedMessage, PageDirection } from "@waku/core";
+import { DecodedMessage } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
 import { expect } from "chai";
 
@@ -31,7 +31,7 @@ describe("Waku Store, order", function () {
     await tearDownNodes(nwaku, waku);
   });
 
-  [PageDirection.FORWARD, PageDirection.BACKWARD].forEach((pageDirection) => {
+  [true, false].forEach((pageDirection) => {
     it(`Query Generator  - ${pageDirection}`, async function () {
       await sendMessages(
         nwaku,
@@ -42,7 +42,7 @@ describe("Waku Store, order", function () {
 
       const messages: IMessage[] = [];
       for await (const query of waku.store.queryGenerator([TestDecoder], {
-        pageDirection: pageDirection
+        paginationForward: pageDirection
       })) {
         for await (const msg of query) {
           if (msg) {
@@ -52,7 +52,7 @@ describe("Waku Store, order", function () {
       }
 
       let expectedPayloads = Array.from(Array(totalMsgs).keys());
-      if (pageDirection === PageDirection.BACKWARD) {
+      if (pageDirection === true) {
         expectedPayloads = chunkAndReverseArray(expectedPayloads, 10);
       }
 
@@ -62,7 +62,7 @@ describe("Waku Store, order", function () {
     });
   });
 
-  [PageDirection.FORWARD, PageDirection.BACKWARD].forEach((pageDirection) => {
+  [true, false].forEach((pageDirection) => {
     it(`Promise Callback  - ${pageDirection}`, async function () {
       await sendMessages(
         nwaku,
@@ -81,12 +81,12 @@ describe("Waku Store, order", function () {
           }
         },
         {
-          pageDirection: pageDirection
+          paginationForward: pageDirection
         }
       );
 
       let expectedPayloads = Array.from(Array(totalMsgs).keys());
-      if (pageDirection === PageDirection.BACKWARD) {
+      if (pageDirection === false) {
         expectedPayloads = chunkAndReverseArray(expectedPayloads, 10);
       }
 
@@ -96,7 +96,7 @@ describe("Waku Store, order", function () {
     });
   });
 
-  [PageDirection.FORWARD, PageDirection.BACKWARD].forEach((pageDirection) => {
+  [true, false].forEach((pageDirection) => {
     it(`Ordered Callback - ${pageDirection}`, async function () {
       await sendMessages(
         nwaku,
@@ -112,11 +112,11 @@ describe("Waku Store, order", function () {
           messages.push(msg);
         },
         {
-          pageDirection: pageDirection
+          paginationForward: pageDirection
         }
       );
 
-      if (pageDirection === PageDirection.BACKWARD) {
+      if (pageDirection === false) {
         messages.reverse();
       }
       expect(messages?.length).eq(totalMsgs);

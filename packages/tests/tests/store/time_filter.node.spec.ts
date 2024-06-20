@@ -60,10 +60,8 @@ describe("Waku Store, time filter", function () {
           }
         },
         {
-          timeFilter: {
-            startTime: adjustDate(msgTimestamp, startTime),
-            endTime: adjustDate(msgTimestamp, endTime)
-          }
+          timeStart: adjustDate(msgTimestamp, startTime),
+          timeEnd: adjustDate(msgTimestamp, endTime)
         }
       );
 
@@ -103,10 +101,8 @@ describe("Waku Store, time filter", function () {
           }
         },
         {
-          timeFilter: {
-            startTime: adjustDate(msgTimestamp, -1000),
-            endTime: adjustDate(msgTimestamp, 1000)
-          }
+          timeStart: adjustDate(msgTimestamp, -1000),
+          timeEnd: adjustDate(msgTimestamp, 1000)
         }
       );
 

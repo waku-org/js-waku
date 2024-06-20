@@ -59,7 +59,7 @@ describe("Waku Store, page size", function () {
 
       let messagesRetrieved = 0;
       for await (const query of waku.store.queryGenerator([TestDecoder], {
-        pageSize: pageSize
+        paginationLimit: pageSize
       })) {
         // Calculate expected page size
         const expectedPageSize = Math.min(
