@@ -4,7 +4,8 @@ import {
   IDecoder,
   IStoreCore,
   Libp2p,
-  ProtocolCreateOptions
+  ProtocolCreateOptions,
+  QueryRequestParams
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import all from "it-all";
@@ -15,11 +16,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 import { BaseProtocol } from "../../base_protocol.js";
 import { toProtoMessage } from "../../to_proto_message.js";
 
-import {
-  QueryRequestParams,
-  StoreQueryRequest,
-  StoreQueryResponse
-} from "./rpc.js";
+import { StoreQueryRequest, StoreQueryResponse } from "./rpc.js";
 
 const log = new Logger("store");
 
