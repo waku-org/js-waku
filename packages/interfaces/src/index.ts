@@ -6,6 +6,7 @@ export * from "./peer_exchange.js";
 export * from "./protocols.js";
 export * from "./relay.js";
 export * as store_v2 from "./store/v2.js";
+export * from "./store/v3.js";
 export * from "./waku.js";
 export * from "./connection_manager.js";
 export * from "./sender.js";
