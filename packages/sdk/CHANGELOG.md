@@ -47,6 +47,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.26](https://github.com/waku-org/js-waku/compare/sdk-v0.0.25...sdk-v0.0.26) (2024-06-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* **filter:** return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971))
+
+### Features
+
+* **filter:** Return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971)) ([4eb06c6](https://github.com/waku-org/js-waku/commit/4eb06c64eb05c015e2f51e3f45a9d7143a934385))
+* **lightpush:** Peer management for protocols ([#2003](https://github.com/waku-org/js-waku/issues/2003)) ([93e78c3](https://github.com/waku-org/js-waku/commit/93e78c3b876e084ab70e07c64c9b721693b659f8))
+
+
+### Bug Fixes
+
+* Add .js to base protocol import in filter sdk ([#2009](https://github.com/waku-org/js-waku/issues/2009)) ([6f188ef](https://github.com/waku-org/js-waku/commit/6f188ef37978c93432774a5b3cac02e0b40fd184))
+* Bootstrapping with default pubsub topic ([#2031](https://github.com/waku-org/js-waku/issues/2031)) ([16e9116](https://github.com/waku-org/js-waku/commit/16e9116c7cf6be876e174fe9259921c8d5397a88))
+* Filter for wss in libp2p websocket transport ([682cc66](https://github.com/waku-org/js-waku/commit/682cc66232fe21b290c20ce145432cdd829158f9))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.29 to 0.0.30
+    * @waku/discovery bumped from 0.0.2 to 0.0.3
+    * @waku/interfaces bumped from 0.0.24 to 0.0.25
+    * @waku/relay bumped from 0.0.12 to 0.0.13
+    * @waku/utils bumped from 0.0.17 to 0.0.18
+
 ## [0.0.25](https://github.com/waku-org/js-waku/compare/sdk-v0.0.24...sdk-v0.0.25) (2024-04-30)
 
 

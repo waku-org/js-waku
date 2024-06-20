@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.25](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.24...interfaces-v0.0.25) (2024-06-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* **filter:** return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971))
+
+### Features
+
+* **filter:** Return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971)) ([4eb06c6](https://github.com/waku-org/js-waku/commit/4eb06c64eb05c015e2f51e3f45a9d7143a934385))
+* **lightpush:** Peer management for protocols ([#2003](https://github.com/waku-org/js-waku/issues/2003)) ([93e78c3](https://github.com/waku-org/js-waku/commit/93e78c3b876e084ab70e07c64c9b721693b659f8))
+
 ## [0.0.24](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.23...interfaces-v0.0.24) (2024-04-30)
 
 
