@@ -1,4 +1,4 @@
-import { DecodedMessage, PageDirection } from "@waku/core";
+import { DecodedMessage } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
 
 import {
@@ -29,7 +29,7 @@ describe("Waku Store, sorting", function () {
     await tearDownNodes(nwaku, waku);
   });
 
-  [PageDirection.FORWARD, PageDirection.BACKWARD].forEach((pageDirection) => {
+  [true, false].forEach((pageDirection) => {
     it(`Query Generator sorting by timestamp while page direction is ${pageDirection}`, async function () {
       await sendMessages(
         nwaku,
@@ -39,7 +39,7 @@ describe("Waku Store, sorting", function () {
       );
 
       for await (const query of waku.store.queryGenerator([TestDecoder], {
-        pageDirection: PageDirection.FORWARD
+        paginationForward: true
       })) {
         const page: IMessage[] = [];
         for await (const msg of query) {
@@ -63,7 +63,7 @@ describe("Waku Store, sorting", function () {
     });
   });
 
-  [PageDirection.FORWARD, PageDirection.BACKWARD].forEach((pageDirection) => {
+  [true, false].forEach((pageDirection) => {
     it(`Ordered Callback sorting by timestamp while page direction is ${pageDirection}`, async function () {
       await sendMessages(
         nwaku,
@@ -79,7 +79,7 @@ describe("Waku Store, sorting", function () {
           messages.push(msg);
         },
         {
-          pageDirection: pageDirection
+          paginationForward: pageDirection
         }
       );
       // Extract timestamps
@@ -88,15 +88,12 @@ describe("Waku Store, sorting", function () {
       );
       // Check if timestamps are sorted
       for (let i = 1; i < timestamps.length; i++) {
-        if (
-          pageDirection === PageDirection.FORWARD &&
-          timestamps[i] < timestamps[i - 1]
-        ) {
+        if (pageDirection === true && timestamps[i] < timestamps[i - 1]) {
           throw new Error(
             `Messages are not sorted by timestamp in FORWARD direction. Found out of order at index ${i}`
           );
         } else if (
-          pageDirection === PageDirection.BACKWARD &&
+          pageDirection === false &&
           timestamps[i] > timestamps[i - 1]
         ) {
           throw new Error(

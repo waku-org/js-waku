@@ -17,8 +17,6 @@ export { StoreCore } from "./lib/store/v3/index.js";
 export * as waku_store_v2 from "./lib/store/v2/index.js";
 export { StoreCore as StoreCoreV2 } from "./lib/store/v2/index.js";
 
-export { PageDirection } from "./lib/store/v2/index.js";
-
 export { waitForRemotePeer } from "./lib/wait_for_remote_peer.js";
 
 export { ConnectionManager } from "./lib/connection_manager.js";
