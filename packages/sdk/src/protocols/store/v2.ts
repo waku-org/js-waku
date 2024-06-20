@@ -20,7 +20,7 @@ export const DefaultPageSize = 10;
 
 const DEFAULT_NUM_PEERS = 1;
 
-const log = new Logger("waku:store:protocol");
+const log = new Logger("waku:store-v2:sdk");
 
 export class StoreSDK extends BaseProtocolSDK implements store_v2.IStoreSDK {
   public readonly protocol: StoreCore;

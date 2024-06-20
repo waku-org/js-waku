@@ -1,18 +1,7 @@
+import { QueryRequestParams } from "@waku/interfaces";
 import { proto_store_v3 as proto } from "@waku/proto";
 import type { Uint8ArrayList } from "uint8arraylist";
 import { v4 as uuid } from "uuid";
-
-export type QueryRequestParams = {
-  includeData: boolean;
-  pubsubTopic: string;
-  contentTopics: string[];
-  timeStart?: Date;
-  timeEnd?: Date;
-  messageHashes?: Uint8Array[];
-  cursor?: Uint8Array;
-  paginationForward: boolean;
-  paginationLimit?: number;
-};
 
 export class StoreQueryRequest {
   public constructor(public proto: proto.StoreQueryRequest) {}
