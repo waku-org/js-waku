@@ -14,6 +14,7 @@ import {
   type Libp2p,
   type ProtocolCreateOptions,
   ProtocolError,
+  ProtocolUseOptions,
   type PubsubTopic,
   SDKProtocolResult,
   type ShardingParams,
@@ -45,7 +46,7 @@ const DEFAULT_SUBSCRIBE_OPTIONS = {
 };
 export class SubscriptionManager implements ISubscriptionSDK {
   private readonly pubsubTopic: PubsubTopic;
-  readonly peers: Peer[];
+  private readonly getPeers: () => Peer[];
   readonly receivedMessagesHashStr: string[] = [];
   private keepAliveTimer: number | null = null;
 
@@ -56,11 +57,11 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
   constructor(
     pubsubTopic: PubsubTopic,
-    remotePeers: Peer[],
+    getPeers: () => Peer[],
     private protocol: FilterCore
   ) {
-    this.peers = remotePeers;
     this.pubsubTopic = pubsubTopic;
+    this.getPeers = getPeers;
     this.subscriptionCallbacks = new Map();
   }
 
@@ -88,7 +89,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
     const contentTopics = Array.from(decodersGroupedByCT.keys());
 
-    const promises = this.peers.map(async (peer) =>
+    const promises = this.getPeers().map(async (peer) =>
       this.protocol.subscribe(this.pubsubTopic, peer, contentTopics)
     );
 
@@ -120,7 +121,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
   }
 
   async unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult> {
-    const promises = this.peers.map(async (peer) => {
+    const promises = this.getPeers().map(async (peer) => {
       const response = await this.protocol.unsubscribe(
         this.pubsubTopic,
         peer,
@@ -145,7 +146,9 @@ export class SubscriptionManager implements ISubscriptionSDK {
   }
 
   async ping(): Promise<SDKProtocolResult> {
-    const promises = this.peers.map(async (peer) => this.protocol.ping(peer));
+    const promises = this.getPeers().map(async (peer) =>
+      this.protocol.ping(peer)
+    );
 
     const results = await Promise.allSettled(promises);
 
@@ -153,7 +156,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
   }
 
   async unsubscribeAll(): Promise<SDKProtocolResult> {
-    const promises = this.peers.map(async (peer) =>
+    const promises = this.getPeers().map(async (peer) =>
       this.protocol.unsubscribeAll(this.pubsubTopic, peer)
     );
 
@@ -314,8 +317,14 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    * @returns The subscription object.
    */
   async createSubscription(
-    pubsubTopicShardInfo: ShardingParams | PubsubTopic
+    pubsubTopicShardInfo: ShardingParams | PubsubTopic,
+    protocolUseOptions?: ProtocolUseOptions
   ): Promise<CreateSubscriptionResult> {
+    const options = {
+      autoRetry: true,
+      ...protocolUseOptions
+    } as ProtocolUseOptions;
+
     const pubsubTopic =
       typeof pubsubTopicShardInfo == "string"
         ? pubsubTopicShardInfo
@@ -323,17 +332,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
-    let peers: Peer[] = [];
-    try {
-      peers = await this.protocol.getPeers();
-    } catch (error) {
-      log.error("Error getting peers to initiate subscription: ", error);
-      return {
-        error: ProtocolError.GENERIC_FAIL,
-        subscription: null
-      };
-    }
-    if (peers.length === 0) {
+    const hasPeers = await this.hasPeers(options);
+    if (!hasPeers) {
       return {
         error: ProtocolError.NO_PEER_AVAILABLE,
         subscription: null
@@ -341,15 +341,19 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     }
 
     log.info(
-      `Creating filter subscription with ${peers.length} peers: `,
-      peers.map((peer) => peer.id.toString())
+      `Creating filter subscription with ${this.connectedPeers.length} peers: `,
+      this.connectedPeers.map((peer) => peer.id.toString())
     );
 
     const subscription =
       this.getActiveSubscription(pubsubTopic) ??
       this.setActiveSubscription(
         pubsubTopic,
-        new SubscriptionManager(pubsubTopic, peers, this.protocol)
+        new SubscriptionManager(
+          pubsubTopic,
+          () => this.connectedPeers,
+          this.protocol
+        )
       );
 
     return {

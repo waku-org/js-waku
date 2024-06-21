@@ -5,6 +5,7 @@ import type {
   IBaseProtocolCore,
   IBaseProtocolSDK,
   ProtocolError,
+  ProtocolUseOptions,
   SDKProtocolResult,
   ShardingParams
 } from "./protocols.js";
@@ -34,7 +35,7 @@ export type IFilterSDK = IReceiver &
   IBaseProtocolSDK & { protocol: IBaseProtocolCore } & {
     createSubscription(
       pubsubTopicShardInfo?: ShardingParams | PubsubTopic,
-      options?: SubscribeOptions
+      protocolUseOptions?: ProtocolUseOptions
     ): Promise<CreateSubscriptionResult>;
   };
 
