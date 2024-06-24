@@ -13,6 +13,7 @@ import type { IReceiver } from "./receiver.js";
 
 export type SubscribeOptions = {
   keepAlive?: number;
+  pingsBeforePeerRenewed?: number;
 };
 
 export type IFilter = IReceiver & IBaseProtocolCore;
