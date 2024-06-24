@@ -33,14 +33,7 @@ export async function createRelayNode(
     }
   });
 
-  const relay = wakuRelay(options?.pubsubTopics || []);
+  const relay = wakuRelay(options?.pubsubTopics || [])(libp2p);
 
-  return new WakuNode(
-    options as WakuOptions,
-    libp2p,
-    undefined,
-    undefined,
-    undefined,
-    relay
-  ) as RelayNode;
+  return new WakuNode(options as WakuOptions, libp2p, {}, relay) as RelayNode;
 }

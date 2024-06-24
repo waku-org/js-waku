@@ -1,5 +1,5 @@
 import { sha256 } from "@noble/hashes/sha256";
-import { StoreCore, waku_store } from "@waku/core";
+import { ConnectionManager, StoreCore, waku_store } from "@waku/core";
 import {
   Cursor,
   IDecodedMessage,
@@ -25,11 +25,17 @@ const log = new Logger("waku:store:protocol");
 export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   public readonly protocol: StoreCore;
 
-  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
+  constructor(
+    connectionManager: ConnectionManager,
+    libp2p: Libp2p,
+    options?: ProtocolCreateOptions
+  ) {
     // TODO: options.numPeersToUse is disregarded: https://github.com/waku-org/js-waku/issues/1685
-    super({ numPeersToUse: DEFAULT_NUM_PEERS });
+    super(new StoreCore(libp2p, options), connectionManager, {
+      numPeersToUse: DEFAULT_NUM_PEERS
+    });
 
-    this.protocol = new StoreCore(libp2p, options);
+    this.protocol = this.core as StoreCore;
   }
 
   /**
@@ -67,7 +73,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
 
     const peer = (
       await this.protocol.getPeers({
-        numPeers: this.numPeers,
+        numPeers: this.numPeersToUse,
         maxBootstrapPeers: 1
       })
     )[0];
@@ -315,7 +321,8 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
 }
 
 export function wakuStore(
+  connectionManager: ConnectionManager,
   init: Partial<ProtocolCreateOptions> = {}
 ): (libp2p: Libp2p) => IStoreSDK {
-  return (libp2p: Libp2p) => new StoreSDK(libp2p, init);
+  return (libp2p: Libp2p) => new StoreSDK(connectionManager, libp2p, init);
 }

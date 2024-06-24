@@ -89,6 +89,34 @@ export class ConnectionManager
     return instance;
   }
 
+  stop(): void {
+    this.keepAliveManager.stopAll();
+    this.libp2p.removeEventListener(
+      "peer:connect",
+      this.onEventHandlers["peer:connect"]
+    );
+    this.libp2p.removeEventListener(
+      "peer:disconnect",
+      this.onEventHandlers["peer:disconnect"]
+    );
+    this.libp2p.removeEventListener(
+      "peer:discovery",
+      this.onEventHandlers["peer:discovery"]
+    );
+  }
+
+  async dropConnection(peerId: PeerId): Promise<void> {
+    try {
+      this.keepAliveManager.stop(peerId);
+      await this.libp2p.hangUp(peerId);
+      log.info(`Dropped connection with peer ${peerId.toString()}`);
+    } catch (error) {
+      log.error(
+        `Error dropping connection with peer ${peerId.toString()} - ${error}`
+      );
+    }
+  }
+
   public async getPeersByDiscovery(): Promise<PeersByDiscoveryResult> {
     const peersDiscovered = await this.libp2p.peerStore.all();
     const peersConnected = this.libp2p
@@ -200,22 +228,6 @@ export class ConnectionManager
     this.startPeerDisconnectionListener();
   }
 
-  stop(): void {
-    this.keepAliveManager.stopAll();
-    this.libp2p.removeEventListener(
-      "peer:connect",
-      this.onEventHandlers["peer:connect"]
-    );
-    this.libp2p.removeEventListener(
-      "peer:disconnect",
-      this.onEventHandlers["peer:disconnect"]
-    );
-    this.libp2p.removeEventListener(
-      "peer:discovery",
-      this.onEventHandlers["peer:discovery"]
-    );
-  }
-
   private async dialPeer(peerId: PeerId): Promise<void> {
     this.currentActiveParallelDialCount += 1;
     let dialAttempt = 0;
@@ -295,18 +307,6 @@ export class ConnectionManager
           `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`
         );
       }
-    }
-  }
-
-  private async dropConnection(peerId: PeerId): Promise<void> {
-    try {
-      this.keepAliveManager.stop(peerId);
-      await this.libp2p.hangUp(peerId);
-      log.info(`Dropped connection with peer ${peerId.toString()}`);
-    } catch (error) {
-      log.error(
-        `Error dropping connection with peer ${peerId.toString()} - ${error}`
-      );
     }
   }
 

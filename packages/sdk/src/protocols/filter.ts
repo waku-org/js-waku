@@ -1,5 +1,5 @@
 import type { Peer } from "@libp2p/interface";
-import { FilterCore } from "@waku/core";
+import { ConnectionManager, FilterCore } from "@waku/core";
 import {
   type Callback,
   type ContentTopic,
@@ -261,26 +261,34 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
   public readonly protocol: FilterCore;
 
   private activeSubscriptions = new Map<string, SubscriptionManager>();
-  private async handleIncomingMessage(
-    pubsubTopic: PubsubTopic,
-    wakuMessage: WakuMessage
-  ): Promise<void> {
-    const subscription = this.getActiveSubscription(pubsubTopic);
-    if (!subscription) {
-      log.error(`No subscription locally registered for topic ${pubsubTopic}`);
-      return;
-    }
 
-    await subscription.processIncomingMessage(wakuMessage);
-  }
+  constructor(
+    connectionManager: ConnectionManager,
+    libp2p: Libp2p,
+    options?: ProtocolCreateOptions
+  ) {
+    super(
+      new FilterCore(
+        async (pubsubTopic: PubsubTopic, wakuMessage: WakuMessage) => {
+          const subscription = this.getActiveSubscription(pubsubTopic);
+          if (!subscription) {
+            log.error(
+              `No subscription locally registered for topic ${pubsubTopic}`
+            );
+            return;
+          }
 
-  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super({ numPeersToUse: options?.numPeersToUse });
-    this.protocol = new FilterCore(
-      this.handleIncomingMessage.bind(this),
-      libp2p,
-      options
+          await subscription.processIncomingMessage(wakuMessage);
+        },
+        libp2p,
+        options
+      ),
+      connectionManager,
+      { numPeersToUse: options?.numPeersToUse }
     );
+
+    this.protocol = this.core as FilterCore;
+
     this.activeSubscriptions = new Map();
   }
 
@@ -430,9 +438,10 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 }
 
 export function wakuFilter(
-  init: ProtocolCreateOptions
+  connectionManager: ConnectionManager,
+  init?: ProtocolCreateOptions
 ): (libp2p: Libp2p) => IFilterSDK {
-  return (libp2p: Libp2p) => new FilterSDK(libp2p, init);
+  return (libp2p: Libp2p) => new FilterSDK(connectionManager, libp2p, init);
 }
 
 async function pushMessage<T extends IDecodedMessage>(

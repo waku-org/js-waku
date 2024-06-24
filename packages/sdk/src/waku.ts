@@ -18,6 +18,9 @@ import type {
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
+import { wakuFilter } from "./protocols/filter.js";
+import { wakuLightPush } from "./protocols/light_push.js";
+import { wakuStore } from "./protocols/store.js";
 import { subscribeToContentTopic } from "./utils/content_topic.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
@@ -53,6 +56,12 @@ export interface WakuOptions {
 export type CreateWakuNodeOptions = ProtocolCreateOptions &
   Partial<WakuOptions>;
 
+type ProtocolsEnabled = {
+  filter?: boolean;
+  lightpush?: boolean;
+  store?: boolean;
+};
+
 export class WakuNode implements Waku {
   public libp2p: Libp2p;
   public relay?: IRelay;
@@ -65,31 +74,23 @@ export class WakuNode implements Waku {
   constructor(
     options: WakuOptions,
     libp2p: Libp2p,
-    store?: (libp2p: Libp2p) => IStoreSDK,
-    lightPush?: (libp2p: Libp2p) => ILightPushSDK,
-    filter?: (libp2p: Libp2p) => IFilterSDK,
-    relay?: (libp2p: Libp2p) => IRelay
+    protocolsEnabled: ProtocolsEnabled,
+    relay?: IRelay
   ) {
     if (options.pubsubTopics.length == 0) {
       throw new Error("At least one pubsub topic must be provided");
     }
+
+    this.relay = relay;
+    this.libp2p = libp2p;
     this.pubsubTopics = options.pubsubTopics;
 
-    this.libp2p = libp2p;
-
-    if (store) {
-      this.store = store(libp2p);
-    }
-    if (filter) {
-      this.filter = filter(libp2p);
-    }
-    if (lightPush) {
-      this.lightPush = lightPush(libp2p);
-    }
-
-    if (relay) {
-      this.relay = relay(libp2p);
-    }
+    protocolsEnabled = {
+      filter: false,
+      lightpush: false,
+      store: false,
+      ...protocolsEnabled
+    };
 
     const pingKeepAlive =
       options.pingKeepAlive || DefaultPingKeepAliveValueSecs;
@@ -106,6 +107,21 @@ export class WakuNode implements Waku {
       this.pubsubTopics,
       this.relay
     );
+
+    if (protocolsEnabled.store) {
+      const store = wakuStore(this.connectionManager, options);
+      this.store = store(libp2p);
+    }
+
+    if (protocolsEnabled.lightpush) {
+      const lightPush = wakuLightPush(this.connectionManager, options);
+      this.lightPush = lightPush(libp2p);
+    }
+
+    if (protocolsEnabled.filter) {
+      const filter = wakuFilter(this.connectionManager, options);
+      this.filter = filter(libp2p);
+    }
 
     log.info(
       "Waku node created",
