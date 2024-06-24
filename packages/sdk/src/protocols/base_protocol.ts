@@ -42,22 +42,17 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   /**
    * Disconnects from a peer and tries to find a new one to replace it.
    * @param peerToDisconnect The peer to disconnect from.
+   * @returns The new peer that was found and connected to.
    */
-  public async renewPeer(peerToDisconnect: PeerId): Promise<void> {
+  public async renewPeer(peerToDisconnect: PeerId): Promise<Peer> {
     this.log.info(`Renewing peer ${peerToDisconnect}`);
-    try {
-      await this.connectionManager.dropConnection(peerToDisconnect);
-      this.peers = this.peers.filter((peer) => peer.id !== peerToDisconnect);
-      this.log.info(
-        `Peer ${peerToDisconnect} disconnected and removed from the peer list`
-      );
+    await this.connectionManager.dropConnection(peerToDisconnect);
+    this.peers = this.peers.filter((peer) => peer.id !== peerToDisconnect);
+    this.log.info(
+      `Peer ${peerToDisconnect} disconnected and removed from the peer list`
+    );
 
-      await this.findAndAddPeers(1);
-    } catch (error) {
-      this.log.info(
-        "Peer renewal failed, relying on the interval to find a new peer"
-      );
-    }
+    return (await this.findAndAddPeers(1))[0];
   }
 
   /**
@@ -171,7 +166,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * Finds and adds new peers to the peers list.
    * @param numPeers The number of peers to find and add.
    */
-  private async findAndAddPeers(numPeers: number): Promise<void> {
+  private async findAndAddPeers(numPeers: number): Promise<Peer[]> {
     this.log.info(`Finding and adding ${numPeers} new peers`);
     try {
       const additionalPeers = await this.findAdditionalPeers(numPeers);
@@ -179,6 +174,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       this.log.info(
         `Added ${additionalPeers.length} new peers, total peers: ${this.peers.length}`
       );
+      return additionalPeers;
     } catch (error) {
       this.log.error("Error finding and adding new peers:", error);
       throw error;
@@ -197,20 +193,20 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     try {
       let newPeers = await this.core.getPeers({
         maxBootstrapPeers: 0,
-        numPeers: numPeers
+        numPeers: 0
       });
 
       if (newPeers.length === 0) {
         this.log.warn("No new peers found, trying with bootstrap peers");
         newPeers = await this.core.getPeers({
           maxBootstrapPeers: numPeers,
-          numPeers: numPeers
+          numPeers: 0
         });
       }
 
-      newPeers = newPeers.filter(
-        (peer) => this.peers.some((p) => p.id === peer.id) === false
-      );
+      newPeers = newPeers
+        .filter((peer) => this.peers.some((p) => p.id === peer.id) === false)
+        .slice(0, numPeers);
       return newPeers;
     } catch (error) {
       this.log.error("Error finding additional peers:", error);
