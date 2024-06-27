@@ -13,8 +13,8 @@ import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
 import { Uint8ArrayList } from "uint8arraylist";
 
-import { BaseProtocol } from "../../base_protocol.js";
-import { toProtoMessage } from "../../to_proto_message.js";
+import { BaseProtocol } from "../base_protocol.js";
+import { toProtoMessage } from "../to_proto_message.js";
 
 import {
   DEFAULT_PAGE_SIZE,
