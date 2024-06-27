@@ -3,6 +3,8 @@ import { proto_store_v3 as proto } from "@waku/proto";
 import type { Uint8ArrayList } from "uint8arraylist";
 import { v4 as uuid } from "uuid";
 
+const ONE_MILLION = 1_000000;
+
 export class StoreQueryRequest {
   public constructor(public proto: proto.StoreQueryRequest) {}
 
@@ -11,9 +13,11 @@ export class StoreQueryRequest {
       ...params,
       requestId: uuid(),
       timeStart: params.timeStart
-        ? BigInt(params.timeStart.getTime())
+        ? BigInt(params.timeStart.getTime() * ONE_MILLION)
         : undefined,
-      timeEnd: params.timeEnd ? BigInt(params.timeEnd.getTime()) : undefined,
+      timeEnd: params.timeEnd
+        ? BigInt(params.timeEnd.getTime() * ONE_MILLION)
+        : undefined,
       messageHashes: params.messageHashes || [],
       paginationLimit: params.paginationLimit
         ? BigInt(params.paginationLimit)
