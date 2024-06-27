@@ -47,6 +47,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
   private readonly pubsubTopic: PubsubTopic;
   readonly peers: Peer[];
   readonly receivedMessagesHashStr: string[] = [];
+
   private keepAliveTimer: number | null = null;
 
   private subscriptionCallbacks: Map<

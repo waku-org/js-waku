@@ -38,32 +38,45 @@ export class ConnectionManager
 
   private currentActiveParallelDialCount = 0;
   private pendingPeerDialQueue: Array<PeerId> = [];
-  private online: boolean = false;
 
-  public isConnected(): boolean {
-    return this.online;
+  private isConnectedToNetwork: boolean = navigator.onLine;
+  private isConnectedToWakuNetwork: boolean = false;
+
+  private constructor(
+    libp2p: Libp2p,
+    keepAliveOptions: KeepAliveOptions,
+    private configuredPubsubTopics: PubsubTopic[],
+    relay?: IRelay,
+    options?: Partial<ConnectionManagerOptions>
+  ) {
+    super();
+    this.libp2p = libp2p;
+    this.configuredPubsubTopics = configuredPubsubTopics;
+    this.options = {
+      maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
+      maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
+      maxParallelDials: DEFAULT_MAX_PARALLEL_DIALS,
+      ...options
+    };
+
+    this.keepAliveManager = new KeepAliveManager(keepAliveOptions, relay);
+
+    this.startEventListeners()
+      .then(() => log.info(`Connection Manager is now running`))
+      .catch((error) =>
+        log.error(`Unexpected error while running service`, error)
+      );
+
+    // libp2p emits `peer:discovery` events during its initialization
+    // which means that before the ConnectionManager is initialized, some peers may have been discovered
+    // we will dial the peers in peerStore ONCE before we start to listen to the `peer:discovery` events within the ConnectionManager
+    this.dialPeerStorePeers().catch((error) =>
+      log.error(`Unexpected error while dialing peer store peers`, error)
+    );
   }
 
-  private toggleOnline(): void {
-    if (!this.online) {
-      this.online = true;
-      this.dispatchEvent(
-        new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
-          detail: this.online
-        })
-      );
-    }
-  }
-
-  private toggleOffline(): void {
-    if (this.online && this.libp2p.getConnections().length == 0) {
-      this.online = false;
-      this.dispatchEvent(
-        new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
-          detail: this.online
-        })
-      );
-    }
+  public isOnline(): boolean {
+    return this.isConnectedToNetwork && this.isConnectedToWakuNetwork;
   }
 
   public static create(
@@ -91,6 +104,7 @@ export class ConnectionManager
 
   stop(): void {
     this.keepAliveManager.stopAll();
+
     this.libp2p.removeEventListener(
       "peer:connect",
       this.onEventHandlers["peer:connect"]
@@ -103,6 +117,9 @@ export class ConnectionManager
       "peer:discovery",
       this.onEventHandlers["peer:discovery"]
     );
+
+    window.removeEventListener("online", this.onEventHandlers["online"]);
+    window.removeEventListener("offline", this.onEventHandlers["offline"]);
   }
 
   async dropConnection(peerId: PeerId): Promise<void> {
@@ -170,39 +187,6 @@ export class ConnectionManager
     };
   }
 
-  private constructor(
-    libp2p: Libp2p,
-    keepAliveOptions: KeepAliveOptions,
-    private configuredPubsubTopics: PubsubTopic[],
-    relay?: IRelay,
-    options?: Partial<ConnectionManagerOptions>
-  ) {
-    super();
-    this.libp2p = libp2p;
-    this.configuredPubsubTopics = configuredPubsubTopics;
-    this.options = {
-      maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
-      maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
-      maxParallelDials: DEFAULT_MAX_PARALLEL_DIALS,
-      ...options
-    };
-
-    this.keepAliveManager = new KeepAliveManager(keepAliveOptions, relay);
-
-    this.run()
-      .then(() => log.info(`Connection Manager is now running`))
-      .catch((error) =>
-        log.error(`Unexpected error while running service`, error)
-      );
-
-    // libp2p emits `peer:discovery` events during its initialization
-    // which means that before the ConnectionManager is initialized, some peers may have been discovered
-    // we will dial the peers in peerStore ONCE before we start to listen to the `peer:discovery` events within the ConnectionManager
-    this.dialPeerStorePeers().catch((error) =>
-      log.error(`Unexpected error while dialing peer store peers`, error)
-    );
-  }
-
   private async dialPeerStorePeers(): Promise<void> {
     const peerInfos = await this.libp2p.peerStore.all();
     const dialPromises = [];
@@ -221,11 +205,12 @@ export class ConnectionManager
     }
   }
 
-  private async run(): Promise<void> {
-    // start event listeners
+  private async startEventListeners(): Promise<void> {
     this.startPeerDiscoveryListener();
     this.startPeerConnectionListener();
     this.startPeerDisconnectionListener();
+
+    this.startBrowserNetworkStatusListener();
   }
 
   private async dialPeer(peerId: PeerId): Promise<void> {
@@ -356,17 +341,9 @@ export class ConnectionManager
     );
   }
 
-  private async attemptDial(peerId: PeerId): Promise<void> {
-    if (!(await this.shouldDialPeer(peerId))) return;
-
-    if (this.currentActiveParallelDialCount >= this.options.maxParallelDials) {
-      this.pendingPeerDialQueue.push(peerId);
-      return;
-    }
-
-    this.dialPeer(peerId).catch((err) => {
-      log.error(`Error dialing peer ${peerId.toString()} : ${err}`);
-    });
+  private startBrowserNetworkStatusListener(): void {
+    window.addEventListener("online", this.onEventHandlers["online"]);
+    window.addEventListener("offline", this.onEventHandlers["offline"]);
   }
 
   private onEventHandlers = {
@@ -429,16 +406,37 @@ export class ConnectionManager
             )
           );
         }
-        this.toggleOnline();
+        this.toggleWakuOnline();
       })();
     },
     "peer:disconnect": (evt: CustomEvent<PeerId>): void => {
       void (async () => {
         this.keepAliveManager.stop(evt.detail);
-        this.toggleOffline();
+        this.toggleWakuOffline();
       })();
+    },
+    online: (): void => {
+      this.isConnectedToNetwork = true;
+      this.dispatchWakuConnectionEvent();
+    },
+    offline: (): void => {
+      this.isConnectedToNetwork = false;
+      this.dispatchWakuConnectionEvent();
     }
   };
+
+  private async attemptDial(peerId: PeerId): Promise<void> {
+    if (!(await this.shouldDialPeer(peerId))) return;
+
+    if (this.currentActiveParallelDialCount >= this.options.maxParallelDials) {
+      this.pendingPeerDialQueue.push(peerId);
+      return;
+    }
+
+    this.dialPeer(peerId).catch((err) => {
+      log.error(`Error dialing peer ${peerId.toString()} : ${err}`);
+    });
+  }
 
   /**
    * Checks if the peer should be dialed based on the following conditions:
@@ -572,5 +570,29 @@ export class ConnectionManager
     const shardInfoBytes = peer.metadata.get("shardInfo");
     if (!shardInfoBytes) return undefined;
     return decodeRelayShard(shardInfoBytes);
+  }
+
+  private toggleWakuOnline(): void {
+    if (!this.isOnline()) {
+      this.isConnectedToWakuNetwork = true;
+      this.dispatchWakuConnectionEvent();
+    }
+  }
+
+  private toggleWakuOffline(): void {
+    const noConnections = this.libp2p.getConnections().length == 0;
+
+    if (this.isOnline() && noConnections) {
+      this.isConnectedToWakuNetwork = false;
+      this.dispatchWakuConnectionEvent();
+    }
+  }
+
+  private dispatchWakuConnectionEvent(): void {
+    this.dispatchEvent(
+      new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
+        detail: this.isOnline()
+      })
+    );
   }
 }
