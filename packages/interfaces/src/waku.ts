@@ -8,7 +8,7 @@ import type { Libp2p } from "./libp2p.js";
 import type { ILightPushSDK } from "./light_push.js";
 import { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
-import type { IStoreSDK } from "./store/v3.js";
+import type { IStoreSDK } from "./store.js";
 
 export interface Waku {
   libp2p: Libp2p;
