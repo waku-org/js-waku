@@ -3,6 +3,8 @@ import { proto_store_v3 as proto } from "@waku/proto";
 import type { Uint8ArrayList } from "uint8arraylist";
 import { v4 as uuid } from "uuid";
 
+// https://github.com/waku-org/nwaku/blob/7205f95cff9f49ca0bb762e8fd0bf56a6a7f3b3b/waku/waku_store/common.nim#L12
+export const DEFAULT_PAGE_SIZE = 20;
 const ONE_MILLION = 1_000000;
 
 export class StoreQueryRequest {

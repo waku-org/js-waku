@@ -58,7 +58,7 @@ export type QueryRequestParams = {
    * If not provided, the query will start from the beginning or end of the store, depending on the `paginationForward` option.
    * @default undefined
    */
-  cursor?: Uint8Array;
+  paginationCursor?: Uint8Array;
 
   /**
    * The direction of pagination.

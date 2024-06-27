@@ -16,7 +16,11 @@ import { Uint8ArrayList } from "uint8arraylist";
 import { BaseProtocol } from "../../base_protocol.js";
 import { toProtoMessage } from "../../to_proto_message.js";
 
-import { StoreQueryRequest, StoreQueryResponse } from "./rpc.js";
+import {
+  DEFAULT_PAGE_SIZE,
+  StoreQueryRequest,
+  StoreQueryResponse
+} from "./rpc.js";
 
 const log = new Logger("store");
 
@@ -47,11 +51,11 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
       );
     }
 
-    let currentCursor = queryOpts.cursor;
+    let currentCursor = queryOpts.paginationCursor;
     while (true) {
       const storeQueryRequest = StoreQueryRequest.create({
         ...queryOpts,
-        cursor: currentCursor
+        paginationCursor: currentCursor
       });
 
       let stream;
@@ -95,7 +99,7 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
         `${storeQueryResponse.messages.length} messages retrieved from store`
       );
 
-      yield storeQueryResponse.messages.map((protoMsg) => {
+      const decodedMessages = storeQueryResponse.messages.map((protoMsg) => {
         if (!protoMsg.message) {
           return Promise.resolve(undefined);
         }
@@ -112,17 +116,19 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
         return Promise.resolve(undefined);
       });
 
-      currentCursor = storeQueryResponse.paginationCursor;
-      if (!currentCursor) {
-        log.warn(
-          "Stopping pagination due to missing pagination cursor in response"
-        );
-        break;
+      yield decodedMessages;
+
+      if (queryOpts.paginationForward) {
+        currentCursor =
+          storeQueryResponse.messages[storeQueryResponse.messages.length - 1]
+            .messageHash;
+      } else {
+        currentCursor = storeQueryResponse.messages[0].messageHash;
       }
 
       if (
         storeQueryResponse.messages.length <
-        (queryOpts.paginationLimit || Infinity)
+        (queryOpts.paginationLimit || DEFAULT_PAGE_SIZE)
       ) {
         break;
       }
