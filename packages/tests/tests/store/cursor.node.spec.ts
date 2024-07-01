@@ -63,7 +63,7 @@ describe("Waku Store, cursor", function () {
 
       const messagesAfterCursor: DecodedMessage[] = [];
       for await (const page of waku.store.queryGenerator([TestDecoder], {
-        cursor
+        paginationCursor: cursor
       })) {
         for await (const msg of page.reverse()) {
           if (msg) {
@@ -113,7 +113,7 @@ describe("Waku Store, cursor", function () {
     // query node2 with the cursor from node1
     const messagesAfterCursor: DecodedMessage[] = [];
     for await (const page of waku2.store.queryGenerator([TestDecoder], {
-      cursor
+      paginationCursor: cursor
     })) {
       for await (const msg of page.reverse()) {
         if (msg) {
@@ -153,7 +153,7 @@ describe("Waku Store, cursor", function () {
     const messagesAfterCursor: DecodedMessage[] = [];
     try {
       for await (const page of waku.store.queryGenerator([TestDecoder], {
-        cursor
+        paginationCursor: cursor
       })) {
         for await (const msg of page.reverse()) {
           if (msg) {
@@ -195,7 +195,7 @@ describe("Waku Store, cursor", function () {
 
     try {
       for await (const page of waku.store.queryGenerator([TestDecoder], {
-        cursor
+        paginationCursor: cursor
       })) {
         void page;
       }
