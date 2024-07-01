@@ -63,7 +63,7 @@ describe("Waku Store, cursor", function () {
 
       const messagesAfterCursor: DecodedMessage[] = [];
       for await (const page of waku.store.queryGenerator([TestDecoder], {
-        cursor
+        paginationCursor: cursor
       })) {
         for await (const msg of page.reverse()) {
           if (msg) {
@@ -113,7 +113,7 @@ describe("Waku Store, cursor", function () {
     // query node2 with the cursor from node1
     const messagesAfterCursor: DecodedMessage[] = [];
     for await (const page of waku2.store.queryGenerator([TestDecoder], {
-      cursor
+      paginationCursor: cursor
     })) {
       for await (const msg of page.reverse()) {
         if (msg) {
@@ -132,7 +132,7 @@ describe("Waku Store, cursor", function () {
     ).to.be.eq(bytesToUtf8(messages[messages.length - 1].payload));
   });
 
-  it("Passing cursor with wrong message digest", async function () {
+  it("Passing invalid cursor", async function () {
     await sendMessages(
       nwaku,
       totalMsgs,
@@ -146,15 +146,14 @@ describe("Waku Store, cursor", function () {
         messages.push(msg as DecodedMessage);
       }
     }
-    const cursor = waku.store.createCursor(messages[5]);
 
-    // setting a wrong digest
-    cursor.digest = new Uint8Array([]);
+    // setting an invalid cursor
+    const cursor = new Uint8Array([2, 3]);
 
     const messagesAfterCursor: DecodedMessage[] = [];
     try {
       for await (const page of waku.store.queryGenerator([TestDecoder], {
-        cursor
+        paginationCursor: cursor
       })) {
         for await (const msg of page.reverse()) {
           if (msg) {
@@ -162,7 +161,6 @@ describe("Waku Store, cursor", function () {
           }
         }
       }
-      // Should return same as go-waku. Raised bug: https://github.com/waku-org/nwaku/issues/2117
       expect(messagesAfterCursor.length).to.eql(0);
     } catch (error) {
       if (
@@ -197,7 +195,7 @@ describe("Waku Store, cursor", function () {
 
     try {
       for await (const page of waku.store.queryGenerator([TestDecoder], {
-        cursor
+        paginationCursor: cursor
       })) {
         void page;
       }

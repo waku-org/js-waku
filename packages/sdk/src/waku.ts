@@ -21,7 +21,7 @@ import { Logger } from "@waku/utils";
 
 import { wakuFilter } from "./protocols/filter.js";
 import { wakuLightPush } from "./protocols/light_push.js";
-import { wakuStore } from "./protocols/store.js";
+import { wakuStore } from "./protocols/store/v3.js";
 import { subscribeToContentTopic } from "./utils/content_topic.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
