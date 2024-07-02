@@ -14,6 +14,7 @@ import {
   type Libp2p,
   type ProtocolCreateOptions,
   ProtocolError,
+  ProtocolUseOptions,
   type PubsubTopic,
   SDKProtocolResult,
   type ShardingParams,
@@ -45,7 +46,6 @@ const DEFAULT_SUBSCRIBE_OPTIONS = {
 };
 export class SubscriptionManager implements ISubscriptionSDK {
   private readonly pubsubTopic: PubsubTopic;
-  readonly peers: Peer[];
   readonly receivedMessagesHashStr: string[] = [];
   private keepAliveTimer: number | null = null;
 
@@ -56,10 +56,9 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
   constructor(
     pubsubTopic: PubsubTopic,
-    remotePeers: Peer[],
+    private peers: Peer[],
     private protocol: FilterCore
   ) {
-    this.peers = remotePeers;
     this.pubsubTopic = pubsubTopic;
     this.subscriptionCallbacks = new Map();
   }
@@ -314,8 +313,14 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    * @returns The subscription object.
    */
   async createSubscription(
-    pubsubTopicShardInfo: ShardingParams | PubsubTopic
+    pubsubTopicShardInfo: ShardingParams | PubsubTopic,
+    options?: ProtocolUseOptions
   ): Promise<CreateSubscriptionResult> {
+    options = {
+      autoRetry: true,
+      ...options
+    } as ProtocolUseOptions;
+
     const pubsubTopic =
       typeof pubsubTopicShardInfo == "string"
         ? pubsubTopicShardInfo
@@ -323,17 +328,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
-    let peers: Peer[] = [];
-    try {
-      peers = await this.protocol.getPeers();
-    } catch (error) {
-      log.error("Error getting peers to initiate subscription: ", error);
-      return {
-        error: ProtocolError.GENERIC_FAIL,
-        subscription: null
-      };
-    }
-    if (peers.length === 0) {
+    const hasPeers = await this.hasPeers(options);
+    if (!hasPeers) {
       return {
         error: ProtocolError.NO_PEER_AVAILABLE,
         subscription: null
@@ -341,15 +337,15 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     }
 
     log.info(
-      `Creating filter subscription with ${peers.length} peers: `,
-      peers.map((peer) => peer.id.toString())
+      `Creating filter subscription with ${this.connectedPeers.length} peers: `,
+      this.connectedPeers.map((peer) => peer.id.toString())
     );
 
     const subscription =
       this.getActiveSubscription(pubsubTopic) ??
       this.setActiveSubscription(
         pubsubTopic,
-        new SubscriptionManager(pubsubTopic, peers, this.protocol)
+        new SubscriptionManager(pubsubTopic, this.connectedPeers, this.protocol)
       );
 
     return {
