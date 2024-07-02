@@ -35,7 +35,7 @@ export type IFilterSDK = IReceiver &
   IBaseProtocolSDK & { protocol: IBaseProtocolCore } & {
     createSubscription(
       pubsubTopicShardInfo?: ShardingParams | PubsubTopic,
-      protocolUseOptions?: ProtocolUseOptions
+      options?: ProtocolUseOptions
     ): Promise<CreateSubscriptionResult>;
   };
 

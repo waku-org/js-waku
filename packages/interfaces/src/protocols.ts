@@ -43,7 +43,7 @@ export type ApplicationInfo = {
 
 export type ShardingParams = ShardInfo | ContentTopicInfo | ApplicationInfo;
 
-//TODO: merge this with ProtocolCreateOptions or establish distinction
+//TODO: merge this with ProtocolCreateOptions or establish distinction: https://github.com/waku-org/js-waku/issues/2048
 /**
  * Options for using LightPush and Filter
  */
