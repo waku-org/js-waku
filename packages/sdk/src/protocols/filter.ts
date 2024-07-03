@@ -59,7 +59,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
   constructor(
     pubsubTopic: PubsubTopic,
     private protocol: FilterCore,
-    // private peers: Peer[],
     private getPeers: () => Peer[],
     private readonly renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>
   ) {
