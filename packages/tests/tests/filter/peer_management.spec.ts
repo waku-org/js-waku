@@ -18,6 +18,8 @@ import {
   teardownNodesWithRedundancy
 } from "../filter/utils.js";
 
+//TODO: add unit tests,
+
 describe("Waku Filter: Peer Management: E2E", function () {
   this.timeout(15000);
   let waku: LightNode;
