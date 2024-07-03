@@ -52,7 +52,14 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       `Peer ${peerToDisconnect} disconnected and removed from the peer list`
     );
 
-    return (await this.findAndAddPeers(1))[0];
+    const peer = (await this.findAndAddPeers(1))[0];
+    if (!peer) {
+      throw new Error(
+        "Failed to find a new peer to replace the disconnected one"
+      );
+    }
+
+    return peer;
   }
 
   /**
