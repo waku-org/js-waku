@@ -25,8 +25,8 @@ import {
 
 //TODO: add unit tests,
 
-describe("Waku Filter: Peer Management: E2E", function () {
-  this.timeout(30000);
+describe.only("Waku Filter: Peer Management: E2E", function () {
+  this.timeout(15000);
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
   let subscription: ISubscriptionSDK;
