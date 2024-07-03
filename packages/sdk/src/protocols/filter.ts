@@ -59,7 +59,8 @@ export class SubscriptionManager implements ISubscriptionSDK {
   constructor(
     pubsubTopic: PubsubTopic,
     private protocol: FilterCore,
-    private peers: Peer[],
+    // private peers: Peer[],
+    private getPeers: () => Peer[],
     private readonly renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>
   ) {
     this.pubsubTopic = pubsubTopic;
@@ -90,7 +91,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
     const contentTopics = Array.from(decodersGroupedByCT.keys());
 
-    const promises = this.peers.map(async (peer) =>
+    const promises = this.getPeers().map(async (peer) =>
       this.protocol.subscribe(this.pubsubTopic, peer, contentTopics)
     );
 
@@ -122,7 +123,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
   }
 
   async unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult> {
-    const promises = this.peers.map(async (peer) => {
+    const promises = this.getPeers().map(async (peer) => {
       const response = await this.protocol.unsubscribe(
         this.pubsubTopic,
         peer,
@@ -148,7 +149,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
   async ping(peerId?: PeerId): Promise<SDKProtocolResult> {
     if (peerId) {
-      const peer = this.peers.find((p) => p.id.equals(peerId));
+      const peer = this.getPeers().find((p) => p.id.equals(peerId));
       if (!peer) {
         log.warn(
           "Peer not found in connected peers. Looks like the peer is already disconnected."
@@ -170,7 +171,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
         : { failures: [], successes: [success] };
     }
 
-    const promises = this.peers.map((peer) => this.protocol.ping(peer));
+    const promises = this.getPeers().map((peer) => this.protocol.ping(peer));
 
     const results = await Promise.allSettled(promises);
 
@@ -178,7 +179,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
   }
 
   async unsubscribeAll(): Promise<SDKProtocolResult> {
-    const promises = this.peers.map(async (peer) =>
+    const promises = this.getPeers().map(async (peer) =>
       this.protocol.unsubscribeAll(this.pubsubTopic, peer)
     );
 
@@ -411,7 +412,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
         new SubscriptionManager(
           pubsubTopic,
           this.protocol,
-          this.connectedPeers,
+          () => this.connectedPeers,
           this.renewPeer.bind(this)
         )
       );

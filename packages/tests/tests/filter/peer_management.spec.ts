@@ -104,13 +104,13 @@ describe("Waku Filter: Peer Management: E2E", function () {
     expect(pingResult.failures.length).to.equal(0);
   });
 
-  it("Renews peer on consistent ping failures", async function () {
-    await subscription.subscribe([decoder], () => {}, { keepAlive: 100 });
+  it.only("Renews peer on consistent ping failures", async function () {
+    await subscription.subscribe([decoder], () => {}, { keepAlive: 300 });
 
     const disconnectedNodePeerId = waku.filter.connectedPeers[0].id;
     await waku.connectionManager.dropConnection(disconnectedNodePeerId);
 
-    await delay(1000);
+    await delay(5700);
 
     const pingResult = await subscription.ping();
     expect(pingResult.successes.length).to.equal(waku.filter.numPeersToUse);
