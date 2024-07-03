@@ -1,7 +1,7 @@
 import type { Peer, PeerId } from "@libp2p/interface";
 import { ConnectionManager } from "@waku/core";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
-import { IBaseProtocolSDK, SendOptions } from "@waku/interfaces";
+import { IBaseProtocolSDK, ProtocolUseOptions } from "@waku/interfaces";
 import { delay, Logger } from "@waku/utils";
 
 interface Options {
@@ -86,7 +86,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * @param options.maxDelay Optional maximum delay in milliseconds for exponential backoff (default: 100)
    */
   protected hasPeers = async (
-    options: Partial<SendOptions> = {}
+    options: Partial<ProtocolUseOptions> = {}
   ): Promise<boolean> => {
     const {
       autoRetry = false,
