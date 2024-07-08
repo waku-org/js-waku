@@ -43,6 +43,7 @@ const log = new Logger("sdk:filter");
 
 const MINUTE = 60 * 1000;
 const DEFAULT_PINGS = 3;
+
 const DEFAULT_SUBSCRIBE_OPTIONS = {
   keepAlive: MINUTE,
   pingsBeforePeerRenewed: DEFAULT_PINGS
