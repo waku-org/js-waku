@@ -131,6 +131,35 @@ describe.only("Waku Filter: Peer Management: E2E", function () {
     ).to.eq(false);
   });
 
+  it("Tracks peer failures correctly", async function () {
+    const maxPingFailures = 3;
+    await subscription.subscribe([decoder], () => {}, {
+      pingsBeforePeerRenewed: maxPingFailures
+    });
+
+    const targetPeer = waku.filter.connectedPeers[0];
+    await waku.connectionManager.dropConnection(targetPeer.id);
+
+    for (let i = 0; i < maxPingFailures; i++) {
+      await subscription.ping(targetPeer.id);
+    }
+
+    // At this point, the peer should not be renewed yet
+    expect(
+      waku.filter.connectedPeers.some((peer) => peer.id.equals(targetPeer.id))
+    ).to.be.true;
+
+    // One more failure should trigger renewal
+    await subscription.ping(targetPeer.id);
+
+    expect(
+      waku.filter.connectedPeers.some((peer) => peer.id.equals(targetPeer.id))
+    ).to.be.false;
+    expect(waku.filter.connectedPeers.length).to.equal(
+      waku.filter.numPeersToUse
+    );
+  });
+
   it("Maintains correct number of peers after multiple subscribe/unsubscribe cycles", async function () {
     for (let i = 0; i < 3; i++) {
       await subscription.subscribe([decoder], () => {});
