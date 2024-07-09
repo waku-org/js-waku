@@ -23,9 +23,7 @@ import {
   teardownNodesWithRedundancy
 } from "../filter/utils.js";
 
-//TODO: add unit tests,
-
-describe("Waku Filter: Peer Management: E2E", function () {
+describe.only("Waku Filter: Peer Management: E2E", function () {
   this.timeout(15000);
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
@@ -105,12 +103,19 @@ describe("Waku Filter: Peer Management: E2E", function () {
   });
 
   it("Renews peer on consistent ping failures", async function () {
-    await subscription.subscribe([decoder], () => {}, { keepAlive: 300 });
+    const maxPingFailures = 3;
+    await subscription.subscribe([decoder], () => {}, {
+      pingsBeforePeerRenewed: maxPingFailures
+    });
 
     const disconnectedNodePeerId = waku.filter.connectedPeers[0].id;
     await waku.connectionManager.dropConnection(disconnectedNodePeerId);
 
-    await delay(1000);
+    // Ping multiple times to exceed max failures
+    for (let i = 0; i <= maxPingFailures; i++) {
+      await subscription.ping();
+      await delay(100);
+    }
 
     const pingResult = await subscription.ping();
     expect(pingResult.successes.length).to.equal(waku.filter.numPeersToUse);
