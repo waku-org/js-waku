@@ -92,18 +92,7 @@ export async function defaultLibp2p(
 export async function createLibp2pAndUpdateOptions(
   options: CreateWakuNodeOptions
 ): Promise<Libp2p> {
-  logWhichShardInfoIsUsed(options);
-
-  if (options.contentTopics) {
-    options.shardInfo = { contentTopics: options.contentTopics };
-  }
-
-  const shardInfo = options.shardInfo
-    ? ensureShardingConfigured(options.shardInfo)
-    : undefined;
-
-  options.pubsubTopics = shardInfo?.pubsubTopics ??
-    options.pubsubTopics ?? [DefaultPubsubTopic];
+  configurePubsubForOptions(options);
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
@@ -126,6 +115,27 @@ export async function createLibp2pAndUpdateOptions(
   );
 
   return libp2p;
+}
+
+function configurePubsubForOptions(options: CreateWakuNodeOptions): void {
+  const flags = [options.contentTopics, options.pubsubTopics, options.shardInfo].filter(v => !!v);
+
+  if (flags.length > 1) {
+    throw Error("Too many network configurations, pass only: pubsubTopic, contentTopics or shardInfo.");
+  }
+
+  logWhichShardInfoIsUsed(options);
+
+  if (options.contentTopics) {
+    options.shardInfo = { contentTopics: options.contentTopics };
+  }
+
+  const shardInfo = options.shardInfo
+    ? ensureShardingConfigured(options.shardInfo)
+    : undefined;
+
+  options.pubsubTopics = shardInfo?.pubsubTopics ??
+    options.pubsubTopics ?? [DefaultPubsubTopic];
 }
 
 function logWhichShardInfoIsUsed(options: CreateWakuNodeOptions): void {
