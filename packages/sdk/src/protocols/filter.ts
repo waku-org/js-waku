@@ -39,6 +39,13 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
   callback: Callback<T>;
 };
 
+type ReceivedMessageHashes = {
+  all: Set<string>;
+  nodes: {
+    [peerId: string]: Set<string>;
+  };
+};
+
 const log = new Logger("sdk:filter");
 
 const MINUTE = 60 * 1000;
@@ -51,6 +58,8 @@ export class SubscriptionManager implements ISubscriptionSDK {
   private readonly pubsubTopic: PubsubTopic;
   readonly receivedMessagesHashStr: string[] = [];
   private keepAliveTimer: number | null = null;
+  private readonly receivedMessagesHashes: ReceivedMessageHashes;
+  private messageValidationTimer: number | null = null;
   private peerFailures: Map<string, number> = new Map();
   private maxPingFailures: number = DEFAULT_MAX_PINGS;
 
@@ -67,6 +76,33 @@ export class SubscriptionManager implements ISubscriptionSDK {
   ) {
     this.pubsubTopic = pubsubTopic;
     this.subscriptionCallbacks = new Map();
+    const allPeerIdStrs = this.getPeers().map((p) => p.id.toString());
+    this.receivedMessagesHashes = {
+      all: new Set(),
+      nodes: {
+        ...Object.fromEntries(
+          allPeerIdStrs.map((peerId) => [peerId, new Set()])
+        )
+      }
+    };
+
+    this.startMessageValidationCycle();
+  }
+
+  get messageHashes(): string[] {
+    return [...this.receivedMessagesHashes.all];
+  }
+
+  addHash(hash: string, peerIdStr?: string): void {
+    this.receivedMessagesHashes.all.add(hash);
+
+    if (peerIdStr) {
+      if (peerIdStr in this.receivedMessagesHashes) {
+        this.receivedMessagesHashes.nodes[peerIdStr].add(hash);
+      } else {
+        this.receivedMessagesHashes.nodes[peerIdStr] = new Set([hash]);
+      }
+    }
   }
 
   public async subscribe<T extends IDecodedMessage>(
@@ -146,8 +182,13 @@ export class SubscriptionManager implements ISubscriptionSDK {
     const results = await Promise.allSettled(promises);
     const finalResult = this.handleResult(results, "unsubscribe");
 
-    if (this.subscriptionCallbacks.size === 0 && this.keepAliveTimer) {
-      this.stopKeepAlivePings();
+    if (this.subscriptionCallbacks.size === 0) {
+      if (this.keepAliveTimer) {
+        this.stopKeepAlivePings();
+      }
+      if (this.messageValidationTimer) {
+        this.stopMessageValidationCycle();
+      }
     }
 
     return finalResult;
@@ -180,11 +221,17 @@ export class SubscriptionManager implements ISubscriptionSDK {
     return finalResult;
   }
 
-  async processIncomingMessage(message: WakuMessage): Promise<void> {
+  async processIncomingMessage(
+    message: WakuMessage,
+    peerIdStr: string
+  ): Promise<void> {
     const hashedMessageStr = messageHashStr(
       this.pubsubTopic,
       message as IProtoMessage
     );
+
+    this.addHash(hashedMessageStr, peerIdStr);
+
     if (this.receivedMessagesHashStr.includes(hashedMessageStr)) {
       log.info("Message already received, skipping");
       return;
@@ -312,6 +359,55 @@ export class SubscriptionManager implements ISubscriptionSDK {
     clearInterval(this.keepAliveTimer);
     this.keepAliveTimer = null;
   }
+
+  private startMessageValidationCycle(): void {
+    const validationCycle = async (): Promise<void> => {
+      log.info("Starting message validation cycle");
+
+      for (const hash of this.receivedMessagesHashes.all) {
+        for (const [peerIdStr, hashes] of Object.entries(
+          this.receivedMessagesHashes.nodes
+        )) {
+          if (!hashes.has(hash)) {
+            log.error(
+              `Message with hash ${hash} not received from peer ${peerIdStr}.  Attempting renewal.`
+            );
+            const peerId = this.getPeers().find(
+              (p) => p.id.toString() === peerIdStr
+            )?.id;
+            if (!peerId) {
+              log.error(
+                `Unexpected Error: Peer ${peerIdStr} not found in connected peers.`
+              );
+              return;
+            }
+            try {
+              await this.renewPeer(peerId);
+            } catch (error) {
+              log.error(`Failed to renew peer ${peerIdStr}: ${error}`);
+            }
+          }
+        }
+      }
+    };
+
+    this.messageValidationTimer = setInterval(() => {
+      void validationCycle().catch((error) => {
+        log.error("Error in message validation cycle:", error);
+      });
+    }, MINUTE) as unknown as number;
+  }
+
+  private stopMessageValidationCycle(): void {
+    if (!this.messageValidationTimer) {
+      log.info("Already stopped message validation cycle.");
+      return;
+    }
+
+    log.info("Stopping message validation cycle.");
+    clearInterval(this.messageValidationTimer);
+    this.messageValidationTimer = null;
+  }
 }
 
 class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
@@ -326,7 +422,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
   ) {
     super(
       new FilterCore(
-        async (pubsubTopic: PubsubTopic, wakuMessage: WakuMessage) => {
+        async (pubsubTopic, wakuMessage, peerIdStr) => {
           const subscription = this.getActiveSubscription(pubsubTopic);
           if (!subscription) {
             log.error(
@@ -335,7 +431,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
             return;
           }
 
-          await subscription.processIncomingMessage(wakuMessage);
+          await subscription.processIncomingMessage(wakuMessage, peerIdStr);
         },
         libp2p,
         options
