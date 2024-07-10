@@ -1,3 +1,5 @@
+import type { PeerId } from "@libp2p/interface";
+
 import type { IDecodedMessage, IDecoder } from "./message.js";
 import type { ContentTopic, PubsubTopic, ThisOrThat } from "./misc.js";
 import type {
@@ -13,6 +15,7 @@ import type { IReceiver } from "./receiver.js";
 
 export type SubscribeOptions = {
   keepAlive?: number;
+  pingsBeforePeerRenewed?: number;
 };
 
 export type IFilter = IReceiver & IBaseProtocolCore;
@@ -26,7 +29,7 @@ export interface ISubscriptionSDK {
 
   unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult>;
 
-  ping(): Promise<SDKProtocolResult>;
+  ping(peerId?: PeerId): Promise<SDKProtocolResult>;
 
   unsubscribeAll(): Promise<SDKProtocolResult>;
 }

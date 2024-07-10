@@ -1,4 +1,5 @@
 import type { Peer } from "@libp2p/interface";
+import type { PeerId } from "@libp2p/interface";
 import { ConnectionManager, FilterCore } from "@waku/core";
 import {
   type Callback,
@@ -41,6 +42,8 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
 const log = new Logger("sdk:filter");
 
 const MINUTE = 60 * 1000;
+const DEFAULT_MAX_PINGS = 3;
+
 const DEFAULT_SUBSCRIBE_OPTIONS = {
   keepAlive: MINUTE
 };
@@ -48,6 +51,8 @@ export class SubscriptionManager implements ISubscriptionSDK {
   private readonly pubsubTopic: PubsubTopic;
   readonly receivedMessagesHashStr: string[] = [];
   private keepAliveTimer: number | null = null;
+  private peerFailures: Map<string, number> = new Map();
+  private maxPingFailures: number = DEFAULT_MAX_PINGS;
 
   private subscriptionCallbacks: Map<
     ContentTopic,
@@ -56,18 +61,21 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
   constructor(
     pubsubTopic: PubsubTopic,
-    private peers: Peer[],
-    private protocol: FilterCore
+    private protocol: FilterCore,
+    private getPeers: () => Peer[],
+    private readonly renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>
   ) {
     this.pubsubTopic = pubsubTopic;
     this.subscriptionCallbacks = new Map();
   }
 
-  async subscribe<T extends IDecodedMessage>(
+  public async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
     options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<SDKProtocolResult> {
+    this.maxPingFailures = options.pingsBeforePeerRenewed || DEFAULT_MAX_PINGS;
+
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
     // check that all decoders are configured for the same pubsub topic as this subscription
@@ -87,7 +95,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
     const contentTopics = Array.from(decodersGroupedByCT.keys());
 
-    const promises = this.peers.map(async (peer) =>
+    const promises = this.getPeers().map(async (peer) =>
       this.protocol.subscribe(this.pubsubTopic, peer, contentTopics)
     );
 
@@ -111,15 +119,17 @@ export class SubscriptionManager implements ISubscriptionSDK {
       this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
     });
 
-    if (options?.keepAlive) {
-      this.startKeepAlivePings(options.keepAlive);
+    if (options.keepAlive) {
+      this.startKeepAlivePings(options);
     }
 
     return finalResult;
   }
 
-  async unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult> {
-    const promises = this.peers.map(async (peer) => {
+  public async unsubscribe(
+    contentTopics: ContentTopic[]
+  ): Promise<SDKProtocolResult> {
+    const promises = this.getPeers().map(async (peer) => {
       const response = await this.protocol.unsubscribe(
         this.pubsubTopic,
         peer,
@@ -143,16 +153,17 @@ export class SubscriptionManager implements ISubscriptionSDK {
     return finalResult;
   }
 
-  async ping(): Promise<SDKProtocolResult> {
-    const promises = this.peers.map(async (peer) => this.protocol.ping(peer));
+  public async ping(peerId?: PeerId): Promise<SDKProtocolResult> {
+    const peers = peerId ? [peerId] : this.getPeers().map((peer) => peer.id);
 
+    const promises = peers.map((peerId) => this.pingSpecificPeer(peerId));
     const results = await Promise.allSettled(promises);
 
     return this.handleResult(results, "ping");
   }
 
-  async unsubscribeAll(): Promise<SDKProtocolResult> {
-    const promises = this.peers.map(async (peer) =>
+  public async unsubscribeAll(): Promise<SDKProtocolResult> {
+    const promises = this.getPeers().map(async (peer) =>
       this.protocol.unsubscribeAll(this.pubsubTopic, peer)
     );
 
@@ -217,31 +228,78 @@ export class SubscriptionManager implements ISubscriptionSDK {
         }
       }
     }
-
-    // TODO: handle renewing faulty peers with new peers (https://github.com/waku-org/js-waku/issues/1463)
-
     return result;
   }
 
-  private startKeepAlivePings(interval: number): void {
+  private async pingSpecificPeer(peerId: PeerId): Promise<CoreProtocolResult> {
+    const peer = this.getPeers().find((p) => p.id.equals(peerId));
+    if (!peer) {
+      return {
+        success: null,
+        failure: {
+          peerId,
+          error: ProtocolError.NO_PEER_AVAILABLE
+        }
+      };
+    }
+
+    try {
+      const result = await this.protocol.ping(peer);
+      if (result.failure) {
+        await this.handlePeerFailure(peerId);
+      } else {
+        this.peerFailures.delete(peerId.toString());
+      }
+      return result;
+    } catch (error) {
+      await this.handlePeerFailure(peerId);
+      return {
+        success: null,
+        failure: {
+          peerId,
+          error: ProtocolError.GENERIC_FAIL
+        }
+      };
+    }
+  }
+
+  private async handlePeerFailure(peerId: PeerId): Promise<void> {
+    const failures = (this.peerFailures.get(peerId.toString()) || 0) + 1;
+    this.peerFailures.set(peerId.toString(), failures);
+
+    if (failures > this.maxPingFailures) {
+      try {
+        await this.renewAndSubscribePeer(peerId);
+        this.peerFailures.delete(peerId.toString());
+      } catch (error) {
+        log.error(`Failed to renew peer ${peerId.toString()}: ${error}.`);
+      }
+    }
+  }
+
+  private async renewAndSubscribePeer(peerId: PeerId): Promise<Peer> {
+    const newPeer = await this.renewPeer(peerId);
+    await this.protocol.subscribe(
+      this.pubsubTopic,
+      newPeer,
+      Array.from(this.subscriptionCallbacks.keys())
+    );
+
+    return newPeer;
+  }
+
+  private startKeepAlivePings(options: SubscribeOptions): void {
+    const { keepAlive } = options;
     if (this.keepAliveTimer) {
       log.info("Recurring pings already set up.");
       return;
     }
 
     this.keepAliveTimer = setInterval(() => {
-      const run = async (): Promise<void> => {
-        try {
-          log.info("Recurring ping to peers.");
-          await this.ping();
-        } catch (error) {
-          log.error("Stopping recurring pings due to failure", error);
-          this.stopKeepAlivePings();
-        }
-      };
-
-      void run();
-    }, interval) as unknown as number;
+      void this.ping().catch((error) => {
+        log.error("Error in keep-alive ping cycle:", error);
+      });
+    }, keepAlive) as unknown as number;
   }
 
   private stopKeepAlivePings(): void {
@@ -345,7 +403,12 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
       this.getActiveSubscription(pubsubTopic) ??
       this.setActiveSubscription(
         pubsubTopic,
-        new SubscriptionManager(pubsubTopic, this.connectedPeers, this.protocol)
+        new SubscriptionManager(
+          pubsubTopic,
+          this.protocol,
+          () => this.connectedPeers,
+          this.renewPeer.bind(this)
+        )
       );
 
     return {
