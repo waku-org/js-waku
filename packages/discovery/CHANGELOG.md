@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.0.3](https://github.com/waku-org/js-waku/compare/discovery-v0.0.2...discovery-v0.0.3) (2024-07-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **filter:** return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971))
+
+### Features
+
+* **filter:** Return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971)) ([4eb06c6](https://github.com/waku-org/js-waku/commit/4eb06c64eb05c015e2f51e3f45a9d7143a934385))
+
+
+### Bug Fixes
+
+* Bootstrapping with default pubsub topic ([#2031](https://github.com/waku-org/js-waku/issues/2031)) ([16e9116](https://github.com/waku-org/js-waku/commit/16e9116c7cf6be876e174fe9259921c8d5397a88))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.24 to 0.0.25
+    * @waku/enr bumped from 0.0.23 to 0.0.24
+    * @waku/core bumped from 0.0.29 to 0.0.30
+    * @waku/utils bumped from 0.0.17 to 0.0.18
+
 ## [0.0.2](https://github.com/waku-org/js-waku/compare/discovery-v0.0.1...discovery-v0.0.2) (2024-04-30)
 
 
