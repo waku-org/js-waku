@@ -154,16 +154,9 @@ export class SubscriptionManager implements ISubscriptionSDK {
   }
 
   public async ping(peerId?: PeerId): Promise<SDKProtocolResult> {
-    if (peerId) {
-      const result = await this.pingSpecificPeer(peerId);
-      return result.failure
-        ? { failures: [result.failure], successes: [] }
-        : { failures: [], successes: [result.success!] };
-    }
+    const peers = peerId ? [peerId] : this.getPeers().map((peer) => peer.id);
 
-    const promises = this.getPeers().map((peer) =>
-      this.pingSpecificPeer(peer.id)
-    );
+    const promises = peers.map((peerId) => this.pingSpecificPeer(peerId));
     const results = await Promise.allSettled(promises);
 
     return this.handleResult(results, "ping");
@@ -276,7 +269,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
     if (failures > this.maxPingFailures) {
       try {
-        await this._renewPeer(peerId);
+        await this.renewAndSubscribePeer(peerId);
         this.peerFailures.delete(peerId.toString());
       } catch (error) {
         log.error(`Failed to renew peer ${peerId.toString()}: ${error}.`);
@@ -284,7 +277,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     }
   }
 
-  private async _renewPeer(peerId: PeerId): Promise<Peer> {
+  private async renewAndSubscribePeer(peerId: PeerId): Promise<Peer> {
     const newPeer = await this.renewPeer(peerId);
     await this.protocol.subscribe(
       this.pubsubTopic,
