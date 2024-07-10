@@ -92,13 +92,13 @@ export async function defaultLibp2p(
 export async function createLibp2pAndUpdateOptions(
   options: CreateWakuNodeOptions
 ): Promise<Libp2p> {
-  configurePubsubForOptions(options);
+  const shardInfo = configureNetworkOptions(options);
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
 
   if (options?.defaultBootstrap) {
-    peerDiscovery.push(...defaultPeerDiscoveries(options.pubsubTopics));
+    peerDiscovery.push(...defaultPeerDiscoveries(options.pubsubTopics!));
   }
 
   if (options?.bootstrapPeers) {
@@ -108,7 +108,7 @@ export async function createLibp2pAndUpdateOptions(
   libp2pOptions.peerDiscovery = peerDiscovery;
 
   const libp2p = await defaultLibp2p(
-    shardInfo?.shardInfo,
+    shardInfo,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
@@ -117,11 +117,19 @@ export async function createLibp2pAndUpdateOptions(
   return libp2p;
 }
 
-function configurePubsubForOptions(options: CreateWakuNodeOptions): void {
-  const flags = [options.contentTopics, options.pubsubTopics, options.shardInfo].filter(v => !!v);
+function configureNetworkOptions(
+  options: CreateWakuNodeOptions
+): ShardInfo | undefined {
+  const flags = [
+    options.contentTopics,
+    options.pubsubTopics,
+    options.shardInfo
+  ].filter((v) => !!v);
 
   if (flags.length > 1) {
-    throw Error("Too many network configurations, pass only: pubsubTopic, contentTopics or shardInfo.");
+    throw Error(
+      "Too many network configurations, pass only: pubsubTopic, contentTopics or shardInfo."
+    );
   }
 
   logWhichShardInfoIsUsed(options);
@@ -136,6 +144,8 @@ function configurePubsubForOptions(options: CreateWakuNodeOptions): void {
 
   options.pubsubTopics = shardInfo?.pubsubTopics ??
     options.pubsubTopics ?? [DefaultPubsubTopic];
+
+  return shardInfo?.shardInfo;
 }
 
 function logWhichShardInfoIsUsed(options: CreateWakuNodeOptions): void {
