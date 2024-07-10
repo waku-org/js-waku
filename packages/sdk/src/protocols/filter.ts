@@ -76,13 +76,11 @@ export class SubscriptionManager implements ISubscriptionSDK {
   ) {
     this.pubsubTopic = pubsubTopic;
     this.subscriptionCallbacks = new Map();
-    const allPeerIdStrs = this.getPeers().map((p) => p.id.toString());
+    const allPeerIdStr = this.getPeers().map((p) => p.id.toString());
     this.receivedMessagesHashes = {
       all: new Set(),
       nodes: {
-        ...Object.fromEntries(
-          allPeerIdStrs.map((peerId) => [peerId, new Set()])
-        )
+        ...Object.fromEntries(allPeerIdStr.map((peerId) => [peerId, new Set()]))
       }
     };
 
