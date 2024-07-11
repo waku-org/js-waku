@@ -57,7 +57,7 @@
     "@waku/utils": "0.0.18",
     "chai": "^4.3.10",
     "debug": "^4.3.4",
-    "fast-check": "^3.15.1"
+    "fast-check": "^3.19.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
