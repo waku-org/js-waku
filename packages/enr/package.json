@@ -79,8 +79,8 @@
     "uint8arrays": "^5.0.1"
   },
   "peerDependencies": {
-    "@waku/utils": "0.0.15",
-    "@waku/interfaces": "0.0.22",
+    "@waku/utils": "0.0.18",
+    "@waku/interfaces": "0.0.25",
     "@multiformats/multiaddr": "^12.0.0"
   },
   "peerDependenciesMeta": {
