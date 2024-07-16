@@ -27,8 +27,6 @@ export class KeepAliveManager {
     new Map();
 
   constructor({ options, relay, libp2p }: CreateKeepAliveManagerOptions) {
-    this.pingKeepAliveTimers = new Map();
-    this.relayKeepAliveTimers = new Map();
     this.options = options;
     this.relay = relay;
     this.libp2p = libp2p;
