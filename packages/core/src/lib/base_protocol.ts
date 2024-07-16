@@ -14,7 +14,7 @@ import {
 } from "@waku/utils/libp2p";
 
 import { filterPeersByDiscovery } from "./filterPeers.js";
-import { StreamManager } from "./stream_manager.js";
+import { StreamManager } from "./stream_manager/index.js";
 
 /**
  * A class with predefined helpers, to be used as a base to implement Waku
@@ -47,6 +47,7 @@ export class BaseProtocol implements IBaseProtocolCore {
       this.addLibp2pEventListener
     );
   }
+
   protected async getStream(peer: Peer): Promise<Stream> {
     return this.streamManager.getStream(peer);
   }

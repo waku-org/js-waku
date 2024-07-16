@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.30](https://github.com/waku-org/js-waku/compare/core-v0.0.29...core-v0.0.30) (2024-07-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **filter:** return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971))
+
+### Features
+
+* **filter:** Return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971)) ([4eb06c6](https://github.com/waku-org/js-waku/commit/4eb06c64eb05c015e2f51e3f45a9d7143a934385))
+* **lightpush:** Peer management for protocols ([#2003](https://github.com/waku-org/js-waku/issues/2003)) ([93e78c3](https://github.com/waku-org/js-waku/commit/93e78c3b876e084ab70e07c64c9b721693b659f8))
+
+
+### Bug Fixes
+
+* Failing `node_optional` check ([#2025](https://github.com/waku-org/js-waku/issues/2025)) ([984fb94](https://github.com/waku-org/js-waku/commit/984fb94b5b23a0d2f7edebad36170911ce7a2e84))
+* Increasing maxInboundStreams for lightpush from 32 to 100 ([#2021](https://github.com/waku-org/js-waku/issues/2021)) ([2311a59](https://github.com/waku-org/js-waku/commit/2311a595b28b9e7c99fcd96044cf098ad975c70c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.23 to ^0.0.24
+    * @waku/interfaces bumped from 0.0.24 to 0.0.25
+    * @waku/utils bumped from 0.0.17 to 0.0.18
+
 ## [0.0.29](https://github.com/waku-org/js-waku/compare/core-v0.0.28...core-v0.0.29) (2024-04-30)
 
 

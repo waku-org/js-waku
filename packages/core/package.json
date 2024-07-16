@@ -1,6 +1,6 @@
 {
   "name": "@waku/core",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "description": "TypeScript implementation of the Waku v2 protocol",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
@@ -69,10 +69,10 @@
   },
   "dependencies": {
     "@libp2p/ping": "^1.0.12",
-    "@waku/enr": "^0.0.23",
-    "@waku/interfaces": "0.0.24",
+    "@waku/enr": "^0.0.24",
+    "@waku/interfaces": "0.0.25",
     "@waku/proto": "0.0.7",
-    "@waku/utils": "0.0.17",
+    "@waku/utils": "0.0.18",
     "debug": "^4.3.4",
     "it-all": "^3.0.4",
     "it-length-prefixed": "^9.0.4",
@@ -93,7 +93,7 @@
     "@waku/build-utils": "*",
     "chai": "^4.3.10",
     "cspell": "^8.6.1",
-    "fast-check": "^3.15.1",
+    "fast-check": "^3.19.0",
     "ignore-loader": "^0.1.2",
     "isomorphic-fetch": "^3.0.0",
     "mocha": "^10.3.0",
@@ -104,10 +104,10 @@
   "peerDependencies": {
     "@multiformats/multiaddr": "^12.0.0",
     "libp2p": "^1.1.2",
-    "@waku/enr": "^0.0.21",
-    "@waku/interfaces": "0.0.22",
-    "@waku/proto": "0.0.6",
-    "@waku/utils": "0.0.15"
+    "@waku/enr": "^0.0.24",
+    "@waku/interfaces": "0.0.25",
+    "@waku/proto": "0.0.7",
+    "@waku/utils": "0.0.18"
   },
   "peerDependenciesMeta": {
     "@multiformats/multiaddr": {

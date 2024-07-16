@@ -25,6 +25,26 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.13](https://github.com/waku-org/js-waku/compare/relay-v0.0.12...relay-v0.0.13) (2024-07-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **filter:** return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971))
+
+### Features
+
+* **filter:** Return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971)) ([4eb06c6](https://github.com/waku-org/js-waku/commit/4eb06c64eb05c015e2f51e3f45a9d7143a934385))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.29 to 0.0.30
+    * @waku/interfaces bumped from 0.0.24 to 0.0.25
+    * @waku/utils bumped from 0.0.17 to 0.0.18
+
 ## [0.0.12](https://github.com/waku-org/js-waku/compare/relay-v0.0.11...relay-v0.0.12) (2024-04-30)
 
 
