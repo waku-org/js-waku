@@ -61,7 +61,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
   readonly receivedMessagesHashStr: string[] = [];
   private keepAliveTimer: number | null = null;
   private readonly receivedMessagesHashes: ReceivedMessageHashes;
-  private messageValidationTimer: number | null = null;
   private peerFailures: Map<string, number> = new Map();
   private missedMessagesByPeer: Map<string, number> = new Map();
   private maxPingFailures: number = DEFAULT_MAX_PINGS;
@@ -88,8 +87,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
       }
     };
     allPeerIdStr.forEach((peerId) => this.missedMessagesByPeer.set(peerId, 0));
-
-    this.startMessageValidationCycle();
   }
 
   get messageHashes(): string[] {
@@ -100,11 +97,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     this.receivedMessagesHashes.all.add(hash);
 
     if (peerIdStr) {
-      if (peerIdStr in this.receivedMessagesHashes) {
-        this.receivedMessagesHashes.nodes[peerIdStr].add(hash);
-      } else {
-        this.receivedMessagesHashes.nodes[peerIdStr] = new Set([hash]);
-      }
+      this.receivedMessagesHashes.nodes[peerIdStr].add(hash);
     }
   }
 
@@ -113,7 +106,11 @@ export class SubscriptionManager implements ISubscriptionSDK {
     callback: Callback<T>,
     options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<SDKProtocolResult> {
+    this.keepAliveTimer = options.keepAlive || MINUTE;
     this.maxPingFailures = options.pingsBeforePeerRenewed || DEFAULT_MAX_PINGS;
+    this.maxMissedMessagesThreshold =
+      options.maxMissedMessagesThreshold ||
+      DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
 
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
@@ -189,9 +186,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
       if (this.keepAliveTimer) {
         this.stopKeepAlivePings();
       }
-      if (this.messageValidationTimer) {
-        this.stopMessageValidationCycle();
-      }
     }
 
     return finalResult;
@@ -224,6 +218,37 @@ export class SubscriptionManager implements ISubscriptionSDK {
     return finalResult;
   }
 
+  private async validateMessage(): Promise<void> {
+    for (const hash of this.receivedMessagesHashes.all) {
+      for (const [peerIdStr, hashes] of Object.entries(
+        this.receivedMessagesHashes.nodes
+      )) {
+        if (!hashes.has(hash)) {
+          this.incrementMissedMessageCount(peerIdStr);
+          if (this.shouldRenewPeer(peerIdStr)) {
+            log.info(
+              `Peer ${peerIdStr} has missed too many messages, renewing.`
+            );
+            const peerId = this.getPeers().find(
+              (p) => p.id.toString() === peerIdStr
+            )?.id;
+            if (!peerId) {
+              log.error(
+                `Unexpected Error: Peer ${peerIdStr} not found in connected peers.`
+              );
+              continue;
+            }
+            try {
+              await this.renewAndSubscribePeer(peerId);
+            } catch (error) {
+              log.error(`Failed to renew peer ${peerIdStr}: ${error}`);
+            }
+          }
+        }
+      }
+    }
+  }
+
   async processIncomingMessage(
     message: WakuMessage,
     peerIdStr: string
@@ -234,6 +259,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     );
 
     this.addHash(hashedMessageStr, peerIdStr);
+    await this.validateMessage();
 
     if (this.receivedMessagesHashStr.includes(hashedMessageStr)) {
       log.info("Message already received, skipping");
@@ -327,22 +353,29 @@ export class SubscriptionManager implements ISubscriptionSDK {
     }
   }
 
-  private async renewAndSubscribePeer(peerId: PeerId): Promise<Peer> {
-    const newPeer = await this.renewPeer(peerId);
-    await this.protocol.subscribe(
-      this.pubsubTopic,
-      newPeer,
-      Array.from(this.subscriptionCallbacks.keys())
-    );
+  private async renewAndSubscribePeer(
+    peerId: PeerId
+  ): Promise<Peer | undefined> {
+    try {
+      const newPeer = await this.renewPeer(peerId);
+      await this.protocol.subscribe(
+        this.pubsubTopic,
+        newPeer,
+        Array.from(this.subscriptionCallbacks.keys())
+      );
 
-    this.peerFailures.delete(peerId.toString());
-    this.missedMessagesByPeer.delete(peerId.toString());
-    delete this.receivedMessagesHashes.nodes[peerId.toString()];
+      this.receivedMessagesHashes.nodes[newPeer.id.toString()] = new Set();
+      this.missedMessagesByPeer.set(newPeer.id.toString(), 0);
 
-    this.receivedMessagesHashes.nodes[newPeer.id.toString()] = new Set();
-    this.missedMessagesByPeer.set(newPeer.id.toString(), 0);
-
-    return newPeer;
+      return newPeer;
+    } catch (error) {
+      log.warn(`Failed to renew peer ${peerId.toString()}: ${error}.`);
+      return;
+    } finally {
+      this.peerFailures.delete(peerId.toString());
+      this.missedMessagesByPeer.delete(peerId.toString());
+      delete this.receivedMessagesHashes.nodes[peerId.toString()];
+    }
   }
 
   private startKeepAlivePings(options: SubscribeOptions): void {
@@ -368,58 +401,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
     log.info("Stopping recurring pings.");
     clearInterval(this.keepAliveTimer);
     this.keepAliveTimer = null;
-  }
-
-  private startMessageValidationCycle(): void {
-    const validationCycle = async (): Promise<void> => {
-      log.info("Starting message validation cycle");
-
-      for (const hash of this.receivedMessagesHashes.all) {
-        for (const [peerIdStr, hashes] of Object.entries(
-          this.receivedMessagesHashes.nodes
-        )) {
-          if (!hashes.has(hash)) {
-            this.incrementMissedMessageCount(peerIdStr);
-            if (this.shouldRenewPeer(peerIdStr)) {
-              log.info(
-                `Peer ${peerIdStr} has missed too many messages, renewing.`
-              );
-              const peerId = this.getPeers().find(
-                (p) => p.id.toString() === peerIdStr
-              )?.id;
-              if (!peerId) {
-                log.error(
-                  `Unexpected Error: Peer ${peerIdStr} not found in connected peers.`
-                );
-                return;
-              }
-              try {
-                await this.renewAndSubscribePeer(peerId);
-              } catch (error) {
-                log.error(`Failed to renew peer ${peerIdStr}: ${error}`);
-              }
-            }
-          }
-        }
-      }
-    };
-
-    this.messageValidationTimer = setInterval(() => {
-      void validationCycle().catch((error) => {
-        log.error("Error in message validation cycle:", error);
-      });
-    }, MINUTE) as unknown as number;
-  }
-
-  private stopMessageValidationCycle(): void {
-    if (!this.messageValidationTimer) {
-      log.info("Already stopped message validation cycle.");
-      return;
-    }
-
-    log.info("Stopping message validation cycle.");
-    clearInterval(this.messageValidationTimer);
-    this.messageValidationTimer = null;
   }
 
   private incrementMissedMessageCount(peerIdStr: string): void {
