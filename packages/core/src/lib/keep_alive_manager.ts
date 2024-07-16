@@ -1,6 +1,5 @@
-import type { PeerId, PeerStore } from "@libp2p/interface";
-import type { PingService } from "@libp2p/ping";
-import type { IRelay, PeerIdStr } from "@waku/interfaces";
+import type { PeerId } from "@libp2p/interface";
+import type { IRelay, Libp2p, PeerIdStr } from "@waku/interfaces";
 import type { KeepAliveOptions } from "@waku/interfaces";
 import { Logger, pubsubTopicToSingleShardInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
@@ -10,24 +9,30 @@ import { createEncoder } from "./message/version_0.js";
 export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 const log = new Logger("keep-alive");
 
-export class KeepAliveManager {
-  private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>>;
-  private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>[]>;
-  private options: KeepAliveOptions;
-  private relay?: IRelay;
+type CreateKeepAliveManagerOptions = {
+  options: KeepAliveOptions;
+  libp2p: Libp2p;
+  relay?: IRelay;
+};
 
-  constructor(options: KeepAliveOptions, relay?: IRelay) {
-    this.pingKeepAliveTimers = new Map();
-    this.relayKeepAliveTimers = new Map();
+export class KeepAliveManager {
+  private readonly relay?: IRelay;
+  private readonly libp2p: Libp2p;
+
+  private readonly options: KeepAliveOptions;
+
+  private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>> =
+    new Map();
+  private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>[]> =
+    new Map();
+
+  constructor({ options, relay, libp2p }: CreateKeepAliveManagerOptions) {
     this.options = options;
     this.relay = relay;
+    this.libp2p = libp2p;
   }
 
-  public start(
-    peerId: PeerId,
-    libp2pPing: PingService,
-    peerStore: PeerStore
-  ): void {
+  public start(peerId: PeerId): void {
     // Just in case a timer already exists for this peer
     this.stop(peerId);
 
@@ -46,7 +51,7 @@ export class KeepAliveManager {
             // ping the peer for keep alive
             // also update the peer store with the latency
             try {
-              ping = await libp2pPing.ping(peerId);
+              ping = await this.libp2p.services.ping.ping(peerId);
               log.info(`Ping succeeded (${peerIdStr})`, ping);
             } catch (error) {
               log.error(`Ping failed for peer (${peerIdStr}).
@@ -56,7 +61,7 @@ export class KeepAliveManager {
             }
 
             try {
-              await peerStore.merge(peerId, {
+              await this.libp2p.peerStore.merge(peerId, {
                 metadata: {
                   ping: utf8ToBytes(ping.toString())
                 }

@@ -41,11 +41,11 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
 
 const log = new Logger("sdk:filter");
 
-const MINUTE = 60 * 1000;
 const DEFAULT_MAX_PINGS = 3;
+const DEFAULT_KEEP_ALIVE = 30 * 1000;
 
 const DEFAULT_SUBSCRIBE_OPTIONS = {
-  keepAlive: MINUTE
+  keepAlive: DEFAULT_KEEP_ALIVE
 };
 export class SubscriptionManager implements ISubscriptionSDK {
   private readonly pubsubTopic: PubsubTopic;
