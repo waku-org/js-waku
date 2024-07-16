@@ -84,7 +84,7 @@
     "rollup": "^4.12.0"
   },
   "peerDependencies": {
-    "@waku/interfaces": "0.0.22"
+    "@waku/interfaces": "0.0.25"
   },
   "peerDependenciesMeta": {
     "@waku/interfaces": {

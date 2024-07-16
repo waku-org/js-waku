@@ -104,10 +104,10 @@
   "peerDependencies": {
     "@multiformats/multiaddr": "^12.0.0",
     "libp2p": "^1.1.2",
-    "@waku/enr": "^0.0.21",
-    "@waku/interfaces": "0.0.22",
-    "@waku/proto": "0.0.6",
-    "@waku/utils": "0.0.15"
+    "@waku/enr": "^0.0.24",
+    "@waku/interfaces": "0.0.25",
+    "@waku/proto": "0.0.7",
+    "@waku/utils": "0.0.18"
   },
   "peerDependenciesMeta": {
     "@multiformats/multiaddr": {

@@ -100,10 +100,10 @@
     "rollup": "^4.12.0"
   },
   "peerDependencies": {
-    "@waku/core": "0.0.27",
-    "@waku/interfaces": "0.0.22",
-    "@waku/proto": "0.0.6",
-    "@waku/utils": "0.0.15"
+    "@waku/core": "0.0.30",
+    "@waku/interfaces": "0.0.25",
+    "@waku/proto": "0.0.7",
+    "@waku/utils": "0.0.18"
   },
   "peerDependenciesMeta": {
     "@waku/interfaces": {
