@@ -12,6 +12,20 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.18](https://github.com/waku-org/js-waku/compare/utils-v0.0.17...utils-v0.0.18) (2024-07-10)
+
+
+### Features
+
+* **lightpush:** Peer management for protocols ([#2003](https://github.com/waku-org/js-waku/issues/2003)) ([93e78c3](https://github.com/waku-org/js-waku/commit/93e78c3b876e084ab70e07c64c9b721693b659f8))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.24 to 0.0.25
+
 ## [0.0.17](https://github.com/waku-org/js-waku/compare/utils-v0.0.16...utils-v0.0.17) (2024-04-30)
 
 

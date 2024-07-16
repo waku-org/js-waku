@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.25](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.24...interfaces-v0.0.25) (2024-07-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **filter:** return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971))
+
+### Features
+
+* **filter:** Peer/subscription renewal with recurring Filter pings ([#2052](https://github.com/waku-org/js-waku/issues/2052)) ([318667e](https://github.com/waku-org/js-waku/commit/318667e44267c40c883eafc24a56261294d820dc))
+* **filter:** Return error codes instead of throwing errors ([#1971](https://github.com/waku-org/js-waku/issues/1971)) ([4eb06c6](https://github.com/waku-org/js-waku/commit/4eb06c64eb05c015e2f51e3f45a9d7143a934385))
+* **filter:** Use protocol peer management ([#2047](https://github.com/waku-org/js-waku/issues/2047)) ([4db508b](https://github.com/waku-org/js-waku/commit/4db508b962736426f4897995a2b525c82fe0ba37))
+* **lightpush:** Peer management for protocols ([#2003](https://github.com/waku-org/js-waku/issues/2003)) ([93e78c3](https://github.com/waku-org/js-waku/commit/93e78c3b876e084ab70e07c64c9b721693b659f8))
+
 ## [0.0.24](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.23...interfaces-v0.0.24) (2024-04-30)
 
 

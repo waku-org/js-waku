@@ -76,6 +76,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.21 to 0.0.22
     * @waku/utils bumped from 0.0.14 to 0.0.15
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.29 to 0.0.30
+    * @waku/interfaces bumped from 0.0.24 to 0.0.25
+    * @waku/utils bumped from 0.0.17 to 0.0.18
+
 ## [0.0.27](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.26...message-encryption-v0.0.27) (2024-04-30)
 
 

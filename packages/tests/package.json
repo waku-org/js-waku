@@ -60,11 +60,11 @@
     "chai-as-promised": "^7.1.1",
     "debug": "^4.3.4",
     "dockerode": "^4.0.2",
-    "fast-check": "^3.15.1",
+    "fast-check": "^3.19.0",
     "p-retry": "^6.1.0",
     "p-timeout": "^6.1.0",
     "portfinder": "^1.0.32",
-    "sinon": "^17.0.1",
+    "sinon": "^18.0.0",
     "tail": "^2.2.6"
   },
   "devDependencies": {
