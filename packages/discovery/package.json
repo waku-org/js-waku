@@ -81,11 +81,11 @@
     "sinon": "^18.0.0"
   },
   "peerDependencies": {
-    "@waku/core": "0.0.27",
-    "@waku/enr": "0.0.21",
-    "@waku/interfaces": "0.0.22",
-    "@waku/proto": "0.0.6",
-    "@waku/utils": "0.0.15",
+    "@waku/core": "0.0.30",
+    "@waku/enr": "0.0.24",
+    "@waku/interfaces": "0.0.25",
+    "@waku/proto": "0.0.7",
+    "@waku/utils": "0.0.18",
     "@libp2p/interface": "^1.1.2"
   },
   "peerDependenciesMeta": {
