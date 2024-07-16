@@ -1,7 +1,8 @@
 import {
   DefaultPubsubTopic,
   ISubscriptionSDK,
-  LightNode
+  LightNode,
+  SDKProtocolResult
 } from "@waku/interfaces";
 import {
   createDecoder,
@@ -16,6 +17,7 @@ import { describe } from "mocha";
 import {
   afterEachCustom,
   beforeEachCustom,
+  ServiceNode,
   ServiceNodesFleet
 } from "../../src/index.js";
 import {
@@ -176,5 +178,64 @@ describe("Waku Filter: Peer Management: E2E", function () {
     expect(finalPingResult.successes.length).to.equal(
       waku.filter.numPeersToUse
     );
+  });
+
+  it("Renews peer on consistent missed messages", async function () {
+    const [serviceNodes, waku] = await runMultipleNodes(
+      this.ctx,
+      undefined,
+      undefined,
+      2
+    );
+    const nodeWithoutDiscovery = new ServiceNode("WithoutDiscovery");
+    await nodeWithoutDiscovery.start({ lightpush: true, filter: true });
+    await waku.dial(await nodeWithoutDiscovery.getMultiaddrWithId());
+
+    const { error, subscription: sub } =
+      await waku.filter.createSubscription(pubsubTopic);
+    if (!sub || error) {
+      throw new Error("Could not create subscription");
+    }
+
+    const messages: DecodedMessage[] = [];
+    const { successes } = await sub.subscribe(
+      [decoder],
+      (msg) => {
+        messages.push(msg);
+      },
+      { messageValidation: 100 }
+    );
+
+    expect(successes.length).to.be.greaterThan(0);
+    expect(successes.length).to.be.equal(waku.filter.numPeersToUse);
+
+    const sendMessage: () => Promise<SDKProtocolResult> = async () =>
+      waku.lightPush.send(encoder, {
+        payload: utf8ToBytes("Hello_World")
+      });
+
+    await sendMessage();
+
+    successes
+      .map(async (peerId) =>
+        [
+          (await nodeWithoutDiscovery.getPeerId()).toString(),
+          serviceNodes.nodes.map(async (node) =>
+            (await node.getPeerId()).toString()
+          )
+        ]
+          .flat()
+          .includes(peerId.toString())
+      )
+      .forEach((isConnected) => expect(isConnected).to.be.true);
+
+    // send 2 more messages
+    await sendMessage();
+    await sendMessage();
+
+    expect(waku.filter.connectedPeers.length).to.equal(2);
+    expect(
+      waku.filter.connectedPeers.map((p) => p.id.toString())
+    ).to.not.include((await nodeWithoutDiscovery.getPeerId()).toString());
   });
 });
