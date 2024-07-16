@@ -13,6 +13,7 @@ import {
   type IProtoMessage,
   type ISubscriptionSDK,
   type Libp2p,
+  PeerIdStr,
   type ProtocolCreateOptions,
   ProtocolError,
   ProtocolUseOptions,
@@ -42,7 +43,7 @@ type SubscriptionCallback<T extends IDecodedMessage> = {
 type ReceivedMessageHashes = {
   all: Set<string>;
   nodes: {
-    [peerId: string]: Set<string>;
+    [peerId: PeerIdStr]: Set<string>;
   };
 };
 
@@ -50,6 +51,7 @@ const log = new Logger("sdk:filter");
 
 const MINUTE = 60 * 1000;
 const DEFAULT_MAX_PINGS = 3;
+const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
 
 const DEFAULT_SUBSCRIBE_OPTIONS = {
   keepAlive: MINUTE
@@ -61,7 +63,9 @@ export class SubscriptionManager implements ISubscriptionSDK {
   private readonly receivedMessagesHashes: ReceivedMessageHashes;
   private messageValidationTimer: number | null = null;
   private peerFailures: Map<string, number> = new Map();
+  private missedMessagesByPeer: Map<string, number> = new Map();
   private maxPingFailures: number = DEFAULT_MAX_PINGS;
+  private maxMissedMessagesThreshold = DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
 
   private subscriptionCallbacks: Map<
     ContentTopic,
@@ -83,6 +87,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
         ...Object.fromEntries(allPeerIdStr.map((peerId) => [peerId, new Set()]))
       }
     };
+    allPeerIdStr.forEach((peerId) => this.missedMessagesByPeer.set(peerId, 0));
 
     this.startMessageValidationCycle();
   }
@@ -330,6 +335,13 @@ export class SubscriptionManager implements ISubscriptionSDK {
       Array.from(this.subscriptionCallbacks.keys())
     );
 
+    this.peerFailures.delete(peerId.toString());
+    this.missedMessagesByPeer.delete(peerId.toString());
+    delete this.receivedMessagesHashes.nodes[peerId.toString()];
+
+    this.receivedMessagesHashes.nodes[newPeer.id.toString()] = new Set();
+    this.missedMessagesByPeer.set(newPeer.id.toString(), 0);
+
     return newPeer;
   }
 
@@ -367,22 +379,25 @@ export class SubscriptionManager implements ISubscriptionSDK {
           this.receivedMessagesHashes.nodes
         )) {
           if (!hashes.has(hash)) {
-            log.error(
-              `Message with hash ${hash} not received from peer ${peerIdStr}.  Attempting renewal.`
-            );
-            const peerId = this.getPeers().find(
-              (p) => p.id.toString() === peerIdStr
-            )?.id;
-            if (!peerId) {
-              log.error(
-                `Unexpected Error: Peer ${peerIdStr} not found in connected peers.`
+            this.incrementMissedMessageCount(peerIdStr);
+            if (this.shouldRenewPeer(peerIdStr)) {
+              log.info(
+                `Peer ${peerIdStr} has missed too many messages, renewing.`
               );
-              return;
-            }
-            try {
-              await this.renewPeer(peerId);
-            } catch (error) {
-              log.error(`Failed to renew peer ${peerIdStr}: ${error}`);
+              const peerId = this.getPeers().find(
+                (p) => p.id.toString() === peerIdStr
+              )?.id;
+              if (!peerId) {
+                log.error(
+                  `Unexpected Error: Peer ${peerIdStr} not found in connected peers.`
+                );
+                return;
+              }
+              try {
+                await this.renewAndSubscribePeer(peerId);
+              } catch (error) {
+                log.error(`Failed to renew peer ${peerIdStr}: ${error}`);
+              }
             }
           }
         }
@@ -405,6 +420,16 @@ export class SubscriptionManager implements ISubscriptionSDK {
     log.info("Stopping message validation cycle.");
     clearInterval(this.messageValidationTimer);
     this.messageValidationTimer = null;
+  }
+
+  private incrementMissedMessageCount(peerIdStr: string): void {
+    const currentCount = this.missedMessagesByPeer.get(peerIdStr) || 0;
+    this.missedMessagesByPeer.set(peerIdStr, currentCount + 1);
+  }
+
+  private shouldRenewPeer(peerIdStr: string): boolean {
+    const missedMessages = this.missedMessagesByPeer.get(peerIdStr) || 0;
+    return missedMessages > this.maxMissedMessagesThreshold;
   }
 }
 
