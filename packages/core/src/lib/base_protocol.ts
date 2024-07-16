@@ -47,6 +47,7 @@ export class BaseProtocol implements IBaseProtocolCore {
       this.addLibp2pEventListener
     );
   }
+
   protected async getStream(peer: Peer): Promise<Stream> {
     return this.streamManager.getStream(peer);
   }

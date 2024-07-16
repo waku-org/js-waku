@@ -9,6 +9,7 @@ interface Options {
   maintainPeersInterval?: number;
 }
 
+const RENEW_TIME_LOCK_DURATION = 30 * 1000;
 const DEFAULT_NUM_PEERS_TO_USE = 3;
 const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 
@@ -21,6 +22,9 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   log: Logger;
 
   private maintainPeersLock = false;
+  private readonly renewPeersLocker = new RenewPeerLocker(
+    RENEW_TIME_LOCK_DURATION
+  );
 
   constructor(
     protected core: BaseProtocol,
@@ -46,11 +50,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    */
   public async renewPeer(peerToDisconnect: PeerId): Promise<Peer> {
     this.log.info(`Renewing peer ${peerToDisconnect}`);
-    await this.connectionManager.dropConnection(peerToDisconnect);
-    this.peers = this.peers.filter((peer) => peer.id !== peerToDisconnect);
-    this.log.info(
-      `Peer ${peerToDisconnect} disconnected and removed from the peer list`
-    );
 
     const peer = (await this.findAndAddPeers(1))[0];
     if (!peer) {
@@ -58,6 +57,14 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
         "Failed to find a new peer to replace the disconnected one"
       );
     }
+
+    await this.connectionManager.dropConnection(peerToDisconnect);
+    this.peers = this.peers.filter((peer) => !peer.id.equals(peerToDisconnect));
+    this.log.info(
+      `Peer ${peerToDisconnect} disconnected and removed from the peer list`
+    );
+
+    this.renewPeersLocker.lock(peerToDisconnect);
 
     return peer;
   }
@@ -163,6 +170,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       this.log.info(
         `Peer maintenance completed, current count: ${this.peers.length}`
       );
+      this.renewPeersLocker.cleanUnlocked();
     } finally {
       this.maintainPeersLock = false;
     }
@@ -177,6 +185,12 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     this.log.info(`Finding and adding ${numPeers} new peers`);
     try {
       const additionalPeers = await this.findAdditionalPeers(numPeers);
+      const dials = additionalPeers.map((peer) =>
+        this.connectionManager.attemptDial(peer.id)
+      );
+
+      await Promise.all(dials);
+
       this.peers = [...this.peers, ...additionalPeers];
       this.log.info(
         `Added ${additionalPeers.length} new peers, total peers: ${this.peers.length}`
@@ -198,26 +212,55 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   private async findAdditionalPeers(numPeers: number): Promise<Peer[]> {
     this.log.info(`Finding ${numPeers} additional peers`);
     try {
-      let newPeers = await this.core.getPeers({
-        maxBootstrapPeers: 0,
-        numPeers: 0
-      });
+      let newPeers = await this.core.allPeers();
 
       if (newPeers.length === 0) {
-        this.log.warn("No new peers found, trying with bootstrap peers");
-        newPeers = await this.core.getPeers({
-          maxBootstrapPeers: numPeers,
-          numPeers: 0
-        });
+        this.log.warn("No new peers found.");
       }
 
       newPeers = newPeers
-        .filter((peer) => this.peers.some((p) => p.id === peer.id) === false)
+        .filter(
+          (peer) => this.peers.some((p) => p.id.equals(peer.id)) === false
+        )
+        .filter((peer) => !this.renewPeersLocker.isLocked(peer.id))
         .slice(0, numPeers);
+
       return newPeers;
     } catch (error) {
       this.log.error("Error finding additional peers:", error);
       throw error;
     }
+  }
+}
+
+class RenewPeerLocker {
+  private readonly peers: Map<string, number> = new Map();
+
+  constructor(private lockDuration: number) {}
+
+  public lock(id: PeerId): void {
+    this.peers.set(id.toString(), Date.now());
+  }
+
+  public isLocked(id: PeerId): boolean {
+    const time = this.peers.get(id.toString());
+
+    if (time && !this.isTimeUnlocked(time)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  public cleanUnlocked(): void {
+    Object.entries(this.peers).forEach(([id, lock]) => {
+      if (this.isTimeUnlocked(lock)) {
+        this.peers.delete(id.toString());
+      }
+    });
+  }
+
+  private isTimeUnlocked(time: number): boolean {
+    return Date.now() - time >= this.lockDuration;
   }
 }
