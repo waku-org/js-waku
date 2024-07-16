@@ -2,7 +2,8 @@ import type { PeerUpdate, Stream } from "@libp2p/interface";
 import type { Peer, PeerId } from "@libp2p/interface";
 import { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
-import { selectConnection } from "@waku/utils/libp2p";
+
+import { selectConnection } from "./utils.js";
 
 const CONNECTION_TIMEOUT = 5_000;
 const RETRY_BACKOFF_BASE = 1_000;

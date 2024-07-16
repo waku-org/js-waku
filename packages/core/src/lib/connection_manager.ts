@@ -89,7 +89,7 @@ export class ConnectionManager
     return instance;
   }
 
-  stop(): void {
+  public stop(): void {
     this.keepAliveManager.stopAll();
     this.libp2p.removeEventListener(
       "peer:connect",
@@ -105,7 +105,7 @@ export class ConnectionManager
     );
   }
 
-  async dropConnection(peerId: PeerId): Promise<void> {
+  public async dropConnection(peerId: PeerId): Promise<void> {
     try {
       this.keepAliveManager.stop(peerId);
       await this.libp2p.hangUp(peerId);
@@ -187,7 +187,11 @@ export class ConnectionManager
       ...options
     };
 
-    this.keepAliveManager = new KeepAliveManager(keepAliveOptions, relay);
+    this.keepAliveManager = new KeepAliveManager({
+      relay,
+      libp2p,
+      options: keepAliveOptions
+    });
 
     this.run()
       .then(() => log.info(`Connection Manager is now running`))
@@ -250,6 +254,7 @@ export class ConnectionManager
         this.dialAttemptsForPeer.set(peerId.toString(), -1);
 
         // Dialing succeeded, break the loop
+        this.keepAliveManager.start(peerId);
         break;
       } catch (error) {
         if (error instanceof AggregateError) {
@@ -356,7 +361,7 @@ export class ConnectionManager
     );
   }
 
-  private async attemptDial(peerId: PeerId): Promise<void> {
+  public async attemptDial(peerId: PeerId): Promise<void> {
     if (!(await this.shouldDialPeer(peerId))) return;
 
     if (this.currentActiveParallelDialCount >= this.options.maxParallelDials) {
@@ -364,9 +369,7 @@ export class ConnectionManager
       return;
     }
 
-    this.dialPeer(peerId).catch((err) => {
-      log.error(`Error dialing peer ${peerId.toString()} : ${err}`);
-    });
+    await this.dialPeer(peerId);
   }
 
   private onEventHandlers = {
@@ -389,11 +392,7 @@ export class ConnectionManager
 
         const peerId = evt.detail;
 
-        this.keepAliveManager.start(
-          peerId,
-          this.libp2p.services.ping,
-          this.libp2p.peerStore
-        );
+        this.keepAliveManager.start(peerId);
 
         const isBootstrap = (await this.getTagNamesForPeer(peerId)).includes(
           Tags.BOOTSTRAP
@@ -449,38 +448,40 @@ export class ConnectionManager
    * @returns true if the peer should be dialed, false otherwise
    */
   private async shouldDialPeer(peerId: PeerId): Promise<boolean> {
-    // if we're already connected to the peer, don't dial
     const isConnected = this.libp2p.getConnections(peerId).length > 0;
     if (isConnected) {
       log.warn(`Already connected to peer ${peerId.toString()}. Not dialing.`);
       return false;
     }
 
-    // if the peer is not part of any of the configured pubsub topics, don't dial
-    if (!(await this.isPeerTopicConfigured(peerId))) {
+    const isSameShard = await this.isPeerTopicConfigured(peerId);
+    if (!isSameShard) {
       const shardInfo = await this.getPeerShardInfo(
         peerId,
         this.libp2p.peerStore
       );
+
       log.warn(
         `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
           this.configuredPubsubTopics
         }).
             Not dialing.`
       );
+
       return false;
     }
 
-    // if the peer is not dialable based on bootstrap status, don't dial
-    if (!(await this.isPeerDialableBasedOnBootstrapStatus(peerId))) {
+    const isPreferredBasedOnBootstrap =
+      await this.isPeerDialableBasedOnBootstrapStatus(peerId);
+    if (!isPreferredBasedOnBootstrap) {
       log.warn(
         `Peer ${peerId.toString()} is not dialable based on bootstrap status. Not dialing.`
       );
       return false;
     }
 
-    // If the peer is already already has an active dial attempt, or has been dialed before, don't dial it
-    if (this.dialAttemptsForPeer.has(peerId.toString())) {
+    const hasBeenDialed = this.dialAttemptsForPeer.has(peerId.toString());
+    if (hasBeenDialed) {
       log.warn(
         `Peer ${peerId.toString()} has already been attempted dial before, or already has a dial attempt in progress, skipping dial`
       );
@@ -502,19 +503,17 @@ export class ConnectionManager
 
     const isBootstrap = tagNames.some((tagName) => tagName === Tags.BOOTSTRAP);
 
-    if (isBootstrap) {
-      const currentBootstrapConnections = this.libp2p
-        .getConnections()
-        .filter((conn) => {
-          return conn.tags.find((name) => name === Tags.BOOTSTRAP);
-        }).length;
-      if (currentBootstrapConnections < this.options.maxBootstrapPeersAllowed)
-        return true;
-    } else {
+    if (!isBootstrap) {
       return true;
     }
 
-    return false;
+    const currentBootstrapConnections = this.libp2p
+      .getConnections()
+      .filter((conn) => {
+        return conn.tags.find((name) => name === Tags.BOOTSTRAP);
+      }).length;
+
+    return currentBootstrapConnections < this.options.maxBootstrapPeersAllowed;
   }
 
   private async dispatchDiscoveryEvent(peerId: PeerId): Promise<void> {
