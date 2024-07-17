@@ -128,7 +128,7 @@ function configureNetworkOptions(
 
   if (flags.length > 1) {
     throw Error(
-      "Too many network configurations, pass only: pubsubTopic, contentTopics or shardInfo."
+      "Too many network configurations provided. Pass only one of: pubsubTopic, contentTopics or shardInfo."
     );
   }
 
