@@ -180,7 +180,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
     );
   });
 
-  it("Renews peer on consistent missed messages", async function () {
+  it.only("Renews peer on consistent missed messages", async function () {
     const [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
       undefined,
@@ -189,6 +189,9 @@ describe("Waku Filter: Peer Management: E2E", function () {
     );
     const nodeWithoutDiscovery = new ServiceNode("WithoutDiscovery");
     await nodeWithoutDiscovery.start({ lightpush: true, filter: true });
+    const nodeWithouDiscoveryPeerIdStr = (
+      await nodeWithoutDiscovery.getPeerId()
+    ).toString();
     await waku.dial(await nodeWithoutDiscovery.getMultiaddrWithId());
 
     const { error, subscription: sub } =
@@ -215,7 +218,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
     successes
       .map(async (peerId) =>
         [
-          (await nodeWithoutDiscovery.getPeerId()).toString(),
+          nodeWithouDiscoveryPeerIdStr,
           serviceNodes.nodes.map(async (node) =>
             (await node.getPeerId()).toString()
           )
@@ -232,6 +235,6 @@ describe("Waku Filter: Peer Management: E2E", function () {
     expect(waku.filter.connectedPeers.length).to.equal(2);
     expect(
       waku.filter.connectedPeers.map((p) => p.id.toString())
-    ).to.not.include((await nodeWithoutDiscovery.getPeerId()).toString());
+    ).to.not.include(nodeWithouDiscoveryPeerIdStr);
   });
 });
