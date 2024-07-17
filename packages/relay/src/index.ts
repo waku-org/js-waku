@@ -59,7 +59,7 @@ class Relay implements IRelay {
    */
   private observers: Map<PubsubTopic, Map<ContentTopic, Set<unknown>>>;
 
-  constructor(libp2p: Libp2p, pubsubTopics: PubsubTopic[]) {
+  public constructor(libp2p: Libp2p, pubsubTopics: PubsubTopic[]) {
     if (!this.isRelayPubsub(libp2p.services.pubsub)) {
       throw Error(
         `Failed to initialize Relay. libp2p.pubsub does not support ${Relay.multicodec}`
