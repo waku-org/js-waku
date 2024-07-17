@@ -52,7 +52,7 @@ describe("Peer Exchange", function () {
           pubsubTopic
         );
 
-        peerExchange.addEventListener("discoveryStatus", (event) => {
+        peerExchange.addEventListener("status", (event) => {
           if (event.detail === true) {
             void waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
           }

@@ -51,7 +51,7 @@ export interface Options {
 }
 
 interface CustomDiscoveryEvent extends PeerDiscoveryEvents {
-  discoveryStatus: CustomEvent<boolean>;
+  status: CustomEvent<boolean>;
 }
 
 export const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
@@ -106,7 +106,7 @@ export class PeerExchangeDiscovery
       return;
     }
 
-    this.dispatchEvent(new CustomEvent("discoveryStatus", { detail: true }));
+    this.dispatchEvent(new CustomEvent("status", { detail: true }));
 
     log.info("Starting peer exchange node discovery, discovering peers");
 
@@ -129,7 +129,7 @@ export class PeerExchangeDiscovery
       "peer:identify",
       this.handleDiscoveredPeer
     );
-    this.dispatchEvent(new CustomEvent("discoveryStatus", { detail: false }));
+    this.dispatchEvent(new CustomEvent("status", { detail: false }));
   }
 
   public get [symbol](): true {
