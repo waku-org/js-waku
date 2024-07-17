@@ -7,7 +7,7 @@ import { ERR_NO_SIGNATURE, MAX_RECORD_SIZE } from "./constants.js";
 import { ENR } from "./enr.js";
 
 export class EnrEncoder {
-  static async toValues(
+  public static async toValues(
     enr: ENR,
     privateKey?: Uint8Array
   ): Promise<(ENRKey | ENRValue | number[])[]> {
@@ -31,7 +31,10 @@ export class EnrEncoder {
     return content;
   }
 
-  static async toBytes(enr: ENR, privateKey?: Uint8Array): Promise<Uint8Array> {
+  public static async toBytes(
+    enr: ENR,
+    privateKey?: Uint8Array
+  ): Promise<Uint8Array> {
     const encoded = hexToBytes(
       RLP.encode(await EnrEncoder.toValues(enr, privateKey))
     );
@@ -41,7 +44,10 @@ export class EnrEncoder {
     return encoded;
   }
 
-  static async toString(enr: ENR, privateKey?: Uint8Array): Promise<string> {
+  public static async toString(
+    enr: ENR,
+    privateKey?: Uint8Array
+  ): Promise<string> {
     return (
       ENR.RECORD_PREFIX +
       toString(await EnrEncoder.toBytes(enr, privateKey), "base64url")

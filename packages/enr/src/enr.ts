@@ -34,7 +34,7 @@ export class ENR extends RawEnr implements IEnr {
   public static readonly RECORD_PREFIX = "enr:";
   public peerId?: PeerId;
 
-  static async create(
+  public static async create(
     kvs: Record<ENRKey, ENRValue> = {},
     seq: SequenceNumber = BigInt(1),
     signature?: Uint8Array
@@ -52,7 +52,7 @@ export class ENR extends RawEnr implements IEnr {
     return enr;
   }
 
-  get nodeId(): NodeId | undefined {
+  public get nodeId(): NodeId | undefined {
     switch (this.id) {
       case "v4":
         return this.publicKey ? v4.nodeId(this.publicKey) : undefined;
@@ -60,18 +60,18 @@ export class ENR extends RawEnr implements IEnr {
         throw new Error(ERR_INVALID_ID);
     }
   }
-  getLocationMultiaddr: (
+  public getLocationMultiaddr: (
     protocol: TransportProtocol | TransportProtocolPerIpVersion
   ) => Multiaddr | undefined = locationMultiaddrFromEnrFields.bind({}, this);
 
-  get shardInfo(): ShardInfo | undefined {
+  public get shardInfo(): ShardInfo | undefined {
     if (this.rs && this.rsv) {
       log.warn("ENR contains both `rs` and `rsv` fields.");
     }
     return this.rs || this.rsv;
   }
 
-  setLocationMultiaddr(multiaddr: Multiaddr): void {
+  public setLocationMultiaddr(multiaddr: Multiaddr): void {
     const protoNames = multiaddr.protoNames();
     if (
       protoNames.length !== 2 &&
@@ -95,7 +95,7 @@ export class ENR extends RawEnr implements IEnr {
     }
   }
 
-  getAllLocationMultiaddrs(): Multiaddr[] {
+  public getAllLocationMultiaddrs(): Multiaddr[] {
     const multiaddrs = [];
 
     for (const protocol of Object.values(TransportProtocolPerIpVersion)) {
@@ -115,7 +115,7 @@ export class ENR extends RawEnr implements IEnr {
     });
   }
 
-  get peerInfo(): PeerInfo | undefined {
+  public get peerInfo(): PeerInfo | undefined {
     const id = this.peerId;
     if (!id) return;
     return {
@@ -132,7 +132,7 @@ export class ENR extends RawEnr implements IEnr {
    *
    * @param protocol
    */
-  getFullMultiaddr(
+  public getFullMultiaddr(
     protocol: TransportProtocol | TransportProtocolPerIpVersion
   ): Multiaddr | undefined {
     if (this.peerId) {
@@ -147,7 +147,7 @@ export class ENR extends RawEnr implements IEnr {
   /**
    * Returns the full multiaddrs from the `multiaddrs` ENR field.
    */
-  getFullMultiaddrs(): Multiaddr[] {
+  public getFullMultiaddrs(): Multiaddr[] {
     if (this.peerId && this.multiaddrs) {
       const peerId = this.peerId;
       return this.multiaddrs.map((ma) => {
@@ -157,7 +157,7 @@ export class ENR extends RawEnr implements IEnr {
     return [];
   }
 
-  verify(data: Uint8Array, signature: Uint8Array): boolean {
+  public verify(data: Uint8Array, signature: Uint8Array): boolean {
     if (!this.get("id") || this.id !== "v4") {
       throw new Error(ERR_INVALID_ID);
     }
@@ -167,7 +167,10 @@ export class ENR extends RawEnr implements IEnr {
     return verifySignature(signature, keccak256(data), this.publicKey);
   }
 
-  async sign(data: Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
+  public async sign(
+    data: Uint8Array,
+    privateKey: Uint8Array
+  ): Promise<Uint8Array> {
     switch (this.id) {
       case "v4":
         this.signature = await v4.sign(privateKey, data);

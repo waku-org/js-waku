@@ -31,19 +31,19 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
     this.signature = signature;
   }
 
-  set(k: ENRKey, v: ENRValue): this {
+  public set(k: ENRKey, v: ENRValue): this {
     this.signature = undefined;
     this.seq++;
     return super.set(k, v);
   }
 
-  get id(): string {
+  public get id(): string {
     const id = this.get("id");
     if (!id) throw new Error("id not found.");
     return bytesToUtf8(id);
   }
 
-  get publicKey(): Uint8Array | undefined {
+  public get publicKey(): Uint8Array | undefined {
     switch (this.id) {
       case "v4":
         return this.get("secp256k1");
@@ -52,63 +52,63 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
     }
   }
 
-  get rs(): ShardInfo | undefined {
+  public get rs(): ShardInfo | undefined {
     const rs = this.get("rs");
     if (!rs) return undefined;
     return decodeRelayShard(rs);
   }
 
-  get rsv(): ShardInfo | undefined {
+  public get rsv(): ShardInfo | undefined {
     const rsv = this.get("rsv");
     if (!rsv) return undefined;
     return decodeRelayShard(rsv);
   }
 
-  get ip(): string | undefined {
+  public get ip(): string | undefined {
     return getStringValue(this, "ip", "ip4");
   }
 
-  set ip(ip: string | undefined) {
+  public set ip(ip: string | undefined) {
     setStringValue(this, "ip", "ip4", ip);
   }
 
-  get tcp(): number | undefined {
+  public get tcp(): number | undefined {
     return getNumberAsStringValue(this, "tcp", "tcp");
   }
 
-  set tcp(port: number | undefined) {
+  public set tcp(port: number | undefined) {
     setNumberAsStringValue(this, "tcp", "tcp", port);
   }
 
-  get udp(): number | undefined {
+  public get udp(): number | undefined {
     return getNumberAsStringValue(this, "udp", "udp");
   }
 
-  set udp(port: number | undefined) {
+  public set udp(port: number | undefined) {
     setNumberAsStringValue(this, "udp", "udp", port);
   }
 
-  get ip6(): string | undefined {
+  public get ip6(): string | undefined {
     return getStringValue(this, "ip6", "ip6");
   }
 
-  set ip6(ip: string | undefined) {
+  public set ip6(ip: string | undefined) {
     setStringValue(this, "ip6", "ip6", ip);
   }
 
-  get tcp6(): number | undefined {
+  public get tcp6(): number | undefined {
     return getNumberAsStringValue(this, "tcp6", "tcp");
   }
 
-  set tcp6(port: number | undefined) {
+  public set tcp6(port: number | undefined) {
     setNumberAsStringValue(this, "tcp6", "tcp", port);
   }
 
-  get udp6(): number | undefined {
+  public get udp6(): number | undefined {
     return getNumberAsStringValue(this, "udp6", "udp");
   }
 
-  set udp6(port: number | undefined) {
+  public set udp6(port: number | undefined) {
     setNumberAsStringValue(this, "udp6", "udp", port);
   }
 
@@ -124,7 +124,7 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
    *
    * The multiaddresses stored in this field are expected to be location multiaddresses, ie, peer id less.
    */
-  get multiaddrs(): Multiaddr[] | undefined {
+  public get multiaddrs(): Multiaddr[] | undefined {
     const raw = this.get("multiaddrs");
 
     if (raw) return decodeMultiaddrs(raw);
@@ -144,14 +144,14 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
    * The multiaddresses stored in this field must be location multiaddresses,
    * ie, without a peer id.
    */
-  set multiaddrs(multiaddrs: Multiaddr[] | undefined) {
+  public set multiaddrs(multiaddrs: Multiaddr[] | undefined) {
     deleteUndefined(this, "multiaddrs", multiaddrs, encodeMultiaddrs);
   }
 
   /**
    * Get the `waku2` field from ENR.
    */
-  get waku2(): Waku2 | undefined {
+  public get waku2(): Waku2 | undefined {
     const raw = this.get("waku2");
     if (raw) return decodeWaku2(raw[0]);
 
@@ -161,7 +161,7 @@ export class RawEnr extends Map<ENRKey, ENRValue> {
   /**
    * Set the `waku2` field on the ENR.
    */
-  set waku2(waku2: Waku2 | undefined) {
+  public set waku2(waku2: Waku2 | undefined) {
     deleteUndefined(
       this,
       "waku2",
