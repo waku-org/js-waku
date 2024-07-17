@@ -248,7 +248,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     }
   }
 
-  private async processIncomingMessage(message: WakuMessage): Promise<void> {
+  public async processIncomingMessage(message: WakuMessage): Promise<void> {
     const hashedMessageStr = messageHashStr(
       this.pubsubTopic,
       message as IProtoMessage

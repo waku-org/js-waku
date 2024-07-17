@@ -82,7 +82,7 @@ export class BaseProtocol implements IBaseProtocolCore {
 
   * @returns A list of peers that support the protocol sorted by latency.
   */
-  protected async getPeers(
+  public async getPeers(
     {
       numPeers,
       maxBootstrapPeers
