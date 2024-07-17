@@ -82,7 +82,7 @@ export class PeerExchangeDiscovery
     );
   };
 
-  constructor(
+  public constructor(
     components: Libp2pComponents,
     pubsubTopics: PubsubTopic[],
     options: Options = {}
@@ -97,7 +97,7 @@ export class PeerExchangeDiscovery
   /**
    * Start emitting events
    */
-  start(): void {
+  public start(): void {
     if (this.isStarted) {
       return;
     }
@@ -114,7 +114,7 @@ export class PeerExchangeDiscovery
   /**
    * Remove event listener
    */
-  stop(): void {
+  public stop(): void {
     if (!this.isStarted) return;
     log.info("Stopping peer exchange node discovery");
     this.isStarted = false;
@@ -125,11 +125,11 @@ export class PeerExchangeDiscovery
     );
   }
 
-  get [symbol](): true {
+  public get [symbol](): true {
     return true;
   }
 
-  get [Symbol.toStringTag](): string {
+  public get [Symbol.toStringTag](): string {
     return "@waku/peer-exchange";
   }
 

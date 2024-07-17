@@ -36,7 +36,7 @@ export class DnsOverHttps implements DnsClient {
    *
    * @throws if the query fails
    */
-  async resolveTXT(domain: string): Promise<string[]> {
+  public async resolveTXT(domain: string): Promise<string[]> {
     let answers;
     try {
       const res = await query(
