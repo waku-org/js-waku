@@ -34,7 +34,7 @@ export {
 const log = new Logger("message-encryption:symmetric");
 
 class Encoder implements IEncoder {
-  constructor(
+  public constructor(
     public pubsubTopic: PubsubTopic,
     public contentTopic: string,
     private symKey: Uint8Array,
@@ -47,14 +47,16 @@ class Encoder implements IEncoder {
     }
   }
 
-  async toWire(message: IMessage): Promise<Uint8Array | undefined> {
+  public async toWire(message: IMessage): Promise<Uint8Array | undefined> {
     const protoMessage = await this.toProtoObj(message);
     if (!protoMessage) return;
 
     return WakuMessage.encode(protoMessage);
   }
 
-  async toProtoObj(message: IMessage): Promise<IProtoMessage | undefined> {
+  public async toProtoObj(
+    message: IMessage
+  ): Promise<IProtoMessage | undefined> {
     const timestamp = message.timestamp ?? new Date();
     const preparedPayload = await preCipher(message.payload, this.sigPrivKey);
 
@@ -118,7 +120,7 @@ export function createEncoder({
 }
 
 class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
-  constructor(
+  public constructor(
     pubsubTopic: PubsubTopic,
     contentTopic: string,
     private symKey: Uint8Array
@@ -126,7 +128,7 @@ class Decoder extends DecoderV0 implements IDecoder<DecodedMessage> {
     super(pubsubTopic, contentTopic);
   }
 
-  async fromProtoObj(
+  public async fromProtoObj(
     pubsubTopic: string,
     protoMessage: IProtoMessage
   ): Promise<DecodedMessage | undefined> {
