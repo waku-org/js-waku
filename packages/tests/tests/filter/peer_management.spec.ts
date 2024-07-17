@@ -198,13 +198,9 @@ describe("Waku Filter: Peer Management: E2E", function () {
     }
 
     const messages: DecodedMessage[] = [];
-    const { successes } = await sub.subscribe(
-      [decoder],
-      (msg) => {
-        messages.push(msg);
-      },
-      { messageValidation: 100 }
-    );
+    const { successes } = await sub.subscribe([decoder], (msg) => {
+      messages.push(msg);
+    });
 
     expect(successes.length).to.be.greaterThan(0);
     expect(successes.length).to.be.equal(waku.filter.numPeersToUse);
