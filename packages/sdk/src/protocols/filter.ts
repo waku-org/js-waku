@@ -49,7 +49,6 @@ type ReceivedMessageHashes = {
 
 const log = new Logger("sdk:filter");
 
-const MINUTE = 60 * 1000;
 const DEFAULT_MAX_PINGS = 3;
 const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
 const DEFAULT_KEEP_ALIVE = 30 * 1000;
@@ -107,7 +106,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     callback: Callback<T>,
     options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<SDKProtocolResult> {
-    this.keepAliveTimer = options.keepAlive || MINUTE;
+    this.keepAliveTimer = options.keepAlive || DEFAULT_KEEP_ALIVE;
     this.maxPingFailures = options.pingsBeforePeerRenewed || DEFAULT_MAX_PINGS;
     this.maxMissedMessagesThreshold =
       options.maxMissedMessagesThreshold ||
