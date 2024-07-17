@@ -25,6 +25,7 @@
         }]
       }
     ],
+    "@typescript-eslint/explicit-member-accessibility": "error",
     "prettier/prettier": [
       "error",
       {
