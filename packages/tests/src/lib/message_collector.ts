@@ -19,8 +19,8 @@ const log = new Logger("test:message-collector");
  * and offers a way to wait for incoming messages.
  */
 export class MessageCollector {
-  protected list: Array<MessageRpcResponse | DecodedMessage> = [];
-  protected callback: (msg: DecodedMessage) => void = () => {};
+  public list: Array<MessageRpcResponse | DecodedMessage> = [];
+  public callback: (msg: DecodedMessage) => void = () => {};
 
   public constructor(private nwaku?: ServiceNode) {
     if (!this.nwaku) {
