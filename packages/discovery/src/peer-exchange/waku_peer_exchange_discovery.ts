@@ -50,12 +50,16 @@ export interface Options {
   maxRetries?: number;
 }
 
+interface CustomDiscoveryEvent extends PeerDiscoveryEvents {
+  discoveryStatus: CustomEvent<boolean>;
+}
+
 export const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
 const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
 const DEFAULT_PEER_EXCHANGE_TAG_TTL = 100_000_000;
 
 export class PeerExchangeDiscovery
-  extends TypedEventEmitter<PeerDiscoveryEvents>
+  extends TypedEventEmitter<CustomDiscoveryEvent>
   implements PeerDiscovery
 {
   private readonly components: Libp2pComponents;
@@ -102,6 +106,8 @@ export class PeerExchangeDiscovery
       return;
     }
 
+    this.dispatchEvent(new CustomEvent("discoveryStatus", { detail: true }));
+
     log.info("Starting peer exchange node discovery, discovering peers");
 
     // might be better to use "peer:identify" or "peer:update"
@@ -123,6 +129,7 @@ export class PeerExchangeDiscovery
       "peer:identify",
       this.handleDiscoveredPeer
     );
+    this.dispatchEvent(new CustomEvent("discoveryStatus", { detail: false }));
   }
 
   public get [symbol](): true {
