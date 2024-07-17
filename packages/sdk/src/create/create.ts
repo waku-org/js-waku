@@ -1,8 +1,9 @@
-import { type LightNode } from "@waku/interfaces";
+import type { LightNode } from "@waku/interfaces";
 
-import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "../waku.js";
+import { CreateWakuNodeOptions, WakuNode } from "../waku.js";
 
-import { createLibp2pAndUpdateOptions } from "./libp2p.js";
+import { createLibp2pNode } from "./libp2p.js";
+import { buildCreateOptions, buildWakuNodeOptions } from "./options.js";
 
 /**
  * Create a Waku node that uses Waku Light Push, Filter and Store to send and
@@ -12,11 +13,15 @@ import { createLibp2pAndUpdateOptions } from "./libp2p.js";
 export async function createLightNode(
   options: CreateWakuNodeOptions = {}
 ): Promise<LightNode> {
-  const libp2p = await createLibp2pAndUpdateOptions(options);
+  const createOptions = buildCreateOptions(options);
+  const libp2p = await createLibp2pNode(createOptions);
+  const wakuNodeOptions = buildWakuNodeOptions(createOptions);
 
-  return new WakuNode(options as WakuOptions, libp2p, {
+  const protocols = {
     store: true,
     lightpush: true,
     filter: true
-  }) as LightNode;
+  };
+
+  return new WakuNode(wakuNodeOptions, libp2p, protocols) as LightNode;
 }
