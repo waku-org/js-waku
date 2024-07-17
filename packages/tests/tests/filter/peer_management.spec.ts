@@ -180,7 +180,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
     );
   });
 
-  it.only("Renews peer on consistent missed messages", async function () {
+  it("Renews peer on consistent missed messages", async function () {
     const [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
       undefined,
