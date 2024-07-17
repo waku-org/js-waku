@@ -4,8 +4,8 @@ import { ConnectionManager, FilterCore } from "@waku/core";
 import {
   type Callback,
   type ContentTopic,
-  CoreProtocolResult,
-  CreateSubscriptionResult,
+  type CoreProtocolResult,
+  type CreateSubscriptionResult,
   type IAsyncIterator,
   type IDecodedMessage,
   type IDecoder,
@@ -13,14 +13,14 @@ import {
   type IProtoMessage,
   type ISubscriptionSDK,
   type Libp2p,
-  PeerIdStr,
+  type PeerIdStr,
   type ProtocolCreateOptions,
   ProtocolError,
-  ProtocolUseOptions,
+  type ProtocolUseOptions,
   type PubsubTopic,
-  SDKProtocolResult,
+  type SDKProtocolResult,
   type ShardingParams,
-  SubscribeOptions,
+  type SubscribeOptions,
   type Unsubscribe
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
@@ -93,7 +93,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     return [...this.receivedMessagesHashes.all];
   }
 
-  addHash(hash: string, peerIdStr?: string): void {
+  private addHash(hash: string, peerIdStr?: string): void {
     this.receivedMessagesHashes.all.add(hash);
 
     if (peerIdStr) {
@@ -259,7 +259,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     );
 
     this.addHash(hashedMessageStr, peerIdStr);
-    await this.validateMessage();
+    void this.validateMessage();
 
     if (this.receivedMessagesHashStr.includes(hashedMessageStr)) {
       log.info("Message already received, skipping");
