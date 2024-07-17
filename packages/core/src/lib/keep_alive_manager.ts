@@ -26,7 +26,11 @@ export class KeepAliveManager {
   private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>[]> =
     new Map();
 
-  constructor({ options, relay, libp2p }: CreateKeepAliveManagerOptions) {
+  public constructor({
+    options,
+    relay,
+    libp2p
+  }: CreateKeepAliveManagerOptions) {
     this.options = options;
     this.relay = relay;
     this.libp2p = libp2p;

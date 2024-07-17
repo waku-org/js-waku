@@ -8,16 +8,16 @@ import { v4 as uuid } from "uuid";
 export class FilterPushRpc {
   public constructor(public proto: proto.MessagePush) {}
 
-  static decode(bytes: Uint8Array): FilterPushRpc {
+  public static decode(bytes: Uint8Array): FilterPushRpc {
     const res = proto.MessagePush.decode(bytes);
     return new FilterPushRpc(res);
   }
 
-  encode(): Uint8Array {
+  public encode(): Uint8Array {
     return proto.MessagePush.encode(this.proto);
   }
 
-  get wakuMessage(): WakuMessage | undefined {
+  public get wakuMessage(): WakuMessage | undefined {
     return this.proto.wakuMessage;
   }
 
@@ -25,7 +25,7 @@ export class FilterPushRpc {
    * Get the pubsub topic from the FilterPushRpc object.
    * @returns string
    */
-  get pubsubTopic(): string | undefined {
+  public get pubsubTopic(): string | undefined {
     return this.proto.pubsubTopic;
   }
 }
@@ -33,7 +33,7 @@ export class FilterPushRpc {
 export class FilterSubscribeRpc {
   public constructor(public proto: proto.FilterSubscribeRequest) {}
 
-  static createSubscribeRequest(
+  public static createSubscribeRequest(
     pubsubTopic: string,
     contentTopics: string[]
   ): FilterSubscribeRpc {
@@ -46,7 +46,7 @@ export class FilterSubscribeRpc {
     });
   }
 
-  static createUnsubscribeRequest(
+  public static createUnsubscribeRequest(
     pubsubTopic: string,
     contentTopics: string[]
   ): FilterSubscribeRpc {
@@ -59,7 +59,9 @@ export class FilterSubscribeRpc {
     });
   }
 
-  static createUnsubscribeAllRequest(pubsubTopic: string): FilterSubscribeRpc {
+  public static createUnsubscribeAllRequest(
+    pubsubTopic: string
+  ): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
       requestId: uuid(),
       filterSubscribeType:
@@ -69,7 +71,7 @@ export class FilterSubscribeRpc {
     });
   }
 
-  static createSubscriberPingRequest(): FilterSubscribeRpc {
+  public static createSubscriberPingRequest(): FilterSubscribeRpc {
     return new FilterSubscribeRpc({
       requestId: uuid(),
       filterSubscribeType:
@@ -79,28 +81,28 @@ export class FilterSubscribeRpc {
     });
   }
 
-  static decode(bytes: Uint8Array): FilterSubscribeRpc {
+  public static decode(bytes: Uint8Array): FilterSubscribeRpc {
     const res = proto.FilterSubscribeRequest.decode(bytes);
     return new FilterSubscribeRpc(res);
   }
 
-  encode(): Uint8Array {
+  public encode(): Uint8Array {
     return proto.FilterSubscribeRequest.encode(this.proto);
   }
 
-  get filterSubscribeType(): proto.FilterSubscribeRequest.FilterSubscribeType {
+  public get filterSubscribeType(): proto.FilterSubscribeRequest.FilterSubscribeType {
     return this.proto.filterSubscribeType;
   }
 
-  get requestId(): string {
+  public get requestId(): string {
     return this.proto.requestId;
   }
 
-  get pubsubTopic(): string | undefined {
+  public get pubsubTopic(): string | undefined {
     return this.proto.pubsubTopic;
   }
 
-  get contentTopics(): string[] {
+  public get contentTopics(): string[] {
     return this.proto.contentTopics;
   }
 }
@@ -108,24 +110,24 @@ export class FilterSubscribeRpc {
 export class FilterSubscribeResponse {
   public constructor(public proto: proto.FilterSubscribeResponse) {}
 
-  static decode(bytes: Uint8Array): FilterSubscribeResponse {
+  public static decode(bytes: Uint8Array): FilterSubscribeResponse {
     const res = proto.FilterSubscribeResponse.decode(bytes);
     return new FilterSubscribeResponse(res);
   }
 
-  encode(): Uint8Array {
+  public encode(): Uint8Array {
     return proto.FilterSubscribeResponse.encode(this.proto);
   }
 
-  get statusCode(): number {
+  public get statusCode(): number {
     return this.proto.statusCode;
   }
 
-  get statusDesc(): string | undefined {
+  public get statusDesc(): string | undefined {
     return this.proto.statusDesc;
   }
 
-  get requestId(): string {
+  public get requestId(): string {
     return this.proto.requestId;
   }
 }
