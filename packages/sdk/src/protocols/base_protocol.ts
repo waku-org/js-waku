@@ -19,14 +19,14 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   private maintainPeersIntervalId: ReturnType<
     typeof window.setInterval
   > | null = null;
-  log: Logger;
+  private log: Logger;
 
   private maintainPeersLock = false;
   private readonly renewPeersLocker = new RenewPeerLocker(
     RENEW_TIME_LOCK_DURATION
   );
 
-  constructor(
+  public constructor(
     protected core: BaseProtocol,
     private connectionManager: ConnectionManager,
     options: Options
@@ -39,7 +39,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     void this.startMaintainPeersInterval(maintainPeersInterval);
   }
 
-  get connectedPeers(): Peer[] {
+  public get connectedPeers(): Peer[] {
     return this.peers;
   }
 
@@ -237,7 +237,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
 class RenewPeerLocker {
   private readonly peers: Map<string, number> = new Map();
 
-  constructor(private lockDuration: number) {}
+  public constructor(private lockDuration: number) {}
 
   public lock(id: PeerId): void {
     this.peers.set(id.toString(), Date.now());

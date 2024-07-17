@@ -20,7 +20,7 @@ const log = new Logger("sdk:light-push");
 class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
   public readonly protocol: LightPushCore;
 
-  constructor(
+  public constructor(
     connectionManager: ConnectionManager,
     libp2p: Libp2p,
     options?: ProtocolCreateOptions
@@ -32,7 +32,7 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
     this.protocol = this.core as LightPushCore;
   }
 
-  async send(
+  public async send(
     encoder: IEncoder,
     message: IMessage,
     _options?: ProtocolUseOptions

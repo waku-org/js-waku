@@ -73,7 +73,7 @@ export class WakuNode implements Waku {
   public connectionManager: ConnectionManager;
   public readonly pubsubTopics: PubsubTopic[];
 
-  constructor(
+  public constructor(
     options: WakuOptions,
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled
@@ -143,7 +143,7 @@ export class WakuNode implements Waku {
    * @param peer The peer to dial
    * @param protocols Waku protocols we expect from the peer; Defaults to mounted protocols
    */
-  async dial(
+  public async dial(
     peer: PeerId | MultiaddrInput,
     protocols?: Protocols[]
   ): Promise<Stream> {
@@ -202,16 +202,16 @@ export class WakuNode implements Waku {
     return this.libp2p.dialProtocol(peerId, codecs);
   }
 
-  async start(): Promise<void> {
+  public async start(): Promise<void> {
     await this.libp2p.start();
   }
 
-  async stop(): Promise<void> {
+  public async stop(): Promise<void> {
     this.connectionManager.stop();
     await this.libp2p.stop();
   }
 
-  async subscribeToContentTopic(
+  public async subscribeToContentTopic(
     contentTopic: string,
     peer: Multiaddr,
     callback: Callback<DecodedMessage>
@@ -224,11 +224,11 @@ export class WakuNode implements Waku {
     ).subscription;
   }
 
-  isStarted(): boolean {
+  public isStarted(): boolean {
     return this.libp2p.status == "started";
   }
 
-  isConnected(): boolean {
+  public isConnected(): boolean {
     return this.connectionManager.isConnected();
   }
 
@@ -237,7 +237,7 @@ export class WakuNode implements Waku {
    *
    * @throws if libp2p is not listening on localhost.
    */
-  getLocalMultiaddrWithID(): string {
+  public getLocalMultiaddrWithID(): string {
     const localMultiaddr = this.libp2p
       .getMultiaddrs()
       .find((addr) => addr.toString().match(/127\.0\.0\.1/));
