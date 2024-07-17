@@ -19,10 +19,10 @@ const log = new Logger("test:message-collector");
  * and offers a way to wait for incoming messages.
  */
 export class MessageCollector {
-  list: Array<MessageRpcResponse | DecodedMessage> = [];
-  callback: (msg: DecodedMessage) => void = () => {};
+  protected list: Array<MessageRpcResponse | DecodedMessage> = [];
+  protected callback: (msg: DecodedMessage) => void = () => {};
 
-  constructor(private nwaku?: ServiceNode) {
+  public constructor(private nwaku?: ServiceNode) {
     if (!this.nwaku) {
       this.callback = (msg: DecodedMessage): void => {
         log.info("Got a message");
@@ -31,15 +31,15 @@ export class MessageCollector {
     }
   }
 
-  get count(): number {
+  public get count(): number {
     return this.list.length;
   }
 
-  getMessage(index: number): MessageRpcResponse | DecodedMessage {
+  public getMessage(index: number): MessageRpcResponse | DecodedMessage {
     return this.list[index];
   }
 
-  hasMessage(topic: string, text: string): boolean {
+  public hasMessage(topic: string, text: string): boolean {
     return this.list.some((message) => {
       if (message.contentTopic !== topic) {
         return false;
@@ -55,7 +55,7 @@ export class MessageCollector {
   }
 
   // Type guard to determine if a message is of type MessageRpcResponse
-  isMessageRpcResponse(
+  public isMessageRpcResponse(
     message: MessageRpcResponse | DecodedMessage
   ): message is MessageRpcResponse {
     return (
@@ -64,7 +64,7 @@ export class MessageCollector {
     );
   }
 
-  async waitForMessages(
+  public async waitForMessages(
     numMessages: number,
     options?: {
       pubsubTopic?: string;
@@ -106,7 +106,7 @@ export class MessageCollector {
     }
   }
 
-  async waitForMessagesAutosharding(
+  public async waitForMessagesAutosharding(
     numMessages: number,
     options?: {
       contentTopic: string;
@@ -150,7 +150,7 @@ export class MessageCollector {
   }
 
   // Verifies a received message against expected values.
-  verifyReceivedMessage(
+  public verifyReceivedMessage(
     index: number,
     options: {
       expectedMessageText: string | Uint8Array | undefined;
