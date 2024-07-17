@@ -187,6 +187,11 @@ describe("Waku Filter: Peer Management: E2E", function () {
       undefined,
       2
     );
+    const serviceNodesPeerIdStr = await Promise.all(
+      serviceNodes.nodes.map(async (node) =>
+        (await node.getPeerId()).toString()
+      )
+    );
     const nodeWithoutDiscovery = new ServiceNode("WithoutDiscovery");
     await nodeWithoutDiscovery.start({ lightpush: true, filter: true });
     const nodeWithouDiscoveryPeerIdStr = (
@@ -216,17 +221,12 @@ describe("Waku Filter: Peer Management: E2E", function () {
     await sendMessage();
 
     successes
-      .map(async (peerId) =>
-        [
-          nodeWithouDiscoveryPeerIdStr,
-          serviceNodes.nodes.map(async (node) =>
-            (await node.getPeerId()).toString()
-          )
-        ]
-          .flat()
-          .includes(peerId.toString())
+      .map((peerId) =>
+        [nodeWithouDiscoveryPeerIdStr, ...serviceNodesPeerIdStr].includes(
+          peerId.toString()
+        )
       )
-      .forEach((isConnected) => expect(isConnected).to.be.true);
+      .forEach((isConnected) => expect(isConnected).to.eq(true));
 
     // send 2 more messages
     await sendMessage();
