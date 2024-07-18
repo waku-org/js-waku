@@ -106,7 +106,7 @@ export class PeerExchangeDiscovery
       return;
     }
 
-    this.dispatchEvent(new CustomEvent("status", { detail: true }));
+    this.dispatchEvent(new CustomEvent("isStarted", { detail: true }));
 
     log.info("Starting peer exchange node discovery, discovering peers");
 
@@ -129,7 +129,7 @@ export class PeerExchangeDiscovery
       "peer:identify",
       this.handleDiscoveredPeer
     );
-    this.dispatchEvent(new CustomEvent("status", { detail: false }));
+    this.dispatchEvent(new CustomEvent("isStarted", { detail: false }));
   }
 
   public get [symbol](): true {
