@@ -16,6 +16,8 @@ import { Protocols } from "@waku/interfaces";
 import { wakuRelay } from "@waku/relay";
 import { Logger } from "@waku/utils";
 
+import { HealthManager } from "../../core/dist/lib/health_manager.js";
+
 import { wakuFilter } from "./protocols/filter.js";
 import { wakuLightPush } from "./protocols/light_push.js";
 import { wakuStore } from "./protocols/store.js";
@@ -68,6 +70,7 @@ export class WakuNode implements Waku {
   public lightPush?: ILightPushSDK;
   public connectionManager: ConnectionManager;
   public readonly pubsubTopics: PubsubTopic[];
+  public readonly health: HealthManager;
 
   public constructor(
     options: WakuOptions,
@@ -104,6 +107,8 @@ export class WakuNode implements Waku {
       this.pubsubTopics,
       this.relay
     );
+
+    this.health = new HealthManager();
 
     if (protocolsEnabled.store) {
       const store = wakuStore(this.connectionManager, options);
