@@ -298,7 +298,11 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
             return;
           }
 
-          await this.handleIncomingMessage(pubsubTopic, wakuMessage);
+          await this.handleIncomingMessage(
+            pubsubTopic,
+            wakuMessage,
+            connection.remotePeer.toString()
+          );
         }
       }).then(
         () => {

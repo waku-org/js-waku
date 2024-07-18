@@ -88,7 +88,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     allPeerIdStr.forEach((peerId) => this.missedMessagesByPeer.set(peerId, 0));
   }
 
-  get messageHashes(): string[] {
+  public get messageHashes(): string[] {
     return [...this.receivedMessagesHashes.all];
   }
 
@@ -248,7 +248,10 @@ export class SubscriptionManager implements ISubscriptionSDK {
     }
   }
 
-  public async processIncomingMessage(message: WakuMessage): Promise<void> {
+  public async processIncomingMessage(
+    message: WakuMessage,
+    peerIdStr: PeerIdStr
+  ): Promise<void> {
     const hashedMessageStr = messageHashStr(
       this.pubsubTopic,
       message as IProtoMessage
