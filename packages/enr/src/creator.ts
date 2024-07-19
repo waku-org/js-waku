@@ -7,7 +7,7 @@ import { ENR } from "./enr.js";
 import { getPublicKeyFromPeerId } from "./peer_id.js";
 
 export class EnrCreator {
-  static fromPublicKey(
+  public static fromPublicKey(
     publicKey: Uint8Array,
     kvs: Record<ENRKey, ENRValue> = {}
   ): Promise<ENR> {
@@ -22,7 +22,7 @@ export class EnrCreator {
     });
   }
 
-  static async fromPeerId(
+  public static async fromPeerId(
     peerId: PeerId,
     kvs: Record<ENRKey, ENRValue> = {}
   ): Promise<ENR> {

@@ -22,18 +22,18 @@ export interface Params {
 export class HistoryRpc {
   private constructor(public readonly proto: proto.HistoryRpc) {}
 
-  get query(): proto.HistoryQuery | undefined {
+  public get query(): proto.HistoryQuery | undefined {
     return this.proto.query;
   }
 
-  get response(): proto.HistoryResponse | undefined {
+  public get response(): proto.HistoryResponse | undefined {
     return this.proto.response;
   }
 
   /**
    * Create History Query.
    */
-  static createQuery(params: Params): HistoryRpc {
+  public static createQuery(params: Params): HistoryRpc {
     const contentFilters = params.contentTopics.map((contentTopic) => {
       return { contentTopic };
     });
@@ -69,12 +69,12 @@ export class HistoryRpc {
     });
   }
 
-  decode(bytes: Uint8ArrayList): HistoryRpc {
+  public decode(bytes: Uint8ArrayList): HistoryRpc {
     const res = proto.HistoryRpc.decode(bytes);
     return new HistoryRpc(res);
   }
 
-  encode(): Uint8Array {
+  public encode(): Uint8Array {
     return proto.HistoryRpc.encode(this.proto);
   }
 }

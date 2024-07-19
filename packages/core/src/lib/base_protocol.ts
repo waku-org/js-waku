@@ -25,7 +25,7 @@ export class BaseProtocol implements IBaseProtocolCore {
   public readonly removeLibp2pEventListener: Libp2p["removeEventListener"];
   protected streamManager: StreamManager;
 
-  constructor(
+  protected constructor(
     public multicodec: string,
     private components: Libp2pComponents,
     private log: Logger,
@@ -82,7 +82,7 @@ export class BaseProtocol implements IBaseProtocolCore {
 
   * @returns A list of peers that support the protocol sorted by latency.
   */
-  async getPeers(
+  public async getPeers(
     {
       numPeers,
       maxBootstrapPeers

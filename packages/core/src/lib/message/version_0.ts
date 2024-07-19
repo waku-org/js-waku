@@ -20,28 +20,28 @@ export const Version = 0;
 export { proto };
 
 export class DecodedMessage implements IDecodedMessage {
-  constructor(
+  public constructor(
     public pubsubTopic: string,
     protected proto: proto.WakuMessage
   ) {}
 
-  get ephemeral(): boolean {
+  public get ephemeral(): boolean {
     return Boolean(this.proto.ephemeral);
   }
 
-  get payload(): Uint8Array {
+  public get payload(): Uint8Array {
     return this.proto.payload;
   }
 
-  get contentTopic(): string {
+  public get contentTopic(): string {
     return this.proto.contentTopic;
   }
 
-  get _rawTimestamp(): bigint | undefined {
+  public get _rawTimestamp(): bigint | undefined {
     return this.proto.timestamp;
   }
 
-  get timestamp(): Date | undefined {
+  public get timestamp(): Date | undefined {
     // In the case we receive a value that is bigger than JS's max number,
     // we catch the error and return undefined.
     try {
@@ -56,23 +56,23 @@ export class DecodedMessage implements IDecodedMessage {
     }
   }
 
-  get meta(): Uint8Array | undefined {
+  public get meta(): Uint8Array | undefined {
     return this.proto.meta;
   }
 
-  get version(): number {
+  public get version(): number {
     // https://rfc.vac.dev/spec/14/
     // > If omitted, the value SHOULD be interpreted as version 0.
     return this.proto.version ?? 0;
   }
 
-  get rateLimitProof(): IRateLimitProof | undefined {
+  public get rateLimitProof(): IRateLimitProof | undefined {
     return this.proto.rateLimitProof;
   }
 }
 
 export class Encoder implements IEncoder {
-  constructor(
+  public constructor(
     public contentTopic: string,
     public ephemeral: boolean = false,
     public pubsubTopic: PubsubTopic,
@@ -83,11 +83,11 @@ export class Encoder implements IEncoder {
     }
   }
 
-  async toWire(message: IMessage): Promise<Uint8Array> {
+  public async toWire(message: IMessage): Promise<Uint8Array> {
     return proto.WakuMessage.encode(await this.toProtoObj(message));
   }
 
-  async toProtoObj(message: IMessage): Promise<IProtoMessage> {
+  public async toProtoObj(message: IMessage): Promise<IProtoMessage> {
     const timestamp = message.timestamp ?? new Date();
 
     const protoMessage = {
@@ -133,7 +133,7 @@ export function createEncoder({
 }
 
 export class Decoder implements IDecoder<DecodedMessage> {
-  constructor(
+  public constructor(
     public pubsubTopic: PubsubTopic,
     public contentTopic: string
   ) {
@@ -142,7 +142,9 @@ export class Decoder implements IDecoder<DecodedMessage> {
     }
   }
 
-  fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
+  public fromWireToProtoObj(
+    bytes: Uint8Array
+  ): Promise<IProtoMessage | undefined> {
     const protoMessage = proto.WakuMessage.decode(bytes);
     return Promise.resolve({
       payload: protoMessage.payload,
@@ -155,7 +157,7 @@ export class Decoder implements IDecoder<DecodedMessage> {
     });
   }
 
-  async fromProtoObj(
+  public async fromProtoObj(
     pubsubTopic: string,
     proto: IProtoMessage
   ): Promise<DecodedMessage | undefined> {

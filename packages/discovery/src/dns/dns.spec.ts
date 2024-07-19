@@ -32,23 +32,23 @@ const errorBranchB = `enrtree-branch:${branchDomainD}`;
  * Mocks DNS resolution.
  */
 class MockDNS implements DnsClient {
-  fqdnRes: Map<string, string[]>;
-  fqdnThrows: string[];
+  private fqdnRes: Map<string, string[]>;
+  private fqdnThrows: string[];
 
-  constructor() {
+  public constructor() {
     this.fqdnRes = new Map();
     this.fqdnThrows = [];
   }
 
-  addRes(fqdn: string, res: string[]): void {
+  public addRes(fqdn: string, res: string[]): void {
     this.fqdnRes.set(fqdn, res);
   }
 
-  addThrow(fqdn: string): void {
+  public addThrow(fqdn: string): void {
     this.fqdnThrows.push(fqdn);
   }
 
-  resolveTXT(fqdn: string): Promise<string[]> {
+  public resolveTXT(fqdn: string): Promise<string[]> {
     if (this.fqdnThrows.includes(fqdn)) throw "Mock DNS throws.";
 
     const res = this.fqdnRes.get(fqdn);

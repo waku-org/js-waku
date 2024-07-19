@@ -9,7 +9,7 @@ import { ENR } from "./enr.js";
 const log = new Logger("enr:decoder");
 
 export class EnrDecoder {
-  static fromString(encoded: string): Promise<ENR> {
+  public static fromString(encoded: string): Promise<ENR> {
     if (!encoded.startsWith(ENR.RECORD_PREFIX)) {
       throw new Error(
         `"string encoded ENR must start with '${ENR.RECORD_PREFIX}'`
@@ -18,7 +18,7 @@ export class EnrDecoder {
     return EnrDecoder.fromRLP(fromString(encoded.slice(4), "base64url"));
   }
 
-  static fromRLP(encoded: Uint8Array): Promise<ENR> {
+  public static fromRLP(encoded: Uint8Array): Promise<ENR> {
     const decoded = RLP.decode(encoded).map(hexToBytes);
     return fromValues(decoded);
   }

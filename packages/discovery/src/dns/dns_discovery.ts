@@ -36,7 +36,10 @@ export class PeerDiscoveryDns
   private _components: DnsDiscoveryComponents;
   private _options: DnsDiscOptions;
 
-  constructor(components: DnsDiscoveryComponents, options: DnsDiscOptions) {
+  public constructor(
+    components: DnsDiscoveryComponents,
+    options: DnsDiscOptions
+  ) {
     super();
     this._started = false;
     this._components = components;
@@ -49,7 +52,7 @@ export class PeerDiscoveryDns
   /**
    * Start discovery process
    */
-  async start(): Promise<void> {
+  public async start(): Promise<void> {
     log.info("Starting peer discovery via dns");
 
     this._started = true;
@@ -122,15 +125,15 @@ export class PeerDiscoveryDns
   /**
    * Stop emitting events
    */
-  stop(): void {
+  public stop(): void {
     this._started = false;
   }
 
-  get [symbol](): true {
+  public get [symbol](): true {
     return true;
   }
 
-  get [Symbol.toStringTag](): string {
+  public get [Symbol.toStringTag](): string {
     return "@waku/bootstrap";
   }
 }

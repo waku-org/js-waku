@@ -13,21 +13,23 @@ export class TopicOnlyMessage implements IDecodedMessage {
   public meta: undefined;
   public ephemeral: undefined;
 
-  constructor(
+  public constructor(
     public pubsubTopic: string,
     private proto: ProtoTopicOnlyMessage
   ) {}
 
-  get contentTopic(): string {
+  public get contentTopic(): string {
     return this.proto.contentTopic;
   }
 }
 
 export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
-  pubsubTopic = DefaultPubsubTopic;
+  public pubsubTopic = DefaultPubsubTopic;
   public contentTopic = "";
 
-  fromWireToProtoObj(bytes: Uint8Array): Promise<IProtoMessage | undefined> {
+  public fromWireToProtoObj(
+    bytes: Uint8Array
+  ): Promise<IProtoMessage | undefined> {
     const protoMessage = ProtoTopicOnlyMessage.decode(bytes);
     return Promise.resolve({
       contentTopic: protoMessage.contentTopic,
@@ -40,7 +42,7 @@ export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
     });
   }
 
-  async fromProtoObj(
+  public async fromProtoObj(
     pubsubTopic: string,
     proto: IProtoMessage
   ): Promise<TopicOnlyMessage | undefined> {

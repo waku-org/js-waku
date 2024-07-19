@@ -37,7 +37,7 @@ export class DnsNodeDiscovery {
    * peers encountered by randomized search exceeds the sum of the fields of
    * @link wantedNodeCapabilityCount plus the @link _errorTolerance factor.
    */
-  async getPeers(
+  public async getPeers(
     enrTreeUrls: string[],
     wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
   ): Promise<IEnr[]> {
@@ -74,7 +74,7 @@ export class DnsNodeDiscovery {
   /**
    * {@inheritDoc getPeers}
    */
-  async *getNextPeer(
+  public async *getNextPeer(
     enrTreeUrls: string[],
     wantedNodeCapabilityCount: Partial<NodeCapabilityCount>
   ): AsyncGenerator<IEnr> {

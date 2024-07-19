@@ -68,11 +68,11 @@ export interface QueryOptions {
  * The Waku Store protocol can be used to retrieved historical messages.
  */
 export class StoreCore extends BaseProtocol implements IStoreCore {
-  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
+  public constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(StoreCodec, libp2p.components, log, options!.pubsubTopics!, options);
   }
 
-  async *queryPerPage<T extends IDecodedMessage>(
+  public async *queryPerPage<T extends IDecodedMessage>(
     queryOpts: Params,
     decoders: Map<string, IDecoder<T>>,
     peer: Peer

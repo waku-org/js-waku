@@ -26,7 +26,7 @@ export class ENRTree {
    * Extracts the branch subdomain referenced by a DNS tree root string after verifying
    * the root record signature with its base32 compressed public key.
    */
-  static parseAndVerifyRoot(root: string, publicKey: string): string {
+  public static parseAndVerifyRoot(root: string, publicKey: string): string {
     if (!root.startsWith(this.ROOT_PREFIX))
       throw new Error(
         `ENRTree root entry must start with '${this.ROOT_PREFIX}'`
@@ -57,7 +57,7 @@ export class ENRTree {
     return rootValues.eRoot;
   }
 
-  static parseRootValues(txt: string): ENRRootValues {
+  public static parseRootValues(txt: string): ENRRootValues {
     const matches = txt.match(
       /^enrtree-root:v1 e=([^ ]+) l=([^ ]+) seq=(\d+) sig=([^ ]+)$/
     );
@@ -86,7 +86,7 @@ export class ENRTree {
    * The domain is the starting point for traversing a set of linked DNS TXT records
    * and the public key is used to verify the root entry record
    */
-  static parseTree(tree: string): ENRTreeValues {
+  public static parseTree(tree: string): ENRTreeValues {
     if (!tree.startsWith(this.TREE_PREFIX))
       throw new Error(
         `ENRTree tree entry must start with '${this.TREE_PREFIX}'`
@@ -112,7 +112,7 @@ export class ENRTree {
    * Returns subdomains listed in an ENR branch entry. These in turn lead to
    * either further branch entries or ENR records.
    */
-  static parseBranch(branch: string): string[] {
+  public static parseBranch(branch: string): string[] {
     if (!branch.startsWith(this.BRANCH_PREFIX))
       throw new Error(
         `ENRTree branch entry must start with '${this.BRANCH_PREFIX}'`
