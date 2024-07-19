@@ -25,7 +25,7 @@ const log = new Logger("waku:store:protocol");
 export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   public readonly protocol: StoreCore;
 
-  constructor(
+  public constructor(
     connectionManager: ConnectionManager,
     libp2p: Libp2p,
     options?: ProtocolCreateOptions
@@ -58,7 +58,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
    * @throws If no decoders are provided.
    * @throws If no decoders are found for the provided pubsub topic.
    */
-  async *queryGenerator<T extends IDecodedMessage>(
+  public async *queryGenerator<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     options?: waku_store.QueryOptions
   ): AsyncGenerator<Promise<T | undefined>[]> {
@@ -108,7 +108,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryWithOrderedCallback<T extends IDecodedMessage>(
+  public async queryWithOrderedCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (message: T) => Promise<void | boolean> | boolean | void,
     options?: waku_store.QueryOptions
@@ -135,7 +135,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
    * or if an error is encountered when processing the reply,
    * or if two decoders with the same content topic are passed.
    */
-  async queryWithPromiseCallback<T extends IDecodedMessage>(
+  public async queryWithPromiseCallback<T extends IDecodedMessage>(
     decoders: IDecoder<T>[],
     callback: (
       message: Promise<T | undefined>
@@ -154,7 +154,7 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     }
   }
 
-  createCursor(message: IDecodedMessage): Cursor {
+  public createCursor(message: IDecodedMessage): Cursor {
     if (
       !message ||
       !message.timestamp ||

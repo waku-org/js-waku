@@ -24,7 +24,7 @@ const log = new Logger("test:message-collector");
  * that allows for the creation & handling of multiple ServiceNodes
  */
 export class ServiceNodesFleet {
-  static async createAndRun(
+  public static async createAndRun(
     mochaContext: Mocha.Context,
     pubsubTopics: PubsubTopic[],
     nodesToCreate: number = 3,
@@ -61,7 +61,7 @@ export class ServiceNodesFleet {
    * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
    * by the nwaku JSON-RPC API.
    */
-  static toMessageRpcQuery(message: {
+  public static toMessageRpcQuery(message: {
     payload: Uint8Array;
     contentTopic: string;
     timestamp?: Date;
@@ -86,7 +86,7 @@ export class ServiceNodesFleet {
     );
   }
 
-  get type(): "go-waku" | "nwaku" {
+  public get type(): "go-waku" | "nwaku" {
     const nodeType = new Set(
       this.nodes.map((node) => {
         return node.type;
@@ -98,12 +98,12 @@ export class ServiceNodesFleet {
     return nodeType.values().next().value;
   }
 
-  async start(): Promise<void> {
+  public async start(): Promise<void> {
     const startPromises = this.nodes.map((node) => node.start());
     await Promise.all(startPromises);
   }
 
-  async sendRelayMessage(
+  public async sendRelayMessage(
     message: MessageRpcQuery,
     pubsubTopic: string = DefaultPubsubTopic
   ): Promise<boolean> {
@@ -114,7 +114,7 @@ export class ServiceNodesFleet {
     return relayMessages.every((message) => message);
   }
 
-  async confirmMessageLength(numMessages: number): Promise<void> {
+  public async confirmMessageLength(numMessages: number): Promise<void> {
     if (this.strictChecking) {
       await Promise.all(
         this.nodes.map(async (node) =>
@@ -138,9 +138,9 @@ export class ServiceNodesFleet {
 }
 
 class MultipleNodesMessageCollector {
-  callback: (msg: DecodedMessage) => void = () => {};
-  messageList: Array<DecodedMessage> = [];
-  constructor(
+  public callback: (msg: DecodedMessage) => void = () => {};
+  protected messageList: Array<DecodedMessage> = [];
+  public constructor(
     private messageCollectors: MessageCollector[],
     private relayNodes?: ServiceNode[],
     private strictChecking: boolean = false
@@ -151,7 +151,7 @@ class MultipleNodesMessageCollector {
     };
   }
 
-  get count(): number {
+  public get count(): number {
     return this.messageList.length;
   }
 
@@ -167,7 +167,7 @@ class MultipleNodesMessageCollector {
     }
   }
 
-  getMessage(index: number): MessageRpcResponse | DecodedMessage {
+  public getMessage(index: number): MessageRpcResponse | DecodedMessage {
     return this.messageList[index];
   }
 
@@ -175,7 +175,7 @@ class MultipleNodesMessageCollector {
    * Verifies a received message against expected values on all nodes.
    * Returns true if any node's collector verifies the message successfully.
    */
-  verifyReceivedMessage(
+  public verifyReceivedMessage(
     index: number,
     options: {
       expectedMessageText: string | Uint8Array | undefined;
@@ -212,7 +212,7 @@ class MultipleNodesMessageCollector {
   /**
    * Waits for a total number of messages across all nodes.
    */
-  async waitForMessages(
+  public async waitForMessages(
     numMessages: number,
     options?: {
       pubsubTopic?: string;

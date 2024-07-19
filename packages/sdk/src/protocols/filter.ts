@@ -57,8 +57,7 @@ const DEFAULT_SUBSCRIBE_OPTIONS = {
   keepAlive: DEFAULT_KEEP_ALIVE
 };
 export class SubscriptionManager implements ISubscriptionSDK {
-  private readonly pubsubTopic: PubsubTopic;
-  readonly receivedMessagesHashStr: string[] = [];
+  private readonly receivedMessagesHashStr: string[] = [];
   private keepAliveTimer: number | null = null;
   private readonly receivedMessagesHashes: ReceivedMessageHashes;
   private peerFailures: Map<string, number> = new Map();
@@ -71,8 +70,8 @@ export class SubscriptionManager implements ISubscriptionSDK {
     SubscriptionCallback<IDecodedMessage>
   >;
 
-  constructor(
-    pubsubTopic: PubsubTopic,
+  public constructor(
+    private readonly pubsubTopic: PubsubTopic,
     private protocol: FilterCore,
     private getPeers: () => Peer[],
     private readonly renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>
@@ -89,7 +88,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     allPeerIdStr.forEach((peerId) => this.missedMessagesByPeer.set(peerId, 0));
   }
 
-  get messageHashes(): string[] {
+  public get messageHashes(): string[] {
     return [...this.receivedMessagesHashes.all];
   }
 
@@ -249,9 +248,9 @@ export class SubscriptionManager implements ISubscriptionSDK {
     }
   }
 
-  async processIncomingMessage(
+  public async processIncomingMessage(
     message: WakuMessage,
-    peerIdStr: string
+    peerIdStr: PeerIdStr
   ): Promise<void> {
     const hashedMessageStr = messageHashStr(
       this.pubsubTopic,
@@ -419,7 +418,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
   private activeSubscriptions = new Map<string, SubscriptionManager>();
 
-  constructor(
+  public constructor(
     connectionManager: ConnectionManager,
     libp2p: Libp2p,
     options?: ProtocolCreateOptions
@@ -470,7 +469,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    * @param pubsubTopicShardInfo The pubsub topic to subscribe to.
    * @returns The subscription object.
    */
-  async createSubscription(
+  public async createSubscription(
     pubsubTopicShardInfo: ShardingParams | PubsubTopic,
     options?: ProtocolUseOptions
   ): Promise<CreateSubscriptionResult> {
@@ -533,7 +532,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    * This method should not be used directly.
    * Instead, use `createSubscription` to create a new subscription.
    */
-  async subscribe<T extends IDecodedMessage>(
+  public async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
     options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS

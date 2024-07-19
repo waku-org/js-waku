@@ -11,7 +11,7 @@ export class DecodedMessage
 {
   private readonly _decodedPayload: Uint8Array;
 
-  constructor(
+  public constructor(
     pubsubTopic: string,
     proto: proto.WakuMessage,
     decodedPayload: Uint8Array,
@@ -22,7 +22,7 @@ export class DecodedMessage
     this._decodedPayload = decodedPayload;
   }
 
-  get payload(): Uint8Array {
+  public get payload(): Uint8Array {
     return this._decodedPayload;
   }
 
@@ -31,7 +31,7 @@ export class DecodedMessage
    *
    * @returns true if the signature matches the public key, false if not or if no signature is present.
    */
-  verifySignature(publicKey: Uint8Array): boolean {
+  public verifySignature(publicKey: Uint8Array): boolean {
     if (this.signaturePublicKey) {
       return equals(this.signaturePublicKey, publicKey);
     }

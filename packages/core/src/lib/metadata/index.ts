@@ -23,9 +23,9 @@ export const MetadataCodec = "/vac/waku/metadata/1.0.0";
 
 class Metadata extends BaseProtocol implements IMetadata {
   private libp2pComponents: Libp2pComponents;
-  handshakesConfirmed: Map<PeerIdStr, ShardInfo> = new Map();
+  protected handshakesConfirmed: Map<PeerIdStr, ShardInfo> = new Map();
 
-  constructor(
+  public constructor(
     public shardInfo: ShardInfo,
     libp2p: Libp2pComponents
   ) {
@@ -42,39 +42,9 @@ class Metadata extends BaseProtocol implements IMetadata {
   }
 
   /**
-   * Handle an incoming metadata request
-   */
-  private async onRequest(streamData: IncomingStreamData): Promise<void> {
-    try {
-      const { stream, connection } = streamData;
-      const encodedShardInfo = proto_metadata.WakuMetadataResponse.encode(
-        this.shardInfo
-      );
-
-      const encodedResponse = await pipe(
-        [encodedShardInfo],
-        lp.encode,
-        stream,
-        lp.decode,
-        async (source) => await all(source)
-      );
-
-      const { error, shardInfo } = this.decodeMetadataResponse(encodedResponse);
-
-      if (error) {
-        return;
-      }
-
-      await this.savePeerShardInfo(connection.remotePeer, shardInfo);
-    } catch (error) {
-      log.error("Error handling metadata request", error);
-    }
-  }
-
-  /**
    * Make a metadata query to a peer
    */
-  async query(peerId: PeerId): Promise<MetadataQueryResult> {
+  public async query(peerId: PeerId): Promise<MetadataQueryResult> {
     const request = proto_metadata.WakuMetadataRequest.encode(this.shardInfo);
 
     const peer = await this.peerStore.get(peerId);
@@ -133,6 +103,36 @@ class Metadata extends BaseProtocol implements IMetadata {
     }
 
     return await this.query(peerId);
+  }
+
+  /**
+   * Handle an incoming metadata request
+   */
+  private async onRequest(streamData: IncomingStreamData): Promise<void> {
+    try {
+      const { stream, connection } = streamData;
+      const encodedShardInfo = proto_metadata.WakuMetadataResponse.encode(
+        this.shardInfo
+      );
+
+      const encodedResponse = await pipe(
+        [encodedShardInfo],
+        lp.encode,
+        stream,
+        lp.decode,
+        async (source) => await all(source)
+      );
+
+      const { error, shardInfo } = this.decodeMetadataResponse(encodedResponse);
+
+      if (error) {
+        return;
+      }
+
+      await this.savePeerShardInfo(connection.remotePeer, shardInfo);
+    } catch (error) {
+      log.error("Error handling metadata request", error);
+    }
   }
 
   private decodeMetadataResponse(

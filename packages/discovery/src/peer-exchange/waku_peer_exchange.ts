@@ -28,14 +28,17 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
   /**
    * @param components - libp2p components
    */
-  constructor(components: Libp2pComponents, pubsubTopics: PubsubTopic[]) {
+  public constructor(
+    components: Libp2pComponents,
+    pubsubTopics: PubsubTopic[]
+  ) {
     super(PeerExchangeCodec, components, log, pubsubTopics);
   }
 
   /**
    * Make a peer exchange query to a peer
    */
-  async query(
+  public async query(
     params: PeerExchangeQueryParams
   ): Promise<PeerExchangeQueryResult> {
     const { numPeers } = params;

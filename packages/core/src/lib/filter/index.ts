@@ -32,7 +32,7 @@ export const FilterCodecs = {
 };
 
 export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
-  constructor(
+  public constructor(
     private handleIncomingMessage: (
       pubsubTopic: PubsubTopic,
       wakuMessage: WakuMessage,
@@ -58,47 +58,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       });
   }
 
-  private onRequest(streamData: IncomingStreamData): void {
-    const { connection, stream } = streamData;
-    const { remotePeer } = connection;
-    log.info(`Received message from ${remotePeer.toString()}`);
-    try {
-      pipe(stream, lp.decode, async (source) => {
-        for await (const bytes of source) {
-          const response = FilterPushRpc.decode(bytes.slice());
-
-          const { pubsubTopic, wakuMessage } = response;
-
-          if (!wakuMessage) {
-            log.error("Received empty message");
-            return;
-          }
-
-          if (!pubsubTopic) {
-            log.error("Pubsub topic missing from push message");
-            return;
-          }
-
-          await this.handleIncomingMessage(
-            pubsubTopic,
-            wakuMessage,
-            connection.remotePeer.toString()
-          );
-        }
-      }).then(
-        () => {
-          log.info("Receiving pipe closed.");
-        },
-        (e) => {
-          log.error("Error with receiving pipe", e);
-        }
-      );
-    } catch (e) {
-      log.error("Error decoding message", e);
-    }
-  }
-
-  async subscribe(
+  public async subscribe(
     pubsubTopic: PubsubTopic,
     peer: Peer,
     contentTopics: ContentTopic[]
@@ -152,7 +112,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     };
   }
 
-  async unsubscribe(
+  public async unsubscribe(
     pubsubTopic: PubsubTopic,
     peer: Peer,
     contentTopics: ContentTopic[]
@@ -198,7 +158,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     };
   }
 
-  async unsubscribeAll(
+  public async unsubscribeAll(
     pubsubTopic: PubsubTopic,
     peer: Peer
   ): Promise<CoreProtocolResult> {
@@ -246,7 +206,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     };
   }
 
-  async ping(peer: Peer): Promise<CoreProtocolResult> {
+  public async ping(peer: Peer): Promise<CoreProtocolResult> {
     let stream: Stream | undefined;
     try {
       stream = await this.getStream(peer);
@@ -315,5 +275,45 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       success: peer.id,
       failure: null
     };
+  }
+
+  private onRequest(streamData: IncomingStreamData): void {
+    const { connection, stream } = streamData;
+    const { remotePeer } = connection;
+    log.info(`Received message from ${remotePeer.toString()}`);
+    try {
+      pipe(stream, lp.decode, async (source) => {
+        for await (const bytes of source) {
+          const response = FilterPushRpc.decode(bytes.slice());
+
+          const { pubsubTopic, wakuMessage } = response;
+
+          if (!wakuMessage) {
+            log.error("Received empty message");
+            return;
+          }
+
+          if (!pubsubTopic) {
+            log.error("Pubsub topic missing from push message");
+            return;
+          }
+
+          await this.handleIncomingMessage(
+            pubsubTopic,
+            wakuMessage,
+            connection.remotePeer.toString()
+          );
+        }
+      }).then(
+        () => {
+          log.info("Receiving pipe closed.");
+        },
+        (e) => {
+          log.error("Error with receiving pipe", e);
+        }
+      );
+    } catch (e) {
+      log.error("Error decoding message", e);
+    }
   }
 }

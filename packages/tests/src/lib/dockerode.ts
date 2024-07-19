@@ -79,14 +79,14 @@ export default class Dockerode {
     return newIp;
   }
 
-  get container(): Docker.Container | undefined {
+  public get container(): Docker.Container | undefined {
     if (!this.containerId) {
       return undefined;
     }
     return this.docker.getContainer(this.containerId);
   }
 
-  async startContainer(
+  public async startContainer(
     ports: Ports,
     args: Args,
     logPath: string,
@@ -168,7 +168,7 @@ export default class Dockerode {
     return container;
   }
 
-  async stop(): Promise<void> {
+  public async stop(): Promise<void> {
     if (!this.container) {
       log.error("ContainerId not set");
     } else {

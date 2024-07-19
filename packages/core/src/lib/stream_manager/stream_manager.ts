@@ -13,7 +13,7 @@ export class StreamManager {
   private readonly streamPool: Map<string, Promise<Stream | void>>;
   private readonly log: Logger;
 
-  constructor(
+  public constructor(
     public multicodec: string,
     public getConnections: Libp2p["getConnections"],
     public addEventListener: Libp2p["addEventListener"]

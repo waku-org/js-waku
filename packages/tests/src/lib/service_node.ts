@@ -54,7 +54,7 @@ export class ServiceNode {
    * Convert a [[WakuMessage]] to a [[WakuRelayMessage]]. The latter is used
    * by the nwaku JSON-RPC API.
    */
-  static toMessageRpcQuery(message: {
+  public static toMessageRpcQuery(message: {
     payload: Uint8Array;
     contentTopic: string;
     timestamp?: Date;
@@ -75,23 +75,23 @@ export class ServiceNode {
     };
   }
 
-  constructor(logName: string) {
+  public constructor(logName: string) {
     this.logPath = `${LOG_DIR}/wakunode_${logName}.log`;
   }
 
-  get type(): "go-waku" | "nwaku" {
+  public get type(): "go-waku" | "nwaku" {
     return isGoWaku ? "go-waku" : "nwaku";
   }
 
-  get nodeType(): "go-waku" | "nwaku" {
+  public get nodeType(): "go-waku" | "nwaku" {
     return isGoWaku ? "go-waku" : "nwaku";
   }
 
-  get containerName(): string | undefined {
+  public get containerName(): string | undefined {
     return this.docker?.container?.id;
   }
 
-  async start(
+  public async start(
     args: Args = {},
     options: {
       retries?: number;
@@ -200,7 +200,7 @@ export class ServiceNode {
     delete this.docker;
   }
 
-  async waitForLog(msg: string, timeout: number): Promise<void> {
+  public async waitForLog(msg: string, timeout: number): Promise<void> {
     return waitForLine(this.logPath, msg, timeout);
   }
 
@@ -208,7 +208,7 @@ export class ServiceNode {
    * Calls nwaku REST API "/admin/v1/peers" to check for known peers
    * @throws
    */
-  async peers(): Promise<string[]> {
+  public async peers(): Promise<string[]> {
     this.checkProcess();
 
     return this.restCall<string[]>(
@@ -222,7 +222,7 @@ export class ServiceNode {
     );
   }
 
-  async info(): Promise<RpcInfoResponse> {
+  public async info(): Promise<RpcInfoResponse> {
     this.checkProcess();
 
     return this.restCall<RpcInfoResponse>(
@@ -233,7 +233,7 @@ export class ServiceNode {
     );
   }
 
-  async healthy(): Promise<boolean> {
+  public async healthy(): Promise<boolean> {
     this.checkProcess();
 
     return this.restCall<boolean>(
@@ -244,7 +244,7 @@ export class ServiceNode {
     );
   }
 
-  async ensureSubscriptions(
+  public async ensureSubscriptions(
     pubsubTopics: string[] = [DefaultPubsubTopic]
   ): Promise<boolean> {
     return this.restCall<boolean>(
@@ -255,7 +255,7 @@ export class ServiceNode {
     );
   }
 
-  async messages(pubsubTopic?: string): Promise<MessageRpcResponse[]> {
+  public async messages(pubsubTopic?: string): Promise<MessageRpcResponse[]> {
     return this.restCall<MessageRpcResponse[]>(
       `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this?.args?.pubsubTopic?.[0] || DefaultPubsubTopic)}`,
       "GET",
@@ -267,7 +267,7 @@ export class ServiceNode {
     );
   }
 
-  async ensureSubscriptionsAutosharding(
+  public async ensureSubscriptionsAutosharding(
     contentTopics: string[]
   ): Promise<boolean> {
     this.checkProcess();
@@ -280,7 +280,7 @@ export class ServiceNode {
     );
   }
 
-  async sendMessage(
+  public async sendMessage(
     message: MessageRpcQuery,
     pubsubTopic?: string
   ): Promise<boolean> {
@@ -298,7 +298,9 @@ export class ServiceNode {
     );
   }
 
-  async sendMessageAutosharding(message: MessageRpcQuery): Promise<boolean> {
+  public async sendMessageAutosharding(
+    message: MessageRpcQuery
+  ): Promise<boolean> {
     this.checkProcess();
 
     if (typeof message.timestamp === "undefined") {
@@ -313,7 +315,7 @@ export class ServiceNode {
     );
   }
 
-  async messagesAutosharding(
+  public async messagesAutosharding(
     contentTopic: string
   ): Promise<MessageRpcResponse[]> {
     this.checkProcess();
@@ -329,13 +331,13 @@ export class ServiceNode {
     );
   }
 
-  async getPeerId(): Promise<PeerId> {
+  public async getPeerId(): Promise<PeerId> {
     if (this.peerId) return this.peerId;
     this.peerId = await this._getPeerId();
     return this.peerId;
   }
 
-  async getMultiaddrWithId(): Promise<Multiaddr> {
+  public async getMultiaddrWithId(): Promise<Multiaddr> {
     if (this.multiaddrWithId) return this.multiaddrWithId;
 
     const peerId = await this.getPeerId();
@@ -362,15 +364,15 @@ export class ServiceNode {
     return this.peerId;
   }
 
-  get httpUrl(): string {
+  public get httpUrl(): string {
     return `http://127.0.0.1:${this.restPort}`;
   }
 
-  get pubsubTopics(): string[] {
+  public get pubsubTopics(): string[] {
     return this.args?.pubsubTopic ?? [];
   }
 
-  async restCall<T>(
+  public async restCall<T>(
     endpoint: string,
     method: "GET" | "POST",
     body: any = null,

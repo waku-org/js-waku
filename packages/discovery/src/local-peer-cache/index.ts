@@ -35,7 +35,7 @@ export class LocalPeerCacheDiscovery
   private isStarted: boolean;
   private peers: LocalStoragePeerInfo[] = [];
 
-  constructor(
+  public constructor(
     private readonly components: Libp2pComponents,
     private readonly options?: LocalPeerCacheDiscoveryOptions
   ) {
@@ -44,11 +44,11 @@ export class LocalPeerCacheDiscovery
     this.peers = this.getPeersFromLocalStorage();
   }
 
-  get [Symbol.toStringTag](): string {
+  public get [Symbol.toStringTag](): string {
     return "@waku/local-peer-cache-discovery";
   }
 
-  async start(): Promise<void> {
+  public async start(): Promise<void> {
     if (this.isStarted) return;
 
     log.info("Starting Local Storage Discovery");
@@ -86,7 +86,7 @@ export class LocalPeerCacheDiscovery
     this.isStarted = true;
   }
 
-  stop(): void | Promise<void> {
+  public stop(): void | Promise<void> {
     if (!this.isStarted) return;
     log.info("Stopping Local Storage Discovery");
     this.components.events.removeEventListener(
@@ -98,7 +98,7 @@ export class LocalPeerCacheDiscovery
     this.savePeersToLocalStorage();
   }
 
-  handleNewPeers = (event: CustomEvent<IdentifyResult>): void => {
+  public handleNewPeers = (event: CustomEvent<IdentifyResult>): void => {
     const { peerId, listenAddrs } = event.detail;
 
     const websocketMultiaddr = getWsMultiaddrFromMultiaddrs(listenAddrs);

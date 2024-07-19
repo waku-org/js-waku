@@ -32,7 +32,7 @@ type PreparePushMessageResult = ThisOrThat<"query", PushRpc>;
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
-  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
+  public constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(
       LightPushCodec,
       libp2p.components,
@@ -78,7 +78,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
     }
   }
 
-  async send(
+  public async send(
     encoder: IEncoder,
     message: IMessage,
     peer: Peer
