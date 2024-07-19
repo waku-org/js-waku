@@ -88,7 +88,7 @@ export async function runMultipleNodes(
     withoutFilter
   );
 
-  const waku_options: ProtocolCreateOptions = {
+  const wakuOptions: ProtocolCreateOptions = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
@@ -96,15 +96,15 @@ export async function runMultipleNodes(
   };
 
   if (shardInfo) {
-    waku_options.shardInfo = shardInfo;
+    wakuOptions.shardInfo = shardInfo;
   } else {
-    waku_options.pubsubTopics = pubsubTopics;
+    wakuOptions.pubsubTopics = pubsubTopics;
   }
 
-  log.info("Starting js waku node with :", JSON.stringify(waku_options));
+  log.info("Starting js waku node with :", JSON.stringify(wakuOptions));
   let waku: LightNode | undefined;
   try {
-    waku = await createLightNode(waku_options);
+    waku = await createLightNode(wakuOptions);
     await waku.start();
   } catch (error) {
     log.error("jswaku node failed to start:", error);
