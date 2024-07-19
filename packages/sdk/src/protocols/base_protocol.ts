@@ -51,14 +51,15 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   public async renewPeer(peerToDisconnect: PeerId): Promise<Peer> {
     this.log.info(`Renewing peer ${peerToDisconnect}`);
 
+    await this.connectionManager.dropConnection(peerToDisconnect);
+
     const peer = (await this.findAndAddPeers(1))[0];
     if (!peer) {
-      throw new Error(
-        "Failed to find a new peer to replace the disconnected one"
+      this.log.error(
+        "Failed to find a new peer to replace the disconnected one."
       );
     }
 
-    await this.connectionManager.dropConnection(peerToDisconnect);
     this.peers = this.peers.filter((peer) => !peer.id.equals(peerToDisconnect));
     this.log.info(
       `Peer ${peerToDisconnect} disconnected and removed from the peer list`
