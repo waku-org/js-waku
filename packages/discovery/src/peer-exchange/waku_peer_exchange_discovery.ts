@@ -50,12 +50,16 @@ export interface Options {
   maxRetries?: number;
 }
 
+interface CustomDiscoveryEvent extends PeerDiscoveryEvents {
+  "waku:peer-exchange:started": CustomEvent<boolean>;
+}
+
 export const DEFAULT_PEER_EXCHANGE_TAG_NAME = Tags.PEER_EXCHANGE;
 const DEFAULT_PEER_EXCHANGE_TAG_VALUE = 50;
 const DEFAULT_PEER_EXCHANGE_TAG_TTL = 100_000_000;
 
 export class PeerExchangeDiscovery
-  extends TypedEventEmitter<PeerDiscoveryEvents>
+  extends TypedEventEmitter<CustomDiscoveryEvent>
   implements PeerDiscovery
 {
   private readonly components: Libp2pComponents;
@@ -101,6 +105,10 @@ export class PeerExchangeDiscovery
     if (this.isStarted) {
       return;
     }
+
+    this.dispatchEvent(
+      new CustomEvent("waku:peer-exchange:started", { detail: true })
+    );
 
     log.info("Starting peer exchange node discovery, discovering peers");
 

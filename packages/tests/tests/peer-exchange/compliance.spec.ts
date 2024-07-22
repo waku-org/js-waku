@@ -24,36 +24,41 @@ describe("Peer Exchange", function () {
     beforeEachCustom(this, async () => {
       nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
       nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
+
+      await nwaku1.start({
+        relay: true,
+        discv5Discovery: true,
+        peerExchange: true
+      });
+      const enr = (await nwaku1.info()).enrUri;
+
+      await nwaku2.start({
+        relay: true,
+        discv5Discovery: true,
+        peerExchange: true,
+        discv5BootstrapNode: enr
+      });
     });
 
     tests({
       async setup() {
-        await nwaku1.start({
-          relay: true,
-          discv5Discovery: true,
-          peerExchange: true
-        });
-
-        const enr = (await nwaku1.info()).enrUri;
-
-        await nwaku2.start({
-          relay: true,
-          discv5Discovery: true,
-          peerExchange: true,
-          discv5BootstrapNode: enr
-        });
-
         waku = await createLightNode();
         await waku.start();
 
         const nwaku2Ma = await nwaku2.getMultiaddrWithId();
 
-        // we do this because we want peer-exchange discovery to get initialised before we dial the peer which contains info about the other peer
-        setTimeout(() => {
-          void waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
-        }, 1000);
+        const peerExchange = new PeerExchangeDiscovery(
+          waku.libp2p.components,
+          pubsubTopic
+        );
 
-        return new PeerExchangeDiscovery(waku.libp2p.components, pubsubTopic);
+        peerExchange.addEventListener("waku:peer-exchange:started", (event) => {
+          if (event.detail === true) {
+            void waku.libp2p.dialProtocol(nwaku2Ma, PeerExchangeCodec);
+          }
+        });
+
+        return peerExchange;
       },
       teardown: async () => {
         this.timeout(15000);
