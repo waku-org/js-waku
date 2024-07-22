@@ -1,7 +1,11 @@
 import type { Peer, PeerId } from "@libp2p/interface";
-import { ConnectionManager } from "@waku/core";
+import { ConnectionManager, HealthManager } from "@waku/core";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
-import { IBaseProtocolSDK, ProtocolUseOptions } from "@waku/interfaces";
+import {
+  IBaseProtocolSDK,
+  Protocols,
+  ProtocolUseOptions
+} from "@waku/interfaces";
 import { delay, Logger } from "@waku/utils";
 
 interface Options {
@@ -13,8 +17,9 @@ const RENEW_TIME_LOCK_DURATION = 30 * 1000;
 const DEFAULT_NUM_PEERS_TO_USE = 3;
 const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 
-export class BaseProtocolSDK implements IBaseProtocolSDK {
+export class BaseProtocolSDK extends HealthManager implements IBaseProtocolSDK {
   public readonly numPeersToUse: number;
+  public readonly name: Protocols;
   private peers: Peer[] = [];
   private maintainPeersIntervalId: ReturnType<
     typeof window.setInterval
@@ -31,7 +36,19 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     private connectionManager: ConnectionManager,
     options: Options
   ) {
+    super();
     this.log = new Logger(`sdk:${core.multicodec}`);
+
+    if (core.multicodec.includes("filter")) {
+      this.name = Protocols.Filter;
+    } else if (core.multicodec.includes("lightpush")) {
+      this.name = Protocols.LightPush;
+    } else if (core.multicodec.includes("store")) {
+      this.name = Protocols.Store;
+    } else {
+      throw new Error(`Unknown protocol: ${core.multicodec}`);
+    }
+
     this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
     const maintainPeersInterval =
       options?.maintainPeersInterval ?? DEFAULT_MAINTAIN_PEERS_INTERVAL;
@@ -60,7 +77,11 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       );
     }
 
-    this.peers = this.peers.filter((peer) => !peer.id.equals(peerToDisconnect));
+    const updatedPeers = this.peers.filter(
+      (peer) => !peer.id.equals(peerToDisconnect)
+    );
+    this.updatePeers(updatedPeers);
+
     this.log.info(
       `Peer ${peerToDisconnect} disconnected and removed from the peer list`
     );
@@ -192,7 +213,9 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
 
       await Promise.all(dials);
 
-      this.peers = [...this.peers, ...additionalPeers];
+      const updatedPeers = [...this.peers, ...additionalPeers];
+      this.updatePeers(updatedPeers);
+
       this.log.info(
         `Added ${additionalPeers.length} new peers, total peers: ${this.peers.length}`
       );
@@ -231,6 +254,11 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       this.log.error("Error finding additional peers:", error);
       throw error;
     }
+  }
+
+  private updatePeers(peers: Peer[]): void {
+    this.peers = peers;
+    this.updateProtocolHealth(this.name, this.peers.length);
   }
 }
 

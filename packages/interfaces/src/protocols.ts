@@ -25,8 +25,9 @@ export type IBaseProtocolCore = {
 };
 
 export type IBaseProtocolSDK = {
-  renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>;
+  readonly name: Protocols;
   readonly connectedPeers: Peer[];
+  renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>;
   readonly numPeersToUse: number;
 };
 
