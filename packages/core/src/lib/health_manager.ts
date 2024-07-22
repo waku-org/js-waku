@@ -9,15 +9,15 @@ import {
 export class HealthManager implements IHealthManager {
   private readonly health: ProtocolsHealthStatus;
 
-  constructor() {
+  public constructor() {
     this.health = new Map();
   }
 
-  get healthStatus(): ProtocolsHealthStatus {
+  public get healthStatus(): ProtocolsHealthStatus {
     return this.health;
   }
 
-  getProtocolStatus(protocol: Protocols): ProtocolHealth | undefined {
+  public getProtocolStatus(protocol: Protocols): ProtocolHealth | undefined {
     return this.health.get(protocol);
   }
 
