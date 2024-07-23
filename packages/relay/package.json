@@ -52,6 +52,7 @@
     "@chainsafe/libp2p-gossipsub": "^12.0.0",
     "@noble/hashes": "^1.3.2",
     "@waku/core": "0.0.30",
+    "@waku/sdk": "0.0.26",
     "@waku/interfaces": "0.0.25",
     "@waku/proto": "0.0.7",
     "@waku/utils": "0.0.18",
@@ -67,6 +68,7 @@
     "rollup": "^4.12.0"
   },
   "peerDependencies": {
+    "@waku/sdk": "0.0.26",
     "@waku/core": "0.0.30",
     "@waku/interfaces": "0.0.25",
     "@waku/proto": "0.0.7",

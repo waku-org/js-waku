@@ -5,8 +5,8 @@ import {
   Protocols,
   ShardingParams
 } from "@waku/interfaces";
+import { createRelayNode } from "@waku/relay";
 import { createLightNode, WakuNode } from "@waku/sdk";
-import { createRelayNode } from "@waku/sdk/relay";
 import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
 import { Context } from "mocha";
 

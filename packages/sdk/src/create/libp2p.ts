@@ -1,4 +1,3 @@
-import type { GossipSub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import { bootstrap } from "@libp2p/bootstrap";
 import { identify } from "@libp2p/identify";
@@ -15,7 +14,6 @@ import {
   type Libp2pComponents,
   type ShardInfo
 } from "@waku/interfaces";
-import { wakuGossipSub } from "@waku/relay";
 import { ensureShardingConfigured, Logger } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
@@ -27,10 +25,6 @@ import {
 
 import { defaultPeerDiscoveries } from "./discovery.js";
 
-type PubsubService = {
-  pubsub?: (components: Libp2pComponents) => GossipSub;
-};
-
 type MetadataService = {
   metadata?: (components: Libp2pComponents) => IMetadata;
 };
@@ -39,7 +33,6 @@ const logger = new Logger("sdk:create");
 
 export async function defaultLibp2p(
   shardInfo?: ShardInfo,
-  wakuGossipSub?: PubsubService["pubsub"],
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
@@ -55,10 +48,6 @@ export async function defaultLibp2p(
     );
     /* eslint-enable no-console */
   }
-
-  const pubsubService: PubsubService = wakuGossipSub
-    ? { pubsub: wakuGossipSub }
-    : {};
 
   const metadataService: MetadataService = shardInfo
     ? { metadata: wakuMetadata(shardInfo) }
@@ -83,7 +72,6 @@ export async function defaultLibp2p(
           options?.pingMaxInboundStreams ?? DefaultPingMaxInboundStreams
       }),
       ...metadataService,
-      ...pubsubService,
       ...options?.services
     }
   }) as any as Libp2p; // TODO: make libp2p include it;
@@ -109,7 +97,6 @@ export async function createLibp2pAndUpdateOptions(
 
   const libp2p = await defaultLibp2p(
     shardInfo,
-    wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
   );

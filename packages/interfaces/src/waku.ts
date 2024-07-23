@@ -42,10 +42,3 @@ export interface RelayNode extends Waku {
   filter: undefined;
   lightPush: undefined;
 }
-
-export interface FullNode extends Waku {
-  relay: IRelay;
-  store: IStoreSDK;
-  filter: IFilterSDK;
-  lightPush: ILightPushSDK;
-}

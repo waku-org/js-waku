@@ -1,6 +1,6 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import { RelayNode } from "@waku/interfaces";
-import { createRelayNode } from "@waku/sdk/relay";
+import { createRelayNode } from "@waku/relay";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
