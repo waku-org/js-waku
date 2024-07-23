@@ -53,18 +53,20 @@ class HealthManager implements IHealthManager {
   }
 
   private updateOverallHealth(): void {
-    const statuses = Array.from(this.health.protocolStatuses.values()).map(
-      (p) => p.status
+    //TODO: blocked for Store by https://github.com/waku-org/js-waku/pull/2019
+    const relevantProtocols = [Protocols.LightPush, Protocols.Filter];
+    const statuses = relevantProtocols.map(
+      (p) => this.getProtocolStatus(p)?.status
     );
 
     if (statuses.some((status) => status === HealthStatus.Unhealthy)) {
       this.health.overallStatus = HealthStatus.Unhealthy;
     } else if (
-      statuses.every((status) => status === HealthStatus.SufficientlyHealthy)
+      statuses.some((status) => status === HealthStatus.MinimallyHealthy)
     ) {
-      this.health.overallStatus = HealthStatus.SufficientlyHealthy;
-    } else {
       this.health.overallStatus = HealthStatus.MinimallyHealthy;
+    } else {
+      this.health.overallStatus = HealthStatus.SufficientlyHealthy;
     }
   }
 }
