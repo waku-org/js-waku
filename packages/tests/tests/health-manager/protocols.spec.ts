@@ -1,55 +1,37 @@
-import {
-  createDecoder,
-  createEncoder,
-  HealthStatus,
-  type LightNode,
-  Protocols,
-  utf8ToBytes
-} from "@waku/sdk";
-import { contentTopicToPubsubTopic } from "@waku/utils";
+import { HealthStatus, type LightNode, Protocols } from "@waku/sdk";
 import { expect } from "chai";
 
-import { afterEachCustom, ServiceNodesFleet } from "../../src/index.js";
 import {
+  afterEachCustom,
   runMultipleNodes,
+  ServiceNodesFleet,
   teardownNodesWithRedundancy
-} from "../filter/utils.js";
+} from "../../src/index.js";
+
+import {
+  messagePayload,
+  TestDecoder,
+  TestEncoder,
+  TestShardInfo
+} from "./utils.js";
 
 const NUM_NODES = [0, 1, 2, 3];
 
-export const TestContentTopic = "/test/1/waku-filter/default";
-export const ClusterId = 2;
-export const TestShardInfo = {
-  contentTopics: [TestContentTopic],
-  clusterId: ClusterId
-};
-export const TestPubsubTopic = contentTopicToPubsubTopic(
-  TestContentTopic,
-  ClusterId
-);
-export const TestEncoder = createEncoder({
-  contentTopic: TestContentTopic,
-  pubsubTopic: TestPubsubTopic
-});
-export const TestDecoder = createDecoder(TestContentTopic, TestPubsubTopic);
-export const messageText = "Filtering works!";
-export const messagePayload = { payload: utf8ToBytes(messageText) };
-
 describe("Health Manager", function () {
-  this.timeout(15000);
+  let waku: LightNode;
+  let serviceNodes: ServiceNodesFleet;
+
+  afterEachCustom(this, async () => {
+    await teardownNodesWithRedundancy(serviceNodes, waku);
+  });
+
   describe("Should update the health status for protocols", () => {
-    let waku: LightNode;
-    let serviceNodes: ServiceNodesFleet;
-
-    afterEachCustom(this, async () => {
-      await teardownNodesWithRedundancy(serviceNodes, waku);
-    });
-
     NUM_NODES.map((num) => {
       it(`LightPush with ${num} connections`, async function () {
         [serviceNodes, waku] = await runMultipleNodes(
           this.ctx,
           TestShardInfo,
+          undefined,
           undefined,
           num
         );
@@ -75,6 +57,7 @@ describe("Health Manager", function () {
         [serviceNodes, waku] = await runMultipleNodes(
           this.ctx,
           TestShardInfo,
+          undefined,
           undefined,
           num
         );
@@ -107,6 +90,7 @@ describe("Health Manager", function () {
         [serviceNodes, waku] = await runMultipleNodes(
           this.ctx,
           TestShardInfo,
+          undefined,
           undefined,
           num
         );
