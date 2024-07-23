@@ -1,16 +1,13 @@
 import type { Stream } from "@libp2p/interface";
 import { isPeerId, PeerId } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, DecodedMessage } from "@waku/core";
+import { ConnectionManager } from "@waku/core";
 import type {
-  Callback,
   IFilterSDK,
   ILightPushSDK,
   IRelay,
   IStoreSDK,
-  ISubscriptionSDK,
   Libp2p,
-  LightNode,
   ProtocolCreateOptions,
   PubsubTopic,
   Waku
@@ -22,7 +19,6 @@ import { Logger } from "@waku/utils";
 import { wakuFilter } from "./protocols/filter.js";
 import { wakuLightPush } from "./protocols/light_push.js";
 import { wakuStore } from "./protocols/store.js";
-import { subscribeToContentTopic } from "./utils/content_topic.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -209,19 +205,6 @@ export class WakuNode implements Waku {
   public async stop(): Promise<void> {
     this.connectionManager.stop();
     await this.libp2p.stop();
-  }
-
-  public async subscribeToContentTopic(
-    contentTopic: string,
-    peer: Multiaddr,
-    callback: Callback<DecodedMessage>
-  ): Promise<ISubscriptionSDK> {
-    return (
-      await subscribeToContentTopic(contentTopic, callback, {
-        waku: this as LightNode,
-        peer
-      })
-    ).subscription;
   }
 
   public isStarted(): boolean {

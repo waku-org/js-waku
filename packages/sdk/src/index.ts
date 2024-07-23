@@ -7,7 +7,6 @@ export {
 
 export { utf8ToBytes, bytesToUtf8 } from "@waku/utils/bytes";
 
-export * from "./utils/content_topic.js";
 export * from "./waku.js";
 
 export { createLightNode, defaultLibp2p } from "./create/index.js";
