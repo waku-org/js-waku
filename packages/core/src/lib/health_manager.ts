@@ -1,17 +1,20 @@
 import {
   HealthStatus,
   type IHealthManager,
+  NodeHealth,
   type ProtocolHealth,
-  Protocols,
-  type ProtocolsHealthStatus
+  Protocols
 } from "@waku/interfaces";
 
 class HealthManager implements IHealthManager {
   public static instance: HealthManager;
-  private readonly health: ProtocolsHealthStatus;
+  private readonly health: NodeHealth;
 
   private constructor() {
-    this.health = new Map();
+    this.health = {
+      overallStatus: HealthStatus.Unhealthy,
+      protocolStatuses: new Map()
+    };
   }
 
   public static getInstance(): HealthManager {
@@ -21,12 +24,12 @@ class HealthManager implements IHealthManager {
     return HealthManager.instance;
   }
 
-  public getHealthStatus(): ProtocolsHealthStatus {
-    return this.health;
+  public getHealthStatus(): HealthStatus {
+    return this.health.overallStatus;
   }
 
   public getProtocolStatus(protocol: Protocols): ProtocolHealth | undefined {
-    return this.health.get(protocol);
+    return this.health.protocolStatuses.get(protocol);
   }
 
   public updateProtocolHealth(
@@ -40,11 +43,29 @@ class HealthManager implements IHealthManager {
       status = HealthStatus.SufficientlyHealthy;
     }
 
-    this.health.set(protocol, {
+    this.health.protocolStatuses.set(protocol, {
       name: protocol,
       status: status,
       lastUpdate: new Date()
     });
+
+    this.updateOverallHealth();
+  }
+
+  private updateOverallHealth(): void {
+    const statuses = Array.from(this.health.protocolStatuses.values()).map(
+      (p) => p.status
+    );
+
+    if (statuses.some((status) => status === HealthStatus.Unhealthy)) {
+      this.health.overallStatus = HealthStatus.Unhealthy;
+    } else if (
+      statuses.every((status) => status === HealthStatus.SufficientlyHealthy)
+    ) {
+      this.health.overallStatus = HealthStatus.SufficientlyHealthy;
+    } else {
+      this.health.overallStatus = HealthStatus.MinimallyHealthy;
+    }
   }
 }
 
