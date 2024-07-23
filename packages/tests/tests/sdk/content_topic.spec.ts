@@ -121,7 +121,7 @@ describe.skip("SDK: Creating by Content Topic", function () {
       {
         pubsubTopics: shardInfo.pubsubTopics
       },
-      await defaultLibp2p(shardInfo.shardInfo, undefined, {}, undefined),
+      await defaultLibp2p(shardInfo.shardInfo, {}, undefined),
       {
         filter: true
       }
