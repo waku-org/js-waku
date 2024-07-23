@@ -1,8 +1,9 @@
 import type { Peer, PeerId } from "@libp2p/interface";
-import { ConnectionManager, HealthManager } from "@waku/core";
+import { ConnectionManager, getHealthManager } from "@waku/core";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
 import {
   IBaseProtocolSDK,
+  IHealthManager,
   Protocols,
   ProtocolUseOptions
 } from "@waku/interfaces";
@@ -17,7 +18,8 @@ const RENEW_TIME_LOCK_DURATION = 30 * 1000;
 const DEFAULT_NUM_PEERS_TO_USE = 3;
 const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 
-export class BaseProtocolSDK extends HealthManager implements IBaseProtocolSDK {
+export class BaseProtocolSDK implements IBaseProtocolSDK {
+  private healthManager: IHealthManager;
   public readonly numPeersToUse: number;
   public readonly name: Protocols;
   private peers: Peer[] = [];
@@ -36,7 +38,6 @@ export class BaseProtocolSDK extends HealthManager implements IBaseProtocolSDK {
     private connectionManager: ConnectionManager,
     options: Options
   ) {
-    super();
     this.log = new Logger(`sdk:${core.multicodec}`);
 
     if (core.multicodec.includes("filter")) {
@@ -48,6 +49,8 @@ export class BaseProtocolSDK extends HealthManager implements IBaseProtocolSDK {
     } else {
       throw new Error(`Unknown protocol: ${core.multicodec}`);
     }
+
+    this.healthManager = getHealthManager();
 
     this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
     const maintainPeersInterval =
@@ -258,7 +261,7 @@ export class BaseProtocolSDK extends HealthManager implements IBaseProtocolSDK {
 
   private updatePeers(peers: Peer[]): void {
     this.peers = peers;
-    this.updateProtocolHealth(this.name, this.peers.length);
+    this.healthManager.updateProtocolHealth(this.name, this.peers.length);
   }
 }
 

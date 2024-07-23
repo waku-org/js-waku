@@ -6,14 +6,22 @@ import {
   type ProtocolsHealthStatus
 } from "@waku/interfaces";
 
-export class HealthManager implements IHealthManager {
+class HealthManager implements IHealthManager {
+  public static instance: HealthManager;
   private readonly health: ProtocolsHealthStatus;
 
-  public constructor() {
+  private constructor() {
     this.health = new Map();
   }
 
-  public get healthStatus(): ProtocolsHealthStatus {
+  public static getInstance(): HealthManager {
+    if (!HealthManager.instance) {
+      HealthManager.instance = new HealthManager();
+    }
+    return HealthManager.instance;
+  }
+
+  public getHealthStatus(): ProtocolsHealthStatus {
     return this.health;
   }
 
@@ -21,7 +29,7 @@ export class HealthManager implements IHealthManager {
     return this.health.get(protocol);
   }
 
-  protected updateProtocolHealth(
+  public updateProtocolHealth(
     protocol: Protocols,
     connectedPeers: number
   ): void {
@@ -39,3 +47,6 @@ export class HealthManager implements IHealthManager {
     });
   }
 }
+
+export const getHealthManager = (): HealthManager =>
+  HealthManager.getInstance();

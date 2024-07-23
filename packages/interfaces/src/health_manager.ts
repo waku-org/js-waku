@@ -7,8 +7,9 @@ export enum HealthStatus {
 }
 
 export interface IHealthManager {
-  healthStatus: ProtocolsHealthStatus;
+  getHealthStatus: () => ProtocolsHealthStatus;
   getProtocolStatus: (protocol: Protocols) => ProtocolHealth | undefined;
+  updateProtocolHealth: (protocol: Protocols, connectedPeers: number) => void;
 }
 
 export type ProtocolHealth = {

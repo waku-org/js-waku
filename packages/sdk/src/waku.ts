@@ -4,6 +4,7 @@ import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager } from "@waku/core";
 import type {
   IFilterSDK,
+  IHealthManager,
   ILightPushSDK,
   IRelay,
   IStoreSDK,
@@ -16,7 +17,7 @@ import { Protocols } from "@waku/interfaces";
 import { wakuRelay } from "@waku/relay";
 import { Logger } from "@waku/utils";
 
-import { HealthManager } from "../../core/dist/lib/health_manager.js";
+import { getHealthManager } from "../../core/dist/lib/health_manager.js";
 
 import { wakuFilter } from "./protocols/filter.js";
 import { wakuLightPush } from "./protocols/light_push.js";
@@ -70,7 +71,7 @@ export class WakuNode implements Waku {
   public lightPush?: ILightPushSDK;
   public connectionManager: ConnectionManager;
   public readonly pubsubTopics: PubsubTopic[];
-  public readonly health: HealthManager;
+  public readonly health: IHealthManager;
 
   public constructor(
     options: WakuOptions,
@@ -108,7 +109,7 @@ export class WakuNode implements Waku {
       this.relay
     );
 
-    this.health = new HealthManager();
+    this.health = getHealthManager();
 
     if (protocolsEnabled.store) {
       const store = wakuStore(this.connectionManager, options);
