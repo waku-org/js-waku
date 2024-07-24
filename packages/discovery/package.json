@@ -62,9 +62,9 @@
     "uint8arrays": "^5.0.1"
   },
   "devDependencies": {
-    "@libp2p/peer-id": "^4.0.4",
-    "@libp2p/peer-id-factory": "^4.0.5",
-    "@multiformats/multiaddr": "^12.0.0",
+    "@libp2p/peer-id": "^4.2.1",
+    "@libp2p/peer-id-factory": "^4.2.1",
+    "@multiformats/multiaddr": "^12.3.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
@@ -86,7 +86,7 @@
     "@waku/interfaces": "0.0.25",
     "@waku/proto": "0.0.7",
     "@waku/utils": "0.0.18",
-    "@libp2p/interface": "^1.1.2"
+    "@libp2p/interface": "^1.6.1"
   },
   "peerDependenciesMeta": {
     "@waku/interfaces": {
