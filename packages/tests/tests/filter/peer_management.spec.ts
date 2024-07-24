@@ -22,7 +22,8 @@ import {
 } from "../../src/index.js";
 import {
   runMultipleNodes,
-  teardownNodesWithRedundancy
+  teardownNodesWithRedundancy,
+  TestShardInfo
 } from "../filter/utils.js";
 
 describe("Waku Filter: Peer Management: E2E", function () {
@@ -45,7 +46,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
     console.log("------------- 1 ---------");
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      undefined,
+      TestShardInfo,
       undefined,
       5
     );
