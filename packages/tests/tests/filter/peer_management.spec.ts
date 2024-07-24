@@ -42,14 +42,17 @@ describe("Waku Filter: Peer Management: E2E", function () {
   const decoder = createDecoder(contentTopic, pubsubTopic);
 
   beforeEachCustom(this, async () => {
+    console.log("------------- 1 ---------");
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
       undefined,
       undefined,
       5
     );
+    console.log("------------- 2 ---------");
     const { error, subscription: sub } =
       await waku.filter.createSubscription(pubsubTopic);
+    console.log("------------- 3 ---------");
     if (!sub || error) {
       throw new Error("Could not create subscription");
     }
@@ -62,6 +65,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
 
   it("Number of peers are maintained correctly", async function () {
     const messages: DecodedMessage[] = [];
+    console.log("------------- 4 ---------");
     const { failures, successes } = await subscription.subscribe(
       [decoder],
       (msg) => {
@@ -69,6 +73,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
       }
     );
 
+    console.log("------------- 5 ---------");
     await waku.lightPush.send(encoder, {
       payload: utf8ToBytes("Hello_World")
     });
