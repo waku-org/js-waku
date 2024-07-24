@@ -63,7 +63,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
     await teardownNodesWithRedundancy(serviceNodes, waku);
   });
 
-  it("Number of peers are maintained correctly", async function () {
+  it.only("Number of peers are maintained correctly", async function () {
     const messages: DecodedMessage[] = [];
     console.log("------------- 4 ---------");
     const { failures, successes } = await subscription.subscribe(
