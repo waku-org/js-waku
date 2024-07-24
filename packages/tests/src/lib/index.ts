@@ -1,12 +1,9 @@
 import { DecodedMessage } from "@waku/core";
-import {
-  DefaultPubsubTopic,
-  PubsubTopic,
-  ShardingParams
-} from "@waku/interfaces";
+import { PubsubTopic, ShardingParams } from "@waku/interfaces";
 import { ensureShardingConfigured, Logger } from "@waku/utils";
 import { expect } from "chai";
 
+import { DefaultTestPubsubTopic } from "../constants";
 import { Args, MessageRpcQuery, MessageRpcResponse } from "../types";
 import { delay, makeLogFileName } from "../utils/index.js";
 
@@ -105,7 +102,7 @@ export class ServiceNodesFleet {
 
   public async sendRelayMessage(
     message: MessageRpcQuery,
-    pubsubTopic: string = DefaultPubsubTopic
+    pubsubTopic: string = DefaultTestPubsubTopic
   ): Promise<boolean> {
     const relayMessagePromises: Promise<boolean>[] = this.nodes.map((node) =>
       node.sendMessage(message, pubsubTopic)
@@ -221,7 +218,7 @@ class MultipleNodesMessageCollector {
     }
   ): Promise<boolean> {
     const startTime = Date.now();
-    const pubsubTopic = options?.pubsubTopic || DefaultPubsubTopic;
+    const pubsubTopic = options?.pubsubTopic || DefaultTestPubsubTopic;
     const timeoutDuration = options?.timeoutDuration || 400;
     const exact = options?.exact || false;
 

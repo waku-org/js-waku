@@ -7,6 +7,7 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
+  DefaultTestShardInfo,
   delay,
   NOISE_KEY_1
 } from "../../src/index.js";
@@ -89,10 +90,12 @@ describe("Connection state", function () {
 
   it("`waku:online` between 2 js-waku relay nodes", async function () {
     const waku1 = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     const waku2 = await createRelayNode({
-      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
+      libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
+      shardInfo: DefaultTestShardInfo
     });
 
     let eventCount1 = 0;

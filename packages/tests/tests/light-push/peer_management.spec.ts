@@ -1,4 +1,4 @@
-import { DefaultPubsubTopic, LightNode } from "@waku/interfaces";
+import { LightNode } from "@waku/interfaces";
 import { createEncoder, utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 import { describe } from "mocha";
@@ -6,6 +6,7 @@ import { describe } from "mocha";
 import {
   afterEachCustom,
   beforeEachCustom,
+  DefaultTestPubsubTopic,
   ServiceNodesFleet
 } from "../../src/index.js";
 import {
@@ -32,7 +33,7 @@ describe("Waku Light Push: Peer Management: E2E", function () {
   });
 
   const encoder = createEncoder({
-    pubsubTopic: DefaultPubsubTopic,
+    pubsubTopic: DefaultTestPubsubTopic,
     contentTopic: "/test"
   });
 

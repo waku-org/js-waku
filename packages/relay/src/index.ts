@@ -11,7 +11,6 @@ import { sha256 } from "@noble/hashes/sha256";
 import {
   ActiveSubscriptions,
   Callback,
-  DefaultPubsubTopic,
   IAsyncIterator,
   IDecodedMessage,
   IDecoder,
@@ -75,9 +74,8 @@ class Relay implements IRelay {
 
     this.observers = new Map();
 
-    // Default PubsubTopic decoder
     // TODO: User might want to decide what decoder should be used (e.g. for RLN)
-    this.defaultDecoder = new TopicOnlyDecoder();
+    this.defaultDecoder = new TopicOnlyDecoder(pubsubTopics[0]);
   }
 
   /**
@@ -204,8 +202,9 @@ class Relay implements IRelay {
     return map;
   }
 
-  public getMeshPeers(topic: TopicStr = DefaultPubsubTopic): PeerIdStr[] {
-    return this.gossipSub.getMeshPeers(topic);
+  public getMeshPeers(topic?: TopicStr): PeerIdStr[] {
+    // if no TopicStr is provided - returns empty array
+    return this.gossipSub.getMeshPeers(topic || "");
   }
 
   private subscribeToAllTopics(): void {

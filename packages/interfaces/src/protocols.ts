@@ -73,31 +73,35 @@ export type ProtocolUseOptions = {
 export type ProtocolCreateOptions = {
   /**
    * @deprecated
-   * Waku will stop supporting named sharding. Only static sharding and autosharding will be supported moving forward.
-   */
-  pubsubTopics?: PubsubTopic[];
-  /**
-   * Waku supports usage of multiple pubsub topics. This is achieved through static sharding for now, and auto-sharding in the future.
-   * The format to specify a shard is:
-   * clusterId: number, shards: number[]
-   * To learn more about the sharding specifications implemented, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
-   * The Pubsub Topic to use. Defaults to {@link @waku/core!DefaultPubsubTopic }.
+   * Should be used ONLY if some other than The Waku Network is in use.
    *
-   * If no pubsub topic is specified, the default pubsub topic is used.
-   * The set of pubsub topics that are used to initialize the Waku node, will need to be used by the protocols as well
-   * You cannot currently add or remove pubsub topics after initialization.
+   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#pubsub-topics) for details.
+   *
    * This is used by:
    * - WakuRelay to receive, route and send messages,
    * - WakuLightPush to send messages,
    * - WakuStore to retrieve messages.
-   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md) for details.
    *
+   * If no pubsub topic is specified, the default pubsub topic will be determined from DefaultShardInfo.
+   *
+   * You cannot add or remove pubsub topics after initialization of the node.
+   */
+  pubsubTopics?: PubsubTopic[];
+  /**
+   * ShardInfo is used to determine which network is in use.
+   * Defaults to {@link @waku/interfaces!DefaultShardInfo}.
+   * Default value is configured for The Waku Network
+   *
+   * The format to specify a shard is:
+   * clusterId: number, shards: number[]
+   * To learn more about the sharding specification, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
    */
   shardInfo?: Partial<ShardingParams>;
   /**
-   * Content topics are used to determine pubsubTopics
-   * If not provided pubsubTopics will be determined based on shardInfo
-   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md) for details.
+   * Content topics are used to determine network in use.
+   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#content-topics) for details.
+   *
+   * You cannot add or remove content topics after initialization of the node.
    */
   contentTopics?: string[];
   /**

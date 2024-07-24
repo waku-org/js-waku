@@ -7,6 +7,8 @@ import { expect } from "chai";
 
 import {
   afterEachCustom,
+  DefaultTestPubsubTopic,
+  DefaultTestShardInfo,
   delay,
   makeLogFileName,
   NOISE_KEY_1,
@@ -53,7 +55,8 @@ describe("Wait for remote peer", function () {
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku1 = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku1.start();
 
@@ -62,7 +65,7 @@ describe("Wait for remote peer", function () {
     await waku1.dial(multiAddrWithId);
     await waitPromise;
 
-    const peers = waku1.relay.getMeshPeers();
+    const peers = waku1.relay.getMeshPeers(DefaultTestPubsubTopic);
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -72,7 +75,8 @@ describe("Wait for remote peer", function () {
   it("Relay - times out", function (done) {
     this.timeout(5000);
     createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     })
       .then((waku1) => waku1.start().then(() => waku1))
       .then((waku1) => {
@@ -101,7 +105,8 @@ describe("Wait for remote peer", function () {
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
@@ -129,7 +134,8 @@ describe("Wait for remote peer", function () {
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku2.start();
     const waitPromise = waitForRemotePeer(waku2, [Protocols.Store], 2000);
@@ -159,7 +165,8 @@ describe("Wait for remote peer", function () {
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
@@ -187,7 +194,8 @@ describe("Wait for remote peer", function () {
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
@@ -215,7 +223,8 @@ describe("Wait for remote peer", function () {
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);

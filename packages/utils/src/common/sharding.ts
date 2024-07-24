@@ -228,6 +228,7 @@ export function contentTopicsByPubsubTopic(
  */
 export function determinePubsubTopic(
   contentTopic: string,
+  // TODO: make it accept ShardInfo
   pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
 ): string {
   if (typeof pubsubTopicShardInfo == "string") {

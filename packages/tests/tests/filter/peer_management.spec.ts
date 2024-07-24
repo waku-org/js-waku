@@ -1,5 +1,4 @@
 import {
-  DefaultPubsubTopic,
   ISubscriptionSDK,
   LightNode,
   SDKProtocolResult
@@ -17,6 +16,7 @@ import { describe } from "mocha";
 import {
   afterEachCustom,
   beforeEachCustom,
+  DefaultTestPubsubTopic,
   ServiceNode,
   ServiceNodesFleet
 } from "../../src/index.js";
@@ -31,7 +31,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
   let serviceNodes: ServiceNodesFleet;
   let subscription: ISubscriptionSDK;
 
-  const pubsubTopic = DefaultPubsubTopic;
+  const pubsubTopic = DefaultTestPubsubTopic;
   const contentTopic = "/test";
 
   const encoder = createEncoder({
