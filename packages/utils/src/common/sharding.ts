@@ -228,7 +228,7 @@ export function contentTopicsByPubsubTopic(
  */
 export function determinePubsubTopic(
   contentTopic: string,
-  // TODO: make it accept ShardInfo
+  // TODO: make it accept ShardInfo https://github.com/waku-org/js-waku/issues/2086
   pubsubTopicShardInfo?: SingleShardInfo | PubsubTopic
 ): string {
   if (typeof pubsubTopicShardInfo == "string") {
