@@ -27,7 +27,7 @@ const log = new Logger("store");
 export const StoreCodec = "/vac/waku/store-query/3.0.0";
 
 export class StoreCore extends BaseProtocol implements IStoreCore {
-  constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
+  public constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
     super(
       StoreCodec,
       libp2p.components,
@@ -37,7 +37,7 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
     );
   }
 
-  async *queryPerPage<T extends IDecodedMessage>(
+  public async *queryPerPage<T extends IDecodedMessage>(
     queryOpts: QueryRequestParams,
     decoders: Map<string, IDecoder<T>>,
     peer: Peer

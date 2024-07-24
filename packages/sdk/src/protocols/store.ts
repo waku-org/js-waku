@@ -11,7 +11,7 @@ import {
 import { messageHash } from "@waku/message-hash";
 import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
 
-import { BaseProtocolSDK } from "../base_protocol";
+import { BaseProtocolSDK } from "./base_protocol";
 
 const DEFAULT_NUM_PEERS = 1;
 
@@ -24,7 +24,7 @@ const log = new Logger("waku:store:sdk");
 export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   public readonly protocol: StoreCore;
 
-  constructor(
+  public constructor(
     connectionManager: ConnectionManager,
     libp2p: Libp2p,
     options?: ProtocolCreateOptions
@@ -102,6 +102,34 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   }
 
   /**
+   * Queries the Waku Store for historical messages and processes them with the provided callback using promises.
+   *
+   * @param decoders - An array of message decoders.
+   * @param callback - A callback function to process each promise of a decoded message.
+   * @param options - Optional query parameters.
+   * @returns A promise that resolves when the query and message processing are completed.
+   */
+  public async queryWithPromiseCallback<T extends IDecodedMessage>(
+    decoders: IDecoder<T>[],
+    callback: (
+      message: Promise<T | undefined>
+    ) => Promise<void | boolean> | boolean | void,
+    options?: Partial<QueryRequestParams>
+  ): Promise<void> {
+    log.info("Querying store with promise callback");
+    let abort = false;
+    for await (const page of this.queryGenerator(decoders, options)) {
+      const _promises = page.map(async (msgPromise) => {
+        if (abort) return;
+        abort = Boolean(await callback(msgPromise));
+      });
+
+      await Promise.all(_promises);
+      if (abort) break;
+    }
+  }
+
+  /**
    * Processes messages based on the provided callback and options.
    *
    * @param messages - An array of promises of decoded messages.
@@ -126,34 +154,6 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
     );
 
     return abort;
-  }
-
-  /**
-   * Queries the Waku Store for historical messages and processes them with the provided callback using promises.
-   *
-   * @param decoders - An array of message decoders.
-   * @param callback - A callback function to process each promise of a decoded message.
-   * @param options - Optional query parameters.
-   * @returns A promise that resolves when the query and message processing are completed.
-   */
-  async queryWithPromiseCallback<T extends IDecodedMessage>(
-    decoders: IDecoder<T>[],
-    callback: (
-      message: Promise<T | undefined>
-    ) => Promise<void | boolean> | boolean | void,
-    options?: Partial<QueryRequestParams>
-  ): Promise<void> {
-    log.info("Querying store with promise callback");
-    let abort = false;
-    for await (const page of this.queryGenerator(decoders, options)) {
-      const _promises = page.map(async (msgPromise) => {
-        if (abort) return;
-        abort = Boolean(await callback(msgPromise));
-      });
-
-      await Promise.all(_promises);
-      if (abort) break;
-    }
   }
 
   /**
