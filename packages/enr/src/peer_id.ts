@@ -15,6 +15,10 @@ export function getPublicKeyFromPeerId(peerId: PeerId): Uint8Array {
     throw new Error("Unsupported peer id type");
   }
 
+  if (!peerId.publicKey) {
+    throw new Error("Public key not present on peer id");
+  }
+
   return unmarshalPublicKey(peerId.publicKey).marshal();
 }
 
