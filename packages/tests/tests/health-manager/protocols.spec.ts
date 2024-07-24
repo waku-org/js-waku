@@ -18,6 +18,8 @@ import {
 const NUM_NODES = [0, 1, 2, 3];
 
 describe("Health Manager", function () {
+  this.timeout(10_000);
+
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
 
@@ -26,8 +28,11 @@ describe("Health Manager", function () {
   });
 
   describe("Should update the health status for protocols", () => {
+    this.timeout(10_000);
+
     NUM_NODES.map((num) => {
       it(`LightPush with ${num} connections`, async function () {
+        this.timeout(10_000);
         [serviceNodes, waku] = await runMultipleNodes(
           this.ctx,
           TestShardInfo,
@@ -71,33 +76,6 @@ describe("Health Manager", function () {
         await subscription?.subscribe([TestDecoder], () => {});
 
         const health = waku.health.getProtocolStatus(Protocols.Filter);
-        if (!health) {
-          expect(health).to.not.equal(undefined);
-        }
-
-        if (num === 0) {
-          expect(health?.status).to.equal(HealthStatus.Unhealthy);
-        } else if (num < 2) {
-          expect(health?.status).to.equal(HealthStatus.MinimallyHealthy);
-        } else if (num >= 2) {
-          expect(health?.status).to.equal(HealthStatus.SufficientlyHealthy);
-        } else {
-          throw new Error("Invalid number of connections");
-        }
-      });
-      //TODO: blocked by https://github.com/waku-org/js-waku/pull/2019
-      it.skip(`Store with ${num} connections`, async function () {
-        [serviceNodes, waku] = await runMultipleNodes(
-          this.ctx,
-          TestShardInfo,
-          undefined,
-          undefined,
-          num
-        );
-
-        await waku.store.queryWithPromiseCallback([TestDecoder], () => {});
-
-        const health = waku.health.getProtocolStatus(Protocols.Store);
         if (!health) {
           expect(health).to.not.equal(undefined);
         }

@@ -53,7 +53,6 @@ class HealthManager implements IHealthManager {
   }
 
   private updateOverallHealth(): void {
-    //TODO: blocked for Store by https://github.com/waku-org/js-waku/pull/2019
     const relevantProtocols = [Protocols.LightPush, Protocols.Filter];
     const statuses = relevantProtocols.map(
       (p) => this.getProtocolStatus(p)?.status
