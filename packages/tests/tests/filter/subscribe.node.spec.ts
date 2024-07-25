@@ -15,15 +15,15 @@ import {
   beforeEachCustom,
   delay,
   generateTestData,
+  runMultipleNodes,
   ServiceNodesFleet,
+  teardownNodesWithRedundancy,
   TEST_STRING
 } from "../../src/index.js";
 
 import {
   messagePayload,
   messageText,
-  runMultipleNodes,
-  teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
   TestEncoder,
@@ -42,6 +42,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
         TestShardInfo,
+        undefined,
         strictCheckNodes
       );
       const { error, subscription: _subscription } =

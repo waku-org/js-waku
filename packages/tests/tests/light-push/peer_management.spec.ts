@@ -8,13 +8,11 @@ import {
   beforeEachCustom,
   DefaultTestShardInfo,
   DefaultTestSingleShardInfo,
-  ServiceNodesFleet
-} from "../../src/index.js";
-import {
   runMultipleNodes,
-  teardownNodesWithRedundancy,
-  TestContentTopic
-} from "../filter/utils.js";
+  ServiceNodesFleet,
+  teardownNodesWithRedundancy
+} from "../../src/index.js";
+import { TestContentTopic } from "../filter/utils.js";
 
 describe("Waku Light Push: Peer Management: E2E", function () {
   this.timeout(15000);
@@ -25,6 +23,7 @@ describe("Waku Light Push: Peer Management: E2E", function () {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
       DefaultTestShardInfo,
+      undefined,
       undefined,
       5
     );

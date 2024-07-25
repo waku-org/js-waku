@@ -7,15 +7,15 @@ import {
   afterEachCustom,
   beforeEachCustom,
   delay,
+  runMultipleNodes,
   ServiceNodesFleet,
+  teardownNodesWithRedundancy,
   TEST_STRING,
   TEST_TIMESTAMPS
 } from "../../src/index.js";
 
 import {
   messageText,
-  runMultipleNodes,
-  teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
   TestEncoder,

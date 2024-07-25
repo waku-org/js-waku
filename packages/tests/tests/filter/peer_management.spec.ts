@@ -18,13 +18,11 @@ import {
   beforeEachCustom,
   DefaultTestPubsubTopic,
   DefaultTestShardInfo,
-  ServiceNode,
-  ServiceNodesFleet
-} from "../../src/index.js";
-import {
   runMultipleNodes,
+  ServiceNode,
+  ServiceNodesFleet,
   teardownNodesWithRedundancy
-} from "../filter/utils.js";
+} from "../../src/index.js";
 
 describe("Waku Filter: Peer Management: E2E", function () {
   this.timeout(15000);
@@ -45,6 +43,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
       DefaultTestShardInfo,
+      undefined,
       undefined,
       5
     );
@@ -185,6 +184,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
     const [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
       DefaultTestShardInfo,
+      undefined,
       undefined,
       2
     );

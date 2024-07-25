@@ -23,7 +23,8 @@ export async function runMultipleNodes(
   shardInfo?: ShardingParams,
   customArgs?: Args,
   strictChecking: boolean = false,
-  numServiceNodes = 3
+  numServiceNodes = 3,
+  withoutFilter = false
 ): Promise<[ServiceNodesFleet, LightNode]> {
   const pubsubTopics = shardInfo
     ? shardInfoToPubsubTopics(shardInfo)
@@ -35,7 +36,8 @@ export async function runMultipleNodes(
     numServiceNodes,
     strictChecking,
     shardInfo,
-    customArgs
+    customArgs,
+    withoutFilter
   );
 
   const wakuOptions: ProtocolCreateOptions = {

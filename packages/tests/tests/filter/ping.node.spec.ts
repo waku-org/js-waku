@@ -5,12 +5,12 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
-  ServiceNodesFleet
+  runMultipleNodes,
+  ServiceNodesFleet,
+  teardownNodesWithRedundancy
 } from "../../src/index.js";
 
 import {
-  runMultipleNodes,
-  teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
   TestEncoder,

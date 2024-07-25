@@ -7,15 +7,15 @@ import {
   afterEachCustom,
   beforeEachCustom,
   generateTestData,
-  ServiceNodesFleet
+  runMultipleNodes,
+  ServiceNodesFleet,
+  teardownNodesWithRedundancy
 } from "../../src/index.js";
 
 import {
   ClusterId,
   messagePayload,
   messageText,
-  runMultipleNodes,
-  teardownNodesWithRedundancy,
   TestContentTopic,
   TestDecoder,
   TestEncoder,

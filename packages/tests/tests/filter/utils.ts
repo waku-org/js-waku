@@ -22,7 +22,7 @@ import {
   NOISE_KEY_1,
   ServiceNodesFleet,
   waitForConnections
-} from "../../src/index.js";
+} from "../../src";
 
 // Constants for test configuration.
 export const log = new Logger("test:filter");
