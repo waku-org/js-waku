@@ -2,7 +2,8 @@ import {
   DefaultPubsubTopic,
   ISubscriptionSDK,
   LightNode,
-  SDKProtocolResult
+  SDKProtocolResult,
+  ShardInfo
 } from "@waku/interfaces";
 import {
   createDecoder,
@@ -41,10 +42,12 @@ describe("Waku Filter: Peer Management: E2E", function () {
 
   const decoder = createDecoder(contentTopic, pubsubTopic);
 
+  const shardInfo: ShardInfo = { clusterId: 0, shards: [0] };
+
   beforeEachCustom(this, async () => {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      undefined,
+      shardInfo,
       undefined,
       5
     );
