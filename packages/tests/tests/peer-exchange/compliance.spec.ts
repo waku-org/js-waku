@@ -1,7 +1,6 @@
 import tests from "@libp2p/interface-compliance-tests/peer-discovery";
 import { PeerExchangeCodec, PeerExchangeDiscovery } from "@waku/discovery";
 import type { LightNode, ShardInfo } from "@waku/interfaces";
-import { DefaultPubsubTopic } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { singleShardInfoToPubsubTopic } from "@waku/utils";
 
@@ -30,8 +29,7 @@ describe("Peer Exchange", function () {
       await nwaku1.start({
         relay: true,
         discv5Discovery: true,
-        peerExchange: true,
-        pubsubTopic: [DefaultPubsubTopic]
+        peerExchange: true
       });
       const enr = (await nwaku1.info()).enrUri;
 
@@ -39,8 +37,7 @@ describe("Peer Exchange", function () {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
-        discv5BootstrapNode: enr,
-        pubsubTopic: [DefaultPubsubTopic]
+        discv5BootstrapNode: enr
       });
     });
 
