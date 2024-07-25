@@ -9,7 +9,7 @@ import { all as filterAll, wss } from "@libp2p/websockets/filters";
 import { wakuMetadata } from "@waku/core";
 import {
   type CreateLibp2pOptions,
-  DefaultPubsubTopic,
+  DefaultShardInfo,
   type IMetadata,
   type Libp2p,
   type Libp2pComponents,
@@ -138,12 +138,15 @@ function configureNetworkOptions(
     options.shardInfo = { contentTopics: options.contentTopics };
   }
 
+  if (!options.shardInfo) {
+    options.shardInfo = DefaultShardInfo;
+  }
+
   const shardInfo = options.shardInfo
     ? ensureShardingConfigured(options.shardInfo)
     : undefined;
 
-  options.pubsubTopics = shardInfo?.pubsubTopics ??
-    options.pubsubTopics ?? [DefaultPubsubTopic];
+  options.pubsubTopics = options.pubsubTopics ?? shardInfo?.pubsubTopics;
 
   return shardInfo?.shardInfo;
 }

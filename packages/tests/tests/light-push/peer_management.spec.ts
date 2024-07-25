@@ -1,4 +1,4 @@
-import { DefaultPubsubTopic, LightNode } from "@waku/interfaces";
+import { LightNode } from "@waku/interfaces";
 import { createEncoder, utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 import { describe } from "mocha";
@@ -6,11 +6,14 @@ import { describe } from "mocha";
 import {
   afterEachCustom,
   beforeEachCustom,
+  DefaultTestShardInfo,
+  DefaultTestSingleShardInfo,
   ServiceNodesFleet
 } from "../../src/index.js";
 import {
   runMultipleNodes,
-  teardownNodesWithRedundancy
+  teardownNodesWithRedundancy,
+  TestContentTopic
 } from "../filter/utils.js";
 
 describe("Waku Light Push: Peer Management: E2E", function () {
@@ -21,7 +24,7 @@ describe("Waku Light Push: Peer Management: E2E", function () {
   beforeEachCustom(this, async () => {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      undefined,
+      DefaultTestShardInfo,
       undefined,
       5
     );
@@ -32,8 +35,8 @@ describe("Waku Light Push: Peer Management: E2E", function () {
   });
 
   const encoder = createEncoder({
-    pubsubTopic: DefaultPubsubTopic,
-    contentTopic: "/test"
+    pubsubTopicShardInfo: DefaultTestSingleShardInfo,
+    contentTopic: TestContentTopic
   });
 
   it("Number of peers are maintained correctly", async function () {

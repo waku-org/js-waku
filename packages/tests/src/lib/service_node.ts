@@ -1,12 +1,12 @@
 import type { PeerId } from "@libp2p/interface";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { Multiaddr, multiaddr } from "@multiformats/multiaddr";
-import { DefaultPubsubTopic } from "@waku/interfaces";
 import { isDefined } from "@waku/utils";
 import { Logger } from "@waku/utils";
 import pRetry from "p-retry";
 import portfinder from "portfinder";
 
+import { DefaultTestPubsubTopic } from "../constants.js";
 import {
   Args,
   LogLevel,
@@ -245,7 +245,7 @@ export class ServiceNode {
   }
 
   public async ensureSubscriptions(
-    pubsubTopics: string[] = [DefaultPubsubTopic]
+    pubsubTopics: string[] = [DefaultTestPubsubTopic]
   ): Promise<boolean> {
     return this.restCall<boolean>(
       "/relay/v1/subscriptions",
@@ -257,7 +257,7 @@ export class ServiceNode {
 
   public async messages(pubsubTopic?: string): Promise<MessageRpcResponse[]> {
     return this.restCall<MessageRpcResponse[]>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this?.args?.pubsubTopic?.[0] || DefaultPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this?.args?.pubsubTopic?.[0] || DefaultTestPubsubTopic)}`,
       "GET",
       null,
       async (response) => {
@@ -291,7 +291,7 @@ export class ServiceNode {
     }
 
     return this.restCall<boolean>(
-      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this.args?.pubsubTopic?.[0] || DefaultPubsubTopic)}`,
+      `/relay/v1/messages/${encodeURIComponent(pubsubTopic || this.args?.pubsubTopic?.[0] || DefaultTestPubsubTopic)}`,
       "POST",
       message,
       async (response) => response.status === 200
@@ -411,7 +411,8 @@ export function defaultArgs(): Args {
     rest: true,
     restAdmin: true,
     websocketSupport: true,
-    logLevel: LogLevel.Trace
+    logLevel: LogLevel.Trace,
+    pubsubTopic: ["/waku/2/rs/0/0"]
   };
 }
 

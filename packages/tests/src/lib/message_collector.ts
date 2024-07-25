@@ -1,10 +1,10 @@
 import { DecodedMessage } from "@waku/core";
-import { DefaultPubsubTopic } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { AssertionError, expect } from "chai";
 import { equals } from "uint8arrays/equals";
 
+import { DefaultTestPubsubTopic } from "../constants.js";
 import { MessageRpcResponse } from "../types.js";
 import { base64ToUtf8 } from "../utils/base64_utf8.js";
 import { delay } from "../utils/delay.js";
@@ -269,6 +269,8 @@ export class MessageCollector {
   }
 
   private getPubsubTopicToUse(pubsubTopic: string | undefined): string {
-    return pubsubTopic || this.nwaku?.pubsubTopics?.[0] || DefaultPubsubTopic;
+    return (
+      pubsubTopic || this.nwaku?.pubsubTopics?.[0] || DefaultTestPubsubTopic
+    );
   }
 }

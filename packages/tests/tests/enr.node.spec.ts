@@ -7,11 +7,13 @@ import { expect } from "chai";
 
 import {
   afterEachCustom,
+  DefaultTestPubsubTopic,
   makeLogFileName,
   NOISE_KEY_1,
   ServiceNode,
   tearDownNodes
 } from "../src/index.js";
+import { DefaultTestShardInfo } from "../src/index.js";
 
 describe("ENR Interop: ServiceNode", function () {
   let waku: RelayNode;
@@ -28,12 +30,14 @@ describe("ENR Interop: ServiceNode", function () {
       relay: true,
       store: false,
       filter: false,
-      lightpush: false
+      lightpush: false,
+      pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -60,12 +64,14 @@ describe("ENR Interop: ServiceNode", function () {
       relay: true,
       store: true,
       filter: false,
-      lightpush: false
+      lightpush: false,
+      pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -93,12 +99,14 @@ describe("ENR Interop: ServiceNode", function () {
       store: true,
       filter: true,
       lightpush: true,
-      legacyFilter: true
+      legacyFilter: true,
+      pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
