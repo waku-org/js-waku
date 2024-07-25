@@ -209,7 +209,7 @@ export class PeerExchangeDiscovery
           log.info(
             `Peer ${peerId.toString()} has updated multiaddrs or shardInfo, updating`
           );
-          await this.components.peerStore.save(peerId, {
+          await this.components.peerStore.patch(peerId, {
             ...(hasMaDiff && {
               multiaddrs: peerInfo.multiaddrs
             }),
@@ -246,6 +246,9 @@ export class PeerExchangeDiscovery
           metadata: {
             shardInfo: encodeRelayShard(shardInfo)
           }
+        }),
+        ...(peerInfo.multiaddrs && {
+          multiaddrs: peerInfo.multiaddrs
         })
       });
 
