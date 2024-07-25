@@ -1,5 +1,5 @@
 import { waitForRemotePeer } from "@waku/core";
-import type { LightNode, RelayNode } from "@waku/interfaces";
+import type { LightNode, RelayNode, ShardInfo } from "@waku/interfaces";
 import { DefaultPubsubTopic, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { createRelayNode } from "@waku/sdk/relay";
@@ -19,6 +19,8 @@ import {
   TestPubsubTopic,
   TestShardInfo
 } from "./relay/utils.js";
+
+const shardInfo: ShardInfo = { clusterId: 0, shards: [0] };
 
 describe("Wait for remote peer", function () {
   let waku1: RelayNode;
@@ -54,7 +56,8 @@ describe("Wait for remote peer", function () {
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku1 = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo
     });
     await waku1.start();
 
@@ -97,13 +100,13 @@ describe("Wait for remote peer", function () {
       store: true,
       relay: false,
       lightpush: false,
-      filter: false,
-      pubsubTopic: [DefaultPubsubTopic]
+      filter: false
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
@@ -126,13 +129,13 @@ describe("Wait for remote peer", function () {
       store: true,
       relay: false,
       lightpush: false,
-      filter: false,
-      pubsubTopic: [DefaultPubsubTopic]
+      filter: false
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo
     });
     await waku2.start();
     const waitPromise = waitForRemotePeer(waku2, [Protocols.Store], 2000);
@@ -157,13 +160,13 @@ describe("Wait for remote peer", function () {
       lightpush: true,
       filter: false,
       relay: false,
-      store: false,
-      pubsubTopic: [DefaultPubsubTopic]
+      store: false
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
@@ -186,13 +189,13 @@ describe("Wait for remote peer", function () {
       filter: true,
       lightpush: false,
       relay: false,
-      store: false,
-      pubsubTopic: [DefaultPubsubTopic]
+      store: false
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
@@ -215,13 +218,13 @@ describe("Wait for remote peer", function () {
       filter: true,
       lightpush: true,
       relay: false,
-      store: true,
-      pubsubTopic: [DefaultPubsubTopic]
+      store: true
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku2 = await createLightNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
