@@ -1,6 +1,6 @@
 import { waitForRemotePeer } from "@waku/core";
 import type { LightNode, RelayNode } from "@waku/interfaces";
-import { Protocols } from "@waku/interfaces";
+import { DefaultPubsubTopic, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
@@ -48,7 +48,8 @@ describe("Wait for remote peer", function () {
       relay: true,
       store: false,
       filter: false,
-      lightpush: false
+      lightpush: false,
+      pubsubTopic: [DefaultPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
@@ -96,7 +97,8 @@ describe("Wait for remote peer", function () {
       store: true,
       relay: false,
       lightpush: false,
-      filter: false
+      filter: false,
+      pubsubTopic: [DefaultPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
@@ -124,7 +126,8 @@ describe("Wait for remote peer", function () {
       store: true,
       relay: false,
       lightpush: false,
-      filter: false
+      filter: false,
+      pubsubTopic: [DefaultPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
@@ -154,7 +157,8 @@ describe("Wait for remote peer", function () {
       lightpush: true,
       filter: false,
       relay: false,
-      store: false
+      store: false,
+      pubsubTopic: [DefaultPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
@@ -182,7 +186,8 @@ describe("Wait for remote peer", function () {
       filter: true,
       lightpush: false,
       relay: false,
-      store: false
+      store: false,
+      pubsubTopic: [DefaultPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
@@ -210,7 +215,8 @@ describe("Wait for remote peer", function () {
       filter: true,
       lightpush: true,
       relay: false,
-      store: true
+      store: true,
+      pubsubTopic: [DefaultPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
