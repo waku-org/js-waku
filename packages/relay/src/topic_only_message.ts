@@ -1,8 +1,8 @@
-import { DefaultPubsubTopic } from "@waku/interfaces";
 import type {
   IDecodedMessage,
   IDecoder,
-  IProtoMessage
+  IProtoMessage,
+  PubsubTopic
 } from "@waku/interfaces";
 import { TopicOnlyMessage as ProtoTopicOnlyMessage } from "@waku/proto";
 
@@ -23,9 +23,12 @@ export class TopicOnlyMessage implements IDecodedMessage {
   }
 }
 
+// This decoder is used only for reading `contentTopic` from the WakuMessage
 export class TopicOnlyDecoder implements IDecoder<TopicOnlyMessage> {
-  public pubsubTopic = DefaultPubsubTopic;
   public contentTopic = "";
+
+  // pubsubTopic is ignored
+  public constructor(public pubsubTopic: PubsubTopic) {}
 
   public fromWireToProtoObj(
     bytes: Uint8Array

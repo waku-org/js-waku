@@ -13,6 +13,7 @@ import {
   ServiceNode,
   tearDownNodes
 } from "../src/index.js";
+import { DefaultTestShardInfo } from "../src/index.js";
 
 describe("ENR Interop: ServiceNode", function () {
   let waku: RelayNode;
@@ -35,7 +36,8 @@ describe("ENR Interop: ServiceNode", function () {
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -68,7 +70,8 @@ describe("ENR Interop: ServiceNode", function () {
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -102,7 +105,8 @@ describe("ENR Interop: ServiceNode", function () {
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
     waku = await createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     });
     await waku.start();
     await waku.dial(multiAddrWithId);

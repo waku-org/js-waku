@@ -66,7 +66,7 @@ describe("Wait for remote peer", function () {
     await waku1.dial(multiAddrWithId);
     await waitPromise;
 
-    const peers = waku1.relay.getMeshPeers();
+    const peers = waku1.relay.getMeshPeers(DefaultTestPubsubTopic);
     const nimPeerId = multiAddrWithId.getPeerId();
 
     expect(nimPeerId).to.not.be.undefined;
@@ -76,7 +76,8 @@ describe("Wait for remote peer", function () {
   it("Relay - times out", function (done) {
     this.timeout(5000);
     createRelayNode({
-      staticNoiseKey: NOISE_KEY_1
+      staticNoiseKey: NOISE_KEY_1,
+      shardInfo: DefaultTestShardInfo
     })
       .then((waku1) => waku1.start().then(() => waku1))
       .then((waku1) => {

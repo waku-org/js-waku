@@ -11,7 +11,11 @@ import {
   Tags,
   utf8ToBytes
 } from "@waku/sdk";
-import { ensureShardingConfigured, shardInfoToPubsubTopics } from "@waku/utils";
+import {
+  encodeRelayShard,
+  ensureShardingConfigured,
+  shardInfoToPubsubTopics
+} from "@waku/utils";
 import { getConnectedPeersForProtocolAndShard } from "@waku/utils/libp2p";
 import { expect } from "chai";
 import fc from "fast-check";
@@ -20,6 +24,7 @@ import Sinon from "sinon";
 import {
   afterEachCustom,
   beforeEachCustom,
+  DefaultTestShardInfo,
   delay,
   makeLogFileName,
   ServiceNode,
@@ -426,6 +431,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     expect(peers.length).to.be.equal(1);
   });
 });
+
 describe("getPeers", function () {
   let peerStore: PeerStore;
   let connectionManager: Libp2pComponents["connectionManager"];
@@ -448,7 +454,7 @@ describe("getPeers", function () {
   let allPeers: Peer[];
 
   beforeEachCustom(this, async () => {
-    waku = await createLightNode();
+    waku = await createLightNode({ shardInfo: DefaultTestShardInfo });
     peerStore = waku.libp2p.peerStore;
     connectionManager = waku.libp2p.components.connectionManager;
 
@@ -539,6 +545,10 @@ describe("getPeers", function () {
       differentCodecPeer,
       anotherDifferentCodecPeer
     ];
+
+    allPeers.forEach((peer) => {
+      peer.metadata.set("shardInfo", encodeRelayShard(DefaultTestShardInfo));
+    });
 
     Sinon.stub(peerStore, "get").callsFake(async (peerId) => {
       return allPeers.find((peer) => peer.id.equals(peerId))!;

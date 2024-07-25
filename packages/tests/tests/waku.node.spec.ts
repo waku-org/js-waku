@@ -20,6 +20,8 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
+  DefaultTestShardInfo,
+  DefaultTestSingleShardInfo,
   makeLogFileName,
   NOISE_KEY_1,
   NOISE_KEY_2,
@@ -51,7 +53,8 @@ describe("Waku Dial [node only]", function () {
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
       waku = await createLightNode({
-        staticNoiseKey: NOISE_KEY_1
+        staticNoiseKey: NOISE_KEY_1,
+        shardInfo: DefaultTestShardInfo
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
@@ -84,7 +87,8 @@ describe("Waku Dial [node only]", function () {
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
       waku = await createLightNode({
-        staticNoiseKey: NOISE_KEY_1
+        staticNoiseKey: NOISE_KEY_1,
+        shardInfo: DefaultTestShardInfo
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
@@ -112,6 +116,7 @@ describe("Waku Dial [node only]", function () {
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
+        shardInfo: DefaultTestShardInfo,
         libp2p: {
           peerDiscovery: [bootstrap({ list: [multiAddrWithId.toString()] })]
         }
@@ -137,6 +142,7 @@ describe("Waku Dial [node only]", function () {
 
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
+        shardInfo: DefaultTestShardInfo,
         libp2p: {
           peerDiscovery: [bootstrap({ list: [nwakuMa.toString()] })]
         }
@@ -166,11 +172,13 @@ describe("Decryption Keys", function () {
   let waku2: RelayNode;
   beforeEachCustom(this, async () => {
     [waku1, waku2] = await Promise.all([
-      createRelayNode({ staticNoiseKey: NOISE_KEY_1 }).then((waku) =>
-        waku.start().then(() => waku)
-      ),
+      createRelayNode({
+        staticNoiseKey: NOISE_KEY_1,
+        shardInfo: DefaultTestShardInfo
+      }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
+        shardInfo: DefaultTestShardInfo,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
     ]);
@@ -194,12 +202,18 @@ describe("Decryption Keys", function () {
     this.timeout(10000);
 
     const symKey = generateSymmetricKey();
-    const decoder = createDecoder(TestContentTopic, symKey);
+    const decoder = createDecoder(
+      TestContentTopic,
+      symKey,
+      DefaultTestSingleShardInfo
+    );
 
     const encoder = createEncoder({
       contentTopic: TestContentTopic,
+      pubsubTopicShardInfo: DefaultTestSingleShardInfo,
       symKey
     });
+
     const messageText = "Message is encrypted";
     const messageTimestamp = new Date("1995-12-17T03:24:00");
     const message = {
@@ -239,10 +253,12 @@ describe("User Agent", function () {
     [waku1, waku2] = await Promise.all([
       createRelayNode({
         staticNoiseKey: NOISE_KEY_1,
-        userAgent: waku1UserAgent
+        userAgent: waku1UserAgent,
+        shardInfo: DefaultTestShardInfo
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
+        shardInfo: DefaultTestShardInfo,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
     ]);
