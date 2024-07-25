@@ -1,7 +1,11 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
 import { wakuPeerExchangeDiscovery } from "@waku/discovery";
-import type { LightNode, PeersByDiscoveryResult } from "@waku/interfaces";
+import type {
+  LightNode,
+  PeersByDiscoveryResult,
+  ShardInfo
+} from "@waku/interfaces";
 import { createLightNode, Tags } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
@@ -16,7 +20,8 @@ import {
 } from "../../src/index.js";
 
 export const log = new Logger("test:pe");
-const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 2 })];
+const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 0 })];
+const shardInfo: ShardInfo = { clusterId: 0, shards: [0] };
 
 describe("Peer Exchange", function () {
   this.timeout(150_000);
@@ -52,6 +57,7 @@ describe("Peer Exchange", function () {
 
   it("getPeersByDiscovery", async function () {
     waku = await createLightNode({
+      shardInfo,
       libp2p: {
         peerDiscovery: [
           bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),
