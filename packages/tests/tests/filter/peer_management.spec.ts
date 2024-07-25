@@ -1,9 +1,7 @@
 import {
-  DefaultPubsubTopic,
   ISubscriptionSDK,
   LightNode,
-  SDKProtocolResult,
-  ShardInfo
+  SDKProtocolResult
 } from "@waku/interfaces";
 import {
   createDecoder,
@@ -18,6 +16,8 @@ import { describe } from "mocha";
 import {
   afterEachCustom,
   beforeEachCustom,
+  DefaultTestPubsubTopic,
+  DefaultTestShardInfo,
   ServiceNode,
   ServiceNodesFleet
 } from "../../src/index.js";
@@ -32,7 +32,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
   let serviceNodes: ServiceNodesFleet;
   let subscription: ISubscriptionSDK;
 
-  const pubsubTopic = DefaultPubsubTopic;
+  const pubsubTopic = DefaultTestPubsubTopic;
   const contentTopic = "/test";
 
   const encoder = createEncoder({
@@ -42,12 +42,10 @@ describe("Waku Filter: Peer Management: E2E", function () {
 
   const decoder = createDecoder(contentTopic, pubsubTopic);
 
-  const shardInfo: ShardInfo = { clusterId: 0, shards: [0] };
-
   beforeEachCustom(this, async () => {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      shardInfo,
+      DefaultTestShardInfo,
       undefined,
       5
     );
@@ -186,7 +184,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
   it("Renews peer on consistent missed messages", async function () {
     const [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      shardInfo,
+      DefaultTestShardInfo,
       undefined,
       2
     );

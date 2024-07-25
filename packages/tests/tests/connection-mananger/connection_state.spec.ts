@@ -7,6 +7,7 @@ import { expect } from "chai";
 import {
   afterEachCustom,
   beforeEachCustom,
+  DefaultTestShardInfo,
   delay,
   NOISE_KEY_1
 } from "../../src/index.js";
@@ -28,7 +29,7 @@ describe("Connection state", function () {
   let nwaku2PeerId: Multiaddr;
 
   beforeEachCustom(this, async () => {
-    waku = await createLightNode({ shardInfo: { clusterId: 0, shards: [0] } });
+    waku = await createLightNode({ shardInfo: DefaultTestShardInfo });
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku1.start({ filter: true });

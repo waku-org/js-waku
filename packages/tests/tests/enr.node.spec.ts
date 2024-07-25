@@ -1,12 +1,13 @@
 import { waitForRemotePeer } from "@waku/core";
 import { EnrDecoder } from "@waku/enr";
 import type { RelayNode } from "@waku/interfaces";
-import { DefaultPubsubTopic, Protocols } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
 import {
   afterEachCustom,
+  DefaultTestPubsubTopic,
   makeLogFileName,
   NOISE_KEY_1,
   ServiceNode,
@@ -29,7 +30,7 @@ describe("ENR Interop: ServiceNode", function () {
       store: false,
       filter: false,
       lightpush: false,
-      pubsubTopic: [DefaultPubsubTopic]
+      pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
@@ -62,7 +63,7 @@ describe("ENR Interop: ServiceNode", function () {
       store: true,
       filter: false,
       lightpush: false,
-      pubsubTopic: [DefaultPubsubTopic]
+      pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
@@ -96,7 +97,7 @@ describe("ENR Interop: ServiceNode", function () {
       filter: true,
       lightpush: true,
       legacyFilter: true,
-      pubsubTopic: [DefaultPubsubTopic]
+      pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 

@@ -5,6 +5,8 @@
  * @module
  */
 
+import { PubsubTopic, ShardInfo, SingleShardInfo } from "@waku/interfaces";
+
 export const NOISE_KEY_1 = new Uint8Array(
   ((): number[] => {
     const b = [];
@@ -65,3 +67,13 @@ export const MOCHA_HOOK_MAX_TIMEOUT = 50_000;
 
 export const SEPOLIA_RPC_URL =
   process.env.SEPOLIA_RPC_URL || "https://sepolia.gateway.tenderly.co";
+
+export const DefaultTestPubsubTopic: PubsubTopic = "/waku/2/rs/0/0";
+export const DefaultTestShardInfo: ShardInfo = {
+  clusterId: 0,
+  shards: [0]
+};
+export const DefaultTestSingleShardInfo: SingleShardInfo = {
+  clusterId: 0,
+  shard: 0
+};

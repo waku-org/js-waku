@@ -1,27 +1,23 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
 import { wakuPeerExchangeDiscovery } from "@waku/discovery";
-import type {
-  LightNode,
-  PeersByDiscoveryResult,
-  ShardInfo
-} from "@waku/interfaces";
+import type { LightNode, PeersByDiscoveryResult } from "@waku/interfaces";
 import { createLightNode, Tags } from "@waku/sdk";
-import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
+import { Logger } from "@waku/utils";
 import { expect } from "chai";
 import Sinon, { SinonSpy } from "sinon";
 
 import {
   afterEachCustom,
   beforeEachCustom,
+  DefaultTestPubsubTopic,
+  DefaultTestShardInfo,
   makeLogFileName,
   ServiceNode,
   tearDownNodes
 } from "../../src/index.js";
 
 export const log = new Logger("test:pe");
-const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 0 })];
-const shardInfo: ShardInfo = { clusterId: 0, shards: [0] };
 
 describe("Peer Exchange", function () {
   this.timeout(150_000);
@@ -36,13 +32,13 @@ describe("Peer Exchange", function () {
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku1.start({
-      pubsubTopic: pubsubTopic,
+      pubsubTopic: [DefaultTestPubsubTopic],
       discv5Discovery: true,
       peerExchange: true,
       relay: true
     });
     await nwaku2.start({
-      pubsubTopic: pubsubTopic,
+      pubsubTopic: [DefaultTestPubsubTopic],
       discv5Discovery: true,
       peerExchange: true,
       discv5BootstrapNode: (await nwaku1.info()).enrUri,
@@ -57,11 +53,11 @@ describe("Peer Exchange", function () {
 
   it("getPeersByDiscovery", async function () {
     waku = await createLightNode({
-      shardInfo,
+      shardInfo: DefaultTestShardInfo,
       libp2p: {
         peerDiscovery: [
           bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),
-          wakuPeerExchangeDiscovery(pubsubTopic)
+          wakuPeerExchangeDiscovery([DefaultTestPubsubTopic])
         ]
       }
     });
@@ -108,7 +104,7 @@ describe("Peer Exchange", function () {
       libp2p: {
         peerDiscovery: [
           bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),
-          wakuPeerExchangeDiscovery(pubsubTopic)
+          wakuPeerExchangeDiscovery([DefaultTestPubsubTopic])
         ]
       }
     });
@@ -134,7 +130,7 @@ describe("Peer Exchange", function () {
 
     nwaku3 = new ServiceNode(makeLogFileName(this) + "3");
     await nwaku3.start({
-      pubsubTopic: pubsubTopic,
+      pubsubTopic: [DefaultTestPubsubTopic],
       discv5Discovery: true,
       peerExchange: true,
       discv5BootstrapNode: (await nwaku1.info()).enrUri,
