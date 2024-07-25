@@ -7,14 +7,16 @@ import {
   afterEachCustom,
   beforeEachCustom,
   DefaultTestShardInfo,
+  DefaultTestSingleShardInfo,
   ServiceNodesFleet
 } from "../../src/index.js";
 import {
   runMultipleNodes,
-  teardownNodesWithRedundancy
+  teardownNodesWithRedundancy,
+  TestContentTopic
 } from "../filter/utils.js";
 
-describe("Waku Light Push: Peer Management: E2E", function () {
+describe.only("Waku Light Push: Peer Management: E2E", function () {
   this.timeout(15000);
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
@@ -33,8 +35,8 @@ describe("Waku Light Push: Peer Management: E2E", function () {
   });
 
   const encoder = createEncoder({
-    pubsubTopicShardInfo: DefaultTestShardInfo,
-    contentTopic: "/test"
+    pubsubTopicShardInfo: DefaultTestSingleShardInfo,
+    contentTopic: TestContentTopic
   });
 
   it("Number of peers are maintained correctly", async function () {

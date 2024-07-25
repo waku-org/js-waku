@@ -100,6 +100,7 @@ export interface EncoderOptions extends BaseEncoderOptions {
  * in [26/WAKU2-PAYLOAD](https://rfc.vac.dev/spec/26/).
  */
 export function createEncoder({
+  pubsubTopic,
   pubsubTopicShardInfo,
   contentTopic,
   symKey,
@@ -108,7 +109,7 @@ export function createEncoder({
   metaSetter
 }: EncoderOptions): Encoder {
   return new Encoder(
-    determinePubsubTopic(contentTopic, pubsubTopicShardInfo),
+    determinePubsubTopic(contentTopic, pubsubTopic ?? pubsubTopicShardInfo),
     contentTopic,
     symKey,
     sigPrivKey,
