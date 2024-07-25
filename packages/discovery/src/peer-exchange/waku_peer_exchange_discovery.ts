@@ -11,6 +11,7 @@ import {
   type Libp2pComponents,
   type PeerExchangeQueryResult,
   PubsubTopic,
+  ShardInfo,
   Tags
 } from "@waku/interfaces";
 import { decodeRelayShard, encodeRelayShard, Logger } from "@waku/utils";
@@ -198,25 +199,11 @@ export class PeerExchangeDiscovery
 
       const hasPeer = await this.components.peerStore.has(peerId);
       if (hasPeer) {
-        const peer = await this.components.peerStore.get(peerId);
-
-        // check if the peer discovered again has any diff in multiaddrs or shardInfo
-        const existingMas = peer.addresses.map((a) => a.multiaddr.toString());
-        const newMas = peerInfo.multiaddrs.map((ma) => ma.toString());
-        const hasMaDiff = existingMas.some((ma) => !newMas.includes(ma));
-
-        let hasShardDiff: boolean = false;
-        const existingShardInfoBytes = peer.metadata.get("shardInfo");
-        if (existingShardInfoBytes) {
-          const existingShardInfo = decodeRelayShard(existingShardInfoBytes);
-          if (existingShardInfo || shardInfo) {
-            hasShardDiff =
-              existingShardInfo.clusterId !== shardInfo?.clusterId ||
-              existingShardInfo.shards.some(
-                (shard) => !shardInfo?.shards.includes(shard)
-              );
-          }
-        }
+        const { hasMaDiff, hasShardDiff } = await this.checkPeerInfoDiff(
+          peerId,
+          peerInfo,
+          shardInfo
+        );
 
         if (hasMaDiff || hasShardDiff) {
           log.info(
@@ -281,6 +268,33 @@ export class PeerExchangeDiscovery
     log.info(`Aborting queries for peer: ${peerIdStr}`);
     this.queryingPeers.delete(peerIdStr);
     this.queryAttempts.delete(peerIdStr);
+  }
+
+  private async checkPeerInfoDiff(
+    peerId: PeerId,
+    peerInfo: PeerInfo,
+    shardInfo?: ShardInfo
+  ): Promise<{ hasMaDiff: boolean; hasShardDiff: boolean }> {
+    const peer = await this.components.peerStore.get(peerId);
+
+    const existingMas = peer.addresses.map((a) => a.multiaddr.toString());
+    const newMas = peerInfo.multiaddrs.map((ma) => ma.toString());
+    const hasMaDiff = existingMas.some((ma) => !newMas.includes(ma));
+
+    let hasShardDiff: boolean = false;
+    const existingShardInfoBytes = peer.metadata.get("shardInfo");
+    if (existingShardInfoBytes) {
+      const existingShardInfo = decodeRelayShard(existingShardInfoBytes);
+      if (existingShardInfo || shardInfo) {
+        hasShardDiff =
+          existingShardInfo.clusterId !== shardInfo?.clusterId ||
+          existingShardInfo.shards.some(
+            (shard) => !shardInfo?.shards.includes(shard)
+          );
+      }
+    }
+
+    return { hasMaDiff, hasShardDiff };
   }
 }
 
