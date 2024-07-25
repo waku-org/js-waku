@@ -16,7 +16,7 @@ import {
   TestContentTopic
 } from "../filter/utils.js";
 
-describe.only("Waku Light Push: Peer Management: E2E", function () {
+describe("Waku Light Push: Peer Management: E2E", function () {
   this.timeout(15000);
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
