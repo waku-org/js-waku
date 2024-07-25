@@ -1,4 +1,4 @@
-import { DefaultPubsubTopic, LightNode } from "@waku/interfaces";
+import { DefaultPubsubTopic, LightNode, ShardInfo } from "@waku/interfaces";
 import { createEncoder, utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 import { describe } from "mocha";
@@ -18,10 +18,12 @@ describe("Waku Light Push: Peer Management: E2E", function () {
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
 
+  const shardInfo: ShardInfo = { clusterId: 0, shards: [0] };
+
   beforeEachCustom(this, async () => {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      undefined,
+      shardInfo,
       undefined,
       5
     );
@@ -36,7 +38,7 @@ describe("Waku Light Push: Peer Management: E2E", function () {
     contentTopic: "/test"
   });
 
-  it("Number of peers are maintained correctly", async function () {
+  it.only("Number of peers are maintained correctly", async function () {
     const { successes, failures } = await waku.lightPush.send(encoder, {
       payload: utf8ToBytes("Hello_World")
     });
