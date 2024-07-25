@@ -6,7 +6,7 @@ import { describe } from "mocha";
 import {
   afterEachCustom,
   beforeEachCustom,
-  DefaultTestPubsubTopic,
+  DefaultTestShardInfo,
   ServiceNodesFleet
 } from "../../src/index.js";
 import {
@@ -22,7 +22,7 @@ describe("Waku Light Push: Peer Management: E2E", function () {
   beforeEachCustom(this, async () => {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
-      undefined,
+      DefaultTestShardInfo,
       undefined,
       5
     );
@@ -33,7 +33,7 @@ describe("Waku Light Push: Peer Management: E2E", function () {
   });
 
   const encoder = createEncoder({
-    pubsubTopic: DefaultTestPubsubTopic,
+    pubsubTopicShardInfo: DefaultTestShardInfo,
     contentTopic: "/test"
   });
 

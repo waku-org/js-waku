@@ -7,6 +7,7 @@ import { expect } from "chai";
 
 import {
   afterEachCustom,
+  DefaultTestPubsubTopic,
   makeLogFileName,
   NOISE_KEY_1,
   ServiceNode,
@@ -29,7 +30,8 @@ describe("ENR Interop: ServiceNode", function () {
       relay: true,
       store: false,
       filter: false,
-      lightpush: false
+      lightpush: false,
+      pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
@@ -62,7 +64,8 @@ describe("ENR Interop: ServiceNode", function () {
       relay: true,
       store: true,
       filter: false,
-      lightpush: false
+      lightpush: false,
+      pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
@@ -96,7 +99,8 @@ describe("ENR Interop: ServiceNode", function () {
       store: true,
       filter: true,
       lightpush: true,
-      legacyFilter: true
+      legacyFilter: true,
+      pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 

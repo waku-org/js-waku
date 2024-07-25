@@ -50,7 +50,8 @@ describe("Wait for remote peer", function () {
       relay: true,
       store: false,
       filter: false,
-      lightpush: false
+      lightpush: false,
+      pubsubTopic: [DefaultTestPubsubTopic]
     });
     const multiAddrWithId = await nwaku.getMultiaddrWithId();
 
