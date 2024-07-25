@@ -38,7 +38,7 @@ describe("Waku Light Push: Peer Management: E2E", function () {
     contentTopic: "/test"
   });
 
-  it.only("Number of peers are maintained correctly", async function () {
+  it("Number of peers are maintained correctly", async function () {
     const { successes, failures } = await waku.lightPush.send(encoder, {
       payload: utf8ToBytes("Hello_World")
     });
