@@ -1,6 +1,7 @@
 import tests from "@libp2p/interface-compliance-tests/peer-discovery";
 import { PeerExchangeCodec, PeerExchangeDiscovery } from "@waku/discovery";
-import type { LightNode } from "@waku/interfaces";
+import type { LightNode, ShardInfo } from "@waku/interfaces";
+import { DefaultPubsubTopic } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { singleShardInfoToPubsubTopic } from "@waku/utils";
 
@@ -11,7 +12,8 @@ import {
   tearDownNodes
 } from "../../src/index.js";
 
-const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 2 })];
+const pubsubTopic = [singleShardInfoToPubsubTopic({ clusterId: 0, shard: 0 })];
+const shardInfo: ShardInfo = { clusterId: 0, shards: [0] };
 
 describe("Peer Exchange", function () {
   describe("Compliance Test", function () {
@@ -28,7 +30,8 @@ describe("Peer Exchange", function () {
       await nwaku1.start({
         relay: true,
         discv5Discovery: true,
-        peerExchange: true
+        peerExchange: true,
+        pubsubTopic: [DefaultPubsubTopic]
       });
       const enr = (await nwaku1.info()).enrUri;
 
@@ -36,13 +39,14 @@ describe("Peer Exchange", function () {
         relay: true,
         discv5Discovery: true,
         peerExchange: true,
-        discv5BootstrapNode: enr
+        discv5BootstrapNode: enr,
+        pubsubTopic: [DefaultPubsubTopic]
       });
     });
 
     tests({
       async setup() {
-        waku = await createLightNode();
+        waku = await createLightNode({ shardInfo });
         await waku.start();
 
         const nwaku2Ma = await nwaku2.getMultiaddrWithId();
