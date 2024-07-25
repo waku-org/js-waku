@@ -33,9 +33,11 @@ class HealthManager implements IHealthManager {
   }
 
   public updateProtocolHealth(
-    protocol: Protocols,
+    multicodec: string,
     connectedPeers: number
   ): void {
+    const protocol = this.getNameFromMulticodec(multicodec);
+
     let status: HealthStatus = HealthStatus.Unhealthy;
     if (connectedPeers == 1) {
       status = HealthStatus.MinimallyHealthy;
@@ -50,6 +52,20 @@ class HealthManager implements IHealthManager {
     });
 
     this.updateOverallHealth();
+  }
+
+  private getNameFromMulticodec(multicodec: string): Protocols {
+    let name: Protocols;
+    if (multicodec.includes("filter")) {
+      name = Protocols.Filter;
+    } else if (multicodec.includes("lightpush")) {
+      name = Protocols.LightPush;
+    } else if (multicodec.includes("store")) {
+      name = Protocols.Store;
+    } else {
+      throw new Error(`Unknown protocol: ${multicodec}`);
+    }
+    return name;
   }
 
   private updateOverallHealth(): void {

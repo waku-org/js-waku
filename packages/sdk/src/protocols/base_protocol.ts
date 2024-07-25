@@ -4,7 +4,6 @@ import { BaseProtocol } from "@waku/core/lib/base_protocol";
 import {
   IBaseProtocolSDK,
   IHealthManager,
-  Protocols,
   ProtocolUseOptions
 } from "@waku/interfaces";
 import { delay, Logger } from "@waku/utils";
@@ -21,7 +20,6 @@ const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 export class BaseProtocolSDK implements IBaseProtocolSDK {
   private healthManager: IHealthManager;
   public readonly numPeersToUse: number;
-  public readonly name: Protocols;
   private peers: Peer[] = [];
   private maintainPeersIntervalId: ReturnType<
     typeof window.setInterval
@@ -39,16 +37,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     options: Options
   ) {
     this.log = new Logger(`sdk:${core.multicodec}`);
-
-    if (core.multicodec.includes("filter")) {
-      this.name = Protocols.Filter;
-    } else if (core.multicodec.includes("lightpush")) {
-      this.name = Protocols.LightPush;
-    } else if (core.multicodec.includes("store")) {
-      this.name = Protocols.Store;
-    } else {
-      throw new Error(`Unknown protocol: ${core.multicodec}`);
-    }
 
     this.healthManager = getHealthManager();
 
@@ -261,7 +249,10 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
 
   private updatePeers(peers: Peer[]): void {
     this.peers = peers;
-    this.healthManager.updateProtocolHealth(this.name, this.peers.length);
+    this.healthManager.updateProtocolHealth(
+      this.core.multicodec,
+      this.peers.length
+    );
   }
 }
 

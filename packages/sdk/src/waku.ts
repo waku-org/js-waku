@@ -1,7 +1,7 @@
 import type { Stream } from "@libp2p/interface";
 import { isPeerId, PeerId } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager } from "@waku/core";
+import { ConnectionManager, getHealthManager } from "@waku/core";
 import type {
   IFilterSDK,
   IHealthManager,
@@ -16,8 +16,6 @@ import type {
 import { Protocols } from "@waku/interfaces";
 import { wakuRelay } from "@waku/relay";
 import { Logger } from "@waku/utils";
-
-import { getHealthManager } from "../../core/dist/lib/health_manager.js";
 
 import { wakuFilter } from "./protocols/filter.js";
 import { wakuLightPush } from "./protocols/light_push.js";
