@@ -32,15 +32,14 @@ describe("Waku Filter: Peer Management: E2E", function () {
   let serviceNodes: ServiceNodesFleet;
   let subscription: ISubscriptionSDK;
 
-  const pubsubTopic = DefaultTestPubsubTopic;
   const contentTopic = "/test";
 
   const encoder = createEncoder({
-    pubsubTopic,
+    pubsubTopic: DefaultTestPubsubTopic,
     contentTopic
   });
 
-  const decoder = createDecoder(contentTopic, pubsubTopic);
+  const decoder = createDecoder(contentTopic, DefaultTestPubsubTopic);
 
   beforeEachCustom(this, async () => {
     [serviceNodes, waku] = await runMultipleNodes(
@@ -49,8 +48,9 @@ describe("Waku Filter: Peer Management: E2E", function () {
       undefined,
       5
     );
-    const { error, subscription: sub } =
-      await waku.filter.createSubscription(pubsubTopic);
+    const { error, subscription: sub } = await waku.filter.createSubscription(
+      DefaultTestPubsubTopic
+    );
     if (!sub || error) {
       throw new Error("Could not create subscription");
     }
@@ -200,8 +200,9 @@ describe("Waku Filter: Peer Management: E2E", function () {
     ).toString();
     await waku.dial(await nodeWithoutDiscovery.getMultiaddrWithId());
 
-    const { error, subscription: sub } =
-      await waku.filter.createSubscription(pubsubTopic);
+    const { error, subscription: sub } = await waku.filter.createSubscription(
+      DefaultTestPubsubTopic
+    );
     if (!sub || error) {
       throw new Error("Could not create subscription");
     }
