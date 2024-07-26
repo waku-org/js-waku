@@ -41,12 +41,13 @@ export class WakuPeerExchange extends BaseProtocol implements IPeerExchange {
   public async query(
     params: PeerExchangeQueryParams
   ): Promise<PeerExchangeQueryResult> {
-    const { numPeers } = params;
+    const { numPeers, peerId } = params;
+
     const rpcQuery = PeerExchangeRPC.createRequest({
       numPeers: BigInt(numPeers)
     });
 
-    const peer = await this.peerStore.get(params.peerId);
+    const peer = await this.peerStore.get(peerId);
     if (!peer) {
       return {
         peerInfos: null,

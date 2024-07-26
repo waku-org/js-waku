@@ -11,9 +11,10 @@ import {
   type Libp2pComponents,
   type PeerExchangeQueryResult,
   PubsubTopic,
+  ShardInfo,
   Tags
 } from "@waku/interfaces";
-import { encodeRelayShard, Logger } from "@waku/utils";
+import { decodeRelayShard, encodeRelayShard, Logger } from "@waku/utils";
 
 import { PeerExchangeCodec, WakuPeerExchange } from "./waku_peer_exchange.js";
 
@@ -198,7 +199,48 @@ export class PeerExchangeDiscovery
 
       const hasPeer = await this.components.peerStore.has(peerId);
       if (hasPeer) {
-        continue;
+        const { hasMultiaddrDiff, hasShardDiff } = await this.checkPeerInfoDiff(
+          peerInfo,
+          shardInfo
+        );
+
+        if (hasMultiaddrDiff || hasShardDiff) {
+          log.info(
+            `Peer ${peerId.toString()} has updated multiaddrs or shardInfo, updating`
+          );
+
+          if (hasMultiaddrDiff) {
+            log.info(
+              `Peer ${peerId.toString()} has updated multiaddrs, updating`
+            );
+
+            await this.components.peerStore.patch(peerId, {
+              multiaddrs: peerInfo.multiaddrs
+            });
+          }
+
+          if (hasShardDiff && shardInfo) {
+            log.info(
+              `Peer ${peerId.toString()} has updated shardInfo, updating`
+            );
+            await this.components.peerStore.merge(peerId, {
+              metadata: {
+                shardInfo: encodeRelayShard(shardInfo)
+              }
+            });
+
+            this.dispatchEvent(
+              new CustomEvent<PeerInfo>("peer", {
+                detail: {
+                  id: peerId,
+                  multiaddrs: peerInfo.multiaddrs
+                }
+              })
+            );
+          }
+
+          continue;
+        }
       }
 
       // update the tags for the peer
@@ -213,6 +255,9 @@ export class PeerExchangeDiscovery
           metadata: {
             shardInfo: encodeRelayShard(shardInfo)
           }
+        }),
+        ...(peerInfo.multiaddrs && {
+          multiaddrs: peerInfo.multiaddrs
         })
       });
 
@@ -235,6 +280,37 @@ export class PeerExchangeDiscovery
     log.info(`Aborting queries for peer: ${peerIdStr}`);
     this.queryingPeers.delete(peerIdStr);
     this.queryAttempts.delete(peerIdStr);
+  }
+
+  private async checkPeerInfoDiff(
+    peerInfo: PeerInfo,
+    shardInfo?: ShardInfo
+  ): Promise<{ hasMultiaddrDiff: boolean; hasShardDiff: boolean }> {
+    const { id: peerId } = peerInfo;
+    const peer = await this.components.peerStore.get(peerId);
+
+    const existingMultiaddrs = peer.addresses.map((a) =>
+      a.multiaddr.toString()
+    );
+    const newMultiaddrs = peerInfo.multiaddrs.map((ma) => ma.toString());
+    const hasMultiaddrDiff = existingMultiaddrs.some(
+      (ma) => !newMultiaddrs.includes(ma)
+    );
+
+    let hasShardDiff: boolean = false;
+    const existingShardInfoBytes = peer.metadata.get("shardInfo");
+    if (existingShardInfoBytes) {
+      const existingShardInfo = decodeRelayShard(existingShardInfoBytes);
+      if (existingShardInfo || shardInfo) {
+        hasShardDiff =
+          existingShardInfo.clusterId !== shardInfo?.clusterId ||
+          existingShardInfo.shards.some(
+            (shard) => !shardInfo?.shards.includes(shard)
+          );
+      }
+    }
+
+    return { hasMultiaddrDiff, hasShardDiff };
   }
 }
 
