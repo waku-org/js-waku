@@ -35,8 +35,6 @@ describe("Peer Exchange Continuous Discovery", () => {
     await discoverPeerOnce();
   });
 
-  afterEach(async () => {});
-
   it("Should update multiaddrs", async () => {
     const newMultiaddrs = [multiaddr("/ip4/192.168.1.1/udp/1234")];
     const newPeerInfo = {
