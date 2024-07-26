@@ -1,6 +1,5 @@
 import { waitForRemotePeer } from "@waku/core";
 import {
-  DefaultPubsubTopic,
   LightNode,
   ProtocolCreateOptions,
   Protocols,
@@ -12,7 +11,7 @@ import { isDefined, shardInfoToPubsubTopics } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
-import { NOISE_KEY_1 } from "../constants";
+import { DefaultTestPubsubTopic, NOISE_KEY_1 } from "../constants";
 import { ServiceNodesFleet } from "../lib";
 import { Args } from "../types";
 
@@ -28,7 +27,7 @@ export async function runMultipleNodes(
 ): Promise<[ServiceNodesFleet, LightNode]> {
   const pubsubTopics = shardInfo
     ? shardInfoToPubsubTopics(shardInfo)
-    : [DefaultPubsubTopic];
+    : [DefaultTestPubsubTopic];
   // create numServiceNodes nodes
   const serviceNodes = await ServiceNodesFleet.createAndRun(
     context,
