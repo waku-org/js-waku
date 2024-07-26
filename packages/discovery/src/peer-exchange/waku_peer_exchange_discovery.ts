@@ -200,7 +200,6 @@ export class PeerExchangeDiscovery
       const hasPeer = await this.components.peerStore.has(peerId);
       if (hasPeer) {
         const { hasMultiaddrDiff, hasShardDiff } = await this.checkPeerInfoDiff(
-          peerId,
           peerInfo,
           shardInfo
         );
@@ -284,10 +283,10 @@ export class PeerExchangeDiscovery
   }
 
   private async checkPeerInfoDiff(
-    peerId: PeerId,
     peerInfo: PeerInfo,
     shardInfo?: ShardInfo
   ): Promise<{ hasMultiaddrDiff: boolean; hasShardDiff: boolean }> {
+    const { id: peerId } = peerInfo;
     const peer = await this.components.peerStore.get(peerId);
 
     const existingMultiaddrs = peer.addresses.map((a) =>
