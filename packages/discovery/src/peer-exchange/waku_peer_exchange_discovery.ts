@@ -199,18 +199,18 @@ export class PeerExchangeDiscovery
 
       const hasPeer = await this.components.peerStore.has(peerId);
       if (hasPeer) {
-        const { hasMaDiff, hasShardDiff } = await this.checkPeerInfoDiff(
+        const { hasMultiaddrDiff, hasShardDiff } = await this.checkPeerInfoDiff(
           peerId,
           peerInfo,
           shardInfo
         );
 
-        if (hasMaDiff || hasShardDiff) {
+        if (hasMultiaddrDiff || hasShardDiff) {
           log.info(
             `Peer ${peerId.toString()} has updated multiaddrs or shardInfo, updating`
           );
           await this.components.peerStore.patch(peerId, {
-            ...(hasMaDiff && {
+            ...(hasMultiaddrDiff && {
               multiaddrs: peerInfo.multiaddrs
             }),
             ...(hasShardDiff &&
@@ -277,12 +277,16 @@ export class PeerExchangeDiscovery
     peerId: PeerId,
     peerInfo: PeerInfo,
     shardInfo?: ShardInfo
-  ): Promise<{ hasMaDiff: boolean; hasShardDiff: boolean }> {
+  ): Promise<{ hasMultiaddrDiff: boolean; hasShardDiff: boolean }> {
     const peer = await this.components.peerStore.get(peerId);
 
-    const existingMas = peer.addresses.map((a) => a.multiaddr.toString());
-    const newMas = peerInfo.multiaddrs.map((ma) => ma.toString());
-    const hasMaDiff = existingMas.some((ma) => !newMas.includes(ma));
+    const existingMultiaddrs = peer.addresses.map((a) =>
+      a.multiaddr.toString()
+    );
+    const newMultiaddrs = peerInfo.multiaddrs.map((ma) => ma.toString());
+    const hasMultiaddrDiff = existingMultiaddrs.some(
+      (ma) => !newMultiaddrs.includes(ma)
+    );
 
     let hasShardDiff: boolean = false;
     const existingShardInfoBytes = peer.metadata.get("shardInfo");
@@ -297,7 +301,7 @@ export class PeerExchangeDiscovery
       }
     }
 
-    return { hasMaDiff, hasShardDiff };
+    return { hasMultiaddrDiff, hasShardDiff };
   }
 }
 
