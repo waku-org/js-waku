@@ -209,29 +209,39 @@ export class PeerExchangeDiscovery
           log.info(
             `Peer ${peerId.toString()} has updated multiaddrs or shardInfo, updating`
           );
-          await this.components.peerStore.patch(peerId, {
-            ...(hasMultiaddrDiff && {
+
+          if (hasMultiaddrDiff) {
+            log.info(
+              `Peer ${peerId.toString()} has updated multiaddrs, updating`
+            );
+
+            await this.components.peerStore.patch(peerId, {
               multiaddrs: peerInfo.multiaddrs
-            }),
-            ...(hasShardDiff &&
-              shardInfo && {
-                metadata: {
-                  shardInfo: encodeRelayShard(shardInfo)
+            });
+          }
+
+          if (hasShardDiff && shardInfo) {
+            log.info(
+              `Peer ${peerId.toString()} has updated shardInfo, updating`
+            );
+            await this.components.peerStore.merge(peerId, {
+              metadata: {
+                shardInfo: encodeRelayShard(shardInfo)
+              }
+            });
+
+            this.dispatchEvent(
+              new CustomEvent<PeerInfo>("peer", {
+                detail: {
+                  id: peerId,
+                  multiaddrs: peerInfo.multiaddrs
                 }
               })
-          });
+            );
+          }
 
-          this.dispatchEvent(
-            new CustomEvent<PeerInfo>("peer", {
-              detail: {
-                id: peerId,
-                multiaddrs: peerInfo.multiaddrs
-              }
-            })
-          );
+          continue;
         }
-
-        continue;
       }
 
       // update the tags for the peer
