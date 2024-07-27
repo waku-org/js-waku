@@ -7,13 +7,11 @@ import {
   afterEachCustom,
   beforeEachCustom,
   generateRandomUint8Array,
+  runMultipleNodes,
   ServiceNodesFleet,
+  teardownNodesWithRedundancy,
   TEST_STRING
 } from "../../src";
-import {
-  runMultipleNodes,
-  teardownNodesWithRedundancy
-} from "../filter/utils.js";
 
 import {
   messagePayload,
@@ -36,6 +34,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
         TestShardInfo,
+        undefined,
         strictNodeCheck,
         numServiceNodes,
         true

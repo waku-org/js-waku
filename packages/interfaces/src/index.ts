@@ -17,3 +17,4 @@ export * from "./dns_discovery.js";
 export * from "./metadata.js";
 export * from "./constants.js";
 export * from "./local_storage.js";
+export * from "./health_manager.js";

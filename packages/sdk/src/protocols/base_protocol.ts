@@ -1,7 +1,11 @@
 import type { Peer, PeerId } from "@libp2p/interface";
-import { ConnectionManager } from "@waku/core";
+import { ConnectionManager, getHealthManager } from "@waku/core";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
-import { IBaseProtocolSDK, ProtocolUseOptions } from "@waku/interfaces";
+import {
+  IBaseProtocolSDK,
+  IHealthManager,
+  ProtocolUseOptions
+} from "@waku/interfaces";
 import { delay, Logger } from "@waku/utils";
 
 interface Options {
@@ -14,6 +18,7 @@ const DEFAULT_NUM_PEERS_TO_USE = 3;
 const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 
 export class BaseProtocolSDK implements IBaseProtocolSDK {
+  private healthManager: IHealthManager;
   public readonly numPeersToUse: number;
   private peers: Peer[] = [];
   private maintainPeersIntervalId: ReturnType<
@@ -32,6 +37,9 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     options: Options
   ) {
     this.log = new Logger(`sdk:${core.multicodec}`);
+
+    this.healthManager = getHealthManager();
+
     this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
     const maintainPeersInterval =
       options?.maintainPeersInterval ?? DEFAULT_MAINTAIN_PEERS_INTERVAL;
@@ -60,7 +68,11 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       );
     }
 
-    this.peers = this.peers.filter((peer) => !peer.id.equals(peerToDisconnect));
+    const updatedPeers = this.peers.filter(
+      (peer) => !peer.id.equals(peerToDisconnect)
+    );
+    this.updatePeers(updatedPeers);
+
     this.log.info(
       `Peer ${peerToDisconnect} disconnected and removed from the peer list`
     );
@@ -192,7 +204,9 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
 
       await Promise.all(dials);
 
-      this.peers = [...this.peers, ...additionalPeers];
+      const updatedPeers = [...this.peers, ...additionalPeers];
+      this.updatePeers(updatedPeers);
+
       this.log.info(
         `Added ${additionalPeers.length} new peers, total peers: ${this.peers.length}`
       );
@@ -231,6 +245,14 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       this.log.error("Error finding additional peers:", error);
       throw error;
     }
+  }
+
+  private updatePeers(peers: Peer[]): void {
+    this.peers = peers;
+    this.healthManager.updateProtocolHealth(
+      this.core.multicodec,
+      this.peers.length
+    );
   }
 }
 

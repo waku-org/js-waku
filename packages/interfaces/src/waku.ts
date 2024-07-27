@@ -3,6 +3,7 @@ import type { MultiaddrInput } from "@multiformats/multiaddr";
 
 import { IConnectionManager } from "./connection_manager.js";
 import type { IFilterSDK } from "./filter.js";
+import { IHealthManager } from "./health_manager.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPushSDK } from "./light_push.js";
 import { Protocols } from "./protocols.js";
@@ -27,6 +28,8 @@ export interface Waku {
   isStarted(): boolean;
 
   isConnected(): boolean;
+
+  health: IHealthManager;
 }
 
 export interface LightNode extends Waku {

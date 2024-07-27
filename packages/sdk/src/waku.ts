@@ -1,9 +1,10 @@
 import type { Stream } from "@libp2p/interface";
 import { isPeerId, PeerId } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager } from "@waku/core";
+import { ConnectionManager, getHealthManager } from "@waku/core";
 import type {
   IFilterSDK,
+  IHealthManager,
   ILightPushSDK,
   IRelay,
   IStoreSDK,
@@ -68,6 +69,7 @@ export class WakuNode implements Waku {
   public lightPush?: ILightPushSDK;
   public connectionManager: ConnectionManager;
   public readonly pubsubTopics: PubsubTopic[];
+  public readonly health: IHealthManager;
 
   public constructor(
     options: WakuOptions,
@@ -104,6 +106,8 @@ export class WakuNode implements Waku {
       this.pubsubTopics,
       this.relay
     );
+
+    this.health = getHealthManager();
 
     if (protocolsEnabled.store) {
       const store = wakuStore(this.connectionManager, options);
