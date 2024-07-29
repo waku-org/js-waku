@@ -54,6 +54,22 @@ export class SubscriptionManager implements ISubscriptionSDK {
     SubscriptionCallback<IDecodedMessage>
   >;
 
+  private static activeSubscriptions = new Map<string, SubscriptionManager>();
+
+  public static getActiveSubscription(
+    pubsubTopic: PubsubTopic
+  ): SubscriptionManager | undefined {
+    return this.activeSubscriptions.get(pubsubTopic);
+  }
+
+  public static setActiveSubscription(
+    pubsubTopic: PubsubTopic,
+    subscription: SubscriptionManager
+  ): SubscriptionManager {
+    this.activeSubscriptions.set(pubsubTopic, subscription);
+    return subscription;
+  }
+
   public constructor(
     private readonly pubsubTopic: PubsubTopic,
     private protocol: FilterCore,

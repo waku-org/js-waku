@@ -35,8 +35,6 @@ const log = new Logger("sdk:filter");
 class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
   public readonly protocol: FilterCore;
 
-  private activeSubscriptions = new Map<string, SubscriptionManager>();
-
   public constructor(
     connectionManager: ConnectionManager,
     libp2p: Libp2p,
@@ -45,7 +43,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     super(
       new FilterCore(
         async (pubsubTopic, wakuMessage, peerIdStr) => {
-          const subscription = this.getActiveSubscription(pubsubTopic);
+          const subscription =
+            SubscriptionManager.getActiveSubscription(pubsubTopic);
           if (!subscription) {
             log.error(
               `No subscription locally registered for topic ${pubsubTopic}`
@@ -63,23 +62,6 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     );
 
     this.protocol = this.core as FilterCore;
-
-    this.activeSubscriptions = new Map();
-  }
-
-  //TODO: move to SubscriptionManager
-  private getActiveSubscription(
-    pubsubTopic: PubsubTopic
-  ): SubscriptionManager | undefined {
-    return this.activeSubscriptions.get(pubsubTopic);
-  }
-
-  private setActiveSubscription(
-    pubsubTopic: PubsubTopic,
-    subscription: SubscriptionManager
-  ): SubscriptionManager {
-    this.activeSubscriptions.set(pubsubTopic, subscription);
-    return subscription;
   }
 
   /**
@@ -118,8 +100,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     );
 
     const subscription =
-      this.getActiveSubscription(pubsubTopic) ??
-      this.setActiveSubscription(
+      SubscriptionManager.getActiveSubscription(pubsubTopic) ??
+      SubscriptionManager.setActiveSubscription(
         pubsubTopic,
         new SubscriptionManager(
           pubsubTopic,
