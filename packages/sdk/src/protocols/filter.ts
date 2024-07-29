@@ -20,8 +20,7 @@ import {
   type PubsubTopic,
   type SDKProtocolResult,
   type ShardingParams,
-  type SubscribeOptions,
-  type Unsubscribe
+  type SubscribeOptions
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
@@ -516,82 +515,10 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     };
   }
 
-  //TODO: remove this dependency on IReceiver
-  /**
-   * This method is used to satisfy the `IReceiver` interface.
-   *
-   * @hidden
-   *
-   * @param decoders The decoders to use for the subscription.
-   * @param callback The callback function to use for the subscription.
-   * @param opts Optional protocol options for the subscription.
-   *
-   * @returns A Promise that resolves to a function that unsubscribes from the subscription.
-   *
-   * @remarks
-   * This method should not be used directly.
-   * Instead, use `createSubscription` to create a new subscription.
-   */
-  public async subscribe<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>,
-    options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
-  ): Promise<Unsubscribe> {
-    const uniquePubsubTopics = this.getUniquePubsubTopics<T>(decoders);
-
-    if (uniquePubsubTopics.length === 0) {
-      throw Error(
-        "Failed to subscribe: no pubsubTopic found on decoders provided."
-      );
-    }
-
-    if (uniquePubsubTopics.length > 1) {
-      throw Error(
-        "Failed to subscribe: all decoders should have the same pubsub topic. Use createSubscription to be more agile."
-      );
-    }
-
-    const { subscription, error } = await this.createSubscription(
-      uniquePubsubTopics[0]
-    );
-
-    if (error) {
-      throw Error(`Failed to create subscription: ${error}`);
-    }
-
-    await subscription.subscribe(decoders, callback, options);
-
-    const contentTopics = Array.from(
-      groupByContentTopic(
-        Array.isArray(decoders) ? decoders : [decoders]
-      ).keys()
-    );
-
-    return async () => {
-      await subscription.unsubscribe(contentTopics);
-    };
-  }
-
   public toSubscriptionIterator<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<IAsyncIterator<T>> {
     return toAsyncIterator(this, decoders);
-  }
-
-  private getUniquePubsubTopics<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
-  ): string[] {
-    if (!Array.isArray(decoders)) {
-      return [decoders.pubsubTopic];
-    }
-
-    if (decoders.length === 0) {
-      return [];
-    }
-
-    const pubsubTopics = new Set(decoders.map((d) => d.pubsubTopic));
-
-    return [...pubsubTopics];
   }
 }
 

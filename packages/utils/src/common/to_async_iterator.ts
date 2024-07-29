@@ -2,9 +2,12 @@ import type {
   IAsyncIterator,
   IDecodedMessage,
   IDecoder,
-  IReceiver,
+  IFilterSDK,
   Unsubscribe
 } from "@waku/interfaces";
+
+import { delay } from "./delay.js";
+import { getUniquePubsubTopicsFromDecoders } from "./getUniquePubsubTopicsFromDecoders.js";
 
 /**
  * Options for configuring the behavior of an iterator.
@@ -28,7 +31,7 @@ const FRAME_RATE = 60;
  * @returns iterator and stop function to terminate it.
  */
 export async function toAsyncIterator<T extends IDecodedMessage>(
-  receiver: IReceiver,
+  filter: IFilterSDK,
   decoder: IDecoder<T> | IDecoder<T>[],
   iteratorOptions?: IteratorOptions
 ): Promise<IAsyncIterator<T>> {
@@ -36,10 +39,23 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
 
   const messages: T[] = [];
 
+  const uniquePubsubTopics = getUniquePubsubTopicsFromDecoders(decoder);
+  const { error, subscription } = await filter.createSubscription(
+    uniquePubsubTopics[0]
+  );
+
+  if (error) {
+    throw new Error(`Error creating subscription: ${error}`);
+  }
+
   let unsubscribe: undefined | Unsubscribe;
-  unsubscribe = await receiver.subscribe(decoder, (message: T) => {
+  const { failures } = await subscription.subscribe(decoder, (message: T) => {
     messages.push(message);
   });
+
+  if (failures.length > 0) {
+    throw new Error(`Error subscribing to topics: ${failures}`);
+  }
 
   const isWithTimeout = Number.isInteger(iteratorOptions?.timeoutMs);
   const timeoutMs = iteratorOptions?.timeoutMs ?? 0;
@@ -51,7 +67,7 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
         return;
       }
 
-      await wait(iteratorDelay);
+      await delay(iteratorDelay);
 
       const message = messages.shift() as T;
 
@@ -76,10 +92,4 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
       }
     }
   };
-}
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
 }
