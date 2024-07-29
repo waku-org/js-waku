@@ -1,38 +1,23 @@
 import type { Peer } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
-import { ConnectionManager, FilterCore } from "@waku/core";
+import { FilterCore } from "@waku/core";
 import {
   type Callback,
   type ContentTopic,
   type CoreProtocolResult,
-  type CreateSubscriptionResult,
-  type IAsyncIterator,
   type IDecodedMessage,
   type IDecoder,
-  type IFilterSDK,
   type IProtoMessage,
   type ISubscriptionSDK,
-  type Libp2p,
   type PeerIdStr,
-  type ProtocolCreateOptions,
   ProtocolError,
-  type ProtocolUseOptions,
   type PubsubTopic,
   type SDKProtocolResult,
-  type ShardingParams,
   type SubscribeOptions
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
-import {
-  ensurePubsubTopicIsConfigured,
-  groupByContentTopic,
-  Logger,
-  shardInfoToPubsubTopics,
-  toAsyncIterator
-} from "@waku/utils";
-
-import { BaseProtocolSDK } from "./base_protocol.js";
+import { groupByContentTopic, Logger } from "@waku/utils";
 
 type SubscriptionCallback<T extends IDecodedMessage> = {
   decoders: IDecoder<T>[];
@@ -46,13 +31,13 @@ type ReceivedMessageHashes = {
   };
 };
 
-const log = new Logger("sdk:filter");
+const log = new Logger("sdk:filter:subscription_manager");
 
 const DEFAULT_MAX_PINGS = 3;
 const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
 const DEFAULT_KEEP_ALIVE = 30 * 1000;
 
-const DEFAULT_SUBSCRIBE_OPTIONS = {
+export const DEFAULT_SUBSCRIBE_OPTIONS = {
   keepAlive: DEFAULT_KEEP_ALIVE
 };
 export class SubscriptionManager implements ISubscriptionSDK {
@@ -410,123 +395,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
     const missedMessages = this.missedMessagesByPeer.get(peerIdStr) || 0;
     return missedMessages > this.maxMissedMessagesThreshold;
   }
-}
-
-class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
-  public readonly protocol: FilterCore;
-
-  private activeSubscriptions = new Map<string, SubscriptionManager>();
-
-  public constructor(
-    connectionManager: ConnectionManager,
-    libp2p: Libp2p,
-    options?: ProtocolCreateOptions
-  ) {
-    super(
-      new FilterCore(
-        async (pubsubTopic, wakuMessage, peerIdStr) => {
-          const subscription = this.getActiveSubscription(pubsubTopic);
-          if (!subscription) {
-            log.error(
-              `No subscription locally registered for topic ${pubsubTopic}`
-            );
-            return;
-          }
-
-          await subscription.processIncomingMessage(wakuMessage, peerIdStr);
-        },
-        libp2p,
-        options
-      ),
-      connectionManager,
-      { numPeersToUse: options?.numPeersToUse }
-    );
-
-    this.protocol = this.core as FilterCore;
-
-    this.activeSubscriptions = new Map();
-  }
-
-  //TODO: move to SubscriptionManager
-  private getActiveSubscription(
-    pubsubTopic: PubsubTopic
-  ): SubscriptionManager | undefined {
-    return this.activeSubscriptions.get(pubsubTopic);
-  }
-
-  private setActiveSubscription(
-    pubsubTopic: PubsubTopic,
-    subscription: SubscriptionManager
-  ): SubscriptionManager {
-    this.activeSubscriptions.set(pubsubTopic, subscription);
-    return subscription;
-  }
-
-  /**
-   * Creates a new subscription to the given pubsub topic.
-   * The subscription is made to multiple peers for decentralization.
-   * @param pubsubTopicShardInfo The pubsub topic to subscribe to.
-   * @returns The subscription object.
-   */
-  public async createSubscription(
-    pubsubTopicShardInfo: ShardingParams | PubsubTopic,
-    options?: ProtocolUseOptions
-  ): Promise<CreateSubscriptionResult> {
-    options = {
-      autoRetry: true,
-      ...options
-    } as ProtocolUseOptions;
-
-    const pubsubTopic =
-      typeof pubsubTopicShardInfo == "string"
-        ? pubsubTopicShardInfo
-        : shardInfoToPubsubTopics(pubsubTopicShardInfo)?.[0];
-
-    ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
-
-    const hasPeers = await this.hasPeers(options);
-    if (!hasPeers) {
-      return {
-        error: ProtocolError.NO_PEER_AVAILABLE,
-        subscription: null
-      };
-    }
-
-    log.info(
-      `Creating filter subscription with ${this.connectedPeers.length} peers: `,
-      this.connectedPeers.map((peer) => peer.id.toString())
-    );
-
-    const subscription =
-      this.getActiveSubscription(pubsubTopic) ??
-      this.setActiveSubscription(
-        pubsubTopic,
-        new SubscriptionManager(
-          pubsubTopic,
-          this.protocol,
-          () => this.connectedPeers,
-          this.renewPeer.bind(this)
-        )
-      );
-
-    return {
-      error: null,
-      subscription
-    };
-  }
-
-  public toSubscriptionIterator<T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[]
-  ): Promise<IAsyncIterator<T>> {
-    return toAsyncIterator(this, decoders);
-  }
-}
-
-export function wakuFilter(
-  connectionManager: ConnectionManager,
-  init?: ProtocolCreateOptions
-): (libp2p: Libp2p) => IFilterSDK {
-  return (libp2p: Libp2p) => new FilterSDK(connectionManager, libp2p, init);
 }
 
 async function pushMessage<T extends IDecodedMessage>(
