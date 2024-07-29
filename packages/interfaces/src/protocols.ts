@@ -121,6 +121,10 @@ export type ProtocolCreateOptions = {
    */
   numPeersToUse?: number;
   /**
+   * Prioritize latency over decentralization when selecting peers.
+   */
+  prioritizeLatency?: boolean;
+  /**
    * Byte array used as key for the noise protocol used for connection encryption
    * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * This is only used for test purposes to not run out of entropy during CI runs.

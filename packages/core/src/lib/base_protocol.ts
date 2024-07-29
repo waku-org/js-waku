@@ -90,12 +90,14 @@ export class BaseProtocol implements IBaseProtocolCore {
   * @returns A list of peers that support the protocol sorted by latency.
   */
   public async getPeers(
-    { prioritizeLatency, numPeers, maxBootstrapPeers }: GetPeersOptions = {
+    options: GetPeersOptions = {
       prioritizeLatency: true,
       maxBootstrapPeers: 1,
       numPeers: 0
     }
   ): Promise<Peer[]> {
+    const { maxBootstrapPeers, numPeers, prioritizeLatency } = options;
+
     const activeConnections =
       this.components.connectionManager.getConnections();
 
