@@ -63,6 +63,7 @@ describe("Waku Filter V2: Ping", function () {
     if (error) {
       throw error;
     }
+    await subscription.unsubscribe([TestContentTopic]);
     await validatePingError(subscription);
   });
 
