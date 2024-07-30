@@ -171,6 +171,8 @@ class Relay implements IRelay {
     };
   }
 
+  public subscribe = this.subscribeWithUnsubscribe;
+
   private removeObservers<T extends IDecodedMessage>(
     observers: Array<[PubsubTopic, Observer<T>]>
   ): void {

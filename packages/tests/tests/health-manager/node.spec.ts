@@ -9,7 +9,12 @@ import {
   ServiceNodesFleet
 } from "../../src";
 
-import { messagePayload, TestEncoder, TestShardInfo } from "./utils";
+import {
+  messagePayload,
+  TestDecoder,
+  TestEncoder,
+  TestShardInfo
+} from "./utils";
 
 describe("Node Health Status Matrix Tests", function () {
   let waku: LightNode;
@@ -45,7 +50,7 @@ describe("Node Health Status Matrix Tests", function () {
         }
 
         if (filterPeers > 0) {
-          await waku.filter.createSubscription(TestShardInfo);
+          await waku.filter.subscribe([TestDecoder], () => {});
         }
 
         const lightPushHealth = waku.health.getProtocolStatus(

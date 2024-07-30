@@ -85,7 +85,10 @@ describe("Waku Relay, Subscribe", function () {
   });
 
   it("Subscribe and publish message", async function () {
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+    await waku2.relay.subscribeWithUnsubscribe(
+      [TestDecoder],
+      messageCollector.callback
+    );
     await waku1.relay.send(TestEncoder, { payload: utf8ToBytes(messageText) });
     expect(
       await messageCollector.waitForMessages(1, TestWaitMessageOptions)
@@ -98,7 +101,10 @@ describe("Waku Relay, Subscribe", function () {
 
   it("Subscribe and publish 10000 messages on the same topic", async function () {
     const messageCount = 10000;
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+    await waku2.relay.subscribeWithUnsubscribe(
+      [TestDecoder],
+      messageCollector.callback
+    );
     // Send a unique message on each topic.
     for (let i = 0; i < messageCount; i++) {
       await waku1.relay.send(TestEncoder, {
@@ -131,8 +137,14 @@ describe("Waku Relay, Subscribe", function () {
     });
     const secondDecoder = createDecoder(secondContentTopic, TestPubsubTopic);
 
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
-    await waku2.relay.subscribe([secondDecoder], messageCollector.callback);
+    await waku2.relay.subscribeWithUnsubscribe(
+      [TestDecoder],
+      messageCollector.callback
+    );
+    await waku2.relay.subscribeWithUnsubscribe(
+      [secondDecoder],
+      messageCollector.callback
+    );
     await waku1.relay.send(TestEncoder, { payload: utf8ToBytes("M1") });
     await waku1.relay.send(secondEncoder, { payload: utf8ToBytes("M2") });
     expect(
@@ -158,7 +170,10 @@ describe("Waku Relay, Subscribe", function () {
 
     // Subscribe to topics one by one
     for (let i = 0; i < topicCount; i++) {
-      await waku2.relay.subscribe([td.decoders[i]], messageCollector.callback);
+      await waku2.relay.subscribeWithUnsubscribe(
+        [td.decoders[i]],
+        messageCollector.callback
+      );
     }
 
     // Send a unique message on each topic.
@@ -189,7 +204,10 @@ describe("Waku Relay, Subscribe", function () {
     const td = generateTestData(topicCount, TestWaitMessageOptions);
 
     // Subscribe to all topics at once
-    await waku2.relay.subscribe(td.decoders, messageCollector.callback);
+    await waku2.relay.subscribeWithUnsubscribe(
+      td.decoders,
+      messageCollector.callback
+    );
 
     // Send a unique message on each topic.
     for (let i = 0; i < topicCount; i++) {
@@ -217,8 +235,14 @@ describe("Waku Relay, Subscribe", function () {
 
   // Will be skipped until https://github.com/waku-org/js-waku/issues/1678 is fixed
   it.skip("Refresh subscription", async function () {
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
-    await waku2.relay.subscribe([TestDecoder], messageCollector.callback);
+    await waku2.relay.subscribeWithUnsubscribe(
+      [TestDecoder],
+      messageCollector.callback
+    );
+    await waku2.relay.subscribeWithUnsubscribe(
+      [TestDecoder],
+      messageCollector.callback
+    );
 
     await waku1.relay.send(TestEncoder, { payload: utf8ToBytes("M1") });
 
@@ -239,9 +263,15 @@ describe("Waku Relay, Subscribe", function () {
     const td2 = generateTestData(topicCount2, TestWaitMessageOptions);
 
     // Subscribe to the first set of topics.
-    await waku2.relay.subscribe(td1.decoders, messageCollector.callback);
+    await waku2.relay.subscribeWithUnsubscribe(
+      td1.decoders,
+      messageCollector.callback
+    );
     // Subscribe to the second set of topics which has overlapping topics with the first set.
-    await waku2.relay.subscribe(td2.decoders, messageCollector.callback);
+    await waku2.relay.subscribeWithUnsubscribe(
+      td2.decoders,
+      messageCollector.callback
+    );
 
     // Send messages to the first set of topics.
     for (let i = 0; i < topicCount1; i++) {
@@ -278,7 +308,10 @@ describe("Waku Relay, Subscribe", function () {
       });
       const newDecoder = createDecoder(newContentTopic, TestPubsubTopic);
 
-      await waku2.relay.subscribe([newDecoder], messageCollector.callback);
+      await waku2.relay.subscribeWithUnsubscribe(
+        [newDecoder],
+        messageCollector.callback
+      );
       await waku1.relay.send(newEncoder, {
         payload: utf8ToBytes(messageText)
       });

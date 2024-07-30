@@ -124,9 +124,18 @@ describe("Waku Relay, multiple pubsub topics", function () {
         waitForRemotePeer(waku3, [Protocols.Relay])
       ]);
 
-      await waku1.relay.subscribe([testItem.decoder], msgCollector1.callback);
-      await waku2.relay.subscribe([testItem.decoder], msgCollector2.callback);
-      await waku3.relay.subscribe([testItem.decoder], msgCollector3.callback);
+      await waku1.relay.subscribeWithUnsubscribe(
+        [testItem.decoder],
+        msgCollector1.callback
+      );
+      await waku2.relay.subscribeWithUnsubscribe(
+        [testItem.decoder],
+        msgCollector2.callback
+      );
+      await waku3.relay.subscribeWithUnsubscribe(
+        [testItem.decoder],
+        msgCollector3.callback
+      );
 
       // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
       const relayResponse1 = await waku1.relay.send(testItem.encoder, {
@@ -222,15 +231,18 @@ describe("Waku Relay, multiple pubsub topics", function () {
       waitForRemotePeer(waku3, [Protocols.Relay])
     ]);
 
-    await waku1.relay.subscribe(
+    await waku1.relay.subscribeWithUnsubscribe(
       [customDecoder1, customDecoder2],
       msgCollector1.callback
     );
-    await waku2.relay.subscribe(
+    await waku2.relay.subscribeWithUnsubscribe(
       [customDecoder1, customDecoder2],
       msgCollector2.callback
     );
-    await waku3.relay.subscribe([customDecoder1], msgCollector3.callback);
+    await waku3.relay.subscribeWithUnsubscribe(
+      [customDecoder1],
+      msgCollector3.callback
+    );
 
     // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
     // However onlt waku1 and waku2 are receiving messages on the CustomPubSubTopic
@@ -290,7 +302,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
 
     const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
-        void waku2.relay.subscribe([customDecoder1], resolve);
+        void waku2.relay.subscribeWithUnsubscribe([customDecoder1], resolve);
       }
     );
 
@@ -298,7 +310,7 @@ describe("Waku Relay, multiple pubsub topics", function () {
     // pubsub topic.
     const waku3NoMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve, reject) => {
-        void waku3.relay.subscribe([TestDecoder], reject);
+        void waku3.relay.subscribeWithUnsubscribe([TestDecoder], reject);
         setTimeout(resolve, 1000);
       }
     );
@@ -417,9 +429,18 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
         waitForRemotePeer(waku3, [Protocols.Relay])
       ]);
 
-      await waku1.relay.subscribe([testItem.decoder], msgCollector1.callback);
-      await waku2.relay.subscribe([testItem.decoder], msgCollector2.callback);
-      await waku3.relay.subscribe([testItem.decoder], msgCollector3.callback);
+      await waku1.relay.subscribeWithUnsubscribe(
+        [testItem.decoder],
+        msgCollector1.callback
+      );
+      await waku2.relay.subscribeWithUnsubscribe(
+        [testItem.decoder],
+        msgCollector2.callback
+      );
+      await waku3.relay.subscribeWithUnsubscribe(
+        [testItem.decoder],
+        msgCollector3.callback
+      );
 
       // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
       const relayResponse1 = await waku1.relay.send(testItem.encoder, {
@@ -524,15 +545,18 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
       waitForRemotePeer(waku3, [Protocols.Relay])
     ]);
 
-    await waku1.relay.subscribe(
+    await waku1.relay.subscribeWithUnsubscribe(
       [customDecoder1, customDecoder2],
       msgCollector1.callback
     );
-    await waku2.relay.subscribe(
+    await waku2.relay.subscribeWithUnsubscribe(
       [customDecoder1, customDecoder2],
       msgCollector2.callback
     );
-    await waku3.relay.subscribe([customDecoder1], msgCollector3.callback);
+    await waku3.relay.subscribeWithUnsubscribe(
+      [customDecoder1],
+      msgCollector3.callback
+    );
 
     // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
     // However onlt waku1 and waku2 are receiving messages on the CustomPubSubTopic
@@ -619,7 +643,7 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
 
     const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
-        void waku2.relay.subscribe([customDecoder1], resolve);
+        void waku2.relay.subscribeWithUnsubscribe([customDecoder1], resolve);
       }
     );
 
@@ -627,7 +651,7 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
     // pubsub topic.
     const waku3NoMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve, reject) => {
-        void waku3.relay.subscribe([TestDecoder], reject);
+        void waku3.relay.subscribeWithUnsubscribe([TestDecoder], reject);
         setTimeout(resolve, 1000);
       }
     );
@@ -725,9 +749,18 @@ describe("Waku Relay (named sharding), multiple pubsub topics", function () {
         waitForRemotePeer(waku3, [Protocols.Relay])
       ]);
 
-      await waku1.relay.subscribe([testItem.decoder], msgCollector1.callback);
-      await waku2.relay.subscribe([testItem.decoder], msgCollector2.callback);
-      await waku3.relay.subscribe([testItem.decoder], msgCollector3.callback);
+      await waku1.relay.subscribeWithUnsubscribe(
+        [testItem.decoder],
+        msgCollector1.callback
+      );
+      await waku2.relay.subscribeWithUnsubscribe(
+        [testItem.decoder],
+        msgCollector2.callback
+      );
+      await waku3.relay.subscribeWithUnsubscribe(
+        [testItem.decoder],
+        msgCollector3.callback
+      );
 
       // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
       const relayResponse1 = await waku1.relay.send(testItem.encoder, {
@@ -823,15 +856,18 @@ describe("Waku Relay (named sharding), multiple pubsub topics", function () {
       waitForRemotePeer(waku3, [Protocols.Relay])
     ]);
 
-    await waku1.relay.subscribe(
+    await waku1.relay.subscribeWithUnsubscribe(
       [customDecoder1, customDecoder2],
       msgCollector1.callback
     );
-    await waku2.relay.subscribe(
+    await waku2.relay.subscribeWithUnsubscribe(
       [customDecoder1, customDecoder2],
       msgCollector2.callback
     );
-    await waku3.relay.subscribe([customDecoder1], msgCollector3.callback);
+    await waku3.relay.subscribeWithUnsubscribe(
+      [customDecoder1],
+      msgCollector3.callback
+    );
 
     // The nodes are setup in such a way that all messages send should be relayed to the other nodes in the network
     // However onlt waku1 and waku2 are receiving messages on the CustomPubSubTopic
@@ -891,7 +927,7 @@ describe("Waku Relay (named sharding), multiple pubsub topics", function () {
 
     const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
-        void waku2.relay.subscribe([customDecoder1], resolve);
+        void waku2.relay.subscribeWithUnsubscribe([customDecoder1], resolve);
       }
     );
 
@@ -899,7 +935,7 @@ describe("Waku Relay (named sharding), multiple pubsub topics", function () {
     // pubsub topic.
     const waku3NoMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve, reject) => {
-        void waku3.relay.subscribe([TestDecoder], reject);
+        void waku3.relay.subscribeWithUnsubscribe([TestDecoder], reject);
         setTimeout(resolve, 1000);
       }
     );

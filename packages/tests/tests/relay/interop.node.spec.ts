@@ -76,8 +76,9 @@ describe("Waku Relay, Interop", function () {
 
     const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
-        void waku.relay.subscribe<DecodedMessage>(TestDecoder, (msg) =>
-          resolve(msg)
+        void waku.relay.subscribeWithUnsubscribe<DecodedMessage>(
+          TestDecoder,
+          (msg) => resolve(msg)
         );
       }
     );
@@ -119,7 +120,7 @@ describe("Waku Relay, Interop", function () {
 
     const waku2ReceivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
-        void waku2.relay.subscribe(TestDecoder, resolve);
+        void waku2.relay.subscribeWithUnsubscribe(TestDecoder, resolve);
       }
     );
 
