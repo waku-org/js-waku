@@ -21,6 +21,7 @@ import {
   type SDKProtocolResult,
   type ShardingParams,
   type SubscribeOptions,
+  SubscribeResult,
   type Unsubscribe
 } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
@@ -446,6 +447,97 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     this.protocol = this.core as FilterCore;
 
     this.activeSubscriptions = new Map();
+  }
+
+  /**
+   * Opens a subscription with the Filter protocol using the provided decoders and callback.
+   * This method combines the functionality of creating a subscription and subscribing to it.
+   *
+   * @param {IDecoder<T> | IDecoder<T>[]} decoders - A single decoder or an array of decoders to use for decoding messages.
+   * @param {Callback<T>} callback - The callback function to be invoked with decoded messages.
+   * @param {ProtocolUseOptions} [protocolUseOptions] - Optional settings for using the protocol.
+   * @param {SubscribeOptions} [subscribeOptions=DEFAULT_SUBSCRIBE_OPTIONS] - Options for the subscription.
+   *
+   * @returns {Promise<SubscribeResult>} A promise that resolves to an object containing:
+   *   - subscription: The created subscription object if successful, or null if failed.
+   *   - error: A ProtocolError if the subscription creation failed, or null if successful.
+   *   - results: An object containing arrays of failures and successes from the subscription process.
+   *     Only present if the subscription was created successfully.
+   *
+   * @throws {Error} If there's an unexpected error during the subscription process.
+   *
+   * @remarks
+   * This method attempts to create a subscription using the pubsub topic derived from the provided decoders,
+   * then tries to subscribe using the created subscription. The return value should be interpreted as follows:
+   * - If `subscription` is null and `error` is non-null, a critical error occurred and the subscription failed completely.
+   * - If `subscription` is non-null and `error` is null, the subscription was created successfully.
+   *   In this case, check the `results` field for detailed information about successes and failures during the subscription process.
+   * - Even if the subscription was created successfully, there might be some failures in the results.
+   *
+   * @example
+   * ```typescript
+   * const {subscription, error, results} = await waku.filter.subscribe(decoders, callback);
+   * if (!subscription || error) {
+   *   console.error("Failed to create subscription:", error);
+   * }
+   * console.log("Subscription created successfully");
+   * if (results.failures.length > 0) {
+   *   console.warn("Some errors occurred during subscription:", results.failures);
+   * }
+   * console.log("Successful subscriptions:", results.successes);
+   *
+   * ```
+   */
+  public async subscribe<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    callback: Callback<T>,
+    protocolUseOptions?: ProtocolUseOptions,
+    subscribeOptions: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
+  ): Promise<SubscribeResult> {
+    const uniquePubsubTopics = this.getUniquePubsubTopics(decoders);
+
+    //TODO: check error codes
+    if (uniquePubsubTopics.length === 0) {
+      return {
+        subscription: null,
+        error: ProtocolError.INVALID_DECODER_TOPICS
+      };
+    }
+
+    if (uniquePubsubTopics.length > 1) {
+      return {
+        subscription: null,
+        error: ProtocolError.INVALID_DECODER_TOPICS
+      };
+    }
+
+    const pubsubTopic = uniquePubsubTopics[0];
+
+    const { subscription, error } = await this.createSubscription(
+      pubsubTopic,
+      protocolUseOptions
+    );
+
+    if (error) {
+      return {
+        subscription: null,
+        error: error
+      };
+    }
+
+    const { failures, successes } = await subscription.subscribe(
+      decoders,
+      callback,
+      subscribeOptions
+    );
+    return {
+      subscription,
+      error: null,
+      results: {
+        failures: failures,
+        successes: successes
+      }
+    };
   }
 
   /**

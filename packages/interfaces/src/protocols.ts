@@ -174,6 +174,11 @@ export enum ProtocolError {
    */
   TOPIC_DECODER_MISMATCH = "Topic decoder mismatch",
   /**
+   * The topics passed in the decoders do not match each other, or don't exist at all.
+   * Ensure that all the pubsub topics used in the decoders are valid and match each other.
+   */
+  INVALID_DECODER_TOPICS = "Invalid decoder topics",
+  /**
    * Failure to find a peer with suitable protocols. This may due to a connection issue.
    * Mitigation can be: retrying after a given time period, display connectivity issue
    * to user or listening for `peer:connected:bootstrap` or `peer:connected:peer-exchange`
