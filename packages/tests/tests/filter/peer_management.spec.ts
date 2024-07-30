@@ -97,6 +97,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
     if (error) {
       throw error;
     }
+    await subscription.unsubscribe([contentTopic]);
     const pingResult = await subscription.ping();
     expect(pingResult.successes.length).to.equal(0);
     expect(pingResult.failures.length).to.be.greaterThan(0);
@@ -209,6 +210,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
       await subscription.unsubscribe([contentTopic]);
       pingResult = await subscription.ping();
       expect(pingResult.failures.length).to.be.greaterThan(0);
+      await subscription.subscribe([decoder], () => {});
     }
 
     const finalPingResult = await subscription!.ping();

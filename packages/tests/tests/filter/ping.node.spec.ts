@@ -65,6 +65,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       if (error) {
         throw error;
       }
+      await subscription.unsubscribe([TestContentTopic]);
       await validatePingError(subscription);
     });
 
