@@ -148,7 +148,7 @@ class Relay implements IRelay {
     };
   }
 
-  public subscribe<T extends IDecodedMessage>(
+  public subscribeWithUnsubscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
