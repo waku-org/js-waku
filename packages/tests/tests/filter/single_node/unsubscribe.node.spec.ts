@@ -1,5 +1,4 @@
 import { createDecoder, createEncoder } from "@waku/core";
-import { ISubscriptionSDK } from "@waku/interfaces";
 import { LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
@@ -28,16 +27,11 @@ describe("Waku Filter V2: Unsubscribe", function () {
   this.timeout(10000);
   let waku: LightNode;
   let nwaku: ServiceNode;
-  let subscription: ISubscriptionSDK;
   let messageCollector: MessageCollector;
 
   beforeEachCustom(this, async () => {
     [nwaku, waku] = await runNodes(this.ctx, TestShardInfo);
 
-    const { error, subscription: _subscription } =
-      await waku.filter.createSubscription(TestShardInfo);
-    if (error) throw error;
-    subscription = _subscription;
     messageCollector = new MessageCollector();
     await nwaku.ensureSubscriptions([TestPubsubTopic]);
   });
@@ -47,7 +41,13 @@ describe("Waku Filter V2: Unsubscribe", function () {
   });
 
   it("Unsubscribe 1 topic - node subscribed to 1 topic", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+    const { subscription, error } = await waku.filter.subscribe(
+      [TestDecoder],
+      messageCollector.callback
+    );
+    if (error) {
+      throw error;
+    }
     await waku.lightPush.send(TestEncoder, messagePayload);
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
@@ -68,7 +68,13 @@ describe("Waku Filter V2: Unsubscribe", function () {
 
   it("Unsubscribe 1 topic - node subscribed to 2 topics", async function () {
     // Subscribe to 2 topics and send messages
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+    const { error, subscription } = await waku.filter.subscribe(
+      [TestDecoder],
+      messageCollector.callback
+    );
+    if (error) {
+      throw error;
+    }
     const newContentTopic = "/test/2/waku-filter";
     const newEncoder = createEncoder({
       contentTopic: newContentTopic,
@@ -93,7 +99,13 @@ describe("Waku Filter V2: Unsubscribe", function () {
 
   it("Unsubscribe 2 topics - node subscribed to 2 topics", async function () {
     // Subscribe to 2 topics and send messages
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+    const { error, subscription } = await waku.filter.subscribe(
+      [TestDecoder],
+      messageCollector.callback
+    );
+    if (error) {
+      throw error;
+    }
     const newContentTopic = "/test/2/waku-filter/default";
     const newEncoder = createEncoder({
       contentTopic: newContentTopic,
@@ -118,7 +130,13 @@ describe("Waku Filter V2: Unsubscribe", function () {
 
   it("Unsubscribe topics the node is not subscribed to", async function () {
     // Subscribe to 1 topic and send message
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+    const { error, subscription } = await waku.filter.subscribe(
+      [TestDecoder],
+      messageCollector.callback
+    );
+    if (error) {
+      throw error;
+    }
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
 
@@ -136,7 +154,13 @@ describe("Waku Filter V2: Unsubscribe", function () {
   });
 
   it("Unsubscribes all - node subscribed to 1 topic", async function () {
-    await subscription.subscribe([TestDecoder], messageCollector.callback);
+    const { error, subscription } = await waku.filter.subscribe(
+      [TestDecoder],
+      messageCollector.callback
+    );
+    if (error) {
+      throw error;
+    }
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
     expect(await messageCollector.waitForMessages(1)).to.eq(true);
     expect(messageCollector.count).to.eq(1);
@@ -155,7 +179,13 @@ describe("Waku Filter V2: Unsubscribe", function () {
     // Subscribe to 10 topics and send message
     const topicCount = 10;
     const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
-    await subscription.subscribe(td.decoders, messageCollector.callback);
+    const { error, subscription } = await waku.filter.subscribe(
+      td.decoders,
+      messageCollector.callback
+    );
+    if (error) {
+      throw error;
+    }
     for (let i = 0; i < topicCount; i++) {
       await waku.lightPush.send(td.encoders[i], {
         payload: utf8ToBytes(`M${i + 1}`)

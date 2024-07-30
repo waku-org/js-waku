@@ -4,7 +4,7 @@ import {
   DecodedMessage,
   waitForRemotePeer
 } from "@waku/core";
-import { ISubscriptionSDK, Protocols } from "@waku/interfaces";
+import { Protocols } from "@waku/interfaces";
 import type { LightNode } from "@waku/interfaces";
 import {
   generatePrivateKey,
@@ -83,8 +83,6 @@ describe("Waku Message Ephemeral field", function () {
   let waku: LightNode;
   let nwaku: ServiceNode;
 
-  let subscription: ISubscriptionSDK;
-
   afterEachCustom(this, async () => {
     await tearDownNodes(nwaku, waku);
   });
@@ -122,11 +120,6 @@ describe("Waku Message Ephemeral field", function () {
       Protocols.LightPush,
       Protocols.Store
     ]);
-
-    const { error, subscription: _subscription } =
-      await waku.filter.createSubscription(TestEncoder.pubsubTopic);
-    if (error) throw error;
-    subscription = _subscription;
   });
 
   it("Ephemeral messages are not stored", async function () {
@@ -218,7 +211,7 @@ describe("Waku Message Ephemeral field", function () {
     const callback = (msg: DecodedMessage): void => {
       messages.push(msg);
     };
-    await subscription.subscribe([TestDecoder], callback);
+    await waku.filter.subscribe([TestDecoder], callback);
 
     await delay(200);
     const normalTxt = "Normal message";
@@ -265,7 +258,7 @@ describe("Waku Message Ephemeral field", function () {
     const callback = (msg: DecodedMessage): void => {
       messages.push(msg);
     };
-    await subscription.subscribe([decoder], callback);
+    await waku.filter.subscribe([decoder], callback);
 
     await delay(200);
     const normalTxt = "Normal message";
@@ -316,7 +309,7 @@ describe("Waku Message Ephemeral field", function () {
     const callback = (msg: DecodedMessage): void => {
       messages.push(msg);
     };
-    await subscription.subscribe([decoder], callback);
+    await waku.filter.subscribe([decoder], callback);
 
     await delay(200);
     const normalTxt = "Normal message";

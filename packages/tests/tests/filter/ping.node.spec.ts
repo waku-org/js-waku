@@ -24,14 +24,9 @@ const runTests = (strictCheckNodes: boolean): void => {
     this.timeout(10000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
-    let subscription: ISubscriptionSDK;
 
     beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo);
-      const { error, subscription: _subscription } =
-        await waku.filter.createSubscription(TestShardInfo);
-      if (error) throw error;
-      subscription = _subscription;
     });
 
     afterEachCustom(this, async () => {
@@ -39,10 +34,13 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Ping on subscribed peer", async function () {
-      await subscription.subscribe(
+      const { error, subscription } = await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
       );
+      if (error) {
+        throw error;
+      }
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M1") });
       expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
         true
@@ -60,14 +58,24 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Ping on peer without subscriptions", async function () {
+      const { subscription, error } = await waku.filter.subscribe(
+        [TestDecoder],
+        serviceNodes.messageCollector.callback
+      );
+      if (error) {
+        throw error;
+      }
       await validatePingError(subscription);
     });
 
     it("Ping on unsubscribed peer", async function () {
-      await subscription.subscribe(
+      const { error, subscription } = await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
       );
+      if (error) {
+        throw error;
+      }
       await subscription.ping();
       await subscription.unsubscribe([TestContentTopic]);
 
@@ -76,11 +84,17 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Reopen subscription with peer with lost subscription", async function () {
+      let subscription: ISubscriptionSDK;
       const openSubscription = async (): Promise<void> => {
-        await subscription.subscribe(
-          [TestDecoder],
-          serviceNodes.messageCollector.callback
-        );
+        const { error, subscription: _subscription } =
+          await waku.filter.subscribe(
+            [TestDecoder],
+            serviceNodes.messageCollector.callback
+          );
+        if (error) {
+          throw error;
+        }
+        subscription = _subscription;
       };
 
       const unsubscribe = async (): Promise<void> => {

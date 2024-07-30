@@ -1,5 +1,5 @@
 import { waitForRemotePeer } from "@waku/core";
-import { ISubscriptionSDK, LightNode, Protocols } from "@waku/interfaces";
+import { LightNode, Protocols } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -29,15 +29,9 @@ const runTests = (strictCheckNodes: boolean): void => {
     this.timeout(10000);
     let waku: LightNode;
     let serviceNodes: ServiceNodesFleet;
-    let subscription: ISubscriptionSDK;
 
     beforeEachCustom(this, async () => {
       [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo);
-
-      const { error, subscription: _subscription } =
-        await waku.filter.createSubscription(TestShardInfo);
-      if (error) throw error;
-      subscription = _subscription;
     });
 
     afterEachCustom(this, async () => {
@@ -46,7 +40,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     TEST_STRING.forEach((testItem) => {
       it(`Check received message containing ${testItem.description}`, async function () {
-        await subscription.subscribe(
+        await waku.filter.subscribe(
           [TestDecoder],
           serviceNodes.messageCollector.callback
         );
@@ -67,7 +61,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     TEST_TIMESTAMPS.forEach((testItem) => {
       it(`Check received message with timestamp: ${testItem} `, async function () {
-        await subscription.subscribe(
+        await waku.filter.subscribe(
           [TestDecoder],
           serviceNodes.messageCollector.callback
         );
@@ -106,7 +100,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message with invalid timestamp is not received", async function () {
-      await subscription.subscribe(
+      await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
       );
@@ -128,7 +122,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message on other pubsub topic is not received", async function () {
-      await subscription.subscribe(
+      await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
       );
@@ -151,7 +145,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message with no content topic is not received", async function () {
-      await subscription.subscribe(
+      await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
       );
@@ -171,7 +165,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message with no payload is not received", async function () {
-      await subscription.subscribe(
+      await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
       );
@@ -199,7 +193,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Check message with non string payload is not received", async function () {
-      await subscription.subscribe(
+      await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
       );
@@ -222,7 +216,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     // Will be skipped until https://github.com/waku-org/js-waku/issues/1464 si done
     it.skip("Check message received after jswaku node is restarted", async function () {
       // Subscribe and send message
-      await subscription.subscribe(
+      await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
       );
@@ -242,11 +236,8 @@ const runTests = (strictCheckNodes: boolean): void => {
         await waku.dial(await node.getMultiaddrWithId());
         await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
       }
-      const { error, subscription: _subscription } =
-        await waku.filter.createSubscription(TestShardInfo);
-      if (error) throw error;
-      subscription = _subscription;
-      await subscription.subscribe(
+
+      await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
       );
@@ -271,7 +262,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     // Will be skipped until https://github.com/waku-org/js-waku/issues/1464 si done
     it.skip("Check message received after nwaku node is restarted", async function () {
-      await subscription.subscribe(
+      await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
       );
