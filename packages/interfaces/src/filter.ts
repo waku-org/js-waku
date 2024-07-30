@@ -44,8 +44,18 @@ export type IFilterSDK = IReceiver &
     ): Promise<SubscribeResult>;
   };
 
-export type SubscribeResult = CreateSubscriptionResult & {
-  results?: SDKProtocolResult;
+export type SubscribeResult = SubscriptionSuccess | SubscriptionError;
+
+type SubscriptionSuccess = {
+  subscription: ISubscriptionSDK;
+  error: null;
+  results: SDKProtocolResult;
+};
+
+type SubscriptionError = {
+  subscription: null;
+  error: ProtocolError;
+  results: null;
 };
 
 export type CreateSubscriptionResult = ThisOrThat<

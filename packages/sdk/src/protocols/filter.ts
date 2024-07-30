@@ -499,7 +499,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     if (uniquePubsubTopics.length !== 1) {
       return {
         subscription: null,
-        error: ProtocolError.INVALID_DECODER_TOPICS
+        error: ProtocolError.INVALID_DECODER_TOPICS,
+        results: null
       };
     }
 
@@ -513,7 +514,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     if (error) {
       return {
         subscription: null,
-        error: error
+        error: error,
+        results: null
       };
     }
 
