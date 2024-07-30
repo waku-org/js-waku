@@ -37,9 +37,12 @@ export async function toAsyncIterator<T extends IDecodedMessage>(
   const messages: T[] = [];
 
   let unsubscribe: undefined | Unsubscribe;
-  unsubscribe = await receiver.subscribe(decoder, (message: T) => {
-    messages.push(message);
-  });
+  unsubscribe = await receiver.subscribeWithUnsubscribe(
+    decoder,
+    (message: T) => {
+      messages.push(message);
+    }
+  );
 
   const isWithTimeout = Number.isInteger(iteratorOptions?.timeoutMs);
   const timeoutMs = iteratorOptions?.timeoutMs ?? 0;
