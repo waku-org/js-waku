@@ -448,21 +448,6 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     this.activeSubscriptions = new Map();
   }
 
-  //TODO: move to SubscriptionManager
-  private getActiveSubscription(
-    pubsubTopic: PubsubTopic
-  ): SubscriptionManager | undefined {
-    return this.activeSubscriptions.get(pubsubTopic);
-  }
-
-  private setActiveSubscription(
-    pubsubTopic: PubsubTopic,
-    subscription: SubscriptionManager
-  ): SubscriptionManager {
-    this.activeSubscriptions.set(pubsubTopic, subscription);
-    return subscription;
-  }
-
   /**
    * Creates a new subscription to the given pubsub topic.
    * The subscription is made to multiple peers for decentralization.
@@ -516,7 +501,6 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     };
   }
 
-  //TODO: remove this dependency on IReceiver
   /**
    * This method is used to satisfy the `IReceiver` interface.
    *
@@ -532,7 +516,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    * This method should not be used directly.
    * Instead, use `createSubscription` to create a new subscription.
    */
-  public async subscribe<T extends IDecodedMessage>(
+  public async subscribeWithUnsubscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
     options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
@@ -576,6 +560,21 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<IAsyncIterator<T>> {
     return toAsyncIterator(this, decoders);
+  }
+
+  //TODO: move to SubscriptionManager
+  private getActiveSubscription(
+    pubsubTopic: PubsubTopic
+  ): SubscriptionManager | undefined {
+    return this.activeSubscriptions.get(pubsubTopic);
+  }
+
+  private setActiveSubscription(
+    pubsubTopic: PubsubTopic,
+    subscription: SubscriptionManager
+  ): SubscriptionManager {
+    this.activeSubscriptions.set(pubsubTopic, subscription);
+    return subscription;
   }
 
   private getUniquePubsubTopics<T extends IDecodedMessage>(
