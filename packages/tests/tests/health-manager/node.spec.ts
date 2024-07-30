@@ -1,5 +1,6 @@
 import { HealthStatus, LightNode, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
+import { shardInfoToPubsubTopics } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -94,7 +95,9 @@ async function runNodeWithProtocols(
   await serviceNode.start({
     lightpush: lightPush,
     filter: filter,
-    relay: true
+    relay: true,
+    clusterId: TestShardInfo.clusterId,
+    pubsubTopic: shardInfoToPubsubTopics(TestShardInfo)
   });
   return serviceNode;
 }
