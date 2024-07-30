@@ -496,15 +496,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
   ): Promise<SubscribeResult> {
     const uniquePubsubTopics = this.getUniquePubsubTopics(decoders);
 
-    //TODO: check error codes
-    if (uniquePubsubTopics.length === 0) {
-      return {
-        subscription: null,
-        error: ProtocolError.INVALID_DECODER_TOPICS
-      };
-    }
-
-    if (uniquePubsubTopics.length > 1) {
+    if (uniquePubsubTopics.length !== 1) {
       return {
         subscription: null,
         error: ProtocolError.INVALID_DECODER_TOPICS
@@ -546,7 +538,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    * @param pubsubTopicShardInfo The pubsub topic to subscribe to.
    * @returns The subscription object.
    */
-  public async createSubscription(
+  private async createSubscription(
     pubsubTopicShardInfo: ShardingParams | PubsubTopic,
     options?: ProtocolUseOptions
   ): Promise<CreateSubscriptionResult> {
