@@ -10,7 +10,6 @@ import {
 } from "../../src/index.js";
 
 import {
-  chunkAndReverseArray,
   runStoreNodes,
   sendMessages,
   TestDecoder,
@@ -51,10 +50,7 @@ describe("Waku Store, order", function () {
         }
       }
 
-      let expectedPayloads = Array.from(Array(totalMsgs).keys());
-      if (pageDirection === true) {
-        expectedPayloads = chunkAndReverseArray(expectedPayloads, 10);
-      }
+      const expectedPayloads = Array.from(Array(totalMsgs).keys());
 
       expect(messages?.length).eq(totalMsgs);
       const payloads = messages.map((msg) => msg.payload[0]!);
@@ -85,10 +81,7 @@ describe("Waku Store, order", function () {
         }
       );
 
-      let expectedPayloads = Array.from(Array(totalMsgs).keys());
-      if (pageDirection === false) {
-        expectedPayloads = chunkAndReverseArray(expectedPayloads, 10);
-      }
+      const expectedPayloads = Array.from(Array(totalMsgs).keys());
 
       expect(messages?.length).eq(totalMsgs);
       const payloads = messages.map((msg) => msg.payload[0]!);
@@ -116,9 +109,6 @@ describe("Waku Store, order", function () {
         }
       );
 
-      if (pageDirection === false) {
-        messages.reverse();
-      }
       expect(messages?.length).eq(totalMsgs);
       const payloads = messages.map((msg) => msg.payload[0]!);
       expect(payloads).to.deep.eq(Array.from(Array(totalMsgs).keys()));
