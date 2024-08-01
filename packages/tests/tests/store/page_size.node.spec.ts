@@ -90,7 +90,7 @@ describe("Waku Store, page size", function () {
 
     let messagesRetrieved = 0;
     for await (const query of waku.store.queryGenerator([TestDecoder])) {
-      expect(query.length).eq(10);
+      expect(query.length).eq(20);
       for await (const msg of query) {
         if (msg) {
           messagesRetrieved++;
