@@ -18,6 +18,7 @@ import { toProtoMessage } from "../to_proto_message.js";
 
 import {
   DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE,
   StoreQueryRequest,
   StoreQueryResponse
 } from "./rpc.js";
@@ -127,8 +128,9 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
       }
 
       if (
+        storeQueryResponse.messages.length > MAX_PAGE_SIZE &&
         storeQueryResponse.messages.length <
-        (queryOpts.paginationLimit || DEFAULT_PAGE_SIZE)
+          (queryOpts.paginationLimit || DEFAULT_PAGE_SIZE)
       ) {
         break;
       }
