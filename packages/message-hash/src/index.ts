@@ -40,7 +40,15 @@ function tryConvertTimestampToBytes(
     return;
   }
 
-  return numberToBytes(timestamp.valueOf());
+  let bigIntTimestamp: bigint;
+
+  if (typeof timestamp === "bigint") {
+    bigIntTimestamp = timestamp;
+  } else {
+    bigIntTimestamp = BigInt(timestamp.valueOf()) * 1000000n;
+  }
+
+  return numberToBytes(bigIntTimestamp);
 }
 
 export function messageHashStr(

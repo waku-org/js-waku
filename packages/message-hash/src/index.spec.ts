@@ -95,7 +95,7 @@ describe("RFC Test Vectors", () => {
 
   it("Waku message hash computation (message is IDecodedMessage)", () => {
     const expectedHash =
-      "bd81b27902ad51f49e8f73ff8db4a96994040c9421da88b7ee8ba07bd39070b2";
+      "3f11bc950dce0e3ffdcf205ae6414c01130bb5d9f20644869bff80407fa52c8f";
     const pubsubTopic = "/waku/2/default-waku/proto";
     const message: IDecodedMessage = {
       payload: new Uint8Array(),
