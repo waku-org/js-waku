@@ -148,7 +148,7 @@ class Relay implements IRelay {
     };
   }
 
-  public subscribe<T extends IDecodedMessage>(
+  public subscribeWithUnsubscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>
   ): () => void {
@@ -170,6 +170,8 @@ class Relay implements IRelay {
       this.removeObservers(observers);
     };
   }
+
+  public subscribe = this.subscribeWithUnsubscribe;
 
   private removeObservers<T extends IDecodedMessage>(
     observers: Array<[PubsubTopic, Observer<T>]>

@@ -223,7 +223,7 @@ describe("Decryption Keys", function () {
 
     const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve) => {
-        void waku2.relay.subscribe([decoder], resolve);
+        void waku2.relay.subscribeWithUnsubscribe([decoder], resolve);
       }
     );
 

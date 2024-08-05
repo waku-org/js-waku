@@ -13,8 +13,10 @@ export interface IReceiver {
   toSubscriptionIterator: <T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[]
   ) => Promise<IAsyncIterator<T>>;
-  subscribe: <T extends IDecodedMessage>(
-    decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>
-  ) => Unsubscribe | Promise<Unsubscribe>;
+  subscribeWithUnsubscribe: SubscribeWithUnsubscribe;
 }
+
+type SubscribeWithUnsubscribe = <T extends IDecodedMessage>(
+  decoders: IDecoder<T> | IDecoder<T>[],
+  callback: Callback<T>
+) => Unsubscribe | Promise<Unsubscribe>;

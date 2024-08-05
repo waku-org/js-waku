@@ -67,13 +67,11 @@ describe("Health Manager", function () {
           num
         );
 
-        const { error, subscription } =
-          await waku.filter.createSubscription(TestShardInfo);
+        const { error } = await waku.filter.subscribe([TestDecoder], () => {});
+
         if (error) {
           expect(error).to.not.equal(undefined);
         }
-
-        await subscription?.subscribe([TestDecoder], () => {});
 
         const health = waku.health.getProtocolStatus(Protocols.Filter);
         if (!health) {

@@ -67,10 +67,10 @@ describe("Waku Relay", function () {
     const symDecoder = createSymDecoder(symTopic, symKey, TestPubsubTopic);
 
     const msgs: DecodedMessage[] = [];
-    void waku2.relay.subscribe([eciesDecoder], (wakuMsg) => {
+    void waku2.relay.subscribeWithUnsubscribe([eciesDecoder], (wakuMsg) => {
       msgs.push(wakuMsg);
     });
-    void waku2.relay.subscribe([symDecoder], (wakuMsg) => {
+    void waku2.relay.subscribeWithUnsubscribe([symDecoder], (wakuMsg) => {
       msgs.push(wakuMsg);
     });
 
@@ -97,7 +97,7 @@ describe("Waku Relay", function () {
     // The promise **fails** if we receive a message on this observer.
     const receivedMsgPromise: Promise<DecodedMessage> = new Promise(
       (resolve, reject) => {
-        const deleteObserver = waku2.relay.subscribe(
+        const deleteObserver = waku2.relay.subscribeWithUnsubscribe(
           [createDecoder(contentTopic)],
           reject
         ) as () => void;
