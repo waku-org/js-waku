@@ -39,7 +39,7 @@ describe("Waku Store, sorting", function () {
       );
 
       for await (const query of waku.store.queryGenerator([TestDecoder], {
-        paginationForward: true
+        paginationForward: pageDirection
       })) {
         const page: IMessage[] = [];
         for await (const msg of query) {
