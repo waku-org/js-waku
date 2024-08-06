@@ -5,7 +5,6 @@ import {
   type CoreProtocolResult,
   type IBaseProtocolCore,
   type Libp2p,
-  type ProtocolCreateOptions,
   ProtocolError,
   type PubsubTopic
 } from "@waku/interfaces";
@@ -38,16 +37,10 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       wakuMessage: WakuMessage,
       peerIdStr: string
     ) => Promise<void>,
-    libp2p: Libp2p,
-    options?: ProtocolCreateOptions
+    public readonly pubsubTopics: PubsubTopic[],
+    libp2p: Libp2p
   ) {
-    super(
-      FilterCodecs.SUBSCRIBE,
-      libp2p.components,
-      log,
-      options!.pubsubTopics!,
-      options
-    );
+    super(FilterCodecs.SUBSCRIBE, libp2p.components, log, pubsubTopics);
 
     libp2p
       .handle(FilterCodecs.PUSH, this.onRequest.bind(this), {

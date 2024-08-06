@@ -91,7 +91,7 @@ describe("Static Sharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        shardInfo: shardInfo,
+        networkConfig: shardInfo,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
@@ -173,7 +173,7 @@ describe("Static Sharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        shardInfo: shardInfoToDial,
+        networkConfig: shardInfoToDial,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
@@ -277,7 +277,7 @@ describe("Autosharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        shardInfo: contentTopicInfo,
+        networkConfig: contentTopicInfo,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),
@@ -359,7 +359,7 @@ describe("Autosharding: Peer Management", function () {
       const nwaku3Ma = await nwaku3.getMultiaddrWithId();
 
       waku = await createLightNode({
-        shardInfo: contentTopicInfoToDial,
+        networkConfig: contentTopicInfoToDial,
         libp2p: {
           peerDiscovery: [
             bootstrap({ list: [nwaku3Ma.toString()] }),

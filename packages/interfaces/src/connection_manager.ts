@@ -1,5 +1,7 @@
 import type { Peer, PeerId, TypedEventEmitter } from "@libp2p/interface";
 
+import { PubsubTopic } from "./misc";
+
 export enum Tags {
   BOOTSTRAP = "bootstrap",
   PEER_EXCHANGE = "peer-exchange",
@@ -61,6 +63,7 @@ export interface IConnectionStateEvents {
 
 export interface IConnectionManager
   extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents> {
+  configuredPubsubTopics: PubsubTopic[];
   dropConnection(peerId: PeerId): Promise<void>;
   getPeersByDiscovery(): Promise<PeersByDiscoveryResult>;
   stop(): void;

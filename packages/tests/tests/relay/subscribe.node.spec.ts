@@ -65,7 +65,7 @@ describe("Waku Relay, Subscribe", function () {
     try {
       const waku = await createRelayNode({
         staticNoiseKey: NOISE_KEY_1,
-        shardInfo: TestShardInfo
+        networkConfig: TestShardInfo
       });
       await waku.start();
 

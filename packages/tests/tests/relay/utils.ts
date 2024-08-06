@@ -1,9 +1,9 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import {
+  NetworkConfig,
   Protocols,
   RelayNode,
-  ShardInfo,
-  ShardingParams
+  ShardInfo
 } from "@waku/interfaces";
 import { createRelayNode } from "@waku/sdk/relay";
 import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
@@ -51,10 +51,10 @@ export async function waitForAllRemotePeers(
 
 export const runRelayNodes = (
   context: Context,
-  shardInfo: ShardingParams
+  networkConfig: NetworkConfig
 ): Promise<[ServiceNode, RelayNode]> =>
   runNodes<RelayNode>({
-    shardInfo,
+    networkConfig,
     context,
     protocols: RELAY_PROTOCOLS,
     createNode: createRelayNode
@@ -65,11 +65,11 @@ export async function runJSNodes(): Promise<[RelayNode, RelayNode]> {
   const [waku1, waku2] = await Promise.all([
     createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: TestShardInfo
+      networkConfig: TestShardInfo
     }).then((waku) => waku.start().then(() => waku)),
     createRelayNode({
       staticNoiseKey: NOISE_KEY_2,
-      shardInfo: TestShardInfo,
+      networkConfig: TestShardInfo,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
     }).then((waku) => waku.start().then(() => waku))
   ]);

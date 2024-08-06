@@ -37,7 +37,7 @@ describe("ENR Interop: ServiceNode", function () {
 
     waku = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -71,7 +71,7 @@ describe("ENR Interop: ServiceNode", function () {
 
     waku = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
@@ -106,7 +106,7 @@ describe("ENR Interop: ServiceNode", function () {
 
     waku = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
     await waku.start();
     await waku.dial(multiAddrWithId);

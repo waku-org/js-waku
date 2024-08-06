@@ -29,7 +29,11 @@ describe("Connection state", function () {
   let nwaku2PeerId: Multiaddr;
 
   beforeEachCustom(this, async () => {
-    waku = await createLightNode({ shardInfo: DefaultTestShardInfo });
+    try {
+      waku = await createLightNode({ networkConfig: DefaultTestShardInfo });
+    } catch (error) {
+      console.error(error);
+    }
     nwaku1 = new ServiceNode(makeLogFileName(this.ctx) + "1");
     nwaku2 = new ServiceNode(makeLogFileName(this.ctx) + "2");
     await nwaku1.start({ filter: true });
@@ -91,11 +95,11 @@ describe("Connection state", function () {
   it("`waku:online` between 2 js-waku relay nodes", async function () {
     const waku1 = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
     const waku2 = await createRelayNode({
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
 
     let eventCount1 = 0;

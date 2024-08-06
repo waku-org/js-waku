@@ -5,8 +5,8 @@ import {
   type IEncoder,
   type IMessage,
   type Libp2p,
-  type ProtocolCreateOptions,
   ProtocolError,
+  PubsubTopic,
   type ThisOrThat
 } from "@waku/interfaces";
 import { PushResponse } from "@waku/proto";
@@ -32,14 +32,11 @@ type PreparePushMessageResult = ThisOrThat<"query", PushRpc>;
  * Implements the [Waku v2 Light Push protocol](https://rfc.vac.dev/spec/19/).
  */
 export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
-  public constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(
-      LightPushCodec,
-      libp2p.components,
-      log,
-      options!.pubsubTopics!,
-      options
-    );
+  public constructor(
+    public readonly pubsubTopics: PubsubTopic[],
+    libp2p: Libp2p
+  ) {
+    super(LightPushCodec, libp2p.components, log, pubsubTopics);
   }
 
   private async preparePushMessage(

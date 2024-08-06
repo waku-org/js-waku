@@ -3,9 +3,9 @@ import { createEncoder, waitForRemotePeer } from "@waku/core";
 import {
   ContentTopicInfo,
   LightNode,
+  NetworkConfig,
   Protocols,
   ShardInfo,
-  ShardingParams,
   SingleShardInfo
 } from "@waku/interfaces";
 import {
@@ -344,7 +344,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
     pubsubTopicShardInfo: shardInfo2
   });
 
-  const testShardInfo: ShardingParams = {
+  const testShardInfo: NetworkConfig = {
     clusterId,
     shards: [
       contentTopicToShardIndex(customContentTopic1),

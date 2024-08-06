@@ -15,13 +15,11 @@ import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "../waku.js";
  * or use this function with caution.
  */
 export async function createRelayNode(
-  options: CreateWakuNodeOptions & Partial<RelayCreateOptions> = {
-    pubsubTopics: []
-  }
+  options: CreateWakuNodeOptions & Partial<RelayCreateOptions>
 ): Promise<RelayNode> {
-  const libp2p = await createLibp2pAndUpdateOptions(options);
+  const { libp2p, pubsubTopics } = await createLibp2pAndUpdateOptions(options);
 
-  return new WakuNode(options as WakuOptions, libp2p, {
+  return new WakuNode(pubsubTopics, options as WakuOptions, libp2p, {
     relay: true
   }) as RelayNode;
 }
@@ -40,13 +38,11 @@ export async function createRelayNode(
  * @internal
  */
 export async function createFullNode(
-  options: CreateWakuNodeOptions & Partial<RelayCreateOptions> = {
-    pubsubTopics: []
-  }
+  options: CreateWakuNodeOptions & Partial<RelayCreateOptions>
 ): Promise<FullNode> {
-  const libp2p = await createLibp2pAndUpdateOptions(options);
+  const { libp2p, pubsubTopics } = await createLibp2pAndUpdateOptions(options);
 
-  return new WakuNode(options as WakuOptions, libp2p, {
+  return new WakuNode(pubsubTopics, options as WakuOptions, libp2p, {
     filter: true,
     lightpush: true,
     relay: true,

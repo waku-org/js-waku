@@ -1,13 +1,16 @@
 import { waitForRemotePeer } from "@waku/core";
 import {
-  ContentTopicInfo,
+  NetworkConfig,
   ProtocolCreateOptions,
-  Protocols,
-  ShardingParams
+  Protocols
 } from "@waku/interfaces";
 import { createLightNode, WakuNode } from "@waku/sdk";
 import { createRelayNode } from "@waku/sdk/relay";
-import { Logger, shardInfoToPubsubTopics } from "@waku/utils";
+import {
+  derivePubsubTopicsFromNetworkConfig,
+  Logger,
+  pubsubTopicsToShardInfo
+} from "@waku/utils";
 import { Context } from "mocha";
 
 import { NOISE_KEY_1 } from "../constants.js";
@@ -19,7 +22,7 @@ export const log = new Logger("test:runNodes");
 
 type RunNodesOptions = {
   context: Context;
-  shardInfo: ShardingParams;
+  networkConfig: NetworkConfig;
   protocols: Protocols[];
   createNode: typeof createLightNode | typeof createRelayNode;
 };
@@ -27,14 +30,11 @@ type RunNodesOptions = {
 export async function runNodes<T>(
   options: RunNodesOptions
 ): Promise<[ServiceNode, T]> {
-  const { context, shardInfo, createNode, protocols } = options;
+  const { context, networkConfig, createNode, protocols } = options;
 
   const nwaku = new ServiceNode(makeLogFileName(context));
-  const pubsubTopics = shardInfoToPubsubTopics(shardInfo);
-
-  function isContentTopicInfo(info: ShardingParams): info is ContentTopicInfo {
-    return (info as ContentTopicInfo).contentTopics !== undefined;
-  }
+  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(networkConfig);
+  const shardInfo = pubsubTopicsToShardInfo(pubsubTopics);
 
   await nwaku.start(
     {
@@ -43,19 +43,14 @@ export async function runNodes<T>(
       relay: true,
       store: true,
       pubsubTopic: pubsubTopics,
-      // Conditionally include clusterId if shardInfo exists
-      ...(shardInfo && { clusterId: shardInfo.clusterId }),
-      // Conditionally include contentTopic if shardInfo exists and clusterId is 1
-      ...(shardInfo &&
-        isContentTopicInfo(shardInfo) &&
-        shardInfo.clusterId === 1 && { contentTopic: shardInfo.contentTopics })
+      clusterId: shardInfo.clusterId
     },
     { retries: 3 }
   );
   const waku_options: ProtocolCreateOptions = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-    shardInfo
+    networkConfig: shardInfo
   };
 
   log.info("Starting js waku node with :", JSON.stringify(waku_options));

@@ -133,7 +133,7 @@ async function setupTestEnvironment(
     );
     serviceNodes.push(...serviceNodesFleet.nodes);
   } else {
-    waku = await createLightNode({ shardInfo: TestShardInfo });
+    waku = await createLightNode({ networkConfig: TestShardInfo });
   }
 
   // Create additional LightPush nodes if needed

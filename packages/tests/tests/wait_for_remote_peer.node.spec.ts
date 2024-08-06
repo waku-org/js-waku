@@ -57,7 +57,7 @@ describe("Wait for remote peer", function () {
 
     waku1 = await createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
     await waku1.start();
 
@@ -77,7 +77,7 @@ describe("Wait for remote peer", function () {
     this.timeout(5000);
     createRelayNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     })
       .then((waku1) => waku1.start().then(() => waku1))
       .then((waku1) => {
@@ -107,7 +107,7 @@ describe("Wait for remote peer", function () {
 
     waku2 = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
@@ -136,7 +136,7 @@ describe("Wait for remote peer", function () {
 
     waku2 = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
     await waku2.start();
     const waitPromise = waitForRemotePeer(waku2, [Protocols.Store], 2000);
@@ -167,7 +167,7 @@ describe("Wait for remote peer", function () {
 
     waku2 = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
@@ -196,7 +196,7 @@ describe("Wait for remote peer", function () {
 
     waku2 = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
@@ -225,7 +225,7 @@ describe("Wait for remote peer", function () {
 
     waku2 = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: DefaultTestShardInfo
+      networkConfig: DefaultTestShardInfo
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);

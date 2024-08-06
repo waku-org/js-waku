@@ -49,7 +49,7 @@ describe("Peer Exchange", () => {
             wakuPeerExchangeDiscovery([pubsubTopic])
           ]
         },
-        shardInfo: shardInfo
+        networkConfig: shardInfo
       });
 
       await waku.start();

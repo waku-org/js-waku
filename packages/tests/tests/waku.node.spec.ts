@@ -54,7 +54,7 @@ describe("Waku Dial [node only]", function () {
 
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
-        shardInfo: DefaultTestShardInfo
+        networkConfig: DefaultTestShardInfo
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
@@ -88,7 +88,7 @@ describe("Waku Dial [node only]", function () {
 
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
-        shardInfo: DefaultTestShardInfo
+        networkConfig: DefaultTestShardInfo
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
@@ -116,7 +116,7 @@ describe("Waku Dial [node only]", function () {
       const multiAddrWithId = await nwaku.getMultiaddrWithId();
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
-        shardInfo: DefaultTestShardInfo,
+        networkConfig: DefaultTestShardInfo,
         libp2p: {
           peerDiscovery: [bootstrap({ list: [multiAddrWithId.toString()] })]
         }
@@ -142,7 +142,7 @@ describe("Waku Dial [node only]", function () {
 
       waku = await createLightNode({
         staticNoiseKey: NOISE_KEY_1,
-        shardInfo: DefaultTestShardInfo,
+        networkConfig: DefaultTestShardInfo,
         libp2p: {
           peerDiscovery: [bootstrap({ list: [nwakuMa.toString()] })]
         }
@@ -174,11 +174,11 @@ describe("Decryption Keys", function () {
     [waku1, waku2] = await Promise.all([
       createRelayNode({
         staticNoiseKey: NOISE_KEY_1,
-        shardInfo: DefaultTestShardInfo
+        networkConfig: DefaultTestShardInfo
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
-        shardInfo: DefaultTestShardInfo,
+        networkConfig: DefaultTestShardInfo,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
     ]);
@@ -254,11 +254,11 @@ describe("User Agent", function () {
       createRelayNode({
         staticNoiseKey: NOISE_KEY_1,
         userAgent: waku1UserAgent,
-        shardInfo: DefaultTestShardInfo
+        networkConfig: DefaultTestShardInfo
       }).then((waku) => waku.start().then(() => waku)),
       createRelayNode({
         staticNoiseKey: NOISE_KEY_2,
-        shardInfo: DefaultTestShardInfo,
+        networkConfig: DefaultTestShardInfo,
         libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } }
       }).then((waku) => waku.start().then(() => waku))
     ]);

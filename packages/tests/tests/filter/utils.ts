@@ -1,28 +1,24 @@
 import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
 import {
+  DefaultNetworkConfig,
   ISubscriptionSDK,
   LightNode,
+  NetworkConfig,
   ProtocolCreateOptions,
   Protocols,
-  ShardingParams,
   Waku
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
-  Logger,
-  shardInfoToPubsubTopics
+  derivePubsubTopicsFromNetworkConfig,
+  Logger
 } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
-import {
-  DefaultTestPubsubTopic,
-  NOISE_KEY_1,
-  ServiceNodesFleet,
-  waitForConnections
-} from "../../src";
+import { NOISE_KEY_1, ServiceNodesFleet, waitForConnections } from "../../src";
 
 // Constants for test configuration.
 export const log = new Logger("test:filter");
@@ -69,21 +65,18 @@ export async function validatePingError(
 
 export async function runMultipleNodes(
   context: Context,
-  shardInfo?: ShardingParams,
+  networkConfig: NetworkConfig = DefaultNetworkConfig,
   strictChecking: boolean = false,
   numServiceNodes = 3,
   withoutFilter = false
 ): Promise<[ServiceNodesFleet, LightNode]> {
-  const pubsubTopics = shardInfo
-    ? shardInfoToPubsubTopics(shardInfo)
-    : [DefaultTestPubsubTopic];
+  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(networkConfig);
   // create numServiceNodes nodes
   const serviceNodes = await ServiceNodesFleet.createAndRun(
     context,
-    pubsubTopics,
     numServiceNodes,
     strictChecking,
-    shardInfo,
+    networkConfig,
     undefined,
     withoutFilter
   );
@@ -94,12 +87,6 @@ export async function runMultipleNodes(
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
     }
   };
-
-  if (shardInfo) {
-    wakuOptions.shardInfo = shardInfo;
-  } else {
-    wakuOptions.pubsubTopics = pubsubTopics;
-  }
 
   log.info("Starting js waku node with :", JSON.stringify(wakuOptions));
   let waku: LightNode | undefined;

@@ -9,14 +9,14 @@ import { all as filterAll, wss } from "@libp2p/websockets/filters";
 import { wakuMetadata } from "@waku/core";
 import {
   type CreateLibp2pOptions,
-  DefaultShardInfo,
+  DefaultNetworkConfig,
   type IMetadata,
   type Libp2p,
   type Libp2pComponents,
-  type ShardInfo
+  PubsubTopic
 } from "@waku/interfaces";
 import { wakuGossipSub } from "@waku/relay";
-import { ensureShardingConfigured, Logger } from "@waku/utils";
+import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
 import {
@@ -35,10 +35,10 @@ type MetadataService = {
   metadata?: (components: Libp2pComponents) => IMetadata;
 };
 
-const logger = new Logger("sdk:create");
+const log = new Logger("sdk:create");
 
 export async function defaultLibp2p(
-  shardInfo?: ShardInfo,
+  pubsubTopics: PubsubTopic[],
   wakuGossipSub?: PubsubService["pubsub"],
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
@@ -60,8 +60,8 @@ export async function defaultLibp2p(
     ? { pubsub: wakuGossipSub }
     : {};
 
-  const metadataService: MetadataService = shardInfo
-    ? { metadata: wakuMetadata(shardInfo) }
+  const metadataService: MetadataService = pubsubTopics
+    ? { metadata: wakuMetadata(pubsubTopics) }
     : {};
 
   const filter = process?.env?.NODE_ENV === "test" ? filterAll : wss;
@@ -91,14 +91,18 @@ export async function defaultLibp2p(
 
 export async function createLibp2pAndUpdateOptions(
   options: CreateWakuNodeOptions
-): Promise<Libp2p> {
-  const shardInfo = configureNetworkOptions(options);
+): Promise<{ libp2p: Libp2p; pubsubTopics: PubsubTopic[] }> {
+  const { networkConfig } = options;
+  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(
+    networkConfig ?? DefaultNetworkConfig
+  );
+  log.info("Creating Waku node with pubsub topics", pubsubTopics);
 
   const libp2pOptions = options?.libp2p ?? {};
   const peerDiscovery = libp2pOptions.peerDiscovery ?? [];
 
   if (options?.defaultBootstrap) {
-    peerDiscovery.push(...defaultPeerDiscoveries(options.pubsubTopics!));
+    peerDiscovery.push(...defaultPeerDiscoveries(pubsubTopics));
   }
 
   if (options?.bootstrapPeers) {
@@ -108,64 +112,11 @@ export async function createLibp2pAndUpdateOptions(
   libp2pOptions.peerDiscovery = peerDiscovery;
 
   const libp2p = await defaultLibp2p(
-    shardInfo,
+    pubsubTopics,
     wakuGossipSub(options),
     libp2pOptions,
     options?.userAgent
   );
 
-  return libp2p;
-}
-
-function configureNetworkOptions(
-  options: CreateWakuNodeOptions
-): ShardInfo | undefined {
-  const flags = [
-    options.contentTopics,
-    options.pubsubTopics,
-    options.shardInfo
-  ].filter((v) => !!v);
-
-  if (flags.length > 1) {
-    throw Error(
-      "Too many network configurations provided. Pass only one of: pubsubTopic, contentTopics or shardInfo."
-    );
-  }
-
-  logWhichShardInfoIsUsed(options);
-
-  if (options.contentTopics) {
-    options.shardInfo = { contentTopics: options.contentTopics };
-  }
-
-  if (!options.shardInfo) {
-    options.shardInfo = DefaultShardInfo;
-  }
-
-  const shardInfo = options.shardInfo
-    ? ensureShardingConfigured(options.shardInfo)
-    : undefined;
-
-  options.pubsubTopics = options.pubsubTopics ?? shardInfo?.pubsubTopics;
-
-  return shardInfo?.shardInfo;
-}
-
-function logWhichShardInfoIsUsed(options: CreateWakuNodeOptions): void {
-  if (options.pubsubTopics) {
-    logger.info("Using pubsubTopics array to bootstrap the node.");
-    return;
-  }
-
-  if (options.contentTopics) {
-    logger.info(
-      "Using contentTopics and default cluster ID (1) to bootstrap the node."
-    );
-    return;
-  }
-
-  if (options.shardInfo) {
-    logger.info("Using shardInfo parameters to bootstrap the node.");
-    return;
-  }
+  return { libp2p, pubsubTopics };
 }

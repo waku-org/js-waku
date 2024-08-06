@@ -13,7 +13,7 @@ import {
   shardInfoToPubsubTopics,
   singleShardInfosToShardInfo,
   singleShardInfoToPubsubTopic
-} from "./sharding";
+} from ".";
 
 const testInvalidCases = (
   contentTopics: string[],
@@ -431,7 +431,7 @@ describe("ensureShardingConfigured", () => {
   it("should return valid sharding parameters for static sharding", () => {
     const shardInfo = { clusterId: 1, shards: [0, 1] };
     const result = ensureShardingConfigured(shardInfo);
-    expect(result.shardingParams).to.deep.include({
+    expect(result.NetworkConfig).to.deep.include({
       clusterId: 1,
       shards: [0, 1]
     });
@@ -445,7 +445,7 @@ describe("ensureShardingConfigured", () => {
   it("should return valid sharding parameters for content topics autosharding", () => {
     const shardInfo = { contentTopics: ["/app/v1/topic1/proto"] };
     const result = ensureShardingConfigured(shardInfo);
-    expect(result.shardingParams).to.deep.include({
+    expect(result.NetworkConfig).to.deep.include({
       contentTopics: ["/app/v1/topic1/proto"]
     });
     const expectedPubsubTopic = contentTopicToPubsubTopic(
@@ -461,7 +461,7 @@ describe("ensureShardingConfigured", () => {
   it("should configure sharding based on application and version for autosharding", () => {
     const shardInfo = { application: "app", version: "v1" };
     const result = ensureShardingConfigured(shardInfo);
-    expect(result.shardingParams).to.deep.include({
+    expect(result.NetworkConfig).to.deep.include({
       application: "app",
       version: "v1"
     });
@@ -482,7 +482,7 @@ describe("ensureShardingConfigured", () => {
         version: "v1"
       };
       const result = ensureShardingConfigured(shardInfo);
-      expect(result.shardingParams).to.deep.include({
+      expect(result.NetworkConfig).to.deep.include({
         application: "app",
         version: "v1"
       });
