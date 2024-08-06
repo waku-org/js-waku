@@ -38,6 +38,8 @@ describe("Waku Store, sorting", function () {
         TestDecoder.pubsubTopic
       );
 
+      const pages: IMessage[][] = [];
+
       for await (const query of waku.store.queryGenerator([TestDecoder], {
         paginationForward: pageDirection
       })) {
@@ -47,17 +49,42 @@ describe("Waku Store, sorting", function () {
             page.push(msg as DecodedMessage);
           }
         }
-        // Extract timestamps
+        pages.push(page);
+
+        // Check order within the current page
         const timestamps = page.map(
           (msg) => msg.timestamp as unknown as bigint
         );
-        // Check if timestamps are sorted
         for (let i = 1; i < timestamps.length; i++) {
           if (timestamps[i] < timestamps[i - 1]) {
             throw new Error(
-              `Messages are not sorted by timestamp. Found out of order at index ${i}`
+              `Messages within page ${pages.length - 1} are not in sequential order. Found out of order at index ${i}`
             );
           }
+        }
+      }
+
+      // Check order between pages
+      for (let i = 1; i < pages.length; i++) {
+        const prevPageLastTimestamp = pages[i - 1][pages[i - 1].length - 1]
+          .timestamp as unknown as bigint;
+        const currentPageFirstTimestamp = pages[i][0]
+          .timestamp as unknown as bigint;
+
+        if (
+          pageDirection === true &&
+          prevPageLastTimestamp < currentPageFirstTimestamp
+        ) {
+          throw new Error(
+            `Pages are not in reversed order for FORWARD direction. Issue found between page ${i - 1} and ${i}`
+          );
+        } else if (
+          pageDirection === false &&
+          prevPageLastTimestamp > currentPageFirstTimestamp
+        ) {
+          throw new Error(
+            `Pages are not in reversed order for BACKWARD direction. Issue found between page ${i - 1} and ${i}`
+          );
         }
       }
     });
@@ -73,31 +100,56 @@ describe("Waku Store, sorting", function () {
       );
 
       const messages: IMessage[] = [];
+      const pageSize = 5;
+      // receive 4 pages, 5 messages each (20/4)
       await waku.store.queryWithOrderedCallback(
         [TestDecoder],
         async (msg) => {
           messages.push(msg);
         },
-        {
-          paginationForward: pageDirection
+        { paginationLimit: pageSize, paginationForward: pageDirection }
+      );
+
+      // Split messages into pages
+      const pages: IMessage[][] = [];
+      for (let i = 0; i < messages.length; i += pageSize) {
+        pages.push(messages.slice(i, i + pageSize));
+      }
+
+      // Check order within each page
+      pages.forEach((page, pageIndex) => {
+        const pageTimestamps = page.map(
+          (msg) => msg.timestamp as unknown as bigint
+        );
+        for (let i = 1; i < pageTimestamps.length; i++) {
+          if (pageTimestamps[i] < pageTimestamps[i - 1]) {
+            throw new Error(
+              `Messages within page ${pageIndex} are not in sequential order. Found out of order at index ${i}`
+            );
+          }
         }
-      );
-      // Extract timestamps
-      const timestamps = messages.map(
-        (msg) => msg.timestamp as unknown as bigint
-      );
-      // Check if timestamps are sorted
-      for (let i = 1; i < timestamps.length; i++) {
-        if (pageDirection === true && timestamps[i] < timestamps[i - 1]) {
+      });
+
+      // Check order between pages
+      for (let i = 1; i < pages.length; i++) {
+        const prevPageLastTimestamp = pages[i - 1][pages[i - 1].length - 1]
+          .timestamp as unknown as bigint;
+        const currentPageFirstTimestamp = pages[i][0]
+          .timestamp as unknown as bigint;
+
+        if (
+          pageDirection === true &&
+          prevPageLastTimestamp > currentPageFirstTimestamp
+        ) {
           throw new Error(
-            `Messages are not sorted by timestamp in FORWARD direction. Found out of order at index ${i}`
+            `Pages are not in reversed order for FORWARD direction. Issue found between page ${i - 1} and ${i}`
           );
         } else if (
           pageDirection === false &&
-          timestamps[i] > timestamps[i - 1]
+          prevPageLastTimestamp < currentPageFirstTimestamp
         ) {
           throw new Error(
-            `Messages are not sorted by timestamp in BACKWARD direction. Found out of order at index ${i}`
+            `Pages are not in reversed order for BACKWARD direction. Issue found between page ${i - 1} and ${i}`
           );
         }
       }
