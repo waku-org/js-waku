@@ -50,16 +50,12 @@ describe("Waku Store, page size", function () {
       if (pageSize === 0) {
         effectivePageSize = 20;
       } else if (pageSize > 100) {
-        if (nwaku.type == "go-waku") {
-          effectivePageSize = 20;
-        } else {
-          effectivePageSize = 100;
-        }
+        effectivePageSize = 100;
       }
 
       let messagesRetrieved = 0;
       for await (const query of waku.store.queryGenerator([TestDecoder], {
-        pageSize: pageSize
+        paginationLimit: pageSize
       })) {
         // Calculate expected page size
         const expectedPageSize = Math.min(
@@ -90,7 +86,7 @@ describe("Waku Store, page size", function () {
 
     let messagesRetrieved = 0;
     for await (const query of waku.store.queryGenerator([TestDecoder])) {
-      expect(query.length).eq(10);
+      expect(query.length).eq(20);
       for await (const msg of query) {
         if (msg) {
           messagesRetrieved++;

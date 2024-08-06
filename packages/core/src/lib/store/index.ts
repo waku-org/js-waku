@@ -1,13 +1,12 @@
 import type { Peer } from "@libp2p/interface";
 import {
-  Cursor,
   IDecodedMessage,
   IDecoder,
   IStoreCore,
   Libp2p,
-  ProtocolCreateOptions
+  ProtocolCreateOptions,
+  QueryRequestParams
 } from "@waku/interfaces";
-import { proto_store as proto } from "@waku/proto";
 import { Logger } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
@@ -17,63 +16,30 @@ import { Uint8ArrayList } from "uint8arraylist";
 import { BaseProtocol } from "../base_protocol.js";
 import { toProtoMessage } from "../to_proto_message.js";
 
-import { HistoryRpc, PageDirection, Params } from "./history_rpc.js";
-
-import HistoryError = proto.HistoryResponse.HistoryError;
+import {
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE,
+  StoreQueryRequest,
+  StoreQueryResponse
+} from "./rpc.js";
 
 const log = new Logger("store");
 
-export const StoreCodec = "/vac/waku/store/2.0.0-beta4";
+export const StoreCodec = "/vac/waku/store-query/3.0.0";
 
-export { PageDirection, Params };
-
-export interface TimeFilter {
-  startTime: Date;
-  endTime: Date;
-}
-
-export interface QueryOptions {
-  /**
-   * The direction in which pages are retrieved:
-   * - { @link PageDirection.BACKWARD }: Most recent page first.
-   * - { @link PageDirection.FORWARD }: Oldest page first.
-   *
-   * Note: This does not affect the ordering of messages with the page
-   * (the oldest message is always first).
-   *
-   * @default { @link PageDirection.BACKWARD }
-   */
-  pageDirection?: PageDirection;
-  /**
-   * The number of message per page.
-   *
-   * @default { @link DefaultPageSize }
-   */
-  pageSize?: number;
-  /**
-   * Retrieve messages with a timestamp within the provided values.
-   */
-  timeFilter?: TimeFilter;
-  /**
-   * Cursor as an index to start a query from.
-   * The cursor index will be exclusive (i.e. the message at the cursor index will not be included in the result).
-   * If undefined, the query will start from the beginning or end of the history, depending on the page direction.
-   */
-  cursor?: Cursor;
-}
-
-/**
- * Implements the [Waku v2 Store protocol](https://rfc.vac.dev/spec/13/).
- *
- * The Waku Store protocol can be used to retrieved historical messages.
- */
 export class StoreCore extends BaseProtocol implements IStoreCore {
   public constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(StoreCodec, libp2p.components, log, options!.pubsubTopics!, options);
+    super(
+      StoreCodec,
+      libp2p.components,
+      log,
+      options?.pubsubTopics || [],
+      options
+    );
   }
 
   public async *queryPerPage<T extends IDecodedMessage>(
-    queryOpts: Params,
+    queryOpts: QueryRequestParams,
     decoders: Map<string, IDecoder<T>>,
     peer: Peer
   ): AsyncGenerator<Promise<T | undefined>[]> {
@@ -86,11 +52,12 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
       );
     }
 
-    let currentCursor = queryOpts.cursor;
+    let currentCursor = queryOpts.paginationCursor;
     while (true) {
-      queryOpts.cursor = currentCursor;
-
-      const historyRpcQuery = HistoryRpc.createQuery(queryOpts);
+      const storeQueryRequest = StoreQueryRequest.create({
+        ...queryOpts,
+        paginationCursor: currentCursor
+      });
 
       let stream;
       try {
@@ -101,7 +68,7 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
       }
 
       const res = await pipe(
-        [historyRpcQuery.encode()],
+        [storeQueryRequest.encode()],
         lp.encode,
         stream,
         lp.decode,
@@ -113,61 +80,57 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
         bytes.append(chunk);
       });
 
-      const reply = historyRpcQuery.decode(bytes);
+      const storeQueryResponse = StoreQueryResponse.decode(bytes);
 
-      if (!reply.response) {
-        log.warn("Stopping pagination due to store `response` field missing");
+      if (
+        !storeQueryResponse.statusCode ||
+        storeQueryResponse.statusCode >= 300
+      ) {
+        const errorMessage = `Store query failed with status code: ${storeQueryResponse.statusCode}, description: ${storeQueryResponse.statusDesc}`;
+        log.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      if (!storeQueryResponse.messages || !storeQueryResponse.messages.length) {
+        log.warn("Stopping pagination due to empty messages in response");
         break;
       }
 
-      const response = reply.response as proto.HistoryResponse;
+      log.info(
+        `${storeQueryResponse.messages.length} messages retrieved from store`
+      );
 
-      if (response.error && response.error !== HistoryError.NONE) {
-        throw "History response contains an Error: " + response.error;
-      }
-
-      if (!response.messages || !response.messages.length) {
-        log.warn(
-          "Stopping pagination due to store `response.messages` field missing or empty"
-        );
-        break;
-      }
-
-      log.error(`${response.messages.length} messages retrieved from store`);
-
-      yield response.messages.map((protoMsg) => {
-        const contentTopic = protoMsg.contentTopic;
-        if (typeof contentTopic !== "undefined") {
+      const decodedMessages = storeQueryResponse.messages.map((protoMsg) => {
+        if (!protoMsg.message) {
+          return Promise.resolve(undefined);
+        }
+        const contentTopic = protoMsg.message.contentTopic;
+        if (contentTopic) {
           const decoder = decoders.get(contentTopic);
           if (decoder) {
             return decoder.fromProtoObj(
-              queryOpts.pubsubTopic,
-              toProtoMessage(protoMsg)
+              protoMsg.pubsubTopic || "",
+              toProtoMessage(protoMsg.message)
             );
           }
         }
         return Promise.resolve(undefined);
       });
 
-      const nextCursor = response.pagingInfo?.cursor;
-      if (typeof nextCursor === "undefined") {
-        // If the server does not return cursor then there is an issue,
-        // Need to abort, or we end up in an infinite loop
-        log.warn(
-          "Stopping pagination due to `response.pagingInfo.cursor` missing from store response"
-        );
-        break;
+      yield decodedMessages;
+
+      if (queryOpts.paginationForward) {
+        currentCursor =
+          storeQueryResponse.messages[storeQueryResponse.messages.length - 1]
+            .messageHash;
+      } else {
+        currentCursor = storeQueryResponse.messages[0].messageHash;
       }
 
-      currentCursor = nextCursor;
-
-      const responsePageSize = response.pagingInfo?.pageSize;
-      const queryPageSize = historyRpcQuery.query?.pagingInfo?.pageSize;
       if (
-        // Response page size smaller than query, meaning this is the last page
-        responsePageSize &&
-        queryPageSize &&
-        responsePageSize < queryPageSize
+        storeQueryResponse.messages.length > MAX_PAGE_SIZE &&
+        storeQueryResponse.messages.length <
+          (queryOpts.paginationLimit || DEFAULT_PAGE_SIZE)
       ) {
         break;
       }

@@ -10,7 +10,7 @@ export * as proto_filter_v2 from "./generated/filter_v2.js";
 export * as proto_lightpush from "./generated/light_push.js";
 export { PushResponse } from "./generated/light_push.js";
 
-export * as proto_store from "./generated/store.js";
+export * as proto_store from './generated/store_v3.js'
 
 export * as proto_peer_exchange from "./generated/peer_exchange.js";
 

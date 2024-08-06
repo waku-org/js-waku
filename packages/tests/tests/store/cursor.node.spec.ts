@@ -53,7 +53,7 @@ describe("Waku Store, cursor", function () {
       // messages in reversed order (first message at last index)
       const messages: DecodedMessage[] = [];
       for await (const page of waku.store.queryGenerator([TestDecoder])) {
-        for await (const msg of page.reverse()) {
+        for await (const msg of page) {
           messages.push(msg as DecodedMessage);
         }
       }
@@ -63,9 +63,9 @@ describe("Waku Store, cursor", function () {
 
       const messagesAfterCursor: DecodedMessage[] = [];
       for await (const page of waku.store.queryGenerator([TestDecoder], {
-        cursor
+        paginationCursor: cursor
       })) {
-        for await (const msg of page.reverse()) {
+        for await (const msg of page) {
           if (msg) {
             messagesAfterCursor.push(msg as DecodedMessage);
           }
@@ -102,7 +102,7 @@ describe("Waku Store, cursor", function () {
     // messages in reversed order (first message at last index)
     const messages: DecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder])) {
-      for await (const msg of page.reverse()) {
+      for await (const msg of page) {
         messages.push(msg as DecodedMessage);
       }
     }
@@ -113,9 +113,9 @@ describe("Waku Store, cursor", function () {
     // query node2 with the cursor from node1
     const messagesAfterCursor: DecodedMessage[] = [];
     for await (const page of waku2.store.queryGenerator([TestDecoder], {
-      cursor
+      paginationCursor: cursor
     })) {
-      for await (const msg of page.reverse()) {
+      for await (const msg of page) {
         if (msg) {
           messagesAfterCursor.push(msg as DecodedMessage);
         }
@@ -132,7 +132,7 @@ describe("Waku Store, cursor", function () {
     ).to.be.eq(bytesToUtf8(messages[messages.length - 1].payload));
   });
 
-  it("Passing cursor with wrong message digest", async function () {
+  it("Passing invalid cursor", async function () {
     await sendMessages(
       nwaku,
       totalMsgs,
@@ -142,39 +142,35 @@ describe("Waku Store, cursor", function () {
 
     const messages: DecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder])) {
-      for await (const msg of page.reverse()) {
+      for await (const msg of page) {
         messages.push(msg as DecodedMessage);
       }
     }
-    const cursor = waku.store.createCursor(messages[5]);
 
-    // setting a wrong digest
-    cursor.digest = new Uint8Array([]);
+    // setting an invalid cursor
+    const cursor = new Uint8Array([2, 3]);
 
     const messagesAfterCursor: DecodedMessage[] = [];
     try {
       for await (const page of waku.store.queryGenerator([TestDecoder], {
-        cursor
+        paginationCursor: cursor
       })) {
-        for await (const msg of page.reverse()) {
+        for await (const msg of page) {
           if (msg) {
             messagesAfterCursor.push(msg as DecodedMessage);
           }
         }
       }
-      // Should return same as go-waku. Raised bug: https://github.com/waku-org/nwaku/issues/2117
       expect(messagesAfterCursor.length).to.eql(0);
-    } catch (error) {
+    } catch (err) {
       if (
-        nwaku.type === "go-waku" &&
-        typeof error === "string" &&
-        error.includes("History response contains an Error: INVALID_CURSOR")
+        !(err instanceof Error) ||
+        !err.message.includes(
+          `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found`
+        )
       ) {
-        return;
+        throw err;
       }
-      throw error instanceof Error
-        ? new Error(`Unexpected error: ${error.message}`)
-        : error;
     }
   });
 
@@ -188,7 +184,7 @@ describe("Waku Store, cursor", function () {
 
     const messages: DecodedMessage[] = [];
     for await (const page of waku.store.queryGenerator([TestDecoder])) {
-      for await (const msg of page.reverse()) {
+      for await (const msg of page) {
         messages.push(msg as DecodedMessage);
       }
     }
@@ -197,7 +193,7 @@ describe("Waku Store, cursor", function () {
 
     try {
       for await (const page of waku.store.queryGenerator([TestDecoder], {
-        cursor
+        paginationCursor: cursor
       })) {
         void page;
       }
@@ -206,7 +202,7 @@ describe("Waku Store, cursor", function () {
       if (
         !(err instanceof Error) ||
         !err.message.includes(
-          `Cursor pubsub topic (${TestDecoder2.pubsubTopic}) does not match decoder pubsub topic (${TestDecoder.pubsubTopic})`
+          `Store query failed with status code: 300, description: BAD_RESPONSE: archive error: DIRVER_ERROR: cursor not found`
         )
       ) {
         throw err;

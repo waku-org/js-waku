@@ -215,7 +215,7 @@ describe("Waku Store, general", function () {
         }
         return messages.length >= desiredMsgs;
       },
-      { pageSize: 7 }
+      { paginationLimit: 7 }
     );
 
     expect(messages?.length).eq(desiredMsgs);
@@ -334,7 +334,7 @@ describe("Waku Store, general", function () {
         messages.push(msg);
         return messages.length >= desiredMsgs;
       },
-      { pageSize: 7 }
+      { paginationLimit: 7 }
     );
 
     expect(messages?.length).eq(desiredMsgs);
