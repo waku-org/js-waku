@@ -6,9 +6,9 @@ import {
 } from "@waku/core";
 import {
   LightNode,
+  NetworkConfig,
   Protocols,
   ShardInfo,
-  ShardingParams,
   type SingleShardInfo
 } from "@waku/interfaces";
 import { createLightNode, waitForRemotePeer } from "@waku/sdk";
@@ -102,12 +102,12 @@ export async function processQueriedMessages(
 
 export async function startAndConnectLightNode(
   instance: ServiceNode,
-  shardInfo: ShardingParams
+  networkConfig: NetworkConfig
 ): Promise<LightNode> {
   const waku = await createLightNode({
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-    shardInfo: shardInfo
+    networkConfig: networkConfig
   });
   await waku.start();
   await waku.dial(await instance.getMultiaddrWithId());
@@ -145,11 +145,11 @@ export const adjustDate = (baseDate: Date, adjustMs: number): Date => {
 
 export const runStoreNodes = (
   context: Context,
-  shardInfo: ShardingParams
+  networkConfig: NetworkConfig
 ): Promise<[ServiceNode, LightNode]> =>
   runNodes({
     context,
-    shardInfo,
+    networkConfig,
     createNode: createLightNode,
     protocols: [Protocols.Store]
   });

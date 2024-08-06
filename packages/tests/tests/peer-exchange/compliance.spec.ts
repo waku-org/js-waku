@@ -41,7 +41,7 @@ describe("Peer Exchange", function () {
 
     tests({
       async setup() {
-        waku = await createLightNode({ shardInfo: DefaultTestShardInfo });
+        waku = await createLightNode({ networkConfig: DefaultTestShardInfo });
         await waku.start();
 
         const nwaku2Ma = await nwaku2.getMultiaddrWithId();

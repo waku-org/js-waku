@@ -55,7 +55,7 @@ describe("Autosharding: Running Nodes", function () {
       await nwaku.ensureSubscriptions(pubsubTopics);
 
       waku = await createLightNode({
-        shardInfo: {
+        networkConfig: {
           clusterId: clusterId,
           contentTopics: [ContentTopic]
         }
@@ -97,7 +97,7 @@ describe("Autosharding: Running Nodes", function () {
       await nwaku.ensureSubscriptions(pubsubTopics);
 
       waku = await createLightNode({
-        shardInfo: {
+        networkConfig: {
           clusterId: clusterId,
           contentTopics: [ContentTopic]
         }
@@ -153,7 +153,7 @@ describe("Autosharding: Running Nodes", function () {
         });
 
         waku = await createLightNode({
-          shardInfo: {
+          networkConfig: {
             clusterId: clusterId,
             contentTopics: [ContentTopic]
           }
@@ -216,7 +216,7 @@ describe("Autosharding: Running Nodes", function () {
       });
 
       waku = await createLightNode({
-        shardInfo: {
+        networkConfig: {
           clusterId: clusterId,
           // For autosharding, we configure multiple pubsub topics by using two content topics that hash to different shards
           contentTopics: [ContentTopic, ContentTopic2]
@@ -274,7 +274,7 @@ describe("Autosharding: Running Nodes", function () {
       });
 
       waku = await createLightNode({
-        shardInfo: {
+        networkConfig: {
           clusterId: clusterId,
           contentTopics: [ContentTopic]
         }
@@ -301,52 +301,10 @@ describe("Autosharding: Running Nodes", function () {
       expect(errors).to.include(ProtocolError.TOPIC_NOT_CONFIGURED);
     });
 
-    it("start node with ApplicationInfo", async function () {
-      const pubsubTopics = [contentTopicToPubsubTopic(ContentTopic, clusterId)];
-
-      await nwaku.start({
-        store: true,
-        lightpush: true,
-        relay: true,
-        clusterId: clusterId,
-        pubsubTopic: pubsubTopics,
-        contentTopic: [ContentTopic]
-      });
-
-      waku = await createLightNode({
-        shardInfo: {
-          clusterId: clusterId,
-          application: ContentTopic.split("/")[1],
-          version: ContentTopic.split("/")[2]
-        }
-      });
-      await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.LightPush]);
-
-      const encoder = createEncoder({
-        contentTopic: ContentTopic,
-        pubsubTopicShardInfo: {
-          clusterId: clusterId,
-          shard: contentTopicToShardIndex(ContentTopic)
-        }
-      });
-
-      const request = await waku.lightPush.send(encoder, {
-        payload: utf8ToBytes("Hello World")
-      });
-
-      expect(request.successes.length).to.eq(1);
-      expect(
-        await messageCollector.waitForMessagesAutosharding(1, {
-          contentTopic: ContentTopic
-        })
-      ).to.eq(true);
-    });
-
     it("start node with empty content topic", async function () {
       try {
         waku = await createLightNode({
-          shardInfo: {
+          networkConfig: {
             clusterId: clusterId,
             contentTopics: []
           }

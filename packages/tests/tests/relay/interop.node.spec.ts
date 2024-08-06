@@ -101,7 +101,7 @@ describe("Waku Relay, Interop", function () {
     const waku2 = await createRelayNode({
       staticNoiseKey: NOISE_KEY_2,
       emitSelf: true,
-      shardInfo: TestShardInfo
+      networkConfig: TestShardInfo
     });
     await waku2.start();
 

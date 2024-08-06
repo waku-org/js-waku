@@ -1,6 +1,6 @@
 import { DecodedMessage } from "@waku/core";
-import { PubsubTopic, ShardingParams } from "@waku/interfaces";
-import { ensureShardingConfigured, Logger } from "@waku/utils";
+import { NetworkConfig } from "@waku/interfaces";
+import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
 import { expect } from "chai";
 
 import { DefaultTestPubsubTopic } from "../constants";
@@ -23,10 +23,9 @@ const log = new Logger("test:message-collector");
 export class ServiceNodesFleet {
   public static async createAndRun(
     mochaContext: Mocha.Context,
-    pubsubTopics: PubsubTopic[],
     nodesToCreate: number = 3,
     strictChecking: boolean = false,
-    shardInfo?: ShardingParams,
+    networkConfig: NetworkConfig,
     _args?: Args,
     withoutFilter = false
   ): Promise<ServiceNodesFleet> {
@@ -38,10 +37,7 @@ export class ServiceNodesFleet {
             Math.random().toString(36).substring(7)
         );
 
-        shardInfo = shardInfo
-          ? ensureShardingConfigured(shardInfo).shardInfo
-          : undefined;
-        const args = getArgs(pubsubTopics, shardInfo, _args);
+        const args = getArgs(networkConfig, _args);
         await node.start(args, {
           retries: 3
         });
@@ -266,11 +262,8 @@ class MultipleNodesMessageCollector {
   }
 }
 
-function getArgs(
-  pubsubTopics: PubsubTopic[],
-  shardInfo?: ShardingParams,
-  args?: Args
-): Args {
+function getArgs(networkConfig: NetworkConfig, args?: Args): Args {
+  const pubsubTopics = derivePubsubTopicsFromNetworkConfig(networkConfig);
   const defaultArgs = {
     lightpush: true,
     filter: true,
@@ -278,7 +271,7 @@ function getArgs(
     peerExchange: true,
     relay: true,
     pubsubTopic: pubsubTopics,
-    ...(shardInfo && { clusterId: shardInfo.clusterId })
+    clusterId: networkConfig.clusterId
   } as Args;
 
   return { ...defaultArgs, ...args };

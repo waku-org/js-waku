@@ -257,7 +257,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
 
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
-      shardInfo: contentTopicInfoBothShards
+      networkConfig: contentTopicInfoBothShards
     });
     await waku.start();
 

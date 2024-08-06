@@ -1,4 +1,4 @@
-import { LightNode, Protocols, ShardingParams } from "@waku/interfaces";
+import { LightNode, NetworkConfig, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { Logger } from "@waku/utils";
 import { Context } from "mocha";
@@ -12,11 +12,11 @@ export const log = new Logger("test:filter:single_node");
 
 export const runNodes = (
   context: Context,
-  shardInfo: ShardingParams
+  shardInfo: NetworkConfig
 ): Promise<[ServiceNode, LightNode]> =>
   runNodesBuilder<LightNode>({
     context,
     createNode: createLightNode,
     protocols: [Protocols.LightPush, Protocols.Filter],
-    shardInfo
+    networkConfig: shardInfo
   });

@@ -48,7 +48,7 @@ describe("Metadata Protocol", function () {
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
       const nwaku1PeerId = await nwaku1.getPeerId();
 
-      waku = await createLightNode({ shardInfo });
+      waku = await createLightNode({ networkConfig: shardInfo });
       await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
@@ -95,7 +95,7 @@ describe("Metadata Protocol", function () {
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
       const nwaku1PeerId = await nwaku1.getPeerId();
 
-      waku = await createLightNode({ shardInfo: shardInfo2 });
+      waku = await createLightNode({ networkConfig: shardInfo2 });
       await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
@@ -141,7 +141,7 @@ describe("Metadata Protocol", function () {
 
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
 
-      waku = await createLightNode({ shardInfo: shardInfo2 });
+      waku = await createLightNode({ networkConfig: shardInfo2 });
       await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
@@ -179,7 +179,7 @@ describe("Metadata Protocol", function () {
 
       const nwaku1Ma = await nwaku1.getMultiaddrWithId();
 
-      waku = await createLightNode({ shardInfo: shardInfo2 });
+      waku = await createLightNode({ networkConfig: shardInfo2 });
       await waku.start();
       await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
@@ -215,7 +215,7 @@ describe("Metadata Protocol", function () {
     const nwaku1Ma = await nwaku1.getMultiaddrWithId();
     const nwaku1PeerId = await nwaku1.getPeerId();
 
-    waku = await createLightNode({ shardInfo });
+    waku = await createLightNode({ networkConfig: shardInfo });
     await waku.start();
     await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
@@ -251,7 +251,10 @@ describe("Metadata Protocol", function () {
     const nwaku1Ma = await nwaku1.getMultiaddrWithId();
     const nwaku1PeerId = await nwaku1.getPeerId();
 
-    waku = await createLightNode({ shardInfo, pingKeepAlive: 1 });
+    waku = await createLightNode({
+      networkConfig: shardInfo,
+      pingKeepAlive: 1
+    });
     await waku.start();
     await waku.libp2p.dialProtocol(nwaku1Ma, MetadataCodec);
 
