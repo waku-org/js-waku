@@ -12,6 +12,25 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.19](https://github.com/waku-org/js-waku/compare/utils-v0.0.18...utils-v0.0.19) (2024-08-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* **filter:** new simpler filter API  ([#2092](https://github.com/waku-org/js-waku/issues/2092))
+
+### Features
+
+* **filter:** New simpler filter API  ([#2092](https://github.com/waku-org/js-waku/issues/2092)) ([fdd9dc4](https://github.com/waku-org/js-waku/commit/fdd9dc44a44c6680024fb51e9bbb5fe17190dcbd))
+* Fix peer renewal, change Filter keep alive ([#2065](https://github.com/waku-org/js-waku/issues/2065)) ([00635b7](https://github.com/waku-org/js-waku/commit/00635b7afe60c2ed739f2ccd1f07b2a6cc04f797))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.25 to 0.0.26
+
 ## [0.0.18](https://github.com/waku-org/js-waku/compare/utils-v0.0.17...utils-v0.0.18) (2024-07-10)
 
 

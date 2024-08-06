@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.31](https://github.com/waku-org/js-waku/compare/core-v0.0.30...core-v0.0.31) (2024-08-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* store v3 ([#2036](https://github.com/waku-org/js-waku/issues/2036))
+
+### Features
+
+* Fix peer renewal, change Filter keep alive ([#2065](https://github.com/waku-org/js-waku/issues/2065)) ([00635b7](https://github.com/waku-org/js-waku/commit/00635b7afe60c2ed739f2ccd1f07b2a6cc04f797))
+* Node and protocols health ([#2080](https://github.com/waku-org/js-waku/issues/2080)) ([d464af3](https://github.com/waku-org/js-waku/commit/d464af3645d769034d6c6293607de5b00e904ae4))
+* Store v3 ([#2036](https://github.com/waku-org/js-waku/issues/2036)) ([86f730f](https://github.com/waku-org/js-waku/commit/86f730f9587e3688b79c8e846e5c005bb4d5fae4))
+* Validate messages for individual filter nodes & perform renewals ([#2057](https://github.com/waku-org/js-waku/issues/2057)) ([9b0f1e8](https://github.com/waku-org/js-waku/commit/9b0f1e855aa3a1f7b9aec3a4c726568d37595c28))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.24 to ^0.0.25
+    * @waku/interfaces bumped from 0.0.25 to 0.0.26
+    * @waku/proto bumped from 0.0.7 to 0.0.8
+    * @waku/utils bumped from 0.0.18 to 0.0.19
+
 ## [0.0.30](https://github.com/waku-org/js-waku/compare/core-v0.0.29...core-v0.0.30) (2024-07-10)
 
 
