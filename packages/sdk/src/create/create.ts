@@ -1,6 +1,6 @@
 import { type LightNode } from "@waku/interfaces";
 
-import { CreateWakuNodeOptions, WakuNode, WakuOptions } from "../waku.js";
+import { CreateWakuNodeOptions, WakuNode } from "../waku.js";
 
 import { createLibp2pAndUpdateOptions } from "./libp2p.js";
 
@@ -12,9 +12,9 @@ import { createLibp2pAndUpdateOptions } from "./libp2p.js";
 export async function createLightNode(
   options: CreateWakuNodeOptions = {}
 ): Promise<LightNode> {
-  const libp2p = await createLibp2pAndUpdateOptions(options);
+  const { libp2p, pubsubTopics } = await createLibp2pAndUpdateOptions(options);
 
-  return new WakuNode(options as WakuOptions, libp2p, {
+  return new WakuNode(pubsubTopics, options, libp2p, {
     store: true,
     lightpush: true,
     filter: true

@@ -5,7 +5,7 @@ import type { Peer, PeerStore } from "@libp2p/interface";
 import type { ShardInfo } from "./enr.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
-import { PubsubTopic, ThisAndThat, ThisOrThat } from "./misc.js";
+import { ThisAndThat, ThisOrThat } from "./misc.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -15,7 +15,6 @@ export enum Protocols {
 }
 
 export type IBaseProtocolCore = {
-  shardInfo?: ShardInfo;
   multicodec: string;
   peerStore: PeerStore;
   allPeers: () => Promise<Peer[]>;
@@ -35,13 +34,10 @@ export type ContentTopicInfo = {
   contentTopics: string[];
 };
 
-export type ApplicationInfo = {
-  clusterId: number;
-  application: string;
-  version: string;
-};
+export type NetworkConfig = StaticSharding | AutoSharding;
 
-export type ShardingParams = ShardInfo | ContentTopicInfo | ApplicationInfo;
+export type StaticSharding = ShardInfo;
+export type AutoSharding = ContentTopicInfo;
 
 //TODO: merge this with ProtocolCreateOptions or establish distinction: https://github.com/waku-org/js-waku/issues/2048
 /**
@@ -72,38 +68,18 @@ export type ProtocolUseOptions = {
 
 export type ProtocolCreateOptions = {
   /**
-   * @deprecated
-   * Should be used ONLY if some other than The Waku Network is in use.
+   * Configuration for determining the network in use.
    *
-   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#pubsub-topics) for details.
-   *
-   * This is used by:
-   * - WakuRelay to receive, route and send messages,
-   * - WakuLightPush to send messages,
-   * - WakuStore to retrieve messages.
-   *
-   * If no pubsub topic is specified, the default pubsub topic will be determined from DefaultShardInfo.
-   *
-   * You cannot add or remove pubsub topics after initialization of the node.
-   */
-  pubsubTopics?: PubsubTopic[];
-  /**
-   * ShardInfo is used to determine which network is in use.
-   * Defaults to {@link @waku/interfaces!DefaultShardInfo}.
-   * Default value is configured for The Waku Network
-   *
-   * The format to specify a shard is:
-   * clusterId: number, shards: number[]
+   * If using ShardInfo:
+   * Default value is configured for The Waku Network.
+   * The format to specify a shard is: clusterId: number, shards: number[]
    * To learn more about the sharding specification, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
-   */
-  shardInfo?: Partial<ShardingParams>;
-  /**
-   * Content topics are used to determine network in use.
-   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#content-topics) for details.
    *
+   * If using Content Topics:
+   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#content-topics) for details.
    * You cannot add or remove content topics after initialization of the node.
    */
-  contentTopics?: string[];
+  networkConfig?: NetworkConfig;
   /**
    * You can pass options to the `Libp2p` instance used by {@link @waku/sdk!WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)

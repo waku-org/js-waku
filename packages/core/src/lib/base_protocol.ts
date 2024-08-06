@@ -3,10 +3,9 @@ import type { Peer, PeerStore, Stream } from "@libp2p/interface";
 import type {
   IBaseProtocolCore,
   Libp2pComponents,
-  ProtocolCreateOptions,
   PubsubTopic
 } from "@waku/interfaces";
-import { ensureShardingConfigured, Logger } from "@waku/utils";
+import { Logger, pubsubTopicsToShardInfo } from "@waku/utils";
 import {
   getConnectedPeersForProtocolAndShard,
   getPeersForProtocol,
@@ -29,8 +28,7 @@ export class BaseProtocol implements IBaseProtocolCore {
     public multicodec: string,
     private components: Libp2pComponents,
     private log: Logger,
-    public readonly pubsubTopics: PubsubTopic[],
-    private options?: ProtocolCreateOptions
+    public readonly pubsubTopics: PubsubTopic[]
   ) {
     this.addLibp2pEventListener = components.events.addEventListener.bind(
       components.events
@@ -100,9 +98,7 @@ export class BaseProtocol implements IBaseProtocolCore {
         this.components.connectionManager.getConnections(),
         this.peerStore,
         [this.multicodec],
-        this.options?.shardInfo
-          ? ensureShardingConfigured(this.options.shardInfo).shardInfo
-          : undefined
+        pubsubTopicsToShardInfo(this.pubsubTopics)
       );
 
     // Filter the peers based on discovery & number of peers requested

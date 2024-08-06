@@ -173,7 +173,7 @@ export class ConnectionManager
   private constructor(
     libp2p: Libp2p,
     keepAliveOptions: KeepAliveOptions,
-    private configuredPubsubTopics: PubsubTopic[],
+    public readonly configuredPubsubTopics: PubsubTopic[],
     relay?: IRelay,
     options?: Partial<ConnectionManagerOptions>
   ) {

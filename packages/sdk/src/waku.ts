@@ -48,7 +48,6 @@ export interface WakuOptions {
    * @default {@link @waku/core.DefaultUserAgent}
    */
   userAgent?: string;
-  pubsubTopics: PubsubTopic[];
 }
 
 export type CreateWakuNodeOptions = ProtocolCreateOptions &
@@ -68,18 +67,17 @@ export class WakuNode implements Waku {
   public filter?: IFilterSDK;
   public lightPush?: ILightPushSDK;
   public connectionManager: ConnectionManager;
-  public readonly pubsubTopics: PubsubTopic[];
   public readonly health: IHealthManager;
 
   public constructor(
+    public readonly pubsubTopics: PubsubTopic[],
     options: WakuOptions,
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled
   ) {
-    if (options.pubsubTopics.length == 0) {
+    if (pubsubTopics.length == 0) {
       throw new Error("At least one pubsub topic must be provided");
     }
-    this.pubsubTopics = options.pubsubTopics;
 
     this.libp2p = libp2p;
 
@@ -110,17 +108,17 @@ export class WakuNode implements Waku {
     this.health = getHealthManager();
 
     if (protocolsEnabled.store) {
-      const store = wakuStore(this.connectionManager, options);
+      const store = wakuStore(this.connectionManager);
       this.store = store(libp2p);
     }
 
     if (protocolsEnabled.lightpush) {
-      const lightPush = wakuLightPush(this.connectionManager, options);
+      const lightPush = wakuLightPush(this.connectionManager);
       this.lightPush = lightPush(libp2p);
     }
 
     if (protocolsEnabled.filter) {
-      const filter = wakuFilter(this.connectionManager, options);
+      const filter = wakuFilter(this.connectionManager);
       this.filter = filter(libp2p);
     }
 
