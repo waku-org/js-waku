@@ -198,11 +198,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     this.log.info(`Finding and adding ${numPeers} new peers`);
     try {
       const additionalPeers = await this.findAdditionalPeers(numPeers);
-      const dials = additionalPeers.map((peer) =>
-        this.connectionManager.attemptDial(peer.id)
-      );
-
-      await Promise.all(dials);
 
       const updatedPeers = [...this.peers, ...additionalPeers];
       this.updatePeers(updatedPeers);
@@ -227,10 +222,17 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   private async findAdditionalPeers(numPeers: number): Promise<Peer[]> {
     this.log.info(`Finding ${numPeers} additional peers`);
     try {
-      let newPeers = await this.core.allPeers();
+      let newPeers = await this.core.getPeers({
+        maxBootstrapPeers: 0,
+        numPeers: 0
+      });
 
       if (newPeers.length === 0) {
-        this.log.warn("No new peers found.");
+        this.log.warn("No new peers found, trying with bootstrap peers");
+        newPeers = await this.core.getPeers({
+          maxBootstrapPeers: numPeers,
+          numPeers: 0
+        });
       }
 
       newPeers = newPeers

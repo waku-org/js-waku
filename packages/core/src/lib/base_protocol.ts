@@ -23,6 +23,12 @@ type GetPeersOptions = {
   maxBootstrapPeers: number;
 };
 
+const DEFAULT_GET_PEERS_OPTIONS: GetPeersOptions = {
+  prioritizeLatency: true,
+  maxBootstrapPeers: 1,
+  numPeers: 0
+};
+
 /**
  * A class with predefined helpers, to be used as a base to implement Waku
  * Protocols.
@@ -90,11 +96,7 @@ export class BaseProtocol implements IBaseProtocolCore {
   * @returns A list of peers that support the protocol sorted by latency.
   */
   public async getPeers(
-    options: GetPeersOptions = {
-      prioritizeLatency: true,
-      maxBootstrapPeers: 1,
-      numPeers: 0
-    }
+    options: GetPeersOptions = DEFAULT_GET_PEERS_OPTIONS
   ): Promise<Peer[]> {
     const { maxBootstrapPeers, numPeers, prioritizeLatency } = options;
 
