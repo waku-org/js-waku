@@ -70,12 +70,12 @@ export type ProtocolCreateOptions = {
   /**
    * Configuration for determining the network in use.
    *
-   * If using ShardInfo:
+   * If using Static Sharding:
    * Default value is configured for The Waku Network.
    * The format to specify a shard is: clusterId: number, shards: number[]
    * To learn more about the sharding specification, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
    *
-   * If using Content Topics:
+   * If using Auto Sharding:
    * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#content-topics) for details.
    * You cannot add or remove content topics after initialization of the node.
    */
