@@ -284,13 +284,6 @@ describe("shardInfoToPubsubTopics", () => {
     expect(topics.length).to.equal(2);
   });
 
-  it("should handle application and version for autosharding", () => {
-    const shardInfo = { application: "app", version: "v1" };
-    const topics = shardInfoToPubsubTopics(shardInfo);
-    expect(topics).to.be.an("array").that.includes("/waku/2/rs/1/4");
-    expect(topics.length).to.equal(1);
-  });
-
   [0, 1, 6].forEach((clusterId) => {
     it(`should handle clusterId, application and version for autosharding with cluster iD ${clusterId}`, () => {
       const shardInfo = {
@@ -431,7 +424,7 @@ describe("ensureShardingConfigured", () => {
   it("should return valid sharding parameters for static sharding", () => {
     const shardInfo = { clusterId: 1, shards: [0, 1] };
     const result = ensureShardingConfigured(shardInfo);
-    expect(result.NetworkConfig).to.deep.include({
+    expect(result.shardInfo).to.deep.include({
       clusterId: 1,
       shards: [0, 1]
     });
@@ -445,7 +438,7 @@ describe("ensureShardingConfigured", () => {
   it("should return valid sharding parameters for content topics autosharding", () => {
     const shardInfo = { contentTopics: ["/app/v1/topic1/proto"] };
     const result = ensureShardingConfigured(shardInfo);
-    expect(result.NetworkConfig).to.deep.include({
+    expect(result.shardInfo).to.deep.include({
       contentTopics: ["/app/v1/topic1/proto"]
     });
     const expectedPubsubTopic = contentTopicToPubsubTopic(
@@ -456,45 +449,6 @@ describe("ensureShardingConfigured", () => {
       contentTopicToShardIndex("/app/v1/topic1/proto")
     );
     expect(result.pubsubTopics).to.include(expectedPubsubTopic);
-  });
-
-  it("should configure sharding based on application and version for autosharding", () => {
-    const shardInfo = { application: "app", version: "v1" };
-    const result = ensureShardingConfigured(shardInfo);
-    expect(result.NetworkConfig).to.deep.include({
-      application: "app",
-      version: "v1"
-    });
-    const expectedPubsubTopic = contentTopicToPubsubTopic(
-      `/app/v1/default/default`
-    );
-    expect(result.pubsubTopics).to.include(expectedPubsubTopic);
-    expect(result.shardInfo.shards).to.include(
-      pubsubTopicToSingleShardInfo(expectedPubsubTopic).shard
-    );
-  });
-
-  [0, 1, 4].forEach((clusterId) => {
-    it(`should configure sharding based on clusterId, application and version for autosharding with cluster iD ${clusterId}`, () => {
-      const shardInfo = {
-        clusterId: clusterId,
-        application: "app",
-        version: "v1"
-      };
-      const result = ensureShardingConfigured(shardInfo);
-      expect(result.NetworkConfig).to.deep.include({
-        application: "app",
-        version: "v1"
-      });
-      const expectedPubsubTopic = contentTopicToPubsubTopic(
-        `/app/v1/default/default`,
-        shardInfo.clusterId
-      );
-      expect(result.pubsubTopics).to.include(expectedPubsubTopic);
-      expect(result.shardInfo.shards).to.include(
-        pubsubTopicToSingleShardInfo(expectedPubsubTopic).shard
-      );
-    });
   });
 
   it("should throw an error for missing sharding configuration", () => {
