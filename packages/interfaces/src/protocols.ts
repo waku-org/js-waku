@@ -2,10 +2,10 @@ import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
 import type { Peer, PeerStore } from "@libp2p/interface";
 
-import type { ShardInfo } from "./enr.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
 import { ThisAndThat, ThisOrThat } from "./misc.js";
+import { AutoSharding, StaticSharding } from "./sharding.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -29,15 +29,7 @@ export type IBaseProtocolSDK = {
   readonly numPeersToUse: number;
 };
 
-export type ContentTopicInfo = {
-  clusterId?: number;
-  contentTopics: string[];
-};
-
 export type NetworkConfig = StaticSharding | AutoSharding;
-
-export type StaticSharding = ShardInfo;
-export type AutoSharding = ContentTopicInfo;
 
 //TODO: merge this with ProtocolCreateOptions or establish distinction: https://github.com/waku-org/js-waku/issues/2048
 /**

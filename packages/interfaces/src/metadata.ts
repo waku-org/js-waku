@@ -1,8 +1,8 @@
 import type { PeerId } from "@libp2p/interface";
 
-import { type ShardInfo } from "./enr.js";
 import { PubsubTopic, ThisOrThat } from "./misc.js";
 import type { IBaseProtocolCore } from "./protocols.js";
+import type { ShardInfo } from "./sharding.js";
 
 export type MetadataQueryResult = ThisOrThat<"shardInfo", ShardInfo>;
 

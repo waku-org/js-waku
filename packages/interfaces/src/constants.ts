@@ -1,4 +1,4 @@
-import { ShardInfo } from "./enr";
+import type { ShardInfo } from "./sharding";
 
 /**
  * The default cluster ID for The Waku Network
