@@ -1,4 +1,4 @@
-import { DEFAULT_CLUSTER_ID } from "@waku/interfaces";
+import { DEFAULT_CLUSTER_ID, NetworkConfig } from "@waku/interfaces";
 import { expect } from "chai";
 
 import {
@@ -436,11 +436,8 @@ describe("ensureShardingConfigured", () => {
   });
 
   it("should return valid sharding parameters for content topics autosharding", () => {
-    const shardInfo = { contentTopics: ["/app/v1/topic1/proto"] };
-    const result = ensureShardingConfigured(shardInfo);
-    expect(result.shardInfo).to.deep.include({
-      contentTopics: ["/app/v1/topic1/proto"]
-    });
+    const contentTopicInfo = { contentTopics: ["/app/v1/topic1/proto"] };
+    const result = ensureShardingConfigured(contentTopicInfo);
     const expectedPubsubTopic = contentTopicToPubsubTopic(
       "/app/v1/topic1/proto",
       DEFAULT_CLUSTER_ID
@@ -452,7 +449,7 @@ describe("ensureShardingConfigured", () => {
   });
 
   it("should throw an error for missing sharding configuration", () => {
-    const shardInfo = {};
+    const shardInfo = {} as any as NetworkConfig;
     expect(() => ensureShardingConfigured(shardInfo)).to.throw();
   });
 

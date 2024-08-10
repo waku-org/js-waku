@@ -311,23 +311,21 @@ export function determinePubsubTopic(
  * @returns Validated sharding parameters, with any missing values set to defaults
  */
 export const ensureShardingConfigured = (
-  shardInfo: Partial<NetworkConfig>
+  networkConfig: NetworkConfig
 ): {
-  shardingParams: NetworkConfig;
   shardInfo: ShardInfo;
   pubsubTopics: PubsubTopic[];
 } => {
-  const clusterId = shardInfo.clusterId ?? DEFAULT_CLUSTER_ID;
-  const shards = "shards" in shardInfo ? shardInfo.shards : [];
+  const clusterId = networkConfig.clusterId ?? DEFAULT_CLUSTER_ID;
+  const shards = "shards" in networkConfig ? networkConfig.shards : [];
   const contentTopics =
-    "contentTopics" in shardInfo ? shardInfo.contentTopics : [];
+    "contentTopics" in networkConfig ? networkConfig.contentTopics : [];
 
   const isShardsConfigured = shards && shards.length > 0;
   const isContentTopicsConfigured = contentTopics && contentTopics.length > 0;
 
   if (isShardsConfigured) {
     return {
-      shardingParams: { clusterId, shards },
       shardInfo: { clusterId, shards },
       pubsubTopics: shardInfoToPubsubTopics({ clusterId, shards })
     };
@@ -345,7 +343,6 @@ export const ensureShardingConfigured = (
       new Set(contentTopics.map((topic) => contentTopicToShardIndex(topic)))
     );
     return {
-      shardingParams: { clusterId, contentTopics },
       shardInfo: { clusterId, shards },
       pubsubTopics
     };
