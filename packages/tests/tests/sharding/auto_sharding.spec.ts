@@ -316,7 +316,7 @@ describe("Autosharding: Running Nodes", function () {
         if (
           !(err instanceof Error) ||
           !err.message.includes(
-            "Missing minimum required configuration options for static sharding or autosharding"
+            "Invalid content topics configuration: please provide at least one content topic"
           )
         ) {
           throw err;

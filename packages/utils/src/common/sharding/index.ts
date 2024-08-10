@@ -17,8 +17,18 @@ export function derivePubsubTopicsFromNetworkConfig(
   networkConfig: NetworkConfig
 ): PubsubTopic[] {
   if (isStaticSharding(networkConfig)) {
+    if (networkConfig.shards.length === 0) {
+      throw new Error(
+        "Invalid shards configuration: please provide at least one shard"
+      );
+    }
     return shardInfoToPubsubTopics(networkConfig);
   } else if (isAutoSharding(networkConfig)) {
+    if (networkConfig.contentTopics.length === 0) {
+      throw new Error(
+        "Invalid content topics configuration: please provide at least one content topic"
+      );
+    }
     return networkConfig.contentTopics.map((contentTopic) =>
       contentTopicToPubsubTopic(contentTopic, networkConfig.clusterId)
     );

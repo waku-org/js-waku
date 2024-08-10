@@ -274,7 +274,7 @@ describe("Static Sharding: Running Nodes", function () {
       expect(errors).to.include(ProtocolError.TOPIC_NOT_CONFIGURED);
     });
 
-    it("start node with empty shard", async function () {
+    it("start node with empty shard should fail", async function () {
       try {
         waku = await createLightNode({
           networkConfig: { clusterId: clusterId, shards: [] }
@@ -286,7 +286,7 @@ describe("Static Sharding: Running Nodes", function () {
         if (
           !(err instanceof Error) ||
           !err.message.includes(
-            "Missing minimum required configuration options for static sharding or autosharding"
+            "Invalid shards configuration: please provide at least one shard"
           )
         ) {
           throw err;

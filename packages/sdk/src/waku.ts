@@ -75,10 +75,6 @@ export class WakuNode implements Waku {
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled
   ) {
-    if (pubsubTopics.length == 0) {
-      throw new Error("At least one pubsub topic must be provided");
-    }
-
     this.libp2p = libp2p;
 
     protocolsEnabled = {
