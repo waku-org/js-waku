@@ -79,6 +79,23 @@ export type ProtocolCreateOptions = {
    * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#content-topics) for details.
    * You cannot add or remove content topics after initialization of the node.
    */
+  /**
+   * Configuration for determining the network in use.
+   * Network configuration refers to the shards and clusters used in the network.
+   *
+   * If using Static Sharding:
+   * Cluster ID and shards are specified in the format: clusterId: number, shards: number[]
+   * The default value is configured for The Waku Network => clusterId: 0, shards: [0, 1, 2, 3, 4, 5, 6, 7]
+   * To learn more about the sharding specification, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
+   *
+   * If using Auto Sharding:
+   * Cluster ID and content topics are specified in the format: clusterId: number, contentTopics: string[]
+   * Content topics are used to determine the shards to be configured for the network.
+   * Cluster ID is optional, and defaults to The Waku Network's cluster ID => 0
+   * To specify content topics, see [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#content-topics) for details
+   *
+   * @default { clusterId: 1, shards: [0, 1, 2, 3, 4, 5, 6, 7] }
+   */
   networkConfig?: NetworkConfig;
   /**
    * You can pass options to the `Libp2p` instance used by {@link @waku/sdk!WakuNode} using the `libp2p` property.
