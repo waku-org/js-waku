@@ -53,7 +53,7 @@ describe("Peer Exchange", function () {
 
   it("getPeersByDiscovery", async function () {
     waku = await createLightNode({
-      shardInfo: DefaultTestShardInfo,
+      networkConfig: DefaultTestShardInfo,
       libp2p: {
         peerDiscovery: [
           bootstrap({ list: [(await nwaku2.getMultiaddrWithId()).toString()] }),

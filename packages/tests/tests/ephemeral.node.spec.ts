@@ -107,7 +107,7 @@ describe("Waku Message Ephemeral field", function () {
     waku = await createLightNode({
       staticNoiseKey: NOISE_KEY_1,
       libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
-      shardInfo: {
+      networkConfig: {
         contentTopics: [TestContentTopic, AsymContentTopic, SymContentTopic],
         clusterId: ClusterId
       }
@@ -142,14 +142,14 @@ describe("Waku Message Ephemeral field", function () {
     const [waku1, waku2, nimWakuMultiaddr] = await Promise.all([
       createLightNode({
         staticNoiseKey: NOISE_KEY_1,
-        shardInfo: {
+        networkConfig: {
           contentTopics: [TestContentTopic, AsymContentTopic, SymContentTopic],
           clusterId: ClusterId
         }
       }).then((waku) => waku.start().then(() => waku)),
       createLightNode({
         staticNoiseKey: NOISE_KEY_2,
-        shardInfo: {
+        networkConfig: {
           contentTopics: [TestContentTopic, AsymContentTopic, SymContentTopic],
           clusterId: ClusterId
         }

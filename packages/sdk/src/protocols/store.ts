@@ -4,7 +4,6 @@ import {
   IDecoder,
   IStoreSDK,
   Libp2p,
-  ProtocolCreateOptions,
   QueryRequestParams,
   StoreCursor
 } from "@waku/interfaces";
@@ -24,14 +23,14 @@ const log = new Logger("waku:store:sdk");
 export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
   public readonly protocol: StoreCore;
 
-  public constructor(
-    connectionManager: ConnectionManager,
-    libp2p: Libp2p,
-    options?: ProtocolCreateOptions
-  ) {
-    super(new StoreCore(libp2p, options), connectionManager, {
-      numPeersToUse: DEFAULT_NUM_PEERS
-    });
+  public constructor(connectionManager: ConnectionManager, libp2p: Libp2p) {
+    super(
+      new StoreCore(connectionManager.configuredPubsubTopics, libp2p),
+      connectionManager,
+      {
+        numPeersToUse: DEFAULT_NUM_PEERS
+      }
+    );
     this.protocol = this.core as StoreCore;
   }
 
@@ -238,10 +237,9 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
  * @returns A function that takes a Libp2p instance and returns a StoreSDK instance.
  */
 export function wakuStore(
-  connectionManager: ConnectionManager,
-  init: Partial<ProtocolCreateOptions> = {}
+  connectionManager: ConnectionManager
 ): (libp2p: Libp2p) => IStoreSDK {
   return (libp2p: Libp2p) => {
-    return new StoreSDK(connectionManager, libp2p, init);
+    return new StoreSDK(connectionManager, libp2p);
   };
 }

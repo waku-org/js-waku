@@ -4,7 +4,7 @@ export * from "./random_subset.js";
 export * from "./group_by.js";
 export * from "./to_async_iterator.js";
 export * from "./is_size_valid.js";
-export * from "./sharding.js";
+export * from "./sharding/index.js";
 export * from "./push_or_init_map.js";
 export * from "./relay_shard_codec.js";
 export * from "./delay.js";

@@ -1,13 +1,43 @@
 import { sha256 } from "@noble/hashes/sha256";
 import {
   DEFAULT_CLUSTER_ID,
+  NetworkConfig,
   PubsubTopic,
   ShardInfo,
-  ShardingParams,
   SingleShardInfo
 } from "@waku/interfaces";
 
-import { concat, utf8ToBytes } from "../bytes/index.js";
+import { concat, utf8ToBytes } from "../../bytes/index.js";
+
+import { isAutoSharding, isStaticSharding } from "./type_guards.js";
+
+export * from "./type_guards.js";
+
+export function derivePubsubTopicsFromNetworkConfig(
+  networkConfig: NetworkConfig
+): PubsubTopic[] {
+  if (isStaticSharding(networkConfig)) {
+    if (networkConfig.shards.length === 0) {
+      throw new Error(
+        "Invalid shards configuration: please provide at least one shard"
+      );
+    }
+    return shardInfoToPubsubTopics(networkConfig);
+  } else if (isAutoSharding(networkConfig)) {
+    if (networkConfig.contentTopics.length === 0) {
+      throw new Error(
+        "Invalid content topics configuration: please provide at least one content topic"
+      );
+    }
+    return networkConfig.contentTopics.map((contentTopic) =>
+      contentTopicToPubsubTopic(contentTopic, networkConfig.clusterId)
+    );
+  } else {
+    throw new Error(
+      "Unknown shard config. Please use ShardInfo or ContentTopicInfo"
+    );
+  }
+}
 
 export const singleShardInfoToPubsubTopic = (
   shardInfo: SingleShardInfo
@@ -38,7 +68,7 @@ export const singleShardInfosToShardInfo = (
 };
 
 export const shardInfoToPubsubTopics = (
-  shardInfo: Partial<ShardingParams>
+  shardInfo: Partial<NetworkConfig>
 ): PubsubTopic[] => {
   if ("contentTopics" in shardInfo && shardInfo.contentTopics) {
     // Autosharding: explicitly defined content topics
@@ -95,6 +125,39 @@ export const pubsubTopicToSingleShardInfo = (
   return {
     clusterId,
     shard
+  };
+};
+
+export const pubsubTopicsToShardInfo = (
+  pubsubTopics: PubsubTopic[]
+): ShardInfo => {
+  const shardInfoSet = new Set<string>();
+  const clusterIds = new Set<number>();
+
+  for (const topic of pubsubTopics) {
+    const { clusterId, shard } = pubsubTopicToSingleShardInfo(topic);
+    shardInfoSet.add(`${clusterId}:${shard}`);
+    clusterIds.add(clusterId);
+  }
+
+  if (shardInfoSet.size === 0) {
+    throw new Error("No valid pubsub topics provided");
+  }
+
+  if (clusterIds.size > 1) {
+    throw new Error(
+      "Pubsub topics from multiple cluster IDs are not supported"
+    );
+  }
+
+  const clusterId = clusterIds.values().next().value;
+  const shards = Array.from(shardInfoSet).map((info) =>
+    parseInt(info.split(":")[1])
+  );
+
+  return {
+    clusterId,
+    shards
   };
 };
 
@@ -248,28 +311,21 @@ export function determinePubsubTopic(
  * @returns Validated sharding parameters, with any missing values set to defaults
  */
 export const ensureShardingConfigured = (
-  shardInfo: Partial<ShardingParams>
+  networkConfig: NetworkConfig
 ): {
-  shardingParams: ShardingParams;
   shardInfo: ShardInfo;
   pubsubTopics: PubsubTopic[];
 } => {
-  const clusterId = shardInfo.clusterId ?? DEFAULT_CLUSTER_ID;
-  const shards = "shards" in shardInfo ? shardInfo.shards : [];
+  const clusterId = networkConfig.clusterId ?? DEFAULT_CLUSTER_ID;
+  const shards = "shards" in networkConfig ? networkConfig.shards : [];
   const contentTopics =
-    "contentTopics" in shardInfo ? shardInfo.contentTopics : [];
-  const [application, version] =
-    "application" in shardInfo && "version" in shardInfo
-      ? [shardInfo.application, shardInfo.version]
-      : [undefined, undefined];
+    "contentTopics" in networkConfig ? networkConfig.contentTopics : [];
 
   const isShardsConfigured = shards && shards.length > 0;
   const isContentTopicsConfigured = contentTopics && contentTopics.length > 0;
-  const isApplicationVersionConfigured = application && version;
 
   if (isShardsConfigured) {
     return {
-      shardingParams: { clusterId, shards },
       shardInfo: { clusterId, shards },
       pubsubTopics: shardInfoToPubsubTopics({ clusterId, shards })
     };
@@ -287,24 +343,8 @@ export const ensureShardingConfigured = (
       new Set(contentTopics.map((topic) => contentTopicToShardIndex(topic)))
     );
     return {
-      shardingParams: { clusterId, contentTopics },
       shardInfo: { clusterId, shards },
       pubsubTopics
-    };
-  }
-
-  if (isApplicationVersionConfigured) {
-    const pubsubTopic = contentTopicToPubsubTopic(
-      `/${application}/${version}/default/default`,
-      clusterId
-    );
-    return {
-      shardingParams: { clusterId, application, version },
-      shardInfo: {
-        clusterId,
-        shards: [pubsubTopicToSingleShardInfo(pubsubTopic).shard!]
-      },
-      pubsubTopics: [pubsubTopic]
     };
   }
 

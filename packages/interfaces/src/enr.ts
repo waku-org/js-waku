@@ -2,6 +2,8 @@ import type { PeerId } from "@libp2p/interface";
 import type { PeerInfo } from "@libp2p/interface";
 import type { Multiaddr } from "@multiformats/multiaddr";
 
+import { ShardInfo } from "./sharding";
+
 export type ENRKey = string;
 export type ENRValue = Uint8Array;
 /**
@@ -16,11 +18,6 @@ export interface Waku2 {
   store: boolean;
   filter: boolean;
   lightPush: boolean;
-}
-
-export interface ShardInfo {
-  clusterId: number;
-  shards: number[];
 }
 
 export interface IEnr extends Map<ENRKey, ENRValue> {

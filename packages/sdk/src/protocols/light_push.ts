@@ -25,9 +25,13 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
     libp2p: Libp2p,
     options?: ProtocolCreateOptions
   ) {
-    super(new LightPushCore(libp2p, options), connectionManager, {
-      numPeersToUse: options?.numPeersToUse
-    });
+    super(
+      new LightPushCore(connectionManager.configuredPubsubTopics, libp2p),
+      connectionManager,
+      {
+        numPeersToUse: options?.numPeersToUse
+      }
+    );
 
     this.protocol = this.core as LightPushCore;
   }

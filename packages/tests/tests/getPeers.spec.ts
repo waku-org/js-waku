@@ -66,7 +66,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     const serviceNodeMa = await serviceNode1.getMultiaddrWithId();
 
-    waku = await createLightNode({ shardInfo });
+    waku = await createLightNode({ networkConfig: shardInfo });
     await waku.start();
     await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
     await waitForRemotePeer(waku, [Protocols.LightPush]);
@@ -115,7 +115,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     const serviceNode1Ma = await serviceNode1.getMultiaddrWithId();
     const serviceNode2Ma = await serviceNode2.getMultiaddrWithId();
 
-    waku = await createLightNode({ shardInfo: shardInfo2 });
+    waku = await createLightNode({ networkConfig: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
     await waku.start();
@@ -166,7 +166,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     const serviceNode1Ma = await serviceNode1.getMultiaddrWithId();
     const serviceNode2Ma = await serviceNode2.getMultiaddrWithId();
 
-    waku = await createLightNode({ shardInfo: shardInfo2 });
+    waku = await createLightNode({ networkConfig: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
     await delay(500);
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
@@ -220,7 +220,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     const serviceNodeMa1 = await serviceNode1.getMultiaddrWithId();
     const serviceNodeMa2 = await serviceNode2.getMultiaddrWithId();
 
-    waku = await createLightNode({ shardInfo: shardInfo2 });
+    waku = await createLightNode({ networkConfig: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNodeMa1, LightPushCodec);
     await delay(500);
     await waku.libp2p.dialProtocol(serviceNodeMa2, LightPushCodec);
@@ -256,7 +256,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
 
     const serviceNodeMa = await serviceNode1.getMultiaddrWithId();
 
-    waku = await createLightNode({ shardInfo });
+    waku = await createLightNode({ networkConfig: shardInfo });
     await waku.start();
     await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
     await waitForRemotePeer(waku, [Protocols.LightPush]);
@@ -307,7 +307,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     const serviceNode1Ma = await serviceNode1.getMultiaddrWithId();
     const serviceNode2Ma = await serviceNode2.getMultiaddrWithId();
 
-    waku = await createLightNode({ shardInfo: shardInfo2 });
+    waku = await createLightNode({ networkConfig: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
 
@@ -360,7 +360,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     const serviceNode1Ma = await serviceNode1.getMultiaddrWithId();
     const serviceNode2Ma = await serviceNode2.getMultiaddrWithId();
 
-    waku = await createLightNode({ shardInfo: shardInfo2 });
+    waku = await createLightNode({ networkConfig: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
     await delay(500);
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
@@ -415,7 +415,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     const serviceNodeMa1 = await serviceNode1.getMultiaddrWithId();
     const serviceNodeMa2 = await serviceNode2.getMultiaddrWithId();
 
-    waku = await createLightNode({ shardInfo: shardInfo2 });
+    waku = await createLightNode({ networkConfig: shardInfo2 });
     await waku.libp2p.dialProtocol(serviceNodeMa1, LightPushCodec);
     await delay(500);
     await waku.libp2p.dialProtocol(serviceNodeMa2, LightPushCodec);
@@ -454,7 +454,7 @@ describe("getPeers", function () {
   let allPeers: Peer[];
 
   beforeEachCustom(this, async () => {
-    waku = await createLightNode({ shardInfo: DefaultTestShardInfo });
+    waku = await createLightNode({ networkConfig: DefaultTestShardInfo });
     peerStore = waku.libp2p.peerStore;
     connectionManager = waku.libp2p.components.connectionManager;
 

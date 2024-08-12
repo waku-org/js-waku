@@ -6,10 +6,11 @@ import {
   type MetadataQueryResult,
   type PeerIdStr,
   ProtocolError,
+  PubsubTopic,
   type ShardInfo
 } from "@waku/interfaces";
 import { proto_metadata } from "@waku/proto";
-import { encodeRelayShard, Logger, shardInfoToPubsubTopics } from "@waku/utils";
+import { encodeRelayShard, Logger, pubsubTopicsToShardInfo } from "@waku/utils";
 import all from "it-all";
 import * as lp from "it-length-prefixed";
 import { pipe } from "it-pipe";
@@ -26,15 +27,10 @@ class Metadata extends BaseProtocol implements IMetadata {
   protected handshakesConfirmed: Map<PeerIdStr, ShardInfo> = new Map();
 
   public constructor(
-    public shardInfo: ShardInfo,
+    public pubsubTopics: PubsubTopic[],
     libp2p: Libp2pComponents
   ) {
-    super(
-      MetadataCodec,
-      libp2p.components,
-      log,
-      shardInfoToPubsubTopics(shardInfo)
-    );
+    super(MetadataCodec, libp2p.components, log, pubsubTopics);
     this.libp2pComponents = libp2p;
     void libp2p.registrar.handle(MetadataCodec, (streamData) => {
       void this.onRequest(streamData);
@@ -45,7 +41,9 @@ class Metadata extends BaseProtocol implements IMetadata {
    * Make a metadata query to a peer
    */
   public async query(peerId: PeerId): Promise<MetadataQueryResult> {
-    const request = proto_metadata.WakuMetadataRequest.encode(this.shardInfo);
+    const request = proto_metadata.WakuMetadataRequest.encode(
+      pubsubTopicsToShardInfo(this.pubsubTopics)
+    );
 
     const peer = await this.peerStore.get(peerId);
     if (!peer) {
@@ -112,7 +110,7 @@ class Metadata extends BaseProtocol implements IMetadata {
     try {
       const { stream, connection } = streamData;
       const encodedShardInfo = proto_metadata.WakuMetadataResponse.encode(
-        this.shardInfo
+        pubsubTopicsToShardInfo(this.pubsubTopics)
       );
 
       const encodedResponse = await pipe(
@@ -177,7 +175,8 @@ class Metadata extends BaseProtocol implements IMetadata {
 }
 
 export function wakuMetadata(
-  shardInfo: ShardInfo
+  pubsubTopics: PubsubTopic[]
 ): (components: Libp2pComponents) => IMetadata {
-  return (components: Libp2pComponents) => new Metadata(shardInfo, components);
+  return (components: Libp2pComponents) =>
+    new Metadata(pubsubTopics, components);
 }

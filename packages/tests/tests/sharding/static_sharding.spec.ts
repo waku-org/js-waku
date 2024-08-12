@@ -59,7 +59,7 @@ describe("Static Sharding: Running Nodes", function () {
       await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
 
       waku = await createLightNode({
-        shardInfo: shardInfo
+        networkConfig: shardInfo
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.LightPush]);
@@ -99,7 +99,7 @@ describe("Static Sharding: Running Nodes", function () {
       await nwaku.ensureSubscriptions(shardInfoToPubsubTopics(shardInfo));
 
       waku = await createLightNode({
-        shardInfo: shardInfo
+        networkConfig: shardInfo
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.LightPush]);
@@ -148,7 +148,7 @@ describe("Static Sharding: Running Nodes", function () {
         });
 
         waku = await createLightNode({
-          shardInfo: shardInfo
+          networkConfig: shardInfo
         });
         await waku.dial(await nwaku.getMultiaddrWithId());
         await waitForRemotePeer(waku, [Protocols.LightPush]);
@@ -214,7 +214,7 @@ describe("Static Sharding: Running Nodes", function () {
 
     it("configure the node with multiple pubsub topics", async function () {
       waku = await createLightNode({
-        shardInfo: shardInfoBothShards
+        networkConfig: shardInfoBothShards
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
       await waitForRemotePeer(waku, [Protocols.LightPush]);
@@ -253,7 +253,7 @@ describe("Static Sharding: Running Nodes", function () {
     it("using a protocol with unconfigured pubsub topic should fail", async function () {
       this.timeout(15_000);
       waku = await createLightNode({
-        shardInfo: shardInfoFirstShard
+        networkConfig: shardInfoFirstShard
       });
 
       // use a pubsub topic that is not configured
@@ -274,10 +274,10 @@ describe("Static Sharding: Running Nodes", function () {
       expect(errors).to.include(ProtocolError.TOPIC_NOT_CONFIGURED);
     });
 
-    it("start node with empty shard", async function () {
+    it("start node with empty shard should fail", async function () {
       try {
         waku = await createLightNode({
-          shardInfo: { clusterId: clusterId, shards: [] }
+          networkConfig: { clusterId: clusterId, shards: [] }
         });
         throw new Error(
           "Starting the node with no shard should've thrown an error"
@@ -286,7 +286,7 @@ describe("Static Sharding: Running Nodes", function () {
         if (
           !(err instanceof Error) ||
           !err.message.includes(
-            "Missing minimum required configuration options for static sharding or autosharding"
+            "Invalid shards configuration: please provide at least one shard"
           )
         ) {
           throw err;

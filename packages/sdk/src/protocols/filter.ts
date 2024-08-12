@@ -13,13 +13,13 @@ import {
   type IProtoMessage,
   type ISubscriptionSDK,
   type Libp2p,
+  NetworkConfig,
   type PeerIdStr,
   type ProtocolCreateOptions,
   ProtocolError,
   type ProtocolUseOptions,
   type PubsubTopic,
   type SDKProtocolResult,
-  type ShardingParams,
   type SubscribeOptions,
   SubscribeResult,
   type Unsubscribe
@@ -437,8 +437,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
           await subscription.processIncomingMessage(wakuMessage, peerIdStr);
         },
-        libp2p,
-        options
+        connectionManager.configuredPubsubTopics,
+        libp2p
       ),
       connectionManager,
       { numPeersToUse: options?.numPeersToUse }
@@ -541,7 +541,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
    * @returns The subscription object.
    */
   private async createSubscription(
-    pubsubTopicShardInfo: ShardingParams | PubsubTopic,
+    pubsubTopicShardInfo: NetworkConfig | PubsubTopic,
     options?: ProtocolUseOptions
   ): Promise<CreateSubscriptionResult> {
     options = {

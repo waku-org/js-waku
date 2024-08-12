@@ -4,7 +4,7 @@ import {
   IDecoder,
   IStoreCore,
   Libp2p,
-  ProtocolCreateOptions,
+  PubsubTopic,
   QueryRequestParams
 } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -28,14 +28,11 @@ const log = new Logger("store");
 export const StoreCodec = "/vac/waku/store-query/3.0.0";
 
 export class StoreCore extends BaseProtocol implements IStoreCore {
-  public constructor(libp2p: Libp2p, options?: ProtocolCreateOptions) {
-    super(
-      StoreCodec,
-      libp2p.components,
-      log,
-      options?.pubsubTopics || [],
-      options
-    );
+  public constructor(
+    public readonly pubsubTopics: PubsubTopic[],
+    libp2p: Libp2p
+  ) {
+    super(StoreCodec, libp2p.components, log, pubsubTopics);
   }
 
   public async *queryPerPage<T extends IDecodedMessage>(

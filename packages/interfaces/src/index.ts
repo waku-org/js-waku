@@ -18,3 +18,4 @@ export * from "./metadata.js";
 export * from "./constants.js";
 export * from "./local_storage.js";
 export * from "./health_manager.js";
+export * from "./sharding.js";

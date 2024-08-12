@@ -1,17 +1,18 @@
 import { waitForRemotePeer } from "@waku/core";
 import {
+  DefaultNetworkConfig,
   LightNode,
+  NetworkConfig,
   ProtocolCreateOptions,
   Protocols,
-  ShardingParams,
   Waku
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { isDefined, shardInfoToPubsubTopics } from "@waku/utils";
+import { derivePubsubTopicsFromNetworkConfig, isDefined } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
-import { DefaultTestPubsubTopic, NOISE_KEY_1 } from "../constants";
+import { NOISE_KEY_1 } from "../constants";
 import { ServiceNodesFleet } from "../lib";
 import { Args } from "../types";
 
@@ -19,22 +20,18 @@ import { waitForConnections } from "./waitForConnections";
 
 export async function runMultipleNodes(
   context: Context,
-  shardInfo?: ShardingParams,
+  networkConfig: NetworkConfig = DefaultNetworkConfig,
   customArgs?: Args,
   strictChecking: boolean = false,
   numServiceNodes = 3,
   withoutFilter = false
 ): Promise<[ServiceNodesFleet, LightNode]> {
-  const pubsubTopics = shardInfo
-    ? shardInfoToPubsubTopics(shardInfo)
-    : [DefaultTestPubsubTopic];
   // create numServiceNodes nodes
   const serviceNodes = await ServiceNodesFleet.createAndRun(
     context,
-    pubsubTopics,
     numServiceNodes,
     strictChecking,
-    shardInfo,
+    networkConfig,
     customArgs,
     withoutFilter
   );
@@ -43,14 +40,9 @@ export async function runMultipleNodes(
     staticNoiseKey: NOISE_KEY_1,
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
-    }
+    },
+    networkConfig
   };
-
-  if (shardInfo) {
-    wakuOptions.shardInfo = shardInfo;
-  } else {
-    wakuOptions.pubsubTopics = pubsubTopics;
-  }
 
   const waku = await createLightNode(wakuOptions);
   await waku.start();
@@ -68,7 +60,9 @@ export async function runMultipleNodes(
         !customArgs?.lightpush ? undefined : Protocols.LightPush
       ].filter(isDefined)
     );
-    await node.ensureSubscriptions(pubsubTopics);
+    await node.ensureSubscriptions(
+      derivePubsubTopicsFromNetworkConfig(networkConfig)
+    );
 
     const wakuConnections = waku.libp2p.getConnections();
     const nodePeers = await node.peers();
