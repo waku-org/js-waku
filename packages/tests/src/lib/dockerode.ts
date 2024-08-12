@@ -194,6 +194,9 @@ export default class Dockerode {
           if (err) {
             reject(err);
           }
+          if (stream === undefined) {
+            throw new Error("Stream is undefined");
+          }
           this.docker.modem.followProgress(stream, (err, result) => {
             if (err) {
               reject(err);
