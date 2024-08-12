@@ -86,7 +86,7 @@
     "@waku/interfaces": "0.0.25",
     "@waku/proto": "0.0.7",
     "@waku/utils": "0.0.18",
-    "@libp2p/interface": "^1.6.1"
+    "@libp2p/interface": "^1.6.3"
   },
   "peerDependenciesMeta": {
     "@waku/interfaces": {

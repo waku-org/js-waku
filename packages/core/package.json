@@ -103,7 +103,7 @@
   },
   "peerDependencies": {
     "@multiformats/multiaddr": "^12.0.0",
-    "libp2p": "^1.1.2",
+    "libp2p": "^1.8.1",
     "@waku/enr": "^0.0.24",
     "@waku/interfaces": "0.0.25",
     "@waku/proto": "0.0.7",
