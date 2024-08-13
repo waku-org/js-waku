@@ -75,7 +75,6 @@ describe("Waku Relay, Subscribe", function () {
 
       throw new Error("Publish was successful but was expected to fail");
     } catch (err) {
-      console.error(err);
       if (
         !(err instanceof Error) ||
         !err.message.includes("PublishError.NoPeersSubscribedToTopic")
