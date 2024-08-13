@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { type Codec, CodeError, decodeMessage, type DecodeOptions, encodeMessage, message } from 'protons-runtime'
+import { type Codec, decodeMessage, type DecodeOptions, encodeMessage, MaxLengthError, message } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface WakuMetadataRequest {
@@ -54,7 +54,7 @@ export namespace WakuMetadataRequest {
             }
             case 2: {
               if (opts.limits?.shards != null && obj.shards.length === opts.limits.shards) {
-                throw new CodeError('decode error - map field "shards" had too many elements', 'ERR_MAX_LENGTH')
+                throw new MaxLengthError('Decode error - map field "shards" had too many elements')
               }
 
               obj.shards.push(reader.uint32())
@@ -130,7 +130,7 @@ export namespace WakuMetadataResponse {
             }
             case 2: {
               if (opts.limits?.shards != null && obj.shards.length === opts.limits.shards) {
-                throw new CodeError('decode error - map field "shards" had too many elements', 'ERR_MAX_LENGTH')
+                throw new MaxLengthError('Decode error - map field "shards" had too many elements')
               }
 
               obj.shards.push(reader.uint32())

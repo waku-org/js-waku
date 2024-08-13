@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { type Codec, CodeError, decodeMessage, type DecodeOptions, encodeMessage, message } from 'protons-runtime'
+import { type Codec, decodeMessage, type DecodeOptions, encodeMessage, MaxLengthError, message } from 'protons-runtime'
 import { alloc as uint8ArrayAlloc } from 'uint8arrays/alloc'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
@@ -197,7 +197,7 @@ export namespace StoreQueryRequest {
             }
             case 11: {
               if (opts.limits?.contentTopics != null && obj.contentTopics.length === opts.limits.contentTopics) {
-                throw new CodeError('decode error - map field "contentTopics" had too many elements', 'ERR_MAX_LENGTH')
+                throw new MaxLengthError('Decode error - map field "contentTopics" had too many elements')
               }
 
               obj.contentTopics.push(reader.string())
@@ -213,7 +213,7 @@ export namespace StoreQueryRequest {
             }
             case 20: {
               if (opts.limits?.messageHashes != null && obj.messageHashes.length === opts.limits.messageHashes) {
-                throw new CodeError('decode error - map field "messageHashes" had too many elements', 'ERR_MAX_LENGTH')
+                throw new MaxLengthError('Decode error - map field "messageHashes" had too many elements')
               }
 
               obj.messageHashes.push(reader.bytes())
@@ -328,7 +328,7 @@ export namespace StoreQueryResponse {
             }
             case 20: {
               if (opts.limits?.messages != null && obj.messages.length === opts.limits.messages) {
-                throw new CodeError('decode error - map field "messages" had too many elements', 'ERR_MAX_LENGTH')
+                throw new MaxLengthError('Decode error - map field "messages" had too many elements')
               }
 
               obj.messages.push(WakuMessageKeyValue.codec().decode(reader, reader.uint32(), {
