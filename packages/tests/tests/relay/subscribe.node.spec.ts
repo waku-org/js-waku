@@ -77,7 +77,7 @@ describe("Waku Relay, Subscribe", function () {
     } catch (err) {
       if (
         !(err instanceof Error) ||
-        !err.message.includes("PublishError.InsufficientPeers")
+        !err.message.includes("PublishError.NoPeersSubscribedToTopic")
       ) {
         throw err;
       }

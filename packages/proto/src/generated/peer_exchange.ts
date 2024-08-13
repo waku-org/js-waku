@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { type Codec, CodeError, decodeMessage, type DecodeOptions, encodeMessage, message } from 'protons-runtime'
+import { type Codec, decodeMessage, type DecodeOptions, encodeMessage, MaxLengthError, message } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
 export interface PeerInfo {
@@ -160,7 +160,7 @@ export namespace PeerExchangeResponse {
           switch (tag >>> 3) {
             case 1: {
               if (opts.limits?.peerInfos != null && obj.peerInfos.length === opts.limits.peerInfos) {
-                throw new CodeError('decode error - map field "peerInfos" had too many elements', 'ERR_MAX_LENGTH')
+                throw new MaxLengthError('Decode error - map field "peerInfos" had too many elements')
               }
 
               obj.peerInfos.push(PeerInfo.codec().decode(reader, reader.uint32(), {
