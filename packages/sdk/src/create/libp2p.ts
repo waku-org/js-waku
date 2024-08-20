@@ -64,13 +64,16 @@ export async function defaultLibp2p(
     ? { metadata: wakuMetadata(pubsubTopics) }
     : {};
 
-  const filter = process?.env?.NODE_ENV === "test" ? filterAll : wss;
+  const filter =
+    options?.filterMultiaddrs === false || process?.env?.NODE_ENV === "test"
+      ? filterAll
+      : wss;
 
   return createLibp2p({
     connectionManager: {
       minConnections: 1
     },
-    transports: [webSockets({ filter })],
+    transports: [webSockets({ filter: filter })],
     streamMuxers: [mplex()],
     connectionEncryption: [noise()],
     ...options,
