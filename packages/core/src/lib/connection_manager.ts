@@ -40,7 +40,9 @@ export class ConnectionManager
   private pendingPeerDialQueue: Array<PeerId> = [];
 
   public isConnected(): boolean {
-    return window.navigator.onLine && this.libp2p.getConnections().length > 0;
+    return (
+      globalThis?.navigator?.onLine && this.libp2p.getConnections().length > 0
+    );
   }
 
   public static create(
@@ -80,6 +82,7 @@ export class ConnectionManager
       "peer:discovery",
       this.onEventHandlers["peer:discovery"]
     );
+    this.stopNetworkStatusListener();
   }
 
   public async dropConnection(peerId: PeerId): Promise<void> {
@@ -560,10 +563,22 @@ export class ConnectionManager
 
   private startNetworkStatusListener(): void {
     try {
-      window.addEventListener("online", this.onEventHandlers["online"]);
-      window.addEventListener("offline", this.onEventHandlers["offline"]);
+      globalThis.addEventListener("online", this.onEventHandlers["online"]);
+      globalThis.addEventListener("offline", this.onEventHandlers["offline"]);
     } catch (err) {
-      log.error(`Failed to add event listener to window: ${err}`);
+      log.error(`Failed to start network listener: ${err}`);
+    }
+  }
+
+  private stopNetworkStatusListener(): void {
+    try {
+      globalThis.removeEventListener("online", this.onEventHandlers["online"]);
+      globalThis.removeEventListener(
+        "offline",
+        this.onEventHandlers["offline"]
+      );
+    } catch (err) {
+      log.error(`Failed to stop network listener: ${err}`);
     }
   }
 
