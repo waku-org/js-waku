@@ -6,6 +6,7 @@ import {
   type ContentTopic,
   type CoreProtocolResult,
   type CreateSubscriptionResult,
+  EConnectionStateEvents,
   type IAsyncIterator,
   type IDecodedMessage,
   type IDecoder,
@@ -65,20 +66,23 @@ export class SubscriptionManager implements ISubscriptionSDK {
   private missedMessagesByPeer: Map<string, number> = new Map();
   private maxPingFailures: number = DEFAULT_MAX_PINGS;
   private maxMissedMessagesThreshold = DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
+  private subscribeOptions: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS;
 
+  private contentTopics: ContentTopic[] = [];
   private subscriptionCallbacks: Map<
     ContentTopic,
     SubscriptionCallback<IDecodedMessage>
-  >;
+  > = new Map();
 
   public constructor(
     private readonly pubsubTopic: PubsubTopic,
-    private protocol: FilterCore,
-    private getPeers: () => Peer[],
+    private readonly protocol: FilterCore,
+    private readonly connectionManager: ConnectionManager,
+    private readonly getPeers: () => Peer[],
     private readonly renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>
   ) {
     this.pubsubTopic = pubsubTopic;
-    this.subscriptionCallbacks = new Map();
+
     const allPeerIdStr = this.getPeers().map((p) => p.id.toString());
     this.receivedMessagesHashes = {
       all: new Set(),
@@ -87,10 +91,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
       }
     };
     allPeerIdStr.forEach((peerId) => this.missedMessagesByPeer.set(peerId, 0));
-  }
-
-  public get messageHashes(): string[] {
-    return [...this.receivedMessagesHashes.all];
   }
 
   private addHash(hash: string, peerIdStr?: string): void {
@@ -155,9 +155,9 @@ export class SubscriptionManager implements ISubscriptionSDK {
       this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
     });
 
-    if (options.keepAlive) {
-      this.startKeepAlivePings(options);
-    }
+    this.contentTopics = contentTopics;
+    this.subscribeOptions = options;
+    this.startMaintenanceSubscriptions(options);
 
     return finalResult;
   }
@@ -183,9 +183,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     const finalResult = this.handleResult(results, "unsubscribe");
 
     if (this.subscriptionCallbacks.size === 0) {
-      if (this.keepAliveTimer) {
-        this.stopKeepAlivePings();
-      }
+      this.stopMaintenanceSubscriptions();
     }
 
     return finalResult;
@@ -211,9 +209,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
     const finalResult = this.handleResult(results, "unsubscribeAll");
 
-    if (this.keepAliveTimer) {
-      this.stopKeepAlivePings();
-    }
+    this.stopMaintenanceSubscriptions();
 
     return finalResult;
   }
@@ -378,8 +374,19 @@ export class SubscriptionManager implements ISubscriptionSDK {
     }
   }
 
-  private startKeepAlivePings(options: SubscribeOptions): void {
-    const { keepAlive } = options;
+  private startMaintenanceSubscriptions(options: SubscribeOptions): void {
+    if (options?.keepAlive) {
+      this.startKeepAlivePings(options.keepAlive);
+    }
+    this.startConnectionListener();
+  }
+
+  private stopMaintenanceSubscriptions(): void {
+    this.stopKeepAlivePings();
+    this.stopConnectionListener();
+  }
+
+  private startKeepAlivePings(interval: number): void {
     if (this.keepAliveTimer) {
       log.info("Recurring pings already set up.");
       return;
@@ -389,7 +396,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
       void this.ping().catch((error) => {
         log.error("Error in keep-alive ping cycle:", error);
       });
-    }, keepAlive) as unknown as number;
+    }, interval) as unknown as number;
   }
 
   private stopKeepAlivePings(): void {
@@ -401,6 +408,54 @@ export class SubscriptionManager implements ISubscriptionSDK {
     log.info("Stopping recurring pings.");
     clearInterval(this.keepAliveTimer);
     this.keepAliveTimer = null;
+  }
+
+  private startConnectionListener(): void {
+    this.connectionManager.addEventListener(
+      EConnectionStateEvents.CONNECTION_STATUS,
+      this.connectionListener as (v: CustomEvent<boolean>) => void
+    );
+  }
+
+  private stopConnectionListener(): void {
+    this.connectionManager.removeEventListener(
+      EConnectionStateEvents.CONNECTION_STATUS,
+      this.connectionListener as (v: CustomEvent<boolean>) => void
+    );
+  }
+
+  private async connectionListener({
+    detail: isConnected
+  }: CustomEvent<boolean>): Promise<void> {
+    if (!isConnected) {
+      this.stopKeepAlivePings();
+      return;
+    }
+
+    try {
+      const result = await this.ping();
+      const renewPeerPromises = result.failures.map(
+        async (v): Promise<void> => {
+          if (v.peerId) {
+            const peer = await this.protocol.peerStore.get(v.peerId);
+            await this.renewPeer(v.peerId);
+            await this.protocol.subscribe(
+              this.pubsubTopic,
+              peer,
+              this.contentTopics
+            );
+          }
+        }
+      );
+
+      await Promise.all(renewPeerPromises);
+    } catch (err) {
+      log.error(`networkStateListener failed to recover: ${err}`);
+    }
+
+    this.startKeepAlivePings(
+      this.subscribeOptions?.keepAlive || DEFAULT_SUBSCRIBE_OPTIONS.keepAlive
+    );
   }
 
   private incrementMissedMessageCount(peerIdStr: string): void {
@@ -416,6 +471,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
 class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
   public readonly protocol: FilterCore;
+  private readonly _connectionManager: ConnectionManager;
 
   private activeSubscriptions = new Map<string, SubscriptionManager>();
 
@@ -445,8 +501,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     );
 
     this.protocol = this.core as FilterCore;
-
-    this.activeSubscriptions = new Map();
+    this._connectionManager = connectionManager;
   }
 
   /**
@@ -576,6 +631,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
         new SubscriptionManager(
           pubsubTopic,
           this.protocol,
+          this._connectionManager,
           () => this.connectedPeers,
           this.renewPeer.bind(this)
         )

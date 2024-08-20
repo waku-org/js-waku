@@ -38,32 +38,9 @@ export class ConnectionManager
 
   private currentActiveParallelDialCount = 0;
   private pendingPeerDialQueue: Array<PeerId> = [];
-  private online: boolean = false;
 
   public isConnected(): boolean {
-    return this.online;
-  }
-
-  private toggleOnline(): void {
-    if (!this.online) {
-      this.online = true;
-      this.dispatchEvent(
-        new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
-          detail: this.online
-        })
-      );
-    }
-  }
-
-  private toggleOffline(): void {
-    if (this.online && this.libp2p.getConnections().length == 0) {
-      this.online = false;
-      this.dispatchEvent(
-        new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
-          detail: this.online
-        })
-      );
-    }
+    return window.navigator.onLine && this.libp2p.getConnections().length > 0;
   }
 
   public static create(
@@ -193,7 +170,7 @@ export class ConnectionManager
       options: keepAliveOptions
     });
 
-    this.run()
+    this.startEventListeners()
       .then(() => log.info(`Connection Manager is now running`))
       .catch((error) =>
         log.error(`Unexpected error while running service`, error)
@@ -225,11 +202,12 @@ export class ConnectionManager
     }
   }
 
-  private async run(): Promise<void> {
-    // start event listeners
+  private async startEventListeners(): Promise<void> {
     this.startPeerDiscoveryListener();
     this.startPeerConnectionListener();
     this.startPeerDisconnectionListener();
+
+    this.startNetworkStatusListener();
   }
 
   private async dialPeer(peerId: PeerId): Promise<void> {
@@ -428,14 +406,21 @@ export class ConnectionManager
             )
           );
         }
-        this.toggleOnline();
+
+        this.dispatchWakuConnectionEvent();
       })();
     },
     "peer:disconnect": (evt: CustomEvent<PeerId>): void => {
       void (async () => {
         this.keepAliveManager.stop(evt.detail);
-        this.toggleOffline();
+        this.dispatchWakuConnectionEvent();
       })();
+    },
+    online: (): void => {
+      this.dispatchWakuConnectionEvent();
+    },
+    offline: (): void => {
+      this.dispatchWakuConnectionEvent();
     }
   };
 
@@ -571,5 +556,22 @@ export class ConnectionManager
     const shardInfoBytes = peer.metadata.get("shardInfo");
     if (!shardInfoBytes) return undefined;
     return decodeRelayShard(shardInfoBytes);
+  }
+
+  private startNetworkStatusListener(): void {
+    try {
+      window.addEventListener("online", this.onEventHandlers["online"]);
+      window.addEventListener("offline", this.onEventHandlers["offline"]);
+    } catch (err) {
+      log.error(`Failed to add event listener to window: ${err}`);
+    }
+  }
+
+  private dispatchWakuConnectionEvent(): void {
+    this.dispatchEvent(
+      new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
+        detail: this.isConnected()
+      })
+    );
   }
 }
