@@ -151,8 +151,8 @@ describe("Events", function () {
     });
   });
 
-  describe("peer:disconnect", () => {
-    it("should emit `waku:offline` event when all peers disconnect", async function () {
+  describe.only(EConnectionStateEvents.CONNECTION_STATUS, () => {
+    it(`should emit events and trasition isConnected state when has peers or no peers`, async function () {
       const peerIdPx = await createSecp256k1PeerId();
       const peerIdPx2 = await createSecp256k1PeerId();
 
@@ -174,17 +174,8 @@ describe("Events", function () {
         }
       });
 
-      waku.libp2p.dispatchEvent(
-        new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx })
-      );
-      waku.libp2p.dispatchEvent(
-        new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx2 })
-      );
-
-      await delay(100);
-
       let eventCount = 0;
-      const connectionStatus = new Promise<boolean>((resolve) => {
+      const connectedStatus = new Promise<boolean>((resolve) => {
         waku.connectionManager.addEventListener(
           EConnectionStateEvents.CONNECTION_STATUS,
           ({ detail: status }) => {
@@ -194,40 +185,6 @@ describe("Events", function () {
         );
       });
 
-      expect(waku.isConnected()).to.be.true;
-
-      waku.libp2p.dispatchEvent(
-        new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx })
-      );
-      waku.libp2p.dispatchEvent(
-        new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx2 })
-      );
-
-      expect(await connectionStatus).to.eq(false);
-      expect(eventCount).to.be.eq(1);
-    });
-    it("isConnected should return false after all peers disconnect", async function () {
-      const peerIdPx = await createSecp256k1PeerId();
-      const peerIdPx2 = await createSecp256k1PeerId();
-
-      await waku.libp2p.peerStore.save(peerIdPx, {
-        tags: {
-          [Tags.PEER_EXCHANGE]: {
-            value: 50,
-            ttl: 1200000
-          }
-        }
-      });
-
-      await waku.libp2p.peerStore.save(peerIdPx2, {
-        tags: {
-          [Tags.PEER_EXCHANGE]: {
-            value: 50,
-            ttl: 1200000
-          }
-        }
-      });
-
       waku.libp2p.dispatchEvent(
         new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx })
       );
@@ -238,6 +195,17 @@ describe("Events", function () {
       await delay(100);
 
       expect(waku.isConnected()).to.be.true;
+      expect(await connectedStatus).to.eq(true);
+      expect(eventCount).to.be.eq(1);
+
+      const disconnectedStatus = new Promise<boolean>((resolve) => {
+        waku.connectionManager.addEventListener(
+          EConnectionStateEvents.CONNECTION_STATUS,
+          ({ detail: status }) => {
+            resolve(status);
+          }
+        );
+      });
 
       waku.libp2p.dispatchEvent(
         new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx })
@@ -247,6 +215,8 @@ describe("Events", function () {
       );
 
       expect(waku.isConnected()).to.be.false;
+      expect(await disconnectedStatus).to.eq(false);
+      expect(eventCount).to.be.eq(2);
     });
   });
 });

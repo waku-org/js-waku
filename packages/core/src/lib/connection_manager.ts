@@ -39,10 +39,14 @@ export class ConnectionManager
   private currentActiveParallelDialCount = 0;
   private pendingPeerDialQueue: Array<PeerId> = [];
 
+  private isP2PNetworkConnected: boolean = false;
+
   public isConnected(): boolean {
-    return (
-      globalThis?.navigator?.onLine && this.libp2p.getConnections().length > 0
-    );
+    if (globalThis?.navigator && !globalThis?.navigator?.onLine) {
+      return false;
+    }
+
+    return this.isP2PNetworkConnected;
   }
 
   public static create(
@@ -410,19 +414,16 @@ export class ConnectionManager
           );
         }
 
-        this.dispatchWakuConnectionEvent();
+        this.setP2PNetworkConnected();
       })();
     },
     "peer:disconnect": (evt: CustomEvent<PeerId>): void => {
       void (async () => {
         this.keepAliveManager.stop(evt.detail);
-        this.dispatchWakuConnectionEvent();
+        this.setP2PNetworkDisconnected();
       })();
     },
-    online: (): void => {
-      this.dispatchWakuConnectionEvent();
-    },
-    offline: (): void => {
+    "browser:network": (): void => {
       this.dispatchWakuConnectionEvent();
     }
   };
@@ -563,8 +564,14 @@ export class ConnectionManager
 
   private startNetworkStatusListener(): void {
     try {
-      globalThis.addEventListener("online", this.onEventHandlers["online"]);
-      globalThis.addEventListener("offline", this.onEventHandlers["offline"]);
+      globalThis.addEventListener(
+        "online",
+        this.onEventHandlers["browser:network"]
+      );
+      globalThis.addEventListener(
+        "offline",
+        this.onEventHandlers["browser:network"]
+      );
     } catch (err) {
       log.error(`Failed to start network listener: ${err}`);
     }
@@ -572,13 +579,33 @@ export class ConnectionManager
 
   private stopNetworkStatusListener(): void {
     try {
-      globalThis.removeEventListener("online", this.onEventHandlers["online"]);
+      globalThis.removeEventListener(
+        "online",
+        this.onEventHandlers["browser:network"]
+      );
       globalThis.removeEventListener(
         "offline",
-        this.onEventHandlers["offline"]
+        this.onEventHandlers["browser:network"]
       );
     } catch (err) {
       log.error(`Failed to stop network listener: ${err}`);
+    }
+  }
+
+  private setP2PNetworkConnected(): void {
+    if (!this.isP2PNetworkConnected) {
+      this.isP2PNetworkConnected = true;
+      this.dispatchWakuConnectionEvent();
+    }
+  }
+
+  private setP2PNetworkDisconnected(): void {
+    if (
+      this.isP2PNetworkConnected &&
+      this.libp2p.getConnections().length === 0
+    ) {
+      this.isP2PNetworkConnected = false;
+      this.dispatchWakuConnectionEvent();
     }
   }
 

@@ -413,14 +413,14 @@ export class SubscriptionManager implements ISubscriptionSDK {
   private startConnectionListener(): void {
     this.connectionManager.addEventListener(
       EConnectionStateEvents.CONNECTION_STATUS,
-      this.connectionListener as (v: CustomEvent<boolean>) => void
+      this.connectionListener.bind(this) as (v: CustomEvent<boolean>) => void
     );
   }
 
   private stopConnectionListener(): void {
     this.connectionManager.removeEventListener(
       EConnectionStateEvents.CONNECTION_STATUS,
-      this.connectionListener as (v: CustomEvent<boolean>) => void
+      this.connectionListener.bind(this) as (v: CustomEvent<boolean>) => void
     );
   }
 
