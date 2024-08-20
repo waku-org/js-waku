@@ -151,7 +151,7 @@ describe("Events", function () {
     });
   });
 
-  describe.only(EConnectionStateEvents.CONNECTION_STATUS, () => {
+  describe(EConnectionStateEvents.CONNECTION_STATUS, () => {
     it(`should emit events and trasition isConnected state when has peers or no peers`, async function () {
       const peerIdPx = await createSecp256k1PeerId();
       const peerIdPx2 = await createSecp256k1PeerId();
