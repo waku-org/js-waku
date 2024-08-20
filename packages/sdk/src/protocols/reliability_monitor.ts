@@ -8,7 +8,7 @@ const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
 
 const log = new Logger("waku:message-monitor");
 
-export class ReliabilityMonitor {
+export class FilterReliabilityMonitor {
   private readonly receivedMessagesHashes: Set<string> = new Set();
   private readonly messageHashesByPeer: Map<PeerIdStr, Set<string>> = new Map();
   private readonly missedMessagesByPeer: Map<PeerIdStr, number> = new Map();

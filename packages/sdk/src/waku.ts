@@ -17,9 +17,9 @@ import { Protocols } from "@waku/interfaces";
 import { wakuRelay } from "@waku/relay";
 import { Logger } from "@waku/utils";
 
-import { wakuFilter } from "./protocols/filter.js";
-import { wakuLightPush } from "./protocols/light_push.js";
-import { wakuStore } from "./protocols/store.js";
+import { wakuFilter } from "./protocols/filter/index.js";
+import { wakuLightPush } from "./protocols/lightpush/index.js";
+import { wakuStore } from "./protocols/store/index.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
