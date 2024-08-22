@@ -19,7 +19,7 @@
     "packages/react-native-polyfills"
   ],
   "scripts": {
-    "prepare": "husky install",
+    "prepare": "husky",
     "build": "npm run build --workspaces --if-present",
     "build:esm": "npm run build:esm --workspaces --if-present",
     "size": "npm run build && size-limit",
