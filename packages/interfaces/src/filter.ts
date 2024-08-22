@@ -18,6 +18,11 @@ export type SubscribeOptions = {
   maxMissedMessagesThreshold?: number;
 };
 
+export type SubscriptionCallback<T extends IDecodedMessage> = {
+  decoders: IDecoder<T>[];
+  callback: Callback<T>;
+};
+
 export type IFilter = IReceiver & IBaseProtocolCore;
 
 export interface ISubscriptionSDK {
