@@ -30,4 +30,9 @@ export type CreateLibp2pOptions = Libp2pOptions & {
    */
   hideWebSocketInfo?: boolean;
   pingMaxInboundStreams?: number;
+  /**
+   * Applies secure web socket filters.
+   * @default true
+   */
+  filterMultiaddrs?: boolean;
 };
