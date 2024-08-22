@@ -80,61 +80,56 @@ export class ReliabilityMonitor {
     allPeerIdStr.forEach((peerId) => this.missedMessagesByPeer.set(peerId, 0));
   }
 
-  public async validateMessageForReliability(
+  public async processMessage(
     pubsubTopic: PubsubTopic,
     message: WakuMessage,
     peerIdStr: PeerIdStr
-  ): Promise<{ alreadyReceived: boolean }> {
+  ): Promise<boolean> {
     const hashedMessageStr = messageHashStr(
       pubsubTopic,
       message as IProtoMessage
     );
-    this.addHash(hashedMessageStr, peerIdStr);
 
-    if (this.receivedMessagesHashStr.includes(hashedMessageStr)) {
+    if (this.isMessageAlreadyReceived(hashedMessageStr)) {
       log.info("Message already received, skipping");
-      return { alreadyReceived: true };
+      return true;
     }
 
-    this.receivedMessagesHashStr.push(hashedMessageStr);
+    this.addMessageHash(hashedMessageStr, peerIdStr);
+    await this.checkMissedMessages();
 
+    return false;
+  }
+
+  private isMessageAlreadyReceived(hashedMessageStr: string): boolean {
+    return this.receivedMessagesHashStr.includes(hashedMessageStr);
+  }
+
+  private addMessageHash(hash: string, peerIdStr?: string): void {
+    this.receivedMessagesHashStr.push(hash);
+    this.receivedMessagesHashes.all.add(hash);
+
+    if (peerIdStr) {
+      this.receivedMessagesHashes.nodes[peerIdStr].add(hash);
+    }
+  }
+
+  private async checkMissedMessages(): Promise<void> {
     for (const hash of this.receivedMessagesHashes.all) {
       for (const [peerIdStr, hashes] of Object.entries(
         this.receivedMessagesHashes.nodes
       )) {
         if (!hashes.has(hash)) {
-          this.incrementMissedMessageCount(peerIdStr);
-          if (this.shouldRenewPeer(peerIdStr)) {
-            log.info(
-              `Peer ${peerIdStr} has missed too many messages, renewing.`
-            );
-            const peerId = this.getPeers().find(
-              (p) => p.id.toString() === peerIdStr
-            )?.id;
-            if (!peerId) {
-              log.error(
-                `Unexpected Error: Peer ${peerIdStr} not found in connected peers.`
-              );
-              continue;
-            }
-            try {
-              await this.renewAndSubscribePeer(peerId);
-            } catch (error) {
-              log.error(`Failed to renew peer ${peerIdStr}: ${error}`);
-            }
-          }
+          await this.handleMissedMessage(peerIdStr);
         }
       }
     }
-
-    return { alreadyReceived: false };
   }
 
-  private addHash(hash: string, peerIdStr?: string): void {
-    this.receivedMessagesHashes.all.add(hash);
-
-    if (peerIdStr) {
-      this.receivedMessagesHashes.nodes[peerIdStr].add(hash);
+  private async handleMissedMessage(peerIdStr: string): Promise<void> {
+    this.incrementMissedMessageCount(peerIdStr);
+    if (this.shouldRenewPeer(peerIdStr)) {
+      await this.renewPeer(peerIdStr);
     }
   }
 
@@ -146,6 +141,24 @@ export class ReliabilityMonitor {
   private shouldRenewPeer(peerIdStr: string): boolean {
     const missedMessages = this.missedMessagesByPeer.get(peerIdStr) || 0;
     return missedMessages > this.maxMissedMessagesThreshold;
+  }
+
+  private async renewPeer(peerIdStr: string): Promise<void> {
+    log.info(`Peer ${peerIdStr} has missed too many messages, renewing.`);
+    const peerId = this.getPeers().find(
+      (p) => p.id.toString() === peerIdStr
+    )?.id;
+    if (!peerId) {
+      log.error(
+        `Unexpected Error: Peer ${peerIdStr} not found in connected peers.`
+      );
+      return;
+    }
+    try {
+      await this.renewAndSubscribePeer(peerId);
+    } catch (error) {
+      log.error(`Failed to renew peer ${peerIdStr}: ${error}`);
+    }
   }
 
   public resetPeerStats(peerIdStr: string): void {
@@ -304,12 +317,11 @@ export class SubscriptionManager implements ISubscriptionSDK {
     message: WakuMessage,
     peerIdStr: PeerIdStr
   ): Promise<void> {
-    const { alreadyReceived } =
-      await this.reliabilityMonitor.validateMessageForReliability(
-        this.pubsubTopic,
-        message,
-        peerIdStr
-      );
+    const alreadyReceived = await this.reliabilityMonitor.processMessage(
+      this.pubsubTopic,
+      message,
+      peerIdStr
+    );
 
     if (alreadyReceived) {
       return;
