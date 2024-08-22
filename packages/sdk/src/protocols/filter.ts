@@ -565,8 +565,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     }
 
     log.info(
-      `Creating filter subscription with ${this.connectedPeers.length} peers: `,
-      this.connectedPeers.map((peer) => peer.id.toString())
+      `Creating filter subscription with ${this.usablePeers.length} peers: `,
+      this.usablePeers.map((peer) => peer.id.toString())
     );
 
     const subscription =
@@ -576,7 +576,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
         new SubscriptionManager(
           pubsubTopic,
           this.protocol,
-          () => this.connectedPeers,
+          () => this.usablePeers,
           this.renewPeer.bind(this)
         )
       );

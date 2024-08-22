@@ -51,6 +51,10 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     return this.peers;
   }
 
+  public get usablePeers(): Peer[] {
+    return this.peers.slice(0, this.numPeersToUse);
+  }
+
   /**
    * Disconnects from a peer and tries to find a new one to replace it.
    * @param peerToDisconnect The peer to disconnect from.

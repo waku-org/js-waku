@@ -76,7 +76,7 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
       };
     }
 
-    const sendPromises = this.connectedPeers.map((peer) =>
+    const sendPromises = this.usablePeers.map((peer) =>
       this.protocol.send(encoder, message, peer)
     );
 
