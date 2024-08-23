@@ -48,7 +48,7 @@
     "test:browser": "NODE_ENV=test karma start karma.conf.cjs"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "dependencies": {
     "@waku/interfaces": "0.0.25",
