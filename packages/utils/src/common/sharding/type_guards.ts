@@ -15,5 +15,5 @@ export function isStaticSharding(
 export function isAutoSharding(
   config: NonNullable<ProtocolCreateOptions["networkConfig"]>
 ): config is ContentTopicInfo {
-  return "contentTopics" in config && "clusterId" in config;
+  return "contentTopics" in config;
 }
