@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  NODE_JS: "18"
+  NODE_JS: "20"
   EXAMPLE_TEMPLATE: "web-chat"
   EXAMPLE_NAME: "example"
   EXAMPLE_PORT: "8080"
