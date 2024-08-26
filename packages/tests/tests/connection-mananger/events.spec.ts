@@ -15,7 +15,7 @@ import { tearDownNodes } from "../../src/index.js";
 
 const TEST_TIMEOUT = 20_000;
 
-describe("Events", function () {
+describe.only("Events", function () {
   let waku: LightNode;
   this.timeout(TEST_TIMEOUT);
   beforeEachCustom(this, async () => {
@@ -151,7 +151,7 @@ describe("Events", function () {
     });
   });
 
-  describe(EConnectionStateEvents.CONNECTION_STATUS, () => {
+  describe.only(EConnectionStateEvents.CONNECTION_STATUS, () => {
     it(`should emit events and trasition isConnected state when has peers or no peers`, async function () {
       const peerIdPx = await createSecp256k1PeerId();
       const peerIdPx2 = await createSecp256k1PeerId();
@@ -219,8 +219,7 @@ describe("Events", function () {
       expect(eventCount).to.be.eq(2);
     });
 
-    it("should be online or offline if network state changed", async function () {
-      console.log(waku);
+    it.only("should be online or offline if network state changed", async function () {
       const peerIdPx = await createSecp256k1PeerId();
 
       await waku.libp2p.peerStore.save(peerIdPx, {
@@ -262,6 +261,8 @@ describe("Events", function () {
         );
       });
 
+      // @ts-expect-error: overriding readonly property
+      globalThis.navigator = {};
       // @ts-expect-error: overriding readonly property
       globalThis.navigator.onLine = false;
       globalThis.dispatchEvent(new CustomEvent("offline"));
