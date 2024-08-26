@@ -68,7 +68,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
   private maxMissedMessagesThreshold = DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
   private subscribeOptions: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS;
 
-  private contentTopics: ContentTopic[] = [];
   private subscriptionCallbacks: Map<
     ContentTopic,
     SubscriptionCallback<IDecodedMessage>
@@ -155,7 +154,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
       this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
     });
 
-    this.contentTopics = contentTopics;
     this.subscribeOptions = options;
     this.startSubscriptionsMaintenance(options);
 
