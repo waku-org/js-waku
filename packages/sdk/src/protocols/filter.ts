@@ -157,7 +157,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
     this.contentTopics = contentTopics;
     this.subscribeOptions = options;
-    this.startMaintenanceSubscriptions(options);
+    this.startSubscriptionsMaintenance(options);
 
     return finalResult;
   }
@@ -183,7 +183,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     const finalResult = this.handleResult(results, "unsubscribe");
 
     if (this.subscriptionCallbacks.size === 0) {
-      this.stopMaintenanceSubscriptions();
+      this.stopSubscriptionsMaintenance();
     }
 
     return finalResult;
@@ -209,7 +209,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
     const finalResult = this.handleResult(results, "unsubscribeAll");
 
-    this.stopMaintenanceSubscriptions();
+    this.stopSubscriptionsMaintenance();
 
     return finalResult;
   }
@@ -374,14 +374,14 @@ export class SubscriptionManager implements ISubscriptionSDK {
     }
   }
 
-  private startMaintenanceSubscriptions(options: SubscribeOptions): void {
+  private startSubscriptionsMaintenance(options: SubscribeOptions): void {
     if (options?.keepAlive) {
       this.startKeepAlivePings(options.keepAlive);
     }
     this.startConnectionListener();
   }
 
-  private stopMaintenanceSubscriptions(): void {
+  private stopSubscriptionsMaintenance(): void {
     this.stopKeepAlivePings();
     this.stopConnectionListener();
   }
@@ -437,13 +437,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
       const renewPeerPromises = result.failures.map(
         async (v): Promise<void> => {
           if (v.peerId) {
-            const peer = await this.protocol.peerStore.get(v.peerId);
-            await this.renewPeer(v.peerId);
-            await this.protocol.subscribe(
-              this.pubsubTopic,
-              peer,
-              this.contentTopics
-            );
+            await this.renewAndSubscribePeer(v.peerId);
           }
         }
       );
