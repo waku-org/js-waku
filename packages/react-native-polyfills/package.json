@@ -34,7 +34,7 @@
     "prepublish": "npm run build"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "dependencies": {
     "event-target-polyfill": "^0.0.4",
