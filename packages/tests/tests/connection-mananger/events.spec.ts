@@ -218,5 +218,78 @@ describe("Events", function () {
       expect(await disconnectedStatus).to.eq(false);
       expect(eventCount).to.be.eq(2);
     });
+
+    it("should be online or offline if network state changed", async function () {
+      console.log(waku);
+      const peerIdPx = await createSecp256k1PeerId();
+
+      await waku.libp2p.peerStore.save(peerIdPx, {
+        tags: {
+          [Tags.PEER_EXCHANGE]: {
+            value: 50,
+            ttl: 1200000
+          }
+        }
+      });
+
+      let eventCount = 0;
+      const connectedStatus = new Promise<boolean>((resolve) => {
+        waku.connectionManager.addEventListener(
+          EConnectionStateEvents.CONNECTION_STATUS,
+          ({ detail: status }) => {
+            eventCount++;
+            resolve(status);
+          }
+        );
+      });
+
+      waku.libp2p.dispatchEvent(
+        new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx })
+      );
+
+      await delay(100);
+
+      expect(waku.isConnected()).to.be.true;
+      expect(await connectedStatus).to.eq(true);
+      expect(eventCount).to.be.eq(1);
+
+      const disconnectedStatus = new Promise<boolean>((resolve) => {
+        waku.connectionManager.addEventListener(
+          EConnectionStateEvents.CONNECTION_STATUS,
+          ({ detail: status }) => {
+            resolve(status);
+          }
+        );
+      });
+
+      // @ts-expect-error: overriding readonly property
+      globalThis.navigator.onLine = false;
+      globalThis.dispatchEvent(new CustomEvent("offline"));
+
+      await delay(100);
+
+      expect(waku.isConnected()).to.be.false;
+      expect(await disconnectedStatus).to.eq(false);
+      expect(eventCount).to.be.eq(2);
+
+      const connectionRecoveredStatus = new Promise<boolean>((resolve) => {
+        waku.connectionManager.addEventListener(
+          EConnectionStateEvents.CONNECTION_STATUS,
+          ({ detail: status }) => {
+            resolve(status);
+          }
+        );
+      });
+
+      // @ts-expect-error: overriding readonly property
+      globalThis.navigator.onLine = true;
+      globalThis.dispatchEvent(new CustomEvent("online"));
+
+      await delay(100);
+
+      expect(waku.isConnected()).to.be.false;
+      expect(await connectionRecoveredStatus).to.eq(true);
+      expect(eventCount).to.be.eq(3);
+    });
   });
 });
