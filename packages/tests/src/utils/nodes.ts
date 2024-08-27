@@ -23,7 +23,7 @@ export async function runMultipleNodes(
   networkConfig: NetworkConfig = DefaultNetworkConfig,
   customArgs?: Args,
   strictChecking: boolean = false,
-  numServiceNodes = 3,
+  numServiceNodes = 2,
   withoutFilter = false
 ): Promise<[ServiceNodesFleet, LightNode]> {
   // create numServiceNodes nodes
