@@ -47,7 +47,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     this.subscriptionCallbacks = new Map();
 
     this.reliabilityMonitor = new ReliabilityMonitor(
-      getPeers,
+      getPeers.bind(this),
       this.renewAndSubscribePeer.bind(this)
     );
   }
