@@ -151,13 +151,11 @@ describe("Events", function () {
     });
   });
 
-  describe(EConnectionStateEvents.CONNECTION_STATUS, function () {
-    let navigatorMock;
+  describe.only(EConnectionStateEvents.CONNECTION_STATUS, function () {
+    let navigatorMock: any;
 
     this.beforeEach(() => {
       navigatorMock = { onLine: true };
-
-      // @ts-expect-error: mocking readonly
       globalThis.navigator = navigatorMock;
 
       const eventEmmitter = new TypedEventEmitter();
