@@ -15,7 +15,7 @@ import { tearDownNodes } from "../../src/index.js";
 
 const TEST_TIMEOUT = 20_000;
 
-describe.only("Events", function () {
+describe("Events", function () {
   let waku: LightNode;
   this.timeout(TEST_TIMEOUT);
   beforeEachCustom(this, async () => {
@@ -247,7 +247,7 @@ describe.only("Events", function () {
       expect(eventCount).to.be.eq(2);
     });
 
-    it.only("should be online or offline if network state changed", async function () {
+    it("should be online or offline if network state changed", async function () {
       // have to recreate js-waku for it to pick up new globalThis
       waku = await createLightNode();
 
@@ -302,8 +302,7 @@ describe.only("Events", function () {
         );
       });
 
-      // @ts-expect-error: overriding readonly property
-      globalThis.navigator.onLine = false;
+      navigatorMock.onLine = false;
       globalThis.dispatchEvent(new CustomEvent("offline"));
 
       await delay(100);
@@ -325,8 +324,7 @@ describe.only("Events", function () {
         );
       });
 
-      // @ts-expect-error: overriding readonly property
-      globalThis.navigator.onLine = true;
+      navigatorMock.onLine = true;
       globalThis.dispatchEvent(new CustomEvent("online"));
 
       await delay(100);
