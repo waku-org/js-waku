@@ -151,7 +151,7 @@ describe("Events", function () {
     });
   });
 
-  describe.only(EConnectionStateEvents.CONNECTION_STATUS, function () {
+  describe(EConnectionStateEvents.CONNECTION_STATUS, function () {
     let navigatorMock: any;
 
     this.beforeEach(() => {
