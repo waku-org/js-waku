@@ -51,7 +51,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Subscribe and receive messages via lightPush", async function () {
-      expect(waku.libp2p.getConnections()).has.length(3);
+      expect(waku.libp2p.getConnections()).has.length(2);
 
       await waku.filter.subscribe(
         [TestDecoder],
