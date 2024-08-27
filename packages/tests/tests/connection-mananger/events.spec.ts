@@ -1,5 +1,5 @@
 import type { PeerId, PeerInfo } from "@libp2p/interface";
-import { CustomEvent } from "@libp2p/interface";
+import { CustomEvent, TypedEventEmitter } from "@libp2p/interface";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import {
   EConnectionStateEvents,
@@ -220,6 +220,25 @@ describe("Events", function () {
     });
 
     it("should be online or offline if network state changed", async function () {
+      // @ts-expect-error: mocking blobal object
+      globalThis.navigator = {};
+      // @ts-expect-error: mocking global object
+      globalThis.navigator.onLine = true;
+
+      const eventEmmitter = new TypedEventEmitter();
+      const tmp = eventEmmitter.addEventListener.bind(eventEmmitter);
+      globalThis.addEventListener = (t1: string, t2: any) => {
+        console.log(t1, t2);
+        return tmp(t1, t2);
+      };
+      globalThis.removeEventListener =
+        eventEmmitter.removeEventListener.bind(eventEmmitter);
+      globalThis.dispatchEvent =
+        eventEmmitter.dispatchEvent.bind(eventEmmitter);
+
+      // have to recreate js-waku for it to pick up new globalThis
+      waku = await createLightNode();
+
       const peerIdPx = await createSecp256k1PeerId();
 
       await waku.libp2p.peerStore.save(peerIdPx, {
@@ -261,8 +280,6 @@ describe("Events", function () {
         );
       });
 
-      // @ts-expect-error: overriding readonly property
-      globalThis.navigator = {};
       // @ts-expect-error: overriding readonly property
       globalThis.navigator.onLine = false;
       globalThis.dispatchEvent(new CustomEvent("offline"));
