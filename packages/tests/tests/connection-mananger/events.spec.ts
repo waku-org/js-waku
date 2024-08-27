@@ -15,7 +15,7 @@ import { tearDownNodes } from "../../src/index.js";
 
 const TEST_TIMEOUT = 20_000;
 
-describe("Events", function () {
+describe.only("Events", function () {
   let waku: LightNode;
   this.timeout(TEST_TIMEOUT);
   beforeEachCustom(this, async () => {
@@ -151,7 +151,35 @@ describe("Events", function () {
     });
   });
 
-  describe(EConnectionStateEvents.CONNECTION_STATUS, () => {
+  describe(EConnectionStateEvents.CONNECTION_STATUS, function () {
+    let navigatorMock;
+
+    this.beforeEach(() => {
+      navigatorMock = { onLine: true };
+
+      // @ts-expect-error: mocking readonly
+      globalThis.navigator = navigatorMock;
+
+      const eventEmmitter = new TypedEventEmitter();
+      globalThis.addEventListener =
+        eventEmmitter.addEventListener.bind(eventEmmitter);
+      globalThis.removeEventListener =
+        eventEmmitter.removeEventListener.bind(eventEmmitter);
+      globalThis.dispatchEvent =
+        eventEmmitter.dispatchEvent.bind(eventEmmitter);
+    });
+
+    this.afterEach(() => {
+      // @ts-expect-error: resetting set value
+      globalThis.navigator = undefined;
+      // @ts-expect-error: resetting set value
+      globalThis.addEventListener = undefined;
+      // @ts-expect-error: resetting set value
+      globalThis.removeEventListener = undefined;
+      // @ts-expect-error: resetting set value
+      globalThis.dispatchEvent = undefined;
+    });
+
     it(`should emit events and trasition isConnected state when has peers or no peers`, async function () {
       const peerIdPx = await createSecp256k1PeerId();
       const peerIdPx2 = await createSecp256k1PeerId();
@@ -219,20 +247,7 @@ describe("Events", function () {
       expect(eventCount).to.be.eq(2);
     });
 
-    it("should be online or offline if network state changed", async function () {
-      // @ts-expect-error: mocking blobal object
-      globalThis.navigator = {};
-      // @ts-expect-error: mocking global object
-      globalThis.navigator.onLine = true;
-
-      const eventEmmitter = new TypedEventEmitter();
-      globalThis.addEventListener =
-        eventEmmitter.addEventListener.bind(eventEmmitter);
-      globalThis.removeEventListener =
-        eventEmmitter.removeEventListener.bind(eventEmmitter);
-      globalThis.dispatchEvent =
-        eventEmmitter.dispatchEvent.bind(eventEmmitter);
-
+    it.only("should be online or offline if network state changed", async function () {
       // have to recreate js-waku for it to pick up new globalThis
       waku = await createLightNode();
 
@@ -252,6 +267,12 @@ describe("Events", function () {
         waku.connectionManager.addEventListener(
           EConnectionStateEvents.CONNECTION_STATUS,
           ({ detail: status }) => {
+            console.log(
+              "evnet#1",
+              status,
+              waku.libp2p.getConnections().length,
+              globalThis.navigator.onLine
+            );
             eventCount++;
             resolve(status);
           }
@@ -264,14 +285,18 @@ describe("Events", function () {
 
       await delay(100);
 
+      console.log("#1");
       expect(waku.isConnected()).to.be.true;
+      console.log("#2");
       expect(await connectedStatus).to.eq(true);
+      console.log("#3");
       expect(eventCount).to.be.eq(1);
 
       const disconnectedStatus = new Promise<boolean>((resolve) => {
         waku.connectionManager.addEventListener(
           EConnectionStateEvents.CONNECTION_STATUS,
           ({ detail: status }) => {
+            console.log("evnet#2", status);
             resolve(status);
           }
         );
@@ -283,14 +308,18 @@ describe("Events", function () {
 
       await delay(100);
 
+      console.log("#4");
       expect(waku.isConnected()).to.be.false;
+      console.log("#5");
       expect(await disconnectedStatus).to.eq(false);
+      console.log("#6");
       expect(eventCount).to.be.eq(2);
 
       const connectionRecoveredStatus = new Promise<boolean>((resolve) => {
         waku.connectionManager.addEventListener(
           EConnectionStateEvents.CONNECTION_STATUS,
           ({ detail: status }) => {
+            console.log("evnet#3", status);
             resolve(status);
           }
         );
@@ -302,8 +331,11 @@ describe("Events", function () {
 
       await delay(100);
 
+      console.log("#7");
       expect(waku.isConnected()).to.be.false;
+      console.log("#8");
       expect(await connectionRecoveredStatus).to.eq(true);
+      console.log("#9");
       expect(eventCount).to.be.eq(3);
     });
   });
