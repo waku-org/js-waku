@@ -24,7 +24,7 @@ import {
 
 const runTests = (strictNodeCheck: boolean): void => {
   const numServiceNodes = 2;
-  describe.only(`Waku Light Push: Multiple Nodes: Strict Check: ${strictNodeCheck}`, function () {
+  describe(`Waku Light Push: Multiple Nodes: Strict Check: ${strictNodeCheck}`, function () {
     // Set the timeout for all tests in this suite. Can be overwritten at test level
     this.timeout(15000);
     let waku: LightNode;
