@@ -15,7 +15,7 @@ import { tearDownNodes } from "../../src/index.js";
 
 const TEST_TIMEOUT = 20_000;
 
-describe("Events", function () {
+describe.only("Events", function () {
   let waku: LightNode;
   this.timeout(TEST_TIMEOUT);
   beforeEachCustom(this, async () => {
@@ -226,11 +226,8 @@ describe("Events", function () {
       globalThis.navigator.onLine = true;
 
       const eventEmmitter = new TypedEventEmitter();
-      const tmp = eventEmmitter.addEventListener.bind(eventEmmitter);
-      globalThis.addEventListener = (t1: string, t2: any) => {
-        console.log(t1, t2);
-        return tmp(t1, t2);
-      };
+      globalThis.addEventListener =
+        eventEmmitter.addEventListener.bind(eventEmmitter);
       globalThis.removeEventListener =
         eventEmmitter.removeEventListener.bind(eventEmmitter);
       globalThis.dispatchEvent =
