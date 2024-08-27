@@ -179,7 +179,7 @@ export enum ProtocolError {
    * The remote peer did not behave as expected. Mitigation for `NO_PEER_AVAILABLE`
    * or `DECODE_FAILED` can be used.
    */
-  REMOTE_PEER_FAULT = "Remote peer fault",
+  NO_RESPONSE = "No response received",
   /**
    * The remote peer rejected the message. Information provided by the remote peer
    * is logged. Review message validity, or mitigation for `NO_PEER_AVAILABLE`
@@ -190,7 +190,27 @@ export enum ProtocolError {
    * The protocol request timed out without a response. This may be due to a connection issue.
    * Mitigation can be: retrying after a given time period
    */
-  REQUEST_TIMEOUT = "Request timeout"
+  REQUEST_TIMEOUT = "Request timeout",
+  /**
+   * Missing credentials info message.
+   * nwaku: https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/group_manager/group_manager_base.nim#L186
+   */
+  RLN_IDENTITY_MISSING = "Identity credentials are not set",
+  /**
+   * Membership index missing info message.
+   * nwaku: https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/group_manager/group_manager_base.nim#L188
+   */
+  RLN_MEMBERSHIP_INDEX = "Membership index is not set",
+  /**
+   * Message limit is missing.
+   * nwaku: https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/group_manager/group_manager_base.nim#L190
+   */
+  RLN_LIMIT_MISSING = "User message limit is not set",
+  /**
+   * General proof generation error message.
+   * nwaku: https://github.com/waku-org/nwaku/blob/c3cb06ac6c03f0f382d3941ea53b330f6a8dd127/waku/waku_rln_relay/group_manager/group_manager_base.nim#L201C19-L201C42
+   */
+  RLN_PROOF_GENERATION = "Proof generation failed"
 }
 
 export interface Failure {

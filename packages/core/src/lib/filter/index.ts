@@ -121,7 +121,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.REMOTE_PEER_FAULT,
+          error: ProtocolError.NO_STREAM_AVAILABLE,
           peerId: peer.id
         }
       };
@@ -170,7 +170,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
     if (!res || !res.length) {
       return {
         failure: {
-          error: ProtocolError.REMOTE_PEER_FAULT,
+          error: ProtocolError.NO_RESPONSE,
           peerId: peer.id
         },
         success: null
@@ -211,7 +211,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.REMOTE_PEER_FAULT,
+          error: ProtocolError.NO_STREAM_AVAILABLE,
           peerId: peer.id
         }
       };
@@ -243,7 +243,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.REMOTE_PEER_FAULT,
+          error: ProtocolError.NO_RESPONSE,
           peerId: peer.id
         }
       };

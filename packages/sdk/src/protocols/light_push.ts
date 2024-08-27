@@ -90,18 +90,20 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
         }
         if (failure) {
           if (failure.peerId) {
-            try {
-              await this.renewPeer(failure.peerId);
-              log.info("Renewed peer", failure.peerId.toString());
-            } catch (error) {
-              log.error("Failed to renew peer", error);
-            }
+            // schedule renewal as we don't need to wait for it
+            this.renewPeer(failure.peerId)
+              .then(() => {
+                log.info("Renewed peer", failure?.peerId?.toString());
+              })
+              .catch((error) => {
+                log.error("Failed to renew peer", error);
+              });
           }
 
           failures.push(failure);
         }
       } else {
-        log.error("Failed to send message to peer", result.reason);
+        log.error("Promise rejected while sending:", result.reason);
         failures.push({ error: ProtocolError.GENERIC_FAIL });
       }
     }
