@@ -15,7 +15,7 @@ import { tearDownNodes } from "../../src/index.js";
 
 const TEST_TIMEOUT = 20_000;
 
-describe.only("Events", function () {
+describe("Events", function () {
   let waku: LightNode;
   this.timeout(TEST_TIMEOUT);
   beforeEachCustom(this, async () => {
