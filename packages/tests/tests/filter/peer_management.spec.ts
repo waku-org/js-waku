@@ -24,7 +24,7 @@ import {
   teardownNodesWithRedundancy
 } from "../../src/index.js";
 
-describe("Waku Filter: Peer Management: E2E", function () {
+describe.only("Waku Filter: Peer Management: E2E", function () {
   this.timeout(15000);
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;

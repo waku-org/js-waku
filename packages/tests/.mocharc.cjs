@@ -10,17 +10,17 @@ const config = {
   retries: 4
 };
 
-if (process.env.CI) {
-  console.log("Running tests in parallel");
-  config.parallel = true;
-  config.jobs = 6;
-  console.log("Activating allure reporting");
-  config.reporter = 'mocha-multi-reporters';
-  config.reporterOptions = {
-    configFile: '.mocha.reporters.json'
-  };
-} else {
-  console.log("Running tests serially. To enable parallel execution update mocha config");
-}
+// if (process.env.CI) {
+//   console.log("Running tests in parallel");
+//   config.parallel = true;
+//   config.jobs = 6;
+//   console.log("Activating allure reporting");
+//   config.reporter = 'mocha-multi-reporters';
+//   config.reporterOptions = {
+//     configFile: '.mocha.reporters.json'
+//   };
+// } else {
+//   console.log("Running tests serially. To enable parallel execution update mocha config");
+// }
 
 module.exports = config;
