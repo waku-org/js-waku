@@ -289,16 +289,16 @@ export class SubscriptionManager implements ISubscriptionSDK {
         0
       );
 
-      return newPeer;
-    } catch (error) {
-      log.warn(`Failed to renew peer ${peerId.toString()}: ${error}.`);
-      return;
-    } finally {
       this.peerFailures.delete(peerId.toString());
       this.reliabilityMonitor.missedMessagesByPeer.delete(peerId.toString());
       delete this.reliabilityMonitor.receivedMessagesHashes.nodes[
         peerId.toString()
       ];
+
+      return newPeer;
+    } catch (error) {
+      log.warn(`Failed to renew peer ${peerId.toString()}: ${error}.`);
+      return;
     }
   }
 
