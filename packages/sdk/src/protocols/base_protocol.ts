@@ -68,11 +68,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       );
     }
 
-    const updatedPeers = this.peers.filter(
-      (peer) => !peer.id.equals(peerToDisconnect)
-    );
-    this.updatePeers(updatedPeers);
-
     this.log.info(
       `Peer ${peerToDisconnect} disconnected and removed from the peer list`
     );
@@ -248,7 +243,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   }
 
   private updatePeers(peers: Peer[]): void {
-    this.peers = peers;
+    this.peers = peers.slice(0, this.numPeersToUse);
     this.healthManager.updateProtocolHealth(
       this.core.multicodec,
       this.peers.length
