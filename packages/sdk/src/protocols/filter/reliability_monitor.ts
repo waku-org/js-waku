@@ -64,10 +64,10 @@ export class ReliabilityMonitor {
     }
 
     if (this.receivedMessagesHashStr.includes(hashedMessageStr)) {
-      return false;
+      return true;
     } else {
       this.receivedMessagesHashStr.push(hashedMessageStr);
-      return true;
+      return false;
     }
   }
 
