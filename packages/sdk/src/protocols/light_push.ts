@@ -103,7 +103,7 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
           failures.push(failure);
         }
       } else {
-        log.error("Promise rejected while sending:", result.reason);
+        log.error("Failed unexpectedly while sending:", result.reason);
         failures.push({ error: ProtocolError.GENERIC_FAIL });
       }
     }
