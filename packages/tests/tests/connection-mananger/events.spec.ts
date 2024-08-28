@@ -265,12 +265,6 @@ describe("Events", function () {
         waku.connectionManager.addEventListener(
           EConnectionStateEvents.CONNECTION_STATUS,
           ({ detail: status }) => {
-            console.log(
-              "evnet#1",
-              status,
-              waku.libp2p.getConnections().length,
-              globalThis.navigator.onLine
-            );
             eventCount++;
             resolve(status);
           }
@@ -283,18 +277,14 @@ describe("Events", function () {
 
       await delay(100);
 
-      console.log("#1");
       expect(waku.isConnected()).to.be.true;
-      console.log("#2");
       expect(await connectedStatus).to.eq(true);
-      console.log("#3");
       expect(eventCount).to.be.eq(1);
 
       const disconnectedStatus = new Promise<boolean>((resolve) => {
         waku.connectionManager.addEventListener(
           EConnectionStateEvents.CONNECTION_STATUS,
           ({ detail: status }) => {
-            console.log("evnet#2", status);
             resolve(status);
           }
         );
@@ -305,18 +295,14 @@ describe("Events", function () {
 
       await delay(100);
 
-      console.log("#4");
       expect(waku.isConnected()).to.be.false;
-      console.log("#5");
       expect(await disconnectedStatus).to.eq(false);
-      console.log("#6");
       expect(eventCount).to.be.eq(2);
 
       const connectionRecoveredStatus = new Promise<boolean>((resolve) => {
         waku.connectionManager.addEventListener(
           EConnectionStateEvents.CONNECTION_STATUS,
           ({ detail: status }) => {
-            console.log("evnet#3", status);
             resolve(status);
           }
         );
@@ -327,11 +313,8 @@ describe("Events", function () {
 
       await delay(100);
 
-      console.log("#7");
-      expect(waku.isConnected()).to.be.false;
-      console.log("#8");
+      expect(waku.isConnected()).to.be.true;
       expect(await connectionRecoveredStatus).to.eq(true);
-      console.log("#9");
       expect(eventCount).to.be.eq(3);
     });
   });
