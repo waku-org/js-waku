@@ -6,9 +6,7 @@ import { Logger } from "@waku/utils";
 
 type ReceivedMessageHashes = {
   all: Set<string>;
-  nodes: {
-    [peerId: PeerIdStr]: Set<string>;
-  };
+  nodes: Record<PeerIdStr, Set<string>>;
 };
 
 const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
@@ -60,6 +58,13 @@ export class ReliabilityMonitor {
     this.receivedMessagesHashes.all.add(hashedMessageStr);
 
     if (peerIdStr) {
+      const x = this.receivedMessagesHashes.nodes[peerIdStr];
+      if (!x) {
+        log.warn(
+          `Peer ${peerIdStr} not initialized in receivedMessagesHashes.nodes, adding it.`
+        );
+        this.receivedMessagesHashes.nodes[peerIdStr] = new Set();
+      }
       this.receivedMessagesHashes.nodes[peerIdStr].add(hashedMessageStr);
     }
 
