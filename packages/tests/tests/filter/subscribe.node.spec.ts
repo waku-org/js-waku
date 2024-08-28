@@ -489,7 +489,7 @@ const runTests = (strictCheckNodes: boolean): void => {
 
     it("Renews subscription after lossing a connection", async function () {
       // setup check
-      expect(waku.libp2p.getConnections()).has.length(3);
+      expect(waku.libp2p.getConnections()).has.length(2);
 
       await waku.filter.subscribe(
         [TestDecoder],
