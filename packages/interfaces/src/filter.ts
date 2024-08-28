@@ -12,6 +12,11 @@ import type {
 } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
 
+export type SubscriptionCallback<T extends IDecodedMessage> = {
+  decoders: IDecoder<T>[];
+  callback: Callback<T>;
+};
+
 export type SubscribeOptions = {
   keepAlive?: number;
   pingsBeforePeerRenewed?: number;
