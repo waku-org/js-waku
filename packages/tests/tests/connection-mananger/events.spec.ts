@@ -1,5 +1,5 @@
 import type { PeerId, PeerInfo } from "@libp2p/interface";
-import { CustomEvent } from "@libp2p/interface";
+import { CustomEvent, TypedEventEmitter } from "@libp2p/interface";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
 import {
   EConnectionStateEvents,
@@ -151,8 +151,34 @@ describe("Events", function () {
     });
   });
 
-  describe("peer:disconnect", () => {
-    it("should emit `waku:offline` event when all peers disconnect", async function () {
+  describe(EConnectionStateEvents.CONNECTION_STATUS, function () {
+    let navigatorMock: any;
+
+    this.beforeEach(() => {
+      navigatorMock = { onLine: true };
+      globalThis.navigator = navigatorMock;
+
+      const eventEmmitter = new TypedEventEmitter();
+      globalThis.addEventListener =
+        eventEmmitter.addEventListener.bind(eventEmmitter);
+      globalThis.removeEventListener =
+        eventEmmitter.removeEventListener.bind(eventEmmitter);
+      globalThis.dispatchEvent =
+        eventEmmitter.dispatchEvent.bind(eventEmmitter);
+    });
+
+    this.afterEach(() => {
+      // @ts-expect-error: resetting set value
+      globalThis.navigator = undefined;
+      // @ts-expect-error: resetting set value
+      globalThis.addEventListener = undefined;
+      // @ts-expect-error: resetting set value
+      globalThis.removeEventListener = undefined;
+      // @ts-expect-error: resetting set value
+      globalThis.dispatchEvent = undefined;
+    });
+
+    it(`should emit events and trasition isConnected state when has peers or no peers`, async function () {
       const peerIdPx = await createSecp256k1PeerId();
       const peerIdPx2 = await createSecp256k1PeerId();
 
@@ -174,17 +200,8 @@ describe("Events", function () {
         }
       });
 
-      waku.libp2p.dispatchEvent(
-        new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx })
-      );
-      waku.libp2p.dispatchEvent(
-        new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx2 })
-      );
-
-      await delay(100);
-
       let eventCount = 0;
-      const connectionStatus = new Promise<boolean>((resolve) => {
+      const connectedStatus = new Promise<boolean>((resolve) => {
         waku.connectionManager.addEventListener(
           EConnectionStateEvents.CONNECTION_STATUS,
           ({ detail: status }) => {
@@ -194,40 +211,6 @@ describe("Events", function () {
         );
       });
 
-      expect(waku.isConnected()).to.be.true;
-
-      waku.libp2p.dispatchEvent(
-        new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx })
-      );
-      waku.libp2p.dispatchEvent(
-        new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx2 })
-      );
-
-      expect(await connectionStatus).to.eq(false);
-      expect(eventCount).to.be.eq(1);
-    });
-    it("isConnected should return false after all peers disconnect", async function () {
-      const peerIdPx = await createSecp256k1PeerId();
-      const peerIdPx2 = await createSecp256k1PeerId();
-
-      await waku.libp2p.peerStore.save(peerIdPx, {
-        tags: {
-          [Tags.PEER_EXCHANGE]: {
-            value: 50,
-            ttl: 1200000
-          }
-        }
-      });
-
-      await waku.libp2p.peerStore.save(peerIdPx2, {
-        tags: {
-          [Tags.PEER_EXCHANGE]: {
-            value: 50,
-            ttl: 1200000
-          }
-        }
-      });
-
       waku.libp2p.dispatchEvent(
         new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx })
       );
@@ -238,6 +221,17 @@ describe("Events", function () {
       await delay(100);
 
       expect(waku.isConnected()).to.be.true;
+      expect(await connectedStatus).to.eq(true);
+      expect(eventCount).to.be.eq(1);
+
+      const disconnectedStatus = new Promise<boolean>((resolve) => {
+        waku.connectionManager.addEventListener(
+          EConnectionStateEvents.CONNECTION_STATUS,
+          ({ detail: status }) => {
+            resolve(status);
+          }
+        );
+      });
 
       waku.libp2p.dispatchEvent(
         new CustomEvent<PeerId>("peer:disconnect", { detail: peerIdPx })
@@ -247,6 +241,81 @@ describe("Events", function () {
       );
 
       expect(waku.isConnected()).to.be.false;
+      expect(await disconnectedStatus).to.eq(false);
+      expect(eventCount).to.be.eq(2);
+    });
+
+    it("should be online or offline if network state changed", async function () {
+      // have to recreate js-waku for it to pick up new globalThis
+      waku = await createLightNode();
+
+      const peerIdPx = await createSecp256k1PeerId();
+
+      await waku.libp2p.peerStore.save(peerIdPx, {
+        tags: {
+          [Tags.PEER_EXCHANGE]: {
+            value: 50,
+            ttl: 1200000
+          }
+        }
+      });
+
+      let eventCount = 0;
+      const connectedStatus = new Promise<boolean>((resolve) => {
+        waku.connectionManager.addEventListener(
+          EConnectionStateEvents.CONNECTION_STATUS,
+          ({ detail: status }) => {
+            eventCount++;
+            resolve(status);
+          }
+        );
+      });
+
+      waku.libp2p.dispatchEvent(
+        new CustomEvent<PeerId>("peer:connect", { detail: peerIdPx })
+      );
+
+      await delay(100);
+
+      expect(waku.isConnected()).to.be.true;
+      expect(await connectedStatus).to.eq(true);
+      expect(eventCount).to.be.eq(1);
+
+      const disconnectedStatus = new Promise<boolean>((resolve) => {
+        waku.connectionManager.addEventListener(
+          EConnectionStateEvents.CONNECTION_STATUS,
+          ({ detail: status }) => {
+            resolve(status);
+          }
+        );
+      });
+
+      navigatorMock.onLine = false;
+      globalThis.dispatchEvent(new CustomEvent("offline"));
+
+      await delay(100);
+
+      expect(waku.isConnected()).to.be.false;
+      expect(await disconnectedStatus).to.eq(false);
+      expect(eventCount).to.be.eq(2);
+
+      const connectionRecoveredStatus = new Promise<boolean>((resolve) => {
+        waku.connectionManager.addEventListener(
+          EConnectionStateEvents.CONNECTION_STATUS,
+          ({ detail: status }) => {
+            resolve(status);
+          }
+        );
+      });
+
+      navigatorMock.onLine = true;
+      globalThis.dispatchEvent(new CustomEvent("online"));
+
+      await delay(100);
+
+      expect(waku.isConnected()).to.be.true;
+      expect(await connectionRecoveredStatus).to.eq(true);
+      expect(eventCount).to.be.eq(3);
     });
   });
 });
