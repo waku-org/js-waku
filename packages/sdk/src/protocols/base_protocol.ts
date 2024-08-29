@@ -61,16 +61,16 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
 
     await this.connectionManager.dropConnection(peerToDisconnect);
 
+    this.log.info(
+      `Peer ${peerToDisconnect} disconnected and removed from the peer list`
+    );
+
     const peer = (await this.findAndAddPeers(1))[0];
     if (!peer) {
       this.log.error(
         "Failed to find a new peer to replace the disconnected one."
       );
     }
-
-    this.log.info(
-      `Peer ${peerToDisconnect} disconnected and removed from the peer list`
-    );
 
     this.renewPeersLocker.lock(peerToDisconnect);
 
@@ -243,7 +243,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   }
 
   private updatePeers(peers: Peer[]): void {
-    this.peers = peers.slice(0, this.numPeersToUse);
+    this.peers = peers?.slice(0, this.numPeersToUse);
     this.healthManager.updateProtocolHealth(
       this.core.multicodec,
       this.peers.length
