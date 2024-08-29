@@ -8,7 +8,6 @@ import {
   beforeEachCustom,
   DefaultTestShardInfo,
   DefaultTestSingleShardInfo,
-  delay,
   runMultipleNodes,
   ServiceNodesFleet,
   teardownNodesWithRedundancy
@@ -80,10 +79,6 @@ describe("Waku Light Push: Peer Management: E2E", function () {
     expect(response2.failures?.[0].peerId).to.equal(peerToDisconnect);
 
     // send another lightpush request -- renewal should have triggerred and new peer should be used instead of the disconnected one
-    await waku.lightPush.send(encoder, {
-      payload: utf8ToBytes("Hello_World")
-    });
-    await delay(100);
     const response3 = await waku.lightPush.send(encoder, {
       payload: utf8ToBytes("Hello_World")
     });
