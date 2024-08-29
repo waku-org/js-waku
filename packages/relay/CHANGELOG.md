@@ -25,6 +25,27 @@
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
     * @waku/utils bumped from 0.0.9 to 0.0.10
 
+## [0.0.14](https://github.com/waku-org/js-waku/compare/relay-v0.0.13...relay-v0.0.14) (2024-08-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* **filter:** new simpler filter API  ([#2092](https://github.com/waku-org/js-waku/issues/2092))
+
+### Features
+
+* **filter:** New simpler filter API  ([#2092](https://github.com/waku-org/js-waku/issues/2092)) ([fdd9dc4](https://github.com/waku-org/js-waku/commit/fdd9dc44a44c6680024fb51e9bbb5fe17190dcbd))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.30 to 0.0.31
+    * @waku/interfaces bumped from 0.0.25 to 0.0.26
+    * @waku/proto bumped from 0.0.7 to 0.0.8
+    * @waku/utils bumped from 0.0.18 to 0.0.19
+
 ## [0.0.13](https://github.com/waku-org/js-waku/compare/relay-v0.0.12...relay-v0.0.13) (2024-07-10)
 
 

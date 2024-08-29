@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.8](https://github.com/waku-org/js-waku/compare/proto-v0.0.7...proto-v0.0.8) (2024-08-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* store v3 ([#2036](https://github.com/waku-org/js-waku/issues/2036))
+
+### Features
+
+* Store v3 ([#2036](https://github.com/waku-org/js-waku/issues/2036)) ([86f730f](https://github.com/waku-org/js-waku/commit/86f730f9587e3688b79c8e846e5c005bb4d5fae4))
+
 ## [0.0.7](https://github.com/waku-org/js-waku/compare/proto-v0.0.6...proto-v0.0.7) (2024-04-30)
 
 
