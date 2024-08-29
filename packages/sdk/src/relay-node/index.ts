@@ -1,4 +1,4 @@
-import { type FullNode, type RelayNode } from "@waku/interfaces";
+import type { RelayNode } from "@waku/interfaces";
 import { RelayCreateOptions } from "@waku/relay";
 
 import { createLibp2pAndUpdateOptions } from "../create/libp2p.js";
@@ -22,30 +22,4 @@ export async function createRelayNode(
   return new WakuNode(pubsubTopics, options as WakuOptions, libp2p, {
     relay: true
   }) as RelayNode;
-}
-
-/**
- * Create a Waku node that uses all Waku protocols.
- *
- * This helper is not recommended except if:
- * - you are interfacing with nwaku v0.11 or below
- * - you are doing some form of testing
- *
- * If you are building a full node, it is recommended to use
- * [nwaku](github.com/status-im/nwaku) and its JSON RPC API or wip REST API.
- *
- * @see https://github.com/status-im/nwaku/issues/1085
- * @internal
- */
-export async function createFullNode(
-  options: CreateWakuNodeOptions & Partial<RelayCreateOptions>
-): Promise<FullNode> {
-  const { libp2p, pubsubTopics } = await createLibp2pAndUpdateOptions(options);
-
-  return new WakuNode(pubsubTopics, options as WakuOptions, libp2p, {
-    filter: true,
-    lightpush: true,
-    relay: true,
-    store: true
-  }) as FullNode;
 }
