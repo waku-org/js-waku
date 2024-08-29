@@ -20,6 +20,7 @@ import { Uint8ArrayList } from "uint8arraylist";
 import { BaseProtocol } from "../base_protocol.js";
 
 import { PushRpc } from "./push_rpc.js";
+import { isRLNResponseError, matchRLNErrorMessage } from "./utils.js";
 
 const log = new Logger("light-push");
 
@@ -153,7 +154,19 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
       return {
         success: null,
         failure: {
-          error: ProtocolError.REMOTE_PEER_FAULT,
+          error: ProtocolError.NO_RESPONSE,
+          peerId: peer.id
+        }
+      };
+    }
+
+    if (isRLNResponseError(response.info)) {
+      const rlnErrorCase = matchRLNErrorMessage(response.info!);
+      log.error("Remote peer rejected the message: ", rlnErrorCase);
+      return {
+        success: null,
+        failure: {
+          error: rlnErrorCase,
           peerId: peer.id
         }
       };
