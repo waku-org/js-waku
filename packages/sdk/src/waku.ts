@@ -14,7 +14,6 @@ import type {
   Waku
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { wakuRelay } from "@waku/relay";
 import { Logger } from "@waku/utils";
 
 import { wakuFilter } from "./protocols/filter.js";
@@ -57,7 +56,6 @@ type ProtocolsEnabled = {
   filter?: boolean;
   lightpush?: boolean;
   store?: boolean;
-  relay?: boolean;
 };
 
 export class WakuNode implements Waku {
@@ -73,15 +71,16 @@ export class WakuNode implements Waku {
     public readonly pubsubTopics: PubsubTopic[],
     options: WakuOptions,
     libp2p: Libp2p,
-    protocolsEnabled: ProtocolsEnabled
+    protocolsEnabled: ProtocolsEnabled,
+    relay?: IRelay
   ) {
+    this.relay = relay;
     this.libp2p = libp2p;
 
     protocolsEnabled = {
       filter: false,
       lightpush: false,
       store: false,
-      relay: false,
       ...protocolsEnabled
     };
 
@@ -116,11 +115,6 @@ export class WakuNode implements Waku {
     if (protocolsEnabled.filter) {
       const filter = wakuFilter(this.connectionManager);
       this.filter = filter(libp2p);
-    }
-
-    if (protocolsEnabled.relay) {
-      const relay = wakuRelay(this.pubsubTopics);
-      this.relay = relay(libp2p);
     }
 
     log.info(

@@ -5,7 +5,7 @@ import {
   RelayNode,
   ShardInfo
 } from "@waku/interfaces";
-import { createRelayNode } from "@waku/sdk/relay";
+import { createRelayNode } from "@waku/relay";
 import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
 import { Context } from "mocha";
 

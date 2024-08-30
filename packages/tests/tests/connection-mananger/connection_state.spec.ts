@@ -1,7 +1,7 @@
 import { Multiaddr } from "@multiformats/multiaddr";
 import { EConnectionStateEvents, LightNode, Protocols } from "@waku/interfaces";
+import { createRelayNode } from "@waku/relay";
 import { createLightNode } from "@waku/sdk";
-import { createRelayNode } from "@waku/sdk/relay";
 import { expect } from "chai";
 
 import {

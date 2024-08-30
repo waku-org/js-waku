@@ -8,12 +8,12 @@ import {
   createDecoder,
   createEncoder
 } from "@waku/message-encryption/symmetric";
+import { createRelayNode } from "@waku/relay";
 import {
   createLightNode,
   createEncoder as createPlainEncoder,
   DefaultUserAgent
 } from "@waku/sdk";
-import { createRelayNode } from "@waku/sdk/relay";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
