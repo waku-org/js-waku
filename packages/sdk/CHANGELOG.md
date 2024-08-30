@@ -47,6 +47,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.27](https://github.com/waku-org/js-waku/compare/sdk-v0.0.26...sdk-v0.0.27) (2024-08-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* **lightpush:** return new error messages ([#2115](https://github.com/waku-org/js-waku/issues/2115))
+* deprecate named pubsub topics and use static/auto sharding  ([#2097](https://github.com/waku-org/js-waku/issues/2097))
+* store v3 ([#2036](https://github.com/waku-org/js-waku/issues/2036))
+* **filter:** new simpler filter API  ([#2092](https://github.com/waku-org/js-waku/issues/2092))
+
+### Features
+
+* Deprecate named pubsub topics and use static/auto sharding  ([#2097](https://github.com/waku-org/js-waku/issues/2097)) ([5ce36c8](https://github.com/waku-org/js-waku/commit/5ce36c8f187f218df8af66e0643ab277e909b227))
+* **filter:** New simpler filter API  ([#2092](https://github.com/waku-org/js-waku/issues/2092)) ([fdd9dc4](https://github.com/waku-org/js-waku/commit/fdd9dc44a44c6680024fb51e9bbb5fe17190dcbd))
+* Fix peer renewal, change Filter keep alive ([#2065](https://github.com/waku-org/js-waku/issues/2065)) ([00635b7](https://github.com/waku-org/js-waku/commit/00635b7afe60c2ed739f2ccd1f07b2a6cc04f797))
+* **lightpush:** Return new error messages ([#2115](https://github.com/waku-org/js-waku/issues/2115)) ([a022433](https://github.com/waku-org/js-waku/commit/a022433851e6e187679b8c40bb465b431854809b))
+* Node and protocols health ([#2080](https://github.com/waku-org/js-waku/issues/2080)) ([d464af3](https://github.com/waku-org/js-waku/commit/d464af3645d769034d6c6293607de5b00e904ae4))
+* Offline state recovery for Filter subscription ([#2049](https://github.com/waku-org/js-waku/issues/2049)) ([eadb85a](https://github.com/waku-org/js-waku/commit/eadb85ab8367c0e0d8fa9f9fd012eebc71200b6c))
+* Store v3 ([#2036](https://github.com/waku-org/js-waku/issues/2036)) ([86f730f](https://github.com/waku-org/js-waku/commit/86f730f9587e3688b79c8e846e5c005bb4d5fae4))
+* Validate messages for individual filter nodes & perform renewals ([#2057](https://github.com/waku-org/js-waku/issues/2057)) ([9b0f1e8](https://github.com/waku-org/js-waku/commit/9b0f1e855aa3a1f7b9aec3a4c726568d37595c28))
+
+
+### Bug Fixes
+
+* Import of base_protocol and networkConfig type guard ([#2109](https://github.com/waku-org/js-waku/issues/2109)) ([8f56d90](https://github.com/waku-org/js-waku/commit/8f56d90cf127852e3dfe25127a5a578fa20524cb))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.30 to 0.0.31
+    * @waku/discovery bumped from 0.0.3 to 0.0.4
+    * @waku/interfaces bumped from 0.0.25 to 0.0.26
+    * @waku/proto bumped from ^0.0.7 to ^0.0.8
+    * @waku/relay bumped from 0.0.13 to 0.0.14
+    * @waku/utils bumped from 0.0.18 to 0.0.19
+
 ## [0.0.26](https://github.com/waku-org/js-waku/compare/sdk-v0.0.25...sdk-v0.0.26) (2024-07-10)
 
 

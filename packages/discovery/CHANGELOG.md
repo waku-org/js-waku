@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.0.4](https://github.com/waku-org/js-waku/compare/discovery-v0.0.3...discovery-v0.0.4) (2024-08-29)
+
+
+### Features
+
+* **peer-exchange:** Support continuous peer information updates ([#2088](https://github.com/waku-org/js-waku/issues/2088)) ([defe41b](https://github.com/waku-org/js-waku/commit/defe41bb9a826ab6d06f9aace283c0e90b7af56c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.25 to 0.0.26
+    * @waku/proto bumped from ^0.0.7 to ^0.0.8
+    * @waku/enr bumped from 0.0.24 to 0.0.25
+    * @waku/core bumped from 0.0.30 to 0.0.31
+    * @waku/utils bumped from 0.0.18 to 0.0.19
+
 ## [0.0.3](https://github.com/waku-org/js-waku/compare/discovery-v0.0.2...discovery-v0.0.3) (2024-07-10)
 
 
