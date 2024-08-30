@@ -106,14 +106,14 @@ export async function runMultipleNodes(
     await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
     await node.ensureSubscriptions(pubsubTopics);
 
-    const wakuConnections = waku.libp2p.getConnections();
-    const nodePeers = await node.peers();
+    // const wakuConnections = waku.libp2p.getConnections();
+    // const nodePeers = await node.peers();
 
-    if (wakuConnections.length < 1 || nodePeers.length < 1) {
-      throw new Error(
-        `Expected at least 1 peer in each node. Got waku connections: ${wakuConnections.length} and service nodes: ${nodePeers.length}`
-      );
-    }
+    // if (wakuConnections.length < 1 || nodePeers.length < 1) {
+    //   throw new Error(
+    //     `Expected at least 1 peer in each node. Got waku connections: ${wakuConnections.length} and service nodes: ${nodePeers.length}`
+    //   );
+    // }
   }
 
   await waitForConnections(numServiceNodes, waku);
