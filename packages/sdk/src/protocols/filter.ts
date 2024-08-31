@@ -51,9 +51,9 @@ type ReceivedMessageHashes = {
 
 const log = new Logger("sdk:filter");
 
-const DEFAULT_MAX_PINGS = 3;
+const DEFAULT_MAX_PINGS = 2;
 const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
-const DEFAULT_KEEP_ALIVE = 5 * 1000;
+const DEFAULT_KEEP_ALIVE = 60 * 1000;
 
 export class SubscriptionManager implements ISubscriptionSDK {
   private subscriptionCallbacks: Map<
