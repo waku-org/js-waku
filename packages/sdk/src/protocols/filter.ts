@@ -95,9 +95,15 @@ export class SubscriptionManager implements ISubscriptionSDK {
   private addHash(hash: string, peerIdStr?: string): void {
     this.receivedMessagesHashes.all.add(hash);
 
-    if (peerIdStr) {
-      this.receivedMessagesHashes.nodes[peerIdStr].add(hash);
+    if (!peerIdStr) {
+      return;
     }
+
+    if (!this.receivedMessagesHashes.nodes[peerIdStr]) {
+      this.receivedMessagesHashes.nodes[peerIdStr] = new Set();
+    }
+
+    this.receivedMessagesHashes.nodes[peerIdStr].add(hash);
   }
 
   public async subscribe<T extends IDecodedMessage>(
