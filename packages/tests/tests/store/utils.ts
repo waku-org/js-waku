@@ -114,13 +114,12 @@ export async function startAndConnectLightNode(
   await waitForRemotePeer(waku, [Protocols.Store]);
 
   const wakuConnections = waku.libp2p.getConnections();
-  const nwakuPeers = await instance.peers();
 
-  if (wakuConnections.length < 1 || nwakuPeers.length < 1) {
-    throw new Error(
-      `Expected at least 1 peer in each node. Got waku connections: ${wakuConnections.length} and nwaku: ${nwakuPeers.length}`
-    );
+  if (wakuConnections.length < 1) {
+    throw new Error(`Expected at least 1 connection for js-waku.`);
   }
+
+  await instance.waitForLog(waku.libp2p.peerId.toString(), 100);
 
   log.info("Waku node created");
   return waku;

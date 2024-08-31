@@ -8,10 +8,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./relay": {
-      "types": "./dist/relay-node/index.d.ts",
-      "import": "./dist/relay-node/index.js"
     }
   },
   "typesVersions": {
@@ -72,12 +68,10 @@
     "@waku/discovery": "0.0.4",
     "@waku/interfaces": "0.0.26",
     "@waku/proto": "^0.0.8",
-    "@waku/relay": "0.0.14",
     "@waku/utils": "0.0.19",
     "libp2p": "^1.8.1"
   },
   "devDependencies": {
-    "@chainsafe/libp2p-gossipsub": "^13.1.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
@@ -93,7 +87,6 @@
     "@waku/core": "0.0.30",
     "@waku/interfaces": "0.0.25",
     "@waku/message-hash": "^0.1.14",
-    "@waku/relay": "0.0.13",
     "@waku/utils": "0.0.18"
   },
   "peerDependenciesMeta": {
