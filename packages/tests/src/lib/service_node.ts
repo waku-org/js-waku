@@ -205,7 +205,7 @@ export class ServiceNode {
   }
 
   /**
-   * Calls nwaku REST API "/admin/v1/peers" to check for known peers
+   * Calls nwaku REST API "/admin/v1/peers" to check for known peers. Be aware that it doesn't recognize js-waku as a node
    * @throws
    */
   public async peers(): Promise<string[]> {
