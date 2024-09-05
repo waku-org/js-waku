@@ -83,16 +83,9 @@
     "rollup": "^4.12.0"
   },
   "peerDependencies": {
-    "@libp2p/bootstrap": "^10",
-    "@waku/core": "0.0.30",
-    "@waku/interfaces": "0.0.25",
-    "@waku/message-hash": "^0.1.14",
-    "@waku/utils": "0.0.18"
+    "@libp2p/bootstrap": "^10"
   },
   "peerDependenciesMeta": {
-    "@waku/interfaces": {
-      "optional": true
-    },
     "@libp2p/bootstrap": {
       "optional": true
     }
