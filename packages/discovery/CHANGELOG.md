@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.0.5](https://github.com/waku-org/js-waku/compare/discovery-v0.0.4...discovery-v0.0.5) (2024-09-05)
+
+
+### Bug Fixes
+
+* Improve node bootstrapping ([#2121](https://github.com/waku-org/js-waku/issues/2121)) ([0263cb8](https://github.com/waku-org/js-waku/commit/0263cb80c5d2bc61984b5357761236ba4f759036))
+* Temporarily remove peer cross dependencies ([#2123](https://github.com/waku-org/js-waku/issues/2123)) ([f4b6bb0](https://github.com/waku-org/js-waku/commit/f4b6bb04b38842745c946b427bb3518680df09dc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.26 to 0.0.27
+    * @waku/enr bumped from 0.0.25 to 0.0.26
+    * @waku/core bumped from 0.0.31 to 0.0.32
+    * @waku/utils bumped from 0.0.19 to 0.0.20
+
 ## [0.0.4](https://github.com/waku-org/js-waku/compare/discovery-v0.0.3...discovery-v0.0.4) (2024-08-29)
 
 
