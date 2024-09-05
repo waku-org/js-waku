@@ -1,13 +1,13 @@
 {
-  "packages/utils": "0.0.19",
+  "packages/utils": "0.0.20",
   "packages/proto": "0.0.8",
-  "packages/interfaces": "0.0.26",
-  "packages/message-hash": "0.1.15",
-  "packages/enr": "0.0.25",
-  "packages/core": "0.0.31",
-  "packages/message-encryption": "0.0.29",
-  "packages/relay": "0.0.14",
-  "packages/sdk": "0.0.27",
-  "packages/discovery": "0.0.4",
+  "packages/interfaces": "0.0.27",
+  "packages/message-hash": "0.1.16",
+  "packages/enr": "0.0.26",
+  "packages/core": "0.0.32",
+  "packages/message-encryption": "0.0.30",
+  "packages/relay": "0.0.15",
+  "packages/sdk": "0.0.28",
+  "packages/discovery": "0.0.5",
   "packages/react-native-polyfills": "0.0.1"
 }

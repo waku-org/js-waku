@@ -12,6 +12,20 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.20](https://github.com/waku-org/js-waku/compare/utils-v0.0.19...utils-v0.0.20) (2024-09-05)
+
+
+### Bug Fixes
+
+* Temporarily remove peer cross dependencies ([#2123](https://github.com/waku-org/js-waku/issues/2123)) ([f4b6bb0](https://github.com/waku-org/js-waku/commit/f4b6bb04b38842745c946b427bb3518680df09dc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.26 to 0.0.27
+
 ## [0.0.19](https://github.com/waku-org/js-waku/compare/utils-v0.0.18...utils-v0.0.19) (2024-08-29)
 
 

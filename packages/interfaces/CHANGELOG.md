@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.27](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.26...interfaces-v0.0.27) (2024-09-05)
+
+
+### Bug Fixes
+
+* Improve node bootstrapping ([#2121](https://github.com/waku-org/js-waku/issues/2121)) ([0263cb8](https://github.com/waku-org/js-waku/commit/0263cb80c5d2bc61984b5357761236ba4f759036))
+
 ## [0.0.26](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.25...interfaces-v0.0.26) (2024-08-29)
 
 

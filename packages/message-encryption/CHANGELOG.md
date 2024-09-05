@@ -93,6 +93,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/proto bumped from 0.0.7 to 0.0.8
     * @waku/utils bumped from 0.0.18 to 0.0.19
 
+## [0.0.30](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.29...message-encryption-v0.0.30) (2024-09-05)
+
+
+### Bug Fixes
+
+* Temporarily remove peer cross dependencies ([#2123](https://github.com/waku-org/js-waku/issues/2123)) ([f4b6bb0](https://github.com/waku-org/js-waku/commit/f4b6bb04b38842745c946b427bb3518680df09dc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.31 to 0.0.32
+    * @waku/interfaces bumped from 0.0.26 to 0.0.27
+    * @waku/utils bumped from 0.0.19 to 0.0.20
+
 ## [0.0.27](https://github.com/waku-org/js-waku/compare/message-encryption-v0.0.26...message-encryption-v0.0.27) (2024-04-30)
 
 
