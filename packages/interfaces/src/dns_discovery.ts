@@ -1,5 +1,7 @@
 import { PeerStore } from "@libp2p/interface";
 
+export const DNS_DISCOVERY_TAG = "@waku/bootstrap";
+
 export type SearchContext = {
   domain: string;
   publicKey: string;
@@ -44,4 +46,8 @@ export interface DnsDiscOptions {
    * Cause the bootstrap peer tag to be removed after this number of ms (default: 2 minutes)
    */
   tagTTL?: number;
+}
+
+export interface DiscoveryTrigger {
+  findPeers: () => Promise<void>;
 }

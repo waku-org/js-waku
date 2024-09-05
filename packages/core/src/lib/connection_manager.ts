@@ -2,6 +2,8 @@ import type { Peer, PeerId, PeerInfo, PeerStore } from "@libp2p/interface";
 import { CustomEvent, TypedEventEmitter } from "@libp2p/interface";
 import {
   ConnectionManagerOptions,
+  DiscoveryTrigger,
+  DNS_DISCOVERY_TAG,
   EConnectionStateEvents,
   EPeersByDiscoveryEvents,
   IConnectionManager,
@@ -292,12 +294,36 @@ export class ConnectionManager
 
         this.dialErrorsForPeer.delete(peerId.toString());
         await this.libp2p.peerStore.delete(peerId);
+
+        // if it was last available peer - attempt DNS discovery
+        await this.attemptDnsDiscovery();
       } catch (error) {
         throw new Error(
           `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`
         );
       }
     }
+  }
+
+  private async attemptDnsDiscovery(): Promise<void> {
+    if (this.libp2p.getConnections().length > 0) return;
+    if ((await this.libp2p.peerStore.all()).length > 0) return;
+
+    log.info("Attempting to trigger DNS discovery.");
+
+    const dnsDiscovery = Object.values(this.libp2p.components.components).find(
+      (v: unknown) => {
+        if (v && v.toString) {
+          return v.toString().includes(DNS_DISCOVERY_TAG);
+        }
+
+        return false;
+      }
+    ) as DiscoveryTrigger;
+
+    if (!dnsDiscovery) return;
+
+    await dnsDiscovery.findPeers();
   }
 
   private processDialQueue(): void {
