@@ -99,17 +99,6 @@
     "process": "^0.11.10",
     "rollup": "^4.12.0"
   },
-  "peerDependencies": {
-    "@waku/core": "0.0.30",
-    "@waku/interfaces": "0.0.25",
-    "@waku/proto": "0.0.7",
-    "@waku/utils": "0.0.18"
-  },
-  "peerDependenciesMeta": {
-    "@waku/interfaces": {
-      "optional": true
-    }
-  },
   "files": [
     "dist",
     "bundle",
