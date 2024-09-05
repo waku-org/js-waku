@@ -293,7 +293,6 @@ export class ConnectionManager
         }
 
         this.dialErrorsForPeer.delete(peerId.toString());
-        this.dialAttemptsForPeer.delete(peerId.toString());
         await this.libp2p.peerStore.delete(peerId);
 
         // if it was last available peer - attempt DNS discovery
