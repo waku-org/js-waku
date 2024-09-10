@@ -9,7 +9,6 @@ import {
   type IDecoder,
   type IProtoMessage,
   type ISubscriptionSDK,
-  type PeerIdStr,
   ProtocolError,
   type PubsubTopic,
   type SDKProtocolResult,
@@ -20,7 +19,6 @@ import { WakuMessage } from "@waku/proto";
 import { groupByContentTopic, Logger } from "@waku/utils";
 
 import { DEFAULT_KEEP_ALIVE, DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
-import { ReliabilityMonitor } from "./reliability_monitor.js";
 
 const DEFAULT_MAX_PINGS = 3;
 
@@ -28,11 +26,10 @@ const log = new Logger("sdk:filter:subscription_manager");
 
 export class SubscriptionManager implements ISubscriptionSDK {
   private keepAliveTimer: number | null = null;
-  private peerFailures: Map<string, number> = new Map();
+  public peerFailures: Map<string, number> = new Map();
   private maxPingFailures: number = DEFAULT_MAX_PINGS;
-  private reliabilityMonitor: ReliabilityMonitor;
 
-  private subscriptionCallbacks: Map<
+  public subscriptionCallbacks: Map<
     ContentTopic,
     SubscriptionCallback<IDecodedMessage>
   >;
@@ -45,10 +42,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
   ) {
     this.pubsubTopic = pubsubTopic;
     this.subscriptionCallbacks = new Map();
-    this.reliabilityMonitor = new ReliabilityMonitor(
-      getPeers.bind(this),
-      this.renewAndSubscribePeer.bind(this)
-    );
   }
 
   public async subscribe<T extends IDecodedMessage>(
@@ -58,9 +51,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
   ): Promise<SDKProtocolResult> {
     this.keepAliveTimer = options.keepAlive || DEFAULT_KEEP_ALIVE;
     this.maxPingFailures = options.pingsBeforePeerRenewed || DEFAULT_MAX_PINGS;
-    this.reliabilityMonitor.setMaxMissedMessagesThreshold(
-      options.maxMissedMessagesThreshold
-    );
 
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
@@ -168,22 +158,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     return finalResult;
   }
 
-  public async processIncomingMessage(
-    message: WakuMessage,
-    peerIdStr: PeerIdStr
-  ): Promise<void> {
-    const includesMessage = this.reliabilityMonitor.addMessage(
-      message,
-      this.pubsubTopic,
-      peerIdStr
-    );
-    void this.reliabilityMonitor.validateMessage();
-
-    if (includesMessage) {
-      log.info("Message already received, skipping");
-      return;
-    }
-
+  public async processIncomingMessage(message: WakuMessage): Promise<void> {
     const { contentTopic } = message;
     const subscriptionCallback = this.subscriptionCallbacks.get(contentTopic);
     if (!subscriptionCallback) {
@@ -275,25 +250,15 @@ export class SubscriptionManager implements ISubscriptionSDK {
   ): Promise<Peer | undefined> {
     try {
       const newPeer = await this.renewPeer(peerId);
+      if (!newPeer) {
+        log.warn(`Failed to renew peer ${peerId.toString()}.`);
+        return;
+      }
       await this.protocol.subscribe(
         this.pubsubTopic,
         newPeer,
         Array.from(this.subscriptionCallbacks.keys())
       );
-
-      this.reliabilityMonitor.receivedMessagesHashes.nodes[
-        newPeer.id.toString()
-      ] = new Set();
-      this.reliabilityMonitor.missedMessagesByPeer.set(
-        newPeer.id.toString(),
-        0
-      );
-
-      this.peerFailures.delete(peerId.toString());
-      this.reliabilityMonitor.missedMessagesByPeer.delete(peerId.toString());
-      delete this.reliabilityMonitor.receivedMessagesHashes.nodes[
-        peerId.toString()
-      ];
 
       return newPeer;
     } catch (error) {

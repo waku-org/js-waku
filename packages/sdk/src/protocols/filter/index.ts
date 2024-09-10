@@ -16,6 +16,7 @@ import {
   SubscribeResult,
   type Unsubscribe
 } from "@waku/interfaces";
+import { WakuMessage } from "@waku/proto";
 import {
   ensurePubsubTopicIsConfigured,
   groupByContentTopic,
@@ -35,6 +36,11 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
   public readonly protocol: FilterCore;
 
   private activeSubscriptions = new Map<string, SubscriptionManager>();
+  private messageHandler: (
+    pubsubTopic: PubsubTopic,
+    message: WakuMessage,
+    peerIdStr?: string
+  ) => void = () => {};
 
   public constructor(
     connectionManager: ConnectionManager,
@@ -44,15 +50,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     super(
       new FilterCore(
         async (pubsubTopic, wakuMessage, peerIdStr) => {
-          const subscription = this.getActiveSubscription(pubsubTopic);
-          if (!subscription) {
-            log.error(
-              `No subscription locally registered for topic ${pubsubTopic}`
-            );
-            return;
-          }
-
-          await subscription.processIncomingMessage(wakuMessage, peerIdStr);
+          this.messageHandler(pubsubTopic, wakuMessage, peerIdStr);
         },
         connectionManager.configuredPubsubTopics,
         libp2p
@@ -64,6 +62,29 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     this.protocol = this.core as FilterCore;
 
     this.activeSubscriptions = new Map();
+  }
+
+  public setMessageHandler(
+    handler: (
+      pubsubTopic: PubsubTopic,
+      message: WakuMessage,
+      peerIdStr?: string
+    ) => void
+  ): void {
+    this.messageHandler = handler;
+  }
+
+  public processReliableMessage(
+    pubsubTopic: PubsubTopic,
+    message: WakuMessage
+  ): void {
+    const subscription = this.getActiveSubscription(pubsubTopic);
+    if (!subscription) {
+      log.error(`No subscription locally registered for topic ${pubsubTopic}`);
+      return;
+    }
+
+    void subscription.processIncomingMessage(message);
   }
 
   /**

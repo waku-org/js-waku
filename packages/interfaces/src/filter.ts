@@ -1,9 +1,11 @@
-import type { PeerId } from "@libp2p/interface";
+import type { Peer, PeerId } from "@libp2p/interface";
+import { WakuMessage } from "@waku/proto";
 
 import type { IDecodedMessage, IDecoder } from "./message.js";
-import type { ContentTopic, ThisOrThat } from "./misc.js";
+import type { ContentTopic, PubsubTopic, ThisOrThat } from "./misc.js";
 import type {
   Callback,
+  CoreProtocolResult,
   IBaseProtocolCore,
   IBaseProtocolSDK,
   ProtocolError,
@@ -23,7 +25,15 @@ export type SubscribeOptions = {
   maxMissedMessagesThreshold?: number;
 };
 
-export type IFilter = IReceiver & IBaseProtocolCore;
+export type IFilterCore = IBaseProtocolCore & {
+  subscribe(
+    pubsubTopic: PubsubTopic,
+    peer: Peer,
+    contentTopics: ContentTopic[]
+  ): Promise<CoreProtocolResult>;
+};
+
+export type IFilter = IReceiver & IFilterCore;
 
 export interface ISubscriptionSDK {
   subscribe<T extends IDecodedMessage>(
@@ -37,17 +47,30 @@ export interface ISubscriptionSDK {
   ping(peerId?: PeerId): Promise<SDKProtocolResult>;
 
   unsubscribeAll(): Promise<SDKProtocolResult>;
+
+  processIncomingMessage(message: WakuMessage): Promise<void>;
 }
 
-export type IFilterSDK = IReceiver &
-  IBaseProtocolSDK & { protocol: IBaseProtocolCore } & {
-    subscribe<T extends IDecodedMessage>(
-      decoders: IDecoder<T> | IDecoder<T>[],
-      callback: Callback<T>,
-      protocolUseOptions?: ProtocolUseOptions,
-      subscribeOptions?: SubscribeOptions
-    ): Promise<SubscribeResult>;
-  };
+export type MessageHandler = (
+  pubsubTopic: PubsubTopic,
+  message: WakuMessage,
+  peerIdStr?: string
+) => void;
+
+export interface IFilterSDK extends IReceiver, IBaseProtocolSDK {
+  protocol: IFilterCore;
+
+  setMessageHandler(handler: MessageHandler): void;
+
+  subscribe<T extends IDecodedMessage>(
+    decoders: IDecoder<T> | IDecoder<T>[],
+    callback: Callback<T>,
+    protocolUseOptions?: ProtocolUseOptions,
+    subscribeOptions?: SubscribeOptions
+  ): Promise<SubscribeResult>;
+
+  processReliableMessage(pubsubTopic: PubsubTopic, message: WakuMessage): void;
+}
 
 export type SubscribeResult = SubscriptionSuccess | SubscriptionError;
 
