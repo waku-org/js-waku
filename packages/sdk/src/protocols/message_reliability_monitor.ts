@@ -38,10 +38,7 @@ export class MessageReliabilityMonitor {
       all: new Set(),
       nodes: {}
     };
-    this.initializeListeners();
-  }
 
-  private initializeListeners(): void {
     this.filter.setIncomingMessageHandler(this.handleFilterMessage.bind(this));
   }
 
@@ -61,7 +58,7 @@ export class MessageReliabilityMonitor {
 
     void this.validatePreviousMessage();
 
-    this.filter.handleIncomingMessage(pubsubTopic, message, peerIdStr);
+    this.filter.defaultHandleIncomingMessage(pubsubTopic, message, peerIdStr);
   }
 
   private isMessageAlreadyReceived(

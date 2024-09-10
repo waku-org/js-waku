@@ -67,6 +67,11 @@ export type IFilterSDK = IReceiver &
       message: WakuMessage,
       peerIdStr: PeerIdStr
     ) => void;
+    readonly defaultHandleIncomingMessage: (
+      pubsubTopic: ContentTopic,
+      message: WakuMessage,
+      peerIdStr: PeerIdStr
+    ) => void;
   };
 
 export type SubscribeResult = SubscriptionSuccess | SubscriptionError;

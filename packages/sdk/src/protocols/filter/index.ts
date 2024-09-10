@@ -39,7 +39,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
   public activeSubscriptions = new Map<PubsubTopic, SubscriptionManager>();
 
-  public handleIncomingMessage = (
+  public readonly defaultHandleIncomingMessage = (
     pubsubTopic: PubsubTopic,
     message: WakuMessage,
     peerIdStr: PeerIdStr
@@ -53,6 +53,8 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
     void subscription.processIncomingMessage(message);
   };
+
+  public handleIncomingMessage = this.defaultHandleIncomingMessage;
 
   public constructor(
     connectionManager: ConnectionManager,
@@ -78,6 +80,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     ) => void
   ): void {
     this.handleIncomingMessage = handler;
+    this.protocol.incomingMessageHandler = handler;
   }
 
   /**
