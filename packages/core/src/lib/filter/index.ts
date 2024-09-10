@@ -31,12 +31,13 @@ export const FilterCodecs = {
 };
 
 export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
+  private handleIncomingMessage: (
+    pubsubTopic: PubsubTopic,
+    message: WakuMessage,
+    peerId: string
+  ) => void = () => {};
+
   public constructor(
-    private handleIncomingMessage: (
-      pubsubTopic: PubsubTopic,
-      wakuMessage: WakuMessage,
-      peerIdStr: string
-    ) => void,
     public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
@@ -49,6 +50,16 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       .catch((e) => {
         log.error("Failed to register ", FilterCodecs.PUSH, e);
       });
+  }
+
+  public set incomingMessageHandler(
+    handler: (
+      pubsubTopic: PubsubTopic,
+      message: WakuMessage,
+      peerId: string
+    ) => void
+  ) {
+    this.handleIncomingMessage = handler;
   }
 
   public async subscribe(

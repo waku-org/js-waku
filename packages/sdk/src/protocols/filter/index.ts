@@ -39,32 +39,12 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
   public activeSubscriptions = new Map<PubsubTopic, SubscriptionManager>();
 
-  public constructor(
-    connectionManager: ConnectionManager,
-    libp2p: Libp2p,
-    options?: ProtocolCreateOptions
-  ) {
-    super(
-      new FilterCore(
-        (pubsubTopic, message, peerIdStr) =>
-          this.handleIncomingMessage(pubsubTopic, message, peerIdStr),
-
-        connectionManager.configuredPubsubTopics,
-        libp2p
-      ),
-      connectionManager,
-      { numPeersToUse: options?.numPeersToUse }
-    );
-
-    this.protocol = this.core as FilterCore;
-    this._connectionManager = connectionManager;
-  }
-
-  public handleIncomingMessage: (
+  public handleIncomingMessage = (
     pubsubTopic: PubsubTopic,
     message: WakuMessage,
     peerIdStr: PeerIdStr
-  ) => void = (pubsubTopic, message) => {
+  ): void => {
+    log.info(`Received message from ${peerIdStr} on topic ${pubsubTopic}`);
     const subscription = this.getActiveSubscription(pubsubTopic);
     if (!subscription) {
       log.error(`No subscription locally registered for topic ${pubsubTopic}`);
@@ -73,6 +53,22 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
     void subscription.processIncomingMessage(message);
   };
+
+  public constructor(
+    connectionManager: ConnectionManager,
+    libp2p: Libp2p,
+    options?: ProtocolCreateOptions
+  ) {
+    super(
+      new FilterCore(connectionManager.configuredPubsubTopics, libp2p),
+      connectionManager,
+      { numPeersToUse: options?.numPeersToUse }
+    );
+
+    this.protocol = this.core as FilterCore;
+    this.protocol.incomingMessageHandler = this.handleIncomingMessage;
+    this._connectionManager = connectionManager;
+  }
 
   public setIncomingMessageHandler(
     handler: (
