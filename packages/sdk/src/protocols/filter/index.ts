@@ -27,6 +27,7 @@ import {
 } from "@waku/utils";
 
 import { BaseProtocolSDK } from "../base_protocol";
+import { MessageReliabilityMonitor } from "../message_reliability_monitor";
 
 import { SubscriptionManager } from "./subscription_manager";
 
@@ -203,9 +204,9 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
       this.connectedPeers.map((peer) => peer.id.toString())
     );
 
-    const subscription =
-      this.getActiveSubscription(pubsubTopic) ??
-      this.setActiveSubscription(
+    let subscription = this.getActiveSubscription(pubsubTopic);
+    if (!subscription) {
+      subscription = this.setActiveSubscription(
         pubsubTopic,
         new SubscriptionManager(
           pubsubTopic,
@@ -215,6 +216,9 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
           this.renewPeer.bind(this)
         )
       );
+
+      new MessageReliabilityMonitor(this, subscription);
+    }
 
     return {
       error: null,

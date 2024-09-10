@@ -18,7 +18,7 @@ import { Logger } from "@waku/utils";
 
 import { wakuFilter } from "./protocols/filter/index.js";
 import { wakuLightPush } from "./protocols/light_push.js";
-import { MessageReliabilityMonitor } from "./protocols/message_reliability_monitor.js";
+import { MessageReliabilityManager } from "./protocols/message_reliability_monitor.js";
 import { wakuStore } from "./protocols/store.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
@@ -116,7 +116,7 @@ export class WakuNode implements Waku {
     if (protocolsEnabled.filter) {
       const filter = wakuFilter(this.connectionManager);
       this.filter = filter(libp2p);
-      new MessageReliabilityMonitor(this.filter);
+      new MessageReliabilityManager(this.filter);
     }
 
     log.info(
