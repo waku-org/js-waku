@@ -36,7 +36,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       pubsubTopic: PubsubTopic,
       wakuMessage: WakuMessage,
       peerIdStr: string
-    ) => Promise<void>,
+    ) => void,
     public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
@@ -291,7 +291,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
             return;
           }
 
-          await this.handleIncomingMessage(
+          this.handleIncomingMessage(
             pubsubTopic,
             wakuMessage,
             connection.remotePeer.toString()

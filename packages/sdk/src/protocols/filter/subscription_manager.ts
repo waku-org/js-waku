@@ -9,23 +9,14 @@ import {
   IDecoder,
   IProtoMessage,
   ISubscriptionSDK,
-  PeerIdStr,
   ProtocolError,
   PubsubTopic,
   SDKProtocolResult,
   SubscribeOptions,
   SubscriptionCallback
 } from "@waku/interfaces";
-import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
 import { groupByContentTopic, Logger } from "@waku/utils";
-
-type ReceivedMessageHashes = {
-  all: Set<string>;
-  nodes: {
-    [peerId: PeerIdStr]: Set<string>;
-  };
-};
 
 export const DEFAULT_MAX_PINGS = 2;
 export const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
@@ -38,48 +29,21 @@ export class SubscriptionManager implements ISubscriptionSDK {
     ContentTopic,
     SubscriptionCallback<IDecodedMessage>
   > = new Map();
-  private readonly receivedMessagesHashStr: string[] = [];
   private peerFailures: Map<string, number> = new Map();
-  private readonly receivedMessagesHashes: ReceivedMessageHashes;
-  private missedMessagesByPeer: Map<string, number> = new Map();
 
   private keepAliveInterval: number = DEFAULT_KEEP_ALIVE;
   private maxPingFailures: number = DEFAULT_MAX_PINGS;
-  private maxMissedMessagesThreshold = DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
 
   private keepAliveTimer: number | null = null;
 
   public constructor(
-    private readonly pubsubTopic: PubsubTopic,
+    public readonly pubsubTopic: PubsubTopic,
     private readonly protocol: FilterCore,
     private readonly connectionManager: ConnectionManager,
     private readonly getPeers: () => Peer[],
     private readonly renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>
   ) {
     this.pubsubTopic = pubsubTopic;
-
-    const allPeerIdStr = this.getPeers().map((p) => p.id.toString());
-    this.receivedMessagesHashes = {
-      all: new Set(),
-      nodes: {
-        ...Object.fromEntries(allPeerIdStr.map((peerId) => [peerId, new Set()]))
-      }
-    };
-    allPeerIdStr.forEach((peerId) => this.missedMessagesByPeer.set(peerId, 0));
-  }
-
-  private addHash(hash: string, peerIdStr?: string): void {
-    this.receivedMessagesHashes.all.add(hash);
-
-    if (!peerIdStr) {
-      return;
-    }
-
-    if (!this.receivedMessagesHashes.nodes[peerIdStr]) {
-      this.receivedMessagesHashes.nodes[peerIdStr] = new Set();
-    }
-
-    this.receivedMessagesHashes.nodes[peerIdStr].add(hash);
   }
 
   public async subscribe<T extends IDecodedMessage>(
@@ -89,9 +53,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
   ): Promise<SDKProtocolResult> {
     this.keepAliveInterval = options.keepAlive || DEFAULT_KEEP_ALIVE;
     this.maxPingFailures = options.pingsBeforePeerRenewed || DEFAULT_MAX_PINGS;
-    this.maxMissedMessagesThreshold =
-      options.maxMissedMessagesThreshold ||
-      DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
 
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
@@ -193,55 +154,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     return finalResult;
   }
 
-  private async validateMessage(): Promise<void> {
-    for (const hash of this.receivedMessagesHashes.all) {
-      for (const [peerIdStr, hashes] of Object.entries(
-        this.receivedMessagesHashes.nodes
-      )) {
-        if (!hashes.has(hash)) {
-          this.incrementMissedMessageCount(peerIdStr);
-          if (this.shouldRenewPeer(peerIdStr)) {
-            log.info(
-              `Peer ${peerIdStr} has missed too many messages, renewing.`
-            );
-            const peerId = this.getPeers().find(
-              (p) => p.id.toString() === peerIdStr
-            )?.id;
-            if (!peerId) {
-              log.error(
-                `Unexpected Error: Peer ${peerIdStr} not found in connected peers.`
-              );
-              continue;
-            }
-            try {
-              await this.renewAndSubscribePeer(peerId);
-            } catch (error) {
-              log.error(`Failed to renew peer ${peerIdStr}: ${error}`);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  public async processIncomingMessage(
-    message: WakuMessage,
-    peerIdStr: PeerIdStr
-  ): Promise<void> {
-    const hashedMessageStr = messageHashStr(
-      this.pubsubTopic,
-      message as IProtoMessage
-    );
-
-    this.addHash(hashedMessageStr, peerIdStr);
-    void this.validateMessage();
-
-    if (this.receivedMessagesHashStr.includes(hashedMessageStr)) {
-      log.info("Message already received, skipping");
-      return;
-    }
-    this.receivedMessagesHashStr.push(hashedMessageStr);
-
+  public async processIncomingMessage(message: WakuMessage): Promise<void> {
     const { contentTopic } = message;
     const subscriptionCallback = this.subscriptionCallbacks.get(contentTopic);
     if (!subscriptionCallback) {
@@ -328,7 +241,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     }
   }
 
-  private async renewAndSubscribePeer(
+  public async renewAndSubscribePeer(
     peerId: PeerId
   ): Promise<Peer | undefined> {
     try {
@@ -339,17 +252,12 @@ export class SubscriptionManager implements ISubscriptionSDK {
         Array.from(this.subscriptionCallbacks.keys())
       );
 
-      this.receivedMessagesHashes.nodes[newPeer.id.toString()] = new Set();
-      this.missedMessagesByPeer.set(newPeer.id.toString(), 0);
-
       return newPeer;
     } catch (error) {
       log.warn(`Failed to renew peer ${peerId.toString()}: ${error}.`);
       return;
     } finally {
       this.peerFailures.delete(peerId.toString());
-      this.missedMessagesByPeer.delete(peerId.toString());
-      delete this.receivedMessagesHashes.nodes[peerId.toString()];
     }
   }
 
@@ -425,16 +333,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
     }
 
     this.startKeepAlivePings(this.keepAliveInterval);
-  }
-
-  private incrementMissedMessageCount(peerIdStr: string): void {
-    const currentCount = this.missedMessagesByPeer.get(peerIdStr) || 0;
-    this.missedMessagesByPeer.set(peerIdStr, currentCount + 1);
-  }
-
-  private shouldRenewPeer(peerIdStr: string): boolean {
-    const missedMessages = this.missedMessagesByPeer.get(peerIdStr) || 0;
-    return missedMessages > this.maxMissedMessagesThreshold;
   }
 }
 

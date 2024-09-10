@@ -1,7 +1,13 @@
-import type { PeerId } from "@libp2p/interface";
+import type { Peer, PeerId } from "@libp2p/interface";
+import { WakuMessage } from "@waku/proto";
 
 import type { IDecodedMessage, IDecoder } from "./message.js";
-import type { ContentTopic, ThisOrThat } from "./misc.js";
+import type {
+  ContentTopic,
+  PeerIdStr,
+  PubsubTopic,
+  ThisOrThat
+} from "./misc.js";
 import type {
   Callback,
   IBaseProtocolCore,
@@ -11,6 +17,11 @@ import type {
   SDKProtocolResult
 } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
+
+export type SubscriptionCallback<T extends IDecodedMessage> = {
+  decoders: IDecoder<T>[];
+  callback: Callback<T>;
+};
 
 export type SubscribeOptions = {
   keepAlive?: number;
@@ -26,12 +37,11 @@ export interface ISubscriptionSDK {
     callback: Callback<T>,
     options?: SubscribeOptions
   ): Promise<SDKProtocolResult>;
-
   unsubscribe(contentTopics: ContentTopic[]): Promise<SDKProtocolResult>;
-
   ping(peerId?: PeerId): Promise<SDKProtocolResult>;
-
   unsubscribeAll(): Promise<SDKProtocolResult>;
+
+  renewAndSubscribePeer(peerId: PeerId): Promise<Peer | undefined>;
 }
 
 export type IFilterSDK = IReceiver &
@@ -42,6 +52,21 @@ export type IFilterSDK = IReceiver &
       protocolUseOptions?: ProtocolUseOptions,
       subscribeOptions?: SubscribeOptions
     ): Promise<SubscribeResult>;
+
+    activeSubscriptions: Map<PubsubTopic, ISubscriptionSDK>;
+
+    setIncomingMessageHandler(
+      handler: (
+        pubsubTopic: ContentTopic,
+        message: WakuMessage,
+        peerIdStr: PeerIdStr
+      ) => void
+    ): void;
+    handleIncomingMessage: (
+      pubsubTopic: ContentTopic,
+      message: WakuMessage,
+      peerIdStr: PeerIdStr
+    ) => void;
   };
 
 export type SubscribeResult = SubscriptionSuccess | SubscriptionError;

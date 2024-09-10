@@ -8,6 +8,7 @@ import {
   type IFilterSDK,
   type Libp2p,
   NetworkConfig,
+  PeerIdStr,
   type ProtocolCreateOptions,
   ProtocolError,
   type ProtocolUseOptions,
@@ -16,6 +17,7 @@ import {
   SubscribeResult,
   type Unsubscribe
 } from "@waku/interfaces";
+import { WakuMessage } from "@waku/proto";
 import {
   ensurePubsubTopicIsConfigured,
   groupByContentTopic,
@@ -34,7 +36,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
   public readonly protocol: FilterCore;
   private readonly _connectionManager: ConnectionManager;
 
-  private activeSubscriptions = new Map<string, SubscriptionManager>();
+  public activeSubscriptions = new Map<PubsubTopic, SubscriptionManager>();
 
   public constructor(
     connectionManager: ConnectionManager,
@@ -43,17 +45,9 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
   ) {
     super(
       new FilterCore(
-        async (pubsubTopic, wakuMessage, peerIdStr) => {
-          const subscription = this.getActiveSubscription(pubsubTopic);
-          if (!subscription) {
-            log.error(
-              `No subscription locally registered for topic ${pubsubTopic}`
-            );
-            return;
-          }
+        (pubsubTopic, message, peerIdStr) =>
+          this.handleIncomingMessage(pubsubTopic, message, peerIdStr),
 
-          await subscription.processIncomingMessage(wakuMessage, peerIdStr);
-        },
         connectionManager.configuredPubsubTopics,
         libp2p
       ),
@@ -63,6 +57,30 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 
     this.protocol = this.core as FilterCore;
     this._connectionManager = connectionManager;
+  }
+
+  public handleIncomingMessage: (
+    pubsubTopic: PubsubTopic,
+    message: WakuMessage,
+    peerIdStr: PeerIdStr
+  ) => void = (pubsubTopic, message) => {
+    const subscription = this.getActiveSubscription(pubsubTopic);
+    if (!subscription) {
+      log.error(`No subscription locally registered for topic ${pubsubTopic}`);
+      return;
+    }
+
+    void subscription.processIncomingMessage(message);
+  };
+
+  public setIncomingMessageHandler(
+    handler: (
+      pubsubTopic: PubsubTopic,
+      message: WakuMessage,
+      peerIdStr: string
+    ) => void
+  ): void {
+    this.handleIncomingMessage = handler;
   }
 
   /**
