@@ -17,7 +17,7 @@ type ReceivedMessageHashes = {
 
 const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
 
-const log = new Logger("sdk:filter:reliability_monitor");
+const log = new Logger("sdk:receiver:reliability_monitor");
 
 const DEFAULT_MAX_PINGS = 3;
 
