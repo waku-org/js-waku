@@ -20,12 +20,15 @@ import { WakuMessage } from "@waku/proto";
 import { groupByContentTopic, Logger } from "@waku/utils";
 
 import { DEFAULT_KEEP_ALIVE, DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
-import { ReliabilityMonitor } from "./reliability_monitor.js";
+import {
+  ReceiverReliabilityMonitor,
+  ReliabilityMonitorManager
+} from "./reliability_monitor.js";
 
 const log = new Logger("sdk:filter:subscription_manager");
 
 export class SubscriptionManager implements ISubscriptionSDK {
-  private reliabilityMonitor: ReliabilityMonitor;
+  private reliabilityMonitor: ReceiverReliabilityMonitor;
 
   private keepAliveTimer: number | null = null;
   private subscriptionCallbacks: Map<
@@ -41,9 +44,13 @@ export class SubscriptionManager implements ISubscriptionSDK {
   ) {
     this.pubsubTopic = pubsubTopic;
     this.subscriptionCallbacks = new Map();
-    this.reliabilityMonitor = new ReliabilityMonitor(
-      getPeers.bind(this),
-      this.renewAndSubscribePeer.bind(this)
+
+    this.reliabilityMonitor = ReliabilityMonitorManager.createReceiverMonitor(
+      this.pubsubTopic,
+      this.getPeers.bind(this),
+      this.renewPeer.bind(this),
+      () => Array.from(this.subscriptionCallbacks.keys()),
+      this.protocol.subscribe.bind(this.protocol)
     );
   }
 
@@ -248,38 +255,6 @@ export class SubscriptionManager implements ISubscriptionSDK {
       };
     } finally {
       await this.reliabilityMonitor.handlePingResult(peerId, result);
-    }
-  }
-
-  private async renewAndSubscribePeer(
-    peerId: PeerId
-  ): Promise<Peer | undefined> {
-    try {
-      const newPeer = await this.renewPeer(peerId);
-      await this.protocol.subscribe(
-        this.pubsubTopic,
-        newPeer,
-        Array.from(this.subscriptionCallbacks.keys())
-      );
-
-      this.reliabilityMonitor.receivedMessagesHashes.nodes[
-        newPeer.id.toString()
-      ] = new Set();
-      this.reliabilityMonitor.missedMessagesByPeer.set(
-        newPeer.id.toString(),
-        0
-      );
-
-      this.reliabilityMonitor.peerFailures.delete(peerId.toString());
-      this.reliabilityMonitor.missedMessagesByPeer.delete(peerId.toString());
-      delete this.reliabilityMonitor.receivedMessagesHashes.nodes[
-        peerId.toString()
-      ];
-
-      return newPeer;
-    } catch (error) {
-      log.warn(`Failed to renew peer ${peerId.toString()}: ${error}.`);
-      return;
     }
   }
 

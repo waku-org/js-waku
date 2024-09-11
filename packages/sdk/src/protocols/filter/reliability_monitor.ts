@@ -1,5 +1,6 @@
 import type { Peer, PeerId } from "@libp2p/interface";
 import {
+  ContentTopic,
   CoreProtocolResult,
   IProtoMessage,
   PeerIdStr,
@@ -20,7 +21,42 @@ const log = new Logger("sdk:filter:reliability_monitor");
 
 const DEFAULT_MAX_PINGS = 3;
 
-export class ReliabilityMonitor {
+export class ReliabilityMonitorManager {
+  private static receiverMonitors: Map<
+    PubsubTopic,
+    ReceiverReliabilityMonitor
+  > = new Map();
+
+  public static createReceiverMonitor(
+    pubsubTopic: PubsubTopic,
+    getPeers: () => Peer[],
+    renewPeer: (peerId: PeerId) => Promise<Peer>,
+    getContentTopics: () => ContentTopic[],
+    protocolSubscribe: (
+      pubsubTopic: PubsubTopic,
+      peer: Peer,
+      contentTopics: ContentTopic[]
+    ) => Promise<CoreProtocolResult>
+  ): ReceiverReliabilityMonitor {
+    if (ReliabilityMonitorManager.receiverMonitors.has(pubsubTopic)) {
+      return ReliabilityMonitorManager.receiverMonitors.get(pubsubTopic)!;
+    }
+
+    const monitor = new ReceiverReliabilityMonitor(
+      pubsubTopic,
+      getPeers,
+      renewPeer,
+      getContentTopics,
+      protocolSubscribe
+    );
+    ReliabilityMonitorManager.receiverMonitors.set(pubsubTopic, monitor);
+    return monitor;
+  }
+
+  private constructor() {}
+}
+
+export class ReceiverReliabilityMonitor {
   public receivedMessagesHashStr: string[] = [];
   public receivedMessagesHashes: ReceivedMessageHashes;
   public missedMessagesByPeer: Map<string, number> = new Map();
@@ -29,8 +65,15 @@ export class ReliabilityMonitor {
   private maxPingFailures: number = DEFAULT_MAX_PINGS;
 
   public constructor(
+    private readonly pubsubTopic: PubsubTopic,
     private getPeers: () => Peer[],
-    private renewAndSubscribePeer: (peerId: PeerId) => Promise<Peer | undefined>
+    private renewPeer: (peerId: PeerId) => Promise<Peer>,
+    private getContentTopics: () => ContentTopic[],
+    private protocolSubscribe: (
+      pubsubTopic: PubsubTopic,
+      peer: Peer,
+      contentTopics: ContentTopic[]
+    ) => Promise<CoreProtocolResult>
   ) {
     const allPeerIdStr = this.getPeers().map((p) => p.id.toString());
 
@@ -142,6 +185,31 @@ export class ReliabilityMonitor {
       } catch (error) {
         log.error(`Failed to renew peer ${peerId.toString()}: ${error}.`);
       }
+    }
+  }
+
+  private async renewAndSubscribePeer(
+    peerId: PeerId
+  ): Promise<Peer | undefined> {
+    try {
+      const newPeer = await this.renewPeer(peerId);
+      await this.protocolSubscribe(
+        this.pubsubTopic,
+        newPeer,
+        this.getContentTopics()
+      );
+
+      this.receivedMessagesHashes.nodes[newPeer.id.toString()] = new Set();
+      this.missedMessagesByPeer.set(newPeer.id.toString(), 0);
+
+      this.peerFailures.delete(peerId.toString());
+      this.missedMessagesByPeer.delete(peerId.toString());
+      delete this.receivedMessagesHashes.nodes[peerId.toString()];
+
+      return newPeer;
+    } catch (error) {
+      log.warn(`Failed to renew peer ${peerId.toString()}: ${error}.`);
+      return;
     }
   }
 
