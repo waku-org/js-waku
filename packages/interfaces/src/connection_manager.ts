@@ -1,6 +1,6 @@
 import type { Peer, PeerId, TypedEventEmitter } from "@libp2p/interface";
 
-import { PubsubTopic } from "./misc";
+import { PubsubTopic } from "./misc.js";
 
 export enum Tags {
   BOOTSTRAP = "bootstrap",

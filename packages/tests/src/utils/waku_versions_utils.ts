@@ -1,4 +1,4 @@
-import { DOCKER_IMAGE_NAME } from "../lib/service_node";
+import { DOCKER_IMAGE_NAME } from "../lib/service_node.js";
 
 // Utility to add test conditions based on nwaku/go-waku versions
 export function isNwakuAtLeast(requiredVersion: string): boolean {

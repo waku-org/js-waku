@@ -18,7 +18,11 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
-import { NOISE_KEY_1, ServiceNodesFleet, waitForConnections } from "../../src";
+import {
+  NOISE_KEY_1,
+  ServiceNodesFleet,
+  waitForConnections
+} from "../../src/index.js";
 
 // Constants for test configuration.
 export const log = new Logger("test:filter");

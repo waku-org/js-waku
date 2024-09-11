@@ -4,7 +4,7 @@ import type { Libp2p as BaseLibp2p } from "@libp2p/interface";
 import type { PingService } from "@libp2p/ping";
 import type { Libp2pInit, Libp2pOptions } from "libp2p";
 
-import { IMetadata } from "./metadata";
+import { IMetadata } from "./metadata.js";
 
 export type Libp2pServices = {
   ping: PingService;

@@ -8,14 +8,14 @@ import {
   runMultipleNodes,
   ServiceNode,
   ServiceNodesFleet
-} from "../../src";
+} from "../../src/index.js";
 
 import {
   messagePayload,
   TestDecoder,
   TestEncoder,
   TestShardInfo
-} from "./utils";
+} from "./utils.js";
 
 describe("Node Health Status Matrix Tests", function () {
   let waku: LightNode;
