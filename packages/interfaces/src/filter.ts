@@ -32,6 +32,8 @@ export type SubscribeOptions = {
 export type IFilter = IReceiver & IBaseProtocolCore;
 
 export interface ISubscriptionSDK {
+  readonly pubsubTopic: PubsubTopic;
+
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,

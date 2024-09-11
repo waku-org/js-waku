@@ -27,7 +27,7 @@ import {
 } from "@waku/utils";
 
 import { BaseProtocolSDK } from "../base_protocol.js";
-import { MessageReliabilityMonitor } from "../message_reliability_monitor.js";
+import { ReceiverReliabilityMonitor } from "../message_reliability_monitor.js";
 
 import { SubscriptionManager } from "./subscription_manager.js";
 
@@ -70,17 +70,6 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     this.protocol = this.core as FilterCore;
     this.protocol.incomingMessageHandler = this.handleIncomingMessage;
     this._connectionManager = connectionManager;
-  }
-
-  public setIncomingMessageHandler(
-    handler: (
-      pubsubTopic: PubsubTopic,
-      message: WakuMessage,
-      peerIdStr: string
-    ) => void
-  ): void {
-    this.handleIncomingMessage = handler;
-    this.protocol.incomingMessageHandler = handler;
   }
 
   /**
@@ -216,7 +205,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
         )
       );
 
-      new MessageReliabilityMonitor(this, subscription);
+      new ReceiverReliabilityMonitor(this, subscription);
     }
 
     return {
@@ -284,6 +273,17 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
     decoders: IDecoder<T> | IDecoder<T>[]
   ): Promise<IAsyncIterator<T>> {
     return toAsyncIterator(this, decoders);
+  }
+
+  public setIncomingMessageHandler(
+    handler: (
+      pubsubTopic: PubsubTopic,
+      message: WakuMessage,
+      peerIdStr: string
+    ) => void
+  ): void {
+    this.handleIncomingMessage = handler;
+    this.protocol.incomingMessageHandler = handler;
   }
 
   //TODO: move to SubscriptionManager

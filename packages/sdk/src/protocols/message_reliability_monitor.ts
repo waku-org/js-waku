@@ -13,15 +13,14 @@ const log = new Logger("sdk:message_reliability_monitor");
 
 const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
 
-export class MessageReliabilityManager {
-  public constructor(private filter: IFilterSDK) {
-    this.filter.activeSubscriptions.forEach((subscription) => {
-      new MessageReliabilityMonitor(this.filter, subscription);
-    });
-  }
+export class MessageReliabilityTracker {
+  public static receiverMonitor: Map<PubsubTopic, ReceiverReliabilityMonitor> =
+    new Map();
+
+  public constructor() {}
 }
 
-export class MessageReliabilityMonitor {
+export class ReceiverReliabilityMonitor {
   private receivedMessagesHashStr: string[] = [];
   private receivedMessagesHashes: {
     all: Set<string>;
@@ -34,12 +33,23 @@ export class MessageReliabilityMonitor {
     private filter: IFilterSDK,
     private subscription: ISubscriptionSDK
   ) {
+    MessageReliabilityTracker.receiverMonitor.set(
+      this.subscription.pubsubTopic,
+      this
+    );
+
     this.receivedMessagesHashes = {
       all: new Set(),
       nodes: {}
     };
 
     this.filter.setIncomingMessageHandler(this.handleFilterMessage.bind(this));
+  }
+
+  public destructor(): void {
+    MessageReliabilityTracker.receiverMonitor.delete(
+      this.subscription.pubsubTopic
+    );
   }
 
   private handleFilterMessage(
