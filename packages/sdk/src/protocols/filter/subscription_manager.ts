@@ -1,10 +1,11 @@
 import type { Peer } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
-import { FilterCore } from "@waku/core";
+import { ConnectionManager, FilterCore } from "@waku/core";
 import {
   type Callback,
   type ContentTopic,
   type CoreProtocolResult,
+  EConnectionStateEvents,
   type IDecodedMessage,
   type IDecoder,
   type IProtoMessage,
@@ -39,6 +40,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
   public constructor(
     private readonly pubsubTopic: PubsubTopic,
     private readonly protocol: FilterCore,
+    private readonly connectionManager: ConnectionManager,
     private readonly getPeers: () => Peer[],
     private readonly renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>
   ) {
@@ -110,9 +112,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
       this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
     });
 
-    if (options.keepAlive) {
-      this.startKeepAlivePings(options.keepAlive);
-    }
+    this.startSubscriptionsMaintenance(this.keepAliveTimer);
 
     return finalResult;
   }
@@ -138,9 +138,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     const finalResult = this.handleResult(results, "unsubscribe");
 
     if (this.subscriptionCallbacks.size === 0) {
-      if (this.keepAliveTimer) {
-        this.stopKeepAlivePings();
-      }
+      this.stopSubscriptionsMaintenance();
     }
 
     return finalResult;
@@ -166,9 +164,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
     const finalResult = this.handleResult(results, "unsubscribeAll");
 
-    if (this.keepAliveTimer) {
-      this.stopKeepAlivePings();
-    }
+    this.stopSubscriptionsMaintenance();
 
     return finalResult;
   }
@@ -255,6 +251,48 @@ export class SubscriptionManager implements ISubscriptionSDK {
     } finally {
       void this.reliabilityMonitor.handlePingResult(peerId, result);
     }
+  }
+
+  private startSubscriptionsMaintenance(interval: number): void {
+    this.startKeepAlivePings(interval);
+    this.startConnectionListener();
+  }
+
+  private stopSubscriptionsMaintenance(): void {
+    this.stopKeepAlivePings();
+    this.stopConnectionListener();
+  }
+
+  private startConnectionListener(): void {
+    this.connectionManager.addEventListener(
+      EConnectionStateEvents.CONNECTION_STATUS,
+      this.connectionListener.bind(this) as (v: CustomEvent<boolean>) => void
+    );
+  }
+
+  private stopConnectionListener(): void {
+    this.connectionManager.removeEventListener(
+      EConnectionStateEvents.CONNECTION_STATUS,
+      this.connectionListener.bind(this) as (v: CustomEvent<boolean>) => void
+    );
+  }
+
+  private async connectionListener({
+    detail: isConnected
+  }: CustomEvent<boolean>): Promise<void> {
+    if (!isConnected) {
+      this.stopKeepAlivePings();
+      return;
+    }
+
+    try {
+      // we do nothing here, as the renewal process is managed internally by `this.ping()`
+      await this.ping();
+    } catch (err) {
+      log.error(`networkStateListener failed to recover: ${err}`);
+    }
+
+    this.startKeepAlivePings(this.keepAliveTimer || DEFAULT_KEEP_ALIVE);
   }
 
   private startKeepAlivePings(interval: number): void {
