@@ -57,11 +57,11 @@ export class ReliabilityMonitorManager {
 }
 
 export class ReceiverReliabilityMonitor {
-  public receivedMessagesHashStr: string[] = [];
-  public receivedMessagesHashes: ReceivedMessageHashes;
-  public missedMessagesByPeer: Map<string, number> = new Map();
-  public maxMissedMessagesThreshold = DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
-  public peerFailures: Map<string, number> = new Map();
+  private receivedMessagesHashStr: string[] = [];
+  private receivedMessagesHashes: ReceivedMessageHashes;
+  private missedMessagesByPeer: Map<string, number> = new Map();
+  private maxMissedMessagesThreshold = DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
+  private peerFailures: Map<string, number> = new Map();
   private maxPingFailures: number = DEFAULT_MAX_PINGS;
 
   public constructor(
@@ -100,11 +100,43 @@ export class ReceiverReliabilityMonitor {
     this.maxPingFailures = value;
   }
 
-  public get messageHashes(): string[] {
-    return [...this.receivedMessagesHashes.all];
+  public async handlePingResult(
+    peerId: PeerId,
+    result?: CoreProtocolResult
+  ): Promise<void> {
+    if (result?.success) {
+      this.peerFailures.delete(peerId.toString());
+      return;
+    }
+
+    const failures = (this.peerFailures.get(peerId.toString()) || 0) + 1;
+    this.peerFailures.set(peerId.toString(), failures);
+
+    if (failures > this.maxPingFailures) {
+      try {
+        await this.renewAndSubscribePeer(peerId);
+        this.peerFailures.delete(peerId.toString());
+      } catch (error) {
+        log.error(`Failed to renew peer ${peerId.toString()}: ${error}.`);
+      }
+    }
   }
 
-  public addMessage(
+  public processIncomingMessage(
+    message: WakuMessage,
+    pubsubTopic: PubsubTopic,
+    peerIdStr?: string
+  ): boolean {
+    const alreadyReceived = this.addMessageToCache(
+      message,
+      pubsubTopic,
+      peerIdStr
+    );
+    void this.checkAndRenewPeers();
+    return alreadyReceived;
+  }
+
+  private addMessageToCache(
     message: WakuMessage,
     pubsubTopic: PubsubTopic,
     peerIdStr?: string
@@ -135,7 +167,7 @@ export class ReceiverReliabilityMonitor {
     }
   }
 
-  public async validateMessage(): Promise<void> {
+  private async checkAndRenewPeers(): Promise<void> {
     for (const hash of this.receivedMessagesHashes.all) {
       for (const [peerIdStr, hashes] of Object.entries(
         this.receivedMessagesHashes.nodes
@@ -162,28 +194,6 @@ export class ReceiverReliabilityMonitor {
             }
           }
         }
-      }
-    }
-  }
-
-  public async handlePingResult(
-    peerId: PeerId,
-    result?: CoreProtocolResult
-  ): Promise<void> {
-    if (result?.success) {
-      this.peerFailures.delete(peerId.toString());
-      return;
-    }
-
-    const failures = (this.peerFailures.get(peerId.toString()) || 0) + 1;
-    this.peerFailures.set(peerId.toString(), failures);
-
-    if (failures > this.maxPingFailures) {
-      try {
-        await this.renewAndSubscribePeer(peerId);
-        this.peerFailures.delete(peerId.toString());
-      } catch (error) {
-        log.error(`Failed to renew peer ${peerId.toString()}: ${error}.`);
       }
     }
   }

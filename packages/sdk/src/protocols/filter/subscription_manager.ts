@@ -177,14 +177,13 @@ export class SubscriptionManager implements ISubscriptionSDK {
     message: WakuMessage,
     peerIdStr: PeerIdStr
   ): Promise<void> {
-    const includesMessage = this.reliabilityMonitor.addMessage(
+    const alreadyReceived = this.reliabilityMonitor.processIncomingMessage(
       message,
       this.pubsubTopic,
       peerIdStr
     );
-    void this.reliabilityMonitor.validateMessage();
 
-    if (includesMessage) {
+    if (alreadyReceived) {
       log.info("Message already received, skipping");
       return;
     }
