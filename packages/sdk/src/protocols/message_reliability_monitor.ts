@@ -14,7 +14,7 @@ const log = new Logger("sdk:message_reliability_monitor");
 const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
 
 export class MessageReliabilityTracker {
-  public static receiverMonitor: Map<PubsubTopic, ReceiverReliabilityMonitor> =
+  public static receiverMonitors: Map<PubsubTopic, ReceiverReliabilityMonitor> =
     new Map();
 
   public constructor() {}
@@ -33,7 +33,7 @@ export class ReceiverReliabilityMonitor {
     private filter: IFilterSDK,
     private subscription: ISubscriptionSDK
   ) {
-    MessageReliabilityTracker.receiverMonitor.set(
+    MessageReliabilityTracker.receiverMonitors.set(
       this.subscription.pubsubTopic,
       this
     );
@@ -47,7 +47,7 @@ export class ReceiverReliabilityMonitor {
   }
 
   public destructor(): void {
-    MessageReliabilityTracker.receiverMonitor.delete(
+    MessageReliabilityTracker.receiverMonitors.delete(
       this.subscription.pubsubTopic
     );
   }
