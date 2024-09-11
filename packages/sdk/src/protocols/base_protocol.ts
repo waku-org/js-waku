@@ -33,7 +33,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
 
   public constructor(
     protected core: BaseProtocol,
-    private connectionManager: ConnectionManager,
+    protected connectionManager: ConnectionManager,
     options: Options
   ) {
     this.log = new Logger(`sdk:${core.multicodec}`);

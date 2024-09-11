@@ -149,8 +149,8 @@ export class ReceiverReliabilityMonitor {
     this.receivedMessagesHashes.all.add(hashedMessageStr);
 
     if (peerIdStr) {
-      const x = this.receivedMessagesHashes.nodes[peerIdStr];
-      if (!x) {
+      const hashesForPeer = this.receivedMessagesHashes.nodes[peerIdStr];
+      if (!hashesForPeer) {
         log.warn(
           `Peer ${peerIdStr} not initialized in receivedMessagesHashes.nodes, adding it.`
         );

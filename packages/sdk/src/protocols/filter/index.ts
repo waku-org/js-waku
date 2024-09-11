@@ -193,6 +193,7 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
         new SubscriptionManager(
           pubsubTopic,
           this.protocol,
+          this.connectionManager,
           () => this.connectedPeers,
           this.renewPeer.bind(this)
         )
