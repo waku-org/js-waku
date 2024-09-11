@@ -26,10 +26,10 @@ import {
   toAsyncIterator
 } from "@waku/utils";
 
-import { BaseProtocolSDK } from "../base_protocol";
-import { MessageReliabilityMonitor } from "../message_reliability_monitor";
+import { BaseProtocolSDK } from "../base_protocol.js";
+import { MessageReliabilityMonitor } from "../message_reliability_monitor.js";
 
-import { SubscriptionManager } from "./subscription_manager";
+import { SubscriptionManager } from "./subscription_manager.js";
 
 const log = new Logger("sdk:filter");
 
