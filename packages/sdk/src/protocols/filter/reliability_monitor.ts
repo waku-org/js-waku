@@ -1,5 +1,10 @@
 import type { Peer, PeerId } from "@libp2p/interface";
-import { IProtoMessage, PeerIdStr, PubsubTopic } from "@waku/interfaces";
+import {
+  CoreProtocolResult,
+  IProtoMessage,
+  PeerIdStr,
+  PubsubTopic
+} from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
 import { WakuMessage } from "@waku/proto";
 import { Logger } from "@waku/utils";
@@ -13,11 +18,15 @@ const DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD = 3;
 
 const log = new Logger("sdk:filter:reliability_monitor");
 
+const DEFAULT_MAX_PINGS = 3;
+
 export class ReliabilityMonitor {
   public receivedMessagesHashStr: string[] = [];
   public receivedMessagesHashes: ReceivedMessageHashes;
   public missedMessagesByPeer: Map<string, number> = new Map();
   public maxMissedMessagesThreshold = DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
+  public peerFailures: Map<string, number> = new Map();
+  private maxPingFailures: number = DEFAULT_MAX_PINGS;
 
   public constructor(
     private getPeers: () => Peer[],
@@ -39,6 +48,13 @@ export class ReliabilityMonitor {
       return;
     }
     this.maxMissedMessagesThreshold = value;
+  }
+
+  public setMaxPingFailures(value: number | undefined): void {
+    if (value === undefined) {
+      return;
+    }
+    this.maxPingFailures = value;
   }
 
   public get messageHashes(): string[] {
@@ -103,6 +119,28 @@ export class ReliabilityMonitor {
             }
           }
         }
+      }
+    }
+  }
+
+  public async handlePingResult(
+    peerId: PeerId,
+    result?: CoreProtocolResult
+  ): Promise<void> {
+    if (result?.success) {
+      this.peerFailures.delete(peerId.toString());
+      return;
+    }
+
+    const failures = (this.peerFailures.get(peerId.toString()) || 0) + 1;
+    this.peerFailures.set(peerId.toString(), failures);
+
+    if (failures > this.maxPingFailures) {
+      try {
+        await this.renewAndSubscribePeer(peerId);
+        this.peerFailures.delete(peerId.toString());
+      } catch (error) {
+        log.error(`Failed to renew peer ${peerId.toString()}: ${error}.`);
       }
     }
   }

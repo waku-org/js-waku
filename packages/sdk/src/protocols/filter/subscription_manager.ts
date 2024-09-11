@@ -22,16 +22,12 @@ import { groupByContentTopic, Logger } from "@waku/utils";
 import { DEFAULT_KEEP_ALIVE, DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
 import { ReliabilityMonitor } from "./reliability_monitor.js";
 
-const DEFAULT_MAX_PINGS = 3;
-
 const log = new Logger("sdk:filter:subscription_manager");
 
 export class SubscriptionManager implements ISubscriptionSDK {
-  private keepAliveTimer: number | null = null;
-  private peerFailures: Map<string, number> = new Map();
-  private maxPingFailures: number = DEFAULT_MAX_PINGS;
   private reliabilityMonitor: ReliabilityMonitor;
 
+  private keepAliveTimer: number | null = null;
   private subscriptionCallbacks: Map<
     ContentTopic,
     SubscriptionCallback<IDecodedMessage>
@@ -56,11 +52,13 @@ export class SubscriptionManager implements ISubscriptionSDK {
     callback: Callback<T>,
     options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<SDKProtocolResult> {
-    this.keepAliveTimer = options.keepAlive || DEFAULT_KEEP_ALIVE;
-    this.maxPingFailures = options.pingsBeforePeerRenewed || DEFAULT_MAX_PINGS;
     this.reliabilityMonitor.setMaxMissedMessagesThreshold(
+      options.pingsBeforePeerRenewed
+    );
+    this.reliabilityMonitor.setMaxPingFailures(
       options.maxMissedMessagesThreshold
     );
+    this.keepAliveTimer = options.keepAlive || DEFAULT_KEEP_ALIVE;
 
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
@@ -236,16 +234,11 @@ export class SubscriptionManager implements ISubscriptionSDK {
       };
     }
 
+    let result;
     try {
-      const result = await this.protocol.ping(peer);
-      if (result.failure) {
-        await this.handlePeerFailure(peerId);
-      } else {
-        this.peerFailures.delete(peerId.toString());
-      }
+      result = await this.protocol.ping(peer);
       return result;
     } catch (error) {
-      await this.handlePeerFailure(peerId);
       return {
         success: null,
         failure: {
@@ -253,20 +246,8 @@ export class SubscriptionManager implements ISubscriptionSDK {
           error: ProtocolError.GENERIC_FAIL
         }
       };
-    }
-  }
-
-  private async handlePeerFailure(peerId: PeerId): Promise<void> {
-    const failures = (this.peerFailures.get(peerId.toString()) || 0) + 1;
-    this.peerFailures.set(peerId.toString(), failures);
-
-    if (failures > this.maxPingFailures) {
-      try {
-        await this.renewAndSubscribePeer(peerId);
-        this.peerFailures.delete(peerId.toString());
-      } catch (error) {
-        log.error(`Failed to renew peer ${peerId.toString()}: ${error}.`);
-      }
+    } finally {
+      await this.reliabilityMonitor.handlePingResult(peerId, result);
     }
   }
 
@@ -289,7 +270,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
         0
       );
 
-      this.peerFailures.delete(peerId.toString());
+      this.reliabilityMonitor.peerFailures.delete(peerId.toString());
       this.reliabilityMonitor.missedMessagesByPeer.delete(peerId.toString());
       delete this.reliabilityMonitor.receivedMessagesHashes.nodes[
         peerId.toString()
