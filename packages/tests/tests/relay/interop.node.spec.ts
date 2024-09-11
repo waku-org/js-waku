@@ -1,7 +1,7 @@
 import type { PeerId } from "@libp2p/interface";
 import { DecodedMessage, waitForRemotePeer } from "@waku/core";
 import { Protocols, RelayNode } from "@waku/interfaces";
-import { createRelayNode } from "@waku/sdk/relay";
+import { createRelayNode } from "@waku/relay";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 

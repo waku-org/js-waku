@@ -38,8 +38,8 @@ export class SubscriptionManager implements ISubscriptionSDK {
 
   public constructor(
     private readonly pubsubTopic: PubsubTopic,
-    private protocol: FilterCore,
-    private getPeers: () => Peer[],
+    private readonly protocol: FilterCore,
+    private readonly getPeers: () => Peer[],
     private readonly renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>
   ) {
     this.pubsubTopic = pubsubTopic;
@@ -111,7 +111,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
     });
 
     if (options.keepAlive) {
-      this.startKeepAlivePings(options);
+      this.startKeepAlivePings(options.keepAlive);
     }
 
     return finalResult;
@@ -253,12 +253,11 @@ export class SubscriptionManager implements ISubscriptionSDK {
         }
       };
     } finally {
-      await this.reliabilityMonitor.handlePingResult(peerId, result);
+      void this.reliabilityMonitor.handlePingResult(peerId, result);
     }
   }
 
-  private startKeepAlivePings(options: SubscribeOptions): void {
-    const { keepAlive } = options;
+  private startKeepAlivePings(interval: number): void {
     if (this.keepAliveTimer) {
       log.info("Recurring pings already set up.");
       return;
@@ -268,7 +267,7 @@ export class SubscriptionManager implements ISubscriptionSDK {
       void this.ping().catch((error) => {
         log.error("Error in keep-alive ping cycle:", error);
       });
-    }, keepAlive) as unknown as number;
+    }, interval) as unknown as number;
   }
 
   private stopKeepAlivePings(): void {

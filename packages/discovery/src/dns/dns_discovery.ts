@@ -7,11 +7,13 @@ import {
 import { peerDiscoverySymbol as symbol } from "@libp2p/interface";
 import type { PeerInfo } from "@libp2p/interface";
 import type {
+  DiscoveryTrigger,
   DnsDiscOptions,
   DnsDiscoveryComponents,
   IEnr,
   NodeCapabilityCount
 } from "@waku/interfaces";
+import { DNS_DISCOVERY_TAG } from "@waku/interfaces";
 import { encodeRelayShard, Logger } from "@waku/utils";
 
 import {
@@ -29,7 +31,7 @@ const log = new Logger("peer-discovery-dns");
  */
 export class PeerDiscoveryDns
   extends TypedEventEmitter<PeerDiscoveryEvents>
-  implements PeerDiscovery
+  implements PeerDiscovery, DiscoveryTrigger
 {
   private nextPeer: (() => AsyncGenerator<IEnr>) | undefined;
   private _started: boolean;
@@ -56,8 +58,11 @@ export class PeerDiscoveryDns
     log.info("Starting peer discovery via dns");
 
     this._started = true;
+    await this.findPeers();
+  }
 
-    if (this.nextPeer === undefined) {
+  public async findPeers(): Promise<void> {
+    if (!this.nextPeer) {
       let { enrUrls } = this._options;
       if (!Array.isArray(enrUrls)) enrUrls = [enrUrls];
 
@@ -134,7 +139,7 @@ export class PeerDiscoveryDns
   }
 
   public get [Symbol.toStringTag](): string {
-    return "@waku/bootstrap";
+    return DNS_DISCOVERY_TAG;
   }
 }
 

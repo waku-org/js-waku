@@ -4,8 +4,8 @@ import {
   ProtocolCreateOptions,
   Protocols
 } from "@waku/interfaces";
+import { createRelayNode } from "@waku/relay";
 import { createLightNode, WakuNode } from "@waku/sdk";
-import { createRelayNode } from "@waku/sdk/relay";
 import {
   derivePubsubTopicsFromNetworkConfig,
   Logger,

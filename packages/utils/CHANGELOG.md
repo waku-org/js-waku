@@ -12,6 +12,46 @@
   * devDependencies
     * @waku/interfaces bumped from 0.0.16 to 0.0.17
 
+## [0.0.20](https://github.com/waku-org/js-waku/compare/utils-v0.0.19...utils-v0.0.20) (2024-09-05)
+
+
+### Bug Fixes
+
+* Temporarily remove peer cross dependencies ([#2123](https://github.com/waku-org/js-waku/issues/2123)) ([f4b6bb0](https://github.com/waku-org/js-waku/commit/f4b6bb04b38842745c946b427bb3518680df09dc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.26 to 0.0.27
+
+## [0.0.19](https://github.com/waku-org/js-waku/compare/utils-v0.0.18...utils-v0.0.19) (2024-08-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* deprecate named pubsub topics and use static/auto sharding  ([#2097](https://github.com/waku-org/js-waku/issues/2097))
+* **filter:** new simpler filter API  ([#2092](https://github.com/waku-org/js-waku/issues/2092))
+
+### Features
+
+* Deprecate named pubsub topics and use static/auto sharding  ([#2097](https://github.com/waku-org/js-waku/issues/2097)) ([5ce36c8](https://github.com/waku-org/js-waku/commit/5ce36c8f187f218df8af66e0643ab277e909b227))
+* **filter:** New simpler filter API  ([#2092](https://github.com/waku-org/js-waku/issues/2092)) ([fdd9dc4](https://github.com/waku-org/js-waku/commit/fdd9dc44a44c6680024fb51e9bbb5fe17190dcbd))
+* Fix peer renewal, change Filter keep alive ([#2065](https://github.com/waku-org/js-waku/issues/2065)) ([00635b7](https://github.com/waku-org/js-waku/commit/00635b7afe60c2ed739f2ccd1f07b2a6cc04f797))
+
+
+### Bug Fixes
+
+* Import of base_protocol and networkConfig type guard ([#2109](https://github.com/waku-org/js-waku/issues/2109)) ([8f56d90](https://github.com/waku-org/js-waku/commit/8f56d90cf127852e3dfe25127a5a578fa20524cb))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.25 to 0.0.26
+
 ## [0.0.18](https://github.com/waku-org/js-waku/compare/utils-v0.0.17...utils-v0.0.18) (2024-07-10)
 
 

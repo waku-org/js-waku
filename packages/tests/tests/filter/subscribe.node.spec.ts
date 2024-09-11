@@ -18,7 +18,8 @@ import {
   runMultipleNodes,
   ServiceNodesFleet,
   teardownNodesWithRedundancy,
-  TEST_STRING
+  TEST_STRING,
+  waitForConnections
 } from "../../src/index.js";
 
 import {
@@ -483,6 +484,52 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedContentTopic: newContentTopic,
         expectedMessageText: "M2",
         expectedPubsubTopic: TestPubsubTopic
+      });
+    });
+
+    it("Renews subscription after lossing a connection", async function () {
+      // setup check
+      expect(waku.libp2p.getConnections()).has.length(2);
+
+      await waku.filter.subscribe(
+        [TestDecoder],
+        serviceNodes.messageCollector.callback
+      );
+
+      await waku.lightPush.send(TestEncoder, messagePayload);
+
+      expect(await serviceNodes.messageCollector.waitForMessages(1)).to.eq(
+        true
+      );
+      serviceNodes.messageCollector.verifyReceivedMessage(0, {
+        expectedMessageText: messageText,
+        expectedContentTopic: TestContentTopic
+      });
+
+      await serviceNodes.confirmMessageLength(1);
+
+      // check renew logic
+      const nwakuPeers = await Promise.all(
+        serviceNodes.nodes.map((v) => v.getMultiaddrWithId())
+      );
+      await Promise.all(nwakuPeers.map((v) => waku.libp2p.hangUp(v)));
+
+      expect(waku.libp2p.getConnections().length).eq(0);
+
+      await Promise.all(nwakuPeers.map((v) => waku.libp2p.dial(v)));
+      await waitForConnections(nwakuPeers.length, waku);
+
+      const testText = "second try";
+      await waku.lightPush.send(TestEncoder, {
+        payload: utf8ToBytes(testText)
+      });
+
+      expect(await serviceNodes.messageCollector.waitForMessages(2)).to.eq(
+        true
+      );
+      serviceNodes.messageCollector.verifyReceivedMessage(1, {
+        expectedMessageText: testText,
+        expectedContentTopic: TestContentTopic
       });
     });
   });

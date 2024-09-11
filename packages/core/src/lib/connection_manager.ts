@@ -2,6 +2,8 @@ import type { Peer, PeerId, PeerInfo, PeerStore } from "@libp2p/interface";
 import { CustomEvent, TypedEventEmitter } from "@libp2p/interface";
 import {
   ConnectionManagerOptions,
+  DiscoveryTrigger,
+  DNS_DISCOVERY_TAG,
   EConnectionStateEvents,
   EPeersByDiscoveryEvents,
   IConnectionManager,
@@ -38,32 +40,15 @@ export class ConnectionManager
 
   private currentActiveParallelDialCount = 0;
   private pendingPeerDialQueue: Array<PeerId> = [];
-  private online: boolean = false;
+
+  private isP2PNetworkConnected: boolean = false;
 
   public isConnected(): boolean {
-    return this.online;
-  }
-
-  private toggleOnline(): void {
-    if (!this.online) {
-      this.online = true;
-      this.dispatchEvent(
-        new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
-          detail: this.online
-        })
-      );
+    if (globalThis?.navigator && !globalThis?.navigator?.onLine) {
+      return false;
     }
-  }
 
-  private toggleOffline(): void {
-    if (this.online && this.libp2p.getConnections().length == 0) {
-      this.online = false;
-      this.dispatchEvent(
-        new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
-          detail: this.online
-        })
-      );
-    }
+    return this.isP2PNetworkConnected;
   }
 
   public static create(
@@ -103,6 +88,7 @@ export class ConnectionManager
       "peer:discovery",
       this.onEventHandlers["peer:discovery"]
     );
+    this.stopNetworkStatusListener();
   }
 
   public async dropConnection(peerId: PeerId): Promise<void> {
@@ -193,7 +179,7 @@ export class ConnectionManager
       options: keepAliveOptions
     });
 
-    this.run()
+    this.startEventListeners()
       .then(() => log.info(`Connection Manager is now running`))
       .catch((error) =>
         log.error(`Unexpected error while running service`, error)
@@ -225,11 +211,12 @@ export class ConnectionManager
     }
   }
 
-  private async run(): Promise<void> {
-    // start event listeners
+  private async startEventListeners(): Promise<void> {
     this.startPeerDiscoveryListener();
     this.startPeerConnectionListener();
     this.startPeerDisconnectionListener();
+
+    this.startNetworkStatusListener();
   }
 
   private async dialPeer(peerId: PeerId): Promise<void> {
@@ -307,12 +294,36 @@ export class ConnectionManager
 
         this.dialErrorsForPeer.delete(peerId.toString());
         await this.libp2p.peerStore.delete(peerId);
+
+        // if it was last available peer - attempt DNS discovery
+        await this.attemptDnsDiscovery();
       } catch (error) {
         throw new Error(
           `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`
         );
       }
     }
+  }
+
+  private async attemptDnsDiscovery(): Promise<void> {
+    if (this.libp2p.getConnections().length > 0) return;
+    if ((await this.libp2p.peerStore.all()).length > 0) return;
+
+    log.info("Attempting to trigger DNS discovery.");
+
+    const dnsDiscovery = Object.values(this.libp2p.components.components).find(
+      (v: unknown) => {
+        if (v && v.toString) {
+          return v.toString().includes(DNS_DISCOVERY_TAG);
+        }
+
+        return false;
+      }
+    ) as DiscoveryTrigger;
+
+    if (!dnsDiscovery) return;
+
+    await dnsDiscovery.findPeers();
   }
 
   private processDialQueue(): void {
@@ -428,14 +439,18 @@ export class ConnectionManager
             )
           );
         }
-        this.toggleOnline();
+
+        this.setP2PNetworkConnected();
       })();
     },
     "peer:disconnect": (evt: CustomEvent<PeerId>): void => {
       void (async () => {
         this.keepAliveManager.stop(evt.detail);
-        this.toggleOffline();
+        this.setP2PNetworkDisconnected();
       })();
+    },
+    "browser:network": (): void => {
+      this.dispatchWakuConnectionEvent();
     }
   };
 
@@ -571,5 +586,60 @@ export class ConnectionManager
     const shardInfoBytes = peer.metadata.get("shardInfo");
     if (!shardInfoBytes) return undefined;
     return decodeRelayShard(shardInfoBytes);
+  }
+
+  private startNetworkStatusListener(): void {
+    try {
+      globalThis.addEventListener(
+        "online",
+        this.onEventHandlers["browser:network"]
+      );
+      globalThis.addEventListener(
+        "offline",
+        this.onEventHandlers["browser:network"]
+      );
+    } catch (err) {
+      log.error(`Failed to start network listener: ${err}`);
+    }
+  }
+
+  private stopNetworkStatusListener(): void {
+    try {
+      globalThis.removeEventListener(
+        "online",
+        this.onEventHandlers["browser:network"]
+      );
+      globalThis.removeEventListener(
+        "offline",
+        this.onEventHandlers["browser:network"]
+      );
+    } catch (err) {
+      log.error(`Failed to stop network listener: ${err}`);
+    }
+  }
+
+  private setP2PNetworkConnected(): void {
+    if (!this.isP2PNetworkConnected) {
+      this.isP2PNetworkConnected = true;
+      this.dispatchWakuConnectionEvent();
+    }
+  }
+
+  private setP2PNetworkDisconnected(): void {
+    if (
+      this.isP2PNetworkConnected &&
+      this.libp2p.getConnections().length === 0
+    ) {
+      this.isP2PNetworkConnected = false;
+      this.dispatchWakuConnectionEvent();
+    }
+  }
+
+  private dispatchWakuConnectionEvent(): void {
+    this.dispatchEvent(
+      new CustomEvent<boolean>(EConnectionStateEvents.CONNECTION_STATUS, {
+        detail: this.isConnected()
+      })
+    );
   }
 }

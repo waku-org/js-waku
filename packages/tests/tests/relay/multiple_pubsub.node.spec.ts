@@ -11,7 +11,7 @@ import {
   SingleShardInfo
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
-import { createRelayNode } from "@waku/sdk/relay";
+import { createRelayNode } from "@waku/relay";
 import {
   contentTopicToPubsubTopic,
   pubsubTopicToSingleShardInfo,

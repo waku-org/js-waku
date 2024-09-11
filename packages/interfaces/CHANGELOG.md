@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.27](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.26...interfaces-v0.0.27) (2024-09-05)
+
+
+### Bug Fixes
+
+* Improve node bootstrapping ([#2121](https://github.com/waku-org/js-waku/issues/2121)) ([0263cb8](https://github.com/waku-org/js-waku/commit/0263cb80c5d2bc61984b5357761236ba4f759036))
+
+## [0.0.26](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.25...interfaces-v0.0.26) (2024-08-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* **lightpush:** return new error messages ([#2115](https://github.com/waku-org/js-waku/issues/2115))
+* deprecate named pubsub topics and use static/auto sharding  ([#2097](https://github.com/waku-org/js-waku/issues/2097))
+* store v3 ([#2036](https://github.com/waku-org/js-waku/issues/2036))
+* **filter:** new simpler filter API  ([#2092](https://github.com/waku-org/js-waku/issues/2092))
+
+### Features
+
+* Deprecate named pubsub topics and use static/auto sharding  ([#2097](https://github.com/waku-org/js-waku/issues/2097)) ([5ce36c8](https://github.com/waku-org/js-waku/commit/5ce36c8f187f218df8af66e0643ab277e909b227))
+* **filter:** New simpler filter API  ([#2092](https://github.com/waku-org/js-waku/issues/2092)) ([fdd9dc4](https://github.com/waku-org/js-waku/commit/fdd9dc44a44c6680024fb51e9bbb5fe17190dcbd))
+* **lightpush:** Return new error messages ([#2115](https://github.com/waku-org/js-waku/issues/2115)) ([a022433](https://github.com/waku-org/js-waku/commit/a022433851e6e187679b8c40bb465b431854809b))
+* Node and protocols health ([#2080](https://github.com/waku-org/js-waku/issues/2080)) ([d464af3](https://github.com/waku-org/js-waku/commit/d464af3645d769034d6c6293607de5b00e904ae4))
+* Store v3 ([#2036](https://github.com/waku-org/js-waku/issues/2036)) ([86f730f](https://github.com/waku-org/js-waku/commit/86f730f9587e3688b79c8e846e5c005bb4d5fae4))
+* Validate messages for individual filter nodes & perform renewals ([#2057](https://github.com/waku-org/js-waku/issues/2057)) ([9b0f1e8](https://github.com/waku-org/js-waku/commit/9b0f1e855aa3a1f7b9aec3a4c726568d37595c28))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/proto bumped from ^0.0.7 to ^0.0.8
+
 ## [0.0.25](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.24...interfaces-v0.0.25) (2024-07-10)
 
 
