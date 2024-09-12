@@ -62,11 +62,9 @@ export class SubscriptionManager implements ISubscriptionSDK {
     options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<SDKProtocolResult> {
     this.reliabilityMonitor.setMaxMissedMessagesThreshold(
-      options.pingsBeforePeerRenewed
-    );
-    this.reliabilityMonitor.setMaxPingFailures(
       options.maxMissedMessagesThreshold
     );
+    this.reliabilityMonitor.setMaxPingFailures(options.pingsBeforePeerRenewed);
     this.keepAliveTimer = options.keepAlive || DEFAULT_KEEP_ALIVE;
 
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
