@@ -54,6 +54,18 @@ export class ReliabilityMonitorManager {
   }
 
   private constructor() {}
+
+  public static destroy(pubsubTopic: PubsubTopic): void {
+    this.receiverMonitors.delete(pubsubTopic);
+  }
+
+  public static destroyAll(): void {
+    for (const [pubsubTopic, monitor] of this.receiverMonitors) {
+      monitor.setMaxMissedMessagesThreshold(undefined);
+      monitor.setMaxPingFailures(undefined);
+      this.receiverMonitors.delete(pubsubTopic);
+    }
+  }
 }
 
 export class ReceiverReliabilityMonitor {
