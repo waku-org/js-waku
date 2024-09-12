@@ -123,7 +123,7 @@ export class ReceiverReliabilityMonitor {
     const failures = (this.peerFailures.get(peerId.toString()) || 0) + 1;
     this.peerFailures.set(peerId.toString(), failures);
 
-    if (failures > this.maxPingFailures) {
+    if (failures >= this.maxPingFailures) {
       try {
         await this.renewAndSubscribePeer(peerId);
         this.peerFailures.delete(peerId.toString());
