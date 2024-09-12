@@ -57,7 +57,6 @@ export class ReliabilityMonitorManager {
 }
 
 export class ReceiverReliabilityMonitor {
-  private receivedMessagesHashStr: string[] = [];
   private receivedMessagesHashes: ReceivedMessageHashes;
   private missedMessagesByPeer: Map<string, number> = new Map();
   private maxMissedMessagesThreshold = DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
@@ -146,6 +145,8 @@ export class ReceiverReliabilityMonitor {
       message as IProtoMessage
     );
 
+    const alreadyReceived =
+      this.receivedMessagesHashes.all.has(hashedMessageStr);
     this.receivedMessagesHashes.all.add(hashedMessageStr);
 
     if (peerIdStr) {
@@ -159,12 +160,7 @@ export class ReceiverReliabilityMonitor {
       this.receivedMessagesHashes.nodes[peerIdStr].add(hashedMessageStr);
     }
 
-    if (this.receivedMessagesHashStr.includes(hashedMessageStr)) {
-      return true;
-    } else {
-      this.receivedMessagesHashStr.push(hashedMessageStr);
-      return false;
-    }
+    return alreadyReceived;
   }
 
   private async checkAndRenewPeers(): Promise<void> {
