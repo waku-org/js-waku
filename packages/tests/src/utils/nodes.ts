@@ -12,11 +12,11 @@ import { derivePubsubTopicsFromNetworkConfig, isDefined } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
-import { NOISE_KEY_1 } from "../constants";
-import { ServiceNodesFleet } from "../lib";
-import { Args } from "../types";
+import { NOISE_KEY_1 } from "../constants.js";
+import { ServiceNodesFleet } from "../lib/index.js";
+import { Args } from "../types.js";
 
-import { waitForConnections } from "./waitForConnections";
+import { waitForConnections } from "./waitForConnections.js";
 
 export async function runMultipleNodes(
   context: Context,

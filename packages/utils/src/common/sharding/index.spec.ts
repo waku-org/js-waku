@@ -13,7 +13,7 @@ import {
   shardInfoToPubsubTopics,
   singleShardInfosToShardInfo,
   singleShardInfoToPubsubTopic
-} from ".";
+} from "./index.js";
 
 const testInvalidCases = (
   contentTopics: string[],

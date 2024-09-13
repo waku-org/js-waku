@@ -13,7 +13,7 @@ import {
   TEST_STRING,
   TEST_TIMESTAMPS
 } from "../../../src/index.js";
-import { runNodes } from "../../light-push/utils";
+import { runNodes } from "../../light-push/utils.js";
 import {
   messageText,
   TestContentTopic,

@@ -11,7 +11,7 @@ import {
   ServiceNode,
   tearDownNodes
 } from "../../../src/index.js";
-import { runNodes } from "../../light-push/utils";
+import { runNodes } from "../../light-push/utils.js";
 import {
   messagePayload,
   messageText,
