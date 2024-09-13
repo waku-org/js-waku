@@ -74,7 +74,17 @@
     "@typescript-eslint/await-thenable": "error",
     "@typescript-eslint/no-misused-promises": "error",
     "@typescript-eslint/no-explicit-any": "warn",
-    "id-match": ["error", "^(?!.*[pP]ubSub)"]
+    "id-match": ["error", "^(?!.*[pP]ubSub)"],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "always",
+        "tsx": "never"
+      }
+    ]
   },
   "overrides": [
     {

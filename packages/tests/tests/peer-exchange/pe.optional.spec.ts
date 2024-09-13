@@ -12,7 +12,7 @@ import {
 } from "@waku/utils";
 import { expect } from "chai";
 
-import { afterEachCustom, tearDownNodes } from "../../src";
+import { afterEachCustom, tearDownNodes } from "../../src/index.js";
 
 describe("Peer Exchange", () => {
   describe("Auto Discovery", function () {

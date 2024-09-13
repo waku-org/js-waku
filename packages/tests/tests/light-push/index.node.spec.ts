@@ -11,7 +11,7 @@ import {
   ServiceNodesFleet,
   teardownNodesWithRedundancy,
   TEST_STRING
-} from "../../src";
+} from "../../src/index.js";
 
 import {
   messagePayload,

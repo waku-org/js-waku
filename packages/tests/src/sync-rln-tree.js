@@ -2,8 +2,8 @@ import { exec } from "child_process";
 import { setTimeout } from "timers";
 import { promisify } from "util";
 
-import { SEPOLIA_RPC_URL } from "../dist/constants.js";
-import { ServiceNode } from "../dist/lib/service_node.js";
+import { SEPOLIA_RPC_URL } from "./constants.js";
+import { ServiceNode } from "./lib/index.js";
 
 const execAsync = promisify(exec);
 

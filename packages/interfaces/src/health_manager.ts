@@ -1,4 +1,4 @@
-import { Protocols } from "./protocols";
+import { Protocols } from "./protocols.js";
 
 export enum HealthStatus {
   Unhealthy = "Unhealthy",

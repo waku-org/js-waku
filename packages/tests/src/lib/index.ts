@@ -3,8 +3,8 @@ import { NetworkConfig } from "@waku/interfaces";
 import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
 import { expect } from "chai";
 
-import { DefaultTestPubsubTopic } from "../constants";
-import { Args, MessageRpcQuery, MessageRpcResponse } from "../types";
+import { DefaultTestPubsubTopic } from "../constants.js";
+import { Args, MessageRpcQuery, MessageRpcResponse } from "../types.js";
 import { delay, makeLogFileName } from "../utils/index.js";
 
 import { MessageCollector } from "./message_collector.js";

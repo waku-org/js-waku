@@ -1,7 +1,7 @@
 import { Logger } from "@waku/utils";
 import { Suite } from "mocha";
 
-import { MOCHA_HOOK_MAX_TIMEOUT } from "../constants";
+import { MOCHA_HOOK_MAX_TIMEOUT } from "../constants.js";
 const log = new Logger("test:mocha-hook");
 
 function withGracefulTimeout(

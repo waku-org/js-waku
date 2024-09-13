@@ -16,7 +16,7 @@ import {
   TestEncoder,
   TestShardInfo,
   validatePingError
-} from "./utils";
+} from "./utils.js";
 
 const runTests = (strictCheckNodes: boolean): void => {
   describe(`Waku Filter V2: Ping: Multiple Nodes: Strict Checking: ${strictCheckNodes}`, function () {
