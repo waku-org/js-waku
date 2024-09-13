@@ -13,7 +13,7 @@ import {
 } from "@waku/interfaces";
 import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
 
-import { BaseProtocolSDK } from "./base_protocol.js";
+import { BaseProtocolSDK } from "../base_protocol.js";
 
 const log = new Logger("sdk:light-push");
 

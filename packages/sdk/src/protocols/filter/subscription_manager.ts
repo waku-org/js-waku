@@ -20,11 +20,12 @@ import {
 import { WakuMessage } from "@waku/proto";
 import { groupByContentTopic, Logger } from "@waku/utils";
 
-import { DEFAULT_KEEP_ALIVE, DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
 import {
   ReceiverReliabilityMonitor,
   ReliabilityMonitorManager
-} from "./reliability_monitor.js";
+} from "../../reliability_monitor/receiver.js";
+
+import { DEFAULT_KEEP_ALIVE, DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
 
 const log = new Logger("sdk:filter:subscription_manager");
 
