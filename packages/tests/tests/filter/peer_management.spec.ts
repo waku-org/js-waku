@@ -187,9 +187,12 @@ describe("Waku Filter: Peer Management: E2E", function () {
     // One more failure should trigger renewal
     await subscription.ping(targetPeer.id);
 
+    // adds delay as renewal happens as an async operation in the bg
+    await delay(300);
+
     expect(
       waku.filter.connectedPeers.some((peer) => peer.id.equals(targetPeer.id))
-    ).to.be.false;
+    ).to.eq(false);
     expect(waku.filter.connectedPeers.length).to.equal(
       waku.filter.numPeersToUse
     );

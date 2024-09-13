@@ -74,6 +74,7 @@ export class ReceiverReliabilityMonitor {
   private maxMissedMessagesThreshold = DEFAULT_MAX_MISSED_MESSAGES_THRESHOLD;
   private peerFailures: Map<string, number> = new Map();
   private maxPingFailures: number = DEFAULT_MAX_PINGS;
+  private peerRenewalLocks: Set<PeerIdStr> = new Set();
 
   public constructor(
     private readonly pubsubTopic: PubsubTopic,
@@ -210,6 +211,13 @@ export class ReceiverReliabilityMonitor {
     peerId: PeerId
   ): Promise<Peer | undefined> {
     try {
+      if (this.peerRenewalLocks.has(peerId.toString())) {
+        log.info(`Peer ${peerId.toString()} is already being renewed.`);
+        return;
+      }
+
+      this.peerRenewalLocks.add(peerId.toString());
+
       const newPeer = await this.renewPeer(peerId);
       await this.protocolSubscribe(
         this.pubsubTopic,
@@ -228,6 +236,8 @@ export class ReceiverReliabilityMonitor {
     } catch (error) {
       log.warn(`Failed to renew peer ${peerId.toString()}: ${error}.`);
       return;
+    } finally {
+      this.peerRenewalLocks.delete(peerId.toString());
     }
   }
 
