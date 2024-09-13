@@ -196,7 +196,7 @@ export class WakuNode implements Waku {
   }
 
   public async stop(): Promise<void> {
-    ReliabilityMonitorManager.destroyAll();
+    ReliabilityMonitorManager.stopAll();
     this.connectionManager.stop();
     await this.libp2p.stop();
   }
