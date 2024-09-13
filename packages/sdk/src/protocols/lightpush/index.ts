@@ -13,12 +13,16 @@ import {
 } from "@waku/interfaces";
 import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
 
+import { ReliabilityMonitorManager } from "../../reliability_monitor/index.js";
+import { SenderReliabilityMonitor } from "../../reliability_monitor/sender.js";
 import { BaseProtocolSDK } from "../base_protocol.js";
 
 const log = new Logger("sdk:light-push");
 
 class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
   public readonly protocol: LightPushCore;
+
+  private readonly reliabilityMonitor: SenderReliabilityMonitor;
 
   public constructor(
     connectionManager: ConnectionManager,
@@ -31,6 +35,10 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
       {
         numPeersToUse: options?.numPeersToUse
       }
+    );
+
+    this.reliabilityMonitor = ReliabilityMonitorManager.createSenderMonitor(
+      this.renewPeer.bind(this)
     );
 
     this.protocol = this.core as LightPushCore;
@@ -89,16 +97,23 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
           successes.push(success);
         }
         if (failure) {
+          failures.push(failure);
           if (failure.peerId) {
-            try {
-              await this.renewPeer(failure.peerId);
-              log.info("Renewed peer", failure.peerId.toString());
-            } catch (error) {
-              log.error("Failed to renew peer", error);
+            const peer = this.connectedPeers.find((connectedPeer) =>
+              connectedPeer.id.equals(failure.peerId)
+            );
+            if (peer) {
+              log.info(`
+                Failed to send message to peer ${failure.peerId}.
+                Retrying the message with the same peer in the background.
+                If this fails, the peer will be renewed.
+                `);
+              void this.reliabilityMonitor.attemptRetriesOrRenew(
+                failure.peerId,
+                () => this.protocol.send(encoder, message, peer)
+              );
             }
           }
-
-          failures.push(failure);
         }
       } else {
         log.error("Failed unexpectedly while sending:", result.reason);

@@ -6,12 +6,14 @@ import {
 } from "@waku/interfaces";
 
 import { ReceiverReliabilityMonitor } from "./receiver.js";
+import { SenderReliabilityMonitor } from "./sender.js";
 
 export class ReliabilityMonitorManager {
   private static receiverMonitors: Map<
     PubsubTopic,
     ReceiverReliabilityMonitor
   > = new Map();
+  private static senderMonitor: SenderReliabilityMonitor | undefined;
 
   public static createReceiverMonitor(
     pubsubTopic: PubsubTopic,
@@ -39,17 +41,30 @@ export class ReliabilityMonitorManager {
     return monitor;
   }
 
-  private constructor() {}
-
-  public static destroy(pubsubTopic: PubsubTopic): void {
-    this.receiverMonitors.delete(pubsubTopic);
+  public static createSenderMonitor(
+    renewPeer: (peerId: PeerId) => Promise<Peer>
+  ): SenderReliabilityMonitor {
+    if (!ReliabilityMonitorManager.senderMonitor) {
+      ReliabilityMonitorManager.senderMonitor = new SenderReliabilityMonitor(
+        renewPeer
+      );
+    }
+    return ReliabilityMonitorManager.senderMonitor;
   }
 
-  public static destroyAll(): void {
+  private constructor() {}
+
+  public static stop(pubsubTopic: PubsubTopic): void {
+    this.receiverMonitors.delete(pubsubTopic);
+    this.senderMonitor = undefined;
+  }
+
+  public static stopAll(): void {
     for (const [pubsubTopic, monitor] of this.receiverMonitors) {
       monitor.setMaxMissedMessagesThreshold(undefined);
       monitor.setMaxPingFailures(undefined);
       this.receiverMonitors.delete(pubsubTopic);
+      this.senderMonitor = undefined;
     }
   }
 }
