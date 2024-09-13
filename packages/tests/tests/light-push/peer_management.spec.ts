@@ -90,9 +90,12 @@ describe("Waku Light Push: Peer Management: E2E", function () {
     // wait for reattempts to finish as they are async and not awaited
     await delay(500);
 
+    // doing -1 because the peer that was disconnected is not in the successes
     expect(response3.successes.length).to.be.equal(
       waku.lightPush.numPeersToUse - 1
     );
+    // and exists in failure instead
+    expect(response3.failures).to.have.length(1);
 
     expect(response3.successes).to.not.include(peerToDisconnect);
   });
