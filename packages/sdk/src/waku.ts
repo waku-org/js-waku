@@ -16,7 +16,8 @@ import type {
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { wakuFilter } from "./protocols/filter.js";
+import { wakuFilter } from "./protocols/filter/index.js";
+import { ReliabilityMonitorManager } from "./protocols/filter/reliability_monitor.js";
 import { wakuLightPush } from "./protocols/light_push.js";
 import { wakuStore } from "./protocols/store.js";
 
@@ -195,6 +196,7 @@ export class WakuNode implements Waku {
   }
 
   public async stop(): Promise<void> {
+    ReliabilityMonitorManager.destroyAll();
     this.connectionManager.stop();
     await this.libp2p.stop();
   }
