@@ -10,7 +10,7 @@ import {
 import { messageHash } from "@waku/message-hash";
 import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
 
-import { BaseProtocolSDK } from "./base_protocol.js";
+import { BaseProtocolSDK } from "../base_protocol.js";
 
 const DEFAULT_NUM_PEERS = 1;
 

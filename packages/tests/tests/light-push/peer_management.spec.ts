@@ -1,5 +1,6 @@
 import { LightNode } from "@waku/interfaces";
 import { createEncoder, utf8ToBytes } from "@waku/sdk";
+import { delay } from "@waku/utils";
 import { expect } from "chai";
 import { describe } from "mocha";
 
@@ -78,18 +79,24 @@ describe("Waku Light Push: Peer Management: E2E", function () {
     expect(response2.failures).to.have.length(1);
     expect(response2.failures?.[0].peerId).to.equal(peerToDisconnect);
 
-    // send another lightpush request -- renewal should have triggerred and new peer should be used instead of the disconnected one
+    // send another lightpush request
+    // reattempts to send should be triggerred
+    // then renewal should happen
+    // so one failure should exist
     const response3 = await waku.lightPush.send(encoder, {
       payload: utf8ToBytes("Hello_World")
     });
 
+    // wait for reattempts to finish as they are async and not awaited
+    await delay(500);
+
+    // doing -1 because the peer that was disconnected is not in the successes
     expect(response3.successes.length).to.be.equal(
-      waku.lightPush.numPeersToUse
+      waku.lightPush.numPeersToUse - 1
     );
+    // and exists in failure instead
+    expect(response3.failures).to.have.length(1);
 
     expect(response3.successes).to.not.include(peerToDisconnect);
-    if (response3.failures) {
-      expect(response3.failures.length).to.equal(0);
-    }
   });
 });
