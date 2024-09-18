@@ -253,11 +253,13 @@ export class SubscriptionManager implements ISubscription {
   }
 
   private startSubscriptionsMaintenance(interval: number): void {
+    log.info("Starting subscriptions maintenance");
     this.startKeepAlivePings(interval);
     this.startConnectionListener();
   }
 
   private stopSubscriptionsMaintenance(): void {
+    log.info("Stopping subscriptions maintenance");
     this.stopKeepAlivePings();
     this.stopConnectionListener();
   }
@@ -301,6 +303,7 @@ export class SubscriptionManager implements ISubscription {
     }
 
     this.keepAliveTimer = setInterval(() => {
+      log.info("Sending keep-alive ping");
       void this.ping()
         .then(() => log.info("Keep-alive ping successful"))
         .catch((error) => log.error("Error in keep-alive ping cycle:", error));
