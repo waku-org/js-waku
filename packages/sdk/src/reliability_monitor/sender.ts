@@ -11,7 +11,9 @@ export class SenderReliabilityMonitor {
   private readonly maxAttemptsBeforeRenewal =
     DEFAULT_MAX_ATTEMPTS_BEFORE_RENEWAL;
 
-  public constructor(private renewPeer: (peerId: PeerId) => Promise<Peer>) {}
+  public constructor(
+    private renewPeer: (peerId: PeerId) => Promise<Peer | undefined>
+  ) {}
 
   public async attemptRetriesOrRenew(
     peerId: PeerId,
@@ -42,13 +44,19 @@ export class SenderReliabilityMonitor {
     } else {
       try {
         const newPeer = await this.renewPeer(peerId);
-        log.info(
-          `Renewed peer ${peerId.toString()} to ${newPeer.id.toString()}`
-        );
+        if (newPeer) {
+          log.info(
+            `Renewed peer ${peerId.toString()} to ${newPeer.id.toString()}`
+          );
 
-        this.attempts.delete(peerIdStr);
-        this.attempts.set(newPeer.id.toString(), 0);
-        await protocolSend();
+          this.attempts.delete(peerIdStr);
+          this.attempts.set(newPeer.id.toString(), 0);
+          await protocolSend();
+        } else {
+          log.error(
+            `Failed to renew peer ${peerId.toString()}: New peer is undefined`
+          );
+        }
       } catch (error) {
         log.error(`Failed to renew peer ${peerId.toString()}: ${error}`);
       }

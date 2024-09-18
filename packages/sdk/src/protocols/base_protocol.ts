@@ -46,6 +46,9 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     const maintainPeersInterval =
       options?.maintainPeersInterval ?? DEFAULT_MAINTAIN_PEERS_INTERVAL;
 
+    this.log.info(
+      `Initializing BaseProtocolSDK with numPeersToUse: ${this.numPeersToUse}, maintainPeersInterval: ${maintainPeersInterval}ms`
+    );
     // void this.setupEventListeners();
     void this.startMaintainPeersInterval(maintainPeersInterval);
   }
@@ -59,17 +62,10 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * @param peerToDisconnect The peer to disconnect from.
    * @returns The new peer that was found and connected to.
    */
-  public async renewPeer(peerToDisconnect: PeerId): Promise<Peer> {
-    this.log.info(`Renewing peer ${peerToDisconnect}`);
+  public async renewPeer(peerToDisconnect: PeerId): Promise<Peer | undefined> {
+    this.log.info(`Attempting to renew peer ${peerToDisconnect}`);
 
       await this.connectionManager.dropConnection(peerToDisconnect);
-
-    const peer = (await this.findAndAddPeers(1))[0];
-    if (!peer) {
-      this.log.error(
-        "Failed to find a new peer to replace the disconnected one."
-      );
-    }
 
     const updatedPeers = this.peers.filter(
       (peer) => !peer.id.equals(peerToDisconnect)
@@ -80,9 +76,17 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       `Peer ${peerToDisconnect} disconnected and removed from the peer list`
     );
 
+    const newPeer = await this.findAndAddPeers(1);
+    if (newPeer.length === 0) {
+      this.log.error(
+        "Failed to find a new peer to replace the disconnected one"
+      );
+      return undefined;
+    }
+
     this.renewPeersLocker.lock(peerToDisconnect);
 
-    return peer;
+    return newPeer[0];
   }
 
   /**
@@ -93,9 +97,12 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       clearInterval(this.maintainPeersIntervalId);
       this.maintainPeersIntervalId = null;
       this.log.info("Maintain peers interval stopped");
+    } else {
+      this.log.debug("Maintain peers interval was not running");
     }
   }
 
+  //TODO: validate if adding event listeners for peer connect and disconnect is needed
   // private setupEventListeners(): void {
   //   this.core.addLibp2pEventListener(
   //     "peer:connect",
@@ -157,18 +164,26 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     }
 
     for (let attempts = 0; attempts < maxAttempts; attempts++) {
+      this.log.debug(
+        `Attempt ${attempts + 1}/${maxAttempts} to reach required number of peers`
+      );
       await this.maintainPeers();
 
       if (this.connectedPeers.length >= this.numPeersToUse) {
+        this.log.info(
+          `Required number of peers (${this.numPeersToUse}) reached`
+        );
         return true;
       }
 
       this.log.warn(
-        `Found only ${this.connectedPeers.length} peers, expected ${this.numPeersToUse}. Retrying...`
+        `Found only ${this.connectedPeers.length}/${this.numPeersToUse} required peers. Retrying...`
       );
     }
 
-    this.log.error("Failed to find required number of peers");
+    this.log.error(
+      `Failed to find required number of peers (${this.numPeersToUse}) after ${maxAttempts} attempts`
+    );
     return false;
   }
 
@@ -177,17 +192,18 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * @param interval The interval in milliseconds to maintain the peers.
    */
   private async startMaintainPeersInterval(interval: number): Promise<void> {
-    this.log.info("Starting maintain peers interval");
+    this.log.info(
+      `Starting maintain peers interval with ${interval}ms interval`
+    );
     try {
       // await this.maintainPeers();
       this.maintainPeersIntervalId = setInterval(() => {
+        this.log.debug("Running scheduled peer maintenance");
         this.maintainPeers().catch((error) => {
-          this.log.error("Error during maintain peers interval:", error);
+          this.log.error("Error during scheduled peer maintenance:", error);
         });
       }, interval);
-      this.log.info(
-        `Maintain peers interval started with interval ${interval}ms`
-      );
+      this.log.info("Maintain peers interval started successfully");
     } catch (error) {
       this.log.error("Error starting maintain peers interval:", error);
       throw error;
@@ -207,6 +223,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       });
 
     this.maintainPeersLock = true;
+    await this.confirmPeers();
     this.log.info(`Maintaining peers, current count: ${this.peers.length}`);
     try {
       await this.confirmPeers();
@@ -214,11 +231,34 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
 
       const numPeersToAdd = this.numPeersToUse - this.peers.size;
       if (numPeersToAdd > 0) {
+        this.log.info(`Attempting to add ${numPeersToAdd} peer(s)`);
         await this.peerManager.findAndAddPeers(numPeersToAdd);
       } else {
+        this.log.info(
+          `Attempting to remove ${Math.abs(numPeersToAdd)} excess peer(s)`
+        );
         await this.peerManager.removeExcessPeers(Math.abs(numPeersToAdd));
       }
     });
+  }
+
+  private async confirmPeers(): Promise<void> {
+    const connectedPeers = await this.core.connectedPeers();
+    const currentPeers = this.peers;
+    const peersToAdd = connectedPeers.filter(
+      (p) => !currentPeers.some((cp) => cp.id.equals(p.id))
+    );
+    const peersToRemove = currentPeers.filter(
+      (p) => !connectedPeers.some((cp) => cp.id.equals(p.id))
+    );
+
+    peersToAdd.forEach((p) => this.peers.push(p));
+    peersToRemove.forEach((p) => {
+      const index = this.peers.findIndex((cp) => cp.id.equals(p.id));
+      if (index !== -1) this.peers.splice(index, 1);
+    });
+
+    this.updatePeers(this.peers);
   }
 
   /**
