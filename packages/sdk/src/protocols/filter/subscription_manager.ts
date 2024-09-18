@@ -41,7 +41,9 @@ export class SubscriptionManager implements ISubscription {
     private readonly protocol: FilterCore,
     private readonly connectionManager: ConnectionManager,
     private readonly getPeers: () => Peer[],
-    private readonly renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>
+    private readonly renewPeer: (
+      peerToDisconnect: PeerId
+    ) => Promise<Peer | undefined>
   ) {
     this.pubsubTopic = pubsubTopic;
     this.subscriptionCallbacks = new Map();
@@ -299,9 +301,9 @@ export class SubscriptionManager implements ISubscription {
     }
 
     this.keepAliveTimer = setInterval(() => {
-      void this.ping().catch((error) => {
-        log.error("Error in keep-alive ping cycle:", error);
-      });
+      void this.ping()
+        .then(() => log.info("Keep-alive ping successful"))
+        .catch((error) => log.error("Error in keep-alive ping cycle:", error));
     }, interval) as unknown as number;
   }
 

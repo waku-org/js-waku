@@ -66,8 +66,11 @@ export class BaseProtocol implements IBaseProtocolCore {
   public async connectedPeers(): Promise<Peer[]> {
     const peers = await this.allPeers();
     return peers.filter((peer) => {
-      return (
-        this.components.connectionManager.getConnections(peer.id).length > 0
+      const connections = this.components.connectionManager.getConnections(
+        peer.id
+      );
+      return connections.some((c) =>
+        c.streams.some((s) => s.protocol === this.multicodec)
       );
     });
   }

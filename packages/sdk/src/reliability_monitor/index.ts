@@ -18,7 +18,7 @@ export class ReliabilityMonitorManager {
   public static createReceiverMonitor(
     pubsubTopic: PubsubTopic,
     getPeers: () => Peer[],
-    renewPeer: (peerId: PeerId) => Promise<Peer>,
+    renewPeer: (peerId: PeerId) => Promise<Peer | undefined>,
     getContentTopics: () => ContentTopic[],
     protocolSubscribe: (
       pubsubTopic: PubsubTopic,
@@ -42,7 +42,7 @@ export class ReliabilityMonitorManager {
   }
 
   public static createSenderMonitor(
-    renewPeer: (peerId: PeerId) => Promise<Peer>
+    renewPeer: (peerId: PeerId) => Promise<Peer | undefined>
   ): SenderReliabilityMonitor {
     if (!ReliabilityMonitorManager.senderMonitor) {
       ReliabilityMonitorManager.senderMonitor = new SenderReliabilityMonitor(

@@ -56,13 +56,8 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * @param peerToDisconnect The peer to disconnect from.
    * @returns The new peer that was found and connected to.
    */
-  public async renewPeer(peerToDisconnect: PeerId): Promise<Peer> {
+  public async renewPeer(peerToDisconnect: PeerId): Promise<Peer | undefined> {
     this.log.info(`Renewing peer ${peerToDisconnect}`);
-
-    const peer = (await this.findAndAddPeers(1))[0];
-    if (!peer) {
-      throw Error("Failed to find a new peer to replace the disconnected one.");
-    }
 
     const updatedPeers = this.peers.filter(
       (peer) => !peer.id.equals(peerToDisconnect)
@@ -74,9 +69,17 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       `Peer ${peerToDisconnect} disconnected and removed from the peer list`
     );
 
+    const newPeer = await this.findAndAddPeers(1);
+    if (newPeer.length === 0) {
+      this.log.error(
+        "Failed to find a new peer to replace the disconnected one."
+      );
+      return undefined;
+    }
+
     this.renewPeersLocker.lock(peerToDisconnect);
 
-    return peer;
+    return newPeer[0];
   }
 
   /**
@@ -171,6 +174,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     }
 
     this.maintainPeersLock = true;
+    await this.confirmPeers();
     this.log.info(`Maintaining peers, current count: ${this.peers.length}`);
     try {
       const numPeersToAdd = this.numPeersToUse - this.peers.length;
@@ -185,6 +189,25 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       this.maintainPeersLock = false;
     }
     return true;
+  }
+
+  private async confirmPeers(): Promise<void> {
+    const connectedPeers = await this.core.connectedPeers();
+    const currentPeers = this.peers;
+    const peersToAdd = connectedPeers.filter(
+      (p) => !currentPeers.some((cp) => cp.id.equals(p.id))
+    );
+    const peersToRemove = currentPeers.filter(
+      (p) => !connectedPeers.some((cp) => cp.id.equals(p.id))
+    );
+
+    peersToAdd.forEach((p) => this.peers.push(p));
+    peersToRemove.forEach((p) => {
+      const index = this.peers.findIndex((cp) => cp.id.equals(p.id));
+      if (index !== -1) this.peers.splice(index, 1);
+    });
+
+    this.updatePeers(this.peers);
   }
 
   /**
