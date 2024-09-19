@@ -1,7 +1,8 @@
+import { generateKeyPair } from "@libp2p/crypto/keys";
 import { TypedEventEmitter } from "@libp2p/interface";
 import tests from "@libp2p/interface-compliance-tests/peer-discovery";
 import { prefixLogger } from "@libp2p/logger";
-import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
+import { peerIdFromPrivateKey } from "@libp2p/peer-id";
 import { PersistentPeerStore } from "@libp2p/peer-store";
 import {
   DnsNodeDiscovery,
@@ -22,11 +23,13 @@ describe("DNS Discovery: Compliance Test", function () {
   this.timeout(10000);
   tests({
     async setup() {
+      const privateKey = await generateKeyPair("secp256k1");
+      const peerId = peerIdFromPrivateKey(privateKey);
       // create libp2p mock peerStore
       const components = {
         peerStore: new PersistentPeerStore({
           events: new TypedEventEmitter(),
-          peerId: await createSecp256k1PeerId(),
+          peerId,
           datastore: new MemoryDatastore(),
           logger: prefixLogger("dns-peer-discovery.spec.ts")
         })

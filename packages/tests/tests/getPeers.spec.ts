@@ -1,5 +1,6 @@
+import { generateKeyPair } from "@libp2p/crypto/keys";
 import type { Connection, Peer, PeerStore } from "@libp2p/interface";
-import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
+import { peerIdFromPrivateKey } from "@libp2p/peer-id";
 import { LightPushCodec } from "@waku/core";
 import {
   ContentTopicInfo,
@@ -468,14 +469,14 @@ describe("getPeers", function () {
       differentCodecPeerId,
       anotherDifferentCodecPeerId
     ] = await Promise.all([
-      createSecp256k1PeerId(),
-      createSecp256k1PeerId(),
-      createSecp256k1PeerId(),
-      createSecp256k1PeerId(),
-      createSecp256k1PeerId(),
-      createSecp256k1PeerId(),
-      createSecp256k1PeerId(),
-      createSecp256k1PeerId()
+      generateKeyPair("secp256k1").then(peerIdFromPrivateKey),
+      generateKeyPair("secp256k1").then(peerIdFromPrivateKey),
+      generateKeyPair("secp256k1").then(peerIdFromPrivateKey),
+      generateKeyPair("secp256k1").then(peerIdFromPrivateKey),
+      generateKeyPair("secp256k1").then(peerIdFromPrivateKey),
+      generateKeyPair("secp256k1").then(peerIdFromPrivateKey),
+      generateKeyPair("secp256k1").then(peerIdFromPrivateKey),
+      generateKeyPair("secp256k1").then(peerIdFromPrivateKey)
     ]);
 
     lowPingBootstrapPeer = {
