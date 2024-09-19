@@ -37,6 +37,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       wakuMessage: WakuMessage,
       peerIdStr: string
     ) => Promise<void>,
+    private handleError: (error: Error) => Promise<void>,
     public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
@@ -301,8 +302,18 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
         () => {
           log.info("Receiving pipe closed.");
         },
-        (e) => {
-          log.error("Error with receiving pipe", e);
+        async (e) => {
+          log.error(
+            "Error with receiving pipe",
+            e,
+            " -- ",
+            "on peer ",
+            connection.remotePeer.toString(),
+            " -- ",
+            "stream ",
+            stream
+          );
+          await this.handleError(e);
         }
       );
     } catch (e) {
