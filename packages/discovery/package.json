@@ -63,7 +63,6 @@
   },
   "devDependencies": {
     "@libp2p/peer-id": "5.0.1",
-    "@libp2p/peer-id-factory": "^4.2.4",
     "@multiformats/multiaddr": "^12.3.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
