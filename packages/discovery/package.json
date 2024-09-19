@@ -62,8 +62,8 @@
     "uint8arrays": "^5.0.1"
   },
   "devDependencies": {
-    "@libp2p/peer-id": "^4.2.1",
-    "@libp2p/peer-id-factory": "^4.2.1",
+    "@libp2p/peer-id": "5.0.1",
+    "@libp2p/peer-id-factory": "^4.2.4",
     "@multiformats/multiaddr": "^12.3.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
@@ -81,7 +81,7 @@
     "sinon": "^18.0.0"
   },
   "peerDependencies": {
-    "@libp2p/interface": "^1.6.3"
+    "@libp2p/interface": "2.0.1"
   },
   "peerDependenciesMeta": {
     "@libp2p/interface": {
