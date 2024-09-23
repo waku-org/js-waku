@@ -1,5 +1,5 @@
 import type { Libp2p } from "@libp2p/interface";
-import type { Peer, PeerStore, Stream } from "@libp2p/interface";
+import type { Peer, Stream } from "@libp2p/interface";
 import type {
   IBaseProtocolCore,
   Libp2pComponents,
@@ -8,7 +8,6 @@ import type {
 import { Logger, pubsubTopicsToShardInfo } from "@waku/utils";
 import {
   getConnectedPeersForProtocolAndShard,
-  getPeersForProtocol,
   sortPeersByLatency
 } from "@waku/utils/libp2p";
 
@@ -50,30 +49,27 @@ export class BaseProtocol implements IBaseProtocolCore {
     return this.streamManager.getStream(peer);
   }
 
-  public get peerStore(): PeerStore {
-    return this.components.peerStore;
-  }
-
+  //TODO: move to SDK
   /**
    * Returns known peers from the address book (`libp2p.peerStore`) that support
    * the class protocol. Waku may or may not be currently connected to these
    * peers.
    */
-  public async allPeers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.peerStore, [this.multicodec]);
-  }
+  // public async allPeers(): Promise<Peer[]> {
+  //   return getPeersForProtocol(this.peerStore, [this.multicodec]);
+  // }
 
-  public async connectedPeers(): Promise<Peer[]> {
-    const peers = await this.allPeers();
-    return peers.filter((peer) => {
-      const connections = this.components.connectionManager.getConnections(
-        peer.id
-      );
-      return connections.some((c) =>
-        c.streams.some((s) => s.protocol === this.multicodec)
-      );
-    });
-  }
+  // public async connectedPeers(): Promise<Peer[]> {
+  //   const peers = await this.allPeers();
+  //   return peers.filter((peer) => {
+  //     const connections = this.components.connectionManager.getConnections(
+  //       peer.id
+  //     );
+  //     return connections.some((c) =>
+  //       c.streams.some((s) => s.protocol === this.multicodec)
+  //     );
+  //   });
+  // }
 
   /**
    * Retrieves a list of connected peers that support the protocol. The list is sorted by latency.
@@ -99,7 +95,7 @@ export class BaseProtocol implements IBaseProtocolCore {
     const connectedPeersForProtocolAndShard =
       await getConnectedPeersForProtocolAndShard(
         this.components.connectionManager.getConnections(),
-        this.peerStore,
+        this.components.peerStore,
         [this.multicodec],
         pubsubTopicsToShardInfo(this.pubsubTopics)
       );
@@ -113,7 +109,7 @@ export class BaseProtocol implements IBaseProtocolCore {
 
     // Sort the peers by latency
     const sortedFilteredPeers = await sortPeersByLatency(
-      this.peerStore,
+      this.components.peerStore,
       filteredPeers
     );
 
