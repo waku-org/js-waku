@@ -1,5 +1,5 @@
 import type { Libp2p } from "@libp2p/interface";
-import type { Peer, PeerStore, Stream } from "@libp2p/interface";
+import type { Peer, Stream } from "@libp2p/interface";
 import type {
   IBaseProtocolCore,
   Libp2pComponents,
@@ -46,18 +46,15 @@ export class BaseProtocol implements IBaseProtocolCore {
     return this.streamManager.getStream(peer);
   }
 
-  public get peerStore(): PeerStore {
-    return this.components.peerStore;
-  }
-
+  //TODO: move to SDK
   /**
    * Returns known peers from the address book (`libp2p.peerStore`) that support
    * the class protocol. Waku may or may not be currently connected to these
    * peers.
    */
-  public async allPeers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.peerStore, [this.multicodec]);
-  }
+  // public async allPeers(): Promise<Peer[]> {
+  //   return getPeersForProtocol(this.peerStore, [this.multicodec]);
+  // }
 
   public async connectedPeers(withOpenStreams = false): Promise<Peer[]> {
     const peers = await this.allPeers();
@@ -91,7 +88,7 @@ export class BaseProtocol implements IBaseProtocolCore {
     const connectedPeersForProtocolAndShard =
       await getConnectedPeersForProtocolAndShard(
         this.components.connectionManager.getConnections(),
-        this.peerStore,
+        this.components.peerStore,
         [this.multicodec],
         pubsubTopicsToShardInfo(this.pubsubTopics)
       );
@@ -105,7 +102,7 @@ export class BaseProtocol implements IBaseProtocolCore {
 
     // Sort the peers by latency
     const sortedFilteredPeers = await sortPeersByLatency(
-      this.peerStore,
+      this.components.peerStore,
       filteredPeers
     );
 

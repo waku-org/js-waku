@@ -1,6 +1,6 @@
 import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
-import type { Peer, PeerStore } from "@libp2p/interface";
+import type { Peer } from "@libp2p/interface";
 
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";

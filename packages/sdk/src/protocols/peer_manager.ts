@@ -1,11 +1,14 @@
 import { Peer, PeerId } from "@libp2p/interface";
-import { ConnectionManager } from "@waku/core";
+import { ConnectionManager, getHealthManager } from "@waku/core";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
+import { IHealthManager } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { Mutex } from "async-mutex";
 
 export class PeerManager {
   private peers: Map<string, Peer> = new Map();
+  private healthManager: IHealthManager;
+
   private readMutex = new Mutex();
   private writeMutex = new Mutex();
   private writeLockHolder: string | null = null;
@@ -14,7 +17,10 @@ export class PeerManager {
     private readonly connectionManager: ConnectionManager,
     private readonly core: BaseProtocol,
     private readonly log: Logger
-  ) {}
+  ) {
+    this.healthManager = getHealthManager();
+    this.healthManager.updateProtocolHealth(this.core.multicodec, 0);
+  }
 
   public getWriteLockHolder(): string | null {
     return this.writeLockHolder;
@@ -30,6 +36,10 @@ export class PeerManager {
       await this.connectionManager.attemptDial(peer.id);
       this.peers.set(peer.id.toString(), peer);
       this.log.info(`Added and dialed peer: ${peer.id.toString()}`);
+      this.healthManager.updateProtocolHealth(
+        this.core.multicodec,
+        this.peers.size
+      );
       this.writeLockHolder = null;
     });
   }
@@ -39,6 +49,10 @@ export class PeerManager {
       this.writeLockHolder = `removePeer: ${peerId.toString()}`;
       this.peers.delete(peerId.toString());
       this.log.info(`Removed peer: ${peerId.toString()}`);
+      this.healthManager.updateProtocolHealth(
+        this.core.multicodec,
+        this.peers.size
+      );
       this.writeLockHolder = null;
     });
   }

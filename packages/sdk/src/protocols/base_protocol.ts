@@ -14,7 +14,6 @@ interface Options {
   numPeersToUse?: number;
   maintainPeersInterval?: number;
 }
-///TODO: update HealthManager
 
 const DEFAULT_NUM_PEERS_TO_USE = 2;
 const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
