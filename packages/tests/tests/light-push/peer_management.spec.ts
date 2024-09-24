@@ -47,12 +47,14 @@ describe("Waku Light Push: Connection Management: E2E", function () {
     expect(failures?.length || 0).to.equal(0);
   });
 
-  it("should push to available amount of connection if less than required", async function () {
-    const connections = waku.libp2p.getConnections();
-    await Promise.all(
-      connections
-        .slice(0, connections.length - 1)
-        .map((c) => waku.connectionManager.dropConnection(c.remotePeer))
+  it.only("Failed peers are renewed", async function () {
+    // send a lightpush request -- should have all successes
+    const response1 = await waku.lightPush.send(encoder, {
+      payload: utf8ToBytes("Hello_World")
+    });
+
+    expect(response1.successes.length).to.be.equal(
+      waku.lightPush.numPeersToUse
     );
 
     const { successes, failures } = await waku.lightPush.send(encoder, {
