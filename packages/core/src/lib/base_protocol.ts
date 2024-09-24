@@ -8,6 +8,7 @@ import type {
 import { Logger, pubsubTopicsToShardInfo } from "@waku/utils";
 import {
   getConnectedPeersForProtocolAndShard,
+  getPeersForProtocol,
   sortPeersByLatency
 } from "@waku/utils/libp2p";
 
@@ -25,7 +26,7 @@ export class BaseProtocol implements IBaseProtocolCore {
 
   protected constructor(
     public multicodec: string,
-    private components: Libp2pComponents,
+    protected components: Libp2pComponents,
     private log: Logger,
     public readonly pubsubTopics: PubsubTopic[]
   ) {
@@ -55,21 +56,21 @@ export class BaseProtocol implements IBaseProtocolCore {
    * the class protocol. Waku may or may not be currently connected to these
    * peers.
    */
-  // public async allPeers(): Promise<Peer[]> {
-  //   return getPeersForProtocol(this.peerStore, [this.multicodec]);
-  // }
+  public async allPeers(): Promise<Peer[]> {
+    return getPeersForProtocol(this.components.peerStore, [this.multicodec]);
+  }
 
-  // public async connectedPeers(): Promise<Peer[]> {
-  //   const peers = await this.allPeers();
-  //   return peers.filter((peer) => {
-  //     const connections = this.components.connectionManager.getConnections(
-  //       peer.id
-  //     );
-  //     return connections.some((c) =>
-  //       c.streams.some((s) => s.protocol === this.multicodec)
-  //     );
-  //   });
-  // }
+  public async connectedPeers(): Promise<Peer[]> {
+    const peers = await this.allPeers();
+    return peers.filter((peer) => {
+      const connections = this.components.connectionManager.getConnections(
+        peer.id
+      );
+      return connections.some((c) =>
+        c.streams.some((s) => s.protocol === this.multicodec)
+      );
+    });
+  }
 
   /**
    * Retrieves a list of connected peers that support the protocol. The list is sorted by latency.
