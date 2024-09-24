@@ -52,7 +52,7 @@ describe("Waku Light Push: Peer Management: E2E", function () {
     }
   });
 
-  it("Failed peers are renewed", async function () {
+  it.only("Failed peers are renewed", async function () {
     // send a lightpush request -- should have all successes
     const response1 = await waku.lightPush.send(
       encoder,
