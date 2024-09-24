@@ -5,12 +5,8 @@ import type {
   Libp2pComponents,
   PubsubTopic
 } from "@waku/interfaces";
-import { Logger, pubsubTopicsToShardInfo } from "@waku/utils";
-import {
-  getConnectedPeersForProtocolAndShard,
-  getPeersForProtocol,
-  sortPeersByLatency
-} from "@waku/utils/libp2p";
+import { Logger } from "@waku/utils";
+import { getPeersForProtocol, sortPeersByLatency } from "@waku/utils/libp2p";
 
 import { filterPeersByDiscovery } from "./filterPeers.js";
 import { StreamManager } from "./stream_manager/index.js";
@@ -77,9 +73,8 @@ export class BaseProtocol implements IBaseProtocolCore {
    *
    * @param numPeers - The total number of peers to retrieve. If 0, all peers are returned.
    * @param maxBootstrapPeers - The maximum number of bootstrap peers to retrieve.
-
-  * @returns A list of peers that support the protocol sorted by latency.
-  */
+   * @returns A list of peers that support the protocol sorted by latency. By default, returns all peers available, including bootstrap.
+   */
   public async getPeers(
     {
       numPeers,
@@ -88,22 +83,16 @@ export class BaseProtocol implements IBaseProtocolCore {
       numPeers: number;
       maxBootstrapPeers: number;
     } = {
-      maxBootstrapPeers: 1,
+      maxBootstrapPeers: 0,
       numPeers: 0
     }
   ): Promise<Peer[]> {
     // Retrieve all connected peers that support the protocol & shard (if configured)
-    const connectedPeersForProtocolAndShard =
-      await getConnectedPeersForProtocolAndShard(
-        this.components.connectionManager.getConnections(),
-        this.components.peerStore,
-        [this.multicodec],
-        pubsubTopicsToShardInfo(this.pubsubTopics)
-      );
+    const allAvailableConnectedPeers = await this.connectedPeers();
 
     // Filter the peers based on discovery & number of peers requested
     const filteredPeers = filterPeersByDiscovery(
-      connectedPeersForProtocolAndShard,
+      allAvailableConnectedPeers,
       numPeers,
       maxBootstrapPeers
     );

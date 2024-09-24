@@ -1,38 +1,27 @@
 import type { Peer, PeerId } from "@libp2p/interface";
-import { ConnectionManager, getHealthManager } from "@waku/core";
+import { ConnectionManager } from "@waku/core";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
-import {
-  IBaseProtocolSDK,
-  IHealthManager,
-  PeerIdStr,
-  ProtocolUseOptions
-} from "@waku/interfaces";
-import { delay, Logger } from "@waku/utils";
-import { Mutex } from "async-mutex";
+import { IBaseProtocolSDK, ProtocolUseOptions } from "@waku/interfaces";
+import { Logger } from "@waku/utils";
+
+import { PeerManager } from "./peer_manager.js";
 
 interface Options {
   numPeersToUse?: number;
   maintainPeersInterval?: number;
 }
+///TODO: update HealthManager
 
-const RENEW_TIME_LOCK_DURATION = 30 * 1000;
-export const DEFAULT_NUM_PEERS_TO_USE = 2;
+const DEFAULT_NUM_PEERS_TO_USE = 2;
 const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 
 export class BaseProtocolSDK implements IBaseProtocolSDK {
-  protected healthManager: IHealthManager;
+  private peerManager: PeerManager;
   public readonly numPeersToUse: number;
-  private peers: Map<PeerIdStr, Peer> = new Map();
   private maintainPeersIntervalId: ReturnType<
     typeof window.setInterval
   > | null = null;
   private log: Logger;
-
-  private readonly renewPeersLocker = new RenewPeerLocker(
-    RENEW_TIME_LOCK_DURATION
-  );
-
-  private peersMutex = new Mutex();
 
   public constructor(
     protected core: BaseProtocol,
@@ -41,7 +30,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   ) {
     this.log = new Logger(`sdk:${core.multicodec}`);
 
-    this.healthManager = getHealthManager();
+    this.peerManager = new PeerManager(connectionManager, core, this.log);
 
     this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
     const maintainPeersInterval =
@@ -52,7 +41,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   }
 
   public get connectedPeers(): Peer[] {
-    return Array.from(this.peers.values());
+    return this.peerManager.getPeers();
   }
 
   /**
@@ -61,30 +50,20 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * @returns The new peer that was found and connected to.
    */
   public async renewPeer(peerToDisconnect: PeerId): Promise<Peer | undefined> {
-    return this.peersMutex.runExclusive(async () => {
-      this.log.info(`Renewing peer ${peerToDisconnect}`);
+    this.log.info(`Renewing peer ${peerToDisconnect}`);
 
-      await this.connectionManager.dropConnection(peerToDisconnect);
+    const success = await this.peerManager.disconnectPeer(peerToDisconnect);
+    if (!success) return undefined;
 
-      this.peers.delete(peerToDisconnect.toString());
-      this.updatePeers(new Map(this.peers));
-
-      this.log.info(
-        `Peer ${peerToDisconnect} disconnected and removed from the peer list`
+    const newPeer = await this.peerManager.findAndAddPeers(1);
+    if (newPeer.length === 0) {
+      this.log.error(
+        "Failed to find a new peer to replace the disconnected one."
       );
+      return undefined;
+    }
 
-      const newPeer = await this.findAndAddPeers(1);
-      if (newPeer.length === 0) {
-        this.log.error(
-          "Failed to find a new peer to replace the disconnected one."
-        );
-        return undefined;
-      }
-
-      this.renewPeersLocker.lock(peerToDisconnect);
-
-      return newPeer[0];
-    });
+    return newPeer[0];
   }
 
   /**
@@ -101,11 +80,11 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   // private setupEventListeners(): void {
   //   this.core.addLibp2pEventListener(
   //     "peer:connect",
-  //     () => void this.confirmPeers()
+  //     () => void this.maintainPeers()
   //   );
   //   this.core.addLibp2pEventListener(
   //     "peer:disconnect",
-  //     () => void this.confirmPeers()
+  //     () => void this.maintainPeers()
   //   );
   // }
 
@@ -123,57 +102,38 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    * @param options.maxAttempts Optional maximum number of attempts for exponential backoff (default: 3)
    * @param options.maxDelay Optional maximum delay in milliseconds for exponential backoff (default: 100)
    */
-  protected hasPeers = async (
+  protected async hasPeers(
     options: Partial<ProtocolUseOptions> = {}
-  ): Promise<boolean> => {
+  ): Promise<boolean> {
     const {
       autoRetry = false,
       forceUseAllPeers = false,
-      initialDelay = 10,
-      maxAttempts = 3,
-      maxDelay = 100
+      maxAttempts = 3
     } = options;
 
-    let needsMaintenance: boolean;
-    let currentPeerCount: number;
-
-    const release = await this.peersMutex.acquire();
-    try {
-      currentPeerCount = this.connectedPeers.length;
-      needsMaintenance = forceUseAllPeers || currentPeerCount === 0;
-    } finally {
-      release();
+    if (!forceUseAllPeers && this.connectedPeers.length > 0) {
+      return true;
     }
 
-    if (!needsMaintenance) return true;
-
-    let attempts = 0;
-    while (attempts < maxAttempts) {
-      attempts++;
-      if (await this.maintainPeers()) {
-        const finalRelease = await this.peersMutex.acquire();
-        try {
-          if (this.peers.size < this.numPeersToUse) {
-            this.log.warn(
-              `Found only ${this.peers.size} peers, expected ${this.numPeersToUse}`
-            );
-          }
-          return true;
-        } finally {
-          finalRelease();
+    for (let attempts = 0; attempts < maxAttempts; attempts++) {
+      const success = await this.maintainPeers();
+      if (success) {
+        if (this.connectedPeers.length < this.numPeersToUse) {
+          this.log.warn(
+            `Found only ${this.connectedPeers.length} peers, expected ${this.numPeersToUse}`
+          );
         }
+        return true;
       }
-      if (!autoRetry) return false;
-      const delayMs = Math.min(
-        initialDelay * Math.pow(2, attempts - 1),
-        maxDelay
-      );
-      await delay(delayMs);
+      if (!autoRetry) {
+        return false;
+      }
+      //TODO: handle autoRetry
     }
 
     this.log.error("Failed to find peers to send message to");
     return false;
-  };
+  }
 
   /**
    * Starts an interval to maintain the peers list to `numPeersToUse`.
@@ -182,7 +142,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   private async startMaintainPeersInterval(interval: number): Promise<void> {
     this.log.info("Starting maintain peers interval");
     try {
-      await this.maintainPeers();
+      // await this.maintainPeers();
       this.maintainPeersIntervalId = setInterval(() => {
         this.maintainPeers().catch((error) => {
           this.log.error("Error during maintain peers interval:", error);
@@ -202,169 +162,30 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
    */
   private async maintainPeers(): Promise<boolean> {
     try {
-      await this.confirmPeers();
+      const currentPeerCount = await this.peerManager.getPeerCount();
+      const numPeersToAdd = this.numPeersToUse - currentPeerCount;
 
-      const numPeersToAdd = await this.peersMutex.runExclusive(() => {
-        this.log.info(`Maintaining peers, current count: ${this.peers.size}`);
-        return this.numPeersToUse - this.peers.size;
-      });
+      if (numPeersToAdd === 0) {
+        this.log.info("No maintenance required, peer count is sufficient");
+        return true;
+      }
+
+      this.log.info(`Maintaining peers, current count: ${currentPeerCount}`);
 
       if (numPeersToAdd > 0) {
-        await this.findAndAddPeers(numPeersToAdd);
+        await this.peerManager.findAndAddPeers(numPeersToAdd);
+      } else {
+        await this.peerManager.removeExcessPeers(Math.abs(numPeersToAdd));
       }
 
-      if (numPeersToAdd < 0) {
-        this.log.warn(`
-          Peer maintenance completed, but there are more than ${this.numPeersToUse} peers.
-          This should not happen.
-        `);
-      }
-
-      await this.peersMutex.runExclusive(() => {
-        this.log.info(
-          `Peer maintenance completed, current count: ${this.peers.size}`
-        );
-        this.renewPeersLocker.cleanUnlocked();
-      });
-
-      return true;
+      const finalPeerCount = await this.peerManager.getPeerCount();
+      this.log.info(
+        `Peer maintenance completed, current count: ${finalPeerCount}`
+      );
+      return finalPeerCount >= this.numPeersToUse;
     } catch (error) {
-      this.log.error("Error during peer maintenance", error);
+      this.log.error("Error during peer maintenance", { error });
       return false;
     }
-  }
-
-  private async confirmPeers(): Promise<void> {
-    const connectedPeers = await this.core.connectedPeers();
-    const currentPeerIds = new Set(this.peers.keys());
-
-    // Peers to add (connected but not in our list)
-    const peersToAdd = connectedPeers.filter(
-      (p) => !currentPeerIds.has(p.id.toString())
-    );
-
-    // Peers to remove (in our list but not connected)
-    const peersToRemove = Array.from(this.peers.values()).filter(
-      (p) => !connectedPeers.some((cp) => cp.id.equals(p.id))
-    );
-
-    await this.peersMutex.runExclusive(async () => {
-      // Add new peers
-      for (const peer of peersToAdd) {
-        this.peers.set(peer.id.toString(), peer);
-        this.log.info(`Added new peer: ${peer.id.toString()}`);
-      }
-
-      // Remove disconnected peers
-      for (const peer of peersToRemove) {
-        this.peers.delete(peer.id.toString());
-        this.log.info(`Removed disconnected peer: ${peer.id.toString()}`);
-      }
-
-      this.updatePeers(new Map(this.peers));
-      this.log.info(`Peers confirmed. Current count: ${this.peers.size}`);
-    });
-  }
-
-  /**
-   * Finds and adds new peers to the peers list.
-   * @param numPeers The number of peers to find and add.
-   */
-  private async findAndAddPeers(numPeers: number): Promise<Peer[]> {
-    let newPeers: Peer[];
-    const release = await this.peersMutex.acquire();
-    try {
-      this.log.info(`Finding and adding ${numPeers} new peers`);
-      newPeers = await this.findAdditionalPeers(numPeers);
-    } finally {
-      release();
-    }
-
-    const dials = await Promise.all(
-      newPeers.map((peer) => this.connectionManager.attemptDial(peer.id))
-    );
-
-    const finalRelease = await this.peersMutex.acquire();
-    try {
-      const successfulPeers = newPeers.filter((_, index) => dials[index]);
-      successfulPeers.forEach((peer) =>
-        this.peers.set(peer.id.toString(), peer)
-      );
-      this.updatePeers(new Map(this.peers));
-      this.log.info(
-        `Added ${successfulPeers.length} new peers, total peers: ${this.peers.size}`
-      );
-      return successfulPeers;
-    } finally {
-      finalRelease();
-    }
-  }
-
-  /**
-   * Finds additional peers.
-   * Attempts to find peers without using bootstrap peers first,
-   * If no peers are found,
-   * tries with bootstrap peers.
-   * @param numPeers The number of peers to find.
-   */
-  private async findAdditionalPeers(numPeers: number): Promise<Peer[]> {
-    this.log.info(`Finding ${numPeers} additional peers`);
-    try {
-      let newPeers = await this.core.allPeers();
-
-      if (newPeers.length === 0) {
-        this.log.warn("No new peers found.");
-      }
-
-      newPeers = newPeers
-        .filter((peer) => !this.peers.has(peer.id.toString()))
-        .filter((peer) => !this.renewPeersLocker.isLocked(peer.id))
-        .slice(0, numPeers);
-
-      return newPeers;
-    } catch (error) {
-      this.log.error("Error finding additional peers:", error);
-      throw error;
-    }
-  }
-
-  private updatePeers(peers: Map<PeerIdStr, Peer>): void {
-    this.peers = peers;
-    this.healthManager.updateProtocolHealth(
-      this.core.multicodec,
-      this.peers.size
-    );
-  }
-}
-
-class RenewPeerLocker {
-  private readonly peers: Map<string, number> = new Map();
-
-  public constructor(private lockDuration: number) {}
-
-  public lock(id: PeerId): void {
-    this.peers.set(id.toString(), Date.now());
-  }
-
-  public isLocked(id: PeerId): boolean {
-    const time = this.peers.get(id.toString());
-
-    if (time && !this.isTimeUnlocked(time)) {
-      return true;
-    }
-
-    return false;
-  }
-
-  public cleanUnlocked(): void {
-    Array.from(this.peers.entries()).forEach(([id, lock]) => {
-      if (this.isTimeUnlocked(lock)) {
-        this.peers.delete(id.toString());
-      }
-    });
-  }
-
-  private isTimeUnlocked(time: number): boolean {
-    return Date.now() - time >= this.lockDuration;
   }
 }
