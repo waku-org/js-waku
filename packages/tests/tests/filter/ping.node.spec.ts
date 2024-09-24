@@ -40,7 +40,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       await teardownNodesWithRedundancy(serviceNodes, waku);
     });
 
-    it.only("Ping on subscribed peer", async function () {
+    it("Ping on subscribed peer", async function () {
       const { error, subscription } = await waku.filter.subscribe(
         [TestDecoder],
         serviceNodes.messageCollector.callback
