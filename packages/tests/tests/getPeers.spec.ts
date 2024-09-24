@@ -152,7 +152,8 @@ describe("getPeers", function () {
       for (const peer of allPeers) {
         connections.push({
           status: "open",
-          remotePeer: peer.id
+          remotePeer: peer.id,
+          streams: [{ protocol: waku.lightPush.protocol.multicodec }]
         } as unknown as Connection);
       }
       return connections;

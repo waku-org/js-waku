@@ -19,6 +19,7 @@ export class PeerManager {
     private readonly log: Logger
   ) {
     this.healthManager = getHealthManager();
+    this.healthManager.updateProtocolHealth(this.core.multicodec, 0);
   }
 
   public getWriteLockHolder(): string | null {
