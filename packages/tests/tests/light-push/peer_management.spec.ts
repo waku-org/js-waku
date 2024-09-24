@@ -54,9 +54,13 @@ describe("Waku Light Push: Peer Management: E2E", function () {
 
   it("Failed peers are renewed", async function () {
     // send a lightpush request -- should have all successes
-    const response1 = await waku.lightPush.send(encoder, {
-      payload: utf8ToBytes("Hello_World")
-    });
+    const response1 = await waku.lightPush.send(
+      encoder,
+      {
+        payload: utf8ToBytes("Hello_World")
+      },
+      { forceUseAllPeers: true }
+    );
 
     expect(response1.successes.length).to.be.equal(
       waku.lightPush.numPeersToUse

@@ -18,7 +18,7 @@ export type IBaseProtocolCore = {
   multicodec: string;
   peerStore: PeerStore;
   allPeers: () => Promise<Peer[]>;
-  connectedPeers: () => Promise<Peer[]>;
+  connectedPeers: (withOpenStreams?: boolean) => Promise<Peer[]>;
   addLibp2pEventListener: Libp2p["addEventListener"];
   removeLibp2pEventListener: Libp2p["removeEventListener"];
 };
@@ -37,10 +37,6 @@ export type NetworkConfig = StaticSharding | AutoSharding;
  */
 export type ProtocolUseOptions = {
   /**
-   * Optional flag to enable auto-retry with exponential backoff
-   */
-  autoRetry?: boolean;
-  /**
    * Optional flag to force using all available peers
    */
   forceUseAllPeers?: boolean;
@@ -48,14 +44,6 @@ export type ProtocolUseOptions = {
    * Optional maximum number of attempts for exponential backoff
    */
   maxAttempts?: number;
-  /**
-   * Optional initial delay in milliseconds for exponential backoff
-   */
-  initialDelay?: number;
-  /**
-   * Optional maximum delay in milliseconds for exponential backoff
-   */
-  maxDelay?: number;
 };
 
 export type ProtocolCreateOptions = {
