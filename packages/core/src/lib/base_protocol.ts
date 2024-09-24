@@ -22,7 +22,7 @@ export class BaseProtocol implements IBaseProtocolCore {
 
   protected constructor(
     public multicodec: string,
-    private components: Libp2pComponents,
+    protected components: Libp2pComponents,
     private log: Logger,
     public readonly pubsubTopics: PubsubTopic[]
   ) {
@@ -52,9 +52,9 @@ export class BaseProtocol implements IBaseProtocolCore {
    * the class protocol. Waku may or may not be currently connected to these
    * peers.
    */
-  // public async allPeers(): Promise<Peer[]> {
-  //   return getPeersForProtocol(this.peerStore, [this.multicodec]);
-  // }
+  public async allPeers(): Promise<Peer[]> {
+    return getPeersForProtocol(this.components.peerStore, [this.multicodec]);
+  }
 
   public async connectedPeers(withOpenStreams = false): Promise<Peer[]> {
     const peers = await this.allPeers();
