@@ -88,49 +88,41 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   // }
 
   /**
-   * Checks if there are peers to send a message to.
-   * If `forceUseAllPeers` is `false` (default) and there are connected peers, returns `true`.
-   * If `forceUseAllPeers` is `true` or there are no connected peers, tries to find new peers from the ConnectionManager.
-   * If `autoRetry` is `false`, returns `false` if no peers are found.
-   * If `autoRetry` is `true`, tries to find new peers from the ConnectionManager with exponential backoff.
-   * Returns `true` if peers are found, `false` otherwise.
+   * Checks if there are sufficient peers to send a message to.
+   * If `forceUseAllPeers` is `false` (default), returns `true` if there are any connected peers.
+   * If `forceUseAllPeers` is `true`, attempts to connect to `numPeersToUse` peers.
    * @param options Optional options object
-   * @param options.autoRetry Optional flag to enable auto-retry with exponential backoff (default: false)
-   * @param options.forceUseAllPeers Optional flag to force using all available peers (default: false)
-   * @param options.initialDelay Optional initial delay in milliseconds for exponential backoff (default: 10)
-   * @param options.maxAttempts Optional maximum number of attempts for exponential backoff (default: 3)
-   * @param options.maxDelay Optional maximum delay in milliseconds for exponential backoff (default: 100)
+   * @param options.forceUseAllPeers Optional flag to force connecting to `numPeersToUse` peers (default: false)
+   * @param options.maxAttempts Optional maximum number of attempts to reach the required number of peers (default: 3)
+   * @returns `true` if the required number of peers are connected, `false` otherwise
    */
   protected async hasPeers(
     options: Partial<ProtocolUseOptions> = {}
   ): Promise<boolean> {
-    const {
-      autoRetry = false,
-      forceUseAllPeers = false,
-      maxAttempts = 3
-    } = options;
+    const { forceUseAllPeers = false, maxAttempts = 3 } = options;
 
     if (!forceUseAllPeers && this.connectedPeers.length > 0) {
       return true;
     }
 
-    for (let attempts = 0; attempts < maxAttempts; attempts++) {
-      const success = await this.maintainPeers();
-      if (success) {
-        if (this.connectedPeers.length < this.numPeersToUse) {
-          this.log.warn(
-            `Found only ${this.connectedPeers.length} peers, expected ${this.numPeersToUse}`
-          );
-        }
-        return true;
-      }
-      if (!autoRetry) {
-        return false;
-      }
-      //TODO: handle autoRetry
+    if (!forceUseAllPeers) {
+      await this.maintainPeers();
+      return this.connectedPeers.length > 0;
     }
 
-    this.log.error("Failed to find peers to send message to");
+    for (let attempts = 0; attempts < maxAttempts; attempts++) {
+      await this.maintainPeers();
+
+      if (this.connectedPeers.length >= this.numPeersToUse) {
+        return true;
+      }
+
+      this.log.warn(
+        `Found only ${this.connectedPeers.length} peers, expected ${this.numPeersToUse}. Retrying...`
+      );
+    }
+
+    this.log.error("Failed to find required number of peers");
     return false;
   }
 
@@ -159,14 +151,14 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   /**
    * Maintains the peers list to `numPeersToUse`.
    */
-  private async maintainPeers(): Promise<boolean> {
+  private async maintainPeers(): Promise<void> {
     try {
       const currentPeerCount = await this.peerManager.getPeerCount();
       const numPeersToAdd = this.numPeersToUse - currentPeerCount;
 
       if (numPeersToAdd === 0) {
         this.log.info("No maintenance required, peer count is sufficient");
-        return true;
+        return;
       }
 
       this.log.info(`Maintaining peers, current count: ${currentPeerCount}`);
@@ -181,10 +173,8 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       this.log.info(
         `Peer maintenance completed, current count: ${finalPeerCount}`
       );
-      return finalPeerCount >= this.numPeersToUse;
     } catch (error) {
       this.log.error("Error during peer maintenance", { error });
-      return false;
     }
   }
 }
