@@ -17,7 +17,7 @@ export enum Protocols {
 export type IBaseProtocolCore = {
   multicodec: string;
   allPeers: () => Promise<Peer[]>;
-  connectedPeers: () => Promise<Peer[]>;
+  connectedPeers: (withOpenStreams?: boolean) => Promise<Peer[]>;
   addLibp2pEventListener: Libp2p["addEventListener"];
   removeLibp2pEventListener: Libp2p["removeEventListener"];
 };
