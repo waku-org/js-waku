@@ -54,16 +54,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   public async renewPeer(peerToDisconnect: PeerId): Promise<Peer | undefined> {
     this.log.info(`Attempting to renew peer ${peerToDisconnect}`);
 
-    const success = await this.peerManager.disconnectPeer(peerToDisconnect);
-    if (!success) {
-      this.log.warn(`Failed to disconnect from peer ${peerToDisconnect}`);
-      return undefined;
-    }
-
-    this.log.debug(
-      `Successfully disconnected from peer ${peerToDisconnect}, searching for a new peer`
-    );
-    const newPeer = await this.peerManager.findAndAddPeers(1);
+    const newPeer = await this.peerManager.findPeers(1);
     if (newPeer.length === 0) {
       this.log.error(
         "Failed to find a new peer to replace the disconnected one"
@@ -71,7 +62,13 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       return undefined;
     }
 
-    this.log.info(`Successfully renewed peer. New peer: ${newPeer[0].id}`);
+    await Promise.all([
+      this.peerManager.removePeer(peerToDisconnect),
+      this.peerManager.addPeer(newPeer[0])
+    ]);
+
+    this.log.debug(`Successfully renewed peer. New peer: ${newPeer[0].id}`);
+
     return newPeer[0];
   }
 

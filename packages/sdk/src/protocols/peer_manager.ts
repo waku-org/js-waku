@@ -73,22 +73,6 @@ export class PeerManager {
     }
   }
 
-  public async disconnectPeer(peerId: PeerId): Promise<boolean> {
-    try {
-      this.writeLockHolder = `disconnectPeer: ${peerId.toString()}`;
-      this.log.info(`Disconnecting peer: ${peerId}`);
-      await this.connectionManager.dropConnection(peerId);
-      await this.removePeer(peerId);
-      this.log.info(`Disconnected peer: ${peerId}`);
-      this.writeLockHolder = null;
-      return true;
-    } catch (error) {
-      this.log.error("Error disconnecting peer:", error);
-      this.writeLockHolder = null;
-      return false;
-    }
-  }
-
   /**
    * Finds and adds new peers to the peers list.
    * @param numPeers The number of peers to find and add.
@@ -106,7 +90,7 @@ export class PeerManager {
    * Finds additional peers.
    * @param numPeers The number of peers to find.
    */
-  private async findPeers(numPeers: number): Promise<Peer[]> {
+  public async findPeers(numPeers: number): Promise<Peer[]> {
     const connectedPeers = await this.core.getPeers();
 
     return this.readMutex.runExclusive(async () => {
@@ -118,7 +102,7 @@ export class PeerManager {
     });
   }
 
-  private async addMultiplePeers(peers: Peer[]): Promise<Peer[]> {
+  public async addMultiplePeers(peers: Peer[]): Promise<Peer[]> {
     const addedPeers: Peer[] = [];
     for (const peer of peers) {
       await this.addPeer(peer);
