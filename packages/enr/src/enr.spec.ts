@@ -417,15 +417,17 @@ describe("ENR", function () {
   });
 
   describe("waku2 key round trip", () => {
-    let peerId;
+    let peerId: PeerId;
     let enr: ENR;
     let waku2Protocols: Waku2;
-    let privateKey: Uint8Array;
+    let privateKeyUint8Arr: Uint8Array;
 
     beforeEach(async function () {
       const privateKey = await generateKeyPair("secp256k1");
+      privateKeyUint8Arr = privateKey.raw;
       peerId = peerIdFromPrivateKey(privateKey);
       enr = await EnrCreator.fromPeerId(peerId);
+      console.log(enr);
       waku2Protocols = {
         relay: false,
         store: false,
@@ -437,7 +439,7 @@ describe("ENR", function () {
     it("should set field with all protocols disabled", async () => {
       enr.waku2 = waku2Protocols;
 
-      const txt = await EnrEncoder.toString(enr, privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKeyUint8Arr);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -453,7 +455,7 @@ describe("ENR", function () {
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await EnrEncoder.toString(enr, privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKeyUint8Arr);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
@@ -466,7 +468,7 @@ describe("ENR", function () {
       waku2Protocols.relay = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await EnrEncoder.toString(enr, privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKeyUint8Arr);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(true);
@@ -479,7 +481,7 @@ describe("ENR", function () {
       waku2Protocols.store = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await EnrEncoder.toString(enr, privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKeyUint8Arr);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -492,7 +494,7 @@ describe("ENR", function () {
       waku2Protocols.filter = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await EnrEncoder.toString(enr, privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKeyUint8Arr);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
@@ -505,7 +507,7 @@ describe("ENR", function () {
       waku2Protocols.lightPush = true;
 
       enr.waku2 = waku2Protocols;
-      const txt = await EnrEncoder.toString(enr, privateKey);
+      const txt = await EnrEncoder.toString(enr, privateKeyUint8Arr);
       const decoded = (await EnrDecoder.fromString(txt)).waku2!;
 
       expect(decoded.relay).to.equal(false);
