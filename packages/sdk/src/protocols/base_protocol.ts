@@ -83,6 +83,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     }
   }
 
+  //TODO: validate if adding event listeners for peer connect and disconnect is needed
   // private setupEventListeners(): void {
   //   this.core.addLibp2pEventListener(
   //     "peer:connect",
