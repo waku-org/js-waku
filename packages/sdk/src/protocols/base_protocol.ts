@@ -62,10 +62,8 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       return undefined;
     }
 
-    await Promise.all([
-      this.peerManager.removePeer(peerToDisconnect),
-      this.peerManager.addPeer(newPeer[0])
-    ]);
+    await this.peerManager.removePeer(peerToDisconnect);
+    await this.peerManager.addPeer(newPeer[0]);
 
     this.log.debug(`Successfully renewed peer. New peer: ${newPeer[0].id}`);
 
