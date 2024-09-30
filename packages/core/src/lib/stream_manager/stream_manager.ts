@@ -1,14 +1,8 @@
-import type {
-  Connection,
-  Peer,
-  PeerId,
-  PeerUpdate,
-  Stream
-} from "@libp2p/interface";
+import type { Peer, PeerId, PeerUpdate, Stream } from "@libp2p/interface";
 import type { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { selectConnection } from "./utils.js";
+import { selectOpenConnection } from "./utils.js";
 
 export class StreamManager {
   private readonly log: Logger;
@@ -17,9 +11,9 @@ export class StreamManager {
   private streamPool: Map<string, Promise<void>> = new Map();
 
   public constructor(
-    public multicodec: string,
-    public getConnections: Libp2p["getConnections"],
-    public addEventListener: Libp2p["addEventListener"]
+    private multicodec: string,
+    private getConnections: Libp2p["getConnections"],
+    private addEventListener: Libp2p["addEventListener"]
   ) {
     this.log = new Logger(`stream-manager:${multicodec}`);
     this.addEventListener("peer:update", this.handlePeerUpdateStreamPool);
@@ -46,7 +40,7 @@ export class StreamManager {
 
   private async createStream(peer: Peer, retries = 0): Promise<Stream> {
     const connections = this.getConnections(peer.id);
-    const connection = selectConnection(connections);
+    const connection = selectOpenConnection(connections);
 
     if (!connection) {
       throw new Error(
@@ -134,9 +128,8 @@ export class StreamManager {
   }
 
   private getOpenStreamForCodec(peerId: PeerId): Stream | undefined {
-    const connection: Connection | undefined = this.getConnections(peerId).find(
-      (c) => c.status === "open"
-    );
+    const connections = this.getConnections(peerId);
+    const connection = selectOpenConnection(connections);
 
     if (!connection) {
       return;

@@ -26,6 +26,7 @@
       }
     ],
     "@typescript-eslint/explicit-member-accessibility": "error",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "prettier/prettier": [
       "error",
       {
