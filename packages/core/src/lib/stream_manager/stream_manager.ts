@@ -95,9 +95,13 @@ export class StreamManager {
     try {
       this.ongoingCreation.add(peerId);
       await this.createStream(peer);
+    } catch (error) {
+      this.log.error(`Failed to createStreamWithLock:`, error);
     } finally {
       this.ongoingCreation.delete(peerId);
     }
+
+    return;
   }
 
   private handlePeerUpdateStreamPool = (evt: CustomEvent<PeerUpdate>): void => {
