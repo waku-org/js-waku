@@ -10,8 +10,6 @@ import { Logger } from "@waku/utils";
 
 import { selectConnection } from "./utils.js";
 
-const CONNECTION_TIMEOUT = 5_000;
-
 export class StreamManager {
   private readonly log: Logger;
 
@@ -34,7 +32,7 @@ export class StreamManager {
     this.streamPool.delete(peerId);
     await scheduledStream;
 
-    const stream = this.getStreamForCodec(peer.id);
+    const stream = this.getOpenStreamForCodec(peer.id);
 
     if (stream) {
       this.log.info(
@@ -109,7 +107,7 @@ export class StreamManager {
       return;
     }
 
-    const stream = this.getStreamForCodec(peer.id);
+    const stream = this.getOpenStreamForCodec(peer.id);
 
     if (stream) {
       return;
@@ -123,19 +121,15 @@ export class StreamManager {
       `Scheduling creation of a stream for peerId=${peer.id.toString()} multicodec=${this.multicodec}`
     );
 
-    const timeoutPromise = new Promise<undefined>((resolve) =>
-      setTimeout(() => resolve(undefined), CONNECTION_TIMEOUT)
-    );
+    // abandon previous attempt
+    if (this.streamPool.has(peer.id.toString())) {
+      this.streamPool.delete(peer.id.toString());
+    }
 
-    const streamPromise = Promise.race([
-      this.createStreamWithLock(peer),
-      timeoutPromise
-    ]);
-
-    this.streamPool.set(peer.id.toString(), streamPromise);
+    this.streamPool.set(peer.id.toString(), this.createStreamWithLock(peer));
   }
 
-  private getStreamForCodec(peerId: PeerId): Stream | undefined {
+  private getOpenStreamForCodec(peerId: PeerId): Stream | undefined {
     const connection: Connection | undefined = this.getConnections(peerId).find(
       (c) => c.status === "open"
     );
@@ -147,6 +141,13 @@ export class StreamManager {
     const stream = connection.streams.find(
       (s) => s.protocol === this.multicodec
     );
+
+    const isStreamUnusable = ["done", "closed", "closing"].includes(
+      stream?.writeStatus || ""
+    );
+    if (isStreamUnusable) {
+      return;
+    }
 
     return stream;
   }
