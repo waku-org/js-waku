@@ -68,6 +68,7 @@ export class StreamManager {
         this.log.info(
           `Created stream for peerId=${peer.id.toString()} multicodec=${this.multicodec}`
         );
+        break;
       } catch (error) {
         lastError = error;
       }
