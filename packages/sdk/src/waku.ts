@@ -5,7 +5,7 @@ import { ConnectionManager, getHealthManager } from "@waku/core";
 import type {
   IFilterSDK,
   IHealthManager,
-  ILightPushSDK,
+  ILightPush,
   IRelay,
   IStoreSDK,
   Libp2p,
@@ -64,7 +64,7 @@ export class WakuNode implements Waku {
   public relay?: IRelay;
   public store?: IStoreSDK;
   public filter?: IFilterSDK;
-  public lightPush?: ILightPushSDK;
+  public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
   public readonly health: IHealthManager;
 

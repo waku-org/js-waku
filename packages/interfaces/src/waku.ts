@@ -5,7 +5,7 @@ import { IConnectionManager } from "./connection_manager.js";
 import type { IFilterSDK } from "./filter.js";
 import { IHealthManager } from "./health_manager.js";
 import type { Libp2p } from "./libp2p.js";
-import type { ILightPushSDK } from "./light_push.js";
+import type { ILightPush } from "./light_push.js";
 import { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { IStoreSDK } from "./store.js";
@@ -15,7 +15,7 @@ export interface Waku {
   relay?: IRelay;
   store?: IStoreSDK;
   filter?: IFilterSDK;
-  lightPush?: ILightPushSDK;
+  lightPush?: ILightPush;
 
   connectionManager: IConnectionManager;
 
@@ -36,7 +36,7 @@ export interface LightNode extends Waku {
   relay: undefined;
   store: IStoreSDK;
   filter: IFilterSDK;
-  lightPush: ILightPushSDK;
+  lightPush: ILightPush;
 }
 
 export interface RelayNode extends Waku {

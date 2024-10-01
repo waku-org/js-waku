@@ -3,7 +3,7 @@ import { ConnectionManager, LightPushCore } from "@waku/core";
 import {
   Failure,
   type IEncoder,
-  ILightPushSDK,
+  ILightPush,
   type IMessage,
   type Libp2p,
   type ProtocolCreateOptions,
@@ -19,7 +19,7 @@ import { BaseProtocolSDK } from "../base_protocol.js";
 
 const log = new Logger("sdk:light-push");
 
-class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
+class LightPushSDK extends BaseProtocolSDK implements ILightPush {
   public readonly protocol: LightPushCore;
 
   private readonly reliabilityMonitor: SenderReliabilityMonitor;
@@ -131,6 +131,6 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
 export function wakuLightPush(
   connectionManager: ConnectionManager,
   init: Partial<ProtocolCreateOptions> = {}
-): (libp2p: Libp2p) => ILightPushSDK {
+): (libp2p: Libp2p) => ILightPush {
   return (libp2p: Libp2p) => new LightPushSDK(connectionManager, libp2p, init);
 }
