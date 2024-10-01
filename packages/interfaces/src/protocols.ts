@@ -102,7 +102,7 @@ export type ProtocolCreateOptions = {
    * This is used by:
    * - Light Push to send messages,
    * - Filter to retrieve messages.
-   * Defaults to 3.
+   * Defaults to 2.
    */
   numPeersToUse?: number;
   /**
