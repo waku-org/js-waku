@@ -10,7 +10,6 @@ import { Logger } from "@waku/utils";
 import { pEvent } from "p-event";
 const log = new Logger("wait-for-remote-peer");
 
-//TODO: move this function within the Waku class: https://github.com/waku-org/js-waku/issues/1761
 /**
  * Wait for a remote peer to be ready given the passed protocols.
  * Must be used after attempting to connect to nodes, using
@@ -85,7 +84,6 @@ export async function waitForRemotePeer(
   }
 }
 
-//TODO: move this function within protocol SDK class: https://github.com/waku-org/js-waku/issues/1761
 /**
  * Wait for a peer with the given protocol to be connected.
  * If sharding is enabled on the node, it will also wait for the peer to be confirmed by the metadata service.
@@ -110,6 +108,7 @@ async function waitForConnectedPeer(
       );
       return;
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((e as any).code === "ERR_CONNECTION_BEING_CLOSED")
         log.error(
           `Connection with the peer was closed and possibly because it's on a different shard. Error: ${e}`

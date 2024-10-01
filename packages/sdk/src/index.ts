@@ -1,4 +1,4 @@
-export { waitForRemotePeer, createEncoder, createDecoder } from "@waku/core";
+export { createEncoder, createDecoder } from "@waku/core";
 export {
   DecodedMessage,
   Decoder,
@@ -17,6 +17,8 @@ export {
 export { wakuLightPush } from "./protocols/light_push/index.js";
 export { wakuFilter } from "./protocols/filter/index.js";
 export { wakuStore } from "./protocols/store/index.js";
+
+export { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
 export * as waku from "@waku/core";
 export * as utils from "@waku/utils";
