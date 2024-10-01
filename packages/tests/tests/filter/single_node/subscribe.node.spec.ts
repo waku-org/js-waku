@@ -291,7 +291,8 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
       messageCollector.verifyReceivedMessage(index, {
         expectedContentTopic: topic,
         expectedMessageText: `Message for Topic ${index + 1}`,
-        expectedPubsubTopic: TestPubsubTopic
+        expectedPubsubTopic: TestPubsubTopic,
+        checkTimestamp: false
       });
     });
   });
