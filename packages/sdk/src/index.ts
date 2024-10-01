@@ -14,7 +14,7 @@ export {
   defaultLibp2p,
   createLibp2pAndUpdateOptions
 } from "./create/index.js";
-export { wakuLightPush } from "./protocols/lightpush/index.js";
+export { wakuLightPush } from "./protocols/light_push/index.js";
 export { wakuFilter } from "./protocols/filter/index.js";
 export { wakuStore } from "./protocols/store/index.js";
 

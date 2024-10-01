@@ -17,7 +17,7 @@ import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { wakuFilter } from "./protocols/filter/index.js";
-import { wakuLightPush } from "./protocols/lightpush/index.js";
+import { wakuLightPush } from "./protocols/light_push/index.js";
 import { wakuStore } from "./protocols/store/index.js";
 import { ReliabilityMonitorManager } from "./reliability_monitor/index.js";
 
