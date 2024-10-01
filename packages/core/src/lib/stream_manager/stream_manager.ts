@@ -23,8 +23,11 @@ export class StreamManager {
     const peerId = peer.id.toString();
 
     const scheduledStream = this.streamPool.get(peerId);
-    this.streamPool.delete(peerId);
-    await scheduledStream;
+
+    if (scheduledStream) {
+      this.streamPool.delete(peerId);
+      await scheduledStream;
+    }
 
     const stream = this.getOpenStreamForCodec(peer.id);
 

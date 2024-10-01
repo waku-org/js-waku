@@ -280,9 +280,11 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
 
     // Send a unique message on each topic.
     for (let i = 0; i < topicCount; i++) {
+      const now = Date.now();
       await waku.lightPush.send(td.encoders[i], {
         payload: utf8ToBytes(`Message for Topic ${i + 1}`)
       });
+      console.log("DEBUG:", Date.now() - now);
     }
 
     // Verify that each message was received on the corresponding topic.
@@ -291,8 +293,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
       messageCollector.verifyReceivedMessage(index, {
         expectedContentTopic: topic,
         expectedMessageText: `Message for Topic ${index + 1}`,
-        expectedPubsubTopic: TestPubsubTopic,
-        checkTimestamp: false
+        expectedPubsubTopic: TestPubsubTopic
       });
     });
   });
