@@ -6,7 +6,7 @@ import { StreamManager } from "./stream_manager.js";
 
 const MULTICODEC = "/test";
 
-describe.only("StreamManager", () => {
+describe("StreamManager", () => {
   let eventTarget: EventTarget;
   let streamManager: StreamManager;
 
