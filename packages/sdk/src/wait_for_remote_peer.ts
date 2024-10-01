@@ -149,6 +149,7 @@ async function waitForConnectedPeer(
   });
 }
 
+// TODO: move to @waku/relay and use in `node.connect()` API https://github.com/waku-org/js-waku/issues/1761
 /**
  * Wait for at least one peer with the given protocol to be connected and in the gossipsub
  * mesh for all pubsubTopics.
