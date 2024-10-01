@@ -14,7 +14,7 @@ interface Options {
 }
 
 const RENEW_TIME_LOCK_DURATION = 30 * 1000;
-const DEFAULT_NUM_PEERS_TO_USE = 2;
+export const DEFAULT_NUM_PEERS_TO_USE = 2;
 const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 
 export class BaseProtocolSDK implements IBaseProtocolSDK {
