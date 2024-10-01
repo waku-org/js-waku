@@ -33,7 +33,7 @@ import {
 
 import { runNodes } from "./utils.js";
 
-describe("Waku Filter V2: Subscribe: Single Service Node", function () {
+describe.only("Waku Filter V2: Subscribe: Single Service Node", function () {
   // Set the timeout for all tests in this suite. Can be overwritten at test level
   this.timeout(10000);
   let waku: LightNode;
@@ -271,7 +271,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     });
   });
 
-  it("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
+  it.only("Subscribe to 100 topics (new limit) at once and receives messages", async function () {
     this.timeout(100_000);
     const topicCount = 100;
     const td = generateTestData(topicCount, { pubsubTopic: TestPubsubTopic });
@@ -280,9 +280,13 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
 
     // Send a unique message on each topic.
     for (let i = 0; i < topicCount; i++) {
+      performance.mark("start");
       await waku.lightPush.send(td.encoders[i], {
         payload: utf8ToBytes(`Message for Topic ${i + 1}`)
       });
+      performance.mark("end");
+      const measure = performance.measure("lightPush", "start", "end");
+      console.log("DEBUG:", measure.name, measure.duration);
     }
 
     // Verify that each message was received on the corresponding topic.
