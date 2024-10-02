@@ -1,5 +1,5 @@
-import type { PeerId } from "@libp2p/interface";
-import { ConnectionManager, LightPushCore } from "@waku/core";
+import type { Peer, PeerId } from "@libp2p/interface";
+import { ConnectionManager, LightPushCodec, LightPushCore } from "@waku/core";
 import {
   Failure,
   type IEncoder,
@@ -19,14 +19,14 @@ import { BaseProtocolSDK } from "../base_protocol.js";
 
 const log = new Logger("sdk:light-push");
 
-class LightPushSDK extends BaseProtocolSDK implements ILightPush {
+class LightPush extends BaseProtocolSDK implements ILightPush {
   public readonly protocol: LightPushCore;
 
   private readonly reliabilityMonitor: SenderReliabilityMonitor;
 
   public constructor(
     connectionManager: ConnectionManager,
-    libp2p: Libp2p,
+    private libp2p: Libp2p,
     options?: ProtocolCreateOptions
   ) {
     super(
@@ -49,11 +49,6 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPush {
     message: IMessage,
     _options?: ProtocolUseOptions
   ): Promise<SDKProtocolResult> {
-    const options = {
-      autoRetry: true,
-      ..._options
-    } as ProtocolUseOptions;
-
     const successes: PeerId[] = [];
     const failures: Failure[] = [];
 
@@ -72,8 +67,8 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPush {
       };
     }
 
-    const hasPeers = await this.hasPeers(options);
-    if (!hasPeers) {
+    const peers = await this.getConnectedPeers();
+    if (peers.length === 0) {
       return {
         successes,
         failures: [
@@ -84,7 +79,7 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPush {
       };
     }
 
-    const sendPromises = this.connectedPeers.map((peer) =>
+    const sendPromises = peers.map((peer) =>
       this.protocol.send(encoder, message, peer)
     );
 
@@ -126,11 +121,38 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPush {
       failures
     };
   }
+
+  private async getConnectedPeers(): Promise<Peer[]> {
+    const peerIDs = this.libp2p
+      .getConnections()
+      .filter((c) => c.status === "open")
+      .sort((left, right) => right.timeline.open - left.timeline.open)
+      .map((c) => c.remotePeer);
+
+    if (peerIDs.length === 0) {
+      return [];
+    }
+
+    const peers = await Promise.all(
+      peerIDs.map(async (id) => {
+        try {
+          return await this.libp2p.peerStore.get(id);
+        } catch (e) {
+          return null;
+        }
+      })
+    );
+
+    return peers
+      .filter((p) => !!p)
+      .filter((p) => (p as Peer).protocols.includes(LightPushCodec))
+      .slice(0, this.numPeersToUse) as Peer[];
+  }
 }
 
 export function wakuLightPush(
   connectionManager: ConnectionManager,
   init: Partial<ProtocolCreateOptions> = {}
 ): (libp2p: Libp2p) => ILightPush {
-  return (libp2p: Libp2p) => new LightPushSDK(connectionManager, libp2p, init);
+  return (libp2p: Libp2p) => new LightPush(connectionManager, libp2p, init);
 }
