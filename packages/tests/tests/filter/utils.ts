@@ -1,4 +1,4 @@
-import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
+import { createDecoder, createEncoder } from "@waku/core";
 import {
   DefaultNetworkConfig,
   ISubscriptionSDK,
@@ -8,7 +8,7 @@ import {
   Protocols,
   Waku
 } from "@waku/interfaces";
-import { createLightNode } from "@waku/sdk";
+import { createLightNode, waitForRemotePeer } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   derivePubsubTopicsFromNetworkConfig,

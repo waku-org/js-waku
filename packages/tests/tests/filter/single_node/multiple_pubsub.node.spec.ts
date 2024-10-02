@@ -1,4 +1,4 @@
-import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
+import { createDecoder, createEncoder } from "@waku/core";
 import type {
   ContentTopicInfo,
   LightNode,
@@ -6,6 +6,7 @@ import type {
   SingleShardInfo
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
+import { waitForRemotePeer } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   contentTopicToShardIndex,

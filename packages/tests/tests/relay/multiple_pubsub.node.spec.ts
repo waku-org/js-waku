@@ -1,9 +1,4 @@
-import {
-  createDecoder,
-  createEncoder,
-  DecodedMessage,
-  waitForRemotePeer
-} from "@waku/core";
+import { createDecoder, createEncoder, DecodedMessage } from "@waku/core";
 import {
   ContentTopicInfo,
   RelayNode,
@@ -12,6 +7,7 @@ import {
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
+import { waitForRemotePeer } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   pubsubTopicToSingleShardInfo,

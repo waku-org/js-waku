@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import { createEncoder, waitForRemotePeer } from "@waku/core";
+import { createEncoder } from "@waku/core";
 import {
   ContentTopicInfo,
   LightNode,
@@ -8,6 +8,7 @@ import {
   ShardInfo,
   SingleShardInfo
 } from "@waku/interfaces";
+import { waitForRemotePeer } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   contentTopicToShardIndex,

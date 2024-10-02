@@ -1,4 +1,4 @@
-import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
+import { createDecoder, createEncoder } from "@waku/core";
 import {
   NetworkConfig,
   Protocols,
@@ -6,6 +6,7 @@ import {
   ShardInfo
 } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
+import { waitForRemotePeer } from "@waku/sdk";
 import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
 import { Context } from "mocha";
 

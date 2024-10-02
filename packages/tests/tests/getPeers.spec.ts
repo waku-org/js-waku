@@ -1,6 +1,6 @@
 import type { Connection, Peer, PeerStore } from "@libp2p/interface";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";
-import { LightPushCodec, waitForRemotePeer } from "@waku/core";
+import { LightPushCodec } from "@waku/core";
 import {
   ContentTopicInfo,
   createLightNode,
@@ -9,7 +9,8 @@ import {
   Protocols,
   ShardInfo,
   Tags,
-  utf8ToBytes
+  utf8ToBytes,
+  waitForRemotePeer
 } from "@waku/sdk";
 import {
   encodeRelayShard,

@@ -1,4 +1,4 @@
-import { createDecoder, createEncoder, waitForRemotePeer } from "@waku/core";
+import { createDecoder, createEncoder } from "@waku/core";
 import { LightNode, Protocols } from "@waku/interfaces";
 import {
   ecies,
@@ -7,7 +7,7 @@ import {
   getPublicKey,
   symmetric
 } from "@waku/message-encryption";
-import { utf8ToBytes } from "@waku/sdk";
+import { utf8ToBytes, waitForRemotePeer } from "@waku/sdk";
 import { expect } from "chai";
 import type { Context } from "mocha";
 
