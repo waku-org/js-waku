@@ -58,12 +58,12 @@ class LightPush extends BaseProtocolSDK implements ILightPush {
     } catch (error) {
       log.error("Failed to send waku light push: pubsub topic not configured");
       return {
+        successes,
         failures: [
           {
             error: ProtocolError.TOPIC_NOT_CONFIGURED
           }
-        ],
-        successes: []
+        ]
       };
     }
 
@@ -79,40 +79,37 @@ class LightPush extends BaseProtocolSDK implements ILightPush {
       };
     }
 
-    const sendPromises = peers.map((peer) =>
-      this.protocol.send(encoder, message, peer)
+    const results = await Promise.allSettled(
+      peers.map((peer) => this.protocol.send(encoder, message, peer))
     );
 
-    const results = await Promise.allSettled(sendPromises);
-
     for (const result of results) {
-      if (result.status === "fulfilled") {
-        const { failure, success } = result.value;
-        if (success) {
-          successes.push(success);
-        }
-        if (failure) {
-          failures.push(failure);
-          if (failure.peerId) {
-            const peer = this.connectedPeers.find((connectedPeer) =>
-              connectedPeer.id.equals(failure.peerId)
-            );
-            if (peer) {
-              log.info(`
-                Failed to send message to peer ${failure.peerId}.
-                Retrying the message with the same peer in the background.
-                If this fails, the peer will be renewed.
-                `);
-              void this.reliabilityMonitor.attemptRetriesOrRenew(
-                failure.peerId,
-                () => this.protocol.send(encoder, message, peer)
-              );
-            }
-          }
-        }
-      } else {
+      if (result.status !== "fulfilled") {
         log.error("Failed unexpectedly while sending:", result.reason);
         failures.push({ error: ProtocolError.GENERIC_FAIL });
+        continue;
+      }
+
+      const { failure, success } = result.value;
+
+      if (success) {
+        successes.push(success);
+        continue;
+      }
+
+      if (failure) {
+        failures.push(failure);
+
+        const connectedPeer = this.connectedPeers.find((connectedPeer) =>
+          connectedPeer.id.equals(failure.peerId)
+        );
+
+        if (connectedPeer) {
+          void this.reliabilityMonitor.attemptRetriesOrRenew(
+            connectedPeer.id,
+            () => this.protocol.send(encoder, message, connectedPeer)
+          );
+        }
       }
     }
 
