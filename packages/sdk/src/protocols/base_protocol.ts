@@ -18,7 +18,7 @@ export const DEFAULT_NUM_PEERS_TO_USE = 2;
 const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 
 export class BaseProtocolSDK implements IBaseProtocolSDK {
-  private healthManager: IHealthManager;
+  protected healthManager: IHealthManager;
   public readonly numPeersToUse: number;
   private peers: Peer[] = [];
   private maintainPeersIntervalId: ReturnType<

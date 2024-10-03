@@ -4,6 +4,8 @@ import { Logger } from "@waku/utils";
 
 import { selectOpenConnection } from "./utils.js";
 
+const STREAM_LOCK_KEY = "consumed";
+
 export class StreamManager {
   private readonly log: Logger;
 
@@ -29,16 +31,20 @@ export class StreamManager {
       await scheduledStream;
     }
 
-    const stream = this.getOpenStreamForCodec(peer.id);
+    let stream = this.getOpenStreamForCodec(peer.id);
 
     if (stream) {
       this.log.info(
         `Found existing stream peerId=${peer.id.toString()} multicodec=${this.multicodec}`
       );
+      this.lockStream(peer.id.toString(), stream);
       return stream;
     }
 
-    return this.createStream(peer);
+    stream = await this.createStream(peer);
+    this.lockStream(peer.id.toString(), stream);
+
+    return stream;
   }
 
   private async createStream(peer: Peer, retries = 0): Promise<Stream> {
@@ -142,13 +148,26 @@ export class StreamManager {
       (s) => s.protocol === this.multicodec
     );
 
+    if (!stream) {
+      return;
+    }
+
     const isStreamUnusable = ["done", "closed", "closing"].includes(
-      stream?.writeStatus || ""
+      stream.writeStatus || ""
     );
-    if (isStreamUnusable) {
+    if (isStreamUnusable || this.isStreamLocked(stream)) {
       return;
     }
 
     return stream;
+  }
+
+  private lockStream(peerId: string, stream: Stream): void {
+    this.log.info(`Locking stream for peerId:${peerId}\tstreamId:${stream.id}`);
+    stream.metadata[STREAM_LOCK_KEY] = true;
+  }
+
+  private isStreamLocked(stream: Stream): boolean {
+    return !!stream.metadata[STREAM_LOCK_KEY];
   }
 }

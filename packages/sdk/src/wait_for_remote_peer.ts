@@ -38,7 +38,7 @@ export async function waitForRemotePeer(
     throw Error("Waku node is not started");
   }
 
-  if (connections.length > 0) {
+  if (connections.length > 0 && !protocols.includes(Protocols.Relay)) {
     const success = await waitForMetadata(waku.libp2p);
 
     if (success) {

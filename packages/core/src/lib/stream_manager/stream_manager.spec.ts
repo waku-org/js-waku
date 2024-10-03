@@ -86,6 +86,32 @@ describe("StreamManager", () => {
     }
   });
 
+  it("should return different streams if requested simultaniously", async () => {
+    const con1 = createMockConnection();
+    con1.streams = [createMockStream({ id: "1", protocol: MULTICODEC })];
+
+    const newStreamSpy = sinon.spy(async (_protocol, _options) =>
+      createMockStream({
+        id: "2",
+        protocol: MULTICODEC,
+        writeStatus: "writable"
+      })
+    );
+
+    con1.newStream = newStreamSpy;
+    streamManager["getConnections"] = (_peerId: PeerId | undefined) => [con1];
+
+    const [stream1, stream2] = await Promise.all([
+      streamManager.getStream(mockPeer),
+      streamManager.getStream(mockPeer)
+    ]);
+
+    const expected = ["1", "2"].toString();
+    const actual = [stream1.id, stream2.id].sort().toString();
+
+    expect(actual).to.be.eq(expected);
+  });
+
   it("peer:update - should do nothing if another protocol hit", async () => {
     const scheduleNewStreamSpy = sinon.spy();
     streamManager["scheduleNewStream"] = scheduleNewStreamSpy;
@@ -156,6 +182,7 @@ function createMockStream(options: MockStreamOptions): Stream {
   return {
     id: options.id,
     protocol: options.protocol,
-    writeStatus: options.writeStatus || "ready"
+    writeStatus: options.writeStatus || "ready",
+    metadata: {}
   } as Stream;
 }
