@@ -39,7 +39,7 @@ export async function waitForRemotePeer(
   }
 
   if (connections.length > 0 && !protocols.includes(Protocols.Relay)) {
-    const success = await waitForMetadata(waku.libp2p);
+    const success = await waitForMetadata(waku);
 
     if (success) {
       return;
@@ -135,33 +135,52 @@ async function waitForConnectedPeer(
 /**
  * Waits for the metadata from the remote peer.
  */
-async function waitForMetadata(libp2p: Libp2p): Promise<boolean> {
-  const connections = libp2p.getConnections();
-  const metadataService = libp2p.services.metadata;
+async function waitForMetadata(waku: Waku): Promise<boolean> {
+  const connectedPeers = waku.libp2p.getPeers();
+  const metadataService = waku.libp2p.services.metadata;
+  const enabledCodes = getEnabledCodecs(waku);
 
-  if (!connections.length || !metadataService) {
+  if (!connectedPeers.length || !metadataService) {
     log.info(
-      `Skipping waitForMetadata due to missing connections:${connections.length} or metadataService:${!!metadataService}`
+      `Skipping waitForMetadata due to missing connections:${connectedPeers.length} or metadataService:${!!metadataService}`
     );
     return false;
   }
 
-  try {
-    // confirm at least with one connected peer
-    await Promise.any(
-      connections
-        .map((c) => c.remotePeer)
-        .map((peer) => metadataService.confirmOrAttemptHandshake(peer))
+  for (const peerId of connectedPeers) {
+    const confirmedAllCodecs = Array.from(enabledCodes.values()).every(
+      (v) => v
     );
 
-    return true;
-  } catch (e) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((e as any).code === "ERR_CONNECTION_BEING_CLOSED") {
-      log.error("Connection closed. Some peers can be on different shard.");
+    if (confirmedAllCodecs) {
+      return true;
     }
 
-    log.error(`Error waiting for metadata: ${e}`);
+    try {
+      const peer = await waku.libp2p.peerStore.get(peerId);
+      const hasSomeCodes = peer.protocols.some((c) => enabledCodes.has(c));
+
+      if (hasSomeCodes) {
+        const response =
+          await metadataService.confirmOrAttemptHandshake(peerId);
+
+        if (!response.error) {
+          peer.protocols.forEach((c) => {
+            if (enabledCodes.has(c)) {
+              enabledCodes.set(c, true);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((e as any).code === "ERR_CONNECTION_BEING_CLOSED") {
+        log.error("Connection closed. Some peers can be on different shard.");
+      }
+
+      log.error(`Error while iterating through peers: ${e}`);
+      continue;
+    }
   }
 
   return false;
@@ -215,4 +234,22 @@ function getEnabledProtocols(waku: Waku): Protocols[] {
   }
 
   return protocols;
+}
+
+function getEnabledCodecs(waku: Waku): Map<string, boolean> {
+  const codecs: Map<string, boolean> = new Map();
+
+  if (waku.filter) {
+    codecs.set(FilterCodecs.SUBSCRIBE, false);
+  }
+
+  if (waku.store) {
+    codecs.set(StoreCodec, false);
+  }
+
+  if (waku.lightPush) {
+    codecs.set(LightPushCodec, false);
+  }
+
+  return codecs;
 }
