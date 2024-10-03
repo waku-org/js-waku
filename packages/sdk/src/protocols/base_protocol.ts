@@ -38,7 +38,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     this.log.info(
       `Initializing BaseProtocolSDK with numPeersToUse: ${this.numPeersToUse}, maintainPeersInterval: ${maintainPeersInterval}ms`
     );
-    // void this.setupEventListeners();
     void this.startMaintainPeersInterval(maintainPeersInterval);
   }
 
@@ -82,18 +81,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       this.log.debug("Maintain peers interval was not running");
     }
   }
-
-  //TODO: validate if adding event listeners for peer connect and disconnect is needed
-  // private setupEventListeners(): void {
-  //   this.core.addLibp2pEventListener(
-  //     "peer:connect",
-  //     () => void this.maintainPeers()
-  //   );
-  //   this.core.addLibp2pEventListener(
-  //     "peer:disconnect",
-  //     () => void this.maintainPeers()
-  //   );
-  // }
 
   /**
    * Checks if there are sufficient peers to send a message to.
@@ -162,7 +149,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       `Starting maintain peers interval with ${interval}ms interval`
     );
     try {
-      // await this.maintainPeers();
       this.maintainPeersIntervalId = setInterval(() => {
         this.log.debug("Running scheduled peer maintenance");
         this.maintainPeers().catch((error) => {

@@ -144,6 +144,7 @@ export class SubscriptionManager implements ISubscription {
   }
 
   public async ping(peerId?: PeerId): Promise<SDKProtocolResult> {
+    log.info("Sending keep-alive ping");
     const peers = peerId ? [peerId] : this.getPeers().map((peer) => peer.id);
 
     const promises = peers.map((peerId) => this.pingSpecificPeer(peerId));
@@ -303,7 +304,6 @@ export class SubscriptionManager implements ISubscription {
     }
 
     this.keepAliveTimer = setInterval(() => {
-      log.info("Sending keep-alive ping");
       void this.ping()
         .then(() => log.info("Keep-alive ping successful"))
         .catch((error) => log.error("Error in keep-alive ping cycle:", error));
