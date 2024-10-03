@@ -9,7 +9,7 @@ import {
   type IDecodedMessage,
   type IDecoder,
   type IProtoMessage,
-  type ISubscriptionSDK,
+  type ISubscription,
   type PeerIdStr,
   ProtocolError,
   type PubsubTopic,
@@ -27,7 +27,7 @@ import { DEFAULT_KEEP_ALIVE, DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
 
 const log = new Logger("sdk:filter:subscription_manager");
 
-export class SubscriptionManager implements ISubscriptionSDK {
+export class SubscriptionManager implements ISubscription {
   private reliabilityMonitor: ReceiverReliabilityMonitor;
 
   private keepAliveTimer: number | null = null;

@@ -2,7 +2,7 @@ import { ConnectionManager, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
-  IStoreSDK,
+  IStore,
   Libp2p,
   QueryRequestParams,
   StoreCursor
@@ -20,7 +20,7 @@ const log = new Logger("waku:store:sdk");
  * StoreSDK is an implementation of the IStoreSDK interface.
  * It provides methods to interact with the Waku Store protocol.
  */
-export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
+export class Store extends BaseProtocolSDK implements IStore {
   public readonly protocol: StoreCore;
 
   public constructor(connectionManager: ConnectionManager, libp2p: Libp2p) {
@@ -238,8 +238,8 @@ export class StoreSDK extends BaseProtocolSDK implements IStoreSDK {
  */
 export function wakuStore(
   connectionManager: ConnectionManager
-): (libp2p: Libp2p) => IStoreSDK {
+): (libp2p: Libp2p) => IStore {
   return (libp2p: Libp2p) => {
-    return new StoreSDK(connectionManager, libp2p);
+    return new Store(connectionManager, libp2p);
   };
 }

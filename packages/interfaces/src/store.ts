@@ -78,7 +78,7 @@ export type QueryRequestParams = {
 
 export type IStoreCore = IBaseProtocolCore;
 
-export type IStoreSDK = IBaseProtocolSDK & {
+export type IStore = IBaseProtocolSDK & {
   protocol: IBaseProtocolCore;
   createCursor(message: IDecodedMessage): StoreCursor;
   queryGenerator: <T extends IDecodedMessage>(
