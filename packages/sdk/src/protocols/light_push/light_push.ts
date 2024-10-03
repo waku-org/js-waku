@@ -122,11 +122,7 @@ class LightPush extends BaseProtocolSDK implements ILightPush {
   }
 
   private async getConnectedPeers(): Promise<Peer[]> {
-    const peerIDs = this.libp2p
-      .getConnections()
-      .filter((c) => c.status === "open")
-      .sort((left, right) => right.timeline.open - left.timeline.open)
-      .map((c) => c.remotePeer);
+    const peerIDs = this.libp2p.getPeers();
 
     if (peerIDs.length === 0) {
       return [];
