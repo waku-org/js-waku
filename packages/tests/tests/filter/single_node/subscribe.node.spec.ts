@@ -7,7 +7,7 @@ import {
   getPublicKey,
   symmetric
 } from "@waku/message-encryption";
-import { utf8ToBytes, waitForRemotePeer } from "@waku/sdk";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 import type { Context } from "mocha";
 

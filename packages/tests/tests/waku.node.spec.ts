@@ -189,8 +189,8 @@ describe("Decryption Keys", function () {
     await waku1.dial(waku2.libp2p.peerId);
 
     await Promise.all([
-      waitForRemotePeer(waku1, [Protocols.Relay]),
-      waitForRemotePeer(waku2, [Protocols.Relay])
+      waku1.connect([Protocols.Relay]),
+      waku1.connect([Protocols.Relay])
     ]);
   });
 

@@ -6,7 +6,6 @@ import {
   ShardInfo
 } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
-import { waitForRemotePeer } from "@waku/sdk";
 import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
 import { Context } from "mocha";
 
@@ -46,7 +45,7 @@ export async function waitForAllRemotePeers(
 ): Promise<void> {
   log.info("Wait for mutual pubsub subscription");
   await Promise.all(
-    nodes.map((node): Promise<void> => waitForRemotePeer(node, RELAY_PROTOCOLS))
+    nodes.map((node): Promise<void> => node.connect(RELAY_PROTOCOLS))
   );
 }
 

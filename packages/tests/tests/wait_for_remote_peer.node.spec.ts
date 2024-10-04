@@ -1,7 +1,7 @@
 import type { LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
-import { createLightNode, waitForRemotePeer } from "@waku/sdk";
+import { createLightNode, waku } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
@@ -60,7 +60,7 @@ describe("Wait for remote peer", function () {
     });
     await waku1.start();
 
-    const waitPromise = waitForRemotePeer(waku1, [Protocols.Relay]);
+    const waitPromise = waku1.connect([Protocols.Relay]);
     await delay(1000);
     await waku1.dial(multiAddrWithId);
     await waitPromise;
@@ -80,7 +80,7 @@ describe("Wait for remote peer", function () {
     })
       .then((waku1) => waku1.start().then(() => waku1))
       .then((waku1) => {
-        waitForRemotePeer(waku1, [Protocols.Relay], 200).then(
+        waku1.connect([Protocols.Relay], 200).then(
           () => {
             throw "Promise expected to reject on time out";
           },
@@ -138,7 +138,7 @@ describe("Wait for remote peer", function () {
       networkConfig: DefaultTestShardInfo
     });
     await waku2.start();
-    const waitPromise = waitForRemotePeer(waku2, [Protocols.Store], 2000);
+    const waitPromise = waku2.connect([Protocols.Store], 2000);
     await delay(1000);
     await waku2.dial(multiAddrWithId);
     await waitPromise;

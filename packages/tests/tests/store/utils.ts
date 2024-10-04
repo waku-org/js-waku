@@ -11,7 +11,7 @@ import {
   ShardInfo,
   type SingleShardInfo
 } from "@waku/interfaces";
-import { createLightNode, waitForRemotePeer } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 import { Context } from "mocha";

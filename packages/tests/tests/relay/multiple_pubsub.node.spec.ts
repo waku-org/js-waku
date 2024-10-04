@@ -7,7 +7,6 @@ import {
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
-import { waitForRemotePeer } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   pubsubTopicToSingleShardInfo,
@@ -115,9 +114,9 @@ describe("Waku Relay, multiple pubsub topics", function () {
       ]);
 
       await Promise.all([
-        waitForRemotePeer(waku1, [Protocols.Relay]),
-        waitForRemotePeer(waku2, [Protocols.Relay]),
-        waitForRemotePeer(waku3, [Protocols.Relay])
+        waku1.connect([Protocols.Relay]),
+        waku2.connect([Protocols.Relay]),
+        waku2.connect([Protocols.Relay])
       ]);
 
       await waku1.relay.subscribeWithUnsubscribe(
@@ -222,9 +221,9 @@ describe("Waku Relay, multiple pubsub topics", function () {
     ]);
 
     await Promise.all([
-      waitForRemotePeer(waku1, [Protocols.Relay]),
-      waitForRemotePeer(waku2, [Protocols.Relay]),
-      waitForRemotePeer(waku3, [Protocols.Relay])
+      waku1.connect([Protocols.Relay]),
+      waku2.connect([Protocols.Relay]),
+      waku3.connect([Protocols.Relay])
     ]);
 
     await waku1.relay.subscribeWithUnsubscribe(
@@ -290,8 +289,8 @@ describe("Waku Relay, multiple pubsub topics", function () {
     ]);
 
     await Promise.all([
-      waitForRemotePeer(waku1, [Protocols.Relay]),
-      waitForRemotePeer(waku2, [Protocols.Relay])
+      waku1.connect([Protocols.Relay]),
+      waku2.connect([Protocols.Relay])
     ]);
 
     const messageText = "Communicating using a custom pubsub topic";
@@ -420,9 +419,9 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
       ]);
 
       await Promise.all([
-        waitForRemotePeer(waku1, [Protocols.Relay]),
-        waitForRemotePeer(waku2, [Protocols.Relay]),
-        waitForRemotePeer(waku3, [Protocols.Relay])
+        waku1.connect([Protocols.Relay]),
+        waku2.connect([Protocols.Relay]),
+        waku3.connect([Protocols.Relay])
       ]);
 
       await waku1.relay.subscribeWithUnsubscribe(
@@ -536,9 +535,9 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
     ]);
 
     await Promise.all([
-      waitForRemotePeer(waku1, [Protocols.Relay]),
-      waitForRemotePeer(waku2, [Protocols.Relay]),
-      waitForRemotePeer(waku3, [Protocols.Relay])
+      waku1.connect([Protocols.Relay]),
+      waku2.connect([Protocols.Relay]),
+      waku3.connect([Protocols.Relay])
     ]);
 
     await waku1.relay.subscribeWithUnsubscribe(
@@ -631,8 +630,8 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
     ]);
 
     await Promise.all([
-      waitForRemotePeer(waku1, [Protocols.Relay]),
-      waitForRemotePeer(waku2, [Protocols.Relay])
+      waku1.connect([Protocols.Relay]),
+      waku2.connect([Protocols.Relay])
     ]);
 
     const messageText = "Communicating using a custom pubsub topic";
