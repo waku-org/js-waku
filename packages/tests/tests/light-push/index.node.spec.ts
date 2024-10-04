@@ -34,7 +34,7 @@ const runTests = (strictNodeCheck: boolean): void => {
       [serviceNodes, waku] = await runMultipleNodes(
         this.ctx,
         TestShardInfo,
-        undefined,
+        { lightpush: true, filter: true },
         strictNodeCheck,
         numServiceNodes,
         true

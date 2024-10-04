@@ -31,7 +31,8 @@ export async function waitForRemotePeer(
   protocols?: Protocols[],
   timeoutMs?: number
 ): Promise<void> {
-  protocols = protocols ?? getEnabledProtocols(waku);
+  // if no protocols or empty array passed - try to derive from mounted
+  protocols = protocols?.length ? protocols : getEnabledProtocols(waku);
   const connections = waku.libp2p.getConnections();
 
   if (!waku.isStarted()) {
@@ -39,8 +40,7 @@ export async function waitForRemotePeer(
   }
 
   if (connections.length > 0 && !protocols.includes(Protocols.Relay)) {
-    const success = await waitForMetadata(waku.libp2p);
-
+    const success = await waitForMetadata(waku, protocols);
     if (success) {
       return;
     }
@@ -135,33 +135,55 @@ async function waitForConnectedPeer(
 /**
  * Waits for the metadata from the remote peer.
  */
-async function waitForMetadata(libp2p: Libp2p): Promise<boolean> {
-  const connections = libp2p.getConnections();
-  const metadataService = libp2p.services.metadata;
+async function waitForMetadata(
+  waku: Waku,
+  protocols: Protocols[]
+): Promise<boolean> {
+  const connectedPeers = waku.libp2p.getPeers();
+  const metadataService = waku.libp2p.services.metadata;
+  const enabledCodes = mapProtocolsToCodecs(protocols);
 
-  if (!connections.length || !metadataService) {
+  if (!connectedPeers.length || !metadataService) {
     log.info(
-      `Skipping waitForMetadata due to missing connections:${connections.length} or metadataService:${!!metadataService}`
+      `Skipping waitForMetadata due to missing connections:${connectedPeers.length} or metadataService:${!!metadataService}`
     );
     return false;
   }
 
-  try {
-    // confirm at least with one connected peer
-    await Promise.any(
-      connections
-        .map((c) => c.remotePeer)
-        .map((peer) => metadataService.confirmOrAttemptHandshake(peer))
-    );
+  for (const peerId of connectedPeers) {
+    try {
+      const peer = await waku.libp2p.peerStore.get(peerId);
+      const hasSomeCodes = peer.protocols.some((c) => enabledCodes.has(c));
 
-    return true;
-  } catch (e) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((e as any).code === "ERR_CONNECTION_BEING_CLOSED") {
-      log.error("Connection closed. Some peers can be on different shard.");
+      if (hasSomeCodes) {
+        const response =
+          await metadataService.confirmOrAttemptHandshake(peerId);
+
+        if (!response.error) {
+          peer.protocols.forEach((c) => {
+            if (enabledCodes.has(c)) {
+              enabledCodes.set(c, true);
+            }
+          });
+
+          const confirmedAllCodecs = Array.from(enabledCodes.values()).every(
+            (v) => v
+          );
+
+          if (confirmedAllCodecs) {
+            return true;
+          }
+        }
+      }
+    } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((e as any).code === "ERR_CONNECTION_BEING_CLOSED") {
+        log.error("Connection closed. Some peers can be on different shard.");
+      }
+
+      log.error(`Error while iterating through peers: ${e}`);
+      continue;
     }
-
-    log.error(`Error waiting for metadata: ${e}`);
   }
 
   return false;
@@ -215,4 +237,22 @@ function getEnabledProtocols(waku: Waku): Protocols[] {
   }
 
   return protocols;
+}
+
+function mapProtocolsToCodecs(protocols: Protocols[]): Map<string, boolean> {
+  const codecs: Map<string, boolean> = new Map();
+
+  const protocolToCodec: Record<string, string> = {
+    [Protocols.Filter]: FilterCodecs.SUBSCRIBE,
+    [Protocols.LightPush]: LightPushCodec,
+    [Protocols.Store]: StoreCodec
+  };
+
+  for (const protocol of protocols) {
+    if (protocolToCodec[protocol]) {
+      codecs.set(protocolToCodec[protocol], false);
+    }
+  }
+
+  return codecs;
 }
