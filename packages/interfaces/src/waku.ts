@@ -2,19 +2,19 @@ import type { PeerId, Stream } from "@libp2p/interface";
 import type { MultiaddrInput } from "@multiformats/multiaddr";
 
 import { IConnectionManager } from "./connection_manager.js";
-import type { IFilterSDK } from "./filter.js";
+import type { IFilter } from "./filter.js";
 import { IHealthManager } from "./health_manager.js";
 import type { Libp2p } from "./libp2p.js";
 import type { ILightPush } from "./light_push.js";
 import { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
-import type { IStoreSDK } from "./store.js";
+import type { IStore } from "./store.js";
 
 export interface Waku {
   libp2p: Libp2p;
   relay?: IRelay;
-  store?: IStoreSDK;
-  filter?: IFilterSDK;
+  store?: IStore;
+  filter?: IFilter;
   lightPush?: ILightPush;
 
   connectionManager: IConnectionManager;
@@ -34,8 +34,8 @@ export interface Waku {
 
 export interface LightNode extends Waku {
   relay: undefined;
-  store: IStoreSDK;
-  filter: IFilterSDK;
+  store: IStore;
+  filter: IFilter;
   lightPush: ILightPush;
 }
 

@@ -1,7 +1,7 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import {
   DefaultNetworkConfig,
-  ISubscriptionSDK,
+  ISubscription,
   LightNode,
   NetworkConfig,
   ProtocolCreateOptions,
@@ -46,7 +46,7 @@ export const messagePayload = { payload: utf8ToBytes(messageText) };
 
 // Utility to validate errors related to pings in the subscription.
 export async function validatePingError(
-  subscription: ISubscriptionSDK
+  subscription: ISubscription
 ): Promise<void> {
   try {
     const { failures, successes } = await subscription.ping();
