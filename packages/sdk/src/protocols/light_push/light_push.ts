@@ -113,8 +113,6 @@ class LightPush extends BaseProtocolSDK implements ILightPush {
       }
     }
 
-    this.healthManager.updateProtocolHealth(LightPushCodec, successes.length);
-
     return {
       successes,
       failures
