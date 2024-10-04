@@ -7,7 +7,7 @@ import {
   Waku
 } from "@waku/interfaces";
 import { createLightNode, waitForRemotePeer } from "@waku/sdk";
-import { derivePubsubTopicsFromNetworkConfig, isDefined } from "@waku/utils";
+import { derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
