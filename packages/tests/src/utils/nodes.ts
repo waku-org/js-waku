@@ -1,4 +1,3 @@
-import { waitForRemotePeer } from "@waku/core";
 import {
   DefaultNetworkConfig,
   LightNode,
@@ -7,7 +6,7 @@ import {
   Protocols,
   Waku
 } from "@waku/interfaces";
-import { createLightNode } from "@waku/sdk";
+import { createLightNode, waitForRemotePeer } from "@waku/sdk";
 import { derivePubsubTopicsFromNetworkConfig, isDefined } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";

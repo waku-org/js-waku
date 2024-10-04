@@ -1,6 +1,5 @@
-import { waitForRemotePeer } from "@waku/core";
 import { LightNode, Protocols } from "@waku/interfaces";
-import { utf8ToBytes } from "@waku/sdk";
+import { utf8ToBytes, waitForRemotePeer } from "@waku/sdk";
 import { expect } from "chai";
 
 import {

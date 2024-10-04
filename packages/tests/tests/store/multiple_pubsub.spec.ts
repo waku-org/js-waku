@@ -1,6 +1,6 @@
-import { createDecoder, waitForRemotePeer } from "@waku/core";
+import { createDecoder } from "@waku/core";
 import type { ContentTopicInfo, IMessage, LightNode } from "@waku/interfaces";
-import { createLightNode, Protocols } from "@waku/sdk";
+import { createLightNode, Protocols, waitForRemotePeer } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   pubsubTopicToSingleShardInfo

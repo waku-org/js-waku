@@ -1,8 +1,8 @@
-import { waitForRemotePeer } from "@waku/core";
 import { EnrDecoder } from "@waku/enr";
 import type { RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
+import { waitForRemotePeer } from "@waku/sdk";
 import { expect } from "chai";
 
 import {

@@ -1,8 +1,7 @@
-import { waitForRemotePeer } from "@waku/core";
 import type { LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
-import { createLightNode } from "@waku/sdk";
+import { createLightNode, waitForRemotePeer } from "@waku/sdk";
 import { expect } from "chai";
 
 import {

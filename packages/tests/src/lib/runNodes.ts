@@ -1,11 +1,10 @@
-import { waitForRemotePeer } from "@waku/core";
 import {
   NetworkConfig,
   ProtocolCreateOptions,
   Protocols
 } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
-import { createLightNode, WakuNode } from "@waku/sdk";
+import { createLightNode, waitForRemotePeer, WakuNode } from "@waku/sdk";
 import {
   derivePubsubTopicsFromNetworkConfig,
   Logger,

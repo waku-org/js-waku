@@ -13,9 +13,7 @@ export * as waku_light_push from "./lib/light_push/index.js";
 export { LightPushCodec, LightPushCore } from "./lib/light_push/index.js";
 
 export * as waku_store from "./lib/store/index.js";
-export { StoreCore } from "./lib/store/index.js";
-
-export { waitForRemotePeer } from "./lib/wait_for_remote_peer.js";
+export { StoreCore, StoreCodec } from "./lib/store/index.js";
 
 export { ConnectionManager } from "./lib/connection_manager.js";
 

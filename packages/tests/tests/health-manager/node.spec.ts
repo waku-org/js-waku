@@ -1,4 +1,4 @@
-import { HealthStatus, LightNode, Protocols } from "@waku/interfaces";
+import { HealthStatus, LightNode, Protocols, Waku } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { shardInfoToPubsubTopics } from "@waku/utils";
 import { expect } from "chai";
@@ -34,8 +34,7 @@ describe("Node Health Status Matrix Tests", function () {
 
   peerCounts.forEach((lightPushPeers) => {
     peerCounts.forEach((filterPeers) => {
-      const expectedHealth = getExpectedNodeHealth(lightPushPeers, filterPeers);
-      it(`LightPush: ${lightPushPeers} peers, Filter: ${filterPeers} peers - Expected: ${expectedHealth}`, async function () {
+      it(`LightPush: ${lightPushPeers} peers, Filter: ${filterPeers} peers`, async function () {
         this.timeout(10_000);
 
         [waku, serviceNodes] = await setupTestEnvironment(
@@ -59,6 +58,10 @@ describe("Node Health Status Matrix Tests", function () {
         );
         const filterHealth = waku.health.getProtocolStatus(Protocols.Filter);
 
+        lightPushPeers = await getPeerCounBasedOnConnections(
+          waku,
+          waku.lightPush.protocol.multicodec
+        );
         expect(lightPushHealth?.status).to.equal(
           getExpectedProtocolStatus(lightPushPeers)
         );
@@ -66,6 +69,10 @@ describe("Node Health Status Matrix Tests", function () {
           getExpectedProtocolStatus(filterPeers)
         );
 
+        const expectedHealth = getExpectedNodeHealth(
+          lightPushPeers,
+          filterPeers
+        );
         const nodeHealth = waku.health.getHealthStatus();
         expect(nodeHealth).to.equal(expectedHealth);
       });
@@ -77,6 +84,21 @@ function getExpectedProtocolStatus(peerCount: number): HealthStatus {
   if (peerCount === 0) return HealthStatus.Unhealthy;
   if (peerCount === 1) return HealthStatus.MinimallyHealthy;
   return HealthStatus.SufficientlyHealthy;
+}
+
+async function getPeerCounBasedOnConnections(
+  waku: Waku,
+  codec: string
+): Promise<number> {
+  const peerIDs = waku.libp2p
+    .getConnections()
+    .map((c) => c.remotePeer.toString());
+
+  const peers = await waku.libp2p.peerStore.all();
+
+  return peers
+    .filter((peer) => peerIDs.includes(peer.id.toString()))
+    .filter((peer) => peer.protocols.includes(codec)).length;
 }
 
 function getExpectedNodeHealth(

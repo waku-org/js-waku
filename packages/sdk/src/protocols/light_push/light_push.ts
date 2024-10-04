@@ -1,9 +1,9 @@
-import type { PeerId } from "@libp2p/interface";
-import { ConnectionManager, LightPushCore } from "@waku/core";
+import type { Peer, PeerId } from "@libp2p/interface";
+import { ConnectionManager, LightPushCodec, LightPushCore } from "@waku/core";
 import {
   Failure,
   type IEncoder,
-  ILightPushSDK,
+  ILightPush,
   type IMessage,
   type Libp2p,
   type ProtocolCreateOptions,
@@ -19,14 +19,14 @@ import { BaseProtocolSDK } from "../base_protocol.js";
 
 const log = new Logger("sdk:light-push");
 
-class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
+class LightPush extends BaseProtocolSDK implements ILightPush {
   public readonly protocol: LightPushCore;
 
   private readonly reliabilityMonitor: SenderReliabilityMonitor;
 
   public constructor(
     connectionManager: ConnectionManager,
-    libp2p: Libp2p,
+    private libp2p: Libp2p,
     options?: ProtocolCreateOptions
   ) {
     super(
@@ -49,11 +49,6 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
     message: IMessage,
     _options?: ProtocolUseOptions
   ): Promise<SDKProtocolResult> {
-    const options = {
-      autoRetry: true,
-      ..._options
-    } as ProtocolUseOptions;
-
     const successes: PeerId[] = [];
     const failures: Failure[] = [];
 
@@ -63,17 +58,17 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
     } catch (error) {
       log.error("Failed to send waku light push: pubsub topic not configured");
       return {
+        successes,
         failures: [
           {
             error: ProtocolError.TOPIC_NOT_CONFIGURED
           }
-        ],
-        successes: []
+        ]
       };
     }
 
-    const hasPeers = await this.hasPeers(options);
-    if (!hasPeers) {
+    const peers = await this.getConnectedPeers();
+    if (peers.length === 0) {
       return {
         successes,
         failures: [
@@ -84,53 +79,75 @@ class LightPushSDK extends BaseProtocolSDK implements ILightPushSDK {
       };
     }
 
-    const sendPromises = this.connectedPeers.map((peer) =>
-      this.protocol.send(encoder, message, peer)
+    const results = await Promise.allSettled(
+      peers.map((peer) => this.protocol.send(encoder, message, peer))
     );
 
-    const results = await Promise.allSettled(sendPromises);
-
     for (const result of results) {
-      if (result.status === "fulfilled") {
-        const { failure, success } = result.value;
-        if (success) {
-          successes.push(success);
-        }
-        if (failure) {
-          failures.push(failure);
-          if (failure.peerId) {
-            const peer = this.connectedPeers.find((connectedPeer) =>
-              connectedPeer.id.equals(failure.peerId)
-            );
-            if (peer) {
-              log.info(`
-                Failed to send message to peer ${failure.peerId}.
-                Retrying the message with the same peer in the background.
-                If this fails, the peer will be renewed.
-                `);
-              void this.reliabilityMonitor.attemptRetriesOrRenew(
-                failure.peerId,
-                () => this.protocol.send(encoder, message, peer)
-              );
-            }
-          }
-        }
-      } else {
+      if (result.status !== "fulfilled") {
         log.error("Failed unexpectedly while sending:", result.reason);
         failures.push({ error: ProtocolError.GENERIC_FAIL });
+        continue;
+      }
+
+      const { failure, success } = result.value;
+
+      if (success) {
+        successes.push(success);
+        continue;
+      }
+
+      if (failure) {
+        failures.push(failure);
+
+        const connectedPeer = this.connectedPeers.find((connectedPeer) =>
+          connectedPeer.id.equals(failure.peerId)
+        );
+
+        if (connectedPeer) {
+          void this.reliabilityMonitor.attemptRetriesOrRenew(
+            connectedPeer.id,
+            () => this.protocol.send(encoder, message, connectedPeer)
+          );
+        }
       }
     }
+
+    this.healthManager.updateProtocolHealth(LightPushCodec, successes.length);
 
     return {
       successes,
       failures
     };
   }
+
+  private async getConnectedPeers(): Promise<Peer[]> {
+    const peerIDs = this.libp2p.getPeers();
+
+    if (peerIDs.length === 0) {
+      return [];
+    }
+
+    const peers = await Promise.all(
+      peerIDs.map(async (id) => {
+        try {
+          return await this.libp2p.peerStore.get(id);
+        } catch (e) {
+          return null;
+        }
+      })
+    );
+
+    return peers
+      .filter((p) => !!p)
+      .filter((p) => (p as Peer).protocols.includes(LightPushCodec))
+      .slice(0, this.numPeersToUse) as Peer[];
+  }
 }
 
 export function wakuLightPush(
   connectionManager: ConnectionManager,
   init: Partial<ProtocolCreateOptions> = {}
-): (libp2p: Libp2p) => ILightPushSDK {
-  return (libp2p: Libp2p) => new LightPushSDK(connectionManager, libp2p, init);
+): (libp2p: Libp2p) => ILightPush {
+  return (libp2p: Libp2p) => new LightPush(connectionManager, libp2p, init);
 }

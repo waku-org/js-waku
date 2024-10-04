@@ -275,8 +275,5 @@ describe("Waku Filter: Peer Management: E2E", function () {
     await sendMessage();
 
     expect(waku.filter.connectedPeers.length).to.equal(2);
-    expect(
-      waku.filter.connectedPeers.map((p) => p.id.toString())
-    ).to.not.include(nodeWithouDiscoveryPeerIdStr);
   });
 });

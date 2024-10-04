@@ -5,7 +5,7 @@ import { ConnectionManager, getHealthManager } from "@waku/core";
 import type {
   IFilterSDK,
   IHealthManager,
-  ILightPushSDK,
+  ILightPush,
   IRelay,
   IStoreSDK,
   Libp2p,
@@ -17,7 +17,7 @@ import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { wakuFilter } from "./protocols/filter/index.js";
-import { wakuLightPush } from "./protocols/lightpush/index.js";
+import { wakuLightPush } from "./protocols/light_push/index.js";
 import { wakuStore } from "./protocols/store/index.js";
 import { ReliabilityMonitorManager } from "./reliability_monitor/index.js";
 
@@ -64,7 +64,7 @@ export class WakuNode implements Waku {
   public relay?: IRelay;
   public store?: IStoreSDK;
   public filter?: IFilterSDK;
-  public lightPush?: ILightPushSDK;
+  public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
   public readonly health: IHealthManager;
 

@@ -1,6 +1,6 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
-import { DecodedMessage, waitForRemotePeer } from "@waku/core";
+import { DecodedMessage } from "@waku/core";
 import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { generateSymmetricKey } from "@waku/message-encryption";
@@ -12,7 +12,8 @@ import { createRelayNode } from "@waku/relay";
 import {
   createLightNode,
   createEncoder as createPlainEncoder,
-  DefaultUserAgent
+  DefaultUserAgent,
+  waitForRemotePeer
 } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";

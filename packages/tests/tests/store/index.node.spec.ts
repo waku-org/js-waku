@@ -1,4 +1,4 @@
-import { createDecoder, DecodedMessage, waitForRemotePeer } from "@waku/core";
+import { createDecoder, DecodedMessage } from "@waku/core";
 import type { IMessage, LightNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import {
@@ -14,6 +14,7 @@ import {
   createDecoder as createSymDecoder,
   createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
+import { waitForRemotePeer } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { equals } from "uint8arrays/equals";
