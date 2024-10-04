@@ -14,7 +14,6 @@ import {
   createDecoder as createSymDecoder,
   createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
-import { waitForRemotePeer } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import { equals } from "uint8arrays/equals";
@@ -292,7 +291,7 @@ describe("Waku Store, general", function () {
       waku.lightPush.send(TestEncoder, clearMsg)
     ]);
 
-    await waitForRemotePeer(waku2, [Protocols.Store]);
+    await waku2.connect([Protocols.Store]);
 
     const messages: DecodedMessage[] = [];
     log.info("Retrieve messages from store");

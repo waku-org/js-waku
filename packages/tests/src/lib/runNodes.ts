@@ -4,7 +4,7 @@ import {
   Protocols
 } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
-import { createLightNode, waitForRemotePeer, WakuNode } from "@waku/sdk";
+import { createLightNode, WakuNode } from "@waku/sdk";
 import {
   derivePubsubTopicsFromNetworkConfig,
   Logger,
@@ -63,7 +63,7 @@ export async function runNodes<T>(
 
   if (waku) {
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waitForRemotePeer(waku, protocols);
+    await waku.connect(protocols);
     await nwaku.ensureSubscriptions(pubsubTopics);
     return [nwaku, waku as T];
   } else {

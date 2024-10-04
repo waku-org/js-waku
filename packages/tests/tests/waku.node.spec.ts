@@ -12,8 +12,7 @@ import { createRelayNode } from "@waku/relay";
 import {
   createLightNode,
   createEncoder as createPlainEncoder,
-  DefaultUserAgent,
-  waitForRemotePeer
+  DefaultUserAgent
 } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -59,7 +58,7 @@ describe("Waku Dial [node only]", function () {
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
-      await waitForRemotePeer(waku, [
+      await waku.connect([
         Protocols.Store,
         Protocols.Filter,
         Protocols.LightPush
@@ -268,7 +267,7 @@ describe("User Agent", function () {
       multiaddrs: waku2.libp2p.getMultiaddrs()
     });
     await waku1.dial(waku2.libp2p.peerId);
-    await waitForRemotePeer(waku1);
+    await waku1.connect();
 
     const [waku1PeerInfo, waku2PeerInfo] = await Promise.all([
       waku2.libp2p.peerStore.get(waku1.libp2p.peerId),

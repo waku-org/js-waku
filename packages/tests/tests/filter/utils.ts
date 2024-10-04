@@ -2,13 +2,13 @@ import { createDecoder, createEncoder } from "@waku/core";
 import {
   DefaultNetworkConfig,
   ISubscription,
+  IWaku,
   LightNode,
   NetworkConfig,
   ProtocolCreateOptions,
-  Protocols,
-  Waku
+  Protocols
 } from "@waku/interfaces";
-import { createLightNode, waitForRemotePeer } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   derivePubsubTopicsFromNetworkConfig,
@@ -107,7 +107,7 @@ export async function runMultipleNodes(
 
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+    await waku.connect([Protocols.Filter, Protocols.LightPush]);
     await node.ensureSubscriptions(pubsubTopics);
 
     const wakuConnections = waku.libp2p.getConnections();
@@ -126,7 +126,7 @@ export async function runMultipleNodes(
 
 export async function teardownNodesWithRedundancy(
   serviceNodes: ServiceNodesFleet,
-  wakuNodes: Waku | Waku[]
+  wakuNodes: IWaku | IWaku[]
 ): Promise<void> {
   const wNodes = Array.isArray(wakuNodes) ? wakuNodes : [wakuNodes];
 

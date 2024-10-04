@@ -1,10 +1,5 @@
 import { LightNode, ProtocolError, Protocols } from "@waku/interfaces";
-import {
-  createEncoder,
-  createLightNode,
-  utf8ToBytes,
-  waitForRemotePeer
-} from "@waku/sdk";
+import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   contentTopicToShardIndex
@@ -61,7 +56,7 @@ describe("Autosharding: Running Nodes", function () {
         }
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.LightPush]);
+      await waku.connect([Protocols.LightPush]);
 
       const encoder = createEncoder({
         contentTopic: ContentTopic,
@@ -103,7 +98,7 @@ describe("Autosharding: Running Nodes", function () {
         }
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.LightPush]);
+      await waku.connect([Protocols.LightPush]);
 
       const encoder = createEncoder({
         contentTopic: ContentTopic,
@@ -160,7 +155,7 @@ describe("Autosharding: Running Nodes", function () {
         });
 
         await waku.dial(await nwaku.getMultiaddrWithId());
-        await waitForRemotePeer(waku, [Protocols.LightPush]);
+        await waku.connect([Protocols.LightPush]);
 
         const encoder = createEncoder({
           contentTopic: ContentTopic,
@@ -223,7 +218,7 @@ describe("Autosharding: Running Nodes", function () {
         }
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.LightPush]);
+      await waku.connect([Protocols.LightPush]);
 
       const encoder1 = createEncoder({
         contentTopic: ContentTopic,

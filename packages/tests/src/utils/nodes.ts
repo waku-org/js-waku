@@ -6,7 +6,7 @@ import {
   ProtocolCreateOptions,
   Protocols
 } from "@waku/interfaces";
-import { createLightNode, waitForRemotePeer } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
 import { derivePubsubTopicsFromNetworkConfig, isDefined } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
@@ -52,8 +52,7 @@ export async function runMultipleNodes(
 
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
-    await waitForRemotePeer(
-      waku,
+    await waku.connect(
       [
         !customArgs?.filter ? undefined : Protocols.Filter,
         !customArgs?.lightpush ? undefined : Protocols.LightPush
