@@ -7,6 +7,8 @@ import { Logger } from "@waku/utils";
 const log = new Logger("wait-for-remote-peer");
 
 /**
+ * @deprecated Since @waku/sdk 0.29.0. Will be removed from 0.31.0
+ *
  * Wait for a remote peer to be ready given the passed protocols.
  * Must be used after attempting to connect to nodes, using
  * {@link @waku/sdk!WakuNode.dial} or a bootstrap method with
