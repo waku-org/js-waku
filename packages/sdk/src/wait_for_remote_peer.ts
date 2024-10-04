@@ -1,6 +1,6 @@
 import type { IdentifyResult } from "@libp2p/interface";
 import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
-import type { IRelay, Libp2p, Waku } from "@waku/interfaces";
+import type { IRelay, IWaku, Libp2p } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { pEvent } from "p-event";
@@ -27,7 +27,7 @@ const log = new Logger("wait-for-remote-peer");
  * @default Wait for remote peers with protocols enabled locally and no time out is applied.
  */
 export async function waitForRemotePeer(
-  waku: Waku,
+  waku: IWaku,
   protocols?: Protocols[],
   timeoutMs?: number
 ): Promise<void> {
@@ -137,7 +137,7 @@ async function waitForConnectedPeer(
  * Waits for the metadata from the remote peer.
  */
 async function waitForMetadata(
-  waku: Waku,
+  waku: IWaku,
   protocols: Protocols[]
 ): Promise<boolean> {
   const connectedPeers = waku.libp2p.getPeers();
@@ -218,7 +218,7 @@ async function rejectOnTimeout<T>(
   await Promise.race([promise, awaitTimeout(timeoutMs, rejectReason)]);
 }
 
-function getEnabledProtocols(waku: Waku): Protocols[] {
+function getEnabledProtocols(waku: IWaku): Protocols[] {
   const protocols = [];
 
   if (waku.relay) {

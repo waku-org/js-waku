@@ -10,7 +10,7 @@ import { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { IStore } from "./store.js";
 
-export interface Waku {
+export interface IWaku {
   libp2p: Libp2p;
   relay?: IRelay;
   store?: IStore;
@@ -32,14 +32,14 @@ export interface Waku {
   health: IHealthManager;
 }
 
-export interface LightNode extends Waku {
+export interface LightNode extends IWaku {
   relay: undefined;
   store: IStore;
   filter: IFilter;
   lightPush: ILightPush;
 }
 
-export interface RelayNode extends Waku {
+export interface RelayNode extends IWaku {
   relay: IRelay;
   store: undefined;
   filter: undefined;

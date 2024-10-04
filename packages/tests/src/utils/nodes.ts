@@ -1,10 +1,10 @@
 import {
   DefaultNetworkConfig,
+  IWaku,
   LightNode,
   NetworkConfig,
   ProtocolCreateOptions,
-  Protocols,
-  Waku
+  Protocols
 } from "@waku/interfaces";
 import { createLightNode, waitForRemotePeer } from "@waku/sdk";
 import { derivePubsubTopicsFromNetworkConfig, isDefined } from "@waku/utils";
@@ -79,7 +79,7 @@ export async function runMultipleNodes(
 
 export async function teardownNodesWithRedundancy(
   serviceNodes: ServiceNodesFleet,
-  wakuNodes: Waku | Waku[]
+  wakuNodes: IWaku | IWaku[]
 ): Promise<void> {
   const wNodes = Array.isArray(wakuNodes) ? wakuNodes : [wakuNodes];
 

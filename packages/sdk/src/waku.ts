@@ -8,10 +8,10 @@ import type {
   ILightPush,
   IRelay,
   IStore,
+  IWaku,
   Libp2p,
   ProtocolCreateOptions,
-  PubsubTopic,
-  Waku
+  PubsubTopic
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -59,7 +59,7 @@ type ProtocolsEnabled = {
   store?: boolean;
 };
 
-export class WakuNode implements Waku {
+export class WakuNode implements IWaku {
   public libp2p: Libp2p;
   public relay?: IRelay;
   public store?: IStore;

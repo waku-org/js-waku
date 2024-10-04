@@ -1,4 +1,4 @@
-import { Waku } from "@waku/interfaces";
+import { IWaku } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import pRetry from "p-retry";
 
@@ -8,7 +8,7 @@ const log = new Logger("test:teardown");
 
 export async function tearDownNodes(
   nwakuNodes: ServiceNode | ServiceNode[],
-  wakuNodes: Waku | Waku[]
+  wakuNodes: IWaku | IWaku[]
 ): Promise<void> {
   const nNodes = Array.isArray(nwakuNodes) ? nwakuNodes : [nwakuNodes];
   const wNodes = Array.isArray(wakuNodes) ? wakuNodes : [wakuNodes];
