@@ -17,6 +17,7 @@ export interface IWaku {
   filter?: IFilter;
   lightPush?: ILightPush;
 
+  health: IHealthManager;
   connectionManager: IConnectionManager;
 
   dial(peer: PeerId | MultiaddrInput, protocols?: Protocols[]): Promise<Stream>;
@@ -25,11 +26,11 @@ export interface IWaku {
 
   stop(): Promise<void>;
 
+  connect(): Promise<void>;
+
   isStarted(): boolean;
 
   isConnected(): boolean;
-
-  health: IHealthManager;
 }
 
 export interface LightNode extends IWaku {

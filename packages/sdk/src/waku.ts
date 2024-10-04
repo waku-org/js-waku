@@ -20,6 +20,7 @@ import { wakuFilter } from "./protocols/filter/index.js";
 import { wakuLightPush } from "./protocols/light_push/index.js";
 import { wakuStore } from "./protocols/store/index.js";
 import { ReliabilityMonitorManager } from "./reliability_monitor/index.js";
+import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -199,6 +200,13 @@ export class WakuNode implements IWaku {
     ReliabilityMonitorManager.stopAll();
     this.connectionManager.stop();
     await this.libp2p.stop();
+  }
+
+  public async connect(
+    protocols?: Protocols[],
+    timeoutMs?: number
+  ): Promise<void> {
+    return waitForRemotePeer(this, protocols, timeoutMs);
   }
 
   public isStarted(): boolean {
