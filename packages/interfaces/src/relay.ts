@@ -16,6 +16,7 @@ export interface IRelayAPI {
   readonly pubsubTopics: Set<PubsubTopic>;
   readonly gossipSub: GossipSub;
   start: () => Promise<void>;
+  connect: () => Promise<void>;
   getMeshPeers: (topic?: TopicStr) => PeerIdStr[];
 }
 

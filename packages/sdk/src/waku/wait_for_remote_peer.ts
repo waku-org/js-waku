@@ -1,9 +1,8 @@
 import type { IdentifyResult } from "@libp2p/interface";
 import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
-import type { IRelay, IWaku, Libp2p } from "@waku/interfaces";
+import type { IWaku, Libp2p } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
-import { pEvent } from "p-event";
 
 const log = new Logger("wait-for-remote-peer");
 
@@ -53,7 +52,7 @@ export async function waitForRemotePeer(
     if (!waku.relay) {
       throw Error("Cannot wait for Relay peer: protocol not mounted");
     }
-    promises.push(waitForGossipSubPeerInMesh(waku.relay));
+    promises.push(waku.relay.connect());
   }
 
   if (protocols.includes(Protocols.Store)) {
@@ -188,23 +187,6 @@ async function waitForMetadata(
   }
 
   return false;
-}
-
-// TODO: move to @waku/relay and use in `node.connect()` API https://github.com/waku-org/js-waku/issues/1761
-/**
- * Wait for at least one peer with the given protocol to be connected and in the gossipsub
- * mesh for all pubsubTopics.
- */
-async function waitForGossipSubPeerInMesh(waku: IRelay): Promise<void> {
-  let peers = waku.getMeshPeers();
-  const pubsubTopics = waku.pubsubTopics;
-
-  for (const topic of pubsubTopics) {
-    while (peers.length == 0) {
-      await pEvent(waku.gossipSub, "gossipsub:heartbeat");
-      peers = waku.getMeshPeers(topic);
-    }
-  }
 }
 
 const awaitTimeout = (ms: number, rejectReason: string): Promise<void> =>
