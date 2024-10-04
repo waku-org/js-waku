@@ -52,13 +52,7 @@ export async function runMultipleNodes(
 
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
-    await waitForRemotePeer(
-      waku,
-      [
-        !customArgs?.filter ? undefined : Protocols.Filter,
-        !customArgs?.lightpush ? undefined : Protocols.LightPush
-      ].filter(isDefined)
-    );
+    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
     await node.ensureSubscriptions(
       derivePubsubTopicsFromNetworkConfig(networkConfig)
     );
