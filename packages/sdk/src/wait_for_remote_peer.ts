@@ -41,7 +41,6 @@ export async function waitForRemotePeer(
 
   if (connections.length > 0 && !protocols.includes(Protocols.Relay)) {
     const success = await waitForMetadata(waku, protocols);
-
     if (success) {
       return;
     }
@@ -152,14 +151,6 @@ async function waitForMetadata(
   }
 
   for (const peerId of connectedPeers) {
-    const confirmedAllCodecs = Array.from(enabledCodes.values()).every(
-      (v) => v
-    );
-
-    if (confirmedAllCodecs) {
-      return true;
-    }
-
     try {
       const peer = await waku.libp2p.peerStore.get(peerId);
       const hasSomeCodes = peer.protocols.some((c) => enabledCodes.has(c));
@@ -174,6 +165,14 @@ async function waitForMetadata(
               enabledCodes.set(c, true);
             }
           });
+
+          const confirmedAllCodecs = Array.from(enabledCodes.values()).every(
+            (v) => v
+          );
+
+          if (confirmedAllCodecs) {
+            return true;
+          }
         }
       }
     } catch (e) {
