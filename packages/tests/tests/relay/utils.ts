@@ -45,7 +45,7 @@ export async function waitForAllRemotePeers(
 ): Promise<void> {
   log.info("Wait for mutual pubsub subscription");
   await Promise.all(
-    nodes.map((node): Promise<void> => node.connect(RELAY_PROTOCOLS))
+    nodes.map((node): Promise<void> => node.waitForPeer(RELAY_PROTOCOLS))
   );
 }
 

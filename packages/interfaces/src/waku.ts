@@ -81,7 +81,7 @@ export interface IWaku {
    * ```typescript
    * try {
    *  // let's wait for at least one LightPush node and timeout in 1 second
-   *  await waku.connect([Protocols.LightPush], 1000);
+   *  await waku.waitForPeer([Protocols.LightPush], 1000);
    * } catch(e) {
    *  waku.isConnected() === false;
    *  console.error("Failed to connect due to", e);
@@ -90,7 +90,7 @@ export interface IWaku {
    * waku.isConnected() === true;
    * ```
    */
-  connect(protocols?: Protocols[], timeoutMs?: number): Promise<void>;
+  waitForPeer(protocols?: Protocols[], timeoutMs?: number): Promise<void>;
 
   /**
    * @returns {boolean} `true` if the node was started and `false` otherwise

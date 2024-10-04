@@ -291,7 +291,7 @@ describe("Waku Store, general", function () {
       waku.lightPush.send(TestEncoder, clearMsg)
     ]);
 
-    await waku2.connect([Protocols.Store]);
+    await waku2.waitForPeer([Protocols.Store]);
 
     const messages: DecodedMessage[] = [];
     log.info("Retrieve messages from store");

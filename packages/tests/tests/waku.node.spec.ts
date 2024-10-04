@@ -58,7 +58,7 @@ describe("Waku Dial [node only]", function () {
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
-      await waku.connect([
+      await waku.waitForPeer([
         Protocols.Store,
         Protocols.Filter,
         Protocols.LightPush
@@ -189,8 +189,8 @@ describe("Decryption Keys", function () {
     await waku1.dial(waku2.libp2p.peerId);
 
     await Promise.all([
-      waku1.connect([Protocols.Relay]),
-      waku1.connect([Protocols.Relay])
+      waku1.waitForPeer([Protocols.Relay]),
+      waku1.waitForPeer([Protocols.Relay])
     ]);
   });
 
@@ -267,7 +267,7 @@ describe("User Agent", function () {
       multiaddrs: waku2.libp2p.getMultiaddrs()
     });
     await waku1.dial(waku2.libp2p.peerId);
-    await waku1.connect();
+    await waku1.waitForPeer();
 
     const [waku1PeerInfo, waku2PeerInfo] = await Promise.all([
       waku2.libp2p.peerStore.get(waku1.libp2p.peerId),

@@ -108,7 +108,7 @@ describe("Waku Relay, Interop", function () {
     const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
     await waku2.dial(nwakuMultiaddr);
 
-    await waku2.connect([Protocols.Relay]);
+    await waku2.waitForPeer([Protocols.Relay]);
 
     await delay(2000);
     // Check that the two JS peers are NOT directly connected

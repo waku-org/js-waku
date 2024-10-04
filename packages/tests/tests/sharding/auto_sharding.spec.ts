@@ -56,7 +56,7 @@ describe("Autosharding: Running Nodes", function () {
         }
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waku.connect([Protocols.LightPush]);
+      await waku.waitForPeer([Protocols.LightPush]);
 
       const encoder = createEncoder({
         contentTopic: ContentTopic,
@@ -98,7 +98,7 @@ describe("Autosharding: Running Nodes", function () {
         }
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waku.connect([Protocols.LightPush]);
+      await waku.waitForPeer([Protocols.LightPush]);
 
       const encoder = createEncoder({
         contentTopic: ContentTopic,
@@ -155,7 +155,7 @@ describe("Autosharding: Running Nodes", function () {
         });
 
         await waku.dial(await nwaku.getMultiaddrWithId());
-        await waku.connect([Protocols.LightPush]);
+        await waku.waitForPeer([Protocols.LightPush]);
 
         const encoder = createEncoder({
           contentTopic: ContentTopic,
@@ -218,7 +218,7 @@ describe("Autosharding: Running Nodes", function () {
         }
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waku.connect([Protocols.LightPush]);
+      await waku.waitForPeer([Protocols.LightPush]);
 
       const encoder1 = createEncoder({
         contentTopic: ContentTopic,

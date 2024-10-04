@@ -445,7 +445,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     // Set up and start a new nwaku node
     [nwaku2, waku2] = await runNodes(ctx, TestShardInfo);
     await waku.dial(await nwaku2.getMultiaddrWithId());
-    await waku.connect([Protocols.Filter, Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.Filter, Protocols.LightPush]);
 
     await nwaku2.ensureSubscriptions([TestPubsubTopic]);
     // Send a message using the new subscription

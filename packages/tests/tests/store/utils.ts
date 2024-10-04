@@ -111,7 +111,7 @@ export async function startAndConnectLightNode(
   });
   await waku.start();
   await waku.dial(await instance.getMultiaddrWithId());
-  await waku.connect([Protocols.Store]);
+  await waku.waitForPeer([Protocols.Store]);
 
   const wakuConnections = waku.libp2p.getConnections();
 

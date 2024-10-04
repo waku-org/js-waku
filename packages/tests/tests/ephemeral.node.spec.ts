@@ -110,7 +110,7 @@ describe("Waku Message Ephemeral field", function () {
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
 
-    await waku.connect([
+    await waku.waitForPeer([
       Protocols.Filter,
       Protocols.LightPush,
       Protocols.Store
@@ -161,7 +161,7 @@ describe("Waku Message Ephemeral field", function () {
 
     log.info("Waku nodes connected to nwaku");
 
-    await waku.connect([Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     log.info("Sending messages using light push");
     await Promise.all([
@@ -170,7 +170,7 @@ describe("Waku Message Ephemeral field", function () {
       waku1.lightPush.send(ClearEncoder, clearMsg)
     ]);
 
-    await waku2.connect([Protocols.Store]);
+    await waku2.waitForPeer([Protocols.Store]);
 
     const messages: DecodedMessage[] = [];
 

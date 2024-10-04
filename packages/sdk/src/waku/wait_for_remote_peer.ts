@@ -52,7 +52,7 @@ export async function waitForRemotePeer(
     if (!waku.relay) {
       throw Error("Cannot wait for Relay peer: protocol not mounted");
     }
-    promises.push(waku.relay.connect());
+    promises.push(waku.relay.waitForPeer());
   }
 
   if (protocols.includes(Protocols.Store)) {

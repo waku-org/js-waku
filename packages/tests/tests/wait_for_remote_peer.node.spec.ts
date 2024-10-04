@@ -60,7 +60,7 @@ describe("Wait for remote peer", function () {
     });
     await waku1.start();
 
-    const waitPromise = waku1.connect([Protocols.Relay]);
+    const waitPromise = waku1.waitForPeer([Protocols.Relay]);
     await delay(1000);
     await waku1.dial(multiAddrWithId);
     await waitPromise;
@@ -80,7 +80,7 @@ describe("Wait for remote peer", function () {
     })
       .then((waku1) => waku1.start().then(() => waku1))
       .then((waku1) => {
-        waku1.connect([Protocols.Relay], 200).then(
+        waku1.waitForPeer([Protocols.Relay], 200).then(
           () => {
             throw "Promise expected to reject on time out";
           },
@@ -111,7 +111,7 @@ describe("Wait for remote peer", function () {
     await waku2.start();
     await waku2.dial(multiAddrWithId);
     await delay(1000);
-    await waku2.connect([Protocols.Store]);
+    await waku2.waitForPeer([Protocols.Store]);
 
     const peers = (await waku2.store.protocol.connectedPeers()).map((peer) =>
       peer.id.toString()
@@ -138,7 +138,7 @@ describe("Wait for remote peer", function () {
       networkConfig: DefaultTestShardInfo
     });
     await waku2.start();
-    const waitPromise = waku2.connect([Protocols.Store], 2000);
+    const waitPromise = waku2.waitForPeer([Protocols.Store], 2000);
     await delay(1000);
     await waku2.dial(multiAddrWithId);
     await waitPromise;
@@ -170,7 +170,7 @@ describe("Wait for remote peer", function () {
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
-    await waku2.connect([Protocols.LightPush]);
+    await waku2.waitForPeer([Protocols.LightPush]);
 
     const peers = (await waku2.lightPush.protocol.connectedPeers()).map(
       (peer) => peer.id.toString()
@@ -199,7 +199,7 @@ describe("Wait for remote peer", function () {
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
-    await waku2.connect([Protocols.Filter]);
+    await waku2.waitForPeer([Protocols.Filter]);
 
     const peers = (await waku2.filter.protocol.connectedPeers()).map((peer) =>
       peer.id.toString()
@@ -228,7 +228,7 @@ describe("Wait for remote peer", function () {
     });
     await waku2.start();
     await waku2.dial(multiAddrWithId);
-    await waku2.connect([
+    await waku2.waitForPeer([
       Protocols.Filter,
       Protocols.Store,
       Protocols.LightPush

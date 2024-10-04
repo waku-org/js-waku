@@ -40,7 +40,7 @@ describe("ENR Interop: ServiceNode", function () {
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
-    await waku.connect([Protocols.Relay]);
+    await waku.waitForPeer([Protocols.Relay]);
 
     const nwakuInfo = await nwaku.info();
     const nimPeerId = await nwaku.getPeerId();
@@ -74,7 +74,7 @@ describe("ENR Interop: ServiceNode", function () {
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
-    await waku.connect([Protocols.Relay]);
+    await waku.waitForPeer([Protocols.Relay]);
 
     const nwakuInfo = await nwaku.info();
     const nimPeerId = await nwaku.getPeerId();
@@ -109,7 +109,7 @@ describe("ENR Interop: ServiceNode", function () {
     });
     await waku.start();
     await waku.dial(multiAddrWithId);
-    await waku.connect([Protocols.Relay]);
+    await waku.waitForPeer([Protocols.Relay]);
 
     const nwakuInfo = await nwaku.info();
     const nimPeerId = await nwaku.getPeerId();

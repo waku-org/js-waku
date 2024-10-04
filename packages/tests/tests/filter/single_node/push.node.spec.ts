@@ -215,7 +215,7 @@ describe("Waku Filter V2: FilterPush", function () {
 
     // Redo the connection and create a new subscription
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waku.connect([Protocols.Filter, Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.Filter, Protocols.LightPush]);
 
     await waku.filter.subscribe([TestDecoder], messageCollector.callback);
 
@@ -242,7 +242,7 @@ describe("Waku Filter V2: FilterPush", function () {
     // Restart nwaku node
     await tearDownNodes(nwaku, []);
     await nwaku.start();
-    await waku.connect([Protocols.Filter, Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.Filter, Protocols.LightPush]);
 
     await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
 
