@@ -127,12 +127,6 @@ export class WakuNode implements IWaku {
     );
   }
 
-  /**
-   * Dials to the provided peer.
-   *
-   * @param peer The peer to dial
-   * @param protocols Waku protocols we expect from the peer; Defaults to mounted protocols
-   */
   public async dial(
     peer: PeerId | MultiaddrInput,
     protocols?: Protocols[]
