@@ -31,7 +31,8 @@ export async function waitForRemotePeer(
   protocols?: Protocols[],
   timeoutMs?: number
 ): Promise<void> {
-  protocols = protocols ?? getEnabledProtocols(waku);
+  // if no protocols or empty array passed - try to derive from mounted
+  protocols = protocols?.length ? protocols : getEnabledProtocols(waku);
   const connections = waku.libp2p.getConnections();
 
   if (!waku.isStarted()) {
@@ -39,7 +40,7 @@ export async function waitForRemotePeer(
   }
 
   if (connections.length > 0 && !protocols.includes(Protocols.Relay)) {
-    const success = await waitForMetadata(waku);
+    const success = await waitForMetadata(waku, protocols);
 
     if (success) {
       return;
@@ -135,10 +136,13 @@ async function waitForConnectedPeer(
 /**
  * Waits for the metadata from the remote peer.
  */
-async function waitForMetadata(waku: Waku): Promise<boolean> {
+async function waitForMetadata(
+  waku: Waku,
+  protocols: Protocols[]
+): Promise<boolean> {
   const connectedPeers = waku.libp2p.getPeers();
   const metadataService = waku.libp2p.services.metadata;
-  const enabledCodes = getEnabledCodecs(waku);
+  const enabledCodes = mapProtocolsToCodecs(protocols);
 
   if (!connectedPeers.length || !metadataService) {
     log.info(
@@ -236,19 +240,19 @@ function getEnabledProtocols(waku: Waku): Protocols[] {
   return protocols;
 }
 
-function getEnabledCodecs(waku: Waku): Map<string, boolean> {
+function mapProtocolsToCodecs(protocols: Protocols[]): Map<string, boolean> {
   const codecs: Map<string, boolean> = new Map();
 
-  if (waku.filter) {
-    codecs.set(FilterCodecs.SUBSCRIBE, false);
-  }
+  const protocolToCodec: Record<string, string> = {
+    [Protocols.Filter]: FilterCodecs.SUBSCRIBE,
+    [Protocols.LightPush]: LightPushCodec,
+    [Protocols.Store]: StoreCodec
+  };
 
-  if (waku.store) {
-    codecs.set(StoreCodec, false);
-  }
-
-  if (waku.lightPush) {
-    codecs.set(LightPushCodec, false);
+  for (const protocol of protocols) {
+    if (protocolToCodec[protocol]) {
+      codecs.set(protocolToCodec[protocol], false);
+    }
   }
 
   return codecs;
