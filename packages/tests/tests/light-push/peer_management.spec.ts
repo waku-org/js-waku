@@ -23,7 +23,7 @@ describe("Waku Light Push: Connection Management: E2E", function () {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
       DefaultTestShardInfo,
-      undefined,
+      { lightpush: true, filter: true },
       undefined,
       5
     );
