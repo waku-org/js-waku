@@ -23,9 +23,7 @@ export type SubscribeOptions = {
   maxMissedMessagesThreshold?: number;
 };
 
-export type IFilter = IReceiver & IBaseProtocolCore;
-
-export interface ISubscriptionSDK {
+export interface ISubscription {
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
@@ -39,7 +37,7 @@ export interface ISubscriptionSDK {
   unsubscribeAll(): Promise<SDKProtocolResult>;
 }
 
-export type IFilterSDK = IReceiver &
+export type IFilter = IReceiver &
   IBaseProtocolSDK & { protocol: IBaseProtocolCore } & {
     subscribe<T extends IDecodedMessage>(
       decoders: IDecoder<T> | IDecoder<T>[],
@@ -52,7 +50,7 @@ export type IFilterSDK = IReceiver &
 export type SubscribeResult = SubscriptionSuccess | SubscriptionError;
 
 type SubscriptionSuccess = {
-  subscription: ISubscriptionSDK;
+  subscription: ISubscription;
   error: null;
   results: SDKProtocolResult;
 };
@@ -65,7 +63,7 @@ type SubscriptionError = {
 
 export type CreateSubscriptionResult = ThisOrThat<
   "subscription",
-  ISubscriptionSDK,
+  ISubscription,
   "error",
   ProtocolError
 >;

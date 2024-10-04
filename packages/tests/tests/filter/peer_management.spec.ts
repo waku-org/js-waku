@@ -1,8 +1,4 @@
-import {
-  ISubscriptionSDK,
-  LightNode,
-  SDKProtocolResult
-} from "@waku/interfaces";
+import { ISubscription, LightNode, SDKProtocolResult } from "@waku/interfaces";
 import {
   createDecoder,
   createEncoder,
@@ -199,7 +195,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
   });
 
   it("Maintains correct number of peers after multiple subscribe/unsubscribe cycles", async function () {
-    let subscription: ISubscriptionSDK;
+    let subscription: ISubscription;
     for (let i = 0; i < 3; i++) {
       const { error, subscription: _subscription } =
         await waku.filter.subscribe([decoder], () => {});

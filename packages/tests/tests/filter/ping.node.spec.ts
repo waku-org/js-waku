@@ -1,4 +1,4 @@
-import { ISubscriptionSDK, LightNode } from "@waku/interfaces";
+import { ISubscription, LightNode } from "@waku/interfaces";
 import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
@@ -89,7 +89,7 @@ const runTests = (strictCheckNodes: boolean): void => {
     });
 
     it("Reopen subscription with peer with lost subscription", async function () {
-      let subscription: ISubscriptionSDK;
+      let subscription: ISubscription;
       const openSubscription = async (): Promise<void> => {
         const { error, subscription: _subscription } =
           await waku.filter.subscribe(

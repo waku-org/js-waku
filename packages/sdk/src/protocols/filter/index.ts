@@ -5,7 +5,7 @@ import {
   type IAsyncIterator,
   type IDecodedMessage,
   type IDecoder,
-  type IFilterSDK,
+  type IFilter,
   type Libp2p,
   NetworkConfig,
   type ProtocolCreateOptions,
@@ -31,7 +31,7 @@ import { SubscriptionManager } from "./subscription_manager.js";
 
 const log = new Logger("sdk:filter");
 
-class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
+class Filter extends BaseProtocolSDK implements IFilter {
   public readonly protocol: FilterCore;
 
   private activeSubscriptions = new Map<string, SubscriptionManager>();
@@ -301,6 +301,6 @@ class FilterSDK extends BaseProtocolSDK implements IFilterSDK {
 export function wakuFilter(
   connectionManager: ConnectionManager,
   init?: ProtocolCreateOptions
-): (libp2p: Libp2p) => IFilterSDK {
-  return (libp2p: Libp2p) => new FilterSDK(connectionManager, libp2p, init);
+): (libp2p: Libp2p) => IFilter {
+  return (libp2p: Libp2p) => new Filter(connectionManager, libp2p, init);
 }

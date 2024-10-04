@@ -3,11 +3,11 @@ import { isPeerId, PeerId } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, getHealthManager } from "@waku/core";
 import type {
-  IFilterSDK,
+  IFilter,
   IHealthManager,
   ILightPush,
   IRelay,
-  IStoreSDK,
+  IStore,
   Libp2p,
   ProtocolCreateOptions,
   PubsubTopic,
@@ -62,8 +62,8 @@ type ProtocolsEnabled = {
 export class WakuNode implements Waku {
   public libp2p: Libp2p;
   public relay?: IRelay;
-  public store?: IStoreSDK;
-  public filter?: IFilterSDK;
+  public store?: IStore;
+  public filter?: IFilter;
   public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
   public readonly health: IHealthManager;
