@@ -38,7 +38,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
       DefaultTestShardInfo,
-      undefined,
+      { lightpush: true, filter: true },
       undefined,
       5
     );
@@ -222,7 +222,7 @@ describe("Waku Filter: Peer Management: E2E", function () {
     const [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
       DefaultTestShardInfo,
-      undefined,
+      { lightpush: true, filter: true },
       undefined,
       2
     );
