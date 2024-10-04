@@ -1,7 +1,7 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
 import { DecodedMessage } from "@waku/core";
-import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
+import type { IWaku, LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { generateSymmetricKey } from "@waku/message-encryption";
 import {
@@ -238,8 +238,8 @@ describe("Decryption Keys", function () {
 });
 
 describe("User Agent", function () {
-  let waku1: Waku;
-  let waku2: Waku;
+  let waku1: IWaku;
+  let waku2: IWaku;
 
   afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2]);

@@ -1,7 +1,7 @@
 import type { LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
-import { createLightNode, waku } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
