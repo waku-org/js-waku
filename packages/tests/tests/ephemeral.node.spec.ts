@@ -110,11 +110,7 @@ describe("Waku Message Ephemeral field", function () {
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
 
-    await waku.waitForPeer([
-      Protocols.Filter,
-      Protocols.LightPush,
-      Protocols.Store
-    ]);
+    await waku.waitForPeer([Protocols.Filter, Protocols.LightPush]);
   });
 
   it("Ephemeral messages are not stored", async function () {

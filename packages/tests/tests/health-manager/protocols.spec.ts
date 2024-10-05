@@ -36,7 +36,7 @@ describe("Health Manager", function () {
         [serviceNodes, waku] = await runMultipleNodes(
           this.ctx,
           TestShardInfo,
-          undefined,
+          { lightpush: true, filter: true },
           undefined,
           num
         );
@@ -62,7 +62,7 @@ describe("Health Manager", function () {
         [serviceNodes, waku] = await runMultipleNodes(
           this.ctx,
           TestShardInfo,
-          undefined,
+          { filter: true, lightpush: true },
           undefined,
           num
         );

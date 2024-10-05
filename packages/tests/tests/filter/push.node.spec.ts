@@ -30,7 +30,10 @@ const runTests = (strictCheckNodes: boolean): void => {
     let serviceNodes: ServiceNodesFleet;
 
     beforeEachCustom(this, async () => {
-      [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo);
+      [serviceNodes, waku] = await runMultipleNodes(this.ctx, TestShardInfo, {
+        lightpush: true,
+        filter: true
+      });
     });
 
     afterEachCustom(this, async () => {

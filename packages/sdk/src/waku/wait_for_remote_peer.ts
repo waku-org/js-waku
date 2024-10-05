@@ -34,6 +34,8 @@ export async function waitForRemotePeer(
 ): Promise<void> {
   // if no protocols or empty array passed - try to derive from mounted
   protocols = protocols?.length ? protocols : getEnabledProtocols(waku);
+  // if no protocols or empty array passed - try to derive from mounted
+  protocols = protocols?.length ? protocols : getEnabledProtocols(waku);
   const connections = waku.libp2p.getConnections();
 
   if (!waku.isStarted()) {
@@ -153,14 +155,6 @@ async function waitForMetadata(
   }
 
   for (const peerId of connectedPeers) {
-    const confirmedAllCodecs = Array.from(enabledCodes.values()).every(
-      (v) => v
-    );
-
-    if (confirmedAllCodecs) {
-      return true;
-    }
-
     try {
       const peer = await waku.libp2p.peerStore.get(peerId);
       const hasSomeCodes = peer.protocols.some((c) => enabledCodes.has(c));
@@ -175,6 +169,14 @@ async function waitForMetadata(
               enabledCodes.set(c, true);
             }
           });
+
+          const confirmedAllCodecs = Array.from(enabledCodes.values()).every(
+            (v) => v
+          );
+
+          if (confirmedAllCodecs) {
+            return true;
+          }
         }
       }
     } catch (e) {
