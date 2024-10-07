@@ -1,13 +1,14 @@
 import type { IdentifyResult } from "@libp2p/interface";
 import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
-import type { IRelay, Libp2p, Waku } from "@waku/interfaces";
+import type { IWaku, Libp2p } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
-import { pEvent } from "p-event";
 
 const log = new Logger("wait-for-remote-peer");
 
 /**
+ * @deprecated Since @waku/sdk 0.29.0. Will be removed from 0.31.0
+ *
  * Wait for a remote peer to be ready given the passed protocols.
  * Must be used after attempting to connect to nodes, using
  * {@link @waku/sdk!WakuNode.dial} or a bootstrap method with
@@ -27,10 +28,12 @@ const log = new Logger("wait-for-remote-peer");
  * @default Wait for remote peers with protocols enabled locally and no time out is applied.
  */
 export async function waitForRemotePeer(
-  waku: Waku,
+  waku: IWaku,
   protocols?: Protocols[],
   timeoutMs?: number
 ): Promise<void> {
+  // if no protocols or empty array passed - try to derive from mounted
+  protocols = protocols?.length ? protocols : getEnabledProtocols(waku);
   // if no protocols or empty array passed - try to derive from mounted
   protocols = protocols?.length ? protocols : getEnabledProtocols(waku);
   const connections = waku.libp2p.getConnections();
@@ -41,6 +44,7 @@ export async function waitForRemotePeer(
 
   if (connections.length > 0 && !protocols.includes(Protocols.Relay)) {
     const success = await waitForMetadata(waku, protocols);
+
     if (success) {
       return;
     }
@@ -52,7 +56,7 @@ export async function waitForRemotePeer(
     if (!waku.relay) {
       throw Error("Cannot wait for Relay peer: protocol not mounted");
     }
-    promises.push(waitForGossipSubPeerInMesh(waku.relay));
+    promises.push(waku.relay.waitForPeer());
   }
 
   if (protocols.includes(Protocols.Store)) {
@@ -136,7 +140,7 @@ async function waitForConnectedPeer(
  * Waits for the metadata from the remote peer.
  */
 async function waitForMetadata(
-  waku: Waku,
+  waku: IWaku,
   protocols: Protocols[]
 ): Promise<boolean> {
   const connectedPeers = waku.libp2p.getPeers();
@@ -189,23 +193,6 @@ async function waitForMetadata(
   return false;
 }
 
-// TODO: move to @waku/relay and use in `node.connect()` API https://github.com/waku-org/js-waku/issues/1761
-/**
- * Wait for at least one peer with the given protocol to be connected and in the gossipsub
- * mesh for all pubsubTopics.
- */
-async function waitForGossipSubPeerInMesh(waku: IRelay): Promise<void> {
-  let peers = waku.getMeshPeers();
-  const pubsubTopics = waku.pubsubTopics;
-
-  for (const topic of pubsubTopics) {
-    while (peers.length == 0) {
-      await pEvent(waku.gossipSub, "gossipsub:heartbeat");
-      peers = waku.getMeshPeers(topic);
-    }
-  }
-}
-
 const awaitTimeout = (ms: number, rejectReason: string): Promise<void> =>
   new Promise((_resolve, reject) => setTimeout(() => reject(rejectReason), ms));
 
@@ -217,7 +204,7 @@ async function rejectOnTimeout<T>(
   await Promise.race([promise, awaitTimeout(timeoutMs, rejectReason)]);
 }
 
-function getEnabledProtocols(waku: Waku): Protocols[] {
+function getEnabledProtocols(waku: IWaku): Protocols[] {
   const protocols = [];
 
   if (waku.relay) {

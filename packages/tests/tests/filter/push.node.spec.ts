@@ -1,5 +1,5 @@
 import { LightNode, Protocols } from "@waku/interfaces";
-import { utf8ToBytes, waitForRemotePeer } from "@waku/sdk";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 
 import {
@@ -236,7 +236,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       // Redo the connection and create a new subscription
       for (const node of this.serviceNodes) {
         await waku.dial(await node.getMultiaddrWithId());
-        await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+        await waku.waitForPeer([Protocols.Filter, Protocols.LightPush]);
       }
 
       await waku.filter.subscribe(
@@ -276,7 +276,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       // Restart nwaku node
       await teardownNodesWithRedundancy(serviceNodes, []);
       await serviceNodes.start();
-      await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+      await waku.waitForPeer([Protocols.Filter, Protocols.LightPush]);
 
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
 

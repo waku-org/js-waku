@@ -8,18 +8,20 @@ import type {
   ILightPush,
   IRelay,
   IStore,
+  IWaku,
   Libp2p,
   ProtocolCreateOptions,
-  PubsubTopic,
-  Waku
+  PubsubTopic
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { wakuFilter } from "./protocols/filter/index.js";
-import { wakuLightPush } from "./protocols/light_push/index.js";
-import { wakuStore } from "./protocols/store/index.js";
-import { ReliabilityMonitorManager } from "./reliability_monitor/index.js";
+import { wakuFilter } from "../protocols/filter/index.js";
+import { wakuLightPush } from "../protocols/light_push/index.js";
+import { wakuStore } from "../protocols/store/index.js";
+import { ReliabilityMonitorManager } from "../reliability_monitor/index.js";
+
+import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -59,7 +61,7 @@ type ProtocolsEnabled = {
   store?: boolean;
 };
 
-export class WakuNode implements Waku {
+export class WakuNode implements IWaku {
   public libp2p: Libp2p;
   public relay?: IRelay;
   public store?: IStore;
@@ -126,12 +128,6 @@ export class WakuNode implements Waku {
     );
   }
 
-  /**
-   * Dials to the provided peer.
-   *
-   * @param peer The peer to dial
-   * @param protocols Waku protocols we expect from the peer; Defaults to mounted protocols
-   */
   public async dial(
     peer: PeerId | MultiaddrInput,
     protocols?: Protocols[]
@@ -199,6 +195,13 @@ export class WakuNode implements Waku {
     ReliabilityMonitorManager.stopAll();
     this.connectionManager.stop();
     await this.libp2p.stop();
+  }
+
+  public async waitForPeer(
+    protocols?: Protocols[],
+    timeoutMs?: number
+  ): Promise<void> {
+    return waitForRemotePeer(this, protocols, timeoutMs);
   }
 
   public isStarted(): boolean {

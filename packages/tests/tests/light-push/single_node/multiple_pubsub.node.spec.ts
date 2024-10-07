@@ -8,7 +8,6 @@ import {
   ShardInfo,
   SingleShardInfo
 } from "@waku/interfaces";
-import { waitForRemotePeer } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   contentTopicToShardIndex,
@@ -133,7 +132,7 @@ describe("Waku Light Push : Multiple PubsubTopics", function () {
       singleShardInfoToPubsubTopic(singleShardInfo2)
     ]);
     await waku.dial(await nwaku2.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     const messageCollector2 = new MessageCollector(nwaku2);
 
@@ -275,7 +274,7 @@ describe("Waku Light Push (Autosharding): Multiple PubsubTopics", function () {
     });
     await nwaku2.ensureSubscriptionsAutosharding([customContentTopic2]);
     await waku.dial(await nwaku2.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     const messageCollector2 = new MessageCollector(nwaku2);
 
@@ -426,7 +425,7 @@ describe("Waku Light Push (named sharding): Multiple PubsubTopics", function () 
 
     await nwaku2.ensureSubscriptions([autoshardingPubsubTopic2]);
     await waku.dial(await nwaku2.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     const messageCollector2 = new MessageCollector(nwaku2);
 

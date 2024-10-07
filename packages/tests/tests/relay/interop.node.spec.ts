@@ -2,7 +2,6 @@ import type { PeerId } from "@libp2p/interface";
 import { DecodedMessage } from "@waku/core";
 import { Protocols, RelayNode } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
-import { waitForRemotePeer } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 
@@ -109,7 +108,7 @@ describe("Waku Relay, Interop", function () {
     const nwakuMultiaddr = await nwaku.getMultiaddrWithId();
     await waku2.dial(nwakuMultiaddr);
 
-    await waitForRemotePeer(waku2, [Protocols.Relay]);
+    await waku2.waitForPeer([Protocols.Relay]);
 
     await delay(2000);
     // Check that the two JS peers are NOT directly connected

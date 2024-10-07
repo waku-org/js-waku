@@ -1,6 +1,6 @@
 import { createDecoder } from "@waku/core";
 import type { ContentTopicInfo, IMessage, LightNode } from "@waku/interfaces";
-import { createLightNode, Protocols, waitForRemotePeer } from "@waku/sdk";
+import { createLightNode, Protocols } from "@waku/sdk";
 import {
   contentTopicToPubsubTopic,
   pubsubTopicToSingleShardInfo
@@ -130,7 +130,7 @@ describe("Waku Store, custom pubsub topic", function () {
     );
 
     await waku.dial(await nwaku2.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    await waku.waitForPeer([Protocols.Store]);
 
     let customMessages: IMessage[] = [];
     let testMessages: IMessage[] = [];
@@ -263,7 +263,7 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
 
     await waku.dial(await nwaku.getMultiaddrWithId());
     await waku.dial(await nwaku2.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    await waku.waitForPeer([Protocols.Store]);
 
     let customMessages: IMessage[] = [];
     let testMessages: IMessage[] = [];
@@ -389,7 +389,7 @@ describe("Waku Store (named sharding), custom pubsub topic", function () {
     );
 
     await waku.dial(await nwaku2.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Store]);
+    await waku.waitForPeer([Protocols.Store]);
 
     let customMessages: IMessage[] = [];
     let testMessages: IMessage[] = [];

@@ -1,4 +1,4 @@
-import { HealthStatus, LightNode, Protocols, Waku } from "@waku/interfaces";
+import { HealthStatus, IWaku, LightNode, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { shardInfoToPubsubTopics } from "@waku/utils";
 import { expect } from "chai";
@@ -87,7 +87,7 @@ function getExpectedProtocolStatus(peerCount: number): HealthStatus {
 }
 
 async function getPeerCounBasedOnConnections(
-  waku: Waku,
+  waku: IWaku,
   codec: string
 ): Promise<number> {
   const peerIDs = waku.libp2p

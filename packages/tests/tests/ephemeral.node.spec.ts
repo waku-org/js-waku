@@ -14,7 +14,7 @@ import {
   createDecoder as createSymDecoder,
   createEncoder as createSymEncoder
 } from "@waku/message-encryption/symmetric";
-import { createLightNode, waitForRemotePeer } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
 import { contentTopicToPubsubTopic, Logger } from "@waku/utils";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -110,7 +110,7 @@ describe("Waku Message Ephemeral field", function () {
     await waku.start();
     await waku.dial(await nwaku.getMultiaddrWithId());
 
-    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.Filter, Protocols.LightPush]);
   });
 
   it("Ephemeral messages are not stored", async function () {
@@ -157,7 +157,7 @@ describe("Waku Message Ephemeral field", function () {
 
     log.info("Waku nodes connected to nwaku");
 
-    await waitForRemotePeer(waku1, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     log.info("Sending messages using light push");
     await Promise.all([
@@ -166,7 +166,7 @@ describe("Waku Message Ephemeral field", function () {
       waku1.lightPush.send(ClearEncoder, clearMsg)
     ]);
 
-    await waitForRemotePeer(waku2, [Protocols.Store]);
+    await waku2.waitForPeer([Protocols.Store]);
 
     const messages: DecodedMessage[] = [];
 

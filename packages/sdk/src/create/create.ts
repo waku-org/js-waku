@@ -1,6 +1,6 @@
 import { type LightNode } from "@waku/interfaces";
 
-import { CreateWakuNodeOptions, WakuNode } from "../waku.js";
+import { CreateWakuNodeOptions, WakuNode } from "../waku/index.js";
 
 import { createLibp2pAndUpdateOptions } from "./libp2p.js";
 

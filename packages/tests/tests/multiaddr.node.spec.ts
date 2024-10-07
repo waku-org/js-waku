@@ -3,7 +3,7 @@ import type { PeerInfo } from "@libp2p/interface";
 import { CustomEvent } from "@libp2p/interface";
 import { multiaddr } from "@multiformats/multiaddr";
 import type { Multiaddr } from "@multiformats/multiaddr";
-import type { Waku } from "@waku/interfaces";
+import type { IWaku } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
 import { expect } from "chai";
 import Sinon, { SinonSpy, SinonStub } from "sinon";
@@ -18,7 +18,7 @@ import {
 } from "../src/index.js";
 
 describe("multiaddr: dialing", function () {
-  let waku: Waku;
+  let waku: IWaku;
   let nwaku: ServiceNode;
   let dialPeerSpy: SinonSpy;
   let isPeerTopicConfigured: SinonStub;

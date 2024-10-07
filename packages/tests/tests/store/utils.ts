@@ -11,7 +11,7 @@ import {
   ShardInfo,
   type SingleShardInfo
 } from "@waku/interfaces";
-import { createLightNode, waitForRemotePeer } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
 import { Logger, singleShardInfoToPubsubTopic } from "@waku/utils";
 import { expect } from "chai";
 import { Context } from "mocha";
@@ -111,7 +111,7 @@ export async function startAndConnectLightNode(
   });
   await waku.start();
   await waku.dial(await instance.getMultiaddrWithId());
-  await waitForRemotePeer(waku, [Protocols.Store]);
+  await waku.waitForPeer([Protocols.Store]);
 
   const wakuConnections = waku.libp2p.getConnections();
 

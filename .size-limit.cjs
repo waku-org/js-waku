@@ -9,7 +9,7 @@ module.exports = [
     path: ["packages/sdk/bundle/index.js", "packages/core/bundle/index.js"],
     import: {
       "packages/sdk/bundle/index.js":
-        "{ createLightNode, waitForRemotePeer, createEncoder, createDecoder, bytesToUtf8, utf8ToBytes, Decoder, Encoder, DecodedMessage, WakuNode  }",
+        "{ createLightNode, createEncoder, createDecoder, bytesToUtf8, utf8ToBytes, Decoder, Encoder, DecodedMessage, WakuNode  }",
     },
   },
   {

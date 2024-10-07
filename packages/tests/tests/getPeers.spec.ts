@@ -9,8 +9,7 @@ import {
   Protocols,
   ShardInfo,
   Tags,
-  utf8ToBytes,
-  waitForRemotePeer
+  utf8ToBytes
 } from "@waku/sdk";
 import {
   encodeRelayShard,
@@ -70,7 +69,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     waku = await createLightNode({ networkConfig: shardInfo });
     await waku.start();
     await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
     const peers = await getConnectedPeersForProtocolAndShard(
       waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
@@ -120,7 +119,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     await waku.libp2p.dialProtocol(serviceNode1Ma, LightPushCodec);
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
     await waku.start();
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     const peers = await getConnectedPeersForProtocolAndShard(
       waku.libp2p.getConnections(),
@@ -173,7 +172,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
 
     await waku.start();
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     const peers = await getConnectedPeersForProtocolAndShard(
       waku.libp2p.getConnections(),
@@ -226,7 +225,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     await delay(500);
     await waku.libp2p.dialProtocol(serviceNodeMa2, LightPushCodec);
     await waku.start();
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     const peers = await getConnectedPeersForProtocolAndShard(
       waku.libp2p.getConnections(),
@@ -260,7 +259,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     waku = await createLightNode({ networkConfig: shardInfo });
     await waku.start();
     await waku.libp2p.dialProtocol(serviceNodeMa, LightPushCodec);
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
     const peers = await getConnectedPeersForProtocolAndShard(
       waku.libp2p.getConnections(),
       waku.libp2p.peerStore,
@@ -313,7 +312,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
 
     await waku.start();
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     const peers = await getConnectedPeersForProtocolAndShard(
       waku.libp2p.getConnections(),
@@ -367,7 +366,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     await waku.libp2p.dialProtocol(serviceNode2Ma, LightPushCodec);
 
     await waku.start();
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     const peers = await getConnectedPeersForProtocolAndShard(
       waku.libp2p.getConnections(),
@@ -421,7 +420,7 @@ describe("getConnectedPeersForProtocolAndShard", function () {
     await delay(500);
     await waku.libp2p.dialProtocol(serviceNodeMa2, LightPushCodec);
     await waku.start();
-    await waitForRemotePeer(waku, [Protocols.LightPush]);
+    await waku.waitForPeer([Protocols.LightPush]);
 
     const peers = await getConnectedPeersForProtocolAndShard(
       waku.libp2p.getConnections(),

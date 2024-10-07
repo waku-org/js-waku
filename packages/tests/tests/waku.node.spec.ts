@@ -1,7 +1,7 @@
 import { bootstrap } from "@libp2p/bootstrap";
 import type { PeerId } from "@libp2p/interface";
 import { DecodedMessage } from "@waku/core";
-import type { LightNode, RelayNode, Waku } from "@waku/interfaces";
+import type { IWaku, LightNode, RelayNode } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { generateSymmetricKey } from "@waku/message-encryption";
 import {
@@ -12,8 +12,7 @@ import { createRelayNode } from "@waku/relay";
 import {
   createLightNode,
   createEncoder as createPlainEncoder,
-  DefaultUserAgent,
-  waitForRemotePeer
+  DefaultUserAgent
 } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -59,7 +58,7 @@ describe("Waku Dial [node only]", function () {
       });
       await waku.start();
       await waku.dial(multiAddrWithId);
-      await waitForRemotePeer(waku, [
+      await waku.waitForPeer([
         Protocols.Store,
         Protocols.Filter,
         Protocols.LightPush
@@ -190,8 +189,8 @@ describe("Decryption Keys", function () {
     await waku1.dial(waku2.libp2p.peerId);
 
     await Promise.all([
-      waitForRemotePeer(waku1, [Protocols.Relay]),
-      waitForRemotePeer(waku2, [Protocols.Relay])
+      waku1.waitForPeer([Protocols.Relay]),
+      waku1.waitForPeer([Protocols.Relay])
     ]);
   });
 
@@ -239,8 +238,8 @@ describe("Decryption Keys", function () {
 });
 
 describe("User Agent", function () {
-  let waku1: Waku;
-  let waku2: Waku;
+  let waku1: IWaku;
+  let waku2: IWaku;
 
   afterEachCustom(this, async () => {
     await tearDownNodes([], [waku1, waku2]);
@@ -268,7 +267,7 @@ describe("User Agent", function () {
       multiaddrs: waku2.libp2p.getMultiaddrs()
     });
     await waku1.dial(waku2.libp2p.peerId);
-    await waitForRemotePeer(waku1);
+    await waku1.waitForPeer();
 
     const [waku1PeerInfo, waku2PeerInfo] = await Promise.all([
       waku2.libp2p.peerStore.get(waku1.libp2p.peerId),

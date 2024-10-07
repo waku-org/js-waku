@@ -21,7 +21,7 @@ import {
   CreateWakuNodeOptions,
   DefaultPingMaxInboundStreams,
   DefaultUserAgent
-} from "../waku.js";
+} from "../waku/index.js";
 
 import { defaultPeerDiscoveries } from "./discovery.js";
 

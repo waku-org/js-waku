@@ -5,12 +5,7 @@ import {
   ShardInfo,
   SingleShardInfo
 } from "@waku/interfaces";
-import {
-  createEncoder,
-  createLightNode,
-  utf8ToBytes,
-  waitForRemotePeer
-} from "@waku/sdk";
+import { createEncoder, createLightNode, utf8ToBytes } from "@waku/sdk";
 import {
   shardInfoToPubsubTopics,
   singleShardInfosToShardInfo,
@@ -62,7 +57,7 @@ describe("Static Sharding: Running Nodes", function () {
         networkConfig: shardInfo
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.LightPush]);
+      await waku.waitForPeer([Protocols.LightPush]);
 
       const encoder = createEncoder({
         contentTopic: ContentTopic,
@@ -102,7 +97,7 @@ describe("Static Sharding: Running Nodes", function () {
         networkConfig: shardInfo
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.LightPush]);
+      await waku.waitForPeer([Protocols.LightPush]);
 
       const encoder = createEncoder({
         contentTopic: ContentTopic,
@@ -151,7 +146,7 @@ describe("Static Sharding: Running Nodes", function () {
           networkConfig: shardInfo
         });
         await waku.dial(await nwaku.getMultiaddrWithId());
-        await waitForRemotePeer(waku, [Protocols.LightPush]);
+        await waku.waitForPeer([Protocols.LightPush]);
 
         const encoder = createEncoder({
           contentTopic: ContentTopic,
@@ -217,7 +212,7 @@ describe("Static Sharding: Running Nodes", function () {
         networkConfig: shardInfoBothShards
       });
       await waku.dial(await nwaku.getMultiaddrWithId());
-      await waitForRemotePeer(waku, [Protocols.LightPush]);
+      await waku.waitForPeer([Protocols.LightPush]);
 
       const encoder1 = createEncoder({
         contentTopic: ContentTopic,

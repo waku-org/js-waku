@@ -10,36 +10,107 @@ import { Protocols } from "./protocols.js";
 import type { IRelay } from "./relay.js";
 import type { IStore } from "./store.js";
 
-export interface Waku {
+export interface IWaku {
   libp2p: Libp2p;
   relay?: IRelay;
   store?: IStore;
   filter?: IFilter;
   lightPush?: ILightPush;
 
+  health: IHealthManager;
   connectionManager: IConnectionManager;
 
+  /**
+   * Dials to the provided peer
+   *
+   * @param {PeerId | MultiaddrInput} peer information to use for dialing
+   * @param {Protocols[]} [protocols] array of Waku protocols to be used for dialing. If no provided - will be derived from mounted protocols.
+   *
+   * @returns {Promise<Stream>} `Promise` that will resolve to a `Stream` to a dialed peer
+   *
+   * @example
+   * ```typescript
+   * await waku.dial(remotePeerId, [Protocols.LightPush]);
+   *
+   * waku.isConnected() === true;
+   * ```
+   */
   dial(peer: PeerId | MultiaddrInput, protocols?: Protocols[]): Promise<Stream>;
 
+  /**
+   * Starts all services and components related to functionality of Waku node.
+   *
+   * @returns {Promise<boolean>} `Promise` that will resolve when started.
+   *
+   * @example
+   * ```typescript
+   * await waku.start();
+   *
+   * waku.isStarted() === true;
+   * ```
+   */
   start(): Promise<void>;
 
+  /**
+   * Stops all recurring processes and services that are needed for functionality of Waku node.
+   *
+   * @returns {Promise<boolean>} `Promise` that resolves when stopped.
+   *
+   * @example
+   * ```typescript
+   * await waku.stop();
+   *
+   * waku.isStarted === false;
+   * ```
+   */
   stop(): Promise<void>;
 
+  /**
+   * Resolves when Waku successfully gains connection to a remote peers that fits provided requirements.
+   * Must be used after attempting to connect to nodes, using {@link IWaku.dial} or
+   * if was bootstrapped by using {@link IPeerExchange} or {@link DnsDiscoveryComponents}.
+   *
+   * @param {Protocols[]} [protocols] Protocols that need to be enabled by remote peers
+   * @param {number} [timeoutMs] Timeout value in milliseconds after which promise rejects
+   *
+   * @returns {Promise<void>} `Promise` that **resolves** if all desired protocols are fulfilled by
+   * at least one remote peer, **rejects** if the timeoutMs is reached
+   * @throws If passing a protocol that is not mounted or Waku node is not started
+   *
+   * @example
+   * ```typescript
+   * try {
+   *  // let's wait for at least one LightPush node and timeout in 1 second
+   *  await waku.waitForPeer([Protocols.LightPush], 1000);
+   * } catch(e) {
+   *  waku.isConnected() === false;
+   *  console.error("Failed to connect due to", e);
+   * }
+   *
+   * waku.isConnected() === true;
+   * ```
+   */
+  waitForPeer(protocols?: Protocols[], timeoutMs?: number): Promise<void>;
+
+  /**
+   * @returns {boolean} `true` if the node was started and `false` otherwise
+   */
   isStarted(): boolean;
 
+  /**
+   * @returns {boolean} `true` if the node has working connection and `false` otherwise
+   */
   isConnected(): boolean;
-
-  health: IHealthManager;
 }
 
-export interface LightNode extends Waku {
+export interface LightNode extends IWaku {
   relay: undefined;
   store: IStore;
   filter: IFilter;
   lightPush: ILightPush;
 }
 
-export interface RelayNode extends Waku {
+export interface RelayNode extends IWaku {
   relay: IRelay;
   store: undefined;
   filter: undefined;
