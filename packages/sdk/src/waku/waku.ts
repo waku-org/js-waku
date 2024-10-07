@@ -128,6 +128,14 @@ export class WakuNode implements IWaku {
     );
   }
 
+  public get peerId(): PeerId {
+    return this.libp2p.peerId;
+  }
+
+  public get protocols(): string[] {
+    return this.libp2p.getProtocols();
+  }
+
   public async dial(
     peer: PeerId | MultiaddrInput,
     protocols?: Protocols[]
