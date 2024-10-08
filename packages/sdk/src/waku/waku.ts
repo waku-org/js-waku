@@ -219,21 +219,6 @@ export class WakuNode implements IWaku {
   public isConnected(): boolean {
     return this.connectionManager.isConnected();
   }
-
-  /**
-   * Return the local multiaddr with peer id on which libp2p is listening.
-   *
-   * @throws if libp2p is not listening on localhost.
-   */
-  public getLocalMultiaddrWithID(): string {
-    const localMultiaddr = this.libp2p
-      .getMultiaddrs()
-      .find((addr) => addr.toString().match(/127\.0\.0\.1/));
-    if (!localMultiaddr || localMultiaddr.toString() === "") {
-      throw "Not listening on localhost";
-    }
-    return localMultiaddr + "/p2p/" + this.libp2p.peerId.toString();
-  }
 }
 function mapToPeerIdOrMultiaddr(
   peerId: PeerId | MultiaddrInput
