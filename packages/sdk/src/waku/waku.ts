@@ -128,12 +128,20 @@ export class WakuNode implements IWaku {
     );
   }
 
+  public get peerId(): PeerId {
+    return this.libp2p.peerId;
+  }
+
+  public get protocols(): string[] {
+    return this.libp2p.getProtocols();
+  }
+
   public async dial(
     peer: PeerId | MultiaddrInput,
     protocols?: Protocols[]
   ): Promise<Stream> {
     const _protocols = protocols ?? [];
-    const peerId = mapToPeerIdOrMultiaddr(peer);
+    const peerId = this.mapToPeerIdOrMultiaddr(peer);
 
     if (typeof protocols === "undefined") {
       this.relay && _protocols.push(Protocols.Relay);
@@ -212,23 +220,9 @@ export class WakuNode implements IWaku {
     return this.connectionManager.isConnected();
   }
 
-  /**
-   * Return the local multiaddr with peer id on which libp2p is listening.
-   *
-   * @throws if libp2p is not listening on localhost.
-   */
-  public getLocalMultiaddrWithID(): string {
-    const localMultiaddr = this.libp2p
-      .getMultiaddrs()
-      .find((addr) => addr.toString().match(/127\.0\.0\.1/));
-    if (!localMultiaddr || localMultiaddr.toString() === "") {
-      throw "Not listening on localhost";
-    }
-    return localMultiaddr + "/p2p/" + this.libp2p.peerId.toString();
+  private mapToPeerIdOrMultiaddr(
+    peerId: PeerId | MultiaddrInput
+  ): PeerId | Multiaddr {
+    return isPeerId(peerId) ? peerId : multiaddr(peerId);
   }
-}
-function mapToPeerIdOrMultiaddr(
-  peerId: PeerId | MultiaddrInput
-): PeerId | Multiaddr {
-  return isPeerId(peerId) ? peerId : multiaddr(peerId);
 }

@@ -21,6 +21,26 @@ export interface IWaku {
   connectionManager: IConnectionManager;
 
   /**
+   * Returns a unique identifier for a node on the network.
+   *
+   * @example
+   * ```typescript
+   * console.log(waku.peerId); // 12D3KooWNmk9yXHfHJ4rUduRqD1TCTHkNFMPF9WP2dqWpZDL4aUb
+   * ```
+   */
+  peerId: PeerId;
+
+  /**
+   * Returns a list of supported protocols.
+   *
+   * @example
+   * ```typescript
+   * console.log(waku.protocols); // ['/ipfs/id/1.0.0', '/ipfs/ping/1.0.0', '/vac/waku/filter-push/2.0.0-beta1', '/vac/waku/metadata/1.0.0']
+   * ```
+   */
+  protocols: string[];
+
+  /**
    * Dials to the provided peer
    *
    * @param {PeerId | MultiaddrInput} peer information to use for dialing
