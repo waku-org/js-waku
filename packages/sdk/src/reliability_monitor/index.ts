@@ -1,4 +1,4 @@
-import type { Peer, PeerId } from "@libp2p/interface";
+import type { Connection, Peer, PeerId } from "@libp2p/interface";
 import {
   ContentTopic,
   CoreProtocolResult,
@@ -42,10 +42,12 @@ export class ReliabilityMonitorManager {
   }
 
   public static createSenderMonitor(
+    getConnection: () => Connection[],
     renewPeer: (peerId: PeerId) => Promise<Peer>
   ): SenderReliabilityMonitor {
     if (!ReliabilityMonitorManager.senderMonitor) {
       ReliabilityMonitorManager.senderMonitor = new SenderReliabilityMonitor(
+        getConnection,
         renewPeer
       );
     }

@@ -104,10 +104,10 @@ class LightPush extends BaseProtocolSDK implements ILightPush {
           connectedPeer.id.equals(failure.peerId)
         );
 
-        if (connectedPeer) {
+        if (connectedPeer && _options?.autoRetry) {
           void this.reliabilityMonitor.attemptRetriesOrRenew(
-            connectedPeer.id,
-            () => this.protocol.send(encoder, message, connectedPeer)
+            connectedPeer,
+            (peer) => this.protocol.send(encoder, message, peer)
           );
         }
       }
