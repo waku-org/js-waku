@@ -34,8 +34,6 @@ export async function waitForRemotePeer(
 ): Promise<void> {
   // if no protocols or empty array passed - try to derive from mounted
   protocols = protocols?.length ? protocols : getEnabledProtocols(waku);
-  // if no protocols or empty array passed - try to derive from mounted
-  protocols = protocols?.length ? protocols : getEnabledProtocols(waku);
   const connections = waku.libp2p.getConnections();
 
   if (!waku.isStarted()) {
@@ -194,7 +192,9 @@ async function waitForMetadata(
 }
 
 const awaitTimeout = (ms: number, rejectReason: string): Promise<void> =>
-  new Promise((_resolve, reject) => setTimeout(() => reject(rejectReason), ms));
+  new Promise((_resolve, reject) =>
+    setTimeout(() => reject(Error(rejectReason)), ms)
+  );
 
 async function rejectOnTimeout<T>(
   promise: Promise<T>,
