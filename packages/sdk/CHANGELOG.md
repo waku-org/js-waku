@@ -47,6 +47,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * @waku/interfaces bumped from 0.0.19 to 0.0.20
     * @waku/peer-exchange bumped from ^0.0.17 to ^0.0.18
 
+## [0.0.29](https://github.com/waku-org/js-waku/compare/sdk-v0.0.28...sdk-v0.0.29) (2024-10-08)
+
+
+### Features
+
+* Confirm metadata and protocols needed in waitForRemotePeer ([#2160](https://github.com/waku-org/js-waku/issues/2160)) ([d37e024](https://github.com/waku-org/js-waku/commit/d37e0245cf265697d89319b5efb1e5535af30cd5))
+* **filter:** Reliability monitor as a separate class to handle reliability logic ([#2117](https://github.com/waku-org/js-waku/issues/2117)) ([7ad1d32](https://github.com/waku-org/js-waku/commit/7ad1d321ca7f17bfeb54618d03580c4223f1b485))
+* **lightPush:** Improve peer usage and improve readability ([#2155](https://github.com/waku-org/js-waku/issues/2155)) ([1d68526](https://github.com/waku-org/js-waku/commit/1d68526e724155f76bb786239f475a774115ee97))
+* **lightpush:** Introduce ReliabilityMonitor and allow `send` retries ([#2130](https://github.com/waku-org/js-waku/issues/2130)) ([7a6247c](https://github.com/waku-org/js-waku/commit/7a6247cb7081e8b9b1d48c24040aae63144457aa))
+* Replace `waitForRemotePeers()` with `waku.waitForPeer()` method ([#2161](https://github.com/waku-org/js-waku/issues/2161)) ([75fcca4](https://github.com/waku-org/js-waku/commit/75fcca4cd99d6aabcbb14afab9332c98ddc6b74f))
+
+
+### Bug Fixes
+
+* Peer renewal connection drop & stream management ([#2145](https://github.com/waku-org/js-waku/issues/2145)) ([b93134a](https://github.com/waku-org/js-waku/commit/b93134a517006d3850ef13c1290194767ce40c21))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/core bumped from 0.0.32 to 0.0.33
+    * @waku/discovery bumped from 0.0.5 to 0.0.6
+    * @waku/interfaces bumped from 0.0.27 to 0.0.28
+    * @waku/utils bumped from 0.0.20 to 0.0.21
+    * @waku/message-hash bumped from 0.1.16 to 0.1.17
+
 ## [0.0.28](https://github.com/waku-org/js-waku/compare/sdk-v0.0.27...sdk-v0.0.28) (2024-09-05)
 
 
