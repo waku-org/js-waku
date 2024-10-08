@@ -38,6 +38,7 @@ class LightPush extends BaseProtocolSDK implements ILightPush {
     );
 
     this.reliabilityMonitor = ReliabilityMonitorManager.createSenderMonitor(
+      libp2p.getConnections,
       this.renewPeer.bind(this)
     );
 
