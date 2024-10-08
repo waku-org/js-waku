@@ -37,7 +37,6 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       wakuMessage: WakuMessage,
       peerIdStr: string
     ) => Promise<void>,
-    private handleError: (error: Error) => Promise<void>,
     public readonly pubsubTopics: PubsubTopic[],
     libp2p: Libp2p
   ) {
@@ -313,7 +312,6 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
             "stream ",
             stream
           );
-          await this.handleError(e);
         }
       );
     } catch (e) {
