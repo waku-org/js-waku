@@ -99,7 +99,7 @@ class Relay implements IRelay {
    * Wait for at least one peer with the given protocol to be connected and in the gossipsub
    * mesh for all pubsubTopics.
    */
-  public async waitForPeer(): Promise<void> {
+  public async waitForPeers(): Promise<void> {
     let peers = this.getMeshPeers();
     const pubsubTopics = this.pubsubTopics;
 

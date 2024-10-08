@@ -114,9 +114,9 @@ describe("Waku Relay, multiple pubsub topics", function () {
       ]);
 
       await Promise.all([
-        waku1.waitForPeer([Protocols.Relay]),
-        waku2.waitForPeer([Protocols.Relay]),
-        waku2.waitForPeer([Protocols.Relay])
+        waku1.waitForPeers([Protocols.Relay]),
+        waku2.waitForPeers([Protocols.Relay]),
+        waku2.waitForPeers([Protocols.Relay])
       ]);
 
       await waku1.relay.subscribeWithUnsubscribe(
@@ -221,9 +221,9 @@ describe("Waku Relay, multiple pubsub topics", function () {
     ]);
 
     await Promise.all([
-      waku1.waitForPeer([Protocols.Relay]),
-      waku2.waitForPeer([Protocols.Relay]),
-      waku3.waitForPeer([Protocols.Relay])
+      waku1.waitForPeers([Protocols.Relay]),
+      waku2.waitForPeers([Protocols.Relay]),
+      waku3.waitForPeers([Protocols.Relay])
     ]);
 
     await waku1.relay.subscribeWithUnsubscribe(
@@ -289,8 +289,8 @@ describe("Waku Relay, multiple pubsub topics", function () {
     ]);
 
     await Promise.all([
-      waku1.waitForPeer([Protocols.Relay]),
-      waku2.waitForPeer([Protocols.Relay])
+      waku1.waitForPeers([Protocols.Relay]),
+      waku2.waitForPeers([Protocols.Relay])
     ]);
 
     const messageText = "Communicating using a custom pubsub topic";
@@ -419,9 +419,9 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
       ]);
 
       await Promise.all([
-        waku1.waitForPeer([Protocols.Relay]),
-        waku2.waitForPeer([Protocols.Relay]),
-        waku3.waitForPeer([Protocols.Relay])
+        waku1.waitForPeers([Protocols.Relay]),
+        waku2.waitForPeers([Protocols.Relay]),
+        waku3.waitForPeers([Protocols.Relay])
       ]);
 
       await waku1.relay.subscribeWithUnsubscribe(
@@ -535,9 +535,9 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
     ]);
 
     await Promise.all([
-      waku1.waitForPeer([Protocols.Relay]),
-      waku2.waitForPeer([Protocols.Relay]),
-      waku3.waitForPeer([Protocols.Relay])
+      waku1.waitForPeers([Protocols.Relay]),
+      waku2.waitForPeers([Protocols.Relay]),
+      waku3.waitForPeers([Protocols.Relay])
     ]);
 
     await waku1.relay.subscribeWithUnsubscribe(
@@ -630,8 +630,8 @@ describe("Waku Relay (Autosharding), multiple pubsub topics", function () {
     ]);
 
     await Promise.all([
-      waku1.waitForPeer([Protocols.Relay]),
-      waku2.waitForPeer([Protocols.Relay])
+      waku1.waitForPeers([Protocols.Relay]),
+      waku2.waitForPeers([Protocols.Relay])
     ]);
 
     const messageText = "Communicating using a custom pubsub topic";

@@ -63,7 +63,7 @@ export async function runNodes<T>(
 
   if (waku) {
     await waku.dial(await nwaku.getMultiaddrWithId());
-    await waku.waitForPeer(protocols);
+    await waku.waitForPeers(protocols);
     await nwaku.ensureSubscriptions(pubsubTopics);
     return [nwaku, waku as T];
   } else {

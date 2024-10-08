@@ -107,7 +107,7 @@ export async function runMultipleNodes(
 
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
-    await waku.waitForPeer([Protocols.Filter, Protocols.LightPush]);
+    await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
     await node.ensureSubscriptions(pubsubTopics);
 
     const wakuConnections = waku.libp2p.getConnections();

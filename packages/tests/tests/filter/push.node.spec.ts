@@ -236,7 +236,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       // Redo the connection and create a new subscription
       for (const node of this.serviceNodes) {
         await waku.dial(await node.getMultiaddrWithId());
-        await waku.waitForPeer([Protocols.Filter, Protocols.LightPush]);
+        await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
       }
 
       await waku.filter.subscribe(
@@ -276,7 +276,7 @@ const runTests = (strictCheckNodes: boolean): void => {
       // Restart nwaku node
       await teardownNodesWithRedundancy(serviceNodes, []);
       await serviceNodes.start();
-      await waku.waitForPeer([Protocols.Filter, Protocols.LightPush]);
+      await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
 
       await waku.lightPush.send(TestEncoder, { payload: utf8ToBytes("M2") });
 

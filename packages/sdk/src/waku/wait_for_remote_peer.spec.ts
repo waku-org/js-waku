@@ -321,7 +321,7 @@ describe("waitForRemotePeer", () => {
         mockPeer("2", ["random"])
       ]
     });
-    wakuNode.relay = { waitForPeer: waitForRelaySpy } as unknown as IRelay;
+    wakuNode.relay = { waitForPeers: waitForRelaySpy } as unknown as IRelay;
 
     let err: Error | undefined;
     try {

@@ -205,7 +205,7 @@ export class WakuNode implements IWaku {
     await this.libp2p.stop();
   }
 
-  public async waitForPeer(
+  public async waitForPeers(
     protocols?: Protocols[],
     timeoutMs?: number
   ): Promise<void> {
