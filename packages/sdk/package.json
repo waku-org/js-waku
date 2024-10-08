@@ -50,6 +50,9 @@
     "check:lint": "eslint src *.js",
     "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
+    "test": "NODE_ENV=test run-s test:*",
+    "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha",
+    "watch:test": "mocha --watch",
     "prepublish": "npm run build",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
@@ -70,15 +73,19 @@
     "@waku/proto": "^0.0.8",
     "@waku/utils": "0.0.20",
     "@waku/message-hash": "0.1.16",
-    "libp2p": "^1.8.1",
-    "p-event": "^6.0.1"
+    "libp2p": "^1.8.1"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/chai": "^4.3.11",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^5.0.5",
     "@waku/build-utils": "*",
+    "mocha": "^10.3.0",
+    "sinon": "^18.0.0",
+    "chai": "^4.3.10",
     "cspell": "^8.6.1",
     "interface-datastore": "^8.2.10",
     "npm-run-all": "^4.1.5",

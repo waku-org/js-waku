@@ -7,7 +7,7 @@ import {
   getPublicKey,
   symmetric
 } from "@waku/message-encryption";
-import { utf8ToBytes, waitForRemotePeer } from "@waku/sdk";
+import { utf8ToBytes } from "@waku/sdk";
 import { expect } from "chai";
 import type { Context } from "mocha";
 
@@ -445,7 +445,7 @@ describe("Waku Filter V2: Subscribe: Single Service Node", function () {
     // Set up and start a new nwaku node
     [nwaku2, waku2] = await runNodes(ctx, TestShardInfo);
     await waku.dial(await nwaku2.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+    await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
 
     await nwaku2.ensureSubscriptions([TestPubsubTopic]);
     // Send a message using the new subscription

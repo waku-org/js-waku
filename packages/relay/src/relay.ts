@@ -26,6 +26,7 @@ import {
 import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
 import { Logger } from "@waku/utils";
+import { pEvent } from "p-event";
 
 import { RelayCodecs } from "./constants.js";
 import { messageValidator } from "./message_validator.js";
@@ -92,6 +93,22 @@ class Relay implements IRelay {
 
     await this.gossipSub.start();
     this.subscribeToAllTopics();
+  }
+
+  /**
+   * Wait for at least one peer with the given protocol to be connected and in the gossipsub
+   * mesh for all pubsubTopics.
+   */
+  public async waitForPeers(): Promise<void> {
+    let peers = this.getMeshPeers();
+    const pubsubTopics = this.pubsubTopics;
+
+    for (const topic of pubsubTopics) {
+      while (peers.length == 0) {
+        await pEvent(this.gossipSub, "gossipsub:heartbeat");
+        peers = this.getMeshPeers(topic);
+      }
+    }
   }
 
   /**

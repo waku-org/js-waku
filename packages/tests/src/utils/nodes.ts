@@ -1,12 +1,12 @@
 import {
   DefaultNetworkConfig,
+  IWaku,
   LightNode,
   NetworkConfig,
   ProtocolCreateOptions,
-  Protocols,
-  Waku
+  Protocols
 } from "@waku/interfaces";
-import { createLightNode, waitForRemotePeer } from "@waku/sdk";
+import { createLightNode } from "@waku/sdk";
 import { derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
@@ -52,7 +52,7 @@ export async function runMultipleNodes(
 
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
-    await waitForRemotePeer(waku, [Protocols.Filter, Protocols.LightPush]);
+    await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
     await node.ensureSubscriptions(
       derivePubsubTopicsFromNetworkConfig(networkConfig)
     );
@@ -73,7 +73,7 @@ export async function runMultipleNodes(
 
 export async function teardownNodesWithRedundancy(
   serviceNodes: ServiceNodesFleet,
-  wakuNodes: Waku | Waku[]
+  wakuNodes: IWaku | IWaku[]
 ): Promise<void> {
   const wNodes = Array.isArray(wakuNodes) ? wakuNodes : [wakuNodes];
 

@@ -8,18 +8,20 @@ import type {
   ILightPush,
   IRelay,
   IStore,
+  IWaku,
   Libp2p,
   ProtocolCreateOptions,
-  PubsubTopic,
-  Waku
+  PubsubTopic
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { wakuFilter } from "./protocols/filter/index.js";
-import { wakuLightPush } from "./protocols/light_push/index.js";
-import { wakuStore } from "./protocols/store/index.js";
-import { ReliabilityMonitorManager } from "./reliability_monitor/index.js";
+import { wakuFilter } from "../protocols/filter/index.js";
+import { wakuLightPush } from "../protocols/light_push/index.js";
+import { wakuStore } from "../protocols/store/index.js";
+import { ReliabilityMonitorManager } from "../reliability_monitor/index.js";
+
+import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
 export const DefaultPingKeepAliveValueSecs = 5 * 60;
 export const DefaultRelayKeepAliveValueSecs = 5 * 60;
@@ -59,7 +61,7 @@ type ProtocolsEnabled = {
   store?: boolean;
 };
 
-export class WakuNode implements Waku {
+export class WakuNode implements IWaku {
   public libp2p: Libp2p;
   public relay?: IRelay;
   public store?: IStore;
@@ -126,18 +128,20 @@ export class WakuNode implements Waku {
     );
   }
 
-  /**
-   * Dials to the provided peer.
-   *
-   * @param peer The peer to dial
-   * @param protocols Waku protocols we expect from the peer; Defaults to mounted protocols
-   */
+  public get peerId(): PeerId {
+    return this.libp2p.peerId;
+  }
+
+  public get protocols(): string[] {
+    return this.libp2p.getProtocols();
+  }
+
   public async dial(
     peer: PeerId | MultiaddrInput,
     protocols?: Protocols[]
   ): Promise<Stream> {
     const _protocols = protocols ?? [];
-    const peerId = mapToPeerIdOrMultiaddr(peer);
+    const peerId = this.mapToPeerIdOrMultiaddr(peer);
 
     if (typeof protocols === "undefined") {
       this.relay && _protocols.push(Protocols.Relay);
@@ -201,6 +205,13 @@ export class WakuNode implements Waku {
     await this.libp2p.stop();
   }
 
+  public async waitForPeers(
+    protocols?: Protocols[],
+    timeoutMs?: number
+  ): Promise<void> {
+    return waitForRemotePeer(this, protocols, timeoutMs);
+  }
+
   public isStarted(): boolean {
     return this.libp2p.status == "started";
   }
@@ -209,23 +220,9 @@ export class WakuNode implements Waku {
     return this.connectionManager.isConnected();
   }
 
-  /**
-   * Return the local multiaddr with peer id on which libp2p is listening.
-   *
-   * @throws if libp2p is not listening on localhost.
-   */
-  public getLocalMultiaddrWithID(): string {
-    const localMultiaddr = this.libp2p
-      .getMultiaddrs()
-      .find((addr) => addr.toString().match(/127\.0\.0\.1/));
-    if (!localMultiaddr || localMultiaddr.toString() === "") {
-      throw "Not listening on localhost";
-    }
-    return localMultiaddr + "/p2p/" + this.libp2p.peerId.toString();
+  private mapToPeerIdOrMultiaddr(
+    peerId: PeerId | MultiaddrInput
+  ): PeerId | Multiaddr {
+    return isPeerId(peerId) ? peerId : multiaddr(peerId);
   }
-}
-function mapToPeerIdOrMultiaddr(
-  peerId: PeerId | MultiaddrInput
-): PeerId | Multiaddr {
-  return isPeerId(peerId) ? peerId : multiaddr(peerId);
 }
