@@ -100,27 +100,18 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       `Checking for peers. forceUseAllPeers: ${forceUseAllPeers}, maxAttempts: ${maxAttempts}`
     );
 
-    if (!forceUseAllPeers && this.connectedPeers.length > 0) {
-      this.log.debug(
-        `At least one peer connected (${this.connectedPeers.length}), not forcing use of all peers`
-      );
-      return true;
-    }
-
-    if (!forceUseAllPeers) {
-      await this.maintainPeers();
-      const hasPeers = this.connectedPeers.length > 0;
-      this.log.debug(
-        `After maintenance, connected peers: ${this.connectedPeers.length}`
-      );
-      return hasPeers;
-    }
-
     for (let attempts = 0; attempts < maxAttempts; attempts++) {
       this.log.debug(
         `Attempt ${attempts + 1}/${maxAttempts} to reach required number of peers`
       );
       await this.maintainPeers();
+
+      if (!forceUseAllPeers && this.connectedPeers.length > 0) {
+        this.log.debug(
+          `At least one peer connected (${this.connectedPeers.length}), not forcing use of all peers`
+        );
+        return true;
+      }
 
       if (this.connectedPeers.length >= this.numPeersToUse) {
         this.log.info(
