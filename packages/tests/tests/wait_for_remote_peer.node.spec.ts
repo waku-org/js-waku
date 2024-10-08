@@ -85,7 +85,9 @@ describe("Wait for remote peer", function () {
             throw "Promise expected to reject on time out";
           },
           (reason) => {
-            expect(reason).to.eq("Timed out waiting for a remote peer.");
+            expect(reason?.message).to.eq(
+              "Timed out waiting for a remote peer."
+            );
             done();
           }
         );
