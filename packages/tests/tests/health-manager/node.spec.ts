@@ -17,7 +17,7 @@ import {
   TestShardInfo
 } from "./utils.js";
 
-describe.only("Node Health Status Matrix Tests", function () {
+describe("Node Health Status Matrix Tests", function () {
   let waku: LightNode;
   let serviceNodes: ServiceNode[];
 
