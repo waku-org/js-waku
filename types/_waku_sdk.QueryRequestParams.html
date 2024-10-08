@@ -8,29 +8,29 @@ If either <code>contentTopics</code> or <code>pubsubTopic</code> is not provided
 <li><code>true</code>: The response will include the message content and associated pubsub topic for each matching message.</li>
 <li><code>false</code>: The response will only include the message hashes for each matching message.</li>
 </ul>
-</div><div class="tsd-comment tsd-typography"><h4>Default</h4><pre><code class="language-ts"><span class="hl-3">true</span>
+</div><div class="tsd-comment tsd-typography"><h4>Default</h4><pre><code class="language-ts"><span class="hl-6">true</span>
 </code><button>Copy</button></pre>
 </div></li><li class="tsd-parameter"><h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">message<wbr/>Hashes</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">[]</span></h5><div class="tsd-comment tsd-typography"><p>The message hashes to lookup.
 If provided, the query will be a message hash lookup query and will only return messages that match the specified hashes.
 If not provided or empty, the query will be a content filtered query based on the other filter parameters.</p>
-</div><div class="tsd-comment tsd-typography"><h4>Default</h4><pre><code class="language-ts"><span class="hl-3">undefined</span>
+</div><div class="tsd-comment tsd-typography"><h4>Default</h4><pre><code class="language-ts"><span class="hl-6">undefined</span>
 </code><button>Copy</button></pre>
 </div></li><li class="tsd-parameter"><h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">pagination<wbr/>Cursor</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Uint8Array</span></h5><div class="tsd-comment tsd-typography"><p>The cursor to start the query from.
 The cursor represents the message hash of the last message returned in the previous query.
 The query will start from the message immediately following the cursor, excluding the message at the cursor itself.
 If not provided, the query will start from the beginning or end of the store, depending on the <code>paginationForward</code> option.</p>
-</div><div class="tsd-comment tsd-typography"><h4>Default</h4><pre><code class="language-ts"><span class="hl-3">undefined</span>
+</div><div class="tsd-comment tsd-typography"><h4>Default</h4><pre><code class="language-ts"><span class="hl-6">undefined</span>
 </code><button>Copy</button></pre>
 </div></li><li class="tsd-parameter"><h5><span class="tsd-kind-property">pagination<wbr/>Forward</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></h5><div class="tsd-comment tsd-typography"><p>The direction of pagination.</p>
 <ul>
 <li><code>true</code>: Forward pagination, starting from the oldest message and moving towards the newest.</li>
 <li><code>false</code>: Backward pagination, starting from the newest message and moving towards the oldest.</li>
 </ul>
-</div><div class="tsd-comment tsd-typography"><h4>Default</h4><pre><code class="language-ts"><span class="hl-3">false</span>
+</div><div class="tsd-comment tsd-typography"><h4>Default</h4><pre><code class="language-ts"><span class="hl-6">false</span>
 </code><button>Copy</button></pre>
 </div></li><li class="tsd-parameter"><h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-property">pagination<wbr/>Limit</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5><div class="tsd-comment tsd-typography"><p>The maximum number of messages to retrieve per page.
 If not provided, the store&#39;s default pagination limit will be used.</p>
-</div><div class="tsd-comment tsd-typography"><h4>Default</h4><pre><code class="language-ts"><span class="hl-3">undefined</span>
+</div><div class="tsd-comment tsd-typography"><h4>Default</h4><pre><code class="language-ts"><span class="hl-6">undefined</span>
 </code><button>Copy</button></pre>
 </div></li><li class="tsd-parameter"><h5><span class="tsd-kind-property">pubsub<wbr/>Topic</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5><div class="tsd-comment tsd-typography"><p>The pubsub topic to query. This field is mandatory.
 The query will only return messages that were published on this specific pubsub topic.</p>
