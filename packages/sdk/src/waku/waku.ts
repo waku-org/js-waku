@@ -141,7 +141,7 @@ export class WakuNode implements IWaku {
     protocols?: Protocols[]
   ): Promise<Stream> {
     const _protocols = protocols ?? [];
-    const peerId = mapToPeerIdOrMultiaddr(peer);
+    const peerId = this.mapToPeerIdOrMultiaddr(peer);
 
     if (typeof protocols === "undefined") {
       this.relay && _protocols.push(Protocols.Relay);
@@ -219,9 +219,10 @@ export class WakuNode implements IWaku {
   public isConnected(): boolean {
     return this.connectionManager.isConnected();
   }
-}
-function mapToPeerIdOrMultiaddr(
-  peerId: PeerId | MultiaddrInput
-): PeerId | Multiaddr {
-  return isPeerId(peerId) ? peerId : multiaddr(peerId);
+
+  private mapToPeerIdOrMultiaddr(
+    peerId: PeerId | MultiaddrInput
+  ): PeerId | Multiaddr {
+    return isPeerId(peerId) ? peerId : multiaddr(peerId);
+  }
 }
