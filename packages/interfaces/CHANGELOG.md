@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.28](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.27...interfaces-v0.0.28) (2024-10-08)
+
+
+### Features
+
+* **filter:** Reliability monitor as a separate class to handle reliability logic ([#2117](https://github.com/waku-org/js-waku/issues/2117)) ([7ad1d32](https://github.com/waku-org/js-waku/commit/7ad1d321ca7f17bfeb54618d03580c4223f1b485))
+* **lightPush:** Improve peer usage and improve readability ([#2155](https://github.com/waku-org/js-waku/issues/2155)) ([1d68526](https://github.com/waku-org/js-waku/commit/1d68526e724155f76bb786239f475a774115ee97))
+* Replace `waitForRemotePeers()` with `waku.waitForPeer()` method ([#2161](https://github.com/waku-org/js-waku/issues/2161)) ([75fcca4](https://github.com/waku-org/js-waku/commit/75fcca4cd99d6aabcbb14afab9332c98ddc6b74f))
+
 ## [0.0.27](https://github.com/waku-org/js-waku/compare/interfaces-v0.0.26...interfaces-v0.0.27) (2024-09-05)
 
 
