@@ -15,7 +15,7 @@ on:
         type: string
 
 env:
-  NODE_JS: "20"
+  NODE_JS: "18"
 
 jobs:
   check:

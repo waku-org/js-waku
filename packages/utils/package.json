@@ -64,7 +64,7 @@
     "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=18"
   },
   "dependencies": {
     "@noble/hashes": "^1.3.2",
