@@ -2,6 +2,7 @@ import type { Peer, PeerId } from "@libp2p/interface";
 import {
   ContentTopic,
   CoreProtocolResult,
+  Libp2p,
   PubsubTopic
 } from "@waku/interfaces";
 
@@ -24,7 +25,8 @@ export class ReliabilityMonitorManager {
       pubsubTopic: PubsubTopic,
       peer: Peer,
       contentTopics: ContentTopic[]
-    ) => Promise<CoreProtocolResult>
+    ) => Promise<CoreProtocolResult>,
+    addLibp2pEventListener: Libp2p["addEventListener"]
   ): ReceiverReliabilityMonitor {
     if (ReliabilityMonitorManager.receiverMonitors.has(pubsubTopic)) {
       return ReliabilityMonitorManager.receiverMonitors.get(pubsubTopic)!;
@@ -35,7 +37,8 @@ export class ReliabilityMonitorManager {
       getPeers,
       renewPeer,
       getContentTopics,
-      protocolSubscribe
+      protocolSubscribe,
+      addLibp2pEventListener
     );
     ReliabilityMonitorManager.receiverMonitors.set(pubsubTopic, monitor);
     return monitor;

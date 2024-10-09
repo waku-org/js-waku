@@ -3,6 +3,7 @@ import {
   ContentTopic,
   CoreProtocolResult,
   IProtoMessage,
+  Libp2p,
   PeerIdStr,
   PubsubTopic
 } from "@waku/interfaces";
@@ -38,7 +39,8 @@ export class ReceiverReliabilityMonitor {
       pubsubTopic: PubsubTopic,
       peer: Peer,
       contentTopics: ContentTopic[]
-    ) => Promise<CoreProtocolResult>
+    ) => Promise<CoreProtocolResult>,
+    private addLibp2pEventListener: Libp2p["addEventListener"]
   ) {
     const allPeerIdStr = this.getPeers().map((p) => p.id.toString());
 
@@ -49,6 +51,13 @@ export class ReceiverReliabilityMonitor {
       }
     };
     allPeerIdStr.forEach((peerId) => this.missedMessagesByPeer.set(peerId, 0));
+
+    this.addLibp2pEventListener("peer:disconnect", (evt) => {
+      const peerId = evt.detail;
+      if (this.getPeers().some((p) => p.id.equals(peerId))) {
+        void this.renewAndSubscribePeer(peerId);
+      }
+    });
   }
 
   public setMaxMissedMessagesThreshold(value: number | undefined): void {

@@ -53,7 +53,8 @@ export class SubscriptionManager implements ISubscription {
       this.getPeers.bind(this),
       this.renewPeer.bind(this),
       () => Array.from(this.subscriptionCallbacks.keys()),
-      this.protocol.subscribe.bind(this.protocol)
+      this.protocol.subscribe.bind(this.protocol),
+      this.protocol.addLibp2pEventListener.bind(this.protocol)
     );
   }
 
