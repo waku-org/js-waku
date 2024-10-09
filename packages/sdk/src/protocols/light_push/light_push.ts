@@ -1,5 +1,10 @@
 import type { Peer, PeerId } from "@libp2p/interface";
-import { ConnectionManager, LightPushCodec, LightPushCore } from "@waku/core";
+import {
+  ConnectionManager,
+  getHealthManager,
+  LightPushCodec,
+  LightPushCore
+} from "@waku/core";
 import {
   Failure,
   type IEncoder,
@@ -112,6 +117,11 @@ class LightPush extends BaseProtocolSDK implements ILightPush {
         }
       }
     }
+
+    getHealthManager().updateProtocolHealth(
+      this.protocol.multicodec,
+      successes.length
+    );
 
     return {
       successes,
