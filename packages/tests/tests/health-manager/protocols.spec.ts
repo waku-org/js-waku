@@ -17,7 +17,7 @@ import {
 
 const NUM_NODES = [0, 1, 2, 3];
 
-describe.only("Health Manager", function () {
+describe("Health Manager", function () {
   this.timeout(10_000);
 
   let waku: LightNode;
