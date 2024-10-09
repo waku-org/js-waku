@@ -4,6 +4,7 @@ import { ConnectionManager, getHealthManager } from "@waku/core";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
 import { IHealthManager } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
+import { bytesToUtf8 } from "@waku/utils/bytes";
 import { Mutex } from "async-mutex";
 
 const METADATA_KEY = "usedByProtocol";
@@ -156,10 +157,9 @@ export class PeerManager {
 
   private isPeerUsedByProtocol(peer: Peer): boolean {
     const usedByProtocol = peer.metadata.get(METADATA_KEY);
-    return usedByProtocol
-      ? utf8ToBytes(this.core.multicodec.toString()).every(
-          (byte, index) => byte === usedByProtocol[index]
-        )
-      : false;
+    if (!usedByProtocol) return false;
+
+    const protocolString = bytesToUtf8(usedByProtocol);
+    return protocolString === this.core.multicodec.toString();
   }
 }
