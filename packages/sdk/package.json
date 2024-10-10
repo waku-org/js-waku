@@ -73,7 +73,7 @@
     "@waku/proto": "^0.0.8",
     "@waku/utils": "0.0.20",
     "@waku/message-hash": "0.1.16",
-    "libp2p": "2.0.2"
+    "libp2p": "2.1.8"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",

@@ -3,7 +3,7 @@ import { TypedEventEmitter } from "@libp2p/interface";
 import tests from "@libp2p/interface-compliance-tests/peer-discovery";
 import { prefixLogger } from "@libp2p/logger";
 import { peerIdFromPrivateKey } from "@libp2p/peer-id";
-import { PersistentPeerStore } from "@libp2p/peer-store";
+import { persistentPeerStore } from "@libp2p/peer-store";
 import {
   DnsNodeDiscovery,
   enrTree,
@@ -27,7 +27,7 @@ describe("DNS Discovery: Compliance Test", function () {
       const peerId = peerIdFromPrivateKey(privateKey);
       // create libp2p mock peerStore
       const components = {
-        peerStore: new PersistentPeerStore({
+        peerStore: persistentPeerStore({
           events: new TypedEventEmitter(),
           peerId,
           datastore: new MemoryDatastore(),
