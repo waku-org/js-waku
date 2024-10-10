@@ -73,7 +73,8 @@
     "@waku/proto": "^0.0.8",
     "@waku/utils": "0.0.20",
     "@waku/message-hash": "0.1.16",
-    "libp2p": "^1.8.1"
+    "libp2p": "^1.8.1",
+    "@waku/custom-event-polyfill": "0.0.1"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",

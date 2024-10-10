@@ -71,7 +71,8 @@
     "@waku/interfaces": "0.0.27",
     "chai": "^4.3.10",
     "debug": "^4.3.4",
-    "uint8arrays": "^5.0.1"
+    "uint8arrays": "^5.0.1",
+    "@waku/custom-event-polyfill": "0.0.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",

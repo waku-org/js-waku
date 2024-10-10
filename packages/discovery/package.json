@@ -59,7 +59,8 @@
     "debug": "^4.3.4",
     "dns-query": "^0.11.2",
     "hi-base32": "^0.5.1",
-    "uint8arrays": "^5.0.1"
+    "uint8arrays": "^5.0.1",
+    "@waku/custom-event-polyfill": "0.0.1"
   },
   "devDependencies": {
     "@libp2p/peer-id": "^4.2.1",

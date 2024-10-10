@@ -1,3 +1,4 @@
+import "@waku/custom-event-polyfill";
 export * from "./generate_test_data.js";
 export * from "./teardown.js";
 export * from "./random_array.js";

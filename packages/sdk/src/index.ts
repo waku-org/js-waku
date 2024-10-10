@@ -1,3 +1,5 @@
+import "@waku/custom-event-polyfill";
+
 export { createEncoder, createDecoder } from "@waku/core";
 export {
   DecodedMessage,

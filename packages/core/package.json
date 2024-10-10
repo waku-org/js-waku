@@ -78,7 +78,8 @@
     "it-length-prefixed": "^9.0.4",
     "it-pipe": "^3.0.1",
     "uint8arraylist": "^2.4.3",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "@waku/custom-event-polyfill": "0.0.1"
   },
   "devDependencies": {
     "@multiformats/multiaddr": "^12.0.0",
