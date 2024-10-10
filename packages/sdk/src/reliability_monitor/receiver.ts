@@ -3,6 +3,7 @@ import {
   ContentTopic,
   CoreProtocolResult,
   IProtoMessage,
+  Libp2p,
   PeerIdStr,
   PubsubTopic
 } from "@waku/interfaces";
@@ -32,13 +33,14 @@ export class ReceiverReliabilityMonitor {
   public constructor(
     private readonly pubsubTopic: PubsubTopic,
     private getPeers: () => Peer[],
-    private renewPeer: (peerId: PeerId) => Promise<Peer>,
+    private renewPeer: (peerId: PeerId) => Promise<Peer | undefined>,
     private getContentTopics: () => ContentTopic[],
     private protocolSubscribe: (
       pubsubTopic: PubsubTopic,
       peer: Peer,
       contentTopics: ContentTopic[]
-    ) => Promise<CoreProtocolResult>
+    ) => Promise<CoreProtocolResult>,
+    private addLibp2pEventListener: Libp2p["addEventListener"]
   ) {
     const allPeerIdStr = this.getPeers().map((p) => p.id.toString());
 
@@ -49,6 +51,13 @@ export class ReceiverReliabilityMonitor {
       }
     };
     allPeerIdStr.forEach((peerId) => this.missedMessagesByPeer.set(peerId, 0));
+
+    this.addLibp2pEventListener("peer:disconnect", (evt) => {
+      const peerId = evt.detail;
+      if (this.getPeers().some((p) => p.id.equals(peerId))) {
+        void this.renewAndSubscribePeer(peerId);
+      }
+    });
   }
 
   public setMaxMissedMessagesThreshold(value: number | undefined): void {
@@ -163,15 +172,21 @@ export class ReceiverReliabilityMonitor {
   private async renewAndSubscribePeer(
     peerId: PeerId
   ): Promise<Peer | undefined> {
+    const peerIdStr = peerId.toString();
     try {
-      if (this.peerRenewalLocks.has(peerId.toString())) {
-        log.info(`Peer ${peerId.toString()} is already being renewed.`);
+      if (this.peerRenewalLocks.has(peerIdStr)) {
+        log.info(`Peer ${peerIdStr} is already being renewed.`);
         return;
       }
 
-      this.peerRenewalLocks.add(peerId.toString());
+      this.peerRenewalLocks.add(peerIdStr);
 
       const newPeer = await this.renewPeer(peerId);
+      if (!newPeer) {
+        log.warn(`Failed to renew peer ${peerIdStr}: No new peer found.`);
+        return;
+      }
+
       await this.protocolSubscribe(
         this.pubsubTopic,
         newPeer,
@@ -181,16 +196,16 @@ export class ReceiverReliabilityMonitor {
       this.receivedMessagesHashes.nodes[newPeer.id.toString()] = new Set();
       this.missedMessagesByPeer.set(newPeer.id.toString(), 0);
 
-      this.peerFailures.delete(peerId.toString());
-      this.missedMessagesByPeer.delete(peerId.toString());
-      delete this.receivedMessagesHashes.nodes[peerId.toString()];
+      this.peerFailures.delete(peerIdStr);
+      this.missedMessagesByPeer.delete(peerIdStr);
+      delete this.receivedMessagesHashes.nodes[peerIdStr];
 
       return newPeer;
     } catch (error) {
-      log.warn(`Failed to renew peer ${peerId.toString()}: ${error}.`);
+      log.error(`Failed to renew peer ${peerIdStr}: ${error}.`);
       return;
     } finally {
-      this.peerRenewalLocks.delete(peerId.toString());
+      this.peerRenewalLocks.delete(peerIdStr);
     }
   }
 

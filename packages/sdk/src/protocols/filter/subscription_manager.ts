@@ -41,7 +41,9 @@ export class SubscriptionManager implements ISubscription {
     private readonly protocol: FilterCore,
     private readonly connectionManager: ConnectionManager,
     private readonly getPeers: () => Peer[],
-    private readonly renewPeer: (peerToDisconnect: PeerId) => Promise<Peer>
+    private readonly renewPeer: (
+      peerToDisconnect: PeerId
+    ) => Promise<Peer | undefined>
   ) {
     this.pubsubTopic = pubsubTopic;
     this.subscriptionCallbacks = new Map();
@@ -51,7 +53,8 @@ export class SubscriptionManager implements ISubscription {
       this.getPeers.bind(this),
       this.renewPeer.bind(this),
       () => Array.from(this.subscriptionCallbacks.keys()),
-      this.protocol.subscribe.bind(this.protocol)
+      this.protocol.subscribe.bind(this.protocol),
+      this.protocol.addLibp2pEventListener.bind(this.protocol)
     );
   }
 
@@ -142,6 +145,7 @@ export class SubscriptionManager implements ISubscription {
   }
 
   public async ping(peerId?: PeerId): Promise<SDKProtocolResult> {
+    log.info("Sending keep-alive ping");
     const peers = peerId ? [peerId] : this.getPeers().map((peer) => peer.id);
 
     const promises = peers.map((peerId) => this.pingSpecificPeer(peerId));
@@ -251,11 +255,13 @@ export class SubscriptionManager implements ISubscription {
   }
 
   private startSubscriptionsMaintenance(interval: number): void {
+    log.info("Starting subscriptions maintenance");
     this.startKeepAlivePings(interval);
     this.startConnectionListener();
   }
 
   private stopSubscriptionsMaintenance(): void {
+    log.info("Stopping subscriptions maintenance");
     this.stopKeepAlivePings();
     this.stopConnectionListener();
   }
@@ -299,9 +305,9 @@ export class SubscriptionManager implements ISubscription {
     }
 
     this.keepAliveTimer = setInterval(() => {
-      void this.ping().catch((error) => {
-        log.error("Error in keep-alive ping cycle:", error);
-      });
+      void this.ping()
+        .then(() => log.info("Keep-alive ping successful"))
+        .catch((error) => log.error("Error in keep-alive ping cycle:", error));
     }, interval) as unknown as number;
   }
 
