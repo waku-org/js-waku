@@ -1,3 +1,4 @@
+import "@waku/custom-event-polyfill";
 import { TypedEventEmitter } from "@libp2p/interface";
 import {
   CustomEvent,
