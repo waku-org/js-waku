@@ -34,7 +34,7 @@ export class ConnectionManager
   private static instances = new Map<string, ConnectionManager>();
   private keepAliveManager: KeepAliveManager;
   private options: ConnectionManagerOptions;
-  private libp2p: Libp2p;
+  public libp2p: Libp2p;
   private dialAttemptsForPeer: Map<string, number> = new Map();
   private dialErrorsForPeer: Map<string, any> = new Map();
 

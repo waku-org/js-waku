@@ -1,4 +1,9 @@
-import type { Peer, PeerId, TypedEventEmitter } from "@libp2p/interface";
+import type {
+  Libp2p,
+  Peer,
+  PeerId,
+  TypedEventEmitter
+} from "@libp2p/interface";
 
 import { PubsubTopic } from "./misc.js";
 
@@ -67,4 +72,5 @@ export interface IConnectionManager
   dropConnection(peerId: PeerId): Promise<void>;
   getPeersByDiscovery(): Promise<PeersByDiscoveryResult>;
   stop(): void;
+  libp2p: Libp2p;
 }
