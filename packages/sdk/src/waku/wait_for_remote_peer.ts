@@ -1,3 +1,4 @@
+import "@waku/custom-event-polyfill";
 import type { IdentifyResult } from "@libp2p/interface";
 import { FilterCodecs, LightPushCodec, StoreCodec } from "@waku/core";
 import type { IWaku, Libp2p } from "@waku/interfaces";

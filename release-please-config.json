@@ -22,6 +22,7 @@
     "packages/sdk": {},
     "packages/relay": {},
     "packages/discovery": {},
-    "packages/react-native-polyfills": {}
+    "packages/react-native-polyfills": {},
+    "packages/custom-event-polyfill": {}
   }
 }

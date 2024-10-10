@@ -47,7 +47,7 @@
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=18"
   },
   "dependencies": {
     "@libp2p/interface-compliance-tests": "^5.4.9",
@@ -65,7 +65,8 @@
     "p-timeout": "^6.1.0",
     "portfinder": "^1.0.32",
     "sinon": "^18.0.0",
-    "tail": "^2.2.6"
+    "tail": "^2.2.6",
+    "@waku/custom-event-polyfill": "*"
   },
   "devDependencies": {
     "@libp2p/bootstrap": "^10.1.2",

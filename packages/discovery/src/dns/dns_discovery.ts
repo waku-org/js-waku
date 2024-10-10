@@ -1,3 +1,5 @@
+import "@waku/custom-event-polyfill";
+
 import {
   CustomEvent,
   PeerDiscovery,

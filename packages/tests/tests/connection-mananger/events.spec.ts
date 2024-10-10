@@ -1,3 +1,4 @@
+import "@waku/custom-event-polyfill";
 import type { PeerId, PeerInfo } from "@libp2p/interface";
 import { CustomEvent, TypedEventEmitter } from "@libp2p/interface";
 import { createSecp256k1PeerId } from "@libp2p/peer-id-factory";

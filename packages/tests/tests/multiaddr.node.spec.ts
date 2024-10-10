@@ -1,3 +1,4 @@
+import "@waku/custom-event-polyfill";
 import type { PeerId } from "@libp2p/interface";
 import type { PeerInfo } from "@libp2p/interface";
 import { CustomEvent } from "@libp2p/interface";

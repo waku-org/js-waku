@@ -1,3 +1,5 @@
+import "@waku/custom-event-polyfill";
+
 export { createEncoder, createDecoder } from "./lib/message/version_0.js";
 export type {
   Encoder,

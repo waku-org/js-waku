@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "packages/custom-event-polyfill",
     "packages/proto",
     "packages/interfaces",
     "packages/utils",

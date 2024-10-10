@@ -9,5 +9,6 @@
   "packages/relay": "0.0.15",
   "packages/sdk": "0.0.28",
   "packages/discovery": "0.0.5",
-  "packages/react-native-polyfills": "0.0.1"
+  "packages/react-native-polyfills": "0.0.1",
+  "packages/custom-event-polyfill": "0.0.1"
 }
