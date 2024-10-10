@@ -1,3 +1,4 @@
+import "@waku/custom-event-polyfill";
 import type { Peer, PeerId, TypedEventEmitter } from "@libp2p/interface";
 
 import { PubsubTopic } from "./misc.js";

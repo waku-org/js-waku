@@ -64,6 +64,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@waku/proto": "^0.0.8"
+    "@waku/proto": "^0.0.8",
+    "@waku/custom-event-polyfill": "^0.0.1"
   }
 }

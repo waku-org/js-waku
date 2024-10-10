@@ -1,3 +1,4 @@
+import "@waku/custom-event-polyfill";
 import { Connection, Peer, PeerId, Stream } from "@libp2p/interface";
 import { expect } from "chai";
 import sinon from "sinon";

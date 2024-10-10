@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "packages/custom-event-polyfill",
     "packages/proto",
     "packages/interfaces",
     "packages/utils",
@@ -16,8 +17,7 @@
     "packages/tests",
     "packages/browser-tests",
     "packages/build-utils",
-    "packages/react-native-polyfills",
-    "packages/custom-event-polyfill"
+    "packages/react-native-polyfills"
   ],
   "scripts": {
     "prepare": "husky",

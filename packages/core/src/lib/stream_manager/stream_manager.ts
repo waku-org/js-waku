@@ -1,3 +1,4 @@
+import "@waku/custom-event-polyfill";
 import type { Peer, PeerId, PeerUpdate, Stream } from "@libp2p/interface";
 import type { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";

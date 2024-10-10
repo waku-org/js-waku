@@ -1,3 +1,4 @@
+import "@waku/custom-event-polyfill";
 import {
   GossipSub,
   GossipSubComponents,
