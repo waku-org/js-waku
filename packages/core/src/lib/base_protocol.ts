@@ -9,11 +9,24 @@ import { Logger, pubsubTopicsToShardInfo } from "@waku/utils";
 import {
   getConnectedPeersForProtocolAndShard,
   getPeersForProtocol,
-  sortPeersByLatency
+  sortPeersByLatency,
+  sortPeersByLeastActiveConnections
 } from "@waku/utils/libp2p";
 
 import { filterPeersByDiscovery } from "./filterPeers.js";
 import { StreamManager } from "./stream_manager/index.js";
+
+type GetPeersOptions = {
+  prioritizeLatency?: boolean;
+  numPeers: number;
+  maxBootstrapPeers: number;
+};
+
+const DEFAULT_GET_PEERS_OPTIONS: GetPeersOptions = {
+  prioritizeLatency: true,
+  maxBootstrapPeers: 1,
+  numPeers: 0
+};
 
 /**
  * A class with predefined helpers, to be used as a base to implement Waku
@@ -81,21 +94,17 @@ export class BaseProtocol implements IBaseProtocolCore {
   * @returns A list of peers that support the protocol sorted by latency.
   */
   public async getPeers(
-    {
-      numPeers,
-      maxBootstrapPeers
-    }: {
-      numPeers: number;
-      maxBootstrapPeers: number;
-    } = {
-      maxBootstrapPeers: 1,
-      numPeers: 0
-    }
+    options: GetPeersOptions = DEFAULT_GET_PEERS_OPTIONS
   ): Promise<Peer[]> {
+    const { maxBootstrapPeers, numPeers, prioritizeLatency } = options;
+
+    const activeConnections =
+      this.components.connectionManager.getConnections();
+
     // Retrieve all connected peers that support the protocol & shard (if configured)
     const connectedPeersForProtocolAndShard =
       await getConnectedPeersForProtocolAndShard(
-        this.components.connectionManager.getConnections(),
+        activeConnections,
         this.peerStore,
         [this.multicodec],
         pubsubTopicsToShardInfo(this.pubsubTopics)
@@ -108,24 +117,32 @@ export class BaseProtocol implements IBaseProtocolCore {
       maxBootstrapPeers
     );
 
-    // Sort the peers by latency
-    const sortedFilteredPeers = await sortPeersByLatency(
-      this.peerStore,
-      filteredPeers
-    );
+    let filteredAndSortedPeers: Peer[];
 
-    if (sortedFilteredPeers.length === 0) {
+    if (prioritizeLatency) {
+      filteredAndSortedPeers = await sortPeersByLatency(
+        this.peerStore,
+        filteredPeers
+      );
+    } else {
+      filteredAndSortedPeers = sortPeersByLeastActiveConnections(
+        filteredPeers,
+        activeConnections
+      );
+    }
+
+    if (filteredAndSortedPeers.length === 0) {
       this.log.warn(
         "No peers found. Ensure you have a connection to the network."
       );
     }
 
-    if (sortedFilteredPeers.length < numPeers) {
+    if (filteredAndSortedPeers.length < numPeers) {
       this.log.warn(
-        `Only ${sortedFilteredPeers.length} peers found. Requested ${numPeers}.`
+        `Only ${filteredAndSortedPeers.length} peers found. Requested ${numPeers}.`
       );
     }
 
-    return sortedFilteredPeers;
+    return filteredAndSortedPeers;
   }
 }

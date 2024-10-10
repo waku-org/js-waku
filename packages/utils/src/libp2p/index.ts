@@ -2,6 +2,7 @@ import type { Connection, Peer, PeerStore } from "@libp2p/interface";
 import { ShardInfo } from "@waku/interfaces";
 
 import { bytesToUtf8 } from "../bytes/index.js";
+import { isDefined } from "../common/is_defined.js";
 import { decodeRelayShard } from "../common/relay_shard_codec.js";
 
 /**
@@ -49,6 +50,34 @@ export async function sortPeersByLatency(
   return validResults
     .sort((a, b) => a.ping - b.ping)
     .map((result) => result.peer);
+}
+
+/**
+ * Sorts the list of peers based on the number of active connections.
+ * @param peers A list of all available peers, that support the protocol and shard.
+ * @param connections A list of all active connections.
+ * @returns A list of peers sorted by the number of active connections.
+ */
+export function sortPeersByLeastActiveConnections(
+  peers: Peer[],
+  connections: Connection[]
+): Peer[] {
+  const activePeers = connections
+    .filter((conn) =>
+      conn.streams.map((stream) => stream.protocol).filter(isDefined)
+    )
+    .map((conn) => conn.remotePeer);
+
+  return peers.sort((a, b) => {
+    const aConnections = activePeers.filter((peerId) =>
+      peerId.equals(a.id)
+    ).length;
+    const bConnections = activePeers.filter((peerId) =>
+      peerId.equals(b.id)
+    ).length;
+
+    return bConnections - aConnections;
+  });
 }
 
 /**
