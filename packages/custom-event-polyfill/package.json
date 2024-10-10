@@ -1,0 +1,43 @@
+{
+  "name": "@waku/custom-event-polyfill",
+  "version": "0.0.1",
+  "description": "CustomEvent polyfill for environments that don't support it natively",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "type": "module",
+  "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/custom-event-polyfill#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/waku-org/js-waku.git"
+  },
+  "bugs": {
+    "url": "https://github.com/waku-org/js-waku/issues"
+  },
+  "license": "MIT OR Apache-2.0",
+  "keywords": [
+    "waku",
+    "custom-event",
+    "polyfill",
+    "web3"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "check": "run-s check:*",
+    "check:tsc": "tsc -p tsconfig.dev.json",
+    "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
+    "prepublish": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "src/**/*.ts",
+    "!**/*.json",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ]
+}
