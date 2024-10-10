@@ -1,6 +1,7 @@
 import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
 import type { Peer, PeerStore } from "@libp2p/interface";
+import { Multiaddr } from "@multiformats/multiaddr";
 
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
@@ -30,6 +31,12 @@ export type IBaseProtocolSDK = {
 };
 
 export type NetworkConfig = StaticSharding | AutoSharding;
+
+export type NodesToUseForProtocols = {
+  filter?: Array<string>;
+  lightpush?: Array<string>;
+  store?: string;
+};
 
 //TODO: merge this with ProtocolCreateOptions or establish distinction: https://github.com/waku-org/js-waku/issues/2048
 /**
@@ -119,6 +126,12 @@ export type ProtocolCreateOptions = {
    * List of peers to use to bootstrap the node. Ignored if defaultBootstrap is set to true.
    */
   bootstrapPeers?: string[];
+  /**
+   * Optional list of nodes' multiaddresses (websocket-supported) to use for the protocol.
+   * If specified, only the nodes in the list will be used for the respective protocol.
+   * If not specified, nodes will be chosen automatically.
+   */
+  nodesToUse?: NodesToUseForProtocols;
 };
 
 export type Callback<T extends IDecodedMessage> = (

@@ -100,6 +100,18 @@ export async function createLibp2pAndUpdateOptions(
     peerDiscovery.push(bootstrap({ list: options.bootstrapPeers }));
   }
 
+  if (options?.nodesToUse) {
+    for (const nodes of Object.values(options.nodesToUse)) {
+      if (Array.isArray(nodes)) {
+        nodes.forEach((node) => {
+          peerDiscovery.push(bootstrap({ list: [node] }));
+        });
+      } else if (nodes) {
+        peerDiscovery.push(bootstrap({ list: [nodes] }));
+      }
+    }
+  }
+
   libp2pOptions.peerDiscovery = peerDiscovery;
 
   const libp2p = await defaultLibp2p(

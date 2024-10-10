@@ -1,9 +1,11 @@
+import type { Peer } from "@libp2p/interface";
 import { ConnectionManager, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
   IDecoder,
   IStore,
   Libp2p,
+  NodesToUseForProtocols,
   QueryRequestParams,
   StoreCursor
 } from "@waku/interfaces";
@@ -23,7 +25,11 @@ const log = new Logger("waku:store:sdk");
 export class Store extends BaseProtocolSDK implements IStore {
   public readonly protocol: StoreCore;
 
-  public constructor(connectionManager: ConnectionManager, libp2p: Libp2p) {
+  public constructor(
+    connectionManager: ConnectionManager,
+    private libp2p: Libp2p,
+    private readonly nodeToUse?: NodesToUseForProtocols["store"]
+  ) {
     super(
       new StoreCore(connectionManager.configuredPubsubTopics, libp2p),
       connectionManager,
@@ -58,12 +64,31 @@ export class Store extends BaseProtocolSDK implements IStore {
       ...options
     };
 
-    const peer = (
-      await this.protocol.getPeers({
-        numPeers: this.numPeersToUse,
-        maxBootstrapPeers: 1
-      })
-    )[0];
+    let peer: Peer | undefined;
+
+    if (this.nodeToUse) {
+      const peerIdStr = this.nodeToUse.getPeerId();
+      if (!peerIdStr) {
+        throw new Error("Provided multiaddr is invalid: No peer ID found");
+      }
+
+      const peerId = this.libp2p
+        .getPeers()
+        .find((p) => p.toString() === peerIdStr);
+      if (!peerId) {
+        throw new Error("Provided multiaddr is invalid: Peer is not connected");
+      }
+
+      peer = await this.libp2p.peerStore.get(peerId);
+    } else {
+      peer = (
+        await this.protocol.getPeers({
+          numPeers: this.numPeersToUse,
+          maxBootstrapPeers: 1
+        })
+      )[0];
+    }
+
     if (!peer) {
       log.error("No peers available to query");
       throw new Error("No peers available to query");
@@ -237,9 +262,10 @@ export class Store extends BaseProtocolSDK implements IStore {
  * @returns A function that takes a Libp2p instance and returns a StoreSDK instance.
  */
 export function wakuStore(
-  connectionManager: ConnectionManager
+  connectionManager: ConnectionManager,
+  nodeToUse?: NodesToUseForProtocols["store"]
 ): (libp2p: Libp2p) => IStore {
   return (libp2p: Libp2p) => {
-    return new Store(connectionManager, libp2p);
+    return new Store(connectionManager, libp2p, nodeToUse);
   };
 }
