@@ -64,7 +64,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     await this.peerManager.removePeer(peerToDisconnect);
     await this.peerManager.addPeer(newPeer[0]);
 
-    this.log.debug(`Successfully renewed peer. New peer: ${newPeer[0].id}`);
+    this.log.info(`Successfully renewed peer. New peer: ${newPeer[0].id}`);
 
     return newPeer[0];
   }
@@ -78,7 +78,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       this.maintainPeersIntervalId = null;
       this.log.info("Maintain peers interval stopped");
     } else {
-      this.log.debug("Maintain peers interval was not running");
+      this.log.info("Maintain peers interval was not running");
     }
   }
 
@@ -96,18 +96,18 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   ): Promise<boolean> {
     const { forceUseAllPeers = false, maxAttempts = 3 } = options;
 
-    this.log.debug(
+    this.log.info(
       `Checking for peers. forceUseAllPeers: ${forceUseAllPeers}, maxAttempts: ${maxAttempts}`
     );
 
     for (let attempts = 0; attempts < maxAttempts; attempts++) {
-      this.log.debug(
+      this.log.info(
         `Attempt ${attempts + 1}/${maxAttempts} to reach required number of peers`
       );
       await this.maintainPeers();
 
       if (!forceUseAllPeers && this.connectedPeers.length > 0) {
-        this.log.debug(
+        this.log.info(
           `At least one peer connected (${this.connectedPeers.length}), not forcing use of all peers`
         );
         return true;
@@ -141,7 +141,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     );
     try {
       this.maintainPeersIntervalId = setInterval(() => {
-        this.log.debug("Running scheduled peer maintenance");
+        this.log.info("Running scheduled peer maintenance");
         this.maintainPeers().catch((error) => {
           this.log.error("Error during scheduled peer maintenance:", error);
         });
@@ -161,7 +161,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
       const currentPeerCount = await this.peerManager.getPeerCount();
       const numPeersToAdd = this.numPeersToUse - currentPeerCount;
 
-      this.log.debug(
+      this.log.info(
         `Current peer count: ${currentPeerCount}, target: ${this.numPeersToUse}`
       );
 
