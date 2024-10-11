@@ -44,9 +44,7 @@ describe("Node Health Status Matrix Tests", function () {
         );
 
         if (lightPushPeers > 0) {
-          await waku.lightPush.send(TestEncoder, messagePayload, {
-            forceUseAllPeers: true
-          });
+          await waku.lightPush.send(TestEncoder, messagePayload);
         }
 
         if (filterPeers > 0) {
