@@ -19,7 +19,7 @@ import {
 } from "@waku/interfaces";
 import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
 
-import { BaseProtocolSDK } from "../base_protocol.js";
+import { DEFAULT_NUM_PEERS_TO_USE } from "../base_protocol.js";
 
 const log = new Logger("sdk:light-push");
 
@@ -31,7 +31,8 @@ const DEFAULT_SEND_OPTIONS: ISenderOptions = {
 
 type RetryCallback = (peer: Peer) => Promise<CoreProtocolResult>;
 
-export class LightPush extends BaseProtocolSDK implements ILightPush {
+export class LightPush implements ILightPush {
+  private numPeersToUse: number = DEFAULT_NUM_PEERS_TO_USE;
   public readonly protocol: LightPushCore;
 
   public constructor(
@@ -39,15 +40,11 @@ export class LightPush extends BaseProtocolSDK implements ILightPush {
     private libp2p: Libp2p,
     options?: ProtocolCreateOptions
   ) {
-    super(
-      new LightPushCore(connectionManager.configuredPubsubTopics, libp2p),
-      connectionManager,
-      {
-        numPeersToUse: options?.numPeersToUse
-      }
+    this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
+    this.protocol = new LightPushCore(
+      connectionManager.configuredPubsubTopics,
+      libp2p
     );
-
-    this.protocol = this.core as LightPushCore;
   }
 
   public async send(
