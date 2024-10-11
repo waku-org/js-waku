@@ -6,28 +6,33 @@ import {
   LightPushCore
 } from "@waku/core";
 import {
+  type CoreProtocolResult,
   Failure,
   type IEncoder,
   ILightPush,
   type IMessage,
+  type ISenderOptions,
   type Libp2p,
   type ProtocolCreateOptions,
   ProtocolError,
-  ProtocolUseOptions,
   SDKProtocolResult
 } from "@waku/interfaces";
 import { ensurePubsubTopicIsConfigured, Logger } from "@waku/utils";
 
-import { ReliabilityMonitorManager } from "../../reliability_monitor/index.js";
-import { SenderReliabilityMonitor } from "../../reliability_monitor/sender.js";
 import { BaseProtocolSDK } from "../base_protocol.js";
 
 const log = new Logger("sdk:light-push");
 
-class LightPush extends BaseProtocolSDK implements ILightPush {
-  public readonly protocol: LightPushCore;
+const DEFAULT_MAX_ATTEMPTS = 3;
+const DEFAULT_SEND_OPTIONS: ISenderOptions = {
+  autoRetry: false,
+  maxAttempts: DEFAULT_MAX_ATTEMPTS
+};
 
-  private readonly reliabilityMonitor: SenderReliabilityMonitor;
+type RetryCallback = (peer: Peer) => Promise<CoreProtocolResult>;
+
+export class LightPush extends BaseProtocolSDK implements ILightPush {
+  public readonly protocol: LightPushCore;
 
   public constructor(
     connectionManager: ConnectionManager,
@@ -42,17 +47,13 @@ class LightPush extends BaseProtocolSDK implements ILightPush {
       }
     );
 
-    this.reliabilityMonitor = ReliabilityMonitorManager.createSenderMonitor(
-      this.renewPeer.bind(this)
-    );
-
     this.protocol = this.core as LightPushCore;
   }
 
   public async send(
     encoder: IEncoder,
     message: IMessage,
-    _options?: ProtocolUseOptions
+    options: ISenderOptions = DEFAULT_SEND_OPTIONS
   ): Promise<SDKProtocolResult> {
     const successes: PeerId[] = [];
     const failures: Failure[] = [];
@@ -105,14 +106,10 @@ class LightPush extends BaseProtocolSDK implements ILightPush {
       if (failure) {
         failures.push(failure);
 
-        const connectedPeer = this.connectedPeers.find((connectedPeer) =>
-          connectedPeer.id.equals(failure.peerId)
-        );
-
-        if (connectedPeer) {
-          void this.reliabilityMonitor.attemptRetriesOrRenew(
-            connectedPeer.id,
-            () => this.protocol.send(encoder, message, connectedPeer)
+        if (options?.autoRetry) {
+          void this.attemptRetries(
+            (peer: Peer) => this.protocol.send(encoder, message, peer),
+            options.maxAttempts
           );
         }
       }
@@ -127,6 +124,32 @@ class LightPush extends BaseProtocolSDK implements ILightPush {
       successes,
       failures
     };
+  }
+
+  private async attemptRetries(
+    fn: RetryCallback,
+    maxAttempts?: number
+  ): Promise<void> {
+    maxAttempts = maxAttempts || DEFAULT_MAX_ATTEMPTS;
+    const connectedPeers = await this.getConnectedPeers();
+
+    if (connectedPeers.length === 0) {
+      log.warn("Cannot retry with no connected peers.");
+      return;
+    }
+
+    for (let i = 0; i < maxAttempts; i++) {
+      const peer = connectedPeers[i % connectedPeers.length]; // always present as we checked for the length already
+      const response = await fn(peer);
+
+      if (response.success) {
+        return;
+      }
+
+      log.info(
+        `Attempted retry for peer:${peer.id} failed with:${response?.failure?.error}`
+      );
+    }
   }
 
   private async getConnectedPeers(): Promise<Peer[]> {
