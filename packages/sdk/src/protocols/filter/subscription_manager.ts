@@ -30,7 +30,9 @@ const log = new Logger("sdk:filter:subscription_manager");
 export class SubscriptionManager implements ISubscription {
   private reliabilityMonitor: ReceiverReliabilityMonitor;
 
-  private keepAliveTimer: number | null = null;
+  private keepAliveTimeout: number = DEFAULT_KEEP_ALIVE;
+  private keepAliveInterval: ReturnType<typeof setInterval> | null = null;
+
   private subscriptionCallbacks: Map<
     ContentTopic,
     SubscriptionCallback<IDecodedMessage>
@@ -67,7 +69,7 @@ export class SubscriptionManager implements ISubscription {
       options.maxMissedMessagesThreshold
     );
     this.reliabilityMonitor.setMaxPingFailures(options.pingsBeforePeerRenewed);
-    this.keepAliveTimer = options.keepAlive || DEFAULT_KEEP_ALIVE;
+    this.keepAliveTimeout = options.keepAlive || DEFAULT_KEEP_ALIVE;
 
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
@@ -112,7 +114,7 @@ export class SubscriptionManager implements ISubscription {
       this.subscriptionCallbacks.set(contentTopic, subscriptionCallback);
     });
 
-    this.startSubscriptionsMaintenance(this.keepAliveTimer);
+    this.startSubscriptionsMaintenance(this.keepAliveTimeout);
 
     return finalResult;
   }
@@ -254,9 +256,9 @@ export class SubscriptionManager implements ISubscription {
     }
   }
 
-  private startSubscriptionsMaintenance(interval: number): void {
+  private startSubscriptionsMaintenance(timeout: number): void {
     log.info("Starting subscriptions maintenance");
-    this.startKeepAlivePings(interval);
+    this.startKeepAlivePings(timeout);
     this.startConnectionListener();
   }
 
@@ -295,31 +297,29 @@ export class SubscriptionManager implements ISubscription {
       log.error(`networkStateListener failed to recover: ${err}`);
     }
 
-    this.startKeepAlivePings(this.keepAliveTimer || DEFAULT_KEEP_ALIVE);
+    this.startKeepAlivePings(this.keepAliveTimeout);
   }
 
-  private startKeepAlivePings(interval: number): void {
-    if (this.keepAliveTimer) {
+  private startKeepAlivePings(timeout: number): void {
+    if (this.keepAliveInterval) {
       log.info("Recurring pings already set up.");
       return;
     }
 
-    this.keepAliveTimer = setInterval(() => {
-      void this.ping()
-        .then(() => log.info("Keep-alive ping successful"))
-        .catch((error) => log.error("Error in keep-alive ping cycle:", error));
-    }, interval) as unknown as number;
+    this.keepAliveInterval = setInterval(() => {
+      void this.ping();
+    }, timeout);
   }
 
   private stopKeepAlivePings(): void {
-    if (!this.keepAliveTimer) {
+    if (!this.keepAliveInterval) {
       log.info("Already stopped recurring pings.");
       return;
     }
 
     log.info("Stopping recurring pings.");
-    clearInterval(this.keepAliveTimer);
-    this.keepAliveTimer = null;
+    clearInterval(this.keepAliveInterval);
+    this.keepAliveInterval = null;
   }
 }
 
