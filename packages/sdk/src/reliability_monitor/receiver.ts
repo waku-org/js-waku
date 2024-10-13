@@ -88,6 +88,9 @@ export class ReceiverReliabilityMonitor {
 
     if (failures >= this.maxPingFailures) {
       try {
+        log.info(
+          `Attempting to renew ${peerId.toString()} due to ping failures.`
+        );
         await this.renewAndSubscribePeer(peerId);
         this.peerFailures.delete(peerId.toString());
       } catch (error) {

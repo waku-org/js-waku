@@ -242,18 +242,21 @@ export class SubscriptionManager implements ISubscription {
     let result;
     try {
       result = await this.protocol.ping(peer);
-      return result;
     } catch (error) {
-      return {
+      result = {
         success: null,
         failure: {
           peerId,
           error: ProtocolError.GENERIC_FAIL
         }
       };
-    } finally {
-      void this.reliabilityMonitor.handlePingResult(peerId, result);
     }
+
+    log.info(
+      `Received result from filter ping peerId:${peerId.toString()}\tsuccess:${result.success?.toString()}\tfailure:${result.failure?.error}`
+    );
+    await this.reliabilityMonitor.handlePingResult(peerId, result);
+    return result;
   }
 
   private startSubscriptionsMaintenance(timeout: number): void {
