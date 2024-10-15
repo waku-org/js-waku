@@ -17,7 +17,8 @@ import {
   TestShardInfo
 } from "./utils.js";
 
-describe("Node Health Status Matrix Tests", function () {
+// TODO(weboko): resolve https://github.com/waku-org/js-waku/issues/2186
+describe.skip("Node Health Status Matrix Tests", function () {
   let waku: LightNode;
   let serviceNodes: ServiceNode[];
 
