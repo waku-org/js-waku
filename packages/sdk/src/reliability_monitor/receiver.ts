@@ -140,7 +140,7 @@ export class ReceiverReliabilityMonitor {
     return alreadyReceived;
   }
 
-  // @ts-expect-error Turned off until properly investigated and dogfooded: https://github.com/waku-org/js-waku/issues/2075
+  // @ts-expect-error Turned off until properly investigated: https://github.com/waku-org/js-waku/issues/2075
   private async checkAndRenewPeers(): Promise<void> {
     for (const hash of this.receivedMessagesHashes.all) {
       for (const [peerIdStr, hashes] of Object.entries(
