@@ -25,7 +25,7 @@ export class Store extends BaseProtocolSDK implements IStore {
 
   public constructor(connectionManager: ConnectionManager, libp2p: Libp2p) {
     super(
-      new StoreCore(connectionManager.configuredPubsubTopics, libp2p),
+      new StoreCore(connectionManager.pubsubTopics, libp2p),
       connectionManager,
       {
         numPeersToUse: DEFAULT_NUM_PEERS

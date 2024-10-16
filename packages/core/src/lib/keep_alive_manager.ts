@@ -1,6 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
 import type { IRelay, Libp2p, PeerIdStr } from "@waku/interfaces";
-import type { KeepAliveOptions } from "@waku/interfaces";
 import { Logger, pubsubTopicToSingleShardInfo } from "@waku/utils";
 import { utf8ToBytes } from "@waku/utils/bytes";
 
@@ -9,8 +8,16 @@ import { createEncoder } from "./message/version_0.js";
 export const RelayPingContentTopic = "/relay-ping/1/ping/null";
 const log = new Logger("keep-alive");
 
+export const DefaultPingKeepAliveValueSecs = 5 * 60;
+export const DefaultRelayKeepAliveValueSecs = 5 * 60;
+
+type KeepAliveConfig = {
+  pingKeepAlive?: number;
+  relayKeepAlive?: number;
+};
+
 type CreateKeepAliveManagerOptions = {
-  options: KeepAliveOptions;
+  config: KeepAliveConfig;
   libp2p: Libp2p;
   relay?: IRelay;
 };
@@ -19,19 +26,15 @@ export class KeepAliveManager {
   private readonly relay?: IRelay;
   private readonly libp2p: Libp2p;
 
-  private readonly options: KeepAliveOptions;
+  private readonly config: KeepAliveConfig;
 
   private pingKeepAliveTimers: Map<string, ReturnType<typeof setInterval>> =
     new Map();
   private relayKeepAliveTimers: Map<PeerId, ReturnType<typeof setInterval>[]> =
     new Map();
 
-  public constructor({
-    options,
-    relay,
-    libp2p
-  }: CreateKeepAliveManagerOptions) {
-    this.options = options;
+  public constructor({ config, relay, libp2p }: CreateKeepAliveManagerOptions) {
+    this.config = config;
     this.relay = relay;
     this.libp2p = libp2p;
   }
@@ -40,8 +43,11 @@ export class KeepAliveManager {
     // Just in case a timer already exists for this peer
     this.stop(peerId);
 
-    const { pingKeepAlive: pingPeriodSecs, relayKeepAlive: relayPeriodSecs } =
-      this.options;
+    const pingPeriodSecs =
+      this.config.pingKeepAlive || DefaultPingKeepAliveValueSecs;
+    const relayPeriodSecs = this.relay
+      ? this.config.relayKeepAlive || DefaultRelayKeepAliveValueSecs
+      : 0;
 
     const peerIdStr = peerId.toString();
 

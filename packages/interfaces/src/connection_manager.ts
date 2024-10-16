@@ -14,15 +14,27 @@ export interface ConnectionManagerOptions {
    * This is used to not spam a peer with dial attempts when it is not dialable
    */
   maxDialAttemptsForPeer: number;
+
   /**
    * Max number of bootstrap peers allowed to be connected to, initially
    * This is used to increase intention of dialing non-bootstrap peers, found using other discovery mechanisms (like Peer Exchange)
    */
   maxBootstrapPeersAllowed: number;
+
   /**
    * Max number of parallel dials allowed
    */
   maxParallelDials: number;
+
+  /**
+   * Keep alive libp2p pings interval
+   */
+  pingKeepAlive?: number;
+
+  /**
+   * Gossip sub specific keep alive interval
+   */
+  relayKeepAlive?: number;
 }
 
 export enum EPeersByDiscoveryEvents {
@@ -63,7 +75,7 @@ export interface IConnectionStateEvents {
 
 export interface IConnectionManager
   extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents> {
-  configuredPubsubTopics: PubsubTopic[];
+  pubsubTopics: PubsubTopic[];
   dropConnection(peerId: PeerId): Promise<void>;
   getPeersByDiscovery(): Promise<PeersByDiscoveryResult>;
   stop(): void;

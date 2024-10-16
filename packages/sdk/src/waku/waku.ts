@@ -23,8 +23,6 @@ import { ReliabilityMonitorManager } from "../reliability_monitor/index.js";
 
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
-export const DefaultPingKeepAliveValueSecs = 5 * 60;
-export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 export const DefaultUserAgent = "js-waku";
 export const DefaultPingMaxInboundStreams = 10;
 
@@ -87,21 +85,17 @@ export class WakuNode implements IWaku {
       ...protocolsEnabled
     };
 
-    const pingKeepAlive =
-      options.pingKeepAlive || DefaultPingKeepAliveValueSecs;
-    const relayKeepAlive = this.relay
-      ? options.relayKeepAlive || DefaultRelayKeepAliveValueSecs
-      : 0;
-
     const peerId = this.libp2p.peerId.toString();
 
-    this.connectionManager = ConnectionManager.create(
-      peerId,
+    this.connectionManager = new ConnectionManager({
       libp2p,
-      { pingKeepAlive, relayKeepAlive },
-      this.pubsubTopics,
-      this.relay
-    );
+      pubsubTopics: this.pubsubTopics,
+      relay: this.relay,
+      config: {
+        pingKeepAlive: options.pingKeepAlive,
+        relayKeepAlive: options.relayKeepAlive
+      }
+    });
 
     this.health = getHealthManager();
 
