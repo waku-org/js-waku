@@ -24,7 +24,8 @@ export class ReliabilityMonitorManager {
       peer: Peer,
       contentTopics: ContentTopic[]
     ) => Promise<CoreProtocolResult>,
-    addLibp2pEventListener: Libp2p["addEventListener"]
+    addLibp2pEventListener: Libp2p["addEventListener"],
+    sendLightPushMessage: (peer: Peer) => Promise<void>
   ): ReceiverReliabilityMonitor {
     if (ReliabilityMonitorManager.receiverMonitors.has(pubsubTopic)) {
       return ReliabilityMonitorManager.receiverMonitors.get(pubsubTopic)!;
@@ -36,7 +37,8 @@ export class ReliabilityMonitorManager {
       renewPeer,
       getContentTopics,
       protocolSubscribe,
-      addLibp2pEventListener
+      addLibp2pEventListener,
+      sendLightPushMessage
     );
     ReliabilityMonitorManager.receiverMonitors.set(pubsubTopic, monitor);
     return monitor;
@@ -50,7 +52,6 @@ export class ReliabilityMonitorManager {
 
   public static stopAll(): void {
     for (const [pubsubTopic, monitor] of this.receiverMonitors) {
-      monitor.setMaxMissedMessagesThreshold(undefined);
       monitor.setMaxPingFailures(undefined);
       this.receiverMonitors.delete(pubsubTopic);
     }

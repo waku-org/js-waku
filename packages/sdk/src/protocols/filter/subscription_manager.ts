@@ -1,6 +1,12 @@
 import type { Peer } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
-import { ConnectionManager, FilterCore } from "@waku/core";
+import {
+  ConnectionManager,
+  createDecoder,
+  createEncoder,
+  FilterCore,
+  LightPushCore
+} from "@waku/core";
 import {
   type Callback,
   type ContentTopic,
@@ -8,8 +14,10 @@ import {
   EConnectionStateEvents,
   type IDecodedMessage,
   type IDecoder,
+  type ILightPush,
   type IProtoMessage,
   type ISubscription,
+  type Libp2p,
   type PeerIdStr,
   ProtocolError,
   type PubsubTopic,
@@ -23,7 +31,12 @@ import { groupByContentTopic, Logger } from "@waku/utils";
 import { ReliabilityMonitorManager } from "../../reliability_monitor/index.js";
 import { ReceiverReliabilityMonitor } from "../../reliability_monitor/receiver.js";
 
-import { DEFAULT_KEEP_ALIVE, DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
+import {
+  DEFAULT_KEEP_ALIVE,
+  DEFAULT_LIGHT_PUSH_FILTER_CHECK,
+  DEFAULT_LIGHT_PUSH_FILTER_CHECK_INTERVAL,
+  DEFAULT_SUBSCRIBE_OPTIONS
+} from "./constants.js";
 
 const log = new Logger("sdk:filter:subscription_manager");
 
@@ -32,6 +45,8 @@ export class SubscriptionManager implements ISubscription {
 
   private keepAliveTimeout: number = DEFAULT_KEEP_ALIVE;
   private keepAliveInterval: ReturnType<typeof setInterval> | null = null;
+
+  private enableLightPushFilterCheck = DEFAULT_LIGHT_PUSH_FILTER_CHECK;
 
   private subscriptionCallbacks: Map<
     ContentTopic,
@@ -45,7 +60,9 @@ export class SubscriptionManager implements ISubscription {
     private readonly getPeers: () => Peer[],
     private readonly renewPeer: (
       peerToDisconnect: PeerId
-    ) => Promise<Peer | undefined>
+    ) => Promise<Peer | undefined>,
+    private readonly libp2p: Libp2p,
+    private readonly lightPush?: ILightPush
   ) {
     this.pubsubTopic = pubsubTopic;
     this.subscriptionCallbacks = new Map();
@@ -56,7 +73,8 @@ export class SubscriptionManager implements ISubscription {
       this.renewPeer.bind(this),
       () => Array.from(this.subscriptionCallbacks.keys()),
       this.protocol.subscribe.bind(this.protocol),
-      this.protocol.addLibp2pEventListener.bind(this.protocol)
+      this.protocol.addLibp2pEventListener.bind(this.protocol),
+      this.sendLightPushCheckMessage.bind(this)
     );
   }
 
@@ -65,11 +83,10 @@ export class SubscriptionManager implements ISubscription {
     callback: Callback<T>,
     options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<SDKProtocolResult> {
-    this.reliabilityMonitor.setMaxMissedMessagesThreshold(
-      options.maxMissedMessagesThreshold
-    );
     this.reliabilityMonitor.setMaxPingFailures(options.pingsBeforePeerRenewed);
     this.keepAliveTimeout = options.keepAlive || DEFAULT_KEEP_ALIVE;
+    this.enableLightPushFilterCheck =
+      options?.enableLightPushFilterCheck || DEFAULT_LIGHT_PUSH_FILTER_CHECK;
 
     const decodersArray = Array.isArray(decoders) ? decoders : [decoders];
 
@@ -87,11 +104,20 @@ export class SubscriptionManager implements ISubscription {
       }
     }
 
+    if (this.enableLightPushFilterCheck) {
+      decodersArray.push(
+        createDecoder(
+          this.buildLightPushContentTopic(),
+          this.pubsubTopic
+        ) as IDecoder<T>
+      );
+    }
+
     const decodersGroupedByCT = groupByContentTopic(decodersArray);
     const contentTopics = Array.from(decodersGroupedByCT.keys());
 
     const promises = this.getPeers().map(async (peer) =>
-      this.protocol.subscribe(this.pubsubTopic, peer, contentTopics)
+      this.subscribeWithPeerVerification(peer, contentTopics)
     );
 
     const results = await Promise.allSettled(promises);
@@ -108,6 +134,11 @@ export class SubscriptionManager implements ISubscription {
         decoders,
         callback
       } as unknown as SubscriptionCallback<IDecodedMessage>;
+
+      // don't handle case of internal content topic
+      if (contentTopic === this.buildLightPushContentTopic()) {
+        return;
+      }
 
       // The callback and decoder may override previous values, this is on
       // purpose as the user may call `subscribe` to refresh the subscription
@@ -176,10 +207,9 @@ export class SubscriptionManager implements ISubscription {
     message: WakuMessage,
     peerIdStr: PeerIdStr
   ): Promise<void> {
-    const alreadyReceived = this.reliabilityMonitor.processIncomingMessage(
-      message,
-      this.pubsubTopic,
-      peerIdStr
+    const alreadyReceived = this.reliabilityMonitor.notifyMessageReceived(
+      peerIdStr,
+      message as IProtoMessage
     );
 
     if (alreadyReceived) {
@@ -200,6 +230,19 @@ export class SubscriptionManager implements ISubscription {
       this.pubsubTopic
     );
     await pushMessage(subscriptionCallback, this.pubsubTopic, message);
+  }
+
+  private async subscribeWithPeerVerification(
+    peer: Peer,
+    contentTopics: string[]
+  ): Promise<CoreProtocolResult> {
+    const result = await this.protocol.subscribe(
+      this.pubsubTopic,
+      peer,
+      contentTopics
+    );
+    await this.sendLightPushCheckMessage(peer);
+    return result;
   }
 
   private handleResult(
@@ -323,6 +366,46 @@ export class SubscriptionManager implements ISubscription {
     log.info("Stopping recurring pings.");
     clearInterval(this.keepAliveInterval);
     this.keepAliveInterval = null;
+  }
+
+  private async sendLightPushCheckMessage(peer: Peer): Promise<void> {
+    if (
+      this.lightPush &&
+      this.libp2p &&
+      this.reliabilityMonitor.shouldVerifyPeer(peer.id)
+    ) {
+      const encoder = createEncoder({
+        contentTopic: this.buildLightPushContentTopic(),
+        pubsubTopic: this.pubsubTopic,
+        ephemeral: true
+      });
+
+      const message = { payload: new Uint8Array(1) };
+      const protoMessage = await encoder.toProtoObj(message);
+
+      // make a delay to be sure message is send when subscription is in place
+      setTimeout(
+        (async () => {
+          const result = await (this.lightPush!.protocol as LightPushCore).send(
+            encoder,
+            message,
+            peer
+          );
+          this.reliabilityMonitor.notifyMessageSent(peer.id, protoMessage);
+          if (result.failure) {
+            log.error(
+              `failed to send lightPush ping message to peer:${peer.id.toString()}\t${result.failure.error}`
+            );
+            return;
+          }
+        }) as () => void,
+        DEFAULT_LIGHT_PUSH_FILTER_CHECK_INTERVAL
+      );
+    }
+  }
+
+  private buildLightPushContentTopic(): string {
+    return `/js-waku-subscription-ping/1/${this.libp2p.peerId.toString()}/utf8`;
   }
 }
 
