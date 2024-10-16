@@ -4,7 +4,7 @@ import { TypedEventEmitter } from "@libp2p/interface";
 import tests from "@libp2p/interface-compliance-tests/peer-discovery";
 import { prefixLogger } from "@libp2p/logger";
 import { peerIdFromPrivateKey, peerIdFromString } from "@libp2p/peer-id";
-import { PersistentPeerStore } from "@libp2p/peer-store";
+import { persistentPeerStore } from "@libp2p/peer-store";
 import { multiaddr } from "@multiformats/multiaddr";
 import { Libp2pComponents } from "@waku/interfaces";
 import { LocalStoragePeerInfo } from "@waku/interfaces";
@@ -53,7 +53,7 @@ describe("Local Storage Discovery", function () {
   beforeEach(async function () {
     localStorage.clear();
     components = {
-      peerStore: new PersistentPeerStore({
+      peerStore: persistentPeerStore({
         events: new TypedEventEmitter(),
         peerId: await generateKeyPair("secp256k1").then(peerIdFromPrivateKey),
         datastore: new MemoryDatastore(),
