@@ -11,7 +11,7 @@ interface Options {
   maintainPeersInterval?: number;
 }
 
-const DEFAULT_NUM_PEERS_TO_USE = 2;
+export const DEFAULT_NUM_PEERS_TO_USE = 2;
 const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 
 export class BaseProtocolSDK implements IBaseProtocolSDK {
@@ -29,11 +29,11 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   ) {
     this.log = new Logger(`sdk:${core.multicodec}`);
 
-    this.peerManager = new PeerManager(connectionManager, core, this.log);
-
     this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
     const maintainPeersInterval =
       options?.maintainPeersInterval ?? DEFAULT_MAINTAIN_PEERS_INTERVAL;
+
+    this.peerManager = new PeerManager(connectionManager, core, this.log);
 
     this.log.info(
       `Initializing BaseProtocolSDK with numPeersToUse: ${this.numPeersToUse}, maintainPeersInterval: ${maintainPeersInterval}ms`
@@ -42,7 +42,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
   }
 
   public get connectedPeers(): Peer[] {
-    return this.peerManager.getPeers();
+    return this.peerManager.getPeers().slice(0, this.numPeersToUse);
   }
 
   /**
