@@ -175,6 +175,25 @@ export class ConnectionManager
     );
   }
 
+  public async getPeers(): Promise<Peer[]> {
+    const allPeers = await this.libp2p.peerStore.all();
+
+    const mapOfPeers = new Map<string, Peer>();
+    allPeers.forEach((peer) => {
+      mapOfPeers.set(peer.id.toString(), peer);
+    });
+
+    return this.libp2p
+      .getConnections()
+      .map((c) => {
+        if (!mapOfPeers.has(c.remotePeer.toString())) {
+          return null;
+        }
+        return mapOfPeers.get(c.remotePeer.toString());
+      })
+      .filter((p) => !!p) as Peer[];
+  }
+
   private async dialPeerStorePeers(): Promise<void> {
     const peerInfos = await this.libp2p.peerStore.all();
     const dialPromises = [];

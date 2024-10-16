@@ -26,23 +26,29 @@ import {
 } from "@waku/utils";
 
 import { BaseProtocolSDK } from "../base_protocol.js";
+import { PeerManager } from "../peer_manager.js";
 
 import { DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
 import { SubscriptionManager } from "./subscription_manager.js";
 
 const log = new Logger("sdk:filter");
 
-class Filter extends BaseProtocolSDK implements IFilter {
+type FilterConstructorOptions = {
+  connectionManager: ConnectionManager;
+  libp2p: Libp2p;
+  peerManager: PeerManager;
+  lightPush?: ILightPush;
+  options?: ProtocolCreateOptions;
+};
+
+export class Filter extends BaseProtocolSDK implements IFilter {
   public readonly protocol: FilterCore;
+  private readonly libp2p: Libp2p;
+  private readonly lightPush?: ILightPush;
 
   private activeSubscriptions = new Map<string, SubscriptionManager>();
 
-  public constructor(
-    connectionManager: ConnectionManager,
-    private libp2p: Libp2p,
-    private lightPush?: ILightPush,
-    options?: ProtocolCreateOptions
-  ) {
+  public constructor(options: FilterConstructorOptions) {
     super(
       new FilterCore(
         async (pubsubTopic, wakuMessage, peerIdStr) => {
@@ -56,13 +62,16 @@ class Filter extends BaseProtocolSDK implements IFilter {
           await subscription.processIncomingMessage(wakuMessage, peerIdStr);
         },
 
-        connectionManager.pubsubTopics,
-        libp2p
+        options.connectionManager.pubsubTopics,
+        options.libp2p
       ),
-      connectionManager,
-      { numPeersToUse: options?.numPeersToUse }
+      options.connectionManager,
+      { numPeersToUse: options.options?.numPeersToUse }
     );
 
+    this.connectionManager = options.connectionManager;
+    this.libp2p = options.libp2p;
+    this.lightPush = options.lightPush;
     this.protocol = this.core as FilterCore;
 
     this.activeSubscriptions = new Map();
@@ -300,13 +309,4 @@ class Filter extends BaseProtocolSDK implements IFilter {
 
     return [...pubsubTopics];
   }
-}
-
-export function wakuFilter(
-  connectionManager: ConnectionManager,
-  lightPush?: ILightPush,
-  init?: ProtocolCreateOptions
-): (libp2p: Libp2p) => IFilter {
-  return (libp2p: Libp2p) =>
-    new Filter(connectionManager, libp2p, lightPush, init);
 }

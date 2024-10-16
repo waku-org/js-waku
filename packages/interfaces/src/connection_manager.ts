@@ -78,5 +78,6 @@ export interface IConnectionManager
   pubsubTopics: PubsubTopic[];
   dropConnection(peerId: PeerId): Promise<void>;
   getPeersByDiscovery(): Promise<PeersByDiscoveryResult>;
+  getPeers(): Promise<Peer[]>;
   stop(): void;
 }

@@ -1,25 +1,23 @@
 import { Peer, PeerId } from "@libp2p/interface";
-import { ConnectionManager, getHealthManager } from "@waku/core";
-import { BaseProtocol } from "@waku/core/lib/base_protocol";
-import { IHealthManager } from "@waku/interfaces";
+import { ConnectionManager } from "@waku/core";
+// import { BaseProtocol } from "@waku/core/lib/base_protocol";
+// import { IHealthManager } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { Mutex } from "async-mutex";
 
+const log = new Logger("peer-manager");
+
 export class PeerManager {
   private peers: Map<string, Peer> = new Map();
-  private healthManager: IHealthManager;
+  // private healthManager: IHealthManager;
 
   private readMutex = new Mutex();
   private writeMutex = new Mutex();
   private writeLockHolder: string | null = null;
 
-  public constructor(
-    private readonly connectionManager: ConnectionManager,
-    private readonly core: BaseProtocol,
-    private readonly log: Logger
-  ) {
-    this.healthManager = getHealthManager();
-    this.healthManager.updateProtocolHealth(this.core.multicodec, 0);
+  public constructor(private readonly connectionManager: ConnectionManager) {
+    // this.healthManager = getHealthManager();
+    // this.healthManager.updateProtocolHealth(this.core.multicodec, 0);
   }
 
   public getWriteLockHolder(): string | null {
@@ -35,11 +33,11 @@ export class PeerManager {
       this.writeLockHolder = `addPeer: ${peer.id.toString()}`;
       await this.connectionManager.attemptDial(peer.id);
       this.peers.set(peer.id.toString(), peer);
-      this.log.info(`Added and dialed peer: ${peer.id.toString()}`);
-      this.healthManager.updateProtocolHealth(
-        this.core.multicodec,
-        this.peers.size
-      );
+      log.info(`Added and dialed peer: ${peer.id.toString()}`);
+      // this.healthManager.updateProtocolHealth(
+      //   this.core.multicodec,
+      //   this.peers.size
+      // );
       this.writeLockHolder = null;
     });
   }
@@ -48,11 +46,11 @@ export class PeerManager {
     return this.writeMutex.runExclusive(() => {
       this.writeLockHolder = `removePeer: ${peerId.toString()}`;
       this.peers.delete(peerId.toString());
-      this.log.info(`Removed peer: ${peerId.toString()}`);
-      this.healthManager.updateProtocolHealth(
-        this.core.multicodec,
-        this.peers.size
-      );
+      log.info(`Removed peer: ${peerId.toString()}`);
+      // this.healthManager.updateProtocolHealth(
+      //   this.core.multicodec,
+      //   this.peers.size
+      // );
       this.writeLockHolder = null;
     });
   }
@@ -66,7 +64,7 @@ export class PeerManager {
   }
 
   public async removeExcessPeers(excessPeers: number): Promise<void> {
-    this.log.info(`Removing ${excessPeers} excess peer(s)`);
+    log.info(`Removing ${excessPeers} excess peer(s)`);
     const peersToRemove = Array.from(this.peers.values()).slice(0, excessPeers);
     for (const peer of peersToRemove) {
       await this.removePeer(peer.id);
@@ -80,7 +78,7 @@ export class PeerManager {
   public async findAndAddPeers(numPeers: number): Promise<Peer[]> {
     const additionalPeers = await this.findPeers(numPeers);
     if (additionalPeers.length === 0) {
-      this.log.warn("No additional peers found");
+      log.warn("No additional peers found");
       return [];
     }
     return this.addMultiplePeers(additionalPeers);
@@ -91,7 +89,7 @@ export class PeerManager {
    * @param numPeers The number of peers to find.
    */
   public async findPeers(numPeers: number): Promise<Peer[]> {
-    const connectedPeers = await this.core.getPeers();
+    const connectedPeers = await this.connectionManager.getPeers();
 
     return this.readMutex.runExclusive(async () => {
       const newPeers = connectedPeers
