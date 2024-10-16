@@ -74,7 +74,7 @@
     "@waku/utils": "0.0.21",
     "@waku/message-hash": "0.1.17",
     "async-mutex": "^0.5.0",
-    "libp2p": "2.0.2"
+    "libp2p": "2.1.8"
   },
   "devDependencies": {
     "@types/chai": "^4.3.11",

@@ -51,7 +51,7 @@
     "@multiformats/multiaddr": "^12.0.0",
     "cspell": "^8.6.1",
     "npm-run-all": "^4.1.5",
-    "libp2p": "2.0.2"
+    "libp2p": "2.1.8"
   },
   "files": [
     "dist",
