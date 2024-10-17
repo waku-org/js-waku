@@ -427,7 +427,6 @@ describe("ENR", function () {
       privateKeyUint8Arr = privateKey.raw;
       peerId = peerIdFromPrivateKey(privateKey);
       enr = await EnrCreator.fromPeerId(peerId);
-      console.log(enr);
       waku2Protocols = {
         relay: false,
         store: false,
