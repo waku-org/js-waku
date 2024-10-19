@@ -27,11 +27,21 @@ export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
 export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
 export const DEFAULT_MAX_PARALLEL_DIALS = 3;
 
+type ConnectionManagerConstructorOptions = {
+  libp2p: Libp2p;
+  keepAliveOptions: KeepAliveOptions;
+  pubsubTopics: PubsubTopic[];
+  relay?: IRelay;
+  config?: Partial<ConnectionManagerOptions>;
+};
+
 export class ConnectionManager
   extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents>
   implements IConnectionManager
 {
-  private static instances = new Map<string, ConnectionManager>();
+  // TODO(weboko): make it private
+  public readonly pubsubTopics: PubsubTopic[];
+
   private keepAliveManager: KeepAliveManager;
   private options: ConnectionManagerOptions;
   private libp2p: Libp2p;
@@ -49,29 +59,6 @@ export class ConnectionManager
     }
 
     return this.isP2PNetworkConnected;
-  }
-
-  public static create(
-    peerId: string,
-    libp2p: Libp2p,
-    keepAliveOptions: KeepAliveOptions,
-    pubsubTopics: PubsubTopic[],
-    relay?: IRelay,
-    options?: ConnectionManagerOptions
-  ): ConnectionManager {
-    let instance = ConnectionManager.instances.get(peerId);
-    if (!instance) {
-      instance = new ConnectionManager(
-        libp2p,
-        keepAliveOptions,
-        pubsubTopics,
-        relay,
-        options
-      );
-      ConnectionManager.instances.set(peerId, instance);
-    }
-
-    return instance;
   }
 
   public stop(): void {
@@ -156,27 +143,21 @@ export class ConnectionManager
     };
   }
 
-  private constructor(
-    libp2p: Libp2p,
-    keepAliveOptions: KeepAliveOptions,
-    public readonly configuredPubsubTopics: PubsubTopic[],
-    relay?: IRelay,
-    options?: Partial<ConnectionManagerOptions>
-  ) {
+  public constructor(options: ConnectionManagerConstructorOptions) {
     super();
-    this.libp2p = libp2p;
-    this.configuredPubsubTopics = configuredPubsubTopics;
+    this.libp2p = options.libp2p;
+    this.pubsubTopics = options.pubsubTopics;
     this.options = {
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
       maxParallelDials: DEFAULT_MAX_PARALLEL_DIALS,
-      ...options
+      ...options.config
     };
 
     this.keepAliveManager = new KeepAliveManager({
-      relay,
-      libp2p,
-      options: keepAliveOptions
+      relay: options.relay,
+      libp2p: options.libp2p,
+      options: options.keepAliveOptions
     });
 
     this.startEventListeners()
@@ -478,7 +459,7 @@ export class ConnectionManager
 
       log.warn(
         `Discovered peer ${peerId.toString()} with ShardInfo ${shardInfo} is not part of any of the configured pubsub topics (${
-          this.configuredPubsubTopics
+          this.pubsubTopics
         }).
             Not dialing.`
       );
@@ -573,7 +554,7 @@ export class ConnectionManager
     const pubsubTopics = shardInfoToPubsubTopics(shardInfo);
 
     const isTopicConfigured = pubsubTopics.some((topic) =>
-      this.configuredPubsubTopics.includes(topic)
+      this.pubsubTopics.includes(topic)
     );
     return isTopicConfigured;
   }

@@ -56,7 +56,7 @@ class Filter extends BaseProtocolSDK implements IFilter {
           await subscription.processIncomingMessage(wakuMessage, peerIdStr);
         },
 
-        connectionManager.configuredPubsubTopics,
+        connectionManager.pubsubTopics,
         libp2p
       ),
       connectionManager,

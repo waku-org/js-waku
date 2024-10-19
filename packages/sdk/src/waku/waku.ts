@@ -95,13 +95,12 @@ export class WakuNode implements IWaku {
 
     const peerId = this.libp2p.peerId.toString();
 
-    this.connectionManager = ConnectionManager.create(
-      peerId,
+    this.connectionManager = new ConnectionManager({
       libp2p,
-      { pingKeepAlive, relayKeepAlive },
-      this.pubsubTopics,
-      this.relay
-    );
+      keepAliveOptions: { pingKeepAlive, relayKeepAlive },
+      pubsubTopics: this.pubsubTopics,
+      relay: this.relay
+    });
 
     this.health = getHealthManager();
 

@@ -41,10 +41,7 @@ export class LightPush implements ILightPush {
     options?: ProtocolCreateOptions
   ) {
     this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
-    this.protocol = new LightPushCore(
-      connectionManager.configuredPubsubTopics,
-      libp2p
-    );
+    this.protocol = new LightPushCore(connectionManager.pubsubTopics, libp2p);
   }
 
   public async send(
