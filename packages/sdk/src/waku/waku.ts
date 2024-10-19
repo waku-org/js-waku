@@ -23,28 +23,12 @@ import { ReliabilityMonitorManager } from "../reliability_monitor/index.js";
 
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
-export const DefaultPingKeepAliveValueSecs = 5 * 60;
-export const DefaultRelayKeepAliveValueSecs = 5 * 60;
 export const DefaultUserAgent = "js-waku";
 export const DefaultPingMaxInboundStreams = 10;
 
 const log = new Logger("waku");
 
 export interface WakuOptions {
-  /**
-   * Set keep alive frequency in seconds: Waku will send a `/ipfs/ping/1.0.0`
-   * request to each peer after the set number of seconds. Set to 0 to disable.
-   *
-   * @default {@link @waku/core.DefaultPingKeepAliveValueSecs}
-   */
-  pingKeepAlive?: number;
-  /**
-   * Set keep alive frequency in seconds: Waku will send a ping message over
-   * relay to each peer after the set number of seconds. Set to 0 to disable.
-   *
-   * @default {@link @waku/core.DefaultRelayKeepAliveValueSecs}
-   */
-  relayKeepAlive?: number;
   /**
    * Set the user agent string to be used in identification of the node.
    * @default {@link @waku/core.DefaultUserAgent}
@@ -87,19 +71,13 @@ export class WakuNode implements IWaku {
       ...protocolsEnabled
     };
 
-    const pingKeepAlive =
-      options.pingKeepAlive || DefaultPingKeepAliveValueSecs;
-    const relayKeepAlive = this.relay
-      ? options.relayKeepAlive || DefaultRelayKeepAliveValueSecs
-      : 0;
-
     const peerId = this.libp2p.peerId.toString();
 
     this.connectionManager = new ConnectionManager({
       libp2p,
-      keepAliveOptions: { pingKeepAlive, relayKeepAlive },
+      relay: this.relay,
       pubsubTopics: this.pubsubTopics,
-      relay: this.relay
+      config: options?.connectionManager
     });
 
     this.health = getHealthManager();

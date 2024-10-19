@@ -10,7 +10,6 @@ import {
   IConnectionStateEvents,
   IPeersByDiscoveryEvents,
   IRelay,
-  KeepAliveOptions,
   PeersByDiscoveryResult,
   PubsubTopic,
   ShardInfo
@@ -23,13 +22,15 @@ import { KeepAliveManager } from "./keep_alive_manager.js";
 
 const log = new Logger("connection-manager");
 
-export const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
-export const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
-export const DEFAULT_MAX_PARALLEL_DIALS = 3;
+const DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED = 1;
+const DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER = 3;
+const DEFAULT_MAX_PARALLEL_DIALS = 3;
+
+const DEFAULT_PING_KEEP_ALIVE_SEC = 5 * 60;
+const DEFAULT_RELAY_KEEP_ALIVE_SEC = 5 * 60;
 
 type ConnectionManagerConstructorOptions = {
   libp2p: Libp2p;
-  keepAliveOptions: KeepAliveOptions;
   pubsubTopics: PubsubTopic[];
   relay?: IRelay;
   config?: Partial<ConnectionManagerOptions>;
@@ -151,13 +152,18 @@ export class ConnectionManager
       maxDialAttemptsForPeer: DEFAULT_MAX_DIAL_ATTEMPTS_FOR_PEER,
       maxBootstrapPeersAllowed: DEFAULT_MAX_BOOTSTRAP_PEERS_ALLOWED,
       maxParallelDials: DEFAULT_MAX_PARALLEL_DIALS,
+      pingKeepAlive: DEFAULT_PING_KEEP_ALIVE_SEC,
+      relayKeepAlive: DEFAULT_RELAY_KEEP_ALIVE_SEC,
       ...options.config
     };
 
     this.keepAliveManager = new KeepAliveManager({
       relay: options.relay,
       libp2p: options.libp2p,
-      options: options.keepAliveOptions
+      options: {
+        pingKeepAlive: this.options.pingKeepAlive,
+        relayKeepAlive: this.options.relayKeepAlive
+      }
     });
 
     this.startEventListeners()
