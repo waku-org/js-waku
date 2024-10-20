@@ -19,6 +19,7 @@ import { decodeRelayShard, shardInfoToPubsubTopics } from "@waku/utils";
 import { Logger } from "@waku/utils";
 
 import { KeepAliveManager } from "./keep_alive_manager.js";
+import { getPeerPing } from "./utils.js";
 
 const log = new Logger("connection-manager");
 
@@ -178,6 +179,29 @@ export class ConnectionManager
     this.dialPeerStorePeers().catch((error) =>
       log.error(`Unexpected error while dialing peer store peers`, error)
     );
+  }
+
+  public async getConnectedPeers(codec?: string): Promise<Peer[]> {
+    const peerIDs = this.libp2p.getPeers();
+
+    if (peerIDs.length === 0) {
+      return [];
+    }
+
+    const peers = await Promise.all(
+      peerIDs.map(async (id) => {
+        try {
+          return await this.libp2p.peerStore.get(id);
+        } catch (e) {
+          return null;
+        }
+      })
+    );
+
+    return peers
+      .filter((p) => !!p)
+      .filter((p) => (codec ? (p as Peer).protocols.includes(codec) : true))
+      .sort((left, right) => getPeerPing(left) - getPeerPing(right)) as Peer[];
   }
 
   private async dialPeerStorePeers(): Promise<void> {

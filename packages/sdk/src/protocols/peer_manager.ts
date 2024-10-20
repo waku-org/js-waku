@@ -1,7 +1,5 @@
 import { Peer, PeerId } from "@libp2p/interface";
-import { ConnectionManager, getHealthManager } from "@waku/core";
-import { BaseProtocol } from "@waku/core/lib/base_protocol";
-import { IHealthManager } from "@waku/interfaces";
+import { ConnectionManager } from "@waku/core";
 import { Logger } from "@waku/utils";
 import { Mutex } from "async-mutex";
 
@@ -9,19 +7,12 @@ const log = new Logger("peer-manager");
 
 export class PeerManager {
   private peers: Map<string, Peer> = new Map();
-  private healthManager: IHealthManager;
 
   private readMutex = new Mutex();
   private writeMutex = new Mutex();
   private writeLockHolder: string | null = null;
 
-  public constructor(
-    private readonly connectionManager: ConnectionManager,
-    private readonly core: BaseProtocol
-  ) {
-    this.healthManager = getHealthManager();
-    this.healthManager.updateProtocolHealth(this.core.multicodec, 0);
-  }
+  public constructor(private readonly connectionManager: ConnectionManager) {}
 
   public getWriteLockHolder(): string | null {
     return this.writeLockHolder;
@@ -37,10 +28,6 @@ export class PeerManager {
       await this.connectionManager.attemptDial(peer.id);
       this.peers.set(peer.id.toString(), peer);
       log.info(`Added and dialed peer: ${peer.id.toString()}`);
-      this.healthManager.updateProtocolHealth(
-        this.core.multicodec,
-        this.peers.size
-      );
       this.writeLockHolder = null;
     });
   }
@@ -50,10 +37,6 @@ export class PeerManager {
       this.writeLockHolder = `removePeer: ${peerId.toString()}`;
       this.peers.delete(peerId.toString());
       log.info(`Removed peer: ${peerId.toString()}`);
-      this.healthManager.updateProtocolHealth(
-        this.core.multicodec,
-        this.peers.size
-      );
       this.writeLockHolder = null;
     });
   }
@@ -92,7 +75,7 @@ export class PeerManager {
    * @param numPeers The number of peers to find.
    */
   public async findPeers(numPeers: number): Promise<Peer[]> {
-    const connectedPeers = await this.core.getPeers();
+    const connectedPeers = await this.connectionManager.getConnectedPeers();
 
     return this.readMutex.runExclusive(async () => {
       const newPeers = connectedPeers

@@ -36,8 +36,8 @@ export class LightPush implements ILightPush {
   public readonly protocol: LightPushCore;
 
   public constructor(
-    connectionManager: ConnectionManager,
-    private libp2p: Libp2p,
+    private connectionManager: ConnectionManager,
+    libp2p: Libp2p,
     options?: ProtocolCreateOptions
   ) {
     this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
@@ -147,26 +147,9 @@ export class LightPush implements ILightPush {
   }
 
   private async getConnectedPeers(): Promise<Peer[]> {
-    const peerIDs = this.libp2p.getPeers();
-
-    if (peerIDs.length === 0) {
-      return [];
-    }
-
-    const peers = await Promise.all(
-      peerIDs.map(async (id) => {
-        try {
-          return await this.libp2p.peerStore.get(id);
-        } catch (e) {
-          return null;
-        }
-      })
-    );
-
-    return peers
-      .filter((p) => !!p)
-      .filter((p) => (p as Peer).protocols.includes(LightPushCodec))
-      .slice(0, this.numPeersToUse) as Peer[];
+    const peers =
+      await this.connectionManager.getConnectedPeers(LightPushCodec);
+    return peers.slice(0, this.numPeersToUse);
   }
 }
 

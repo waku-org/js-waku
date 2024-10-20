@@ -86,6 +86,7 @@ export interface IConnectionStateEvents {
 export interface IConnectionManager
   extends TypedEventEmitter<IPeersByDiscoveryEvents & IConnectionStateEvents> {
   pubsubTopics: PubsubTopic[];
+  getConnectedPeers(codec?: string): Promise<Peer[]>;
   dropConnection(peerId: PeerId): Promise<void>;
   getPeersByDiscovery(): Promise<PeersByDiscoveryResult>;
   stop(): void;

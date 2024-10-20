@@ -58,12 +58,11 @@ export class Store extends BaseProtocolSDK implements IStore {
       ...options
     };
 
-    const peer = (
-      await this.protocol.getPeers({
-        numPeers: this.numPeersToUse,
-        maxBootstrapPeers: 1
-      })
-    )[0];
+    const peers = await this.connectionManager.getConnectedPeers(
+      this.core.multicodec
+    );
+    const peer = peers[0];
+
     if (!peer) {
       log.error("No peers available to query");
       throw new Error("No peers available to query");
