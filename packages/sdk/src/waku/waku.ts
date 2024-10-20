@@ -1,5 +1,5 @@
 import type { Stream } from "@libp2p/interface";
-import { isPeerId, PeerId } from "@libp2p/interface";
+import { isPeerId, Peer, PeerId } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, getHealthManager } from "@waku/core";
 import type {
@@ -184,6 +184,10 @@ export class WakuNode implements IWaku {
     ReliabilityMonitorManager.stopAll();
     this.connectionManager.stop();
     await this.libp2p.stop();
+  }
+
+  public async getPeers(): Promise<Peer[]> {
+    return this.connectionManager.getConnectedPeers();
   }
 
   public async waitForPeers(

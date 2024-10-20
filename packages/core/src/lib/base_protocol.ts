@@ -5,7 +5,6 @@ import type {
   Libp2pComponents,
   PubsubTopic
 } from "@waku/interfaces";
-import { getPeersForProtocol } from "@waku/utils/libp2p";
 
 import { StreamManager } from "./stream_manager/index.js";
 
@@ -41,24 +40,5 @@ export class BaseProtocol implements IBaseProtocolCore {
 
   protected async getStream(peer: Peer): Promise<Stream> {
     return this.streamManager.getStream(peer);
-  }
-
-  /**
-   * Returns known peers from the address book (`libp2p.peerStore`) that support
-   * the class protocol. Waku may or may not be currently connected to these
-   * peers.
-   */
-  public async allPeers(): Promise<Peer[]> {
-    return getPeersForProtocol(this.components.peerStore, [this.multicodec]);
-  }
-
-  public async connectedPeers(): Promise<Peer[]> {
-    const peers = await this.allPeers();
-    return peers.filter((peer) => {
-      const connections = this.components.connectionManager.getConnections(
-        peer.id
-      );
-      return connections.length > 0;
-    });
   }
 }
