@@ -25,7 +25,7 @@ export class Store extends BaseProtocolSDK implements IStore {
 
   public constructor(connectionManager: ConnectionManager, libp2p: Libp2p) {
     super(
-      new StoreCore(connectionManager.configuredPubsubTopics, libp2p),
+      new StoreCore(connectionManager.pubsubTopics, libp2p),
       connectionManager,
       {
         numPeersToUse: DEFAULT_NUM_PEERS
@@ -58,12 +58,11 @@ export class Store extends BaseProtocolSDK implements IStore {
       ...options
     };
 
-    const peer = (
-      await this.protocol.getPeers({
-        numPeers: this.numPeersToUse,
-        maxBootstrapPeers: 1
-      })
-    )[0];
+    const peers = await this.connectionManager.getConnectedPeers(
+      this.core.multicodec
+    );
+    const peer = peers[0];
+
     if (!peer) {
       log.error("No peers available to query");
       throw new Error("No peers available to query");
