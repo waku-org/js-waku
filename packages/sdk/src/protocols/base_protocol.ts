@@ -33,7 +33,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     const maintainPeersInterval =
       options?.maintainPeersInterval ?? DEFAULT_MAINTAIN_PEERS_INTERVAL;
 
-    this.peerManager = new PeerManager(connectionManager, core, this.log);
+    this.peerManager = new PeerManager(connectionManager, core);
 
     this.log.info(
       `Initializing BaseProtocolSDK with numPeersToUse: ${this.numPeersToUse}, maintainPeersInterval: ${maintainPeersInterval}ms`
