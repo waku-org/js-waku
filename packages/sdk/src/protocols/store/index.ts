@@ -11,6 +11,7 @@ import { messageHash } from "@waku/message-hash";
 import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
 
 import { BaseProtocolSDK } from "../base_protocol.js";
+import { PeerManager } from "../peer_manager.js";
 
 const DEFAULT_NUM_PEERS = 1;
 
@@ -23,14 +24,14 @@ const log = new Logger("waku:store:sdk");
 export class Store extends BaseProtocolSDK implements IStore {
   public readonly protocol: StoreCore;
 
-  public constructor(connectionManager: ConnectionManager, libp2p: Libp2p) {
-    super(
-      new StoreCore(connectionManager.pubsubTopics, libp2p),
-      connectionManager,
-      {
-        numPeersToUse: DEFAULT_NUM_PEERS
-      }
-    );
+  public constructor(
+    private connectionManager: ConnectionManager,
+    libp2p: Libp2p,
+    peerManager: PeerManager
+  ) {
+    super(new StoreCore(connectionManager.pubsubTopics, libp2p), peerManager, {
+      numPeersToUse: DEFAULT_NUM_PEERS
+    });
     this.protocol = this.core as StoreCore;
   }
 
@@ -236,9 +237,10 @@ export class Store extends BaseProtocolSDK implements IStore {
  * @returns A function that takes a Libp2p instance and returns a StoreSDK instance.
  */
 export function wakuStore(
-  connectionManager: ConnectionManager
+  connectionManager: ConnectionManager,
+  peerManager: PeerManager
 ): (libp2p: Libp2p) => IStore {
   return (libp2p: Libp2p) => {
-    return new Store(connectionManager, libp2p);
+    return new Store(connectionManager, libp2p, peerManager);
   };
 }

@@ -26,6 +26,7 @@ import {
 } from "@waku/utils";
 
 import { BaseProtocolSDK } from "../base_protocol.js";
+import { PeerManager } from "../peer_manager.js";
 
 import { DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
 import { SubscriptionManager } from "./subscription_manager.js";
@@ -38,8 +39,9 @@ class Filter extends BaseProtocolSDK implements IFilter {
   private activeSubscriptions = new Map<string, SubscriptionManager>();
 
   public constructor(
-    connectionManager: ConnectionManager,
+    private connectionManager: ConnectionManager,
     private libp2p: Libp2p,
+    peerManager: PeerManager,
     private lightPush?: ILightPush,
     options?: ProtocolCreateOptions
   ) {
@@ -59,7 +61,7 @@ class Filter extends BaseProtocolSDK implements IFilter {
         connectionManager.pubsubTopics,
         libp2p
       ),
-      connectionManager,
+      peerManager,
       { numPeersToUse: options?.numPeersToUse }
     );
 
@@ -304,9 +306,10 @@ class Filter extends BaseProtocolSDK implements IFilter {
 
 export function wakuFilter(
   connectionManager: ConnectionManager,
+  peerManager: PeerManager,
   lightPush?: ILightPush,
   init?: ProtocolCreateOptions
 ): (libp2p: Libp2p) => IFilter {
   return (libp2p: Libp2p) =>
-    new Filter(connectionManager, libp2p, lightPush, init);
+    new Filter(connectionManager, libp2p, peerManager, lightPush, init);
 }

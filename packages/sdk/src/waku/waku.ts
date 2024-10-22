@@ -18,6 +18,7 @@ import { Logger } from "@waku/utils";
 
 import { wakuFilter } from "../protocols/filter/index.js";
 import { wakuLightPush } from "../protocols/light_push/index.js";
+import { PeerManager } from "../protocols/peer_manager.js";
 import { wakuStore } from "../protocols/store/index.js";
 import { ReliabilityMonitorManager } from "../reliability_monitor/index.js";
 
@@ -54,6 +55,8 @@ export class WakuNode implements IWaku {
   public connectionManager: ConnectionManager;
   public readonly health: IHealthManager;
 
+  private readonly peerManager: PeerManager;
+
   public constructor(
     public readonly pubsubTopics: PubsubTopic[],
     options: CreateWakuNodeOptions,
@@ -80,10 +83,12 @@ export class WakuNode implements IWaku {
       config: options?.connectionManager
     });
 
+    this.peerManager = new PeerManager(this.connectionManager);
+
     this.health = getHealthManager();
 
     if (protocolsEnabled.store) {
-      const store = wakuStore(this.connectionManager);
+      const store = wakuStore(this.connectionManager, this.peerManager);
       this.store = store(libp2p);
     }
 
@@ -95,6 +100,7 @@ export class WakuNode implements IWaku {
     if (protocolsEnabled.filter) {
       const filter = wakuFilter(
         this.connectionManager,
+        this.peerManager,
         this.lightPush,
         options
       );

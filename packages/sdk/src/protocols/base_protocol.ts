@@ -1,5 +1,4 @@
 import type { Peer, PeerId } from "@libp2p/interface";
-import { ConnectionManager } from "@waku/core";
 import { BaseProtocol } from "@waku/core/lib/base_protocol";
 import { IBaseProtocolSDK, ProtocolUseOptions } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
@@ -15,7 +14,6 @@ export const DEFAULT_NUM_PEERS_TO_USE = 2;
 const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
 
 export class BaseProtocolSDK implements IBaseProtocolSDK {
-  private peerManager: PeerManager;
   public readonly numPeersToUse: number;
   private maintainPeersIntervalId: ReturnType<
     typeof window.setInterval
@@ -24,7 +22,7 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
 
   public constructor(
     protected core: BaseProtocol,
-    protected connectionManager: ConnectionManager,
+    protected peerManager: PeerManager,
     options: Options
   ) {
     this.log = new Logger(`sdk:${core.multicodec}`);
@@ -32,8 +30,6 @@ export class BaseProtocolSDK implements IBaseProtocolSDK {
     this.numPeersToUse = options?.numPeersToUse ?? DEFAULT_NUM_PEERS_TO_USE;
     const maintainPeersInterval =
       options?.maintainPeersInterval ?? DEFAULT_MAINTAIN_PEERS_INTERVAL;
-
-    this.peerManager = new PeerManager(connectionManager);
 
     this.log.info(
       `Initializing BaseProtocolSDK with numPeersToUse: ${this.numPeersToUse}, maintainPeersInterval: ${maintainPeersInterval}ms`
