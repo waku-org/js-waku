@@ -83,7 +83,12 @@ export class WakuNode implements IWaku {
       config: options?.connectionManager
     });
 
-    this.peerManager = new PeerManager(this.connectionManager);
+    this.peerManager = new PeerManager({
+      config: {
+        numPeersToUse: options.numPeersToUse
+      },
+      connectionManager: this.connectionManager
+    });
 
     this.health = getHealthManager();
 
@@ -93,7 +98,7 @@ export class WakuNode implements IWaku {
     }
 
     if (protocolsEnabled.lightpush) {
-      const lightPush = wakuLightPush(this.connectionManager, options);
+      const lightPush = wakuLightPush(this.connectionManager, this.peerManager);
       this.lightPush = lightPush(libp2p);
     }
 
@@ -101,8 +106,7 @@ export class WakuNode implements IWaku {
       const filter = wakuFilter(
         this.connectionManager,
         this.peerManager,
-        this.lightPush,
-        options
+        this.lightPush
       );
       this.filter = filter(libp2p);
     }

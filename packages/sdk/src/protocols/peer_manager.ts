@@ -1,9 +1,23 @@
 import { Peer, PeerId } from "@libp2p/interface";
 import { ConnectionManager } from "@waku/core";
+import { ProtocolUseOptions } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 import { Mutex } from "async-mutex";
 
 const log = new Logger("peer-manager");
+
+const DEFAULT_NUM_PEERS_TO_USE = 2;
+const DEFAULT_MAINTAIN_PEERS_INTERVAL = 30_000;
+
+type PeerManagerConfig = {
+  numPeersToUse?: number;
+  maintainPeersIntervalMs?: number;
+};
+
+type PeerManagerParams = {
+  config?: PeerManagerConfig;
+  connectionManager: ConnectionManager;
+};
 
 export class PeerManager {
   private peers: Map<string, Peer> = new Map();
@@ -12,14 +26,174 @@ export class PeerManager {
   private writeMutex = new Mutex();
   private writeLockHolder: string | null = null;
 
-  public constructor(private readonly connectionManager: ConnectionManager) {}
+  private readonly numPeersToUse: number;
+  private readonly maintainPeersIntervalMs: number;
+  private readonly connectionManager: ConnectionManager;
+
+  private maintainPeersIntervalId: ReturnType<
+    typeof window.setInterval
+  > | null = null;
+
+  public constructor(params: PeerManagerParams) {
+    this.numPeersToUse =
+      params?.config?.numPeersToUse || DEFAULT_NUM_PEERS_TO_USE;
+    this.maintainPeersIntervalMs =
+      params?.config?.maintainPeersIntervalMs ||
+      DEFAULT_MAINTAIN_PEERS_INTERVAL;
+
+    this.connectionManager = params.connectionManager;
+
+    void this.startMaintainPeersInterval(this.maintainPeersIntervalMs);
+  }
+
+  /**
+   * Disconnects from a peer and tries to find a new one to replace it.
+   * @param peerToDisconnect The peer to disconnect from.
+   * @returns The new peer that was found and connected to.
+   */
+  public async renewPeer(peerToDisconnect: PeerId): Promise<Peer | undefined> {
+    log.info(`Attempting to renew peer ${peerToDisconnect}`);
+
+    const newPeer = await this.findPeers(1);
+    if (newPeer.length === 0) {
+      log.error("Failed to find a new peer to replace the disconnected one");
+      return undefined;
+    }
+
+    await this.removePeer(peerToDisconnect);
+    await this.addPeer(newPeer[0]);
+
+    log.info(`Successfully renewed peer. New peer: ${newPeer[0].id}`);
+
+    return newPeer[0];
+  }
+
+  /**
+   * Stops the maintain peers interval.
+   */
+  public stopMaintainPeersInterval(): void {
+    if (this.maintainPeersIntervalId) {
+      clearInterval(this.maintainPeersIntervalId);
+      this.maintainPeersIntervalId = null;
+      log.info("Maintain peers interval stopped");
+    } else {
+      log.info("Maintain peers interval was not running");
+    }
+  }
+
+  /**
+   * Checks if there are sufficient peers to send a message to.
+   * If `forceUseAllPeers` is `false` (default), returns `true` if there are any connected peers.
+   * If `forceUseAllPeers` is `true`, attempts to connect to `numPeersToUse` peers.
+   * @param options Optional options object
+   * @param options.forceUseAllPeers Optional flag to force connecting to `numPeersToUse` peers (default: false)
+   * @param options.maxAttempts Optional maximum number of attempts to reach the required number of peers (default: 3)
+   * @returns `true` if the required number of peers are connected, `false` otherwise
+   */
+  public async hasPeersWithMaintain(
+    options: Partial<ProtocolUseOptions> = {}
+  ): Promise<boolean> {
+    const { forceUseAllPeers = false, maxAttempts = 3 } = options;
+
+    log.info(
+      `Checking for peers. forceUseAllPeers: ${forceUseAllPeers}, maxAttempts: ${maxAttempts}`
+    );
+
+    for (let attempts = 0; attempts < maxAttempts; attempts++) {
+      log.info(
+        `Attempt ${attempts + 1}/${maxAttempts} to reach required number of peers`
+      );
+      await this.maintainPeers();
+
+      if (!forceUseAllPeers && this.connectedPeers.length > 0) {
+        log.info(
+          `At least one peer connected (${this.connectedPeers.length}), not forcing use of all peers`
+        );
+        return true;
+      }
+
+      if (this.connectedPeers.length >= this.numPeersToUse) {
+        log.info(`Required number of peers (${this.numPeersToUse}) reached`);
+        return true;
+      }
+
+      log.warn(
+        `Found only ${this.connectedPeers.length}/${this.numPeersToUse} required peers. Retrying...`
+      );
+    }
+
+    log.error(
+      `Failed to find required number of peers (${this.numPeersToUse}) after ${maxAttempts} attempts`
+    );
+    return false;
+  }
+
+  /**
+   * Starts an interval to maintain the peers list to `numPeersToUse`.
+   * @param interval The interval in milliseconds to maintain the peers.
+   */
+  private async startMaintainPeersInterval(interval: number): Promise<void> {
+    log.info(`Starting maintain peers interval with ${interval}ms interval`);
+    try {
+      this.maintainPeersIntervalId = setInterval(() => {
+        log.info("Running scheduled peer maintenance");
+        this.maintainPeers().catch((error) => {
+          log.error("Error during scheduled peer maintenance:", error);
+        });
+      }, interval);
+      log.info("Maintain peers interval started successfully");
+    } catch (error) {
+      log.error("Error starting maintain peers interval:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Maintains the peers list to `numPeersToUse`.
+   */
+  private async maintainPeers(): Promise<void> {
+    try {
+      const currentPeerCount = await this.getPeerCount();
+      const numPeersToAdd = this.numPeersToUse - currentPeerCount;
+
+      log.info(
+        `Current peer count: ${currentPeerCount}, target: ${this.numPeersToUse}`
+      );
+
+      if (numPeersToAdd === 0) {
+        log.info("Peer count is at target, no maintenance required");
+        return;
+      }
+
+      if (numPeersToAdd > 0) {
+        log.info(`Attempting to add ${numPeersToAdd} peer(s)`);
+        await this.findAndAddPeers(numPeersToAdd);
+      } else {
+        log.info(
+          `Attempting to remove ${Math.abs(numPeersToAdd)} excess peer(s)`
+        );
+        await this.removeExcessPeers(Math.abs(numPeersToAdd));
+      }
+
+      const finalPeerCount = await this.getPeerCount();
+      log.info(
+        `Peer maintenance completed. Initial count: ${currentPeerCount}, Final count: ${finalPeerCount}`
+      );
+    } catch (error) {
+      log.error("Error during peer maintenance", { error });
+    }
+  }
 
   public getWriteLockHolder(): string | null {
     return this.writeLockHolder;
   }
 
-  public getPeers(): Peer[] {
+  public get connectedPeers(): Peer[] {
     return Array.from(this.peers.values());
+  }
+
+  public getPeers(): Peer[] {
+    return this.connectedPeers.slice(0, this.numPeersToUse);
   }
 
   public async addPeer(peer: Peer): Promise<void> {

@@ -157,8 +157,7 @@ function mockLightPush(options: MockLightPushOptions): LightPush {
     {
       configuredPubsubTopics: options.pubsubTopics || [PUBSUB_TOPIC]
     } as ConnectionManager,
-    options.libp2p,
-    { numPeersToUse: options.numPeersToUse }
+    options.libp2p
   );
 }
 

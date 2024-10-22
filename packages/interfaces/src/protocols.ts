@@ -1,6 +1,5 @@
 import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
-import type { Peer } from "@libp2p/interface";
 
 import type { ConnectionManagerOptions } from "./connection_manager.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
@@ -19,12 +18,6 @@ export type IBaseProtocolCore = {
   multicodec: string;
   addLibp2pEventListener: Libp2p["addEventListener"];
   removeLibp2pEventListener: Libp2p["removeEventListener"];
-};
-
-export type IBaseProtocolSDK = {
-  readonly connectedPeers: Peer[];
-  renewPeer: (peerToDisconnect: PeerId) => Promise<Peer | undefined>;
-  readonly numPeersToUse: number;
 };
 
 export type NetworkConfig = StaticSharding | AutoSharding;

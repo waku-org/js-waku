@@ -10,10 +10,7 @@ import {
 import { messageHash } from "@waku/message-hash";
 import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
 
-import { BaseProtocolSDK } from "../base_protocol.js";
 import { PeerManager } from "../peer_manager.js";
-
-const DEFAULT_NUM_PEERS = 1;
 
 const log = new Logger("waku:store:sdk");
 
@@ -21,18 +18,15 @@ const log = new Logger("waku:store:sdk");
  * StoreSDK is an implementation of the IStoreSDK interface.
  * It provides methods to interact with the Waku Store protocol.
  */
-export class Store extends BaseProtocolSDK implements IStore {
+export class Store implements IStore {
   public readonly protocol: StoreCore;
 
   public constructor(
-    private connectionManager: ConnectionManager,
+    connectionManager: ConnectionManager,
     libp2p: Libp2p,
-    peerManager: PeerManager
+    private peerManager: PeerManager
   ) {
-    super(new StoreCore(connectionManager.pubsubTopics, libp2p), peerManager, {
-      numPeersToUse: DEFAULT_NUM_PEERS
-    });
-    this.protocol = this.core as StoreCore;
+    this.protocol = new StoreCore(connectionManager.pubsubTopics, libp2p);
   }
 
   /**
@@ -59,9 +53,7 @@ export class Store extends BaseProtocolSDK implements IStore {
       ...options
     };
 
-    const peers = await this.connectionManager.getConnectedPeers(
-      this.core.multicodec
-    );
+    const peers = this.peerManager.getPeers();
     const peer = peers[0];
 
     if (!peer) {

@@ -9,7 +9,6 @@ import {
   type ILightPush,
   type Libp2p,
   NetworkConfig,
-  type ProtocolCreateOptions,
   ProtocolError,
   type ProtocolUseOptions,
   type PubsubTopic,
@@ -25,7 +24,6 @@ import {
   toAsyncIterator
 } from "@waku/utils";
 
-import { BaseProtocolSDK } from "../base_protocol.js";
 import { PeerManager } from "../peer_manager.js";
 
 import { DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
@@ -33,7 +31,7 @@ import { SubscriptionManager } from "./subscription_manager.js";
 
 const log = new Logger("sdk:filter");
 
-class Filter extends BaseProtocolSDK implements IFilter {
+class Filter implements IFilter {
   public readonly protocol: FilterCore;
 
   private activeSubscriptions = new Map<string, SubscriptionManager>();
@@ -41,31 +39,24 @@ class Filter extends BaseProtocolSDK implements IFilter {
   public constructor(
     private connectionManager: ConnectionManager,
     private libp2p: Libp2p,
-    peerManager: PeerManager,
-    private lightPush?: ILightPush,
-    options?: ProtocolCreateOptions
+    private peerManager: PeerManager,
+    private lightPush?: ILightPush
   ) {
-    super(
-      new FilterCore(
-        async (pubsubTopic, wakuMessage, peerIdStr) => {
-          const subscription = this.getActiveSubscription(pubsubTopic);
-          if (!subscription) {
-            log.error(
-              `No subscription locally registered for topic ${pubsubTopic}`
-            );
-            return;
-          }
-          await subscription.processIncomingMessage(wakuMessage, peerIdStr);
-        },
+    this.protocol = new FilterCore(
+      async (pubsubTopic, wakuMessage, peerIdStr) => {
+        const subscription = this.getActiveSubscription(pubsubTopic);
+        if (!subscription) {
+          log.error(
+            `No subscription locally registered for topic ${pubsubTopic}`
+          );
+          return;
+        }
+        await subscription.processIncomingMessage(wakuMessage, peerIdStr);
+      },
 
-        connectionManager.pubsubTopics,
-        libp2p
-      ),
-      peerManager,
-      { numPeersToUse: options?.numPeersToUse }
+      connectionManager.pubsubTopics,
+      libp2p
     );
-
-    this.protocol = this.core as FilterCore;
 
     this.activeSubscriptions = new Map();
   }
@@ -177,7 +168,7 @@ class Filter extends BaseProtocolSDK implements IFilter {
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
-    const hasPeers = await this.hasPeers(options);
+    const hasPeers = await this.peerManager.hasPeersWithMaintain(options);
     if (!hasPeers) {
       return {
         error: ProtocolError.NO_PEER_AVAILABLE,
@@ -186,8 +177,8 @@ class Filter extends BaseProtocolSDK implements IFilter {
     }
 
     log.info(
-      `Creating filter subscription with ${this.connectedPeers.length} peers: `,
-      this.connectedPeers.map((peer) => peer.id.toString())
+      `Creating filter subscription with ${this.peerManager.connectedPeers.length} peers: `,
+      this.peerManager.connectedPeers.map((peer) => peer.id.toString())
     );
 
     const subscription =
@@ -198,8 +189,8 @@ class Filter extends BaseProtocolSDK implements IFilter {
           pubsubTopic,
           this.protocol,
           this.connectionManager,
-          () => this.connectedPeers,
-          this.renewPeer.bind(this),
+          () => this.peerManager.connectedPeers,
+          this.peerManager.renewPeer.bind(this),
           this.libp2p,
           this.lightPush
         )
@@ -307,9 +298,8 @@ class Filter extends BaseProtocolSDK implements IFilter {
 export function wakuFilter(
   connectionManager: ConnectionManager,
   peerManager: PeerManager,
-  lightPush?: ILightPush,
-  init?: ProtocolCreateOptions
+  lightPush?: ILightPush
 ): (libp2p: Libp2p) => IFilter {
   return (libp2p: Libp2p) =>
-    new Filter(connectionManager, libp2p, peerManager, lightPush, init);
+    new Filter(connectionManager, libp2p, peerManager, lightPush);
 }
