@@ -84,10 +84,10 @@ export class WakuNode implements IWaku {
     });
 
     this.peerManager = new PeerManager({
+      libp2p,
       config: {
         numPeersToUse: options.numPeersToUse
-      },
-      connectionManager: this.connectionManager
+      }
     });
 
     this.health = getHealthManager();
@@ -192,6 +192,7 @@ export class WakuNode implements IWaku {
 
   public async stop(): Promise<void> {
     ReliabilityMonitorManager.stopAll();
+    this.peerManager.stop();
     this.connectionManager.stop();
     await this.libp2p.stop();
   }

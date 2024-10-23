@@ -22,21 +22,6 @@ export type IBaseProtocolCore = {
 
 export type NetworkConfig = StaticSharding | AutoSharding;
 
-//TODO: merge this with ProtocolCreateOptions or establish distinction: https://github.com/waku-org/js-waku/issues/2048
-/**
- * Options for using LightPush and Filter
- */
-export type ProtocolUseOptions = {
-  /**
-   * Optional flag to force using all available peers
-   */
-  forceUseAllPeers?: boolean;
-  /**
-   * Optional maximum number of attempts for exponential backoff
-   */
-  maxAttempts?: number;
-};
-
 export type ProtocolCreateOptions = {
   /**
    * Configuration for determining the network in use.

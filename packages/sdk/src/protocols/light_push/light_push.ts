@@ -59,7 +59,7 @@ export class LightPush implements ILightPush {
       };
     }
 
-    const peers = this.peerManager.getPeers();
+    const peers = await this.peerManager.getPeers();
     if (peers.length === 0) {
       return {
         successes,
@@ -117,7 +117,7 @@ export class LightPush implements ILightPush {
     maxAttempts?: number
   ): Promise<void> {
     maxAttempts = maxAttempts || DEFAULT_MAX_ATTEMPTS;
-    const connectedPeers = this.peerManager.getPeers();
+    const connectedPeers = await this.peerManager.getPeers();
 
     if (connectedPeers.length === 0) {
       log.warn("Cannot retry with no connected peers.");

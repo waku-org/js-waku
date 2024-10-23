@@ -76,6 +76,7 @@ export class LightPushCore extends BaseProtocol implements IBaseProtocolCore {
     }
   }
 
+  // TODO(weboko): use peer.id as parameter instead
   public async send(
     encoder: IEncoder,
     message: IMessage,

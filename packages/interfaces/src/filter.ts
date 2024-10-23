@@ -6,7 +6,6 @@ import type {
   Callback,
   IBaseProtocolCore,
   ProtocolError,
-  ProtocolUseOptions,
   SDKProtocolResult
 } from "./protocols.js";
 import type { IReceiver } from "./receiver.js";
@@ -40,7 +39,6 @@ export type IFilter = IReceiver & { protocol: IBaseProtocolCore } & {
   subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
-    protocolUseOptions?: ProtocolUseOptions,
     subscribeOptions?: SubscribeOptions
   ): Promise<SubscribeResult>;
 };

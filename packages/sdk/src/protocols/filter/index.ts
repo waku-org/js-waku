@@ -10,7 +10,6 @@ import {
   type Libp2p,
   NetworkConfig,
   ProtocolError,
-  type ProtocolUseOptions,
   type PubsubTopic,
   type SubscribeOptions,
   SubscribeResult,
@@ -67,7 +66,6 @@ class Filter implements IFilter {
    *
    * @param {IDecoder<T> | IDecoder<T>[]} decoders - A single decoder or an array of decoders to use for decoding messages.
    * @param {Callback<T>} callback - The callback function to be invoked with decoded messages.
-   * @param {ProtocolUseOptions} [protocolUseOptions] - Optional settings for using the protocol.
    * @param {SubscribeOptions} [subscribeOptions=DEFAULT_SUBSCRIBE_OPTIONS] - Options for the subscription.
    *
    * @returns {Promise<SubscribeResult>} A promise that resolves to an object containing:
@@ -103,7 +101,6 @@ class Filter implements IFilter {
   public async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
     callback: Callback<T>,
-    protocolUseOptions?: ProtocolUseOptions,
     subscribeOptions: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
   ): Promise<SubscribeResult> {
     const uniquePubsubTopics = this.getUniquePubsubTopics(decoders);
@@ -118,10 +115,7 @@ class Filter implements IFilter {
 
     const pubsubTopic = uniquePubsubTopics[0];
 
-    const { subscription, error } = await this.createSubscription(
-      pubsubTopic,
-      protocolUseOptions
-    );
+    const { subscription, error } = await this.createSubscription(pubsubTopic);
 
     if (error) {
       return {
@@ -153,14 +147,8 @@ class Filter implements IFilter {
    * @returns The subscription object.
    */
   private async createSubscription(
-    pubsubTopicShardInfo: NetworkConfig | PubsubTopic,
-    options?: ProtocolUseOptions
+    pubsubTopicShardInfo: NetworkConfig | PubsubTopic
   ): Promise<CreateSubscriptionResult> {
-    options = {
-      autoRetry: true,
-      ...options
-    } as ProtocolUseOptions;
-
     const pubsubTopic =
       typeof pubsubTopicShardInfo == "string"
         ? pubsubTopicShardInfo
@@ -168,8 +156,8 @@ class Filter implements IFilter {
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
-    const hasPeers = await this.peerManager.hasPeersWithMaintain(options);
-    if (!hasPeers) {
+    const peers = await this.peerManager.getPeers();
+    if (peers.length === 0) {
       return {
         error: ProtocolError.NO_PEER_AVAILABLE,
         subscription: null
@@ -177,8 +165,8 @@ class Filter implements IFilter {
     }
 
     log.info(
-      `Creating filter subscription with ${this.peerManager.connectedPeers.length} peers: `,
-      this.peerManager.connectedPeers.map((peer) => peer.id.toString())
+      `Creating filter subscription with ${peers.length} peers: `,
+      peers.map((peer) => peer.id.toString())
     );
 
     const subscription =
@@ -189,8 +177,7 @@ class Filter implements IFilter {
           pubsubTopic,
           this.protocol,
           this.connectionManager,
-          () => this.peerManager.connectedPeers,
-          this.peerManager.renewPeer.bind(this),
+          this.peerManager,
           this.libp2p,
           this.lightPush
         )

@@ -73,7 +73,6 @@
     "@waku/proto": "^0.0.8",
     "@waku/utils": "0.0.21",
     "@waku/message-hash": "0.1.17",
-    "async-mutex": "^0.5.0",
     "libp2p": "^1.8.1"
   },
   "devDependencies": {

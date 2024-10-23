@@ -53,7 +53,7 @@ export class Store implements IStore {
       ...options
     };
 
-    const peers = this.peerManager.getPeers();
+    const peers = await this.peerManager.getPeers();
     const peer = peers[0];
 
     if (!peer) {
