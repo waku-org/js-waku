@@ -1,7 +1,7 @@
 import type { Stream } from "@libp2p/interface";
 import { isPeerId, PeerId } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, getHealthManager } from "@waku/core";
+import { ConnectionManager, getHealthManager, StoreCodec } from "@waku/core";
 import type {
   IFilter,
   IHealthManager,
@@ -10,6 +10,7 @@ import type {
   IStore,
   IWaku,
   Libp2p,
+  PeerIdStr,
   ProtocolCreateOptions,
   PubsubTopic
 } from "@waku/interfaces";
@@ -106,7 +107,14 @@ export class WakuNode implements IWaku {
     this.health = getHealthManager();
 
     if (protocolsEnabled.store) {
-      const store = wakuStore(this.connectionManager);
+      let peerIdStr: PeerIdStr | undefined;
+      if (options.nodeToUse?.store) {
+        this.dialMultiaddr(options.nodeToUse.store, StoreCodec).catch((e) => {
+          log.error("Failed to dial store peer", e);
+        });
+      }
+
+      const store = wakuStore(this.connectionManager, peerIdStr);
       this.store = store(libp2p);
     }
 
@@ -222,6 +230,18 @@ export class WakuNode implements IWaku {
 
   public isConnected(): boolean {
     return this.connectionManager.isConnected();
+  }
+
+  private async dialMultiaddr(
+    multiaddrStr: string,
+    protocol: string
+  ): Promise<PeerIdStr> {
+    const ma = multiaddr(multiaddrStr);
+    if (!ma.getPeerId()) {
+      throw new Error("Failed to dial multiaddr: missing peer ID");
+    }
+    await this.libp2p.dialProtocol(ma, [protocol]);
+    return ma.getPeerId()!;
   }
 
   private mapToPeerIdOrMultiaddr(
