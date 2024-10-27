@@ -1,20 +1,20 @@
 import { ConnectionManager, FilterCore } from "@waku/core";
-import {
-  type Callback,
-  type CreateSubscriptionResult,
-  type IAsyncIterator,
-  type IDecodedMessage,
-  type IDecoder,
-  type IFilter,
-  type ILightPush,
-  type Libp2p,
-  NetworkConfig,
-  ProtocolError,
-  type PubsubTopic,
-  type SubscribeOptions,
+import type {
+  Callback,
+  CreateSubscriptionResult,
+  IAsyncIterator,
+  IDecodedMessage,
+  IDecoder,
+  IFilter,
+  ILightPush,
+  IProtoMessage,
+  Libp2p,
+  PubsubTopic,
+  SubscribeOptions,
   SubscribeResult,
-  type Unsubscribe
+  Unsubscribe
 } from "@waku/interfaces";
+import { NetworkConfig, ProtocolError } from "@waku/interfaces";
 import {
   ensurePubsubTopicIsConfigured,
   groupByContentTopic,
@@ -26,6 +26,7 @@ import {
 import { PeerManager } from "../peer_manager.js";
 
 import { DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
+import { MessageCache } from "./message_cache.js";
 import { SubscriptionManager } from "./subscription_manager.js";
 
 const log = new Logger("sdk:filter");
@@ -33,6 +34,7 @@ const log = new Logger("sdk:filter");
 class Filter implements IFilter {
   public readonly protocol: FilterCore;
 
+  private readonly messageCache: MessageCache;
   private activeSubscriptions = new Map<string, SubscriptionManager>();
 
   public constructor(
@@ -41,6 +43,8 @@ class Filter implements IFilter {
     private peerManager: PeerManager,
     private lightPush?: ILightPush
   ) {
+    this.messageCache = new MessageCache(libp2p);
+
     this.protocol = new FilterCore(
       async (pubsubTopic, wakuMessage, peerIdStr) => {
         const subscription = this.getActiveSubscription(pubsubTopic);
@@ -50,6 +54,15 @@ class Filter implements IFilter {
           );
           return;
         }
+
+        if (this.messageCache.has(pubsubTopic, wakuMessage as IProtoMessage)) {
+          log.info(
+            `Skipping duplicate message for pubsubTopic:${pubsubTopic} peerId:${peerIdStr}`
+          );
+          return;
+        }
+
+        this.messageCache.set(pubsubTopic, wakuMessage as IProtoMessage);
         await subscription.processIncomingMessage(wakuMessage, peerIdStr);
       },
 
