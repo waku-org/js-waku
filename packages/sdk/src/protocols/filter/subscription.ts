@@ -36,7 +36,7 @@ import { DEFAULT_LIGHT_PUSH_FILTER_CHECK_INTERVAL } from "./constants.js";
 
 const log = new Logger("sdk:filter:subscription_manager");
 
-export class SubscriptionManager implements ISubscription {
+export class Subscription implements ISubscription {
   private reliabilityMonitor: ReceiverReliabilityMonitor;
 
   private keepAliveTimeout: number;

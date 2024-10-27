@@ -26,7 +26,7 @@ import {
 import { PeerManager } from "../peer_manager.js";
 
 import { MessageCache } from "./message_cache.js";
-import { SubscriptionManager } from "./subscription_manager.js";
+import { Subscription } from "./subscription.js";
 import { buildConfig } from "./utils.js";
 
 const log = new Logger("sdk:filter");
@@ -36,7 +36,7 @@ class Filter implements IFilter {
 
   private readonly config: FilterProtocolOptions;
   private readonly messageCache: MessageCache;
-  private activeSubscriptions = new Map<string, SubscriptionManager>();
+  private activeSubscriptions = new Map<string, Subscription>();
 
   public constructor(
     private connectionManager: ConnectionManager,
@@ -186,7 +186,7 @@ class Filter implements IFilter {
       this.getActiveSubscription(pubsubTopic) ??
       this.setActiveSubscription(
         pubsubTopic,
-        new SubscriptionManager(
+        new Subscription(
           pubsubTopic,
           this.protocol,
           this.connectionManager,
@@ -263,17 +263,16 @@ class Filter implements IFilter {
     return toAsyncIterator(this, decoders);
   }
 
-  //TODO: move to SubscriptionManager
   private getActiveSubscription(
     pubsubTopic: PubsubTopic
-  ): SubscriptionManager | undefined {
+  ): Subscription | undefined {
     return this.activeSubscriptions.get(pubsubTopic);
   }
 
   private setActiveSubscription(
     pubsubTopic: PubsubTopic,
-    subscription: SubscriptionManager
-  ): SubscriptionManager {
+    subscription: Subscription
+  ): Subscription {
     this.activeSubscriptions.set(pubsubTopic, subscription);
     return subscription;
   }
