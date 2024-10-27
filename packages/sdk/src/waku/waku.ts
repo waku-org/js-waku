@@ -92,7 +92,8 @@ export class WakuNode implements IWaku {
       const filter = wakuFilter(
         this.connectionManager,
         this.peerManager,
-        this.lightPush
+        this.lightPush,
+        options.filter
       );
       this.filter = filter(libp2p);
     }

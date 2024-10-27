@@ -2,6 +2,7 @@ import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
 
 import type { ConnectionManagerOptions } from "./connection_manager.js";
+import type { FilterProtocolOptions } from "./filter.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
 import { ThisAndThat, ThisOrThat } from "./misc.js";
@@ -86,9 +87,16 @@ export type ProtocolCreateOptions = {
   bootstrapPeers?: string[];
 
   /**
-   * Configuration for connection manager. If not specified - default values are applied.
+   * Configuration for connection manager.
+   * If not specified - default values are applied.
    */
   connectionManager?: Partial<ConnectionManagerOptions>;
+
+  /**
+   * Configuration for Filter protocol.
+   * If not specified - default values are applied.
+   */
+  filter?: Partial<FilterProtocolOptions>;
 };
 
 export type Callback<T extends IDecodedMessage> = (
