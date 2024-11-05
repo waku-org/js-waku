@@ -7,7 +7,7 @@ import sinon from "sinon";
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 import { WakuNode } from "./waku.js";
 
-describe.only("waitForRemotePeer", () => {
+describe("waitForRemotePeer", () => {
   let eventTarget = new EventTarget();
 
   beforeEach(() => {
