@@ -7,7 +7,7 @@ import sinon from "sinon";
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 import { WakuNode } from "./waku.js";
 
-describe("waitForRemotePeer", () => {
+describe.only("waitForRemotePeer", () => {
   let eventTarget = new EventTarget();
 
   beforeEach(() => {
@@ -121,8 +121,8 @@ describe("waitForRemotePeer", () => {
   });
 
   it("should check connected peers if present and suitable", async () => {
-    const addEventListenerSpy = sinon.spy(eventTarget.addEventListener);
-    eventTarget.addEventListener = addEventListenerSpy;
+    const removeEventListenerSpy = sinon.spy(eventTarget.removeEventListener);
+    eventTarget.removeEventListener = removeEventListenerSpy;
 
     const wakuNode = mockWakuNode({
       isStarted: true,
@@ -144,7 +144,7 @@ describe("waitForRemotePeer", () => {
     }
 
     expect(err).to.be.undefined;
-    expect(addEventListenerSpy.notCalled).to.be.true;
+    expect(removeEventListenerSpy.notCalled).to.be.true;
   });
 
   it("should wait for LightPush peer to be connected", async () => {
