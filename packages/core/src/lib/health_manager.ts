@@ -1,4 +1,7 @@
 import {
+  HealthEvent,
+  HealthEventType,
+  HealthListener,
   HealthStatus,
   type IHealthManager,
   NodeHealth,
@@ -9,12 +12,14 @@ import {
 class HealthManager implements IHealthManager {
   public static instance: HealthManager;
   private readonly health: NodeHealth;
+  private listeners: Map<HealthEventType, Set<HealthListener>>;
 
   private constructor() {
     this.health = {
       overallStatus: HealthStatus.Unhealthy,
       protocolStatuses: new Map()
     };
+    this.listeners = new Map();
   }
 
   public static getInstance(): HealthManager {
@@ -51,7 +56,35 @@ class HealthManager implements IHealthManager {
       lastUpdate: new Date()
     });
 
+    this.emitEvent({
+      type: "health:protocol",
+      status,
+      protocol,
+      timestamp: new Date()
+    });
+
     this.updateOverallHealth();
+  }
+
+  public addEventListener(
+    type: HealthEventType,
+    listener: HealthListener
+  ): void {
+    if (!this.listeners.has(type)) {
+      this.listeners.set(type, new Set());
+    }
+    this.listeners.get(type)?.add(listener);
+  }
+
+  public removeEventListener(
+    type: HealthEventType,
+    listener: HealthListener
+  ): void {
+    this.listeners.get(type)?.delete(listener);
+  }
+
+  private emitEvent(event: HealthEvent): void {
+    this.listeners.get(event.type)?.forEach((listener) => listener(event));
   }
 
   private getNameFromMulticodec(multicodec: string): Protocols {
@@ -74,14 +107,24 @@ class HealthManager implements IHealthManager {
       (p) => this.getProtocolStatus(p)?.status
     );
 
+    let newStatus: HealthStatus;
     if (statuses.some((status) => status === HealthStatus.Unhealthy)) {
-      this.health.overallStatus = HealthStatus.Unhealthy;
+      newStatus = HealthStatus.Unhealthy;
     } else if (
       statuses.some((status) => status === HealthStatus.MinimallyHealthy)
     ) {
-      this.health.overallStatus = HealthStatus.MinimallyHealthy;
+      newStatus = HealthStatus.MinimallyHealthy;
     } else {
-      this.health.overallStatus = HealthStatus.SufficientlyHealthy;
+      newStatus = HealthStatus.SufficientlyHealthy;
+    }
+
+    if (this.health.overallStatus !== newStatus) {
+      this.health.overallStatus = newStatus;
+      this.emitEvent({
+        type: "health:overall",
+        status: newStatus,
+        timestamp: new Date()
+      });
     }
   }
 }
