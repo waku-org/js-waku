@@ -8,13 +8,16 @@ import {
   type ProtocolHealth,
   Protocols
 } from "@waku/interfaces";
+import { Logger } from "@waku/utils";
 
 class HealthManager implements IHealthManager {
   public static instance: HealthManager;
   private readonly health: NodeHealth;
   private listeners: Map<HealthEventType, Set<HealthListener>>;
+  private log: Logger;
 
   private constructor() {
+    this.log = new Logger("health-manager");
     this.health = {
       overallStatus: HealthStatus.Unhealthy,
       protocolStatuses: new Map()
@@ -49,6 +52,10 @@ class HealthManager implements IHealthManager {
     } else if (connectedPeers >= 2) {
       status = HealthStatus.SufficientlyHealthy;
     }
+
+    this.log.info(
+      `Updating protocol health for ${protocol}: ${status} (${connectedPeers} peers)`
+    );
 
     this.health.protocolStatuses.set(protocol, {
       name: protocol,
@@ -96,6 +103,7 @@ class HealthManager implements IHealthManager {
     } else if (multicodec.includes("store")) {
       name = Protocols.Store;
     } else {
+      this.log.error(`Unknown protocol multicodec: ${multicodec}`);
       throw new Error(`Unknown protocol: ${multicodec}`);
     }
     return name;
@@ -119,6 +127,9 @@ class HealthManager implements IHealthManager {
     }
 
     if (this.health.overallStatus !== newStatus) {
+      this.log.info(
+        `Overall health status changed from ${this.health.overallStatus} to ${newStatus}`
+      );
       this.health.overallStatus = newStatus;
       this.emitEvent({
         type: "health:overall",

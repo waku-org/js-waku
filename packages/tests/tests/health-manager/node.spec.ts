@@ -1,6 +1,6 @@
 import { HealthStatus, IWaku, LightNode, Protocols } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { shardInfoToPubsubTopics } from "@waku/utils";
+import { delay, shardInfoToPubsubTopics } from "@waku/utils";
 import { expect } from "chai";
 
 import {
@@ -16,6 +16,7 @@ import {
   TestEncoder,
   TestShardInfo
 } from "./utils.js";
+import { waitForHealthStatus } from "./utils.js";
 
 // TODO(weboko): resolve https://github.com/waku-org/js-waku/issues/2186
 describe.skip("Node Health Status Matrix Tests", function () {
@@ -76,6 +77,77 @@ describe.skip("Node Health Status Matrix Tests", function () {
         expect(nodeHealth).to.equal(expectedHealth);
       });
     });
+  });
+});
+
+describe.only("Node Health Status Transitions", function () {
+  let waku: LightNode;
+  let serviceNodes: ServiceNode[];
+
+  afterEachCustom(this, async function () {
+    if (waku) {
+      await waku.stop();
+    }
+    if (serviceNodes) {
+      await Promise.all(serviceNodes.map((node) => node.stop()));
+    }
+  });
+
+  it.only("should transition through health states with events", async function () {
+    // Start with no peers
+    [waku, serviceNodes] = await setupTestEnvironment(this.ctx, 0, 0);
+    expect(waku.health.getHealthStatus()).to.equal(HealthStatus.Unhealthy);
+
+    // Add one peer for minimal health
+    const minimalNode = await runNodeWithProtocols(true, true);
+    serviceNodes.push(minimalNode);
+    await waku.dial(await minimalNode.getMultiaddrWithId());
+
+    await delay(5000);
+
+    console.log("waiting for minimal health status");
+    const minimalHealthPromiseEvent = await waitForHealthStatus(
+      waku,
+      HealthStatus.MinimallyHealthy
+    );
+
+    console.log("minimalHealthPromiseEvent", minimalHealthPromiseEvent);
+
+    expect(minimalHealthPromiseEvent.status).to.equal(
+      HealthStatus.MinimallyHealthy
+    );
+    console.log("minimalHealthPromiseEvent", minimalHealthPromiseEvent);
+
+    // Add second peer for sufficient health
+    const sufficientNode = await runNodeWithProtocols(true, true);
+    serviceNodes.push(sufficientNode);
+
+    const sufficientHealthPromise = waitForHealthStatus(
+      waku,
+      HealthStatus.SufficientlyHealthy
+    );
+    await waku.dial(await sufficientNode.getMultiaddrWithId());
+
+    const sufficientEvent = await sufficientHealthPromise;
+    expect(sufficientEvent.status).to.equal(HealthStatus.SufficientlyHealthy);
+  });
+
+  it("should emit events only when health status changes", async function () {
+    [waku, serviceNodes] = await setupTestEnvironment(this.ctx, 2, 2);
+
+    let eventCount = 0;
+    waku.health.addEventListener("health:overall", () => {
+      eventCount++;
+    });
+
+    // These should not trigger health changes as we're already at max health
+    await waku.lightPush.send(TestEncoder, messagePayload);
+    await waku.filter.subscribe([TestDecoder], () => {});
+
+    // Give events time to propagate
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(eventCount).to.equal(0);
   });
 });
 
