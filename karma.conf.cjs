@@ -31,7 +31,7 @@ module.exports = function (config) {
     singleRun: true,
     client: {
       mocha: {
-        timeout: 6000
+        timeout: 6000 // Default is 2s
       }
     },
     webpack: {
@@ -60,10 +60,6 @@ module.exports = function (config) {
       devtool: "inline-source-map"
     }
   };
-
-  if (process.env.CI) {
-    configuration.browsers = ["ChromeHeadlessCI", "FirefoxHeadless"];
-  }
 
   config.set(configuration);
 };
