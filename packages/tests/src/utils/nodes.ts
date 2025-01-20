@@ -1,9 +1,9 @@
 import {
-  CreateNodeOptions,
   DefaultNetworkConfig,
   IWaku,
   LightNode,
   NetworkConfig,
+  ProtocolCreateOptions,
   Protocols
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
@@ -13,6 +13,7 @@ import pRetry from "p-retry";
 
 import { NOISE_KEY_1 } from "../constants.js";
 import { ServiceNodesFleet } from "../lib/index.js";
+import { verifyServiceNodesConnected } from "../lib/service_node.js";
 import { Args } from "../types.js";
 
 import { waitForConnections } from "./waitForConnections.js";
@@ -35,7 +36,9 @@ export async function runMultipleNodes(
     withoutFilter
   );
 
-  const wakuOptions: CreateNodeOptions = {
+  await verifyServiceNodesConnected(serviceNodes.nodes);
+
+  const wakuOptions: ProtocolCreateOptions = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }
@@ -57,16 +60,17 @@ export async function runMultipleNodes(
       derivePubsubTopicsFromNetworkConfig(networkConfig)
     );
 
-    const wakuConnections = waku.libp2p.getConnections();
-
-    if (wakuConnections.length < 1) {
-      throw new Error(`Expected at least 1 connection for js-waku.`);
-    }
-
     await node.waitForLog(waku.libp2p.peerId.toString(), 100);
   }
 
   await waitForConnections(numServiceNodes, waku);
+
+  const wakuConnections = waku.libp2p.getConnections();
+  if (wakuConnections.length < numServiceNodes) {
+    throw new Error(
+      `Expected at least ${numServiceNodes} connections for js-waku.`
+    );
+  }
 
   return [serviceNodes, waku];
 }
