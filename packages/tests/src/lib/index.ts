@@ -111,7 +111,16 @@ export class ServiceNodesFleet {
     return relayMessages.every((message) => message);
   }
 
-  public async confirmMessageLength(numMessages: number): Promise<void> {
+  public async confirmMessageLength(
+    numMessages: number,
+    { encryptedPayload }: { encryptedPayload?: boolean } = {
+      encryptedPayload: false
+    }
+  ): Promise<void> {
+    if (encryptedPayload) {
+      expect(this.messageCollector.count).to.equal(numMessages);
+    }
+
     if (this.strictChecking) {
       await Promise.all(
         this.nodes.map(async (node) =>
@@ -144,6 +153,12 @@ class MultipleNodesMessageCollector {
   ) {
     this.callback = (msg: DecodedMessage): void => {
       log.info("Got a message");
+      if (
+        this.messageList.find(
+          (m) => m.payload.toString() === msg.payload.toString()
+        )
+      )
+        return;
       this.messageList.push(msg);
     };
   }

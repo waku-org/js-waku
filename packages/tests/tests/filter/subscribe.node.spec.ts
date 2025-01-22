@@ -102,8 +102,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedVersion: 1,
         expectedPubsubTopic: TestPubsubTopic
       });
-
-      await serviceNodes.confirmMessageLength(1);
+      await serviceNodes.confirmMessageLength(1, { encryptedPayload: true });
     });
 
     it("Subscribe and receive symmetrically encrypted messages via lightPush", async function () {
