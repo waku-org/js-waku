@@ -61,7 +61,6 @@ describe("Autosharding: Running Nodes", function () {
       });
 
       expect(request.successes.length).to.eq(2); // Expect 2 successes for 2 nodes
-      console.log("good");
       expect(
         await serviceNodes.messageCollector.waitForMessagesAutosharding(1, {
           contentTopic: ContentTopic
