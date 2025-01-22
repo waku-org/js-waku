@@ -119,6 +119,7 @@ export class ServiceNodesFleet {
   ): Promise<void> {
     if (encryptedPayload) {
       expect(this.messageCollector.count).to.equal(numMessages);
+      return;
     }
 
     if (this.strictChecking) {
@@ -153,13 +154,14 @@ class MultipleNodesMessageCollector {
   ) {
     this.callback = (msg: DecodedMessage): void => {
       log.info("Got a message");
+      // Only add message if we haven't seen it before
       if (
-        this.messageList.find(
+        !this.messageList.find(
           (m) => m.payload.toString() === msg.payload.toString()
         )
-      )
-        return;
-      this.messageList.push(msg);
+      ) {
+        this.messageList.push(msg);
+      }
     };
   }
 
