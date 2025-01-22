@@ -118,7 +118,14 @@ export class ServiceNodesFleet {
     }
   ): Promise<void> {
     if (encryptedPayload) {
-      expect(this.messageCollector.count).to.equal(numMessages);
+      const filteredMessageList = Array.from(
+        new Set(
+          this.messageCollector.messageList
+            .filter((msg) => msg.payload?.toString)
+            .map((msg) => msg.payload.toString())
+        )
+      );
+      expect(filteredMessageList.length).to.equal(numMessages);
       return;
     }
 
@@ -146,7 +153,7 @@ export class ServiceNodesFleet {
 
 class MultipleNodesMessageCollector {
   public callback: (msg: DecodedMessage) => void = () => {};
-  protected messageList: Array<DecodedMessage> = [];
+  public readonly messageList: Array<DecodedMessage> = [];
   public constructor(
     private messageCollectors: MessageCollector[],
     private relayNodes?: ServiceNode[],
@@ -154,14 +161,7 @@ class MultipleNodesMessageCollector {
   ) {
     this.callback = (msg: DecodedMessage): void => {
       log.info("Got a message");
-      // Only add message if we haven't seen it before
-      if (
-        !this.messageList.find(
-          (m) => m.payload.toString() === msg.payload.toString()
-        )
-      ) {
-        this.messageList.push(msg);
-      }
+      this.messageList.push(msg);
     };
   }
 

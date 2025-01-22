@@ -135,7 +135,7 @@ const runTests = (strictCheckNodes: boolean): void => {
         expectedPubsubTopic: TestPubsubTopic
       });
 
-      await serviceNodes.confirmMessageLength(1);
+      await serviceNodes.confirmMessageLength(1, { encryptedPayload: true });
     });
 
     it("Subscribe and receive messages via waku relay post", async function () {
