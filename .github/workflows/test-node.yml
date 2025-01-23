@@ -59,7 +59,7 @@ jobs:
           fail-on-error: true
 
       - name: Upload debug logs on failure
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: ${{ inputs.test_type }}-debug.log
@@ -78,7 +78,7 @@ jobs:
           done
 
       - name: Upload logs on failure
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: ${{ inputs.test_type }}-logs
