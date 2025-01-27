@@ -9,7 +9,6 @@ import type {
   IStore,
   IWaku,
   Libp2p,
-  PeerIdStr,
   ProtocolCreateOptions,
   PubsubTopic
 } from "@waku/interfaces";
@@ -106,7 +105,6 @@ export class WakuNode implements IWaku {
     this.health = getHealthManager();
 
     if (protocolsEnabled.store) {
-      let peerIdStr: PeerIdStr | undefined;
       if (options.store?.peer) {
         this.connectionManager
           .dialPeer(options.store.peer, [StoreCodec])
@@ -115,7 +113,9 @@ export class WakuNode implements IWaku {
           });
       }
 
-      const store = wakuStore(this.connectionManager, { peer: peerIdStr });
+      const store = wakuStore(this.connectionManager, {
+        peer: options.store?.peer
+      });
       this.store = store(libp2p);
     }
 

@@ -64,14 +64,7 @@ export class Store extends BaseProtocolSDK implements IStore {
       ...options
     };
 
-    const peer =
-      (await this.getPeerToUse()) ??
-      (
-        await this.protocol.getPeers({
-          numPeers: this.numPeersToUse,
-          maxBootstrapPeers: 1
-        })
-      )[0];
+    const peer = await this.getPeerToUse();
 
     if (!peer) {
       log.error("No peers available to query");
@@ -249,7 +242,13 @@ export class Store extends BaseProtocolSDK implements IStore {
     log.warn(
       `Passed node to use for Store not found: ${this.options?.peer}. Attempting to use random peers.`
     );
-    return null;
+
+    return (
+      await this.protocol.getPeers({
+        numPeers: this.numPeersToUse,
+        maxBootstrapPeers: 1
+      })
+    )[0];
   }
 }
 
