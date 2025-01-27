@@ -1,5 +1,6 @@
 const config = {
   extension: ['ts'],
+  spec: 'src/**/*.spec.ts',
   require: ['ts-node/register', 'isomorphic-fetch'],
   loader: 'ts-node/esm',
   'node-option': [
@@ -7,7 +8,7 @@ const config = {
     'loader=ts-node/esm'
   ],
   exit: true,
-  retries: 4
+  retries: 4,
 };
 
 if (process.env.CI) {

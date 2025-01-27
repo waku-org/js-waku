@@ -1,5 +1,6 @@
 const config = {
   extension: ['ts'],
+  spec: 'src/**/*.spec.ts',
   require: ['ts-node/register', 'isomorphic-fetch'],
   loader: 'ts-node/esm',
   'node-option': [

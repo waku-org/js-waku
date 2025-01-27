@@ -44,7 +44,7 @@
     "prepublish": "npm run build",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
     "test": "NODE_ENV=test run-s test:*",
-    "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha",
+    "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha 'src/**/*.spec.ts'",
     "test:browser": "NODE_ENV=test karma start karma.conf.cjs"
   },
   "engines": {
