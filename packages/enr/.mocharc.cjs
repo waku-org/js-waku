@@ -7,17 +7,18 @@ const config = {
     'experimental-specifier-resolution=node',
     'loader=ts-node/esm'
   ],
-  exit: true
+  exit: true,
+  retries: 4
 };
 
 if (process.env.CI) {
   console.log("Running tests in parallel");
   config.parallel = true;
   config.jobs = 6;
-  console.log("Activating allure reporting");
-  config.reporter = 'mocha-multi-reporters';
+  console.log("Using JSON reporter for test results");
+  config.reporter = 'json';
   config.reporterOptions = {
-    configFile: '.mocha.reporters.json'
+    output: 'reports/mocha-results.json'
   };
 } else {
   console.log("Running tests serially. To enable parallel execution update mocha config");
