@@ -124,7 +124,7 @@ jobs:
     with:
       nim_wakunode_image: ${{ inputs.nim_wakunode_image || 'wakuorg/nwaku:v0.31.0' }}
       test_type: node
-      allure_reports: true
+      debug: waku*
 
   node_optional:
     uses: ./.github/workflows/test-node.yml
