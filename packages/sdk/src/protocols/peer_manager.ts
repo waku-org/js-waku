@@ -64,7 +64,9 @@ export class PeerManager {
     const newPeer = result[0];
 
     if (!newPeer) {
-      log.warn(`requestRenew: Couldn't renew peer ${peerId.toString()}.`);
+      log.warn(
+        `requestRenew: Couldn't renew peer ${peerId.toString()} - no peers.`
+      );
       return;
     }
 
