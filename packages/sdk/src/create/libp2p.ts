@@ -18,6 +18,8 @@ import {
 import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
+import { isTestEnvironment } from "../env.js";
+
 import { defaultPeerDiscoveries } from "./discovery.js";
 
 type MetadataService = {
@@ -34,7 +36,7 @@ export async function defaultLibp2p(
   options?: Partial<CreateLibp2pOptions>,
   userAgent?: string
 ): Promise<Libp2p> {
-  if (!options?.hideWebSocketInfo && process?.env?.NODE_ENV !== "test") {
+  if (!options?.hideWebSocketInfo && !isTestEnvironment()) {
     /* eslint-disable no-console */
     console.info(
       "%cIgnore WebSocket connection failures",
@@ -52,7 +54,7 @@ export async function defaultLibp2p(
     : {};
 
   const filter =
-    options?.filterMultiaddrs === false || process?.env?.NODE_ENV === "test"
+    options?.filterMultiaddrs === false || isTestEnvironment()
       ? filterAll
       : wss;
 

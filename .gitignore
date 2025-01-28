@@ -12,5 +12,4 @@ docs
 test-results
 playwright-report
 example
-allure-results
 packages/discovery/mock_local_storage
