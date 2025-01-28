@@ -1,5 +1,13 @@
-import type { Peer, PeerId, PeerInfo, PeerStore } from "@libp2p/interface";
-import { isPeerId, TypedEventEmitter } from "@libp2p/interface";
+import {
+  type Connection,
+  isPeerId,
+  type Peer,
+  type PeerId,
+  type PeerInfo,
+  type PeerStore,
+  type Stream,
+  TypedEventEmitter
+} from "@libp2p/interface";
 import { Multiaddr, multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import {
   ConnectionManagerOptions,
@@ -262,8 +270,9 @@ export class ConnectionManager
   public async dialPeer(
     peer: PeerId | MultiaddrInput,
     protocolCodecs?: string[]
-  ): Promise<void> {
+  ): Promise<Stream | Connection> {
     let peerId: PeerId | undefined;
+    let dialResponse: Stream | Connection | undefined;
     const peerDialInfo = this.getDialablePeerInfo(peer);
     const peerIdStr = isPeerId(peerDialInfo)
       ? peerDialInfo.toString()
@@ -274,7 +283,7 @@ export class ConnectionManager
     while (dialAttempt < this.options.maxDialAttemptsForPeer) {
       try {
         log.info(`Dialing peer ${peerDialInfo} on attempt ${dialAttempt + 1}`);
-        protocolCodecs
+        dialResponse = protocolCodecs
           ? await this.libp2p.dialProtocol(peerDialInfo, protocolCodecs)
           : await this.libp2p.dial(peerDialInfo);
 
@@ -359,6 +368,12 @@ export class ConnectionManager
         );
       }
     }
+
+    if (!dialResponse) {
+      throw new Error(`Failed to dial peer ${peerDialInfo}`);
+    }
+
+    return dialResponse;
   }
 
   /**
