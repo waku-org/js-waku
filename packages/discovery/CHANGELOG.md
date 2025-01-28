@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.0.7](https://github.com/waku-org/js-waku/compare/discovery-v0.0.6...discovery-v0.0.7) (2025-01-28)
+
+
+### Bug Fixes
+
+* Remove peer deps ([#2200](https://github.com/waku-org/js-waku/issues/2200)) ([f34fc4b](https://github.com/waku-org/js-waku/commit/f34fc4b2442f1cec326c8ebd45596445232fa65b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/interfaces bumped from 0.0.28 to 0.0.29
+    * @waku/enr bumped from 0.0.27 to 0.0.28
+    * @waku/core bumped from 0.0.33 to 0.0.34
+    * @waku/utils bumped from 0.0.21 to 0.0.22
+
 ## [0.0.6](https://github.com/waku-org/js-waku/compare/discovery-v0.0.5...discovery-v0.0.6) (2024-10-16)
 
 

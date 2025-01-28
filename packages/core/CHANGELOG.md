@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The file is maintained by [Release Please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org) specification,
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.34](https://github.com/waku-org/js-waku/compare/core-v0.0.33...core-v0.0.34) (2025-01-28)
+
+
+### Features
+
+* **store:** Allow specifying node to use ([#2192](https://github.com/waku-org/js-waku/issues/2192)) ([4153396](https://github.com/waku-org/js-waku/commit/415339601476925874904b19be43f6e055a45004))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @waku/enr bumped from ^0.0.27 to ^0.0.28
+    * @waku/interfaces bumped from 0.0.28 to 0.0.29
+    * @waku/utils bumped from 0.0.21 to 0.0.22
+
 ## [0.0.33](https://github.com/waku-org/js-waku/compare/core-v0.0.32...core-v0.0.33) (2024-10-16)
 
 
