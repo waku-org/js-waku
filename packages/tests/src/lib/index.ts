@@ -29,24 +29,28 @@ export class ServiceNodesFleet {
     _args?: Args,
     withoutFilter = false
   ): Promise<ServiceNodesFleet> {
-    const serviceNodePromises = Array.from(
-      { length: nodesToCreate },
-      async () => {
-        const node = new ServiceNode(
-          makeLogFileName(mochaContext) +
-            Math.random().toString(36).substring(7)
-        );
+    const nodes: ServiceNode[] = [];
 
-        const args = getArgs(networkConfig, _args);
-        await node.start(args, {
-          retries: 3
-        });
+    for (let index = 0; index < nodesToCreate; index++) {
+      const node = new ServiceNode(
+        makeLogFileName(mochaContext) + Math.random().toString(36).substring(7)
+      );
 
-        return node;
+      const args = getArgs(networkConfig, _args);
+
+      // If this is not the first node and previous node had a nodekey, use its multiaddr as static node
+      if (index > 0) {
+        const prevNode = nodes[index - 1];
+        const multiaddr = await prevNode.getExternalWebsocketMultiaddr();
+        args.staticnode = multiaddr;
       }
-    );
 
-    const nodes = await Promise.all(serviceNodePromises);
+      await node.start(args, {
+        retries: 3
+      });
+
+      nodes.push(node);
+    }
     return new ServiceNodesFleet(nodes, withoutFilter, strictChecking);
   }
 
@@ -107,7 +111,24 @@ export class ServiceNodesFleet {
     return relayMessages.every((message) => message);
   }
 
-  public async confirmMessageLength(numMessages: number): Promise<void> {
+  public async confirmMessageLength(
+    numMessages: number,
+    { encryptedPayload }: { encryptedPayload?: boolean } = {
+      encryptedPayload: false
+    }
+  ): Promise<void> {
+    if (encryptedPayload) {
+      const filteredMessageList = Array.from(
+        new Set(
+          this.messageCollector.messageList
+            .filter((msg) => msg.payload?.toString)
+            .map((msg) => msg.payload.toString())
+        )
+      );
+      expect(filteredMessageList.length).to.equal(numMessages);
+      return;
+    }
+
     if (this.strictChecking) {
       await Promise.all(
         this.nodes.map(async (node) =>
@@ -132,7 +153,7 @@ export class ServiceNodesFleet {
 
 class MultipleNodesMessageCollector {
   public callback: (msg: DecodedMessage) => void = () => {};
-  protected messageList: Array<DecodedMessage> = [];
+  public readonly messageList: Array<DecodedMessage> = [];
   public constructor(
     private messageCollectors: MessageCollector[],
     private relayNodes?: ServiceNode[],
@@ -182,21 +203,21 @@ class MultipleNodesMessageCollector {
     }
   ): boolean {
     if (this.strictChecking) {
-      return this.messageCollectors.every((collector) => {
+      return this.messageCollectors.every((collector, _i) => {
         try {
           collector.verifyReceivedMessage(index, options);
-          return true; // Verification successful
+          return true;
         } catch (error) {
-          return false; // Verification failed, continue with the next collector
+          return false;
         }
       });
     } else {
-      return this.messageCollectors.some((collector) => {
+      return this.messageCollectors.some((collector, _i) => {
         try {
           collector.verifyReceivedMessage(index, options);
-          return true; // Verification successful
+          return true;
         } catch (error) {
-          return false; // Verification failed, continue with the next collector
+          return false;
         }
       });
     }
@@ -239,7 +260,8 @@ class MultipleNodesMessageCollector {
         }
       }
 
-      if (Date.now() - startTime > timeoutDuration * numMessages) {
+      const elapsed = Date.now() - startTime;
+      if (elapsed > timeoutDuration * numMessages) {
         return false;
       }
 
@@ -253,7 +275,79 @@ class MultipleNodesMessageCollector {
         log.warn(
           `Was expecting exactly ${numMessages} messages. Received: ${this.messageList.length}`
         );
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }
 
+  /**
+   * Waits for a total number of messages across all nodes using autosharding.
+   */
+  public async waitForMessagesAutosharding(
+    numMessages: number,
+    options?: {
+      contentTopic: string;
+      timeoutDuration?: number;
+      exact?: boolean;
+    }
+  ): Promise<boolean> {
+    const startTime = Date.now();
+    const timeoutDuration = options?.timeoutDuration || 400;
+    const exact = options?.exact || false;
+
+    while (this.messageList.length < numMessages) {
+      if (this.relayNodes) {
+        if (this.strictChecking) {
+          // In strict mode, all nodes must have the messages
+          const results = await Promise.all(
+            this.messageCollectors.map(async (collector) => {
+              return collector.waitForMessagesAutosharding(
+                numMessages,
+                options
+              );
+            })
+          );
+          if (results.every((result) => result)) {
+            return true;
+          }
+        } else {
+          // In non-strict mode, at least one node must have the messages
+          const results = await Promise.all(
+            this.messageCollectors.map(async (collector) => {
+              return collector.waitForMessagesAutosharding(
+                numMessages,
+                options
+              );
+            })
+          );
+          if (results.some((result) => result)) {
+            return true;
+          }
+        }
+
+        if (Date.now() - startTime > timeoutDuration * numMessages) {
+          return false;
+        }
+
+        await delay(10);
+      } else {
+        // If no relay nodes, just wait for messages in the list
+        if (Date.now() - startTime > timeoutDuration * numMessages) {
+          return false;
+        }
+        await delay(10);
+      }
+    }
+
+    if (exact) {
+      if (this.messageList.length == numMessages) {
+        return true;
+      } else {
+        log.warn(
+          `Was expecting exactly ${numMessages} messages. Received: ${this.messageList.length}`
+        );
         return false;
       }
     } else {
