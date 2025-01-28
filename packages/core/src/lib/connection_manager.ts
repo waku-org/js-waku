@@ -267,12 +267,9 @@ export class ConnectionManager
    * - Updates the peer store and connection state after successful/failed attempts
    * - If all dial attempts fail, triggers DNS discovery as a fallback
    */
-  public async dialPeer(
-    peer: PeerId | MultiaddrInput,
-    protocolCodecs?: string[]
-  ): Promise<Stream | Connection> {
+  public async dialPeer(peer: PeerId | MultiaddrInput): Promise<Connection> {
+    let connection: Connection | undefined;
     let peerId: PeerId | undefined;
-    let dialResponse: Stream | Connection | undefined;
     const peerDialInfo = this.getDialablePeerInfo(peer);
     const peerIdStr = isPeerId(peerDialInfo)
       ? peerDialInfo.toString()
@@ -283,18 +280,8 @@ export class ConnectionManager
     while (dialAttempt < this.options.maxDialAttemptsForPeer) {
       try {
         log.info(`Dialing peer ${peerDialInfo} on attempt ${dialAttempt + 1}`);
-        dialResponse = protocolCodecs
-          ? await this.libp2p.dialProtocol(peerDialInfo, protocolCodecs)
-          : await this.libp2p.dial(peerDialInfo);
-
-        const conn = this.libp2p
-          .getConnections()
-          .find((conn) => conn.remotePeer.toString() === peerIdStr);
-        if (conn) {
-          peerId = conn.remotePeer;
-        } else {
-          throw new Error("Failed to dial multiaddr: no connection found");
-        }
+        connection = await this.libp2p.dial(peerDialInfo);
+        peerId = connection.remotePeer;
 
         const tags = await this.getTagNamesForPeer(peerId);
         // add tag to connection describing discovery mechanism
@@ -369,11 +356,26 @@ export class ConnectionManager
       }
     }
 
-    if (!dialResponse) {
+    if (!connection) {
       throw new Error(`Failed to dial peer ${peerDialInfo}`);
     }
 
-    return dialResponse;
+    return connection;
+  }
+
+  /**
+   * Dial a peer with specific protocols.
+   * This method is a raw proxy to the libp2p dialProtocol method.
+   * @param peer - The peer to connect to, either as a PeerId or multiaddr
+   * @param protocolCodecs - Optional array of protocol-specific codec strings to establish
+   * @returns A stream to the peer
+   */
+  public async rawDialPeerWithProtocols(
+    peer: PeerId | MultiaddrInput,
+    protocolCodecs: string[]
+  ): Promise<Stream> {
+    const peerDialInfo = this.getDialablePeerInfo(peer);
+    return await this.libp2p.dialProtocol(peerDialInfo, protocolCodecs);
   }
 
   /**
