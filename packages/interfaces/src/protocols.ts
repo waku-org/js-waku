@@ -6,6 +6,7 @@ import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
 import { ThisAndThat, ThisOrThat } from "./misc.js";
 import { AutoSharding, StaticSharding } from "./sharding.js";
+import type { StoreProtocolOptions } from "./store.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -95,6 +96,11 @@ export type ProtocolCreateOptions = {
    * Configuration for connection manager. If not specified - default values are applied.
    */
   connectionManager?: Partial<ConnectionManagerOptions>;
+
+  /**
+   * Options for the Store protocol.
+   */
+  store?: Partial<StoreProtocolOptions>;
 };
 
 export type Callback<T extends IDecodedMessage> = (
