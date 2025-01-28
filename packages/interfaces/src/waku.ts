@@ -125,7 +125,7 @@ export interface IWaku {
   /**
    * @returns {Peer[]} an array of all connected peers
    */
-  getPeers(): Promise<Peer[]>;
+  getConnectedPeers(): Promise<Peer[]>;
 }
 
 export interface LightNode extends IWaku {

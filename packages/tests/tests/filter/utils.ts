@@ -1,11 +1,11 @@
 import { createDecoder, createEncoder } from "@waku/core";
 import {
+  CreateNodeOptions,
   DefaultNetworkConfig,
   ISubscription,
   IWaku,
   LightNode,
   NetworkConfig,
-  ProtocolCreateOptions,
   Protocols
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
@@ -85,7 +85,7 @@ export async function runMultipleNodes(
     withoutFilter
   );
 
-  const wakuOptions: ProtocolCreateOptions = {
+  const wakuOptions: CreateNodeOptions = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: {
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] }

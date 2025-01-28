@@ -11,6 +11,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import {
   ActiveSubscriptions,
   Callback,
+  CreateNodeOptions,
   IAsyncIterator,
   IDecodedMessage,
   IDecoder,
@@ -18,7 +19,6 @@ import {
   IMessage,
   IRelay,
   Libp2p,
-  ProtocolCreateOptions,
   ProtocolError,
   PubsubTopic,
   SDKProtocolResult
@@ -39,7 +39,7 @@ export type Observer<T extends IDecodedMessage> = {
   callback: Callback<T>;
 };
 
-export type RelayCreateOptions = ProtocolCreateOptions & GossipsubOpts;
+export type RelayCreateOptions = CreateNodeOptions & GossipsubOpts;
 export type ContentTopic = string;
 
 /**

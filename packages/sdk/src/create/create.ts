@@ -1,4 +1,4 @@
-import type { LightNode, ProtocolCreateOptions } from "@waku/interfaces";
+import type { CreateNodeOptions, LightNode } from "@waku/interfaces";
 
 import { WakuNode } from "../waku/index.js";
 
@@ -10,7 +10,7 @@ import { createLibp2pAndUpdateOptions } from "./libp2p.js";
  * Uses Waku Filter V2 by default.
  */
 export async function createLightNode(
-  options: ProtocolCreateOptions = {}
+  options: CreateNodeOptions = {}
 ): Promise<LightNode> {
   const { libp2p, pubsubTopics } = await createLibp2pAndUpdateOptions(options);
 
