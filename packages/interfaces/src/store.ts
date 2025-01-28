@@ -99,3 +99,7 @@ export type IStore = {
     options?: Partial<QueryRequestParams>
   ) => Promise<void>;
 };
+
+export type StoreProtocolOptions = {
+  peer: string;
+};

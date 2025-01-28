@@ -1,3 +1,4 @@
+import type { Peer } from "@libp2p/interface";
 import { ConnectionManager, StoreCore } from "@waku/core";
 import {
   IDecodedMessage,
@@ -5,7 +6,8 @@ import {
   IStore,
   Libp2p,
   QueryRequestParams,
-  StoreCursor
+  StoreCursor,
+  StoreProtocolOptions
 } from "@waku/interfaces";
 import { messageHash } from "@waku/message-hash";
 import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
@@ -22,9 +24,10 @@ export class Store implements IStore {
   public readonly protocol: StoreCore;
 
   public constructor(
-    connectionManager: ConnectionManager,
+    private connectionManager: ConnectionManager,
     libp2p: Libp2p,
-    private peerManager: PeerManager
+    private peerManager: PeerManager,
+    private options?: Partial<StoreProtocolOptions>
   ) {
     this.protocol = new StoreCore(connectionManager.pubsubTopics, libp2p);
   }
@@ -53,8 +56,7 @@ export class Store implements IStore {
       ...options
     };
 
-    const peers = await this.peerManager.getPeers();
-    const peer = peers[0];
+    const peer = await this.getPeerToUse();
 
     if (!peer) {
       log.error("No peers available to query");
@@ -220,6 +222,31 @@ export class Store implements IStore {
       decodersAsMap
     };
   }
+
+  private async getPeerToUse(): Promise<Peer | undefined> {
+    let peer: Peer | undefined;
+
+    if (this.options?.peer) {
+      const connectedPeers = await this.connectionManager.getConnectedPeers();
+
+      peer = connectedPeers.find((p) => p.id.toString() === this.options?.peer);
+
+      if (!peer) {
+        log.warn(
+          `Passed node to use for Store not found: ${this.options.peer}. Attempting to use random peers.`
+        );
+      }
+    }
+
+    const peers = await this.peerManager.getPeers();
+
+    if (peers.length > 0) {
+      return peers[0];
+    }
+
+    log.error("No peers available to use.");
+    return;
+  }
 }
 
 /**
@@ -230,9 +257,10 @@ export class Store implements IStore {
  */
 export function wakuStore(
   connectionManager: ConnectionManager,
-  peerManager: PeerManager
+  peerManager: PeerManager,
+  options?: Partial<StoreProtocolOptions>
 ): (libp2p: Libp2p) => IStore {
   return (libp2p: Libp2p) => {
-    return new Store(connectionManager, libp2p, peerManager);
+    return new Store(connectionManager, libp2p, peerManager, options);
   };
 }

@@ -1,5 +1,14 @@
-import type { Peer, PeerId, PeerInfo, PeerStore } from "@libp2p/interface";
-import { TypedEventEmitter } from "@libp2p/interface";
+import {
+  type Connection,
+  isPeerId,
+  type Peer,
+  type PeerId,
+  type PeerInfo,
+  type PeerStore,
+  type Stream,
+  TypedEventEmitter
+} from "@libp2p/interface";
+import { Multiaddr, multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import {
   ConnectionManagerOptions,
   DiscoveryTrigger,
@@ -230,15 +239,60 @@ export class ConnectionManager
     this.startNetworkStatusListener();
   }
 
-  private async dialPeer(peerId: PeerId): Promise<void> {
+  /**
+   * Attempts to establish a connection with a peer and set up specified protocols.
+   * The method handles both PeerId and Multiaddr inputs, manages connection attempts,
+   * and maintains the connection state.
+   *
+   * The dialing process includes:
+   * 1. Converting input to dialable peer info
+   * 2. Managing parallel dial attempts
+   * 3. Attempting to establish protocol-specific connections
+   * 4. Handling connection failures and retries
+   * 5. Updating the peer store and connection state
+   *
+   * @param {PeerId | MultiaddrInput} peer - The peer to connect to, either as a PeerId or multiaddr
+   * @param {string[]} [protocolCodecs] - Optional array of protocol-specific codec strings to establish
+   *                                      (e.g., for LightPush, Filter, Store protocols)
+   *
+   * @throws {Error} If the multiaddr is missing a peer ID
+   * @throws {Error} If the maximum dial attempts are reached and the peer cannot be dialed
+   * @throws {Error} If there's an error deleting an undialable peer from the peer store
+   *
+   * @example
+   * ```typescript
+   * // Dial using PeerId
+   * await connectionManager.dialPeer(peerId);
+   *
+   * // Dial using multiaddr with specific protocols
+   * await connectionManager.dialPeer(multiaddr, [
+   *   "/vac/waku/relay/2.0.0",
+   *   "/vac/waku/lightpush/2.0.0-beta1"
+   * ]);
+   * ```
+   *
+   * @remarks
+   * - The method implements exponential backoff through multiple dial attempts
+   * - Maintains a queue for parallel dial attempts (limited by maxParallelDials)
+   * - Integrates with the KeepAliveManager for connection maintenance
+   * - Updates the peer store and connection state after successful/failed attempts
+   * - If all dial attempts fail, triggers DNS discovery as a fallback
+   */
+  public async dialPeer(peer: PeerId | MultiaddrInput): Promise<Connection> {
+    let connection: Connection | undefined;
+    let peerId: PeerId | undefined;
+    const peerDialInfo = this.getDialablePeerInfo(peer);
+    const peerIdStr = isPeerId(peerDialInfo)
+      ? peerDialInfo.toString()
+      : peerDialInfo.getPeerId()!;
+
     this.currentActiveParallelDialCount += 1;
     let dialAttempt = 0;
     while (dialAttempt < this.options.maxDialAttemptsForPeer) {
       try {
-        log.info(
-          `Dialing peer ${peerId.toString()} on attempt ${dialAttempt + 1}`
-        );
-        await this.libp2p.dial(peerId);
+        log.info(`Dialing peer ${peerDialInfo} on attempt ${dialAttempt + 1}`);
+        connection = await this.libp2p.dial(peerDialInfo);
+        peerId = connection.remotePeer;
 
         const tags = await this.getTagNamesForPeer(peerId);
         // add tag to connection describing discovery mechanism
@@ -257,21 +311,17 @@ export class ConnectionManager
       } catch (error) {
         if (error instanceof AggregateError) {
           // Handle AggregateError
-          log.error(
-            `Error dialing peer ${peerId.toString()} - ${error.errors}`
-          );
+          log.error(`Error dialing peer ${peerIdStr} - ${error.errors}`);
         } else {
           // Handle generic error
           log.error(
-            `Error dialing peer ${peerId.toString()} - ${
-              (error as any).message
-            }`
+            `Error dialing peer ${peerIdStr} - ${(error as any).message}`
           );
         }
-        this.dialErrorsForPeer.set(peerId.toString(), error);
+        this.dialErrorsForPeer.set(peerIdStr, error);
 
         dialAttempt++;
-        this.dialAttemptsForPeer.set(peerId.toString(), dialAttempt);
+        this.dialAttemptsForPeer.set(peerIdStr, dialAttempt);
       }
     }
 
@@ -282,7 +332,7 @@ export class ConnectionManager
     // If max dial attempts reached and dialing failed, delete the peer
     if (dialAttempt === this.options.maxDialAttemptsForPeer) {
       try {
-        const error = this.dialErrorsForPeer.get(peerId.toString());
+        const error = this.dialErrorsForPeer.get(peerIdStr);
 
         if (error) {
           let errorMessage;
@@ -299,20 +349,64 @@ export class ConnectionManager
           }
 
           log.info(
-            `Deleting undialable peer ${peerId.toString()} from peer store. Reason: ${errorMessage}`
+            `Deleting undialable peer ${peerIdStr} from peer store. Reason: ${errorMessage}`
           );
         }
 
-        this.dialErrorsForPeer.delete(peerId.toString());
-        await this.libp2p.peerStore.delete(peerId);
+        this.dialErrorsForPeer.delete(peerIdStr);
+        if (peerId) {
+          await this.libp2p.peerStore.delete(peerId);
+        }
 
         // if it was last available peer - attempt DNS discovery
         await this.attemptDnsDiscovery();
       } catch (error) {
         throw new Error(
-          `Error deleting undialable peer ${peerId.toString()} from peer store - ${error}`
+          `Error deleting undialable peer ${peerIdStr} from peer store - ${error}`
         );
       }
+    }
+
+    if (!connection) {
+      throw new Error(`Failed to dial peer ${peerDialInfo}`);
+    }
+
+    return connection;
+  }
+
+  /**
+   * Dial a peer with specific protocols.
+   * This method is a raw proxy to the libp2p dialProtocol method.
+   * @param peer - The peer to connect to, either as a PeerId or multiaddr
+   * @param protocolCodecs - Optional array of protocol-specific codec strings to establish
+   * @returns A stream to the peer
+   */
+  public async rawDialPeerWithProtocols(
+    peer: PeerId | MultiaddrInput,
+    protocolCodecs: string[]
+  ): Promise<Stream> {
+    const peerDialInfo = this.getDialablePeerInfo(peer);
+    return await this.libp2p.dialProtocol(peerDialInfo, protocolCodecs);
+  }
+
+  /**
+   * Internal utility to extract a PeerId or Multiaddr from a peer input.
+   * This is used internally by the connection manager to handle different peer input formats.
+   * @internal
+   */
+  private getDialablePeerInfo(
+    peer: PeerId | MultiaddrInput
+  ): PeerId | Multiaddr {
+    if (isPeerId(peer)) {
+      return peer;
+    } else {
+      // peer is of MultiaddrInput type
+      const ma = multiaddr(peer);
+      const peerIdStr = ma.getPeerId();
+      if (!peerIdStr) {
+        throw new Error("Failed to dial multiaddr: missing peer ID");
+      }
+      return ma;
     }
   }
 
