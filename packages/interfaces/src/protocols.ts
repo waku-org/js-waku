@@ -24,7 +24,7 @@ export type IBaseProtocolCore = {
 
 export type NetworkConfig = StaticSharding | AutoSharding;
 
-export type ProtocolCreateOptions = {
+export type CreateNodeOptions = {
   /**
    * Set the user agent string to be used in identification of the node.
    *

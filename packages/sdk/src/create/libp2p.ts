@@ -8,11 +8,11 @@ import { all as filterAll, wss } from "@libp2p/websockets/filters";
 import { wakuMetadata } from "@waku/core";
 import {
   type CreateLibp2pOptions,
+  type CreateNodeOptions,
   DefaultNetworkConfig,
   type IMetadata,
   type Libp2p,
   type Libp2pComponents,
-  type ProtocolCreateOptions,
   PubsubTopic
 } from "@waku/interfaces";
 import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
@@ -78,7 +78,7 @@ export async function defaultLibp2p(
 }
 
 export async function createLibp2pAndUpdateOptions(
-  options: ProtocolCreateOptions
+  options: CreateNodeOptions
 ): Promise<{ libp2p: Libp2p; pubsubTopics: PubsubTopic[] }> {
   const { networkConfig } = options;
   const pubsubTopics = derivePubsubTopicsFromNetworkConfig(

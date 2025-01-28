@@ -3,6 +3,7 @@ import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, getHealthManager, StoreCodec } from "@waku/core";
 import type {
+  CreateNodeOptions,
   IFilter,
   IHealthManager,
   ILightPush,
@@ -10,7 +11,6 @@ import type {
   IStore,
   IWaku,
   Libp2p,
-  ProtocolCreateOptions,
   PubsubTopic
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -45,7 +45,7 @@ export class WakuNode implements IWaku {
 
   public constructor(
     public readonly pubsubTopics: PubsubTopic[],
-    options: ProtocolCreateOptions,
+    options: CreateNodeOptions,
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled,
     relay?: IRelay
