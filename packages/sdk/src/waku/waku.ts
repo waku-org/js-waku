@@ -193,7 +193,7 @@ export class WakuNode implements IWaku {
     await this.libp2p.stop();
   }
 
-  public async getPeers(): Promise<Peer[]> {
+  public async getConnectedPeers(): Promise<Peer[]> {
     return this.connectionManager.getConnectedPeers();
   }
 
