@@ -1,7 +1,6 @@
-import type { Stream } from "@libp2p/interface";
-import { isPeerId, PeerId } from "@libp2p/interface";
+import { isPeerId, PeerId, type Stream } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, getHealthManager } from "@waku/core";
+import { ConnectionManager, getHealthManager, StoreCodec } from "@waku/core";
 import type {
   IFilter,
   IHealthManager,
@@ -106,7 +105,17 @@ export class WakuNode implements IWaku {
     this.health = getHealthManager();
 
     if (protocolsEnabled.store) {
-      const store = wakuStore(this.connectionManager);
+      if (options.store?.peer) {
+        this.connectionManager
+          .rawDialPeerWithProtocols(options.store.peer, [StoreCodec])
+          .catch((e) => {
+            log.error("Failed to dial store peer", e);
+          });
+      }
+
+      const store = wakuStore(this.connectionManager, {
+        peer: options.store?.peer
+      });
       this.store = store(libp2p);
     }
 
@@ -145,7 +154,6 @@ export class WakuNode implements IWaku {
     protocols?: Protocols[]
   ): Promise<Stream> {
     const _protocols = protocols ?? [];
-    const peerId = this.mapToPeerIdOrMultiaddr(peer);
 
     if (typeof protocols === "undefined") {
       this.relay && _protocols.push(Protocols.Relay);
@@ -194,9 +202,9 @@ export class WakuNode implements IWaku {
       }
     }
 
+    const peerId = this.mapToPeerIdOrMultiaddr(peer);
     log.info(`Dialing to ${peerId.toString()} with protocols ${_protocols}`);
-
-    return this.libp2p.dialProtocol(peerId, codecs);
+    return await this.connectionManager.rawDialPeerWithProtocols(peer, codecs);
   }
 
   public async start(): Promise<void> {
