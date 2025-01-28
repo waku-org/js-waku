@@ -1,0 +1,84 @@
+{
+    "name": "@waku/sds",
+    "version": "0.0.1",
+    "description": "Scalable Data Sync implementation for the browser. Based on https://github.com/vacp2p/rfc-index/blob/main/vac/raw/sds.md",
+    "types": "./dist/index.d.ts",
+    "module": "./dist/index.js",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "typesVersions": {
+        "*": {
+            "*": [
+                "*",
+                "dist/*",
+                "dist/*/index"
+            ]
+        }
+    },
+    "type": "module",
+    "author": "Waku Team",
+    "homepage": "https://github.com/waku-org/js-waku/tree/master/packages/scalable-data-sync#readme",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/waku-org/js-waku.git"
+    },
+    "bugs": {
+        "url": "https://github.com/waku-org/js-waku/issues"
+    },
+    "license": "MIT OR Apache-2.0",
+    "keywords": [
+        "waku",
+        "decentralized",
+        "secure",
+        "communication",
+        "web3",
+        "ethereum",
+        "dapps",
+        "privacy"
+    ],
+    "scripts": {
+        "build": "run-s build:**",
+        "build:esm": "tsc",
+        "build:bundle": "rollup --config rollup.config.js",
+        "fix": "run-s fix:*",
+        "fix:lint": "eslint src *.js --fix",
+        "check": "run-s check:*",
+        "check:lint": "eslint src *.js",
+        "check:spelling": "cspell \"{README.md,src/**/*.ts}\"",
+        "check:tsc": "tsc -p tsconfig.dev.json",
+        "prepublish": "npm run build",
+        "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build",
+        "test": "NODE_ENV=test run-s test:*",
+        "test:node": "NODE_ENV=test TS_NODE_PROJECT=./tsconfig.dev.json mocha"
+    },
+    "engines": {
+        "node": ">=20"
+    },
+    "dependencies": {
+        "chai": "^5.1.2"
+    },
+    "devDependencies": {
+        "@rollup/plugin-commonjs": "^25.0.7",
+        "@rollup/plugin-json": "^6.0.0",
+        "@rollup/plugin-node-resolve": "^15.2.3",
+        "@waku/build-utils": "*",
+        "cspell": "^8.6.1",
+        "fast-check": "^3.19.0",
+        "npm-run-all": "^4.1.5",
+        "rollup": "^4.12.0"
+    },
+    "files": [
+        "dist",
+        "bundle",
+        "src/**/*.ts",
+        "!**/*.spec.*",
+        "!**/*.json",
+        "CHANGELOG.md",
+        "LICENSE",
+        "README.md"
+    ]
+}
