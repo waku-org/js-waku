@@ -15,10 +15,13 @@ if (process.env.CI) {
   console.log("Running tests in parallel");
   config.parallel = true;
   config.jobs = 6;
-  console.log("Using JSON reporter for test results");
-  config.reporter = 'json';
+  console.log("Using multi reporters for test results");
+  config.reporter = 'mocha-multi-reporters';
   config.reporterOptions = {
-    output: 'reports/mocha-results.json'
+    reporterEnabled: 'spec, json',
+    jsonReporterOptions: {
+      output: 'reports/mocha-results.json'
+    }
   };
 } else {
   console.log("Running tests serially. To enable parallel execution update mocha config");
