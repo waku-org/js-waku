@@ -1,20 +1,19 @@
 import { ConnectionManager, FilterCore } from "@waku/core";
-import {
-  type Callback,
-  type CreateSubscriptionResult,
-  type IAsyncIterator,
-  type IDecodedMessage,
-  type IDecoder,
-  type IFilter,
-  type ILightPush,
-  type Libp2p,
-  NetworkConfig,
-  ProtocolError,
-  type PubsubTopic,
-  type SubscribeOptions,
+import type {
+  Callback,
+  CreateSubscriptionResult,
+  FilterProtocolOptions,
+  IAsyncIterator,
+  IDecodedMessage,
+  IDecoder,
+  IFilter,
+  ILightPush,
+  Libp2p,
+  PubsubTopic,
   SubscribeResult,
-  type Unsubscribe
+  Unsubscribe
 } from "@waku/interfaces";
+import { NetworkConfig, ProtocolError } from "@waku/interfaces";
 import {
   ensurePubsubTopicIsConfigured,
   groupByContentTopic,
@@ -25,22 +24,26 @@ import {
 
 import { PeerManager } from "../peer_manager.js";
 
-import { DEFAULT_SUBSCRIBE_OPTIONS } from "./constants.js";
-import { SubscriptionManager } from "./subscription_manager.js";
+import { Subscription } from "./subscription.js";
+import { buildConfig } from "./utils.js";
 
 const log = new Logger("sdk:filter");
 
 class Filter implements IFilter {
   public readonly protocol: FilterCore;
 
-  private activeSubscriptions = new Map<string, SubscriptionManager>();
+  private readonly config: FilterProtocolOptions;
+  private activeSubscriptions = new Map<string, Subscription>();
 
   public constructor(
     private connectionManager: ConnectionManager,
     private libp2p: Libp2p,
     private peerManager: PeerManager,
-    private lightPush?: ILightPush
+    private lightPush?: ILightPush,
+    config?: Partial<FilterProtocolOptions>
   ) {
+    this.config = buildConfig(config);
+
     this.protocol = new FilterCore(
       async (pubsubTopic, wakuMessage, peerIdStr) => {
         const subscription = this.getActiveSubscription(pubsubTopic);
@@ -50,6 +53,7 @@ class Filter implements IFilter {
           );
           return;
         }
+
         await subscription.processIncomingMessage(wakuMessage, peerIdStr);
       },
 
@@ -66,7 +70,6 @@ class Filter implements IFilter {
    *
    * @param {IDecoder<T> | IDecoder<T>[]} decoders - A single decoder or an array of decoders to use for decoding messages.
    * @param {Callback<T>} callback - The callback function to be invoked with decoded messages.
-   * @param {SubscribeOptions} [subscribeOptions=DEFAULT_SUBSCRIBE_OPTIONS] - Options for the subscription.
    *
    * @returns {Promise<SubscribeResult>} A promise that resolves to an object containing:
    *   - subscription: The created subscription object if successful, or null if failed.
@@ -100,8 +103,7 @@ class Filter implements IFilter {
    */
   public async subscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>,
-    subscribeOptions: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
+    callback: Callback<T>
   ): Promise<SubscribeResult> {
     const uniquePubsubTopics = this.getUniquePubsubTopics(decoders);
 
@@ -127,8 +129,7 @@ class Filter implements IFilter {
 
     const { failures, successes } = await subscription.subscribe(
       decoders,
-      callback,
-      subscribeOptions
+      callback
     );
     return {
       subscription,
@@ -173,12 +174,13 @@ class Filter implements IFilter {
       this.getActiveSubscription(pubsubTopic) ??
       this.setActiveSubscription(
         pubsubTopic,
-        new SubscriptionManager(
+        new Subscription(
           pubsubTopic,
           this.protocol,
           this.connectionManager,
           this.peerManager,
           this.libp2p,
+          this.config,
           this.lightPush
         )
       );
@@ -206,8 +208,7 @@ class Filter implements IFilter {
    */
   public async subscribeWithUnsubscribe<T extends IDecodedMessage>(
     decoders: IDecoder<T> | IDecoder<T>[],
-    callback: Callback<T>,
-    options: SubscribeOptions = DEFAULT_SUBSCRIBE_OPTIONS
+    callback: Callback<T>
   ): Promise<Unsubscribe> {
     const uniquePubsubTopics = this.getUniquePubsubTopics<T>(decoders);
 
@@ -231,7 +232,7 @@ class Filter implements IFilter {
       throw Error(`Failed to create subscription: ${error}`);
     }
 
-    await subscription.subscribe(decoders, callback, options);
+    await subscription.subscribe(decoders, callback);
 
     const contentTopics = Array.from(
       groupByContentTopic(
@@ -250,17 +251,16 @@ class Filter implements IFilter {
     return toAsyncIterator(this, decoders);
   }
 
-  //TODO: move to SubscriptionManager
   private getActiveSubscription(
     pubsubTopic: PubsubTopic
-  ): SubscriptionManager | undefined {
+  ): Subscription | undefined {
     return this.activeSubscriptions.get(pubsubTopic);
   }
 
   private setActiveSubscription(
     pubsubTopic: PubsubTopic,
-    subscription: SubscriptionManager
-  ): SubscriptionManager {
+    subscription: Subscription
+  ): Subscription {
     this.activeSubscriptions.set(pubsubTopic, subscription);
     return subscription;
   }
@@ -285,8 +285,9 @@ class Filter implements IFilter {
 export function wakuFilter(
   connectionManager: ConnectionManager,
   peerManager: PeerManager,
-  lightPush?: ILightPush
+  lightPush?: ILightPush,
+  config?: Partial<FilterProtocolOptions>
 ): (libp2p: Libp2p) => IFilter {
   return (libp2p: Libp2p) =>
-    new Filter(connectionManager, libp2p, peerManager, lightPush);
+    new Filter(connectionManager, libp2p, peerManager, lightPush, config);
 }

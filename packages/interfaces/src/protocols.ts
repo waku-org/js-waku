@@ -2,6 +2,7 @@ import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
 
 import type { ConnectionManagerOptions } from "./connection_manager.js";
+import type { FilterProtocolOptions } from "./filter.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
 import { ThisAndThat, ThisOrThat } from "./misc.js";
@@ -23,19 +24,13 @@ export type IBaseProtocolCore = {
 
 export type NetworkConfig = StaticSharding | AutoSharding;
 
-export type ProtocolCreateOptions = {
+export type CreateNodeOptions = {
   /**
-   * Configuration for determining the network in use.
+   * Set the user agent string to be used in identification of the node.
    *
-   * If using Static Sharding:
-   * Default value is configured for The Waku Network.
-   * The format to specify a shard is: clusterId: number, shards: number[]
-   * To learn more about the sharding specification, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
-   *
-   * If using Auto Sharding:
-   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#content-topics) for details.
-   * You cannot add or remove content topics after initialization of the node.
+   * @default "js-waku"
    */
+  userAgent?: string;
 
   /**
    * Configuration for determining the network in use.
@@ -93,9 +88,16 @@ export type ProtocolCreateOptions = {
   bootstrapPeers?: string[];
 
   /**
-   * Configuration for connection manager. If not specified - default values are applied.
+   * Configuration for connection manager.
+   * If not specified - default values are applied.
    */
   connectionManager?: Partial<ConnectionManagerOptions>;
+
+  /**
+   * Configuration for Filter protocol.
+   * If not specified - default values are applied.
+   */
+  filter?: Partial<FilterProtocolOptions>;
 
   /**
    * Options for the Store protocol.

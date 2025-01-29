@@ -3,6 +3,7 @@ import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
 import { ConnectionManager, getHealthManager, StoreCodec } from "@waku/core";
 import type {
+  CreateNodeOptions,
   IFilter,
   IHealthManager,
   ILightPush,
@@ -10,7 +11,6 @@ import type {
   IStore,
   IWaku,
   Libp2p,
-  ProtocolCreateOptions,
   PubsubTopic
 } from "@waku/interfaces";
 import { Protocols } from "@waku/interfaces";
@@ -20,25 +20,10 @@ import { wakuFilter } from "../protocols/filter/index.js";
 import { wakuLightPush } from "../protocols/light_push/index.js";
 import { PeerManager } from "../protocols/peer_manager.js";
 import { wakuStore } from "../protocols/store/index.js";
-import { ReliabilityMonitorManager } from "../reliability_monitor/index.js";
 
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
-export const DefaultUserAgent = "js-waku";
-export const DefaultPingMaxInboundStreams = 10;
-
 const log = new Logger("waku");
-
-export interface WakuOptions {
-  /**
-   * Set the user agent string to be used in identification of the node.
-   * @default {@link @waku/core.DefaultUserAgent}
-   */
-  userAgent?: string;
-}
-
-export type CreateWakuNodeOptions = ProtocolCreateOptions &
-  Partial<WakuOptions>;
 
 type ProtocolsEnabled = {
   filter?: boolean;
@@ -59,7 +44,7 @@ export class WakuNode implements IWaku {
 
   public constructor(
     public readonly pubsubTopics: PubsubTopic[],
-    options: CreateWakuNodeOptions,
+    options: CreateNodeOptions,
     libp2p: Libp2p,
     protocolsEnabled: ProtocolsEnabled,
     relay?: IRelay
@@ -116,7 +101,8 @@ export class WakuNode implements IWaku {
       const filter = wakuFilter(
         this.connectionManager,
         this.peerManager,
-        this.lightPush
+        this.lightPush,
+        options.filter
       );
       this.filter = filter(libp2p);
     }
@@ -200,7 +186,6 @@ export class WakuNode implements IWaku {
   }
 
   public async stop(): Promise<void> {
-    ReliabilityMonitorManager.stopAll();
     this.peerManager.stop();
     this.connectionManager.stop();
     await this.libp2p.stop();

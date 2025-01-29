@@ -11,8 +11,7 @@ import {
 import { createRelayNode } from "@waku/relay";
 import {
   createLightNode,
-  createEncoder as createPlainEncoder,
-  DefaultUserAgent
+  createEncoder as createPlainEncoder
 } from "@waku/sdk";
 import { bytesToUtf8, utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
@@ -278,7 +277,7 @@ describe("User Agent", function () {
       waku1UserAgent
     );
     expect(bytesToUtf8(waku2PeerInfo.metadata.get("AgentVersion")!)).to.eq(
-      DefaultUserAgent
+      "js-waku"
     );
   });
 });
