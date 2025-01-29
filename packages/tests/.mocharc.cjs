@@ -15,13 +15,27 @@ if (process.env.CI) {
   config.parallel = true;
   config.jobs = 6;
   console.log("Using multi reporters for test results");
-  config.reporter = 'mocha-multi-reporters';
-  config.reporterOptions = {
-    reporterEnabled: 'spec, json',
-    jsonReporterOptions: {
-      output: 'reports/mocha-results.json'
+  config.reporter = 'spec';
+
+  // Write JSON results to file without printing to console
+  if (process.env.REPORT_PATH) {
+    const fs = require('fs');
+    const path = require('path');
+    const reportDir = path.dirname(process.env.REPORT_PATH);
+    if (!fs.existsSync(reportDir)) {
+      fs.mkdirSync(reportDir, { recursive: true });
     }
-  };
+    config.reporter = 'mocha-multi-reporters';
+    config.reporterOptions = {
+      reporterEnabled: 'spec, json',
+      reporterOptions: {
+        json: {
+          stdout: '/dev/null',  // Don't print JSON to stdout
+          options: { output: process.env.REPORT_PATH }
+        }
+      }
+    };
+  }
 } else {
   console.log("Running tests serially. To enable parallel execution update mocha config");
 }

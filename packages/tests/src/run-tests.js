@@ -1,9 +1,15 @@
 import { exec, spawn } from "child_process";
-import { mkdir } from "fs/promises";
-import { dirname } from "path";
+import { mkdir, writeFile } from "fs/promises";
+import { dirname, join, resolve } from "path";
+import { fileURLToPath } from "url";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Ensure paths are absolute and relative to the package root
+const PACKAGE_ROOT = resolve(__dirname, "..");
+const getPackagePath = (path) => resolve(PACKAGE_ROOT, path);
 
 const WAKUNODE_IMAGE = process.env.WAKUNODE_IMAGE || "wakuorg/nwaku:v0.31.0";
 
@@ -26,18 +32,38 @@ async function main() {
   ];
 
   if (process.env.CI) {
-    const reportPath = "reports/mocha-results.json";
-    await mkdir(dirname(reportPath), { recursive: true });
+    const reportsDir = getPackagePath("reports");
+    const reportFile = resolve(reportsDir, "mocha-results.json");
+    const configFile = resolve(reportsDir, "config.json");
 
+    await mkdir(reportsDir, { recursive: true });
+
+    // Create a clean reporter config
+    const reporterConfig = {
+      reporterEnabled: "spec",
+      reporterOptions: {
+        json: {
+          stdout: false,
+          options: {
+            output: reportFile
+          }
+        }
+      }
+    };
+
+    // Write the config file
+    await writeFile(configFile, JSON.stringify(reporterConfig, null, 2));
+
+    // Add a separate JSON reporter directly
     mochaArgs.push(
-      "--reporter",
-      "json",
       "--reporter-option",
-      `output=${reportPath}`,
-      "--parallel",
-      "--jobs",
-      "6"
+      `output=${reportFile}`,
+      "--reporter",
+      "json"
     );
+  } else {
+    // In non-CI environments, just use spec reporter
+    mochaArgs.push("--reporter", "spec");
   }
 
   // Add test files
@@ -48,7 +74,7 @@ async function main() {
   }
   mochaArgs.push(...testFiles);
 
-  console.log("Running mocha with args:", mochaArgs);
+  console.info("Running mocha with args:", mochaArgs);
 
   // Run mocha tests
   const mocha = spawn("npx", mochaArgs, {

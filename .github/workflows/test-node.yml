@@ -30,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image }}
+      REPORT_PATH: packages/tests/reports/mocha-results.json
+      GITHUB_WORKSPACE: ${{ github.workspace }}
     permissions:
       contents: read
       actions: read
@@ -47,6 +49,9 @@ jobs:
 
       - run: npm run build:esm
 
+      - name: Create reports directory
+        run: mkdir -p packages/tests/reports
+
       - run: ${{ (inputs.test_type == 'node-optional') && 'npm run test:optional --workspace=@waku/tests' || 'npm run test:node' }}
 
       - name: Test Report
@@ -54,7 +59,7 @@ jobs:
         if: success() || failure()
         with:
           name: Test Report - ${{ inputs.test_type }}
-          path: 'packages/tests/reports/mocha-*.json'
+          path: packages/tests/reports/mocha-results.json
           reporter: mocha-json
           fail-on-error: true
 
