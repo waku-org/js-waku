@@ -19,7 +19,7 @@ import {
 import { WakuMessage } from "@waku/proto";
 import { groupByContentTopic, Logger } from "@waku/utils";
 
-import { PeerManager } from "../peer_manager.js";
+import { PeerManager } from "../peer_manager/index.js";
 
 import { SubscriptionMonitor } from "./subscription_monitor.js";
 

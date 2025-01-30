@@ -10,7 +10,7 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import sinon from "sinon";
 
-import { PeerManager } from "../peer_manager.js";
+import { PeerManager } from "../peer_manager/index.js";
 
 import { LightPush } from "./light_push.js";
 

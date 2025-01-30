@@ -10,7 +10,7 @@ import type {
 import { EConnectionStateEvents } from "@waku/interfaces";
 import { messageHashStr } from "@waku/message-hash";
 
-import { PeerManager } from "../peer_manager.js";
+import { PeerManager } from "../peer_manager/index.js";
 
 // TODO(weboko): consider adding as config property or combine with maxAllowedPings
 const MAX_SUBSCRIBE_ATTEMPTS = 3;

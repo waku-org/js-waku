@@ -18,7 +18,7 @@ import { Logger } from "@waku/utils";
 
 import { wakuFilter } from "../protocols/filter/index.js";
 import { wakuLightPush } from "../protocols/light_push/index.js";
-import { PeerManager } from "../protocols/peer_manager.js";
+import { PeerManager } from "../protocols/peer_manager/index.js";
 import { wakuStore } from "../protocols/store/index.js";
 
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";

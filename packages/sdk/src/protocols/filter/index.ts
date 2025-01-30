@@ -22,7 +22,7 @@ import {
   toAsyncIterator
 } from "@waku/utils";
 
-import { PeerManager } from "../peer_manager.js";
+import { PeerManager } from "../peer_manager/index.js";
 
 import { Subscription } from "./subscription.js";
 import { buildConfig } from "./utils.js";
