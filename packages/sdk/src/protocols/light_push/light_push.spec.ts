@@ -57,8 +57,7 @@ describe("LightPush SDK", () => {
       peers: [mockPeer("1"), mockPeer("2"), mockPeer("3"), mockPeer("4")]
     });
 
-    // check default value that should be 2
-    lightPush = mockLightPush({ libp2p });
+    lightPush = mockLightPush({ libp2p, numPeersToUse: 2 });
     let sendSpy = sinon.spy(
       (_encoder: any, _message: any, peer: Peer) =>
         ({ success: peer.id }) as any
@@ -157,9 +156,15 @@ type MockLightPushOptions = {
 function mockLightPush(options: MockLightPushOptions): LightPush {
   return new LightPush(
     {
-      configuredPubsubTopics: options.pubsubTopics || [PUBSUB_TOPIC]
-    } as unknown as ConnectionManager,
-    {} as unknown as PeerManager,
+      pubsubTopics: options.pubsubTopics || [PUBSUB_TOPIC]
+    } as ConnectionManager,
+    {
+      getPeers: () =>
+        options.libp2p
+          .getPeers()
+          .map((id) => mockPeer(id.toString()))
+          .slice(0, options.numPeersToUse || options.libp2p.getPeers().length)
+    } as unknown as PeerManager,
     options.libp2p
   );
 }
