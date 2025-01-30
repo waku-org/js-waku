@@ -412,7 +412,8 @@ export function defaultArgs(): Args {
     restAdmin: true,
     websocketSupport: true,
     logLevel: LogLevel.Trace,
-    pubsubTopic: ["/waku/2/rs/0/0"]
+    clusterId: 0,
+    shard: [0]
   };
 }
 

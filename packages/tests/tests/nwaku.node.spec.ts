@@ -17,7 +17,8 @@ describe("nwaku", () => {
       "--rest-admin=true",
       "--websocket-support=true",
       "--log-level=TRACE",
-      "--pubsub-topic=/waku/2/rs/0/0",
+      "--cluster-id=0",
+      "--shard=0",
       "--ports-shift=42"
     ];
 
