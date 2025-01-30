@@ -241,7 +241,8 @@ export class Store implements IStore {
     const peers = await this.peerManager.getPeers();
 
     if (peers.length > 0) {
-      return peers[0];
+      // TODO(weboko): implement smart way of getting a peer https://github.com/waku-org/js-waku/issues/2243
+      return peers[Math.floor(Math.random() * peers.length)];
     }
 
     log.error("No peers available to use.");
