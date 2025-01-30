@@ -10,6 +10,8 @@ import { utf8ToBytes } from "@waku/utils/bytes";
 import { expect } from "chai";
 import sinon from "sinon";
 
+import { PeerManager } from "../peer_manager/index.js";
+
 import { LightPush } from "./light_push.js";
 
 const PUBSUB_TOPIC = "/waku/2/rs/1/4";
@@ -55,8 +57,7 @@ describe("LightPush SDK", () => {
       peers: [mockPeer("1"), mockPeer("2"), mockPeer("3"), mockPeer("4")]
     });
 
-    // check default value that should be 2
-    lightPush = mockLightPush({ libp2p });
+    lightPush = mockLightPush({ libp2p, numPeersToUse: 2 });
     let sendSpy = sinon.spy(
       (_encoder: any, _message: any, peer: Peer) =>
         ({ success: peer.id }) as any
@@ -155,10 +156,16 @@ type MockLightPushOptions = {
 function mockLightPush(options: MockLightPushOptions): LightPush {
   return new LightPush(
     {
-      configuredPubsubTopics: options.pubsubTopics || [PUBSUB_TOPIC]
+      pubsubTopics: options.pubsubTopics || [PUBSUB_TOPIC]
     } as ConnectionManager,
-    options.libp2p,
-    { numPeersToUse: options.numPeersToUse }
+    {
+      getPeers: () =>
+        options.libp2p
+          .getPeers()
+          .map((id) => mockPeer(id.toString()))
+          .slice(0, options.numPeersToUse || options.libp2p.getPeers().length)
+    } as unknown as PeerManager,
+    options.libp2p
   );
 }
 

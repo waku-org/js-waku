@@ -1,8 +1,4 @@
-import {
-  NetworkConfig,
-  ProtocolCreateOptions,
-  Protocols
-} from "@waku/interfaces";
+import { CreateNodeOptions, NetworkConfig, Protocols } from "@waku/interfaces";
 import { createRelayNode } from "@waku/relay";
 import { createLightNode, WakuNode } from "@waku/sdk";
 import {
@@ -46,7 +42,7 @@ export async function runNodes<T>(
     },
     { retries: 3 }
   );
-  const waku_options: ProtocolCreateOptions = {
+  const waku_options: CreateNodeOptions = {
     staticNoiseKey: NOISE_KEY_1,
     libp2p: { addresses: { listen: ["/ip4/0.0.0.0/tcp/0/ws"] } },
     networkConfig: shardInfo

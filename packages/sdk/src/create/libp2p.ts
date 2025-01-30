@@ -8,6 +8,7 @@ import { all as filterAll, wss } from "@libp2p/websockets/filters";
 import { wakuMetadata } from "@waku/core";
 import {
   type CreateLibp2pOptions,
+  type CreateNodeOptions,
   DefaultNetworkConfig,
   type IMetadata,
   type Libp2p,
@@ -18,11 +19,6 @@ import { derivePubsubTopicsFromNetworkConfig, Logger } from "@waku/utils";
 import { createLibp2p } from "libp2p";
 
 import { isTestEnvironment } from "../env.js";
-import {
-  CreateWakuNodeOptions,
-  DefaultPingMaxInboundStreams,
-  DefaultUserAgent
-} from "../waku/index.js";
 
 import { defaultPeerDiscoveries } from "./discovery.js";
 
@@ -31,6 +27,9 @@ type MetadataService = {
 };
 
 const log = new Logger("sdk:create");
+
+const DefaultUserAgent = "js-waku";
+const DefaultPingMaxInboundStreams = 10;
 
 export async function defaultLibp2p(
   pubsubTopics: PubsubTopic[],
@@ -79,7 +78,7 @@ export async function defaultLibp2p(
 }
 
 export async function createLibp2pAndUpdateOptions(
-  options: CreateWakuNodeOptions
+  options: CreateNodeOptions
 ): Promise<{ libp2p: Libp2p; pubsubTopics: PubsubTopic[] }> {
   const { networkConfig } = options;
   const pubsubTopics = derivePubsubTopicsFromNetworkConfig(

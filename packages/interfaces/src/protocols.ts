@@ -1,11 +1,13 @@
 import type { Libp2p } from "@libp2p/interface";
 import type { PeerId } from "@libp2p/interface";
-import type { Peer } from "@libp2p/interface";
 
+import type { ConnectionManagerOptions } from "./connection_manager.js";
+import type { FilterProtocolOptions } from "./filter.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
 import type { IDecodedMessage } from "./message.js";
 import { ThisAndThat, ThisOrThat } from "./misc.js";
 import { AutoSharding, StaticSharding } from "./sharding.js";
+import type { StoreProtocolOptions } from "./store.js";
 
 export enum Protocols {
   Relay = "relay",
@@ -16,52 +18,20 @@ export enum Protocols {
 
 export type IBaseProtocolCore = {
   multicodec: string;
-  allPeers: () => Promise<Peer[]>;
-  connectedPeers: () => Promise<Peer[]>;
   addLibp2pEventListener: Libp2p["addEventListener"];
   removeLibp2pEventListener: Libp2p["removeEventListener"];
 };
 
-export type IBaseProtocolSDK = {
-  readonly connectedPeers: Peer[];
-  renewPeer: (peerToDisconnect: PeerId) => Promise<Peer | undefined>;
-  readonly numPeersToUse: number;
-};
-
-export type StoreProtocolOptions = {
-  peer: string;
-};
-
 export type NetworkConfig = StaticSharding | AutoSharding;
 
-//TODO: merge this with ProtocolCreateOptions or establish distinction: https://github.com/waku-org/js-waku/issues/2048
-/**
- * Options for using LightPush and Filter
- */
-export type ProtocolUseOptions = {
+export type CreateNodeOptions = {
   /**
-   * Optional flag to force using all available peers
+   * Set the user agent string to be used in identification of the node.
+   *
+   * @default "js-waku"
    */
-  forceUseAllPeers?: boolean;
-  /**
-   * Optional maximum number of attempts for exponential backoff
-   */
-  maxAttempts?: number;
-};
+  userAgent?: string;
 
-export type ProtocolCreateOptions = {
-  /**
-   * Configuration for determining the network in use.
-   *
-   * If using Static Sharding:
-   * Default value is configured for The Waku Network.
-   * The format to specify a shard is: clusterId: number, shards: number[]
-   * To learn more about the sharding specification, see [Relay Sharding](https://rfc.vac.dev/spec/51/).
-   *
-   * If using Auto Sharding:
-   * See [Waku v2 Topic Usage Recommendations](https://github.com/vacp2p/rfc-index/blob/main/waku/informational/23/topics.md#content-topics) for details.
-   * You cannot add or remove content topics after initialization of the node.
-   */
   /**
    * Configuration for determining the network in use.
    * Network configuration refers to the shards and clusters used in the network.
@@ -80,6 +50,7 @@ export type ProtocolCreateOptions = {
    * @default { clusterId: 1, shards: [0, 1, 2, 3, 4, 5, 6, 7] }
    */
   networkConfig?: NetworkConfig;
+
   /**
    * You can pass options to the `Libp2p` instance used by {@link @waku/sdk!WakuNode} using the `libp2p` property.
    * This property is the same type as the one passed to [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
@@ -88,28 +59,46 @@ export type ProtocolCreateOptions = {
    * Notes that some values are overridden by {@link @waku/sdk!WakuNode} to ensure it implements the Waku protocol.
    */
   libp2p?: Partial<CreateLibp2pOptions>;
+
   /**
    * Number of peers to connect to, for the usage of the protocol.
    * This is used by:
    * - Light Push to send messages,
    * - Filter to retrieve messages.
-   * Defaults to 2.
+   *
+   * @default 2.
    */
   numPeersToUse?: number;
+
   /**
    * Byte array used as key for the noise protocol used for connection encryption
    * by [`Libp2p.create`](https://github.com/libp2p/js-libp2p/blob/master/doc/API.md#create)
    * This is only used for test purposes to not run out of entropy during CI runs.
    */
   staticNoiseKey?: Uint8Array;
+
   /**
    * Use recommended bootstrap method to discovery and connect to new nodes.
    */
   defaultBootstrap?: boolean;
+
   /**
    * List of peers to use to bootstrap the node. Ignored if defaultBootstrap is set to true.
    */
   bootstrapPeers?: string[];
+
+  /**
+   * Configuration for connection manager.
+   * If not specified - default values are applied.
+   */
+  connectionManager?: Partial<ConnectionManagerOptions>;
+
+  /**
+   * Configuration for Filter protocol.
+   * If not specified - default values are applied.
+   */
+  filter?: Partial<FilterProtocolOptions>;
+
   /**
    * Options for the Store protocol.
    */

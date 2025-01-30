@@ -12,9 +12,7 @@ import {
 import { messageHash } from "@waku/message-hash";
 import { ensurePubsubTopicIsConfigured, isDefined, Logger } from "@waku/utils";
 
-import { BaseProtocolSDK } from "../base_protocol.js";
-
-const DEFAULT_NUM_PEERS = 1;
+import { PeerManager } from "../peer_manager/index.js";
 
 const log = new Logger("waku:store:sdk");
 
@@ -22,22 +20,16 @@ const log = new Logger("waku:store:sdk");
  * StoreSDK is an implementation of the IStoreSDK interface.
  * It provides methods to interact with the Waku Store protocol.
  */
-export class Store extends BaseProtocolSDK implements IStore {
+export class Store implements IStore {
   public readonly protocol: StoreCore;
 
   public constructor(
-    connectionManager: ConnectionManager,
+    private connectionManager: ConnectionManager,
     libp2p: Libp2p,
+    private peerManager: PeerManager,
     private options?: Partial<StoreProtocolOptions>
   ) {
-    super(
-      new StoreCore(connectionManager.configuredPubsubTopics, libp2p),
-      connectionManager,
-      {
-        numPeersToUse: DEFAULT_NUM_PEERS
-      }
-    );
-    this.protocol = this.core as StoreCore;
+    this.protocol = new StoreCore(connectionManager.pubsubTopics, libp2p);
   }
 
   /**
@@ -231,24 +223,30 @@ export class Store extends BaseProtocolSDK implements IStore {
     };
   }
 
-  private async getPeerToUse(): Promise<Peer | null> {
-    const peer = this.connectedPeers.find(
-      (p) => p.id.toString() === this.options?.peer
-    );
-    if (peer) {
-      return peer;
+  private async getPeerToUse(): Promise<Peer | undefined> {
+    let peer: Peer | undefined;
+
+    if (this.options?.peer) {
+      const connectedPeers = await this.connectionManager.getConnectedPeers();
+
+      peer = connectedPeers.find((p) => p.id.toString() === this.options?.peer);
+
+      if (!peer) {
+        log.warn(
+          `Passed node to use for Store not found: ${this.options.peer}. Attempting to use random peers.`
+        );
+      }
     }
 
-    log.warn(
-      `Passed node to use for Store not found: ${this.options?.peer}. Attempting to use random peers.`
-    );
+    const peers = await this.peerManager.getPeers();
 
-    return (
-      await this.protocol.getPeers({
-        numPeers: this.numPeersToUse,
-        maxBootstrapPeers: 1
-      })
-    )[0];
+    if (peers.length > 0) {
+      // TODO(weboko): implement smart way of getting a peer https://github.com/waku-org/js-waku/issues/2243
+      return peers[Math.floor(Math.random() * peers.length)];
+    }
+
+    log.error("No peers available to use.");
+    return;
   }
 }
 
@@ -260,9 +258,10 @@ export class Store extends BaseProtocolSDK implements IStore {
  */
 export function wakuStore(
   connectionManager: ConnectionManager,
+  peerManager: PeerManager,
   options?: Partial<StoreProtocolOptions>
 ): (libp2p: Libp2p) => IStore {
   return (libp2p: Libp2p) => {
-    return new Store(connectionManager, libp2p, options);
+    return new Store(connectionManager, libp2p, peerManager, options);
   };
 }
