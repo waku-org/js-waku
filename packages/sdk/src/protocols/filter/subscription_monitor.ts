@@ -213,9 +213,11 @@ export class SubscriptionMonitor {
     );
   }
 
+  // this method keeps track of new connections and will trigger subscribe request if needed
   private async onPeerConnected(_event: CustomEvent<PeerId>): Promise<void> {
-    // TODO(weboko): use config.numOfUsedPeers here
-    if (this.peers.length > 0) {
+    // TODO(weboko): use config.numOfUsedPeers instead of this.peers
+    const hasSomePeers = this.peers.length > 0;
+    if (hasSomePeers) {
       return;
     }
 
@@ -223,6 +225,7 @@ export class SubscriptionMonitor {
     await Promise.all(this.peers.map((peer) => this.subscribe(peer)));
   }
 
+  // this method keeps track of disconnects and will trigger subscribe request if needed
   private async onPeerDisconnected(event: CustomEvent<PeerId>): Promise<void> {
     const hasNotBeenUsed = !this.peers.find((p) => p.id.equals(event.detail));
     if (hasNotBeenUsed) {
@@ -230,6 +233,9 @@ export class SubscriptionMonitor {
     }
 
     this.peers = await this.peerManager.getPeers();
+
+    // we trigger subscribe for peer that was used before
+    // it will expectedly fail and we will initiate addition of a new peer
     await Promise.all(this.peers.map((peer) => this.subscribe(peer)));
   }
 
