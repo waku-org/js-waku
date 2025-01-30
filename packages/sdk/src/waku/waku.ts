@@ -16,10 +16,10 @@ import type {
 import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
-import { wakuFilter } from "../protocols/filter/index.js";
-import { wakuLightPush } from "../protocols/light_push/index.js";
-import { PeerManager } from "../protocols/peer_manager/index.js";
-import { wakuStore } from "../protocols/store/index.js";
+import { wakuFilter } from "../filter/index.js";
+import { wakuLightPush } from "../light_push/index.js";
+import { PeerManager } from "../peer_manager/index.js";
+import { wakuStore } from "../store/index.js";
 
 import { waitForRemotePeer } from "./wait_for_remote_peer.js";
 
