@@ -5,7 +5,7 @@ import sinon from "sinon";
 
 import { PeerManager } from "./peer_manager.js";
 
-describe.only("PeerManager", () => {
+describe("PeerManager", () => {
   let libp2p: Libp2p;
   let peerManager: PeerManager;
 
