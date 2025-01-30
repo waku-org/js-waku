@@ -1,0 +1,437 @@
+{
+  "description": "Test vectors for BloomFilter hashN function",
+  "vectors": [
+    {
+      "input": "hello",
+      "n": 0,
+      "maxValue": 100,
+      "expected": { "hashA": 51, "hashB": 74, "hashC": 51 }
+    },
+    {
+      "input": "hello",
+      "n": 1,
+      "maxValue": 100,
+      "expected": { "hashA": 51, "hashB": 74, "hashC": 25 }
+    },
+    {
+      "input": "hello",
+      "n": 2,
+      "maxValue": 100,
+      "expected": { "hashA": 51, "hashB": 74, "hashC": 99 }
+    },
+    {
+      "input": "hello",
+      "n": 5,
+      "maxValue": 100,
+      "expected": { "hashA": 51, "hashB": 74, "hashC": 21 }
+    },
+    {
+      "input": "hello",
+      "n": 0,
+      "maxValue": 1000,
+      "expected": { "hashA": 351, "hashB": 874, "hashC": 351 }
+    },
+    {
+      "input": "hello",
+      "n": 1,
+      "maxValue": 1000,
+      "expected": { "hashA": 351, "hashB": 874, "hashC": 225 }
+    },
+    {
+      "input": "hello",
+      "n": 2,
+      "maxValue": 1000,
+      "expected": { "hashA": 351, "hashB": 874, "hashC": 99 }
+    },
+    {
+      "input": "hello",
+      "n": 5,
+      "maxValue": 1000,
+      "expected": { "hashA": 351, "hashB": 874, "hashC": 721 }
+    },
+    {
+      "input": "hello",
+      "n": 0,
+      "maxValue": 10000,
+      "expected": { "hashA": 3351, "hashB": 874, "hashC": 3351 }
+    },
+    {
+      "input": "hello",
+      "n": 1,
+      "maxValue": 10000,
+      "expected": { "hashA": 3351, "hashB": 874, "hashC": 4225 }
+    },
+    {
+      "input": "hello",
+      "n": 2,
+      "maxValue": 10000,
+      "expected": { "hashA": 3351, "hashB": 874, "hashC": 5099 }
+    },
+    {
+      "input": "hello",
+      "n": 5,
+      "maxValue": 10000,
+      "expected": { "hashA": 3351, "hashB": 874, "hashC": 7721 }
+    },
+    {
+      "input": "",
+      "n": 0,
+      "maxValue": 100,
+      "expected": { "hashA": 0, "hashB": 8, "hashC": 0 }
+    },
+    {
+      "input": "",
+      "n": 1,
+      "maxValue": 100,
+      "expected": { "hashA": 0, "hashB": 8, "hashC": 8 }
+    },
+    {
+      "input": "",
+      "n": 2,
+      "maxValue": 100,
+      "expected": { "hashA": 0, "hashB": 8, "hashC": 16 }
+    },
+    {
+      "input": "",
+      "n": 5,
+      "maxValue": 100,
+      "expected": { "hashA": 0, "hashB": 8, "hashC": 40 }
+    },
+    {
+      "input": "",
+      "n": 0,
+      "maxValue": 1000,
+      "expected": { "hashA": 0, "hashB": 8, "hashC": 0 }
+    },
+    {
+      "input": "",
+      "n": 1,
+      "maxValue": 1000,
+      "expected": { "hashA": 0, "hashB": 8, "hashC": 8 }
+    },
+    {
+      "input": "",
+      "n": 2,
+      "maxValue": 1000,
+      "expected": { "hashA": 0, "hashB": 8, "hashC": 16 }
+    },
+    {
+      "input": "",
+      "n": 5,
+      "maxValue": 1000,
+      "expected": { "hashA": 0, "hashB": 8, "hashC": 40 }
+    },
+    {
+      "input": "",
+      "n": 0,
+      "maxValue": 10000,
+      "expected": { "hashA": 0, "hashB": 6008, "hashC": 0 }
+    },
+    {
+      "input": "",
+      "n": 1,
+      "maxValue": 10000,
+      "expected": { "hashA": 0, "hashB": 6008, "hashC": 6008 }
+    },
+    {
+      "input": "",
+      "n": 2,
+      "maxValue": 10000,
+      "expected": { "hashA": 0, "hashB": 6008, "hashC": 2016 }
+    },
+    {
+      "input": "",
+      "n": 5,
+      "maxValue": 10000,
+      "expected": { "hashA": 0, "hashB": 6008, "hashC": 40 }
+    },
+    {
+      "input": "test123",
+      "n": 0,
+      "maxValue": 100,
+      "expected": { "hashA": 27, "hashB": 4, "hashC": 27 }
+    },
+    {
+      "input": "test123",
+      "n": 1,
+      "maxValue": 100,
+      "expected": { "hashA": 27, "hashB": 4, "hashC": 31 }
+    },
+    {
+      "input": "test123",
+      "n": 2,
+      "maxValue": 100,
+      "expected": { "hashA": 27, "hashB": 4, "hashC": 35 }
+    },
+    {
+      "input": "test123",
+      "n": 5,
+      "maxValue": 100,
+      "expected": { "hashA": 27, "hashB": 4, "hashC": 47 }
+    },
+    {
+      "input": "test123",
+      "n": 0,
+      "maxValue": 1000,
+      "expected": { "hashA": 227, "hashB": 404, "hashC": 227 }
+    },
+    {
+      "input": "test123",
+      "n": 1,
+      "maxValue": 1000,
+      "expected": { "hashA": 227, "hashB": 404, "hashC": 631 }
+    },
+    {
+      "input": "test123",
+      "n": 2,
+      "maxValue": 1000,
+      "expected": { "hashA": 227, "hashB": 404, "hashC": 35 }
+    },
+    {
+      "input": "test123",
+      "n": 5,
+      "maxValue": 1000,
+      "expected": { "hashA": 227, "hashB": 404, "hashC": 247 }
+    },
+    {
+      "input": "test123",
+      "n": 0,
+      "maxValue": 10000,
+      "expected": { "hashA": 6227, "hashB": 4404, "hashC": 6227 }
+    },
+    {
+      "input": "test123",
+      "n": 1,
+      "maxValue": 10000,
+      "expected": { "hashA": 6227, "hashB": 4404, "hashC": 631 }
+    },
+    {
+      "input": "test123",
+      "n": 2,
+      "maxValue": 10000,
+      "expected": { "hashA": 6227, "hashB": 4404, "hashC": 5035 }
+    },
+    {
+      "input": "test123",
+      "n": 5,
+      "maxValue": 10000,
+      "expected": { "hashA": 6227, "hashB": 4404, "hashC": 8247 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 0,
+      "maxValue": 100,
+      "expected": { "hashA": 11, "hashB": 72, "hashC": 11 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 1,
+      "maxValue": 100,
+      "expected": { "hashA": 11, "hashB": 72, "hashC": 83 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 2,
+      "maxValue": 100,
+      "expected": { "hashA": 11, "hashB": 72, "hashC": 55 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 5,
+      "maxValue": 100,
+      "expected": { "hashA": 11, "hashB": 72, "hashC": 71 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 0,
+      "maxValue": 1000,
+      "expected": { "hashA": 311, "hashB": 172, "hashC": 311 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 1,
+      "maxValue": 1000,
+      "expected": { "hashA": 311, "hashB": 172, "hashC": 483 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 2,
+      "maxValue": 1000,
+      "expected": { "hashA": 311, "hashB": 172, "hashC": 655 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 5,
+      "maxValue": 1000,
+      "expected": { "hashA": 311, "hashB": 172, "hashC": 171 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 0,
+      "maxValue": 10000,
+      "expected": { "hashA": 1311, "hashB": 172, "hashC": 1311 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 1,
+      "maxValue": 10000,
+      "expected": { "hashA": 1311, "hashB": 172, "hashC": 1483 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 2,
+      "maxValue": 10000,
+      "expected": { "hashA": 1311, "hashB": 172, "hashC": 1655 }
+    },
+    {
+      "input": "!@#$%^&*()",
+      "n": 5,
+      "maxValue": 10000,
+      "expected": { "hashA": 1311, "hashB": 172, "hashC": 2171 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 0,
+      "maxValue": 100,
+      "expected": { "hashA": 70, "hashB": 3, "hashC": 70 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 1,
+      "maxValue": 100,
+      "expected": { "hashA": 70, "hashB": 3, "hashC": 73 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 2,
+      "maxValue": 100,
+      "expected": { "hashA": 70, "hashB": 3, "hashC": 76 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 5,
+      "maxValue": 100,
+      "expected": { "hashA": 70, "hashB": 3, "hashC": 85 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 0,
+      "maxValue": 1000,
+      "expected": { "hashA": 970, "hashB": 103, "hashC": 970 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 1,
+      "maxValue": 1000,
+      "expected": { "hashA": 970, "hashB": 103, "hashC": 73 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 2,
+      "maxValue": 1000,
+      "expected": { "hashA": 970, "hashB": 103, "hashC": 176 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 5,
+      "maxValue": 1000,
+      "expected": { "hashA": 970, "hashB": 103, "hashC": 485 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 0,
+      "maxValue": 10000,
+      "expected": { "hashA": 9970, "hashB": 103, "hashC": 9970 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 1,
+      "maxValue": 10000,
+      "expected": { "hashA": 9970, "hashB": 103, "hashC": 73 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 2,
+      "maxValue": 10000,
+      "expected": { "hashA": 9970, "hashB": 103, "hashC": 176 }
+    },
+    {
+      "input": "Lorem ipsum dolor sit amet",
+      "n": 5,
+      "maxValue": 10000,
+      "expected": { "hashA": 9970, "hashB": 103, "hashC": 485 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 0,
+      "maxValue": 100,
+      "expected": { "hashA": 66, "hashB": 13, "hashC": 66 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 1,
+      "maxValue": 100,
+      "expected": { "hashA": 66, "hashB": 13, "hashC": 79 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 2,
+      "maxValue": 100,
+      "expected": { "hashA": 66, "hashB": 13, "hashC": 92 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 5,
+      "maxValue": 100,
+      "expected": { "hashA": 66, "hashB": 13, "hashC": 31 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 0,
+      "maxValue": 1000,
+      "expected": { "hashA": 366, "hashB": 613, "hashC": 366 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 1,
+      "maxValue": 1000,
+      "expected": { "hashA": 366, "hashB": 613, "hashC": 979 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 2,
+      "maxValue": 1000,
+      "expected": { "hashA": 366, "hashB": 613, "hashC": 592 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 5,
+      "maxValue": 1000,
+      "expected": { "hashA": 366, "hashB": 613, "hashC": 431 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 0,
+      "maxValue": 10000,
+      "expected": { "hashA": 5366, "hashB": 6613, "hashC": 5366 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 1,
+      "maxValue": 10000,
+      "expected": { "hashA": 5366, "hashB": 6613, "hashC": 1979 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 2,
+      "maxValue": 10000,
+      "expected": { "hashA": 5366, "hashB": 6613, "hashC": 8592 }
+    },
+    {
+      "input": "αβγδε",
+      "n": 5,
+      "maxValue": 10000,
+      "expected": { "hashA": 5366, "hashB": 6613, "hashC": 8431 }
+    }
+  ]
+}

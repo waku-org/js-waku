@@ -120,6 +120,10 @@ export const kErrors: TAllErrorRates = [
       0.0000016500, 0.0000012000, 0.0000008740]),
 ]
 
+export const KTooLargeError = "K must be <= 12";
+export const NoSuitableRatioError =
+  "Specified value of k and error rate not achievable using less than 4 bytes / element.";
+
 /**
  * Given a number of hash functions (k) and a target false-positive rate (targetError),
  * determines the minimum (m/n) bits-per-element that satisfies the error threshold.
@@ -151,7 +155,7 @@ export function getMOverNBitsForK(
 ): number {
   // Returns the optimal number of m/n bits for a given k.
   if (k < 0 || k > 12) {
-    throw new Error("k must be <= 12.");
+    throw new Error(KTooLargeError);
   }
 
   for (let mOverN = 2; mOverN < probabilityTable[k].length; mOverN++) {
@@ -160,7 +164,5 @@ export function getMOverNBitsForK(
     }
   }
 
-  throw new Error(
-    "Specified value of k and error rate not achievable using less than 4 bytes / element."
-  );
+  throw new Error(NoSuitableRatioError);
 }

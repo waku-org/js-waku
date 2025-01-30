@@ -14,6 +14,8 @@ export interface BloomFilterOptions {
   forceNBitsPerElem?: number;
 }
 
+const sizeOfInt = 8;
+
 /**
  * A probabilistic data structure that tracks memberships in a set.
  * Supports time and space efficient lookups, but may return false-positives.
@@ -22,11 +24,17 @@ export interface BloomFilterOptions {
  * - Definitely not in the set
  * - Potentially in the set (with a probability depending on the false-positive rate)
  */
-export abstract class BloomFilter {
+export class BloomFilter {
   public totalBits: number;
-  public data: Uint8Array = new Uint8Array(0);
+  public data: Array<bigint> = [];
+  public kHashes: number;
+  public errorRate: number;
 
-  public constructor(options: BloomFilterOptions) {
+  private hashN: (item: string, n: number, maxValue: number) => number;
+  public constructor(
+    options: BloomFilterOptions,
+    hashN: (item: string, n: number, maxValue: number) => number
+  ) {
     let nBitsPerElem: number;
     let k = options.kHashes ?? 0;
     const forceNBitsPerElem = options.forceNBitsPerElem ?? 0;
@@ -49,19 +57,50 @@ export abstract class BloomFilter {
     }
 
     const mBits = options.capacity * nBitsPerElem;
-    const mInts = 1 + mBits / (this.data.BYTES_PER_ELEMENT * 8);
+    const mInts = 1 + Math.floor(mBits / (sizeOfInt * 8));
 
     this.totalBits = mBits;
-    this.data = new Uint8Array(mInts);
+    this.data = new Array<bigint>(mInts);
+    this.data.fill(BigInt(0));
+    this.kHashes = k;
+    this.hashN = hashN;
+    this.errorRate = options.errorRate;
+  }
+
+  public computeHashes(item: string): number[] {
+    const hashes = new Array<number>(this.kHashes);
+    for (let i = 0; i < this.kHashes; i++) {
+      hashes[i] = this.hashN(item, i, this.totalBits);
+    }
+    return hashes;
   }
 
   // Adds an item to the bloom filter by computing its hash values
   // and setting corresponding bits in "data".
-  public abstract insert(item: string | Uint8Array): void;
+  public insert(item: string): void {
+    const hashSet = this.computeHashes(item);
+    for (const h of hashSet) {
+      const intAddress = Math.floor(h / (sizeOfInt * 8));
+      const bitOffset = h % (sizeOfInt * 8);
+      this.data[intAddress] =
+        this.data[intAddress] | (BigInt(1) << BigInt(bitOffset));
+    }
+  }
 
   // Checks if the item is potentially in the bloom filter.
   // The method is guaranteed to return "true" for items that were inserted,
   // but might also return "true" for items that were never inserted
   // (purpose of false-positive probability).
-  public abstract lookup(item: string | Uint8Array): boolean;
+  public lookup(item: string): boolean {
+    const hashSet = this.computeHashes(item);
+    for (const h of hashSet) {
+      const intAddress = Math.floor(h / (sizeOfInt * 8));
+      const bitOffset = h % (sizeOfInt * 8);
+      const currentInt = this.data[intAddress];
+      if (currentInt != (currentInt | (BigInt(1) << BigInt(bitOffset)))) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
