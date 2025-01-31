@@ -237,6 +237,7 @@ class MultipleNodesMessageCollector {
     const startTime = Date.now();
     const pubsubTopic = options?.pubsubTopic || DefaultTestPubsubTopic;
     const timeoutDuration = options?.timeoutDuration || 400;
+    const maxTimeout = Math.min(timeoutDuration * numMessages, 30000);
     const exact = options?.exact || false;
 
     while (this.messageList.length < numMessages) {
@@ -248,7 +249,9 @@ class MultipleNodesMessageCollector {
               return msgs.length >= numMessages;
             })
           );
-          return results.every((result) => result);
+          if (results.every((result) => result)) {
+            return true;
+          }
         } else {
           const results = await Promise.all(
             this.relayNodes.map(async (node) => {
@@ -256,16 +259,19 @@ class MultipleNodesMessageCollector {
               return msgs.length >= numMessages;
             })
           );
-          return results.some((result) => result);
+          if (results.some((result) => result)) {
+            return true;
+          }
         }
-      }
 
-      const elapsed = Date.now() - startTime;
-      if (elapsed > timeoutDuration * numMessages) {
-        return false;
-      }
+        const elapsed = Date.now() - startTime;
+        if (elapsed > maxTimeout) {
+          log.warn(`Timeout waiting for messages after ${elapsed}ms`);
+          return false;
+        }
 
-      await delay(10);
+        await delay(10);
+      }
     }
 
     if (exact) {
