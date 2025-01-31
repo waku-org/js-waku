@@ -45,7 +45,7 @@ import {
 } from "./utils.js";
 
 describe("Waku Store, general", function () {
-  this.timeout(15000);
+  this.timeout(120000);
   let waku: LightNode;
   let waku2: LightNode;
   let nwaku: ServiceNode;

@@ -34,32 +34,30 @@ async function main() {
   if (process.env.CI) {
     const reportsDir = getPackagePath("reports");
     const reportFile = resolve(reportsDir, "mocha-results.json");
-    const configFile = resolve(reportsDir, "config.json");
 
     await mkdir(reportsDir, { recursive: true });
 
-    // Create a clean reporter config
+    // Use both spec and JSON reporters in CI
+    mochaArgs.push(
+      "--reporter",
+      "mocha-multi-reporters",
+      "--reporter-options",
+      `configFile=${getPackagePath("reporter-config.json")}`
+    );
+
+    // Create reporter config file
     const reporterConfig = {
-      reporterEnabled: "spec",
+      reporterEnabled: "spec, json",
       reporterOptions: {
         json: {
-          stdout: false,
-          options: {
-            output: reportFile
-          }
+          output: reportFile
         }
       }
     };
 
-    // Write the config file
-    await writeFile(configFile, JSON.stringify(reporterConfig, null, 2));
-
-    // Add a separate JSON reporter directly
-    mochaArgs.push(
-      "--reporter-option",
-      `output=${reportFile}`,
-      "--reporter",
-      "json"
+    await writeFile(
+      getPackagePath("reporter-config.json"),
+      JSON.stringify(reporterConfig, null, 2)
     );
   } else {
     // In non-CI environments, just use spec reporter
