@@ -1,6 +1,4 @@
 import { exec, spawn } from "child_process";
-import { mkdir } from "fs/promises";
-import { dirname } from "path";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
@@ -22,33 +20,9 @@ async function main() {
     "--require",
     "ts-node/register",
     "--project",
-    "./tsconfig.dev.json"
+    "./tsconfig.dev.json",
+    ...process.argv.slice(2)
   ];
-
-  if (process.env.CI) {
-    const reportPath = "reports/mocha-results.json";
-    await mkdir(dirname(reportPath), { recursive: true });
-
-    mochaArgs.push(
-      "--reporter",
-      "json",
-      "--reporter-option",
-      `output=${reportPath}`,
-      "--parallel",
-      "--jobs",
-      "6"
-    );
-  }
-
-  // Add test files
-  const testFiles = process.argv.slice(2);
-  if (testFiles.length === 0) {
-    // Default to all test files if none specified
-    testFiles.push("tests/**/*.spec.ts");
-  }
-  mochaArgs.push(...testFiles);
-
-  console.log("Running mocha with args:", mochaArgs);
 
   // Run mocha tests
   const mocha = spawn("npx", mochaArgs, {
