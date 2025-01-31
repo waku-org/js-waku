@@ -1,4 +1,4 @@
-import type { Peer, Stream } from "@libp2p/interface";
+import type { PeerId, Stream } from "@libp2p/interface";
 import type { IncomingStreamData } from "@libp2p/interface-internal";
 import {
   type ContentTopic,
@@ -53,10 +53,10 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
 
   public async subscribe(
     pubsubTopic: PubsubTopic,
-    peer: Peer,
+    peerId: PeerId,
     contentTopics: ContentTopic[]
   ): Promise<CoreProtocolResult> {
-    const stream = await this.getStream(peer);
+    const stream = await this.getStream(peerId);
 
     const request = FilterSubscribeRpc.createSubscribeRequest(
       pubsubTopic,
@@ -78,7 +78,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: ProtocolError.GENERIC_FAIL,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
@@ -93,7 +93,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       return {
         failure: {
           error: ProtocolError.REMOTE_PEER_REJECTED,
-          peerId: peer.id
+          peerId: peerId
         },
         success: null
       };
@@ -101,28 +101,28 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
 
     return {
       failure: null,
-      success: peer.id
+      success: peerId
     };
   }
 
   public async unsubscribe(
     pubsubTopic: PubsubTopic,
-    peer: Peer,
+    peerId: PeerId,
     contentTopics: ContentTopic[]
   ): Promise<CoreProtocolResult> {
     let stream: Stream | undefined;
     try {
-      stream = await this.getStream(peer);
+      stream = await this.getStream(peerId);
     } catch (error) {
       log.error(
-        `Failed to get a stream for remote peer${peer.id.toString()}`,
+        `Failed to get a stream for remote peer${peerId.toString()}`,
         error
       );
       return {
         success: null,
         failure: {
           error: ProtocolError.NO_STREAM_AVAILABLE,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
@@ -140,22 +140,22 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: ProtocolError.GENERIC_FAIL,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
 
     return {
-      success: peer.id,
+      success: peerId,
       failure: null
     };
   }
 
   public async unsubscribeAll(
     pubsubTopic: PubsubTopic,
-    peer: Peer
+    peerId: PeerId
   ): Promise<CoreProtocolResult> {
-    const stream = await this.getStream(peer);
+    const stream = await this.getStream(peerId);
 
     const request = FilterSubscribeRpc.createUnsubscribeAllRequest(pubsubTopic);
 
@@ -171,7 +171,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       return {
         failure: {
           error: ProtocolError.NO_RESPONSE,
-          peerId: peer.id
+          peerId: peerId
         },
         success: null
       };
@@ -187,7 +187,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
       return {
         failure: {
           error: ProtocolError.REMOTE_PEER_REJECTED,
-          peerId: peer.id
+          peerId: peerId
         },
         success: null
       };
@@ -195,24 +195,24 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
 
     return {
       failure: null,
-      success: peer.id
+      success: peerId
     };
   }
 
-  public async ping(peer: Peer): Promise<CoreProtocolResult> {
+  public async ping(peerId: PeerId): Promise<CoreProtocolResult> {
     let stream: Stream | undefined;
     try {
-      stream = await this.getStream(peer);
+      stream = await this.getStream(peerId);
     } catch (error) {
       log.error(
-        `Failed to get a stream for remote peer${peer.id.toString()}`,
+        `Failed to get a stream for remote peer${peerId.toString()}`,
         error
       );
       return {
         success: null,
         failure: {
           error: ProtocolError.NO_STREAM_AVAILABLE,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
@@ -234,7 +234,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: ProtocolError.GENERIC_FAIL,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
@@ -244,7 +244,7 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: ProtocolError.NO_RESPONSE,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
@@ -260,12 +260,12 @@ export class FilterCore extends BaseProtocol implements IBaseProtocolCore {
         success: null,
         failure: {
           error: ProtocolError.REMOTE_PEER_REJECTED,
-          peerId: peer.id
+          peerId: peerId
         }
       };
     }
     return {
-      success: peer.id,
+      success: peerId,
       failure: null
     };
   }
