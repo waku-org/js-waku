@@ -31,7 +31,6 @@ jobs:
     env:
       WAKUNODE_IMAGE: ${{ inputs.nim_wakunode_image }}
       REPORT_PATH: packages/tests/reports/mocha-results.json
-      GITHUB_WORKSPACE: ${{ github.workspace }}
     permissions:
       contents: read
       actions: read
