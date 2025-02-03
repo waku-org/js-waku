@@ -42,8 +42,8 @@
     "check:spelling": "cspell \"{README.md,{tests,src}/**/*.ts}\"",
     "check:tsc": "tsc -p tsconfig.dev.json",
     "test": "NODE_ENV=test run-s test:*",
-    "test:node": "NODE_ENV=test mkdir -p reports && node ./src/run-tests.js \"tests/**/!(*.optional).spec.ts\"",
-    "test:optional": "NODE_ENV=test mkdir -p reports && node ./src/run-tests.js \"tests/**/@(*.optional).spec.ts\"",
+    "test:node": "NODE_ENV=test node ./src/run-tests.js \"tests/**/!(*.optional).spec.ts\"",
+    "test:optional": "NODE_ENV=test node ./src/run-tests.js \"tests/**/@(*.optional).spec.ts\"",
     "reset-hard": "git clean -dfx -e .idea && git reset --hard && npm i && npm run build"
   },
   "engines": {
@@ -79,6 +79,8 @@
     "@waku/message-encryption": "*",
     "@waku/relay": "*",
     "@waku/sdk": "*",
+    "allure-commandline": "^2.27.0",
+    "allure-mocha": "^2.9.2",
     "chai": "^4.3.10",
     "cspell": "^8.6.1",
     "datastore-core": "^10.0.2",
@@ -86,6 +88,7 @@
     "interface-datastore": "^8.2.10",
     "libp2p": "2.1.8",
     "mocha": "^10.3.0",
+    "mocha-multi-reporters": "^1.5.1",
     "npm-run-all": "^4.1.5"
   }
 }

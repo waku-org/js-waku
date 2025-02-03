@@ -14,13 +14,12 @@ if (process.env.CI) {
   console.log("Running tests in parallel");
   config.parallel = true;
   config.jobs = 6;
-  console.log("Using JSON reporter for test results");
-  config.reporter = 'json';
+  console.log("Activating allure reporting");
+  config.reporter = 'mocha-multi-reporters';
   config.reporterOptions = {
-    output: 'reports/mocha-results.json'
+    configFile: '.mocha.reporters.json'
   };
 } else {
   console.log("Running tests serially. To enable parallel execution update mocha config");
 }
-
 module.exports = config;
