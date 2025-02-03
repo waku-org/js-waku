@@ -31,7 +31,7 @@ export class ServiceNodesFleet {
   ): Promise<ServiceNodesFleet> {
     const nodes: ServiceNode[] = [];
 
-    for (let index = 0; index < nodesToCreate; index++) {
+    for (let i = 0; i < nodesToCreate; i++) {
       const node = new ServiceNode(
         makeLogFileName(mochaContext) + Math.random().toString(36).substring(7)
       );
@@ -39,8 +39,8 @@ export class ServiceNodesFleet {
       const args = getArgs(networkConfig, _args);
 
       // If this is not the first node and previous node had a nodekey, use its multiaddr as static node
-      if (index > 0) {
-        const prevNode = nodes[index - 1];
+      if (i > 0) {
+        const prevNode = nodes[i - 1];
         const multiaddr = await prevNode.getExternalWebsocketMultiaddr();
         args.staticnode = multiaddr;
       }
@@ -51,6 +51,7 @@ export class ServiceNodesFleet {
 
       nodes.push(node);
     }
+
     return new ServiceNodesFleet(nodes, withoutFilter, strictChecking);
   }
 
@@ -240,51 +241,43 @@ class MultipleNodesMessageCollector {
     const maxTimeout = Math.min(timeoutDuration * numMessages, 30000);
     const exact = options?.exact || false;
 
-    while (this.messageList.length < numMessages) {
-      if (this.relayNodes) {
-        if (this.strictChecking) {
-          const results = await Promise.all(
-            this.relayNodes.map(async (node) => {
-              const msgs = await node.messages(pubsubTopic);
-              return msgs.length >= numMessages;
-            })
-          );
-          if (results.every((result) => result)) {
-            return true;
+    try {
+      while (Date.now() - startTime < maxTimeout) {
+        // Check if we already have enough messages
+        if (this.messageList.length >= numMessages) {
+          if (exact && this.messageList.length !== numMessages) {
+            log.warn(
+              `Was expecting exactly ${numMessages} messages. Received: ${this.messageList.length}`
+            );
+            return false;
           }
-        } else {
-          const results = await Promise.all(
-            this.relayNodes.map(async (node) => {
-              const msgs = await node.messages(pubsubTopic);
-              return msgs.length >= numMessages;
-            })
-          );
-          if (results.some((result) => result)) {
-            return true;
-          }
+          return true;
         }
 
-        const elapsed = Date.now() - startTime;
-        if (elapsed > maxTimeout) {
-          log.warn(`Timeout waiting for messages after ${elapsed}ms`);
-          return false;
+        // If we have relay nodes, check their messages
+        if (this.relayNodes) {
+          const nodeMessages = await Promise.all(
+            this.relayNodes.map(async (node) => node.messages(pubsubTopic))
+          );
+
+          // Check if we have enough messages according to strictness
+          const hasEnoughMessages = this.strictChecking
+            ? nodeMessages.every((msgs) => msgs.length >= numMessages)
+            : nodeMessages.some((msgs) => msgs.length >= numMessages);
+
+          if (hasEnoughMessages) {
+            return true;
+          }
         }
 
         await delay(10);
       }
-    }
 
-    if (exact) {
-      if (this.messageList.length == numMessages) {
-        return true;
-      } else {
-        log.warn(
-          `Was expecting exactly ${numMessages} messages. Received: ${this.messageList.length}`
-        );
-        return false;
-      }
-    } else {
-      return true;
+      log.warn(`Timeout waiting for messages after ${maxTimeout}ms`);
+      return false;
+    } catch (error) {
+      log.error("Error in waitForMessages:", error);
+      return false;
     }
   }
 
