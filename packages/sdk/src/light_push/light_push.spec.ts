@@ -17,7 +17,7 @@ import { LightPush } from "./light_push.js";
 const PUBSUB_TOPIC = "/waku/2/rs/1/4";
 const CONTENT_TOPIC = "/test/1/waku-light-push/utf8";
 
-describe.only("LightPush SDK", () => {
+describe("LightPush SDK", () => {
   let libp2p: Libp2p;
   let encoder: Encoder;
   let lightPush: LightPush;
@@ -108,7 +108,7 @@ describe.only("LightPush SDK", () => {
       { autoRetry: true }
     );
 
-    expect(attemptRetriesSpy.calledOnce).to.be.true;
+    expect(attemptRetriesSpy.callCount).to.be.eq(1);
     expect(result.successes?.length).to.be.eq(1);
     expect(result.failures?.length).to.be.eq(1);
 
@@ -162,7 +162,6 @@ function mockLightPush(options: MockLightPushOptions): LightPush {
       getPeers: () =>
         options.libp2p
           .getPeers()
-          .map((id) => mockPeer(id.toString()))
           .slice(0, options.numPeersToUse || options.libp2p.getPeers().length)
     } as unknown as PeerManager,
     options.libp2p
