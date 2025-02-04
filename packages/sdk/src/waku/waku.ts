@@ -16,6 +16,7 @@ import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { wakuFilter } from "../filter/index.js";
+import { HealthIndicator } from "../health_indicator/index.js";
 import { wakuLightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { wakuStore } from "../store/index.js";
@@ -37,6 +38,7 @@ export class WakuNode implements IWaku {
   public filter?: IFilter;
   public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
+  public health: HealthIndicator;
 
   private readonly peerManager: PeerManager;
 
@@ -72,6 +74,8 @@ export class WakuNode implements IWaku {
         numPeersToUse: options.numPeersToUse
       }
     });
+
+    this.health = new HealthIndicator({ libp2p });
 
     if (protocolsEnabled.store) {
       if (options.store?.peer) {
