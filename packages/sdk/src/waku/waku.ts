@@ -1,11 +1,10 @@
 import { isPeerId } from "@libp2p/interface";
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, getHealthManager, StoreCodec } from "@waku/core";
+import { ConnectionManager, StoreCodec } from "@waku/core";
 import type {
   CreateNodeOptions,
   IFilter,
-  IHealthManager,
   ILightPush,
   IRelay,
   IStore,
@@ -38,7 +37,6 @@ export class WakuNode implements IWaku {
   public filter?: IFilter;
   public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
-  public readonly health: IHealthManager;
 
   private readonly peerManager: PeerManager;
 
@@ -74,8 +72,6 @@ export class WakuNode implements IWaku {
         numPeersToUse: options.numPeersToUse
       }
     });
-
-    this.health = getHealthManager();
 
     if (protocolsEnabled.store) {
       if (options.store?.peer) {
