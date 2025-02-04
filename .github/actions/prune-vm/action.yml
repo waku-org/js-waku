@@ -1,0 +1,27 @@
+# Inspired by https://github.com/AdityaGarg8/remove-unwanted-software
+# to free up disk space. Currently removes Dotnet, Android and Haskell.
+name: Remove unwanted software
+description: Default GitHub runners come with a lot of unnecessary software
+runs:
+  using: "composite"
+  steps:
+    - name: Disk space report before modification
+      shell: bash
+      run: |
+        echo "==> Available space before cleanup"
+        echo
+        df -h
+    - name: Maximize build disk space
+      shell: bash
+      run: |
+          set -euo pipefail
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc 
+          sudo rm -rf /usr/local/.ghcup
+    - name: Disk space report after modification
+      shell: bash
+      run: |
+          echo "==> Available space after cleanup"
+          echo
+          df -h
