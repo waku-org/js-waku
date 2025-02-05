@@ -1,4 +1,4 @@
-import { Peer } from "@libp2p/interface";
+import { Peer, PeerId } from "@libp2p/interface";
 import {
   ConnectionManager,
   createEncoder,
@@ -59,8 +59,8 @@ describe("LightPush SDK", () => {
 
     lightPush = mockLightPush({ libp2p, numPeersToUse: 2 });
     let sendSpy = sinon.spy(
-      (_encoder: any, _message: any, peer: Peer) =>
-        ({ success: peer.id }) as any
+      (_encoder: any, _message: any, peerId: PeerId) =>
+        ({ success: peerId }) as any
     );
     lightPush.protocol.send = sendSpy;
 
@@ -74,8 +74,8 @@ describe("LightPush SDK", () => {
     // check if setting another value works
     lightPush = mockLightPush({ libp2p, numPeersToUse: 3 });
     sendSpy = sinon.spy(
-      (_encoder: any, _message: any, peer: Peer) =>
-        ({ success: peer.id }) as any
+      (_encoder: any, _message: any, peerId: PeerId) =>
+        ({ success: peerId }) as any
     );
     lightPush.protocol.send = sendSpy;
 
@@ -91,9 +91,9 @@ describe("LightPush SDK", () => {
     });
 
     lightPush = mockLightPush({ libp2p });
-    let sendSpy = sinon.spy((_encoder: any, _message: any, peer: Peer) => {
-      if (peer.id.toString() === "1") {
-        return { success: peer.id };
+    let sendSpy = sinon.spy((_encoder: any, _message: any, peerId: PeerId) => {
+      if (peerId.toString() === "1") {
+        return { success: peerId };
       }
 
       return { failure: { error: "problem" } };
@@ -108,7 +108,7 @@ describe("LightPush SDK", () => {
       { autoRetry: true }
     );
 
-    expect(attemptRetriesSpy.calledOnce).to.be.true;
+    expect(attemptRetriesSpy.callCount).to.be.eq(1);
     expect(result.successes?.length).to.be.eq(1);
     expect(result.failures?.length).to.be.eq(1);
 
@@ -162,7 +162,6 @@ function mockLightPush(options: MockLightPushOptions): LightPush {
       getPeers: () =>
         options.libp2p
           .getPeers()
-          .map((id) => mockPeer(id.toString()))
           .slice(0, options.numPeersToUse || options.libp2p.getPeers().length)
     } as unknown as PeerManager,
     options.libp2p

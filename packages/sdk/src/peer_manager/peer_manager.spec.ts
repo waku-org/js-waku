@@ -48,9 +48,9 @@ describe("PeerManager", () => {
     ];
     sinon.stub(libp2p, "getConnections").returns(connections);
 
-    const peer = await peerManager.requestRenew("1");
-    expect(peer).to.not.be.undefined;
-    expect(peer?.id).to.not.equal("1");
+    const peerId = await peerManager.requestRenew("1");
+    expect(peerId).to.not.be.undefined;
+    expect(peerId).to.not.equal("1");
   });
 
   it("should handle connection events", () => {

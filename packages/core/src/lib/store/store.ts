@@ -1,4 +1,4 @@
-import type { Peer } from "@libp2p/interface";
+import type { PeerId } from "@libp2p/interface";
 import {
   IDecodedMessage,
   IDecoder,
@@ -38,7 +38,7 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
   public async *queryPerPage<T extends IDecodedMessage>(
     queryOpts: QueryRequestParams,
     decoders: Map<string, IDecoder<T>>,
-    peer: Peer
+    peerId: PeerId
   ): AsyncGenerator<Promise<T | undefined>[]> {
     if (
       queryOpts.contentTopics.toString() !==
@@ -58,7 +58,7 @@ export class StoreCore extends BaseProtocol implements IStoreCore {
 
       let stream;
       try {
-        stream = await this.getStream(peer);
+        stream = await this.getStream(peerId);
       } catch (e) {
         log.error("Failed to get stream", e);
         break;
