@@ -157,8 +157,8 @@ class Filter implements IFilter {
 
     ensurePubsubTopicIsConfigured(pubsubTopic, this.protocol.pubsubTopics);
 
-    const peers = await this.peerManager.getPeers();
-    if (peers.length === 0) {
+    const peerIds = await this.peerManager.getPeers();
+    if (peerIds.length === 0) {
       return {
         error: ProtocolError.NO_PEER_AVAILABLE,
         subscription: null
@@ -166,8 +166,8 @@ class Filter implements IFilter {
     }
 
     log.info(
-      `Creating filter subscription with ${peers.length} peers: `,
-      peers.map((peer) => peer.id.toString())
+      `Creating filter subscription with ${peerIds.length} peers: `,
+      peerIds.map((id) => id.toString())
     );
 
     const subscription =

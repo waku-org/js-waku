@@ -21,39 +21,38 @@ export class StreamManager {
     this.addEventListener("peer:update", this.handlePeerUpdateStreamPool);
   }
 
-  public async getStream(peer: Peer): Promise<Stream> {
-    const peerId = peer.id.toString();
-
-    const scheduledStream = this.streamPool.get(peerId);
+  public async getStream(peerId: PeerId): Promise<Stream> {
+    const peerIdStr = peerId.toString();
+    const scheduledStream = this.streamPool.get(peerIdStr);
 
     if (scheduledStream) {
-      this.streamPool.delete(peerId);
+      this.streamPool.delete(peerIdStr);
       await scheduledStream;
     }
 
-    let stream = this.getOpenStreamForCodec(peer.id);
+    let stream = this.getOpenStreamForCodec(peerId);
 
     if (stream) {
       this.log.info(
-        `Found existing stream peerId=${peer.id.toString()} multicodec=${this.multicodec}`
+        `Found existing stream peerId=${peerIdStr} multicodec=${this.multicodec}`
       );
-      this.lockStream(peer.id.toString(), stream);
+      this.lockStream(peerIdStr, stream);
       return stream;
     }
 
-    stream = await this.createStream(peer);
-    this.lockStream(peer.id.toString(), stream);
+    stream = await this.createStream(peerId);
+    this.lockStream(peerIdStr, stream);
 
     return stream;
   }
 
-  private async createStream(peer: Peer, retries = 0): Promise<Stream> {
-    const connections = this.getConnections(peer.id);
+  private async createStream(peerId: PeerId, retries = 0): Promise<Stream> {
+    const connections = this.getConnections(peerId);
     const connection = selectOpenConnection(connections);
 
     if (!connection) {
       throw new Error(
-        `Failed to get a connection to the peer peerId=${peer.id.toString()} multicodec=${this.multicodec}`
+        `Failed to get a connection to the peer peerId=${peerId.toString()} multicodec=${this.multicodec}`
       );
     }
 
@@ -63,11 +62,11 @@ export class StreamManager {
     for (let i = 0; i < retries + 1; i++) {
       try {
         this.log.info(
-          `Attempting to create a stream for peerId=${peer.id.toString()} multicodec=${this.multicodec}`
+          `Attempting to create a stream for peerId=${peerId.toString()} multicodec=${this.multicodec}`
         );
         stream = await connection.newStream(this.multicodec);
         this.log.info(
-          `Created stream for peerId=${peer.id.toString()} multicodec=${this.multicodec}`
+          `Created stream for peerId=${peerId.toString()} multicodec=${this.multicodec}`
         );
         break;
       } catch (error) {
@@ -77,8 +76,7 @@ export class StreamManager {
 
     if (!stream) {
       throw new Error(
-        `Failed to create a new stream for ${peer.id.toString()} -- ` +
-          lastError
+        `Failed to create a new stream for ${peerId.toString()} -- ` + lastError
       );
     }
 
@@ -97,7 +95,7 @@ export class StreamManager {
 
     try {
       this.ongoingCreation.add(peerId);
-      await this.createStream(peer);
+      await this.createStream(peer.id);
     } catch (error) {
       this.log.error(`Failed to createStreamWithLock:`, error);
     } finally {

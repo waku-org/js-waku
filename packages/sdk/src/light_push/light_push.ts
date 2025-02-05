@@ -1,4 +1,4 @@
-import type { Peer, PeerId } from "@libp2p/interface";
+import type { PeerId } from "@libp2p/interface";
 import { ConnectionManager, getHealthManager, LightPushCore } from "@waku/core";
 import {
   type CoreProtocolResult,
@@ -23,7 +23,7 @@ const DEFAULT_SEND_OPTIONS: ISenderOptions = {
   maxAttempts: DEFAULT_MAX_ATTEMPTS
 };
 
-type RetryCallback = (peer: Peer) => Promise<CoreProtocolResult>;
+type RetryCallback = (peerId: PeerId) => Promise<CoreProtocolResult>;
 
 export class LightPush implements ILightPush {
   public readonly protocol: LightPushCore;
@@ -59,8 +59,8 @@ export class LightPush implements ILightPush {
       };
     }
 
-    const peers = await this.peerManager.getPeers();
-    if (peers.length === 0) {
+    const peerIds = await this.peerManager.getPeers();
+    if (peerIds.length === 0) {
       return {
         successes,
         failures: [
@@ -72,7 +72,7 @@ export class LightPush implements ILightPush {
     }
 
     const results = await Promise.allSettled(
-      peers.map((peer) => this.protocol.send(encoder, message, peer))
+      peerIds.map((id) => this.protocol.send(encoder, message, id))
     );
 
     for (const result of results) {
@@ -94,7 +94,7 @@ export class LightPush implements ILightPush {
 
         if (options?.autoRetry) {
           void this.attemptRetries(
-            (peer: Peer) => this.protocol.send(encoder, message, peer),
+            (id: PeerId) => this.protocol.send(encoder, message, id),
             options.maxAttempts
           );
         }
@@ -117,23 +117,23 @@ export class LightPush implements ILightPush {
     maxAttempts?: number
   ): Promise<void> {
     maxAttempts = maxAttempts || DEFAULT_MAX_ATTEMPTS;
-    const connectedPeers = await this.peerManager.getPeers();
+    const peerIds = await this.peerManager.getPeers();
 
-    if (connectedPeers.length === 0) {
+    if (peerIds.length === 0) {
       log.warn("Cannot retry with no connected peers.");
       return;
     }
 
     for (let i = 0; i < maxAttempts; i++) {
-      const peer = connectedPeers[i % connectedPeers.length]; // always present as we checked for the length already
-      const response = await fn(peer);
+      const id = peerIds[i % peerIds.length]; // always present as we checked for the length already
+      const response = await fn(id);
 
       if (response.success) {
         return;
       }
 
       log.info(
-        `Attempted retry for peer:${peer.id} failed with:${response?.failure?.error}`
+        `Attempted retry for peer:${id} failed with:${response?.failure?.error}`
       );
     }
   }

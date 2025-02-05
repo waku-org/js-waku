@@ -55,7 +55,7 @@ class Metadata extends BaseProtocol implements IMetadata {
 
     let stream;
     try {
-      stream = await this.getStream(peer);
+      stream = await this.getStream(peerId);
     } catch (error) {
       log.error("Failed to get stream", error);
       return {

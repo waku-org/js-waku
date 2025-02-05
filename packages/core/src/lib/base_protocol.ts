@@ -1,5 +1,5 @@
 import type { Libp2p } from "@libp2p/interface";
-import type { Peer, Stream } from "@libp2p/interface";
+import type { PeerId, Stream } from "@libp2p/interface";
 import type {
   IBaseProtocolCore,
   Libp2pComponents,
@@ -38,7 +38,7 @@ export class BaseProtocol implements IBaseProtocolCore {
     );
   }
 
-  protected async getStream(peer: Peer): Promise<Stream> {
-    return this.streamManager.getStream(peer);
+  protected async getStream(peerId: PeerId): Promise<Stream> {
+    return this.streamManager.getStream(peerId);
   }
 }

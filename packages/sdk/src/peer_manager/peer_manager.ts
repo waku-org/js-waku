@@ -1,4 +1,4 @@
-import { Connection, Peer, PeerId } from "@libp2p/interface";
+import { Connection, PeerId } from "@libp2p/interface";
 import { Libp2p } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
@@ -37,15 +37,13 @@ export class PeerManager {
     this.stopConnectionListener();
   }
 
-  public async getPeers(): Promise<Peer[]> {
-    return Promise.all(
-      this.getLockedConnections().map((c) => this.mapConnectionToPeer(c))
-    );
+  public async getPeers(): Promise<PeerId[]> {
+    return Promise.all(this.getLockedConnections().map((c) => c.remotePeer));
   }
 
   public async requestRenew(
     peerId: PeerId | string
-  ): Promise<Peer | undefined> {
+  ): Promise<PeerId | undefined> {
     const lockedConnections = this.getLockedConnections();
     const neededPeers = this.numPeersToUse - lockedConnections.length;
 
@@ -58,12 +56,12 @@ export class PeerManager {
         .filter((c) => !c.remotePeer.equals(peerId))
         .slice(0, neededPeers)
         .map((c) => this.lockConnection(c))
-        .map((c) => this.mapConnectionToPeer(c))
+        .map((c) => c.remotePeer)
     );
 
-    const newPeer = result[0];
+    const newPeerId = result[0];
 
-    if (!newPeer) {
+    if (!newPeerId) {
       log.warn(
         `requestRenew: Couldn't renew peer ${peerId.toString()} - no peers.`
       );
@@ -71,10 +69,10 @@ export class PeerManager {
     }
 
     log.info(
-      `requestRenew: Renewed peer ${peerId.toString()} to ${newPeer.id.toString()}`
+      `requestRenew: Renewed peer ${peerId.toString()} to ${newPeerId.toString()}`
     );
 
-    return newPeer;
+    return newPeerId;
   }
 
   private startConnectionListener(): void {
@@ -132,10 +130,5 @@ export class PeerManager {
 
   private isConnectionLocked(c: Connection): boolean {
     return c.tags.includes(CONNECTION_LOCK_TAG);
-  }
-
-  private async mapConnectionToPeer(c: Connection): Promise<Peer> {
-    const peerId = c.remotePeer;
-    return this.libp2p.peerStore.get(peerId);
   }
 }
