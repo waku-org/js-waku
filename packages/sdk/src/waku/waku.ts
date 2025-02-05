@@ -183,9 +183,11 @@ export class WakuNode implements IWaku {
 
   public async start(): Promise<void> {
     await this.libp2p.start();
+    this.health.start();
   }
 
   public async stop(): Promise<void> {
+    this.health.stop();
     this.peerManager.stop();
     this.connectionManager.stop();
     await this.libp2p.stop();

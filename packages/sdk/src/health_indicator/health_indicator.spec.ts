@@ -30,10 +30,10 @@ describe("HealthIndicator", () => {
   });
 
   it("should transition to Unhealthy when no connections", async () => {
-    const statusChangePromise = new Promise<void>((resolve) => {
+    const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       healthIndicator.addEventListener(
         HealthStatusChangeEvents.StatusChange,
-        () => resolve()
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -42,15 +42,16 @@ describe("HealthIndicator", () => {
 
     libp2p.dispatchEvent(new CustomEvent("peer:disconnect", { detail: "1" }));
 
-    await statusChangePromise;
+    const changedStatus = await statusChangePromise;
+    expect(changedStatus).to.equal(HealthStatus.Unhealthy);
     expect(healthIndicator.toString()).to.equal(HealthStatus.Unhealthy);
   });
 
   it("should transition to MinimallyHealthy with one compatible peer", async () => {
-    const statusChangePromise = new Promise<void>((resolve) => {
+    const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       healthIndicator.addEventListener(
         HealthStatusChangeEvents.StatusChange,
-        () => resolve()
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -61,15 +62,16 @@ describe("HealthIndicator", () => {
 
     libp2p.dispatchEvent(new CustomEvent("peer:connect", { detail: "1" }));
 
-    await statusChangePromise;
+    const changedStatus = await statusChangePromise;
+    expect(changedStatus).to.equal(HealthStatus.MinimallyHealthy);
     expect(healthIndicator.toString()).to.equal(HealthStatus.MinimallyHealthy);
   });
 
   it("should transition to SufficientlyHealthy with multiple compatible peers", async () => {
-    const statusChangePromise = new Promise<void>((resolve) => {
+    const statusChangePromise = new Promise<HealthStatus>((resolve) => {
       healthIndicator.addEventListener(
         HealthStatusChangeEvents.StatusChange,
-        () => resolve()
+        (e: CustomEvent<HealthStatus>) => resolve(e.detail)
       );
     });
 
@@ -84,7 +86,8 @@ describe("HealthIndicator", () => {
 
     libp2p.dispatchEvent(new CustomEvent("peer:connect", { detail: "2" }));
 
-    await statusChangePromise;
+    const changedStatus = await statusChangePromise;
+    expect(changedStatus).to.equal(HealthStatus.SufficientlyHealthy);
     expect(healthIndicator.toString()).to.equal(
       HealthStatus.SufficientlyHealthy
     );
