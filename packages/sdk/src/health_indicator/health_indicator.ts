@@ -112,9 +112,9 @@ export class HealthIndicator
     const connections = this.libp2p.getConnections();
 
     const peers = await Promise.all(
-      connections.map((c) => {
+      connections.map(async (c) => {
         try {
-          return this.libp2p.peerStore.get(c.remotePeer);
+          return await this.libp2p.peerStore.get(c.remotePeer);
         } catch (e) {
           return null;
         }
