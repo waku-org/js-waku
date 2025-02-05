@@ -1,11 +1,10 @@
 import { isPeerId } from "@libp2p/interface";
 import type { Peer, PeerId, Stream } from "@libp2p/interface";
 import { multiaddr, Multiaddr, MultiaddrInput } from "@multiformats/multiaddr";
-import { ConnectionManager, getHealthManager, StoreCodec } from "@waku/core";
+import { ConnectionManager, StoreCodec } from "@waku/core";
 import type {
   CreateNodeOptions,
   IFilter,
-  IHealthManager,
   ILightPush,
   IRelay,
   IStore,
@@ -17,6 +16,7 @@ import { Protocols } from "@waku/interfaces";
 import { Logger } from "@waku/utils";
 
 import { wakuFilter } from "../filter/index.js";
+import { HealthIndicator } from "../health_indicator/index.js";
 import { wakuLightPush } from "../light_push/index.js";
 import { PeerManager } from "../peer_manager/index.js";
 import { wakuStore } from "../store/index.js";
@@ -38,7 +38,7 @@ export class WakuNode implements IWaku {
   public filter?: IFilter;
   public lightPush?: ILightPush;
   public connectionManager: ConnectionManager;
-  public readonly health: IHealthManager;
+  public health: HealthIndicator;
 
   private readonly peerManager: PeerManager;
 
@@ -75,7 +75,7 @@ export class WakuNode implements IWaku {
       }
     });
 
-    this.health = getHealthManager();
+    this.health = new HealthIndicator({ libp2p });
 
     if (protocolsEnabled.store) {
       if (options.store?.peer) {
@@ -183,9 +183,11 @@ export class WakuNode implements IWaku {
 
   public async start(): Promise<void> {
     await this.libp2p.start();
+    this.health.start();
   }
 
   public async stop(): Promise<void> {
+    this.health.stop();
     this.peerManager.stop();
     this.connectionManager.stop();
     await this.libp2p.stop();

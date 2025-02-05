@@ -1,5 +1,5 @@
 import type { PeerId } from "@libp2p/interface";
-import { ConnectionManager, getHealthManager, LightPushCore } from "@waku/core";
+import { ConnectionManager, LightPushCore } from "@waku/core";
 import {
   type CoreProtocolResult,
   Failure,
@@ -100,11 +100,6 @@ export class LightPush implements ILightPush {
         }
       }
     }
-
-    getHealthManager().updateProtocolHealth(
-      this.protocol.multicodec,
-      successes.length
-    );
 
     return {
       successes,
