@@ -12,7 +12,8 @@ export default {
   input,
   output: {
     dir: "bundle",
-    format: "esm"
+    format: "esm",
+    preserveModules: true
   },
   plugins: [
     commonjs(),
@@ -25,7 +26,7 @@ export default {
       targets: [
         {
           src: ["src/resources/*"],
-          dest: "dist/resources"
+          dest: "bundle/resources"
         }
       ],
       copyOnce: true
