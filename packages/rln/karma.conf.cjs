@@ -47,14 +47,14 @@ module.exports = function (config) {
 
     client: {
       mocha: {
-        timeout: 60000 // 60 seconds
+        timeout: 180000 // 3 minutes
       }
     },
 
-    browserDisconnectTimeout: 60000, // 60 seconds
+    browserDisconnectTimeout: 180000, // 3 minutes
     browserDisconnectTolerance: 3, // Number of tries before failing
-    browserNoActivityTimeout: 60000, // 60 seconds
-    captureTimeout: 120000, // 2 minutes
+    browserNoActivityTimeout: 180000, // 3 minutes
+    captureTimeout: 300000, // 5 minutes
 
     mime: {
       "application/wasm": ["wasm"],
@@ -159,7 +159,8 @@ module.exports = function (config) {
     autoWatch: true,
     browsers: process.env.CI ? ["ChromeHeadlessCI"] : ["ChromeHeadless"],
     singleRun: true,
-    concurrency: Infinity
+    concurrency: 1, // Reduce concurrency to avoid memory pressure
+    browserSocketTimeout: 180000 // 3 minutes
   };
 
   config.set(configuration);
