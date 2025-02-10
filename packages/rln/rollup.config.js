@@ -16,12 +16,6 @@ export default {
     preserveModules: true
   },
   plugins: [
-    commonjs(),
-    json(),
-    nodeResolve({
-      browser: true,
-      preferBuiltins: false
-    }),
     copy({
       targets: [
         {
@@ -30,6 +24,12 @@ export default {
         }
       ],
       copyOnce: true
+    }),
+    commonjs(),
+    json(),
+    nodeResolve({
+      browser: true,
+      preferBuiltins: false
     })
   ]
 };

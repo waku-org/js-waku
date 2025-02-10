@@ -29,6 +29,7 @@
   ],
   "scripts": {
     "build": "run-s build:**",
+    "build:copy": "mkdir -p dist/resources && cp -r src/resources/* dist/resources/",
     "build:esm": "tsc",
     "build:bundle": "rollup --config rollup.config.js",
     "fix": "run-s fix:*",
