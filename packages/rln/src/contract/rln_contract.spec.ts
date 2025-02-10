@@ -1,5 +1,4 @@
-import * as chai from "chai";
-import spies from "chai-spies";
+import { expect } from "chai";
 import * as ethers from "ethers";
 
 import { createRLN } from "../create.js";
@@ -7,15 +6,20 @@ import { createRLN } from "../create.js";
 import { SEPOLIA_CONTRACT } from "./constants.js";
 import { RLNContract } from "./rln_contract.js";
 
-chai.use(spies);
-
-//TOOD: enable this test
-describe.skip("RLN Contract abstraction", () => {
+describe("RLN Contract abstraction", () => {
   it("should be able to fetch members from events and store to rln instance", async () => {
     const rlnInstance = await createRLN();
+    let insertMemberCalled = false;
 
-    rlnInstance.zerokit.insertMember = () => undefined;
-    const insertMemberSpy = chai.spy.on(rlnInstance.zerokit, "insertMember");
+    // Track if insertMember was called
+    const originalInsertMember = rlnInstance.zerokit.insertMember;
+    rlnInstance.zerokit.insertMember = function (
+      this: any,
+      ...args: Parameters<typeof originalInsertMember>
+    ) {
+      insertMemberCalled = true;
+      return originalInsertMember.apply(this, args);
+    };
 
     const voidSigner = new ethers.VoidSigner(SEPOLIA_CONTRACT.address);
     const rlnContract = new RLNContract(rlnInstance, {
@@ -33,7 +37,7 @@ describe.skip("RLN Contract abstraction", () => {
 
     await rlnContract.fetchMembers(rlnInstance);
 
-    chai.expect(insertMemberSpy).to.have.been.called();
+    expect(insertMemberCalled).to.be.true;
   });
 
   it("should register a member", async () => {
@@ -47,25 +51,24 @@ describe.skip("RLN Contract abstraction", () => {
       signer: voidSigner
     });
 
+    let registerCalled = false;
     rlnContract["storageIndex"] = 1;
     rlnContract["_membersFilter"] = {
       address: "",
       topics: []
     } as unknown as ethers.EventFilter;
     rlnContract["registryContract"] = {
-      "register(uint16,uint256)": () =>
-        Promise.resolve({ wait: () => Promise.resolve(undefined) })
+      "register(uint16,uint256)": () => {
+        registerCalled = true;
+        return Promise.resolve({ wait: () => Promise.resolve(undefined) });
+      }
     } as unknown as ethers.Contract;
-    const contractSpy = chai.spy.on(
-      rlnContract["registryContract"],
-      "register(uint16,uint256)"
-    );
 
     const identity =
       rlnInstance.zerokit.generateSeededIdentityCredential(mockSignature);
     await rlnContract.registerWithIdentity(identity);
 
-    chai.expect(contractSpy).to.have.been.called();
+    expect(registerCalled).to.be.true;
   });
 });
 
