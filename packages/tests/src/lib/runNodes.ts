@@ -51,7 +51,7 @@ export async function runNodes<T>(
   log.info("Starting js waku node with :", JSON.stringify(waku_options));
   let waku: WakuNode | undefined;
   try {
-    waku = (await createNode(waku_options)) as WakuNode;
+    waku = (await createNode(waku_options)) as unknown as WakuNode;
     await waku.start();
   } catch (error) {
     log.error("jswaku node failed to start:", error);
