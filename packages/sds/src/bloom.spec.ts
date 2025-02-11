@@ -1,7 +1,6 @@
 import { expect } from "chai";
 
-import { BloomFilter } from "./bloom.js";
-import { hashN } from "./nim_hashn/nim_hashn.mjs";
+import { BloomFilter, DefaultBloomFilter } from "./bloom.js";
 
 const n = 10000;
 const sampleChars =
@@ -20,13 +19,10 @@ describe("BloomFilter", () => {
   let testElements: string[];
 
   beforeEach(() => {
-    bloomFilter = new BloomFilter(
-      {
-        capacity: n,
-        errorRate: 0.001
-      },
-      hashN
-    );
+    bloomFilter = new DefaultBloomFilter({
+      capacity: n,
+      errorRate: 0.001
+    });
 
     testElements = new Array<string>(n);
 
@@ -55,15 +51,12 @@ describe("BloomFilter", () => {
     expect(bloomFilter.kHashes).to.equal(10);
     expect(bloomFilter.totalBits / n).to.equal(15);
 
-    const bloomFilter2 = new BloomFilter(
-      {
-        capacity: 10000,
-        errorRate: 0.001,
-        kHashes: 4,
-        forceNBitsPerElem: 20
-      },
-      hashN
-    );
+    const bloomFilter2 = new DefaultBloomFilter({
+      capacity: 10000,
+      errorRate: 0.001,
+      kHashes: 4,
+      forceNBitsPerElem: 20
+    });
     expect(bloomFilter2.kHashes).to.equal(4);
     expect(bloomFilter2.totalBits).to.equal(200000);
   });
@@ -107,6 +100,17 @@ describe("BloomFilter", () => {
       expect(bloomFilter.lookup(item)).to.equal(true);
     }
   });
+
+  it("should serialize and deserialize correctly", () => {
+    const serialized = bloomFilter.toBytes();
+    const deserialized = DefaultBloomFilter.fromBytes(
+      serialized,
+      bloomFilter.options
+    );
+    for (const item of testElements) {
+      expect(deserialized.lookup(item)).to.equal(true);
+    }
+  });
 });
 
 describe("BloomFilter with special patterns", () => {
@@ -114,13 +118,10 @@ describe("BloomFilter with special patterns", () => {
   const inserted: string[] = [];
 
   beforeEach(() => {
-    bloomFilter = new BloomFilter(
-      {
-        capacity: n,
-        errorRate: 0.001
-      },
-      hashN
-    );
+    bloomFilter = new DefaultBloomFilter({
+      capacity: n,
+      errorRate: 0.001
+    });
   });
 
   it("should handle special patterns correctly", () => {

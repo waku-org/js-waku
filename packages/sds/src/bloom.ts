@@ -1,3 +1,4 @@
+import { hashN } from "./nim_hashn/nim_hashn.mjs";
 import { getMOverNBitsForK } from "./probabilities.js";
 
 export interface BloomFilterOptions {
@@ -30,11 +31,15 @@ export class BloomFilter {
   public kHashes: number;
   public errorRate: number;
 
+  public options: BloomFilterOptions;
+
   private hashN: (item: string, n: number, maxValue: number) => number;
   public constructor(
     options: BloomFilterOptions,
     hashN: (item: string, n: number, maxValue: number) => number
   ) {
+    this.options = options;
+
     let nBitsPerElem: number;
     let k = options.kHashes ?? 0;
     const forceNBitsPerElem = options.forceNBitsPerElem ?? 0;
@@ -102,5 +107,40 @@ export class BloomFilter {
       }
     }
     return true;
+  }
+
+  public toBytes(): Uint8Array {
+    const buffer = new ArrayBuffer(this.data.length * 8);
+    const view = new DataView(buffer);
+    for (let i = 0; i < this.data.length; i++) {
+      view.setBigInt64(i * 8, this.data[i]);
+    }
+    return new Uint8Array(buffer);
+  }
+
+  public static fromBytes(
+    bytes: Uint8Array,
+    options: BloomFilterOptions,
+    hashN: (item: string, n: number, maxValue: number) => number
+  ): BloomFilter {
+    const bloomFilter = new BloomFilter(options, hashN);
+    const view = new DataView(bytes.buffer);
+    for (let i = 0; i < bloomFilter.data.length; i++) {
+      bloomFilter.data[i] = view.getBigUint64(i * 8, false);
+    }
+    return bloomFilter;
+  }
+}
+
+export class DefaultBloomFilter extends BloomFilter {
+  public constructor(options: BloomFilterOptions) {
+    super(options, hashN);
+  }
+
+  public static fromBytes(
+    bytes: Uint8Array,
+    options: BloomFilterOptions
+  ): DefaultBloomFilter {
+    return BloomFilter.fromBytes(bytes, options, hashN);
   }
 }
