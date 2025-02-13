@@ -1,13 +1,11 @@
-import * as chai from "chai";
+import { expect, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import chaiSubset from "chai-subset";
 import deepEqualInAnyOrder from "deep-equal-in-any-order";
 
-const { expect } = chai;
-
-chai.use(chaiSubset);
-chai.use(deepEqualInAnyOrder);
-chai.use(chaiAsPromised);
+use(chaiSubset);
+use(deepEqualInAnyOrder);
+use(chaiAsPromised);
 
 import { IdentityCredential } from "../identity.js";
 import { buildBigIntFromUint8Array } from "../utils/bytes.js";

@@ -1,19 +1,16 @@
 import { hexToBytes } from "@waku/utils/bytes";
-import chai, { expect } from "chai";
+import { expect, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import spies from "chai-spies";
 import * as ethers from "ethers";
 import sinon, { SinonSandbox } from "sinon";
-
-// Initialize plugins
-chai.use(spies);
-chai.use(chaiAsPromised);
 
 import { createRLN } from "../create.js";
 import type { IdentityCredential } from "../identity.js";
 
 import { SEPOLIA_CONTRACT } from "./constants.js";
 import { RLNContract } from "./rln_contract.js";
+
+use(chaiAsPromised);
 
 // Use the minimum allowed rate limit from RATE_LIMIT_TIERS
 const DEFAULT_RATE_LIMIT = 20;
@@ -118,13 +115,14 @@ describe("RLN Contract abstraction - RLN v2", () => {
   it("should fetch members from events and store them in the RLN instance", async () => {
     const rlnInstance = await createRLN();
 
-    rlnInstance.zerokit.insertMember = () => undefined;
-    const insertMemberSpy = chai.spy.on(rlnInstance.zerokit, "insertMember");
+    const insertMemberSpy = sinon.stub();
+    rlnInstance.zerokit.insertMember = insertMemberSpy;
 
     const membershipRegisteredEvent = mockRLNv2RegisteredEvent();
 
+    const queryFilterStub = sinon.stub().returns([membershipRegisteredEvent]);
     const mockedRegistryContract = {
-      queryFilter: () => [membershipRegisteredEvent],
+      queryFilter: queryFilterStub,
       provider: {
         getLogs: () => [],
         getBlockNumber: () => Promise.resolve(1000)
@@ -142,8 +140,6 @@ describe("RLN Contract abstraction - RLN v2", () => {
       on: () => ({}),
       removeAllListeners: () => ({})
     };
-
-    const queryFilterSpy = chai.spy.on(mockedRegistryContract, "queryFilter");
 
     const provider = new ethers.providers.JsonRpcProvider();
     const voidSigner = new ethers.VoidSigner(
@@ -163,16 +159,16 @@ describe("RLN Contract abstraction - RLN v2", () => {
       fetchChunks: 2
     });
 
-    chai
-      .expect(insertMemberSpy)
-      .to.have.been.called.with(
+    expect(
+      insertMemberSpy.calledWith(
         ethers.utils.zeroPad(
           hexToBytes(membershipRegisteredEvent.args!.idCommitment),
           32
         )
-      );
+      )
+    ).to.be.true;
 
-    chai.expect(queryFilterSpy).to.have.been.called;
+    expect(queryFilterStub.called).to.be.true;
   });
 
   it("should register a member", async () => {
@@ -183,8 +179,8 @@ describe("RLN Contract abstraction - RLN v2", () => {
     const identity: IdentityCredential =
       rlnInstance.zerokit.generateSeededIdentityCredential(mockSignature);
 
-    rlnInstance.zerokit.insertMember = () => undefined;
-    const insertMemberSpy = chai.spy.on(rlnInstance.zerokit, "insertMember");
+    const insertMemberSpy = sinon.stub();
+    rlnInstance.zerokit.insertMember = insertMemberSpy;
 
     const formatIdCommitment = (idCommitmentBigInt: bigint): string =>
       "0x" + idCommitmentBigInt.toString(16).padStart(64, "0");
@@ -193,22 +189,24 @@ describe("RLN Contract abstraction - RLN v2", () => {
       formatIdCommitment(identity.IDCommitmentBigInt)
     );
 
-    const mockedRegistryContract = {
-      register: () => ({
-        wait: () =>
-          Promise.resolve({
-            events: [
-              {
-                event: "MembershipRegistered",
-                args: {
-                  idCommitment: formatIdCommitment(identity.IDCommitmentBigInt),
-                  rateLimit: DEFAULT_RATE_LIMIT,
-                  index: ethers.BigNumber.from(1)
-                }
+    const registerStub = sinon.stub().returns({
+      wait: () =>
+        Promise.resolve({
+          events: [
+            {
+              event: "MembershipRegistered",
+              args: {
+                idCommitment: formatIdCommitment(identity.IDCommitmentBigInt),
+                rateLimit: DEFAULT_RATE_LIMIT,
+                index: ethers.BigNumber.from(1)
               }
-            ]
-          })
-      }),
+            }
+          ]
+        })
+    });
+
+    const mockedRegistryContract = {
+      register: registerStub,
       queryFilter: () => [membershipRegisteredEvent],
       provider: {
         getLogs: () => [],
@@ -242,29 +240,27 @@ describe("RLN Contract abstraction - RLN v2", () => {
       contract: mockedRegistryContract as unknown as ethers.Contract
     });
 
-    const registerSpy = chai.spy.on(mockedRegistryContract, "register");
-
     const decryptedCredentials =
       await rlnContract.registerWithIdentity(identity);
 
-    chai.expect(decryptedCredentials).to.not.be.undefined;
+    expect(decryptedCredentials).to.not.be.undefined;
     if (!decryptedCredentials)
       throw new Error("Decrypted credentials should not be undefined");
 
-    chai
-      .expect(registerSpy)
-      .to.have.been.called.with(
+    expect(
+      registerStub.calledWith(
         identity.IDCommitmentBigInt,
         DEFAULT_RATE_LIMIT,
         [],
         {
           gasLimit: 300000
         }
-      );
+      )
+    ).to.be.true;
 
-    chai.expect(decryptedCredentials).to.have.property("identity");
-    chai.expect(decryptedCredentials).to.have.property("membership");
-    chai.expect(decryptedCredentials.membership).to.include({
+    expect(decryptedCredentials).to.have.property("identity");
+    expect(decryptedCredentials).to.have.property("membership");
+    expect(decryptedCredentials.membership).to.include({
       address: SEPOLIA_CONTRACT.address,
       treeIndex: 1
     });
@@ -273,8 +269,9 @@ describe("RLN Contract abstraction - RLN v2", () => {
       hexToBytes(formatIdCommitment(identity.IDCommitmentBigInt)),
       32
     );
-    const insertMemberCalls = (insertMemberSpy as any).__spy.calls;
-    chai.expect(insertMemberCalls).to.have.length(2);
-    chai.expect(insertMemberCalls[1][0]).to.deep.equal(expectedIdCommitment);
+    expect(insertMemberSpy.callCount).to.equal(2);
+    expect(insertMemberSpy.getCall(1).args[0]).to.deep.equal(
+      expectedIdCommitment
+    );
   });
 });
