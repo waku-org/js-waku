@@ -140,8 +140,9 @@ export class RLNInstance {
       this._credentials = credentials;
       this._signer = signer!;
       this._contract = await RLNContract.init(this, {
-        registryAddress: registryAddress!,
-        signer: signer!
+        address: registryAddress!,
+        signer: signer!,
+        rateLimit: 0
       });
       this.started = true;
     } finally {
