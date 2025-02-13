@@ -8,7 +8,7 @@ import type { RLNInstance } from "../rln.js";
 import { MerkleRootTracker } from "../root_tracker.js";
 import { zeroPadLE } from "../utils/index.js";
 
-import { RLN_REGISTRY_ABI, RLN_STORAGE_ABI } from "./constants.js";
+import { RLN_V2_ABI } from "./abi/rlnv2.js";
 
 const log = new Logger("waku:rln:contract");
 
@@ -53,7 +53,6 @@ export class RLNContract {
   ): Promise<RLNContract> {
     const rlnContract = new RLNContract(rlnInstance, options);
 
-    await rlnContract.initStorageContract(options.signer);
     await rlnContract.fetchMembers(rlnInstance);
     rlnContract.subscribeToMembers(rlnInstance);
 
@@ -68,34 +67,10 @@ export class RLNContract {
 
     this.registryContract = new ethers.Contract(
       registryAddress,
-      RLN_REGISTRY_ABI,
+      RLN_V2_ABI,
       signer
     );
     this.merkleRootTracker = new MerkleRootTracker(5, initialRoot);
-  }
-
-  private async initStorageContract(
-    signer: Signer,
-    options: RLNStorageOptions = {}
-  ): Promise<void> {
-    const storageIndex = options?.storageIndex
-      ? options.storageIndex
-      : await this.registryContract.usingStorageIndex();
-    const storageAddress = await this.registryContract.storages(storageIndex);
-
-    if (!storageAddress || storageAddress === ethers.constants.AddressZero) {
-      throw Error("No RLN Storage initialized on registry contract.");
-    }
-
-    this.storageIndex = storageIndex;
-    this.storageContract = new ethers.Contract(
-      storageAddress,
-      RLN_STORAGE_ABI,
-      signer
-    );
-    this._membersFilter = this.storageContract.filters.MemberRegistered();
-
-    this.deployBlock = await this.storageContract.deployedBlockNumber();
   }
 
   public get registry(): ethers.Contract {
@@ -345,9 +320,18 @@ function* takeN<T>(array: T[], size: number): Iterable<T[]> {
   }
 }
 
-function ignoreErrors<T>(promise: Promise<T>, defaultValue: T): Promise<T> {
-  return promise.catch((err) => {
-    log.info(`Ignoring an error during query: ${err?.message}`);
+async function ignoreErrors<T>(
+  promise: Promise<T>,
+  defaultValue: T
+): Promise<T> {
+  try {
+    return await promise;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      log.info(`Ignoring an error during query: ${err.message}`);
+    } else {
+      log.info(`Ignoring an unknown error during query`);
+    }
     return defaultValue;
-  });
+  }
 }
