@@ -6,9 +6,10 @@ import type { IdentityCredential } from "../identity.js";
 import type { DecryptedCredentials } from "../keystore/index.js";
 import type { RLNInstance } from "../rln.js";
 import { MerkleRootTracker } from "../root_tracker.js";
-import { zeroPadLE } from "../utils/index.js";
+import { zeroPadLE } from "../utils/bytes.js";
 
 import { RLN_V2_ABI } from "./abi/rlnv2.js";
+import { DEFAULT_RATE_LIMIT, RATE_LIMIT_PARAMS } from "./constants.js";
 import {
   FetchMembersOptions,
   MembershipRegisteredEvent,
@@ -30,20 +31,68 @@ export class RLNContract {
   private _members: Map<number, Member> = new Map();
 
   /**
-   * Asynchronous initializer for RLNContract.
-   * Allows injecting a mocked registryContract for testing purposes.
+   * Gets the current rate limit for this contract instance
    */
-  public static async init(
-    rlnInstance: RLNInstance,
-    options: RLNContractInitOptions
-  ): Promise<RLNContract> {
-    const rlnContract = new RLNContract(rlnInstance, options);
-
-    await rlnContract.fetchMembers(rlnInstance);
-    rlnContract.subscribeToMembers(rlnInstance);
-
-    return rlnContract;
+  public getRateLimit(): number {
+    return this.rateLimit;
   }
+
+  /**
+   * Gets the minimum allowed rate limit from the contract
+   * @returns Promise<number> The minimum rate limit in messages per epoch
+   */
+  public async getMinRateLimit(): Promise<number> {
+    const minRate = await this.contract.minMembershipRateLimit();
+    return minRate.toNumber();
+  }
+
+  /**
+   * Gets the maximum allowed rate limit from the contract
+   * @returns Promise<number> The maximum rate limit in messages per epoch
+   */
+  public async getMaxRateLimit(): Promise<number> {
+    const maxRate = await this.contract.maxMembershipRateLimit();
+    return maxRate.toNumber();
+  }
+
+  /**
+   * Gets the maximum total rate limit across all memberships
+   * @returns Promise<number> The maximum total rate limit in messages per epoch
+   */
+  public async getMaxTotalRateLimit(): Promise<number> {
+    const maxTotalRate = await this.contract.maxTotalRateLimit();
+    return maxTotalRate.toNumber();
+  }
+
+  /**
+   * Gets the current total rate limit usage across all memberships
+   * @returns Promise<number> The current total rate limit usage in messages per epoch
+   */
+  public async getCurrentTotalRateLimit(): Promise<number> {
+    const currentTotal = await this.contract.currentTotalRateLimit();
+    return currentTotal.toNumber();
+  }
+
+  /**
+   * Gets the remaining available total rate limit that can be allocated
+   * @returns Promise<number> The remaining rate limit that can be allocated
+   */
+  public async getRemainingTotalRateLimit(): Promise<number> {
+    const [maxTotal, currentTotal] = await Promise.all([
+      this.contract.maxTotalRateLimit(),
+      this.contract.currentTotalRateLimit()
+    ]);
+    return maxTotal.sub(currentTotal).toNumber();
+  }
+
+  /**
+   * Updates the rate limit for future registrations
+   * @param newRateLimit The new rate limit to use
+   */
+  public async setRateLimit(newRateLimit: number): Promise<void> {
+    this.rateLimit = newRateLimit;
+  }
+
   /**
    * Private constructor to enforce the use of the async init method.
    */
@@ -51,10 +100,20 @@ export class RLNContract {
     rlnInstance: RLNInstance,
     options: RLNContractInitOptions
   ) {
-    const { address, signer, rateLimit, contract } = options;
+    const {
+      address,
+      signer,
+      rateLimit = DEFAULT_RATE_LIMIT,
+      contract
+    } = options;
 
-    if (rateLimit === undefined) {
-      throw new Error("rateLimit must be provided in RLNContractOptions.");
+    if (
+      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
+      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
+    ) {
+      throw new Error(
+        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE} messages per epoch`
+      );
     }
 
     this.rateLimit = rateLimit;
@@ -69,6 +128,22 @@ export class RLNContract {
     // Initialize event filters for MembershipRegistered and MembershipRemoved
     this._membersFilter = this.contract.filters.MembershipRegistered();
     this._membersRemovedFilter = this.contract.filters.MembershipRemoved();
+  }
+
+  /**
+   * Asynchronous initializer for RLNContract.
+   * Allows injecting a mocked registryContract for testing purposes.
+   */
+  public static async init(
+    rlnInstance: RLNInstance,
+    options: RLNContractInitOptions
+  ): Promise<RLNContract> {
+    const rlnContract = new RLNContract(rlnInstance, options);
+
+    await rlnContract.fetchMembers(rlnInstance);
+    rlnContract.subscribeToMembers(rlnInstance);
+
+    return rlnContract;
   }
 
   public get registry(): ethers.Contract {
@@ -222,6 +297,10 @@ export class RLNContract {
     identity: IdentityCredential
   ): Promise<DecryptedCredentials | undefined> {
     try {
+      log.info(
+        `Registering identity with rate limit: ${this.rateLimit} messages/epoch`
+      );
+
       const txRegisterResponse: ethers.ContractTransaction =
         await this.contract.register(
           identity.IDCommitmentBigInt,
@@ -236,6 +315,9 @@ export class RLNContract {
       );
 
       if (!memberRegistered || !memberRegistered.args) {
+        log.error(
+          "Failed to register membership: No MembershipRegistered event found"
+        );
         return undefined;
       }
 
@@ -244,6 +326,11 @@ export class RLNContract {
         rateLimit: memberRegistered.args.rateLimit,
         index: memberRegistered.args.index
       };
+
+      log.info(
+        `Successfully registered membership with index ${decodedData.index} ` +
+          `and rate limit ${decodedData.rateLimit}`
+      );
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;
@@ -263,6 +350,38 @@ export class RLNContract {
     }
   }
 
+  /**
+   * Helper method to get remaining messages in current epoch
+   * @param membershipId The ID of the membership to check
+   * @returns number of remaining messages allowed in current epoch
+   */
+  public async getRemainingMessages(membershipId: number): Promise<number> {
+    try {
+      const [startTime, , rateLimit] =
+        await this.contract.getMembershipInfo(membershipId);
+
+      // Calculate current epoch
+      const currentTime = Math.floor(Date.now() / 1000);
+      const epochsPassed = Math.floor(
+        (currentTime - startTime) / RATE_LIMIT_PARAMS.EPOCH_LENGTH
+      );
+      const currentEpochStart =
+        startTime + epochsPassed * RATE_LIMIT_PARAMS.EPOCH_LENGTH;
+
+      // Get message count in current epoch using contract's function
+      const messageCount = await this.contract.getMessageCount(
+        membershipId,
+        currentEpochStart
+      );
+      return Math.max(0, rateLimit.sub(messageCount).toNumber());
+    } catch (error) {
+      log.error(
+        `Error getting remaining messages: ${(error as Error).message}`
+      );
+      return 0; // Fail safe: assume no messages remaining on error
+    }
+  }
+
   public async registerWithPermitAndErase(
     identity: IdentityCredential,
     permit: {
@@ -275,6 +394,10 @@ export class RLNContract {
     idCommitmentsToErase: string[]
   ): Promise<DecryptedCredentials | undefined> {
     try {
+      log.info(
+        `Registering identity with permit and rate limit: ${this.rateLimit} messages/epoch`
+      );
+
       const txRegisterResponse: ethers.ContractTransaction =
         await this.contract.registerWithPermit(
           permit.owner,
@@ -293,6 +416,9 @@ export class RLNContract {
       );
 
       if (!memberRegistered || !memberRegistered.args) {
+        log.error(
+          "Failed to register membership with permit: No MembershipRegistered event found"
+        );
         return undefined;
       }
 
@@ -301,6 +427,11 @@ export class RLNContract {
         rateLimit: memberRegistered.args.rateLimit,
         index: memberRegistered.args.index
       };
+
+      log.info(
+        `Successfully registered membership with permit. Index: ${decodedData.index}, ` +
+          `Rate limit: ${decodedData.rateLimit}, Erased ${idCommitmentsToErase.length} commitments`
+      );
 
       const network = await this.contract.provider.getNetwork();
       const address = this.contract.address;

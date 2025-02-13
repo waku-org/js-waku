@@ -4,7 +4,6 @@ import type {
   IDecodedMessage,
   EncoderOptions as WakuEncoderOptions
 } from "@waku/interfaces";
-import { Logger } from "@waku/utils";
 import init from "@waku/zerokit-rln-wasm";
 import * as zerokitRLN from "@waku/zerokit-rln-wasm";
 import { ethers } from "ethers";
@@ -25,26 +24,20 @@ import type {
 import { KeystoreEntity, Password } from "./keystore/types.js";
 import verificationKey from "./resources/verification_key";
 import * as wc from "./resources/witness_calculator";
+import { WitnessCalculator } from "./resources/witness_calculator";
 import { extractMetaMaskSigner } from "./utils/index.js";
 import { Zerokit } from "./zerokit.js";
 
-const log = new Logger("waku:rln");
-
-async function loadWitnessCalculator(): Promise<wc.WitnessCalculator> {
-  const res = await fetch("/base/rln.wasm");
-  if (!res.ok) {
-    throw new Error(`Failed to fetch rln.wasm: ${res.statusText}`);
-  }
-  const witnessBuffer = await res.arrayBuffer();
-  return wc.builder(new Uint8Array(witnessBuffer), false);
+async function loadWitnessCalculator(): Promise<WitnessCalculator> {
+  const url = new URL("./resources/rln.wasm", import.meta.url);
+  const response = await fetch(url);
+  return await wc.builder(new Uint8Array(await response.arrayBuffer()), false);
 }
 
 async function loadZkey(): Promise<Uint8Array> {
-  const res = await fetch("/base/rln_final.zkey");
-  if (!res.ok) {
-    throw new Error(`Failed to fetch rln_final.zkey: ${res.statusText}`);
-  }
-  return new Uint8Array(await res.arrayBuffer());
+  const url = new URL("./resources/rln_final.zkey", import.meta.url);
+  const response = await fetch(url);
+  return new Uint8Array(await response.arrayBuffer());
 }
 
 /**
@@ -52,26 +45,21 @@ async function loadZkey(): Promise<Uint8Array> {
  * @returns RLNInstance
  */
 export async function create(): Promise<RLNInstance> {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (init as any)?.();
-    zerokitRLN.init_panic_hook();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (init as any)?.();
+  zerokitRLN.init_panic_hook();
 
-    const witnessCalculator = await loadWitnessCalculator();
-    const zkey = await loadZkey();
+  const witnessCalculator = await loadWitnessCalculator();
+  const zkey = await loadZkey();
 
-    const stringEncoder = new TextEncoder();
-    const vkey = stringEncoder.encode(JSON.stringify(verificationKey));
+  const stringEncoder = new TextEncoder();
+  const vkey = stringEncoder.encode(JSON.stringify(verificationKey));
 
-    const DEPTH = 20;
-    const zkRLN = zerokitRLN.newRLN(DEPTH, zkey, vkey);
-    const zerokit = new Zerokit(zkRLN, witnessCalculator);
+  const DEPTH = 20;
+  const zkRLN = zerokitRLN.newRLN(DEPTH, zkey, vkey);
+  const zerokit = new Zerokit(zkRLN, witnessCalculator);
 
-    return new RLNInstance(zerokit);
-  } catch (error) {
-    log.error("Failed to initialize RLN:", error);
-    throw error;
-  }
+  return new RLNInstance(zerokit);
 }
 
 type StartRLNOptions = {
@@ -82,12 +70,16 @@ type StartRLNOptions = {
   /**
    * If not set - will use default SEPOLIA_CONTRACT address.
    */
-  registryAddress?: string;
+  address?: string;
   /**
    * Credentials to use for generating proofs and connecting to the contract and network.
    * If provided used for validating the network chainId and connecting to registry contract.
    */
   credentials?: EncryptedCredentials | DecryptedCredentials;
+  /**
+   * Rate limit for the member.
+   */
+  rateLimit?: number;
 };
 
 type RegisterMembershipOptions =
@@ -128,7 +120,7 @@ export class RLNInstance {
     try {
       const { credentials, keystore } =
         await RLNInstance.decryptCredentialsIfNeeded(options.credentials);
-      const { signer, registryAddress } = await this.determineStartOptions(
+      const { signer, address } = await this.determineStartOptions(
         options,
         credentials
       );
@@ -140,7 +132,7 @@ export class RLNInstance {
       this._credentials = credentials;
       this._signer = signer!;
       this._contract = await RLNContract.init(this, {
-        address: registryAddress!,
+        address: address!,
         signer: signer!,
         rateLimit: 0
       });
@@ -155,12 +147,12 @@ export class RLNInstance {
     credentials: KeystoreEntity | undefined
   ): Promise<StartRLNOptions> {
     let chainId = credentials?.membership.chainId;
-    const registryAddress =
+    const address =
       credentials?.membership.address ||
-      options.registryAddress ||
+      options.address ||
       SEPOLIA_CONTRACT.address;
 
-    if (registryAddress === SEPOLIA_CONTRACT.address) {
+    if (address === SEPOLIA_CONTRACT.address) {
       chainId = SEPOLIA_CONTRACT.chainId;
     }
 
@@ -175,7 +167,7 @@ export class RLNInstance {
 
     return {
       signer,
-      registryAddress
+      address
     };
   }
 
