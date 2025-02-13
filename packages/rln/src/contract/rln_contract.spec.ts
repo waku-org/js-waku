@@ -5,14 +5,15 @@ import spies from "chai-spies";
 import * as ethers from "ethers";
 import sinon, { SinonSandbox } from "sinon";
 
+// Initialize plugins
+chai.use(spies);
+chai.use(chaiAsPromised);
+
 import { createRLN } from "../create.js";
 import type { IdentityCredential } from "../identity.js";
 
 import { SEPOLIA_CONTRACT } from "./constants.js";
 import { RLNContract } from "./rln_contract.js";
-
-chai.use(spies);
-chai.use(chaiAsPromised);
 
 // Use the minimum allowed rate limit from RATE_LIMIT_TIERS
 const DEFAULT_RATE_LIMIT = 20;
