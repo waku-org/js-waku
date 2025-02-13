@@ -9,44 +9,30 @@ import { MerkleRootTracker } from "../root_tracker.js";
 import { zeroPadLE } from "../utils/index.js";
 
 import { RLN_V2_ABI } from "./abi/rlnv2.js";
+import {
+  FetchMembersOptions,
+  MembershipRegisteredEvent,
+  RLNContractInitOptions
+} from "./types.js";
+import { Member } from "./types.js";
 
 const log = new Logger("waku:rln:contract");
 
-type Member = {
-  idCommitment: string;
-  index: ethers.BigNumber;
-};
-
-type Signer = ethers.Signer;
-
-type RLNContractOptions = {
-  signer: Signer;
-  registryAddress: string;
-};
-
-type RLNStorageOptions = {
-  storageIndex?: number;
-};
-
-type RLNContractInitOptions = RLNContractOptions & RLNStorageOptions;
-
-type FetchMembersOptions = {
-  fromBlock?: number;
-  fetchRange?: number;
-  fetchChunks?: number;
-};
-
 export class RLNContract {
-  private registryContract: ethers.Contract;
+  private contract: ethers.Contract;
   private merkleRootTracker: MerkleRootTracker;
 
   private deployBlock: undefined | number;
-  private storageIndex: undefined | number;
-  private storageContract: undefined | ethers.Contract;
-  private _membersFilter: undefined | ethers.EventFilter;
+  private rateLimit: number;
+  private _membersFilter: ethers.EventFilter;
+  private _membersRemovedFilter: ethers.EventFilter;
 
   private _members: Map<number, Member> = new Map();
 
+  /**
+   * Asynchronous initializer for RLNContract.
+   * Allows injecting a mocked registryContract for testing purposes.
+   */
   public static async init(
     rlnInstance: RLNInstance,
     options: RLNContractInitOptions
@@ -58,33 +44,35 @@ export class RLNContract {
 
     return rlnContract;
   }
-
-  public constructor(
+  /**
+   * Private constructor to enforce the use of the async init method.
+   */
+  private constructor(
     rlnInstance: RLNInstance,
-    { registryAddress, signer }: RLNContractOptions
+    options: RLNContractInitOptions
   ) {
+    const { address, signer, rateLimit, contract } = options;
+
+    if (rateLimit === undefined) {
+      throw new Error("rateLimit must be provided in RLNContractOptions.");
+    }
+
+    this.rateLimit = rateLimit;
+
     const initialRoot = rlnInstance.zerokit.getMerkleRoot();
 
-    this.registryContract = new ethers.Contract(
-      registryAddress,
-      RLN_V2_ABI,
-      signer
-    );
+    // Use the injected registryContract if provided; otherwise, instantiate a new one.
+    this.contract =
+      contract || new ethers.Contract(address, RLN_V2_ABI, signer);
     this.merkleRootTracker = new MerkleRootTracker(5, initialRoot);
+
+    // Initialize event filters for MembershipRegistered and MembershipRemoved
+    this._membersFilter = this.contract.filters.MembershipRegistered();
+    this._membersRemovedFilter = this.contract.filters.MembershipRemoved();
   }
 
   public get registry(): ethers.Contract {
-    if (!this.registryContract) {
-      throw Error("Registry contract was not initialized");
-    }
-    return this.registryContract as ethers.Contract;
-  }
-
-  public get contract(): ethers.Contract {
-    if (!this.storageContract) {
-      throw Error("Storage contract was not initialized");
-    }
-    return this.storageContract as ethers.Contract;
+    return this.contract;
   }
 
   public get members(): Member[] {
@@ -98,7 +86,14 @@ export class RLNContract {
     if (!this._membersFilter) {
       throw Error("Members filter was not initialized.");
     }
-    return this._membersFilter as ethers.EventFilter;
+    return this._membersFilter;
+  }
+
+  private get membersRemovedFilter(): ethers.EventFilter {
+    if (!this._membersRemovedFilter) {
+      throw Error("MembersRemoved filter was not initialized.");
+    }
+    return this._membersRemovedFilter;
   }
 
   public async fetchMembers(
@@ -110,7 +105,14 @@ export class RLNContract {
       ...options,
       membersFilter: this.membersFilter
     });
-    this.processEvents(rlnInstance, registeredMemberEvents);
+    const removedMemberEvents = await queryFilter(this.contract, {
+      fromBlock: this.deployBlock,
+      ...options,
+      membersFilter: this.membersRemovedFilter
+    });
+
+    const events = [...registeredMemberEvents, ...removedMemberEvents];
+    this.processEvents(rlnInstance, events);
   }
 
   public processEvents(rlnInstance: RLNInstance, events: ethers.Event[]): void {
@@ -122,8 +124,8 @@ export class RLNContract {
         return;
       }
 
-      if (evt.removed) {
-        const index: ethers.BigNumber = evt.args.index;
+      if (evt.event === "MembershipRemoved") {
+        const index = evt.args.index as ethers.BigNumber;
         const toRemoveVal = toRemoveTable.get(evt.blockNumber);
         if (toRemoveVal != undefined) {
           toRemoveVal.push(index.toNumber());
@@ -131,7 +133,7 @@ export class RLNContract {
         } else {
           toRemoveTable.set(evt.blockNumber, [index.toNumber()]);
         }
-      } else {
+      } else if (evt.event === "MembershipRegistered") {
         let eventsPerBlock = toInsertTable.get(evt.blockNumber);
         if (eventsPerBlock == undefined) {
           eventsPerBlock = [];
@@ -152,18 +154,20 @@ export class RLNContract {
   ): void {
     toInsert.forEach((events: ethers.Event[], blockNumber: number) => {
       events.forEach((evt) => {
-        const _idCommitment = evt?.args?.idCommitment;
-        const index: ethers.BigNumber = evt?.args?.index;
+        if (!evt.args) return;
+
+        const _idCommitment = evt.args.idCommitment as string;
+        const index = evt.args.index as ethers.BigNumber;
 
         if (!_idCommitment || !index) {
           return;
         }
 
-        const idCommitment = zeroPadLE(hexToBytes(_idCommitment?._hex), 32);
+        const idCommitment = zeroPadLE(hexToBytes(_idCommitment), 32);
         rlnInstance.zerokit.insertMember(idCommitment);
         this._members.set(index.toNumber(), {
           index,
-          idCommitment: _idCommitment?._hex
+          idCommitment: _idCommitment
         });
       });
 
@@ -176,7 +180,7 @@ export class RLNContract {
     rlnInstance: RLNInstance,
     toRemove: Map<number, number[]>
   ): void {
-    const removeDescending = new Map([...toRemove].sort().reverse());
+    const removeDescending = new Map([...toRemove].sort((a, b) => b[0] - a[0]));
     removeDescending.forEach((indexes: number[], blockNumber: number) => {
       indexes.forEach((index) => {
         if (this._members.has(index)) {
@@ -190,63 +194,153 @@ export class RLNContract {
   }
 
   public subscribeToMembers(rlnInstance: RLNInstance): void {
-    this.contract.on(this.membersFilter, (_pubkey, _index, event) =>
-      this.processEvents(rlnInstance, [event])
+    this.contract.on(
+      this.membersFilter,
+      (
+        _idCommitment: string,
+        _rateLimit: number,
+        _index: ethers.BigNumber,
+        event: ethers.Event
+      ) => {
+        this.processEvents(rlnInstance, [event]);
+      }
+    );
+
+    this.contract.on(
+      this.membersRemovedFilter,
+      (
+        _idCommitment: string,
+        _index: ethers.BigNumber,
+        event: ethers.Event
+      ) => {
+        this.processEvents(rlnInstance, [event]);
+      }
     );
   }
 
   public async registerWithIdentity(
     identity: IdentityCredential
   ): Promise<DecryptedCredentials | undefined> {
-    if (this.storageIndex === undefined) {
-      throw Error(
-        "Cannot register credential, no storage contract index found."
-      );
-    }
-    const txRegisterResponse: ethers.ContractTransaction =
-      await this.registryContract["register(uint16,uint256)"](
-        this.storageIndex,
-        identity.IDCommitmentBigInt,
-        { gasLimit: 100000 }
-      );
-    const txRegisterReceipt = await txRegisterResponse.wait();
+    try {
+      const txRegisterResponse: ethers.ContractTransaction =
+        await this.contract.register(
+          identity.IDCommitmentBigInt,
+          this.rateLimit,
+          [],
+          { gasLimit: 300000 }
+        );
+      const txRegisterReceipt = await txRegisterResponse.wait();
 
-    // assumption: register(uint16,uint256) emits one event
-    const memberRegistered = txRegisterReceipt?.events?.[0];
+      const memberRegistered = txRegisterReceipt.events?.find(
+        (event) => event.event === "MembershipRegistered"
+      );
 
-    if (!memberRegistered) {
+      if (!memberRegistered || !memberRegistered.args) {
+        return undefined;
+      }
+
+      const decodedData: MembershipRegisteredEvent = {
+        idCommitment: memberRegistered.args.idCommitment,
+        rateLimit: memberRegistered.args.rateLimit,
+        index: memberRegistered.args.index
+      };
+
+      const network = await this.contract.provider.getNetwork();
+      const address = this.contract.address;
+      const membershipId = decodedData.index.toNumber();
+
+      return {
+        identity,
+        membership: {
+          address,
+          treeIndex: membershipId,
+          chainId: network.chainId
+        }
+      };
+    } catch (error) {
+      log.error(`Error in registerWithIdentity: ${(error as Error).message}`);
       return undefined;
     }
+  }
 
-    const decodedData = this.contract.interface.decodeEventLog(
-      "MemberRegistered",
-      memberRegistered.data
-    );
+  public async registerWithPermitAndErase(
+    identity: IdentityCredential,
+    permit: {
+      owner: string;
+      deadline: number;
+      v: number;
+      r: string;
+      s: string;
+    },
+    idCommitmentsToErase: string[]
+  ): Promise<DecryptedCredentials | undefined> {
+    try {
+      const txRegisterResponse: ethers.ContractTransaction =
+        await this.contract.registerWithPermit(
+          permit.owner,
+          permit.deadline,
+          permit.v,
+          permit.r,
+          permit.s,
+          identity.IDCommitmentBigInt,
+          this.rateLimit,
+          idCommitmentsToErase.map((id) => ethers.BigNumber.from(id))
+        );
+      const txRegisterReceipt = await txRegisterResponse.wait();
 
-    const network = await this.registryContract.provider.getNetwork();
-    const address = this.registryContract.address;
-    const membershipId = decodedData.index.toNumber();
+      const memberRegistered = txRegisterReceipt.events?.find(
+        (event) => event.event === "MembershipRegistered"
+      );
 
-    return {
-      identity,
-      membership: {
-        address,
-        treeIndex: membershipId,
-        chainId: network.chainId
+      if (!memberRegistered || !memberRegistered.args) {
+        return undefined;
       }
-    };
+
+      const decodedData: MembershipRegisteredEvent = {
+        idCommitment: memberRegistered.args.idCommitment,
+        rateLimit: memberRegistered.args.rateLimit,
+        index: memberRegistered.args.index
+      };
+
+      const network = await this.contract.provider.getNetwork();
+      const address = this.contract.address;
+      const membershipId = decodedData.index.toNumber();
+
+      return {
+        identity,
+        membership: {
+          address,
+          treeIndex: membershipId,
+          chainId: network.chainId
+        }
+      };
+    } catch (error) {
+      log.error(
+        `Error in registerWithPermitAndErase: ${(error as Error).message}`
+      );
+      return undefined;
+    }
   }
 
   public roots(): Uint8Array[] {
     return this.merkleRootTracker.roots();
   }
+
+  public async withdraw(token: string, holder: string): Promise<void> {
+    try {
+      const tx = await this.contract.withdraw(token, { from: holder });
+      await tx.wait();
+    } catch (error) {
+      log.error(`Error in withdraw: ${(error as Error).message}`);
+    }
+  }
 }
 
-type CustomQueryOptions = FetchMembersOptions & {
+interface CustomQueryOptions extends FetchMembersOptions {
   membersFilter: ethers.EventFilter;
-};
+}
 
-// these value should be tested on other networks
+// These values should be tested on other networks
 const FETCH_CHUNK = 5;
 const BLOCK_RANGE = 3000;
 
@@ -261,18 +355,18 @@ async function queryFilter(
     fetchChunks = FETCH_CHUNK
   } = options;
 
-  if (!fromBlock) {
+  if (fromBlock === undefined) {
     return contract.queryFilter(membersFilter);
   }
 
-  if (!contract.signer.provider) {
-    throw Error("No provider found on the contract's signer.");
+  if (!contract.provider) {
+    throw Error("No provider found on the contract.");
   }
 
-  const toBlock = await contract.signer.provider.getBlockNumber();
+  const toBlock = await contract.provider.getBlockNumber();
 
   if (toBlock - fromBlock < fetchRange) {
-    return contract.queryFilter(membersFilter);
+    return contract.queryFilter(membersFilter, fromBlock, toBlock);
   }
 
   const events: ethers.Event[][] = [];
@@ -294,7 +388,7 @@ function splitToChunks(
   to: number,
   step: number
 ): Array<[number, number]> {
-  const chunks = [];
+  const chunks: Array<[number, number]> = [];
 
   let left = from;
   while (left < to) {
