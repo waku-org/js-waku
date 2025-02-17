@@ -1,10 +1,6 @@
 import { RLNDecoder, RLNEncoder } from "./codec.js";
-import {
-  RLN_REGISTRY_ABI,
-  RLN_STORAGE_ABI,
-  SEPOLIA_CONTRACT
-} from "./contract/index.js";
-import { RLNContract } from "./contract/index.js";
+import { RLN_V2_ABI } from "./contract/abi/rlnv2.js";
+import { RLNContract, SEPOLIA_CONTRACT } from "./contract/index.js";
 import { createRLN } from "./create.js";
 import { IdentityCredential } from "./identity.js";
 import { Keystore } from "./keystore/index.js";
@@ -23,8 +19,7 @@ export {
   RLNDecoder,
   MerkleRootTracker,
   RLNContract,
-  RLN_STORAGE_ABI,
-  RLN_REGISTRY_ABI,
   SEPOLIA_CONTRACT,
-  extractMetaMaskSigner
+  extractMetaMaskSigner,
+  RLN_V2_ABI
 };
