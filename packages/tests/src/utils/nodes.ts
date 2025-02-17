@@ -7,7 +7,7 @@ import {
   Protocols
 } from "@waku/interfaces";
 import { createLightNode } from "@waku/sdk";
-import { derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
+import { delay, derivePubsubTopicsFromNetworkConfig } from "@waku/utils";
 import { Context } from "mocha";
 import pRetry from "p-retry";
 
@@ -37,7 +37,10 @@ export async function runMultipleNodes(
   );
 
   if (numServiceNodes > 1) {
-    await verifyServiceNodesConnected(serviceNodes.nodes);
+    const success = await verifyServiceNodesConnected(serviceNodes.nodes);
+    if (!success) {
+      throw new Error("Failed to verify that service nodes are connected");
+    }
   }
 
   const wakuOptions: CreateNodeOptions = {
@@ -55,12 +58,21 @@ export async function runMultipleNodes(
     throw new Error("Failed to initialize waku");
   }
 
+  //TODO: reinvestigate the need for these delays with nwaku:0.35.0: https://github.com/waku-org/js-waku/issues/2264
+  await delay(2000);
+
   for (const node of serviceNodes.nodes) {
     await waku.dial(await node.getMultiaddrWithId());
     await waku.waitForPeers([Protocols.Filter, Protocols.LightPush]);
-    await node.ensureSubscriptions(
+    const success = await node.ensureSubscriptions(
       derivePubsubTopicsFromNetworkConfig(networkConfig)
     );
+    if (!success) {
+      throw new Error("Failed to ensure subscriptions");
+    }
+
+    //TODO: reinvestigate the need for these delays with nwaku:0.35.0: https://github.com/waku-org/js-waku/issues/2264
+    await delay(2000);
 
     await node.waitForLog(waku.libp2p.peerId.toString(), 100);
   }

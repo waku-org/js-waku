@@ -175,8 +175,6 @@ describe("Waku Store (Autosharding), custom pubsub topic", function () {
   };
 
   beforeEachCustom(this, async () => {
-    console.log("running nodes");
-
     [serviceNodes, waku] = await runMultipleNodes(
       this.ctx,
       contentTopicInfoBothShards,

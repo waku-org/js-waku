@@ -22,7 +22,7 @@ import {
 const ContentTopic = "/waku/2/content/test.js";
 
 describe("Static Sharding: Running Nodes", function () {
-  this.timeout(15_000);
+  this.timeout(60_000);
   let waku: LightNode;
   let serviceNodes: ServiceNodesFleet;
 
@@ -42,7 +42,8 @@ describe("Static Sharding: Running Nodes", function () {
           store: true,
           lightpush: true,
           relay: true,
-          pubsubTopic: shardInfoToPubsubTopics(shardInfo)
+          pubsubTopic: shardInfoToPubsubTopics(shardInfo),
+          clusterId: singleShardInfo.clusterId
         },
         false,
         2,
@@ -80,7 +81,8 @@ describe("Static Sharding: Running Nodes", function () {
           store: true,
           lightpush: true,
           relay: true,
-          pubsubTopic: shardInfoToPubsubTopics(shardInfo)
+          pubsubTopic: shardInfoToPubsubTopics(shardInfo),
+          clusterId: singleShardInfo.clusterId
         },
         false,
         2,

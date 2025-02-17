@@ -434,7 +434,7 @@ interface RpcInfoResponse {
 
 export async function verifyServiceNodesConnected(
   nodes: ServiceNode[]
-): Promise<void> {
+): Promise<boolean> {
   for (const node of nodes) {
     const peers = await node.peers();
     log.info(`Service node ${node.containerName} peers:`, peers.length);
@@ -442,9 +442,9 @@ export async function verifyServiceNodesConnected(
 
     if (nodes.length > 1 && peers.length === 0) {
       log.error(`Service node ${node.containerName} has no peers connected`);
-      throw new Error(
-        `Service node ${node.containerName} has no peers connected`
-      );
+      return false;
     }
   }
+
+  return true;
 }
