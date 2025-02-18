@@ -19,6 +19,22 @@ import { Member } from "./types.js";
 
 const log = new Logger("waku:rln:contract");
 
+export interface MembershipInfo {
+  index: ethers.BigNumber;
+  idCommitment: string;
+  rateLimit: number;
+  startBlock: number;
+  endBlock: number;
+  state: MembershipState;
+}
+
+export enum MembershipState {
+  Active = "Active",
+  GracePeriod = "GracePeriod",
+  Expired = "Expired",
+  ErasedAwaitsWithdrawal = "ErasedAwaitsWithdrawal"
+}
+
 export class RLNContract {
   private contract: ethers.Contract;
   private merkleRootTracker: MerkleRootTracker;
@@ -463,6 +479,87 @@ export class RLNContract {
       await tx.wait();
     } catch (error) {
       log.error(`Error in withdraw: ${(error as Error).message}`);
+    }
+  }
+
+  public async getMembershipInfo(
+    idCommitment: string
+  ): Promise<MembershipInfo | undefined> {
+    try {
+      const [startBlock, endBlock, rateLimit] =
+        await this.contract.getMembershipInfo(idCommitment);
+      const currentBlock = await this.contract.provider.getBlockNumber();
+
+      let state: MembershipState;
+      if (currentBlock < startBlock) {
+        state = MembershipState.Active;
+      } else if (currentBlock < endBlock) {
+        state = MembershipState.GracePeriod;
+      } else {
+        state = MembershipState.Expired;
+      }
+
+      const index = await this.getMemberIndex(idCommitment);
+      if (!index) return undefined;
+
+      return {
+        index,
+        idCommitment,
+        rateLimit: rateLimit.toNumber(),
+        startBlock: startBlock.toNumber(),
+        endBlock: endBlock.toNumber(),
+        state
+      };
+    } catch (error) {
+      return undefined;
+    }
+  }
+
+  public async extendMembership(
+    idCommitment: string
+  ): Promise<ethers.ContractTransaction> {
+    return this.contract.extendMemberships([idCommitment]);
+  }
+
+  public async eraseMembership(
+    idCommitment: string,
+    eraseFromMembershipSet: boolean = true
+  ): Promise<ethers.ContractTransaction> {
+    return this.contract.eraseMemberships(
+      [idCommitment],
+      eraseFromMembershipSet
+    );
+  }
+
+  public async registerMembership(
+    idCommitment: string,
+    rateLimit: number = DEFAULT_RATE_LIMIT
+  ): Promise<ethers.ContractTransaction> {
+    if (
+      rateLimit < RATE_LIMIT_PARAMS.MIN_RATE ||
+      rateLimit > RATE_LIMIT_PARAMS.MAX_RATE
+    ) {
+      throw new Error(
+        `Rate limit must be between ${RATE_LIMIT_PARAMS.MIN_RATE} and ${RATE_LIMIT_PARAMS.MAX_RATE}`
+      );
+    }
+    return this.contract.register(idCommitment, rateLimit, []);
+  }
+
+  private async getMemberIndex(
+    idCommitment: string
+  ): Promise<ethers.BigNumber | undefined> {
+    try {
+      const events = await this.contract.queryFilter(
+        this.contract.filters.MembershipRegistered(idCommitment)
+      );
+      if (events.length === 0) return undefined;
+
+      // Get the most recent registration event
+      const event = events[events.length - 1];
+      return event.args?.index;
+    } catch (error) {
+      return undefined;
     }
   }
 }
