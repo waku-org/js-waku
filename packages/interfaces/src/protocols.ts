@@ -4,9 +4,10 @@ import type { PeerId } from "@libp2p/interface";
 import type { ConnectionManagerOptions } from "./connection_manager.js";
 import type { FilterProtocolOptions } from "./filter.js";
 import type { CreateLibp2pOptions } from "./libp2p.js";
+import type { LightPushProtocolOptions } from "./light_push.js";
 import type { IDecodedMessage } from "./message.js";
-import { ThisAndThat, ThisOrThat } from "./misc.js";
-import { AutoSharding, StaticSharding } from "./sharding.js";
+import type { ThisAndThat, ThisOrThat } from "./misc.js";
+import type { AutoSharding, StaticSharding } from "./sharding.js";
 import type { StoreProtocolOptions } from "./store.js";
 
 export enum Protocols {
@@ -62,9 +63,7 @@ export type CreateNodeOptions = {
 
   /**
    * Number of peers to connect to, for the usage of the protocol.
-   * This is used by:
-   * - Light Push to send messages,
-   * - Filter to retrieve messages.
+   * This is used by Filter to retrieve messages.
    *
    * @default 2.
    */
@@ -101,8 +100,15 @@ export type CreateNodeOptions = {
 
   /**
    * Options for the Store protocol.
+   * If not specified - default values are applied.
    */
   store?: Partial<StoreProtocolOptions>;
+
+  /**
+   * Options for the LightPush protocol.
+   * If not specified - default values are applied.
+   */
+  lightPush?: Partial<LightPushProtocolOptions>;
 };
 
 export type Callback<T extends IDecodedMessage> = (

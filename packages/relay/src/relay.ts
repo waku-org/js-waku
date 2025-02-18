@@ -6,11 +6,12 @@ import {
 } from "@chainsafe/libp2p-gossipsub";
 import type { PeerIdStr, TopicStr } from "@chainsafe/libp2p-gossipsub/types";
 import { SignaturePolicy } from "@chainsafe/libp2p-gossipsub/types";
-import type { PubSub as Libp2pPubsub, PeerId } from "@libp2p/interface";
+import type { PubSub as Libp2pPubsub } from "@libp2p/interface";
 import { sha256 } from "@noble/hashes/sha256";
 import {
   ActiveSubscriptions,
   Callback,
+  CoreProtocolResult,
   CreateNodeOptions,
   IAsyncIterator,
   IDecodedMessage,
@@ -20,8 +21,7 @@ import {
   IRelay,
   Libp2p,
   ProtocolError,
-  PubsubTopic,
-  SDKProtocolResult
+  PubsubTopic
 } from "@waku/interfaces";
 import { isWireSizeUnderCap, toAsyncIterator } from "@waku/utils";
 import { pushOrInitMapSet } from "@waku/utils";
@@ -117,19 +117,15 @@ class Relay implements IRelay {
   public async send(
     encoder: IEncoder,
     message: IMessage
-  ): Promise<SDKProtocolResult> {
-    const successes: PeerId[] = [];
-
+  ): Promise<CoreProtocolResult> {
     const { pubsubTopic } = encoder;
     if (!this.pubsubTopics.has(pubsubTopic)) {
       log.error("Failed to send waku relay: topic not configured");
       return {
-        successes,
-        failures: [
-          {
-            error: ProtocolError.TOPIC_NOT_CONFIGURED
-          }
-        ]
+        success: null,
+        failure: {
+          error: ProtocolError.TOPIC_NOT_CONFIGURED
+        }
       };
     }
 
@@ -137,31 +133,27 @@ class Relay implements IRelay {
     if (!msg) {
       log.error("Failed to encode message, aborting publish");
       return {
-        successes,
-        failures: [
-          {
-            error: ProtocolError.ENCODE_FAILED
-          }
-        ]
+        success: null,
+        failure: {
+          error: ProtocolError.ENCODE_FAILED
+        }
       };
     }
 
     if (!isWireSizeUnderCap(msg)) {
       log.error("Failed to send waku relay: message is bigger that 1MB");
       return {
-        successes,
-        failures: [
-          {
-            error: ProtocolError.SIZE_TOO_BIG
-          }
-        ]
+        success: null,
+        failure: {
+          error: ProtocolError.SIZE_TOO_BIG
+        }
       };
     }
 
     const { recipients } = await this.gossipSub.publish(pubsubTopic, msg);
     return {
-      successes: recipients,
-      failures: []
+      success: recipients[0],
+      failure: null
     };
   }
 

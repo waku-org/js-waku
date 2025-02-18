@@ -93,7 +93,11 @@ export class WakuNode implements IWaku {
     }
 
     if (protocolsEnabled.lightpush) {
-      const lightPush = wakuLightPush(this.connectionManager, this.peerManager);
+      const lightPush = wakuLightPush(
+        this.connectionManager,
+        this.peerManager,
+        options?.lightPush
+      );
       this.lightPush = lightPush(libp2p);
     }
 
@@ -183,10 +187,13 @@ export class WakuNode implements IWaku {
 
   public async start(): Promise<void> {
     await this.libp2p.start();
+    this.peerManager.start();
     this.health.start();
+    this.lightPush?.start();
   }
 
   public async stop(): Promise<void> {
+    this.lightPush?.stop();
     this.health.stop();
     this.peerManager.stop();
     this.connectionManager.stop();
