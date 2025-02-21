@@ -3,7 +3,9 @@
   "compilerOptions": {
     "outDir": "dist/",
     "rootDir": "src",
-    "tsBuildInfoFile": "dist/.tsbuildinfo"
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "allowJs": true,
+    "moduleResolution": "node"
   },
   "include": ["src"],
   "exclude": ["src/**/*.spec.ts", "src/test_utils"]

@@ -59,6 +59,10 @@
         "node": ">=20"
     },
     "dependencies": {
+        "@noble/hashes": "^1.7.1",
+        "@waku/message-hash": "^0.1.17",
+        "@waku/proto": "^0.0.8",
+        "@waku/utils": "^0.0.21",
         "chai": "^5.1.2"
     },
     "devDependencies": {

@@ -64,6 +64,7 @@
     "kdfparams",
     "keccak",
     "keypair",
+    "lamport",
     "lastpub",
     "libauth",
     "libp",
