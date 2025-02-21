@@ -13,6 +13,7 @@ export const DEFAULT_BLOOM_FILTER_OPTIONS = {
 };
 
 const DEFAULT_CAUSAL_HISTORY_SIZE = 2;
+const DEFAULT_RECEIVED_MESSAGE_TIMEOUT = 1000 * 60 * 5; // 5 minutes
 
 export class MessageChannel {
   private lamportTimestamp: number;
@@ -24,10 +25,13 @@ export class MessageChannel {
   private channelId: ChannelId;
   private causalHistorySize: number;
   private acknowledgementCount: number;
+  private timeReceived: Map<string, number>;
 
   public constructor(
     channelId: ChannelId,
-    causalHistorySize: number = DEFAULT_CAUSAL_HISTORY_SIZE
+    causalHistorySize: number = DEFAULT_CAUSAL_HISTORY_SIZE,
+    private receivedMessageTimeoutEnabled: boolean = false,
+    private receivedMessageTimeout: number = DEFAULT_RECEIVED_MESSAGE_TIMEOUT
   ) {
     this.channelId = channelId;
     this.lamportTimestamp = 0;
@@ -38,6 +42,7 @@ export class MessageChannel {
     this.messageIdLog = [];
     this.causalHistorySize = causalHistorySize;
     this.acknowledgementCount = this.getAcknowledgementCount();
+    this.timeReceived = new Map();
   }
 
   public static getMessageId(payload: Uint8Array): string {
@@ -117,9 +122,85 @@ export class MessageChannel {
     );
     if (!dependenciesMet) {
       this.incomingBuffer.push(message);
+      this.timeReceived.set(message.messageId, Date.now());
     } else {
       this.deliverMessage(message);
     }
+  }
+
+  // https://rfc.vac.dev/vac/raw/sds/#periodic-incoming-buffer-sweep
+  public sweepIncomingBuffer(): string[] {
+    const { buffer, missing } = this.incomingBuffer.reduce<{
+      buffer: Message[];
+      missing: string[];
+    }>(
+      ({ buffer, missing }, message) => {
+        // Check each message for missing dependencies
+        const missingDependencies = message.causalHistory.filter(
+          (messageId) =>
+            !this.messageIdLog.some(
+              ({ messageId: logMessageId }) => logMessageId === messageId
+            )
+        );
+        if (missingDependencies.length === 0) {
+          // Any message with no missing dependencies is delivered
+          // and removed from the buffer (implicitly by not adding it to the new incoming buffer)
+          this.deliverMessage(message);
+          return { buffer, missing };
+        }
+
+        // Optionally, if a message has not been received after a predetermined amount of time,
+        // it is marked as irretrievably lost (implicitly by removing it from the buffer without delivery)
+        if (this.receivedMessageTimeoutEnabled) {
+          const timeReceived = this.timeReceived.get(message.messageId);
+          if (
+            timeReceived &&
+            Date.now() - timeReceived > this.receivedMessageTimeout
+          ) {
+            return { buffer, missing };
+          }
+        }
+        // Any message with missing dependencies stays in the buffer
+        // and the missing message IDs are returned for processing.
+        return {
+          buffer: buffer.concat(message),
+          missing: missing.concat(missingDependencies)
+        };
+      },
+      { buffer: new Array<Message>(), missing: new Array<string>() }
+    );
+    // Update the incoming buffer to only include messages with no missing dependencies
+    this.incomingBuffer = buffer;
+    return missing;
+  }
+
+  // https://rfc.vac.dev/vac/raw/sds/#periodic-outgoing-buffer-sweep
+  public sweepOutgoingBuffer(): {
+    unacknowledged: Message[];
+    possiblyAcknowledged: Message[];
+  } {
+    // Partition all messages in the outgoing buffer into unacknowledged and possibly acknowledged messages
+    return this.outgoingBuffer.reduce<{
+      unacknowledged: Message[];
+      possiblyAcknowledged: Message[];
+    }>(
+      ({ unacknowledged, possiblyAcknowledged }, message) => {
+        if (this.acknowledgements.has(message.messageId)) {
+          return {
+            unacknowledged,
+            possiblyAcknowledged: possiblyAcknowledged.concat(message)
+          };
+        }
+        return {
+          unacknowledged: unacknowledged.concat(message),
+          possiblyAcknowledged
+        };
+      },
+      {
+        unacknowledged: new Array<Message>(),
+        possiblyAcknowledged: new Array<Message>()
+      }
+    );
   }
 
   // See https://rfc.vac.dev/vac/raw/sds/#deliver-message
