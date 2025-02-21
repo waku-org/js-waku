@@ -72,7 +72,7 @@
         "@waku/build-utils": "*",
         "allure-commandline": "^2.27.0",
         "allure-mocha": "^2.9.2",
-        "cspell": "^8.6.1",
+        "cspell": "^8.17.4",
         "fast-check": "^3.19.0",
         "mocha-multi-reporters": "^1.5.1",
         "npm-run-all": "^4.1.5",
