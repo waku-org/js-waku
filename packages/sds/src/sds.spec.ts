@@ -330,4 +330,145 @@ describe("MessageChannel", function () {
       });
     });
   });
+
+  describe("Sweeping incoming buffer", () => {
+    beforeEach(() => {
+      channelA = new MessageChannel(channelId);
+      channelB = new MessageChannel(channelId);
+    });
+
+    it("should detect messages with missing dependencies", () => {
+      const causalHistorySize = (channelA as any).causalHistorySize;
+      messagesA.forEach((m) => {
+        channelA.sendMessage(utf8ToBytes(m), callback);
+      });
+
+      channelA.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
+        channelB.receiveMessage(message);
+        return true;
+      });
+
+      const incomingBuffer = (channelB as any).incomingBuffer as Message[];
+      expect(incomingBuffer.length).to.equal(1);
+      expect(incomingBuffer[0].messageId).to.equal(
+        MessageChannel.getMessageId(utf8ToBytes(messagesB[0]))
+      );
+
+      const missingMessages = channelB.sweepIncomingBuffer();
+      expect(missingMessages.length).to.equal(causalHistorySize);
+      expect(missingMessages[0]).to.equal(
+        MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
+      );
+    });
+
+    it("should deliver messages after dependencies are met", () => {
+      const causalHistorySize = (channelA as any).causalHistorySize;
+      const sentMessages = new Array<Message>();
+      messagesA.forEach((m) => {
+        channelA.sendMessage(utf8ToBytes(m), (message) => {
+          sentMessages.push(message);
+          return true;
+        });
+      });
+
+      channelA.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
+        channelB.receiveMessage(message);
+        return true;
+      });
+
+      const missingMessages = channelB.sweepIncomingBuffer();
+      expect(missingMessages.length).to.equal(causalHistorySize);
+      expect(missingMessages[0]).to.equal(
+        MessageChannel.getMessageId(utf8ToBytes(messagesA[0]))
+      );
+
+      let incomingBuffer = (channelB as any).incomingBuffer as Message[];
+      expect(incomingBuffer.length).to.equal(1);
+
+      sentMessages.forEach((m) => {
+        channelB.receiveMessage(m);
+      });
+
+      const missingMessages2 = channelB.sweepIncomingBuffer();
+      expect(missingMessages2.length).to.equal(0);
+
+      incomingBuffer = (channelB as any).incomingBuffer as Message[];
+      expect(incomingBuffer.length).to.equal(0);
+    });
+
+    it("should remove messages without delivering if timeout is exceeded", async () => {
+      const causalHistorySize = (channelA as any).causalHistorySize;
+      // Create a channel with very very short timeout
+      const channelC: MessageChannel = new MessageChannel(
+        channelId,
+        causalHistorySize,
+        true,
+        10
+      );
+
+      messagesA.forEach((m) => {
+        channelA.sendMessage(utf8ToBytes(m), callback);
+      });
+
+      channelA.sendMessage(utf8ToBytes(messagesB[0]), (message) => {
+        channelC.receiveMessage(message);
+        return true;
+      });
+
+      const missingMessages = channelC.sweepIncomingBuffer();
+      expect(missingMessages.length).to.equal(causalHistorySize);
+      let incomingBuffer = (channelC as any).incomingBuffer as Message[];
+      expect(incomingBuffer.length).to.equal(1);
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      channelC.sweepIncomingBuffer();
+      incomingBuffer = (channelC as any).incomingBuffer as Message[];
+      expect(incomingBuffer.length).to.equal(0);
+    });
+  });
+
+  describe("Sweeping outgoing buffer", () => {
+    beforeEach(() => {
+      channelA = new MessageChannel(channelId);
+      channelB = new MessageChannel(channelId);
+    });
+
+    it("should partition messages based on acknowledgement status", () => {
+      const unacknowledgedMessages: Message[] = [];
+      messagesA.forEach((m) => {
+        channelA.sendMessage(utf8ToBytes(m), (message) => {
+          unacknowledgedMessages.push(message);
+          channelB.receiveMessage(message);
+          return true;
+        });
+      });
+
+      let { unacknowledged, possiblyAcknowledged } =
+        channelA.sweepOutgoingBuffer();
+      expect(unacknowledged.length).to.equal(messagesA.length);
+      expect(possiblyAcknowledged.length).to.equal(0);
+
+      // Make sure messages sent by channel A are not in causal history
+      const causalHistorySize = (channelA as any).causalHistorySize;
+      messagesB.slice(0, causalHistorySize).forEach((m) => {
+        channelB.sendMessage(utf8ToBytes(m), callback);
+      });
+
+      channelB.sendMessage(
+        utf8ToBytes(messagesB[causalHistorySize]),
+        (message) => {
+          channelA.receiveMessage(message);
+          return true;
+        }
+      );
+
+      // All messages that were previously unacknowledged should now be possibly acknowledged
+      // since they were included in one of the bloom filters sent from channel B
+      ({ unacknowledged, possiblyAcknowledged } =
+        channelA.sweepOutgoingBuffer());
+      expect(unacknowledged.length).to.equal(0);
+      expect(possiblyAcknowledged.length).to.equal(messagesA.length);
+    });
+  });
 });
