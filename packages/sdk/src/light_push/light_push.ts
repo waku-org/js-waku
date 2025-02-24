@@ -50,11 +50,11 @@ export class LightPush implements ILightPush {
   }
 
   public start(): void {
-    this.peerManager.start();
+    this.retryManager.start();
   }
 
   public stop(): void {
-    this.peerManager.stop();
+    this.retryManager.stop();
   }
 
   public async send(
