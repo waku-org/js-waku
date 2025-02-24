@@ -1,1 +1,1 @@
-export { LightPush, wakuLightPush } from "./light_push.js";
+export { LightPush } from "./light_push.js";

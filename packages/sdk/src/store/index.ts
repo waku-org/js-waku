@@ -1,1 +1,1 @@
-export { Store, wakuStore } from "./store.js";
+export { Store } from "./store.js";
