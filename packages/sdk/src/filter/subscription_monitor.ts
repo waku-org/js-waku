@@ -110,7 +110,7 @@ export class SubscriptionMonitor {
    */
   public async getPeers(): Promise<PeerId[]> {
     if (!this.isStarted) {
-      this.peerIds = await this.peerManager.getPeers();
+      this.peerIds = this.peerManager.getPeers();
     }
 
     return this.peerIds;
@@ -221,7 +221,7 @@ export class SubscriptionMonitor {
       return;
     }
 
-    this.peerIds = await this.peerManager.getPeers();
+    this.peerIds = this.peerManager.getPeers();
     await Promise.all(this.peerIds.map((id) => this.subscribe(id)));
   }
 
@@ -232,7 +232,7 @@ export class SubscriptionMonitor {
       return;
     }
 
-    this.peerIds = await this.peerManager.getPeers();
+    this.peerIds = this.peerManager.getPeers();
 
     // we trigger subscribe for peer that was used before
     // it will expectedly fail and we will initiate addition of a new peer
@@ -257,7 +257,7 @@ export class SubscriptionMonitor {
         return;
       }
 
-      peerId = await this.peerManager.requestRenew(peerId);
+      peerId = this.peerManager.requestRenew(peerId);
     }
   }
 
@@ -269,7 +269,7 @@ export class SubscriptionMonitor {
     const response = await this.filter.ping(peerId);
 
     if (response.failure && renewOnFirstFail) {
-      const newPeer = await this.peerManager.requestRenew(peerId);
+      const newPeer = this.peerManager.requestRenew(peerId);
       await this.subscribe(newPeer);
       return;
     }
@@ -286,7 +286,7 @@ export class SubscriptionMonitor {
     const madeAttempts = this.pingFailedAttempts.get(peerIdStr) || 0;
 
     if (madeAttempts >= this.config.pingsBeforePeerRenewed) {
-      const newPeer = await this.peerManager.requestRenew(peerId);
+      const newPeer = this.peerManager.requestRenew(peerId);
       await this.subscribe(newPeer);
     }
   }
