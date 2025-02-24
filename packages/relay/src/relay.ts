@@ -42,11 +42,16 @@ export type Observer<T extends IDecodedMessage> = {
 export type RelayCreateOptions = CreateNodeOptions & GossipsubOpts;
 export type ContentTopic = string;
 
+type RelayConstructorParams = {
+  libp2p: Libp2p;
+  pubsubTopics: PubsubTopic[];
+};
+
 /**
  * Implements the [Waku v2 Relay protocol](https://rfc.vac.dev/spec/11/).
  * Throws if libp2p.pubsub does not support Waku Relay
  */
-class Relay implements IRelay {
+export class Relay implements IRelay {
   public readonly pubsubTopics: Set<PubsubTopic>;
   private defaultDecoder: IDecoder<IDecodedMessage>;
 
@@ -59,15 +64,15 @@ class Relay implements IRelay {
    */
   private observers: Map<PubsubTopic, Map<ContentTopic, Set<unknown>>>;
 
-  public constructor(libp2p: Libp2p, pubsubTopics: PubsubTopic[]) {
-    if (!this.isRelayPubsub(libp2p.services.pubsub)) {
+  public constructor(params: RelayConstructorParams) {
+    if (!this.isRelayPubsub(params.libp2p.services.pubsub)) {
       throw Error(
         `Failed to initialize Relay. libp2p.pubsub does not support ${Relay.multicodec}`
       );
     }
 
-    this.gossipSub = libp2p.services.pubsub as GossipSub;
-    this.pubsubTopics = new Set(pubsubTopics);
+    this.gossipSub = params.libp2p.services.pubsub as GossipSub;
+    this.pubsubTopics = new Set(params.pubsubTopics);
 
     if (this.gossipSub.isStarted()) {
       this.subscribeToAllTopics();
@@ -76,7 +81,7 @@ class Relay implements IRelay {
     this.observers = new Map();
 
     // TODO: User might want to decide what decoder should be used (e.g. for RLN)
-    this.defaultDecoder = new TopicOnlyDecoder(pubsubTopics[0]);
+    this.defaultDecoder = new TopicOnlyDecoder(params.pubsubTopics[0]);
   }
 
   /**
@@ -309,12 +314,6 @@ class Relay implements IRelay {
   private isRelayPubsub(pubsub: Libp2pPubsub | undefined): boolean {
     return pubsub?.multicodecs?.includes(Relay.multicodec) ?? false;
   }
-}
-
-export function wakuRelay(
-  pubsubTopics: PubsubTopic[]
-): (libp2p: Libp2p) => IRelay {
-  return (libp2p: Libp2p) => new Relay(libp2p, pubsubTopics);
 }
 
 export function wakuGossipSub(
